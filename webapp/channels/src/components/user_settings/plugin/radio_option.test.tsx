@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, fireEvent} from '@testing-library/react';
 import type {ComponentProps} from 'react';
 import React from 'react';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import RadioOption from './radio_option';
 
@@ -33,11 +32,11 @@ describe('radio option', () => {
         expect(screen.queryByText(props.option.helpText!)).toBeInTheDocument();
     });
 
-    it('onSelected is properly called', () => {
+    it('onSelected is properly called', async () => {
         const props = getBaseProps();
         renderWithContext(<RadioOption {...props}/>);
 
-        fireEvent.click(screen.getByText(props.option.text));
+        await userEvent.click(screen.getByText(props.option.text));
 
         expect(props.onSelected).toHaveBeenCalledWith(props.option.value);
     });

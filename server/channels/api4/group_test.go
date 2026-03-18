@@ -2052,15 +2052,7 @@ func TestGetGroups(t *testing.T) {
 
 	t.Run("not associated to channel", func(t *testing.T) {
 		opts := baseOpts
-		resp, err := th.SystemAdminClient.UpdateChannelRoles(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, "")
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-
 		opts.NotAssociatedToChannel = th.BasicChannel.Id
-
-		resp, err = th.SystemAdminClient.UpdateChannelRoles(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, "channel_user channel_admin")
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
 
 		groups, resp, err := th.SystemAdminClient.GetGroups(context.Background(), opts)
 		require.NoError(t, err)
@@ -2070,15 +2062,7 @@ func TestGetGroups(t *testing.T) {
 
 	t.Run("not associated to team", func(t *testing.T) {
 		opts := baseOpts
-		resp, err := th.SystemAdminClient.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, "")
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-
 		opts.NotAssociatedToTeam = th.BasicTeam.Id
-
-		resp, err = th.SystemAdminClient.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, "team_user team_admin")
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
 
 		groups, resp, err := th.SystemAdminClient.GetGroups(context.Background(), opts)
 		require.NoError(t, err)
@@ -2364,6 +2348,91 @@ func TestGetGroupsByNames(t *testing.T) {
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
+}
+
+func TestGetGroupsByNamesAllowReference(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+	// Create group with AllowReference=true
+	id1 := model.NewId()
+	groupAllowRef, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName:    "dn-allow_" + id1,
+		Name:           model.NewPointer("allow" + id1),
+		Source:         model.GroupSourceLdap,
+		RemoteId:       model.NewPointer(model.NewId()),
+		AllowReference: true,
+	})
+	require.Nil(t, appErr)
+
+	// Create group with AllowReference=false
+	id2 := model.NewId()
+	groupNoRef, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName:    "dn-noref_" + id2,
+		Name:           model.NewPointer("noref" + id2),
+		Source:         model.GroupSourceLdap,
+		RemoteId:       model.NewPointer(model.NewId()),
+		AllowReference: false,
+	})
+	require.Nil(t, appErr)
+
+	// Login as regular user
+	th.LoginBasic(t)
+
+	tests := []struct {
+		name           string
+		client         *model.Client4
+		searchNames    []string
+		expectedGroups []*model.Group
+		description    string
+	}{
+		{
+			name:           "admin sees all groups",
+			client:         th.SystemAdminClient,
+			searchNames:    []string{*groupAllowRef.Name, *groupNoRef.Name},
+			expectedGroups: []*model.Group{groupAllowRef, groupNoRef},
+			description:    "admin with sysconsole permission should see all groups",
+		},
+		{
+			name:           "admin sees group with AllowReference=false",
+			client:         th.SystemAdminClient,
+			searchNames:    []string{*groupNoRef.Name},
+			expectedGroups: []*model.Group{groupNoRef},
+			description:    "admin should see group even when AllowReference=false",
+		},
+		{
+			name:           "regular user sees only AllowReference=true",
+			client:         th.Client,
+			searchNames:    []string{*groupAllowRef.Name, *groupNoRef.Name},
+			expectedGroups: []*model.Group{groupAllowRef},
+			description:    "regular user should only see groups with AllowReference=true",
+		},
+		{
+			name:           "regular user cannot see AllowReference=false group",
+			client:         th.Client,
+			searchNames:    []string{*groupNoRef.Name},
+			expectedGroups: []*model.Group{},
+			description:    "regular user should not see groups with AllowReference=false",
+		},
+		{
+			name:           "regular user sees AllowReference=true group",
+			client:         th.Client,
+			searchNames:    []string{*groupAllowRef.Name},
+			expectedGroups: []*model.Group{groupAllowRef},
+			description:    "regular user should see groups with AllowReference=true",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			groups, resp, err := tc.client.GetGroupsByNames(context.Background(), tc.searchNames)
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+			assert.ElementsMatch(t, tc.expectedGroups, groups, tc.description)
+		})
+	}
 }
 
 func TestGetGroupsByUserId(t *testing.T) {

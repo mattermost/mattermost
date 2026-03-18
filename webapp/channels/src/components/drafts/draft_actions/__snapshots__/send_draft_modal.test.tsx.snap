@@ -1,104 +1,70 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/drafts/draft_actions/send_draft_modal should have called onConfirm 1`] = `
-<GenericModal
-  compassDesign={true}
-  confirmButtonText="Yes, send now"
-  handleCancel={[Function]}
-  handleConfirm={
-    [MockFunction] {
-      "calls": Array [
-        Array [],
-      ],
-      "results": Array [
-        Object {
-          "type": "return",
-          "value": undefined,
-        },
-      ],
-    }
-  }
-  modalHeaderText="Send message now"
-  onExited={[MockFunction]}
->
-  <MemoizedFormattedMessage
-    defaultMessage="Are you sure you want to send this message to <strong>{displayName}</strong>?"
-    id="drafts.confirm.send.text"
-    values={
-      Object {
-        "displayName": "display_name",
-        "strong": [Function],
-      }
-    }
-  />
-</GenericModal>
+<div>
+  <div>
+    <h1>
+      Send message now
+    </h1>
+    <div>
+      Are you sure you want to send this message to 
+      <strong>
+        display_name
+      </strong>
+      ?
+    </div>
+    <button>
+      Yes, send now
+    </button>
+    <button>
+      onExited
+    </button>
+  </div>
+</div>
 `;
 
 exports[`components/drafts/draft_actions/send_draft_modal should have called onExited 1`] = `
-<GenericModal
-  compassDesign={true}
-  confirmButtonText="Yes, send now"
-  handleCancel={[Function]}
-  handleConfirm={[MockFunction]}
-  modalHeaderText="Send message now"
-  onExited={
-    [MockFunction] {
-      "calls": Array [
-        Array [],
-      ],
-      "results": Array [
-        Object {
-          "type": "return",
-          "value": undefined,
-        },
-      ],
-    }
-  }
->
-  <MemoizedFormattedMessage
-    defaultMessage="Are you sure you want to send this message to <strong>{displayName}</strong>?"
-    id="drafts.confirm.send.text"
-    values={
-      Object {
-        "displayName": "display_name",
-        "strong": [Function],
-      }
-    }
-  />
-</GenericModal>
+<div>
+  <div>
+    <h1>
+      Send message now
+    </h1>
+    <div>
+      Are you sure you want to send this message to 
+      <strong>
+        display_name
+      </strong>
+      ?
+    </div>
+    <button>
+      Yes, send now
+    </button>
+    <button>
+      onExited
+    </button>
+  </div>
+</div>
 `;
 
 exports[`components/drafts/draft_actions/send_draft_modal should match snapshot 1`] = `
-<ContextProvider
-  value={
-    Object {
-      "getServerState": undefined,
-      "identityFunctionCheck": "once",
-      "stabilityCheck": "once",
-      "store": Object {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": Object {
-        "addNestedSub": [Function],
-        "getListeners": [Function],
-        "handleChangeWrapper": [Function],
-        "isSubscribed": [Function],
-        "notifyNestedSubs": [Function],
-        "trySubscribe": [Function],
-        "tryUnsubscribe": [Function],
-      },
-    }
-  }
->
-  <SendDraftModal
-    displayName="display_name"
-    onConfirm={[MockFunction]}
-    onExited={[MockFunction]}
-  />
-</ContextProvider>
+<div>
+  <div>
+    <h1>
+      Send message now
+    </h1>
+    <div>
+      Are you sure you want to send this message to 
+      <strong>
+        display_name
+      </strong>
+      ?
+    </div>
+    <button>
+      Yes, send now
+    </button>
+    <button>
+      onExited
+    </button>
+  </div>
+</div>
 `;

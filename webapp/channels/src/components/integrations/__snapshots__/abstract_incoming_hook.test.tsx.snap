@@ -181,7 +181,7 @@ exports[`components/integrations/AbstractIncomingWebhook should call action func
             className="form__help"
           >
             <MemoizedFormattedMessage
-              defaultMessage="Specify the username this integration will post as. Usernames can be up to 22 characters, and can contain lowercase letters, numbers and the symbols \\\\\\"-\\\\\\", \\\\\\"_\\\\\\", and \\\\\\".\\\\\\". If left blank, the name specified by the webhook creator is used."
+              defaultMessage="Specify the username this integration will post as. Usernames can be up to 22 characters, and can contain lowercase letters, numbers and the symbols \\"-\\", \\"_\\", and \\".\\". If left blank, the name specified by the webhook creator is used."
               id="add_incoming_webhook.username.help"
             />
           </div>
@@ -446,7 +446,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot 1
             className="form__help"
           >
             <MemoizedFormattedMessage
-              defaultMessage="Specify the username this integration will post as. Usernames can be up to 22 characters, and can contain lowercase letters, numbers and the symbols \\\\\\"-\\\\\\", \\\\\\"_\\\\\\", and \\\\\\".\\\\\\". If left blank, the name specified by the webhook creator is used."
+              defaultMessage="Specify the username this integration will post as. Usernames can be up to 22 characters, and can contain lowercase letters, numbers and the symbols \\"-\\", \\"_\\", and \\".\\". If left blank, the name specified by the webhook creator is used."
               id="add_incoming_webhook.username.help"
             />
           </div>
@@ -711,7 +711,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot w
             className="form__help"
           >
             <MemoizedFormattedMessage
-              defaultMessage="Specify the username this integration will post as. Usernames can be up to 22 characters, and can contain lowercase letters, numbers and the symbols \\\\\\"-\\\\\\", \\\\\\"_\\\\\\", and \\\\\\".\\\\\\". If left blank, the name specified by the webhook creator is used."
+              defaultMessage="Specify the username this integration will post as. Usernames can be up to 22 characters, and can contain lowercase letters, numbers and the symbols \\"-\\", \\"_\\", and \\".\\". If left blank, the name specified by the webhook creator is used."
               id="add_incoming_webhook.username.help"
             />
           </div>
@@ -976,7 +976,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
             className="form__help"
           >
             <MemoizedFormattedMessage
-              defaultMessage="Specify the username this integration will post as. Usernames can be up to 22 characters, and can contain lowercase letters, numbers and the symbols \\\\\\"-\\\\\\", \\\\\\"_\\\\\\", and \\\\\\".\\\\\\". If left blank, the name specified by the webhook creator is used."
+              defaultMessage="Specify the username this integration will post as. Usernames can be up to 22 characters, and can contain lowercase letters, numbers and the symbols \\"-\\", \\"_\\", and \\".\\". If left blank, the name specified by the webhook creator is used."
               id="add_incoming_webhook.username.help"
             />
           </div>
@@ -1244,7 +1244,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
             className="form__help"
           >
             <MemoizedFormattedMessage
-              defaultMessage="Specify the username this integration will post as. Usernames can be up to 22 characters, and can contain lowercase letters, numbers and the symbols \\\\\\"-\\\\\\", \\\\\\"_\\\\\\", and \\\\\\".\\\\\\". If left blank, the name specified by the webhook creator is used."
+              defaultMessage="Specify the username this integration will post as. Usernames can be up to 22 characters, and can contain lowercase letters, numbers and the symbols \\"-\\", \\"_\\", and \\".\\". If left blank, the name specified by the webhook creator is used."
               id="add_incoming_webhook.username.help"
             />
           </div>
@@ -1708,7 +1708,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
             className="form__help"
           >
             <MemoizedFormattedMessage
-              defaultMessage="Specify the username this integration will post as. Usernames can be up to 22 characters, and can contain lowercase letters, numbers and the symbols \\\\\\"-\\\\\\", \\\\\\"_\\\\\\", and \\\\\\".\\\\\\". If left blank, the name specified by the webhook creator is used."
+              defaultMessage="Specify the username this integration will post as. Usernames can be up to 22 characters, and can contain lowercase letters, numbers and the symbols \\"-\\", \\"_\\", and \\".\\". If left blank, the name specified by the webhook creator is used."
               id="add_incoming_webhook.username.help"
             />
           </div>

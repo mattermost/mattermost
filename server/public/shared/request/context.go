@@ -168,6 +168,11 @@ func (c *Context) WithLogger(logger mlog.LoggerIFace) CTX {
 	return rctx
 }
 
+// WithLogFields returns a new context with the given fields added to the logger.
+func (c *Context) WithLogFields(fields ...mlog.Field) CTX {
+	return c.WithLogger(c.logger.With(fields...))
+}
+
 func (c *Context) With(f func(ctx CTX) CTX) CTX {
 	return f(c)
 }
@@ -194,6 +199,7 @@ type CTX interface {
 	WithUserAgent(string) CTX
 	WithAcceptLanguage(string) CTX
 	WithLogger(mlog.LoggerIFace) CTX
+	WithLogFields(fields ...mlog.Field) CTX
 	WithContext(ctx context.Context) CTX
 	With(func(ctx CTX) CTX) CTX
 }

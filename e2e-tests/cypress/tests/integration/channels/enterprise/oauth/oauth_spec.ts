@@ -245,7 +245,7 @@ describe('Integrations page', () => {
 
         // # Update description
         cy.get('#description').invoke('val').then(($text) => {
-            if (!$text.match('Edited$')) {
+            if (!(String($text)).match('Edited$')) {
                 cy.get('#description').type('Edited');
             }
         });

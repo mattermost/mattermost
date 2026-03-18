@@ -1,14 +1,36 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+
+import {act, render, screen, userEvent} from 'tests/react_testing_utils';
 
 import AutocompleteSelector from './autocomplete_selector';
 
+let mockOnItemSelected: ((selected: any) => void) | undefined;
+
+jest.mock('components/suggestion/suggestion_box', () => {
+    const ReactMod = require('react');
+    const MockSuggestionBox = ReactMod.forwardRef(function MockSuggestionBox(props: any, ref: any) {
+        mockOnItemSelected = props.onItemSelected;
+        return (
+            <input
+                ref={ref}
+                className={props.className || 'form-control'}
+                value={props.value || ''}
+                onChange={(e: any) => props.onChange?.({target: e.target})}
+                onFocus={props.onFocus}
+                onBlur={props.onBlur}
+                placeholder={props.placeholder}
+            />
+        );
+    });
+    return {__esModule: true, default: MockSuggestionBox};
+});
+
 describe('components/widgets/settings/AutocompleteSelector', () => {
     test('render component with required props', () => {
-        const wrapper = shallow(
+        const {container} = render(
             <AutocompleteSelector
                 id='string.id'
                 label='some label'
@@ -16,43 +38,11 @@ describe('components/widgets/settings/AutocompleteSelector', () => {
                 providers={[]}
             />,
         );
-        expect(wrapper).toMatchInlineSnapshot(`
-            <div
-              className="form-group"
-              data-testid="autoCompleteSelector"
-            >
-              <label
-                className="control-label "
-              >
-                some label
-              </label>
-              <div
-                className=""
-              >
-                <Connect(SuggestionBox)
-                  className="form-control"
-                  completeOnTab={true}
-                  containerClass="select-suggestion-container"
-                  listComponent={[Function]}
-                  listPosition="top"
-                  onBlur={[Function]}
-                  onChange={[Function]}
-                  onFocus={[Function]}
-                  onItemSelected={[Function]}
-                  openOnFocus={true}
-                  openWhenEmpty={true}
-                  providers={Array []}
-                  renderNoResults={true}
-                  replaceAllInputOnSelect={true}
-                  value="some value"
-                />
-              </div>
-            </div>
-        `);
+        expect(container).toMatchSnapshot();
     });
 
-    test('check snapshot with value prop and changing focus', () => {
-        const wrapper = shallow<AutocompleteSelector>(
+    test('check snapshot with value prop and changing focus', async () => {
+        const {container} = render(
             <AutocompleteSelector
                 providers={[]}
                 label='some label'
@@ -60,83 +50,28 @@ describe('components/widgets/settings/AutocompleteSelector', () => {
             />,
         );
 
-        wrapper.instance().onBlur();
+        const input = screen.getByRole('textbox');
 
-        expect(wrapper).toMatchInlineSnapshot(`
-            <div
-              className="form-group"
-              data-testid="autoCompleteSelector"
-            >
-              <label
-                className="control-label "
-              >
-                some label
-              </label>
-              <div
-                className=""
-              >
-                <Connect(SuggestionBox)
-                  className="form-control"
-                  completeOnTab={true}
-                  containerClass="select-suggestion-container"
-                  listComponent={[Function]}
-                  listPosition="top"
-                  onBlur={[Function]}
-                  onChange={[Function]}
-                  onFocus={[Function]}
-                  onItemSelected={[Function]}
-                  openOnFocus={true}
-                  openWhenEmpty={true}
-                  providers={Array []}
-                  renderNoResults={true}
-                  replaceAllInputOnSelect={true}
-                  value="value from prop"
-                />
-              </div>
-            </div>
-        `);
+        // Initially not focused, shows prop value
+        expect(input).toHaveValue('value from prop');
+        expect(container).toMatchSnapshot();
 
-        wrapper.instance().onChange(({target: {value: 'value from input'} as HTMLInputElement}));
-        wrapper.instance().onFocus();
+        // Focus the input and type a new value
+        await userEvent.click(input);
+        await userEvent.clear(input);
+        await userEvent.type(input, 'value from input');
 
-        expect(wrapper).toMatchInlineSnapshot(`
-            <div
-              className="form-group"
-              data-testid="autoCompleteSelector"
-            >
-              <label
-                className="control-label "
-              >
-                some label
-              </label>
-              <div
-                className=""
-              >
-                <Connect(SuggestionBox)
-                  className="form-control"
-                  completeOnTab={true}
-                  containerClass="select-suggestion-container"
-                  listComponent={[Function]}
-                  listPosition="top"
-                  onBlur={[Function]}
-                  onChange={[Function]}
-                  onFocus={[Function]}
-                  onItemSelected={[Function]}
-                  openOnFocus={true}
-                  openWhenEmpty={true}
-                  providers={Array []}
-                  renderNoResults={true}
-                  replaceAllInputOnSelect={true}
-                  value="value from input"
-                />
-              </div>
-            </div>
-        `);
+        expect(input).toHaveValue('value from input');
+        expect(container).toMatchSnapshot();
+
+        // Blur the input - value should revert to prop value
+        await userEvent.tab();
+        expect(input).toHaveValue('value from prop');
     });
 
     test('onSelected', () => {
         const onSelected = jest.fn();
-        const wrapper = shallow<AutocompleteSelector>(
+        render(
             <AutocompleteSelector
                 label='some label'
                 value='some value'
@@ -146,7 +81,9 @@ describe('components/widgets/settings/AutocompleteSelector', () => {
         );
 
         const selected = {text: 'sometext', value: 'somevalue', id: '', username: '', display_name: ''};
-        wrapper.instance().handleSelected(selected);
+        act(() => {
+            mockOnItemSelected!(selected);
+        });
 
         expect(onSelected).toHaveBeenCalledTimes(1);
         expect(onSelected).toHaveBeenCalledWith(selected);

@@ -137,6 +137,8 @@ func (a *App) tryExecutePluginCommand(rctx request.CTX, args *model.CommandArgs)
 		return nil, nil, nil
 	}
 
+	rctx = rctx.WithLogFields(mlog.String("plugin_id", matched.PluginId))
+
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return nil, nil, nil

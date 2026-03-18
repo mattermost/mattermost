@@ -142,7 +142,7 @@ class RhsCardHeader extends React.PureComponent<Props> {
                     {back}
                     <FormattedMessage
                         id='search_header.title5'
-                        defaultMessage='Extra information'
+                        defaultMessage='Extra Information'
                     />
                 </span>
                 <div className='pull-right'>

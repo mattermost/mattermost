@@ -328,7 +328,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
         return managedByLDAP ? {
             trailingElements: formatMessage({
                 id: 'admin.system_users.list.actions.menu.managedByLdap',
-                defaultMessage: 'Managed by LDAP',
+                defaultMessage: '(Managed by LDAP)',
             }),
         } : {};
     };
@@ -524,7 +524,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                         labels={
                             <FormattedMessage
                                 id='admin.system_users.list.actions.menu.removeSessions'
-                                defaultMessage='Remove sessions'
+                                defaultMessage='Revoke sessions'
                             />
                         }
                         onClick={handleRemoveSessionsClick}

@@ -15,7 +15,7 @@ exports[`components/integrations/outgoing_oauth_connections/OAuthConnectionAudie
         "listen": [Function],
         "location": Object {
           "hash": "",
-          "pathname": "undefinedundefined",
+          "pathname": "/",
           "search": "",
           "state": undefined,
         },
@@ -109,7 +109,7 @@ exports[`components/integrations/outgoing_oauth_connections/OAuthConnectionAudie
         "listen": [Function],
         "location": Object {
           "hash": "",
-          "pathname": "undefinedundefined",
+          "pathname": "/",
           "search": "",
           "state": undefined,
         },
@@ -203,7 +203,7 @@ exports[`components/integrations/outgoing_oauth_connections/OAuthConnectionAudie
         "listen": [Function],
         "location": Object {
           "hash": "",
-          "pathname": "undefinedundefined",
+          "pathname": "/",
           "search": "",
           "state": undefined,
         },
@@ -297,7 +297,7 @@ exports[`components/integrations/outgoing_oauth_connections/OAuthConnectionAudie
         "listen": [Function],
         "location": Object {
           "hash": "",
-          "pathname": "undefinedundefined",
+          "pathname": "/",
           "search": "",
           "state": undefined,
         },
@@ -407,7 +407,7 @@ exports[`components/integrations/outgoing_oauth_connections/OAuthConnectionAudie
         "listen": [Function],
         "location": Object {
           "hash": "",
-          "pathname": "undefinedundefined",
+          "pathname": "/",
           "search": "",
           "state": undefined,
         },

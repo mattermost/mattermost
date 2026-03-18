@@ -189,7 +189,7 @@ type PluginItemProps = {
 };
 
 const messages = defineMessages({
-    title: {id: 'admin.plugin.management.title', defaultMessage: 'Management'},
+    title: {id: 'admin.plugin.management.title', defaultMessage: 'Plugin Management'},
     enable: {id: 'admin.plugins.settings.enable', defaultMessage: 'Enable Plugins: '},
     enableDesc: {id: 'admin.plugins.settings.enableDesc', defaultMessage: 'When true, enables plugins on your Mattermost server. Use plugins to integrate with third-party systems, extend functionality, or customize the user interface of your Mattermost server. See <link>documentation</link> to learn more.'},
     uploadTitle: {id: 'admin.plugin.uploadTitle', defaultMessage: 'Upload Plugin: '},
@@ -1073,7 +1073,7 @@ class PluginManagement extends OLDAdminSettings<Props, State> {
             uploadHelpText = (
                 <FormattedMessage
                     id='admin.plugin.uploadAndPluginDisabledDesc'
-                    defaultMessage='To enable plugins, set **Enable Plugins** to true. See <link>documentation</link> to learn more.'
+                    defaultMessage='To enable plugins, set <strong>Enable Plugins</strong> to true. See <link>documentation</link> to learn more.'
                     values={{
                         link: (msg: React.ReactNode) => (
                             <ExternalLink
@@ -1083,6 +1083,7 @@ class PluginManagement extends OLDAdminSettings<Props, State> {
                                 {msg}
                             </ExternalLink>
                         ),
+                        strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
                     }}
                 />
             );

@@ -184,7 +184,7 @@ export type AdminDefinitionConfigSchemaSettings = {
 
 export type AdminDefinitionConfigSchemaSection = {
     key: string;
-    title?: string;
+    title?: string | MessageDescriptor;
     subtitle?: string;
     description?: string | MessageDescriptor;
     license_sku?: string;
