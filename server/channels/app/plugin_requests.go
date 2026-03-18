@@ -247,9 +247,7 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 	r.Header.Del(model.HeaderAuth)
 
 	rctx = rctx.
-		WithLogger(rctx.Logger().With(
-			mlog.String("user_id", session.UserId),
-		)).
+		WithLogFields(mlog.String("user_id", session.UserId)).
 		WithSession(session)
 
 	// If MFA is required and user has not activated it, treat it as unauthenticated

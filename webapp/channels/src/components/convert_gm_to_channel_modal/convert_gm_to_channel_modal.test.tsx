@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, waitFor} from '@testing-library/react';
 import nock from 'nock';
 import React from 'react';
 
@@ -16,7 +15,8 @@ import {Preferences} from 'mattermost-redux/constants';
 import ConvertGmToChannelModal from 'components/convert_gm_to_channel_modal/convert_gm_to_channel_modal';
 
 import TestHelper from 'packages/mattermost-redux/test/test_helper';
-import {act, renderWithContext, screen} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {LicenseSkus} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -43,10 +43,24 @@ describe('component/ConvertGmToChannelModal', () => {
         entities: {
             teams: {
                 teams: {
-                    team_id_1: {id: 'team_id_1', display_name: 'Team 1', name: 'team_1'} as Team,
-                    team_id_2: {id: 'team_id_2', display_name: 'Team 2', name: 'team_2'} as Team,
+                    team_id_1: {
+                        id: 'team_id_1',
+                        display_name: 'Team 1',
+                        name: 'team_1',
+                    } as Team,
+                    team_id_2: {
+                        id: 'team_id_2',
+                        display_name: 'Team 2',
+                        name: 'team_2',
+                    } as Team,
                 },
                 currentTeamId: 'team_id_1',
+            },
+            general: {
+                config: {
+                    UseAnonymousURLs: 'false',
+                },
+                license: {SkuShortName: LicenseSkus.EnterpriseAdvanced},
             },
         },
     };
@@ -161,18 +175,58 @@ describe('component/ConvertGmToChannelModal', () => {
 
         const team1Option = screen.queryByText('Team 1');
         expect(team1Option).toBeInTheDocument();
-        fireEvent.click(team1Option!);
+        await userEvent.click(team1Option!);
 
         const channelNameInput = screen.queryByPlaceholderText('Channel name');
         expect(channelNameInput).toBeInTheDocument();
-        fireEvent.change(channelNameInput!, {target: {value: 'Channel name set by me'}});
+        await userEvent.clear(channelNameInput!);
+        await userEvent.type(channelNameInput!, 'Channel name set by me');
 
         const confirmButton = screen.queryByText('Convert to private channel');
         expect(channelNameInput).toBeInTheDocument();
 
-        await act(async () => {
-            fireEvent.click(confirmButton!);
-        });
+        await userEvent.click(confirmButton!);
+    });
+
+    test('when UseAnonymousURLs is enabled, user cannot specify a channel URL', async () => {
+        TestHelper.initBasic(Client4);
+        nock(Client4.getBaseRoute()).
+            get('/channels/channel_id_1/common_teams').
+            reply(200, [
+                {id: 'team_id_1', display_name: 'Team 1', name: 'team_1'},
+            ]);
+
+        const anonymousURLState: DeepPartial<GlobalState> = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                general: {
+                    ...baseState.entities?.general,
+                    config: {
+                        UseAnonymousURLs: 'true',
+                    },
+                },
+            },
+        };
+
+        renderWithContext(
+            <ConvertGmToChannelModal {...baseProps}/>,
+            anonymousURLState,
+        );
+
+        await waitFor(
+            () =>
+                expect(
+                    screen.queryByText(
+                        'Conversation history will be visible to any channel members',
+                    ),
+                ).toBeInTheDocument(),
+            {timeout: 1500},
+        );
+
+        expect(screen.queryByPlaceholderText('Channel name')).toBeVisible();
+        expect(screen.queryByText('Edit')).not.toBeInTheDocument();
+        expect(screen.queryByText(/URL:/)).not.toBeInTheDocument();
     });
 
     test('duplicate channel names should npt be allowed', async () => {
@@ -202,14 +256,13 @@ describe('component/ConvertGmToChannelModal', () => {
 
         const channelNameInput = screen.queryByPlaceholderText('Channel name');
         expect(channelNameInput).toBeInTheDocument();
-        fireEvent.change(channelNameInput!, {target: {value: 'Channel'}});
+        await userEvent.clear(channelNameInput!);
+        await userEvent.type(channelNameInput!, 'Channel');
 
         const confirmButton = screen.queryByText('Convert to private channel');
         expect(channelNameInput).toBeInTheDocument();
 
-        await act(async () => {
-            fireEvent.click(confirmButton!);
-        });
+        await userEvent.click(confirmButton!);
 
         expect(screen.queryByText('A channel with that URL already exists')).toBeInTheDocument();
     });

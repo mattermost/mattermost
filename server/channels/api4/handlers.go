@@ -220,6 +220,10 @@ func (api *API) APILocal(h handlerFunc, opts ...APIHandlerOption) http.Handler {
 }
 
 func (api *API) RateLimitedHandler(apiHandler http.Handler, settings model.RateLimitSettings) http.Handler {
+	if !*api.srv.Config().RateLimitSettings.Enable {
+		return apiHandler
+	}
+
 	settings.SetDefaults()
 
 	rateLimiter, err := app.NewRateLimiter(&settings, []string{})

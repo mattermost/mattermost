@@ -1,16 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import type {Column} from 'components/admin_console/data_grid/data_grid';
-
-import {act} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import PolicyList from './policies';
 
@@ -39,12 +36,11 @@ describe('components/admin_console/access_control/PolicyList', () => {
 
     test('should match snapshot with no policies', async () => {
         mockSearchPolicies.mockResolvedValue({data: {policies: [], total: 0}} as ActionResult);
-        const wrapper = shallow(<PolicyList {...defaultProps}/>);
-        await act(async () => {
-            await Promise.resolve();
+        const {container} = renderWithContext(<PolicyList {...defaultProps}/>);
+        await waitFor(() => {
+            expect(screen.getByText('No policies found')).toBeInTheDocument();
         });
-        wrapper.update();
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with policies', async () => {
@@ -57,51 +53,54 @@ describe('components/admin_console/access_control/PolicyList', () => {
                 total: 2,
             },
         } as ActionResult);
-        const wrapper = shallow(<PolicyList {...defaultProps}/>);
-        await act(async () => {
-            await Promise.resolve();
+        const {container} = renderWithContext(<PolicyList {...defaultProps}/>);
+        await waitFor(() => {
+            expect(screen.getByText('Policy 1')).toBeInTheDocument();
         });
-        wrapper.update();
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with search error', async () => {
         mockSearchPolicies.mockRejectedValue(new Error('Search failed'));
-        const wrapper = shallow(<PolicyList {...defaultProps}/>);
-        await act(async () => {
-            await Promise.resolve();
+        const {container} = renderWithContext(<PolicyList {...defaultProps}/>);
+        await waitFor(() => {
+            expect(screen.getByText('Something went wrong. Try again')).toBeInTheDocument();
         });
-        wrapper.update();
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
-    test('should not call previousPage if no history', async () => {
-        mockSearchPolicies.mockResolvedValueOnce({data: {policies: [], total: 0}} as ActionResult);
-        const wrapper = shallow(<PolicyList {...defaultProps}/>);
-        await act(async () => {
-            await Promise.resolve();
+    test('should not call searchPolicies when clicking previous page on the first page', async () => {
+        mockSearchPolicies.mockResolvedValue({
+            data: {
+                policies: [
+                    {id: 'policy1', name: 'Policy 1'} as AccessControlPolicy,
+                    {id: 'policy2', name: 'Policy 2'} as AccessControlPolicy,
+                ],
+                total: 2,
+            },
+        } as ActionResult);
+        renderWithContext(<PolicyList {...defaultProps}/>);
+        await waitFor(() => {
+            expect(screen.getByText('Policy 1')).toBeInTheDocument();
         });
-        wrapper.update();
 
-        mockSearchPolicies.mockClear(); // Clear calls from mount
+        mockSearchPolicies.mockClear();
 
-        await act(async () => {
-            (wrapper.find('DataGrid').props() as any).previousPage();
-        });
-        wrapper.update();
+        const prevButton = screen.getByRole('button', {name: 'Previous page'});
+        await userEvent.click(prevButton);
 
         expect(mockSearchPolicies).not.toHaveBeenCalled();
-        expect(wrapper.find('DataGrid').prop('page')).toBe(0);
     });
 
-    test('should get columns correctly', () => {
-        const wrapper = shallow(<PolicyList {...defaultProps}/>);
+    test('should get columns correctly', async () => {
+        mockSearchPolicies.mockResolvedValue({data: {policies: [], total: 0}} as ActionResult);
+        renderWithContext(<PolicyList {...defaultProps}/>);
+        await waitFor(() => {
+            expect(screen.getByText('No policies found')).toBeInTheDocument();
+        });
 
-        // Columns are determined synchronously
-        const columns = wrapper.find('DataGrid').prop('columns') as Column[];
-        expect(columns).toHaveLength(3);
-        expect(columns[0].field).toBe('name');
-        expect(columns[1].field).toBe('resources');
-        expect(columns[2].field).toBe('actions');
+        // Verify column headers are rendered
+        expect(screen.getByText('Name')).toBeInTheDocument();
+        expect(screen.getByText('Applies to')).toBeInTheDocument();
     });
 });

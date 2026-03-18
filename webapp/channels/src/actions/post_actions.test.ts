@@ -244,7 +244,7 @@ describe('Actions.Posts', () => {
                             channelId: 'other_channel_id',
                             fetchedChannelMember: false,
                             onlyMentions: undefined,
-                            teamId: undefined,
+                            teamId: '',
                         },
                     },
                     {
@@ -263,7 +263,7 @@ describe('Actions.Posts', () => {
                             amountUrgent: 0,
                             channelId: 'other_channel_id',
                             fetchedChannelMember: false,
-                            teamId: undefined,
+                            teamId: '',
                         },
                     },
                 ],

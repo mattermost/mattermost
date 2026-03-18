@@ -15,7 +15,6 @@ import {ModalIdentifiers} from 'utils/constants';
 type Props = {
     onTryAgain?: () => void;
     title?: JSX.Element;
-    subtitle?: JSX.Element;
     buttonText?: JSX.Element;
 }
 

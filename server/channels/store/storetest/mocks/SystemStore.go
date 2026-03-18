@@ -6,6 +6,7 @@ package mocks
 
 import (
 	model "github.com/mattermost/mattermost/server/public/model"
+	request "github.com/mattermost/mattermost/server/public/shared/request"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -67,6 +68,66 @@ func (_m *SystemStore) GetByName(name string) (*model.System, error) {
 
 	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(name)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetByNameWithContext provides a mock function with given fields: rctx, name
+func (_m *SystemStore) GetByNameWithContext(rctx request.CTX, name string) (*model.System, error) {
+	ret := _m.Called(rctx, name)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetByNameWithContext")
+	}
+
+	var r0 *model.System
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string) (*model.System, error)); ok {
+		return rf(rctx, name)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string) *model.System); ok {
+		r0 = rf(rctx, name)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.System)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
+		r1 = rf(rctx, name)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetWithContext provides a mock function with given fields: rctx
+func (_m *SystemStore) GetWithContext(rctx request.CTX) (model.StringMap, error) {
+	ret := _m.Called(rctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetWithContext")
+	}
+
+	var r0 model.StringMap
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX) (model.StringMap, error)); ok {
+		return rf(rctx)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX) model.StringMap); ok {
+		r0 = rf(rctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(model.StringMap)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX) error); ok {
+		r1 = rf(rctx)
 	} else {
 		r1 = ret.Error(1)
 	}
