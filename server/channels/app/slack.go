@@ -41,7 +41,7 @@ func (a *App) SlackImport(c request.CTX, fileData multipart.File, fileSize int64
 		InvalidateAllCaches:    func() *model.AppError { return a.ch.srv.platform.InvalidateAllCaches() },
 		MaxPostSize:            func() int { return a.ch.srv.platform.MaxPostSize() },
 		SendPasswordReset: func(email string) (bool, *model.AppError) {
-			sent, err := a.SendPasswordReset(rctx, email, a.GetSiteURL())
+			sent, err := a.SendPasswordReset(c, email, a.GetSiteURL())
 			if err != nil {
 				return false, err
 			}
