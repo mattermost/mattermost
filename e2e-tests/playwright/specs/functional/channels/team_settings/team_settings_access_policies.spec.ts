@@ -19,6 +19,7 @@ import {
 
 test.describe('Team Settings Modal - Access Control Tab', () => {
     test('MM-67669_1 Access Control tab visible for admin with ABAC enabled', async ({pw}) => {
+        await pw.skipIfNoLicense();
         const {adminUser, adminClient, adminConfig} = await pw.initSetup();
         const config = {...adminConfig};
         config.AccessControlSettings = {...config.AccessControlSettings, EnableAttributeBasedAccessControl: true};
@@ -55,6 +56,7 @@ test.describe('Team Settings Modal - Access Control Tab', () => {
     });
 
     test('MM-67669_4 Empty state displayed when no policies exist', async ({pw}) => {
+        await pw.skipIfNoLicense();
         const {adminUser, adminClient, adminConfig} = await pw.initSetup();
         const config = {...adminConfig};
         config.AccessControlSettings = {...config.AccessControlSettings, EnableAttributeBasedAccessControl: true};
