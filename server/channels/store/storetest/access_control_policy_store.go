@@ -15,6 +15,7 @@ import (
 
 func TestAccessControlPolicyStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("Save", func(t *testing.T) { testAccessControlPolicyStoreSaveAndGet(t, rctx, ss) })
+	t.Run("SaveDuplicateName", func(t *testing.T) { testAccessControlPolicyStoreSaveDuplicateName(t, rctx, ss) })
 	t.Run("Delete", func(t *testing.T) { testAccessControlPolicyStoreDelete(t, rctx, ss) })
 	t.Run("SetActive", func(t *testing.T) { testAccessControlPolicyStoreSetActive(t, rctx, ss) })
 	t.Run("SetActiveMultiple", func(t *testing.T) { testAccessControlPolicyStoreSetActiveMultiple(t, rctx, ss) })
@@ -130,6 +131,196 @@ func testAccessControlPolicyStoreSaveAndGet(t *testing.T, rctx request.CTX, ss s
 		policy, err := ss.AccessControlPolicy().Get(rctx, id)
 		require.EqualError(t, err, store.NewErrNotFound("AccessControlPolicy", id).Error())
 		require.Nil(t, policy)
+	})
+}
+
+func testAccessControlPolicyStoreSaveDuplicateName(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("Duplicate parent policy name should fail", func(t *testing.T) {
+		policy1 := &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Unique Policy Name",
+			Type:     model.AccessControlPolicyTypeParent,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Actions:    []string{"action"},
+					Expression: "user.properties.program == \"engineering\"",
+				},
+			},
+		}
+
+		policy1, err := ss.AccessControlPolicy().Save(rctx, policy1)
+		require.NoError(t, err)
+		require.NotNil(t, policy1)
+
+		t.Cleanup(func() {
+			err := ss.AccessControlPolicy().Delete(rctx, policy1.ID)
+			require.NoError(t, err)
+		})
+
+		policy2 := &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Unique Policy Name",
+			Type:     model.AccessControlPolicyTypeParent,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Actions:    []string{"action"},
+					Expression: "user.properties.department == \"sales\"",
+				},
+			},
+		}
+
+		_, err = ss.AccessControlPolicy().Save(rctx, policy2)
+		require.Error(t, err)
+		var conflictErr *store.ErrConflict
+		require.ErrorAs(t, err, &conflictErr)
+	})
+
+	t.Run("Same name across different types should succeed", func(t *testing.T) {
+		parentPolicy := &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Cross Type Name",
+			Type:     model.AccessControlPolicyTypeParent,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Actions:    []string{"action"},
+					Expression: "user.properties.program == \"engineering\"",
+				},
+			},
+		}
+
+		parentPolicy, err := ss.AccessControlPolicy().Save(rctx, parentPolicy)
+		require.NoError(t, err)
+		require.NotNil(t, parentPolicy)
+
+		t.Cleanup(func() {
+			err := ss.AccessControlPolicy().Delete(rctx, parentPolicy.ID)
+			require.NoError(t, err)
+		})
+
+		channelPolicy := &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Cross Type Name",
+			Type:     model.AccessControlPolicyTypeChannel,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Actions:    []string{"action"},
+					Expression: "user.properties.program == \"engineering\"",
+				},
+			},
+		}
+
+		channelPolicy, err = ss.AccessControlPolicy().Save(rctx, channelPolicy)
+		require.NoError(t, err)
+		require.NotNil(t, channelPolicy)
+
+		t.Cleanup(func() {
+			err := ss.AccessControlPolicy().Delete(rctx, channelPolicy.ID)
+			require.NoError(t, err)
+		})
+	})
+
+	t.Run("Updating same policy name should succeed", func(t *testing.T) {
+		policy := &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Update Same Name",
+			Type:     model.AccessControlPolicyTypeParent,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Actions:    []string{"action"},
+					Expression: "user.properties.program == \"engineering\"",
+				},
+			},
+		}
+
+		policy, err := ss.AccessControlPolicy().Save(rctx, policy)
+		require.NoError(t, err)
+		require.NotNil(t, policy)
+
+		t.Cleanup(func() {
+			err := ss.AccessControlPolicy().Delete(rctx, policy.ID)
+			require.NoError(t, err)
+		})
+
+		// Update rules but keep same name — should succeed
+		policy.Rules = []model.AccessControlPolicyRule{
+			{
+				Actions:    []string{"action"},
+				Expression: "user.properties.department == \"sales\"",
+			},
+		}
+
+		policy, err = ss.AccessControlPolicy().Save(rctx, policy)
+		require.NoError(t, err)
+		require.NotNil(t, policy)
+	})
+
+	t.Run("Reusing name after deletion should succeed", func(t *testing.T) {
+		policy1 := &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Reusable Name",
+			Type:     model.AccessControlPolicyTypeParent,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Actions:    []string{"action"},
+					Expression: "user.properties.program == \"engineering\"",
+				},
+			},
+		}
+
+		policy1, err := ss.AccessControlPolicy().Save(rctx, policy1)
+		require.NoError(t, err)
+
+		err = ss.AccessControlPolicy().Delete(rctx, policy1.ID)
+		require.NoError(t, err)
+
+		policy2 := &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Reusable Name",
+			Type:     model.AccessControlPolicyTypeParent,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Actions:    []string{"action"},
+					Expression: "user.properties.department == \"sales\"",
+				},
+			},
+		}
+
+		policy2, err = ss.AccessControlPolicy().Save(rctx, policy2)
+		require.NoError(t, err)
+		require.NotNil(t, policy2)
+
+		t.Cleanup(func() {
+			err := ss.AccessControlPolicy().Delete(rctx, policy2.ID)
+			require.NoError(t, err)
+		})
 	})
 }
 
@@ -297,7 +488,7 @@ func testAccessControlPolicyStoreGetAll(t *testing.T, rctx request.CTX, ss store
 	id3 := "zzz" + model.NewId()[3:] // ensure the order of the ID
 	parentPolicy2 := &model.AccessControlPolicy{
 		ID:       id3,
-		Name:     "Name",
+		Name:     "Name2",
 		Type:     model.AccessControlPolicyTypeParent,
 		Active:   true,
 		Revision: 1,
@@ -554,7 +745,7 @@ func testAccessControlPolicyStoreGetPoliciesByFieldID(t *testing.T, rctx request
 		t.Helper()
 		policy := &model.AccessControlPolicy{
 			ID:       model.NewId(),
-			Name:     "Policy",
+			Name:     "Policy " + model.NewId(),
 			Type:     model.AccessControlPolicyTypeParent,
 			Active:   true,
 			Revision: 1,
@@ -654,7 +845,7 @@ func testAccessControlPolicyStoreGetPoliciesByFieldID(t *testing.T, rctx request
 		deletableField := model.NewId()
 		policy := &model.AccessControlPolicy{
 			ID:       model.NewId(),
-			Name:     "Policy",
+			Name:     "Policy " + model.NewId(),
 			Type:     model.AccessControlPolicyTypeParent,
 			Active:   true,
 			Revision: 1,
