@@ -947,9 +947,7 @@
             .post-image__name {
                 @include mixins.clearfix;
 
-                display: flex;
-                align-items: center;
-                justify-content: flex-start;
+                display: block;
                 width: 100%;
                 padding: 0 5px;
                 margin: 0;
