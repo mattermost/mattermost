@@ -5,6 +5,7 @@ import {expect, Page} from '@playwright/test';
 import {waitUntil} from 'async-wait-until';
 
 import {
+    BrowseChannelsModal,
     ChannelsPost,
     ChannelSettingsModal,
     CreateTeamForm,
@@ -36,6 +37,7 @@ export default class ChannelsPage {
     readonly deletePostModal;
     readonly findChannelsModal;
     readonly newChannelModal;
+    readonly browseChannelsModal;
     public invitePeopleModal: InvitePeopleModal | undefined;
     public membersInvitedModal: MembersInvitedModal | undefined;
     readonly profileModal;
@@ -72,7 +74,8 @@ export default class ChannelsPage {
         this.createTeamForm = new CreateTeamForm(page.locator('.signup-team__container'));
         this.deletePostModal = new components.DeletePostModal(page.locator('#deletePostModal'));
         this.findChannelsModal = new components.FindChannelsModal(page.getByRole('dialog', {name: 'Find Channels'}));
-        this.newChannelModal = new NewChannelModal(page.locator('#new-channel-modal'));
+        this.newChannelModal = new NewChannelModal(page.getByRole('dialog', {name: 'Create a new channel'}));
+        this.browseChannelsModal = new BrowseChannelsModal(page.getByRole('dialog', {name: 'Browse Channels'}));
         this.profileModal = new components.ProfileModal(page.getByRole('dialog', {name: 'Profile'}));
         this.settingsModal = new components.SettingsModal(page.getByRole('dialog', {name: 'Settings'}));
         this.teamSettingsModal = new components.TeamSettingsModal(page.getByRole('dialog', {name: 'Team Settings'}));
@@ -208,10 +211,18 @@ export default class ChannelsPage {
 
     async openNewChannelModal(): Promise<NewChannelModal> {
         await this.sidebarLeft.browseOrCreateChannelButton.click();
-        await this.page.locator('#createNewChannelMenuItem').click();
+        await this.page.getByText('Create new channel').click();
         await this.newChannelModal.toBeVisible();
 
         return this.newChannelModal;
+    }
+
+    async openBrowseChannelsModal(): Promise<BrowseChannelsModal> {
+        await this.sidebarLeft.browseOrCreateChannelButton.click();
+        await this.page.getByText('Browse channels').click();
+        await this.browseChannelsModal.toBeVisible();
+
+        return this.browseChannelsModal;
     }
 
     async openCreateTeamForm(): Promise<CreateTeamForm> {

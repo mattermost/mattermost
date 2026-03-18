@@ -7,6 +7,7 @@ import GlobalHeader from './global_header';
 import MainHeader from './main_header';
 import UserAccountMenu from './user_account_menu';
 // Channels Components
+import BrowseChannelsModal from './channels/browse_channels_modal';
 import ChannelsAppBar from './channels/app_bar';
 import ChannelsCenterView from './channels/center_view';
 import CreateTeamForm from './channels/create_team_form';
@@ -88,6 +89,7 @@ const components = {
     FindChannelsModal,
     FlagPostConfirmationDialog,
     NewChannelModal,
+    BrowseChannelsModal,
     GenericConfirmModal,
     InvitePeopleModal,
     MembersInvitedModal,
@@ -158,6 +160,7 @@ export {
     FindChannelsModal,
     FlagPostConfirmationDialog,
     NewChannelModal,
+    BrowseChannelsModal,
     GenericConfirmModal,
     InvitePeopleModal,
     MembersInvitedModal,
