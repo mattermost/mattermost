@@ -37,6 +37,11 @@ await systemConsolePage.toBeVisible();
 - Keep tests as standalone `test()` blocks (avoid `test.describe` in generated `@ai-assisted` specs).
 - Tag generated specs with `{tag: '@ai-assisted'}` and include the full JSDoc/test metadata block (see "Test Documentation Format" section below) so they pass `lint:test-docs`.
 
+## Available MCP Servers
+
+- `playwright-test` provides live browser planning, generation, and debug tools.
+- `e2e_agents` provides repository-aware helpers from `@yasserkhanorg/e2e-agents`, including git diff discovery, repository context, and test file read/write helpers.
+
 ## Key Commands
 
 ### Installation
