@@ -143,11 +143,13 @@ jobs:
         continue-on-error: true
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           BASE_REF: ${{ github.base_ref }}
+          LLM_PROVIDER: ${{ vars.E2E_AGENTS_LLM_PROVIDER || 'auto' }}
         run: |
-          npx e2e-ai-agents plan \
-            --config ./e2e-ai-agents.config.json \
+          npm run impact:plan-crew -- \
             --since "origin/${BASE_REF}" \
+            --llm-provider "${LLM_PROVIDER}" \
             --fail-on-must-add-tests \
             --github-output "$GITHUB_OUTPUT"
 
@@ -157,9 +159,12 @@ jobs:
         working-directory: e2e-tests/playwright
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          LLM_PROVIDER: ${{ vars.E2E_AGENTS_LLM_PROVIDER || 'auto' }}
         run: |
           npx e2e-ai-agents generate \
             --config ./e2e-ai-agents.config.json \
+            --llm-provider "${LLM_PROVIDER}" \
             --budget-usd 1.00 \
             --dry-run
 
@@ -267,6 +272,82 @@ jobs:
                   lines.push('</details>');
                   lines.push('');
                 }
+              }
+
+              if (plan.crew) {
+                const crew = plan.crew;
+                const strategyEntries = crew.strategyEntries || [];
+                const testDesigns = crew.testDesigns || [];
+                const highRiskCrossImpacts = (crew.crossImpacts || []).filter((entry) => entry.riskLevel === 'high');
+                const totalCases = testDesigns.reduce((n, td) => n + (td.testCases || []).length, 0);
+
+                const gapFamilyIds = new Set((plan.gapDetails || []).map((g) => g.id));
+                const gapDesigns = gapFamilyIds.size > 0
+                  ? testDesigns.filter((td) =>
+                      Array.from(gapFamilyIds).some((fam) =>
+                        td.flowId.startsWith(fam) || td.flowName.toLowerCase().includes(fam.replace(/_/g, ' '))))
+                  : [];
+                const gapCases = gapDesigns.reduce((n, td) => n + (td.testCases || []).length, 0);
+                const gapP0Cases = gapDesigns.reduce((n, td) => n + (td.testCases || []).filter((tc) => tc.priority === 'P0').length, 0);
+
+                lines.push('');
+                lines.push(`### 🤖 Crew insights (${crew.workflow || 'quick-check'})`);
+                lines.push('');
+                lines.push(`- **${crew.summary?.impactedFlows || 0}** impacted flow(s) analyzed`);
+                if (gapDesigns.length > 0) {
+                  lines.push(`- **${gapDesigns.length}** gap flow(s) → **${gapCases}** test cases (**${gapP0Cases}** P0)`);
+                  lines.push(`- **${testDesigns.length - gapDesigns.length}** covered flow(s) → ${totalCases - gapCases} expansion cases`);
+                } else {
+                  lines.push(`- **${testDesigns.length}** test design(s), **${totalCases}** test cases`);
+                }
+                if (highRiskCrossImpacts.length > 0) {
+                  lines.push(`- **${highRiskCrossImpacts.length}** high-risk cross-impact(s)`);
+                }
+
+                const gapStrategyEntries = gapFamilyIds.size > 0
+                  ? strategyEntries.filter((e) =>
+                      Array.from(gapFamilyIds).some((fam) =>
+                        e.flowId.startsWith(fam) || e.flowName.toLowerCase().includes(fam.replace(/_/g, ' '))))
+                  : [];
+                if (gapStrategyEntries.length > 0) {
+                  lines.push('');
+                  lines.push(`**Gap flow strategy (${gapStrategyEntries.length}):**`);
+                  for (const entry of gapStrategyEntries) {
+                    lines.push(`- **${entry.flowName}** (${entry.priority}) → ${entry.approach} · cross-impact: ${entry.crossImpactRisk}`);
+                  }
+                }
+
+                const otherStrategy = strategyEntries.filter((e) => !gapStrategyEntries.includes(e));
+                if (otherStrategy.length > 0) {
+                  lines.push('');
+                  lines.push(`<details><summary>🧠 Covered flow strategy (${otherStrategy.length})</summary>`);
+                  lines.push('');
+                  for (const entry of otherStrategy.slice(0, 8)) {
+                    lines.push(`- **${entry.flowName}** (${entry.priority}) → ${entry.approach} · cross-impact: ${entry.crossImpactRisk}`);
+                  }
+                  if (otherStrategy.length > 8) lines.push(`- ... and ${otherStrategy.length - 8} more`);
+                  lines.push('');
+                  lines.push('</details>');
+                }
+
+                if (gapDesigns.length > 0) {
+                  lines.push('');
+                  lines.push(`<details><summary>🧪 Gap flow test cases (${gapCases} cases, ${gapP0Cases} P0)</summary>`);
+                  lines.push('');
+                  for (const design of gapDesigns) {
+                    const p0 = (design.testCases || []).filter((tc) => tc.priority === 'P0');
+                    lines.push(`**${design.flowName}** (${(design.testCases || []).length} cases, ${p0.length} P0):`);
+                    for (const tc of p0) {
+                      lines.push(`- [ ] ${tc.name} (${tc.type})`);
+                    }
+                    lines.push('');
+                  }
+                  lines.push('</details>');
+                }
+
+                const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+                lines.push('');
+                lines.push(`> 📋 Full test plan: [crew-test-plan.md](${runUrl}#artifacts)`);
               }
 
               // ── Clean covered flows (collapsed) ────────────────────────────
