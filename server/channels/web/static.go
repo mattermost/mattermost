@@ -112,7 +112,7 @@ func root(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defaultLocale := *c.App.Srv().Config().LocalizationSettings.DefaultServerLocale
+	defaultLocale := *c.App.Srv().Config().LocalizationSettings.DefaultClientLocale
 	htmlTagWithLangTemplate := `<html lang="%s">`
 	localizedHtmlTag := fmt.Sprintf(htmlTagWithLangTemplate, html.EscapeString(defaultLocale))
 	defaultEnglishHtmlTag := fmt.Sprintf(htmlTagWithLangTemplate, "en")
