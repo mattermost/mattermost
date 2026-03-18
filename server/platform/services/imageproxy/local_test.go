@@ -4,6 +4,7 @@
 package imageproxy
 
 import (
+	"bytes"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -215,6 +216,30 @@ func TestLocalBackend_GetImage(t *testing.T) {
 
 	t.Run("XML-based SVG with image/png content type", func(t *testing.T) {
 		body := []byte(`<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg"><rect/></svg>`)
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "image/png")
+
+			w.WriteHeader(http.StatusOK)
+			w.Write(body)
+		})
+
+		mock := httptest.NewServer(handler)
+		defer mock.Close()
+
+		proxy := makeTestLocalProxy()
+
+		recorder := httptest.NewRecorder()
+		request, err := http.NewRequest(http.MethodGet, "", nil)
+		require.NoError(t, err)
+		proxy.GetImage(recorder, request, mock.URL+"/image.png")
+		resp := recorder.Result()
+
+		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
+	t.Run("SVG body with leading whitespace prefix", func(t *testing.T) {
+		prefix := bytes.Repeat([]byte(" "), 600)
+		body := append(prefix, []byte(`<svg xmlns="http://www.w3.org/2000/svg"><rect/></svg>`)...)
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "image/png")
 

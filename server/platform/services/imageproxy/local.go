@@ -169,7 +169,7 @@ func (backend *LocalBackend) ServeImage(w http.ResponseWriter, req *http.Request
 
 	// Wrap the body in a bufio.Reader so we can peek at bytes for
 	// content-type detection without consuming the stream.
-	b := bufio.NewReader(resp.Body)
+	b := bufio.NewReaderSize(resp.Body, contentPeekSize)
 	resp.Body = io.NopCloser(b)
 
 	if isSVGContent(b) {
@@ -255,16 +255,46 @@ func peekContentType(p *bufio.Reader) string {
 	return http.DetectContentType(byt)
 }
 
-// isSVGContent peeks at the first 512 bytes of p and reports whether they
-// contain SVG markers.
+// contentPeekSize is the number of bytes read ahead for content inspection.
+// It must match the bufio.Reader buffer size created in ServeImage.
+const contentPeekSize = 8192
+
+// isSVGContent peeks at the first contentPeekSize bytes of p and reports whether
+// they contain SVG markers. UTF-16 encoded content (identified by a BOM) is
+// decoded to ASCII before scanning.
 func isSVGContent(p *bufio.Reader) bool {
-	byt, err := p.Peek(512)
+	byt, err := p.Peek(contentPeekSize)
 	if err != nil && err != bufio.ErrBufferFull && err != io.EOF {
 		return false
 	}
-	lower := strings.ToLower(string(byt))
+	if len(byt) == 0 {
+		return false
+	}
+
+	var text string
+	if len(byt) >= 2 && byt[0] == 0xFF && byt[1] == 0xFE {
+		text = extractASCIIFromUTF16(byt[2:], 0) // UTF-16 LE
+	} else if len(byt) >= 2 && byt[0] == 0xFE && byt[1] == 0xFF {
+		text = extractASCIIFromUTF16(byt[2:], 1) // UTF-16 BE
+	} else {
+		text = string(byt)
+	}
+
+	lower := strings.TrimLeft(strings.ToLower(text), "\x00 \t\n\r")
 	return strings.Contains(lower, "<svg") ||
 		(strings.Contains(lower, "<?xml") && strings.Contains(lower, "<svg"))
+}
+
+// extractASCIIFromUTF16 extracts ASCII characters from a UTF-16 byte slice.
+// charByteOffset is 0 for little-endian (low byte first) and 1 for big-endian.
+func extractASCIIFromUTF16(b []byte, charByteOffset int) string {
+	out := make([]byte, 0, len(b)/2)
+	for i := charByteOffset; i+1 < len(b); i += 2 {
+		if b[i] < 0x80 {
+			out = append(out, b[i])
+		}
+	}
+	return string(out)
 }
 
 // contentTypeMatches returns whether contentType matches one of the allowed patterns.
