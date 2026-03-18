@@ -162,11 +162,6 @@ func (backend *LocalBackend) ServeImage(w http.ResponseWriter, req *http.Request
 
 	copyHeader(w.Header(), resp.Header, "Cache-Control", "Last-Modified", "Expires", "Etag", "Link")
 
-	if should304(req, resp) {
-		w.WriteHeader(http.StatusNotModified)
-		return
-	}
-
 	// Wrap the body in a bufio.Reader so we can peek at bytes for
 	// content-type detection without consuming the stream.
 	b := bufio.NewReaderSize(resp.Body, contentPeekSize)
@@ -185,6 +180,12 @@ func (backend *LocalBackend) ServeImage(w http.ResponseWriter, req *http.Request
 		http.Error(w, msgNotAllowed, http.StatusForbidden)
 		return
 	}
+
+	if should304(req, resp) {
+		w.WriteHeader(http.StatusNotModified)
+		return
+	}
+
 	w.Header().Set("Content-Type", contentType)
 
 	copyHeader(w.Header(), resp.Header, "Content-Length")
