@@ -6561,33 +6561,33 @@ func testAutocomplete(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 			Email:       MakeEmail(),
 			Type:        model.TeamOpen,
 		}
-		sortTeam, err := ss.Team().Save(sortTeam)
-		require.NoError(t, err)
+		sortTeam, err2 := ss.Team().Save(sortTeam)
+		require.NoError(t, err2)
 
 		sortUser := model.NewId()
-		_, err = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: sortTeam.Id, UserId: sortUser}, -1)
-		require.NoError(t, err)
+		_, err2 = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: sortTeam.Id, UserId: sortUser}, -1)
+		require.NoError(t, err2)
 
 		// Channels where DisplayName matches "alpha":
 		chDisplayAlpha2 := model.Channel{TeamId: sortTeam.Id, DisplayName: "Alpha Two", Name: NewTestID(), Type: model.ChannelTypeOpen}
-		_, err = ss.Channel().Save(rctx, &chDisplayAlpha2, -1)
-		require.NoError(t, err)
+		_, err2 = ss.Channel().Save(rctx, &chDisplayAlpha2, -1)
+		require.NoError(t, err2)
 
 		chDisplayAlpha1 := model.Channel{TeamId: sortTeam.Id, DisplayName: "Alpha One", Name: NewTestID(), Type: model.ChannelTypeOpen}
-		_, err = ss.Channel().Save(rctx, &chDisplayAlpha1, -1)
-		require.NoError(t, err)
+		_, err2 = ss.Channel().Save(rctx, &chDisplayAlpha1, -1)
+		require.NoError(t, err2)
 
 		// Channels where only Purpose matches "alpha" (DisplayName does NOT contain "alpha"):
 		chPurposeOnly2 := model.Channel{TeamId: sortTeam.Id, DisplayName: "Zulu Channel", Name: NewTestID(), Purpose: "alpha related work", Type: model.ChannelTypeOpen}
-		_, err = ss.Channel().Save(rctx, &chPurposeOnly2, -1)
-		require.NoError(t, err)
+		_, err2 = ss.Channel().Save(rctx, &chPurposeOnly2, -1)
+		require.NoError(t, err2)
 
 		chPurposeOnly1 := model.Channel{TeamId: sortTeam.Id, DisplayName: "Bravo Channel", Name: NewTestID(), Purpose: "alpha discussions", Type: model.ChannelTypeOpen}
-		_, err = ss.Channel().Save(rctx, &chPurposeOnly1, -1)
-		require.NoError(t, err)
+		_, err2 = ss.Channel().Save(rctx, &chPurposeOnly1, -1)
+		require.NoError(t, err2)
 
-		channels, err := ss.Channel().Autocomplete(rctx, sortUser, "alpha", false, false)
-		require.NoError(t, err)
+		channels, err2 := ss.Channel().Autocomplete(rctx, sortUser, "alpha", false, false)
+		require.NoError(t, err2)
 		require.Len(t, channels, 4)
 
 		// DisplayName matches come first, sorted alphabetically by DisplayName
@@ -6608,24 +6608,24 @@ func testAutocomplete(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 			Email:       MakeEmail(),
 			Type:        model.TeamOpen,
 		}
-		sortTeam, err := ss.Team().Save(sortTeam)
-		require.NoError(t, err)
+		sortTeam, err2 := ss.Team().Save(sortTeam)
+		require.NoError(t, err2)
 
 		sortUser := model.NewId()
-		_, err = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: sortTeam.Id, UserId: sortUser}, -1)
-		require.NoError(t, err)
+		_, err2 = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: sortTeam.Id, UserId: sortUser}, -1)
+		require.NoError(t, err2)
 
 		// Create 50 channels that match only on Purpose (not DisplayName).
 		// Give them DisplayNames that sort before the DisplayName-matching channel.
 		for i := range model.ChannelSearchDefaultLimit {
-			_, err = ss.Channel().Save(rctx, &model.Channel{
+			_, err2 = ss.Channel().Save(rctx, &model.Channel{
 				TeamId:      sortTeam.Id,
 				DisplayName: fmt.Sprintf("AAA Channel %03d", i),
 				Name:        NewTestID(),
 				Purpose:     "findme in purpose",
 				Type:        model.ChannelTypeOpen,
 			}, -1)
-			require.NoError(t, err)
+			require.NoError(t, err2)
 		}
 
 		// Create 1 channel whose DisplayName matches the term but sorts last alphabetically.
@@ -6635,11 +6635,11 @@ func testAutocomplete(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 			Name:        NewTestID(),
 			Type:        model.ChannelTypeOpen,
 		}
-		_, err = ss.Channel().Save(rctx, &chDisplayMatch, -1)
-		require.NoError(t, err)
+		_, err2 = ss.Channel().Save(rctx, &chDisplayMatch, -1)
+		require.NoError(t, err2)
 
-		channels, err := ss.Channel().Autocomplete(rctx, sortUser, "findme", false, false)
-		require.NoError(t, err)
+		channels, err2 := ss.Channel().Autocomplete(rctx, sortUser, "findme", false, false)
+		require.NoError(t, err2)
 		require.Len(t, channels, model.ChannelSearchDefaultLimit)
 
 		// The DisplayName-matching channel must be first despite sorting last alphabetically.
