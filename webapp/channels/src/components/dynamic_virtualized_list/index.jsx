@@ -11,6 +11,23 @@ import ListItem from './list_item';
 
 const atBottomMargin = 10;
 
+function isViewportAtBottom(element, fallbackClientHeight) {
+    if (!element || element.scrollHeight <= 0) {
+        return false;
+    }
+    const clientH = element.clientHeight || fallbackClientHeight || 0;
+    return element.scrollTop + clientH >= element.scrollHeight - atBottomMargin;
+}
+
+/** True if legacy virtual-list math says we're at the bottom (works while content is still shorter than viewport). */
+function isLegacyMetaAtBottom(element, viewportHeight, totalMeasuredSize) {
+    if (!element) {
+        return false;
+    }
+    const h = viewportHeight || element.clientHeight || 0;
+    return h + element.scrollTop >= totalMeasuredSize - atBottomMargin;
+}
+
 export class DynamicVirtualizedList extends PureComponent {
     _listMetaData = {
         itemOffsetMap: {},
@@ -481,9 +498,15 @@ export class DynamicVirtualizedList extends PureComponent {
         }
 
         const element = this._outerRef;
-        const wasAtBottom =
-            this.props.height + element.scrollTop >=
-            this._listMetaData.totalMeasuredSize - atBottomMargin;
+        // DOM: correct when totalMeasuredSize > scrollHeight (MM-67518). Legacy meta: correct on initial
+        // load while scrollTop≈0 and content is still filling (DOM-only falsely says "not at bottom").
+        const domAtBottom = isViewportAtBottom(element, this.props.height);
+        const legacyAtBottom = isLegacyMetaAtBottom(
+            element,
+            this.props.height,
+            this._listMetaData.totalMeasuredSize,
+        );
+        const wasAtBottom = domAtBottom || legacyAtBottom;
 
         if (
             (wasAtBottom || this._keepScrollToBottom) &&
@@ -547,8 +570,12 @@ export class DynamicVirtualizedList extends PureComponent {
             const element = this._outerRef;
 
             const atBottom =
-                element.offsetHeight + element.scrollTop >=
-                this._listMetaData.totalMeasuredSize - atBottomMargin;
+                isViewportAtBottom(element, this.props.height) ||
+                isLegacyMetaAtBottom(
+                    element,
+                    this.props.height,
+                    this._listMetaData.totalMeasuredSize,
+                );
 
             this._generateOffsetMeasurements();
 
