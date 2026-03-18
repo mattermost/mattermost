@@ -10422,5 +10422,85 @@
   {
     "id": "api.user.create_user.license_user_limits.exceeded",
     "translation": "Невозможно создать пользователя. На сервере превышено максимальное количество лицензированных пользователей. Обратись к своему администратору: ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
+    "id": "api.user.delete_channel.not_enabled.for_admin.app_error",
+    "translation": "Функция постоянного удаления каналов не включена. Для использования этой команды параметр ServiceSettings.EnableAPIChannelDeletion должен быть установлен в true. Дополнительную информацию см. на сайте https://mattermost.com/pl/environment-configuration-settings."
+  },
+  {
+    "id": "api.user.delete_team.not_enabled.for_admin.app_error",
+    "translation": "Функция постоянного удаления команд не включена. ServiceSettings.EnableAPITeamDeletion должен иметь значение true, чтобы использовать эту команду. Более подробную информацию смотри на сайте https://mattermost.com/pl/environment-configuration-settings."
+  },
+  {
+    "id": "api.user.delete_user.not_enabled.for_admin.app_error",
+    "translation": "Функция постоянного удаления пользователей не включена. ServiceSettings.EnableAPIUserDeletion должен быть установлен в true, чтобы использовать эту команду. Более подробную информацию смотри на сайте https://mattermost.com/pl/environment-configuration-settings."
+  },
+  {
+    "id": "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error",
+    "translation": "Служба контроля доступа недоступна. Невозможно отфильтровать пользователей для канала с поддержкой ABAC."
+  },
+  {
+    "id": "api.user.guest_magic_link.expired_token.app_error",
+    "translation": "Срок действия этой ссылки на приглашение истек."
+  },
+  {
+    "id": "api.user.guest_magic_link.invalid_token.app_error",
+    "translation": "Недействительная ссылка на приглашение."
+  },
+  {
+    "id": "api.user.guest_magic_link.missing_token.app_error",
+    "translation": "Отсутствует токен приглашения."
+  },
+  {
+    "id": "api.user.guest_magic_link.username_generation_failed.app_error",
+    "translation": "Не удалось сгенерировать уникальное имя пользователя. Обратитесь к своему системному администратору."
+  },
+  {
+    "id": "api.user.login.guest_magic_link.disabled.error",
+    "translation": "Вход с помощью магической ссылки отключен."
+  },
+  {
+    "id": "api.user.login_by_intune.account_locked.app_error",
+    "translation": "Ваша учетная запись была деактивирована. Обратитесь к своему системному администратору."
+  },
+  {
+    "id": "api.user.login_by_intune.bot_login_forbidden.app_error",
+    "translation": "Учетные записи ботов не могут входить в систему с помощью аутентификации Microsoft."
+  },
+  {
+    "id": "api.user.login_by_intune.not_available.app_error",
+    "translation": "Аутентификация Microsoft Intune недоступна."
+  },
+  {
+    "id": "api.user.login_by_intune.not_configured.app_error",
+    "translation": "Аутентификация Microsoft Intune не настроена."
+  },
+  {
+    "id": "api.user.login_sso_code_exchange.deprecated.app_error",
+    "translation": "Эта конечная точка устарела и отключена. Пожалуйста, обновите свое мобильное приложение."
+  },
+  {
+    "id": "api.user.oauth.get_settings.app_error",
+    "translation": "Не удалось получить настройки {{.Service}}"
+  },
+  {
+    "id": "api.user.oauth_to_email.magic_link.app_error",
+    "translation": "Магическая ссылка — единственный доступный метод входа для этой учетной записи."
+  },
+  {
+    "id": "api.user.update_password.magic_link.app_error",
+    "translation": "Невозможно обновить пароль для учетных записей с магической ссылкой."
+  },
+  {
+    "id": "api.user.promote_guest_to_user.magic_link_enabled.app_error",
+    "translation": "Невозможно преобразовать гостя в обычного пользователя, потому что он использует аутентификацию по магической ссылке."
+  },
+  {
+    "id": "api.user.send_password_reset.guest_magic_link.app_error",
+    "translation": "Невозможно сбросить пароль для гостевых аккаунтов с магической ссылкой."
+  },
+  {
+    "id": "model.config.is_valid.guest_accounts.cannot_enforce_multifactor_authentication_when_guest_magic_link_is_enabled.app_error",
+    "translation": "Вы не можете применить многофакторную аутентификацию для гостевых записей, если включена аутентификация по магической ссылке."
   }
 ]
