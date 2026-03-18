@@ -721,7 +721,7 @@
   },
   {
     "id": "api.command.move_command.creator_not_in_team.app_error",
-    "translation": ""
+    "translation": "Creator not in team"
   },
   {
     "id": "api.command.team_mismatch.app_error",
@@ -6387,10 +6387,6 @@
     "translation": "Could not get channel members to remove."
   },
   {
-    "id": "app.pap.get_policies_for_field_ids.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.pap.get_policy.app_error",
     "translation": "Unable to retrieve the access control policy."
   },
@@ -8033,106 +8029,6 @@
     "translation": " attached a file."
   },
   {
-    "id": "ent.autotranslation.add_task.missing_object_id",
-    "translation": ""
-  },
-  {
-    "id": "ent.autotranslation.add_task.missing_object_type",
-    "translation": ""
-  },
-  {
-    "id": "ent.autotranslation.add_task.nil_task",
-    "translation": ""
-  },
-  {
-    "id": "ent.autotranslation.add_task.worker_stopped",
-    "translation": ""
-  },
-  {
-    "id": "ent.autotranslation.create_translation_failed",
-    "translation": ""
-  },
-  {
-    "id": "ent.autotranslation.detect_language.nil_context",
-    "translation": ""
-  },
-  {
-    "id": "ent.autotranslation.detect_language.text_too_large",
-    "translation": ""
-  },
-  {
-    "id": "ent.autotranslation.detect_remote.error",
-    "translation": ""
-  },
-  {
-    "id": "ent.autotranslation.extract_content.mask_error",
-    "translation": ""
-  },
-  {
-    "id": "ent.autotranslation.extract_post.nil_post",
-    "translation": ""
-  },
-  {
-    "id": "ent.autotranslation.feature_unavailable",
-    "translation": ""
-  },
-  {
-    "id": "ent.autotranslation.invalid_input",
-    "translation": ""
-  },
-  {
-    "id": "ent.autotranslation.mask_verification_failed",
-    "translation": ""
-  },
-  {
-    "id": "ent.autotranslation.no_translatable_content",
-    "translation": ""
-  },
-  {
-    "id": "ent.autotranslation.provider_not_available",
-    "translation": ""
-  },
-  {
-    "id": "ent.autotranslation.provider_not_initialized",
-    "translation": ""
-  },
-  {
-    "id": "ent.autotranslation.store_error",
-    "translation": ""
-  },
-  {
-    "id": "ent.autotranslation.unmask.missing_mask",
-    "translation": ""
-  },
-  {
-    "id": "ent.autotranslation.unmask.orphan_token",
-    "translation": ""
-  },
-  {
-    "id": "ent.autotranslation.validate_content.invalid_json",
-    "translation": ""
-  },
-  {
-    "id": "ent.autotranslation.validate_content.invalid_type",
-    "translation": ""
-  },
-  {
-    "id": "ent.autotranslation.validate_content.nil_content",
-    "translation": ""
-  },
-  {
-    "id": "ent.autotranslation.validate_content.text_too_large",
-    "translation": ""
-  },
-  {
-    "id": "ent.autotranslation.validate_id.empty",
-    "translation": ""
-  },
-  {
-    "id": "ent.autotranslation.validate_id.invalid",
-    "translation": ""
-  },
-  {
     "id": "ent.cluster.config_changed.info",
     "translation": "Cluster configuration has changed for id={{ .id }}. The cluster may become unstable and a restart is required. To ensure the cluster is configured correctly you should perform a rolling restart immediately."
   },
@@ -8417,38 +8313,6 @@
     "translation": "Your license does not support ID Loaded Push Notifications."
   },
   {
-    "id": "ent.intune.login.account_not_found.app_error",
-    "translation": ""
-  },
-  {
-    "id": "ent.intune.login.extract_auth_data.app_error",
-    "translation": ""
-  },
-  {
-    "id": "ent.intune.login.not_configured.app_error",
-    "translation": ""
-  },
-  {
-    "id": "ent.intune.validate_token.invalid_tenant_id.app_error",
-    "translation": ""
-  },
-  {
-    "id": "ent.intune.validate_token.invalid_token.app_error",
-    "translation": ""
-  },
-  {
-    "id": "ent.intune.validate_token.jwks_init.app_error",
-    "translation": ""
-  },
-  {
-    "id": "ent.intune.validate_token.missing_claims.app_error",
-    "translation": ""
-  },
-  {
-    "id": "ent.intune.validate_token.token_expired.app_error",
-    "translation": ""
-  },
-  {
     "id": "ent.jobs.start_synchronize_job.timeout",
     "translation": "Reached AD/LDAP synchronization job timeout."
   },
@@ -8707,54 +8571,6 @@
   {
     "id": "ent.outgoing_oauth_connections.update_connection.audience_invalid",
     "translation": "The provided audience is invalid: {{ .Error }}"
-  },
-  {
-    "id": "ent.push_proxy.delete.app_error",
-    "translation": ""
-  },
-  {
-    "id": "ent.push_proxy.generate.bad_status.app_error",
-    "translation": ""
-  },
-  {
-    "id": "ent.push_proxy.generate.create_request.app_error",
-    "translation": ""
-  },
-  {
-    "id": "ent.push_proxy.generate.empty_token.app_error",
-    "translation": ""
-  },
-  {
-    "id": "ent.push_proxy.generate.encrypt.app_error",
-    "translation": ""
-  },
-  {
-    "id": "ent.push_proxy.generate.http_request.app_error",
-    "translation": ""
-  },
-  {
-    "id": "ent.push_proxy.generate.marshal.app_error",
-    "translation": ""
-  },
-  {
-    "id": "ent.push_proxy.generate.marshal_request.app_error",
-    "translation": ""
-  },
-  {
-    "id": "ent.push_proxy.generate.no_key.app_error",
-    "translation": ""
-  },
-  {
-    "id": "ent.push_proxy.generate.parse_response.app_error",
-    "translation": ""
-  },
-  {
-    "id": "ent.push_proxy.generate.save_system.app_error",
-    "translation": ""
-  },
-  {
-    "id": "ent.push_proxy.worker.interface_nil.app_error",
-    "translation": ""
   },
   {
     "id": "ent.saml.attribute.app_error",
