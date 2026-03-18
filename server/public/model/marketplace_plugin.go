@@ -94,7 +94,12 @@ type MarketplacePluginFilter struct {
 
 // ApplyToURL modifies the given url to include query string parameters for the request.
 func (filter *MarketplacePluginFilter) ApplyToURL(u *url.URL) {
-	q := u.Query()
+	u.RawQuery = filter.ToValues().Encode()
+}
+
+// ToValues converts the filter to url.Values for use in query strings.
+func (filter *MarketplacePluginFilter) ToValues() url.Values {
+	q := url.Values{}
 	q.Add("page", strconv.Itoa(filter.Page))
 	if filter.PerPage > 0 {
 		q.Add("per_page", strconv.Itoa(filter.PerPage))
@@ -109,7 +114,7 @@ func (filter *MarketplacePluginFilter) ApplyToURL(u *url.URL) {
 	q.Add("platform", filter.Platform)
 	q.Add("plugin_id", filter.PluginId)
 	q.Add("return_all_versions", strconv.FormatBool(filter.ReturnAllVersions))
-	u.RawQuery = q.Encode()
+	return q
 }
 
 // InstallMarketplacePluginRequest struct describes parameters of the requested plugin.

@@ -5,8 +5,12 @@ import type {PopoutViewProps} from '@mattermost/desktop-api';
 
 import {Client4} from 'mattermost-redux/client';
 
+import {RHSStates} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
+import {getBasePath} from 'utils/url';
 import {isDesktopApp} from 'utils/user_agent';
+
+import type {RhsState, SearchType} from 'types/store/rhs';
 
 import BrowserPopouts from './browser_popouts';
 import {
@@ -14,8 +18,8 @@ import {
     onMessageFromParent as onMessageFromParentBrowser,
 } from './use_browser_popout';
 
-const pluginPopoutListeners: Map<string, (teamName: string, channelName: string, listeners: Partial<PopoutListeners>) => void> = new Map();
-export function registerRHSPluginPopoutListener(pluginId: string, onPopoutOpened: (teamName: string, channelName: string, listeners: Partial<PopoutListeners>) => void) {
+const pluginPopoutListeners: Map<string, (teamName: string, channelName: string | undefined, listeners: Partial<PopoutListeners>) => void> = new Map();
+export function registerRHSPluginPopoutListener(pluginId: string, onPopoutOpened: (teamName: string, channelName: string | undefined, listeners: Partial<PopoutListeners>) => void) {
     pluginPopoutListeners.set(pluginId, onPopoutOpened);
 }
 
@@ -27,7 +31,7 @@ export async function popoutThread(
     onFocusPost: (postId: string, returnTo: string) => void,
 ) {
     const popoutListeners = await popout(
-        `/_popout/thread/${teamName}/${threadId}`,
+        `${getBasePath()}/_popout/thread/${teamName}/${threadId}`,
         {
             isRHS: true,
             titleTemplate,
@@ -51,10 +55,20 @@ export async function popoutRhsPlugin(
     titleTemplate: string,
     pluginId: string,
     teamName: string,
-    channelName: string,
+    channelName?: string,
 ) {
+    const url = new URL(
+        `${getBasePath()}/_popout/rhs/${teamName}/plugin/${pluginId}`,
+        window.location.origin,
+    );
+    if (channelName) {
+        url.searchParams.set('channel', channelName);
+    }
+
+    const path = `${url.pathname}${url.search}`;
+
     const listeners = await popout(
-        `/_popout/rhs/${teamName}/${channelName}/plugin/${pluginId}`,
+        path,
         {
             isRHS: true,
             titleTemplate,
@@ -64,6 +78,55 @@ export async function popoutRhsPlugin(
     pluginPopoutListeners.get(pluginId)?.(teamName, channelName, listeners);
 
     return listeners;
+}
+
+export async function popoutRhsSearch(
+    titleTemplate: string,
+    teamName: string,
+    searchTerms: string,
+    mode: NonNullable<RhsState> = RHSStates.SEARCH,
+    searchType: SearchType = 'messages',
+    channelName?: string,
+    searchTeamId?: string,
+) {
+    const url = new URL(
+        `${getBasePath()}/_popout/rhs/${teamName}/search`,
+        window.location.origin,
+    );
+    url.searchParams.set('q', searchTerms);
+    url.searchParams.set('type', searchType);
+    url.searchParams.set('mode', mode);
+    if (channelName) {
+        url.searchParams.set('channel', channelName);
+    }
+    if (searchTeamId !== undefined) {
+        url.searchParams.set('searchTeamId', searchTeamId);
+    }
+
+    const path = `${url.pathname}${url.search}`;
+
+    return popout(
+        path,
+        {
+            isRHS: true,
+            titleTemplate,
+        },
+    );
+}
+
+export async function popoutHelp() {
+    return popout(
+        '/_popout/help',
+        {
+
+            // Not really RHS, but this gives a desirable window size.
+            isRHS: true,
+
+            // Note: titleTemplate is intentionally omitted so that the desktop
+            // app uses document.title, allowing dynamic title updates as the
+            // user navigates between help pages.
+        },
+    );
 }
 
 /**

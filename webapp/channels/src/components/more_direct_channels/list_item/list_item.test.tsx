@@ -1,15 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import {General} from 'mattermost-redux/constants';
+
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import ListItem from './list_item';
 import type {Props} from './list_item';
 
 import type {OptionValue} from '../types';
+
+const state = {
+    entities: {
+        users: {
+            currentUserId: 'currentUserId',
+            statuses: {
+                user_id_1: 'online',
+            },
+        },
+    },
+};
 
 describe('ListItem', () => {
     const baseProps: Props = {
@@ -27,14 +39,15 @@ describe('ListItem', () => {
             last_post_at: 0,
         } as OptionValue;
 
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <ListItem
                 {...baseProps}
                 option={user}
             />,
+            state,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when rendering GroupChannel', () => {
@@ -59,13 +72,14 @@ describe('ListItem', () => {
             ],
         } as OptionValue;
 
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <ListItem
                 {...baseProps}
                 option={channel}
             />,
+            state,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

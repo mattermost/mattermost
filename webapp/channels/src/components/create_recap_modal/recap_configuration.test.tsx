@@ -33,10 +33,6 @@ describe('RecapConfiguration', () => {
         unreadChannels: mockUnreadChannels,
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     describe('Recap Name Input', () => {
         it('should render name input field', () => {
             renderWithContext(<RecapConfiguration {...defaultProps}/>);
@@ -219,6 +215,68 @@ describe('RecapConfiguration', () => {
         });
     });
 
+    describe('Auto-focus', () => {
+        it('should auto-focus the name input on mount', () => {
+            renderWithContext(<RecapConfiguration {...defaultProps}/>);
+
+            const input = screen.getByPlaceholderText('Give your recap a name');
+            expect(input).toHaveFocus();
+        });
+    });
+
+    describe('Name Validation', () => {
+        it('should not show error before input is blurred', () => {
+            renderWithContext(<RecapConfiguration {...defaultProps}/>);
+
+            expect(screen.queryByText('This field is required')).not.toBeInTheDocument();
+        });
+
+        it('should show error message when input is blurred with empty name', async () => {
+            renderWithContext(<RecapConfiguration {...defaultProps}/>);
+
+            const input = screen.getByPlaceholderText('Give your recap a name');
+            await userEvent.click(input);
+            await userEvent.tab();
+
+            expect(screen.getByText('This field is required')).toBeInTheDocument();
+        });
+
+        it('should not show error when blurred with a valid name', async () => {
+            renderWithContext(
+                <RecapConfiguration
+                    {...defaultProps}
+                    recapName='My Recap'
+                />,
+            );
+
+            const input = screen.getByPlaceholderText('Give your recap a name');
+            await userEvent.click(input);
+            await userEvent.tab();
+
+            expect(screen.queryByText('This field is required')).not.toBeInTheDocument();
+        });
+
+        it('should add input-error class when error is shown', async () => {
+            renderWithContext(<RecapConfiguration {...defaultProps}/>);
+
+            const input = screen.getByPlaceholderText('Give your recap a name');
+            await userEvent.click(input);
+            await userEvent.tab();
+
+            expect(input).toHaveClass('input-error');
+        });
+
+        it('should set aria-invalid when error is shown', async () => {
+            renderWithContext(<RecapConfiguration {...defaultProps}/>);
+
+            const input = screen.getByPlaceholderText('Give your recap a name');
+            await userEvent.click(input);
+            await userEvent.tab();
+
+            expect(input).toHaveAttribute('aria-invalid', 'true');
+        });
+    });
+
     describe('Form Labels', () => {
         it('should display name label', () => {
             renderWithContext(<RecapConfiguration {...defaultProps}/>);
@@ -243,7 +301,7 @@ describe('RecapConfiguration', () => {
         it('should show description for all unreads option', () => {
             renderWithContext(<RecapConfiguration {...defaultProps}/>);
 
-            expect(screen.getByText('Copilot will create a recap of all unreads across your channels.')).toBeInTheDocument();
+            expect(screen.getByText('Create a recap of all unread messages across your channels.')).toBeInTheDocument();
         });
     });
 });

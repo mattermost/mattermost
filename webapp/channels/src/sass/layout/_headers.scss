@@ -188,13 +188,21 @@
                     &::after {
                         height: 20px;
                         border-left: solid 1px rgba(var(--center-channel-color-rgb), 0.12);
-                        margin-right: 8px;
                         margin-left: 8px;
                         content: "";
                     }
                 }
 
                 &:has(.header-placeholder) .header-status__text {
+                    &::after {
+                        height: 20px;
+                        border-left: solid 1px rgba(var(--center-channel-color-rgb), 0.12);
+                        margin-left: 8px;
+                        content: "";
+                    }
+                }
+
+                &:has(.header-placeholder) .autotranslation-header {
                     &::after {
                         height: 20px;
                         border-left: solid 1px rgba(var(--center-channel-color-rgb), 0.12);
@@ -371,6 +379,7 @@
         align-items: center;
         margin: 0;
         font-size: 12px;
+        gap: 8px;
         line-height: 24px;
         text-overflow: ellipsis;
 
@@ -405,13 +414,21 @@
                 &::after {
                     height: 20px;
                     border-left: solid 1px rgba(var(--center-channel-color-rgb), 0.12);
-                    margin-right: 8px;
                     margin-left: 8px;
                     content: "";
                 }
             }
 
             .header-status__text {
+                &::after {
+                    height: 20px;
+                    border-left: solid 1px rgba(var(--center-channel-color-rgb), 0.12);
+                    margin-left: 8px;
+                    content: "";
+                }
+            }
+
+            .autotranslation-header {
                 &::after {
                     height: 20px;
                     border-left: solid 1px rgba(var(--center-channel-color-rgb), 0.12);
@@ -943,6 +960,7 @@
 
 .channel-header-archived-icon {
     position: relative;
+    top: -1px;
     margin-right: 5px;
     fill: var(--center-channel-color);
 }

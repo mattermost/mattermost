@@ -22,6 +22,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
@@ -538,7 +539,7 @@ func TestGetOrCreateDirectChannel(t *testing.T) {
 			cfg.TeamSettings.RestrictDirectMessage = &setting
 		})
 
-		// Create a session for the bot owner so IsBotOwnedByCurrentUserOrPlugin can work
+		// Create a session for the bot owner so IsBotExemptFromDMRestrictions can work
 		session, err := th.App.CreateSession(th.Context, &model.Session{
 			UserId: th.BasicUser.Id,
 			Roles:  th.BasicUser.GetRawRoles(),
@@ -555,6 +556,35 @@ func TestGetOrCreateDirectChannel(t *testing.T) {
 		channel, appErr = th.App.GetOrCreateDirectChannel(rctx, user1.Id, bot1.UserId)
 		require.NotNil(t, channel, "channel should be non-nil")
 		require.Nil(t, appErr)
+	})
+
+	t.Run("System bot can DM any user with RestrictDirectMessage=team (MM-67314)", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			setting := model.DirectMessageTeam
+			cfg.TeamSettings.RestrictDirectMessage = &setting
+		})
+
+		systemBot, appErr := th.App.GetSystemBot(th.Context)
+		require.Nil(t, appErr)
+
+		// Simulate a background job (e.g. CheckPostReminders) that uses an empty session.
+		// The system bot is on no teams, so without the fix this would return an error.
+		emptyCtx := request.EmptyContext(th.App.Log())
+		channel, appErr := th.App.GetOrCreateDirectChannel(emptyCtx, user1.Id, systemBot.UserId)
+		require.Nil(t, appErr)
+		require.NotNil(t, channel)
+
+		// Simulate a regular user triggering SendTestMessage from a non-admin session.
+		session, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: user1.Id,
+			Roles:  user1.GetRawRoles(),
+		})
+		require.Nil(t, err)
+		rctx := th.Context.WithSession(session)
+
+		channel, appErr = th.App.GetOrCreateDirectChannel(rctx, user1.Id, systemBot.UserId)
+		require.Nil(t, appErr)
+		require.NotNil(t, channel)
 	})
 
 	t.Run("User from other team cannot create with restriction", func(t *testing.T) {
@@ -1677,6 +1707,46 @@ func TestUpdateChannelMemberRolesRequireUser(t *testing.T) {
 		require.Nil(t, appErr)
 		require.True(t, updatedMember.SchemeUser)
 		require.False(t, updatedMember.SchemeAdmin)
+	})
+}
+
+func TestUpdateChannelMemberAutotranslation(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	t.Run("disable autotranslation", func(t *testing.T) {
+		updatedMember, appErr := th.App.UpdateChannelMemberAutotranslation(th.Context, th.BasicChannel.Id, th.BasicUser.Id, true)
+		require.Nil(t, appErr)
+		require.True(t, updatedMember.AutoTranslationDisabled, "autotranslation should be disabled")
+
+		member, appErr := th.App.GetChannelMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.True(t, member.AutoTranslationDisabled, "autotranslation disabled should persist as true")
+	})
+
+	t.Run("enable autotranslation", func(t *testing.T) {
+		_, appErr := th.App.UpdateChannelMemberAutotranslation(th.Context, th.BasicChannel.Id, th.BasicUser.Id, true)
+		require.Nil(t, appErr)
+
+		updatedMember, appErr := th.App.UpdateChannelMemberAutotranslation(th.Context, th.BasicChannel.Id, th.BasicUser.Id, false)
+		require.Nil(t, appErr)
+		require.False(t, updatedMember.AutoTranslationDisabled, "autotranslation should be enabled")
+
+		member, appErr := th.App.GetChannelMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.False(t, member.AutoTranslationDisabled, "autotranslation disabled should persist as false")
+	})
+
+	t.Run("nonexistent channel returns not found", func(t *testing.T) {
+		_, appErr := th.App.UpdateChannelMemberAutotranslation(th.Context, model.NewId(), th.BasicUser.Id, true)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+	})
+
+	t.Run("nonexistent user returns not found", func(t *testing.T) {
+		_, appErr := th.App.UpdateChannelMemberAutotranslation(th.Context, th.BasicChannel.Id, model.NewId(), true)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
 	})
 }
 
@@ -3705,6 +3775,40 @@ func TestPatchChannel(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.TeamSettings.RestrictDirectMessage = model.DirectMessageAny
 		})
+	})
+
+	t.Run("Patch channel with autotranslations post a message to the channel", func(t *testing.T) {
+		channel := th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen)
+
+		patch := &model.ChannelPatch{
+			AutoTranslation: model.NewPointer(true),
+		}
+
+		patchedChannel, appErr := th.App.PatchChannel(th.Context, channel, patch, channel.CreatorId)
+		require.Nil(t, appErr)
+		require.True(t, patchedChannel.AutoTranslation)
+
+		posts, appErr := th.App.GetPosts(th.Context, channel.Id, 0, 1)
+		require.Nil(t, appErr)
+		require.NotNil(t, posts)
+		systemPost := posts.Posts[posts.Order[0]]
+		require.Equal(t, model.PostTypeAutotranslationChange, systemPost.Type)
+		require.Equal(t, th.BasicUser.Username, systemPost.GetProp("username"))
+		require.Equal(t, true, systemPost.GetProp("enabled"))
+
+		patch.AutoTranslation = model.NewPointer(false)
+
+		patchedChannel, appErr = th.App.PatchChannel(th.Context, channel, patch, channel.CreatorId)
+		require.Nil(t, appErr)
+		require.False(t, patchedChannel.AutoTranslation)
+
+		posts, appErr = th.App.GetPosts(th.Context, channel.Id, 0, 1)
+		require.Nil(t, appErr)
+		require.NotNil(t, posts)
+		systemPost = posts.Posts[posts.Order[0]]
+		require.Equal(t, model.PostTypeAutotranslationChange, systemPost.Type)
+		require.Equal(t, th.BasicUser.Username, systemPost.GetProp("username"))
+		require.Equal(t, false, systemPost.GetProp("enabled"))
 	})
 }
 

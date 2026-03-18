@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
-import ConfirmModal from 'components/confirm_modal';
 import LeaveChannelModal from 'components/leave_channel_modal/leave_channel_modal';
+
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 describe('components/LeaveChannelModal', () => {
     const channels = {
@@ -73,14 +73,14 @@ describe('components/LeaveChannelModal', () => {
             },
         };
 
-        const wrapper = shallow(
+        const {baseElement} = renderWithContext(
             <LeaveChannelModal {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(baseElement).toMatchSnapshot();
     });
 
-    test('should fail to leave channel', () => {
+    test('should fail to leave channel', async () => {
         const props = {
             channel: channels['channel-1'],
             actions: {
@@ -95,14 +95,18 @@ describe('components/LeaveChannelModal', () => {
             onExited: jest.fn(),
             callback: jest.fn(),
         };
-        const wrapper = shallow<typeof LeaveChannelModal>(
+        renderWithContext(
             <LeaveChannelModal
                 {...props}
             />,
         );
 
-        wrapper.find(ConfirmModal).props().onConfirm?.(true);
-        expect(props.actions.leaveChannel).toHaveBeenCalledTimes(1);
+        // Click the confirm button
+        await userEvent.click(screen.getByRole('button', {name: 'Yes, leave channel'}));
+
+        await waitFor(() => {
+            expect(props.actions.leaveChannel).toHaveBeenCalledTimes(1);
+        });
         expect(props.callback).toHaveBeenCalledTimes(0);
     });
 });

@@ -13,7 +13,6 @@ describe('burn_on_read_deletion actions', () => {
 
     beforeEach(() => {
         mockDispatch = jest.fn();
-        jest.clearAllMocks();
     });
 
     describe('burnPostNow', () => {

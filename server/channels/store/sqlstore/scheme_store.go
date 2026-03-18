@@ -100,6 +100,12 @@ func (s *SqlSchemeStore) Save(scheme *model.Scheme) (_ *model.Scheme, err error)
 }
 
 func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxWrapper) (*model.Scheme, error) {
+	// Generate the scheme ID up front so it can be recorded on each created role.
+	scheme.Id = model.NewId()
+	if scheme.Name == "" {
+		scheme.Name = model.NewId()
+	}
+
 	// Fetch the default system scheme roles to populate default permissions.
 	defaultRoleNames := []string{
 		model.TeamAdminRoleId,
@@ -135,6 +141,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxW
 			DisplayName:   fmt.Sprintf("%s %s", SchemeRoleDisplayNameTeamAdmin, scheme.Name),
 			Permissions:   defaultRoles[model.TeamAdminRoleId].Permissions,
 			SchemeManaged: true,
+			SchemeId:      &scheme.Id,
 		}
 
 		savedRole, err := s.SqlStore.Role().(*SqlRoleStore).createRole(teamAdminRole, transaction)
@@ -149,6 +156,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxW
 			DisplayName:   fmt.Sprintf("%s %s", SchemeRoleDisplayNameTeamUser, scheme.Name),
 			Permissions:   defaultRoles[model.TeamUserRoleId].Permissions,
 			SchemeManaged: true,
+			SchemeId:      &scheme.Id,
 		}
 
 		savedRole, err = s.SqlStore.Role().(*SqlRoleStore).createRole(teamUserRole, transaction)
@@ -163,6 +171,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxW
 			DisplayName:   fmt.Sprintf("%s %s", SchemeRoleDisplayNameTeamGuest, scheme.Name),
 			Permissions:   defaultRoles[model.TeamGuestRoleId].Permissions,
 			SchemeManaged: true,
+			SchemeId:      &scheme.Id,
 		}
 
 		savedRole, err = s.SqlStore.Role().(*SqlRoleStore).createRole(teamGuestRole, transaction)
@@ -177,6 +186,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxW
 			DisplayName:   fmt.Sprintf("%s %s", SchemeRoleDisplayNamePlaybookAdmin, scheme.Name),
 			Permissions:   defaultRoles[model.PlaybookAdminRoleId].Permissions,
 			SchemeManaged: true,
+			SchemeId:      &scheme.Id,
 		}
 		savedRole, err = s.SqlStore.Role().(*SqlRoleStore).createRole(playbookAdminRole, transaction)
 		if err != nil {
@@ -190,6 +200,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxW
 			DisplayName:   fmt.Sprintf("%s %s", SchemeRoleDisplayNamePlaybookMember, scheme.Name),
 			Permissions:   defaultRoles[model.PlaybookMemberRoleId].Permissions,
 			SchemeManaged: true,
+			SchemeId:      &scheme.Id,
 		}
 		savedRole, err = s.SqlStore.Role().(*SqlRoleStore).createRole(playbookMemberRole, transaction)
 		if err != nil {
@@ -203,6 +214,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxW
 			DisplayName:   fmt.Sprintf("%s %s", SchemeRoleDisplayNameRunAdmin, scheme.Name),
 			Permissions:   defaultRoles[model.RunAdminRoleId].Permissions,
 			SchemeManaged: true,
+			SchemeId:      &scheme.Id,
 		}
 		savedRole, err = s.SqlStore.Role().(*SqlRoleStore).createRole(runAdminRole, transaction)
 		if err != nil {
@@ -216,6 +228,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxW
 			DisplayName:   fmt.Sprintf("%s %s", SchemeRoleDisplayNameRunMember, scheme.Name),
 			Permissions:   defaultRoles[model.RunMemberRoleId].Permissions,
 			SchemeManaged: true,
+			SchemeId:      &scheme.Id,
 		}
 		savedRole, err = s.SqlStore.Role().(*SqlRoleStore).createRole(runMemberRole, transaction)
 		if err != nil {
@@ -231,6 +244,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxW
 			DisplayName:   fmt.Sprintf("Channel Admin Role for Scheme %s", scheme.Name),
 			Permissions:   defaultRoles[model.ChannelAdminRoleId].Permissions,
 			SchemeManaged: true,
+			SchemeId:      &scheme.Id,
 		}
 
 		if scheme.Scope == model.SchemeScopeChannel {
@@ -249,6 +263,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxW
 			DisplayName:   fmt.Sprintf("Channel User Role for Scheme %s", scheme.Name),
 			Permissions:   defaultRoles[model.ChannelUserRoleId].Permissions,
 			SchemeManaged: true,
+			SchemeId:      &scheme.Id,
 		}
 
 		if scheme.Scope == model.SchemeScopeChannel {
@@ -267,6 +282,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxW
 			DisplayName:   fmt.Sprintf("Channel Guest Role for Scheme %s", scheme.Name),
 			Permissions:   defaultRoles[model.ChannelGuestRoleId].Permissions,
 			SchemeManaged: true,
+			SchemeId:      &scheme.Id,
 		}
 
 		if scheme.Scope == model.SchemeScopeChannel {
@@ -280,10 +296,6 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxW
 		scheme.DefaultChannelGuestRole = savedRole.Name
 	}
 
-	scheme.Id = model.NewId()
-	if scheme.Name == "" {
-		scheme.Name = model.NewId()
-	}
 	scheme.CreateAt = model.GetMillis()
 	scheme.UpdateAt = scheme.CreateAt
 
@@ -363,23 +375,11 @@ func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 	s.Channel().ClearCaches()
 
 	// Delete the roles belonging to the scheme.
-	roleNames := []string{scheme.DefaultChannelGuestRole, scheme.DefaultChannelUserRole, scheme.DefaultChannelAdminRole}
-	if scheme.Scope == model.SchemeScopeTeam {
-		roleNames = append(roleNames, scheme.DefaultTeamGuestRole, scheme.DefaultTeamUserRole, scheme.DefaultTeamAdminRole)
-	}
-	if scheme.Scope == model.SchemeScopePlaybook {
-		roleNames = append(roleNames, scheme.DefaultPlaybookAdminRole, scheme.DefaultPlaybookMemberRole)
-	}
-
-	if scheme.Scope == model.SchemeScopeRun {
-		roleNames = append(roleNames, scheme.DefaultRunAdminRole, scheme.DefaultRunMemberRole)
-	}
-
 	time := model.GetMillis()
 
 	updateQuery, args, err := s.getQueryBuilder().
 		Update("Roles").
-		Where(sq.Eq{"Name": roleNames}).
+		Where(sq.Eq{"SchemeId": schemeId}).
 		Set("UpdateAt", time).
 		Set("DeleteAt", time).
 		ToSql()
@@ -388,7 +388,7 @@ func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 	}
 
 	if _, err = s.GetMaster().Exec(updateQuery, args...); err != nil {
-		return nil, errors.Wrapf(err, "failed to update Roles with name in (%s)", roleNames)
+		return nil, errors.Wrapf(err, "failed to update Roles with SchemeId=%s", schemeId)
 	}
 
 	// Delete the scheme itself.

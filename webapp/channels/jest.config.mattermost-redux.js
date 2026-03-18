@@ -18,10 +18,6 @@ const config = {
         '/node_modules/',
         'src/packages/mattermost-redux/src/selectors/create_selector',
     ],
-    reporters: [
-        'default',
-        ['jest-junit', {outputDirectory: 'build', outputName: 'test-results-mattermost-redux.xml'}],
-    ],
 };
 
 module.exports = config;

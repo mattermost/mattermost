@@ -341,3 +341,149 @@ func TestTruncateOpenGraph(t *testing.T) {
 	assert.Equal(t, utf8.RuneCountInString(result.Description), 305, "Description text is truncated")
 	assert.Equal(t, utf8.RuneCountInString(result.SiteName), 305, "SiteName text is truncated")
 }
+
+func TestTruncateOpenGraphFiltersSVGImages(t *testing.T) {
+	og := opengraph.OpenGraph{
+		Type:  "website",
+		URL:   "http://example.com",
+		Title: "Test",
+		Images: []*image.Image{
+			sampleImage("image.png"),
+			sampleImage("icon.svg"),
+			sampleImage("photo.jpg"),
+			sampleImage("compressed.svgz"),
+		},
+	}
+	result := TruncateOpenGraph(&og)
+	assert.Len(t, result.Images, 2, "SVG images should be filtered out")
+	assert.Equal(t, "http://example.com/image.png", result.Images[0].URL)
+	assert.Equal(t, "http://example.com/photo.jpg", result.Images[1].URL)
+}
+
+func TestIsSVGImageURL(t *testing.T) {
+	testCases := []struct {
+		name     string
+		url      string
+		expected bool
+	}{
+		{
+			name:     "empty URL",
+			url:      "",
+			expected: false,
+		},
+		{
+			name:     "PNG image",
+			url:      "https://example.com/image.png",
+			expected: false,
+		},
+		{
+			name:     "JPEG image",
+			url:      "https://example.com/image.jpg",
+			expected: false,
+		},
+		{
+			name:     "SVG image lowercase",
+			url:      "https://example.com/image.svg",
+			expected: true,
+		},
+		{
+			name:     "SVG image uppercase",
+			url:      "https://example.com/image.SVG",
+			expected: true,
+		},
+		{
+			name:     "SVGZ compressed SVG",
+			url:      "https://example.com/image.svgz",
+			expected: true,
+		},
+		{
+			name:     "SVG with query parameters",
+			url:      "https://example.com/image.svg?v=123",
+			expected: true,
+		},
+		{
+			name:     "path containing svg but not extension",
+			url:      "https://example.com/svg/image.png",
+			expected: false,
+		},
+		{
+			name:     "invalid URL",
+			url:      "://invalid",
+			expected: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := IsSVGImageURL(tc.url)
+			assert.Equal(t, tc.expected, result)
+		})
+	}
+}
+
+func TestFilterSVGImages(t *testing.T) {
+	t.Run("empty slice", func(t *testing.T) {
+		result := FilterSVGImages([]*image.Image{})
+		assert.Empty(t, result)
+	})
+
+	t.Run("filter SVG by URL", func(t *testing.T) {
+		images := []*image.Image{
+			sampleImage("image.png"),
+			sampleImage("icon.svg"),
+			sampleImage("photo.jpg"),
+		}
+		result := FilterSVGImages(images)
+		assert.Len(t, result, 2)
+		assert.Equal(t, "http://example.com/image.png", result[0].URL)
+		assert.Equal(t, "http://example.com/photo.jpg", result[1].URL)
+	})
+
+	t.Run("filter SVG by SecureURL", func(t *testing.T) {
+		images := []*image.Image{
+			{SecureURL: "https://example.com/banner.png"},
+			{SecureURL: "https://example.com/icon.svg"},
+		}
+		result := FilterSVGImages(images)
+		assert.Len(t, result, 1)
+		assert.Equal(t, "https://example.com/banner.png", result[0].SecureURL)
+	})
+
+	t.Run("filter SVG by MIME type", func(t *testing.T) {
+		images := []*image.Image{
+			{URL: "https://example.com/image.png", Type: "image/png"},
+			{URL: "https://example.com/image", Type: "image/svg+xml"},
+		}
+		result := FilterSVGImages(images)
+		assert.Len(t, result, 1)
+		assert.Equal(t, "https://example.com/image.png", result[0].URL)
+	})
+
+	t.Run("filter SVG by MIME type with charset", func(t *testing.T) {
+		images := []*image.Image{
+			{URL: "https://example.com/image", Type: "image/svg+xml; charset=utf-8"},
+		}
+		result := FilterSVGImages(images)
+		assert.Len(t, result, 0)
+	})
+
+	t.Run("filter SVGZ", func(t *testing.T) {
+		images := []*image.Image{
+			sampleImage("image.png"),
+			sampleImage("compressed.svgz"),
+		}
+		result := FilterSVGImages(images)
+		assert.Len(t, result, 1)
+		assert.Equal(t, "http://example.com/image.png", result[0].URL)
+	})
+
+	t.Run("skip nil images", func(t *testing.T) {
+		images := []*image.Image{
+			sampleImage("image.png"),
+			nil,
+			sampleImage("photo.jpg"),
+		}
+		result := FilterSVGImages(images)
+		assert.Len(t, result, 2)
+	})
+}

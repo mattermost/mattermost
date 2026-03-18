@@ -81,6 +81,11 @@ func createPostChecks(where string, c *Context, post *model.Post) {
 	}
 
 	postPriorityCheckWithContext(where, c, post.GetPriority(), post.RootId)
+	if c.Err != nil {
+		return
+	}
+
+	postBurnOnReadCheckWithContext(where, c, post, nil)
 }
 
 func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1010,6 +1015,10 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// MM-67055: Strip client-supplied metadata.embeds to prevent spoofing.
+	// This matches createPost behavior.
+	post.SanitizeInput()
+
 	auditRec := c.MakeAuditRecord(model.AuditEventUpdatePost, model.AuditStatusFail)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "post", &post)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
@@ -1034,6 +1043,12 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	ok, isMember := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost)
 	if !ok {
 		c.SetPermissionError(model.PermissionEditPost)
+		return
+	}
+
+	// Users who can't create posts in a channel shouldn't be able to edit them either.
+	userCreatePostPermissionCheckWithContext(c, originalPost.ChannelId)
+	if c.Err != nil {
 		return
 	}
 
@@ -1171,6 +1186,12 @@ func postPatchChecks(c *Context, auditRec *model.AuditRecord, message *string) b
 	ok, isMember := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, permission)
 	if !ok {
 		c.SetPermissionError(permission)
+		return false
+	}
+
+	// Users who can't create posts in a channel shouldn't be able to edit them either.
+	userCreatePostPermissionCheckWithContext(c, originalPost.ChannelId)
+	if c.Err != nil {
 		return false
 	}
 
@@ -1698,6 +1719,12 @@ func rewriteMessage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Validate root_id if provided
+	if req.RootID != "" && !model.IsValidId(req.RootID) {
+		c.SetInvalidParam("root_id")
+		return
+	}
+
 	// Call app layer to handle business logic
 	response, appErr := c.App.RewriteMessage(
 		c.AppContext,
@@ -1705,6 +1732,7 @@ func rewriteMessage(c *Context, w http.ResponseWriter, r *http.Request) {
 		req.Message,
 		req.Action,
 		req.CustomPrompt,
+		req.RootID,
 	)
 	if appErr != nil {
 		c.Err = appErr

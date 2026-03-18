@@ -16,11 +16,9 @@ export default class SignupPage {
     readonly usernameInput;
     readonly passwordInput;
     readonly passwordToggleButton;
-    readonly newsLetterCheckBox;
-    readonly newsLetterPrivacyPolicyLink;
-    readonly newsLetterUnsubscribeLink;
-    readonly agreementTermsOfUseLink;
-    readonly agreementPrivacyPolicyLink;
+    readonly termsAndPrivacyCheckBox;
+    readonly termsAndPrivacyAcceptableUsePolicyLink;
+    readonly termsAndPrivacyPrivacyPolicyLink;
     readonly createAccountButton;
     readonly loginLink;
     readonly emailError;
@@ -48,14 +46,12 @@ export default class SignupPage {
         );
         this.passwordError = page.locator('text=Must be 5-72 characters long.');
 
-        const newsletterBlock = page.locator('.check-input');
-        this.newsLetterCheckBox = newsletterBlock.getByRole('checkbox', {name: 'newsletter checkbox'});
-        this.newsLetterPrivacyPolicyLink = newsletterBlock.locator('text=Privacy Policy');
-        this.newsLetterUnsubscribeLink = newsletterBlock.locator('text=unsubscribe');
-
-        const agreementBlock = page.locator('.signup-body-card-agreement');
-        this.agreementTermsOfUseLink = agreementBlock.locator('text=Terms of Use');
-        this.agreementPrivacyPolicyLink = agreementBlock.locator('text=Privacy Policy');
+        const termsAndPrivacyBlock = page.locator('.check-input');
+        this.termsAndPrivacyCheckBox = termsAndPrivacyBlock.getByRole('checkbox', {
+            name: 'Terms and privacy policy checkbox',
+        });
+        this.termsAndPrivacyAcceptableUsePolicyLink = termsAndPrivacyBlock.locator('text=Acceptable Use Policy');
+        this.termsAndPrivacyPrivacyPolicyLink = termsAndPrivacyBlock.locator('text=Privacy Policy');
 
         this.header = new components.MainHeader(page.locator('.hfroute-header'));
         this.footer = new components.Footer(page.locator('.hfroute-footer'));
@@ -79,6 +75,7 @@ export default class SignupPage {
         await this.emailInput.fill(user.email);
         await this.usernameInput.fill(user.username);
         await this.passwordInput.fill(user.password);
+        await this.termsAndPrivacyCheckBox.check();
         await this.createAccountButton.click();
 
         if (waitForRedirect) {

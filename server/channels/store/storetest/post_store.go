@@ -67,6 +67,7 @@ func TestPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("SetPostReminder", func(t *testing.T) { testSetPostReminder(t, rctx, ss, s) })
 	t.Run("GetPostReminders", func(t *testing.T) { testGetPostReminders(t, rctx, ss, s) })
 	t.Run("GetPostReminderMetadata", func(t *testing.T) { testGetPostReminderMetadata(t, rctx, ss, s) })
+	t.Run("DeleteAllPostRemindersForPost", func(t *testing.T) { testDeleteAllPostRemindersForPost(t, rctx, ss, s) })
 	t.Run("GetNthRecentPostTime", func(t *testing.T) { testGetNthRecentPostTime(t, rctx, ss) })
 	t.Run("GetEditHistoryForPost", func(t *testing.T) { testGetEditHistoryForPost(t, rctx, ss) })
 	t.Run("RestoreContentFlaggedPost", func(t *testing.T) { testRestoreContentFlaggedPost(t, rctx, ss) })
@@ -644,13 +645,13 @@ func testPostStoreGet(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1.UserId = model.NewId()
 	o1.Message = NewTestID()
 
-	etag1 := ss.Post().GetEtag(o1.ChannelId, false, false)
+	etag1 := ss.Post().GetEtag(o1.ChannelId, false, false, false)
 	require.Equal(t, 0, strings.Index(etag1, model.CurrentVersion+"."), "Invalid Etag")
 
 	o1, err = ss.Post().Save(rctx, o1)
 	require.NoError(t, err)
 
-	etag2 := ss.Post().GetEtag(o1.ChannelId, false, false)
+	etag2 := ss.Post().GetEtag(o1.ChannelId, false, false, false)
 	require.Equal(t, 0, strings.Index(etag2, fmt.Sprintf("%v.%v", model.CurrentVersion, o1.UpdateAt)), "Invalid Etag")
 
 	r1, err := ss.Post().Get(rctx, o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
@@ -1224,7 +1225,7 @@ func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 
 		// Verify etag generation for the channel containing the post.
-		etag1 := ss.Post().GetEtag(rootPost.ChannelId, false, false)
+		etag1 := ss.Post().GetEtag(rootPost.ChannelId, false, false, false)
 		require.Equal(t, 0, strings.Index(etag1, model.CurrentVersion+"."), "Invalid Etag")
 
 		// Verify the created post.
@@ -1250,7 +1251,7 @@ func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.IsType(t, &store.ErrNotFound{}, err)
 
 		// Verify etag generation for the channel containing the now deleted post.
-		etag2 := ss.Post().GetEtag(rootPost.ChannelId, false, false)
+		etag2 := ss.Post().GetEtag(rootPost.ChannelId, false, false, false)
 		require.Equal(t, 0, strings.Index(etag2, model.CurrentVersion+"."), "Invalid Etag")
 	})
 
@@ -6103,5 +6104,194 @@ func testRestoreContentFlaggedPost(t *testing.T, rctx request.CTX, ss store.Stor
 		thread, err := ss.Thread().Get(rootPost.Id)
 		require.NoError(t, err)
 		require.Equal(t, int64(1), thread.ReplyCount)
+	})
+}
+
+func testDeleteAllPostRemindersForPost(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	t.Run("should permanently delete all reminders for a post", func(t *testing.T) {
+		userID1 := NewTestID()
+		userID2 := NewTestID()
+		userID3 := NewTestID()
+
+		p1 := &model.Post{
+			UserId:    userID1,
+			ChannelId: NewTestID(),
+			Message:   "test post",
+			Type:      model.PostTypeDefault,
+		}
+		p1, err := ss.Post().Save(rctx, p1)
+		require.NoError(t, err)
+
+		// Create multiple reminders for the same post from different users
+		reminder1 := &model.PostReminder{
+			TargetTime: 1000,
+			PostId:     p1.Id,
+			UserId:     userID1,
+		}
+		require.NoError(t, ss.Post().SetPostReminder(reminder1))
+
+		reminder2 := &model.PostReminder{
+			TargetTime: 2000,
+			PostId:     p1.Id,
+			UserId:     userID2,
+		}
+		require.NoError(t, ss.Post().SetPostReminder(reminder2))
+
+		reminder3 := &model.PostReminder{
+			TargetTime: 3000,
+			PostId:     p1.Id,
+			UserId:     userID3,
+		}
+		require.NoError(t, ss.Post().SetPostReminder(reminder3))
+
+		// Verify reminders were created
+		var count int
+		err = s.GetMaster().Get(&count, `SELECT COUNT(*) FROM PostReminders WHERE PostId=?`, p1.Id)
+		require.NoError(t, err)
+		require.Equal(t, 3, count)
+
+		// Delete all reminders for the post
+		err = ss.Post().DeleteAllPostRemindersForPost(p1.Id)
+		require.NoError(t, err)
+
+		// Verify all reminders were deleted
+		err = s.GetMaster().Get(&count, `SELECT COUNT(*) FROM PostReminders WHERE PostId=?`, p1.Id)
+		require.NoError(t, err)
+		require.Equal(t, 0, count)
+	})
+
+	t.Run("should only delete reminders for the specified post", func(t *testing.T) {
+		userID1 := NewTestID()
+		userID2 := NewTestID()
+
+		// Create two posts
+		p1 := &model.Post{
+			UserId:    userID1,
+			ChannelId: NewTestID(),
+			Message:   "test post 1",
+			Type:      model.PostTypeDefault,
+		}
+		p1, err := ss.Post().Save(rctx, p1)
+		require.NoError(t, err)
+
+		p2 := &model.Post{
+			UserId:    userID1,
+			ChannelId: NewTestID(),
+			Message:   "test post 2",
+			Type:      model.PostTypeDefault,
+		}
+		p2, err = ss.Post().Save(rctx, p2)
+		require.NoError(t, err)
+
+		// Create reminders for both posts
+		reminder1 := &model.PostReminder{
+			TargetTime: 1000,
+			PostId:     p1.Id,
+			UserId:     userID1,
+		}
+		require.NoError(t, ss.Post().SetPostReminder(reminder1))
+
+		reminder2 := &model.PostReminder{
+			TargetTime: 2000,
+			PostId:     p1.Id,
+			UserId:     userID2,
+		}
+		require.NoError(t, ss.Post().SetPostReminder(reminder2))
+
+		reminder3 := &model.PostReminder{
+			TargetTime: 3000,
+			PostId:     p2.Id,
+			UserId:     userID1,
+		}
+		require.NoError(t, ss.Post().SetPostReminder(reminder3))
+
+		reminder4 := &model.PostReminder{
+			TargetTime: 4000,
+			PostId:     p2.Id,
+			UserId:     userID2,
+		}
+		require.NoError(t, ss.Post().SetPostReminder(reminder4))
+
+		// Delete all reminders for post1 only
+		err = ss.Post().DeleteAllPostRemindersForPost(p1.Id)
+		require.NoError(t, err)
+
+		// Verify post1 reminders are deleted
+		var count int
+		err = s.GetMaster().Get(&count, `SELECT COUNT(*) FROM PostReminders WHERE PostId=?`, p1.Id)
+		require.NoError(t, err)
+		require.Equal(t, 0, count)
+
+		// Verify post2 reminders are still present
+		err = s.GetMaster().Get(&count, `SELECT COUNT(*) FROM PostReminders WHERE PostId=?`, p2.Id)
+		require.NoError(t, err)
+		require.Equal(t, 2, count)
+	})
+
+	t.Run("should not error when deleting from post with no reminders", func(t *testing.T) {
+		userID := NewTestID()
+
+		p1 := &model.Post{
+			UserId:    userID,
+			ChannelId: NewTestID(),
+			Message:   "test post",
+			Type:      model.PostTypeDefault,
+		}
+		p1, err := ss.Post().Save(rctx, p1)
+		require.NoError(t, err)
+
+		// Verify no reminders exist
+		var count int
+		err = s.GetMaster().Get(&count, `SELECT COUNT(*) FROM PostReminders WHERE PostId=?`, p1.Id)
+		require.NoError(t, err)
+		require.Equal(t, 0, count)
+
+		// Delete should not error
+		err = ss.Post().DeleteAllPostRemindersForPost(p1.Id)
+		require.NoError(t, err)
+	})
+
+	t.Run("should not error when deleting from non-existent post", func(t *testing.T) {
+		nonExistentPostId := model.NewId()
+
+		// Delete should not error even for non-existent post
+		err := ss.Post().DeleteAllPostRemindersForPost(nonExistentPostId)
+		require.NoError(t, err)
+	})
+
+	t.Run("should handle deleting single reminder for post", func(t *testing.T) {
+		userID := NewTestID()
+
+		p1 := &model.Post{
+			UserId:    userID,
+			ChannelId: NewTestID(),
+			Message:   "test post",
+			Type:      model.PostTypeDefault,
+		}
+		p1, err := ss.Post().Save(rctx, p1)
+		require.NoError(t, err)
+
+		// Create a single reminder
+		reminder := &model.PostReminder{
+			TargetTime: 1000,
+			PostId:     p1.Id,
+			UserId:     userID,
+		}
+		require.NoError(t, ss.Post().SetPostReminder(reminder))
+
+		// Verify reminder was created
+		var count int
+		err = s.GetMaster().Get(&count, `SELECT COUNT(*) FROM PostReminders WHERE PostId=?`, p1.Id)
+		require.NoError(t, err)
+		require.Equal(t, 1, count)
+
+		// Delete all reminders for the post
+		err = ss.Post().DeleteAllPostRemindersForPost(p1.Id)
+		require.NoError(t, err)
+
+		// Verify reminder was deleted
+		err = s.GetMaster().Get(&count, `SELECT COUNT(*) FROM PostReminders WHERE PostId=?`, p1.Id)
+		require.NoError(t, err)
+		require.Equal(t, 0, count)
 	})
 }

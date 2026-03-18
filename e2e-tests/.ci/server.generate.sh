@@ -48,6 +48,7 @@ generate_docker_compose_file() {
 services:
   server:
     image: \${SERVER_IMAGE}
+    platform: linux/amd64
     restart: always
     env_file:
       - "./.env.server"
@@ -221,7 +222,7 @@ $(if mme2e_is_token_in_list "keycloak" "$ENABLED_DOCKER_SERVICES"; then
 $(if mme2e_is_token_in_list "cypress" "$ENABLED_DOCKER_SERVICES"; then
     echo '
   cypress:
-    image: "cypress/browsers:node-22.18.0-chrome-139.0.7258.66-1-ff-141.0.3-edge-138.0.3351.121-1"
+    image: "cypress/browsers:node-24.14.0-chrome-145.0.7632.116-1-ff-148.0-edge-145.0.3800.70-1"
     entrypoint: ["/bin/bash", "-c"]
     command: ["until [ -f /var/run/mm_terminate ]; do sleep 5; done"]
     env_file:
@@ -261,24 +262,26 @@ $(if mme2e_is_token_in_list "webhook-interactions" "$ENABLED_DOCKER_SERVICES"; t
     echo '
   webhook-interactions:
     image: node:${NODE_VERSION_REQUIRED}
-    command: sh -c "npm install --global --legacy-peer-deps && exec node webhook_serve.js"
+    command: sh -c "npm init -y > /dev/null && npm install express@5.1.0 axios@1.11.0 client-oauth2@github:larkox/js-client-oauth2#e24e2eb5dfcbbbb3a59d095e831dbe0012b0ac49 && exec node webhook_serve.js"
     healthcheck:
       test: ["CMD", "curl", "-s", "-o/dev/null", "127.0.0.1:3000"]
       interval: 10s
       timeout: 15s
       retries: 12
-    working_dir: /cypress
+    working_dir: /webhook
     network_mode: host
     restart: on-failure
     volumes:
-      - "../../e2e-tests/cypress/:/cypress:ro"'
+      - "../../e2e-tests/cypress/webhook_serve.js:/webhook/webhook_serve.js:ro"
+      - "../../e2e-tests/cypress/utils/:/webhook/utils:ro"
+      - "../../e2e-tests/cypress/tests/plugins/post_message_as.js:/webhook/tests/plugins/post_message_as.js:ro"'
   fi)
 
 $(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then
     # shellcheck disable=SC2016
     echo '
   playwright:
-    image: mcr.microsoft.com/playwright:v1.57.0-noble
+    image: mcr.microsoft.com/playwright:v1.58.0-noble
     entrypoint: ["/bin/bash", "-c"]
     command:
       - |

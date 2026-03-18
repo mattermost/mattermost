@@ -72,15 +72,22 @@ describe('Signup Email page', () => {
         cy.get('#input_password-input').should('be.visible').and('have.attr', 'placeholder', 'Choose a Password');
         cy.findByText('Your password must be 5-72 characters long.').should('be.visible');
 
-        cy.get('#saveSetting').scrollIntoView().should('be.visible');
-        cy.get('#saveSetting').should('contain', 'Create account');
+        // * Check terms and privacy checkbox
+        cy.get('#signup-body-card-form-check-terms-and-privacy').should('be.visible').and('not.be.checked');
+        cy.findByText(/I agree to the/i).should('be.visible');
 
-        // * Check newsletter subscription checkbox text and links
-        cy.findByText('I would like to receive Mattermost security updates via newsletter.').should('be.visible');
-        cy.findByText(/By subscribing, I consent to receive emails from Mattermost with product updates, promotions, and company news\./).should('be.visible');
-        cy.findByText(/I have read the/).parent().within(() => {
-            cy.findByRole('link', {name: 'Privacy Policy'}).should('be.visible').and('have.attr', 'href').and('include', 'mattermost.com/pl/privacy-policy/');
-            cy.findByRole('link', {name: 'unsubscribe'}).should('be.visible').and('have.attr', 'href').and('include', 'forms.mattermost.com/UnsubscribePage.html');
+        // * Check that submit button is disabled without accepting terms
+        cy.get('#saveSetting').scrollIntoView().should('be.visible');
+        cy.get('#saveSetting').should('contain', 'Create account').and('be.disabled');
+
+        // * Check terms and privacy links (now part of checkbox label)
+        cy.get('label[for="signup-body-card-form-check-terms-and-privacy"]').within(() => {
+            cy.findByText('Acceptable Use Policy').should('be.visible').
+                and('have.attr', 'href').
+                and('include', config.SupportSettings.TermsOfServiceLink || TERMS_OF_SERVICE_LINK);
+            cy.findByText('Privacy Policy').should('be.visible').
+                and('have.attr', 'href').
+                and('include', config.SupportSettings.PrivacyPolicyLink || PRIVACY_POLICY_LINK);
         });
     });
 
@@ -115,5 +122,24 @@ describe('Signup Email page', () => {
 
             cy.get('.footer-copyright').should('contain', `© ${currentYear} Mattermost Inc.`);
         });
+    });
+
+    it('should enable submit button when terms checkbox is checked', () => {
+        // # Fill in valid form data
+        cy.get('#input_email').type('test@example.com');
+        cy.get('#input_name').type('testuser');
+        cy.get('#input_password-input').type('validPassword123');
+
+        // * Verify submit button is disabled
+        cy.get('#saveSetting').should('be.disabled');
+
+        // # Check the terms and privacy checkbox
+        cy.get('#signup-body-card-form-check-terms-and-privacy').check();
+
+        // * Verify checkbox is now checked
+        cy.get('#signup-body-card-form-check-terms-and-privacy').should('be.checked');
+
+        // * Verify submit button is now enabled
+        cy.get('#saveSetting').should('not.be.disabled');
     });
 });

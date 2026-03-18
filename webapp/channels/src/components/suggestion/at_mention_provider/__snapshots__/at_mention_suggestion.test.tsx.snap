@@ -21,6 +21,7 @@ exports[`at mention suggestion should display nick name of non signed in user 1`
   <SuggestionContainer
     aria-describedby="test-suggestion-1-description test-suggestion-1-youElement test-suggestion-1-status test-suggestion-1-botTag test-suggestion-1-sharedIcon test-suggestion-1-guestTag test-suggestion-1-groupMembers"
     aria-labelledby="test-suggestion-1-atMention"
+    className=""
     data-testid="mentionSuggestion_user2"
     id="test-suggestion-1"
     isSelection={false}
@@ -130,6 +131,7 @@ exports[`at mention suggestion should not display nick name of the signed in use
   <SuggestionContainer
     aria-describedby="test-suggestion-1-description test-suggestion-1-youElement test-suggestion-1-status test-suggestion-1-botTag test-suggestion-1-sharedIcon test-suggestion-1-guestTag test-suggestion-1-groupMembers"
     aria-labelledby="test-suggestion-1-atMention"
+    className=""
     data-testid="mentionSuggestion_user"
     id="test-suggestion-1"
     isSelection={false}

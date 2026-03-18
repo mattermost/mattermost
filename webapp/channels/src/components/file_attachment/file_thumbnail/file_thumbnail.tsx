@@ -23,12 +23,14 @@ type Props = {
     enableSVGs: boolean;
     fileInfo: FileInfo | FilePreviewInfo | FilePreviewInfoLimited;
     disablePreview?: boolean;
+    isRejected?: boolean;
 };
 
 const FileThumbnail = ({
     fileInfo,
     enableSVGs,
     disablePreview,
+    isRejected,
 }: Props) => {
     const {id, extension, has_preview_image: hasPreviewImage, width = 0, height = 0} = (fileInfo as FileInfo);
     const mimeType = (fileInfo as FileInfo).mime_type || (fileInfo as FilePreviewInfo | FilePreviewInfoLimited).type;
@@ -40,7 +42,8 @@ const FileThumbnail = ({
         type = getFileTypeFromMime(mimeType);
     }
 
-    if (id && !disablePreview) {
+    // If the file is rejected, always show the file icon instead of thumbnail
+    if (id && !disablePreview && !isRejected) {
         if (type === FileTypes.IMAGE) {
             let className = 'post-image';
 

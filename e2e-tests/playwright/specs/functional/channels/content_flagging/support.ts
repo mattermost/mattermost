@@ -28,7 +28,7 @@ export async function setupContentFlagging(
             TeamAdminsAsReviewers: true,
         },
         AdditionalSettings: {
-            Reasons: ['Inappropriate content', 'Spam', 'Harassment', 'Other'],
+            Reasons: ['Classification mismatch', 'Need-to-know violation', 'Unauthorized disclosure', 'Other'],
             ReporterCommentRequired: true,
             ReviewerCommentRequired: true,
             HideFlaggedContent: hideFlaggedContent,
@@ -67,7 +67,7 @@ export async function verifyAuthorNotification(
     await contentReviewPage.waitForPageLoaded();
 
     await contentReviewPage.verifyFlaggedPostStatus(postStatus);
-    await contentReviewPage.verifyFlaggedPostReason('Inappropriate content');
+    await contentReviewPage.verifyFlaggedPostReason('Classification mismatch');
     await contentReviewPage.verifyFlaggedPostMessage(expectedMessage);
 }
 
@@ -91,7 +91,7 @@ export async function verifyRHSFlaggedPostDetails(
     await contentReviewPage.expectSelectProperty('Status', flagPostReviewStatus);
     await contentReviewPage.expectSelectProperty('Reason', reasonToFlag);
     await contentReviewPage.expectMessageContains(postMessageFlagged);
-    await contentReviewPage.expectUser('Flagged by', flaggedByUsername);
+    await contentReviewPage.expectUser('Quarantined by', flaggedByUsername);
     await contentReviewPage.expectUser('Posted by', postedByUsername);
     await contentReviewPage.expectChannel(postFlaggedInChannel);
 }
@@ -113,7 +113,7 @@ export async function verifyFlaggedPostCardDetails(
     await contentReviewPage.waitForPageLoaded();
 
     await contentReviewPage.verifyFlaggedPostStatus('Pending');
-    await contentReviewPage.verifyFlaggedPostReason('Inappropriate content');
+    await contentReviewPage.verifyFlaggedPostReason('Classification mismatch');
     await contentReviewPage.verifyFlaggedPostMessage(expectedMessage);
 }
 

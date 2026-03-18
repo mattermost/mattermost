@@ -33,6 +33,7 @@ export type PostType = 'system_add_remove' |
 'reminder' |
 'system_wrangler' |
 'custom_spillage_report' |
+'system_autotranslation' |
 'burn_on_read' |
 '';
 
@@ -63,6 +64,14 @@ export type PostPriorityMetadata = {
     persistent_notifications?: boolean;
 }
 
+export type PostTranslation = {
+    object?: {
+        message: string;
+    };
+    state: 'ready' | 'skipped' | 'processing' | 'unavailable';
+    source_lang?: string;
+};
+
 export type PostMetadata = {
     embeds: PostEmbed[];
     emojis: CustomEmoji[];
@@ -71,6 +80,7 @@ export type PostMetadata = {
     reactions?: Reaction[];
     priority?: PostPriorityMetadata;
     acknowledgements?: PostAcknowledgement[];
+    translations?: Record<string, PostTranslation>;
     expire_at?: number;
     recipients?: string[];
 };

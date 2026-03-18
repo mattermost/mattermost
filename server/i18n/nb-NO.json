@@ -602,7 +602,7 @@
   },
   {
     "id": "api.access_control_policy.get_channels.limit.app_error",
-    "translation": "Grensen for å hente kanaler er ikke gyldig."
+    "translation": "Grensen for henting av kanaler er ikke gyldig."
   },
   {
     "id": "api.admin.add_certificate.parseform.app_error",
