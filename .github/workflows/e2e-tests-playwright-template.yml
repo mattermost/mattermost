@@ -115,6 +115,8 @@ on:
         required: true
       ANTHROPIC_API_KEY:
         required: false
+      OPENAI_API_KEY:
+        required: false
 
 env:
   SERVER_IMAGE: "${{ inputs.server_image_repo }}/${{ inputs.server_edition == 'fips' && 'mattermost-enterprise-fips-edition' || inputs.server_edition == 'team' && 'mattermost-team-edition' || 'mattermost-enterprise-edition' }}:${{ inputs.server_image_tag }}"
@@ -159,6 +161,8 @@ jobs:
       spec_count: ${{ steps.derive-impact-specs.outputs.count }}
     env:
       LLM_PROVIDER: "${{ inputs.llm_provider }}"
+      ANTHROPIC_API_KEY: "${{ secrets.ANTHROPIC_API_KEY }}"
+      OPENAI_API_KEY: "${{ secrets.OPENAI_API_KEY }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -183,7 +187,7 @@ jobs:
         working-directory: e2e-tests/playwright
         run: |
           mkdir -p .e2e-ai-agents
-          npm run impact:plan -- --llm-provider "${LLM_PROVIDER}" --github-output "$GITHUB_OUTPUT" --ci-comment-path ./.e2e-ai-agents/ci-summary.md
+          npm run impact:plan-crew -- --llm-provider "${LLM_PROVIDER}" --github-output "$GITHUB_OUTPUT" --ci-comment-path ./.e2e-ai-agents/ci-summary.md
       - name: ci/impact-generate
         if: steps.impact-plan.outcome == 'success'
         id: impact-generate
@@ -218,21 +222,9 @@ jobs:
               }
           }
 
-          const generatedRoot = path.join('specs', 'functional', 'ai-assisted');
-          if (fs.existsSync(generatedRoot)) {
-              const stack = [generatedRoot];
-              while (stack.length > 0) {
-                  const current = stack.pop();
-                  for (const entry of fs.readdirSync(current, {withFileTypes: true})) {
-                      const fullPath = path.join(current, entry.name);
-                      if (entry.isDirectory()) {
-                          stack.push(fullPath);
-                      } else if (entry.isFile() && /\.(spec|test)\.[tj]sx?$/.test(entry.name)) {
-                          tests.add(fullPath.replace(/\\/g, '/'));
-                      }
-                  }
-              }
-          }
+          // Only shard checked-in specs here. Agentic generation runs later in the
+          // shard job, so we should not derive paths to files that do not exist in
+          // every worker checkout yet.
 
           // Sanitize: reject paths with shell metacharacters, traversal, or outside spec tree
           const safePathPattern = /^[a-zA-Z0-9_.\/\-]+$/;
@@ -269,6 +261,9 @@ jobs:
             e2e-tests/playwright/.e2e-ai-agents/plan.json
             e2e-tests/playwright/.e2e-ai-agents/spec-files.txt
             e2e-tests/playwright/.e2e-ai-agents/ci-summary.md
+            e2e-tests/playwright/.e2e-ai-agents/crew-summary.json
+            e2e-tests/playwright/.e2e-ai-agents/crew-summary.md
+            e2e-tests/playwright/.e2e-ai-agents/crew-test-plan.md
             e2e-tests/playwright/.e2e-ai-agents/metrics-summary.json
           retention-days: 1
           if-no-files-found: ignore
@@ -301,6 +296,8 @@ jobs:
       BUILD_ID: "${{ inputs.build_id }}"
       CI_BASE_URL: "${{ inputs.test_type }}-test-${{ matrix.worker_index }}"
       LLM_PROVIDER: "${{ inputs.llm_provider }}"
+      ANTHROPIC_API_KEY: "${{ secrets.ANTHROPIC_API_KEY }}"
+      OPENAI_API_KEY: "${{ secrets.OPENAI_API_KEY }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
