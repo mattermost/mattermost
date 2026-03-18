@@ -106,7 +106,7 @@ test(
 
         // * Verify aria snapshot of Browse Channels dialog
         await expect(dialog.container).toMatchAriaSnapshot(`
-            - dialog "Browse Channels":©
+            - dialog "Browse Channels":
               - document:
                 - heading "Browse Channels" [level=1]
                 - button "Create New Channel"
