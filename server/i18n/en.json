@@ -3279,8 +3279,8 @@
     "translation": "Could not uninvite remote to channel"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "The Integration/Slack Bot user with email {{.Email}} and password {{.Password}} has been imported.\r\n"
+    "id": "api.slackimport.slack_add_bot_user.email",
+    "translation": "The Integration/Slack Bot user with email {{.Email}} has been imported.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
@@ -3307,8 +3307,8 @@
     "translation": "\r\nUsers created:\r\n"
   },
   {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Slack user with email {{.Email}} and password {{.Password}} has been imported.\r\n"
+    "id": "api.slackimport.slack_add_users.email",
+    "translation": "Slack user with email {{.Email}} has been imported.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
@@ -3321,6 +3321,10 @@
   {
     "id": "api.slackimport.slack_add_users.missing_email_address",
     "translation": "User {{.Username}} does not have an email address in the Slack export. Used {{.Email}} as a placeholder. The user should update their email address once logged in to the system.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.send_reset_email_failed",
+    "translation": "Unable to send password reset email to {{.Username}} at {{.Email}}.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
@@ -5524,7 +5528,7 @@
   },
   {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
-    "translation": "Cannot register Custom Profile Attributes property group"
+    "translation": "Unable to retrieve the custom profile attributes property group."
   },
   {
     "id": "app.custom_profile_attributes.create_property_field.app_error",
@@ -5636,7 +5640,7 @@
   },
   {
     "id": "app.data_spillage.get_group.error",
-    "translation": "Failed to get Content Flagging bot."
+    "translation": "Unable to retrieve the content flagging property group."
   },
   {
     "id": "app.data_spillage.get_reviewer_settings.app_error",
@@ -6739,6 +6743,10 @@
     "translation": "Error fetching last accessible post"
   },
   {
+    "id": "app.limits.get_app_limits.single_channel_guest_count.store_error",
+    "translation": "Failed to get single-channel guest count."
+  },
+  {
     "id": "app.limits.get_app_limits.user_count.store_error",
     "translation": "Failed to get user count"
   },
@@ -6977,6 +6985,10 @@
   {
     "id": "app.pap.get_channel_members_to_remove.app_error",
     "translation": "Could not get channel members to remove."
+  },
+  {
+    "id": "app.pap.get_policies_for_field_ids.app_error",
+    "translation": "Could not get policies for the given field IDs."
   },
   {
     "id": "app.pap.get_policy.app_error",
@@ -7663,6 +7675,14 @@
     "translation": "The role was not valid."
   },
   {
+    "id": "app.role.send_updated_role_event.app_error",
+    "translation": "An error occurred while broadcasting the role update."
+  },
+  {
+    "id": "app.role.send_updated_role_event.unknown_scope",
+    "translation": "An error occurred while broadcasting the role update: unknown scheme scope."
+  },
+  {
     "id": "app.save_config.app_error",
     "translation": "An error occurred saving the configuration."
   },
@@ -8199,6 +8219,10 @@
   {
     "id": "app.user.analytics_get_inactive_users_count.app_error",
     "translation": "We could not count the inactive users."
+  },
+  {
+    "id": "app.user.analytics_get_single_channel_guest_count.app_error",
+    "translation": "Failed to get single-channel guest count for analytics."
   },
   {
     "id": "app.user.check_user_password.failed_migration",
@@ -10445,6 +10469,10 @@
     "translation": "Invalid domain for move thread settings"
   },
   {
+    "id": "model.config.is_valid.native_app_settings.download_link.app_error",
+    "translation": "One or more app download links are not valid URLs."
+  },
+  {
     "id": "model.config.is_valid.notification_settings.invalid_event",
     "translation": "Invalid flagging event specified."
   },
@@ -11639,6 +11667,10 @@
   {
     "id": "model.user_access_token.is_valid.user_id.app_error",
     "translation": "Invalid user id."
+  },
+  {
+    "id": "model.user_report_options.is_valid.invalid_guest_filter",
+    "translation": "Provided guest filter is not valid."
   },
   {
     "id": "model.user_report_options.is_valid.invalid_sort_column",

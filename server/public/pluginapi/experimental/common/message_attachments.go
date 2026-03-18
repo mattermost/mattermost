@@ -7,7 +7,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-func SlackAttachmentError(w http.ResponseWriter, err error) {
+func MessageAttachmentError(w http.ResponseWriter, err error) {
 	response := model.PostActionIntegrationResponse{
 		EphemeralText: "Error:" + err.Error(),
 	}

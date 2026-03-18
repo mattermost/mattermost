@@ -1789,6 +1789,31 @@ func (us SqlUserStore) AnalyticsGetGuestCount() (int64, error) {
 	return count, nil
 }
 
+func (us SqlUserStore) AnalyticsGetSingleChannelGuestCount() (int64, error) {
+	subQuery := us.getQueryBuilder().
+		Select("cm.UserId").
+		From("ChannelMembers cm").
+		Join("Users u ON cm.UserId = u.Id").
+		Join("Channels c ON cm.ChannelId = c.Id").
+		Where(sq.ILike{"u.Roles": "%system_guest%"}).
+		Where(sq.Eq{"u.DeleteAt": 0}).
+		Where(sq.Eq{"c.DeleteAt": 0}).
+		Where(sq.Eq{"c.Type": []model.ChannelType{model.ChannelTypeOpen, model.ChannelTypePrivate}}).
+		GroupBy("cm.UserId").
+		Having("COUNT(cm.ChannelId) = 1")
+
+	query := us.getQueryBuilder().
+		Select("COUNT(*)").
+		FromSelect(subQuery, "single_channel_guests")
+
+	var count int64
+	err := us.GetReplica().GetBuilder(&count, query)
+	if err != nil {
+		return int64(0), errors.Wrap(err, "failed to count single-channel guest Users")
+	}
+	return count, nil
+}
+
 func (us SqlUserStore) AnalyticsGetSystemAdminCount() (int64, error) {
 	var count int64
 	err := us.GetReplica().Get(&count, "SELECT count(*) FROM Users WHERE Roles LIKE ? and DeleteAt = 0", "%system_admin%")
@@ -2354,7 +2379,19 @@ func (us SqlUserStore) RefreshPostStatsForUsers() error {
 }
 
 func applyUserReportFilter(query sq.SelectBuilder, filter *model.UserReportOptions) sq.SelectBuilder {
-	query = applyRoleFilter(query, filter.Role)
+	switch filter.GuestFilter {
+	case model.GuestFilterAll:
+		query = applyRoleFilter(query, "system_guest")
+	case model.GuestFilterSingleChannel:
+		query = applyRoleFilter(query, "system_guest")
+		query = query.Where(sq.Expr("(SELECT COUNT(*) FROM ChannelMembers cm INNER JOIN Channels c ON c.Id = cm.ChannelId AND c.DeleteAt = 0 AND c.Type IN ('O','P') WHERE cm.UserId = Users.Id) = 1"))
+	case model.GuestFilterMultipleChannel:
+		query = applyRoleFilter(query, "system_guest")
+		query = query.Where(sq.Expr("(SELECT COUNT(*) FROM ChannelMembers cm INNER JOIN Channels c ON c.Id = cm.ChannelId AND c.DeleteAt = 0 AND c.Type IN ('O','P') WHERE cm.UserId = Users.Id) > 1"))
+	default:
+		query = applyRoleFilter(query, filter.Role)
+	}
+
 	if filter.HasNoTeam {
 		query = query.Where(sq.Expr("Users.Id NOT IN (SELECT UserId FROM TeamMembers WHERE DeleteAt = 0)"))
 	} else if filter.Team != "" {
@@ -2401,6 +2438,7 @@ func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.
 		"MAX(ps.LastPostDate) AS LastPostDate",
 		"COUNT(ps.Day) AS DaysActive",
 		"SUM(ps.NumPosts) AS TotalPosts",
+		"(SELECT COUNT(*) FROM ChannelMembers cm INNER JOIN Channels c ON c.Id = cm.ChannelId AND c.DeleteAt = 0 AND c.Type IN ('O','P') WHERE cm.UserId = Users.Id) AS ChannelCount",
 	)
 
 	sortDirection := "ASC"
@@ -2477,7 +2515,7 @@ func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.
 		}
 
 		parentQuery = us.getQueryBuilder().
-			Select(getUsersColumnsWithName("data", "LastStatusAt", "LastPostDate", "DaysActive", "TotalPosts")...).
+			Select(getUsersColumnsWithName("data", "LastStatusAt", "LastPostDate", "DaysActive", "TotalPosts", "ChannelCount")...).
 			FromSelect(query, "data").
 			OrderBy(filter.SortColumn+" "+reverseSortDirection, "Id")
 	}

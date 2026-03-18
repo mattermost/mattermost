@@ -9,117 +9,117 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSlackAttachment_IsValid(t *testing.T) {
+func TestMessageAttachment_IsValid(t *testing.T) {
 	tests := map[string]struct {
-		attachment *SlackAttachment
+		attachment *MessageAttachment
 		wantErr    string
 	}{
 		"valid attachment": {
-			attachment: &SlackAttachment{
+			attachment: &MessageAttachment{
 				Text: "This is a test",
 			},
 			wantErr: "",
 		},
 		"invalid color": {
-			attachment: &SlackAttachment{
+			attachment: &MessageAttachment{
 				Color: "invalid",
 			},
 			wantErr: "invalid style 'invalid' - must be one of [good, warning, danger] or a hex color",
 		},
 		"valid predefined color": {
-			attachment: &SlackAttachment{
+			attachment: &MessageAttachment{
 				Color: "good",
 			},
 			wantErr: "",
 		},
 		"valid warning color": {
-			attachment: &SlackAttachment{
+			attachment: &MessageAttachment{
 				Color: "warning",
 			},
 			wantErr: "",
 		},
 		"valid danger color": {
-			attachment: &SlackAttachment{
+			attachment: &MessageAttachment{
 				Color: "danger",
 			},
 			wantErr: "",
 		},
 		"valid hex color": {
-			attachment: &SlackAttachment{
+			attachment: &MessageAttachment{
 				Color: "#FF0000",
 			},
 			wantErr: "",
 		},
 		"author link without name": {
-			attachment: &SlackAttachment{
+			attachment: &MessageAttachment{
 				AuthorLink: "http://example.com",
 			},
 			wantErr: "author link cannot be set without author name",
 		},
 		"invalid author link": {
-			attachment: &SlackAttachment{
+			attachment: &MessageAttachment{
 				AuthorName: "Author",
 				AuthorLink: "invalid-url",
 			},
 			wantErr: "invalid author link URL",
 		},
 		"invalid author icon": {
-			attachment: &SlackAttachment{
+			attachment: &MessageAttachment{
 				AuthorIcon: "invalid-url",
 			},
 			wantErr: "invalid author icon URL",
 		},
 		"title link without title": {
-			attachment: &SlackAttachment{
+			attachment: &MessageAttachment{
 				TitleLink: "http://example.com",
 			},
 			wantErr: "title link cannot be set without title",
 		},
 		"invalid title link": {
-			attachment: &SlackAttachment{
+			attachment: &MessageAttachment{
 				Title:     "Title",
 				TitleLink: "invalid-url",
 			},
 			wantErr: "invalid title link URL",
 		},
 		"invalid image URL": {
-			attachment: &SlackAttachment{
+			attachment: &MessageAttachment{
 				ImageURL: "invalid-url",
 			},
 			wantErr: "invalid image URL",
 		},
 		"invalid thumb URL": {
-			attachment: &SlackAttachment{
+			attachment: &MessageAttachment{
 				ThumbURL: "invalid-url",
 			},
 			wantErr: "invalid thumb URL",
 		},
 		"invalid footer icon": {
-			attachment: &SlackAttachment{
+			attachment: &MessageAttachment{
 				FooterIcon: "invalid-url",
 			},
 			wantErr: "invalid footer icon URL",
 		},
 		"invalid timestamp type": {
-			attachment: &SlackAttachment{
+			attachment: &MessageAttachment{
 				Timestamp: []string{"invalid"},
 			},
 			wantErr: "timestamp must be either a string or int64",
 		},
 		"valid timestamp string": {
-			attachment: &SlackAttachment{
+			attachment: &MessageAttachment{
 				Timestamp: "1234567890",
 			},
 			wantErr: "",
 		},
 		"valid timestamp int64": {
-			attachment: &SlackAttachment{
+			attachment: &MessageAttachment{
 				Timestamp: int64(1234567890),
 			},
 			wantErr: "",
 		},
 		"invalid action": {
-			attachment: &SlackAttachment{
+			attachment: &MessageAttachment{
 				Actions: []*PostAction{
 					{
 						Name: "", // Invalid - missing name
@@ -129,8 +129,8 @@ func TestSlackAttachment_IsValid(t *testing.T) {
 			wantErr: "action must have a name",
 		},
 		"invalid field value type": {
-			attachment: &SlackAttachment{
-				Fields: []*SlackAttachmentField{
+			attachment: &MessageAttachment{
+				Fields: []*MessageAttachmentField{
 					{
 						Title: "Title",
 						Value: []string{"invalid"},
@@ -140,8 +140,8 @@ func TestSlackAttachment_IsValid(t *testing.T) {
 			wantErr: "value must be either a string or int",
 		},
 		"valid fields": {
-			attachment: &SlackAttachment{
-				Fields: []*SlackAttachmentField{
+			attachment: &MessageAttachment{
+				Fields: []*MessageAttachmentField{
 					{
 						Title: "Title",
 						Value: "string value",
@@ -168,17 +168,17 @@ func TestSlackAttachment_IsValid(t *testing.T) {
 	}
 }
 
-func TestParseSlackAttachment(t *testing.T) {
+func TestParseMessageAttachment(t *testing.T) {
 	t.Run("empty list", func(t *testing.T) {
 		post := &Post{}
-		attachments := []*SlackAttachment{}
+		attachments := []*MessageAttachment{}
 
-		ParseSlackAttachment(post, attachments)
+		ParseMessageAttachment(post, attachments)
 
 		expectedPost := &Post{
-			Type: PostTypeSlackAttachment,
+			Type: PostTypeMessageAttachment,
 			Props: map[string]any{
-				PostPropsAttachments: []*SlackAttachment{},
+				PostPropsAttachments: []*MessageAttachment{},
 			},
 		}
 		assert.Equal(t, expectedPost, post)
@@ -186,26 +186,26 @@ func TestParseSlackAttachment(t *testing.T) {
 
 	t.Run("list with nil", func(t *testing.T) {
 		post := &Post{}
-		attachments := []*SlackAttachment{
+		attachments := []*MessageAttachment{
 			nil,
 		}
 
-		ParseSlackAttachment(post, attachments)
+		ParseMessageAttachment(post, attachments)
 
 		expectedPost := &Post{
-			Type: PostTypeSlackAttachment,
+			Type: PostTypeMessageAttachment,
 			Props: map[string]any{
-				PostPropsAttachments: []*SlackAttachment{},
+				PostPropsAttachments: []*MessageAttachment{},
 			},
 		}
 		assert.Equal(t, expectedPost, post)
 	})
 }
 
-func TestSlackAttachment_Equals_PrimitiveAndNonPrimitiveField(t *testing.T) {
+func TestMessageAttachment_Equals_PrimitiveAndNonPrimitiveField(t *testing.T) {
 	// Field with primitive type (string)
-	attachment1 := &SlackAttachment{
-		Fields: []*SlackAttachmentField{
+	attachment1 := &MessageAttachment{
+		Fields: []*MessageAttachmentField{
 			{
 				Title: "Field1",
 				Value: "value",
@@ -213,8 +213,8 @@ func TestSlackAttachment_Equals_PrimitiveAndNonPrimitiveField(t *testing.T) {
 			},
 		},
 	}
-	attachment2 := &SlackAttachment{
-		Fields: []*SlackAttachmentField{
+	attachment2 := &MessageAttachment{
+		Fields: []*MessageAttachmentField{
 			{
 				Title: "Field1",
 				Value: "value",
@@ -225,8 +225,8 @@ func TestSlackAttachment_Equals_PrimitiveAndNonPrimitiveField(t *testing.T) {
 	assert.True(t, attachment1.Equals(attachment2), "Attachments with identical primitive field values should be equal")
 
 	// Field with non-primitive type ([]interface{})
-	attachment3 := &SlackAttachment{
-		Fields: []*SlackAttachmentField{
+	attachment3 := &MessageAttachment{
+		Fields: []*MessageAttachmentField{
 			{
 				Title: "Field1",
 				Value: []any{"value", 2},
@@ -234,8 +234,8 @@ func TestSlackAttachment_Equals_PrimitiveAndNonPrimitiveField(t *testing.T) {
 			},
 		},
 	}
-	attachment4 := &SlackAttachment{
-		Fields: []*SlackAttachmentField{
+	attachment4 := &MessageAttachment{
+		Fields: []*MessageAttachmentField{
 			{
 				Title: "Field1",
 				Value: []any{"value", 2},

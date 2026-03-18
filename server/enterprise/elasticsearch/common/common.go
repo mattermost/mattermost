@@ -133,7 +133,7 @@ func ESPostFromPostForIndexing(post *model.PostForIndexing) *ESPost {
 				if !mOk {
 					continue
 				}
-				for _, key := range []string{"text", "title", "pretext", "fallback"} {
+				for _, key := range []string{"text", "title", "pretext", "fallback", "footer", "author_name"} {
 					if s, _ := m[key].(string); s != "" {
 						searchAttachments = append(searchAttachments, s)
 					}
@@ -159,13 +159,13 @@ func ESPostFromPostForIndexing(post *model.PostForIndexing) *ESPost {
 			}
 		}
 
-		attachmentsArray, ok := attachments.([]*model.SlackAttachment)
+		attachmentsArray, ok := attachments.([]*model.MessageAttachment)
 		if ok {
 			for _, attachment := range attachmentsArray {
 				if attachment == nil {
 					continue
 				}
-				for _, s := range []string{attachment.Text, attachment.Title, attachment.Pretext, attachment.Fallback} {
+				for _, s := range []string{attachment.Text, attachment.Title, attachment.Pretext, attachment.Fallback, attachment.Footer, attachment.AuthorName} {
 					if s != "" {
 						searchAttachments = append(searchAttachments, s)
 					}
