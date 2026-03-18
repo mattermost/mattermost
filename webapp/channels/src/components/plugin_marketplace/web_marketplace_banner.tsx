@@ -75,7 +75,7 @@ const Title = styled.div`
     line-height: 24px;
     margin: 4px 0;
     grid-column: 1;
-    color: #fff;
+    color: #FFF;
 
     svg {
         vertical-align: middle;
@@ -92,7 +92,7 @@ const Description = styled.p`
     line-height: 20px;
     grid-column: 1;
     margin-bottom: 4px;
-    color: #fff;
+    color: #FFF;
 `;
 
 const PluginIcon = styled.img`
