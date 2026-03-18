@@ -7,7 +7,6 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @enterprise @ldap_group
 
 describe('LDAP Group Sync - Test channel public/private toggle', () => {

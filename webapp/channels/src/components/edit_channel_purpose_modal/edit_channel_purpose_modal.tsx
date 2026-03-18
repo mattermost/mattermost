@@ -150,7 +150,7 @@ export class EditChannelPurposeModal extends React.PureComponent<Props, State> {
             channelPurposeModal = (
                 <FormattedMessage
                     id='edit_channel_private_purpose_modal.body'
-                    defaultMessage='This text appears in the \"View Info\" modal of the private channel.'
+                    defaultMessage='This text appears in the "View Info" modal of the private channel.'
                 />
             );
         }

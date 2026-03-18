@@ -91,7 +91,7 @@ describe('Onboarding', () => {
         cy.get('#name').should('be.visible').type(usernameTwo);
         cy.get('#password').should('be.visible').type(password);
 
-        // # Attempt to create an account by clicking on the 'Create Account' button
+        // # Attempt to create an account by clicking on the 'Create account' button
         cy.get('#createAccountButton').click();
 
         // * Ensure that since the invite was invalidated, the correct error message should be shown
@@ -99,7 +99,7 @@ describe('Onboarding', () => {
     });
 
     function inviteNewUser(email) {
-        cy.findByRole('textbox', {name: 'Add or Invite People'}).
+        cy.findByRole('textbox', {name: 'Invite People'}).
             typeWithForce(email).wait(TIMEOUTS.HALF_SEC).
             typeWithForce('{enter}');
         cy.findByTestId('inviteButton').click();

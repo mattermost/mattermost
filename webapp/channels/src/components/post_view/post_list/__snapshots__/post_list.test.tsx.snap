@@ -25,6 +25,7 @@ exports[`components/post_view/post_list snapshot for loading when there are no p
         atLatestPost={false}
         autoRetryEnable={true}
         channelId="fake-id"
+        isChannelAutotranslated={false}
         isMobileView={false}
         lastViewedAt={1532345226632}
         loadingNewerPosts={false}
@@ -62,6 +63,7 @@ exports[`components/post_view/post_list snapshot with couple of posts 1`] = `
         atLatestPost={false}
         autoRetryEnable={true}
         channelId="fake-id"
+        isChannelAutotranslated={false}
         isMobileView={false}
         lastViewedAt={1532345226632}
         loadingNewerPosts={false}

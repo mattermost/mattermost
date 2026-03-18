@@ -1,57 +1,65 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/trial_benefits_modal/trial_benefits_modal_step should match snapshot 1`] = `
-<div
-  className="TrialBenefitsModalStep slide-container"
-  id="trialBenefitsModalStep-stepId"
->
-  <div
-    className="title"
-  >
-    Step title
+<body>
+  <div>
+    <div
+      class="TrialBenefitsModalStep slide-container"
+      id="trialBenefitsModalStep-stepId"
+    >
+      <div
+        class="title"
+      >
+        Step title
+      </div>
+      <div
+        class="description"
+      >
+        Step description
+      </div>
+      <div
+        class="stepClassname svg-wrapper"
+      >
+        <svg />
+      </div>
+    </div>
   </div>
-  <div
-    className="description"
-  >
-    Step description
-  </div>
-  <div
-    className="stepClassname svg-wrapper"
-  >
-    <svg />
-  </div>
-</div>
+</body>
 `;
 
 exports[`components/trial_benefits_modal/trial_benefits_modal_step should match snapshot with optional params 1`] = `
-<div
-  className="TrialBenefitsModalStep slide-container"
-  id="trialBenefitsModalStep-stepId"
->
-  <div
-    className="title"
-  >
-    Step title
+<body>
+  <div>
+    <div
+      class="TrialBenefitsModalStep slide-container"
+      id="trialBenefitsModalStep-stepId"
+    >
+      <div
+        class="title"
+      >
+        Step title
+      </div>
+      <div
+        class="description"
+      >
+        Step description
+      </div>
+      <a
+        class="TrialBenefitsModalStepMore learn-more-button"
+      >
+        button
+      </a>
+      <div
+        class="stepClassname svg-wrapper"
+      >
+        <svg />
+      </div>
+      <div
+        class="bottom-text-left-message"
+      >
+        Step bottom message
+      </div>
+    </div>
   </div>
-  <div
-    className="description"
-  >
-    Step description
-  </div>
-  <TrialBenefitsModalStepMore
-    message="button"
-    onClick={[MockFunction]}
-    route="/test/page"
-  />
-  <div
-    className="stepClassname svg-wrapper"
-  >
-    <svg />
-  </div>
-  <div
-    className="bottom-text-left-message"
-  >
-    Step bottom message
-  </div>
-</div>
+</body>
 `;

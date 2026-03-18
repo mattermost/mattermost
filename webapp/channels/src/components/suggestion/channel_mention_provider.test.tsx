@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 jest.mock('mattermost-redux/selectors/entities/channels', () => ({
+    ...jest.requireActual('mattermost-redux/selectors/entities/channels'),
     getMyChannels: jest.fn(() => []),
     getMyChannelMemberships: jest.fn(() => {}),
 }));

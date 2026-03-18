@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {memo, useRef} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
@@ -14,7 +14,6 @@ import UserListRow from './user_list_row';
 
 type Props = {
     rowComponentType?: React.ComponentType<any>;
-    length?: number;
     actions?: Array<React.ComponentType<any>>;
     actionUserProps?: {
         [userId: string]: {
@@ -39,74 +38,63 @@ type Props = {
     };
 }
 
-export default class UserList extends React.PureComponent <Props> {
-    static defaultProps = {
-        users: [],
-        extraInfo: {},
-        actions: [],
-        actionProps: {},
-        rowComponentType: UserListRow,
-    };
-    containerRef: React.RefObject<any>;
+const UserList = ({
+    actionUserProps,
+    isDisabled,
+    actionProps,
+    users: usersFromProps = [],
+    extraInfo = {},
+    actions = [],
+    rowComponentType = UserListRow,
+}: Props) => {
+    const containerRef = useRef(null);
 
-    constructor(props: Props) {
-        super(props);
-        this.containerRef = React.createRef();
-    }
+    const users = usersFromProps;
+    const RowComponentType = rowComponentType;
 
-    scrollToTop = () => {
-        if (this.containerRef.current) {
-            this.containerRef.current.scrollTop = 0;
-        }
-    };
-
-    render() {
-        const users = this.props.users;
-        const RowComponentType = this.props.rowComponentType;
-
-        let content;
-        if (users == null) {
-            return <LoadingScreen/>;
-        } else if (users.length > 0 && RowComponentType && this.props.actionProps) {
-            content = users.map((user: UserProfile, index: number) => {
-                const {actionUserProps, extraInfo} = this.props;
-                const userId = user.id;
-                return (
-                    <RowComponentType
-                        key={user.id}
-                        user={user}
-                        extraInfo={extraInfo?.[userId]}
-                        actions={this.props.actions}
-                        actionProps={this.props.actionProps}
-                        actionUserProps={actionUserProps?.[userId]}
-                        index={index}
-                        totalUsers={users.length}
-                        userCount={index >= 0 ? index : -1}
-                        isDisabled={this.props.isDisabled}
-                    />
-                );
-            });
-        } else {
-            content = (
-                <div
-                    key='no-users-found'
-                    className='more-modal__placeholder-row no-users-found'
-                    data-testid='noUsersFound'
-                >
-                    <p>
-                        <FormattedMessage
-                            id='user_list.notFound'
-                            defaultMessage='No users found'
-                        />
-                    </p>
-                </div>
+    let content;
+    if (users == null) {
+        return <LoadingScreen/>;
+    } else if (users.length > 0 && RowComponentType && actionProps) {
+        content = users.map((user: UserProfile, index: number) => {
+            const userId = user.id;
+            return (
+                <RowComponentType
+                    key={user.id}
+                    user={user}
+                    extraInfo={extraInfo?.[userId]}
+                    actions={actions}
+                    actionProps={actionProps}
+                    actionUserProps={actionUserProps?.[userId]}
+                    index={index}
+                    totalUsers={users.length}
+                    userCount={index >= 0 ? index : -1}
+                    isDisabled={isDisabled}
+                />
             );
-        }
-
-        return (
-            <div ref={this.containerRef}>
-                {content}
+        });
+    } else {
+        content = (
+            <div
+                key='no-users-found'
+                className='more-modal__placeholder-row no-users-found'
+                data-testid='noUsersFound'
+            >
+                <p>
+                    <FormattedMessage
+                        id='user_list.notFound'
+                        defaultMessage='No users found'
+                    />
+                </p>
             </div>
         );
     }
-}
+
+    return (
+        <div ref={containerRef}>
+            {content}
+        </div>
+    );
+};
+
+export default memo(UserList);

@@ -8,7 +8,7 @@ import * as rhsActions from 'actions/views/rhs';
 
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
-import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {RHSStates} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -22,11 +22,7 @@ describe('components/ChannelHeaderMenu/MenuItems/ViewPinnedPosts', () => {
         jest.spyOn(require('react-redux'), 'useDispatch');
     });
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
-    test('renders the component correctly, handles correct click event', () => {
+    test('renders the component correctly, handles correct click event', async () => {
         const state = {
             views: {
                 rhs: {
@@ -45,13 +41,13 @@ describe('components/ChannelHeaderMenu/MenuItems/ViewPinnedPosts', () => {
         const menuItem = screen.getByText('View Pinned Posts');
         expect(menuItem).toBeInTheDocument();
 
-        fireEvent.click(menuItem); // Simulate click on the menu item
+        await userEvent.click(menuItem); // Simulate click on the menu item
         expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
         expect(rhsActions.showPinnedPosts).toHaveBeenCalledTimes(1);
         expect(rhsActions.showPinnedPosts).toHaveBeenCalledWith(channel.id);
     });
 
-    test('renders the component correctly, handles correct click event', () => {
+    test('renders the component correctly, handles correct click event', async () => {
         const state = {
             views: {
                 rhs: {
@@ -70,7 +66,7 @@ describe('components/ChannelHeaderMenu/MenuItems/ViewPinnedPosts', () => {
         const menuItem = screen.getByText('View Pinned Posts');
         expect(menuItem).toBeInTheDocument();
 
-        fireEvent.click(menuItem); // Simulate click on the menu item
+        await userEvent.click(menuItem); // Simulate click on the menu item
         expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
         expect(rhsActions.closeRightHandSide).toHaveBeenCalledTimes(1);
     });

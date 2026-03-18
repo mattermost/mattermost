@@ -157,7 +157,8 @@ function isPostInteractable(post: Post | undefined) {
         !isPostEphemeral(post) &&
         !isSystemMessage(post) &&
         !isPostPendingOrFailed(post) &&
-        post.state !== Posts.POST_DELETED;
+        post.state !== Posts.POST_DELETED &&
+        post.type !== Posts.POST_TYPES.BURN_ON_READ;
 }
 
 export function getLatestInteractablePostId(state: GlobalState, channelId: string, rootId = '') {

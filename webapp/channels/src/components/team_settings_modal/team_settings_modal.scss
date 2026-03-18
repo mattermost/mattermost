@@ -1,0 +1,90 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.TeamSettingsModal {
+    width: 920px !important;
+
+    // Override GenericModal wrapper styles
+    .GenericModal__wrapper {
+        display: flex;
+        overflow: visible;
+        max-width: 1200px;
+        max-height: 90vh;
+        flex-direction: column;
+        border: var(--border-default);
+        border-radius: var(--radius-l);
+        box-shadow: var(--elevation-6);
+
+        .modal-body {
+            display: flex;
+            width: auto;
+            min-height: 150px;
+            flex-direction: column;
+            margin: 0;
+            gap: 24px;
+            overflow-y: auto;
+        }
+    }
+
+    &__bodyWrapper {
+        display: flex;
+        width: 100%;
+        max-width: 920px;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    // Settings table layout (inherits most from global styles)
+    .settings-table {
+        display: flex;
+        flex-direction: row;
+
+        .settings-content {
+            display: flex;
+            overflow: visible !important;
+            flex: 1;
+            flex-direction: column;
+            padding: 0 32px;
+        }
+    }
+
+    .modal-body .form-control {
+        border: none !important;
+    }
+
+    // SaveChangesPanel width override
+    .SaveChangesPanel {
+        width: calc(70%);
+
+        @media screen and (max-width: 768px) {
+            width: calc(75%);
+        }
+    }
+
+    // Responsive behavior
+    @media screen and (max-width: 768px) {
+        max-width: 100%;
+        margin: 0;
+
+        .modal-content {
+            display: flex;
+            height: 100vh;
+            max-height: unset;
+            flex-direction: column;
+            border-radius: unset;
+        }
+    }
+
+    @media screen and (max-height: 900px) and (min-width: 768px) {
+        .modal-content {
+            max-height: 90vh;
+        }
+    }
+
+    @media screen and (max-height: 600px) {
+        .modal-content,
+        .GenericModal__wrapper {
+            max-height: 85vh !important;
+        }
+    }
+}

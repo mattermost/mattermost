@@ -15,7 +15,7 @@
     "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
     "module": "es2020",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "noEmit": true,
     "experimentalDecorators": true,

@@ -16,6 +16,10 @@ import type {GlobalState} from 'types/store';
  */
 export function isBurnOnReadPost(state: GlobalState, postId: string): boolean {
     const post = getPost(state, postId);
+    return isThisPostBurnOnReadPost(post);
+}
+
+export function isThisPostBurnOnReadPost(post?: Post): boolean {
     return post?.type === PostTypes.BURN_ON_READ;
 }
 

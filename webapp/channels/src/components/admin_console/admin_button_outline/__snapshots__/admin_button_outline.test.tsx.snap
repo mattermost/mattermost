@@ -1,41 +1,44 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/admin_button_outline/AdminButtonOutline should match snapshot with children 1`] = `
-<button
-  className="AdminButtonOutline btn admin-btn-default"
-  disabled={true}
-  onClick={[MockFunction]}
-  type="button"
->
-  Test children
-</button>
+<div>
+  <button
+    class="AdminButtonOutline btn admin-btn-default"
+    disabled=""
+    type="button"
+  >
+    Test children
+  </button>
+</div>
 `;
 
 exports[`components/admin_console/admin_button_outline/AdminButtonOutline should match snapshot with className is not provided in scss file 1`] = `
-<button
-  className="AdminButtonOutline btn btn-default"
-  disabled={true}
-  onClick={[MockFunction]}
-  type="button"
->
-  Test children
-</button>
+<div>
+  <button
+    class="AdminButtonOutline btn btn-default"
+    disabled=""
+    type="button"
+  >
+    Test children
+  </button>
+</div>
 `;
 
 exports[`components/admin_console/admin_button_outline/AdminButtonOutline should match snapshot with prop disable false 1`] = `
-<button
-  className="AdminButtonOutline btn admin-btn-default"
-  disabled={false}
-  onClick={[MockFunction]}
-  type="button"
-/>
+<div>
+  <button
+    class="AdminButtonOutline btn admin-btn-default"
+    type="button"
+  />
+</div>
 `;
 
 exports[`components/admin_console/admin_button_outline/AdminButtonOutline should match snapshot with prop disable true 1`] = `
-<button
-  className="AdminButtonOutline btn admin-btn-default"
-  disabled={true}
-  onClick={[MockFunction]}
-  type="button"
-/>
+<div>
+  <button
+    class="AdminButtonOutline btn admin-btn-default"
+    disabled=""
+    type="button"
+  />
+</div>
 `;

@@ -715,9 +715,9 @@ func (mr *MockClientMockRecorder) GetBotsOrphaned(arg0, arg1, arg2, arg3 interfa
 }
 
 // GetChannel mocks base method.
-func (m *MockClient) GetChannel(arg0 context.Context, arg1, arg2 string) (*model.Channel, *model.Response, error) {
+func (m *MockClient) GetChannel(arg0 context.Context, arg1 string) (*model.Channel, *model.Response, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetChannel", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "GetChannel", arg0, arg1)
 	ret0, _ := ret[0].(*model.Channel)
 	ret1, _ := ret[1].(*model.Response)
 	ret2, _ := ret[2].(error)
@@ -725,9 +725,9 @@ func (m *MockClient) GetChannel(arg0 context.Context, arg1, arg2 string) (*model
 }
 
 // GetChannel indicates an expected call of GetChannel.
-func (mr *MockClientMockRecorder) GetChannel(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) GetChannel(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChannel", reflect.TypeOf((*MockClient)(nil).GetChannel), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChannel", reflect.TypeOf((*MockClient)(nil).GetChannel), arg0, arg1)
 }
 
 // GetChannelByName mocks base method.
@@ -1066,6 +1066,22 @@ func (m *MockClient) GetOAuthApps(arg0 context.Context, arg1, arg2 int) ([]*mode
 func (mr *MockClientMockRecorder) GetOAuthApps(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOAuthApps", reflect.TypeOf((*MockClient)(nil).GetOAuthApps), arg0, arg1, arg2)
+}
+
+// GetOldClientLicense mocks base method.
+func (m *MockClient) GetOldClientLicense(arg0 context.Context, arg1 string) (map[string]string, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOldClientLicense", arg0, arg1)
+	ret0, _ := ret[0].(map[string]string)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetOldClientLicense indicates an expected call of GetOldClientLicense.
+func (mr *MockClientMockRecorder) GetOldClientLicense(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOldClientLicense", reflect.TypeOf((*MockClient)(nil).GetOldClientLicense), arg0, arg1)
 }
 
 // GetOutgoingWebhook mocks base method.

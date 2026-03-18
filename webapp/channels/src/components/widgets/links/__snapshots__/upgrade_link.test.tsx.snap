@@ -1,63 +1,11 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/widgets/links/UpgradeLink should match the snapshot on show 1`] = `
-<ContextProvider
-  value={
-    Object {
-      "getServerState": undefined,
-      "identityFunctionCheck": "once",
-      "stabilityCheck": "once",
-      "store": Object {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": Object {
-        "addNestedSub": [Function],
-        "getListeners": [Function],
-        "handleChangeWrapper": [Function],
-        "isSubscribed": [Function],
-        "notifyNestedSubs": [Function],
-        "trySubscribe": [Function],
-        "tryUnsubscribe": [Function],
-      },
-    }
-  }
->
-  <UpgradeLink />
-</ContextProvider>
-`;
-
-exports[`components/widgets/links/UpgradeLink should open window when button clicked 1`] = `
-<Provider
-  store={
-    Object {
-      "clearActions": [Function],
-      "dispatch": [Function],
-      "getActions": [Function],
-      "getState": [Function],
-      "replaceReducer": [Function],
-      "subscribe": [Function],
-    }
-  }
->
-  <UpgradeLink>
-    <button
-      className="upgradeLink"
-      onClick={[Function]}
-    >
-      <FormattedMessage
-        defaultMessage="Upgrade now"
-        id="upgradeLink.warn.upgrade_now"
-      >
-        <span>
-          Upgrade now
-        </span>
-      </FormattedMessage>
-    </button>
-  </UpgradeLink>
-</Provider>
+<div>
+  <button
+    class="upgradeLink"
+  >
+    Upgrade now
+  </button>
+</div>
 `;

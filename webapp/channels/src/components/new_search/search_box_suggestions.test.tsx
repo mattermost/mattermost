@@ -7,6 +7,7 @@ import {
     renderWithContext,
     screen,
     fireEvent,
+    userEvent,
 } from 'tests/react_testing_utils';
 
 import SearchBoxSuggestions from './search_box_suggestions';
@@ -62,24 +63,27 @@ describe('components/new_search/SearchBoxSuggestions', () => {
         expect(screen.getByText('user2')).toBeInTheDocument();
     });
 
-    test('should call the onSuggestionSelected on click', () => {
+    test('should call the onSuggestionSelected on click', async () => {
         renderWithContext(<SearchBoxSuggestions {...baseProps}/>);
-        fireEvent.click(screen.getByText('test-username1'));
+        await userEvent.click(screen.getByText('test-username1'));
         expect(baseProps.onSuggestionSelected).toHaveBeenCalledWith('test-username1', '');
     });
 
-    test('should call the onSuggestionSelected on click with matchedPretext and previous text', () => {
+    test('should call the onSuggestionSelected on click with matchedPretext and previous text', async () => {
         const props = {...baseProps, searchTerms: 'something from:test-user', results: {...baseProps.results, matchedPretext: 'test-user'}};
         renderWithContext(<SearchBoxSuggestions {...props}/>);
-        fireEvent.click(screen.getByText('test-username1'));
+        await userEvent.click(screen.getByText('test-username1'));
         expect(baseProps.onSuggestionSelected).toHaveBeenCalledWith('test-username1', 'test-user');
     });
 
     test('should change the selected option on mousemove', () => {
         const props = {...baseProps};
         renderWithContext(<SearchBoxSuggestions {...props}/>);
+
+        // Simulate mouse move to change selection - fireEvent used because userEvent.hover only triggers mouseEnter/mouseOver, not mouseMove
         fireEvent.mouseMove(screen.getByText('test-username2'));
         expect(baseProps.setSelectedTerm).toHaveBeenCalledWith('user2');
+
         fireEvent.mouseMove(screen.getByText('test-username1'));
         expect(baseProps.setSelectedTerm).toHaveBeenCalledWith('user1');
     });

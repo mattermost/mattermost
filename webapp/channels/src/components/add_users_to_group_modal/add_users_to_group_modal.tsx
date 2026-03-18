@@ -118,6 +118,7 @@ const AddUsersToGroupModal = (props: Props) => {
                         >
                             <FormattedMessage
                                 id='user_groups_modal.addPeopleTitle'
+                                // eslint-disable-next-line formatjs/enforce-placeholders -- group provided via titleValue memoized value
                                 defaultMessage='Add people to {group}'
                                 values={titleValue}
                             />

@@ -1,12 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen} from '@testing-library/react';
-import {shallow} from 'enzyme';
 import type {ComponentProps} from 'react';
 import React from 'react';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import PluginTab from './index';
 
@@ -90,8 +88,8 @@ function CustomSectionThrows() {
 
 describe('plugin tab', () => {
     it('all props are properly passed to the children', () => {
-        const wrapper = shallow(<PluginTab {...getBaseProps()}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<PluginTab {...getBaseProps()}/>);
+        expect(container).toMatchSnapshot();
     });
 
     it('setting name is properly set', () => {

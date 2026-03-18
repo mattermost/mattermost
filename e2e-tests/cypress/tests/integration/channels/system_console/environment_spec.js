@@ -49,7 +49,7 @@ describe('Environment', () => {
             cy.uiSave().wait(TIMEOUTS.HALF_SEC);
 
             // # Close the modal
-            cy.get('#teamSettingsModalLabel').find('button').should('be.visible').click();
+            cy.get('button[aria-label="Close"]').should('be.visible').click();
         });
 
         // Validate that the image is being displayed
@@ -93,7 +93,7 @@ describe('Environment', () => {
             cy.uiSave().wait(TIMEOUTS.HALF_SEC);
 
             // # Close the modal
-            cy.get('#teamSettingsModalLabel').find('button').should('be.visible').click();
+            cy.get('button[aria-label="Close"]').should('be.visible').click();
         });
 
         // Validate that the image is being displayed
@@ -137,7 +137,7 @@ describe('Environment', () => {
             cy.uiSave().wait(TIMEOUTS.HALF_SEC);
 
             // # Close the modal
-            cy.get('#teamSettingsModalLabel').find('button').should('be.visible').click();
+            cy.get('button[aria-label="Close"]').should('be.visible').click();
         });
 
         // Validate that the image is being displayed
