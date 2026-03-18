@@ -143,11 +143,13 @@ jobs:
         continue-on-error: true
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           BASE_REF: ${{ github.base_ref }}
+          LLM_PROVIDER: ${{ vars.E2E_AGENTS_LLM_PROVIDER || 'auto' }}
         run: |
-          npx e2e-ai-agents plan \
-            --config ./e2e-ai-agents.config.json \
+          npm run impact:plan -- \
             --since "origin/${BASE_REF}" \
+            --llm-provider "${LLM_PROVIDER}" \
             --fail-on-must-add-tests \
             --github-output "$GITHUB_OUTPUT"
 
@@ -157,9 +159,12 @@ jobs:
         working-directory: e2e-tests/playwright
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          LLM_PROVIDER: ${{ vars.E2E_AGENTS_LLM_PROVIDER || 'auto' }}
         run: |
           npx e2e-ai-agents generate \
             --config ./e2e-ai-agents.config.json \
+            --llm-provider "${LLM_PROVIDER}" \
             --budget-usd 1.00 \
             --dry-run
 
@@ -266,6 +271,47 @@ jobs:
                   lines.push('');
                   lines.push('</details>');
                   lines.push('');
+                }
+              }
+
+              if (plan.crew) {
+                const crew = plan.crew;
+                const strategyEntries = crew.strategyEntries || [];
+                const testDesigns = crew.testDesigns || [];
+                const highRiskCrossImpacts = (crew.crossImpacts || []).filter((entry) => entry.riskLevel === 'high');
+
+                lines.push('');
+                lines.push(`### 🤖 Crew insights (${crew.workflow || 'quick-check'})`);
+                lines.push('');
+                lines.push(`- **${crew.summary?.impactedFlows || 0}** impacted flow(s) analyzed`);
+                lines.push(`- **${crew.summary?.strategyEntries || 0}** strategy recommendation(s)`);
+                lines.push(`- **${crew.summary?.testDesigns || 0}** structured test design(s)`);
+                if (highRiskCrossImpacts.length > 0) {
+                  lines.push(`- **${highRiskCrossImpacts.length}** high-risk cross-impact(s) detected`);
+                }
+
+                if (strategyEntries.length > 0) {
+                  lines.push('');
+                  lines.push(`<details><summary>🧠 Crew strategy (${strategyEntries.length})</summary>`);
+                  lines.push('');
+                  for (const entry of strategyEntries.slice(0, 5)) {
+                    lines.push(`- **${entry.flowName}** (${entry.priority}) → ${entry.approach} · cross-impact risk: ${entry.crossImpactRisk}`);
+                  }
+                  if (strategyEntries.length > 5) lines.push(`- ... and ${strategyEntries.length - 5} more`);
+                  lines.push('');
+                  lines.push('</details>');
+                }
+
+                if (testDesigns.length > 0) {
+                  lines.push('');
+                  lines.push(`<details><summary>🧪 Structured test designs (${testDesigns.length})</summary>`);
+                  lines.push('');
+                  for (const design of testDesigns.slice(0, 3)) {
+                    lines.push(`- **${design.flowName}** — ${design.testCases.length} test case(s)`);
+                  }
+                  if (testDesigns.length > 3) lines.push(`- ... and ${testDesigns.length - 3} more`);
+                  lines.push('');
+                  lines.push('</details>');
                 }
               }
 
