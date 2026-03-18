@@ -60,6 +60,8 @@ on:
         required: true
       ANTHROPIC_API_KEY:
         required: false
+      OPENAI_API_KEY:
+        required: false
 
 jobs:
   generate-build-variables:
@@ -169,3 +171,4 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
