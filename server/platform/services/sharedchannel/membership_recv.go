@@ -44,7 +44,7 @@ func (scs *Service) onReceiveMembershipChanges(syncMsg *model.SyncMsg, rc *model
 	}
 
 	// Process each change
-	var successCount, failCount int
+	var failCount int
 
 	for _, change := range syncMsg.MembershipChanges {
 		if change.ChannelId != syncMsg.ChannelId {
@@ -86,8 +86,14 @@ func (scs *Service) onReceiveMembershipChanges(syncMsg *model.SyncMsg, rc *model
 			failCount++
 			continue
 		}
+	}
 
-		successCount++
+	if failCount > 0 {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "Some membership changes failed",
+			mlog.String("channel_id", syncMsg.ChannelId),
+			mlog.Int("total", len(syncMsg.MembershipChanges)),
+			mlog.Int("failed", failCount),
+		)
 	}
 
 	return nil
@@ -129,12 +135,11 @@ func (scs *Service) processMemberAdd(change *model.MembershipChangeMsg, channel 
 	// Skip team member check (true) since we already handled team membership above
 	_, appErr := scs.app.AddUserToChannel(rctx, user, channel, true)
 	if appErr != nil {
-		// Skip "already added" errors
-		if appErr.Error() != "api.channel.add_user.to_channel.failed.app_error" &&
-			!strings.Contains(appErr.Error(), "channel_member_exists") {
+		// Skip "already added" errors — idempotent
+		if appErr.Id != "api.channel.add_user.to_channel.failed.app_error" &&
+			appErr.Id != "app.channel.save_member.exists.app_error" {
 			return fmt.Errorf("cannot add user to channel: %w", appErr)
 		}
-		// User is already in the channel, which is fine
 	}
 
 	return nil
@@ -166,13 +171,10 @@ func (scs *Service) processMemberRemove(change *model.MembershipChangeMsg, rc *m
 	appErr := scs.app.RemoveUserFromChannel(rctx, change.UserId, "", channel)
 	if appErr != nil {
 		// Ignore "not found" errors - the user might already be removed
-		if !strings.Contains(appErr.Error(), "store.sql_channel.remove_member.missing.app_error") {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "Error removing user from channel",
-				mlog.String("channel_id", change.ChannelId),
-				mlog.String("user_id", change.UserId),
-				mlog.Err(appErr),
-			)
+		if strings.Contains(appErr.Error(), "store.sql_channel.remove_member.missing.app_error") {
+			return nil
 		}
+		return fmt.Errorf("cannot remove user from channel: %w", appErr)
 	}
 
 	return nil

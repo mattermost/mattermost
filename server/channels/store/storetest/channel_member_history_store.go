@@ -724,10 +724,23 @@ func testGetMembershipChanges(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("filters by since timestamp - joins only", func(t *testing.T) {
-		// since=2500: user3 joined at 3000, user1 left at 4000, user2 left at 5000
+		// since=2500: user3 joined at 3000 (>=2500), user1 left at 4000 (>=2500), user2 left at 5000 (>=2500)
 		results, err := ss.ChannelMemberHistory().GetMembershipChanges(channel.Id, 2500, 100)
 		require.NoError(t, err)
-		assert.Len(t, results, 3, "user3 join>2500, user1 leave>2500, user2 leave>2500")
+		assert.Len(t, results, 3, "user3 join>=2500, user1 leave>=2500, user2 leave>=2500")
+	})
+
+	t.Run("inclusive boundary includes events at exact cursor timestamp", func(t *testing.T) {
+		// since=3000: user3 joined at exactly 3000, should be included (GtOrEq)
+		results, err := ss.ChannelMemberHistory().GetMembershipChanges(channel.Id, 3000, 100)
+		require.NoError(t, err)
+		userIDs := make(map[string]bool)
+		for _, r := range results {
+			userIDs[r.UserId] = true
+		}
+		assert.True(t, userIDs[user3], "user3 joined at exactly since=3000, should be included")
+		assert.True(t, userIDs[user1], "user1 left at 4000 >= 3000")
+		assert.True(t, userIDs[user2], "user2 left at 5000 >= 3000")
 	})
 
 	t.Run("filters by since timestamp - leaves only", func(t *testing.T) {

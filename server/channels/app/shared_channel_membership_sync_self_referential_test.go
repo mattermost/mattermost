@@ -307,7 +307,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 			mu.Unlock()
 		}
 
-		service.NotifyMembershipChanged(channel.Id)
+		service.NotifyMembershipChanged(channel.Id, "")
 
 		// Wait for batch messages to be received with more robust checking
 		require.Eventually(t, func() bool {
@@ -342,11 +342,10 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		}
 		mu.Unlock()
 
-		// Verify exact batch count
-		assert.Equal(t, expectedBatches, actualBatches, fmt.Sprintf("Should have exactly %d batches with batch size %d", expectedBatches, batchSize))
-
-		// Verify total synced users
-		assert.Equal(t, expectedTotal, totalSynced, "All users including bots and system admins should be synced")
+		// With inclusive cursor (GtOrEq), boundary rows may be re-fetched across
+		// batch boundaries, so batch count and total may exceed the minimum.
+		assert.GreaterOrEqual(t, actualBatches, expectedBatches, fmt.Sprintf("Should have at least %d batches with batch size %d", expectedBatches, batchSize))
+		assert.GreaterOrEqual(t, totalSynced, expectedTotal, "All users including bots and system admins should be synced")
 
 		// Verify that bot and system admin WERE synced
 		assert.Contains(t, allSyncedUserIDs, bot.UserId, "Bot should be synced")
@@ -467,7 +466,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		}
 
 		// First sync
-		service.NotifyMembershipChanged(channel.Id)
+		service.NotifyMembershipChanged(channel.Id, "")
 
 		// Wait for first sync to complete
 		require.Eventually(t, func() bool {
@@ -495,7 +494,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Second sync - should only sync user3
-		service.NotifyMembershipChanged(channel.Id)
+		service.NotifyMembershipChanged(channel.Id, "")
 
 		// Wait for second sync to complete
 		require.Eventually(t, func() bool {
@@ -515,11 +514,14 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 			return secondSyncCursor > firstSyncCursor
 		}, 10*time.Second, 100*time.Millisecond, "Cursor should advance after second sync")
 
-		// Verify incremental sync
+		// Verify incremental sync: first sync includes initial users, second
+		// sync must include user3. The inclusive cursor (GtOrEq) may re-fetch
+		// events at the boundary timestamp, so users from the first batch can
+		// appear again. This is the expected trade-off to avoid data loss at
+		// batch boundaries without requiring a composite cursor schema change.
+		// The receiver is idempotent so duplicates are harmless.
 		assert.GreaterOrEqual(t, len(syncedInFirstCall), 2, "First sync should include initial users")
-		assert.Contains(t, syncedInSecondCall, user3.Id, "Second sync should include only new user")
-		assert.NotContains(t, syncedInSecondCall, user1.Id, "Second sync should not re-sync existing users")
-		assert.NotContains(t, syncedInSecondCall, user2.Id, "Second sync should not re-sync existing users")
+		assert.Contains(t, syncedInSecondCall, user3.Id, "Second sync must include the new user")
 	})
 	t.Run("Test 4: Sync failure and recovery", func(t *testing.T) {
 		t.Skip("MM-64687")
@@ -615,7 +617,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// First sync attempt - will fail
-		service.NotifyMembershipChanged(channel.Id)
+		service.NotifyMembershipChanged(channel.Id, "")
 
 		// Wait for first sync attempt with more robust checking
 		require.Eventually(t, func() bool {
@@ -631,7 +633,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		failureMode.Store(false)
 
 		// Second sync attempt - should succeed
-		service.NotifyMembershipChanged(channel.Id)
+		service.NotifyMembershipChanged(channel.Id, "")
 
 		// Wait for successful sync with more robust checking
 		require.Eventually(t, func() bool {
@@ -757,7 +759,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		initialCursor := initialScr.LastMembersSyncAt
 
 		// Initial sync
-		service.NotifyMembershipChanged(channel.Id)
+		service.NotifyMembershipChanged(channel.Id, "")
 
 		// Wait for initial sync to complete
 		require.Eventually(t, func() bool {
@@ -798,7 +800,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		// Sync mixed changes
 		previousMessages := atomic.LoadInt32(&totalSyncMessages)
 
-		service.NotifyMembershipChanged(channel.Id)
+		service.NotifyMembershipChanged(channel.Id, "")
 
 		// Wait for mixed changes sync to complete
 		require.Eventually(t, func() bool {
@@ -957,7 +959,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		}
 
 		// Sync to all clusters via NotifyMembershipChanged
-		service.NotifyMembershipChanged(channel.Id)
+		service.NotifyMembershipChanged(channel.Id, "")
 
 		// Wait for syncs to complete
 		require.Eventually(t, func() bool {
@@ -1052,7 +1054,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Sync removal to all clusters via NotifyMembershipChanged
-		service.NotifyMembershipChanged(channel.Id)
+		service.NotifyMembershipChanged(channel.Id, "")
 
 		// Wait for removal sync
 		require.Eventually(t, func() bool {
@@ -1150,7 +1152,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		}
 
 		atomic.StoreInt32(&syncMessageCount, 0)
-		service.NotifyMembershipChanged(channel.Id)
+		service.NotifyMembershipChanged(channel.Id, "")
 
 		// Verify no sync messages were sent
 		require.Never(t, func() bool {
@@ -1163,7 +1165,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		})
 
 		atomic.StoreInt32(&syncMessageCount, 0)
-		service.NotifyMembershipChanged(channel.Id)
+		service.NotifyMembershipChanged(channel.Id, "")
 
 		// Verify sync messages were sent
 		require.Eventually(t, func() bool {
@@ -1255,7 +1257,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		require.NoError(t, err)
 
 		// Trigger membership sync as would happen when connection is restored
-		service.NotifyMembershipChanged(channel.Id)
+		service.NotifyMembershipChanged(channel.Id, "")
 
 		// Verify sync task was created and executed with more generous timeout
 		require.Eventually(t, func() bool {
@@ -1371,7 +1373,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		syncHandler = NewSelfReferentialSyncHandler(t, service, selfCluster)
 
 		// First sync should succeed
-		service.NotifyMembershipChanged(channel.Id)
+		service.NotifyMembershipChanged(channel.Id, "")
 
 		// Wait for first sync with more generous timeout
 		require.Eventually(t, func() bool {
@@ -1399,7 +1401,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		}
 
 		// Second sync should fail (server goes offline)
-		service.NotifyMembershipChanged(channel.Id)
+		service.NotifyMembershipChanged(channel.Id, "")
 
 		// Wait for second sync attempt with more generous timeout
 		require.Eventually(t, func() bool {
@@ -1553,7 +1555,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		// Sync memberships for each channel separately
 		for _, channel := range []*model.Channel{channel1, channel2, channel3} {
-			service.NotifyMembershipChanged(channel.Id)
+			service.NotifyMembershipChanged(channel.Id, "")
 		}
 
 		// Ensure the sync handler is ready by waiting for the first message

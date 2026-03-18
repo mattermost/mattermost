@@ -29,6 +29,9 @@ type syncTask struct {
 	retryCount  int
 	retryMsg    *model.SyncMsg
 	schedule    time.Time
+	// originRemoteID is the remote that initiated this change; it will be
+	// skipped when syncing to prevent echo-back.
+	originRemoteID string
 }
 
 func newSyncTask(channelID, userID string, remoteID string, existingMsg, retryMsg *model.SyncMsg) syncTask {
@@ -250,6 +253,10 @@ func (scs *Service) addTask(task syncTask) {
 		// if the task was already scheduled, we only update the
 		// existingMsg in case there is new information
 		originalTask.existingMsg = task.existingMsg
+		// preserve originRemoteID from the new task if non-empty
+		if task.originRemoteID != "" {
+			originalTask.originRemoteID = task.originRemoteID
+		}
 		scs.tasks[task.id] = originalTask
 	} else {
 		scs.tasks[task.id] = task
@@ -389,6 +396,10 @@ func (scs *Service) processTask(task syncTask) error {
 			return err
 		}
 		for _, r := range remotes {
+			// Skip the remote that originated this membership change
+			if task.originRemoteID != "" && r.RemoteId == task.originRemoteID {
+				continue
+			}
 			remotesMap[r.RemoteId] = r
 		}
 
@@ -402,6 +413,10 @@ func (scs *Service) processTask(task syncTask) error {
 			return err
 		}
 		for _, r := range remotesAutoInvited {
+			// Skip the remote that originated this membership change
+			if task.originRemoteID != "" && r.RemoteId == task.originRemoteID {
+				continue
+			}
 			remotesMap[r.RemoteId] = r
 		}
 	} else {

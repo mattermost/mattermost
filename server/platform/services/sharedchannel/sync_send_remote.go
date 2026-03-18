@@ -414,14 +414,6 @@ func (scs *Service) fetchMembershipsForSync(sd *syncData) error {
 
 	// Build MembershipChangeMsg entries
 	for userID, state := range byUser {
-		sd.membershipChanges = append(sd.membershipChanges, &model.MembershipChangeMsg{
-			ChannelId:  sd.task.channelID,
-			UserId:     userID,
-			IsAdd:      state.isAdd,
-			ChangeTime: state.eventTime,
-		})
-
-		// For adds, populate user profiles that need syncing
 		if state.isAdd {
 			user, userErr := scs.server.GetStore().User().Get(context.Background(), userID)
 			if userErr != nil {
@@ -433,10 +425,24 @@ func (scs *Service) fetchMembershipsForSync(sd *syncData) error {
 				continue
 			}
 
+			sd.membershipChanges = append(sd.membershipChanges, &model.MembershipChangeMsg{
+				ChannelId:  sd.task.channelID,
+				UserId:     userID,
+				IsAdd:      true,
+				ChangeTime: state.eventTime,
+			})
+
 			doSync, _, syncErr := scs.shouldUserSync(user, sd.task.channelID, sd.rc)
 			if syncErr == nil && doSync {
 				sd.users[user.Id] = user
 			}
+		} else {
+			sd.membershipChanges = append(sd.membershipChanges, &model.MembershipChangeMsg{
+				ChannelId:  sd.task.channelID,
+				UserId:     userID,
+				IsAdd:      false,
+				ChangeTime: state.eventTime,
+			})
 		}
 	}
 
@@ -462,8 +468,17 @@ func (scs *Service) sendMembershipSyncData(sd *syncData) error {
 	msg := model.NewSyncMsg(sd.task.channelID)
 	msg.MembershipChanges = sd.membershipChanges
 
-	// Include user profiles for users being added (already collected in sd.users by fetchMembershipsForSync)
-	msg.Users = sd.users
+	// Include only user profiles for users referenced by membership adds,
+	// not the full sd.users map which may contain post authors and other users.
+	memberUsers := make(map[string]*model.User)
+	for _, mc := range sd.membershipChanges {
+		if mc.IsAdd {
+			if u, ok := sd.users[mc.UserId]; ok {
+				memberUsers[mc.UserId] = u
+			}
+		}
+	}
+	msg.Users = memberUsers
 
 	return scs.sendSyncMsgToRemote(msg, sd.rc, func(syncResp model.SyncResponse, errResp error) {
 		if len(syncResp.MembershipErrors) != 0 {

@@ -4,6 +4,8 @@
 package sharedchannel
 
 import (
+	"time"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
@@ -18,11 +20,16 @@ func (scs *Service) isChannelMemberSyncEnabled() bool {
 // NotifyMembershipChanged is called when users are added or removed from a shared channel.
 // It triggers a sync for the channel so that membership changes are picked up from
 // ChannelMemberHistory at sync time, following the same pattern as posts and reactions.
-func (scs *Service) NotifyMembershipChanged(channelID string) {
+// originRemoteID identifies the remote that initiated the change, so it can be skipped
+// during sync to prevent echo-back.
+func (scs *Service) NotifyMembershipChanged(channelID string, originRemoteID string) {
 	if !scs.isChannelMemberSyncEnabled() {
 		return
 	}
-	scs.NotifyChannelChanged(channelID)
+	task := newSyncTask(channelID, "", "", nil, nil)
+	task.originRemoteID = originRemoteID
+	task.schedule = time.Now().Add(NotifyMinimumDelay)
+	scs.addTask(task)
 }
 
 // ForceMembershipSyncForRemote triggers a sync for all channels shared with the specified remote.

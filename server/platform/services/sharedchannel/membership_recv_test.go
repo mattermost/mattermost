@@ -342,3 +342,62 @@ func TestProcessMemberRemove_RejectsLocalUser_ErrorMessage(t *testing.T) {
 	assert.ErrorIs(t, err, ErrRemoteIDMismatch)
 	assert.Contains(t, err.Error(), "membership remove sync failed")
 }
+
+func TestProcessMemberAdd_IdempotentForExistingMember(t *testing.T) {
+	scs, _, mockApp, _, _, _, mockUserStore := setupMembershipTest(t)
+
+	channelId := model.NewId()
+	remoteId := model.NewId()
+	userId := model.NewId()
+	rc := &model.RemoteCluster{RemoteId: remoteId}
+	channel := &model.Channel{Id: channelId, Type: model.ChannelTypeOpen}
+
+	// User belongs to the sending remote
+	remoteUser := &model.User{Id: userId, RemoteId: &remoteId}
+	mockUserStore.On("Get", mockTypeContext, userId).Return(remoteUser, nil)
+
+	// Simulate "already added" error from AddUserToChannel
+	alreadyAddedErr := model.NewAppError("AddUserToChannel", "app.channel.save_member.exists.app_error", nil, "", 400)
+	mockApp.On("AddUserToChannel", mockTypeReqContext, mockTypeUser, mockTypeChannel, true).Return(nil, alreadyAddedErr)
+
+	syncMsg := &model.SyncMsg{ChannelId: channelId}
+	change := &model.MembershipChangeMsg{
+		ChannelId:  channelId,
+		UserId:     userId,
+		IsAdd:      true,
+		ChangeTime: 1000,
+	}
+
+	err := scs.processMemberAdd(change, channel, rc, syncMsg)
+	require.NoError(t, err, "should succeed for already-added user (idempotent)")
+}
+
+func TestProcessMemberRemove_IdempotentForNonMember(t *testing.T) {
+	scs, _, mockApp, _, _, mockChannelStore, mockUserStore := setupMembershipTest(t)
+
+	channelId := model.NewId()
+	remoteId := model.NewId()
+	userId := model.NewId()
+	rc := &model.RemoteCluster{RemoteId: remoteId}
+	channel := &model.Channel{Id: channelId, Type: model.ChannelTypeOpen}
+
+	mockChannelStore.On("Get", channelId, true).Return(channel, nil)
+
+	// User belongs to the sending remote
+	remoteUser := &model.User{Id: userId, RemoteId: &remoteId}
+	mockUserStore.On("Get", mockTypeContext, userId).Return(remoteUser, nil)
+
+	// Simulate "not found" error from RemoveUserFromChannel
+	notFoundErr := model.NewAppError("RemoveUserFromChannel", "store.sql_channel.remove_member.missing.app_error", nil, "", 404)
+	mockApp.On("RemoveUserFromChannel", mockTypeReqContext, userId, "", channel).Return(notFoundErr)
+
+	change := &model.MembershipChangeMsg{
+		ChannelId:  channelId,
+		UserId:     userId,
+		IsAdd:      false,
+		ChangeTime: 1000,
+	}
+
+	err := scs.processMemberRemove(change, rc)
+	require.NoError(t, err, "should succeed for already-removed user (idempotent)")
+}

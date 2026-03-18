@@ -24,7 +24,7 @@ type SharedChannelServiceIFace interface {
 	CheckChannelNotShared(channelID string) error
 	CheckChannelIsShared(channelID string) error
 	CheckCanInviteToSharedChannel(channelId string) error
-	NotifyMembershipChanged(channelID string)
+	NotifyMembershipChanged(channelID string, originRemoteID string)
 	TransformMentionsOnReceiveForTesting(rctx request.CTX, post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster, mentionTransforms map[string]string)
 }
 
@@ -81,7 +81,7 @@ func (mrcs *mockSharedChannelService) NumInvitations() int {
 	return mrcs.numInvitations
 }
 
-func (mrcs *mockSharedChannelService) NotifyMembershipChanged(channelID string) {
+func (mrcs *mockSharedChannelService) NotifyMembershipChanged(channelID string, originRemoteID string) {
 	// This is a mock implementation - it doesn't need to do anything
 }
 

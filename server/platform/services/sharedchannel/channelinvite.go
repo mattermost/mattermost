@@ -176,7 +176,7 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 		scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("`%s` has been added to channel.", rc.DisplayName))
 
 		// Trigger membership sync via the normal sync pipeline (reads from ChannelMemberHistory)
-		scs.NotifyMembershipChanged(sc.ChannelId)
+		scs.NotifyMembershipChanged(sc.ChannelId, "")
 	}
 
 	if rc.IsPlugin() {
@@ -318,7 +318,7 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 		}
 
 		// Trigger membership sync via the normal sync pipeline (reads from ChannelMemberHistory)
-		scs.NotifyMembershipChanged(channel.Id)
+		scs.NotifyMembershipChanged(channel.Id, "")
 	} else {
 		creatorID := channel.CreatorId
 		if creatorID == "" {
@@ -347,7 +347,7 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 		}
 
 		// Trigger membership sync via the normal sync pipeline (reads from ChannelMemberHistory)
-		scs.NotifyMembershipChanged(channel.Id)
+		scs.NotifyMembershipChanged(channel.Id, "")
 	}
 	return nil
 }

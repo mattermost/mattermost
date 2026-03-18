@@ -274,6 +274,87 @@ func TestFetchMembershipsForSync_CursorFromSCR(t *testing.T) {
 	mockCMHStore.AssertCalled(t, "GetMembershipChanges", channelID, int64(5000), mock.AnythingOfType("int"))
 }
 
+func TestFetchMembershipsForSync_RepeatedTimestampsAtBoundary(t *testing.T) {
+	scs, _, mockCMHStore, mockSCStore, mockUserStore, _ := setupSendTest(t, true)
+
+	channelID := model.NewId()
+	remoteID := model.NewId()
+	batchSize := scs.GetMemberSyncBatchSize()
+
+	// Create batch where the last entries share the same JoinTime (boundary timestamp)
+	boundaryTime := int64(5000)
+	histories := make([]*model.ChannelMemberHistory, batchSize)
+	for i := range batchSize {
+		uid := model.NewId()
+		joinTime := int64(1000 + i)
+		// Last 3 entries share the same timestamp
+		if i >= batchSize-3 {
+			joinTime = boundaryTime
+		}
+		histories[i] = &model.ChannelMemberHistory{
+			ChannelId: channelID,
+			UserId:    uid,
+			JoinTime:  joinTime,
+			LeaveTime: nil,
+		}
+		u := &model.User{Id: uid}
+		mockUserStore.On("Get", mock.Anything, uid).Return(u, nil)
+		mockSCStore.On("GetSingleUser", uid, channelID, remoteID).Return(nil, &notFoundError{})
+		mockSCStore.On("SaveUser", mock.MatchedBy(func(scu *model.SharedChannelUser) bool { return scu.UserId == uid })).
+			Return(&model.SharedChannelUser{}, nil)
+	}
+
+	// First fetch returns full batch (hits limit)
+	mockCMHStore.On("GetMembershipChanges", channelID, int64(0), batchSize).
+		Return(histories, nil)
+
+	sd := &syncData{
+		task:  syncTask{channelID: channelID},
+		rc:    &model.RemoteCluster{RemoteId: remoteID},
+		scr:   &model.SharedChannelRemote{LastMembersSyncAt: 0},
+		users: make(map[string]*model.User),
+	}
+
+	err := scs.fetchMembershipsForSync(sd)
+	require.NoError(t, err)
+	assert.True(t, sd.resultRepeat, "should signal more data when limit hit")
+	assert.Len(t, sd.membershipChanges, batchSize, "all entries in batch should be processed")
+	assert.Equal(t, boundaryTime, sd.resultNextMembershipCursor, "cursor should be at boundary timestamp")
+
+	// Second fetch uses the boundary timestamp as cursor (GtOrEq means events
+	// AT boundaryTime will be re-fetched, but deduplication handles this)
+	extraUser := model.NewId()
+	mockCMHStore.On("GetMembershipChanges", channelID, boundaryTime, batchSize).
+		Return([]*model.ChannelMemberHistory{
+			// Re-fetched rows at boundary (already processed — dedup will handle)
+			histories[batchSize-3],
+			histories[batchSize-2],
+			histories[batchSize-1],
+			// New row beyond the boundary
+			{ChannelId: channelID, UserId: extraUser, JoinTime: boundaryTime + 1, LeaveTime: nil},
+		}, nil)
+
+	extraUserObj := &model.User{Id: extraUser}
+	mockUserStore.On("Get", mock.Anything, extraUser).Return(extraUserObj, nil)
+	mockSCStore.On("GetSingleUser", extraUser, channelID, remoteID).Return(nil, &notFoundError{})
+	mockSCStore.On("SaveUser", mock.MatchedBy(func(scu *model.SharedChannelUser) bool { return scu.UserId == extraUser })).
+		Return(&model.SharedChannelUser{}, nil)
+
+	sd2 := &syncData{
+		task:  syncTask{channelID: channelID},
+		rc:    &model.RemoteCluster{RemoteId: remoteID},
+		scr:   &model.SharedChannelRemote{LastMembersSyncAt: boundaryTime},
+		users: make(map[string]*model.User),
+	}
+
+	err = scs.fetchMembershipsForSync(sd2)
+	require.NoError(t, err)
+	// Should have 4 entries (3 re-fetched + 1 new) — dedup at the caller level
+	// handles duplicate user IDs across batches
+	assert.Len(t, sd2.membershipChanges, 4, "should include re-fetched boundary rows and new row")
+	assert.Equal(t, boundaryTime+1, sd2.resultNextMembershipCursor, "cursor should advance past boundary")
+}
+
 // notFoundError implements the errNotFound interface used by the sharedchannel package
 type notFoundError struct{}
 
