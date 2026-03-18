@@ -1,37 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount} from 'enzyme';
-import type {ReactWrapper} from 'enzyme';
 import React from 'react';
-import * as reactRedux from 'react-redux';
 
-import {act} from 'tests/react_testing_utils';
-import mockStore from 'tests/test_store';
+import {renderWithContext, screen, act} from 'tests/react_testing_utils';
 import {CloudProducts, LicenseSkus} from 'utils/constants';
 
 import ADLDAPUpsellBanner from './ad_ldap_upsell_banner';
 
-const actImmediate = (wrapper: ReactWrapper) =>
-    act(
-        () =>
-            new Promise<void>((resolve) => {
-                setImmediate(() => {
-                    wrapper.update();
-                    resolve();
-                });
-            }),
-    );
-
 describe('component/user_groups_modal/ad_ldap_upsell_banner', () => {
-    const useDispatchMock = jest.spyOn(reactRedux, 'useDispatch');
-    const useSelectorMock = jest.spyOn(reactRedux, 'useSelector');
-
-    beforeEach(() => {
-        useDispatchMock.mockClear();
-        useSelectorMock.mockClear();
-    });
-
     const initState = {
         entities: {
             general: {
@@ -61,35 +38,26 @@ describe('component/user_groups_modal/ad_ldap_upsell_banner', () => {
     };
 
     test('should display for admin users on professional with option to start trial if no self-hosted trial before', () => {
-        const store = mockStore(initState);
-        const dummyDispatch = jest.fn();
-        useDispatchMock.mockReturnValue(dummyDispatch);
-
-        const wrapper = mount(
-            <reactRedux.Provider store={store}>
-                <ADLDAPUpsellBanner/>
-            </reactRedux.Provider>,
+        renderWithContext(
+            <ADLDAPUpsellBanner/>,
+            initState as any,
         );
 
-        expect(wrapper.find('#ad_ldap_upsell_banner')).toHaveLength(1);
-        expect(wrapper.find('.ad-ldap-banner-btn').text()).toEqual('Start trial');
+        expect(screen.getByText('AD/LDAP group sync creates groups faster')).toBeInTheDocument();
+        expect(screen.getByText('Start trial')).toBeInTheDocument();
     });
 
     test('should display for admin users on professional with option to contact sales if self-hosted trialed before', () => {
         const state = JSON.parse(JSON.stringify(initState));
         state.entities.admin.prevTrialLicense.IsLicensed = 'true';
-        const store = mockStore(state);
-        const dummyDispatch = jest.fn();
-        useDispatchMock.mockReturnValue(dummyDispatch);
 
-        const wrapper = mount(
-            <reactRedux.Provider store={store}>
-                <ADLDAPUpsellBanner/>
-            </reactRedux.Provider>,
+        renderWithContext(
+            <ADLDAPUpsellBanner/>,
+            state,
         );
 
-        expect(wrapper.find('#ad_ldap_upsell_banner')).toHaveLength(1);
-        expect(wrapper.find('.ad-ldap-banner-btn').text()).toEqual('Contact sales to use');
+        expect(screen.getByText('AD/LDAP group sync creates groups faster')).toBeInTheDocument();
+        expect(screen.getByText('Contact sales to use')).toBeInTheDocument();
     });
 
     test('should display for admin users on professional with option to contact sales if cloud trialed before', async () => {
@@ -112,52 +80,40 @@ describe('component/user_groups_modal/ad_ldap_upsell_banner', () => {
                 },
             },
         };
-        const store = mockStore(state);
-        const dummyDispatch = jest.fn();
-        useDispatchMock.mockReturnValue(dummyDispatch);
 
-        const wrapper = mount(
-            <reactRedux.Provider store={store}>
-                <ADLDAPUpsellBanner/>
-            </reactRedux.Provider>,
-        );
+        await act(async () => {
+            renderWithContext(
+                <ADLDAPUpsellBanner/>,
+                state,
+            );
+        });
 
-        await actImmediate(wrapper);
-
-        expect(wrapper.find('#ad_ldap_upsell_banner')).toHaveLength(1);
-        expect(wrapper.find('.ad-ldap-banner-btn').text()).toEqual('Contact sales to use');
+        expect(screen.getByText('AD/LDAP group sync creates groups faster')).toBeInTheDocument();
+        expect(screen.getByText('Contact sales to use')).toBeInTheDocument();
     });
 
     test('should not display for non admin users', () => {
         const state = JSON.parse(JSON.stringify(initState));
         state.entities.users.profiles.user1.roles = 'system_user';
-        const store = mockStore(state);
-        const dummyDispatch = jest.fn();
-        useDispatchMock.mockReturnValue(dummyDispatch);
 
-        const wrapper = mount(
-            <reactRedux.Provider store={store}>
-                <ADLDAPUpsellBanner/>
-            </reactRedux.Provider>,
+        renderWithContext(
+            <ADLDAPUpsellBanner/>,
+            state,
         );
 
-        expect(wrapper.find('#ad_ldap_upsell_banner')).toHaveLength(0);
+        expect(screen.queryByText('AD/LDAP group sync creates groups faster')).not.toBeInTheDocument();
     });
 
     test('should not display for non self-hosted professional users', () => {
         const state = JSON.parse(JSON.stringify(initState));
         state.entities.general.license.SkuShortName = LicenseSkus.Enterprise;
-        const store = mockStore(state);
-        const dummyDispatch = jest.fn();
-        useDispatchMock.mockReturnValue(dummyDispatch);
 
-        const wrapper = mount(
-            <reactRedux.Provider store={store}>
-                <ADLDAPUpsellBanner/>
-            </reactRedux.Provider>,
+        renderWithContext(
+            <ADLDAPUpsellBanner/>,
+            state,
         );
 
-        expect(wrapper.find('#ad_ldap_upsell_banner')).toHaveLength(0);
+        expect(screen.queryByText('AD/LDAP group sync creates groups faster')).not.toBeInTheDocument();
     });
 
     test('should not display for non cloud professional users', async () => {
@@ -180,18 +136,14 @@ describe('component/user_groups_modal/ad_ldap_upsell_banner', () => {
                 },
             },
         };
-        const store = mockStore(state);
-        const dummyDispatch = jest.fn();
-        useDispatchMock.mockReturnValue(dummyDispatch);
 
-        const wrapper = mount(
-            <reactRedux.Provider store={store}>
-                <ADLDAPUpsellBanner/>
-            </reactRedux.Provider>,
-        );
+        await act(async () => {
+            renderWithContext(
+                <ADLDAPUpsellBanner/>,
+                state,
+            );
+        });
 
-        await actImmediate(wrapper);
-
-        expect(wrapper.find('#ad_ldap_upsell_banner')).toHaveLength(0);
+        expect(screen.queryByText('AD/LDAP group sync creates groups faster')).not.toBeInTheDocument();
     });
 });

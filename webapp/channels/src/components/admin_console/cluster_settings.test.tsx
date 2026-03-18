@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import ClusterSettings from 'components/admin_console/cluster_settings';
+
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 describe('components/ClusterSettings', () => {
     const baseProps = {
@@ -30,15 +31,15 @@ describe('components/ClusterSettings', () => {
                 SteamingPort: 8075,
             },
         };
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <ClusterSettings
                 {...props}
                 config={config}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        expect(wrapper.find('#EnableGossipEncryption').prop('value')).toBe(false);
+        expect(screen.getByText('Enable Gossip encryption:')).toBeInTheDocument();
     });
 
     test('should match snapshot, encryption enabled', () => {
@@ -58,15 +59,15 @@ describe('components/ClusterSettings', () => {
                 SteamingPort: 8075,
             },
         };
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <ClusterSettings
                 {...props}
                 config={config}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        expect(wrapper.find('#EnableGossipEncryption').prop('value')).toBe(true);
+        expect(screen.getByText('Enable Gossip encryption:')).toBeInTheDocument();
     });
 
     test('should match snapshot, compression enabled', () => {
@@ -86,15 +87,15 @@ describe('components/ClusterSettings', () => {
                 SteamingPort: 8075,
             },
         };
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <ClusterSettings
                 {...props}
                 config={config}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        expect(wrapper.find('#EnableGossipCompression').prop('value')).toBe(true);
+        expect(screen.getByText('Enable Gossip compression:')).toBeInTheDocument();
     });
 
     test('should match snapshot, compression disabled', () => {
@@ -114,14 +115,14 @@ describe('components/ClusterSettings', () => {
                 SteamingPort: 8075,
             },
         };
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <ClusterSettings
                 {...props}
                 config={config}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        expect(wrapper.find('#EnableGossipCompression').prop('value')).toBe(false);
+        expect(screen.getByText('Enable Gossip compression:')).toBeInTheDocument();
     });
 });

@@ -1767,7 +1767,7 @@ function handleFirstAdminVisitMarketplaceStatusReceivedEvent(msg: WebSocketMessa
 
 function handleThreadReadChanged(msg: WebSocketMessages.ThreadReadChanged): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
-        if (msg.data.thread_id && msg.data.channel_id && msg.data.unread_mentions && msg.data.unread_replies) {
+        if ('thread_id' in msg.data && msg.data.thread_id) {
             const state = doGetState();
             const thread = getThreads(state)?.[msg.data.thread_id];
 
