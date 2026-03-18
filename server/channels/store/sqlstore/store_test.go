@@ -198,7 +198,9 @@ func initStores(logger mlog.LoggerIFace, parallelism int) {
 	for _, st := range storeTypes {
 		eg.Go(func() error {
 			var err error
-			st.SqlStore, err = New(*st.SqlSettings, logger, nil)
+			st.SqlStore, err = New(*st.SqlSettings, logger, nil, WithFeatureFlags(func() *model.FeatureFlags {
+				return &model.FeatureFlags{CJKSearch: true}
+			}))
 			if err != nil {
 				return err
 			}

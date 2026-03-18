@@ -3012,10 +3012,6 @@
     "translation": "Slack-käyttäjä on yhdistetty olemassaolevaan Mattermost-käyttäjään jolla sama sähköpostiosoite {{.Email}} ja käyttäjänimi {{.Username}}.\r\n"
   },
   {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Slack-käyttäjä jolla sähköposti {{.Email}} ja salasana {{.Password}} on tuotu.\r\n"
-  },
-  {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\r\nLuodut käyttäjät:\r\n"
   },
@@ -3038,10 +3034,6 @@
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "Ei voitu tuoda Integraatio/Slack Bot käyttäjää {{.Username}}.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Integraatio/Slack Bot käyttäjä jolla sähköpostiosoite {{.Email}} ja salasana {{.Password}} on tuotu.\r\n"
   },
   {
     "id": "api.server.start_server.starting.critical",

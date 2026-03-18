@@ -5432,10 +5432,6 @@
     "translation": "Slack felhasználó összevonva egy létező Mattermost felhasználóval egyező e-mail címmel {{.Email}} és felhasználónévvel {{.Username}}.\n"
   },
   {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Slack felhasználó a {{.Email}} e-mail címmel és {{.Password}} jelszóval sikeresen importálva.\n"
-  },
-  {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\nLétrehozott felhasználók:\n"
   },
@@ -5458,10 +5454,6 @@
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "Nem lehet importálni az integráció/Slack Bot felhasználót {{.Username}}.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Az integráció/Slack Bot felhasználó ezzel az emaillel {{.Email}} és jelszóval {{.Password}} sikeresen importálva.\n"
   },
   {
     "id": "api.user.send_deactivate_email_and_forget.failed.error",

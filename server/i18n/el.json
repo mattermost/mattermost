@@ -1935,10 +1935,6 @@
     "translation": "Ο χρήστης Slack συγχωνεύτηκε με έναν υπάρχοντα χρήστη Mattermost με email {{.Email}} και όνομα χρήστη {{.Username}}, αλλά δεν μπόρεσε να προσθέσει τον χρήστη στην ομάδα του.\n"
   },
   {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Έγινε εισαγωγή του χρήστη Slack με email {{.Email}} και κωδικό πρόσβασης {{.Password}}.\n"
-  },
-  {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\nΟι χρήστες δημιούργησαν:\n"
   },
@@ -1961,10 +1957,6 @@
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "Δεν είναι δυνατή η εισαγωγή του χρήστη Integration/Slack Bot {{.Username}}.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Έγινε εισαγωγή του χρήστη Integration/Slack Bot με email {{.Email}} και κωδικό πρόσβασης {{.Password}}.\n"
   },
   {
     "id": "api.team.demote_user_to_guest.license.error",

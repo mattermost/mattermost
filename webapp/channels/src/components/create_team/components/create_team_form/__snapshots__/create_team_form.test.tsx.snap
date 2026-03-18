@@ -1,0 +1,164 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`CreateTeamForm - display_name step should match snapshot 1`] = `
+<div>
+  <div>
+    <form>
+      <img
+        alt="signup logo"
+        class="signup-team-logo"
+        src="logo.png"
+      />
+      <label
+        for="teamNameInput"
+      >
+        <strong>
+          Team Name
+        </strong>
+      </label>
+      <div
+        class="form-group"
+      >
+        <div
+          class="row"
+        >
+          <div
+            class="col-sm-9"
+          >
+            <div
+              class="Input_container"
+            >
+              <div
+                class="Input_fieldset Input_fieldset___legend"
+                data-testid="input-wrapper"
+              >
+                <label
+                  class="Input_legend Input_legend___focus"
+                  for="input_teamNameInput"
+                >
+                                          
+                </label>
+                <div
+                  class="Input_wrapper"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="Input form-control medium Input__focus"
+                    id="teamNameInput"
+                    maxlength="64"
+                    name="teamNameInput"
+                    spellcheck="false"
+                    type="text"
+                    value="test-team"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        Name your team in any language. Your team name shows in menus and headings.
+      </div>
+      <button
+        class="btn btn-primary mt-8"
+        id="teamNameNextButton"
+        type="submit"
+      >
+        Next
+        <i
+          class="icon icon-chevron-right"
+        />
+      </button>
+    </form>
+  </div>
+</div>
+`;
+
+exports[`CreateTeamForm - team_url step should match snapshot 1`] = `
+<div>
+  <div>
+    <form>
+      <img
+        alt="signup team logo"
+        class="signup-team-logo"
+        src="logo.png"
+      />
+      <label
+        for="teamURLInput"
+      >
+        <strong>
+          Team URL
+        </strong>
+      </label>
+      <div
+        class="form-group"
+      >
+        <div
+          class="row"
+        >
+          <div
+            class="col-sm-11"
+          >
+            <div
+              class="input-group input-group--limit"
+            >
+              <span
+                class="input-group-addon"
+              >
+                http://localhost:8065/
+              </span>
+              <input
+                aria-describedby="teamURLInputError"
+                class="form-control"
+                id="teamURLInput"
+                maxlength="128"
+                placeholder=""
+                spellcheck="false"
+                type="text"
+                value="test-team"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+      <p>
+        Choose the web address of your new team:
+      </p>
+      <ul
+        class="color--light"
+      >
+        <li>
+          Short and memorable is best
+        </li>
+        <li>
+          Use lowercase letters, numbers and dashes
+        </li>
+        <li>
+          Must start with a letter and can't end in a dash
+        </li>
+      </ul>
+      <div
+        class="mt-8"
+      >
+        <button
+          class="btn btn-primary"
+          id="teamURLFinishButton"
+          type="submit"
+        >
+          Finish
+        </button>
+      </div>
+      <div
+        class="mt-8"
+      >
+        <a
+          href="#"
+        >
+          Back to previous step
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+`;

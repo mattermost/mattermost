@@ -82,12 +82,12 @@ func TestChannelMentionsFromAttachments(t *testing.T) {
 	})
 
 	t.Run("empty attachments", func(t *testing.T) {
-		result := ChannelMentionsFromAttachments([]*SlackAttachment{})
+		result := ChannelMentionsFromAttachments([]*MessageAttachment{})
 		assert.Empty(t, result)
 	})
 
 	t.Run("attachment with pretext", func(t *testing.T) {
-		attachments := []*SlackAttachment{
+		attachments := []*MessageAttachment{
 			{
 				Pretext: "Check out ~engineering",
 			},
@@ -97,7 +97,7 @@ func TestChannelMentionsFromAttachments(t *testing.T) {
 	})
 
 	t.Run("attachment with text", func(t *testing.T) {
-		attachments := []*SlackAttachment{
+		attachments := []*MessageAttachment{
 			{
 				Text: "Deploy to ~qa-team",
 			},
@@ -107,9 +107,9 @@ func TestChannelMentionsFromAttachments(t *testing.T) {
 	})
 
 	t.Run("attachment with fields", func(t *testing.T) {
-		attachments := []*SlackAttachment{
+		attachments := []*MessageAttachment{
 			{
-				Fields: []*SlackAttachmentField{
+				Fields: []*MessageAttachmentField{
 					{
 						Title: "Channel",
 						Value: "~engineering",
@@ -122,7 +122,7 @@ func TestChannelMentionsFromAttachments(t *testing.T) {
 	})
 
 	t.Run("attachment with title should not extract", func(t *testing.T) {
-		attachments := []*SlackAttachment{
+		attachments := []*MessageAttachment{
 			{
 				Title: "~engineering-channel",
 			},
@@ -132,9 +132,9 @@ func TestChannelMentionsFromAttachments(t *testing.T) {
 	})
 
 	t.Run("field title should not extract", func(t *testing.T) {
-		attachments := []*SlackAttachment{
+		attachments := []*MessageAttachment{
 			{
-				Fields: []*SlackAttachmentField{
+				Fields: []*MessageAttachmentField{
 					{
 						Title: "~engineering",
 						Value: "some value",
@@ -147,7 +147,7 @@ func TestChannelMentionsFromAttachments(t *testing.T) {
 	})
 
 	t.Run("multiple attachments with multiple mentions", func(t *testing.T) {
-		attachments := []*SlackAttachment{
+		attachments := []*MessageAttachment{
 			{
 				Pretext: "Check ~engineering",
 				Text:    "Deploy to ~qa-team",
@@ -161,7 +161,7 @@ func TestChannelMentionsFromAttachments(t *testing.T) {
 	})
 
 	t.Run("deduplicates mentions across attachments", func(t *testing.T) {
-		attachments := []*SlackAttachment{
+		attachments := []*MessageAttachment{
 			{
 				Pretext: "~engineering",
 			},
@@ -174,9 +174,9 @@ func TestChannelMentionsFromAttachments(t *testing.T) {
 	})
 
 	t.Run("handles non-string field values", func(t *testing.T) {
-		attachments := []*SlackAttachment{
+		attachments := []*MessageAttachment{
 			{
-				Fields: []*SlackAttachmentField{
+				Fields: []*MessageAttachmentField{
 					{
 						Title: "Count",
 						Value: 123, // Non-string value
@@ -193,7 +193,7 @@ func TestChannelMentionsFromAttachments(t *testing.T) {
 	})
 
 	t.Run("handles nil attachment in array", func(t *testing.T) {
-		attachments := []*SlackAttachment{
+		attachments := []*MessageAttachment{
 			nil,
 			{
 				Text: "~engineering",
@@ -204,9 +204,9 @@ func TestChannelMentionsFromAttachments(t *testing.T) {
 	})
 
 	t.Run("handles nil field in fields array", func(t *testing.T) {
-		attachments := []*SlackAttachment{
+		attachments := []*MessageAttachment{
 			{
-				Fields: []*SlackAttachmentField{
+				Fields: []*MessageAttachmentField{
 					nil,
 					{
 						Value: "~engineering",
@@ -232,7 +232,7 @@ func TestPostChannelMentionsAll(t *testing.T) {
 		post := &Post{
 			Message: "No mentions here",
 		}
-		post.AddProp("attachments", []*SlackAttachment{
+		post.AddProp("attachments", []*MessageAttachment{
 			{
 				Text: "Deploy to ~qa-team",
 			},
@@ -245,7 +245,7 @@ func TestPostChannelMentionsAll(t *testing.T) {
 		post := &Post{
 			Message: "Check ~engineering",
 		}
-		post.AddProp("attachments", []*SlackAttachment{
+		post.AddProp("attachments", []*MessageAttachment{
 			{
 				Text: "Deploy to ~qa-team",
 			},
@@ -258,7 +258,7 @@ func TestPostChannelMentionsAll(t *testing.T) {
 		post := &Post{
 			Message: "Check ~engineering",
 		}
-		post.AddProp("attachments", []*SlackAttachment{
+		post.AddProp("attachments", []*MessageAttachment{
 			{
 				Text: "~engineering is great",
 			},
