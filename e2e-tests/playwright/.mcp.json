@@ -3,6 +3,10 @@
         "playwright-test": {
             "command": "npx",
             "args": ["@playwright/mcp@0.0.28"]
+        },
+        "e2e_agents": {
+            "command": "npx",
+            "args": ["e2e-agents-mcp"]
         }
     }
 }
