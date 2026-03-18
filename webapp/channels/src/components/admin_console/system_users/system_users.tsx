@@ -384,6 +384,21 @@ function SystemUsers(props: Props) {
                 enableSorting: false,
             },
             {
+                id: ColumnNames.channelCount,
+                accessorKey: 'channel_count',
+                header: formatMessage({
+                    id: 'admin.system_users.list.channelCount',
+                    defaultMessage: 'Channel count',
+                }),
+                cell: (info: CellContext<UserReport, number | undefined>) => info.getValue() ?? null,
+                meta: {
+                    isNumeric: true,
+                },
+                enableHiding: true,
+                enablePinning: false,
+                enableSorting: false,
+            },
+            {
                 id: ColumnNames.actions,
                 accessorKey: 'actions',
                 header: formatMessage({

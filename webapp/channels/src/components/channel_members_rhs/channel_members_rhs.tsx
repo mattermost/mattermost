@@ -54,7 +54,7 @@ export interface Props {
         loadMyChannelMemberAndRole: (channelId: string) => void;
         setEditChannelMembers: (active: boolean) => void;
         searchProfilesAndChannelMembers: (term: string, options: any) => Promise<{data: UserProfile[]}>;
-        fetchRemoteClusterInfo: (remoteId: string, forceRefresh?: boolean) => void;
+        fetchRemoteClusterInfo: (remoteId: string, includeDeleted?: boolean, forceRefresh?: boolean) => void;
     };
 }
 

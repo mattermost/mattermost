@@ -463,6 +463,24 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         setByEnv={false}
         value={false}
       />
+      <Memo(BooleanSetting)
+        disabled={true}
+        helpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="When enabled, users can find messages in public channels they have not joined. When enabled for the first time, existing posts will be updated in the background. This process is throttled to avoid impacting search performance. This setting has no effect when Compliance Mode is enabled."
+            id="admin.elasticsearch.enableSearchPublicChannelsWithoutMembershipDescription"
+          />
+        }
+        id="enableSearchPublicChannelsWithoutMembership"
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Allow searching public channels without membership:"
+            id="admin.elasticsearch.enableSearchPublicChannelsWithoutMembershipTitle"
+          />
+        }
+        onChange={[Function]}
+        setByEnv={false}
+      />
     </Memo(SettingsGroup)>
     <div
       className="admin-console-save"
@@ -955,6 +973,24 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         onChange={[Function]}
         setByEnv={false}
         value={false}
+      />
+      <Memo(BooleanSetting)
+        disabled={false}
+        helpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="When enabled, users can find messages in public channels they have not joined. When enabled for the first time, existing posts will be updated in the background. This process is throttled to avoid impacting search performance. This setting has no effect when Compliance Mode is enabled."
+            id="admin.elasticsearch.enableSearchPublicChannelsWithoutMembershipDescription"
+          />
+        }
+        id="enableSearchPublicChannelsWithoutMembership"
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Allow searching public channels without membership:"
+            id="admin.elasticsearch.enableSearchPublicChannelsWithoutMembershipTitle"
+          />
+        }
+        onChange={[Function]}
+        setByEnv={false}
       />
     </Memo(SettingsGroup)>
     <div

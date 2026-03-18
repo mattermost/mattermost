@@ -80,6 +80,13 @@ export function SystemUsersColumnTogglerMenu(props: Props) {
                     defaultMessage='Messages posted'
                 />
             );
+        case ColumnNames.channelCount:
+            return (
+                <FormattedMessage
+                    id='admin.system_users.list.channelCount'
+                    defaultMessage='Channel count'
+                />
+            );
         case ColumnNames.actions:
             return (
                 <FormattedMessage

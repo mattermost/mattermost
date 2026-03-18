@@ -1480,10 +1480,6 @@
     "translation": "Eroare la pornirea serverului, err:%v"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Integrarea botului/Slack cu e-mail {{.Email}} și parola {{.Password}} a fost importat.\r\n"
-  },
-  {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "Imposibil de importat utilizatorul Integrații/Slack Bot {{.Username}}.\r\n"
   },
@@ -1506,10 +1502,6 @@
   {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\r\nUtilizatorii creați:\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Utilizatorul Slack cu e-mail {{.Email}} și parola {{.Password}} a fost importat.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
