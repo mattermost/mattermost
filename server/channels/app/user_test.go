@@ -150,27 +150,21 @@ func TestAdjustProfileImage(t *testing.T) {
 	require.Nil(t, appErr)
 	assert.Equal(t, defaultImg, image2.Bytes())
 
-	// EXIF orientation should be corrected: right.jpg has orientation=RotatedCW (8),
-	// meaning the raw pixels are stored sideways and must be rotated upright.
-	// After AdjustImage the result should still be the standard 128×128 profile square.
 	t.Run("EXIF orientation is applied for rotated images", func(t *testing.T) {
-		imgDir, ok := fileutils.FindDir("tests/exif_samples")
-		require.True(t, ok, "failed to find exif_samples test directory")
-
-		rawData, err := os.ReadFile(filepath.Join(imgDir, "right.jpg"))
+		// quadrants-orientation-8.png: 128×128 color quadrants with EXIF orientation 8.
+		// quadrants-orientation-1.png: same visual content already rotated, EXIF orientation 1.
+		rotated, err := testutils.ReadTestFile("exif_samples/quadrants-orientation-8.png")
+		require.NoError(t, err)
+		normal, err := testutils.ReadTestFile("exif_samples/quadrants-orientation-1.png")
 		require.NoError(t, err)
 
-		adjusted, appErr := th.App.AdjustImage(th.Context, bytes.NewReader(rawData))
+		rotatedResult, appErr := th.App.AdjustImage(th.Context, bytes.NewReader(rotated))
 		require.Nil(t, appErr)
-		require.NotEmpty(t, adjusted.Bytes())
+		normalResult, appErr := th.App.AdjustImage(th.Context, bytes.NewReader(normal))
+		require.Nil(t, appErr)
 
-		// The output is a PNG (AdjustImage encodes as PNG).
-		// After uprighting + FillCenter the image must be a 128×128 square.
-		adjustedImg, _, err := image.Decode(adjusted)
-		require.NoError(t, err)
-		bounds := adjustedImg.Bounds()
-		require.Equal(t, 128, bounds.Dx(), "adjusted profile image width must be 128")
-		require.Equal(t, 128, bounds.Dy(), "adjusted profile image height must be 128")
+		assert.Equal(t, rotatedResult.Bytes(), normalResult.Bytes(),
+			"EXIF-rotated image should produce the same profile picture as the normally-oriented one")
 	})
 }
 
