@@ -842,6 +842,7 @@ type PluginStore interface {
 	DeleteAllForPlugin(PluginID string) error
 	DeleteAllExpired() error
 	List(pluginID string, page, perPage int) ([]string, error)
+	ListWithOptions(pluginID string, options model.PluginKVListOptions, page, perPage int) ([]string, error)
 }
 
 type RoleStore interface {

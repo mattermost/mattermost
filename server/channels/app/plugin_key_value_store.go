@@ -124,3 +124,7 @@ func (a *App) DeleteAllExpiredPluginKeys() *model.AppError {
 func (a *App) ListPluginKeys(pluginID string, page, perPage int) ([]string, *model.AppError) {
 	return a.Srv().Platform().ListPluginKeys(pluginID, page, perPage)
 }
+
+func (a *App) ListPluginKeysWithOptions(pluginID string, options model.PluginKVListOptions, page, perPage int) ([]string, *model.AppError) {
+	return a.Srv().Platform().ListPluginKeysWithOptions(pluginID, options, page, perPage)
+}

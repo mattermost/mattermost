@@ -4162,6 +4162,38 @@ func (_m *API) KVList(page int, perPage int) ([]string, *model.AppError) {
 	return r0, r1
 }
 
+// KVListWithOptions provides a mock function with given fields: page, perPage, options
+func (_m *API) KVListWithOptions(page int, perPage int, options model.PluginKVListOptions) ([]string, *model.AppError) {
+	ret := _m.Called(page, perPage, options)
+
+	if len(ret) == 0 {
+		panic("no return value specified for KVListWithOptions")
+	}
+
+	var r0 []string
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(int, int, model.PluginKVListOptions) ([]string, *model.AppError)); ok {
+		return rf(page, perPage, options)
+	}
+	if rf, ok := ret.Get(0).(func(int, int, model.PluginKVListOptions) []string); ok {
+		r0 = rf(page, perPage, options)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(int, int, model.PluginKVListOptions) *model.AppError); ok {
+		r1 = rf(page, perPage, options)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // KVSet provides a mock function with given fields: key, value
 func (_m *API) KVSet(key string, value []byte) *model.AppError {
 	ret := _m.Called(key, value)

@@ -143,6 +143,16 @@ func (ps *PlatformService) KVList(productID string, page, perPage int) ([]string
 	return data, nil
 }
 
+func (ps *PlatformService) KVListWithOptions(productID string, options model.PluginKVListOptions, page, perPage int) ([]string, *model.AppError) {
+	data, err := ps.Store.Plugin().ListWithOptions(productID, options, page*perPage, perPage)
+	if err != nil {
+		ps.logger.Error("Failed to list plugin key values", mlog.Int("page", page), mlog.Int("perPage", perPage), mlog.Err(err))
+		return nil, model.NewAppError("ListPluginKeys", "app.plugin_store.list.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return data, nil
+}
+
 // Registers a given function to be called when the cluster leader may have changed. Returns a unique ID for the
 // listener which can later be used to remove it. If clustering is not enabled in this build, the callback will never
 // be called.
@@ -220,6 +230,16 @@ func (ps *PlatformService) PublishSkipClusterSend(event *model.WebSocketEvent) {
 
 func (ps *PlatformService) ListPluginKeys(pluginID string, page, perPage int) ([]string, *model.AppError) {
 	data, err := ps.Store.Plugin().List(pluginID, page*perPage, perPage)
+	if err != nil {
+		mlog.Error("Failed to list plugin key values", mlog.Int("page", page), mlog.Int("perPage", perPage), mlog.Err(err))
+		return nil, model.NewAppError("ListPluginKeys", "app.plugin_store.list.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return data, nil
+}
+
+func (ps *PlatformService) ListPluginKeysWithOptions(pluginID string, options model.PluginKVListOptions, page, perPage int) ([]string, *model.AppError) {
+	data, err := ps.Store.Plugin().ListWithOptions(pluginID, options, page*perPage, perPage)
 	if err != nil {
 		mlog.Error("Failed to list plugin key values", mlog.Int("page", page), mlog.Int("perPage", perPage), mlog.Err(err))
 		return nil, model.NewAppError("ListPluginKeys", "app.plugin_store.list.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

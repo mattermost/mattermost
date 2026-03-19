@@ -185,6 +185,9 @@ func (s *MemoryStore) ListKeys(page int, count int, options ...ListKeysOption) (
 		if e.isExpired() {
 			continue
 		}
+		if opt.prefix != "" && !strings.HasPrefix(k, opt.prefix) {
+			continue
+		}
 		allKeys = append(allKeys, k)
 	}
 	s.mux.RUnlock()
