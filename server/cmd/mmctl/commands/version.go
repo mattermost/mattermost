@@ -57,8 +57,8 @@ func getVersionInfo() *Info {
 		CommitDate:   commitDate,
 		GitCommit:    gitCommit,
 		GitTreeState: gitTreeState,
-		GoVersion:    goVersion,
-		Compiler:     compiler,
-		Platform:     fmt.Sprintf("%s/%s", runtime.GOARCH, runtime.GOOS),
+		GoVersion:    runtime.Version(),
+		Compiler:     runtime.Compiler,
+		Platform:     fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
 	}
 }
