@@ -415,8 +415,9 @@ type GetPostsSinceForSyncOptions struct {
 	ChannelId                         string
 	ExcludeRemoteId                   string
 	IncludeDeleted                    bool
-	SinceCreateAt                     bool // determines whether the cursor will be based on CreateAt or UpdateAt
-	ExcludeChannelMetadataSystemPosts bool // if true, exclude channel metadata system posts (header, display name, purpose changes)
+	SinceCreateAt                     bool     // determines whether the cursor will be based on CreateAt or UpdateAt
+	ExcludeChannelMetadataSystemPosts bool     // if true, exclude channel metadata system posts (header, display name, purpose changes)
+	ExcludedPostTypes                 []string // post types to exclude from sync
 }
 
 type GetPostsOptions struct {

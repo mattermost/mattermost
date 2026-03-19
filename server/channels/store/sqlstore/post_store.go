@@ -1544,6 +1544,10 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 		}})
 	}
 
+	if len(options.ExcludedPostTypes) > 0 {
+		query = query.Where(sq.NotEq{"Posts.Type": options.ExcludedPostTypes})
+	}
+
 	posts := []*model.Post{}
 	if err := s.GetReplica().SelectBuilder(&posts, query); err != nil {
 		return nil, cursor, errors.Wrapf(err, "error getting Posts with channelId=%s", options.ChannelId)
