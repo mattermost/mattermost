@@ -76,7 +76,7 @@ const ChannelSelector = ({selectedChannelIds, setSelectedChannelIds, myChannels,
                     <input
                         type='checkbox'
                         checked={isSelected}
-                        onChange={() => {}} // Handled by parent div
+                        onChange={() => toggleChannel(channel.id)}
                         onClick={(e) => e.stopPropagation()}
                     />
                 </div>

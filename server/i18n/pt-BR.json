@@ -1484,10 +1484,6 @@
     "translation": "Erro ao iniciar o servidor, err:%v"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "O usuário com email {{.Email}} e senha {{.Password}} da Integração/Slack Bot foi importado.\r\n"
-  },
-  {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "Não é possível importar o usuário {{.Username}} da Integração/Slack Bot.\r\n"
   },
@@ -1510,10 +1506,6 @@
   {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\r\nUsuários criados:\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "O usuário Slack com e-mail {{.Email}} e a senha {{.Password}} foi importado.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
