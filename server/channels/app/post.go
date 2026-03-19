@@ -1217,6 +1217,8 @@ func (a *App) GetPostsPage(rctx request.CTX, options model.GetPostsOptions) (*mo
 	return postList, nil
 }
 
+// GetPostsForView returns posts for a specific view. Currently returns all channel posts.
+// TODO: In the future, this will filter posts based on the view's configuration (e.g., property values, sort order).
 func (a *App) GetPostsForView(rctx request.CTX, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
 	postList, err := a.Srv().Store().Post().GetPosts(rctx, options, false, a.Config().GetSanitizeOptions())
 	if err != nil {
@@ -1225,7 +1227,7 @@ func (a *App) GetPostsForView(rctx request.CTX, options model.GetPostsOptions) (
 		case errors.As(err, &invErr):
 			return nil, model.NewAppError("GetPostsForView", "app.post.get_posts.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		default:
-			return nil, model.NewAppError("GetPostsForView", "app.post.get_root_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return nil, model.NewAppError("GetPostsForView", "app.post.get_posts_for_view.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 

@@ -394,7 +394,7 @@ func getPostsForView(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventGetPostsForView, model.AuditStatusSuccess)
+	auditRec := c.MakeAuditRecord(model.AuditEventGetPostsForView, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
 	model.AddEventParameterToAuditRec(auditRec, "view_id", c.Params.ViewId)
@@ -413,6 +413,8 @@ func getPostsForView(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// TODO: In the future, this will filter posts based on the view's configuration
+	// (e.g., property values, sort order). For now, it returns all posts in the channel.
 	options := model.GetPostsOptions{
 		ChannelId: c.Params.ChannelId,
 		Page:      c.Params.Page,
@@ -427,11 +429,19 @@ func getPostsForView(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	clientPostList := c.App.PreparePostListForClient(c.AppContext, list)
-	clientPostList, _, appErr = c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
+	clientPostList, isMemberForAllPreviews, appErr := c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
+
+	if !isMember || !isMemberForAllPreviews {
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
+		if !isMemberForAllPreviews {
+			model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access_on_previews", true)
+		}
+	}
+	auditRec.Success()
 
 	if err := clientPostList.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))

@@ -622,7 +622,7 @@ func TestGetPostsForView(t *testing.T) {
 		}, channel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 
-		postList, resp, err := th.Client.GetPostsForView(context.Background(), channel.Id, created.Id, 0, 60, "")
+		postList, resp, err := th.Client.GetPostsForView(context.Background(), channel.Id, created.Id, 0, 60)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.Contains(t, postList.Order, normalPost.Id)
@@ -635,13 +635,13 @@ func TestGetPostsForView(t *testing.T) {
 		require.NoError(t, err)
 
 		otherChannel := th.CreatePublicChannel(t)
-		_, resp, err := th.Client.GetPostsForView(context.Background(), otherChannel.Id, created.Id, 0, 60, "")
+		_, resp, err := th.Client.GetPostsForView(context.Background(), otherChannel.Id, created.Id, 0, 60)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
 
 	t.Run("non-existent view returns 404", func(t *testing.T) {
-		_, resp, err := th.Client.GetPostsForView(context.Background(), th.BasicChannel.Id, model.NewId(), 0, 60, "")
+		_, resp, err := th.Client.GetPostsForView(context.Background(), th.BasicChannel.Id, model.NewId(), 0, 60)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
@@ -655,9 +655,30 @@ func TestGetPostsForView(t *testing.T) {
 		user2Client := th.CreateClient()
 		th.LoginBasic2WithClient(t, user2Client)
 
-		_, resp, err := user2Client.GetPostsForView(context.Background(), channel.Id, created.Id, 0, 60, "")
+		_, resp, err := user2Client.GetPostsForView(context.Background(), channel.Id, created.Id, 0, 60)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("unauthenticated returns 401", func(t *testing.T) {
+		client := th.CreateClient()
+		_, resp, err := client.GetPostsForView(context.Background(), th.BasicChannel.Id, model.NewId(), 0, 60)
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+	})
+
+	t.Run("deleted channel returns 404", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+		view := makeTestViewForAPI()
+		created, _, err := th.Client.CreateView(context.Background(), channel.Id, view)
+		require.NoError(t, err)
+
+		appErr := th.App.DeleteChannel(th.Context, channel, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		_, resp, err := th.Client.GetPostsForView(context.Background(), channel.Id, created.Id, 0, 60)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
 	})
 
 	t.Run("pagination works", func(t *testing.T) {
@@ -675,12 +696,12 @@ func TestGetPostsForView(t *testing.T) {
 			require.NoError(t, err)
 		}
 
-		page1, resp, err := th.Client.GetPostsForView(context.Background(), channel.Id, created.Id, 0, 3, "")
+		page1, resp, err := th.Client.GetPostsForView(context.Background(), channel.Id, created.Id, 0, 3)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.Len(t, page1.Order, 3)
 
-		page2, resp, err := th.Client.GetPostsForView(context.Background(), channel.Id, created.Id, 1, 3, "")
+		page2, resp, err := th.Client.GetPostsForView(context.Background(), channel.Id, created.Id, 1, 3)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.Len(t, page2.Order, 3)
@@ -698,7 +719,7 @@ func TestGetPostsForViewFeatureFlagOff(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = false
 	}).InitBasic(t)
 
-	_, resp, err := th.Client.GetPostsForView(context.Background(), th.BasicChannel.Id, model.NewId(), 0, 60, "")
+	_, resp, err := th.Client.GetPostsForView(context.Background(), th.BasicChannel.Id, model.NewId(), 0, 60)
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 }
