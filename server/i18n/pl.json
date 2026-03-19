@@ -10029,7 +10029,7 @@
   },
   {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
-    "translation": "Nie można zarejestrować grupy właściwości Atrybuty profilu niestandardowego"
+    "translation": "Nie można pobrać grupy właściwości Atrybuty profilu niestandardowego."
   },
   {
     "id": "app.custom_profile_attributes.limit_reached.app_error",
@@ -11762,5 +11762,45 @@
   {
     "id": "api.slackimport.slack_add_bot_user.email",
     "translation": "Użytkownik Integration/Slack Bot z adresem e-mail {{.Email}} został zaimportowany.\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.email",
+    "translation": "Użytkownik Slack z adresem e-mail {{.Email}} został zaimportowany.\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.send_reset_email_failed",
+    "translation": "Nie można wysłać wiadomości e-mail z resetem hasła na adres {{.Username}} pod adresem {{.Email}}.\n"
+  },
+  {
+    "id": "api.upload.create.check_directory.app_error",
+    "translation": "Wystąpił błąd podczas sprawdzania konfiguracji katalogu importu."
+  },
+  {
+    "id": "api.upload.create.directory_conflict.app_error",
+    "translation": "Nie można utworzyć Przesyłania importu: ImportSettings.Directory jest w konflikcie z PluginSettings.Directory."
+  },
+  {
+    "id": "app.command.validatecommandtriggeruniqueness.internal_error",
+    "translation": "Podane słowo kluczowe trigera już istnieje."
+  },
+  {
+    "id": "app.data_spillage.assign_reviewer.no_reviewer_field.app_error",
+    "translation": "Nie znaleziono pola właściwości ID weryfikatora."
+  },
+  {
+    "id": "app.data_spillage.assign_reviewer.update_status_property_value.app_error",
+    "translation": "Nie udało się zaktualizować wartości właściwości Status przy ustawieniu recenzenta."
+  },
+  {
+    "id": "app.data_spillage.assign_reviewer.upsert_property_value.app_error",
+    "translation": "Nie udało się ustawić flagowanego recenzenta postów."
+  },
+  {
+    "id": "app.data_spillage.can_flag_post.in_progress",
+    "translation": "Nie możesz poddać tego postu kwarantannie, ponieważ został on już poddany kwarantannie w celu sprawdzenia."
+  },
+  {
+    "id": "app.data_spillage.can_flag_post.removed",
+    "translation": "Nie możesz poddać tego postu kwarantannie, ponieważ został on usunięty w poprzedniej recenzji."
   }
 ]
