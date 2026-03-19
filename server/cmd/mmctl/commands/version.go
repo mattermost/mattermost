@@ -33,14 +33,9 @@ func init() {
 }
 
 func versionCmdF(cmd *cobra.Command, args []string) error {
-	v, err := getVersionInfo()
-	if err != nil {
-		return err
-	}
-
 	printer.PrintT("mmctl:\nVersion:\t{{.Version}}\nBuiltDate:\t{{.BuildDate}}\nCommitDate:\t{{.CommitDate}}\nGitCommit:\t{{.GitCommit}}"+
 		"\nGitTreeState:\t{{.GitTreeState}}\nGoVersion:\t{{.GoVersion}}"+
-		"\nCompiler:\t{{.Compiler}}\nPlatform:\t{{.Platform}}", v)
+		"\nCompiler:\t{{.Compiler}}\nPlatform:\t{{.Platform}}", getVersionInfo())
 	return nil
 }
 
@@ -55,19 +50,7 @@ type Info struct {
 	Platform     string
 }
 
-func getVersionInfo() (*Info, error) {
-	goVersion := runtime.Version()
-	compiler := runtime.Compiler
-	if info, ok := debug.ReadBuildInfo(); ok {
-		goVersion = info.GoVersion
-		for _, s := range info.Settings {
-			if s.Key == "-compiler" {
-				compiler = s.Value
-				break
-			}
-		}
-	}
-
+func getVersionInfo() *Info {
 	return &Info{
 		Version:      Version,
 		BuildDate:    buildDate,
@@ -77,5 +60,5 @@ func getVersionInfo() (*Info, error) {
 		GoVersion:    goVersion,
 		Compiler:     compiler,
 		Platform:     fmt.Sprintf("%s/%s", runtime.GOARCH, runtime.GOOS),
-	}, nil
+	}
 }
