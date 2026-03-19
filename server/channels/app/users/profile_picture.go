@@ -135,7 +135,11 @@ func createProfileImage(username string, userID string, initialFont string) ([]b
 	h.Write([]byte(userID))
 	seed := h.Sum32()
 
-	initial := string(strings.ToUpper(username)[0])
+	trimmedUsername := strings.TrimSpace(username)
+	initial := "?"
+	if len(trimmedUsername) > 0 {
+		initial = string([]rune(strings.ToUpper(trimmedUsername))[0])
+	}
 
 	font, err := getFont(initialFont)
 	if err != nil {
