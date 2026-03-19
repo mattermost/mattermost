@@ -9,6 +9,7 @@ import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
+import DesktopApp from 'utils/desktop_api';
 import {isDesktopApp} from 'utils/user_agent';
 
 export default function usePopoutTitle(titleTemplate: MessageDescriptor, params?: Record<string, string>) {
@@ -16,6 +17,18 @@ export default function usePopoutTitle(titleTemplate: MessageDescriptor, params?
     const siteName = useSelector(getConfig).SiteName;
     const currentChannel = useSelector(getCurrentChannel);
     const currentTeam = useSelector(getCurrentTeam);
+
+    useEffect(() => {
+        if (!isDesktopApp()) {
+            return;
+        }
+        DesktopApp.updatePopoutTitleTemplate(intl.formatMessage(titleTemplate, {
+            serverName: '{serverName}',
+            channelName: '{channelName}',
+            teamName: '{teamName}',
+            ...params,
+        }));
+    }, [intl, titleTemplate, params]);
 
     useEffect(() => {
         if (isDesktopApp()) {
