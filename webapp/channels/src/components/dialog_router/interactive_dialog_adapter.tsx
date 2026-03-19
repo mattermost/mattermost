@@ -184,6 +184,8 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
         Object.entries(currentValues).forEach(([key, value]) => {
             if (value === null || value === undefined) {
                 this.accumulatedValues[key] = '';
+            } else if (Array.isArray(value) && value.length === 0) {
+                this.accumulatedValues[key] = [];
             }
         });
     };

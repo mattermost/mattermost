@@ -365,6 +365,20 @@ describe('dialog_conversion', () => {
             expect(result).toBe('option1');
         });
 
+        it('should return null for radio default that does not match any option', () => {
+            const element = {
+                type: 'radio',
+                default: 'stale_value',
+                options: [
+                    {text: 'Option 1', value: 'option1'},
+                    {text: 'Option 2', value: 'option2'},
+                ],
+            } as DialogElement;
+
+            const result = getDefaultValue(element);
+            expect(result).toBeNull();
+        });
+
         it('should handle dynamic select defaults', () => {
             const element = {
                 type: 'select',

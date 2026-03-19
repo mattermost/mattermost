@@ -266,9 +266,7 @@ export function getDefaultValue(element: DialogElement): AppFormValue {
         // Normalize to string from the start so the value shape never changes after user interaction.
         if (element.options && element.default) {
             const match = element.options.find((opt) => opt.value === element.default);
-            if (match) {
-                return match.value;
-            }
+            return match ? match.value : null;
         }
         return element.default ? String(element.default) : null;
     }
