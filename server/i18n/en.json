@@ -7359,16 +7359,16 @@
     "translation": "Your license does not support reporting on posts."
   },
   {
+    "id": "app.post.get_posts_for_view.app_error",
+    "translation": "Unable to get the posts for the view."
+  },
+  {
     "id": "app.post.get_posts_since.app_error",
     "translation": "Unable to get the posts for the channel."
   },
   {
     "id": "app.post.get_root_posts.app_error",
     "translation": "Unable to get the posts for the channel."
-  },
-  {
-    "id": "app.post.get_posts_for_view.app_error",
-    "translation": "Unable to get the posts for the view."
   },
   {
     "id": "app.post.marshal.app_error",
