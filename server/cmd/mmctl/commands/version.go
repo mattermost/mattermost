@@ -13,7 +13,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Set via ldflags -X at build time. See MMCTL_LDFLAGS in the Makefile.
+// Version defaults to model.CurrentVersion. buildDate, gitCommit,
+// gitTreeState, and commitDate are set via -X ldflags at build time.
+// See MMCTL_LDFLAGS in the Makefile.
 var (
 	Version      = model.CurrentVersion
 	buildDate    = "dev"
