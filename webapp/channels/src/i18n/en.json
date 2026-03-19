@@ -620,6 +620,7 @@
   "admin.channel_settings.channel_moderation.manageBookmarks.disabledGuest": "Manage tabs for guests are disabled in [{scheme_name}](../permissions/{scheme_link}).",
   "admin.channel_settings.channel_moderation.manageBookmarks.disabledMember": "Manage tabs for members are disabled in [{scheme_name}](../permissions/{scheme_link}).",
   "admin.channel_settings.channel_moderation.manageBookmarksDesc": "The ability for members and guests to add, delete and sort tabs.",
+  "admin.channel_settings.channel_moderation.manageBookmarksDescMembers": "The ability for members to add, delete and sort tabs.",
   "admin.channel_settings.channel_moderation.manageMembers": "Manage Members",
   "admin.channel_settings.channel_moderation.manageMembers.disabledBoth": "Manage members for members and guests are disabled in [{scheme_name}](../permissions/{scheme_link}).",
   "admin.channel_settings.channel_moderation.manageMembers.disabledGuest": "Manage members for guests are disabled in [{scheme_name}](../permissions/{scheme_link}).",
