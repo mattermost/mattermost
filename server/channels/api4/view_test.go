@@ -666,7 +666,8 @@ func TestGetPostsForView(t *testing.T) {
 		created, _, err := th.Client.CreateView(context.Background(), channel.Id, view)
 		require.NoError(t, err)
 
-		for i := range 3 {
+		// Channel already has a system join post, so we create 5 more for 6 total
+		for i := range 5 {
 			_, _, err = th.Client.CreatePost(context.Background(), &model.Post{
 				ChannelId: channel.Id,
 				Message:   fmt.Sprintf("post %d", i),
@@ -674,15 +675,15 @@ func TestGetPostsForView(t *testing.T) {
 			require.NoError(t, err)
 		}
 
-		page1, resp, err := th.Client.GetPostsForView(context.Background(), channel.Id, created.Id, 0, 2, "")
+		page1, resp, err := th.Client.GetPostsForView(context.Background(), channel.Id, created.Id, 0, 3, "")
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.Len(t, page1.Order, 2)
+		require.Len(t, page1.Order, 3)
 
-		page2, resp, err := th.Client.GetPostsForView(context.Background(), channel.Id, created.Id, 1, 2, "")
+		page2, resp, err := th.Client.GetPostsForView(context.Background(), channel.Id, created.Id, 1, 3, "")
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.Len(t, page2.Order, 1)
+		require.Len(t, page2.Order, 3)
 
 		// No overlap between pages
 		for _, id := range page2.Order {
