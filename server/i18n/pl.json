@@ -11802,5 +11802,25 @@
   {
     "id": "app.data_spillage.can_flag_post.removed",
     "translation": "Nie możesz poddać tego postu kwarantannie, ponieważ został on usunięty w poprzedniej recenzji."
+  },
+  {
+    "id": "app.data_spillage.can_flag_post.retained",
+    "translation": "Nie możesz poddać tego postu kwarantannie, ponieważ został on zachowany w poprzedniej recenzji."
+  },
+  {
+    "id": "app.data_spillage.can_flag_post.unknown",
+    "translation": "Nie można poddać kwarantannie tego postu, ponieważ ma on nieznany status."
+  },
+  {
+    "id": "app.data_spillage.create_property_values.app_error",
+    "translation": "Nie udało się zapisać wartości właściwości dla oflagowanego posta."
+  },
+  {
+    "id": "app.data_spillage.flag_post.marshal_comment.app_error",
+    "translation": "Nie udało się pobrać komentarza użytkownika flagującego"
+  },
+  {
+    "id": "app.data_spillage.flag_post.marshal_reason.app_error",
+    "translation": "Nie udało się pobrać powodu użytkownika flagującego"
   }
 ]
