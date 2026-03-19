@@ -91,7 +91,7 @@ describe('Selectors.Users', () => {
     membersInChannel[channel1.id][user8.id] = {
         ...TestHelper.fakeChannelMember(user8.id, channel1.id),
         scheme_user: true,
-    }
+    };
     membersInChannel[channel2.id] = {};
     membersInChannel[channel2.id][user1.id] = {
         ...TestHelper.fakeChannelMember(user1.id, channel2.id),
