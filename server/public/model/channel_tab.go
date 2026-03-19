@@ -335,14 +335,3 @@ func (o *ChannelTabAndFileInfo) ToChannelTabWithFileInfo() *ChannelTabWithFileIn
 	return bwf
 }
 
-// Deprecated: Use ChannelTab instead.
-type ChannelBookmark = ChannelTab
-
-// Deprecated: Use ChannelTabWithFileInfo instead.
-type ChannelBookmarkWithFileInfo = ChannelTabWithFileInfo
-
-// Deprecated: Use ChannelTabPatch instead.
-type ChannelBookmarkPatch = ChannelTabPatch
-
-// Deprecated: Use UpdateChannelTabResponse instead.
-type UpdateChannelBookmarkResponse = UpdateChannelTabResponse
