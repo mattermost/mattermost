@@ -1047,7 +1047,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 		require.NoError(t, nErr)
 		_, err := th.App.CreateUserWithInviteId(th.Context, &user, th.BasicTeam.InviteId, "")
 		require.NotNil(t, err)
-		require.Equal(t, "api.team.invite_members.invalid_email.app_error", err.Id)
+		require.Equal(t, "api.user.create_user.invalid_invitation_email.app_error", err.Id)
 	})
 }
 
