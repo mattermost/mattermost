@@ -109,6 +109,18 @@ const (
 	WebSocketMsgTypeEvent    = "event"
 )
 
+// Deprecated WebSocket event aliases for backward compatibility with the bookmarks->tabs rename.
+const (
+	// Deprecated: Use WebsocketEventChannelTabCreated instead.
+	WebsocketEventChannelBookmarkCreated = WebsocketEventChannelTabCreated
+	// Deprecated: Use WebsocketEventChannelTabUpdated instead.
+	WebsocketEventChannelBookmarkUpdated = WebsocketEventChannelTabUpdated
+	// Deprecated: Use WebsocketEventChannelTabDeleted instead.
+	WebsocketEventChannelBookmarkDeleted = WebsocketEventChannelTabDeleted
+	// Deprecated: Use WebsocketEventChannelTabSorted instead.
+	WebsocketEventChannelBookmarkSorted = WebsocketEventChannelTabSorted
+)
+
 type ActiveQueueItem struct {
 	Type string          `json:"type"` // websocket event or websocket response
 	Buf  json.RawMessage `json:"buf"`

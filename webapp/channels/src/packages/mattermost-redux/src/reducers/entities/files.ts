@@ -67,11 +67,11 @@ export function files(state: Record<string, FileInfo> = {}, action: MMReduxActio
     }
 
     case ChannelTabTypes.RECEIVED_TABS: {
-        const bookmarks: ChannelTab[] = action.data.bookmarks;
+        const tabs: ChannelTab[] = action.data.tabs;
 
         const nextState = {...state};
 
-        bookmarks.forEach(({file}) => {
+        tabs.forEach(({file}) => {
             if (file) {
                 nextState[file.id] = file;
             }

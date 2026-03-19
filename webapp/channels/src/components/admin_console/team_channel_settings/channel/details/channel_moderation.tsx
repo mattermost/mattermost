@@ -200,6 +200,10 @@ function getChannelModerationRowsMessages(permission: string): Record<string, Me
             id: 'admin.channel_settings.channel_moderation.manageBookmarksDesc',
             defaultMessage: 'The ability for members and guests to add, delete and sort tabs.',
         },
+        descriptionMembers: {
+            id: 'admin.channel_settings.channel_moderation.manageBookmarksDescMembers',
+            defaultMessage: 'The ability for members to add, delete and sort tabs.',
+        },
         disabledGuests: {
             id: 'admin.channel_settings.channel_moderation.manageBookmarks.disabledGuest',
             defaultMessage: 'Manage tabs for guests are disabled in [{scheme_name}](../permissions/{scheme_link}).',

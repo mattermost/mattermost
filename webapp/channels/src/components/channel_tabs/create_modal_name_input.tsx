@@ -136,7 +136,7 @@ const CreateModalNameInput = ({
                 <Input
                     maxLength={maxLength}
                     type='text'
-                    name='bookmark-display-name'
+                    name='tab-display-name'
                     onChange={handleInputChange}
                     value={displayName ?? placeholder ?? ''}
                     placeholder={placeholder}

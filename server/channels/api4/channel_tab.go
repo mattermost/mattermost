@@ -80,7 +80,7 @@ func createChannelTab(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 	case model.ChannelTypeGroup, model.ChannelTypeDirect:
-		// Any member of DM/GMs but guests can manage channel bookmarks
+		// Any member of DM/GMs but guests can manage channel tabs
 		if _, errGet := c.App.GetChannelMember(c.AppContext, channel.Id, c.AppContext.Session().UserId); errGet != nil {
 			c.Err = model.NewAppError("createChannelTab", "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error", nil, errGet.Message, http.StatusForbidden)
 			return
@@ -148,7 +148,7 @@ func updateChannelTab(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "channelTab", patch)
 
-	// The channel bookmark should belong to the same channel specified in the URL
+	// The channel tab should belong to the same channel specified in the URL
 	if patchedTab.ChannelId != c.Params.ChannelId {
 		c.SetInvalidParam("channel_id")
 		return
@@ -186,7 +186,7 @@ func updateChannelTab(c *Context, w http.ResponseWriter, r *http.Request) {
 		isMember = member
 
 	case model.ChannelTypeGroup, model.ChannelTypeDirect:
-		// Any member of DM/GMs but guests can manage channel bookmarks
+		// Any member of DM/GMs but guests can manage channel tabs
 		if _, errGet := c.App.GetChannelMember(c.AppContext, channel.Id, c.AppContext.Session().UserId); errGet != nil {
 			c.Err = model.NewAppError("updateChannelTab", "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error", nil, errGet.Message, http.StatusForbidden)
 			return
@@ -286,7 +286,7 @@ func updateChannelTabSortOrder(c *Context, w http.ResponseWriter, r *http.Reques
 		}
 		isMember = member
 	case model.ChannelTypeGroup, model.ChannelTypeDirect:
-		// Any member of DM/GMs but guests can manage channel bookmarks
+		// Any member of DM/GMs but guests can manage channel tabs
 		if _, errGet := c.App.GetChannelMember(c.AppContext, channel.Id, c.AppContext.Session().UserId); errGet != nil {
 			c.Err = model.NewAppError("updateChannelTabSortOrder", "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels.forbidden.app_error", nil, errGet.Message, http.StatusForbidden)
 			return
@@ -309,7 +309,7 @@ func updateChannelTabSortOrder(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	bookmarks, appErr := c.App.UpdateChannelTabSortOrder(c.Params.ChannelTabId, c.Params.ChannelId, newSortOrder, connectionID)
+	tabs, appErr := c.App.UpdateChannelTabSortOrder(c.Params.ChannelTabId, c.Params.ChannelId, newSortOrder, connectionID)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -319,7 +319,7 @@ func updateChannelTabSortOrder(c *Context, w http.ResponseWriter, r *http.Reques
 		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
 
-	for _, b := range bookmarks {
+	for _, b := range tabs {
 		if b.Id == c.Params.ChannelTabId {
 			auditRec.AddEventResultState(b)
 			auditRec.AddEventObjectType("channelTabWithFileInfo")
@@ -329,7 +329,7 @@ func updateChannelTabSortOrder(c *Context, w http.ResponseWriter, r *http.Reques
 	auditRec.Success()
 	c.LogAudit("")
 
-	if err := json.NewEncoder(w).Encode(bookmarks); err != nil {
+	if err := json.NewEncoder(w).Encode(tabs); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
@@ -379,7 +379,7 @@ func deleteChannelTab(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		isMember = member
 	case model.ChannelTypeGroup, model.ChannelTypeDirect:
-		// Any member of DM/GMs but guests can manage channel bookmarks
+		// Any member of DM/GMs but guests can manage channel tabs
 		if _, errGet := c.App.GetChannelMember(c.AppContext, channel.Id, c.AppContext.Session().UserId); errGet != nil {
 			c.Err = model.NewAppError("deleteChannelTab", "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error", nil, errGet.Message, http.StatusForbidden)
 			return
@@ -408,14 +408,14 @@ func deleteChannelTab(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// The channel bookmark should belong to the same channel specified in the URL
+	// The channel tab should belong to the same channel specified in the URL
 	if oldTab.ChannelId != c.Params.ChannelId {
 		c.SetInvalidParam("channel_id")
 		return
 	}
 	auditRec.AddEventPriorState(oldTab)
 
-	bookmark, appErr := c.App.DeleteChannelTab(c.Params.ChannelTabId, connectionID)
+	tab, appErr := c.App.DeleteChannelTab(c.Params.ChannelTabId, connectionID)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -426,10 +426,10 @@ func deleteChannelTab(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	auditRec.AddEventResultState(bookmark)
-	c.LogAudit("bookmark=" + bookmark.DisplayName)
+	auditRec.AddEventResultState(tab)
+	c.LogAudit("tab=" + tab.DisplayName)
 
-	if err := json.NewEncoder(w).Encode(bookmark); err != nil {
+	if err := json.NewEncoder(w).Encode(tab); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
@@ -457,7 +457,7 @@ func listChannelTabsForChannel(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	bookmarks, appErr := c.App.GetChannelTabs(c.Params.ChannelId, c.Params.TabsSince)
+	tabs, appErr := c.App.GetChannelTabs(c.Params.ChannelId, c.Params.TabsSince)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -470,7 +470,7 @@ func listChannelTabsForChannel(c *Context, w http.ResponseWriter, r *http.Reques
 		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
 
-	if err := json.NewEncoder(w).Encode(bookmarks); err != nil {
+	if err := json.NewEncoder(w).Encode(tabs); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

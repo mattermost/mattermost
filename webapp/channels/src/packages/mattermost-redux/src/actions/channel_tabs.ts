@@ -14,14 +14,14 @@ import {forceLogoutIfNecessary} from './helpers';
 export function deleteTab(channelId: string, id: string, connectionId: string): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         const state = getState();
-        const bookmark = getChannelTab(state, channelId, id);
+        const tab = getChannelTab(state, channelId, id);
 
         try {
             await Client4.deleteChannelTab(channelId, id, connectionId);
 
             dispatch({
                 type: ChannelTabTypes.TAB_DELETED,
-                data: bookmark,
+                data: tab,
             });
         } catch (error) {
             return {
@@ -34,10 +34,10 @@ export function deleteTab(channelId: string, id: string, connectionId: string): 
     };
 }
 
-export function createTab(channelId: string, bookmark: ChannelTabCreate, connectionId: string): ActionFuncAsync<boolean> {
+export function createTab(channelId: string, tab: ChannelTabCreate, connectionId: string): ActionFuncAsync<boolean> {
     return async (dispatch: DispatchFunc) => {
         try {
-            const createdTab = await Client4.createChannelTab(channelId, bookmark, connectionId);
+            const createdTab = await Client4.createChannelTab(channelId, tab, connectionId);
 
             dispatch({
                 type: ChannelTabTypes.RECEIVED_TAB,
@@ -86,11 +86,11 @@ export function editTab(channelId: string, id: string, patch: ChannelTabPatch, c
 export function reorderTab(channelId: string, id: string, newOrder: number, connectionId: string): ActionFuncAsync<boolean> {
     return async (dispatch: DispatchFunc) => {
         try {
-            const bookmarks = await Client4.updateChannelTabSortOrder(channelId, id, newOrder, connectionId);
+            const tabs = await Client4.updateChannelTabSortOrder(channelId, id, newOrder, connectionId);
 
             dispatch({
                 type: ChannelTabTypes.RECEIVED_TABS,
-                data: {channelId, bookmarks},
+                data: {channelId, tabs},
             });
         } catch (error) {
             return {
@@ -105,13 +105,13 @@ export function reorderTab(channelId: string, id: string, newOrder: number, conn
 
 export function fetchChannelTabs(channelId: string): ActionFuncAsync<ChannelTab[]> {
     return async (dispatch, getState) => {
-        let bookmarks;
+        let tabs;
         try {
-            bookmarks = await Client4.getChannelTabs(channelId);
+            tabs = await Client4.getChannelTabs(channelId);
 
             dispatch({
                 type: ChannelTabTypes.RECEIVED_TABS,
-                data: {channelId, bookmarks},
+                data: {channelId, tabs},
             });
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
@@ -119,6 +119,6 @@ export function fetchChannelTabs(channelId: string): ActionFuncAsync<ChannelTab[
             return {error};
         }
 
-        return {data: bookmarks};
+        return {data: tabs};
     };
 }

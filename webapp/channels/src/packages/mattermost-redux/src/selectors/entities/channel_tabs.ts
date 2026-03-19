@@ -7,13 +7,13 @@ import type {GlobalState} from '@mattermost/types/store';
 const EMPTY_TABS = {};
 
 export const getChannelTabs = (state: GlobalState, channelId: string): ChannelTabsState['byChannelId'][string] => {
-    const bookmarks = state.entities.channelTabs.byChannelId[channelId];
+    const tabs = state.entities.channelTabs.byChannelId[channelId];
 
-    if (!bookmarks) {
+    if (!tabs) {
         return EMPTY_TABS;
     }
 
-    return bookmarks;
+    return tabs;
 };
 
 export const getChannelTab = (state: GlobalState, channelId: string, tabId: string) => {

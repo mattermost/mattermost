@@ -28,10 +28,10 @@ import type {GlobalState} from 'types/store';
 import TabItemDotMenu from './tab_dot_menu';
 import TabIcon from './tab_icon';
 
-const useTabLink = (bookmark: ChannelTab) => {
+const useTabLink = (tab: ChannelTab) => {
     const linkRef = useRef<HTMLAnchorElement>(null);
     const dispatch = useDispatch();
-    const fileInfo: FileInfo | undefined = useSelector((state: GlobalState) => (bookmark?.file_id && getFile(state, bookmark.file_id)) || undefined);
+    const fileInfo: FileInfo | undefined = useSelector((state: GlobalState) => (tab?.file_id && getFile(state, tab.file_id)) || undefined);
 
     const open = () => {
         linkRef.current?.click();
@@ -45,7 +45,7 @@ const useTabLink = (bookmark: ChannelTab) => {
                 modalId: ModalIdentifiers.FILE_PREVIEW_MODAL,
                 dialogType: FilePreviewModal,
                 dialogProps: {
-                    post: {user_id: bookmark.owner_id, channel_id: bookmark.channel_id} as Post,
+                    post: {user_id: tab.owner_id, channel_id: tab.channel_id} as Post,
                     fileInfos: [fileInfo],
                     startIndex: 0,
                 },
@@ -55,35 +55,35 @@ const useTabLink = (bookmark: ChannelTab) => {
 
     const icon = (
         <TabIcon
-            type={bookmark.type}
-            emoji={bookmark.emoji}
-            imageUrl={bookmark.image_url}
+            type={tab.type}
+            emoji={tab.emoji}
+            imageUrl={tab.image_url}
             fileInfo={fileInfo}
         />
     );
     let link;
 
-    if (bookmark.type === 'link' && bookmark.link_url) {
+    if (tab.type === 'link' && tab.link_url) {
         link = (
             <DynamicLink
-                href={bookmark.link_url}
+                href={tab.link_url}
                 ref={linkRef}
                 isFile={false}
             >
                 {icon}
-                <Label>{bookmark.display_name}</Label>
+                <Label>{tab.display_name}</Label>
             </DynamicLink>
         );
-    } else if (bookmark.type === 'file' && bookmark.file_id) {
+    } else if (tab.type === 'file' && tab.file_id) {
         link = (
             <DynamicLink
-                href={getFileDownloadUrl(bookmark.file_id)}
+                href={getFileDownloadUrl(tab.file_id)}
                 onClick={handleOpenFile}
                 ref={linkRef}
                 isFile={true}
             >
                 {icon}
-                <Label>{bookmark.display_name}</Label>
+                <Label>{tab.display_name}</Label>
             </DynamicLink>
         );
     }
@@ -96,13 +96,13 @@ const useTabLink = (bookmark: ChannelTab) => {
 };
 
 type Props = {
-    bookmark: ChannelTab;
+    tab: ChannelTab;
     drag: DraggableProvided;
     isDragging: boolean;
     disableInteractions: boolean;
 };
-const TabItem = (({bookmark, drag, disableInteractions}: Props) => {
-    const {link, open} = useTabLink(bookmark);
+const TabItem = (({tab, drag, disableInteractions}: Props) => {
+    const {link, open} = useTabLink(tab);
 
     return (
         <Chip
@@ -112,7 +112,7 @@ const TabItem = (({bookmark, drag, disableInteractions}: Props) => {
         >
             {link && cloneElement(link, {...drag.dragHandleProps, role: 'link'})}
             <TabItemDotMenu
-                bookmark={bookmark}
+                tab={tab}
                 open={open}
             />
         </Chip>

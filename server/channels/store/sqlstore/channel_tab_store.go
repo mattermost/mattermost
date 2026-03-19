@@ -23,7 +23,7 @@ func newSqlChannelTabStore(sqlStore *SqlStore) store.ChannelTabStore {
 	return &SqlChannelTabStore{sqlStore}
 }
 
-func bookmarkWithFileInfoSliceColumns() []string {
+func tabWithFileInfoSliceColumns() []string {
 	return []string{
 		"cb.Id",
 		"cb.OwnerId",
@@ -91,7 +91,7 @@ func (s *SqlChannelTabStore) ErrorIfTabFileInfoAlreadyAttached(fileId string, ch
 
 func (s *SqlChannelTabStore) Get(Id string, includeDeleted bool) (*model.ChannelTabWithFileInfo, error) {
 	query := s.getQueryBuilder().
-		Select(bookmarkWithFileInfoSliceColumns()...).
+		Select(tabWithFileInfoSliceColumns()...).
 		From("ChannelBookmarks cb").
 		LeftJoin("FileInfo fi ON cb.FileInfoId = fi.Id").
 		Where(sq.Eq{"cb.Id": Id})
@@ -105,18 +105,18 @@ func (s *SqlChannelTabStore) Get(Id string, includeDeleted bool) (*model.Channel
 		return nil, errors.Wrap(err, "channel_bookmark_getforchanneltsince_tosql")
 	}
 
-	bookmark := model.ChannelTabAndFileInfo{}
+	tab := model.ChannelTabAndFileInfo{}
 
-	if err := s.GetReplica().Get(&bookmark, queryString, args...); err != nil {
+	if err := s.GetReplica().Get(&tab, queryString, args...); err != nil {
 		return nil, store.NewErrNotFound("ChannelBookmark", Id)
 	}
 
-	return bookmark.ToChannelTabWithFileInfo(), nil
+	return tab.ToChannelTabWithFileInfo(), nil
 }
 
-func (s *SqlChannelTabStore) Save(bookmark *model.ChannelTab, increaseSortOrder bool) (b *model.ChannelTabWithFileInfo, err error) {
-	bookmark.PreSave()
-	if err := bookmark.IsValid(); err != nil {
+func (s *SqlChannelTabStore) Save(tab *model.ChannelTab, increaseSortOrder bool) (b *model.ChannelTabWithFileInfo, err error) {
+	tab.PreSave()
+	if err := tab.IsValid(); err != nil {
 		return nil, err
 	}
 
@@ -130,18 +130,18 @@ func (s *SqlChannelTabStore) Save(bookmark *model.ChannelTab, increaseSortOrder 
 	query := s.getQueryBuilder().
 		Select("COUNT(*) as count").
 		From("ChannelBookmarks").
-		Where(sq.Eq{"ChannelId": bookmark.ChannelId, "DeleteAt": 0})
+		Where(sq.Eq{"ChannelId": tab.ChannelId, "DeleteAt": 0})
 	err = transaction.GetBuilder(&currentTabsCount, query)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed while getting the count of ChannelTabs")
 	}
 
 	if currentTabsCount >= model.MaxTabsPerChannel {
-		return nil, store.NewErrLimitExceeded("bookmarks_per_channel", int(currentTabsCount), "channelId="+bookmark.ChannelId)
+		return nil, store.NewErrLimitExceeded("tabs_per_channel", int(currentTabsCount), "channelId="+tab.ChannelId)
 	}
 
-	if bookmark.FileId != "" {
-		err = s.ErrorIfTabFileInfoAlreadyAttached(bookmark.FileId, bookmark.ChannelId)
+	if tab.FileId != "" {
+		err = s.ErrorIfTabFileInfoAlreadyAttached(tab.FileId, tab.ChannelId)
 		if err != nil {
 			return nil, errors.Wrap(err, "unable_to_save_channel_bookmark")
 		}
@@ -152,19 +152,19 @@ func (s *SqlChannelTabStore) Save(bookmark *model.ChannelTab, increaseSortOrder 
 		query := s.getQueryBuilder().
 			Select("COALESCE(MAX(SortOrder), -1) as SortOrder").
 			From("ChannelBookmarks").
-			Where(sq.Eq{"ChannelId": bookmark.ChannelId, "DeleteAt": 0})
+			Where(sq.Eq{"ChannelId": tab.ChannelId, "DeleteAt": 0})
 
 		err = transaction.GetBuilder(&sortOrder, query)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed while getting the sortOrder from ChannelTabs")
 		}
-		bookmark.SortOrder = sortOrder + 1
+		tab.SortOrder = sortOrder + 1
 	}
 
 	sql, args, sqlErr := s.getQueryBuilder().
 		Insert("ChannelBookmarks").
 		Columns("Id", "CreateAt", "UpdateAt", "DeleteAt", "ChannelId", "OwnerId", "FileInfoId", "DisplayName", "SortOrder", "LinkUrl", "ImageUrl", "Emoji", "Type").
-		Values(bookmark.Id, bookmark.CreateAt, bookmark.UpdateAt, bookmark.DeleteAt, bookmark.ChannelId, bookmark.OwnerId, bookmark.FileId, bookmark.DisplayName, bookmark.SortOrder, bookmark.LinkUrl, bookmark.ImageUrl, bookmark.Emoji, bookmark.Type).
+		Values(tab.Id, tab.CreateAt, tab.UpdateAt, tab.DeleteAt, tab.ChannelId, tab.OwnerId, tab.FileId, tab.DisplayName, tab.SortOrder, tab.LinkUrl, tab.ImageUrl, tab.Emoji, tab.Type).
 		ToSql()
 
 	if sqlErr != nil {
@@ -176,11 +176,11 @@ func (s *SqlChannelTabStore) Save(bookmark *model.ChannelTab, increaseSortOrder 
 	}
 
 	var fileInfo model.FileInfo
-	if bookmark.FileId != "" {
+	if tab.FileId != "" {
 		query, args, queryErr := s.getQueryBuilder().
 			Select("Id, Name, Extension, Size, MimeType, Width, Height, HasPreviewImage, MiniPreview").
 			From("FileInfo").
-			Where(sq.Eq{"Id": bookmark.FileId}).
+			Where(sq.Eq{"Id": tab.FileId}).
 			ToSql()
 		if queryErr != nil {
 			return nil, errors.Wrap(queryErr, "channel_bookmark_get_file_info_to_sql")
@@ -191,26 +191,26 @@ func (s *SqlChannelTabStore) Save(bookmark *model.ChannelTab, increaseSortOrder 
 	}
 
 	err = transaction.Commit()
-	return bookmark.ToTabWithFileInfo(&fileInfo), err
+	return tab.ToTabWithFileInfo(&fileInfo), err
 }
 
-func (s *SqlChannelTabStore) Update(bookmark *model.ChannelTab) error {
-	bookmark.PreUpdate()
-	if err := bookmark.IsValid(); err != nil {
+func (s *SqlChannelTabStore) Update(tab *model.ChannelTab) error {
+	tab.PreUpdate()
+	if err := tab.IsValid(); err != nil {
 		return err
 	}
 
 	query, args, err := s.getQueryBuilder().
 		Update("ChannelBookmarks").
-		Set("DisplayName", bookmark.DisplayName).
-		Set("SortOrder", bookmark.SortOrder).
-		Set("LinkUrl", bookmark.LinkUrl).
-		Set("ImageUrl", bookmark.ImageUrl).
-		Set("Emoji", bookmark.Emoji).
-		Set("FileInfoId", bookmark.FileId).
-		Set("UpdateAt", bookmark.UpdateAt).
+		Set("DisplayName", tab.DisplayName).
+		Set("SortOrder", tab.SortOrder).
+		Set("LinkUrl", tab.LinkUrl).
+		Set("ImageUrl", tab.ImageUrl).
+		Set("Emoji", tab.Emoji).
+		Set("FileInfoId", tab.FileId).
+		Set("UpdateAt", tab.UpdateAt).
 		Where(sq.Eq{
-			"Id":       bookmark.Id,
+			"Id":       tab.Id,
 			"DeleteAt": 0,
 		}).
 		ToSql()
@@ -220,14 +220,14 @@ func (s *SqlChannelTabStore) Update(bookmark *model.ChannelTab) error {
 
 	res, err := s.GetMaster().Exec(query, args...)
 	if err != nil {
-		return errors.Wrapf(err, "failed to update channel bookmark with id=%s", bookmark.Id)
+		return errors.Wrapf(err, "failed to update channel tab with id=%s", tab.Id)
 	}
 	rowsAffected, err := res.RowsAffected()
 	if err != nil {
-		return errors.Wrapf(err, "failed to get affected rows after updating bookmark with id=%s", bookmark.Id)
+		return errors.Wrapf(err, "failed to get affected rows after updating tab with id=%s", tab.Id)
 	}
 	if rowsAffected == 0 {
-		return store.NewErrNotFound("ChannelBookmark", bookmark.Id)
+		return store.NewErrNotFound("ChannelBookmark", tab.Id)
 	}
 	return nil
 }
@@ -240,18 +240,18 @@ func (s *SqlChannelTabStore) UpdateSortOrder(tabId, channelId string, newIndex i
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	bookmarks, err := s.GetTabsForChannelSince(channelId, 0)
+	tabs, err := s.GetTabsForChannelSince(channelId, 0)
 	if err != nil {
 		return nil, err
 	}
 
-	if (int(newIndex) > len(bookmarks)-1) || newIndex < 0 {
+	if (int(newIndex) > len(tabs)-1) || newIndex < 0 {
 		return nil, store.NewErrInvalidInput("ChannelTab", "SortOrder", newIndex)
 	}
 
 	currentIndex := -1
 	var current *model.ChannelTabWithFileInfo
-	for index, b := range bookmarks {
+	for index, b := range tabs {
 		if b.Id == tabId {
 			currentIndex = index
 			current = b
@@ -263,14 +263,14 @@ func (s *SqlChannelTabStore) UpdateSortOrder(tabId, channelId string, newIndex i
 		return nil, store.NewErrNotFound("ChannelBookmark", tabId)
 	}
 
-	bookmarks = utils.RemoveElementFromSliceAtIndex(bookmarks, currentIndex)
-	bookmarks = slices.Insert(bookmarks, int(newIndex), current)
+	tabs = utils.RemoveElementFromSliceAtIndex(tabs, currentIndex)
+	tabs = slices.Insert(tabs, int(newIndex), current)
 	caseStmt := sq.Case()
 	query := s.getQueryBuilder().
 		Update("ChannelBookmarks")
 
 	ids := []string{}
-	for index, b := range bookmarks {
+	for index, b := range tabs {
 		b.SortOrder = int64(index)
 		b.UpdateAt = now
 		caseStmt = caseStmt.When(sq.Eq{"Id": b.Id}, strconv.FormatInt(int64(index), 10))
@@ -289,7 +289,7 @@ func (s *SqlChannelTabStore) UpdateSortOrder(tabId, channelId string, newIndex i
 	}
 
 	err = transaction.Commit()
-	return bookmarks, err
+	return tabs, err
 }
 
 func (s *SqlChannelTabStore) Delete(tabId string, deleteFile bool) error {
@@ -311,7 +311,7 @@ func (s *SqlChannelTabStore) Delete(tabId string, deleteFile bool) error {
 
 	_, err = transaction.Exec(query, args...)
 	if err != nil {
-		return errors.Wrapf(err, "failed to delete channel bookmark with id=%s", tabId)
+		return errors.Wrapf(err, "failed to delete channel tab with id=%s", tabId)
 	}
 
 	if deleteFile {
@@ -335,7 +335,7 @@ func (s *SqlChannelTabStore) Delete(tabId string, deleteFile bool) error {
 
 		_, err = transaction.Exec(fileQuery, fileArgs...)
 		if err != nil {
-			return errors.Wrapf(err, "failed to delete channel bookmark with id=%s", tabId)
+			return errors.Wrapf(err, "failed to delete channel tab with id=%s", tabId)
 		}
 	}
 
@@ -344,7 +344,7 @@ func (s *SqlChannelTabStore) Delete(tabId string, deleteFile bool) error {
 
 func (s *SqlChannelTabStore) GetTabsForChannelSince(channelId string, since int64) ([]*model.ChannelTabWithFileInfo, error) {
 	query := s.getQueryBuilder().
-		Select(bookmarkWithFileInfoSliceColumns()...).
+		Select(tabWithFileInfoSliceColumns()...).
 		From("ChannelBookmarks cb").
 		LeftJoin("FileInfo fi ON cb.FileInfoId = fi.Id").
 		Where(sq.Eq{"cb.ChannelId": channelId})
@@ -367,16 +367,16 @@ func (s *SqlChannelTabStore) GetTabsForChannelSince(channelId string, since int6
 		return nil, errors.Wrap(err, "channel_bookmark_getforchanneltsince_tosql")
 	}
 
-	bookmarkRows := []model.ChannelTabAndFileInfo{}
-	bookmarks := []*model.ChannelTabWithFileInfo{}
+	tabRows := []model.ChannelTabAndFileInfo{}
+	tabs := []*model.ChannelTabWithFileInfo{}
 
-	if err := s.GetReplica().Select(&bookmarkRows, queryString, args...); err != nil {
-		return nil, errors.Wrapf(err, "failed to find bookmarks")
+	if err := s.GetReplica().Select(&tabRows, queryString, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to find tabs")
 	}
 
-	for _, bookmark := range bookmarkRows {
-		bookmarks = append(bookmarks, bookmark.ToChannelTabWithFileInfo())
+	for _, tab := range tabRows {
+		tabs = append(tabs, tab.ToChannelTabWithFileInfo())
 	}
 
-	return bookmarks, nil
+	return tabs, nil
 }

@@ -194,7 +194,7 @@ var searchFileInfoStoreTests = []searchTest{
 		Tags: []string{EnginePostgres},
 	},
 	{
-		Name: "Should search files part of channel bookmarks",
+		Name: "Should search files in channel tab",
 		Fn:   testFileInfoSearchShowChannelTabFiles,
 		Tags: []string{EnginePostgres, EngineElasticSearch},
 	},
@@ -1718,10 +1718,10 @@ func testFileInfoSearchNoResultForPostlessFileInfos(t *testing.T, th *SearchTest
 }
 
 func testFileInfoSearchShowChannelTabFiles(t *testing.T, th *SearchTestHelper) {
-	file, err := th.createFileInfo("bookmark", "", th.ChannelBasic.Id, "message test@test.com", "message test@test.com", "jpg", "image/jpeg", 0, 0)
+	file, err := th.createFileInfo(model.TabFileOwner, "", th.ChannelBasic.Id, "message test@test.com", "message test@test.com", "jpg", "image/jpeg", 0, 0)
 	require.NoError(t, err)
 
-	defer th.deleteUserFileInfos("bookmark")
+	defer th.deleteUserFileInfos(model.TabFileOwner)
 
 	params := &model.SearchParams{
 		InChannels: []string{th.ChannelBasic.Id},

@@ -124,7 +124,7 @@ export const useTabAddActions = (channelId: string) => {
             dialogType: ChannelTabCreateModal,
             dialogProps: {
                 channelId,
-                bookmarkType: file ? 'file' : 'link',
+                tabType: file ? 'file' : 'link',
                 file,
                 onConfirm: async (data: ChannelTabCreate) => dispatch(createTab(channelId, data)),
             },

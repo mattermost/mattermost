@@ -37,27 +37,27 @@ import ChannelTabsCreateModal from './channel_tabs_create_modal';
 import TabDeleteModal from './tab_delete_modal';
 import {useCanGetPublicLink, useChannelTabPermission} from './utils';
 
-type Props = {bookmark: ChannelTab; open: () => void};
+type Props = {tab: ChannelTab; open: () => void};
 const TabItemDotMenu = ({
-    bookmark,
+    tab,
     open,
 }: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
-    const fileInfo = useSelector((state: GlobalState) => (bookmark?.file_id && getFile(state, bookmark.file_id)) || undefined);
+    const fileInfo = useSelector((state: GlobalState) => (tab?.file_id && getFile(state, tab.file_id)) || undefined);
 
     const siteURL = getSiteURL();
-    const openInNewTab = bookmark.type === 'link' && bookmark.link_url && shouldOpenInNewTab(bookmark.link_url, siteURL);
+    const openInNewTab = tab.type === 'link' && tab.link_url && shouldOpenInNewTab(tab.link_url, siteURL);
 
     let openIcon;
-    if (bookmark.type === 'file') {
+    if (tab.type === 'file') {
         openIcon = <ArrowExpandIcon size={18}/>;
-    } else if (bookmark.link_url) {
+    } else if (tab.link_url) {
         openIcon = openInNewTab ? <OpenInNewIcon size={18}/> : <BookOutlineIcon size={18}/>;
     }
 
-    const canEdit = useChannelTabPermission(bookmark.channel_id, 'edit');
-    const canDelete = useChannelTabPermission(bookmark.channel_id, 'delete');
+    const canEdit = useChannelTabPermission(tab.channel_id, 'edit');
+    const canDelete = useChannelTabPermission(tab.channel_id, 'delete');
     const canGetPublicLink = useCanGetPublicLink();
 
     const editLabel = formatMessage({id: 'channel_bookmarks.edit', defaultMessage: 'Edit'});
@@ -72,34 +72,34 @@ const TabItemDotMenu = ({
             modalId: ModalIdentifiers.CHANNEL_TAB_CREATE,
             dialogType: ChannelTabsCreateModal,
             dialogProps: {
-                bookmark,
-                channelId: bookmark.channel_id,
-                onConfirm: async (data: ChannelTabPatch) => dispatch(editTab(bookmark.channel_id, bookmark.id, data)) as ActionResult<boolean>,
+                tab,
+                channelId: tab.channel_id,
+                onConfirm: async (data: ChannelTabPatch) => dispatch(editTab(tab.channel_id, tab.id, data)) as ActionResult<boolean>,
             },
         }));
-    }, [editTab, dispatch, bookmark]);
+    }, [editTab, dispatch, tab]);
 
     const copyLink = useCallback(() => {
-        if (bookmark.type === 'link' && bookmark.link_url) {
-            copyToClipboard(bookmark.link_url);
-        } else if (bookmark.type === 'file' && bookmark.file_id) {
-            copyToClipboard(getFileDownloadUrl(bookmark.file_id));
+        if (tab.type === 'link' && tab.link_url) {
+            copyToClipboard(tab.link_url);
+        } else if (tab.type === 'file' && tab.file_id) {
+            copyToClipboard(getFileDownloadUrl(tab.file_id));
         }
-    }, [bookmark.type, bookmark.link_url, bookmark.file_id]);
+    }, [tab.type, tab.link_url, tab.file_id]);
 
     const handleDelete = useCallback(() => {
         dispatch(openModal({
             modalId: ModalIdentifiers.CHANNEL_TAB_DELETE,
             dialogType: TabDeleteModal,
             dialogProps: {
-                displayName: bookmark.display_name,
-                onConfirm: () => dispatch(deleteTab(bookmark.channel_id, bookmark.id)),
+                displayName: tab.display_name,
+                onConfirm: () => dispatch(deleteTab(tab.channel_id, tab.id)),
             },
         }));
-    }, [deleteTab, dispatch, bookmark]);
+    }, [deleteTab, dispatch, tab]);
 
     const handleGetPublicLink = useCallback(() => {
-        if (!bookmark.file_id) {
+        if (!tab.file_id) {
             return;
         }
 
@@ -107,10 +107,10 @@ const TabItemDotMenu = ({
             modalId: ModalIdentifiers.GET_PUBLIC_LINK_MODAL,
             dialogType: GetPublicModal,
             dialogProps: {
-                fileId: bookmark.file_id,
+                fileId: tab.file_id,
             },
         }));
-    }, [bookmark.file_id, dispatch]);
+    }, [tab.file_id, dispatch]);
 
     const handleDownload = useCallback(() => {
         if (fileInfo) {
@@ -123,7 +123,7 @@ const TabItemDotMenu = ({
             anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
             transformOrigin={{vertical: 'top', horizontal: 'right'}}
             menuButton={{
-                id: `channelTabsDotMenuButton-${bookmark.id}`,
+                id: `channelTabsDotMenuButton-${tab.id}`,
                 class: 'channelTabsDotMenuButton',
                 children: <DotsHorizontalIcon size={18}/>,
                 'aria-label': formatMessage({id: 'channel_bookmarks.editBookmarkLabel', defaultMessage: 'Tab menu'}),
@@ -150,7 +150,7 @@ const TabItemDotMenu = ({
                     aria-label={editLabel}
                 />
             )}
-            {bookmark.type === 'link' && (
+            {tab.type === 'link' && (
                 <Menu.Item
                     key='channelTabsLinkCopy'
                     id='channelTabsLinkCopy'
@@ -160,7 +160,7 @@ const TabItemDotMenu = ({
                     aria-label={copyLinkLabel}
                 />
             )}
-            {bookmark.type === 'file' && canGetPublicLink && (
+            {tab.type === 'file' && canGetPublicLink && (
                 <Menu.Item
                     key='channelTabsFileCopy'
                     id='channelTabsFileCopy'
@@ -170,7 +170,7 @@ const TabItemDotMenu = ({
                     aria-label={copyFileLabel}
                 />
             )}
-            {bookmark.type === 'file' && fileInfo && (
+            {tab.type === 'file' && fileInfo && (
                 <Menu.Item
                     key='channelTabsDownload'
                     id='channelTabsDownload'

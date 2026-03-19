@@ -15,7 +15,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func find_bookmark(slice []*model.ChannelTabWithFileInfo, id string) *model.ChannelTabWithFileInfo {
+func find_tab(slice []*model.ChannelTabWithFileInfo, id string) *model.ChannelTabWithFileInfo {
 	for _, element := range slice {
 		if element.Id == id {
 			return element
@@ -40,10 +40,10 @@ func testSaveChannelTab(t *testing.T, rctx request.CTX, ss store.Store) {
 	createAt := time.Now().Add(-1 * time.Minute)
 	deleteAt := createAt.Add(1 * time.Second)
 
-	bookmark1 := &model.ChannelTab{
+	tab1 := &model.ChannelTab{
 		ChannelId:   channelID,
 		OwnerId:     userID,
-		DisplayName: "Link bookmark test",
+		DisplayName: "Link tab test",
 		LinkUrl:     "https://mattermost.com",
 		Type:        model.ChannelTabLink,
 		Emoji:       ":smile:",
@@ -65,16 +65,16 @@ func testSaveChannelTab(t *testing.T, rctx request.CTX, ss store.Store) {
 		HasPreviewImage: true,
 	}
 
-	bookmark2 := &model.ChannelTab{
+	tab2 := &model.ChannelTab{
 		ChannelId:   channelID,
 		OwnerId:     userID,
-		DisplayName: "file bookmark test",
+		DisplayName: "file tab test",
 		FileId:      file.Id,
 		Type:        model.ChannelTabFile,
 		Emoji:       ":smile:",
 	}
 
-	bookmark3 := &model.ChannelTab{
+	tab3 := &model.ChannelTab{
 		ChannelId:   channelID,
 		OwnerId:     userID,
 		DisplayName: "file already attached",
@@ -99,7 +99,7 @@ func testSaveChannelTab(t *testing.T, rctx request.CTX, ss store.Store) {
 		HasPreviewImage: true,
 	}
 
-	bookmark4 := &model.ChannelTab{
+	tab4 := &model.ChannelTab{
 		ChannelId:   channelID,
 		OwnerId:     userID,
 		DisplayName: "file already attached to a post",
@@ -127,7 +127,7 @@ func testSaveChannelTab(t *testing.T, rctx request.CTX, ss store.Store) {
 		DeleteAt:        deleteAt.UnixMilli(),
 	}
 
-	bookmarkFileDeleted := &model.ChannelTab{
+	tabFileDeleted := &model.ChannelTab{
 		ChannelId:   channelID,
 		OwnerId:     userID,
 		DisplayName: "file deleted",
@@ -153,7 +153,7 @@ func testSaveChannelTab(t *testing.T, rctx request.CTX, ss store.Store) {
 		HasPreviewImage: true,
 	}
 
-	bookmarkFileAnotherChannel := &model.ChannelTab{
+	tabFileAnotherChannel := &model.ChannelTab{
 		ChannelId:   channelID,
 		OwnerId:     userID,
 		DisplayName: "file another channel",
@@ -181,35 +181,35 @@ func testSaveChannelTab(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 	defer func() { _ = ss.FileInfo().PermanentDelete(rctx, anotherChannelFile.Id) }()
 
-	t.Run("save bookmarks", func(t *testing.T) {
-		bookmarkResp, err := ss.ChannelTab().Save(bookmark1.Clone(), true)
+	t.Run("save tabs", func(t *testing.T) {
+		tabResp, err := ss.ChannelTab().Save(tab1.Clone(), true)
 		assert.NoError(t, err)
 
-		assert.NotEmpty(t, bookmarkResp.Id)
-		assert.Equal(t, bookmark1.ChannelId, bookmarkResp.ChannelId)
-		assert.Nil(t, bookmarkResp.FileInfo)
+		assert.NotEmpty(t, tabResp.Id)
+		assert.Equal(t, tab1.ChannelId, tabResp.ChannelId)
+		assert.Nil(t, tabResp.FileInfo)
 
-		bookmarkResp, err = ss.ChannelTab().Save(bookmark2.Clone(), true)
+		tabResp, err = ss.ChannelTab().Save(tab2.Clone(), true)
 		assert.NoError(t, err)
 
-		assert.NotEmpty(t, bookmarkResp.Id)
-		assert.Equal(t, bookmark2.ChannelId, bookmarkResp.ChannelId)
-		assert.NotNil(t, bookmarkResp.FileInfo)
+		assert.NotEmpty(t, tabResp.Id)
+		assert.Equal(t, tab2.ChannelId, tabResp.ChannelId)
+		assert.NotNil(t, tabResp.FileInfo)
 
-		bookmarks, err := ss.ChannelTab().GetTabsForChannelSince(channelID, 0)
+		tabs, err := ss.ChannelTab().GetTabsForChannelSince(channelID, 0)
 		assert.NoError(t, err)
-		assert.Len(t, bookmarks, 2)
+		assert.Len(t, tabs, 2)
 
-		_, err = ss.ChannelTab().Save(bookmark3.Clone(), true)
-		assert.Error(t, err) // Error as the file is attached to a bookmark
+		_, err = ss.ChannelTab().Save(tab3.Clone(), true)
+		assert.Error(t, err) // Error as the file is attached to a tab
 
-		_, err = ss.ChannelTab().Save(bookmark4.Clone(), true)
+		_, err = ss.ChannelTab().Save(tab4.Clone(), true)
 		assert.Error(t, err) // Error as the file is attached to a post
 
-		_, err = ss.ChannelTab().Save(bookmarkFileDeleted.Clone(), true)
+		_, err = ss.ChannelTab().Save(tabFileDeleted.Clone(), true)
 		assert.Error(t, err) // Error as the file is deleted
 
-		_, err = ss.ChannelTab().Save(bookmarkFileAnotherChannel.Clone(), true)
+		_, err = ss.ChannelTab().Save(tabFileAnotherChannel.Clone(), true)
 		assert.Error(t, err) // Error as the file is from another channel
 	})
 }
@@ -218,47 +218,47 @@ func testUpdateChannelTab(t *testing.T, rctx request.CTX, ss store.Store) {
 	channelID := model.NewId()
 	userID := model.NewId()
 
-	bookmark1 := &model.ChannelTab{
+	tab1 := &model.ChannelTab{
 		ChannelId:   channelID,
 		OwnerId:     userID,
-		DisplayName: "Link bookmark test",
+		DisplayName: "Link tab test",
 		LinkUrl:     "https://mattermost.com",
 		Type:        model.ChannelTabLink,
 	}
 
-	t.Run("update bookmark", func(t *testing.T) {
-		bookmarkResp, err := ss.ChannelTab().Save(bookmark1.Clone(), true)
+	t.Run("update tab", func(t *testing.T) {
+		tabResp, err := ss.ChannelTab().Save(tab1.Clone(), true)
 		assert.NoError(t, err)
 
 		now := model.GetMillis()
-		bookmark2 := bookmarkResp.ChannelTab.Clone()
-		bookmark2.DisplayName = "Updated display name"
-		bookmark2.Emoji = ":smile:"
-		bookmark2.LinkUrl = "https://mattermost.com/about"
+		tab2 := tabResp.ChannelTab.Clone()
+		tab2.DisplayName = "Updated display name"
+		tab2.Emoji = ":smile:"
+		tab2.LinkUrl = "https://mattermost.com/about"
 
 		time.Sleep(time.Millisecond * 250)
 
-		err = ss.ChannelTab().Update(bookmark2.Clone())
+		err = ss.ChannelTab().Update(tab2.Clone())
 		assert.NoError(t, err)
 
-		bookmarks, err := ss.ChannelTab().GetTabsForChannelSince(channelID, now)
+		tabs, err := ss.ChannelTab().GetTabsForChannelSince(channelID, now)
 		assert.NoError(t, err)
-		assert.Len(t, bookmarks, 1)
+		assert.Len(t, tabs, 1)
 
-		b := find_bookmark(bookmarks, bookmark2.Id)
+		b := find_tab(tabs, tab2.Id)
 		assert.NotNil(t, b)
-		assert.Equal(t, b.DisplayName, bookmark2.DisplayName)
+		assert.Equal(t, b.DisplayName, tab2.DisplayName)
 		assert.Equal(t, b.Type, model.ChannelTabLink)
 		assert.NotEmpty(t, b.Emoji)
-		assert.Equal(t, b.CreateAt, bookmark2.CreateAt)
-		assert.Greater(t, b.UpdateAt, bookmark2.UpdateAt)
+		assert.Equal(t, b.CreateAt, tab2.CreateAt)
+		assert.Greater(t, b.UpdateAt, tab2.UpdateAt)
 
-		err = ss.ChannelTab().Update(bookmark1.Clone())
+		err = ss.ChannelTab().Update(tab1.Clone())
 		assert.Error(t, err)
 
-		bookmark3 := bookmark2.Clone()
-		bookmark3.Type = model.ChannelTabFile
-		err = ss.ChannelTab().Update(bookmark3)
+		tab3 := tab2.Clone()
+		tab3.Type = model.ChannelTabFile
+		err = ss.ChannelTab().Update(tab3)
 		assert.Error(t, err)
 	})
 }
@@ -267,7 +267,7 @@ func testUpdateSortOrderChannelTab(t *testing.T, rctx request.CTX, ss store.Stor
 	channelID := model.NewId()
 	userID := model.NewId()
 
-	bookmark0 := &model.ChannelTab{
+	tab0 := &model.ChannelTab{
 		ChannelId:   channelID,
 		OwnerId:     userID,
 		DisplayName: "Tab 0",
@@ -292,7 +292,7 @@ func testUpdateSortOrderChannelTab(t *testing.T, rctx request.CTX, ss store.Stor
 		HasPreviewImage: true,
 	}
 
-	bookmark1 := &model.ChannelTab{
+	tab1 := &model.ChannelTab{
 		ChannelId:   channelID,
 		OwnerId:     userID,
 		DisplayName: "Tab 1",
@@ -305,7 +305,7 @@ func testUpdateSortOrderChannelTab(t *testing.T, rctx request.CTX, ss store.Stor
 	require.NoError(t, err)
 	defer func() { _ = ss.FileInfo().PermanentDelete(rctx, file.Id) }()
 
-	bookmark2 := &model.ChannelTab{
+	tab2 := &model.ChannelTab{
 		ChannelId:   channelID,
 		OwnerId:     userID,
 		DisplayName: "Tab 2",
@@ -313,7 +313,7 @@ func testUpdateSortOrderChannelTab(t *testing.T, rctx request.CTX, ss store.Stor
 		Type:        model.ChannelTabLink,
 	}
 
-	bookmark3 := &model.ChannelTab{
+	tab3 := &model.ChannelTab{
 		ChannelId:   channelID,
 		OwnerId:     userID,
 		DisplayName: "Tab 3",
@@ -321,7 +321,7 @@ func testUpdateSortOrderChannelTab(t *testing.T, rctx request.CTX, ss store.Stor
 		Type:        model.ChannelTabLink,
 	}
 
-	bookmark4 := &model.ChannelTab{
+	tab4 := &model.ChannelTab{
 		ChannelId:   channelID,
 		OwnerId:     userID,
 		DisplayName: "Tab 4",
@@ -329,121 +329,121 @@ func testUpdateSortOrderChannelTab(t *testing.T, rctx request.CTX, ss store.Stor
 		Type:        model.ChannelTabLink,
 	}
 
-	bookmarkResp, err := ss.ChannelTab().Save(bookmark0.Clone(), true)
+	tabResp, err := ss.ChannelTab().Save(tab0.Clone(), true)
 	assert.NoError(t, err)
-	bookmark0 = bookmarkResp.ChannelTab.Clone()
+	tab0 = tabResp.ChannelTab.Clone()
 
-	assert.NotEmpty(t, bookmarkResp.Id)
-	assert.Equal(t, bookmark0.ChannelId, bookmarkResp.ChannelId)
-	assert.Nil(t, bookmarkResp.FileInfo)
+	assert.NotEmpty(t, tabResp.Id)
+	assert.Equal(t, tab0.ChannelId, tabResp.ChannelId)
+	assert.Nil(t, tabResp.FileInfo)
 
-	bookmarkResp, err = ss.ChannelTab().Save(bookmark1.Clone(), true)
+	tabResp, err = ss.ChannelTab().Save(tab1.Clone(), true)
 	assert.NoError(t, err)
-	bookmark1 = bookmarkResp.ChannelTab.Clone()
+	tab1 = tabResp.ChannelTab.Clone()
 
-	bookmarkResp, err = ss.ChannelTab().Save(bookmark2.Clone(), true)
+	tabResp, err = ss.ChannelTab().Save(tab2.Clone(), true)
 	assert.NoError(t, err)
-	bookmark2 = bookmarkResp.ChannelTab.Clone()
+	tab2 = tabResp.ChannelTab.Clone()
 
-	bookmarkResp, err = ss.ChannelTab().Save(bookmark3.Clone(), true)
+	tabResp, err = ss.ChannelTab().Save(tab3.Clone(), true)
 	assert.NoError(t, err)
-	bookmark3 = bookmarkResp.ChannelTab.Clone()
+	tab3 = tabResp.ChannelTab.Clone()
 
-	bookmarkResp, err = ss.ChannelTab().Save(bookmark4.Clone(), true)
+	tabResp, err = ss.ChannelTab().Save(tab4.Clone(), true)
 	assert.NoError(t, err)
-	bookmark4 = bookmarkResp.ChannelTab.Clone()
+	tab4 = tabResp.ChannelTab.Clone()
 
-	t.Run("change order of bookmarks first to last", func(t *testing.T) {
-		bookmarks, sortError := ss.ChannelTab().UpdateSortOrder(bookmark0.Id, channelID, 4)
+	t.Run("change order of tabs first to last", func(t *testing.T) {
+		tabs, sortError := ss.ChannelTab().UpdateSortOrder(tab0.Id, channelID, 4)
 		assert.NoError(t, sortError)
 
-		assert.Equal(t, find_bookmark(bookmarks, bookmark1.Id).SortOrder, int64(0))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark2.Id).SortOrder, int64(1))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark3.Id).SortOrder, int64(2))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark4.Id).SortOrder, int64(3))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark0.Id).SortOrder, int64(4))
+		assert.Equal(t, find_tab(tabs, tab1.Id).SortOrder, int64(0))
+		assert.Equal(t, find_tab(tabs, tab2.Id).SortOrder, int64(1))
+		assert.Equal(t, find_tab(tabs, tab3.Id).SortOrder, int64(2))
+		assert.Equal(t, find_tab(tabs, tab4.Id).SortOrder, int64(3))
+		assert.Equal(t, find_tab(tabs, tab0.Id).SortOrder, int64(4))
 	})
 
-	t.Run("change order of bookmarks last to first", func(t *testing.T) {
-		bookmarks, sortError := ss.ChannelTab().UpdateSortOrder(bookmark0.Id, channelID, 0)
+	t.Run("change order of tabs last to first", func(t *testing.T) {
+		tabs, sortError := ss.ChannelTab().UpdateSortOrder(tab0.Id, channelID, 0)
 		assert.NoError(t, sortError)
 
-		assert.Equal(t, find_bookmark(bookmarks, bookmark0.Id).SortOrder, int64(0))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark1.Id).SortOrder, int64(1))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark2.Id).SortOrder, int64(2))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark3.Id).SortOrder, int64(3))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark4.Id).SortOrder, int64(4))
+		assert.Equal(t, find_tab(tabs, tab0.Id).SortOrder, int64(0))
+		assert.Equal(t, find_tab(tabs, tab1.Id).SortOrder, int64(1))
+		assert.Equal(t, find_tab(tabs, tab2.Id).SortOrder, int64(2))
+		assert.Equal(t, find_tab(tabs, tab3.Id).SortOrder, int64(3))
+		assert.Equal(t, find_tab(tabs, tab4.Id).SortOrder, int64(4))
 	})
 
-	t.Run("change order of bookmarks first to third", func(t *testing.T) {
-		bookmarks, sortError := ss.ChannelTab().UpdateSortOrder(bookmark0.Id, channelID, 2)
+	t.Run("change order of tabs first to third", func(t *testing.T) {
+		tabs, sortError := ss.ChannelTab().UpdateSortOrder(tab0.Id, channelID, 2)
 		assert.NoError(t, sortError)
 
-		assert.Equal(t, find_bookmark(bookmarks, bookmark1.Id).SortOrder, int64(0))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark2.Id).SortOrder, int64(1))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark0.Id).SortOrder, int64(2))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark3.Id).SortOrder, int64(3))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark4.Id).SortOrder, int64(4))
+		assert.Equal(t, find_tab(tabs, tab1.Id).SortOrder, int64(0))
+		assert.Equal(t, find_tab(tabs, tab2.Id).SortOrder, int64(1))
+		assert.Equal(t, find_tab(tabs, tab0.Id).SortOrder, int64(2))
+		assert.Equal(t, find_tab(tabs, tab3.Id).SortOrder, int64(3))
+		assert.Equal(t, find_tab(tabs, tab4.Id).SortOrder, int64(4))
 
 		// now reset order
-		_, _ = ss.ChannelTab().UpdateSortOrder(bookmark0.Id, channelID, 0)
+		_, _ = ss.ChannelTab().UpdateSortOrder(tab0.Id, channelID, 0)
 	})
 
-	t.Run("change order of bookmarks second to third", func(t *testing.T) {
-		bookmarks, sortError := ss.ChannelTab().UpdateSortOrder(bookmark1.Id, channelID, 2)
+	t.Run("change order of tabs second to third", func(t *testing.T) {
+		tabs, sortError := ss.ChannelTab().UpdateSortOrder(tab1.Id, channelID, 2)
 		assert.NoError(t, sortError)
 
-		assert.Equal(t, find_bookmark(bookmarks, bookmark0.Id).SortOrder, int64(0))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark2.Id).SortOrder, int64(1))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark1.Id).SortOrder, int64(2))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark3.Id).SortOrder, int64(3))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark4.Id).SortOrder, int64(4))
+		assert.Equal(t, find_tab(tabs, tab0.Id).SortOrder, int64(0))
+		assert.Equal(t, find_tab(tabs, tab2.Id).SortOrder, int64(1))
+		assert.Equal(t, find_tab(tabs, tab1.Id).SortOrder, int64(2))
+		assert.Equal(t, find_tab(tabs, tab3.Id).SortOrder, int64(3))
+		assert.Equal(t, find_tab(tabs, tab4.Id).SortOrder, int64(4))
 	})
 
-	t.Run("change order of bookmarks third to second", func(t *testing.T) {
-		bookmarks, sortError := ss.ChannelTab().UpdateSortOrder(bookmark1.Id, channelID, 1)
+	t.Run("change order of tabs third to second", func(t *testing.T) {
+		tabs, sortError := ss.ChannelTab().UpdateSortOrder(tab1.Id, channelID, 1)
 		assert.NoError(t, sortError)
 
-		assert.Equal(t, find_bookmark(bookmarks, bookmark0.Id).SortOrder, int64(0))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark1.Id).SortOrder, int64(1))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark2.Id).SortOrder, int64(2))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark3.Id).SortOrder, int64(3))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark4.Id).SortOrder, int64(4))
+		assert.Equal(t, find_tab(tabs, tab0.Id).SortOrder, int64(0))
+		assert.Equal(t, find_tab(tabs, tab1.Id).SortOrder, int64(1))
+		assert.Equal(t, find_tab(tabs, tab2.Id).SortOrder, int64(2))
+		assert.Equal(t, find_tab(tabs, tab3.Id).SortOrder, int64(3))
+		assert.Equal(t, find_tab(tabs, tab4.Id).SortOrder, int64(4))
 	})
 
-	t.Run("change order of bookmarks last to previous last", func(t *testing.T) {
-		bookmarks, sortError := ss.ChannelTab().UpdateSortOrder(bookmark4.Id, channelID, 3)
+	t.Run("change order of tabs last to previous last", func(t *testing.T) {
+		tabs, sortError := ss.ChannelTab().UpdateSortOrder(tab4.Id, channelID, 3)
 		assert.NoError(t, sortError)
 
-		assert.Equal(t, find_bookmark(bookmarks, bookmark0.Id).SortOrder, int64(0))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark1.Id).SortOrder, int64(1))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark2.Id).SortOrder, int64(2))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark4.Id).SortOrder, int64(3))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark3.Id).SortOrder, int64(4))
+		assert.Equal(t, find_tab(tabs, tab0.Id).SortOrder, int64(0))
+		assert.Equal(t, find_tab(tabs, tab1.Id).SortOrder, int64(1))
+		assert.Equal(t, find_tab(tabs, tab2.Id).SortOrder, int64(2))
+		assert.Equal(t, find_tab(tabs, tab4.Id).SortOrder, int64(3))
+		assert.Equal(t, find_tab(tabs, tab3.Id).SortOrder, int64(4))
 	})
 
-	t.Run("change order of bookmarks last to second", func(t *testing.T) {
-		bookmarks, sortError := ss.ChannelTab().UpdateSortOrder(bookmark3.Id, channelID, 1)
+	t.Run("change order of tabs last to second", func(t *testing.T) {
+		tabs, sortError := ss.ChannelTab().UpdateSortOrder(tab3.Id, channelID, 1)
 		assert.NoError(t, sortError)
 
-		assert.Equal(t, find_bookmark(bookmarks, bookmark0.Id).SortOrder, int64(0))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark3.Id).SortOrder, int64(1))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark1.Id).SortOrder, int64(2))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark2.Id).SortOrder, int64(3))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark4.Id).SortOrder, int64(4))
+		assert.Equal(t, find_tab(tabs, tab0.Id).SortOrder, int64(0))
+		assert.Equal(t, find_tab(tabs, tab3.Id).SortOrder, int64(1))
+		assert.Equal(t, find_tab(tabs, tab1.Id).SortOrder, int64(2))
+		assert.Equal(t, find_tab(tabs, tab2.Id).SortOrder, int64(3))
+		assert.Equal(t, find_tab(tabs, tab4.Id).SortOrder, int64(4))
 	})
 
-	t.Run("change order of bookmarks error when new index is out of bounds", func(t *testing.T) {
+	t.Run("change order of tabs error when new index is out of bounds", func(t *testing.T) {
 		var iiErr *store.ErrInvalidInput
-		_, err = ss.ChannelTab().UpdateSortOrder(bookmark3.Id, channelID, -1)
+		_, err = ss.ChannelTab().UpdateSortOrder(tab3.Id, channelID, -1)
 		assert.Error(t, err)
 		assert.ErrorAs(t, err, &iiErr)
-		_, err = ss.ChannelTab().UpdateSortOrder(bookmark3.Id, channelID, 5)
+		_, err = ss.ChannelTab().UpdateSortOrder(tab3.Id, channelID, 5)
 		assert.Error(t, err)
 		assert.ErrorAs(t, err, &iiErr)
 	})
 
-	t.Run("change order of bookmarks error when bookmark not found", func(t *testing.T) {
+	t.Run("change order of tabs error when tab not found", func(t *testing.T) {
 		_, err = ss.ChannelTab().UpdateSortOrder(model.NewId(), channelID, 0)
 		assert.Error(t, err)
 		var nfErr *store.ErrNotFound
@@ -455,10 +455,10 @@ func testDeleteChannelTab(t *testing.T, rctx request.CTX, ss store.Store) {
 	channelID := model.NewId()
 	userID := model.NewId()
 
-	bookmark1 := &model.ChannelTab{
+	tab1 := &model.ChannelTab{
 		ChannelId:   channelID,
 		OwnerId:     userID,
-		DisplayName: "Link bookmark test",
+		DisplayName: "Link tab test",
 		LinkUrl:     "https://mattermost.com",
 		Type:        model.ChannelTabLink,
 		Emoji:       ":smile:",
@@ -480,10 +480,10 @@ func testDeleteChannelTab(t *testing.T, rctx request.CTX, ss store.Store) {
 		HasPreviewImage: true,
 	}
 
-	bookmark2 := &model.ChannelTab{
+	tab2 := &model.ChannelTab{
 		ChannelId:   channelID,
 		OwnerId:     userID,
-		DisplayName: "file bookmark test",
+		DisplayName: "file tab test",
 		FileId:      file.Id,
 		Type:        model.ChannelTabFile,
 		Emoji:       ":smile:",
@@ -493,21 +493,21 @@ func testDeleteChannelTab(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 	defer func() { _ = ss.FileInfo().PermanentDelete(rctx, file.Id) }()
 
-	t.Run("delete bookmark", func(t *testing.T) {
+	t.Run("delete tab", func(t *testing.T) {
 		now := model.GetMillis()
-		bookmarkResp, err := ss.ChannelTab().Save(bookmark1.Clone(), true)
+		tabResp, err := ss.ChannelTab().Save(tab1.Clone(), true)
 		assert.NoError(t, err)
-		bookmark1 = bookmarkResp.ChannelTab.Clone()
+		tab1 = tabResp.ChannelTab.Clone()
 
-		assert.NotEmpty(t, bookmarkResp.Id)
-		assert.Equal(t, bookmark1.ChannelId, bookmarkResp.ChannelId)
-		assert.Nil(t, bookmarkResp.FileInfo)
+		assert.NotEmpty(t, tabResp.Id)
+		assert.Equal(t, tab1.ChannelId, tabResp.ChannelId)
+		assert.Nil(t, tabResp.FileInfo)
 
-		bookmarkResp, err = ss.ChannelTab().Save(bookmark2.Clone(), true)
+		tabResp, err = ss.ChannelTab().Save(tab2.Clone(), true)
 		assert.NoError(t, err)
-		bookmark2 = bookmarkResp.ChannelTab.Clone()
+		tab2 = tabResp.ChannelTab.Clone()
 
-		err = ss.ChannelTab().Delete(bookmark2.Id, true)
+		err = ss.ChannelTab().Delete(tab2.Id, true)
 		assert.NoError(t, err)
 
 		_, err = ss.FileInfo().Get(file.Id)
@@ -515,13 +515,13 @@ func testDeleteChannelTab(t *testing.T, rctx request.CTX, ss store.Store) {
 		var nfErr *store.ErrNotFound
 		assert.ErrorAs(t, err, &nfErr)
 
-		bookmarks, err := ss.ChannelTab().GetTabsForChannelSince(channelID, now)
+		tabs, err := ss.ChannelTab().GetTabsForChannelSince(channelID, now)
 		assert.NoError(t, err)
-		assert.Len(t, bookmarks, 2) // we have two as the deleted record also gets returned for sync'ing purposes
+		assert.Len(t, tabs, 2) // we have two as the deleted record also gets returned for sync'ing purposes
 
-		b := find_bookmark(bookmarks, bookmark2.Id)
+		b := find_tab(tabs, tab2.Id)
 		assert.NotNil(t, b)
-		assert.Equal(t, bookmarks[0].Type, model.ChannelTabLink)
+		assert.Equal(t, tabs[0].Type, model.ChannelTabLink)
 	})
 }
 
@@ -529,36 +529,36 @@ func testGetChannelTab(t *testing.T, rctx request.CTX, ss store.Store) {
 	channelID := model.NewId()
 	userID := model.NewId()
 
-	bookmark1 := &model.ChannelTab{
+	tab1 := &model.ChannelTab{
 		ChannelId:   channelID,
 		OwnerId:     userID,
-		DisplayName: "Link bookmark test",
+		DisplayName: "Link tab test",
 		LinkUrl:     "https://mattermost.com",
 		Type:        model.ChannelTabLink,
 		Emoji:       ":smile:",
 	}
 
-	t.Run("get bookmark", func(t *testing.T) {
-		bookmarkResp, err := ss.ChannelTab().Save(bookmark1.Clone(), true)
+	t.Run("get tab", func(t *testing.T) {
+		tabResp, err := ss.ChannelTab().Save(tab1.Clone(), true)
 		assert.NoError(t, err)
-		bookmark1 = bookmarkResp.ChannelTab.Clone()
+		tab1 = tabResp.ChannelTab.Clone()
 
-		bookmarkResp, err = ss.ChannelTab().Get(bookmark1.Id, false)
-		assert.NoError(t, err)
-
-		assert.NotEmpty(t, bookmarkResp.Id)
-		assert.Equal(t, bookmark1.ChannelId, bookmarkResp.ChannelId)
-		assert.Nil(t, bookmarkResp.FileInfo)
-
-		err = ss.ChannelTab().Delete(bookmark1.Id, true)
+		tabResp, err = ss.ChannelTab().Get(tab1.Id, false)
 		assert.NoError(t, err)
 
-		bookmarkResp, err = ss.ChannelTab().Get(bookmark1.Id, false)
+		assert.NotEmpty(t, tabResp.Id)
+		assert.Equal(t, tab1.ChannelId, tabResp.ChannelId)
+		assert.Nil(t, tabResp.FileInfo)
+
+		err = ss.ChannelTab().Delete(tab1.Id, true)
+		assert.NoError(t, err)
+
+		tabResp, err = ss.ChannelTab().Get(tab1.Id, false)
 		assert.Error(t, err)
-		assert.Nil(t, bookmarkResp)
+		assert.Nil(t, tabResp)
 
-		bookmarkResp, err = ss.ChannelTab().Get(bookmark1.Id, true)
+		tabResp, err = ss.ChannelTab().Get(tab1.Id, true)
 		assert.NoError(t, err)
-		assert.NotNil(t, bookmarkResp)
+		assert.NotNil(t, tabResp)
 	})
 }

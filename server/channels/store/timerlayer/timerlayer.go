@@ -25,8 +25,8 @@ type TimerLayer struct {
 	AutoTranslationStore            store.AutoTranslationStore
 	BotStore                        store.BotStore
 	ChannelStore                    store.ChannelStore
-	ChannelTabStore            store.ChannelTabStore
 	ChannelMemberHistoryStore       store.ChannelMemberHistoryStore
+	ChannelTabStore                 store.ChannelTabStore
 	ClusterDiscoveryStore           store.ClusterDiscoveryStore
 	CommandStore                    store.CommandStore
 	CommandWebhookStore             store.CommandWebhookStore
@@ -101,12 +101,12 @@ func (s *TimerLayer) Channel() store.ChannelStore {
 	return s.ChannelStore
 }
 
-func (s *TimerLayer) ChannelTab() store.ChannelTabStore {
-	return s.ChannelTabStore
-}
-
 func (s *TimerLayer) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 	return s.ChannelMemberHistoryStore
+}
+
+func (s *TimerLayer) ChannelTab() store.ChannelTabStore {
+	return s.ChannelTabStore
 }
 
 func (s *TimerLayer) ClusterDiscovery() store.ClusterDiscoveryStore {
@@ -331,13 +331,13 @@ type TimerLayerChannelStore struct {
 	Root *TimerLayer
 }
 
-type TimerLayerChannelTabStore struct {
-	store.ChannelTabStore
+type TimerLayerChannelMemberHistoryStore struct {
+	store.ChannelMemberHistoryStore
 	Root *TimerLayer
 }
 
-type TimerLayerChannelMemberHistoryStore struct {
-	store.ChannelMemberHistoryStore
+type TimerLayerChannelTabStore struct {
+	store.ChannelTabStore
 	Root *TimerLayer
 }
 
@@ -3064,118 +3064,6 @@ func (s *TimerLayerChannelStore) UserBelongsToChannels(userID string, channelIds
 	return result, err
 }
 
-func (s *TimerLayerChannelTabStore) Delete(tabID string, deleteFile bool) error {
-	start := time.Now()
-
-	err := s.ChannelTabStore.Delete(tabID, deleteFile)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelTabStore.Delete", success, elapsed)
-	}
-	return err
-}
-
-func (s *TimerLayerChannelTabStore) ErrorIfTabFileInfoAlreadyAttached(fileID string, channelID string) error {
-	start := time.Now()
-
-	err := s.ChannelTabStore.ErrorIfTabFileInfoAlreadyAttached(fileID, channelID)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelTabStore.ErrorIfTabFileInfoAlreadyAttached", success, elapsed)
-	}
-	return err
-}
-
-func (s *TimerLayerChannelTabStore) Get(Id string, includeDeleted bool) (*model.ChannelTabWithFileInfo, error) {
-	start := time.Now()
-
-	result, err := s.ChannelTabStore.Get(Id, includeDeleted)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelTabStore.Get", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerChannelTabStore) GetTabsForChannelSince(channelID string, since int64) ([]*model.ChannelTabWithFileInfo, error) {
-	start := time.Now()
-
-	result, err := s.ChannelTabStore.GetTabsForChannelSince(channelID, since)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelTabStore.GetTabsForChannelSince", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerChannelTabStore) Save(bookmark *model.ChannelTab, increaseSortOrder bool) (*model.ChannelTabWithFileInfo, error) {
-	start := time.Now()
-
-	result, err := s.ChannelTabStore.Save(bookmark, increaseSortOrder)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelTabStore.Save", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerChannelTabStore) Update(bookmark *model.ChannelTab) error {
-	start := time.Now()
-
-	err := s.ChannelTabStore.Update(bookmark)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelTabStore.Update", success, elapsed)
-	}
-	return err
-}
-
-func (s *TimerLayerChannelTabStore) UpdateSortOrder(tabID string, channelID string, newIndex int64) ([]*model.ChannelTabWithFileInfo, error) {
-	start := time.Now()
-
-	result, err := s.ChannelTabStore.UpdateSortOrder(tabID, channelID, newIndex)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelTabStore.UpdateSortOrder", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerChannelMemberHistoryStore) DeleteOrphanedRows(limit int) (int64, error) {
 	start := time.Now()
 
@@ -3302,6 +3190,118 @@ func (s *TimerLayerChannelMemberHistoryStore) PermanentDeleteBatchForRetentionPo
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelMemberHistoryStore.PermanentDeleteBatchForRetentionPolicies", success, elapsed)
 	}
 	return result, resultVar1, err
+}
+
+func (s *TimerLayerChannelTabStore) Delete(tabID string, deleteFile bool) error {
+	start := time.Now()
+
+	err := s.ChannelTabStore.Delete(tabID, deleteFile)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelTabStore.Delete", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerChannelTabStore) ErrorIfTabFileInfoAlreadyAttached(fileID string, channelID string) error {
+	start := time.Now()
+
+	err := s.ChannelTabStore.ErrorIfTabFileInfoAlreadyAttached(fileID, channelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelTabStore.ErrorIfTabFileInfoAlreadyAttached", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerChannelTabStore) Get(Id string, includeDeleted bool) (*model.ChannelTabWithFileInfo, error) {
+	start := time.Now()
+
+	result, err := s.ChannelTabStore.Get(Id, includeDeleted)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelTabStore.Get", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelTabStore) GetTabsForChannelSince(channelID string, since int64) ([]*model.ChannelTabWithFileInfo, error) {
+	start := time.Now()
+
+	result, err := s.ChannelTabStore.GetTabsForChannelSince(channelID, since)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelTabStore.GetTabsForChannelSince", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelTabStore) Save(tab *model.ChannelTab, increaseSortOrder bool) (*model.ChannelTabWithFileInfo, error) {
+	start := time.Now()
+
+	result, err := s.ChannelTabStore.Save(tab, increaseSortOrder)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelTabStore.Save", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelTabStore) Update(tab *model.ChannelTab) error {
+	start := time.Now()
+
+	err := s.ChannelTabStore.Update(tab)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelTabStore.Update", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerChannelTabStore) UpdateSortOrder(tabID string, channelID string, newIndex int64) ([]*model.ChannelTabWithFileInfo, error) {
+	start := time.Now()
+
+	result, err := s.ChannelTabStore.UpdateSortOrder(tabID, channelID, newIndex)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelTabStore.UpdateSortOrder", success, elapsed)
+	}
+	return result, err
 }
 
 func (s *TimerLayerClusterDiscoveryStore) Cleanup() error {
@@ -14275,8 +14275,8 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.AutoTranslationStore = &TimerLayerAutoTranslationStore{AutoTranslationStore: childStore.AutoTranslation(), Root: &newStore}
 	newStore.BotStore = &TimerLayerBotStore{BotStore: childStore.Bot(), Root: &newStore}
 	newStore.ChannelStore = &TimerLayerChannelStore{ChannelStore: childStore.Channel(), Root: &newStore}
-	newStore.ChannelTabStore = &TimerLayerChannelTabStore{ChannelTabStore: childStore.ChannelTab(), Root: &newStore}
 	newStore.ChannelMemberHistoryStore = &TimerLayerChannelMemberHistoryStore{ChannelMemberHistoryStore: childStore.ChannelMemberHistory(), Root: &newStore}
+	newStore.ChannelTabStore = &TimerLayerChannelTabStore{ChannelTabStore: childStore.ChannelTab(), Root: &newStore}
 	newStore.ClusterDiscoveryStore = &TimerLayerClusterDiscoveryStore{ClusterDiscoveryStore: childStore.ClusterDiscovery(), Root: &newStore}
 	newStore.CommandStore = &TimerLayerCommandStore{CommandStore: childStore.Command(), Root: &newStore}
 	newStore.CommandWebhookStore = &TimerLayerCommandWebhookStore{CommandWebhookStore: childStore.CommandWebhook(), Root: &newStore}

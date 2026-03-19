@@ -239,22 +239,22 @@ export type MultipleChannelsViewed = BaseWebSocketMessage<WebSocketEvents.Multip
     channel_times: Record<string, number>;
 }>;
 
-// Channel bookmark messages
+// Channel tab messages
 
 export type ChannelTabCreated = BaseWebSocketMessage<WebSocketEvents.ChannelTabCreated, {
-    bookmark: JsonEncodedValue<ChannelTabWithFileInfo>;
+    tab: JsonEncodedValue<ChannelTabWithFileInfo>;
 }>;
 
 export type ChannelTabUpdated = BaseWebSocketMessage<WebSocketEvents.ChannelTabUpdated, {
-    bookmarks: JsonEncodedValue<UpdateChannelTabResponse>;
+    tabs: JsonEncodedValue<UpdateChannelTabResponse>;
 }>;
 
 export type ChannelTabDeleted = BaseWebSocketMessage<WebSocketEvents.ChannelTabDeleted, {
-    bookmark: JsonEncodedValue<ChannelTabWithFileInfo>;
+    tab: JsonEncodedValue<ChannelTabWithFileInfo>;
 }>;
 
 export type ChannelTabSorted = BaseWebSocketMessage<WebSocketEvents.ChannelTabSorted, {
-    bookmarks: JsonEncodedValue<ChannelTabWithFileInfo[]>;
+    tabs: JsonEncodedValue<ChannelTabWithFileInfo[]>;
 }>;
 
 // Team and team member messages

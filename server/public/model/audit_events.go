@@ -40,11 +40,11 @@ const (
 
 // Channel Tabs
 const (
-	AuditEventCreateChannelTab          = "createChannelTab"          // create bookmark in channels
-	AuditEventDeleteChannelTab          = "deleteChannelTab"          // delete bookmark
-	AuditEventUpdateChannelTab          = "updateChannelTab"          // update bookmark
-	AuditEventUpdateChannelTabSortOrder = "updateChannelTabSortOrder" // update display order of bookmarks
-	AuditEventListChannelTabsForChannel = "listChannelTabsForChannel" // list bookmarks for channel
+	AuditEventCreateChannelTab          = "createChannelTab"          // create tab in channel
+	AuditEventDeleteChannelTab          = "deleteChannelTab"          // delete tab
+	AuditEventUpdateChannelTab          = "updateChannelTab"          // update tab
+	AuditEventUpdateChannelTabSortOrder = "updateChannelTabSortOrder" // update display order of tabs
+	AuditEventListChannelTabsForChannel = "listChannelTabsForChannel" // list tabs for channel
 )
 
 // Channel Categories

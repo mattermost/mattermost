@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func find_bookmark(slice []*model.ChannelTabWithFileInfo, id string) *model.ChannelTabWithFileInfo {
+func find_tab(slice []*model.ChannelTabWithFileInfo, id string) *model.ChannelTabWithFileInfo {
 	for _, element := range slice {
 		if element.Id == id {
 			return element
@@ -22,42 +22,42 @@ func find_bookmark(slice []*model.ChannelTabWithFileInfo, id string) *model.Chan
 	return nil
 }
 
-func createTab(name string, bookmarkType model.ChannelTabType, channelId string, fileId string) *model.ChannelTab {
-	bookmark := &model.ChannelTab{
+func createTab(name string, tabType model.ChannelTabType, channelId string, fileId string) *model.ChannelTab {
+	tab := &model.ChannelTab{
 		ChannelId:   channelId,
 		DisplayName: name,
-		Type:        bookmarkType,
+		Type:        tabType,
 		Emoji:       ":smile:",
 	}
-	if bookmarkType == model.ChannelTabLink {
-		bookmark.LinkUrl = "https://mattermost.com"
+	if tabType == model.ChannelTabLink {
+		tab.LinkUrl = "https://mattermost.com"
 	}
-	if bookmarkType == model.ChannelTabFile {
-		bookmark.FileId = fileId
+	if tabType == model.ChannelTabFile {
+		tab.FileId = fileId
 	}
 
-	return bookmark
+	return tab
 }
 
 func TestCreateTab(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	t.Run("create a channel bookmark", func(t *testing.T) {
+	t.Run("create a channel tab", func(t *testing.T) {
 		th.Context.Session().UserId = th.BasicUser.Id // set the user for the session
 
-		bookmark1 := createTab("Link bookmark test", model.ChannelTabLink, th.BasicChannel.Id, "")
-		bookmarkResp, err := th.App.CreateChannelTab(th.Context, bookmark1, "")
+		tab1 := createTab("Link tab test", model.ChannelTabLink, th.BasicChannel.Id, "")
+		tabResp, err := th.App.CreateChannelTab(th.Context, tab1, "")
 		require.Nil(t, err)
-		require.NotNil(t, bookmarkResp)
+		require.NotNil(t, tabResp)
 
-		assert.Equal(t, bookmarkResp.ChannelId, th.BasicChannel.Id)
-		assert.NotEmpty(t, bookmarkResp.Id)
+		assert.Equal(t, tabResp.ChannelId, th.BasicChannel.Id)
+		assert.NotEmpty(t, tabResp.Id)
 
-		bookmark2 := createTab("File bookmark test", model.ChannelTabFile, th.BasicChannel.Id, "")
+		tab2 := createTab("File tab test", model.ChannelTabFile, th.BasicChannel.Id, "")
 
-		bookmarkResp, err = th.App.CreateChannelTab(th.Context, bookmark2, "")
-		assert.Nil(t, bookmarkResp)
+		tabResp, err = th.App.CreateChannelTab(th.Context, tab2, "")
+		assert.Nil(t, tabResp)
 		assert.NotNil(t, err)
 	})
 
@@ -65,17 +65,17 @@ func TestCreateTab(t *testing.T) {
 		th.Context.Session().UserId = th.BasicUser.Id // set the user for the session
 
 		for i := 1; i < model.MaxTabsPerChannel; i++ {
-			bookmark := createTab(fmt.Sprintf("Link bookmark test %d", i), model.ChannelTabLink, th.BasicChannel.Id, "")
-			bookmarkResp, err := th.App.CreateChannelTab(th.Context, bookmark, "")
+			tab := createTab(fmt.Sprintf("Link tab test %d", i), model.ChannelTabLink, th.BasicChannel.Id, "")
+			tabResp, err := th.App.CreateChannelTab(th.Context, tab, "")
 			require.Nil(t, err)
-			require.NotNil(t, bookmarkResp)
-			assert.Equal(t, bookmarkResp.ChannelId, th.BasicChannel.Id)
-			assert.NotEmpty(t, bookmarkResp.Id)
+			require.NotNil(t, tabResp)
+			assert.Equal(t, tabResp.ChannelId, th.BasicChannel.Id)
+			assert.NotEmpty(t, tabResp.Id)
 		}
 
-		bookmark := createTab("Tab that should not be added", model.ChannelTabLink, th.BasicChannel.Id, "")
-		bookmarkResp, err := th.App.CreateChannelTab(th.Context, bookmark, "")
-		assert.Nil(t, bookmarkResp)
+		tab := createTab("Tab that should not be added", model.ChannelTabLink, th.BasicChannel.Id, "")
+		tabResp, err := th.App.CreateChannelTab(th.Context, tab, "")
+		assert.Nil(t, tabResp)
 		assert.NotNil(t, err)
 	})
 }
@@ -110,10 +110,10 @@ func TestUpdateTab(t *testing.T) {
 			assert.NoError(t, err)
 		}()
 
-		bookmark2 := createTab("File to be updated", model.ChannelTabFile, th.BasicChannel.Id, file.Id)
-		bookmarkResp, appErr := th.App.CreateChannelTab(th.Context, bookmark2, "")
+		tab2 := createTab("File to be updated", model.ChannelTabFile, th.BasicChannel.Id, file.Id)
+		tabResp, appErr := th.App.CreateChannelTab(th.Context, tab2, "")
 		require.Nil(t, appErr)
-		require.NotNil(t, bookmarkResp)
+		require.NotNil(t, tabResp)
 
 		file2 := &model.FileInfo{
 			Id:              model.NewId(),
@@ -140,10 +140,10 @@ func TestUpdateTab(t *testing.T) {
 			require.NoError(t, err)
 		}()
 
-		bookmark2.FileId = file2.Id
-		bookmarkResp, appErr = th.App.CreateChannelTab(th.Context, bookmark2, "")
+		tab2.FileId = file2.Id
+		tabResp, appErr = th.App.CreateChannelTab(th.Context, tab2, "")
 		require.NotNil(t, appErr)
-		require.Nil(t, bookmarkResp)
+		require.Nil(t, tabResp)
 	}
 
 	var testUpdateInvalidFiles = func(th *TestHelper, t *testing.T, creatingUserId string, updatingUserId string) {
@@ -172,10 +172,10 @@ func TestUpdateTab(t *testing.T) {
 
 		th.Context.Session().UserId = creatingUserId
 
-		bookmark := createTab("File to be updated", model.ChannelTabFile, th.BasicChannel.Id, file.Id)
-		bookmarkToEdit, appErr := th.App.CreateChannelTab(th.Context, bookmark, "")
+		tab := createTab("File to be updated", model.ChannelTabFile, th.BasicChannel.Id, file.Id)
+		tabToEdit, appErr := th.App.CreateChannelTab(th.Context, tab, "")
 		require.Nil(t, appErr)
-		require.NotNil(t, bookmarkToEdit)
+		require.NotNil(t, tabToEdit)
 
 		otherChannel := th.CreateChannel(t, th.BasicTeam)
 
@@ -210,11 +210,11 @@ func TestUpdateTab(t *testing.T) {
 
 		th.Context.Session().UserId = updatingUserId
 
-		updateTabPending := bookmarkToEdit.Clone()
+		updateTabPending := tabToEdit.Clone()
 		updateTabPending.FileId = deletedFile.Id
-		bookmarkEdited, appErr := th.App.UpdateChannelTab(th.Context, updateTabPending, "")
+		tabEdited, appErr := th.App.UpdateChannelTab(th.Context, updateTabPending, "")
 		assert.NotNil(t, appErr)
-		require.Nil(t, bookmarkEdited)
+		require.Nil(t, tabEdited)
 
 		anotherChannelFile := &model.FileInfo{
 			Id:              model.NewId(),
@@ -239,28 +239,28 @@ func TestUpdateTab(t *testing.T) {
 			require.NoError(t, err)
 		}()
 
-		updateTabPending = bookmarkToEdit.Clone()
+		updateTabPending = tabToEdit.Clone()
 		updateTabPending.FileId = anotherChannelFile.Id
-		bookmarkEdited, appErr = th.App.UpdateChannelTab(th.Context, updateTabPending, "")
+		tabEdited, appErr = th.App.UpdateChannelTab(th.Context, updateTabPending, "")
 		assert.NotNil(t, appErr)
-		require.Nil(t, bookmarkEdited)
+		require.Nil(t, tabEdited)
 	}
 
-	t.Run("same user update a channel bookmark", func(t *testing.T) {
-		bookmark1 := &model.ChannelTab{
+	t.Run("same user update a channel tab", func(t *testing.T) {
+		tab1 := &model.ChannelTab{
 			ChannelId:   th.BasicChannel.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
 		}
 
 		th.Context.Session().UserId = th.BasicUser.Id // set the user for the session
-		bookmarkResp, err := th.App.CreateChannelTab(th.Context, bookmark1, "")
+		tabResp, err := th.App.CreateChannelTab(th.Context, tab1, "")
 		require.Nil(t, err)
-		require.NotNil(t, bookmarkResp)
+		require.NotNil(t, tabResp)
 
-		updateTab = bookmarkResp.Clone()
+		updateTab = tabResp.Clone()
 		updateTab.DisplayName = "New name"
 		time.Sleep(1 * time.Millisecond) // to avoid collisions
 		response, _ := th.App.UpdateChannelTab(th.Context, updateTab, "")
@@ -272,7 +272,7 @@ func TestUpdateTab(t *testing.T) {
 		testUpdateInvalidFiles(th, t, th.BasicUser.Id, th.BasicUser.Id)
 	})
 
-	t.Run("another user update a channel bookmark", func(t *testing.T) {
+	t.Run("another user update a channel tab", func(t *testing.T) {
 		updateTab2 := updateTab.Clone()
 		updateTab2.DisplayName = "Another new name"
 		th.Context.Session().UserId = th.BasicUser2.Id
@@ -289,21 +289,21 @@ func TestUpdateTab(t *testing.T) {
 		testUpdateInvalidFiles(th, t, th.BasicUser.Id, th.BasicUser.Id)
 	})
 
-	t.Run("update an already deleted channel bookmark", func(t *testing.T) {
-		bookmark1 := &model.ChannelTab{
+	t.Run("update an already deleted channel tab", func(t *testing.T) {
+		tab1 := &model.ChannelTab{
 			ChannelId:   th.BasicChannel.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
 		}
 
 		th.Context.Session().UserId = th.BasicUser.Id // set the user for the session
-		bookmarkResp, err := th.App.CreateChannelTab(th.Context, bookmark1, "")
+		tabResp, err := th.App.CreateChannelTab(th.Context, tab1, "")
 		require.Nil(t, err)
-		require.NotNil(t, bookmarkResp)
+		require.NotNil(t, tabResp)
 
-		updateTab = bookmarkResp.Clone()
+		updateTab = tabResp.Clone()
 		_, err = th.App.DeleteChannelTab(updateTab.Id, "")
 		assert.Nil(t, err)
 
@@ -312,11 +312,11 @@ func TestUpdateTab(t *testing.T) {
 		assert.NotNil(t, err)
 	})
 
-	t.Run("update a nonexisting channel bookmark", func(t *testing.T) {
+	t.Run("update a nonexisting channel tab", func(t *testing.T) {
 		updateTab := &model.ChannelTab{
 			Id:          model.NewId(),
 			ChannelId:   th.BasicChannel.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
@@ -331,24 +331,24 @@ func TestDeleteTab(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	t.Run("delete a channel bookmark", func(t *testing.T) {
-		bookmark1 := &model.ChannelTab{
+	t.Run("delete a channel tab", func(t *testing.T) {
+		tab1 := &model.ChannelTab{
 			ChannelId:   th.BasicChannel.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
 		}
 
 		th.Context.Session().UserId = th.BasicUser.Id // set the user for the session
-		bookmarkResp, err := th.App.CreateChannelTab(th.Context, bookmark1, "")
+		tabResp, err := th.App.CreateChannelTab(th.Context, tab1, "")
 		require.Nil(t, err)
-		require.NotNil(t, bookmarkResp)
+		require.NotNil(t, tabResp)
 
-		bookmarkResp, err = th.App.DeleteChannelTab(bookmarkResp.Id, "")
+		tabResp, err = th.App.DeleteChannelTab(tabResp.Id, "")
 		require.Nil(t, err)
-		require.NotNil(t, bookmarkResp)
-		assert.Greater(t, bookmarkResp.DeleteAt, int64(0))
+		require.NotNil(t, tabResp)
+		assert.Greater(t, tabResp.DeleteAt, int64(0))
 	})
 }
 
@@ -358,7 +358,7 @@ func TestGetChannelTabs(t *testing.T) {
 
 	th.Context.Session().UserId = th.BasicUser.Id // set the user for the session
 
-	bookmark1 := &model.ChannelTab{
+	tab1 := &model.ChannelTab{
 		ChannelId:   th.BasicChannel.Id,
 		DisplayName: "Tab 1",
 		LinkUrl:     "https://mattermost.com",
@@ -366,7 +366,7 @@ func TestGetChannelTabs(t *testing.T) {
 		Emoji:       ":smile:",
 	}
 
-	_, appErr := th.App.CreateChannelTab(th.Context, bookmark1, "")
+	_, appErr := th.App.CreateChannelTab(th.Context, tab1, "")
 	assert.Nil(t, appErr)
 
 	file := &model.FileInfo{
@@ -392,7 +392,7 @@ func TestGetChannelTabs(t *testing.T) {
 		assert.NoError(t, err)
 	}()
 
-	bookmark2 := &model.ChannelTab{
+	tab2 := &model.ChannelTab{
 		ChannelId:   th.BasicChannel.Id,
 		DisplayName: "Tab 2",
 		FileId:      file.Id,
@@ -400,33 +400,33 @@ func TestGetChannelTabs(t *testing.T) {
 		Emoji:       ":smile:",
 	}
 
-	_, appErr = th.App.CreateChannelTab(th.Context, bookmark2, "")
+	_, appErr = th.App.CreateChannelTab(th.Context, tab2, "")
 	assert.Nil(t, appErr)
 
-	t.Run("get bookmarks of a channel", func(t *testing.T) {
-		bookmarks, err := th.App.GetChannelTabs(th.BasicChannel.Id, 0)
+	t.Run("get tabs of a channel", func(t *testing.T) {
+		tabs, err := th.App.GetChannelTabs(th.BasicChannel.Id, 0)
 		require.Nil(t, err)
-		require.NotNil(t, bookmarks)
-		assert.Len(t, bookmarks, 2)
+		require.NotNil(t, tabs)
+		assert.Len(t, tabs, 2)
 	})
 
-	t.Run("get bookmarks of a channel after one is deleted (aka only return the changed bookmarks)", func(t *testing.T) {
+	t.Run("get tabs of a channel after one is deleted (aka only return the changed tabs)", func(t *testing.T) {
 		now := model.GetMillis()
-		_, appErr := th.App.DeleteChannelTab(bookmark1.Id, "")
+		_, appErr := th.App.DeleteChannelTab(tab1.Id, "")
 		assert.Nil(t, appErr)
 
-		bookmarks, err := th.App.GetChannelTabs(th.BasicChannel.Id, 0)
+		tabs, err := th.App.GetChannelTabs(th.BasicChannel.Id, 0)
 		require.Nil(t, err)
-		require.NotNil(t, bookmarks)
-		assert.Len(t, bookmarks, 1)
+		require.NotNil(t, tabs)
+		assert.Len(t, tabs, 1)
 
-		bookmarks, err = th.App.GetChannelTabs(th.BasicChannel.Id, now)
+		tabs, err = th.App.GetChannelTabs(th.BasicChannel.Id, now)
 		require.Nil(t, err)
-		require.NotNil(t, bookmarks)
-		assert.Len(t, bookmarks, 1)
+		require.NotNil(t, tabs)
+		assert.Len(t, tabs, 1)
 
 		deleted := false
-		for _, b := range bookmarks {
+		for _, b := range tabs {
 			if b.DeleteAt > 0 {
 				deleted = true
 				break
@@ -443,7 +443,7 @@ func TestUpdateChannelTabSortOrder(t *testing.T) {
 	channelId := th.BasicChannel.Id
 	th.Context.Session().UserId = th.BasicUser.Id // set the user for the session
 
-	bookmark0 := &model.ChannelTab{
+	tab0 := &model.ChannelTab{
 		ChannelId:   channelId,
 		DisplayName: "Tab 0",
 		LinkUrl:     "https://mattermost.com",
@@ -467,7 +467,7 @@ func TestUpdateChannelTabSortOrder(t *testing.T) {
 		HasPreviewImage: true,
 	}
 
-	bookmark1 := &model.ChannelTab{
+	tab1 := &model.ChannelTab{
 		ChannelId:   channelId,
 		DisplayName: "Tab 1",
 		FileId:      file.Id,
@@ -482,148 +482,148 @@ func TestUpdateChannelTabSortOrder(t *testing.T) {
 		require.NoError(t, err)
 	}()
 
-	bookmark2 := &model.ChannelTab{
+	tab2 := &model.ChannelTab{
 		ChannelId:   channelId,
 		DisplayName: "Tab 2",
 		LinkUrl:     "https://mattermost.com",
 		Type:        model.ChannelTabLink,
 	}
 
-	bookmark3 := &model.ChannelTab{
+	tab3 := &model.ChannelTab{
 		ChannelId:   channelId,
 		DisplayName: "Tab 3",
 		LinkUrl:     "https://mattermost.com",
 		Type:        model.ChannelTabLink,
 	}
 
-	bookmark4 := &model.ChannelTab{
+	tab4 := &model.ChannelTab{
 		ChannelId:   channelId,
 		DisplayName: "Tab 4",
 		LinkUrl:     "https://mattermost.com",
 		Type:        model.ChannelTabLink,
 	}
 
-	bookmarkResp, appErr := th.App.CreateChannelTab(th.Context, bookmark0, "")
+	tabResp, appErr := th.App.CreateChannelTab(th.Context, tab0, "")
 	require.Nil(t, appErr)
-	require.NotNil(t, bookmarkResp)
-	bookmark0 = bookmarkResp.ChannelTab.Clone()
+	require.NotNil(t, tabResp)
+	tab0 = tabResp.ChannelTab.Clone()
 
-	bookmarkResp, appErr = th.App.CreateChannelTab(th.Context, bookmark1, "")
+	tabResp, appErr = th.App.CreateChannelTab(th.Context, tab1, "")
 	require.Nil(t, appErr)
-	require.NotNil(t, bookmarkResp)
-	bookmark1 = bookmarkResp.ChannelTab.Clone()
+	require.NotNil(t, tabResp)
+	tab1 = tabResp.ChannelTab.Clone()
 
-	bookmarkResp, appErr = th.App.CreateChannelTab(th.Context, bookmark2, "")
+	tabResp, appErr = th.App.CreateChannelTab(th.Context, tab2, "")
 	require.Nil(t, appErr)
-	require.NotNil(t, bookmarkResp)
-	bookmark2 = bookmarkResp.ChannelTab.Clone()
+	require.NotNil(t, tabResp)
+	tab2 = tabResp.ChannelTab.Clone()
 
-	bookmarkResp, appErr = th.App.CreateChannelTab(th.Context, bookmark3, "")
+	tabResp, appErr = th.App.CreateChannelTab(th.Context, tab3, "")
 	require.Nil(t, appErr)
-	require.NotNil(t, bookmarkResp)
-	bookmark3 = bookmarkResp.ChannelTab.Clone()
+	require.NotNil(t, tabResp)
+	tab3 = tabResp.ChannelTab.Clone()
 
-	bookmarkResp, appErr = th.App.CreateChannelTab(th.Context, bookmark4, "")
+	tabResp, appErr = th.App.CreateChannelTab(th.Context, tab4, "")
 	require.Nil(t, appErr)
-	require.NotNil(t, bookmarkResp)
-	bookmark4 = bookmarkResp.ChannelTab.Clone()
+	require.NotNil(t, tabResp)
+	tab4 = tabResp.ChannelTab.Clone()
 
-	t.Run("change order of bookmarks first to last", func(t *testing.T) {
-		bookmarks, sortErr := th.App.UpdateChannelTabSortOrder(bookmark0.Id, channelId, int64(4), "")
+	t.Run("change order of tabs first to last", func(t *testing.T) {
+		tabs, sortErr := th.App.UpdateChannelTabSortOrder(tab0.Id, channelId, int64(4), "")
 		require.Nil(t, sortErr)
-		require.NotNil(t, bookmarks)
+		require.NotNil(t, tabs)
 
-		assert.Equal(t, find_bookmark(bookmarks, bookmark1.Id).SortOrder, int64(0))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark2.Id).SortOrder, int64(1))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark3.Id).SortOrder, int64(2))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark4.Id).SortOrder, int64(3))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark0.Id).SortOrder, int64(4))
+		assert.Equal(t, find_tab(tabs, tab1.Id).SortOrder, int64(0))
+		assert.Equal(t, find_tab(tabs, tab2.Id).SortOrder, int64(1))
+		assert.Equal(t, find_tab(tabs, tab3.Id).SortOrder, int64(2))
+		assert.Equal(t, find_tab(tabs, tab4.Id).SortOrder, int64(3))
+		assert.Equal(t, find_tab(tabs, tab0.Id).SortOrder, int64(4))
 	})
 
-	t.Run("change order of bookmarks last to first", func(t *testing.T) {
-		bookmarks, sortErr := th.App.UpdateChannelTabSortOrder(bookmark0.Id, channelId, int64(0), "")
+	t.Run("change order of tabs last to first", func(t *testing.T) {
+		tabs, sortErr := th.App.UpdateChannelTabSortOrder(tab0.Id, channelId, int64(0), "")
 		require.Nil(t, sortErr)
-		require.NotNil(t, bookmarks)
+		require.NotNil(t, tabs)
 
-		assert.Equal(t, find_bookmark(bookmarks, bookmark0.Id).SortOrder, int64(0))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark1.Id).SortOrder, int64(1))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark2.Id).SortOrder, int64(2))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark3.Id).SortOrder, int64(3))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark4.Id).SortOrder, int64(4))
+		assert.Equal(t, find_tab(tabs, tab0.Id).SortOrder, int64(0))
+		assert.Equal(t, find_tab(tabs, tab1.Id).SortOrder, int64(1))
+		assert.Equal(t, find_tab(tabs, tab2.Id).SortOrder, int64(2))
+		assert.Equal(t, find_tab(tabs, tab3.Id).SortOrder, int64(3))
+		assert.Equal(t, find_tab(tabs, tab4.Id).SortOrder, int64(4))
 	})
 
-	t.Run("change order of bookmarks first to third", func(t *testing.T) {
-		bookmarks, sortErr := th.App.UpdateChannelTabSortOrder(bookmark0.Id, channelId, int64(2), "")
+	t.Run("change order of tabs first to third", func(t *testing.T) {
+		tabs, sortErr := th.App.UpdateChannelTabSortOrder(tab0.Id, channelId, int64(2), "")
 		require.Nil(t, sortErr)
-		require.NotNil(t, bookmarks)
+		require.NotNil(t, tabs)
 
-		assert.Equal(t, find_bookmark(bookmarks, bookmark1.Id).SortOrder, int64(0))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark2.Id).SortOrder, int64(1))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark0.Id).SortOrder, int64(2))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark3.Id).SortOrder, int64(3))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark4.Id).SortOrder, int64(4))
+		assert.Equal(t, find_tab(tabs, tab1.Id).SortOrder, int64(0))
+		assert.Equal(t, find_tab(tabs, tab2.Id).SortOrder, int64(1))
+		assert.Equal(t, find_tab(tabs, tab0.Id).SortOrder, int64(2))
+		assert.Equal(t, find_tab(tabs, tab3.Id).SortOrder, int64(3))
+		assert.Equal(t, find_tab(tabs, tab4.Id).SortOrder, int64(4))
 
 		// now reset order
-		_, appErr = th.App.UpdateChannelTabSortOrder(bookmark0.Id, channelId, int64(0), "")
+		_, appErr = th.App.UpdateChannelTabSortOrder(tab0.Id, channelId, int64(0), "")
 		assert.Nil(t, appErr)
 	})
 
-	t.Run("change order of bookmarks second to third", func(t *testing.T) {
-		bookmarks, sortErr := th.App.UpdateChannelTabSortOrder(bookmark1.Id, channelId, int64(2), "")
+	t.Run("change order of tabs second to third", func(t *testing.T) {
+		tabs, sortErr := th.App.UpdateChannelTabSortOrder(tab1.Id, channelId, int64(2), "")
 		require.Nil(t, sortErr)
-		require.NotNil(t, bookmarks)
+		require.NotNil(t, tabs)
 
-		assert.Equal(t, find_bookmark(bookmarks, bookmark0.Id).SortOrder, int64(0))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark2.Id).SortOrder, int64(1))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark1.Id).SortOrder, int64(2))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark3.Id).SortOrder, int64(3))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark4.Id).SortOrder, int64(4))
+		assert.Equal(t, find_tab(tabs, tab0.Id).SortOrder, int64(0))
+		assert.Equal(t, find_tab(tabs, tab2.Id).SortOrder, int64(1))
+		assert.Equal(t, find_tab(tabs, tab1.Id).SortOrder, int64(2))
+		assert.Equal(t, find_tab(tabs, tab3.Id).SortOrder, int64(3))
+		assert.Equal(t, find_tab(tabs, tab4.Id).SortOrder, int64(4))
 	})
 
-	t.Run("change order of bookmarks third to second", func(t *testing.T) {
-		bookmarks, sortErr := th.App.UpdateChannelTabSortOrder(bookmark1.Id, channelId, int64(1), "")
+	t.Run("change order of tabs third to second", func(t *testing.T) {
+		tabs, sortErr := th.App.UpdateChannelTabSortOrder(tab1.Id, channelId, int64(1), "")
 		require.Nil(t, sortErr)
-		require.NotNil(t, bookmarks)
+		require.NotNil(t, tabs)
 
-		assert.Equal(t, find_bookmark(bookmarks, bookmark0.Id).SortOrder, int64(0))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark1.Id).SortOrder, int64(1))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark2.Id).SortOrder, int64(2))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark3.Id).SortOrder, int64(3))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark4.Id).SortOrder, int64(4))
+		assert.Equal(t, find_tab(tabs, tab0.Id).SortOrder, int64(0))
+		assert.Equal(t, find_tab(tabs, tab1.Id).SortOrder, int64(1))
+		assert.Equal(t, find_tab(tabs, tab2.Id).SortOrder, int64(2))
+		assert.Equal(t, find_tab(tabs, tab3.Id).SortOrder, int64(3))
+		assert.Equal(t, find_tab(tabs, tab4.Id).SortOrder, int64(4))
 	})
 
-	t.Run("change order of bookmarks last to previous last", func(t *testing.T) {
-		bookmarks, sortErr := th.App.UpdateChannelTabSortOrder(bookmark4.Id, channelId, int64(3), "")
+	t.Run("change order of tabs last to previous last", func(t *testing.T) {
+		tabs, sortErr := th.App.UpdateChannelTabSortOrder(tab4.Id, channelId, int64(3), "")
 		require.Nil(t, sortErr)
-		require.NotNil(t, bookmarks)
+		require.NotNil(t, tabs)
 
-		assert.Equal(t, find_bookmark(bookmarks, bookmark0.Id).SortOrder, int64(0))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark1.Id).SortOrder, int64(1))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark2.Id).SortOrder, int64(2))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark4.Id).SortOrder, int64(3))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark3.Id).SortOrder, int64(4))
+		assert.Equal(t, find_tab(tabs, tab0.Id).SortOrder, int64(0))
+		assert.Equal(t, find_tab(tabs, tab1.Id).SortOrder, int64(1))
+		assert.Equal(t, find_tab(tabs, tab2.Id).SortOrder, int64(2))
+		assert.Equal(t, find_tab(tabs, tab4.Id).SortOrder, int64(3))
+		assert.Equal(t, find_tab(tabs, tab3.Id).SortOrder, int64(4))
 	})
 
-	t.Run("change order of bookmarks last to second", func(t *testing.T) {
-		bookmarks, sortErr := th.App.UpdateChannelTabSortOrder(bookmark3.Id, channelId, int64(1), "")
+	t.Run("change order of tabs last to second", func(t *testing.T) {
+		tabs, sortErr := th.App.UpdateChannelTabSortOrder(tab3.Id, channelId, int64(1), "")
 		require.Nil(t, sortErr)
-		require.NotNil(t, bookmarks)
+		require.NotNil(t, tabs)
 
-		assert.Equal(t, find_bookmark(bookmarks, bookmark0.Id).SortOrder, int64(0))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark3.Id).SortOrder, int64(1))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark1.Id).SortOrder, int64(2))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark2.Id).SortOrder, int64(3))
-		assert.Equal(t, find_bookmark(bookmarks, bookmark4.Id).SortOrder, int64(4))
+		assert.Equal(t, find_tab(tabs, tab0.Id).SortOrder, int64(0))
+		assert.Equal(t, find_tab(tabs, tab3.Id).SortOrder, int64(1))
+		assert.Equal(t, find_tab(tabs, tab1.Id).SortOrder, int64(2))
+		assert.Equal(t, find_tab(tabs, tab2.Id).SortOrder, int64(3))
+		assert.Equal(t, find_tab(tabs, tab4.Id).SortOrder, int64(4))
 	})
 
-	t.Run("change order of bookmarks error when new index is out of bounds", func(t *testing.T) {
-		_, appErr = th.App.UpdateChannelTabSortOrder(bookmark3.Id, channelId, int64(-1), "")
+	t.Run("change order of tabs error when new index is out of bounds", func(t *testing.T) {
+		_, appErr = th.App.UpdateChannelTabSortOrder(tab3.Id, channelId, int64(-1), "")
 		assert.NotNil(t, appErr)
-		_, appErr = th.App.UpdateChannelTabSortOrder(bookmark3.Id, channelId, int64(5), "")
+		_, appErr = th.App.UpdateChannelTabSortOrder(tab3.Id, channelId, int64(5), "")
 		assert.NotNil(t, appErr)
 	})
 
-	t.Run("change order of bookmarks error when bookmark not found", func(t *testing.T) {
+	t.Run("change order of tabs error when tab not found", func(t *testing.T) {
 		_, appErr = th.App.UpdateChannelTabSortOrder(model.NewId(), channelId, int64(0), "")
 		assert.NotNil(t, appErr)
 	})

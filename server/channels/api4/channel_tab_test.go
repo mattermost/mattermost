@@ -23,7 +23,7 @@ func TestCreateChannelTab(t *testing.T) {
 	t.Run("should not work without a license", func(t *testing.T) {
 		channelTab := &model.ChannelTab{
 			ChannelId:   th.BasicChannel.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
@@ -39,10 +39,10 @@ func TestCreateChannelTab(t *testing.T) {
 
 	guest, guestClient := th.CreateGuestAndClient(t)
 
-	t.Run("a user should be able to create a channel bookmark in a public channel", func(t *testing.T) {
+	t.Run("a user should be able to create a channel tab in a public channel", func(t *testing.T) {
 		channelTab := &model.ChannelTab{
 			ChannelId:   th.BasicChannel.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
@@ -55,10 +55,10 @@ func TestCreateChannelTab(t *testing.T) {
 		require.Equal(t, cb.DisplayName, channelTab.DisplayName)
 	})
 
-	t.Run("a user should be able to create a channel bookmark in a private channel", func(t *testing.T) {
+	t.Run("a user should be able to create a channel tab in a private channel", func(t *testing.T) {
 		channelTab := &model.ChannelTab{
 			ChannelId:   th.BasicPrivateChannel.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
@@ -77,7 +77,7 @@ func TestCreateChannelTab(t *testing.T) {
 
 		channelTab := &model.ChannelTab{
 			ChannelId:   th.BasicChannel.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
@@ -95,7 +95,7 @@ func TestCreateChannelTab(t *testing.T) {
 
 		channelTab := &model.ChannelTab{
 			ChannelId:   th.BasicPrivateChannel.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
@@ -107,15 +107,15 @@ func TestCreateChannelTab(t *testing.T) {
 		require.Nil(t, cb)
 	})
 
-	t.Run("bookmark creation should not work in a moderated channel", func(t *testing.T) {
-		// moderate the channel to restrict bookmarks for members
+	t.Run("tab creation should not work in a moderated channel", func(t *testing.T) {
+		// moderate the channel to restrict tabs for members
 		manageTabs := model.ChannelModeratedPermissions[4]
 		th.PatchChannelModerationsForMembers(t, th.BasicChannel.Id, manageTabs, false)
 		defer th.PatchChannelModerationsForMembers(t, th.BasicChannel.Id, manageTabs, true)
 
 		channelTab := &model.ChannelTab{
 			ChannelId:   th.BasicChannel.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
@@ -127,10 +127,10 @@ func TestCreateChannelTab(t *testing.T) {
 		require.Nil(t, cb)
 	})
 
-	t.Run("bookmark creation should not work in an archived channel", func(t *testing.T) {
+	t.Run("tab creation should not work in an archived channel", func(t *testing.T) {
 		channelTab := &model.ChannelTab{
 			ChannelId:   th.BasicDeletedChannel.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
@@ -142,10 +142,10 @@ func TestCreateChannelTab(t *testing.T) {
 		require.Nil(t, cb)
 	})
 
-	t.Run("a guest user should not be able to create a channel bookmark", func(t *testing.T) {
+	t.Run("a guest user should not be able to create a channel tab", func(t *testing.T) {
 		channelTab := &model.ChannelTab{
 			ChannelId:   th.BasicChannel.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
@@ -165,7 +165,7 @@ func TestCreateChannelTab(t *testing.T) {
 		require.Nil(t, cb)
 	})
 
-	t.Run("a user should always be able to create channel bookmarks on DMs and GMs", func(t *testing.T) {
+	t.Run("a user should always be able to create channel tabs on DMs and GMs", func(t *testing.T) {
 		// this should work independently of the permissions applied
 		th.RemovePermissionFromRole(t, model.PermissionAddTabPublicChannel.Id, model.ChannelUserRoleId)
 		th.RemovePermissionFromRole(t, model.PermissionAddTabPrivateChannel.Id, model.ChannelUserRoleId)
@@ -180,7 +180,7 @@ func TestCreateChannelTab(t *testing.T) {
 
 		channelTab := &model.ChannelTab{
 			ChannelId:   dm.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
@@ -202,14 +202,14 @@ func TestCreateChannelTab(t *testing.T) {
 		require.NotNil(t, cb)
 	})
 
-	t.Run("a guest should not be able to create channel bookmarks on DMs and GMs", func(t *testing.T) {
+	t.Run("a guest should not be able to create channel tabs on DMs and GMs", func(t *testing.T) {
 		// DM
 		dm, dmErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, guest.Id)
 		require.Nil(t, dmErr)
 
 		channelTab := &model.ChannelTab{
 			ChannelId:   dm.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
@@ -231,12 +231,12 @@ func TestCreateChannelTab(t *testing.T) {
 		require.Nil(t, cb)
 	})
 
-	t.Run("a websockets event should be fired as part of creating a bookmark", func(t *testing.T) {
+	t.Run("a websockets event should be fired as part of creating a tab", func(t *testing.T) {
 		webSocketClient := th.CreateConnectedWebSocketClient(t)
 
-		bookmark1 := &model.ChannelTab{
+		tab1 := &model.ChannelTab{
 			ChannelId:   th.BasicChannel.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
@@ -247,7 +247,7 @@ func TestCreateChannelTab(t *testing.T) {
 		th.Context.Session().UserId = th.BasicUser.Id
 		defer func() { th.Context.Session().UserId = originalSessionUserId }()
 
-		bookmark, appErr := th.App.CreateChannelTab(th.Context, bookmark1, "")
+		tab, appErr := th.App.CreateChannelTab(th.Context, tab1, "")
 		require.Nil(t, appErr)
 
 		var b model.ChannelTabWithFileInfo
@@ -258,7 +258,7 @@ func TestCreateChannelTab(t *testing.T) {
 			select {
 			case event := <-webSocketClient.EventChannel:
 				if event.EventType() == model.WebsocketEventChannelTabCreated {
-					err := json.Unmarshal([]byte(event.GetData()["bookmark"].(string)), &b)
+					err := json.Unmarshal([]byte(event.GetData()["tab"].(string)), &b)
 					require.NoError(t, err)
 					eventReceived = true
 					waiting = false
@@ -271,7 +271,7 @@ func TestCreateChannelTab(t *testing.T) {
 		require.True(t, eventReceived, "Expected WebSocket event was not received within the timeout period")
 		require.NotNil(t, b)
 		require.NotEmpty(t, b.Id)
-		require.Equal(t, bookmark, &b)
+		require.Equal(t, tab, &b)
 	})
 }
 
@@ -292,7 +292,7 @@ func TestEditChannelTab(t *testing.T) {
 
 	guest, guestClient := th.CreateGuestAndClient(t)
 
-	t.Run("a user editing a channel bookmark in public and private channels", func(t *testing.T) {
+	t.Run("a user editing a channel tab in public and private channels", func(t *testing.T) {
 		testCases := []struct {
 			name             string
 			channelId        string
@@ -356,7 +356,7 @@ func TestEditChannelTab(t *testing.T) {
 
 				channelTab := &model.ChannelTab{
 					ChannelId:   tc.channelId,
-					DisplayName: "Link bookmark test",
+					DisplayName: "Link tab test",
 					LinkUrl:     "https://mattermost.com",
 					Type:        model.ChannelTabLink,
 					Emoji:       ":smile:",
@@ -368,7 +368,7 @@ func TestEditChannelTab(t *testing.T) {
 				require.NotNil(t, cb)
 
 				patch := &model.ChannelTabPatch{
-					DisplayName: model.NewPointer("Edited bookmark test"),
+					DisplayName: model.NewPointer("Edited tab test"),
 					LinkUrl:     model.NewPointer("http://edited.url"),
 				}
 
@@ -380,7 +380,7 @@ func TestEditChannelTab(t *testing.T) {
 					require.NoError(t, err)
 					require.Nil(t, ucb.Deleted)
 					require.NotNil(t, ucb.Updated)
-					require.Equal(t, "Edited bookmark test", ucb.Updated.DisplayName)
+					require.Equal(t, "Edited tab test", ucb.Updated.DisplayName)
 					require.Equal(t, "http://edited.url", ucb.Updated.LinkUrl)
 				}
 				checkHTTPStatus(t, resp, tc.expectedStatus)
@@ -388,10 +388,10 @@ func TestEditChannelTab(t *testing.T) {
 		}
 	})
 
-	t.Run("bookmark editing should not work in a moderated channel", func(t *testing.T) {
+	t.Run("tab editing should not work in a moderated channel", func(t *testing.T) {
 		channelTab := &model.ChannelTab{
 			ChannelId:   th.BasicChannel.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
@@ -402,14 +402,14 @@ func TestEditChannelTab(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 		require.NotNil(t, cb)
 
-		// moderate the channel to restrict bookmarks for members
+		// moderate the channel to restrict tabs for members
 		manageTabs := model.ChannelModeratedPermissions[4]
 		th.PatchChannelModerationsForMembers(t, th.BasicChannel.Id, manageTabs, false)
 		defer th.PatchChannelModerationsForMembers(t, th.BasicChannel.Id, manageTabs, true)
 
-		// try to patch the channel bookmark
+		// try to patch the channel tab
 		patch := &model.ChannelTabPatch{
-			DisplayName: model.NewPointer("Edited bookmark test"),
+			DisplayName: model.NewPointer("Edited tab test"),
 			LinkUrl:     model.NewPointer("http://edited.url"),
 		}
 
@@ -419,10 +419,10 @@ func TestEditChannelTab(t *testing.T) {
 		require.Nil(t, ucb)
 	})
 
-	t.Run("bookmark editing should not work in an archived channel", func(t *testing.T) {
+	t.Run("tab editing should not work in an archived channel", func(t *testing.T) {
 		channelTab := &model.ChannelTab{
 			ChannelId:   th.BasicDeletedChannel.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
@@ -437,9 +437,9 @@ func TestEditChannelTab(t *testing.T) {
 
 		_, _ = th.SystemAdminClient.DeleteChannel(context.Background(), cb.ChannelId)
 
-		// try to patch the channel bookmark
+		// try to patch the channel tab
 		patch := &model.ChannelTabPatch{
-			DisplayName: model.NewPointer("Edited bookmark test"),
+			DisplayName: model.NewPointer("Edited tab test"),
 			LinkUrl:     model.NewPointer("http://edited.url"),
 		}
 
@@ -449,9 +449,9 @@ func TestEditChannelTab(t *testing.T) {
 		require.Nil(t, ucb)
 	})
 
-	t.Run("trying to edit a nonexistent bookmark should fail", func(t *testing.T) {
+	t.Run("trying to edit a nonexistent tab should fail", func(t *testing.T) {
 		patch := &model.ChannelTabPatch{
-			DisplayName: model.NewPointer("Edited bookmark test"),
+			DisplayName: model.NewPointer("Edited tab test"),
 			LinkUrl:     model.NewPointer("http://edited.url"),
 		}
 
@@ -461,10 +461,10 @@ func TestEditChannelTab(t *testing.T) {
 		require.Nil(t, ucb)
 	})
 
-	t.Run("trying to edit an already deleted bookmark should fail", func(t *testing.T) {
+	t.Run("trying to edit an already deleted tab should fail", func(t *testing.T) {
 		channelTab := &model.ChannelTab{
 			ChannelId:   th.BasicChannel.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
@@ -479,7 +479,7 @@ func TestEditChannelTab(t *testing.T) {
 		require.Nil(t, appErr)
 
 		patch := &model.ChannelTabPatch{
-			DisplayName: model.NewPointer("Edited bookmark test"),
+			DisplayName: model.NewPointer("Edited tab test"),
 			LinkUrl:     model.NewPointer("http://edited.url"),
 		}
 
@@ -489,7 +489,7 @@ func TestEditChannelTab(t *testing.T) {
 		require.Nil(t, ucb)
 	})
 
-	t.Run("a user should always be able to edit channel bookmarks on DMs and GMs", func(t *testing.T) {
+	t.Run("a user should always be able to edit channel tabs on DMs and GMs", func(t *testing.T) {
 		// this should work independently of the permissions applied
 		th.RemovePermissionFromRole(t, model.PermissionEditTabPublicChannel.Id, model.ChannelUserRoleId)
 		th.RemovePermissionFromRole(t, model.PermissionEditTabPrivateChannel.Id, model.ChannelUserRoleId)
@@ -504,7 +504,7 @@ func TestEditChannelTab(t *testing.T) {
 
 		channelTab := &model.ChannelTab{
 			ChannelId:   dm.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
@@ -516,7 +516,7 @@ func TestEditChannelTab(t *testing.T) {
 		require.NotNil(t, cb)
 
 		patch := &model.ChannelTabPatch{
-			DisplayName: model.NewPointer("Edited bookmark test"),
+			DisplayName: model.NewPointer("Edited tab test"),
 			LinkUrl:     model.NewPointer("http://edited.url"),
 		}
 
@@ -525,7 +525,7 @@ func TestEditChannelTab(t *testing.T) {
 		CheckOKStatus(t, resp)
 		require.Nil(t, ucb.Deleted)
 		require.NotNil(t, ucb.Updated)
-		require.Equal(t, "Edited bookmark test", ucb.Updated.DisplayName)
+		require.Equal(t, "Edited tab test", ucb.Updated.DisplayName)
 		require.Equal(t, "http://edited.url", ucb.Updated.LinkUrl)
 
 		// GM
@@ -543,18 +543,18 @@ func TestEditChannelTab(t *testing.T) {
 		CheckOKStatus(t, resp)
 		require.Nil(t, gucb.Deleted)
 		require.NotNil(t, gucb.Updated)
-		require.Equal(t, "Edited bookmark test", gucb.Updated.DisplayName)
+		require.Equal(t, "Edited tab test", gucb.Updated.DisplayName)
 		require.Equal(t, "http://edited.url", gucb.Updated.LinkUrl)
 	})
 
-	t.Run("a guest should not be able to edit channel bookmarks on DMs and GMs", func(t *testing.T) {
+	t.Run("a guest should not be able to edit channel tabs on DMs and GMs", func(t *testing.T) {
 		// DM
 		dm, dmErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, guest.Id)
 		require.Nil(t, dmErr)
 
 		channelTab := &model.ChannelTab{
 			ChannelId:   dm.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
@@ -566,7 +566,7 @@ func TestEditChannelTab(t *testing.T) {
 		require.NotNil(t, cb)
 
 		patch := &model.ChannelTabPatch{
-			DisplayName: model.NewPointer("Edited bookmark test"),
+			DisplayName: model.NewPointer("Edited tab test"),
 			LinkUrl:     model.NewPointer("http://edited.url"),
 		}
 
@@ -583,7 +583,7 @@ func TestEditChannelTab(t *testing.T) {
 		gcb, resp, err := th.Client.CreateChannelTab(context.Background(), channelTab)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		require.NotNil(t, cb)
+		require.NotNil(t, gcb)
 
 		gucb, resp, err := guestClient.UpdateChannelTab(context.Background(), gcb.ChannelId, gcb.Id, patch)
 		require.Error(t, err)
@@ -591,10 +591,10 @@ func TestEditChannelTab(t *testing.T) {
 		require.Nil(t, gucb)
 	})
 
-	t.Run("a user should be able to edit another user's bookmark", func(t *testing.T) {
+	t.Run("a user should be able to edit another user's tab", func(t *testing.T) {
 		channelTab := &model.ChannelTab{
 			ChannelId:   th.BasicChannel.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
@@ -606,7 +606,7 @@ func TestEditChannelTab(t *testing.T) {
 		require.NotNil(t, cb)
 
 		patch := &model.ChannelTabPatch{
-			DisplayName: model.NewPointer("Edited bookmark test"),
+			DisplayName: model.NewPointer("Edited tab test"),
 			LinkUrl:     model.NewPointer("http://edited.url"),
 		}
 
@@ -619,25 +619,25 @@ func TestEditChannelTab(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
-		// Deleted should contain old channel bookmark
+		// Deleted should contain old channel tab
 		require.NotNil(t, ucb.Deleted)
 		require.Equal(t, cb.DisplayName, ucb.Deleted.DisplayName)
 		require.Equal(t, cb.LinkUrl, ucb.Deleted.LinkUrl)
 		require.Equal(t, th.BasicUser.Id, ucb.Deleted.OwnerId)
 
-		// Updated should contain the new channel bookmark
+		// Updated should contain the new channel tab
 		require.NotNil(t, ucb.Updated)
 		require.Equal(t, *patch.DisplayName, ucb.Updated.DisplayName)
 		require.Equal(t, *patch.LinkUrl, ucb.Updated.LinkUrl)
 		require.Equal(t, th.BasicUser2.Id, ucb.Updated.OwnerId)
 	})
 
-	t.Run("a websockets event should be fired as part of editing a bookmark", func(t *testing.T) {
+	t.Run("a websockets event should be fired as part of editing a tab", func(t *testing.T) {
 		webSocketClient := th.CreateConnectedWebSocketClient(t)
 
-		bookmark1 := &model.ChannelTab{
+		tab1 := &model.ChannelTab{
 			ChannelId:   th.BasicChannel.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
@@ -648,11 +648,11 @@ func TestEditChannelTab(t *testing.T) {
 		th.Context.Session().UserId = th.BasicUser.Id
 		defer func() { th.Context.Session().UserId = originalSessionUserId }()
 
-		cb, appErr := th.App.CreateChannelTab(th.Context, bookmark1, "")
+		cb, appErr := th.App.CreateChannelTab(th.Context, tab1, "")
 		require.Nil(t, appErr)
 		require.NotNil(t, cb)
 
-		patch := &model.ChannelTabPatch{DisplayName: model.NewPointer("Edited bookmark test")}
+		patch := &model.ChannelTabPatch{DisplayName: model.NewPointer("Edited tab test")}
 		_, resp, err := th.Client.UpdateChannelTab(context.Background(), cb.ChannelId, cb.Id, patch)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
@@ -665,7 +665,7 @@ func TestEditChannelTab(t *testing.T) {
 			select {
 			case event := <-webSocketClient.EventChannel:
 				if event.EventType() == model.WebsocketEventChannelTabUpdated {
-					err := json.Unmarshal([]byte(event.GetData()["bookmarks"].(string)), &ucb)
+					err := json.Unmarshal([]byte(event.GetData()["tabs"].(string)), &ucb)
 					require.NoError(t, err)
 					eventReceived = true
 					waiting = false
@@ -678,7 +678,7 @@ func TestEditChannelTab(t *testing.T) {
 		require.True(t, eventReceived, "Expected WebSocket event was not received within the timeout period")
 		require.NotNil(t, ucb)
 		require.NotEmpty(t, ucb.Updated)
-		require.Equal(t, "Edited bookmark test", ucb.Updated.DisplayName)
+		require.Equal(t, "Edited tab test", ucb.Updated.DisplayName)
 	})
 }
 
@@ -724,7 +724,7 @@ func TestUpdateChannelTabSortOrder(t *testing.T) {
 
 	guest, guestClient := th.CreateGuestAndClient(t)
 
-	t.Run("a user updating a bookmark's order in public and private channels", func(t *testing.T) {
+	t.Run("a user updating a tab's order in public and private channels", func(t *testing.T) {
 		testCases := []struct {
 			name             string
 			channelId        string
@@ -799,7 +799,7 @@ func TestUpdateChannelTabSortOrder(t *testing.T) {
 				expectedStatus: http.StatusBadRequest,
 			},
 			{
-				name:           "public channel with permissions, setting order to a number greater than the amount of bookmarks of the channel, should fail",
+				name:           "public channel with permissions, setting order to a number greater than the amount of tabs of the channel, should fail",
 				channelId:      th.BasicChannel.Id,
 				tabId:          publicTab2.Id,
 				sortOrder:      300,
@@ -816,7 +816,7 @@ func TestUpdateChannelTabSortOrder(t *testing.T) {
 					defer th.AddPermissionToRole(t, tc.removePermission, model.ChannelUserRoleId)
 				}
 
-				// first we capture and later restore original bookmark's sort order
+				// first we capture and later restore original tab's sort order
 				originalTab, appErr := th.App.GetTab(tc.tabId, false)
 				require.Nil(t, appErr)
 				defer func() {
@@ -824,34 +824,34 @@ func TestUpdateChannelTabSortOrder(t *testing.T) {
 					require.Nil(t, err)
 				}()
 
-				bookmarks, resp, err := tc.userClient.UpdateChannelTabSortOrder(context.Background(), tc.channelId, tc.tabId, tc.sortOrder)
+				tabs, resp, err := tc.userClient.UpdateChannelTabSortOrder(context.Background(), tc.channelId, tc.tabId, tc.sortOrder)
 				if tc.expectedError {
 					require.Error(t, err)
-					require.Nil(t, bookmarks)
+					require.Nil(t, tabs)
 				} else {
 					require.NoError(t, err)
-					require.Len(t, bookmarks, 4)
+					require.Len(t, tabs, 4)
 
-					// find and compare bookmark's new sort order
-					var bookmark *model.ChannelTabWithFileInfo
-					for _, b := range bookmarks {
+					// find and compare tab's new sort order
+					var tab *model.ChannelTabWithFileInfo
+					for _, b := range tabs {
 						if b.Id == tc.tabId {
-							bookmark = b
+							tab = b
 							break
 						}
 					}
-					require.NotNil(t, bookmark, "updated bookmark should be in the client's response")
-					require.Equal(t, tc.sortOrder, bookmark.SortOrder)
+					require.NotNil(t, tab, "updated tab should be in the client's response")
+					require.Equal(t, tc.sortOrder, tab.SortOrder)
 				}
 				checkHTTPStatus(t, resp, tc.expectedStatus)
 			})
 		}
 	})
 
-	t.Run("bookmark ordering should not work in a moderated channel", func(t *testing.T) {
+	t.Run("tab ordering should not work in a moderated channel", func(t *testing.T) {
 		channelTab := &model.ChannelTab{
 			ChannelId:   th.BasicChannel.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
@@ -862,22 +862,22 @@ func TestUpdateChannelTabSortOrder(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 		require.NotNil(t, cb)
 
-		// moderate the channel to restrict bookmarks for members
+		// moderate the channel to restrict tabs for members
 		manageTabs := model.ChannelModeratedPermissions[4]
 		th.PatchChannelModerationsForMembers(t, th.BasicChannel.Id, manageTabs, false)
 		defer th.PatchChannelModerationsForMembers(t, th.BasicChannel.Id, manageTabs, true)
 
-		// try to update the channel bookmark's order
-		bookmarks, resp, err := th.Client.UpdateChannelTabSortOrder(context.Background(), cb.ChannelId, cb.Id, 0)
+		// try to update the channel tab's order
+		tabs, resp, err := th.Client.UpdateChannelTabSortOrder(context.Background(), cb.ChannelId, cb.Id, 0)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
-		require.Nil(t, bookmarks)
+		require.Nil(t, tabs)
 	})
 
-	t.Run("bookmark ordering should not work in an archived channel", func(t *testing.T) {
+	t.Run("tab ordering should not work in an archived channel", func(t *testing.T) {
 		channelTab := &model.ChannelTab{
 			ChannelId:   th.BasicDeletedChannel.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
@@ -892,24 +892,24 @@ func TestUpdateChannelTabSortOrder(t *testing.T) {
 
 		_, _ = th.SystemAdminClient.DeleteChannel(context.Background(), cb.ChannelId)
 
-		// try to update the channel bookmark's order
-		bookmarks, resp, err := th.Client.UpdateChannelTabSortOrder(context.Background(), cb.ChannelId, cb.Id, 0)
+		// try to update the channel tab's order
+		tabs, resp, err := th.Client.UpdateChannelTabSortOrder(context.Background(), cb.ChannelId, cb.Id, 0)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
-		require.Nil(t, bookmarks)
+		require.Nil(t, tabs)
 	})
 
-	t.Run("trying to update the order of a nonexistent bookmark should fail", func(t *testing.T) {
-		bookmarks, resp, err := th.Client.UpdateChannelTabSortOrder(context.Background(), th.BasicChannel.Id, model.NewId(), 1)
+	t.Run("trying to update the order of a nonexistent tab should fail", func(t *testing.T) {
+		tabs, resp, err := th.Client.UpdateChannelTabSortOrder(context.Background(), th.BasicChannel.Id, model.NewId(), 1)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
-		require.Nil(t, bookmarks)
+		require.Nil(t, tabs)
 	})
 
-	t.Run("trying to update the order of an already deleted bookmark should fail", func(t *testing.T) {
+	t.Run("trying to update the order of an already deleted tab should fail", func(t *testing.T) {
 		channelTab := &model.ChannelTab{
 			ChannelId:   th.BasicChannel.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
@@ -923,13 +923,13 @@ func TestUpdateChannelTabSortOrder(t *testing.T) {
 		_, appErr := th.App.DeleteChannelTab(cb.Id, "")
 		require.Nil(t, appErr)
 
-		bookmarks, resp, err := th.Client.UpdateChannelTabSortOrder(context.Background(), th.BasicChannel.Id, cb.Id, 1)
+		tabs, resp, err := th.Client.UpdateChannelTabSortOrder(context.Background(), th.BasicChannel.Id, cb.Id, 1)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
-		require.Nil(t, bookmarks)
+		require.Nil(t, tabs)
 	})
 
-	t.Run("a user should always be able to update the channel bookmarks sort order on DMs and GMs", func(t *testing.T) {
+	t.Run("a user should always be able to update the channel tabs sort order on DMs and GMs", func(t *testing.T) {
 		// this should work independently of the permissions applied
 		th.RemovePermissionFromRole(t, model.PermissionOrderTabPublicChannel.Id, model.ChannelUserRoleId)
 		th.RemovePermissionFromRole(t, model.PermissionOrderTabPrivateChannel.Id, model.ChannelUserRoleId)
@@ -945,14 +945,14 @@ func TestUpdateChannelTabSortOrder(t *testing.T) {
 		dmTab1 := createTab("one", dm.Id)
 		dmTab2 := createTab("two", dm.Id)
 
-		bookmarks, resp, err := th.Client.UpdateChannelTabSortOrder(context.Background(), dm.Id, dmTab1.Id, 1)
+		tabs, resp, err := th.Client.UpdateChannelTabSortOrder(context.Background(), dm.Id, dmTab1.Id, 1)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.Len(t, bookmarks, 2)
-		require.Equal(t, dmTab2.Id, bookmarks[0].Id)
-		require.Equal(t, int64(0), bookmarks[0].SortOrder)
-		require.Equal(t, dmTab1.Id, bookmarks[1].Id)
-		require.Equal(t, int64(1), bookmarks[1].SortOrder)
+		require.Len(t, tabs, 2)
+		require.Equal(t, dmTab2.Id, tabs[0].Id)
+		require.Equal(t, int64(0), tabs[0].SortOrder)
+		require.Equal(t, dmTab1.Id, tabs[1].Id)
+		require.Equal(t, int64(1), tabs[1].SortOrder)
 
 		// GM
 		gm, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.SystemAdminUser.Id, guest.Id}, th.BasicUser.Id)
@@ -961,17 +961,17 @@ func TestUpdateChannelTabSortOrder(t *testing.T) {
 		gmTab1 := createTab("one", gm.Id)
 		gmTab2 := createTab("two", gm.Id)
 
-		bookmarks, resp, err = th.Client.UpdateChannelTabSortOrder(context.Background(), gm.Id, gmTab2.Id, 0)
+		tabs, resp, err = th.Client.UpdateChannelTabSortOrder(context.Background(), gm.Id, gmTab2.Id, 0)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.Len(t, bookmarks, 2)
-		require.Equal(t, gmTab2.Id, bookmarks[0].Id)
-		require.Equal(t, int64(0), bookmarks[0].SortOrder)
-		require.Equal(t, gmTab1.Id, bookmarks[1].Id)
-		require.Equal(t, int64(1), bookmarks[1].SortOrder)
+		require.Len(t, tabs, 2)
+		require.Equal(t, gmTab2.Id, tabs[0].Id)
+		require.Equal(t, int64(0), tabs[0].SortOrder)
+		require.Equal(t, gmTab1.Id, tabs[1].Id)
+		require.Equal(t, int64(1), tabs[1].SortOrder)
 	})
 
-	t.Run("a guest should not be able to edit channel bookmarks sort order on DMs and GMs", func(t *testing.T) {
+	t.Run("a guest should not be able to edit channel tabs sort order on DMs and GMs", func(t *testing.T) {
 		// DM
 		dm, dmErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, guest.Id)
 		require.Nil(t, dmErr)
@@ -979,10 +979,10 @@ func TestUpdateChannelTabSortOrder(t *testing.T) {
 		dmTab1 := createTab("one", dm.Id)
 		_ = createTab("two", dm.Id)
 
-		bookmarks, resp, err := guestClient.UpdateChannelTabSortOrder(context.Background(), dm.Id, dmTab1.Id, 1)
+		tabs, resp, err := guestClient.UpdateChannelTabSortOrder(context.Background(), dm.Id, dmTab1.Id, 1)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
-		require.Nil(t, bookmarks)
+		require.Nil(t, tabs)
 
 		// GM
 		gm, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.SystemAdminUser.Id, guest.Id}, th.BasicUser.Id)
@@ -991,16 +991,16 @@ func TestUpdateChannelTabSortOrder(t *testing.T) {
 		_ = createTab("one", gm.Id)
 		gmTab2 := createTab("two", gm.Id)
 
-		bookmarks, resp, err = guestClient.UpdateChannelTabSortOrder(context.Background(), gm.Id, gmTab2.Id, 0)
+		tabs, resp, err = guestClient.UpdateChannelTabSortOrder(context.Background(), gm.Id, gmTab2.Id, 0)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
-		require.Nil(t, bookmarks)
+		require.Nil(t, tabs)
 	})
 
-	t.Run("a user should be able to edit another user's bookmark sort order", func(t *testing.T) {
+	t.Run("a user should be able to edit another user's tab sort order", func(t *testing.T) {
 		channelTab := &model.ChannelTab{
 			ChannelId:   th.BasicChannel.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
@@ -1016,30 +1016,30 @@ func TestUpdateChannelTabSortOrder(t *testing.T) {
 		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
 		require.NoError(t, lErr)
 
-		bookmarks, resp, err := client2.UpdateChannelTabSortOrder(context.Background(), th.BasicChannel.Id, cb.Id, 0)
+		tabs, resp, err := client2.UpdateChannelTabSortOrder(context.Background(), th.BasicChannel.Id, cb.Id, 0)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.NotEmpty(t, bookmarks)
-		require.Equal(t, cb.Id, bookmarks[0].Id)
-		require.Equal(t, int64(0), bookmarks[0].SortOrder)
+		require.NotEmpty(t, tabs)
+		require.Equal(t, cb.Id, tabs[0].Id)
+		require.Equal(t, int64(0), tabs[0].SortOrder)
 	})
 
-	t.Run("a websockets event should be fired as part of editing a bookmark's sort order", func(t *testing.T) {
+	t.Run("a websockets event should be fired as part of editing a tab's sort order", func(t *testing.T) {
 		now := model.GetMillis()
 
 		webSocketClient := th.CreateConnectedWebSocketClient(t)
 
-		bookmark := &model.ChannelTab{
+		tab := &model.ChannelTab{
 			ChannelId:   th.BasicChannel.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
 		}
 
-		bookmark2 := &model.ChannelTab{
+		tab2 := &model.ChannelTab{
 			ChannelId:   th.BasicChannel.Id,
-			DisplayName: "Link bookmark test 2",
+			DisplayName: "Link tab test 2",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
@@ -1050,18 +1050,18 @@ func TestUpdateChannelTabSortOrder(t *testing.T) {
 		th.Context.Session().UserId = th.BasicUser.Id
 		defer func() { th.Context.Session().UserId = originalSessionUserId }()
 
-		cb, appErr := th.App.CreateChannelTab(th.Context, bookmark, "")
+		cb, appErr := th.App.CreateChannelTab(th.Context, tab, "")
 		require.Nil(t, appErr)
 		require.NotNil(t, cb)
 
-		cb, appErr = th.App.CreateChannelTab(th.Context, bookmark2, "")
+		cb, appErr = th.App.CreateChannelTab(th.Context, tab2, "")
 		require.Nil(t, appErr)
 		require.NotNil(t, cb)
 
-		bookmarks, resp, err := th.Client.UpdateChannelTabSortOrder(context.Background(), th.BasicChannel.Id, cb.Id, 0)
+		tabs, resp, err := th.Client.UpdateChannelTabSortOrder(context.Background(), th.BasicChannel.Id, cb.Id, 0)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.NotEmpty(t, bookmarks)
+		require.NotEmpty(t, tabs)
 
 		var bl []*model.ChannelTabWithFileInfo
 		timeout := time.After(5 * time.Second)
@@ -1071,7 +1071,7 @@ func TestUpdateChannelTabSortOrder(t *testing.T) {
 			select {
 			case event := <-webSocketClient.EventChannel:
 				if event.EventType() == model.WebsocketEventChannelTabSorted {
-					err := json.Unmarshal([]byte(event.GetData()["bookmarks"].(string)), &bl)
+					err := json.Unmarshal([]byte(event.GetData()["tabs"].(string)), &bl)
 					require.NoError(t, err)
 					for _, b := range bl {
 						require.Greater(t, b.UpdateAt, now)
@@ -1110,7 +1110,7 @@ func TestDeleteChannelTab(t *testing.T) {
 
 	guest, guestClient := th.CreateGuestAndClient(t)
 
-	t.Run("a user deleting bookmarks in public and private channels", func(t *testing.T) {
+	t.Run("a user deleting tabs in public and private channels", func(t *testing.T) {
 		testCases := []struct {
 			name             string
 			channelId        string
@@ -1170,15 +1170,15 @@ func TestDeleteChannelTab(t *testing.T) {
 					defer th.AddPermissionToRole(t, tc.removePermission, model.ChannelUserRoleId)
 				}
 
-				// first we create a bookmark for the test case channel
-				bookmark := &model.ChannelTab{
+				// first we create a tab for the test case channel
+				tab := &model.ChannelTab{
 					ChannelId:   tc.channelId,
 					DisplayName: "Tab",
 					Type:        model.ChannelTabLink,
 					LinkUrl:     "https://sample.com",
 				}
 
-				cb, appErr := th.App.CreateChannelTab(th.Context, bookmark, "")
+				cb, appErr := th.App.CreateChannelTab(th.Context, tab, "")
 				require.Nil(t, appErr)
 				require.NotNil(t, cb)
 
@@ -1196,10 +1196,10 @@ func TestDeleteChannelTab(t *testing.T) {
 		}
 	})
 
-	t.Run("bookmark deletion should not work in a moderated channel", func(t *testing.T) {
+	t.Run("tab deletion should not work in a moderated channel", func(t *testing.T) {
 		channelTab := &model.ChannelTab{
 			ChannelId:   th.BasicChannel.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
@@ -1210,22 +1210,22 @@ func TestDeleteChannelTab(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 		require.NotNil(t, cb)
 
-		// moderate the channel to restrict bookmarks for members
+		// moderate the channel to restrict tabs for members
 		manageTabs := model.ChannelModeratedPermissions[4]
 		th.PatchChannelModerationsForMembers(t, th.BasicChannel.Id, manageTabs, false)
 		defer th.PatchChannelModerationsForMembers(t, th.BasicChannel.Id, manageTabs, true)
 
-		// try to delete the channel bookmark
-		bookmarks, resp, err := th.Client.DeleteChannelTab(context.Background(), cb.ChannelId, cb.Id)
+		// try to delete the channel tab
+		tabs, resp, err := th.Client.DeleteChannelTab(context.Background(), cb.ChannelId, cb.Id)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
-		require.Nil(t, bookmarks)
+		require.Nil(t, tabs)
 	})
 
-	t.Run("bookmark deletion should not work in an archived channel", func(t *testing.T) {
+	t.Run("tab deletion should not work in an archived channel", func(t *testing.T) {
 		channelTab := &model.ChannelTab{
 			ChannelId:   th.BasicDeletedChannel.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
@@ -1240,24 +1240,24 @@ func TestDeleteChannelTab(t *testing.T) {
 
 		_, _ = th.SystemAdminClient.DeleteChannel(context.Background(), cb.ChannelId)
 
-		// try to delete the channel bookmark
-		bookmarks, resp, err := th.Client.DeleteChannelTab(context.Background(), cb.ChannelId, cb.Id)
+		// try to delete the channel tab
+		tabs, resp, err := th.Client.DeleteChannelTab(context.Background(), cb.ChannelId, cb.Id)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
-		require.Nil(t, bookmarks)
+		require.Nil(t, tabs)
 	})
 
-	t.Run("trying to delete a nonexistent bookmark should fail", func(t *testing.T) {
-		bookmarks, resp, err := th.Client.DeleteChannelTab(context.Background(), th.BasicChannel.Id, model.NewId())
+	t.Run("trying to delete a nonexistent tab should fail", func(t *testing.T) {
+		tabs, resp, err := th.Client.DeleteChannelTab(context.Background(), th.BasicChannel.Id, model.NewId())
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
-		require.Nil(t, bookmarks)
+		require.Nil(t, tabs)
 	})
 
-	t.Run("trying to delete an already deleted bookmark should fail", func(t *testing.T) {
+	t.Run("trying to delete an already deleted tab should fail", func(t *testing.T) {
 		channelTab := &model.ChannelTab{
 			ChannelId:   th.BasicChannel.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
@@ -1271,13 +1271,13 @@ func TestDeleteChannelTab(t *testing.T) {
 		_, appErr := th.App.DeleteChannelTab(cb.Id, "")
 		require.Nil(t, appErr)
 
-		bookmarks, resp, err := th.Client.DeleteChannelTab(context.Background(), th.BasicChannel.Id, cb.Id)
+		tabs, resp, err := th.Client.DeleteChannelTab(context.Background(), th.BasicChannel.Id, cb.Id)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
-		require.Nil(t, bookmarks)
+		require.Nil(t, tabs)
 	})
 
-	t.Run("a user should always be able to delete the channel bookmarks on DMs and GMs", func(t *testing.T) {
+	t.Run("a user should always be able to delete the channel tabs on DMs and GMs", func(t *testing.T) {
 		// this should work independently of the permissions applied
 		th.RemovePermissionFromRole(t, model.PermissionDeleteTabPublicChannel.Id, model.ChannelUserRoleId)
 		th.RemovePermissionFromRole(t, model.PermissionDeleteTabPrivateChannel.Id, model.ChannelUserRoleId)
@@ -1292,7 +1292,7 @@ func TestDeleteChannelTab(t *testing.T) {
 
 		dmTab := &model.ChannelTab{
 			ChannelId:   dm.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
@@ -1313,7 +1313,7 @@ func TestDeleteChannelTab(t *testing.T) {
 
 		gmTab := &model.ChannelTab{
 			ChannelId:   gm.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
@@ -1329,14 +1329,14 @@ func TestDeleteChannelTab(t *testing.T) {
 		require.NotZero(t, dgmb.DeleteAt)
 	})
 
-	t.Run("a guest should not be able to delete channel bookmarks on DMs and GMs", func(t *testing.T) {
+	t.Run("a guest should not be able to delete channel tabs on DMs and GMs", func(t *testing.T) {
 		// DM
 		dm, dmErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, guest.Id)
 		require.Nil(t, dmErr)
 
 		dmTab := &model.ChannelTab{
 			ChannelId:   dm.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
@@ -1356,7 +1356,7 @@ func TestDeleteChannelTab(t *testing.T) {
 
 		gmTab := &model.ChannelTab{
 			ChannelId:   gm.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
@@ -1371,10 +1371,10 @@ func TestDeleteChannelTab(t *testing.T) {
 		require.Nil(t, dgmb)
 	})
 
-	t.Run("a user should be able to delete another user's bookmark", func(t *testing.T) {
+	t.Run("a user should be able to delete another user's tab", func(t *testing.T) {
 		channelTab := &model.ChannelTab{
 			ChannelId:   th.BasicChannel.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
@@ -1398,12 +1398,12 @@ func TestDeleteChannelTab(t *testing.T) {
 		require.NotZero(t, dbm.DeleteAt)
 	})
 
-	t.Run("a websockets event should be fired as part of deleting a bookmark", func(t *testing.T) {
+	t.Run("a websockets event should be fired as part of deleting a tab", func(t *testing.T) {
 		webSocketClient := th.CreateConnectedWebSocketClient(t)
 
-		bookmark := &model.ChannelTab{
+		tab := &model.ChannelTab{
 			ChannelId:   th.BasicChannel.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
@@ -1414,7 +1414,7 @@ func TestDeleteChannelTab(t *testing.T) {
 		th.Context.Session().UserId = th.BasicUser.Id
 		defer func() { th.Context.Session().UserId = originalSessionUserId }()
 
-		cb, appErr := th.App.CreateChannelTab(th.Context, bookmark, "")
+		cb, appErr := th.App.CreateChannelTab(th.Context, tab, "")
 		require.Nil(t, appErr)
 		require.NotNil(t, cb)
 
@@ -1431,7 +1431,7 @@ func TestDeleteChannelTab(t *testing.T) {
 			select {
 			case event := <-webSocketClient.EventChannel:
 				if event.EventType() == model.WebsocketEventChannelTabDeleted {
-					err := json.Unmarshal([]byte(event.GetData()["bookmark"].(string)), &b)
+					err := json.Unmarshal([]byte(event.GetData()["tab"].(string)), &b)
 					require.NoError(t, err)
 					eventReceived = true
 					waiting = false
@@ -1470,7 +1470,7 @@ func TestListChannelTabsForChannel(t *testing.T) {
 	th.Context.Session().UserId = th.BasicUser.Id // set the user for the session
 
 	t.Run("should not work without a license", func(t *testing.T) {
-		_, _, err := th.Client.DeleteChannelTab(context.Background(), th.BasicChannel.Id, model.NewId())
+		_, _, err := th.Client.ListChannelTabsForChannel(context.Background(), th.BasicChannel.Id, 0)
 		CheckErrorID(t, err, "api.channel.bookmark.channel_bookmark.license.error")
 	})
 
@@ -1510,7 +1510,7 @@ func TestListChannelTabsForChannel(t *testing.T) {
 	require.Nil(t, appErr)
 	gmTab := createTab("gm-one", gm.Id)
 
-	t.Run("a user listing bookmarks in public and private channels", func(t *testing.T) {
+	t.Run("a user listing tabs in public and private channels", func(t *testing.T) {
 		testCases := []struct {
 			name           string
 			channelId      string
@@ -1521,21 +1521,21 @@ func TestListChannelTabsForChannel(t *testing.T) {
 			expectedStatus int
 		}{
 			{
-				name:           "public channel without since, should retrieve all non deleted bookmarks",
+				name:           "public channel without since, should retrieve all non deleted tabs",
 				channelId:      th.BasicChannel.Id,
 				userClient:     th.Client,
 				expectedTabs:   []string{publicTab2.Id, publicTab3.Id, publicTab4.Id},
 				expectedStatus: http.StatusOK,
 			},
 			{
-				name:           "private channel without since, should retrieve all non deleted bookmarks",
+				name:           "private channel without since, should retrieve all non deleted tabs",
 				channelId:      th.BasicPrivateChannel.Id,
 				userClient:     th.Client,
 				expectedTabs:   []string{privateTab2.Id, privateTab3.Id, privateTab4.Id},
 				expectedStatus: http.StatusOK,
 			},
 			{
-				name:           "public channel with since set early, should retrieve all bookmarks include the deleted one",
+				name:           "public channel with since set early, should retrieve all tabs including the deleted one",
 				channelId:      th.BasicChannel.Id,
 				since:          publicTab1.CreateAt,
 				userClient:     th.Client,
@@ -1543,7 +1543,7 @@ func TestListChannelTabsForChannel(t *testing.T) {
 				expectedStatus: http.StatusOK,
 			},
 			{
-				name:           "Private channel with since set early, should retrieve all bookmarks include the deleted one",
+				name:           "Private channel with since set early, should retrieve all tabs including the deleted one",
 				channelId:      th.BasicPrivateChannel.Id,
 				since:          privateTab1.CreateAt,
 				userClient:     th.Client,
@@ -1551,7 +1551,7 @@ func TestListChannelTabsForChannel(t *testing.T) {
 				expectedStatus: http.StatusOK,
 			},
 			{
-				name:           "public channel with since, should retrieve some of the bookmarks",
+				name:           "public channel with since, should retrieve some of the tabs",
 				channelId:      th.BasicChannel.Id,
 				since:          publicTab3.CreateAt,
 				userClient:     th.Client,
@@ -1559,7 +1559,7 @@ func TestListChannelTabsForChannel(t *testing.T) {
 				expectedStatus: http.StatusOK,
 			},
 			{
-				name:           "private channel with since, should retrieve some of the bookmarks",
+				name:           "private channel with since, should retrieve some of the tabs",
 				channelId:      th.BasicPrivateChannel.Id,
 				since:          privateTab4.CreateAt,
 				userClient:     th.Client,
@@ -1567,21 +1567,21 @@ func TestListChannelTabsForChannel(t *testing.T) {
 				expectedStatus: http.StatusOK,
 			},
 			{
-				name:           "guest user, public channel without since, should retrieve all non deleted bookmarks",
+				name:           "guest user, public channel without since, should retrieve all non deleted tabs",
 				channelId:      th.BasicChannel.Id,
 				userClient:     guestClient,
 				expectedTabs:   []string{publicTab2.Id, publicTab3.Id, publicTab4.Id},
 				expectedStatus: http.StatusOK,
 			},
 			{
-				name:           "guest user, private channel without since, should retrieve all non deleted bookmarks",
+				name:           "guest user, private channel without since, should retrieve all non deleted tabs",
 				channelId:      th.BasicPrivateChannel.Id,
 				userClient:     guestClient,
 				expectedTabs:   []string{privateTab2.Id, privateTab3.Id, privateTab4.Id},
 				expectedStatus: http.StatusOK,
 			},
 			{
-				name:           "guest user, guest channel without since, should retrieve all non deleted bookmarks",
+				name:           "guest user, guest channel without since, should retrieve all non deleted tabs",
 				channelId:      onlyGuestChannel.Id,
 				userClient:     guestClient,
 				expectedTabs:   []string{guestTab.Id},
@@ -1596,28 +1596,28 @@ func TestListChannelTabsForChannel(t *testing.T) {
 				expectedStatus: http.StatusForbidden,
 			},
 			{
-				name:           "guest user, dm without since, should retrieve all non deleted bookmarks",
+				name:           "guest user, dm without since, should retrieve all non deleted tabs",
 				channelId:      dm.Id,
 				userClient:     guestClient,
 				expectedTabs:   []string{dmTab.Id},
 				expectedStatus: http.StatusOK,
 			},
 			{
-				name:           "normal user, dm without since, should retrieve all non deleted bookmarks",
+				name:           "normal user, dm without since, should retrieve all non deleted tabs",
 				channelId:      dm.Id,
 				userClient:     th.Client,
 				expectedTabs:   []string{dmTab.Id},
 				expectedStatus: http.StatusOK,
 			},
 			{
-				name:           "guest user, gm without since, should retrieve all non deleted bookmarks",
+				name:           "guest user, gm without since, should retrieve all non deleted tabs",
 				channelId:      gm.Id,
 				userClient:     guestClient,
 				expectedTabs:   []string{gmTab.Id},
 				expectedStatus: http.StatusOK,
 			},
 			{
-				name:           "normal user, gm without since, should retrieve all non deleted bookmarks",
+				name:           "normal user, gm without since, should retrieve all non deleted tabs",
 				channelId:      gm.Id,
 				userClient:     th.Client,
 				expectedTabs:   []string{gmTab.Id},
@@ -1627,15 +1627,15 @@ func TestListChannelTabsForChannel(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
-				bookmarks, resp, err := tc.userClient.ListChannelTabsForChannel(context.Background(), tc.channelId, tc.since)
+				tabs, resp, err := tc.userClient.ListChannelTabsForChannel(context.Background(), tc.channelId, tc.since)
 				if tc.expectedError {
 					require.Error(t, err)
-					require.Nil(t, bookmarks)
+					require.Nil(t, tabs)
 				} else {
 					require.NoError(t, err)
 
-					tabIDs := make([]string, len(bookmarks))
-					for i, b := range bookmarks {
+					tabIDs := make([]string, len(tabs))
+					for i, b := range tabs {
 						tabIDs[i] = b.Id
 					}
 
@@ -1646,10 +1646,10 @@ func TestListChannelTabsForChannel(t *testing.T) {
 		}
 	})
 
-	t.Run("bookmark listing should work in an archived channel", func(t *testing.T) {
+	t.Run("tab listing should work in an archived channel", func(t *testing.T) {
 		channelTab := &model.ChannelTab{
 			ChannelId:   th.BasicDeletedChannel.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
@@ -1664,17 +1664,17 @@ func TestListChannelTabsForChannel(t *testing.T) {
 
 		_, _ = th.SystemAdminClient.DeleteChannel(context.Background(), cb.ChannelId)
 
-		// try to list the channel bookmarks
-		bookmarks, resp, err := th.Client.ListChannelTabsForChannel(context.Background(), cb.ChannelId, 0)
+		// try to list the channel tabs
+		tabs, resp, err := th.Client.ListChannelTabsForChannel(context.Background(), cb.ChannelId, 0)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.NotNil(t, bookmarks)
+		require.NotNil(t, tabs)
 	})
 
-	t.Run("bookmark listing should work in a moderated channel", func(t *testing.T) {
+	t.Run("tab listing should work in a moderated channel", func(t *testing.T) {
 		channelTab := &model.ChannelTab{
 			ChannelId:   th.BasicChannel.Id,
-			DisplayName: "Link bookmark test",
+			DisplayName: "Link tab test",
 			LinkUrl:     "https://mattermost.com",
 			Type:        model.ChannelTabLink,
 			Emoji:       ":smile:",
@@ -1685,15 +1685,15 @@ func TestListChannelTabsForChannel(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 		require.NotNil(t, cb)
 
-		// moderate the channel to restrict bookmarks for members
+		// moderate the channel to restrict tabs for members
 		manageTabs := model.ChannelModeratedPermissions[4]
 		th.PatchChannelModerationsForMembers(t, th.BasicChannel.Id, manageTabs, false)
 		defer th.PatchChannelModerationsForMembers(t, th.BasicChannel.Id, manageTabs, true)
 
-		// try to list existing channel bookmarks
-		bookmarks, resp, err := th.Client.ListChannelTabsForChannel(context.Background(), th.BasicChannel.Id, 0)
+		// try to list existing channel tabs
+		tabs, resp, err := th.Client.ListChannelTabsForChannel(context.Background(), th.BasicChannel.Id, 0)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.NotEmpty(t, bookmarks)
+		require.NotEmpty(t, tabs)
 	})
 }

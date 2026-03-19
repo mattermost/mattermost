@@ -42,21 +42,21 @@ const MAX_TITLE_LENGTH = 64;
 
 type Props = {
     channelId: string;
-    bookmarkType?: ChannelTab['type'];
+    tabType?: ChannelTab['type'];
     file?: File;
     onExited: () => void;
     onHide: () => void;
 } & ({
-    bookmark: ChannelTab;
+    tab: ChannelTab;
     onConfirm: (data: ChannelTabPatch) => Promise<ActionResult<boolean, any>> | ActionResult<boolean, any>;
 } | {
-    bookmark?: never;
+    tab?: never;
     onConfirm: (data: ChannelTabCreate) => Promise<ActionResult<boolean, any>> | ActionResult<boolean, any>;
 });
 
 function ChannelTabCreateModal({
-    bookmark,
-    bookmarkType,
+    tab,
+    tabType,
     file: promptedFile,
     channelId,
     onExited,
@@ -67,10 +67,10 @@ function ChannelTabCreateModal({
     const dispatch = useDispatch();
 
     // common
-    const type = bookmark?.type ?? bookmarkType ?? 'link';
+    const type = tab?.type ?? tabType ?? 'link';
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-    const [emoji, setEmoji] = useState(bookmark?.emoji ?? '');
-    const [displayName, setDisplayName] = useState<string | undefined>(bookmark?.display_name);
+    const [emoji, setEmoji] = useState(tab?.emoji ?? '');
+    const [displayName, setDisplayName] = useState<string | undefined>(tab?.display_name);
     const [parsedDisplayName, setParsedDisplayName] = useState<string | undefined>();
     const [saving, setSaving] = useState(false);
     const [saveError, setSaveError] = useState('');
@@ -90,8 +90,8 @@ function ChannelTabCreateModal({
     }, [handleKeyDown]);
 
     // type === 'link'
-    const icon = bookmark?.image_url;
-    const [link, setLinkInner] = useState(bookmark?.link_url ?? '');
+    const icon = tab?.image_url;
+    const [link, setLinkInner] = useState(tab?.link_url ?? '');
     const prevLink = useRef(link);
     const [validatedLink, setValidatedLink] = useState<string>();
     const setLink = useCallback((value: string) => {
@@ -122,7 +122,7 @@ function ChannelTabCreateModal({
     const canUploadFiles = useCanUploadFiles();
     const [pendingFile, setPendingFile] = useState<FilePreviewInfo | null>();
     const [fileError, setFileError] = useState('');
-    const [fileId, setFileId] = useState(bookmark?.file_id);
+    const [fileId, setFileId] = useState(tab?.file_id);
     const uploadRequestRef = useRef<XMLHttpRequest>();
     const fileInfo: FileInfo | undefined = useSelector((state: GlobalState) => (fileId && getFile(state, fileId)) || undefined);
 
@@ -158,7 +158,7 @@ function ChannelTabCreateModal({
 
     const handleFileRemove = () => {
         setPendingFile(null);
-        setFileId(bookmark?.file_id);
+        setFileId(tab?.file_id);
         setParsedDisplayName(undefined);
         uploadRequestRef.current?.abort();
     };
@@ -190,7 +190,7 @@ function ChannelTabCreateModal({
         setFileError(formatMessage({id: 'file_upload.generic_error_file', defaultMessage: 'There was a problem uploading your file.'}));
     };
 
-    const displayNameValue = displayName || parsedDisplayName || (type === 'file' ? fileInfo?.name : bookmark?.link_url) || '';
+    const displayNameValue = displayName || parsedDisplayName || (type === 'file' ? fileInfo?.name : tab?.link_url) || '';
 
     const doUploadFile = (file: File) => {
         setPendingFile(null);
@@ -248,22 +248,22 @@ function ChannelTabCreateModal({
 
     // controls logic
     const hasChanges = (() => {
-        if (displayNameValue !== bookmark?.display_name) {
+        if (displayNameValue !== tab?.display_name) {
             return true;
         }
 
-        if ((emoji || bookmark?.emoji) && emoji !== bookmark?.emoji) {
+        if ((emoji || tab?.emoji) && emoji !== tab?.emoji) {
             return true;
         }
 
         if (type === 'file') {
-            if (fileId && fileId !== bookmark?.file_id) {
+            if (fileId && fileId !== tab?.file_id) {
                 return true;
             }
         }
 
         if (type === 'link') {
-            return Boolean(link && link !== bookmark?.link_url);
+            return Boolean(link && link !== tab?.link_url);
         }
 
         return false;
@@ -277,7 +277,7 @@ function ChannelTabCreateModal({
                 return true;
             }
 
-            if (validatedLink || link === bookmark?.link_url) {
+            if (validatedLink || link === tab?.link_url) {
                 return true;
             }
         }
@@ -306,6 +306,7 @@ function ChannelTabCreateModal({
 
             if (!url) {
                 setSaveError(formatMessage(msg.linkInvalid));
+                setSaving(false);
                 return;
             }
 
@@ -338,6 +339,8 @@ function ChannelTabCreateModal({
                 type: 'file',
                 emoji,
             });
+
+            setSaving(false);
 
             if (success) {
                 setSaveError('');
@@ -381,8 +384,8 @@ function ChannelTabCreateModal({
             enforceFocus={!showEmojiPicker}
             keyboardEscape={false}
             className='channel-tabs-create-modal'
-            modalHeaderText={formatMessage(bookmark ? msg.editHeading : msg.heading)}
-            confirmButtonText={formatMessage(bookmark ? msg.saveText : msg.addTabText)}
+            modalHeaderText={formatMessage(tab ? msg.editHeading : msg.heading)}
+            confirmButtonText={formatMessage(tab ? msg.saveText : msg.addTabText)}
             handleCancel={cancel}
             handleConfirm={confirm}
             handleEnterKeyPress={(!confirmDisabled && confirm) || undefined}
@@ -398,7 +401,7 @@ function ChannelTabCreateModal({
                         <Input
                             maxLength={MAX_LINK_LENGTH}
                             type='text'
-                            name='bookmark-link'
+                            name='tab-link'
                             containerClassName='linkInput'
                             placeholder={formatMessage(msg.linkPlaceholder)}
                             onChange={handleLinkChange}

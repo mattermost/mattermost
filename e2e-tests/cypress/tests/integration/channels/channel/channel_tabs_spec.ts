@@ -30,7 +30,7 @@ describe('Channel Tabs', () => {
     let privateChannel: Channel;
     let channelToArchive: Channel;
 
-    const BOOKMARK_LIMIT = 50;
+    const TAB_LIMIT = 50;
 
     before(() => {
         cy.apiRequireLicense();
@@ -59,19 +59,19 @@ describe('Channel Tabs', () => {
     });
 
     describe('functionality', () => {
-        it('bookmarks bar hidden when empty', () => {
+        it('tabs bar hidden when empty', () => {
         // # Go to channel menu
             cy.uiGetChannelInfoButton();
             cy.makeClient().then(async (client) => {
-                const bookmarks = await client.getChannelTabs(publicChannel.id);
-                cy.wrap(bookmarks.length).should('eq', 0);
+                const tabs = await client.getChannelTabs(publicChannel.id);
+                cy.wrap(tabs.length).should('eq', 0);
             });
 
-            // * Verify bookmarks bar not present
+            // * Verify tabs bar not present
             cy.findByTestId('channel-tabs-container').should('not.exist');
         });
 
-        it('create link bookmark from channel menu', () => {
+        it('create link tab from channel menu', () => {
         // # Create link
             const {link, realLink} = createLinkTab({fromChannelMenu: true});
 
@@ -82,7 +82,7 @@ describe('Channel Tabs', () => {
             });
         });
 
-        it('create link bookmark', () => {
+        it('create link tab', () => {
         // # Create link
             const {link, realLink} = createLinkTab();
 
@@ -92,7 +92,7 @@ describe('Channel Tabs', () => {
             });
         });
 
-        it('create link bookmark, with emoji and custom title', () => {
+        it('create link tab, with emoji and custom title', () => {
             const {realLink, displayName, emojiName} = createLinkTab({displayName: 'custom display name', emojiName: 'smiling_face_with_3_hearts'});
 
             cy.findByTestId('channel-tabs-container').within(() => {
@@ -101,16 +101,16 @@ describe('Channel Tabs', () => {
             });
         });
 
-        it('create file bookmark from channel menu', () => {
-        // # Create bookmark
+        it('create file tab from channel menu', () => {
+        // # Create tab
             const {file} = createFileTab({file: 'mp4-video-file.mp4', fromChannelMenu: true});
 
             // * Verify uploaded
             cy.findByRole('link', {name: file});
         });
 
-        it('create file bookmark, and open preview', () => {
-        // # Create bookmark
+        it('create file tab, and open preview', () => {
+        // # Create tab
             const {file} = createFileTab({file: 'small-image.png'});
 
             // * Verify preview icon
@@ -126,7 +126,7 @@ describe('Channel Tabs', () => {
             cy.get('.icon-close').click();
         });
 
-        it('create file bookmark, progress and cancel upload', () => {
+        it('create file tab, progress and cancel upload', () => {
             const file = 'powerpointx-file.pptx';
 
             cy.intercept(
@@ -137,7 +137,7 @@ describe('Channel Tabs', () => {
                     );
                 }).as('uploadRequest');
 
-            // # Create bookmark
+            // # Create tab
             createFileTab({file, save: false});
 
             // # Cancel upload
@@ -150,7 +150,7 @@ describe('Channel Tabs', () => {
             cy.wait('@uploadRequest').its('state').should('eq', 'Errored');
 
             // * Verify cannot save
-            cy.findByRole('button', {name: 'Add bookmark'}).should('be.disabled');
+            cy.findByRole('button', {name: 'Add tab'}).should('be.disabled');
 
             // # Try upload file again
             cy.get('#tab-create-file-input-in-modal').attachFile(file);
@@ -162,12 +162,12 @@ describe('Channel Tabs', () => {
             // # Save
             editModalCreate();
 
-            // * Verify bookmark created
+            // * Verify tab created
             cy.findByRole('link', {name: file});
         });
 
-        it('create file bookmark, with emoji and custom title', () => {
-        // # Create bookmark
+        it('create file tab, with emoji and custom title', () => {
+        // # Create tab
             const {file, displayName, emojiName} = createFileTab({file: 'm4a-audio-file.m4a', displayName: 'custom displayname small-image', emojiName: 'smiling_face_with_3_hearts'});
 
             // * Verify emoji and custom display name
@@ -178,7 +178,7 @@ describe('Channel Tabs', () => {
             cy.get('.icon-close').click();
         });
 
-        it('edit link bookmark', () => {
+        it('edit link tab', () => {
         // # Create link
             const {displayName} = createLinkTab();
 
@@ -202,7 +202,7 @@ describe('Channel Tabs', () => {
             cy.findAllByRole('link', {name: `:${nextEmojiName}: ${nextDisplayName}`}).should('have.attr', 'href', realNextLink);
         });
 
-        it('edit link bookmark, only display name and emoji', () => {
+        it('edit link tab, only display name and emoji', () => {
         // # Create link
             const {displayName, realLink} = createLinkTab();
 
@@ -223,38 +223,38 @@ describe('Channel Tabs', () => {
             cy.findAllByRole('link', {name: `:${nextEmojiName}: ${nextDisplayName}`}).should('have.attr', 'href', realLink);
         });
 
-        it('delete bookmark', () => {
+        it('delete tab', () => {
             const {displayName} = createLinkTab();
 
-            // * Verify bookmark exists
+            // * Verify tab exists
             cy.findByRole('link', {name: displayName});
 
-            // # Start delete bookmark flow
+            // # Start delete tab flow
             openDotMenu(displayName);
             cy.findByRole('menuitem', {name: 'Delete'}).click();
-            cy.findByRole('dialog', {name: 'Delete bookmark'}).within(() => {
+            cy.findByRole('dialog', {name: 'Delete tab'}).within(() => {
             // * Verify delete dialog contents
-                cy.findByRole('heading', {name: 'Delete bookmark'});
+                cy.findByRole('heading', {name: 'Delete tab'});
                 cy.contains(`Are you sure you want to delete the tab ${displayName}?`);
 
-                // # Delete bookmark
+                // # Delete tab
                 cy.findByRole('button', {name: 'Yes, delete'}).click();
             });
 
-            // * Verify bookmark deleted
+            // * Verify tab deleted
             cy.findByRole('link', {name: displayName}).should('not.exist');
         });
 
-        it('reorder bookmark', () => {
+        it('reorder tab', () => {
             const {displayName: name1} = createFileTab({file: 'm4a-audio-file.m4a', displayName: 'custom displayname 1'});
             const {displayName: name2} = createFileTab({file: 'm4a-audio-file.m4a', displayName: 'custom displayname 2'});
 
-            // # Start reorder bookmark flow
+            // # Start reorder tab flow
             cy.findByTestId('channel-tabs-container').within(() => {
-                cy.findAllByRole('link').should('be.visible').as('bookmarks');
-                cy.get('@bookmarks').eq(-1).scrollIntoView();
-                cy.get('@bookmarks').eq(-2).should('contain', name1);
-                cy.get('@bookmarks').eq(-1).should('contain', name2);
+                cy.findAllByRole('link').should('be.visible').as('tabs');
+                cy.get('@tabs').eq(-1).scrollIntoView();
+                cy.get('@tabs').eq(-2).should('contain', name1);
+                cy.get('@tabs').eq(-1).should('contain', name2);
 
                 // # Perform drag using keyboard
                 cy.get(`a:contains(${name1})`).
@@ -263,16 +263,16 @@ describe('Channel Tabs', () => {
                     trigger('keydown', {keyCode: SpaceKeyCode, force: true}).wait(TIMEOUTS.THREE_SEC);
 
                 // * Verify correct order
-                cy.findAllByRole('link').should('be.visible').as('bookmarks-after');
-                cy.get('@bookmarks-after').eq(-2).should('contain', name2);
-                cy.get('@bookmarks-after').eq(-1).should('contain', name1);
+                cy.findAllByRole('link').should('be.visible').as('tabs-after');
+                cy.get('@tabs-after').eq(-2).should('contain', name2);
+                cy.get('@tabs-after').eq(-1).should('contain', name1);
             });
         });
     });
 
-    describe('manage bookmarks - permissions enforcement', () => {
+    describe('manage tabs - permissions enforcement', () => {
         before(() => {
-            // # Prep: disable manage bookmarks for users - public and private channels
+            // # Prep: disable manage tabs for users - public and private channels
             cy.uiResetPermissionsToDefault();
             cy.findByTestId('all_users-public_channel-manage_public_channel_bookmarks-checkbox').click();
             cy.findByTestId('all_users-private_channel-manage_private_channel_bookmarks-checkbox').click();
@@ -287,16 +287,16 @@ describe('Channel Tabs', () => {
             cy.visit(`/${testTeam.name}/channels/${publicChannel.name}`);
         });
 
-        it('can add bookmark: public channel, admin', () => {
-            // # To public channel with bookmark
+        it('can add tab: public channel, admin', () => {
+            // # To public channel with tab
             createLinkTab({fromChannelMenu: true});
 
             // * Verify admin can create in public channel
             verifyCanCreate();
         });
 
-        it('can add bookmark: private channel, admin', () => {
-            // # To private channel with bookmark
+        it('can add tab: private channel, admin', () => {
+            // # To private channel with tab
             cy.visit(`/${testTeam.name}/channels/${privateChannel.name}`);
             createLinkTab({fromChannelMenu: true});
 
@@ -304,7 +304,7 @@ describe('Channel Tabs', () => {
             verifyCanCreate();
         });
 
-        it('cannot add bookmark: archived channel', () => {
+        it('cannot add tab: archived channel', () => {
             // # private channel
             cy.visit(`/${testTeam.name}/channels/${channelToArchive.name}`);
             createLinkTab({fromChannelMenu: true});
@@ -315,7 +315,7 @@ describe('Channel Tabs', () => {
             verifyCannotCreate();
         });
 
-        it('cannot add bookmark: private channel, non-admin', () => {
+        it('cannot add tab: private channel, non-admin', () => {
             // # Switch to non-admin user
             cy.apiLogin(user1);
 
@@ -326,8 +326,8 @@ describe('Channel Tabs', () => {
             verifyCannotCreate();
         });
 
-        it('cannot add bookmark: public channel, non-admin', () => {
-            // # To public channel with bookmark
+        it('cannot add tab: public channel, non-admin', () => {
+            // # To public channel with tab
             cy.visit(`/${testTeam.name}/channels/${publicChannel.name}`);
 
             // * Verify non-admin user cannot create in public channel
@@ -335,13 +335,13 @@ describe('Channel Tabs', () => {
         });
 
         const verifyCanCreate = () => {
-            // * Verify can access create UI - bookmarks bar
+            // * Verify can access create UI - tabs bar
             promptAddLink();
-            cy.uiCloseModal('Add a bookmark');
+            cy.uiCloseModal('Add a tab');
 
             // * Verify can access create UI - channel menu
             promptAddLink(true);
-            cy.uiCloseModal('Add a bookmark');
+            cy.uiCloseModal('Add a tab');
         };
 
         const verifyCannotCreate = () => {
@@ -349,20 +349,20 @@ describe('Channel Tabs', () => {
             cy.uiOpenChannelMenu();
             cy.findByRole('menuitem', {name: 'Tabs Bar submenu icon'}).should('not.exist');
 
-            // * Verify cannot access create UI - bookmarks bar
+            // * Verify cannot access create UI - tabs bar
             cy.get('#channelTabsPlusMenuButton').should('not.exist');
         };
     });
 
     describe('limits enforced', () => {
-        it('max bookmarks', () => {
+        it('max tabs', () => {
             // # Create links, fill to max
             makeTabs(publicChannel);
 
-            // * Verify add bookmark button is disabled
-            cy.findAllByRole('button', {name: 'Add a bookmark'}).should('be.disabled');
+            // * Verify add tab button is disabled
+            cy.findAllByRole('button', {name: 'Add a tab'}).should('be.disabled');
 
-            // * Verify create bookmark submenu in channel menu is not shown
+            // * Verify create tab submenu in channel menu is not shown
             cy.uiOpenChannelMenu();
             cy.findByRole('menuitem', {name: 'Tabs Bar submenu icon'}).should('not.exist');
         });
@@ -370,7 +370,7 @@ describe('Channel Tabs', () => {
 
     function makeTabs(channel: Channel, n?: number) {
         cy.makeClient().then(async (client) => {
-            const nToMake = n ?? BOOKMARK_LIMIT - (await client.getChannelTabs(channel.id))?.length;
+            const nToMake = n ?? TAB_LIMIT - (await client.getChannelTabs(channel.id))?.length;
 
             await Promise.allSettled(Array(nToMake).fill(0).map(() => {
                 return client.createChannelTab(publicChannel.id, {
@@ -421,11 +421,11 @@ function openDotMenu(name: string) {
 }
 
 function editModalSave() {
-    cy.findByRole('button', {name: 'Save bookmark'}).click();
+    cy.findByRole('button', {name: 'Save tab'}).click();
 }
 
 function editModalCreate() {
-    cy.findByRole('button', {name: 'Add bookmark'}).click();
+    cy.findByRole('button', {name: 'Add tab'}).click();
 }
 
 function createLinkTab({
@@ -486,7 +486,7 @@ function createFileTab({
 
     if (save) {
         // # Save
-        cy.findByRole('button', {name: 'Add bookmark'}).click();
+        cy.findByRole('button', {name: 'Add tab'}).click();
     }
 
     return {file, displayName, emojiName};

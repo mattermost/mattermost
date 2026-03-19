@@ -20,35 +20,35 @@ export function byChannelId(state: ChannelTabsState['byChannelId'] = {}, action:
     switch (action.type) {
     case ChannelTabTypes.RECEIVED_TABS: {
         const channelId: Channel['id'] = action.data.channelId;
-        const bookmarks: ChannelTab[] = action.data.bookmarks;
+        const tabs: ChannelTab[] = action.data.tabs;
 
         return {
             ...state,
-            [channelId]: toNewObj(state[channelId], bookmarks),
+            [channelId]: toNewObj(state[channelId], tabs),
         };
     }
 
     case ChannelTabTypes.RECEIVED_TAB: {
-        const bookmark: ChannelTab = action.data;
-        const {id, channel_id: channelId} = bookmark;
+        const tab: ChannelTab = action.data;
+        const {id, channel_id: channelId} = tab;
 
         return {
             ...state,
             [channelId]: {
                 ...state[channelId],
-                [id]: bookmark,
+                [id]: tab,
             },
         };
     }
 
     case ChannelTabTypes.TAB_DELETED: {
-        const bookmark: ChannelTab = action.data;
+        const tab: ChannelTab = action.data;
 
-        const channelNextState = {...state[bookmark.channel_id]};
+        const channelNextState = {...state[tab.channel_id]};
 
-        Reflect.deleteProperty(channelNextState, bookmark.id);
+        Reflect.deleteProperty(channelNextState, tab.id);
 
-        const nextState = {...state, [bookmark.channel_id]: channelNextState};
+        const nextState = {...state, [tab.channel_id]: channelNextState};
 
         return nextState;
     }

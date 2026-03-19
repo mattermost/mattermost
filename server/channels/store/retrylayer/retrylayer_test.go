@@ -60,7 +60,6 @@ func genStore() *mocks.Store {
 	mock.On("PostAcknowledgement").Return(&mocks.PostAcknowledgementStore{})
 	mock.On("PostPersistentNotification").Return(&mocks.PostPersistentNotificationStore{})
 	mock.On("DesktopTokens").Return(&mocks.DesktopTokensStore{})
-	mock.On("ChannelTab").Return(&mocks.ChannelTabStore{})
 	mock.On("ScheduledPost").Return(&mocks.ScheduledPostStore{})
 	mock.On("PropertyField").Return(&mocks.PropertyFieldStore{})
 	mock.On("PropertyGroup").Return(&mocks.PropertyGroupStore{})

@@ -17,16 +17,16 @@ export function deleteTab(channelId: string, id: string): ActionFuncAsync<boolea
     };
 }
 
-export function createTab(channelId: string, bookmark: ChannelTabCreate): ActionFuncAsync<boolean> {
+export function createTab(channelId: string, tab: ChannelTabCreate): ActionFuncAsync<boolean> {
     return (dispatch, getState) => {
         const state = getState();
         const connectionId = getConnectionId(state);
-        return dispatch(Actions.createTab(channelId, bookmark, connectionId));
+        return dispatch(Actions.createTab(channelId, tab, connectionId));
     };
 }
 
 export function editTab(channelId: string, id: string, patch: ChannelTabPatch): ActionFuncAsync<boolean> {
-    return async (dispatch, getState) => {
+    return (dispatch, getState) => {
         const state = getState();
         const connectionId = getConnectionId(state);
         return dispatch(Actions.editTab(channelId, id, patch, connectionId));

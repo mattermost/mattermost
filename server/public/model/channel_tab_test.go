@@ -18,12 +18,12 @@ func TestChannelTabIsValid(t *testing.T) {
 		ExpectedIsValid bool
 	}{
 		{
-			"nil bookmark",
+			"nil tab",
 			&ChannelTab{},
 			false,
 		},
 		{
-			"bookmark without create at timestamp",
+			"tab without create at timestamp",
 			&ChannelTab{
 				Id:          NewId(),
 				OwnerId:     NewId(),
@@ -42,7 +42,7 @@ func TestChannelTabIsValid(t *testing.T) {
 			false,
 		},
 		{
-			"bookmark without update at timestamp",
+			"tab without update at timestamp",
 			&ChannelTab{
 				Id:          NewId(),
 				OwnerId:     NewId(),
@@ -61,7 +61,7 @@ func TestChannelTabIsValid(t *testing.T) {
 			false,
 		},
 		{
-			"bookmark with missing channel id",
+			"tab with missing channel id",
 			&ChannelTab{
 				Id:          NewId(),
 				OwnerId:     NewId(),
@@ -80,7 +80,7 @@ func TestChannelTabIsValid(t *testing.T) {
 			false,
 		},
 		{
-			"bookmark with invalid channel id",
+			"tab with invalid channel id",
 			&ChannelTab{
 				Id:          NewId(),
 				OwnerId:     NewId(),
@@ -99,7 +99,7 @@ func TestChannelTabIsValid(t *testing.T) {
 			false,
 		},
 		{
-			"bookmark with missing owner id",
+			"tab with missing owner id",
 			&ChannelTab{
 				Id:          NewId(),
 				ChannelId:   NewId(),
@@ -118,7 +118,7 @@ func TestChannelTabIsValid(t *testing.T) {
 			false,
 		},
 		{
-			"bookmark with invalid user id",
+			"tab with invalid user id",
 			&ChannelTab{
 				Id:          NewId(),
 				ChannelId:   NewId(),
@@ -137,7 +137,7 @@ func TestChannelTabIsValid(t *testing.T) {
 			false,
 		},
 		{
-			"bookmark with missing displayname",
+			"tab with missing displayname",
 			&ChannelTab{
 				Id:          NewId(),
 				ChannelId:   NewId(),
@@ -156,7 +156,7 @@ func TestChannelTabIsValid(t *testing.T) {
 			false,
 		},
 		{
-			"bookmark with missing type",
+			"tab with missing type",
 			&ChannelTab{
 				Id:          NewId(),
 				ChannelId:   NewId(),
@@ -175,7 +175,7 @@ func TestChannelTabIsValid(t *testing.T) {
 			false,
 		},
 		{
-			"bookmark with invalid type",
+			"tab with invalid type",
 			&ChannelTab{
 				Id:          NewId(),
 				ChannelId:   NewId(),
@@ -194,7 +194,7 @@ func TestChannelTabIsValid(t *testing.T) {
 			false,
 		},
 		{
-			"bookmark of type link with missing link url",
+			"tab of type link with missing link url",
 			&ChannelTab{
 				Id:          NewId(),
 				ChannelId:   NewId(),
@@ -213,7 +213,7 @@ func TestChannelTabIsValid(t *testing.T) {
 			false,
 		},
 		{
-			"bookmark of type link with invalid link url",
+			"tab of type link with invalid link url",
 			&ChannelTab{
 				Id:          NewId(),
 				ChannelId:   NewId(),
@@ -232,7 +232,7 @@ func TestChannelTabIsValid(t *testing.T) {
 			false,
 		},
 		{
-			"bookmark of type link with valid link url",
+			"tab of type link with valid link url",
 			&ChannelTab{
 				Id:          NewId(),
 				ChannelId:   NewId(),
@@ -251,7 +251,7 @@ func TestChannelTabIsValid(t *testing.T) {
 			true,
 		},
 		{
-			"bookmark of type link with empty image url",
+			"tab of type link with empty image url",
 			&ChannelTab{
 				Id:          NewId(),
 				ChannelId:   NewId(),
@@ -270,7 +270,7 @@ func TestChannelTabIsValid(t *testing.T) {
 			true,
 		},
 		{
-			"bookmark of type link with invalid image url",
+			"tab of type link with invalid image url",
 			&ChannelTab{
 				Id:          NewId(),
 				ChannelId:   NewId(),
@@ -289,7 +289,7 @@ func TestChannelTabIsValid(t *testing.T) {
 			false,
 		},
 		{
-			"bookmark of type link with valid image url",
+			"tab of type link with valid image url",
 			&ChannelTab{
 				Id:          NewId(),
 				ChannelId:   NewId(),
@@ -308,7 +308,7 @@ func TestChannelTabIsValid(t *testing.T) {
 			true,
 		},
 		{
-			"bookmark of type file with missing file id",
+			"tab of type file with missing file id",
 			&ChannelTab{
 				Id:          NewId(),
 				ChannelId:   NewId(),
@@ -327,7 +327,7 @@ func TestChannelTabIsValid(t *testing.T) {
 			false,
 		},
 		{
-			"bookmark of type file with invalid file id",
+			"tab of type file with invalid file id",
 			&ChannelTab{
 				Id:          NewId(),
 				ChannelId:   NewId(),
@@ -346,7 +346,7 @@ func TestChannelTabIsValid(t *testing.T) {
 			false,
 		},
 		{
-			"bookmark of type file with valid file id",
+			"tab of type file with valid file id",
 			&ChannelTab{
 				Id:          NewId(),
 				ChannelId:   NewId(),
@@ -365,7 +365,7 @@ func TestChannelTabIsValid(t *testing.T) {
 			true,
 		},
 		{
-			"bookmark of type file with invalid original id",
+			"tab of type file with invalid original id",
 			&ChannelTab{
 				Id:          NewId(),
 				ChannelId:   NewId(),
@@ -385,7 +385,7 @@ func TestChannelTabIsValid(t *testing.T) {
 			false,
 		},
 		{
-			"bookmark of type file with invalid parent id",
+			"tab of type file with invalid parent id",
 			&ChannelTab{
 				Id:          NewId(),
 				ChannelId:   NewId(),
@@ -405,7 +405,7 @@ func TestChannelTabIsValid(t *testing.T) {
 			false,
 		},
 		{
-			"bookmark of type link with a file Id attached",
+			"tab of type link with a file Id attached",
 			&ChannelTab{
 				Id:          NewId(),
 				OwnerId:     NewId(),
@@ -424,7 +424,7 @@ func TestChannelTabIsValid(t *testing.T) {
 			false,
 		},
 		{
-			"bookmark of type file with a url",
+			"tab of type file with a url",
 			&ChannelTab{
 				Id:          NewId(),
 				OwnerId:     NewId(),
@@ -443,7 +443,7 @@ func TestChannelTabIsValid(t *testing.T) {
 			false,
 		},
 		{
-			"bookmark with long display name > limit",
+			"tab with long display name > limit",
 			&ChannelTab{
 				Id:          NewId(),
 				OwnerId:     NewId(),
@@ -462,7 +462,7 @@ func TestChannelTabIsValid(t *testing.T) {
 			false,
 		},
 		{
-			"bookmark with long display name < limit",
+			"tab with long display name < limit",
 			&ChannelTab{
 				Id:          NewId(),
 				OwnerId:     NewId(),
@@ -482,7 +482,7 @@ func TestChannelTabIsValid(t *testing.T) {
 		},
 
 		{
-			"bookmark with link url > limit",
+			"tab with link url > limit",
 			&ChannelTab{
 				Id:          NewId(),
 				OwnerId:     NewId(),
@@ -501,7 +501,7 @@ func TestChannelTabIsValid(t *testing.T) {
 			false,
 		},
 		{
-			"bookmark with image url > limit",
+			"tab with image url > limit",
 			&ChannelTab{
 				Id:          NewId(),
 				OwnerId:     NewId(),
@@ -533,7 +533,7 @@ func TestChannelTabIsValid(t *testing.T) {
 }
 
 func TestChannelTabPreSave(t *testing.T) {
-	bookmark := &ChannelTab{
+	tab := &ChannelTab{
 		Id:          NewId(),
 		ChannelId:   NewId(),
 		OwnerId:     NewId(),
@@ -545,27 +545,27 @@ func TestChannelTabPreSave(t *testing.T) {
 	}
 
 	originalTab := &ChannelTab{
-		Id:          bookmark.Id,
-		ChannelId:   bookmark.ChannelId,
-		OwnerId:     bookmark.OwnerId,
-		DisplayName: bookmark.DisplayName,
-		SortOrder:   bookmark.SortOrder,
-		LinkUrl:     bookmark.LinkUrl,
-		Type:        bookmark.Type,
-		DeleteAt:    bookmark.DeleteAt,
+		Id:          tab.Id,
+		ChannelId:   tab.ChannelId,
+		OwnerId:     tab.OwnerId,
+		DisplayName: tab.DisplayName,
+		SortOrder:   tab.SortOrder,
+		LinkUrl:     tab.LinkUrl,
+		Type:        tab.Type,
+		DeleteAt:    tab.DeleteAt,
 	}
 
-	bookmark.PreSave()
-	assert.NotEqual(t, 0, bookmark.CreateAt)
-	assert.NotEqual(t, 0, bookmark.UpdateAt)
+	tab.PreSave()
+	assert.NotEqual(t, 0, tab.CreateAt)
+	assert.NotEqual(t, 0, tab.UpdateAt)
 
-	originalTab.CreateAt = bookmark.CreateAt
-	originalTab.UpdateAt = bookmark.UpdateAt
-	assert.Equal(t, originalTab, bookmark)
+	originalTab.CreateAt = tab.CreateAt
+	originalTab.UpdateAt = tab.UpdateAt
+	assert.Equal(t, originalTab, tab)
 }
 
 func TestChannelTabPreUpdate(t *testing.T) {
-	bookmark := &ChannelTab{
+	tab := &ChannelTab{
 		Id:          NewId(),
 		ChannelId:   NewId(),
 		OwnerId:     NewId(),
@@ -578,39 +578,39 @@ func TestChannelTabPreUpdate(t *testing.T) {
 	}
 
 	originalTab := &ChannelTab{
-		Id:          bookmark.Id,
-		ChannelId:   bookmark.ChannelId,
-		OwnerId:     bookmark.OwnerId,
-		DisplayName: bookmark.DisplayName,
-		SortOrder:   bookmark.SortOrder,
-		LinkUrl:     bookmark.LinkUrl,
-		Type:        bookmark.Type,
-		DeleteAt:    bookmark.DeleteAt,
+		Id:          tab.Id,
+		ChannelId:   tab.ChannelId,
+		OwnerId:     tab.OwnerId,
+		DisplayName: tab.DisplayName,
+		SortOrder:   tab.SortOrder,
+		LinkUrl:     tab.LinkUrl,
+		Type:        tab.Type,
+		DeleteAt:    tab.DeleteAt,
 	}
 
-	bookmark.PreSave()
-	assert.NotEqual(t, 0, bookmark.UpdateAt)
+	tab.PreSave()
+	assert.NotEqual(t, 0, tab.UpdateAt)
 
-	originalTab.CreateAt = bookmark.CreateAt
-	originalTab.UpdateAt = bookmark.UpdateAt
-	assert.Equal(t, originalTab, bookmark)
+	originalTab.CreateAt = tab.CreateAt
+	originalTab.UpdateAt = tab.UpdateAt
+	assert.Equal(t, originalTab, tab)
 
-	bookmark.PreUpdate()
-	assert.Greater(t, bookmark.UpdateAt, originalTab.UpdateAt)
+	tab.PreUpdate()
+	assert.Greater(t, tab.UpdateAt, originalTab.UpdateAt)
 }
 
 func TestToTabWithFileInfo(t *testing.T) {
 	testCases := []struct {
 		name          string
-		bookmark      *ChannelTab
+		tab           *ChannelTab
 		fileInfo      *FileInfo
 		expectedEmoji string
 	}{
 		{
 			name: "emoji with colons",
-			bookmark: &ChannelTab{
+			tab: &ChannelTab{
 				Id:          NewId(),
-				DisplayName: "test bookmark",
+				DisplayName: "test tab",
 				Emoji:       ":smile:",
 				Type:        ChannelTabLink,
 			},
@@ -619,9 +619,9 @@ func TestToTabWithFileInfo(t *testing.T) {
 		},
 		{
 			name: "emoji without colons",
-			bookmark: &ChannelTab{
+			tab: &ChannelTab{
 				Id:          NewId(),
-				DisplayName: "test bookmark",
+				DisplayName: "test tab",
 				Emoji:       "smile",
 				Type:        ChannelTabLink,
 			},
@@ -630,9 +630,9 @@ func TestToTabWithFileInfo(t *testing.T) {
 		},
 		{
 			name: "empty emoji",
-			bookmark: &ChannelTab{
+			tab: &ChannelTab{
 				Id:          NewId(),
-				DisplayName: "test bookmark",
+				DisplayName: "test tab",
 				Emoji:       "",
 				Type:        ChannelTabLink,
 			},
@@ -643,7 +643,7 @@ func TestToTabWithFileInfo(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result := tc.bookmark.ToTabWithFileInfo(tc.fileInfo)
+			result := tc.tab.ToTabWithFileInfo(tc.fileInfo)
 			assert.Equal(t, tc.expectedEmoji, result.Emoji)
 		})
 	}

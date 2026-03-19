@@ -110,9 +110,9 @@ func (_m *ChannelTabStore) GetTabsForChannelSince(channelID string, since int64)
 	return r0, r1
 }
 
-// Save provides a mock function with given fields: bookmark, increaseSortOrder
-func (_m *ChannelTabStore) Save(bookmark *model.ChannelTab, increaseSortOrder bool) (*model.ChannelTabWithFileInfo, error) {
-	ret := _m.Called(bookmark, increaseSortOrder)
+// Save provides a mock function with given fields: tab, increaseSortOrder
+func (_m *ChannelTabStore) Save(tab *model.ChannelTab, increaseSortOrder bool) (*model.ChannelTabWithFileInfo, error) {
+	ret := _m.Called(tab, increaseSortOrder)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Save")
@@ -121,10 +121,10 @@ func (_m *ChannelTabStore) Save(bookmark *model.ChannelTab, increaseSortOrder bo
 	var r0 *model.ChannelTabWithFileInfo
 	var r1 error
 	if rf, ok := ret.Get(0).(func(*model.ChannelTab, bool) (*model.ChannelTabWithFileInfo, error)); ok {
-		return rf(bookmark, increaseSortOrder)
+		return rf(tab, increaseSortOrder)
 	}
 	if rf, ok := ret.Get(0).(func(*model.ChannelTab, bool) *model.ChannelTabWithFileInfo); ok {
-		r0 = rf(bookmark, increaseSortOrder)
+		r0 = rf(tab, increaseSortOrder)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.ChannelTabWithFileInfo)
@@ -132,7 +132,7 @@ func (_m *ChannelTabStore) Save(bookmark *model.ChannelTab, increaseSortOrder bo
 	}
 
 	if rf, ok := ret.Get(1).(func(*model.ChannelTab, bool) error); ok {
-		r1 = rf(bookmark, increaseSortOrder)
+		r1 = rf(tab, increaseSortOrder)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -140,9 +140,9 @@ func (_m *ChannelTabStore) Save(bookmark *model.ChannelTab, increaseSortOrder bo
 	return r0, r1
 }
 
-// Update provides a mock function with given fields: bookmark
-func (_m *ChannelTabStore) Update(bookmark *model.ChannelTab) error {
-	ret := _m.Called(bookmark)
+// Update provides a mock function with given fields: tab
+func (_m *ChannelTabStore) Update(tab *model.ChannelTab) error {
+	ret := _m.Called(tab)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Update")
@@ -150,7 +150,7 @@ func (_m *ChannelTabStore) Update(bookmark *model.ChannelTab) error {
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(*model.ChannelTab) error); ok {
-		r0 = rf(bookmark)
+		r0 = rf(tab)
 	} else {
 		r0 = ret.Error(0)
 	}

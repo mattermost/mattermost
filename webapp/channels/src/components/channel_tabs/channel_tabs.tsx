@@ -22,7 +22,7 @@ type Props = {
 function ChannelTabs({
     channelId,
 }: Props) {
-    const {order, bookmarks, reorder} = useChannelTabs(channelId);
+    const {order, tabs, reorder} = useChannelTabs(channelId);
     const canReorder = useChannelTabPermission(channelId, 'order');
     const canUploadFiles = useCanUploadFiles();
     const hasTabs = Boolean(order?.length);
@@ -54,7 +54,7 @@ function ChannelTabs({
                             className='channel-tabs-container'
                             {...drop.droppableProps}
                         >
-                            {order.map(makeItemRenderer(bookmarks, snap.isDraggingOver, !canReorder))}
+                            {order.map(makeItemRenderer(tabs, snap.isDraggingOver, !canReorder))}
                             {drop.placeholder}
                             <TabsMenu
                                 channelId={channelId}
@@ -70,7 +70,7 @@ function ChannelTabs({
     );
 }
 
-const makeItemRenderer = (bookmarks: IDMappedObjects<ChannelTab>, disableInteractions: boolean, disableDrag: boolean) => (id: string, index: number) => {
+const makeItemRenderer = (tabs: IDMappedObjects<ChannelTab>, disableInteractions: boolean, disableDrag: boolean) => (id: string, index: number) => {
     return (
         <Draggable
             key={id}
@@ -85,7 +85,7 @@ const makeItemRenderer = (bookmarks: IDMappedObjects<ChannelTab>, disableInterac
                         drag={drag}
                         isDragging={snap.isDragging}
                         disableInteractions={snap.isDragging || disableInteractions}
-                        bookmark={bookmarks[id]}
+                        tab={tabs[id]}
                     />
                 );
             }}

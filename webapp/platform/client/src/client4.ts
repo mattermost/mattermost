@@ -2637,7 +2637,7 @@ export default class Client4 {
         };
 
         return this.doFetch<FileUploadResponse>(
-            `${this.getFilesRoute()}${buildQueryString({bookmark: isTab})}`,
+            `${this.getFilesRoute()}${buildQueryString({tab: isTab})}`,
             request,
         );
     };

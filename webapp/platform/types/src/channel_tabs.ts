@@ -49,8 +49,8 @@ export type ChannelTabPatch = {
 }
 
 export type UpdateChannelTabResponse = {
-    updated: ChannelTab;
-    deleted: ChannelTab;
+    updated?: ChannelTabWithFileInfo;
+    deleted?: ChannelTabWithFileInfo;
 };
 
 export type ChannelTabWithFileInfo = ChannelTab & {

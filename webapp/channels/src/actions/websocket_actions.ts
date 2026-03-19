@@ -1949,17 +1949,17 @@ function handlePersistentNotification(msg: WebSocketMessages.PersistentNotificat
 }
 
 function handleChannelTabCreated(msg: WebSocketMessages.ChannelTabCreated) {
-    const bookmark = JSON.parse(msg.data.bookmark) as ChannelTabWithFileInfo;
+    const tab = JSON.parse(msg.data.tab) as ChannelTabWithFileInfo;
 
     return {
         type: ChannelTabTypes.RECEIVED_TAB,
-        data: bookmark,
+        data: tab,
     };
 }
 
 function handleChannelTabUpdated(msg: WebSocketMessages.ChannelTabUpdated): ThunkActionFunc<void> {
     return async (doDispatch) => {
-        const {updated, deleted} = JSON.parse(msg.data.bookmarks) as UpdateChannelTabResponse;
+        const {updated, deleted} = JSON.parse(msg.data.tabs) as UpdateChannelTabResponse;
 
         if (updated) {
             doDispatch({
@@ -1978,20 +1978,20 @@ function handleChannelTabUpdated(msg: WebSocketMessages.ChannelTabUpdated): Thun
 }
 
 function handleChannelTabDeleted(msg: WebSocketMessages.ChannelTabDeleted) {
-    const bookmark = JSON.parse(msg.data.bookmark) as ChannelTabWithFileInfo;
+    const tab = JSON.parse(msg.data.tab) as ChannelTabWithFileInfo;
 
     return {
         type: ChannelTabTypes.TAB_DELETED,
-        data: bookmark,
+        data: tab,
     };
 }
 
 function handleChannelTabSorted(msg: WebSocketMessages.ChannelTabSorted) {
-    const bookmarks = JSON.parse(msg.data.bookmarks) as ChannelTabWithFileInfo[];
+    const tabs = JSON.parse(msg.data.tabs) as ChannelTabWithFileInfo[];
 
     return {
         type: ChannelTabTypes.RECEIVED_TABS,
-        data: {channelId: msg.broadcast.channel_id, bookmarks},
+        data: {channelId: msg.broadcast.channel_id, tabs},
     };
 }
 

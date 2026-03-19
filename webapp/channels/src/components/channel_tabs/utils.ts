@@ -104,11 +104,11 @@ export const getIsChannelTabsEnabled = (state: GlobalState) => {
 
 export const useChannelTabs = (channelId: string) => {
     const dispatch = useDispatch();
-    const bookmarks = useSelector((state: GlobalState) => getChannelTabs(state, channelId));
+    const tabs = useSelector((state: GlobalState) => getChannelTabs(state, channelId));
 
     const order = useMemo(() => {
-        return Object.keys(bookmarks).sort((a, b) => bookmarks[a].sort_order - bookmarks[b].sort_order);
-    }, [bookmarks]);
+        return Object.keys(tabs).sort((a, b) => tabs[a].sort_order - tabs[b].sort_order);
+    }, [tabs]);
     const [tempOrder, setTempOrder] = useState<typeof order>();
 
     useEffect(() => {
@@ -124,7 +124,7 @@ export const useChannelTabs = (channelId: string) => {
     }, [channelId]);
 
     useEffect(() => {
-        const emojis = Object.values(bookmarks).reduce<string[]>((result, {emoji}) => {
+        const emojis = Object.values(tabs).reduce<string[]>((result, {emoji}) => {
             if (emoji) {
                 result.push(trimmedEmojiName(emoji));
             }
@@ -135,7 +135,7 @@ export const useChannelTabs = (channelId: string) => {
         if (emojis.length) {
             dispatch(loadCustomEmojisIfNeeded(emojis));
         }
-    }, [bookmarks]);
+    }, [tabs]);
 
     const reorder = async (id: string, prevOrder: number, nextOrder: number) => {
         setTempOrder(insertWithoutDuplicates(order, id, nextOrder));
@@ -147,7 +147,7 @@ export const useChannelTabs = (channelId: string) => {
     };
 
     return {
-        bookmarks,
+        tabs,
         order: tempOrder ?? order,
         reorder,
     } as const;

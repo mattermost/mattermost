@@ -475,6 +475,20 @@ func TestParamsFromRequest(t *testing.T) {
 				LimitBefore: LimitDefault,
 			},
 		},
+		{
+			"legacy bookmarks_since param still works",
+			mustURL("/?bookmarks_since=987654321"),
+			nil,
+			&Params{
+				TabsSince: 987654321,
+
+				LimitAfter: LimitDefault,
+
+				PerPage:     PerPageDefault,
+				LogsPerPage: LogsPerPageDefault,
+				LimitBefore: LimitDefault,
+			},
+		},
 	}
 
 	for _, testCase := range testCases {

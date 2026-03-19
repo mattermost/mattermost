@@ -2243,7 +2243,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			},
 		},
 		{
-			Name: "Removing manage bookmarks from members role",
+			Name: "Removing manage tabs from members role",
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &manageTabs,
@@ -2335,7 +2335,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ShouldHaveNoChannelScheme:   true,
 		},
 		{
-			Name: "Removing manage bookmarks from guests role should not error",
+			Name: "Removing manage tabs from guests role should not error",
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &manageTabs,

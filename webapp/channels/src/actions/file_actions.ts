@@ -35,7 +35,7 @@ export function uploadFile({file, name, type, rootId, channelId, clientId, onPro
 
         let url = Client4.getFilesRoute();
         if (isTab) {
-            url += '?bookmark=true';
+            url += '?tab=true';
         }
 
         const xhr = new XMLHttpRequest();

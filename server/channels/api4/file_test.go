@@ -123,7 +123,7 @@ func testUploadFilesPost(
 		}
 
 		if isTab {
-			postURL += "&bookmark=true"
+			postURL += "&tab=true"
 		}
 
 		fur, resp, err := testDoUploadFileRequest(tb, c, postURL, blob, ct, cl)
@@ -194,7 +194,7 @@ func testUploadFilesMultipart(
 	require.NoError(tb, mw.Close())
 	url := ""
 	if isTab {
-		url += "?bookmark=true"
+		url += "?tab=true"
 	}
 	fur, resp, err := testDoUploadFileRequest(tb, c, url, mwBody.Bytes(), mw.FormDataContentType(), -1)
 	if err != nil {
@@ -202,6 +202,29 @@ func testUploadFilesMultipart(
 	}
 
 	return fur, resp, nil
+}
+
+func TestGetTabQueryParam(t *testing.T) {
+	tests := []struct {
+		name     string
+		query    string
+		expected string
+	}{
+		{"new tab param", "?tab=true", "true"},
+		{"legacy bookmark param", "?bookmark=true", "true"},
+		{"tab takes precedence over bookmark", "?tab=true&bookmark=false", "true"},
+		{"no param returns empty", "", ""},
+		{"tab false", "?tab=false", "false"},
+		{"legacy bookmark false", "?bookmark=false", "false"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			r, err := http.NewRequest("GET", "/files"+tc.query, nil)
+			require.NoError(t, err)
+			assert.Equal(t, tc.expected, getTabQueryParam(r))
+		})
+	}
 }
 
 func TestUploadFiles(t *testing.T) {

@@ -26,8 +26,8 @@ type RetryLayer struct {
 	AutoTranslationStore            store.AutoTranslationStore
 	BotStore                        store.BotStore
 	ChannelStore                    store.ChannelStore
-	ChannelTabStore            store.ChannelTabStore
 	ChannelMemberHistoryStore       store.ChannelMemberHistoryStore
+	ChannelTabStore                 store.ChannelTabStore
 	ClusterDiscoveryStore           store.ClusterDiscoveryStore
 	CommandStore                    store.CommandStore
 	CommandWebhookStore             store.CommandWebhookStore
@@ -102,12 +102,12 @@ func (s *RetryLayer) Channel() store.ChannelStore {
 	return s.ChannelStore
 }
 
-func (s *RetryLayer) ChannelTab() store.ChannelTabStore {
-	return s.ChannelTabStore
-}
-
 func (s *RetryLayer) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 	return s.ChannelMemberHistoryStore
+}
+
+func (s *RetryLayer) ChannelTab() store.ChannelTabStore {
+	return s.ChannelTabStore
 }
 
 func (s *RetryLayer) ClusterDiscovery() store.ClusterDiscoveryStore {
@@ -332,13 +332,13 @@ type RetryLayerChannelStore struct {
 	Root *RetryLayer
 }
 
-type RetryLayerChannelTabStore struct {
-	store.ChannelTabStore
+type RetryLayerChannelMemberHistoryStore struct {
+	store.ChannelMemberHistoryStore
 	Root *RetryLayer
 }
 
-type RetryLayerChannelMemberHistoryStore struct {
-	store.ChannelMemberHistoryStore
+type RetryLayerChannelTabStore struct {
+	store.ChannelTabStore
 	Root *RetryLayer
 }
 
@@ -3659,153 +3659,6 @@ func (s *RetryLayerChannelStore) UserBelongsToChannels(userID string, channelIds
 
 }
 
-func (s *RetryLayerChannelTabStore) Delete(tabID string, deleteFile bool) error {
-
-	tries := 0
-	for {
-		err := s.ChannelTabStore.Delete(tabID, deleteFile)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerChannelTabStore) ErrorIfTabFileInfoAlreadyAttached(fileID string, channelID string) error {
-
-	tries := 0
-	for {
-		err := s.ChannelTabStore.ErrorIfTabFileInfoAlreadyAttached(fileID, channelID)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerChannelTabStore) Get(Id string, includeDeleted bool) (*model.ChannelTabWithFileInfo, error) {
-
-	tries := 0
-	for {
-		result, err := s.ChannelTabStore.Get(Id, includeDeleted)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerChannelTabStore) GetTabsForChannelSince(channelID string, since int64) ([]*model.ChannelTabWithFileInfo, error) {
-
-	tries := 0
-	for {
-		result, err := s.ChannelTabStore.GetTabsForChannelSince(channelID, since)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerChannelTabStore) Save(bookmark *model.ChannelTab, increaseSortOrder bool) (*model.ChannelTabWithFileInfo, error) {
-
-	tries := 0
-	for {
-		result, err := s.ChannelTabStore.Save(bookmark, increaseSortOrder)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerChannelTabStore) Update(bookmark *model.ChannelTab) error {
-
-	tries := 0
-	for {
-		err := s.ChannelTabStore.Update(bookmark)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerChannelTabStore) UpdateSortOrder(tabID string, channelID string, newIndex int64) ([]*model.ChannelTabWithFileInfo, error) {
-
-	tries := 0
-	for {
-		result, err := s.ChannelTabStore.UpdateSortOrder(tabID, channelID, newIndex)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
 func (s *RetryLayerChannelMemberHistoryStore) DeleteOrphanedRows(limit int) (int64, error) {
 
 	tries := 0
@@ -3968,6 +3821,153 @@ func (s *RetryLayerChannelMemberHistoryStore) PermanentDeleteBatchForRetentionPo
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, resultVar1, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelTabStore) Delete(tabID string, deleteFile bool) error {
+
+	tries := 0
+	for {
+		err := s.ChannelTabStore.Delete(tabID, deleteFile)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelTabStore) ErrorIfTabFileInfoAlreadyAttached(fileID string, channelID string) error {
+
+	tries := 0
+	for {
+		err := s.ChannelTabStore.ErrorIfTabFileInfoAlreadyAttached(fileID, channelID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelTabStore) Get(Id string, includeDeleted bool) (*model.ChannelTabWithFileInfo, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelTabStore.Get(Id, includeDeleted)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelTabStore) GetTabsForChannelSince(channelID string, since int64) ([]*model.ChannelTabWithFileInfo, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelTabStore.GetTabsForChannelSince(channelID, since)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelTabStore) Save(tab *model.ChannelTab, increaseSortOrder bool) (*model.ChannelTabWithFileInfo, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelTabStore.Save(tab, increaseSortOrder)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelTabStore) Update(tab *model.ChannelTab) error {
+
+	tries := 0
+	for {
+		err := s.ChannelTabStore.Update(tab)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelTabStore) UpdateSortOrder(tabID string, channelID string, newIndex int64) ([]*model.ChannelTabWithFileInfo, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelTabStore.UpdateSortOrder(tabID, channelID, newIndex)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
@@ -18036,8 +18036,8 @@ func New(childStore store.Store) *RetryLayer {
 	newStore.AutoTranslationStore = &RetryLayerAutoTranslationStore{AutoTranslationStore: childStore.AutoTranslation(), Root: &newStore}
 	newStore.BotStore = &RetryLayerBotStore{BotStore: childStore.Bot(), Root: &newStore}
 	newStore.ChannelStore = &RetryLayerChannelStore{ChannelStore: childStore.Channel(), Root: &newStore}
-	newStore.ChannelTabStore = &RetryLayerChannelTabStore{ChannelTabStore: childStore.ChannelTab(), Root: &newStore}
 	newStore.ChannelMemberHistoryStore = &RetryLayerChannelMemberHistoryStore{ChannelMemberHistoryStore: childStore.ChannelMemberHistory(), Root: &newStore}
+	newStore.ChannelTabStore = &RetryLayerChannelTabStore{ChannelTabStore: childStore.ChannelTab(), Root: &newStore}
 	newStore.ClusterDiscoveryStore = &RetryLayerClusterDiscoveryStore{ClusterDiscoveryStore: childStore.ClusterDiscovery(), Root: &newStore}
 	newStore.CommandStore = &RetryLayerCommandStore{CommandStore: childStore.Command(), Root: &newStore}
 	newStore.CommandWebhookStore = &RetryLayerCommandWebhookStore{CommandWebhookStore: childStore.CommandWebhook(), Root: &newStore}

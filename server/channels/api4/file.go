@@ -61,6 +61,15 @@ func parseMultipartRequestHeader(req *http.Request) (boundary string, err error)
 	return boundary, nil
 }
 
+// getTabQueryParam returns the "tab" query param value, falling back to the
+// legacy "bookmark" param for backward compatibility.
+func getTabQueryParam(r *http.Request) string {
+	if v := r.URL.Query().Get("tab"); v != "" {
+		return v
+	}
+	return r.URL.Query().Get(model.TabFileOwner)
+}
+
 func multipartReader(req *http.Request, stream io.Reader) (*multipart.Reader, error) {
 	boundary, err := parseMultipartRequestHeader(req)
 	if err != nil {
@@ -170,7 +179,7 @@ func uploadFileSimple(c *Context, r *http.Request, timestamp time.Time) *model.F
 	model.AddEventParameterToAuditRec(auditRec, "client_id", clientId)
 
 	creatorId := c.AppContext.Session().UserId
-	if isTab, err := strconv.ParseBool(r.URL.Query().Get(model.TabFileOwner)); err == nil && isTab {
+	if isTab, err := strconv.ParseBool(getTabQueryParam(r)); err == nil && isTab {
 		creatorId = model.TabFileOwner
 		model.AddEventParameterToAuditRec(auditRec, model.TabFileOwner, true)
 	}
@@ -293,7 +302,7 @@ NextPart:
 		}
 
 		isTab := false
-		if val, queryErr := strconv.ParseBool(r.URL.Query().Get(model.TabFileOwner)); queryErr == nil {
+		if val, queryErr := strconv.ParseBool(getTabQueryParam(r)); queryErr == nil {
 			isTab = val
 		}
 

@@ -1095,8 +1095,8 @@ type PostPersistentNotificationStore interface {
 type ChannelTabStore interface {
 	ErrorIfTabFileInfoAlreadyAttached(fileID string, channelID string) error
 	Get(Id string, includeDeleted bool) (b *model.ChannelTabWithFileInfo, err error)
-	Save(bookmark *model.ChannelTab, increaseSortOrder bool) (b *model.ChannelTabWithFileInfo, err error)
-	Update(bookmark *model.ChannelTab) error
+	Save(tab *model.ChannelTab, increaseSortOrder bool) (b *model.ChannelTabWithFileInfo, err error)
+	Update(tab *model.ChannelTab) error
 	UpdateSortOrder(tabID, channelID string, newIndex int64) ([]*model.ChannelTabWithFileInfo, error)
 	Delete(tabID string, deleteFile bool) error
 	GetTabsForChannelSince(channelID string, since int64) ([]*model.ChannelTabWithFileInfo, error)

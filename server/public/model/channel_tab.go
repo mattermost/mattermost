@@ -53,14 +53,14 @@ func (o *ChannelTab) Auditable() map[string]any {
 	}
 }
 
-// Clone returns a shallow copy of the channel bookmark.
+// Clone returns a shallow copy of the channel tab.
 func (o *ChannelTab) Clone() *ChannelTab {
 	bCopy := *o
 	return &bCopy
 }
 
-// SetOriginal generates a new bookmark copying the data of the
-// receiver bookmark, resets its timestamps and main ID, updates its
+// SetOriginal generates a new tab copying the data of the
+// receiver tab, resets its timestamps and main ID, updates its
 // OriginalId and sets the owner to the ID passed as a parameter
 func (o *ChannelTab) SetOriginal(newOwnerId string) *ChannelTab {
 	bCopy := *o
@@ -235,7 +235,7 @@ func (o *ChannelTabWithFileInfo) Auditable() map[string]any {
 	return a
 }
 
-// Clone returns a shallow copy of the channel bookmark with file info.
+// Clone returns a shallow copy of the channel tab with file info.
 func (o *ChannelTabWithFileInfo) Clone() *ChannelTabWithFileInfo {
 	bCopy := *o
 	return &bCopy
@@ -262,7 +262,7 @@ func (o *UpdateChannelTabResponse) Auditable() map[string]any {
 		a["updated"] = o.Updated.Auditable()
 	}
 	if o.Deleted != nil {
-		a["updated"] = o.Deleted.Auditable()
+		a["deleted"] = o.Deleted.Auditable()
 	}
 	return a
 }
@@ -317,7 +317,7 @@ func (o *ChannelTabAndFileInfo) ToChannelTabWithFileInfo() *ChannelTabWithFileIn
 
 	if o.FileInfoId != "" && o.FileId != "" {
 		miniPreview := o.MiniPreview
-		if len(*miniPreview) == 0 {
+		if miniPreview != nil && len(*miniPreview) == 0 {
 			miniPreview = nil
 		}
 		bwf.FileInfo = &FileInfo{
@@ -334,3 +334,15 @@ func (o *ChannelTabAndFileInfo) ToChannelTabWithFileInfo() *ChannelTabWithFileIn
 	}
 	return bwf
 }
+
+// Deprecated: Use ChannelTab instead.
+type ChannelBookmark = ChannelTab
+
+// Deprecated: Use ChannelTabWithFileInfo instead.
+type ChannelBookmarkWithFileInfo = ChannelTabWithFileInfo
+
+// Deprecated: Use ChannelTabPatch instead.
+type ChannelBookmarkPatch = ChannelTabPatch
+
+// Deprecated: Use UpdateChannelTabResponse instead.
+type UpdateChannelBookmarkResponse = UpdateChannelTabResponse

@@ -33,9 +33,9 @@ const ChannelTabsSubmenu = (props: Props) => {
     const canAdd = useChannelTabPermission(props.channel.id, 'add');
     const canUploadFiles = useCanUploadFiles();
 
-    useSelector((state: GlobalState) => {
-        const bookmarks = getChannelTabs(state, props.channel.id);
-        return bookmarks && Object.keys(bookmarks).length >= MAX_TABS_PER_CHANNEL;
+    const limitReached = useSelector((state: GlobalState) => {
+        const tabs = getChannelTabs(state, props.channel.id);
+        return tabs && Object.keys(tabs).length >= MAX_TABS_PER_CHANNEL;
     });
 
     if (!canAdd) {
@@ -66,6 +66,7 @@ const ChannelTabsSubmenu = (props: Props) => {
                         defaultMessage='Add a link'
                     />
                 )}
+                disabled={limitReached}
                 onClick={() => handleCreateLink()}
             />
             {canUploadFiles && (
@@ -78,6 +79,7 @@ const ChannelTabsSubmenu = (props: Props) => {
                             defaultMessage='Attach a file'
                         />
                     )}
+                    disabled={limitReached}
                     onClick={() => handleCreateFile()}
                 />
             )}

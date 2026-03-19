@@ -14,39 +14,39 @@ import (
 )
 
 func (a *App) GetChannelTabs(channelId string, since int64) ([]*model.ChannelTabWithFileInfo, *model.AppError) {
-	bookmarks, err := a.Srv().Store().ChannelTab().GetTabsForChannelSince(channelId, since)
+	tabs, err := a.Srv().Store().ChannelTab().GetTabsForChannelSince(channelId, since)
 	if err != nil {
 		return nil, model.NewAppError("GetChannelTabs", "app.channel.bookmark.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
 	}
 
-	return bookmarks, nil
+	return tabs, nil
 }
 
 func (a *App) GetTab(tabId string, includeDeleted bool) (*model.ChannelTabWithFileInfo, *model.AppError) {
-	bookmark, err := a.Srv().Store().ChannelTab().Get(tabId, includeDeleted)
+	tab, err := a.Srv().Store().ChannelTab().Get(tabId, includeDeleted)
 	if err != nil {
 		return nil, model.NewAppError("GetTab", "app.channel.bookmark.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
 	}
 
-	return bookmark, nil
+	return tab, nil
 }
 
 func (a *App) CreateChannelTab(rctx request.CTX, newTab *model.ChannelTab, connectionId string) (*model.ChannelTabWithFileInfo, *model.AppError) {
-	newTab.OwnerId = rctx.Session().UserId //ensure that the bookmark is being created by the user who owns the session
-	newTab.Id = ""                         // ensure that creating a new bookmark generates a new ID
-	bookmark, err := a.Srv().Store().ChannelTab().Save(newTab, true)
+	newTab.OwnerId = rctx.Session().UserId // ensure that the tab is being created by the user who owns the session
+	newTab.Id = ""                         // ensure that creating a new tab generates a new ID
+	tab, err := a.Srv().Store().ChannelTab().Save(newTab, true)
 	if err != nil {
 		return nil, model.NewAppError("CreateChannelTab", "app.channel.bookmark.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventChannelTabCreated, "", bookmark.ChannelId, "", nil, connectionId)
-	bookmarkJSON, jsonErr := json.Marshal(bookmark)
+	message := model.NewWebSocketEvent(model.WebsocketEventChannelTabCreated, "", tab.ChannelId, "", nil, connectionId)
+	tabJSON, jsonErr := json.Marshal(tab)
 	if jsonErr != nil {
 		return nil, model.NewAppError("CreateChannelTab", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
-	message.Add("bookmark", string(bookmarkJSON))
+	message.Add("tab", string(tabJSON))
 	a.Publish(message)
-	return bookmark, nil
+	return tab, nil
 }
 
 func (a *App) UpdateChannelTab(rctx request.CTX, updateTab *model.ChannelTabWithFileInfo, connectionId string) (*model.UpdateChannelTabResponse, *model.AppError) {
@@ -85,20 +85,20 @@ func (a *App) UpdateChannelTab(rctx request.CTX, updateTab *model.ChannelTabWith
 		}
 
 		newTab := updateTab.SetOriginal(rctx.Session().UserId)
-		bookmark, err := a.Srv().Store().ChannelTab().Save(newTab, false)
+		tab, err := a.Srv().Store().ChannelTab().Save(newTab, false)
 		if err != nil {
 			return nil, model.NewAppError("UpdateChannelTab", "app.channel.bookmark.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
-		response.Updated = bookmark
+		response.Updated = tab
 		response.Deleted = existingTab.ToTabWithFileInfo(nil)
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventChannelTabUpdated, "", updateTab.ChannelId, "", nil, connectionId)
-	bookmarkJSON, jsonErr := json.Marshal(response)
+	tabJSON, jsonErr := json.Marshal(response)
 	if jsonErr != nil {
 		return nil, model.NewAppError("UpdateChannelTab", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
-	message.Add("bookmarks", string(bookmarkJSON))
+	message.Add("tabs", string(tabJSON))
 	a.Publish(message)
 
 	return response, nil
@@ -109,24 +109,24 @@ func (a *App) DeleteChannelTab(tabId, connectionId string) (*model.ChannelTabWit
 		return nil, model.NewAppError("DeleteChannelTab", "app.channel.bookmark.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	bookmark, err := a.GetTab(tabId, true)
+	tab, err := a.GetTab(tabId, true)
 	if err != nil {
 		return nil, model.NewAppError("DeleteChannelTab", "app.channel.bookmark.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventChannelTabDeleted, "", bookmark.ChannelId, "", nil, connectionId)
-	bookmarkJSON, jsonErr := json.Marshal(bookmark)
+	message := model.NewWebSocketEvent(model.WebsocketEventChannelTabDeleted, "", tab.ChannelId, "", nil, connectionId)
+	tabJSON, jsonErr := json.Marshal(tab)
 	if jsonErr != nil {
 		return nil, model.NewAppError("DeleteChannelTab", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
-	message.Add("bookmark", string(bookmarkJSON))
+	message.Add("tab", string(tabJSON))
 	a.Publish(message)
 
-	return bookmark, nil
+	return tab, nil
 }
 
 func (a *App) UpdateChannelTabSortOrder(tabId, channelId string, newIndex int64, connectionId string) ([]*model.ChannelTabWithFileInfo, *model.AppError) {
-	bookmarks, err := a.Srv().Store().ChannelTab().UpdateSortOrder(tabId, channelId, newIndex)
+	tabs, err := a.Srv().Store().ChannelTab().UpdateSortOrder(tabId, channelId, newIndex)
 	if err != nil {
 		var iiErr *store.ErrInvalidInput
 		var nfErr *store.ErrNotFound
@@ -141,12 +141,12 @@ func (a *App) UpdateChannelTabSortOrder(tabId, channelId string, newIndex int64,
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventChannelTabSorted, "", channelId, "", nil, connectionId)
-	bookmarkJSON, jsonErr := json.Marshal(bookmarks)
+	tabJSON, jsonErr := json.Marshal(tabs)
 	if jsonErr != nil {
 		return nil, model.NewAppError("UpdateSortOrder", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
-	message.Add("bookmarks", string(bookmarkJSON))
+	message.Add("tabs", string(tabJSON))
 	a.Publish(message)
 
-	return bookmarks, nil
+	return tabs, nil
 }

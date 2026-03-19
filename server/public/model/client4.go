@@ -7636,7 +7636,7 @@ func (c *Client4) CheckCWSConnection(ctx context.Context, userId string) (*Respo
 	return BuildResponse(r), nil
 }
 
-// CreateChannelTab creates a channel bookmark based on the provided struct.
+// CreateChannelTab creates a channel tab based on the provided struct.
 func (c *Client4) CreateChannelTab(ctx context.Context, channelTab *ChannelTab) (*ChannelTabWithFileInfo, *Response, error) {
 	r, err := c.doAPIPostJSON(ctx, c.tabsRoute(channelTab.ChannelId), channelTab)
 	if err != nil {
@@ -7646,7 +7646,7 @@ func (c *Client4) CreateChannelTab(ctx context.Context, channelTab *ChannelTab) 
 	return DecodeJSONFromResponse[*ChannelTabWithFileInfo](r)
 }
 
-// UpdateChannelTab updates a channel bookmark based on the provided struct.
+// UpdateChannelTab updates a channel tab based on the provided struct.
 func (c *Client4) UpdateChannelTab(ctx context.Context, channelId, tabId string, patch *ChannelTabPatch) (*UpdateChannelTabResponse, *Response, error) {
 	r, err := c.doAPIPatchJSON(ctx, c.tabRoute(channelId, tabId), patch)
 	if err != nil {
@@ -7656,7 +7656,7 @@ func (c *Client4) UpdateChannelTab(ctx context.Context, channelId, tabId string,
 	return DecodeJSONFromResponse[*UpdateChannelTabResponse](r)
 }
 
-// UpdateChannelTabSortOrder updates a channel bookmark's sort order based on the provided new index.
+// UpdateChannelTabSortOrder updates a channel tab's sort order based on the provided new index.
 func (c *Client4) UpdateChannelTabSortOrder(ctx context.Context, channelId, tabId string, sortOrder int64) ([]*ChannelTabWithFileInfo, *Response, error) {
 	r, err := c.doAPIPostJSON(ctx, c.tabRoute(channelId, tabId).Join("sort_order"), sortOrder)
 	if err != nil {
@@ -7666,7 +7666,7 @@ func (c *Client4) UpdateChannelTabSortOrder(ctx context.Context, channelId, tabI
 	return DecodeJSONFromResponse[[]*ChannelTabWithFileInfo](r)
 }
 
-// DeleteChannelTab deletes a channel bookmark.
+// DeleteChannelTab deletes a channel tab.
 func (c *Client4) DeleteChannelTab(ctx context.Context, channelId, tabId string) (*ChannelTabWithFileInfo, *Response, error) {
 	r, err := c.doAPIDelete(ctx, c.tabRoute(channelId, tabId))
 	if err != nil {
@@ -7685,6 +7685,31 @@ func (c *Client4) ListChannelTabsForChannel(ctx context.Context, channelId strin
 	}
 	defer closeBody(r)
 	return DecodeJSONFromResponse[[]*ChannelTabWithFileInfo](r)
+}
+
+// Deprecated: Use CreateChannelTab instead.
+func (c *Client4) CreateChannelBookmark(ctx context.Context, channelTab *ChannelTab) (*ChannelTabWithFileInfo, *Response, error) {
+	return c.CreateChannelTab(ctx, channelTab)
+}
+
+// Deprecated: Use UpdateChannelTab instead.
+func (c *Client4) UpdateChannelBookmark(ctx context.Context, channelId, tabId string, patch *ChannelTabPatch) (*UpdateChannelTabResponse, *Response, error) {
+	return c.UpdateChannelTab(ctx, channelId, tabId, patch)
+}
+
+// Deprecated: Use UpdateChannelTabSortOrder instead.
+func (c *Client4) UpdateChannelBookmarkSortOrder(ctx context.Context, channelId, tabId string, sortOrder int64) ([]*ChannelTabWithFileInfo, *Response, error) {
+	return c.UpdateChannelTabSortOrder(ctx, channelId, tabId, sortOrder)
+}
+
+// Deprecated: Use DeleteChannelTab instead.
+func (c *Client4) DeleteChannelBookmark(ctx context.Context, channelId, tabId string) (*ChannelTabWithFileInfo, *Response, error) {
+	return c.DeleteChannelTab(ctx, channelId, tabId)
+}
+
+// Deprecated: Use ListChannelTabsForChannel instead.
+func (c *Client4) ListChannelBookmarksForChannel(ctx context.Context, channelId string, since int64) ([]*ChannelTabWithFileInfo, *Response, error) {
+	return c.ListChannelTabsForChannel(ctx, channelId, since)
 }
 
 func (c *Client4) SubmitClientMetrics(ctx context.Context, report *PerformanceReport) (*Response, error) {

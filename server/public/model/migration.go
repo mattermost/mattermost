@@ -47,7 +47,7 @@ const (
 	MigrationKeyDeleteOrphanDrafts                     = "delete_orphan_drafts_migration"
 	MigrationKeyAddIPFilteringPermissions              = "add_ip_filtering_permissions"
 	MigrationKeyAddOutgoingOAuthConnectionsPermissions = "add_outgoing_oauth_connections_permissions"
-	MigrationKeyAddChannelTabsPermissions              = "add_channel_bookmarks_permissions"
+	MigrationKeyAddChannelTabsPermissions              = "add_channel_bookmarks_permissions" // string value kept as "add_channel_bookmarks_permissions" for backward compatibility with existing migrations
 	MigrationKeyDeleteDmsPreferences                   = "delete_dms_preferences_migration"
 	MigrationKeyAddManageJobAncillaryPermissions       = "add_manage_jobs_ancillary_permissions"
 	MigrationKeyAddUploadFilePermission                = "add_upload_file_permission"
