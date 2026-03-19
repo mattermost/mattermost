@@ -222,6 +222,19 @@ func TestCreatePost(t *testing.T) {
 		assert.Nil(t, rpost)
 	})
 
+	t.Run("with type card", func(t *testing.T) {
+		cardPost, resp, err := client.CreatePost(context.Background(), &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "card post",
+			Type:      model.PostTypeCard,
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, cardPost)
+		assert.Equal(t, model.PostTypeCard, cardPost.Type)
+		assert.Equal(t, "card post", cardPost.Message)
+	})
+
 	t.Run("invalid post type", func(t *testing.T) {
 		post := basicPost()
 		post.Type = model.PostTypeSystemGeneric

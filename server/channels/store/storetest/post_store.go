@@ -247,6 +247,19 @@ func testPostStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 		assert.Equal(t, int64(3), rchannel3.TotalMsgCount)
 	})
 
+	t.Run("Save post with type card", func(t *testing.T) {
+		o1 := model.Post{}
+		o1.ChannelId = model.NewId()
+		o1.UserId = model.NewId()
+		o1.Message = NewTestID()
+		o1.Type = model.PostTypeCard
+
+		p, err := ss.Post().Save(rctx, &o1)
+		require.NoError(t, err, "couldn't save item")
+		assert.Equal(t, model.PostTypeCard, p.Type)
+		assert.Equal(t, o1.Message, p.Message)
+	})
+
 	t.Run("Save post with priority metadata set", func(t *testing.T) {
 		o1 := model.Post{}
 		o1.ChannelId = model.NewId()
