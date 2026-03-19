@@ -3510,6 +3510,23 @@ func TestPermanentDeleteChannel(t *testing.T) {
 	})
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIChannelDeletion = true })
+
+	t.Run("Permanent deletion of DM/GM fails without PermissionDeletePrivateChannel", func(t *testing.T) {
+		dmChannel, _, err := th.SystemAdminClient.CreateDirectChannel(context.Background(), th.BasicUser.Id, th.BasicUser2.Id)
+		require.NoError(t, err)
+
+		groupChannel, _, err := th.SystemAdminClient.CreateGroupChannel(context.Background(), []string{th.BasicUser.Id, th.BasicUser2.Id})
+		require.NoError(t, err)
+
+		// BasicUser is part of the DM and Group but doesn't have PermissionDeletePrivateChannel by default
+		resp, err := th.Client.PermanentDeleteChannel(context.Background(), dmChannel.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		resp, err = th.Client.PermanentDeleteChannel(context.Background(), groupChannel.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		publicChannel := th.CreatePublicChannel(t)
 		_, err := c.PermanentDeleteChannel(context.Background(), publicChannel.Id)
