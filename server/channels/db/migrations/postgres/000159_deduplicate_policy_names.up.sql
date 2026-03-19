@@ -1,5 +1,3 @@
--- morph:nontransactional
-
 -- Deduplicate parent policy names before adding unique constraint.
 -- The oldest policy (by CreateAt) keeps its original name; duplicates get ' (<id>)' appended.
 UPDATE AccessControlPolicies AS p
@@ -12,4 +10,4 @@ FROM (
 WHERE p.ID = dupes.ID
   AND dupes.rn > 1;
 
-CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS idx_accesscontrolpolicies_name_type ON AccessControlPolicies (Name, Type) WHERE Type = 'parent';
+CREATE UNIQUE INDEX IF NOT EXISTS idx_accesscontrolpolicies_name_type ON AccessControlPolicies (Name, Type) WHERE Type = 'parent';
