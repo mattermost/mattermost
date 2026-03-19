@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 
@@ -396,6 +397,7 @@ func (es *Service) SendMfaChangeEmail(email string, activated bool, locale, site
 }
 
 func (es *Service) SendInviteEmails(
+	rctx request.CTX,
 	team *model.Team,
 	senderName string,
 	senderUserId string,
@@ -409,7 +411,7 @@ func (es *Service) SendInviteEmails(
 	if es.perHourEmailRateLimiter == nil {
 		return NoRateLimiterError
 	}
-	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimit(senderUserId, len(invites))
+	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimitCtx(rctx.Context(), senderUserId, len(invites))
 	if err != nil {
 		return SetupRateLimiterError
 	}
@@ -488,6 +490,7 @@ func (es *Service) SendInviteEmails(
 const magicLinkURL = "%s/landing#/login/one_time_link?t=%s"
 
 func (es *Service) SendGuestInviteEmails(
+	rctx request.CTX,
 	team *model.Team,
 	channels []*model.Channel,
 	senderName string,
@@ -504,7 +507,7 @@ func (es *Service) SendGuestInviteEmails(
 	if es.perHourEmailRateLimiter == nil {
 		return NoRateLimiterError
 	}
-	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimit(senderUserId, len(invites))
+	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimitCtx(rctx.Context(), senderUserId, len(invites))
 	if err != nil {
 		return SetupRateLimiterError
 	}
@@ -618,6 +621,7 @@ func (es *Service) SendGuestInviteEmails(
 // This is for self-service login requests (no sender, no team/channel context).
 // For admin-initiated guest magic link invitations with team/channel assignment, use SendGuestInviteEmails with isGuestMagicLink=true.
 func (es *Service) SendMagicLinkEmailSelfService(
+	rctx request.CTX,
 	invite string,
 	siteURL string,
 ) error {
@@ -626,7 +630,7 @@ func (es *Service) SendMagicLinkEmailSelfService(
 	}
 
 	// Rate limit by email address for self-service requests
-	rateLimited, result, err := es.perMinuteEmailRateLimiter.RateLimit(invite, 1)
+	rateLimited, result, err := es.perMinuteEmailRateLimiter.RateLimitCtx(rctx.Context(), invite, 1)
 	if err != nil {
 		return SetupRateLimiterError
 	}
@@ -689,6 +693,7 @@ func (es *Service) SendMagicLinkEmailSelfService(
 }
 
 func (es *Service) SendInviteEmailsToTeamAndChannels(
+	rctx request.CTX,
 	team *model.Team,
 	channels []*model.Channel,
 	senderName string,
@@ -705,7 +710,7 @@ func (es *Service) SendInviteEmailsToTeamAndChannels(
 	if es.perHourEmailRateLimiter == nil {
 		return nil, NoRateLimiterError
 	}
-	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimit(senderUserId, len(invites))
+	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimitCtx(rctx.Context(), senderUserId, len(invites))
 	if err != nil {
 		return nil, SetupRateLimiterError
 	}
