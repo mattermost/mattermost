@@ -863,7 +863,7 @@ mmctl-build: ## Compiles and generates the mmctl binary
 
 mmctl-docs: ## Generate the mmctl docs
 	rm -rf ./cmd/mmctl/docs
-	cd ./cmd/mmctl && go run mmctl.go docs
+	cd ./cmd/mmctl && $(GO) run mmctl.go docs
 
 ## Help documentation à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 help:
