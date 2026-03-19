@@ -67,7 +67,7 @@ func (a *App) CreateCommandPost(rctx request.CTX, post *model.Post, teamID strin
 	}
 
 	if response.Attachments != nil {
-		model.ParseSlackAttachment(post, response.Attachments)
+		model.ParseMessageAttachment(post, response.Attachments)
 	}
 
 	if response.ResponseType == model.CommandResponseTypeInChannel {
@@ -672,7 +672,7 @@ func (a *App) HandleCommandResponsePost(rctx request.CTX, command *model.Command
 	// Process Slack text replacements if the response does not contain "skip_slack_parsing": true.
 	if !response.SkipSlackParsing {
 		response.Text = a.ProcessSlackText(rctx, response.Text)
-		response.Attachments = a.ProcessSlackAttachments(rctx, response.Attachments)
+		response.Attachments = a.ProcessMessageAttachments(rctx, response.Attachments)
 	}
 
 	if _, err := a.CreateCommandPost(rctx, post, args.TeamId, response, response.SkipSlackParsing); err != nil {
@@ -693,22 +693,8 @@ func (a *App) CreateCommand(cmd *model.Command) (*model.Command, *model.AppError
 func (a *App) createCommand(cmd *model.Command) (*model.Command, *model.AppError) {
 	cmd.Trigger = strings.ToLower(cmd.Trigger)
 
-	teamCmds, err := a.Srv().Store().Command().GetByTeam(cmd.TeamId)
-	if err != nil {
-		return nil, model.NewAppError("CreateCommand", "app.command.createcommand.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	for _, existingCommand := range teamCmds {
-		if cmd.Trigger == existingCommand.Trigger {
-			return nil, model.NewAppError("CreateCommand", "api.command.duplicate_trigger.app_error", nil, "", http.StatusBadRequest)
-		}
-	}
-
-	for _, builtInProvider := range commandProviders {
-		builtInCommand := builtInProvider.GetCommand(a, i18n.T)
-		if builtInCommand != nil && cmd.Trigger == builtInCommand.Trigger {
-			return nil, model.NewAppError("CreateCommand", "api.command.duplicate_trigger.app_error", nil, "", http.StatusBadRequest)
-		}
+	if appErr := a.validateCommandTriggerUniqueness(cmd.TeamId, cmd.Trigger, ""); appErr != nil {
+		return nil, appErr
 	}
 
 	command, nErr := a.Srv().Store().Command().Save(cmd)
@@ -723,6 +709,30 @@ func (a *App) createCommand(cmd *model.Command) (*model.Command, *model.AppError
 	}
 
 	return command, nil
+}
+
+func (a *App) validateCommandTriggerUniqueness(teamID, trigger, excludeCommandID string) *model.AppError {
+	trigger = strings.ToLower(trigger)
+
+	for _, builtInProvider := range commandProviders {
+		builtInCommand := builtInProvider.GetCommand(a, i18n.T)
+		if builtInCommand != nil && trigger == strings.ToLower(builtInCommand.Trigger) {
+			return model.NewAppError("validateCommandTriggerUniqueness", "api.command.duplicate_trigger.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	teamCmds, err := a.Srv().Store().Command().GetByTeam(teamID)
+	if err != nil {
+		return model.NewAppError("validateCommandTriggerUniqueness", "app.command.validatecommandtriggeruniqueness.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	for _, existingCommand := range teamCmds {
+		if existingCommand.Id != excludeCommandID && trigger == strings.ToLower(existingCommand.Trigger) {
+			return model.NewAppError("validateCommandTriggerUniqueness", "api.command.duplicate_trigger.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	return nil
 }
 
 func (a *App) GetCommand(commandID string) (*model.Command, *model.AppError) {
@@ -758,6 +768,10 @@ func (a *App) UpdateCommand(oldCmd, updatedCmd *model.Command) (*model.Command, 
 	updatedCmd.PluginId = oldCmd.PluginId
 	updatedCmd.TeamId = oldCmd.TeamId
 
+	if appErr := a.validateCommandTriggerUniqueness(updatedCmd.TeamId, updatedCmd.Trigger, updatedCmd.Id); appErr != nil {
+		return nil, appErr
+	}
+
 	command, err := a.Srv().Store().Command().Update(updatedCmd)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -776,6 +790,10 @@ func (a *App) UpdateCommand(oldCmd, updatedCmd *model.Command) (*model.Command, 
 }
 
 func (a *App) MoveCommand(team *model.Team, command *model.Command) *model.AppError {
+	if appErr := a.validateCommandTriggerUniqueness(team.Id, command.Trigger, command.Id); appErr != nil {
+		return appErr
+	}
+
 	command.TeamId = team.Id
 
 	_, err := a.Srv().Store().Command().Update(command)

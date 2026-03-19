@@ -27,5 +27,6 @@ export default keyMirror({
     REGISTERED_USERS: null,
     TOTAL_FILE_COUNT: null,
     TOTAL_FILE_SIZE: null,
+    SINGLE_CHANNEL_GUESTS: null,
 });
 

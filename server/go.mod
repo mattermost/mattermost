@@ -43,7 +43,7 @@ require (
 	github.com/mattermost/gosaml2 v0.10.0
 	github.com/mattermost/ldap v0.0.0-20231116144001-0f480c025956
 	github.com/mattermost/logr/v2 v2.0.22
-	github.com/mattermost/mattermost-plugin-ai v1.8.1
+	github.com/mattermost/mattermost-plugin-ai v1.12.0
 	github.com/mattermost/mattermost/server/public v0.1.22-0.20251105210629-8bf4a00724e2
 	github.com/mattermost/morph v1.1.0
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
@@ -63,7 +63,7 @@ require (
 	github.com/spf13/viper v1.21.0
 	github.com/splitio/go-client/v6 v6.8.0
 	github.com/stretchr/testify v1.11.1
-	github.com/throttled/throttled v2.2.5+incompatible
+	github.com/throttled/throttled/v2 v2.15.0
 	github.com/tinylib/msgp v1.4.0
 	github.com/tylerb/graceful v1.2.15
 	github.com/vmihailenco/msgpack/v5 v5.4.1
