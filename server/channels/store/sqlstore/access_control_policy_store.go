@@ -185,29 +185,6 @@ func (s *SqlAccessControlPolicyStore) Save(rctx request.CTX, policy *model.Acces
 		return nil, errors.Wrapf(err, "failed to fetch policy with id=%s", policy.ID)
 	}
 
-	// Enforce name uniqueness for parent policies within the same type
-	if policy.Type == model.AccessControlPolicyTypeParent && policy.Name != "" {
-		var count int
-		nameQuery := s.getQueryBuilder().
-			Select("COUNT(*)").
-			From("AccessControlPolicies").
-			Where(sq.And{
-				sq.Eq{"Name": policy.Name},
-				sq.Eq{"Type": policy.Type},
-				sq.NotEq{"ID": policy.ID},
-			})
-		nameSQL, args, qErr := nameQuery.ToSql()
-		if qErr != nil {
-			return nil, errors.Wrap(qErr, "failed to build name uniqueness query")
-		}
-		if qErr = tx.Get(&count, nameSQL, args...); qErr != nil {
-			return nil, errors.Wrap(qErr, "failed to check name uniqueness")
-		}
-		if count > 0 {
-			return nil, store.NewErrConflict("AccessControlPolicy", nil, "name="+policy.Name)
-		}
-	}
-
 	storePolicy, err := fromModel(policy)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to parse policy with Id=%s", policy.ID)
