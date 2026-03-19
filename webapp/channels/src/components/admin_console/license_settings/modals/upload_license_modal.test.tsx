@@ -90,8 +90,7 @@ describe('components/admin_console/license_settings/modals/upload_license_modal'
     });
 
     test('should display upload btn Disabled on initial load and no file selected', () => {
-        const newProps = {...props};
-        newProps.fileObjFromProps = {} as File;
+        const newProps = {...props, fileObjFromProps: null};
         renderWithContext(
             <UploadLicenseModal {...newProps}/>,
             state,
@@ -114,8 +113,9 @@ describe('components/admin_console/license_settings/modals/upload_license_modal'
     });
 
     test('should display no file selected text when no file is loaded', () => {
+        const newProps = {...props, fileObjFromProps: null};
         renderWithContext(
-            <UploadLicenseModal {...props}/>,
+            <UploadLicenseModal {...newProps}/>,
             state,
         );
         expect(screen.getByText('No file selected')).toBeInTheDocument();

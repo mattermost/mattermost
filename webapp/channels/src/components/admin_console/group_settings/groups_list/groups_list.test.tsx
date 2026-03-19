@@ -14,12 +14,12 @@ import {renderWithContext, screen} from 'tests/react_testing_utils';
 // which fires on the same event that opens it. We temporarily suppress that listener.
 function openFilters() {
     const originalAddEventListener = document.addEventListener.bind(document);
-    const spy = jest.spyOn(document, 'addEventListener').mockImplementation((type: string, ...rest: any[]) => {
-        if (type === 'click') {
+    const spy = jest.spyOn(document, 'addEventListener').mockImplementation((...args: Parameters<typeof document.addEventListener>) => {
+        if (args[0] === 'click') {
             // Suppress the one-time close listener
             return;
         }
-        originalAddEventListener(type, ...rest);
+        originalAddEventListener(...args);
     });
     const caretDown = document.querySelector('i.fa-caret-down')!;
     fireEvent.click(caretDown);

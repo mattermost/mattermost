@@ -47,11 +47,12 @@ describe('components/admin_console/permission_schemes_settings/permission_row', 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot on read only and not inherited', () => {
+    test('should match snapshot on read only and inherited', () => {
         const {container} = renderWithContext(
             <PermissionRow
                 {...defaultProps}
                 readOnly={true}
+                inherited={{name: 'all_users'}}
             />,
         );
         expect(container).toMatchSnapshot();

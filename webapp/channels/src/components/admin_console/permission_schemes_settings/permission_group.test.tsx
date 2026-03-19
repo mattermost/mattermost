@@ -205,20 +205,6 @@ describe('components/admin_console/permission_schemes_settings/permission_group'
         expect(onChange).not.toHaveBeenCalled();
     });
 
-    test('shouldn\'t call onChange function on click when is read-only', async () => {
-        const onChange = jest.fn();
-        const {container} = renderWithContext(
-            <PermissionGroup
-                {...defaultProps}
-                readOnly={true}
-                onChange={onChange}
-            />,
-        );
-        const groupRow = container.querySelector('.permission-group-row')!;
-        await userEvent.setup().click(groupRow);
-        expect(onChange).not.toHaveBeenCalled();
-    });
-
     test('should collapse when toggle to all permissions and expand otherwise', async () => {
         // Start with some permissions (intermediate state) -> clicking toggles to all -> should collapse
         const {container, rerender} = renderWithContext(

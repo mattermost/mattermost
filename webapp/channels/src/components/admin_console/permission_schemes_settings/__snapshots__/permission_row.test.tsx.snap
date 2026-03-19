@@ -166,7 +166,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_row sho
 </div>
 `;
 
-exports[`components/admin_console/permission_schemes_settings/permission_row should match snapshot on read only and not inherited 1`] = `
+exports[`components/admin_console/permission_schemes_settings/permission_row should match snapshot on read only and inherited 1`] = `
 <div>
   <div
     class="permission-row read-only"
@@ -239,12 +239,22 @@ exports[`components/admin_console/permission_schemes_settings/permission_row sho
     </span>
     <span
       class="permission-description"
-    />
+    >
+      <span
+        class="inherit-link-wrapper"
+      >
+        Inherited from 
+        <a>
+          All Members
+        </a>
+        .
+      </span>
+    </span>
   </div>
 </div>
 `;
 
-exports[`components/admin_console/permission_schemes_settings/permission_row should match snapshot on read only and not inherited 2`] = `
+exports[`components/admin_console/permission_schemes_settings/permission_row should match snapshot on read only and not inherited 1`] = `
 <div>
   <div
     class="permission-row read-only"
