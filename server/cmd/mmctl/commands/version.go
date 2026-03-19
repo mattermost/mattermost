@@ -5,19 +5,21 @@ package commands
 
 import (
 	"fmt"
-	"runtime/debug"
+	"runtime"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
-	"github.com/pkg/errors"
 
 	"github.com/spf13/cobra"
 )
 
+// Set via ldflags -X at build time. See MMCTL_LDFLAGS in the Makefile.
 var (
-	Version = model.CurrentVersion
-	// Build date in ISO8601 format, output of $(date -u +'%Y-%m-%dT%H:%M:%SZ')
-	buildDate = "dev"
+	Version      = model.CurrentVersion
+	buildDate    = "dev"
+	gitCommit    = "dev"
+	gitTreeState = "dev"
+	commitDate   = "dev"
 )
 
 var VersionCmd = &cobra.Command{
@@ -54,39 +56,15 @@ type Info struct {
 }
 
 func getVersionInfo() (*Info, error) {
-	info, ok := debug.ReadBuildInfo()
-	if !ok {
-		return nil, errors.New("failed to get build info")
-	}
-
-	var (
-		revision     = "dev"
-		gitTreeState = "dev"
-		commitDate   = "dev"
-
-		os       string
-		arch     string
-		compiler string
-	)
-
-	for _, s := range info.Settings {
-		switch s.Key {
-		case "vcs.revision":
-			revision = s.Value
-		case "vcs.time":
-			commitDate = s.Value
-		case "vcs.modified":
-			if s.Value == "true" {
-				gitTreeState = "dirty"
-			} else {
-				gitTreeState = "clean"
+	goVersion := runtime.Version()
+	compiler := runtime.Compiler
+	if info, ok := debug.ReadBuildInfo(); ok {
+		goVersion = info.GoVersion
+		for _, s := range info.Settings {
+			if s.Key == "-compiler" {
+				compiler = s.Value
+				break
 			}
-		case "GOOS":
-			os = s.Value
-		case "GOARCH":
-			arch = s.Value
-		case "-compiler":
-			compiler = s.Value
 		}
 	}
 
@@ -94,10 +72,10 @@ func getVersionInfo() (*Info, error) {
 		Version:      Version,
 		BuildDate:    buildDate,
 		CommitDate:   commitDate,
-		GitCommit:    revision,
+		GitCommit:    gitCommit,
 		GitTreeState: gitTreeState,
-		GoVersion:    info.GoVersion,
+		GoVersion:    goVersion,
 		Compiler:     compiler,
-		Platform:     fmt.Sprintf("%s/%s", arch, os),
+		Platform:     fmt.Sprintf("%s/%s", runtime.GOARCH, runtime.GOOS),
 	}, nil
 }
