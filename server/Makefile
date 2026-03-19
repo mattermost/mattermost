@@ -113,7 +113,7 @@ endif
 
 # Go Flags
 # Use -buildvcs=false to avoid embedding VCS info which can cause false positives in container scanning tools
-GOFLAGS ?= -buildvcs=false
+export GOFLAGS ?= -buildvcs=false
 # We need to export GOBIN to allow it to be set
 # for processes spawned from the Makefile
 export GOBIN ?= $(PWD)/bin
