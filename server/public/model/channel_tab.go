@@ -334,4 +334,3 @@ func (o *ChannelTabAndFileInfo) ToChannelTabWithFileInfo() *ChannelTabWithFileIn
 	}
 	return bwf
 }
-
