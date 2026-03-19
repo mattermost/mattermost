@@ -7363,6 +7363,10 @@
     "translation": "Unable to get the posts for the channel."
   },
   {
+    "id": "app.post.get_posts_for_view.app_error",
+    "translation": "Unable to get the posts for the view."
+  },
+  {
     "id": "app.post.marshal.app_error",
     "translation": "Failed to marshal post."
   },
