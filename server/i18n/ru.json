@@ -10502,5 +10502,265 @@
   {
     "id": "model.config.is_valid.guest_accounts.cannot_enforce_multifactor_authentication_when_guest_magic_link_is_enabled.app_error",
     "translation": "Вы не можете применить многофакторную аутентификацию для гостевых записей, если включена аутентификация по магической ссылке."
+  },
+  {
+    "id": "api.user.oauth_to_email.not_oauth_user.app_error",
+    "translation": "Невозможно переключиться на аутентификацию по электронной почте, потому что пользователь не использует OAuth или SAML-аутентификацию."
+  },
+  {
+    "id": "app.access_control.insufficient_permissions",
+    "translation": "У Вас нет прав на управление этой политикой контроля доступа."
+  },
+  {
+    "id": "app.acknowledgement.batch_save.app_error",
+    "translation": "Не удалось сохранить партию объектов подтверждения"
+  },
+  {
+    "id": "app.acknowledgement.delete.missing_post.app_error",
+    "translation": "Невозможно удалить подтверждение отсутствующего сообщения"
+  },
+  {
+    "id": "app.acknowledgement.save.missing_post.app_error",
+    "translation": "Невозможно сохранить подтверждение отсутствующего сообщения"
+  },
+  {
+    "id": "app.agents.get_agents.app_error",
+    "translation": "Не удалось получить агентов."
+  },
+  {
+    "id": "app.agents.get_agents.bridge_call_failed",
+    "translation": "Вызов моста не удался."
+  },
+  {
+    "id": "app.agents.get_services.app_error",
+    "translation": "Не удалось получить услуги LLM."
+  },
+  {
+    "id": "app.agents.get_services.bridge_call_failed",
+    "translation": "Вызов моста не удался."
+  },
+  {
+    "id": "app.ai.summarize.agent_call_failed",
+    "translation": "Вызов агента ИИ не удался."
+  },
+  {
+    "id": "app.ai.summarize.parse_failed",
+    "translation": "Не удалось обработать обобщающий ответ ИИ."
+  },
+  {
+    "id": "app.burn_post.not_burn_on_read.app_error",
+    "translation": "Это сообщение не относится к категории сгорающих при прочтении и не может быть сожжено."
+  },
+  {
+    "id": "app.burn_post.not_revealed.app_error",
+    "translation": "Это сообщение о сожжении при прочтении еще не раскрыто. Ты должен раскрыть его, прежде чем сжечь."
+  },
+  {
+    "id": "app.burn_post.read_receipt.get.error",
+    "translation": "Во время получения подтверждения о прочтении произошла ошибка."
+  },
+  {
+    "id": "app.burn_post.read_receipt.update.error",
+    "translation": "Во время обновления подтверждения о прочтении произошла ошибка."
+  },
+  {
+    "id": "app.channel.get.app_error",
+    "translation": "Не удалось получить канал."
+  },
+  {
+    "id": "app.channel.get_common_teams.app_error",
+    "translation": "Ошибка получения общих команд для канала"
+  },
+  {
+    "id": "app.cloud.preview_modal_bucket_url_not_configured",
+    "translation": "URL предварительного просмотра корзины не настроен"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_fetch_error",
+    "translation": "Не удалось получить данные предпросмотра модального окна"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_parse_error",
+    "translation": "Не удалось разобрать модальные данные предпросмотра"
+  },
+  {
+    "id": "app.command.validatecommandtriggeruniqueness.internal_error",
+    "translation": "Указанное ключевое слово триггера уже существует."
+  },
+  {
+    "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
+    "translation": "Невозможно удалить пользовательские значения атрибутов профиля для пользователя"
+  },
+  {
+    "id": "app.custom_profile_attributes.patch_field.app_error",
+    "translation": "Невозможно исправить поле \"Атрибут пользовательского профиля\""
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
+    "translation": "Невозможно обновить значение для поля Атрибут пользовательского профиля, управляемого администратором"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
+    "translation": "Невозможно обновить значение для синхронизированного поля Атрибут пользовательского профиля"
+  },
+  {
+    "id": "app.custom_profile_attributes.validate_value.app_error",
+    "translation": "Не удалось проверить значение свойства"
+  },
+  {
+    "id": "app.data_spillage.assign_reviewer.no_reviewer_field.app_error",
+    "translation": "Не найдено поле свойств идентификатора рецензента."
+  },
+  {
+    "id": "app.data_spillage.assign_reviewer.update_status_property_value.app_error",
+    "translation": "Не удалось обновить значение свойства \"Статус\" при просмотре настроек."
+  },
+  {
+    "id": "app.data_spillage.assign_reviewer.upsert_property_value.app_error",
+    "translation": "Не удалось установить флаги для проверки сообщений."
+  },
+  {
+    "id": "app.data_spillage.can_flag_post.in_progress",
+    "translation": "Невозможно поместить это сообщение в карантин, так как оно уже в карантине на проверке."
+  },
+  {
+    "id": "app.data_spillage.can_flag_post.removed",
+    "translation": "Невозможно поместить это сообщение в карантин, так как оно было удалено в предыдущем обзоре."
+  },
+  {
+    "id": "app.data_spillage.can_flag_post.retained",
+    "translation": "Невозможно поместить это сообщение в карантин, так как оно было сохранено в предыдущем обзоре."
+  },
+  {
+    "id": "app.data_spillage.can_flag_post.unknown",
+    "translation": "Невозможно поместить это сообщение в карантин, так как оно находится в неизвестном статусе."
+  },
+  {
+    "id": "app.data_spillage.create_property_values.app_error",
+    "translation": "Невозможно сохранить значения свойств для отмеченного сообщения."
+  },
+  {
+    "id": "app.data_spillage.flag_post.marshal_comment.app_error",
+    "translation": "Не удалось обработать комментарий пользователя с флагом"
+  },
+  {
+    "id": "app.data_spillage.flag_post.marshal_reason.app_error",
+    "translation": "Не удалось определить причину, по которой пользователь выставляет флаг"
+  },
+  {
+    "id": "app.data_spillage.flag_post_confirmation.message",
+    "translation": "Сообщение от @{{.username}} было помещено в карантин для проверки. Вы получите уведомление, как только оно будет рассмотрено рецензентом."
+  },
+  {
+    "id": "app.data_spillage.get_group.error",
+    "translation": "Невозможно получить группу свойств флагов содержимого."
+  },
+  {
+    "id": "app.data_spillage.get_reviewer_settings.app_error",
+    "translation": "Не удалось получить настройки обозревателя контента из базы данных"
+  },
+  {
+    "id": "app.data_spillage.get_status_property.app_error",
+    "translation": "Не удалось получить поле свойства Status."
+  },
+  {
+    "id": "app.data_spillage.get_thread_replies.app_error",
+    "translation": "Не удалось получить ответы на сообщения для отмеченного сообщения."
+  },
+  {
+    "id": "app.data_spillage.get_users_in_team.app_error",
+    "translation": "Не удалось найти рецензентов в команде."
+  },
+  {
+    "id": "app.data_spillage.keep_flag_post.marshal_comment.app_error",
+    "translation": "Не удалось получить комментарий рецензента"
+  },
+  {
+    "id": "app.data_spillage.keep_post.status_update.app_error",
+    "translation": "Не удалось обновить статус сообщения, отмеченного флагом, при снятии флага "
+  },
+  {
+    "id": "app.data_spillage.keep_post.undelete.app_error",
+    "translation": "Не удалось обновить сообщение в базе данных при попытке отменить удаление отмеченного сообщения и связанных с ним данных."
+  },
+  {
+    "id": "app.data_spillage.marshal_property_values.app_error",
+    "translation": "Не удалось получить значения свойства Content Flagging для отправки в событии WebSocket."
+  },
+  {
+    "id": "app.data_spillage.missing_flagged_post_id_field.app_error",
+    "translation": "Невозможно найти поле свойства Flagged Post ID."
+  },
+  {
+    "id": "app.data_spillage.missing_manage_by_field.app_error",
+    "translation": "Не удалось найти поле свойства \"Управление по\"."
+  },
+  {
+    "id": "app.data_spillage.missing_reporting_user_id_field.app_error",
+    "translation": "Не удаётся найти поле пользователя, сообщающего о проблеме."
+  },
+  {
+    "id": "app.data_spillage.missing_reporting_user_id_property_value.app_error",
+    "translation": "Невозможно найти значение для поля пользовательского отчета."
+  },
+  {
+    "id": "app.data_spillage.missing_status_field.app_error",
+    "translation": "Не удалось найти поле свойства Status."
+  },
+  {
+    "id": "app.data_spillage.no_status_property.app_error",
+    "translation": "Невозможно получить сообщение с флагом, так как оно не отмечено."
+  },
+  {
+    "id": "app.data_spillage.permanently_delete.marshal_comment.app_error",
+    "translation": "Не удалось получить комментарий рецензента"
+  },
+  {
+    "id": "app.data_spillage.permanently_delete.update_property_value.app_error",
+    "translation": "Не удалось обновить статус сообщения с флагом при постоянном удалении сообщения с флагом."
+  },
+  {
+    "id": "app.data_spillage.save_reviewer_settings.app_error",
+    "translation": "Не удалось сохранить настройки обозревателя контента в базе данных."
+  },
+  {
+    "id": "app.data_spillage.search_common_reviewers.app_error",
+    "translation": "Не удалось найти термин в Common Reviewers."
+  },
+  {
+    "id": "app.data_spillage.search_property_fields.app_error",
+    "translation": "Не удалось выполнить поиск по полям свойства Content Flagging."
+  },
+  {
+    "id": "app.data_spillage.search_property_values.app_error",
+    "translation": "Не удалось получить из базы данных значения свойств флагов содержимого сообщения."
+  },
+  {
+    "id": "app.data_spillage.search_reviewer_posts.app_error",
+    "translation": "Не удалось выполнить поиск сообщений рецензентов для отмеченного сообщения."
+  },
+  {
+    "id": "app.data_spillage.search_status_property.app_error",
+    "translation": "Не удалось выполнить поиск значений свойств для отмеченного сообщения."
+  },
+  {
+    "id": "app.data_spillage.search_sysadmin_reviewers.app_error",
+    "translation": "Не удалось найти поисковый запрос в системе проверки системных администраторов."
+  },
+  {
+    "id": "app.pap.unassign_access_control_policy_from_channels.app_error",
+    "translation": "Не удалось снять назначение политики управления доступом с каналов."
+  },
+  {
+    "id": "app.pap.update_access_control_policies_active.app_error",
+    "translation": "Не удалось обновить активный статус политик контроля доступа."
+  },
+  {
+    "id": "app.pdp.access_evaluation.app_error",
+    "translation": "Не удалось оценить политику контроля доступа."
+  },
+  {
+    "id": "app.plugin.seek.app_error",
+    "translation": "Невозможно сбросить позицию чтения к началу пакета плагинов."
   }
 ]
