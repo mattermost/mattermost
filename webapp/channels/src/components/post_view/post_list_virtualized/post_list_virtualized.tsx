@@ -28,7 +28,7 @@ import LatestPostReader from './latest_post_reader';
 const OVERSCAN_COUNT_BACKWARD = 80;
 const OVERSCAN_COUNT_FORWARD = 80;
 const HEIGHT_TRIGGER_FOR_MORE_POSTS = 1000;
-const BUFFER_TO_BE_CONSIDERED_BOTTOM = 10;
+const BUFFER_TO_BE_CONSIDERED_BOTTOM = 100;
 
 const MAXIMUM_POSTS_FOR_SLICING = {
     channel: 50,

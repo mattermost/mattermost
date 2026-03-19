@@ -6,6 +6,7 @@ package app
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"sort"
 
@@ -19,26 +20,13 @@ const (
 	CustomProfileAttributesFieldLimit = 20
 )
 
-var cpaGroupID string
-
 func (a *App) CpaGroupID() (string, error) {
-	return getCpaGroupID(a.Srv().propertyAccessService)
-}
-
-// ToDo: we should explore moving this to the database cache layer
-// instead of maintaining the ID cached at the application level
-func getCpaGroupID(service *PropertyAccessService) (string, error) {
-	if cpaGroupID != "" {
-		return cpaGroupID, nil
-	}
-
-	cpaGroup, err := service.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
+	group, err := a.Srv().propertyAccessService.Group(model.CustomProfileAttributesPropertyGroupName)
 	if err != nil {
-		return "", errors.Wrap(err, "cannot register Custom Profile Attributes property group")
+		return "", fmt.Errorf("cannot retrieve custom profile attributes property group ID: %w", err)
 	}
-	cpaGroupID = cpaGroup.ID
 
-	return cpaGroupID, nil
+	return group.ID, nil
 }
 
 func (a *App) GetCPAField(callerId, fieldID string) (*model.CPAField, *model.AppError) {

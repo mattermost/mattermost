@@ -2600,10 +2600,6 @@
     "translation": "Slack uporabnik je združen z obstoječim Mattermost uporabnikom z ujemajočo e-pošto {{.Email}} in uporabniškim imenom {{.Username}}.\r\n"
   },
   {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Slack uporabnik s sledečo e-pošto {{.Email}} in geslom {{.Password}} je bil uvožen.\r\n"
-  },
-  {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\r\nUstvarjeni uporabniki:\r\n"
   },
@@ -2626,10 +2622,6 @@
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "Ne morem uvoziti uporabnika Integration/Slack Bot {{.User username}}.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Slack uporabnik s sledečo e-pošto {{.Email}} in geslom {{.Password}} je bil uvožen.\r\n"
   },
   {
     "id": "api.server.start_server.starting.critical",

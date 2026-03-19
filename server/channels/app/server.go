@@ -243,6 +243,13 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to create properties service")
 	}
 
+	if err = propertyService.RegisterBuiltinGroups([]*model.PropertyGroup{
+		{Name: model.CustomProfileAttributesPropertyGroupName},
+		{Name: model.ContentFlaggingGroupName},
+	}); err != nil {
+		return nil, errors.Wrap(err, "failed to register builtin property groups")
+	}
+
 	// Wrap PropertyService with access control layer to enforce caller-based permissions
 	s.propertyAccessService = NewPropertyAccessService(propertyService, func(pluginID string) bool {
 		_, err := s.ch.GetPluginStatus(pluginID)
