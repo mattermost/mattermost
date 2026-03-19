@@ -157,8 +157,8 @@ func testAccessControlPolicyStoreSaveDuplicateName(t *testing.T, rctx request.CT
 		require.NotNil(t, policy1)
 
 		t.Cleanup(func() {
-			err := ss.AccessControlPolicy().Delete(rctx, policy1.ID)
-			require.NoError(t, err)
+			deleteErr := ss.AccessControlPolicy().Delete(rctx, policy1.ID)
+			require.NoError(t, deleteErr)
 		})
 
 		policy2 := &model.AccessControlPolicy{
@@ -205,8 +205,8 @@ func testAccessControlPolicyStoreSaveDuplicateName(t *testing.T, rctx request.CT
 		require.NotNil(t, parentPolicy)
 
 		t.Cleanup(func() {
-			err := ss.AccessControlPolicy().Delete(rctx, parentPolicy.ID)
-			require.NoError(t, err)
+			deleteErr := ss.AccessControlPolicy().Delete(rctx, parentPolicy.ID)
+			require.NoError(t, deleteErr)
 		})
 
 		channelPolicy := &model.AccessControlPolicy{
@@ -230,8 +230,8 @@ func testAccessControlPolicyStoreSaveDuplicateName(t *testing.T, rctx request.CT
 		require.NotNil(t, channelPolicy)
 
 		t.Cleanup(func() {
-			err := ss.AccessControlPolicy().Delete(rctx, channelPolicy.ID)
-			require.NoError(t, err)
+			deleteErr := ss.AccessControlPolicy().Delete(rctx, channelPolicy.ID)
+			require.NoError(t, deleteErr)
 		})
 	})
 
@@ -257,8 +257,8 @@ func testAccessControlPolicyStoreSaveDuplicateName(t *testing.T, rctx request.CT
 		require.NotNil(t, policy)
 
 		t.Cleanup(func() {
-			err := ss.AccessControlPolicy().Delete(rctx, policy.ID)
-			require.NoError(t, err)
+			deleteErr := ss.AccessControlPolicy().Delete(rctx, policy.ID)
+			require.NoError(t, deleteErr)
 		})
 
 		// Update rules but keep same name — should succeed
@@ -318,8 +318,8 @@ func testAccessControlPolicyStoreSaveDuplicateName(t *testing.T, rctx request.CT
 		require.NotNil(t, policy2)
 
 		t.Cleanup(func() {
-			err := ss.AccessControlPolicy().Delete(rctx, policy2.ID)
-			require.NoError(t, err)
+			deleteErr := ss.AccessControlPolicy().Delete(rctx, policy2.ID)
+			require.NoError(t, deleteErr)
 		})
 	})
 }
