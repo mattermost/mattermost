@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -26,7 +27,7 @@ func TestCreatePropertyField(t *testing.T) {
 			Type:    model.PropertyFieldTypeText,
 		}
 
-		created, appErr := th.App.CreatePropertyField(field, false)
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
 		assert.NotEmpty(t, created.ID)
 		assert.Equal(t, "Non-Protected Field", created.Name)
@@ -44,7 +45,7 @@ func TestCreatePropertyField(t *testing.T) {
 			PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
 		}
 
-		created, appErr := th.App.CreatePropertyField(field, false)
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.NotNil(t, appErr)
 		assert.Nil(t, created)
 		assert.Equal(t, "app.property_field.create.protected.app_error", appErr.Id)
@@ -62,7 +63,7 @@ func TestCreatePropertyField(t *testing.T) {
 			PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
 		}
 
-		created, appErr := th.App.CreatePropertyField(field, true)
+		created, appErr := th.App.CreatePropertyField(th.Context, field, true, "")
 		require.Nil(t, appErr)
 		assert.NotEmpty(t, created.ID)
 		assert.Equal(t, "Protected Field With Bypass", created.Name)
@@ -79,7 +80,7 @@ func TestCreatePropertyField(t *testing.T) {
 			// Missing Permissions - validation should fail
 		}
 
-		created, appErr := th.App.CreatePropertyField(field, true)
+		created, appErr := th.App.CreatePropertyField(th.Context, field, true, "")
 		require.NotNil(t, appErr)
 		assert.Nil(t, created)
 	})
@@ -96,7 +97,7 @@ func TestCreatePropertyField(t *testing.T) {
 			PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
 		}
 
-		created, appErr := th.App.CreatePropertyField(field, true)
+		created, appErr := th.App.CreatePropertyField(th.Context, field, true, "")
 		require.NotNil(t, appErr)
 		assert.Nil(t, created)
 	})
@@ -115,11 +116,11 @@ func TestUpdatePropertyField(t *testing.T) {
 			Name:    "Field to Update",
 			Type:    model.PropertyFieldTypeText,
 		}
-		created, appErr := th.App.CreatePropertyField(field, false)
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
 
 		created.Name = "Updated Field Name"
-		updated, appErr := th.App.UpdatePropertyField(groupID, created, false)
+		updated, appErr := th.App.UpdatePropertyField(th.Context, groupID, created, false, "")
 		require.Nil(t, appErr)
 		assert.Equal(t, "Updated Field Name", updated.Name)
 	})
@@ -134,11 +135,11 @@ func TestUpdatePropertyField(t *testing.T) {
 			PermissionValues:  model.NewPointer(model.PermissionLevelMember),
 			PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
 		}
-		created, appErr := th.App.CreatePropertyField(field, true)
+		created, appErr := th.App.CreatePropertyField(th.Context, field, true, "")
 		require.Nil(t, appErr)
 
 		created.Name = "Attempted Update"
-		updated, appErr := th.App.UpdatePropertyField(groupID, created, false)
+		updated, appErr := th.App.UpdatePropertyField(th.Context, groupID, created, false, "")
 		require.NotNil(t, appErr)
 		assert.Nil(t, updated)
 		assert.Equal(t, "app.property_field.update.protected.app_error", appErr.Id)
@@ -155,11 +156,11 @@ func TestUpdatePropertyField(t *testing.T) {
 			PermissionValues:  model.NewPointer(model.PermissionLevelMember),
 			PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
 		}
-		created, appErr := th.App.CreatePropertyField(field, true)
+		created, appErr := th.App.CreatePropertyField(th.Context, field, true, "")
 		require.Nil(t, appErr)
 
 		created.Name = "Successfully Updated Protected"
-		updated, appErr := th.App.UpdatePropertyField(groupID, created, true)
+		updated, appErr := th.App.UpdatePropertyField(th.Context, groupID, created, true, "")
 		require.Nil(t, appErr)
 		assert.Equal(t, "Successfully Updated Protected", updated.Name)
 	})
@@ -170,12 +171,12 @@ func TestUpdatePropertyField(t *testing.T) {
 			Name:    "Field for Invalid Update",
 			Type:    model.PropertyFieldTypeText,
 		}
-		created, appErr := th.App.CreatePropertyField(field, false)
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
 
 		// Try to update with empty name (invalid)
 		created.Name = ""
-		updated, appErr := th.App.UpdatePropertyField(groupID, created, false)
+		updated, appErr := th.App.UpdatePropertyField(th.Context, groupID, created, false, "")
 		require.NotNil(t, appErr)
 		assert.Nil(t, updated)
 	})
@@ -200,15 +201,15 @@ func TestUpdatePropertyFields(t *testing.T) {
 			Type:    model.PropertyFieldTypeText,
 		}
 
-		created1, appErr := th.App.CreatePropertyField(field1, false)
+		created1, appErr := th.App.CreatePropertyField(th.Context, field1, false, "")
 		require.Nil(t, appErr)
-		created2, appErr := th.App.CreatePropertyField(field2, false)
+		created2, appErr := th.App.CreatePropertyField(th.Context, field2, false, "")
 		require.Nil(t, appErr)
 
 		created1.Name = "Updated Batch 1"
 		created2.Name = "Updated Batch 2"
 
-		updated, appErr := th.App.UpdatePropertyFields(groupID, []*model.PropertyField{created1, created2}, false)
+		updated, appErr := th.App.UpdatePropertyFields(th.Context, groupID, []*model.PropertyField{created1, created2}, false, "")
 		require.Nil(t, appErr)
 		require.Len(t, updated, 2)
 	})
@@ -229,15 +230,15 @@ func TestUpdatePropertyFields(t *testing.T) {
 			PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
 		}
 
-		createdNonProtected, appErr := th.App.CreatePropertyField(nonProtected, false)
+		createdNonProtected, appErr := th.App.CreatePropertyField(th.Context, nonProtected, false, "")
 		require.Nil(t, appErr)
-		createdProtected, appErr := th.App.CreatePropertyField(protected, true)
+		createdProtected, appErr := th.App.CreatePropertyField(th.Context, protected, true, "")
 		require.Nil(t, appErr)
 
 		createdNonProtected.Name = "Updated Non-Protected"
 		createdProtected.Name = "Updated Protected"
 
-		updated, appErr := th.App.UpdatePropertyFields(groupID, []*model.PropertyField{createdNonProtected, createdProtected}, false)
+		updated, appErr := th.App.UpdatePropertyFields(th.Context, groupID, []*model.PropertyField{createdNonProtected, createdProtected}, false, "")
 		require.NotNil(t, appErr)
 		assert.Nil(t, updated)
 		assert.Equal(t, "app.property_field.update.protected.app_error", appErr.Id)
@@ -269,15 +270,15 @@ func TestUpdatePropertyFields(t *testing.T) {
 			PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
 		}
 
-		createdNonProtected, appErr := th.App.CreatePropertyField(nonProtected, false)
+		createdNonProtected, appErr := th.App.CreatePropertyField(th.Context, nonProtected, false, "")
 		require.Nil(t, appErr)
-		createdProtected, appErr := th.App.CreatePropertyField(protected, true)
+		createdProtected, appErr := th.App.CreatePropertyField(th.Context, protected, true, "")
 		require.Nil(t, appErr)
 
 		createdNonProtected.Name = "Bypass Updated Non-Protected"
 		createdProtected.Name = "Bypass Updated Protected"
 
-		updated, appErr := th.App.UpdatePropertyFields(groupID, []*model.PropertyField{createdNonProtected, createdProtected}, true)
+		updated, appErr := th.App.UpdatePropertyFields(th.Context, groupID, []*model.PropertyField{createdNonProtected, createdProtected}, true, "")
 		require.Nil(t, appErr)
 		require.Len(t, updated, 2)
 	})
@@ -292,7 +293,7 @@ func TestUpdatePropertyFields(t *testing.T) {
 			Name:    "Field in Other Group",
 			Type:    model.PropertyFieldTypeText,
 		}
-		createdOther, appErr := th.App.CreatePropertyField(fieldInOtherGroup, false)
+		createdOther, appErr := th.App.CreatePropertyField(th.Context, fieldInOtherGroup, false, "")
 		require.Nil(t, appErr)
 
 		// Create a field in the main group
@@ -301,14 +302,14 @@ func TestUpdatePropertyFields(t *testing.T) {
 			Name:    "Field in Main Group",
 			Type:    model.PropertyFieldTypeText,
 		}
-		createdMain, appErr := th.App.CreatePropertyField(fieldInMainGroup, false)
+		createdMain, appErr := th.App.CreatePropertyField(th.Context, fieldInMainGroup, false, "")
 		require.Nil(t, appErr)
 
 		// Try to update both fields using the main groupID - should fail for the other group's field
 		createdMain.Name = "Updated Main"
 		createdOther.Name = "Updated Other"
 
-		_, appErr = th.App.UpdatePropertyFields(groupID, []*model.PropertyField{createdMain, createdOther}, false)
+		_, appErr = th.App.UpdatePropertyFields(th.Context, groupID, []*model.PropertyField{createdMain, createdOther}, false, "")
 		require.NotNil(t, appErr)
 
 		// Verify neither field was updated
@@ -335,10 +336,10 @@ func TestDeletePropertyField(t *testing.T) {
 			Name:    "Field to Delete",
 			Type:    model.PropertyFieldTypeText,
 		}
-		created, appErr := th.App.CreatePropertyField(field, false)
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
 
-		appErr = th.App.DeletePropertyField(groupID, created.ID, false)
+		appErr = th.App.DeletePropertyField(th.Context, groupID, created.ID, false, "")
 		require.Nil(t, appErr)
 
 		// Verify soft deletion (DeleteAt > 0)
@@ -357,10 +358,10 @@ func TestDeletePropertyField(t *testing.T) {
 			PermissionValues:  model.NewPointer(model.PermissionLevelMember),
 			PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
 		}
-		created, appErr := th.App.CreatePropertyField(field, true)
+		created, appErr := th.App.CreatePropertyField(th.Context, field, true, "")
 		require.Nil(t, appErr)
 
-		appErr = th.App.DeletePropertyField(groupID, created.ID, false)
+		appErr = th.App.DeletePropertyField(th.Context, groupID, created.ID, false, "")
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.property_field.delete.protected.app_error", appErr.Id)
 		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
@@ -382,16 +383,56 @@ func TestDeletePropertyField(t *testing.T) {
 			PermissionValues:  model.NewPointer(model.PermissionLevelMember),
 			PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
 		}
-		created, appErr := th.App.CreatePropertyField(field, true)
+		created, appErr := th.App.CreatePropertyField(th.Context, field, true, "")
 		require.Nil(t, appErr)
 
-		appErr = th.App.DeletePropertyField(groupID, created.ID, true)
+		appErr = th.App.DeletePropertyField(th.Context, groupID, created.ID, true, "")
 		require.Nil(t, appErr)
 
 		// Verify soft deletion (DeleteAt > 0)
 		deleted, appErr := th.App.GetPropertyField(groupID, created.ID)
 		require.Nil(t, appErr)
 		assert.NotZero(t, deleted.DeleteAt)
+	})
+}
+
+func TestPropertyFieldBroadcastParams(t *testing.T) {
+	rctx := request.TestContext(t)
+
+	t.Run("team target type returns team ID", func(t *testing.T) {
+		field := &model.PropertyField{TargetType: "team", TargetID: "team123"}
+		teamID, channelID, ok := propertyFieldBroadcastParams(rctx, field)
+		assert.True(t, ok)
+		assert.Equal(t, "team123", teamID)
+		assert.Empty(t, channelID)
+	})
+
+	t.Run("channel target type returns channel ID", func(t *testing.T) {
+		field := &model.PropertyField{TargetType: "channel", TargetID: "chan123"}
+		teamID, channelID, ok := propertyFieldBroadcastParams(rctx, field)
+		assert.True(t, ok)
+		assert.Empty(t, teamID)
+		assert.Equal(t, "chan123", channelID)
+	})
+
+	t.Run("system target type returns empty strings", func(t *testing.T) {
+		field := &model.PropertyField{TargetType: "system"}
+		teamID, channelID, ok := propertyFieldBroadcastParams(rctx, field)
+		assert.True(t, ok)
+		assert.Empty(t, teamID)
+		assert.Empty(t, channelID)
+	})
+
+	t.Run("empty target type returns ok=false", func(t *testing.T) {
+		field := &model.PropertyField{TargetType: ""}
+		_, _, ok := propertyFieldBroadcastParams(rctx, field)
+		assert.False(t, ok)
+	})
+
+	t.Run("unrecognized target type returns ok=false", func(t *testing.T) {
+		field := &model.PropertyField{TargetType: "organization", TargetID: "org123"}
+		_, _, ok := propertyFieldBroadcastParams(rctx, field)
+		assert.False(t, ok)
 	})
 }
 
@@ -408,7 +449,7 @@ func TestGetPropertyField(t *testing.T) {
 			Name:    "Field to Get",
 			Type:    model.PropertyFieldTypeText,
 		}
-		created, appErr := th.App.CreatePropertyField(field, false)
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
 
 		fetched, appErr := th.App.GetPropertyField(groupID, created.ID)
@@ -442,9 +483,9 @@ func TestGetPropertyFields(t *testing.T) {
 			Type:    model.PropertyFieldTypeText,
 		}
 
-		created1, appErr := th.App.CreatePropertyField(field1, false)
+		created1, appErr := th.App.CreatePropertyField(th.Context, field1, false, "")
 		require.Nil(t, appErr)
-		created2, appErr := th.App.CreatePropertyField(field2, false)
+		created2, appErr := th.App.CreatePropertyField(th.Context, field2, false, "")
 		require.Nil(t, appErr)
 
 		fetched, appErr := th.App.GetPropertyFields(groupID, []string{created1.ID, created2.ID})
@@ -466,7 +507,7 @@ func TestSearchPropertyFields(t *testing.T) {
 			Name:    "Searchable Field",
 			Type:    model.PropertyFieldTypeText,
 		}
-		_, appErr := th.App.CreatePropertyField(field, false)
+		_, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
 
 		opts := model.PropertyFieldSearchOpts{

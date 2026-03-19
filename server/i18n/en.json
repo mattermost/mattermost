@@ -7675,6 +7675,10 @@
     "translation": "Unable to register property group."
   },
   {
+    "id": "app.property_value.resolve_broadcast_params.unknown_object_type.app_error",
+    "translation": "Unrecognized object type \"{{.ObjectType}}\" for property value broadcast."
+  },
+  {
     "id": "app.property_value.search.app_error",
     "translation": "Unable to search property values."
   },

@@ -4,14 +4,54 @@
 package app
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func (a *App) CreatePropertyField(field *model.PropertyField, bypassProtectedCheck bool) (*model.PropertyField, *model.AppError) {
+func propertyFieldBroadcastParams(rctx request.CTX, field *model.PropertyField) (teamID, channelID string, ok bool) {
+	switch field.TargetType {
+	case "team":
+		return field.TargetID, "", true
+	case "channel":
+		return "", field.TargetID, true
+	case "system":
+		return "", "", true
+	default:
+		rctx.Logger().Warn(
+			"Unrecognized property field TargetType, skipping broadcast",
+			mlog.String("target_type", field.TargetType),
+			mlog.String("field_id", field.ID),
+		)
+		return "", "", false
+	}
+}
+
+func (a *App) publishPropertyFieldEvent(rctx request.CTX, eventType model.WebsocketEventType, field *model.PropertyField, connectionID string) {
+	if field == nil || field.ObjectType == "" {
+		return
+	}
+	teamID, channelID, ok := propertyFieldBroadcastParams(rctx, field)
+	if !ok {
+		return
+	}
+	fieldJSON, err := json.Marshal(field)
+	if err != nil {
+		rctx.Logger().Warn("Failed to encode property field to JSON", mlog.Err(err))
+		return
+	}
+	message := model.NewWebSocketEvent(eventType, teamID, channelID, "", nil, connectionID)
+	message.Add("property_field", string(fieldJSON))
+	message.Add("object_type", field.ObjectType)
+	a.Publish(message)
+}
+
+func (a *App) CreatePropertyField(rctx request.CTX, field *model.PropertyField, bypassProtectedCheck bool, connectionID string) (*model.PropertyField, *model.AppError) {
 	if !bypassProtectedCheck && field.Protected {
 		return nil, model.NewAppError(
 			"CreatePropertyField",
@@ -26,6 +66,9 @@ func (a *App) CreatePropertyField(field *model.PropertyField, bypassProtectedChe
 	if err != nil {
 		return nil, model.NewAppError("CreatePropertyField", "app.property_field.create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	a.publishPropertyFieldEvent(rctx, model.WebsocketEventPropertyFieldCreated, created, connectionID)
+
 	return created, nil
 }
 
@@ -97,8 +140,8 @@ func (a *App) SearchPropertyFields(groupID string, opts model.PropertyFieldSearc
 	return fields, nil
 }
 
-func (a *App) UpdatePropertyField(groupID string, field *model.PropertyField, bypassProtectedCheck bool) (*model.PropertyField, *model.AppError) {
-	fields, err := a.UpdatePropertyFields(groupID, []*model.PropertyField{field}, bypassProtectedCheck)
+func (a *App) UpdatePropertyField(rctx request.CTX, groupID string, field *model.PropertyField, bypassProtectedCheck bool, connectionID string) (*model.PropertyField, *model.AppError) {
+	fields, err := a.UpdatePropertyFields(rctx, groupID, []*model.PropertyField{field}, bypassProtectedCheck, connectionID)
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +149,7 @@ func (a *App) UpdatePropertyField(groupID string, field *model.PropertyField, by
 	return fields[0], nil
 }
 
-func (a *App) UpdatePropertyFields(groupID string, fields []*model.PropertyField, bypassProtectedCheck bool) ([]*model.PropertyField, *model.AppError) {
+func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField, bypassProtectedCheck bool, connectionID string) ([]*model.PropertyField, *model.AppError) {
 	if !bypassProtectedCheck && len(fields) > 0 {
 		ids := make([]string, len(fields))
 		for i, f := range fields {
@@ -135,28 +178,41 @@ func (a *App) UpdatePropertyFields(groupID string, fields []*model.PropertyField
 	if err != nil {
 		return nil, model.NewAppError("UpdatePropertyFields", "app.property_field.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	for _, field := range updated {
+		a.publishPropertyFieldEvent(rctx, model.WebsocketEventPropertyFieldUpdated, field, connectionID)
+	}
+
 	return updated, nil
 }
 
-func (a *App) DeletePropertyField(groupID, id string, bypassProtectedCheck bool) *model.AppError {
-	if !bypassProtectedCheck {
-		existing, err := a.Srv().propertyAccessService.propertyService.GetPropertyField(groupID, id)
-		if err != nil {
-			return model.NewAppError("DeletePropertyField", "app.property_field.delete.get_existing.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
-		if existing.Protected {
-			return model.NewAppError(
-				"DeletePropertyField",
-				"app.property_field.delete.protected.app_error",
-				nil,
-				"cannot delete protected field",
-				http.StatusForbidden,
-			)
-		}
+func (a *App) DeletePropertyField(rctx request.CTX, groupID, id string, bypassProtectedCheck bool, connectionID string) *model.AppError {
+	existing, err := a.Srv().propertyAccessService.propertyService.GetPropertyField(groupID, id)
+	if err != nil {
+		return model.NewAppError("DeletePropertyField", "app.property_field.delete.get_existing.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if !bypassProtectedCheck && existing.Protected {
+		return model.NewAppError(
+			"DeletePropertyField",
+			"app.property_field.delete.protected.app_error",
+			nil,
+			"cannot delete protected field",
+			http.StatusForbidden,
+		)
 	}
 
 	if err := a.Srv().propertyAccessService.propertyService.DeletePropertyField(groupID, id); err != nil {
 		return model.NewAppError("DeletePropertyField", "app.property_field.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	teamID, channelID, ok := propertyFieldBroadcastParams(rctx, existing)
+	if ok && existing.ObjectType != "" {
+		message := model.NewWebSocketEvent(model.WebsocketEventPropertyFieldDeleted, teamID, channelID, "", nil, connectionID)
+		message.Add("field_id", existing.ID)
+		message.Add("object_type", existing.ObjectType)
+		a.Publish(message)
+	}
+
 	return nil
 }
