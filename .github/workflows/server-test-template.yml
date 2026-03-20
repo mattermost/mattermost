@@ -62,18 +62,22 @@ jobs:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      # ── Test sharding ──────────────────────────────────────────────────
-      # When shard-total > 1, we split individual test functions across N
-      # parallel runners. Each shard gets a `-run` regex that selects its
-      # portion of tests. This avoids the third-party hashicorp-forge action
-      # (blocked by org Actions policy) by using only Go + shell.
+      # ── Package-level test sharding ────────────────────────────────────
+      # When shard-total > 1, we split Go test packages across N parallel
+      # runners. Each shard overrides TE_PACKAGES and EE_PACKAGES in the
+      # Makefile to run only its assigned packages.
       #
       # How it works:
-      #   1. Grep test function names from source (no compilation needed).
-      #   2. Optionally restore JUnit XML timing data from a previous run to
-      #      weight tests by duration for balanced splitting.
-      #   3. Assign tests to this shard using round-robin (by count) or
-      #      greedy bin-packing (by timing), then emit a `-run` regex.
+      #   1. List all Go test packages via `go list` inside the build container.
+      #   2. Optionally use JUnit XML timing data from a previous run to
+      #      estimate package durations for balanced splitting.
+      #   3. Assign packages to this shard using greedy bin-packing (by timing)
+      #      or round-robin (fallback), then output filtered package lists.
+      #
+      # Why package-level (not test-level)?
+      #   The Makefile passes $(GOFLAGS) unquoted to /bin/sh, so -run regexes
+      #   containing shell metacharacters (|, (, ), $) cause syntax errors.
+      #   Package names are plain Go import paths — no shell metacharacters.
       # ─────────────────────────────────────────────────────────────────────
 
       - name: Restore test timing data
@@ -87,7 +91,7 @@ jobs:
           restore-keys: |
             server-test-timing-master
 
-      - name: Split tests across shards
+      - name: Split packages across shards
         if: inputs.shard-total > 1
         id: test_split
         working-directory: server
@@ -97,135 +101,149 @@ jobs:
         run: |
           set -euo pipefail
 
-          # ── Step 1: List all test functions ──
-          # Grep test function names directly from source files. This is much
-          # faster and more reliable than `go test -list` which requires full
-          # compilation (needs CGO, system libs, etc. that the runner lacks).
-          echo "::group::Listing all test functions"
-          ALL_TESTS=$(grep -rh '^func Test' ./public/ ./ ./enterprise/ --include='*_test.go' 2>/dev/null \
-            | sed -E 's/^func (Test[A-Za-z0-9_]+).*/\1/' \
-            | sort -u || true)
-          TOTAL_TESTS=$(echo "$ALL_TESTS" | wc -l)
-          echo "Found $TOTAL_TESTS test functions"
+          # ── Step 1: List all test packages ──
+          # Use grep to find directories containing test files, then convert
+          # to Go import paths. Faster and more reliable than `go list` which
+          # requires full module setup.
+          echo "::group::Listing test packages"
+
+          # Find all _test.go files, extract unique directories, convert to
+          # Go-style import paths relative to module root
+          TE_PKGS=$(find ./public/ ./ -name '*_test.go' -not -path './enterprise/*' -not -path './cmd/mmctl/*' 2>/dev/null \
+            | sed 's|/[^/]*$||' | sort -u \
+            | sed 's|^\./|github.com/mattermost/mattermost/server/v8/|' \
+            | sed 's|github.com/mattermost/mattermost/server/v8/public/|github.com/mattermost/mattermost/server/public/|')
+
+          EE_PKGS=$(find ./enterprise/ -name '*_test.go' 2>/dev/null \
+            | sed 's|/[^/]*$||' | sort -u \
+            | sed 's|^\./|github.com/mattermost/mattermost/server/v8/|')
+
+          # Combine all packages for sharding
+          ALL_PKGS=$(echo "$TE_PKGS"; echo "$EE_PKGS")
+          ALL_PKGS=$(echo "$ALL_PKGS" | grep -v '^$' | sort -u)
+          TOTAL_PKGS=$(echo "$ALL_PKGS" | wc -l)
+          echo "Found $TOTAL_PKGS test packages"
           echo "::endgroup::"
 
-          if [[ "$TOTAL_TESTS" -eq 0 ]]; then
-            echo "WARNING: No tests found, shard will run nothing"
-            echo "run=" >> "$GITHUB_OUTPUT"
+          if [[ "$TOTAL_PKGS" -eq 0 ]]; then
+            echo "WARNING: No test packages found, shard will run nothing"
+            echo "te_packages=" >> "$GITHUB_OUTPUT"
+            echo "ee_packages=" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
           # ── Step 2: Try timing-based split (greedy bin-packing) ──
-          # If we have JUnit XML from a previous run, parse test durations and
-          # assign tests to shards using greedy bin-packing: always assign the
-          # next-heaviest test to the shard with the least total time. This
-          # balances wall-clock time across shards much better than round-robin.
+          # If we have JUnit XML from a previous run, aggregate test durations
+          # per package and use greedy bin-packing to balance wall-clock time.
           TIMING_FILE="prev-report.xml"
+          USE_TIMING=false
+          declare -A PKG_TIMES
+
           if [[ -f "$TIMING_FILE" ]]; then
-            echo "::group::Timing-based shard splitting (greedy bin-packing)"
+            echo "::group::Extracting package timing from JUnit XML"
 
-            # Extract test name + duration from JUnit XML <testcase> elements.
-            # Format: "duration testname" sorted by duration descending (heaviest first).
-            # Uses grep+sed because we can't depend on xmllint in the runner image.
-            TIMING_DATA=$(grep -oP '<testcase[^>]*name="([^"]*)"[^>]*time="([^"]*)"' "$TIMING_FILE" \
-              | sed -E 's/<testcase[^>]*name="([^"]*)"[^>]*time="([^"]*)"/\2 \1/' \
-              | sort -rn || true)
+            # JUnit XML <testsuite> elements have name="pkg" and time="seconds"
+            # Extract package-level durations
+            while IFS=' ' read -r duration pkg; do
+              [[ -z "$pkg" ]] && continue
+              # Accumulate time per package (multiple testsuites per package possible)
+              ms=$(awk "BEGIN {printf \"%d\", $duration * 1000}")
+              PKG_TIMES["$pkg"]=$(( ${PKG_TIMES["$pkg"]:-0} + ms ))
+            done < <(grep -oP '<testsuite[^>]*name="([^"]*)"[^>]*time="([^"]*)"' "$TIMING_FILE" \
+              | sed -E 's/<testsuite[^>]*name="([^"]*)"[^>]*time="([^"]*)"/\2 \1/' || true)
 
-            if [[ -n "$TIMING_DATA" ]]; then
-              # Build an associative map of test→duration from JUnit data
-              declare -A TEST_TIMES
-              while IFS=' ' read -r duration name; do
-                TEST_TIMES["$name"]="$duration"
-              done <<< "$TIMING_DATA"
-
-              # Initialize shard load counters (integer milliseconds for shell arithmetic)
-              declare -a SHARD_LOAD
-              for ((i=0; i<SHARD_TOTAL; i++)); do SHARD_LOAD[$i]=0; done
-
-              # Greedy bin-packing: for each test (heaviest first by timing,
-              # then unknown tests last with default weight), assign to the
-              # shard with the smallest total load.
-              declare -a MY_TESTS=()
-
-              # Sort all tests: timed tests by duration desc, then untimed tests
-              SORTED_TESTS=""
-              UNTIMED_TESTS=""
-              while IFS= read -r test_name; do
-                if [[ -n "${TEST_TIMES[$test_name]+x}" ]]; then
-                  SORTED_TESTS+="${TEST_TIMES[$test_name]} ${test_name}"$'\n'
-                else
-                  UNTIMED_TESTS+="0.001 ${test_name}"$'\n'
-                fi
-              done <<< "$ALL_TESTS"
-
-              # Combine: timed (sorted heaviest first) then untimed
-              COMBINED=$(echo -n "$SORTED_TESTS" | sort -rn; echo -n "$UNTIMED_TESTS")
-
-              while IFS=' ' read -r duration test_name; do
-                [[ -z "$test_name" ]] && continue
-                # Convert duration to integer milliseconds for comparison
-                ms=$(echo "$duration" | awk '{printf "%d", $1 * 1000}')
-
-                # Find the shard with the smallest load
-                min_shard=0
-                min_load=${SHARD_LOAD[0]}
-                for ((i=1; i<SHARD_TOTAL; i++)); do
-                  if [[ ${SHARD_LOAD[$i]} -lt $min_load ]]; then
-                    min_shard=$i
-                    min_load=${SHARD_LOAD[$i]}
-                  fi
-                done
-
-                # Assign test to that shard
-                SHARD_LOAD[$min_shard]=$((${SHARD_LOAD[$min_shard]} + ms))
-                if [[ $min_shard -eq $SHARD_INDEX ]]; then
-                  MY_TESTS+=("$test_name")
-                fi
-              done <<< "$COMBINED"
-
-              echo "Shard $SHARD_INDEX: ${#MY_TESTS[@]} tests (load: ${SHARD_LOAD[$SHARD_INDEX]}ms)"
-              for ((i=0; i<SHARD_TOTAL; i++)); do
-                echo "  Shard $i load: ${SHARD_LOAD[$i]}ms"
-              done
-              echo "::endgroup::"
-
-              if [[ ${#MY_TESTS[@]} -gt 0 ]]; then
-                # Build a -run regex: ^(Test1|Test2|Test3)$
-                # Escape any regex metacharacters in test names
-                RUN_REGEX="^($(IFS='|'; echo "${MY_TESTS[*]}"))\$"
-                echo "run=${RUN_REGEX}" >> "$GITHUB_OUTPUT"
-                exit 0
-              else
-                echo "run=" >> "$GITHUB_OUTPUT"
-                exit 0
-              fi
+            if [[ ${#PKG_TIMES[@]} -gt 0 ]]; then
+              USE_TIMING=true
+              echo "Found timing data for ${#PKG_TIMES[@]} packages"
             fi
             echo "::endgroup::"
           fi
 
-          # ── Step 3: Fallback — round-robin by test count ──
-          # No timing data available. Simply deal tests to shards like cards:
-          # test 0 → shard 0, test 1 → shard 1, ..., test N → shard (N % total).
-          echo "::group::Count-based shard splitting (round-robin)"
-          MY_TESTS=()
-          INDEX=0
-          while IFS= read -r test_name; do
-            [[ -z "$test_name" ]] && continue
-            if [[ $((INDEX % SHARD_TOTAL)) -eq $SHARD_INDEX ]]; then
-              MY_TESTS+=("$test_name")
-            fi
-            INDEX=$((INDEX + 1))
-          done <<< "$ALL_TESTS"
+          # ── Step 3: Assign packages to shards ──
+          echo "::group::Assigning packages to shard $SHARD_INDEX of $SHARD_TOTAL"
 
-          echo "Shard $SHARD_INDEX: ${#MY_TESTS[@]} of $TOTAL_TESTS tests (round-robin)"
+          # Initialize shard load counters
+          declare -a SHARD_LOAD
+          for ((i=0; i<SHARD_TOTAL; i++)); do SHARD_LOAD[$i]=0; done
+
+          declare -a MY_PKGS=()
+
+          if [[ "$USE_TIMING" == "true" ]]; then
+            # Greedy bin-packing: sort packages by duration desc, assign each
+            # to the shard with the smallest total load
+            SORTED_PKGS=""
+            while IFS= read -r pkg; do
+              [[ -z "$pkg" ]] && continue
+              ms=${PKG_TIMES["$pkg"]:-1}
+              SORTED_PKGS+="${ms} ${pkg}"$'\n'
+            done <<< "$ALL_PKGS"
+
+            SORTED_PKGS=$(echo -n "$SORTED_PKGS" | sort -rn)
+
+            while IFS=' ' read -r ms pkg; do
+              [[ -z "$pkg" ]] && continue
+
+              # Find shard with smallest load
+              min_shard=0
+              min_load=${SHARD_LOAD[0]}
+              for ((i=1; i<SHARD_TOTAL; i++)); do
+                if [[ ${SHARD_LOAD[$i]} -lt $min_load ]]; then
+                  min_shard=$i
+                  min_load=${SHARD_LOAD[$i]}
+                fi
+              done
+
+              SHARD_LOAD[$min_shard]=$(( ${SHARD_LOAD[$min_shard]} + ms ))
+              if [[ $min_shard -eq $SHARD_INDEX ]]; then
+                MY_PKGS+=("$pkg")
+              fi
+            done <<< "$SORTED_PKGS"
+
+            echo "Timing-based assignment:"
+          else
+            # Round-robin fallback
+            INDEX=0
+            while IFS= read -r pkg; do
+              [[ -z "$pkg" ]] && continue
+              if [[ $((INDEX % SHARD_TOTAL)) -eq $SHARD_INDEX ]]; then
+                MY_PKGS+=("$pkg")
+              fi
+              INDEX=$((INDEX + 1))
+            done <<< "$ALL_PKGS"
+
+            echo "Round-robin assignment:"
+          fi
+
+          echo "Shard $SHARD_INDEX: ${#MY_PKGS[@]} of $TOTAL_PKGS packages"
+          for ((i=0; i<SHARD_TOTAL; i++)); do
+            echo "  Shard $i: load=${SHARD_LOAD[$i]}ms"
+          done
           echo "::endgroup::"
 
-          if [[ ${#MY_TESTS[@]} -gt 0 ]]; then
-            RUN_REGEX="^($(IFS='|'; echo "${MY_TESTS[*]}"))\$"
-            echo "run=${RUN_REGEX}" >> "$GITHUB_OUTPUT"
-          else
-            echo "run=" >> "$GITHUB_OUTPUT"
-          fi
+          # ── Step 4: Split into TE and EE package lists ──
+          # The Makefile uses separate TE_PACKAGES and EE_PACKAGES variables.
+          SHARD_TE=""
+          SHARD_EE=""
+          for pkg in "${MY_PKGS[@]}"; do
+            if [[ "$pkg" == *"/enterprise/"* ]]; then
+              SHARD_EE+="$pkg "
+            else
+              SHARD_TE+="$pkg "
+            fi
+          done
+
+          # Trim trailing space
+          SHARD_TE="${SHARD_TE% }"
+          SHARD_EE="${SHARD_EE% }"
+
+          echo "TE packages: $(echo "$SHARD_TE" | wc -w) | EE packages: $(echo "$SHARD_EE" | wc -w)"
+
+          # Write package lists to files. The Run Tests step reads these
+          # and passes them as Make variable overrides. Files avoid the
+          # quoting/escaping issues of passing long lists through GHA outputs.
+          echo "$SHARD_TE" > shard-te-packages.txt
+          echo "$SHARD_EE" > shard-ee-packages.txt
+          echo "has_packages=true" >> "$GITHUB_OUTPUT"
 
       - name: Setup BUILD_IMAGE
         id: build
@@ -261,18 +279,23 @@ jobs:
             export RACE_MODE="-race"
           fi
 
-          # When sharding, pass the -run filter as a Make variable override.
-          # GOFLAGS on the Make command line is expanded by Make (not shell),
-          # so regex chars like |()$ are safe. The key insight: we must NOT
-          # let this become a shell env var named GOFLAGS, because Go's env
-          # parser would also try to parse it. Make command-line vars override
-          # the Makefile's `GOFLAGS ?=` default without being exported.
-          SHARD_GOFLAGS=""
-          if [[ "${{ inputs.shard-total }}" -gt 1 ]]; then
-            SHARD_RUN='${{ steps.test_split.outputs.run }}'
-            if [[ -n "$SHARD_RUN" ]]; then
-              SHARD_GOFLAGS="-run=${SHARD_RUN}"
-            fi
+          # When sharding, override TE_PACKAGES and EE_PACKAGES so Make only
+          # runs this shard's packages. We read the lists from files written by
+          # the split step, and pass them as Make variable overrides.
+          # Package names are plain Go import paths — no shell metacharacters.
+          #
+          # We write a small wrapper script to preserve quoting of the
+          # space-separated package lists through the docker exec boundary.
+          MAKE_CMD="make test-server${RACE_MODE} BUILD_NUMBER=${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}"
+          if [[ "${{ inputs.shard-total }}" -gt 1 && -f server/shard-te-packages.txt ]]; then
+            SHARD_TE=$(cat server/shard-te-packages.txt)
+            SHARD_EE=$(cat server/shard-ee-packages.txt)
+            cat > server/run-shard-tests.sh <<SHARDEOF
+#!/bin/bash
+exec make test-server${RACE_MODE} BUILD_NUMBER=${GITHUB_HEAD_REF}-${GITHUB_RUN_ID} TE_PACKAGES="${SHARD_TE}" EE_PACKAGES="${SHARD_EE}"
+SHARDEOF
+            chmod +x server/run-shard-tests.sh
+            MAKE_CMD="/mattermost/server/run-shard-tests.sh"
           fi
 
           docker run --net ghactions_mm-test \
@@ -287,7 +310,7 @@ jobs:
             -v $PWD:/mattermost \
             -w /mattermost/server \
             $BUILD_IMAGE \
-            make test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID ${SHARD_GOFLAGS:+GOFLAGS="$SHARD_GOFLAGS"}
+            $MAKE_CMD
 
       - name: Upload coverage to Codecov
         if: ${{ inputs.enablecoverage }}
