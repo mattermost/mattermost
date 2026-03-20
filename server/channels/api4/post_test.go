@@ -1691,7 +1691,7 @@ func TestUpdatePost(t *testing.T) {
 	t.Run("should prevent editing when create_post permission is revoked", func(t *testing.T) {
 		th.LoginBasic(t)
 
-		postToEdit, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+		postToEdit, appErr := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: channel.Id,
 			Message:   "original message",

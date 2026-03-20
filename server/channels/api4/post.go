@@ -1055,7 +1055,7 @@ func postPatchChecks(c *Context, auditRec *model.AuditRecord, message *string) {
 	// Users who can't create posts in a channel shouldn't be able to edit them either.
 	userCreatePostPermissionCheckWithContext(c, originalPost.ChannelId)
 	if c.Err != nil {
-		return false
+		return
 	}
 
 	if *c.App.Config().ServiceSettings.PostEditTimeLimit != -1 && model.GetMillis() > originalPost.CreateAt+int64(*c.App.Config().ServiceSettings.PostEditTimeLimit*1000) && message != nil {
