@@ -62,48 +62,188 @@ jobs:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      # -- Test sharding: set up Go on the runner so go-test-split-action can list tests --
-      - name: Setup Go for test splitting
+      # ── Test sharding ──────────────────────────────────────────────────
+      # When shard-total > 1, we split individual test functions across N
+      # parallel runners. Each shard gets a `-run` regex that selects its
+      # portion of tests. This avoids the third-party hashicorp-forge action
+      # (blocked by org Actions policy) by using only Go + shell.
+      #
+      # How it works:
+      #   1. Install Go on the runner (not in Docker) so we can `go test -list`.
+      #   2. Create a go.work file so cross-module packages resolve correctly.
+      #   3. List every test function across all server packages.
+      #   4. Optionally restore JUnit XML timing data from a previous run to
+      #      weight tests by duration for balanced splitting.
+      #   5. Assign tests to this shard using round-robin (by count) or
+      #      greedy bin-packing (by timing), then emit a `-run` regex.
+      # ─────────────────────────────────────────────────────────────────────
+
+      - name: Setup Go for test listing
         if: inputs.shard-total > 1
         uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
         with:
           go-version: ${{ inputs.go-version }}
-          cache: false # The Docker build image handles module caching; this is only for listing tests
+          cache: false # Docker build image handles module caching; Go here is only for listing tests
 
-      # -- Create go.work so `go test -list` can resolve all server packages --
       - name: Setup Go workspace for test listing
         if: inputs.shard-total > 1
         working-directory: server
         run: |
+          # go.work lets `go test -list` resolve packages across the monorepo
+          # (server, server/public, server/enterprise are separate Go modules)
           go work init
           go work use .
           go work use ./public
           go work use ./enterprise
 
-      # -- Restore JUnit timing data from a previous run for balanced shard splitting --
       - name: Restore test timing data
         if: inputs.shard-total > 1
         id: timing-cache
         uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         with:
           path: server/prev-report.xml
+          # Try branch-specific timing first, fall back to master
           key: server-test-timing-${{ github.base_ref || github.ref_name }}
           restore-keys: |
             server-test-timing-master
 
-      # -- Split tests across shards using JUnit timing data for balance --
-      - name: Split tests by timing
+      - name: Split tests across shards
         if: inputs.shard-total > 1
         id: test_split
-        uses: hashicorp-forge/go-test-split-action@796bfab5e11ab4fcb1e06a93fccab2d093289528 # v2.0.0
-        with:
-          total: ${{ inputs.shard-total }}
-          index: ${{ inputs.shard-index }}
-          # Same packages as TE_PACKAGES + EE_PACKAGES in the Makefile
-          packages: "./public/... ./... ./enterprise/..."
-          working-directory: server
-          # Use timing from previous run if available; falls back to count-based split
-          junit-summary: server/prev-report.xml
+        working-directory: server
+        env:
+          SHARD_INDEX: ${{ inputs.shard-index }}
+          SHARD_TOTAL: ${{ inputs.shard-total }}
+        run: |
+          set -euo pipefail
+
+          # ── Step 1: List all test functions ──
+          # `go test -list` outputs test/benchmark/example names matching a regex.
+          # We list from the same packages the Makefile uses (TE + EE packages).
+          echo "::group::Listing all test functions"
+          ALL_TESTS=$(go test -list '.*' ./public/... ./... ./enterprise/... 2>/dev/null \
+            | grep -E '^Test' || true)
+          TOTAL_TESTS=$(echo "$ALL_TESTS" | wc -l)
+          echo "Found $TOTAL_TESTS test functions"
+          echo "::endgroup::"
+
+          if [[ "$TOTAL_TESTS" -eq 0 ]]; then
+            echo "WARNING: No tests found, shard will run nothing"
+            echo "run=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # ── Step 2: Try timing-based split (greedy bin-packing) ──
+          # If we have JUnit XML from a previous run, parse test durations and
+          # assign tests to shards using greedy bin-packing: always assign the
+          # next-heaviest test to the shard with the least total time. This
+          # balances wall-clock time across shards much better than round-robin.
+          TIMING_FILE="prev-report.xml"
+          if [[ -f "$TIMING_FILE" ]]; then
+            echo "::group::Timing-based shard splitting (greedy bin-packing)"
+
+            # Extract test name + duration from JUnit XML <testcase> elements.
+            # Format: "duration testname" sorted by duration descending (heaviest first).
+            # Uses grep+sed because we can't depend on xmllint in the runner image.
+            TIMING_DATA=$(grep -oP '<testcase[^>]*name="([^"]*)"[^>]*time="([^"]*)"' "$TIMING_FILE" \
+              | sed -E 's/<testcase[^>]*name="([^"]*)"[^>]*time="([^"]*)"/\2 \1/' \
+              | sort -rn || true)
+
+            if [[ -n "$TIMING_DATA" ]]; then
+              # Build an associative map of test→duration from JUnit data
+              declare -A TEST_TIMES
+              while IFS=' ' read -r duration name; do
+                TEST_TIMES["$name"]="$duration"
+              done <<< "$TIMING_DATA"
+
+              # Initialize shard load counters (integer milliseconds for shell arithmetic)
+              declare -a SHARD_LOAD
+              for ((i=0; i<SHARD_TOTAL; i++)); do SHARD_LOAD[$i]=0; done
+
+              # Greedy bin-packing: for each test (heaviest first by timing,
+              # then unknown tests last with default weight), assign to the
+              # shard with the smallest total load.
+              declare -a MY_TESTS=()
+
+              # Sort all tests: timed tests by duration desc, then untimed tests
+              SORTED_TESTS=""
+              UNTIMED_TESTS=""
+              while IFS= read -r test_name; do
+                if [[ -n "${TEST_TIMES[$test_name]+x}" ]]; then
+                  SORTED_TESTS+="${TEST_TIMES[$test_name]} ${test_name}"$'\n'
+                else
+                  UNTIMED_TESTS+="0.001 ${test_name}"$'\n'
+                fi
+              done <<< "$ALL_TESTS"
+
+              # Combine: timed (sorted heaviest first) then untimed
+              COMBINED=$(echo -n "$SORTED_TESTS" | sort -rn; echo -n "$UNTIMED_TESTS")
+
+              while IFS=' ' read -r duration test_name; do
+                [[ -z "$test_name" ]] && continue
+                # Convert duration to integer milliseconds for comparison
+                ms=$(echo "$duration" | awk '{printf "%d", $1 * 1000}')
+
+                # Find the shard with the smallest load
+                min_shard=0
+                min_load=${SHARD_LOAD[0]}
+                for ((i=1; i<SHARD_TOTAL; i++)); do
+                  if [[ ${SHARD_LOAD[$i]} -lt $min_load ]]; then
+                    min_shard=$i
+                    min_load=${SHARD_LOAD[$i]}
+                  fi
+                done
+
+                # Assign test to that shard
+                SHARD_LOAD[$min_shard]=$((${SHARD_LOAD[$min_shard]} + ms))
+                if [[ $min_shard -eq $SHARD_INDEX ]]; then
+                  MY_TESTS+=("$test_name")
+                fi
+              done <<< "$COMBINED"
+
+              echo "Shard $SHARD_INDEX: ${#MY_TESTS[@]} tests (load: ${SHARD_LOAD[$SHARD_INDEX]}ms)"
+              for ((i=0; i<SHARD_TOTAL; i++)); do
+                echo "  Shard $i load: ${SHARD_LOAD[$i]}ms"
+              done
+              echo "::endgroup::"
+
+              if [[ ${#MY_TESTS[@]} -gt 0 ]]; then
+                # Build a -run regex: ^(Test1|Test2|Test3)$
+                # Escape any regex metacharacters in test names
+                RUN_REGEX="^($(IFS='|'; echo "${MY_TESTS[*]}"))\$"
+                echo "run=${RUN_REGEX}" >> "$GITHUB_OUTPUT"
+                exit 0
+              else
+                echo "run=" >> "$GITHUB_OUTPUT"
+                exit 0
+              fi
+            fi
+            echo "::endgroup::"
+          fi
+
+          # ── Step 3: Fallback — round-robin by test count ──
+          # No timing data available. Simply deal tests to shards like cards:
+          # test 0 → shard 0, test 1 → shard 1, ..., test N → shard (N % total).
+          echo "::group::Count-based shard splitting (round-robin)"
+          MY_TESTS=()
+          INDEX=0
+          while IFS= read -r test_name; do
+            [[ -z "$test_name" ]] && continue
+            if [[ $((INDEX % SHARD_TOTAL)) -eq $SHARD_INDEX ]]; then
+              MY_TESTS+=("$test_name")
+            fi
+            ((INDEX++))
+          done <<< "$ALL_TESTS"
+
+          echo "Shard $SHARD_INDEX: ${#MY_TESTS[@]} of $TOTAL_TESTS tests (round-robin)"
+          echo "::endgroup::"
+
+          if [[ ${#MY_TESTS[@]} -gt 0 ]]; then
+            RUN_REGEX="^($(IFS='|'; echo "${MY_TESTS[*]}"))\$"
+            echo "run=${RUN_REGEX}" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Setup BUILD_IMAGE
         id: build
