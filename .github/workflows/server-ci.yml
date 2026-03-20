@@ -17,6 +17,9 @@ on:
       - ".github/workflows/mmctl-test-template.yml"
       - "!server/build/Dockerfile.buildenv"
       - "!server/build/Dockerfile.buildenv-fips"
+      - "!server/**/*.md"
+      - "!server/NOTICE.txt"
+      - "!server/CHANGELOG.md"
 
 concurrency:
   group: ${{ github.event_name == 'pull_request' && format('{0}-{1}', github.workflow, github.ref) || github.run_id }}
