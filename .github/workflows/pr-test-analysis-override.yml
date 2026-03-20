@@ -22,6 +22,7 @@ jobs:
   # overriding the previous analysis and send a webhook notification.
   verify:
     if: >-
+      github.repository == 'mattermost/mattermost' &&
       github.event.issue.pull_request &&
       startsWith(github.event.comment.body, '/test-analysis-override') &&
       contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
@@ -55,7 +56,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           COMMIT_SHA: ${{ steps.pr-info.outputs.commit_sha }}
-          REASON: ${{ steps.extract.outputs.reason }}
         run: |
           # Read current commit status to preserve description
           STATUS_JSON=$(gh api repos/${{ github.repository }}/commits/${COMMIT_SHA}/statuses \

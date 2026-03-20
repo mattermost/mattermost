@@ -336,7 +336,7 @@ jobs:
           echo "Posted commit status: ${STATE} — ${STATUS_DESC}"
 
           # Find existing bot comment
-          EXISTING_COMMENT_ID=$(gh api "repos/${{ env.REPO }}/issues/${PR_NUMBER}/comments" \
+          EXISTING_COMMENT_ID=$(gh api "repos/${{ env.REPO }}/issues/${PR_NUMBER}/comments" --paginate \
             --jq '[.[] | select(.body | contains("<!-- pr-test-analysis -->")) | select(.user.login == "github-actions[bot]")] | first | .id // empty')
 
           if [ "$STATE" == "failure" ]; then
