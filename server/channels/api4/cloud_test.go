@@ -105,6 +105,19 @@ func TestGetSubscription(t *testing.T) {
 		require.Equal(t, subscriptionReturned, subscription)
 		require.Equal(t, http.StatusOK, r.StatusCode, "Status OK")
 	})
+
+	t.Run("no license returns forbidden not panic", func(t *testing.T) {
+		// Regression test: getSubscription called !License().IsCloud() without nil check.
+		// Sentry: MATTERMOST-SERVER-TY (same nil License pattern)
+		th := Setup(t).InitBasic(t)
+		appErr := th.App.Srv().RemoveLicense()
+		require.Nil(t, appErr)
+		defer th.App.Srv().SetLicense(nil)
+
+		_, resp, err := th.SystemAdminClient.GetSubscription(context.Background())
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
 }
 
 func TestValidateBusinessEmail(t *testing.T) {

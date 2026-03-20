@@ -233,6 +233,22 @@ func TestCreateUpload(t *testing.T) {
 			rus.Path,
 		)
 	})
+
+	t.Run("no license does not panic", func(t *testing.T) {
+		// Regression test: createUpload called License().IsCloud() without nil check.
+		// Sentry: MATTERMOST-SERVER-TY (same nil License pattern)
+		appErr := th.App.Srv().RemoveLicense()
+		require.Nil(t, appErr)
+		defer th.App.Srv().SetLicense(nil)
+
+		us2 := &model.UploadSession{
+			ChannelId: th.BasicChannel.Id,
+			Filename:  "upload-no-license",
+			FileSize:  1024,
+		}
+		_, _, err := th.Client.CreateUpload(context.Background(), us2)
+		require.NoError(t, err)
+	})
 }
 
 func TestGetUpload(t *testing.T) {

@@ -52,7 +52,7 @@ func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionManageSystem)
 			return
 		}
-		if c.App.Srv().License().IsCloud() {
+		if c.App.Srv().License() != nil && c.App.Srv().License().IsCloud() {
 			c.Err = model.NewAppError("createUpload", "api.file.cloud_upload.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
@@ -147,7 +147,7 @@ func uploadData(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionManageSystem)
 			return
 		}
-		if c.App.Srv().License().IsCloud() {
+		if c.App.Srv().License() != nil && c.App.Srv().License().IsCloud() {
 			c.Err = model.NewAppError("UploadData", "api.file.cloud_upload.app_error", nil, "", http.StatusBadRequest)
 			return
 		}

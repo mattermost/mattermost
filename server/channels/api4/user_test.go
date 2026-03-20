@@ -6792,6 +6792,21 @@ func TestConvertUserToBot(t *testing.T) {
 		CheckErrorID(t, err, "api.user.login.bot_login_forbidden.app_error")
 		CheckUnauthorizedStatus(t, resp)
 	})
+
+	t.Run("no license does not panic", func(t *testing.T) {
+		// Regression test: convertUserToBot called !License().IsCloud() without nil check.
+		// Sentry: MATTERMOST-SERVER-TY (same nil License pattern)
+		appErr := th.App.Srv().RemoveLicense()
+		require.Nil(t, appErr)
+		defer th.App.Srv().SetLicense(nil)
+
+		user := model.User{Email: th.GenerateTestEmail(), Username: GenerateTestUsername(), Password: "password"}
+		ruser, _, err := th.SystemAdminClient.CreateUser(context.Background(), &user)
+		require.NoError(t, err)
+
+		_, _, err = th.SystemAdminClient.ConvertUserToBot(context.Background(), ruser.Id)
+		require.NoError(t, err)
+	})
 }
 
 func TestGetChannelMembersWithTeamData(t *testing.T) {

@@ -66,6 +66,17 @@ func TestGetConfig(t *testing.T) {
 		require.NotEqual(t, model.FakeSetting, *cfg.SqlSettings.DataSource)
 		require.NotEqual(t, model.FakeSetting, *cfg.FileSettings.PublicLinkSalt)
 	})
+
+	t.Run("no license does not panic", func(t *testing.T) {
+		// Regression test: getConfig called License().IsCloud() without nil check.
+		// Sentry: MATTERMOST-SERVER-TY (same nil License pattern)
+		appErr := th.App.Srv().RemoveLicense()
+		require.Nil(t, appErr)
+		defer th.App.Srv().SetLicense(nil)
+
+		_, _, err := th.SystemAdminClient.GetConfig(context.Background())
+		require.NoError(t, err)
+	})
 }
 
 func TestGetConfigWithAccessTag(t *testing.T) {
@@ -364,6 +375,20 @@ func TestUpdateConfig(t *testing.T) {
 		cfg, _, err = th.SystemAdminClient.GetConfig(context.Background())
 		require.NoError(t, err)
 		require.Equal(t, nonEmptyURL, *cfg.ServiceSettings.SiteURL)
+	})
+
+	t.Run("update config no license does not panic", func(t *testing.T) {
+		// Regression test: updateConfig called License().IsCloud() without nil check.
+		// Sentry: MATTERMOST-SERVER-TY (same nil License pattern)
+		appErr := th.App.Srv().RemoveLicense()
+		require.Nil(t, appErr)
+		defer th.App.Srv().SetLicense(nil)
+
+		cfg, _, err := th.SystemAdminClient.GetConfig(context.Background())
+		require.NoError(t, err)
+
+		_, _, err = th.SystemAdminClient.UpdateConfig(context.Background(), cfg)
+		require.NoError(t, err)
 	})
 }
 

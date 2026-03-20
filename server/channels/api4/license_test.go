@@ -222,6 +222,19 @@ func TestRemoveLicenseFile(t *testing.T) {
 		_, err := LocalClient.RemoveLicenseFile(context.Background())
 		require.NoError(t, err)
 	})
+
+	t.Run("no license does not panic", func(t *testing.T) {
+		// Regression test: removeLicense called License().IsCloud() without nil check.
+		// Sentry: MATTERMOST-SERVER-TY (same nil License pattern)
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = false })
+		appErr := th.App.Srv().RemoveLicense()
+		require.Nil(t, appErr)
+		defer th.App.Srv().SetLicense(nil)
+
+		// Removing license when there's already no license should succeed without panic
+		_, err := th.SystemAdminClient.RemoveLicenseFile(context.Background())
+		require.NoError(t, err)
+	})
 }
 
 func TestRequestTrialLicenseWithExtraFields(t *testing.T) {
