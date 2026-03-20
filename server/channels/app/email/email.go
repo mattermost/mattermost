@@ -1005,17 +1005,20 @@ func (es *Service) CreateVerifyEmailToken(userID string, newEmail string) (*mode
 
 func (es *Service) SendLicenseUpForRenewalEmail(email, locale string, daysToExpiration int) error {
 	T := i18n.GetUserTranslations(locale)
-	subject := T("api.templates.license_up_for_renewal_subject")
+	skuName := es.getLicenseSkuName()
+	subject := T("api.templates.license_up_for_renewal_subject",
+		map[string]any{"SkuName": skuName})
 	siteName := es.getConfigSiteName()
 	siteURL := *es.config().ServiceSettings.SiteURL
 	data := es.NewEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL
-	data.Props["Title"] = T("api.templates.license_up_for_renewal_title")
+	data.Props["Title"] = T("api.templates.license_up_for_renewal_title",
+		map[string]any{"SkuName": skuName})
 	data.Props["Button"] = T("api.templates.license_up_for_renewal_contact_sales")
 	data.Props["ButtonURL"] = "https://mattermost.com/contact-sales/"
 	data.Props["NeedHelpTitle"] = T("api.templates.license_need_help.title")
 	data.Props["SubTitleTwo"] = T("api.templates.license_up_for_renewal_subtitle_two")
-	data.HTML["SubTitle"] = i18n.TranslateAsHTML(T, "api.templates.license_up_for_renewal_subtitle", map[string]any{"SiteURL": siteURL, "SiteName": siteName, "Days": daysToExpiration})
+	data.HTML["SubTitle"] = i18n.TranslateAsHTML(T, "api.templates.license_up_for_renewal_subtitle", map[string]any{"SkuName": skuName, "SiteURL": siteURL, "SiteName": siteName, "Days": daysToExpiration})
 	data.HTML["NeedHelpInfo"] = template.HTML(T("api.templates.license_need_help.info"))
 
 	body, err := es.templatesContainer.RenderToString("license_notification", data)

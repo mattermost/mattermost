@@ -3944,11 +3944,11 @@
   },
   {
     "id": "api.templates.license_up_for_renewal_subject",
-    "translation": "Your Mattermost license is up for renewal"
+    "translation": "Your {{.SkuName}} license is up for renewal"
   },
   {
     "id": "api.templates.license_up_for_renewal_subtitle",
-    "translation": "Your license for <a href=\"{{.SiteURL}}\">{{.SiteName}}</a> is due to expire in {{.Days}} days. We hope you’re enjoying the secure, mission-critical collaboration that Mattermost enables."
+    "translation": "Your {{.SkuName}} license for <a href=\"{{.SiteURL}}\">{{.SiteName}}</a> is due to expire in {{.Days}} days. We hope you’re enjoying the secure, mission-critical collaboration that Mattermost enables."
   },
   {
     "id": "api.templates.license_up_for_renewal_subtitle_two",
@@ -3956,7 +3956,7 @@
   },
   {
     "id": "api.templates.license_up_for_renewal_title",
-    "translation": "Your Mattermost license is up for renewal"
+    "translation": "Your {{.SkuName}} license is up for renewal"
   },
   {
     "id": "api.templates.mfa_activated_body.info",
