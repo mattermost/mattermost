@@ -240,6 +240,96 @@ func TestGetJobsByType(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestGetJobsByType_TeamAdminAccessControlSync(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.AddPermissionToRole(t, model.PermissionManageTeamAccessRules.Id, model.TeamAdminRoleId)
+
+	teamJob := &model.Job{
+		Id:       model.NewId(),
+		Type:     model.JobTypeAccessControlSync,
+		Status:   model.JobStatusSuccess,
+		CreateAt: model.GetMillis(),
+		Data:     map[string]string{"team_id": th.BasicTeam.Id, "policy_id": "p1"},
+	}
+	otherTeamJob := &model.Job{
+		Id:       model.NewId(),
+		Type:     model.JobTypeAccessControlSync,
+		Status:   model.JobStatusSuccess,
+		CreateAt: model.GetMillis(),
+		Data:     map[string]string{"team_id": model.NewId(), "policy_id": "p2"},
+	}
+	systemJob := &model.Job{
+		Id:       model.NewId(),
+		Type:     model.JobTypeAccessControlSync,
+		Status:   model.JobStatusSuccess,
+		CreateAt: model.GetMillis(),
+		Data:     map[string]string{"policy_id": "p3"},
+	}
+
+	for _, job := range []*model.Job{teamJob, otherTeamJob, systemJob} {
+		_, err := th.App.Srv().Store().Job().Save(job)
+		require.NoError(t, err)
+		defer func(id string) {
+			_, _ = th.App.Srv().Store().Job().Delete(id)
+		}(job.Id)
+	}
+
+	t.Run("team admin can see only their team's sync jobs", func(t *testing.T) {
+		th.LoginTeamAdmin(t)
+		defer th.LoginBasic(t)
+
+		jobs, _, err := th.Client.GetJobsByTypeForTeam(context.Background(), model.JobTypeAccessControlSync, 0, 60, th.BasicTeam.Id)
+		require.NoError(t, err)
+
+		require.Len(t, jobs, 1)
+		require.Equal(t, teamJob.Id, jobs[0].Id)
+	})
+
+	t.Run("team admin cannot see sync jobs without team_id", func(t *testing.T) {
+		th.LoginTeamAdmin(t)
+		defer th.LoginBasic(t)
+
+		_, resp, err := th.Client.GetJobsByType(context.Background(), model.JobTypeAccessControlSync, 0, 60)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("team admin cannot read non-sync job types with team_id", func(t *testing.T) {
+		th.LoginTeamAdmin(t)
+		defer th.LoginBasic(t)
+
+		_, resp, err := th.Client.GetJobsByTypeForTeam(context.Background(), model.JobTypeDataRetention, 0, 60, th.BasicTeam.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("system admin sees all sync jobs without team_id filter", func(t *testing.T) {
+		jobs, _, err := th.SystemAdminClient.GetJobsByType(context.Background(), model.JobTypeAccessControlSync, 0, 60)
+		require.NoError(t, err)
+		require.GreaterOrEqual(t, len(jobs), 3)
+	})
+
+	t.Run("system admin with team_id filter sees only that team's jobs", func(t *testing.T) {
+		jobs, _, err := th.SystemAdminClient.GetJobsByTypeForTeam(context.Background(), model.JobTypeAccessControlSync, 0, 60, th.BasicTeam.Id)
+		require.NoError(t, err)
+		require.Len(t, jobs, 1)
+		require.Equal(t, teamJob.Id, jobs[0].Id)
+	})
+
+	t.Run("falls back to global jobs when no team-scoped jobs exist", func(t *testing.T) {
+		th.LoginTeamAdmin(t)
+		defer th.LoginBasic(t)
+
+		newTeamID := model.NewId()
+		jobs, _, err := th.SystemAdminClient.GetJobsByTypeForTeam(context.Background(), model.JobTypeAccessControlSync, 0, 60, newTeamID)
+		require.NoError(t, err)
+		require.Len(t, jobs, 1)
+		require.Equal(t, systemJob.Id, jobs[0].Id)
+	})
+}
+
 func TestDownloadJob(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

@@ -1,0 +1,144 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import React, {useState, useEffect, useCallback} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
+import {useDispatch} from 'react-redux';
+
+import type {Job, JobType} from '@mattermost/types/jobs';
+
+import {createAccessControlSyncJob} from 'mattermost-redux/actions/access_control';
+import {getJobsByType} from 'mattermost-redux/actions/jobs';
+
+import './sync_status_footer.scss';
+
+type Props = {
+    teamId: string;
+    hasPolicies: boolean;
+};
+
+function getRelativeTime(timestamp: number, formatMessage: ReturnType<typeof useIntl>['formatMessage']): string {
+    if (!timestamp) {
+        return formatMessage({id: 'team_settings.sync_status.never', defaultMessage: 'Never synced.'});
+    }
+
+    const now = Date.now();
+    const diffMs = now - timestamp;
+    const diffMinutes = Math.floor(diffMs / 60000);
+
+    if (diffMinutes < 1) {
+        return formatMessage({id: 'team_settings.sync_status.just_now', defaultMessage: 'Last synced just now.'});
+    }
+    if (diffMinutes < 60) {
+        return formatMessage(
+            {id: 'team_settings.sync_status.minutes_ago', defaultMessage: 'Last synced {count} {count, plural, one {minute} other {minutes}} ago.'},
+            {count: diffMinutes},
+        );
+    }
+
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 24) {
+        return formatMessage(
+            {id: 'team_settings.sync_status.hours_ago', defaultMessage: 'Last synced {count} {count, plural, one {hour} other {hours}} ago.'},
+            {count: diffHours},
+        );
+    }
+
+    const diffDays = Math.floor(diffHours / 24);
+    return formatMessage(
+        {id: 'team_settings.sync_status.days_ago', defaultMessage: 'Last synced {count} {count, plural, one {day} other {days}} ago.'},
+        {count: diffDays},
+    );
+}
+
+export default function SyncStatusFooter({teamId, hasPolicies}: Props) {
+    const {formatMessage} = useIntl();
+    const dispatch = useDispatch();
+
+    const [lastSyncedAt, setLastSyncedAt] = useState<number>(0);
+    const [syncing, setSyncing] = useState(false);
+    const [loaded, setLoaded] = useState(false);
+
+    const fetchSyncStatus = useCallback(async () => {
+        try {
+            const result = await dispatch(getJobsByType('access_control_sync' as JobType, 0, 10, teamId));
+            if (result.data) {
+                const completedJob = (result.data as Job[]).find((job) => job.status === 'success');
+                if (completedJob) {
+                    setLastSyncedAt(completedJob.last_activity_at);
+                }
+            }
+        } catch {
+            // API may fail if the server hasn't been updated yet; show footer anyway and do nothing
+        }
+        setLoaded(true);
+    }, [dispatch, teamId]);
+
+    useEffect(() => {
+        if (hasPolicies) {
+            fetchSyncStatus();
+        }
+    }, [hasPolicies, fetchSyncStatus]);
+
+    const handleSyncNow = useCallback(async () => {
+        setSyncing(true);
+        try {
+            await dispatch(createAccessControlSyncJob({team_id: teamId}));
+        } catch {
+            setSyncing(false);
+        }
+    }, [dispatch, teamId]);
+
+    // Poll for sync completion while syncing.
+    useEffect(() => {
+        if (!syncing) {
+            return undefined;
+        }
+
+        const interval = setInterval(async () => {
+            const result = await dispatch(getJobsByType('access_control_sync' as JobType, 0, 10, teamId));
+            if (result.data) {
+                const completedJob = (result.data as Job[]).find((job) => job.status === 'success');
+                if (completedJob && completedJob.last_activity_at > lastSyncedAt) {
+                    setLastSyncedAt(completedJob.last_activity_at);
+                    setSyncing(false);
+                }
+            }
+        }, 3000);
+
+        return () => clearInterval(interval);
+    }, [syncing, dispatch, teamId, lastSyncedAt]);
+
+    if (!hasPolicies || !loaded) {
+        return null;
+    }
+
+    const timeText = getRelativeTime(lastSyncedAt, formatMessage);
+
+    return (
+        <div className='SyncStatusFooter'>
+            <i className='icon icon-information-outline SyncStatusFooter__icon'/>
+            <span className='SyncStatusFooter__text'>
+                {timeText}
+            </span>
+            {syncing ? (
+                <span className='SyncStatusFooter__syncing'>
+                    <FormattedMessage
+                        id='team_settings.sync_status.syncing'
+                        defaultMessage='Syncing...'
+                    />
+                </span>
+            ) : (
+                <button
+                    className='style--none SyncStatusFooter__link'
+                    onClick={handleSyncNow}
+                >
+                    <FormattedMessage
+                        id='team_settings.sync_status.sync_now'
+                        defaultMessage='Sync now'
+                    />
+                </button>
+            )}
+        </div>
+    );
+}

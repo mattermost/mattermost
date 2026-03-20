@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"path"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"time"
 
@@ -163,6 +164,19 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Inject requester context for self-inclusion resolution.
+	if job.Type == model.JobTypeAccessControlSync {
+		if job.Data == nil {
+			job.Data = make(model.StringMap)
+		}
+		job.Data["requester_id"] = c.AppContext.Session().UserId
+		if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+			job.Data["requester_is_admin"] = "true"
+		} else {
+			delete(job.Data, "requester_is_admin")
+		}
+	}
+
 	rjob, err := c.App.CreateJob(c.AppContext, &job)
 	if err != nil {
 		c.Err = err
@@ -262,15 +276,55 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("getJobsByType", "api.job.retrieve.nopermissions", nil, "", http.StatusBadRequest)
 		return
 	}
-	if !hasPermission {
+
+	// Team admin fallback: allow reading access_control_sync jobs scoped to their team.
+	teamID := r.URL.Query().Get("team_id")
+	isTeamScopedSyncRequest := !hasPermission &&
+		c.Params.JobType == model.JobTypeAccessControlSync &&
+		teamID != "" && model.IsValidId(teamID) &&
+		c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageTeamAccessRules)
+
+	if !hasPermission && !isTeamScopedSyncRequest {
 		c.SetPermissionError(permissionRequired)
 		return
 	}
 
-	jobs, appErr := c.App.GetJobsByTypePage(c.AppContext, c.Params.JobType, c.Params.Page, c.Params.PerPage)
-	if appErr != nil {
-		c.Err = appErr
-		return
+	var jobs []*model.Job
+
+	// When team_id is provided, query team-scoped jobs.
+	// Falls back to global sync jobs if no team-scoped jobs exist yet.
+	if teamID != "" && model.IsValidId(teamID) {
+		teamJobs, appErr := c.App.GetJobsByTypeAndData(c.AppContext, c.Params.JobType, map[string]string{"team_id": teamID})
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+
+		if len(teamJobs) > 0 {
+			sort.Slice(teamJobs, func(i, j int) bool {
+				return teamJobs[i].CreateAt > teamJobs[j].CreateAt
+			})
+			jobs = teamJobs
+		} else {
+			// Fallback: return global sync jobs (no team_id) for initial sync status.
+			allJobs, appErr := c.App.GetJobsByTypePage(c.AppContext, c.Params.JobType, 0, c.Params.PerPage)
+			if appErr != nil {
+				c.Err = appErr
+				return
+			}
+			for _, job := range allJobs {
+				if job.Data["team_id"] == "" {
+					jobs = append(jobs, job)
+				}
+			}
+		}
+	} else {
+		var appErr *model.AppError
+		jobs, appErr = c.App.GetJobsByTypePage(c.AppContext, c.Params.JobType, c.Params.Page, c.Params.PerPage)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
 	}
 
 	js, err := json.Marshal(jobs)
