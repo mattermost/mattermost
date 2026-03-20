@@ -8,6 +8,7 @@ import {TableCell} from '@tiptap/extension-table-cell';
 import {TableHeader} from '@tiptap/extension-table-header';
 import {TableRow} from '@tiptap/extension-table-row';
 import {Markdown} from '@tiptap/markdown';
+import {splitListItem} from '@tiptap/pm/schema-list';
 import {EditorContent, useEditor} from '@tiptap/react';
 import type {Editor} from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -102,28 +103,39 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                 'data-channel-id': channelId,
             },
             handleKeyDown: (view, event) => {
-                if (event.key === 'Enter' && !event.shiftKey && !event.metaKey && !event.ctrlKey && !event.altKey) {
-                    const {state} = view;
-                    const {$from} = state.selection;
-                    const parentNode = $from.node($from.depth);
-                    const grandparentNode = $from.depth > 1 ? $from.node($from.depth - 1) : null;
+                if (event.key !== 'Enter') {
+                    return false;
+                }
 
-                    const insideList = grandparentNode?.type.name === 'listItem';
-                    const insideBlockquote = grandparentNode?.type.name === 'blockquote' ||
-                        ($from.depth > 2 && $from.node($from.depth - 2)?.type.name === 'blockquote');
-                    const insideCodeBlock = parentNode.type.name === 'codeBlock';
-                    const insideTable = ['tableCell', 'tableHeader'].includes(grandparentNode?.type.name ?? '');
-                    const insideHeading = parentNode.type.name === 'heading';
+                const {state} = view;
+                const {$from} = state.selection;
+                const parentNode = $from.node($from.depth);
+                const grandparentNode = $from.depth > 1 ? $from.node($from.depth - 1) : null;
 
-                    if (insideList || insideBlockquote || insideCodeBlock || insideTable || insideHeading) {
-                        return false;
-                    }
+                const insideList = grandparentNode?.type.name === 'listItem';
+                const insideBlockquote = grandparentNode?.type.name === 'blockquote' ||
+                    ($from.depth > 2 && $from.node($from.depth - 2)?.type.name === 'blockquote');
+                const insideCodeBlock = parentNode.type.name === 'codeBlock';
+                const insideTable = ['tableCell', 'tableHeader'].includes(grandparentNode?.type.name ?? '');
+                const insideHeading = parentNode.type.name === 'heading';
 
+                if (event.shiftKey && insideList) {
                     event.preventDefault();
-                    onSubmitRef.current();
+                    splitListItem(state.schema.nodes.listItem)(state, view.dispatch);
                     return true;
                 }
-                return false;
+
+                if (event.shiftKey || event.metaKey || event.ctrlKey || event.altKey) {
+                    return false;
+                }
+
+                if (insideList || insideBlockquote || insideCodeBlock || insideTable || insideHeading) {
+                    return false;
+                }
+
+                event.preventDefault();
+                onSubmitRef.current();
+                return true;
             },
         },
         onFocus: () => onFocusRef.current?.(),
@@ -143,6 +155,11 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     const prevValueRef = useRef(value);
     useEffect(() => {
         if (!editor || editor.isDestroyed) {
+            return;
+        }
+
+        if (editor.isFocused) {
+            prevValueRef.current = value;
             return;
         }
 
