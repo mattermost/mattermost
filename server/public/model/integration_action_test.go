@@ -1512,7 +1512,7 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 	})
 
 	t.Run("should use default time_interval of 60 minutes when zero", func(t *testing.T) {
-		// Valid with default 60-minute interval
+		// Valid with explicit 60-minute interval
 		element := DialogElement{
 			DisplayName:  "Test DateTime",
 			Name:         "test_datetime",
@@ -1523,16 +1523,15 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 		err := element.IsValid()
 		assert.NoError(t, err)
 
-		// Invalid with default 60-minute interval
+		// time_interval=0 means omitted — treated as default, should pass validation
 		element = DialogElement{
 			DisplayName:  "Test DateTime",
 			Name:         "test_datetime",
 			Type:         "datetime",
-			TimeInterval: 0, // Should use default of 60
+			TimeInterval: 0,
 			Optional:     false,
 		}
 		err = element.IsValid()
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "time_interval of 0 will be reset to default")
+		assert.NoError(t, err)
 	})
 }

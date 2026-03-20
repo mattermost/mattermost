@@ -278,8 +278,15 @@ const DateTimeInputContainer: React.FC<Props> = ({
 
     const handleTimeChange = useCallback((selectedTime: Moment) => {
         // selectedTime is already a Moment with correct timezone from getTimeInIntervals
-        handleChange(selectedTime.clone().second(0).millisecond(0));
-    }, [handleChange]);
+        let result = selectedTime.clone().second(0).millisecond(0);
+        if (minDateTime) {
+            result = moment.max(result, minDateTime);
+        }
+        if (maxDateTime) {
+            result = moment.min(result, maxDateTime);
+        }
+        handleChange(result);
+    }, [handleChange, minDateTime, maxDateTime]);
 
     const handleKeyDown = useCallback((event: KeyboardEvent) => {
         // Handle escape key for date picker when time menu is not open
@@ -424,7 +431,12 @@ const DateTimeInputContainer: React.FC<Props> = ({
             matchers.push({before: momentToLocalDate(currentTime)});
         }
         if (maxDateTime) {
-            matchers.push({after: momentToLocalDate(maxDateTime)});
+            // If maxDateTime is exactly midnight, no time on that day is usable — disable the day itself
+            if (maxDateTime.isSame(maxDateTime.clone().startOf('day'), 'minute')) {
+                matchers.push({after: momentToLocalDate(maxDateTime.clone().subtract(1, 'day'))});
+            } else {
+                matchers.push({after: momentToLocalDate(maxDateTime)});
+            }
         }
         return matchers.length > 0 ? matchers : undefined;
     }, [minDateTime, maxDateTime, allowPastDates, todayDateString]); // eslint-disable-line react-hooks/exhaustive-deps -- currentTime used inside but todayDateString tracks the relevant change (date only)

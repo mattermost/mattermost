@@ -1521,9 +1521,10 @@ func TestOpenInteractiveDialog(t *testing.T) {
 			},
 		}
 
-		// Should succeed but log warning about invalid dialog
+		// Should fail with bad request since dialog has invalid element
 		err = th.App.OpenInteractiveDialog(th.Context, request)
-		require.Nil(t, err)
+		require.NotNil(t, err)
+		require.Equal(t, http.StatusBadRequest, err.StatusCode)
 	})
 }
 

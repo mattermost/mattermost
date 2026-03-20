@@ -6755,6 +6755,10 @@
     "translation": "Could not update last login timestamp"
   },
   {
+    "id": "app.interactive_dialog.invalid",
+    "translation": "Invalid interactive dialog."
+  },
+  {
     "id": "app.lookup_interactive_dialog.decode_json_error",
     "translation": "Encountered an error decoding JSON response from interactive dialog lookup."
   },

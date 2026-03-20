@@ -679,14 +679,14 @@ func (e *DialogElement) IsValid() error {
 		multiErr = multierror.Append(multiErr, validateDateTimeFormat(e.Default))
 		multiErr = multierror.Append(multiErr, validateDateOrDateTimeFormat(e.MinDate))
 		multiErr = multierror.Append(multiErr, validateDateOrDateTimeFormat(e.MaxDate))
-		// Validate time_interval for datetime fields
+		// Validate time_interval for datetime fields (0 means omitted — treated as default)
 		timeInterval := e.TimeInterval
-		if timeInterval == 0 {
-			multiErr = multierror.Append(multiErr, errors.Errorf("time_interval of 0 will be reset to default, %d minutes", DefaultTimeIntervalMinutes))
-		} else if timeInterval < 1 || timeInterval > 1440 {
-			multiErr = multierror.Append(multiErr, errors.Errorf("time_interval must be between 1 and 1440 minutes, got %d", timeInterval))
-		} else if 1440%timeInterval != 0 {
-			multiErr = multierror.Append(multiErr, errors.Errorf("time_interval must be a divisor of 1440 (24 hours * 60 minutes) to create valid time intervals, got %d", timeInterval))
+		if timeInterval != 0 {
+			if timeInterval < 1 || timeInterval > 1440 {
+				multiErr = multierror.Append(multiErr, errors.Errorf("time_interval must be between 1 and 1440 minutes, got %d", timeInterval))
+			} else if 1440%timeInterval != 0 {
+				multiErr = multierror.Append(multiErr, errors.Errorf("time_interval must be a divisor of 1440 (24 hours * 60 minutes) to create valid time intervals, got %d", timeInterval))
+			}
 		}
 
 	default:
