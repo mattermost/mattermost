@@ -280,22 +280,19 @@ jobs:
           fi
 
           # When sharding, override TE_PACKAGES and EE_PACKAGES so Make only
-          # runs this shard's packages. We read the lists from files written by
-          # the split step, and pass them as Make variable overrides.
-          # Package names are plain Go import paths — no shell metacharacters.
-          #
-          # We write a small wrapper script to preserve quoting of the
-          # space-separated package lists through the docker exec boundary.
-          MAKE_CMD="make test-server${RACE_MODE} BUILD_NUMBER=${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}"
+          # runs this shard's packages. Package lists are read from files
+          # written by the split step, then passed as Make variable overrides
+          # via a wrapper script (to preserve quoting through docker exec).
+          MAKE_ARGS="test-server${RACE_MODE} BUILD_NUMBER=${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}"
+          DOCKER_CMD="make ${MAKE_ARGS}"
           if [[ "${{ inputs.shard-total }}" -gt 1 && -f server/shard-te-packages.txt ]]; then
             SHARD_TE=$(cat server/shard-te-packages.txt)
             SHARD_EE=$(cat server/shard-ee-packages.txt)
-            cat > server/run-shard-tests.sh <<SHARDEOF
-#!/bin/bash
-exec make test-server${RACE_MODE} BUILD_NUMBER=${GITHUB_HEAD_REF}-${GITHUB_RUN_ID} TE_PACKAGES="${SHARD_TE}" EE_PACKAGES="${SHARD_EE}"
-SHARDEOF
+            # Write wrapper script using printf (heredocs can confuse GHA YAML parser)
+            printf '#!/bin/bash\nexec make %s TE_PACKAGES="%s" EE_PACKAGES="%s"\n' \
+              "${MAKE_ARGS}" "${SHARD_TE}" "${SHARD_EE}" > server/run-shard-tests.sh
             chmod +x server/run-shard-tests.sh
-            MAKE_CMD="/mattermost/server/run-shard-tests.sh"
+            DOCKER_CMD="/mattermost/server/run-shard-tests.sh"
           fi
 
           docker run --net ghactions_mm-test \
@@ -310,7 +307,7 @@ SHARDEOF
             -v $PWD:/mattermost \
             -w /mattermost/server \
             $BUILD_IMAGE \
-            $MAKE_CMD
+            $DOCKER_CMD
 
       - name: Upload coverage to Codecov
         if: ${{ inputs.enablecoverage }}
