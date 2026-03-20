@@ -137,7 +137,7 @@ jobs:
           # per package and use greedy bin-packing to balance wall-clock time.
           TIMING_FILE="prev-report.xml"
           USE_TIMING=false
-          declare -A PKG_TIMES
+          declare -A PKG_TIMES=()
 
           if [[ -f "$TIMING_FILE" ]]; then
             echo "::group::Extracting package timing from JUnit XML"
@@ -166,7 +166,7 @@ jobs:
           echo "::group::Assigning packages to shard $SHARD_INDEX of $SHARD_TOTAL"
 
           # Initialize shard load counters
-          declare -a SHARD_LOAD
+          declare -a SHARD_LOAD=()
           for ((i=0; i<SHARD_TOTAL; i++)); do SHARD_LOAD[$i]=0; done
 
           declare -a MY_PKGS=()
