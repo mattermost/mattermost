@@ -1,0 +1,33 @@
+## Commit: 53f1e40e0a6eb0fcb16003c1b799a026913ae054
+**Fecha:** Mon Nov 17 13:57:33 2025 +0100
+
+### Descripción de los Cambios
+Commit:     GitHub <noreply@github.com>
+
+**Autor:** Weblate (bot) <hosted@weblate.org>
+
+**Archivos modificados:**
+- `server/i18n/be.json`
+- `server/i18n/bg.json`
+- `server/i18n/ca.json`
+- `server/i18n/cs.json`
+- `server/i18n/de.json`
+- `server/i18n/el.json`
+- `server/i18n/en-AU.json`
+- `server/i18n/es.json`
+- `server/i18n/fa.json`
+- `server/i18n/fi.json`
+- `server/i18n/fr.json`
+- `server/i18n/gl.json`
+- `server/i18n/hi.json`
+- `server/i18n/hu.json`
+- `server/i18n/it.json`
+- ... y 26 archivos más
+
+**Áreas afectadas:**
+- Frontend/Webapp
+- Internacionalización
+
+
+### Veredicto del Cambio
+B) Cambio relacionado con marca/Enterprise/licensing
