@@ -5,7 +5,6 @@ package sqlstore
 
 import (
 	"database/sql"
-	"encoding/json"
 	"slices"
 	"strconv"
 
@@ -34,61 +33,6 @@ func newSqlViewStore(sqlStore *SqlStore) store.ViewStore {
 	return s
 }
 
-// dbView is an intermediate struct used to scan rows from the Views table.
-// Props is stored as raw JSON bytes and converted to/from model.StringInterface.
-type dbView struct {
-	Id          string
-	ChannelId   string
-	Type        string
-	CreatorId   string
-	Title       string
-	Description string
-	SortOrder   int
-	Props       []byte
-	CreateAt    int64
-	UpdateAt    int64
-	DeleteAt    int64
-}
-
-func (d *dbView) toModel() (*model.View, error) {
-	v := &model.View{
-		Id:          d.Id,
-		ChannelId:   d.ChannelId,
-		Type:        model.ViewType(d.Type),
-		CreatorId:   d.CreatorId,
-		Title:       d.Title,
-		Description: d.Description,
-		SortOrder:   d.SortOrder,
-		CreateAt:    d.CreateAt,
-		UpdateAt:    d.UpdateAt,
-		DeleteAt:    d.DeleteAt,
-	}
-
-	if len(d.Props) > 0 {
-		var props model.StringInterface
-		if err := json.Unmarshal(d.Props, &props); err != nil {
-			return nil, errors.Wrap(err, "failed to unmarshal view props")
-		}
-		v.Props = props
-	}
-
-	return v, nil
-}
-
-func marshalViewProps(props model.StringInterface, binaryParams bool) (any, error) {
-	if props == nil {
-		return nil, nil
-	}
-	b, err := json.Marshal(props)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal view props")
-	}
-	if binaryParams {
-		b = AppendBinaryFlag(b)
-	}
-	return b, nil
-}
-
 func viewColumns() []string {
 	return []string{
 		"Id", "ChannelId", "Type", "CreatorId", "Title",
@@ -103,21 +47,16 @@ func (s *SqlViewStore) Save(view *model.View) (*model.View, error) {
 		return nil, err
 	}
 
-	propsVal, err := marshalViewProps(view.Props, s.IsBinaryParamEnabled())
-	if err != nil {
-		return nil, err
-	}
-
 	builder := s.getQueryBuilder().
 		Insert("Views").
 		Columns(viewColumns()...).
 		Values(
 			view.Id, view.ChannelId, view.Type, view.CreatorId, view.Title,
-			view.Description, view.SortOrder, propsVal,
+			view.Description, view.SortOrder, view.Props,
 			view.CreateAt, view.UpdateAt, view.DeleteAt,
 		)
 
-	if _, err = s.GetMaster().ExecBuilder(builder); err != nil {
+	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
 		return nil, errors.Wrap(err, "failed to save view")
 	}
 
@@ -127,15 +66,15 @@ func (s *SqlViewStore) Save(view *model.View) (*model.View, error) {
 func (s *SqlViewStore) Get(id string) (*model.View, error) {
 	builder := s.viewSelect.Where(sq.Eq{"Id": id, "DeleteAt": 0})
 
-	var row dbView
-	if err := s.GetReplica().GetBuilder(&row, builder); err != nil {
+	var view model.View
+	if err := s.GetReplica().GetBuilder(&view, builder); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, store.NewErrNotFound("View", id)
 		}
 		return nil, errors.Wrapf(err, "failed to get view with id=%s", id)
 	}
 
-	return row.toModel()
+	return &view, nil
 }
 
 func (s *SqlViewStore) GetForChannel(channelID string, opts model.ViewQueryOpts) ([]*model.View, error) {
@@ -154,25 +93,19 @@ func (s *SqlViewStore) GetForChannel(channelID string, opts model.ViewQueryOpts)
 	}
 
 	builder := s.viewSelect.
-		Where(sq.Eq{"ChannelId": channelID}).
+		Where(sq.Eq{"ChannelId": channelID, "DeleteAt": 0}).
 		OrderBy("SortOrder ASC", "CreateAt ASC", "Id ASC").
 		Limit(uint64(opts.PerPage)).
 		Offset(uint64(opts.Page * opts.PerPage))
 
-	builder = builder.Where(sq.Eq{"DeleteAt": 0})
-
-	var rows []dbView
+	var rows []model.View
 	if err := s.GetReplica().SelectBuilder(&rows, builder); err != nil {
 		return nil, errors.Wrapf(err, "failed to get views for channel %s", channelID)
 	}
 
-	views := make([]*model.View, 0, len(rows))
+	views := make([]*model.View, len(rows))
 	for i := range rows {
-		v, err := rows[i].toModel()
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to convert view id=%s for channel %s", rows[i].Id, channelID)
-		}
-		views = append(views, v)
+		views[i] = &rows[i]
 	}
 
 	return views, nil
@@ -186,9 +119,7 @@ func (s *SqlViewStore) CountForChannel(channelID string, opts model.ViewQueryOpt
 	builder := s.getQueryBuilder().
 		Select("COUNT(*)").
 		From("Views").
-		Where(sq.Eq{"ChannelId": channelID})
-
-	builder = builder.Where(sq.Eq{"DeleteAt": 0})
+		Where(sq.Eq{"ChannelId": channelID, "DeleteAt": 0})
 
 	var count int64
 	if err := s.GetReplica().GetBuilder(&count, builder); err != nil {
@@ -204,17 +135,12 @@ func (s *SqlViewStore) Update(view *model.View) (*model.View, error) {
 		return nil, err
 	}
 
-	propsVal, err := marshalViewProps(view.Props, s.IsBinaryParamEnabled())
-	if err != nil {
-		return nil, err
-	}
-
 	builder := s.getQueryBuilder().
 		Update("Views").
 		Set("Title", view.Title).
 		Set("Description", view.Description).
 		Set("SortOrder", view.SortOrder).
-		Set("Props", propsVal).
+		Set("Props", view.Props).
 		Set("UpdateAt", view.UpdateAt).
 		Where(sq.Eq{"Id": view.Id, "DeleteAt": 0})
 
@@ -275,23 +201,18 @@ func (s *SqlViewStore) UpdateSortOrder(viewID, channelID string, newIndex int64)
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	// Fetch all non-deleted views for the channel
 	builder := s.viewSelect.
 		Where(sq.Eq{"ChannelId": channelID, "DeleteAt": 0}).
 		OrderBy("SortOrder ASC", "CreateAt ASC", "Id ASC")
 
-	var rows []dbView
+	var rows []model.View
 	if err = transaction.SelectBuilder(&rows, builder); err != nil {
 		return nil, errors.Wrapf(err, "failed to get views for channel %s", channelID)
 	}
 
-	views := make([]*model.View, 0, len(rows))
+	views := make([]*model.View, len(rows))
 	for i := range rows {
-		v, convErr := rows[i].toModel()
-		if convErr != nil {
-			return nil, errors.Wrapf(convErr, "failed to convert view id=%s", rows[i].Id)
-		}
-		views = append(views, v)
+		views[i] = &rows[i]
 	}
 
 	if len(views) == 0 || int(newIndex) > len(views)-1 {
@@ -337,6 +258,8 @@ func (s *SqlViewStore) UpdateSortOrder(viewID, channelID string, newIndex int64)
 		return nil, errors.Wrapf(execErr, "failed to update sort order for views in channel %s", channelID)
 	}
 
-	err = transaction.Commit()
-	return views, err
+	if err = transaction.Commit(); err != nil {
+		return nil, errors.Wrap(err, "failed to commit sort order update for views")
+	}
+	return views, nil
 }

@@ -67,9 +67,10 @@ func testSaveView(t *testing.T, ss store.Store) {
 		assert.Equal(t, float64(3), fetched.Props["count"])
 	})
 
-	t.Run("saves view without props", func(t *testing.T) {
+	t.Run("nil props round-trips as nil", func(t *testing.T) {
 		v := makeView(channelID, creatorID)
-		v.Title = "No Props Kanban"
+		v.Title = "Nil Props Kanban"
+		v.Props = nil
 		saved, err := ss.View().Save(v)
 		require.NoError(t, err)
 

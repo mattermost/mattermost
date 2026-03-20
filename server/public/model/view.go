@@ -17,7 +17,6 @@ const (
 
 	ViewTitleMaxRunes       = 256
 	ViewDescriptionMaxRunes = 1024
-	ViewMaxLinkedProperties = 500
 	MaxViewsPerChannel      = 50
 
 	BoardsPropertyGroupName      = "boards"
