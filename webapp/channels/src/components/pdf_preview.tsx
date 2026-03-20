@@ -15,8 +15,6 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {getSiteURL} from 'utils/url';
 
-import useDidUpdate from './common/hooks/useDidUpdate';
-
 const INITIAL_RENDERED_PAGES = 3;
 
 export type Props = {
@@ -60,8 +58,6 @@ const PDFPreview = memo(({
     });
 
     const [status, setStatus] = useState<Status>('loading');
-
-    const prevStatus = useRef<Status>('loading');
 
     useEffect(() => {
         setPdfFromState({
@@ -207,7 +203,15 @@ const PDFPreview = memo(({
         };
     }, [pdfFromState.numPages, renderPDFPage, status]);
 
-    useDidUpdate(() => {
+    const prevScale = useRef(scale);
+    useEffect(() => {
+        // Only re-render the pages when the user zooms in or out
+        if (scale === prevScale.current) {
+            return;
+        }
+
+        prevScale.current = scale;
+
         pdfPagesRendered.current = {};
 
         if (status === 'success') {
@@ -215,9 +219,10 @@ const PDFPreview = memo(({
                 renderPDFPage(i);
             }
         }
-    }, [scale]);
+    }, [pdfFromState.numPages, renderPDFPage, scale, status]);
 
-    useDidUpdate(() => {
+    const prevStatus = useRef<Status>(status);
+    useEffect(() => {
         if (prevStatus.current === 'fail' && status === 'success') {
             for (let i = 0; i < pdfFromState.numPages; i++) {
                 renderPDFPage(i);
@@ -225,7 +230,7 @@ const PDFPreview = memo(({
         }
 
         prevStatus.current = status;
-    }, [status]);
+    }, [pdfFromState.numPages, renderPDFPage, status]);
 
     if (status === 'loading') {
         return (
