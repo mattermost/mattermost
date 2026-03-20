@@ -275,6 +275,8 @@ func TestCreatePost(t *testing.T) {
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 		assert.Nil(t, rpost)
+
+		th.LoginBasic()
 	})
 
 	t.Run("should prevent creating post with files when user lacks upload_file permission in target channel", func(t *testing.T) {

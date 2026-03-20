@@ -169,6 +169,18 @@ func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if c.AppContext.Session().UserId != cmd.CreatorId && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), cmd.TeamId, model.PermissionManageOthersSlashCommands) {
+		c.LogAudit("fail - inappropriate permissions")
+		c.SetPermissionError(model.PermissionManageOthersSlashCommands)
+		return
+	}
+
+	// Verify the command creator is a member of the destination team
+	if _, appErr = c.App.GetTeamMember(c.AppContext, cmr.TeamId, cmd.CreatorId); appErr != nil {
+		c.Err = model.NewAppError("moveCommand", "api.command.move_command.creator_not_in_team.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	if appErr = c.App.MoveCommand(newTeam, cmd); appErr != nil {
 		c.Err = appErr
 		return

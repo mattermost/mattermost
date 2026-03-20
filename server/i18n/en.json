@@ -720,6 +720,10 @@
     "translation": "Email invite(s) sent"
   },
   {
+    "id": "api.command.move_command.creator_not_in_team.app_error",
+    "translation": "Creator not in team"
+  },
+  {
     "id": "api.command.team_mismatch.app_error",
     "translation": "Unable to update commands across teams."
   },
@@ -5075,6 +5079,10 @@
     "translation": "Unable to update the command."
   },
   {
+    "id": "app.command.validatecommandtriggeruniqueness.internal_error",
+    "translation": "The specified trigger keyword already exists."
+  },
+  {
     "id": "app.command_webhook.create_command_webhook.existing",
     "translation": "You cannot update an existing CommandWebhook."
   },
@@ -8650,7 +8658,7 @@
   },
   {
     "id": "ent.saml.update_cpa.multiple_errors",
-    "translation": "Error(s) updating CPA values"
+    "translation": "Error(s) patching CPA value"
   },
   {
     "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
