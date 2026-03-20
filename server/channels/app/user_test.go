@@ -271,6 +271,7 @@ func TestUpdateUser(t *testing.T) {
 }
 
 func TestUpdateUserNilUpdateResult(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 
 	fakeUserID := model.NewId()

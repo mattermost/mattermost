@@ -1504,8 +1504,11 @@ func (a *App) UpdateUser(rctx request.CTX, user *model.User, sendNotifications b
 		}
 	}
 
-	if userUpdate == nil || userUpdate.New == nil {
-		return nil, model.NewAppError("UpdateUser", "app.user.update.find.app_error", nil, "received nil result from store update for userId="+user.Id, http.StatusInternalServerError)
+	if userUpdate == nil {
+		return nil, model.NewAppError("UpdateUser", "app.user.update.find.app_error", nil, "received nil update result from store for userId="+user.Id, http.StatusInternalServerError)
+	}
+	if userUpdate.New == nil {
+		return nil, model.NewAppError("UpdateUser", "app.user.update.find.app_error", nil, "received update result with nil New user from store for userId="+user.Id, http.StatusInternalServerError)
 	}
 
 	newUser := userUpdate.New
