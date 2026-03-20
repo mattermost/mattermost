@@ -1,0 +1,111 @@
+# Copyright 2022 Mattermost, Inc.
+name: "e2e-test"
+description: This action used to runs cypress e2e integration tests
+
+inputs:
+  CYPRESS_serverEdition:
+    description: The cypress server edition
+    required: true
+  SPECS:
+    description: The cypress specs to run
+    required: true
+  ARTIFACT_SUFFIX:
+    description: Optional suffix for artifact names to avoid conflicts
+    required: false
+    default: ""
+runs:
+  using: "composite"
+  steps:
+    - name: ci/setup-go
+      uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
+      with:
+        go-version: "${{ env.GO_VERSION }}"
+        cache: false
+
+    - name: ci/setup-node
+      uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+      with:
+        node-version-file: ".nvmrc"
+        cache: "npm"
+        cache-dependency-path: |
+          webapp/package-lock.json
+          e2e-tests/package-lock.json
+
+    - name: ci/cache-node-modules
+      id: cache-node-modules
+      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+      with:
+        path: |
+          webapp/node_modules
+          e2e-tests/node_modules
+        key: ${{ runner.os }}-node-modules-${{ hashFiles('webapp/package-lock.json') }}-${{ hashFiles('e2e-tests/package-lock.json') }}
+        restore-keys: ${{ runner.os }}-node-modules-${{ hashFiles('webapp/package-lock.json') }}-${{ hashFiles('e2e-tests/package-lock.json') }}
+
+    - name: ci/disable-ALSA
+      run: printf "pcm.!default {\n    type plug\n    slave.pcm \"null\"\n}\n" > ~/.asoundrc;
+      shell: bash
+
+    - name: ci/restore-postresql
+      uses: docker://postgres:14
+      env:
+        TEST_DATABASE_URL: postgres://mmuser:mostest@postgres:5432/mattermost_test
+      with:
+        entrypoint: ./.github/actions/e2e-test/generate-test-data.sh
+
+    - name: ci/installing-deps
+      if: steps.cache-node-modules.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        NODE_ENV: development
+      run: |
+        cd webapp
+        npm install --ignore-scripts --no-save --legacy-peer-deps
+        cd ../e2e-tests
+        npm install --ignore-scripts --no-save --legacy-peer-deps
+
+    - name: ci/installing-cypress-deps
+      shell: bash
+      env:
+        NODE_ENV: development
+      run: |
+        sudo apt-get install libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 libxtst6 xauth xvfb -y
+        cd e2e-tests/
+        npx cypress install
+
+    - name: ci/install-playbooks
+      env:
+        MM_SERVICESETTINGS_SITEURL: http://localhost:8065
+        MM_ADMIN_USERNAME: sysadmin
+        MM_ADMIN_PASSWORD: Sys@dmin-sample1
+      run: make upload-to-server
+      shell: bash
+
+    - name: ci/run-cypress-tests
+      env:
+        TYPE: NONE
+        PULL_REQUEST: ""
+        BROWSER: chrome
+        HEADLESS: "true"
+        DASHBOARD_ENABLE: "false"
+        FULL_REPORT: "false"
+        MM_SERVICESETTINGS_SITEURL: http://localhost:8065
+        MM_ADMIN_USERNAME: sysadmin
+        MM_ADMIN_PASSWORD: Sys@dmin-sample1
+        CYPRESS_serverEdition: ${{ inputs.CYPRESS_serverEdition }}
+        MM_SERVICESETTINGS_EXPERIMENTALSTRICTCSRFENFORCEMENT: "false"
+        MM_SERVICESETTINGS_STRICTCSRFENFORCEMENT: "false"
+        TERM: xterm
+      run: |
+        cd e2e-tests
+        npm run test -- --spec "${{ inputs.SPECS }}"
+      shell: bash
+
+    - name: ci/upload-cypress-test-results
+      if: always()
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+      with:
+        name: cypress-test-results-${{ matrix.runId }}${{ inputs.ARTIFACT_SUFFIX }}
+        path: |
+          e2e-tests/results/junit
+          e2e-tests/tests/screenshots
+        retention-days: 14 ## No need to keep test results more than 14 days

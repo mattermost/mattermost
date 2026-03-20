@@ -1,0 +1,326 @@
+name: Playbooks CI
+
+on:
+  pull_request:
+    paths:
+      - "core-plugins/mattermost-plugin-playbooks/**"
+  push:
+    branches:
+      - master
+    paths:
+      - "core-plugins/mattermost-plugin-playbooks/**"
+  schedule:
+    - cron: "0 03 * * 1-6" # Daily at 03:00 UTC from Monday through Saturday.
+
+defaults:
+  run:
+    shell: bash
+    working-directory: core-plugins/mattermost-plugin-playbooks
+
+env:
+  TERM: xterm
+  IS_NOT_FORK: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
+
+jobs:
+  go:
+    name: Playbooks / Compute Go Version
+    runs-on: ubuntu-22.04
+    outputs:
+      version: ${{ steps.calculate.outputs.GO_VERSION }}
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: "0"
+      - name: Calculate version
+        id: calculate
+        run: echo GO_VERSION=$(grep -E '^go [0-9]+\.[0-9]+' go.mod | cut -d' ' -f2) >> "${GITHUB_OUTPUT}"
+
+  lint:
+    name: Playbooks / Lint
+    runs-on: ubuntu-22.04
+    needs:
+      - go
+    container:
+      image: mattermostdevelopment/mattermost-build-server:${{ needs.go.outputs.version }}
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: "0"
+
+      - name: ci/configure-git-safe-directory
+        run: git config --global --add safe.directory $GITHUB_WORKSPACE
+
+      - name: ci/cache-node-modules
+        id: cache-node-modules
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: |
+            core-plugins/mattermost-plugin-playbooks/webapp/node_modules
+            core-plugins/mattermost-plugin-playbooks/e2e-tests/node_modules
+          key: ${{ runner.os }}-playbooks-node-modules-${{ hashFiles('core-plugins/mattermost-plugin-playbooks/webapp/package-lock.json') }}-${{ hashFiles('core-plugins/mattermost-plugin-playbooks/e2e-tests/package-lock.json') }}
+          restore-keys: ${{ runner.os }}-playbooks-node-modules-${{ hashFiles('core-plugins/mattermost-plugin-playbooks/webapp/package-lock.json') }}-${{ hashFiles('core-plugins/mattermost-plugin-playbooks/e2e-tests/package-lock.json') }}
+
+      - name: ci/setup-webapp-npm-deps
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        env:
+          NODE_ENV: development
+        run: |
+          cd webapp
+          npm install --ignore-scripts --no-save --legacy-peer-deps
+
+      - name: ci/setup-e2e-npm-deps
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        env:
+          NODE_ENV: development
+        run: |
+          cd e2e-tests
+          npm install --ignore-scripts --no-save --legacy-peer-deps
+
+      - name: ci/checking-code-style
+        run: make check-style
+
+      - name: ci/go-tidy
+        run: go mod tidy -v
+
+      - name: ci/check-diff-on-gomod
+        run: git --no-pager diff --exit-code go.mod go.sum || (echo "Please run \"go mod tidy\" and commit the changes in go.mod and go.sum." && exit 1)
+
+      - name: ci/run-make-apply
+        run: make apply
+
+      - name: ci/check-diff-on-generated-manifest-files
+        run: git --no-pager diff --exit-code *manifest.* || (echo "Please run \"make apply\" and commit the changes in the generated manifests." && exit 1)
+
+      - name: ci/run-make-i18n-extract-webapp
+        run: make i18n-extract-webapp
+
+      - name: ci/check-diff-on-webapp-i18n-files
+        run: git --no-pager diff --exit-code webapp/i18n/en.json || (echo "Please run \"make i18n-extract\" and commit the changes in webapp/i18n/en.json." && exit 1)
+
+      - name: ci/run-make-graphql
+        run: make graphql
+
+      - name: ci/check-diff-on-webapp-graphql-generated-files
+        run: git --no-pager diff --exit-code webapp/src/graphql/generated/ || (echo "Please run \"make graphql\" and commit the changes." && exit 1)
+
+  dist:
+    name: Playbooks / Dist
+    runs-on: ubuntu-22.04
+    needs:
+      - go
+      - lint
+    container:
+      image: mattermostdevelopment/mattermost-build-server:${{ needs.go.outputs.version }}
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: "0"
+      - name: ci/configure-git-safe-directory
+        run: git config --global --add safe.directory $GITHUB_WORKSPACE
+      - name: ci/get-short-sha
+        id: short-sha
+        run: echo "sha=$(echo ${{ github.event.pull_request.head.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
+      - name: ci/build-for-upload
+        run: make dist
+      - name: ci/upload-build-artifact
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: playbooks-bundle-${{ steps.short-sha.outputs.sha }}
+          path: |
+            core-plugins/mattermost-plugin-playbooks/dist/playbooks-*.tar.gz
+          retention-days: 7 ## No need to keep build artifacts for more than 7 days
+      - name: ci/ensure-build-on-all-platforms ## Verify builds on all platforms *after* ci/build-for-upload to keep artifact small
+        run: make dist
+
+  dist-fips:
+    name: Playbooks / Dist FIPS
+    # Skip FIPS testing for forks, which won't have docker login credentials.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-22.04
+    needs:
+      - go
+      - lint
+    container:
+      image: mattermostdevelopment/mattermost-build-server-fips:${{ needs.go.outputs.version }}
+      credentials:
+        username: ${{ secrets.DOCKERHUB_DEV_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_DEV_TOKEN }}
+    env:
+      FIPS_ENABLED: true
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: "0"
+      - name: ci/configure-git-safe-directory
+        run: git config --global --add safe.directory $GITHUB_WORKSPACE
+      - name: ci/get-short-sha
+        id: short-sha
+        run: echo "sha=$(echo ${{ github.event.pull_request.head.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
+      - name: ci/build-for-upload
+        run: make dist
+      - name: ci/upload-build-artifact
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: playbooks-bundle-fips-${{ steps.short-sha.outputs.sha }}
+          path: |
+            core-plugins/mattermost-plugin-playbooks/dist/playbooks-*.tar.gz
+          retention-days: 7 ## No need to keep build artifacts for more than 7 days
+      - name: ci/ensure-build-on-all-platforms ## Verify builds on all platforms *after* ci/build-for-upload to keep artifact small
+        run: make dist
+
+  upload:
+    name: Playbooks / Upload
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-22.04
+    needs:
+      - dist
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: "0"
+      - name: ci/get-short-sha
+        id: short-sha
+        run: echo "sha=$(echo ${{ github.event.pull_request.head.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
+      - name: ci/download-build-artifact
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: playbooks-bundle-${{ steps.short-sha.outputs.sha }}
+          path: core-plugins/mattermost-plugin-playbooks/dist
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - name: Upload dist to S3
+        run: |
+          aws s3 cp dist/playbooks-*.tar.gz s3://${{ secrets.AWS_S3_BUCKET }}/mattermost-plugin-playbooks/mattermost-plugin-playbooks-${{ steps.short-sha.outputs.sha }}.tar.gz
+
+  upload-fips:
+    name: Playbooks / Upload FIPS
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-22.04
+    needs:
+      - dist-fips
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: "0"
+      - name: ci/get-short-sha
+        id: short-sha
+        run: echo "sha=$(echo ${{ github.event.pull_request.head.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
+      - name: ci/download-build-artifact-fips
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: playbooks-bundle-fips-${{ steps.short-sha.outputs.sha }}
+          path: core-plugins/mattermost-plugin-playbooks/dist-fips
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - name: Upload dist-fips to S3
+        run: |
+          aws s3 cp dist-fips/playbooks-*.tar.gz s3://${{ secrets.AWS_S3_BUCKET }}/mattermost-plugin-playbooks/mattermost-plugin-playbooks-fips-${{ steps.short-sha.outputs.sha }}.tar.gz
+
+  test:
+    name: Playbooks / Test
+    runs-on: ubuntu-22.04
+    needs:
+      - lint
+      - go
+    container:
+      image: mattermostdevelopment/mattermost-build-server:${{ needs.go.outputs.version }}
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: mmuser
+          POSTGRES_DB: mattermost_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: "0"
+
+      - name: ci/configure-git-safe-directory
+        run: git config --global --add safe.directory $GITHUB_WORKSPACE
+
+      - name: ci/test-with-db
+        uses: ./core-plugins/mattermost-plugin-playbooks/.github/actions/test-with-db
+
+  test-fips:
+    name: Playbooks / Test FIPS
+    # Skip FIPS testing for forks, which won't have docker login credentials.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-22.04
+    needs:
+      - lint
+      - go
+    container:
+      image: mattermostdevelopment/mattermost-build-server-fips:${{ needs.go.outputs.version }}
+      credentials:
+        username: ${{ secrets.DOCKERHUB_DEV_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_DEV_TOKEN }}
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: mmuser
+          POSTGRES_DB: mattermost_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: "0"
+
+      - name: ci/configure-git-safe-directory
+        run: git config --global --add safe.directory $GITHUB_WORKSPACE
+
+      - name: ci/test-with-db
+        uses: ./core-plugins/mattermost-plugin-playbooks/.github/actions/test-with-db
+
+  report-test-results:
+    name: Playbooks / Report Test Results
+    if: always() && github.event.pull_request.head.repo.full_name == github.repository
+    needs:
+      - test
+      - test-fips
+    runs-on: ubuntu-22.04
+    permissions:
+      checks: write
+    steps:
+      - name: ci/checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: ci/download-test-results
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+      - name: ci/publish-results
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+        run: python3 .github/scripts/junit_report.py

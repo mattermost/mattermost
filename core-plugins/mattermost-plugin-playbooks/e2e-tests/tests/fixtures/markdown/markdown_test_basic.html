@@ -1,0 +1,70 @@
+<h1 class="markdown__heading">Basic Markdown Testing</h1><p>Tests for text style, code blocks, in-line code and images, lines, block quotes, and headings.</p>
+<h3 class="markdown__heading">Text Style</h3><p><strong>The following text should render as:</strong><br><em>Italics</em>
+<em>Ita_lics</em>
+<em>Italics</em>
+<strong>Bold</strong>
+<strong><em>Bold-italics</em></strong>
+<strong><em>Bold-italics</em></strong>
+<del>Strikethrough</del></p>
+<p>This sentence contains <strong>bold</strong>, <em>italic</em>, <strong><em>bold-italic</em></strong>, and <del>stikethrough</del> text.  </p>
+<p><strong>The following should render as normal text:</strong><br>Normal Text_<br>_Normal Text<br>_Normal Text*</p>
+<h3 class="markdown__heading">Carriage Return</h3><p>Line #1 followed by one blank line </p>
+<p>Line #2 followed by one blank line</p>
+<p>Line #3 followed by Line #4
+Line #4 </p>
+<h3 class="markdown__heading">Code Blocks</h3><div class="post-code post-code--wrap"><div class="hljs"><code>This text should render in a code block</code></div></div><p><strong>The following markdown should not render:</strong>  </p>
+<div class="post-code post-code--wrap"><div class="hljs"><code>_Italics_  
+*Italics*  
+**Bold**  
+***Bold-italics***  
+**Bold-italics_**  
+~~Strikethrough~~
+:) :-) ;) ;-) :o :O :-o :-O 
+:bamboo: :gift_heart: :dolls: :school_satchel: :mortar_board:
+# Heading 1
+## Heading 2
+### Heading 3
+#### Heading 4
+##### Heading 5
+###### Heading 6
+&gt; Block Quote
+- List
+  - List Sub-item
+[Link](http://i.giphy.com/xNrM4cGJ8u3ao.gif)
+[![Github](https://assets-cdn.github.com/favicon.ico)](https://github.com/mattermost/platform)
+| Left-Aligned Text | Center Aligned Text | Right Aligned Text |
+| :------------ |:---------------:| -----:|
+| Left column 1 | this text       |  $100 |</code></div></div><p><strong>The following links should not auto-link or generate previews:</strong>  </p>
+<div class="post-code post-code--wrap"><div class="hljs"><code>GIF: http://i.giphy.com/xNrM4cGJ8u3ao.gif
+Website: https://en.wikipedia.org/wiki/Dolphin</code></div></div><p><strong>The following should appear as a carriage return separating two lines of text:</strong></p>
+<div class="post-code post-code--wrap"><div class="hljs"><code>Line #1 followed by a blank line
+
+Line #2 following a blank line</code></div></div><h3 class="markdown__heading">In-line Code</h3><p>The word <span class="codespan__pre-wrap"><code>monospace</code></span> should render as in-line code.  </p>
+<p>The following markdown in-line code should not render:<br><span class="codespan__pre-wrap"><code>_Italics_</code></span>, <span class="codespan__pre-wrap"><code>*Italics*</code></span>, <span class="codespan__pre-wrap"><code>**Bold**</code></span>, <span class="codespan__pre-wrap"><code>***Bold-italics***</code></span>, <span class="codespan__pre-wrap"><code>**Bold-italics_**</code></span>, <span class="codespan__pre-wrap"><code>~~Strikethrough~~</code></span>, <span class="codespan__pre-wrap"><code>:)</code></span> , <span class="codespan__pre-wrap"><code>:-)</code></span> , <span class="codespan__pre-wrap"><code>;)</code></span> , <span class="codespan__pre-wrap"><code>:-O</code></span> , <span class="codespan__pre-wrap"><code>:bamboo:</code></span> , <span class="codespan__pre-wrap"><code>:gift_heart:</code></span> , <span class="codespan__pre-wrap"><code>:dolls:</code></span> , <span class="codespan__pre-wrap"><code># Heading 1</code></span>, <span class="codespan__pre-wrap"><code>## Heading 2</code></span>, <span class="codespan__pre-wrap"><code>### Heading 3</code></span>, <span class="codespan__pre-wrap"><code>#### Heading 4</code></span>, <span class="codespan__pre-wrap"><code>##### Heading 5</code></span>, <span class="codespan__pre-wrap"><code>###### Heading 6</code></span></p>
+<p>This GIF link should not preview: <span class="codespan__pre-wrap"><code>http://i.giphy.com/xNrM4cGJ8u3ao.gif</code></span><br>This link should not auto-link: <span class="codespan__pre-wrap"><code>https://en.wikipedia.org/wiki/Dolphin</code></span>  </p>
+<p>This sentence with <span class="codespan__pre-wrap"><code>in-line code</code></span> should appear on one line.</p>
+<h3 class="markdown__heading">In-line Images</h3><p>(These image tests were moved into Se: MessagingMan.html)  </p>
+<h3 class="markdown__heading">Lines</h3><p>Three lines should render with text between them:  </p>
+<p>Text above line</p>
+<hr>
+<p>Text between lines</p>
+<hr>
+<p>Text between lines</p>
+<hr>
+<p>Text below line</p>
+<h3 class="markdown__heading">Block Quotes</h3><blockquote>
+<p>This text should render in a block quote.</p>
+</blockquote>
+<p><strong>The following markdown should render within the block quote:</strong>  </p>
+<blockquote>
+<h4 class="markdown__heading">Heading 4</h4><p><em>Italics</em>, <em>Italics</em>, <strong>Bold</strong>, <strong><em>Bold-italics</em></strong>, <strong><em>Bold-italics</em></strong>, <del>Strikethrough</del><br><span data-emoticon="slightly_smiling_face"><span alt=":slightly_smiling_face:" class="emoticon" title=":slightly_smiling_face:" style="background-image: url(&quot;http://localhost:8065/static/emoji/1f642.png&quot;);">:slightly_smiling_face:</span></span> <span data-emoticon="slightly_smiling_face"><span alt=":slightly_smiling_face:" class="emoticon" title=":slightly_smiling_face:" style="background-image: url(&quot;http://localhost:8065/static/emoji/1f642.png&quot;);">:slightly_smiling_face:</span></span> <span data-emoticon="wink"><span alt=":wink:" class="emoticon" title=":wink:" style="background-image: url(&quot;http://localhost:8065/static/emoji/1f609.png&quot;);">:wink:</span></span> <span data-emoticon="scream"><span alt=":scream:" class="emoticon" title=":scream:" style="background-image: url(&quot;http://localhost:8065/static/emoji/1f631.png&quot;);">:scream:</span></span> <span data-emoticon="bamboo"><span alt=":bamboo:" class="emoticon" title=":bamboo:" style="background-image: url(&quot;http://localhost:8065/static/emoji/1f38d.png&quot;);">:bamboo:</span></span> <span data-emoticon="gift_heart"><span alt=":gift_heart:" class="emoticon" title=":gift_heart:" style="background-image: url(&quot;http://localhost:8065/static/emoji/1f49d.png&quot;);">:gift_heart:</span></span> <span data-emoticon="dolls"><span alt=":dolls:" class="emoticon" title=":dolls:" style="background-image: url(&quot;http://localhost:8065/static/emoji/1f38e.png&quot;);">:dolls:</span></span>  </p>
+</blockquote>
+<p><strong>The following text should render in two block quotes separated by one line of text:</strong></p>
+<blockquote>
+<p>Block quote 1</p>
+</blockquote>
+<p>Text between block quotes</p>
+<blockquote>
+<p>Block quote 2</p>
+</blockquote>
+<h3 class="markdown__heading">Headings</h3><h1 class="markdown__heading">Heading 1 font size</h1><h2 class="markdown__heading">Heading 2 font size</h2><h3 class="markdown__heading">Heading 3 font size</h3><h4 class="markdown__heading">Heading 4 font size</h4><h5 class="markdown__heading">Heading 5 font size</h5><h6 class="markdown__heading">Heading 6 font size</h6>
