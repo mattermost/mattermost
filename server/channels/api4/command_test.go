@@ -308,6 +308,8 @@ func TestMoveCommand(t *testing.T) {
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
 
+	th.LinkUserToTeam(user, newTeam)
+
 	cmd1 := &model.Command{
 		CreatorId: user.Id,
 		TeamId:    team.Id,
