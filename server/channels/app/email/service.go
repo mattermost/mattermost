@@ -165,12 +165,15 @@ type ServiceInterface interface {
 
 func (es *Service) getLicenseSkuName() string {
 	if license := es.license(); license != nil {
-		// Strip the "Mattermost " prefix if present, since the product name
-		// already appears in the email subject (e.g. "Your Mattermost Entry
-		// license" instead of "Your Mattermost Mattermost Entry license").
-		return strings.TrimPrefix(license.SkuName, "Mattermost ")
+		// Strip the "Mattermost " prefix if present so we can
+		// unconditionally add it back, ensuring the result is always
+		// "Mattermost <tier>" regardless of whether the license
+		// server included the prefix (e.g. "Mattermost E20" vs "E20").
+		if name := strings.TrimPrefix(license.SkuName, "Mattermost "); name != "" {
+			return "Mattermost " + name
+		}
 	}
-	return ""
+	return "Mattermost"
 }
 
 func (es *Service) getConfigSiteName() string {

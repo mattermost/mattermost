@@ -35,6 +35,64 @@ func TestCondenseSiteURL(t *testing.T) {
 	require.Equal(t, "chat.mattermost.com:8080/subpath", condenseSiteURL("http://chat.mattermost.com:8080/subpath/"))
 }
 
+func TestGetLicenseSkuName(t *testing.T) {
+	tests := []struct {
+		name     string
+		license  *model.License
+		expected string
+	}{
+		{
+			name:     "nil license",
+			license:  nil,
+			expected: "Mattermost",
+		},
+		{
+			name:     "empty sku name",
+			license:  &model.License{SkuName: ""},
+			expected: "Mattermost",
+		},
+		{
+			name:     "Mattermost Professional",
+			license:  &model.License{SkuName: "Mattermost Professional"},
+			expected: "Mattermost Professional",
+		},
+		{
+			name:     "Mattermost Enterprise",
+			license:  &model.License{SkuName: "Mattermost Enterprise"},
+			expected: "Mattermost Enterprise",
+		},
+		{
+			name:     "Mattermost Enterprise Advanced",
+			license:  &model.License{SkuName: "Mattermost Enterprise Advanced"},
+			expected: "Mattermost Enterprise Advanced",
+		},
+		{
+			name:     "Mattermost Entry",
+			license:  &model.License{SkuName: "Mattermost Entry"},
+			expected: "Mattermost Entry",
+		},
+		{
+			name:     "E10 without Mattermost prefix",
+			license:  &model.License{SkuName: "E10"},
+			expected: "Mattermost E10",
+		},
+		{
+			name:     "E20 without Mattermost prefix",
+			license:  &model.License{SkuName: "E20"},
+			expected: "Mattermost E20",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			es := &Service{
+				license: func() *model.License { return tt.license },
+			}
+			require.Equal(t, tt.expected, es.getLicenseSkuName())
+		})
+	}
+}
+
 func TestSendInviteEmails(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

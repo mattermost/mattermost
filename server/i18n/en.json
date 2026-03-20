@@ -4016,7 +4016,7 @@
   },
   {
     "id": "api.templates.remove_expired_license.subject",
-    "translation": "Your Mattermost {{.SkuName}} license has expired"
+    "translation": "Your {{.SkuName}} license has expired"
   },
   {
     "id": "api.templates.reset_body.button",
