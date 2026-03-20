@@ -214,7 +214,7 @@ jobs:
             if [[ $((INDEX % SHARD_TOTAL)) -eq $SHARD_INDEX ]]; then
               MY_TESTS+=("$test_name")
             fi
-            ((INDEX++))
+            INDEX=$((INDEX + 1))
           done <<< "$ALL_TESTS"
 
           echo "Shard $SHARD_INDEX: ${#MY_TESTS[@]} of $TOTAL_TESTS tests (round-robin)"
