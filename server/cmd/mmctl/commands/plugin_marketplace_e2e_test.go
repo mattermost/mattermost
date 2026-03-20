@@ -37,7 +37,7 @@ func (s *MmctlE2ETestSuite) TestPluginMarketplaceInstallCmd() {
 	s.SetupTestHelperWithConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.AutomaticPrepackagedPlugins = false
 		cfg.PluginSettings.SignaturePublicKeyFiles = []string{
-			filepath.Join(testsPath, "development-private-key.asc"),
+			filepath.Join(testsPath, "development-public-key.asc"),
 		}
 	}).InitBasic(s.T())
 
