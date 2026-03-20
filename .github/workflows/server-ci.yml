@@ -77,8 +77,6 @@ jobs:
     defaults:
       run:
         working-directory: server
-    env:
-      GOFLAGS: -buildvcs=false # TODO: work around "error obtaining VCS status: exit status 128" in a container
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -275,7 +273,6 @@ jobs:
       run:
         working-directory: server
     env:
-      GOFLAGS: -buildvcs=false # TODO: work around "error obtaining VCS status: exit status 128" in a container
       BUILD_NUMBER: "${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}"
       FIPS_ENABLED: false
     steps:
