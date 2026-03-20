@@ -235,6 +235,21 @@ func TestCreateTeam(t *testing.T) {
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 	})
+
+	t.Run("no license does not panic", func(t *testing.T) {
+		// Regression test: createTeam previously called License().IsCloud()
+		// without a nil check, causing a panic on community edition servers
+		// with no license installed.
+		// Sentry: MATTERMOST-SERVER-TY (1,497 events)
+		appErr := th.App.Srv().RemoveLicense()
+		require.Nil(t, appErr)
+		defer th.App.Srv().SetLicense(nil)
+
+		team := &model.Team{Name: GenerateTestUsername(), DisplayName: "No License Team", Type: model.TeamOpen}
+		_, resp, err := th.Client.CreateTeam(context.Background(), team)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+	})
 }
 
 func TestCreateTeamSanitization(t *testing.T) {
@@ -1268,6 +1283,20 @@ func TestRestoreTeam(t *testing.T) {
 		}, nil).Twice()
 		team := createTeam(t, true, model.TeamOpen)
 		_, resp, err := client.RestoreTeam(context.Background(), team.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+
+	t.Run("no license does not panic", func(t *testing.T) {
+		// Regression test: restoreTeam previously called License().IsCloud()
+		// without a nil check, causing a panic with no license installed.
+		// Sentry: MATTERMOST-SERVER-TY
+		team := createTeam(t, true, model.TeamOpen)
+		appErr := th.App.Srv().RemoveLicense()
+		require.Nil(t, appErr)
+		defer th.App.Srv().SetLicense(nil)
+
+		_, resp, err := th.SystemAdminClient.RestoreTeam(context.Background(), team.Id)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 	})
@@ -3879,6 +3908,22 @@ func TestImportTeam(t *testing.T) {
 		_, resp, err := th.Client.ImportTeam(context.Background(), data, binary.Size(data), "slack", "Fake_Team_Import.zip", th.BasicTeam.Id)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("no license does not panic", func(t *testing.T) {
+		// Regression test: importTeam previously called License().IsCloud()
+		// without a nil check, causing a panic with no license installed.
+		// Sentry: MATTERMOST-SERVER-TY
+		appErr := th.App.Srv().RemoveLicense()
+		require.Nil(t, appErr)
+		defer th.App.Srv().SetLicense(nil)
+
+		data, err := testutils.ReadTestFile("Fake_Team_Import.zip")
+		require.False(t, err != nil && len(data) == 0, "Error while reading the test file.")
+
+		fileResp, _, err := th.SystemAdminClient.ImportTeam(context.Background(), data, binary.Size(data), "slack", "Fake_Team_Import.zip", th.BasicTeam.Id)
+		require.NoError(t, err)
+		require.NotNil(t, fileResp)
 	})
 }
 
