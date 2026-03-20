@@ -294,6 +294,10 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(c request.CTX, clientId, grantType,
 			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.expired_code.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 		}
 
+		if authData.ClientId != clientId {
+			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.client_id_mismatch.app_error", nil, "", http.StatusBadRequest)
+		}
+
 		if authData.IsExpired() {
 			if nErr = a.Srv().Store().OAuth().RemoveAuthData(authData.Code); nErr != nil {
 				c.Logger().Warn("unable to remove auth data", mlog.Err(nErr))
@@ -366,6 +370,10 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(c request.CTX, clientId, grantType,
 		accessData, nErr = a.Srv().Store().OAuth().GetAccessDataByRefreshToken(refreshToken)
 		if nErr != nil {
 			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.refresh_token.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
+		}
+
+		if accessData.ClientId != clientId {
+			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.client_id_mismatch.app_error", nil, "", http.StatusBadRequest)
 		}
 
 		user, nErr := a.Srv().Store().User().Get(context.Background(), accessData.UserId)

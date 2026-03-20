@@ -697,6 +697,102 @@ func TestDeactivatedUserOAuthApp(t *testing.T) {
 	assert.Equal(t, "api.oauth.get_access_token.expired_code.app_error", appErr.Id)
 }
 
+func TestDifferentClientCannotRedeemCode(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+
+	createApp := func(name string) *model.OAuthApp {
+		oapp := &model.OAuthApp{
+			Name:         name + model.NewRandomString(10),
+			CreatorId:    th.BasicUser2.Id,
+			Homepage:     "https://nowhere.com",
+			Description:  "test",
+			CallbackUrls: []string{"https://example.com/callback"},
+		}
+		oapp, err := th.App.CreateOAuthApp(oapp)
+		require.Nil(t, err)
+		return oapp
+	}
+
+	appA := createApp("TestClientA")
+	appB := createApp("TestClientB")
+
+	// Get an authorization code for appA
+	authRequest := &model.AuthorizeRequest{
+		ResponseType: model.AuthCodeResponseType,
+		ClientId:     appA.Id,
+		RedirectURI:  appA.CallbackUrls[0],
+		Scope:        "user",
+		State:        "test_state",
+	}
+	redirectURI, appErr := th.App.AllowOAuthAppAccessToUser(th.Context, th.BasicUser.Id, authRequest)
+	require.Nil(t, appErr)
+
+	uri, err := url.Parse(redirectURI)
+	require.NoError(t, err)
+	code := uri.Query().Get("code")
+	require.NotEmpty(t, code)
+
+	// Try to redeem appA's code with appB's credentials
+	_, appErr = th.App.GetOAuthAccessTokenForCodeFlow(th.Context, appB.Id, model.AccessTokenGrantType, appA.CallbackUrls[0], code, appB.ClientSecret, "")
+	require.NotNil(t, appErr)
+	require.Contains(t, appErr.Id, "client_id_mismatch")
+	require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+}
+
+func TestDifferentClientCannotUseRefreshToken(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+
+	createApp := func(name string) *model.OAuthApp {
+		oapp := &model.OAuthApp{
+			Name:         name + model.NewRandomString(10),
+			CreatorId:    th.BasicUser2.Id,
+			Homepage:     "https://nowhere.com",
+			Description:  "test",
+			CallbackUrls: []string{"https://example.com/callback"},
+		}
+		oapp, err := th.App.CreateOAuthApp(oapp)
+		require.Nil(t, err)
+		return oapp
+	}
+
+	appA := createApp("TestClientA")
+	appB := createApp("TestClientB")
+
+	// Get an authorization code and token for appA
+	authRequest := &model.AuthorizeRequest{
+		ResponseType: model.AuthCodeResponseType,
+		ClientId:     appA.Id,
+		RedirectURI:  appA.CallbackUrls[0],
+		Scope:        "user",
+		State:        "test_state",
+	}
+	redirectURI, appErr := th.App.AllowOAuthAppAccessToUser(th.Context, th.BasicUser.Id, authRequest)
+	require.Nil(t, appErr)
+
+	uri, err := url.Parse(redirectURI)
+	require.NoError(t, err)
+	code := uri.Query().Get("code")
+	require.NotEmpty(t, code)
+
+	tokenResp, appErr := th.App.GetOAuthAccessTokenForCodeFlow(th.Context, appA.Id, model.AccessTokenGrantType, appA.CallbackUrls[0], code, appA.ClientSecret, "")
+	require.Nil(t, appErr)
+	require.NotEmpty(t, tokenResp.RefreshToken)
+
+	// Try to use appA's refresh token with appB's credentials
+	_, appErr = th.App.GetOAuthAccessTokenForCodeFlow(th.Context, appB.Id, model.RefreshTokenGrantType, appB.CallbackUrls[0], "", appB.ClientSecret, tokenResp.RefreshToken)
+	require.NotNil(t, appErr)
+	require.Contains(t, appErr.Id, "client_id_mismatch")
+	require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+}
+
 func TestParseOAuthStateTokenExtra(t *testing.T) {
 	t.Run("valid token with normal values", func(t *testing.T) {
 		email, action, cookie, err := parseOAuthStateTokenExtra("user@example.com:email_to_sso:randomcookie123")
