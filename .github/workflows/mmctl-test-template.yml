@@ -54,23 +54,7 @@ jobs:
         run: |
           echo "${{ inputs.name }}" > server/test-name
           echo "${{ github.event.pull_request.number }}" > server/pr-number
-      - name: Compute plugin cache key
-        id: plugin-cache-key
-        run: |
-          # Extract PLUGIN_PACKAGES lines from Makefile to derive a stable cache key.
-          # Cache auto-invalidates whenever any plugin version changes in the Makefile.
-          PLUGIN_HASH=$(grep '^PLUGIN_PACKAGES' server/Makefile | sha256sum | cut -d' ' -f1)
-          echo "hash=$PLUGIN_HASH" >> "$GITHUB_OUTPUT"
-
-      - name: Cache prepackaged plugins
-        id: plugin-cache
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
-        with:
-          path: server/prepackaged_plugins
-          key: prepackaged-plugins-${{ steps.plugin-cache-key.outputs.hash }}
-
       - name: Setup needed prepackaged plugins
-        if: steps.plugin-cache.outputs.cache-hit != 'true'
         run: |
           cd server
           make prepackaged-plugins PLUGIN_PACKAGES=mattermost-plugin-jira-v3.2.5
