@@ -36,18 +36,17 @@ describe('splitFormattingBarControls', () => {
     });
 
     describe('Center channel - with additional controls', () => {
-        test('wide mode reduces to 7 controls with 1 additional control', () => {
+        test('wide mode keeps all 9 controls with 1 additional control', () => {
             const {controls, hiddenControls} = splitFormattingBarControls('wide', 1, false);
-            expect(controls).toHaveLength(7);
-            expect(controls).toEqual(['bold', 'italic', 'strike', 'heading', 'link', 'code', 'quote']);
-            expect(hiddenControls).toHaveLength(2);
-            expect(hiddenControls).toEqual(['ul', 'ol']);
+            expect(controls).toHaveLength(9);
+            expect(controls).toEqual(['bold', 'italic', 'strike', 'heading', 'link', 'code', 'quote', 'ul', 'ol']);
+            expect(hiddenControls).toHaveLength(0);
         });
 
-        test('wide mode reduces to 7 controls with 2+ additional controls', () => {
+        test('wide mode keeps all 9 controls with 2+ additional controls', () => {
             const {controls, hiddenControls} = splitFormattingBarControls('wide', 2, false);
-            expect(controls).toHaveLength(7);
-            expect(hiddenControls).toHaveLength(2);
+            expect(controls).toHaveLength(9);
+            expect(hiddenControls).toHaveLength(0);
         });
 
         test('normal mode reduces to 3 controls with 1 additional control', () => {
@@ -110,12 +109,11 @@ describe('splitFormattingBarControls', () => {
     });
 
     describe('RHS - with additional controls (different from center)', () => {
-        test('RHS wide mode reduces to 7 controls with additional controls', () => {
+        test('RHS wide mode keeps all 9 controls with additional controls', () => {
             const {controls, hiddenControls} = splitFormattingBarControls('wide', 1, true);
-            expect(controls).toHaveLength(7);
-            expect(controls).toEqual(['bold', 'italic', 'strike', 'heading', 'link', 'code', 'quote']);
-            expect(hiddenControls).toHaveLength(2);
-            expect(hiddenControls).toEqual(['ul', 'ol']);
+            expect(controls).toHaveLength(9);
+            expect(controls).toEqual(['bold', 'italic', 'strike', 'heading', 'link', 'code', 'quote', 'ul', 'ol']);
+            expect(hiddenControls).toHaveLength(0);
         });
 
         test('RHS normal mode reduces to 3 controls with additional controls', () => {
@@ -159,11 +157,11 @@ describe('splitFormattingBarControls', () => {
         });
 
         test('Both center and RHS use same reduction pattern when additional controls present', () => {
-            // Wide mode
+            // Wide mode - no reduction, all 9 icons
             const centerWide = splitFormattingBarControls('wide', 2, false);
             const rhsWide = splitFormattingBarControls('wide', 2, true);
-            expect(centerWide.controls).toHaveLength(7);
-            expect(rhsWide.controls).toHaveLength(7);
+            expect(centerWide.controls).toHaveLength(9);
+            expect(rhsWide.controls).toHaveLength(9);
 
             // Normal mode
             const centerNormal = splitFormattingBarControls('normal', 2, false);

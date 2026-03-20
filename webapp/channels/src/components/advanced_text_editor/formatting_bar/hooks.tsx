@@ -3,7 +3,6 @@
 
 import type {Instance} from '@popperjs/core';
 import debounce from 'lodash/debounce';
-import type React from 'react';
 import {useEffect, useLayoutEffect, useMemo, useState} from 'react';
 
 import type {MarkdownMode} from 'utils/markdown/apply_markdown';
@@ -40,31 +39,31 @@ function isRHSLocation(location: string): boolean {
     return location.toLowerCase().includes('rhs');
 }
 
-const useResponsiveFormattingBar = (ref: React.RefObject<HTMLDivElement>, isRHS: boolean): WideMode => {
+const useResponsiveFormattingBar = (element: HTMLDivElement | null, isRHS: boolean): WideMode => {
     const [wideMode, setWideMode] = useState<WideMode>('wide');
 
     const thresholds = isRHS ? THRESHOLDS_RHS : THRESHOLDS_CENTER;
 
     const handleResize = useMemo(() => debounce(() => {
-        if (!ref.current) {
+        if (!element) {
             return;
         }
-        setWideMode(resolveWideMode(ref.current.clientWidth, thresholds));
-    }, DEBOUNCE_DELAY), [ref, thresholds]);
+        setWideMode(resolveWideMode(element.clientWidth, thresholds));
+    }, DEBOUNCE_DELAY), [element, thresholds]);
 
     useLayoutEffect(() => {
-        if (!ref.current) {
+        if (!element) {
             return () => {};
         }
 
         const sizeObserver = new ResizeObserver(handleResize);
-        sizeObserver.observe(ref.current);
+        sizeObserver.observe(element);
 
         return () => {
             handleResize.cancel();
             sizeObserver.disconnect();
         };
-    }, [handleResize, ref]);
+    }, [handleResize, element]);
 
     return wideMode;
 };
@@ -73,14 +72,14 @@ const useResponsiveFormattingBar = (ref: React.RefObject<HTMLDivElement>, isRHS:
 const CONTROLS_COUNT_BASE: Record<WideMode, number> = {
     wide: 9,
     normal: 5,
-    narrow: 3,
+    narrow: 2,
     min: 1,
 };
 
 // Reduced icon counts when additional controls are present (to prevent overlap)
 const CONTROLS_COUNT_WITH_ADDITIONAL: Record<WideMode, number> = {
-    wide: 7,
-    normal: 3,
+    wide: 9,
+    normal: 4,
     narrow: 1,
     min: 0,
 };
@@ -114,22 +113,25 @@ export function splitFormattingBarControls(wideMode: WideMode, additionalControl
 }
 
 export const useFormattingBarControls = (
-    formattingBarRef: React.RefObject<HTMLDivElement>,
     additionalControlsCount: number = 0,
     location: string = '',
 ): {
-    controls: MarkdownMode[];
-    hiddenControls: MarkdownMode[];
-    wideMode: WideMode;
-} => {
+        formattingBarRef: (node: HTMLDivElement | null) => void;
+        controls: MarkdownMode[];
+        hiddenControls: MarkdownMode[];
+        wideMode: WideMode;
+    } => {
+    const [element, setElement] = useState<HTMLDivElement | null>(null);
+
     const isRHS = useMemo(() => isRHSLocation(location), [location]);
-    const wideMode = useResponsiveFormattingBar(formattingBarRef, isRHS);
+    const wideMode = useResponsiveFormattingBar(element, isRHS);
 
     const {controls, hiddenControls} = useMemo(() => {
         return splitFormattingBarControls(wideMode, additionalControlsCount, isRHS);
     }, [wideMode, additionalControlsCount, isRHS]);
 
     return {
+        formattingBarRef: setElement,
         controls,
         hiddenControls,
         wideMode,
