@@ -2,7 +2,7 @@ dist: | check-style test package
 
 build-linux: build-linux-amd64 build-linux-arm64
 
-build-linux-amd64:
+build-linux-amd64: setup-go-work
 	@echo Build Linux amd64
 ifeq ($(BUILDER_GOOS_GOARCH),"linux_amd64")
 	env GOOS=linux GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./...
@@ -20,7 +20,7 @@ ifeq ($(FIPS_ENABLED),true)
 	$(GO) tool nm $(GOBIN)/$(MMCTL_BIN_NAME) | grep -q "func_go_openssl_OpenSSL_version" || (echo "ERROR: FIPS mmctl binary missing OpenSSL integration" && exit 1)
 endif
 
-build-linux-arm64:
+build-linux-arm64: setup-go-work
 ifeq ($(FIPS_ENABLED),true)
 	@echo Skipping Build Linux arm64 for FIPS
 else
@@ -33,7 +33,7 @@ else
 endif
 endif
 
-build-osx:
+build-osx: setup-go-work
 	@echo Build OSX amd64
 ifeq ($(BUILDER_GOOS_GOARCH),"darwin_amd64")
 	env GOOS=darwin GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./...
@@ -49,7 +49,7 @@ else
 	env GOOS=darwin GOARCH=arm64 $(GO) build -o $(GOBIN)/darwin_arm64 $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./...
 endif
 
-build-windows:
+build-windows: setup-go-work
 	@echo Build Windows amd64
 ifeq ($(BUILDER_GOOS_GOARCH),"windows_amd64")
 	env GOOS=windows GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./...
@@ -58,7 +58,7 @@ else
 	env GOOS=windows GOARCH=amd64 $(GO) build -o $(GOBIN)/windows_amd64 $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./...
 endif
 
-build-cmd-linux:
+build-cmd-linux: setup-go-work
 	@echo Build CMD Linux amd64
 ifeq ($(BUILDER_GOOS_GOARCH),"linux_amd64")
 	env GOOS=linux GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./cmd/...
@@ -87,7 +87,7 @@ else
 endif
 endif
 
-build-cmd-osx:
+build-cmd-osx: setup-go-work
 	@echo Build CMD OSX amd64
 ifeq ($(BUILDER_GOOS_GOARCH),"darwin_amd64")
 	env GOOS=darwin GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./cmd/...
@@ -103,7 +103,7 @@ else
 	env GOOS=darwin GOARCH=arm64 $(GO) build -o $(GOBIN)/darwin_arm64 $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./cmd/...
 endif
 
-build-cmd-windows:
+build-cmd-windows: setup-go-work
 	@echo Build CMD Windows amd64
 ifeq ($(BUILDER_GOOS_GOARCH),"windows_amd64")
 	env GOOS=windows GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./cmd/...
@@ -123,7 +123,7 @@ build-client:
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) dist
 
-package-prep:
+package-prep: setup-go-work
 	@ echo Packaging mattermost
 	@# Remove any old files
 	rm -Rf $(DIST_ROOT)
