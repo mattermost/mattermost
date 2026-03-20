@@ -25,21 +25,21 @@ runs:
     - name: ci/setup-node
       uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
       with:
-        node-version-file: ".nvmrc"
+        node-version-file: "core-plugins/mattermost-plugin-playbooks/.nvmrc"
         cache: "npm"
         cache-dependency-path: |
-          webapp/package-lock.json
-          e2e-tests/package-lock.json
+          core-plugins/mattermost-plugin-playbooks/webapp/package-lock.json
+          core-plugins/mattermost-plugin-playbooks/e2e-tests/package-lock.json
 
     - name: ci/cache-node-modules
       id: cache-node-modules
       uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
       with:
         path: |
-          webapp/node_modules
-          e2e-tests/node_modules
-        key: ${{ runner.os }}-node-modules-${{ hashFiles('webapp/package-lock.json') }}-${{ hashFiles('e2e-tests/package-lock.json') }}
-        restore-keys: ${{ runner.os }}-node-modules-${{ hashFiles('webapp/package-lock.json') }}-${{ hashFiles('e2e-tests/package-lock.json') }}
+          core-plugins/mattermost-plugin-playbooks/webapp/node_modules
+          core-plugins/mattermost-plugin-playbooks/e2e-tests/node_modules
+        key: ${{ runner.os }}-playbooks-node-modules-${{ hashFiles('core-plugins/mattermost-plugin-playbooks/webapp/package-lock.json') }}-${{ hashFiles('core-plugins/mattermost-plugin-playbooks/e2e-tests/package-lock.json') }}
+        restore-keys: ${{ runner.os }}-playbooks-node-modules-${{ hashFiles('core-plugins/mattermost-plugin-playbooks/webapp/package-lock.json') }}-${{ hashFiles('core-plugins/mattermost-plugin-playbooks/e2e-tests/package-lock.json') }}
 
     - name: ci/disable-ALSA
       run: printf "pcm.!default {\n    type plug\n    slave.pcm \"null\"\n}\n" > ~/.asoundrc;
@@ -50,11 +50,12 @@ runs:
       env:
         TEST_DATABASE_URL: postgres://mmuser:mostest@postgres:5432/mattermost_test
       with:
-        entrypoint: ./.github/actions/e2e-test/generate-test-data.sh
+        entrypoint: ./core-plugins/mattermost-plugin-playbooks/.github/actions/e2e-test/generate-test-data.sh
 
     - name: ci/installing-deps
       if: steps.cache-node-modules.outputs.cache-hit != 'true'
       shell: bash
+      working-directory: ${{ github.workspace }}/core-plugins/mattermost-plugin-playbooks
       env:
         NODE_ENV: development
       run: |
@@ -65,6 +66,7 @@ runs:
 
     - name: ci/installing-cypress-deps
       shell: bash
+      working-directory: ${{ github.workspace }}/core-plugins/mattermost-plugin-playbooks
       env:
         NODE_ENV: development
       run: |
@@ -73,14 +75,17 @@ runs:
         npx cypress install
 
     - name: ci/install-playbooks
+      shell: bash
+      working-directory: ${{ github.workspace }}/core-plugins/mattermost-plugin-playbooks
       env:
         MM_SERVICESETTINGS_SITEURL: http://localhost:8065
         MM_ADMIN_USERNAME: sysadmin
         MM_ADMIN_PASSWORD: Sys@dmin-sample1
       run: make upload-to-server
-      shell: bash
 
     - name: ci/run-cypress-tests
+      shell: bash
+      working-directory: ${{ github.workspace }}/core-plugins/mattermost-plugin-playbooks
       env:
         TYPE: NONE
         PULL_REQUEST: ""
@@ -98,7 +103,6 @@ runs:
       run: |
         cd e2e-tests
         npm run test -- --spec "${{ inputs.SPECS }}"
-      shell: bash
 
     - name: ci/upload-cypress-test-results
       if: always()
@@ -106,6 +110,6 @@ runs:
       with:
         name: cypress-test-results-${{ matrix.runId }}${{ inputs.ARTIFACT_SUFFIX }}
         path: |
-          e2e-tests/results/junit
-          e2e-tests/tests/screenshots
+          core-plugins/mattermost-plugin-playbooks/e2e-tests/results/junit
+          core-plugins/mattermost-plugin-playbooks/e2e-tests/tests/screenshots
         retention-days: 14 ## No need to keep test results more than 14 days

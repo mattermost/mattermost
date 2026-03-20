@@ -303,12 +303,243 @@ jobs:
       - name: ci/test-with-db
         uses: ./core-plugins/mattermost-plugin-playbooks/.github/actions/test-with-db
 
+  generate-specs:
+    name: Playbooks / Generate E2E Specs
+    runs-on: ubuntu-22.04
+    outputs:
+      specs: ${{ steps.generate-specs.outputs.specs }}
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: ci/generate-specs
+        id: generate-specs
+        uses: ./core-plugins/mattermost-plugin-playbooks/.github/actions/generate-specs
+        with:
+          parallelism: 3
+          directory: core-plugins/mattermost-plugin-playbooks/e2e-tests
+          search_path: tests/integration
+
+  e2e-cypress-tests:
+    name: Playbooks / E2E Cypress (${{ matrix.runId }})
+    runs-on: ubuntu-22.04
+    needs:
+      - go
+      - lint
+      - generate-specs
+      - dist
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.generate-specs.outputs.specs) }}
+    services:
+      postgres:
+        image: postgres:15.3
+        env:
+          POSTGRES_USER: mmuser
+          POSTGRES_PASSWORD: mostest
+          POSTGRES_DB: mattermost_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      minio:
+        image: minio/minio:RELEASE.2019-10-11T00-38-09Z
+        env:
+          MINIO_ACCESS_KEY: minioaccesskey
+          MINIO_SECRET_KEY: miniosecretkey
+          MINIO_SSE_MASTER_KEY: "my-minio-key:6368616e676520746869732070617373776f726420746f206120736563726574"
+      inbucket:
+        image: mattermost/inbucket:release-1.2.0
+        ports:
+          - 10080:10080
+          - 10110:10110
+          - 10025:10025
+      elasticsearch:
+        image: mattermost/mattermost-elasticsearch-docker:7.0.0
+        env:
+          http.host: "0.0.0.0"
+          http.port: 9200
+          http.cors.enabled: "true"
+          http.cors.allow-origin: "http://localhost:1358,http://127.0.0.1:1358"
+          http.cors.allow-headers: "X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization"
+          http.cors.allow-credentials: "true"
+          transport.host: "127.0.0.1"
+          ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+        ports:
+          - 9200:9200
+      mattermost-server:
+        image: mattermostdevelopment/mattermost-enterprise-edition:master
+        env:
+          DB_HOST: postgres
+          DB_PORT_NUMBER: 5432
+          MM_DBNAME: mattermost_test
+          MM_USERNAME: mmuser
+          MM_PASSWORD: mostest
+          CI_INBUCKET_HOST: inbucket
+          CI_INBUCKET_PORT: 10080
+          CI_MINIO_HOST: minio
+          IS_CI: true
+          MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
+          MM_CLUSTERSETTINGS_READONLYCONFIG: false
+          MM_EMAILSETTINGS_SMTPSERVER: inbucket
+          MM_EMAILSETTINGS_SMTPPORT: 10025
+          MM_ELASTICSEARCHSETTINGS_CONNECTIONURL: http://elasticsearch:9200
+          MM_EXPERIMENTALSETTINGS_USENEWSAMLLIBRARY: true
+          MM_SQLSETTINGS_DATASOURCE: "postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10"
+          MM_SQLSETTINGS_DRIVERNAME: postgres
+          MM_PLUGINSETTINGS_ENABLEUPLOADS: true
+          MM_SERVICESETTINGS_SITEURL: http://localhost:8065
+          MM_PLUGINSETTINGS_AUTOMATICPREPACKAGEDPLUGINS: true
+          MM_ANNOUNCEMENTSETTINGS_ADMINNOTICESENABLED: false
+          MM_SERVICESETTINGS_ENABLELEGACYSIDEBAR: true
+          MM_TEAMSETTINGS_MAXUSERSPERTEAM: 10000
+          MM_SERVICESETTINGS_ENABLEONBOARDINGFLOW: false
+          MM_SERVICEENVIRONMENT: test
+          MM_SERVICESETTINGS_EXPERIMENTALSTRICTCSRFENFORCEMENT: false
+          MM_SERVICESETTINGS_STRICTCSRFENFORCEMENT: false
+        ports:
+          - 8065:8065
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: "0"
+
+      - name: ci/get-short-sha
+        id: short-sha
+        run: echo "sha=$(echo ${{ github.event.pull_request.head.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
+
+      - name: ci/download-build-artifact
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: playbooks-bundle-${{ steps.short-sha.outputs.sha }}
+          path: core-plugins/mattermost-plugin-playbooks/dist
+
+      - name: ci/e2e-test
+        uses: ./core-plugins/mattermost-plugin-playbooks/.github/actions/e2e-test
+        with:
+          CYPRESS_serverEdition: E20
+          SPECS: ${{ matrix.specs }}
+
+  e2e-cypress-tests-fips:
+    name: Playbooks / E2E Cypress FIPS (${{ matrix.runId }})
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-22.04
+    needs:
+      - go
+      - lint
+      - generate-specs
+      - dist-fips
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.generate-specs.outputs.specs) }}
+    services:
+      postgres:
+        image: postgres:15.3
+        env:
+          POSTGRES_USER: mmuser
+          POSTGRES_PASSWORD: mostest
+          POSTGRES_DB: mattermost_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      minio:
+        image: minio/minio:RELEASE.2019-10-11T00-38-09Z
+        env:
+          MINIO_ACCESS_KEY: minioaccesskey
+          MINIO_SECRET_KEY: miniosecretkey
+          MINIO_SSE_MASTER_KEY: "my-minio-key:6368616e676520746869732070617373776f726420746f206120736563726574"
+      inbucket:
+        image: mattermost/inbucket:release-1.2.0
+        ports:
+          - 10080:10080
+          - 10110:10110
+          - 10025:10025
+      elasticsearch:
+        image: mattermost/mattermost-elasticsearch-docker:7.0.0
+        env:
+          http.host: "0.0.0.0"
+          http.port: 9200
+          http.cors.enabled: "true"
+          http.cors.allow-origin: "http://localhost:1358,http://127.0.0.1:1358"
+          http.cors.allow-headers: "X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization"
+          http.cors.allow-credentials: "true"
+          transport.host: "127.0.0.1"
+          ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+        ports:
+          - 9200:9200
+      mattermost-server:
+        image: mattermostdevelopment/mattermost-enterprise-fips-edition:master
+        env:
+          DB_HOST: postgres
+          DB_PORT_NUMBER: 5432
+          MM_DBNAME: mattermost_test
+          MM_USERNAME: mmuser
+          MM_PASSWORD: mostest
+          CI_INBUCKET_HOST: inbucket
+          CI_INBUCKET_PORT: 10080
+          CI_MINIO_HOST: minio
+          IS_CI: true
+          MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
+          MM_CLUSTERSETTINGS_READONLYCONFIG: false
+          MM_EMAILSETTINGS_SMTPSERVER: inbucket
+          MM_EMAILSETTINGS_SMTPPORT: 10025
+          MM_ELASTICSEARCHSETTINGS_CONNECTIONURL: http://elasticsearch:9200
+          MM_EXPERIMENTALSETTINGS_USENEWSAMLLIBRARY: true
+          MM_SQLSETTINGS_DATASOURCE: "postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10"
+          MM_SQLSETTINGS_DRIVERNAME: postgres
+          MM_PLUGINSETTINGS_ENABLEUPLOADS: true
+          MM_SERVICESETTINGS_SITEURL: http://localhost:8065
+          MM_PLUGINSETTINGS_AUTOMATICPREPACKAGEDPLUGINS: true
+          MM_ANNOUNCEMENTSETTINGS_ADMINNOTICESENABLED: false
+          MM_SERVICESETTINGS_ENABLELEGACYSIDEBAR: true
+          MM_TEAMSETTINGS_MAXUSERSPERTEAM: 10000
+          MM_SERVICESETTINGS_ENABLEONBOARDINGFLOW: false
+          MM_SERVICEENVIRONMENT: test
+          MM_SERVICESETTINGS_EXPERIMENTALSTRICTCSRFENFORCEMENT: false
+          MM_SERVICESETTINGS_STRICTCSRFENFORCEMENT: false
+        ports:
+          - 8065:8065
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: "0"
+
+      - name: ci/get-short-sha
+        id: short-sha
+        run: echo "sha=$(echo ${{ github.event.pull_request.head.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
+
+      - name: ci/download-build-artifact
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: playbooks-bundle-fips-${{ steps.short-sha.outputs.sha }}
+          path: core-plugins/mattermost-plugin-playbooks/dist
+
+      - name: ci/e2e-test
+        uses: ./core-plugins/mattermost-plugin-playbooks/.github/actions/e2e-test
+        with:
+          CYPRESS_serverEdition: E20
+          SPECS: ${{ matrix.specs }}
+          ARTIFACT_SUFFIX: -fips
+
   report-test-results:
     name: Playbooks / Report Test Results
     if: always() && github.event.pull_request.head.repo.full_name == github.repository
     needs:
       - test
       - test-fips
+      - e2e-cypress-tests
+      - e2e-cypress-tests-fips
     runs-on: ubuntu-22.04
     permissions:
       checks: write
