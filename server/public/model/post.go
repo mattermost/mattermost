@@ -168,8 +168,8 @@ type PostPatch struct {
 	HasReactions *bool            `json:"has_reactions"`
 }
 
-func (p *PostPatch) IsEmpty() bool {
-	return p.IsPinned == nil && p.Message == nil && p.Props == nil && p.FileIds == nil && p.HasReactions == nil
+func (o *PostPatch) IsEmpty() bool {
+	return o.IsPinned == nil && o.Message == nil && o.Props == nil && o.FileIds == nil && o.HasReactions == nil
 }
 
 type PostReminder struct {
