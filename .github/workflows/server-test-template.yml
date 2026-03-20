@@ -69,32 +69,12 @@ jobs:
       # (blocked by org Actions policy) by using only Go + shell.
       #
       # How it works:
-      #   1. Install Go on the runner (not in Docker) so we can `go test -list`.
-      #   2. Create a go.work file so cross-module packages resolve correctly.
-      #   3. List every test function across all server packages.
-      #   4. Optionally restore JUnit XML timing data from a previous run to
+      #   1. Grep test function names from source (no compilation needed).
+      #   2. Optionally restore JUnit XML timing data from a previous run to
       #      weight tests by duration for balanced splitting.
-      #   5. Assign tests to this shard using round-robin (by count) or
+      #   3. Assign tests to this shard using round-robin (by count) or
       #      greedy bin-packing (by timing), then emit a `-run` regex.
       # ─────────────────────────────────────────────────────────────────────
-
-      - name: Setup Go for test listing
-        if: inputs.shard-total > 1
-        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
-        with:
-          go-version: ${{ inputs.go-version }}
-          cache: false # Docker build image handles module caching; Go here is only for listing tests
-
-      - name: Setup Go workspace for test listing
-        if: inputs.shard-total > 1
-        working-directory: server
-        run: |
-          # go.work lets `go test -list` resolve packages across the monorepo
-          # (server, server/public, server/enterprise are separate Go modules)
-          go work init
-          go work use .
-          go work use ./public
-          go work use ./enterprise
 
       - name: Restore test timing data
         if: inputs.shard-total > 1
@@ -118,11 +98,13 @@ jobs:
           set -euo pipefail
 
           # ── Step 1: List all test functions ──
-          # `go test -list` outputs test/benchmark/example names matching a regex.
-          # We list from the same packages the Makefile uses (TE + EE packages).
+          # Grep test function names directly from source files. This is much
+          # faster and more reliable than `go test -list` which requires full
+          # compilation (needs CGO, system libs, etc. that the runner lacks).
           echo "::group::Listing all test functions"
-          ALL_TESTS=$(go test -list '.*' ./public/... ./... ./enterprise/... 2>/dev/null \
-            | grep -E '^Test' || true)
+          ALL_TESTS=$(grep -rh '^func Test' ./public/ ./ ./enterprise/ --include='*_test.go' 2>/dev/null \
+            | sed -E 's/^func (Test[A-Za-z0-9_]+).*/\1/' \
+            | sort -u || true)
           TOTAL_TESTS=$(echo "$ALL_TESTS" | wc -l)
           echo "Found $TOTAL_TESTS test functions"
           echo "::endgroup::"
