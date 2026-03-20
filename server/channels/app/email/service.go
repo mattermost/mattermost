@@ -149,8 +149,8 @@ type ServiceInterface interface {
 	SendDeactivateAccountEmail(email string, locale, siteURL string) error
 	SendNotificationMail(to, subject, htmlBody string) error
 	SendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader, messageID string, inReplyTo string, references string, category string) error
-	SendLicenseUpForRenewalEmail(email, name, locale, siteURL, ctaTitle, ctaLink, ctaText string, daysToExpiration int) error
-	SendRemoveExpiredLicenseEmail(ctaText, ctaLink, email, locale, siteURL string) error
+	SendLicenseUpForRenewalEmail(email, name, locale, ctaTitle, ctaLink, ctaText string, daysToExpiration int) error
+	SendRemoveExpiredLicenseEmail(ctaText, ctaLink, email, locale string) error
 	AddNotificationEmailToBatch(user *model.User, post *model.Post, team *model.Team) *model.AppError
 	GetMessageForNotification(post *model.Post, teamName, siteUrl string, translateFunc i18n.TranslateFunc) string
 	GenerateHyperlinkForChannels(postMessage, teamName, teamURL string) (string, error)

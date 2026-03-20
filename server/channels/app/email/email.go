@@ -1003,10 +1003,11 @@ func (es *Service) CreateVerifyEmailToken(userID string, newEmail string) (*mode
 	return token, nil
 }
 
-func (es *Service) SendLicenseUpForRenewalEmail(email, name, locale, siteURL, ctaTitle, ctaLink, ctaText string, daysToExpiration int) error {
+func (es *Service) SendLicenseUpForRenewalEmail(email, name, locale, ctaTitle, ctaLink, ctaText string, daysToExpiration int) error {
 	T := i18n.GetUserTranslations(locale)
 	subject := T("api.templates.license_up_for_renewal_subject")
 
+	siteURL := *es.config().ServiceSettings.SiteURL
 	data := es.NewEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL
 	data.Props["Title"] = T("api.templates.license_up_for_renewal_title")
@@ -1033,11 +1034,12 @@ func (es *Service) SendLicenseUpForRenewalEmail(email, name, locale, siteURL, ct
 
 // SendRemoveExpiredLicenseEmail formats an email and uses the email service to send the email to user with link pointing to CWS
 // to renew the user license
-func (es *Service) SendRemoveExpiredLicenseEmail(ctaText, ctaLink, email, locale, siteURL string) error {
+func (es *Service) SendRemoveExpiredLicenseEmail(ctaText, ctaLink, email, locale string) error {
 	T := i18n.GetUserTranslations(locale)
 	subject := T("api.templates.remove_expired_license.subject",
 		map[string]any{"SiteName": es.config().TeamSettings.SiteName})
 
+	siteURL := *es.config().ServiceSettings.SiteURL
 	data := es.NewEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL
 	data.Props["Title"] = T("api.templates.remove_expired_license.body.title")
