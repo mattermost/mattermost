@@ -18,11 +18,10 @@ import (
 )
 
 type FieldRow struct {
-	Cells []*model.SlackAttachmentField
+	Cells []*model.MessageAttachmentField
 }
-
 type EmailMessageAttachment struct {
-	model.SlackAttachment
+	model.MessageAttachment
 
 	Pretext   template.HTML
 	Text      template.HTML
@@ -66,9 +65,9 @@ func ProcessMessageAttachments(post *model.Post, siteURL string) []*EmailMessage
 
 	for _, messageAttachment := range post.Attachments() {
 		emailMessageAttachment := &EmailMessageAttachment{
-			SlackAttachment: *messageAttachment,
-			Pretext:         prepareTextForEmail(messageAttachment.Pretext, siteURL),
-			Text:            prepareTextForEmail(messageAttachment.Text, siteURL),
+			MessageAttachment: *messageAttachment,
+			Pretext:           prepareTextForEmail(messageAttachment.Pretext, siteURL),
+			Text:              prepareTextForEmail(messageAttachment.Text, siteURL),
 		}
 
 		stripedTitle, err := utils.StripMarkdown(emailMessageAttachment.Title)
@@ -86,7 +85,7 @@ func ProcessMessageAttachments(post *model.Post, siteURL string) []*EmailMessage
 			// We update field value to parse markdown.
 			// If we do that on the original pointer, the rendered text in mattermost
 			// becomes invalid as its no longer a markdown string, but rather an HTML string.
-			field := &model.SlackAttachmentField{
+			field := &model.MessageAttachmentField{
 				Title: messageAttachment.Fields[i].Title,
 				Value: messageAttachment.Fields[i].Value,
 				Short: messageAttachment.Fields[i].Short,
@@ -102,7 +101,7 @@ func ProcessMessageAttachments(post *model.Post, siteURL string) []*EmailMessage
 					shortFieldRow = FieldRow{}
 				}
 
-				emailMessageAttachment.FieldRows = append(emailMessageAttachment.FieldRows, FieldRow{[]*model.SlackAttachmentField{field}})
+				emailMessageAttachment.FieldRows = append(emailMessageAttachment.FieldRows, FieldRow{[]*model.MessageAttachmentField{field}})
 			} else {
 				shortFieldRow.Cells = append(shortFieldRow.Cells, field)
 

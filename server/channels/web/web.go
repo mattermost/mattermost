@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/avct/uasurfer"
+	"github.com/blang/semver/v4"
 	"github.com/gorilla/mux"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -56,6 +57,25 @@ func CheckClientCompatibility(agentString string) bool {
 	}
 
 	return true
+}
+
+func CheckDesktopAppCompatibility(agentString string, minVersion *string) bool {
+	if minVersion == nil || *minVersion == "" {
+		return true
+	}
+	clientVersionStr, ok := app.GetDesktopAppVersion(agentString)
+	if !ok {
+		return true
+	}
+	clientVersion, err := semver.ParseTolerant(clientVersionStr)
+	if err != nil {
+		return true
+	}
+	required, err := semver.Parse(*minVersion)
+	if err != nil {
+		return true
+	}
+	return clientVersion.GTE(required)
 }
 
 func Handle404(a *app.App, w http.ResponseWriter, r *http.Request) {

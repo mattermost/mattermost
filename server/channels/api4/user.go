@@ -61,7 +61,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/terms_of_service", api.APISessionRequired(getUserTermsOfService)).Methods(http.MethodGet)
 	api.BaseRoutes.User.Handle("/reset_failed_attempts", api.APISessionRequired(resetPasswordFailedAttempts)).Methods(http.MethodPost)
 
-	api.BaseRoutes.User.Handle("/auth", api.APISessionRequiredTrustRequester(updateUserAuth)).Methods(http.MethodPut)
+	api.BaseRoutes.User.Handle("/auth", api.APISessionRequired(updateUserAuth)).Methods(http.MethodPut)
 
 	api.BaseRoutes.User.Handle("/mfa", api.APISessionRequiredMfa(updateUserMfa)).Methods(http.MethodPut)
 	api.BaseRoutes.User.Handle("/mfa/generate", api.APISessionRequiredMfa(generateMfaSecret)).Methods(http.MethodPost)
@@ -2330,7 +2330,7 @@ func getLoginType(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if canSendMagicLinkEmail(user) {
-		eErr := c.App.Srv().EmailService.SendMagicLinkEmailSelfService(user.Email, c.App.GetSiteURL())
+		eErr := c.App.Srv().EmailService.SendMagicLinkEmailSelfService(c.AppContext, user.Email, c.App.GetSiteURL())
 		if eErr != nil {
 			switch {
 			case errors.Is(eErr, email.NoRateLimiterError):
