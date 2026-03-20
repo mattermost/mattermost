@@ -4,6 +4,7 @@
 package imageproxy
 
 import (
+	"bytes"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -166,7 +167,7 @@ func TestLocalBackend_GetImage(t *testing.T) {
 		wait <- true
 	})
 
-	t.Run("SVG attachment", func(t *testing.T) {
+	t.Run("unsupported SVG content type", func(t *testing.T) {
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Cache-Control", "max-age=2592000, private")
 			w.Header().Set("Content-Type", "image/svg+xml")
@@ -187,11 +188,133 @@ func TestLocalBackend_GetImage(t *testing.T) {
 		proxy.GetImage(recorder, request, mock.URL+"/test.svg")
 		resp := recorder.Result()
 
-		assert.Equal(t, http.StatusOK, resp.StatusCode)
-		assert.Equal(t, "attachment;filename=\"test.svg\"", resp.Header.Get("Content-Disposition"))
+		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
 
-		_, err = io.ReadAll(resp.Body)
+	t.Run("SVG body with image/png content type", func(t *testing.T) {
+		body := []byte(`<svg xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100"/></svg>`)
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "image/png")
+
+			w.WriteHeader(http.StatusOK)
+			w.Write(body)
+		})
+
+		mock := httptest.NewServer(handler)
+		defer mock.Close()
+
+		proxy := makeTestLocalProxy()
+
+		recorder := httptest.NewRecorder()
+		request, err := http.NewRequest(http.MethodGet, "", nil)
 		require.NoError(t, err)
+		proxy.GetImage(recorder, request, mock.URL+"/image.png")
+		resp := recorder.Result()
+
+		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
+	t.Run("XML-based SVG with image/png content type", func(t *testing.T) {
+		body := []byte(`<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg"><rect/></svg>`)
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "image/png")
+
+			w.WriteHeader(http.StatusOK)
+			w.Write(body)
+		})
+
+		mock := httptest.NewServer(handler)
+		defer mock.Close()
+
+		proxy := makeTestLocalProxy()
+
+		recorder := httptest.NewRecorder()
+		request, err := http.NewRequest(http.MethodGet, "", nil)
+		require.NoError(t, err)
+		proxy.GetImage(recorder, request, mock.URL+"/image.png")
+		resp := recorder.Result()
+
+		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
+	t.Run("UTF-16 LE BOM SVG with image/png content type", func(t *testing.T) {
+		// Build a UTF-16 LE payload with BOM: 0xFF 0xFE followed by each ASCII
+		// character of the SVG tag as a two-byte little-endian code unit.
+		svgASCII := `<svg xmlns="http://www.w3.org/2000/svg"><rect/></svg>`
+		body := []byte{0xFF, 0xFE} // UTF-16 LE BOM
+		for _, c := range svgASCII {
+			body = append(body, byte(c), 0x00)
+		}
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "image/png")
+			w.WriteHeader(http.StatusOK)
+			w.Write(body)
+		})
+
+		mock := httptest.NewServer(handler)
+		defer mock.Close()
+
+		proxy := makeTestLocalProxy()
+
+		recorder := httptest.NewRecorder()
+		request, err := http.NewRequest(http.MethodGet, "", nil)
+		require.NoError(t, err)
+		proxy.GetImage(recorder, request, mock.URL+"/image.png")
+		resp := recorder.Result()
+
+		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
+	t.Run("UTF-16 BE BOM SVG with image/png content type", func(t *testing.T) {
+		// Build a UTF-16 BE payload with BOM: 0xFE 0xFF followed by each ASCII
+		// character as a two-byte big-endian code unit.
+		svgASCII := `<svg xmlns="http://www.w3.org/2000/svg"><rect/></svg>`
+		body := []byte{0xFE, 0xFF} // UTF-16 BE BOM
+		for _, c := range svgASCII {
+			body = append(body, 0x00, byte(c))
+		}
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "image/png")
+			w.WriteHeader(http.StatusOK)
+			w.Write(body)
+		})
+
+		mock := httptest.NewServer(handler)
+		defer mock.Close()
+
+		proxy := makeTestLocalProxy()
+
+		recorder := httptest.NewRecorder()
+		request, err := http.NewRequest(http.MethodGet, "", nil)
+		require.NoError(t, err)
+		proxy.GetImage(recorder, request, mock.URL+"/image.png")
+		resp := recorder.Result()
+
+		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
+	t.Run("SVG body with leading whitespace prefix", func(t *testing.T) {
+		prefix := bytes.Repeat([]byte(" "), 600)
+		body := append(prefix, []byte(`<svg xmlns="http://www.w3.org/2000/svg"><rect/></svg>`)...)
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "image/png")
+
+			w.WriteHeader(http.StatusOK)
+			w.Write(body)
+		})
+
+		mock := httptest.NewServer(handler)
+		defer mock.Close()
+
+		proxy := makeTestLocalProxy()
+
+		recorder := httptest.NewRecorder()
+		request, err := http.NewRequest(http.MethodGet, "", nil)
+		require.NoError(t, err)
+		proxy.GetImage(recorder, request, mock.URL+"/image.png")
+		resp := recorder.Result()
+
+		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
 	})
 
 	t.Run("Redirect", func(t *testing.T) {
