@@ -4,12 +4,15 @@
 import {expect, test} from '@mattermost/playwright-lib';
 
 /**
- * Helper to find the attach_app_logs preference from a user's preferences list.
+ * Helper to find the attach_app_logs preference for a given user.
  */
-async function getAttachLogsPreference(userClient: {
-    getMyPreferences: () => Promise<Array<{category: string; name: string; value: string}>>;
-}) {
-    const prefs = await userClient.getMyPreferences();
+async function getAttachLogsPreference(
+    userClient: {
+        getUserPreferences: (userId: string) => Promise<Array<{category: string; name: string; value: string}>>;
+    },
+    userId: string,
+) {
+    const prefs = await userClient.getUserPreferences(userId);
     return prefs.find(
         (p: {category: string; name: string}) => p.category === 'advanced_settings' && p.name === 'attach_app_logs',
     );
@@ -43,7 +46,7 @@ test.describe('/mobile-logs slash command', () => {
             await expect(lastPost.container.locator('.post__visibility')).toContainText('(Only visible to you)');
 
             // * Verify the preference was actually set via API
-            const logPref = await getAttachLogsPreference(userClient);
+            const logPref = await getAttachLogsPreference(userClient, user.id);
             expect(logPref).toBeDefined();
             expect(logPref!.value).toBe('true');
         },
@@ -75,7 +78,7 @@ test.describe('/mobile-logs slash command', () => {
         await lastPost.toContainText('Mobile app log attachment is now disabled for you');
 
         // * Verify the preference was set to false via API
-        const logPref = await getAttachLogsPreference(userClient);
+        const logPref = await getAttachLogsPreference(userClient, user.id);
         expect(logPref).toBeDefined();
         expect(logPref!.value).toBe('false');
     });
@@ -179,7 +182,7 @@ test.describe('/mobile-logs slash command', () => {
             await lastPost.toContainText(`Mobile app log attachment is now enabled for @${user.username}`);
 
             // * Verify the preference was set on the target user via API
-            const logPref = await getAttachLogsPreference(userClient);
+            const logPref = await getAttachLogsPreference(userClient, user.id);
             expect(logPref).toBeDefined();
             expect(logPref!.value).toBe('true');
         },
@@ -215,7 +218,7 @@ test.describe('/mobile-logs slash command', () => {
             await lastPost.toContainText(`Mobile app log attachment is now disabled for @${user.username}`);
 
             // * Verify the preference was set to false on the target user
-            const logPref = await getAttachLogsPreference(userClient);
+            const logPref = await getAttachLogsPreference(userClient, user.id);
             expect(logPref).toBeDefined();
             expect(logPref!.value).toBe('false');
         },

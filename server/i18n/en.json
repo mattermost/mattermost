@@ -1266,34 +1266,6 @@
     "translation": "me"
   },
   {
-    "id": "api.command_msg.desc",
-    "translation": "Send Direct Message to a user"
-  },
-  {
-    "id": "api.command_msg.dm_fail.app_error",
-    "translation": "An error occurred while creating the direct message."
-  },
-  {
-    "id": "api.command_msg.fail.app_error",
-    "translation": "An error occurred while messaging the user."
-  },
-  {
-    "id": "api.command_msg.hint",
-    "translation": "@[username] 'message'"
-  },
-  {
-    "id": "api.command_msg.missing.app_error",
-    "translation": "Unable to find the user."
-  },
-  {
-    "id": "api.command_msg.name",
-    "translation": "message"
-  },
-  {
-    "id": "api.command_msg.permission.app_error",
-    "translation": "You don't have the appropriate permissions to direct message this user."
-  },
-  {
     "id": "api.command_mobile_logs.desc",
     "translation": "Manage mobile app log attachment for yourself or another user."
   },
@@ -1326,12 +1298,12 @@
     "translation": "Mobile app log attachment is currently enabled for {{.User}}."
   },
   {
-    "id": "api.command_mobile_logs.usage",
-    "translation": "Usage: /mobile-logs [on|off|status] [@username]"
-  },
-  {
     "id": "api.command_mobile_logs.update_error.app_error",
     "translation": "Failed to update mobile app log attachment setting. Please try again."
+  },
+  {
+    "id": "api.command_mobile_logs.usage",
+    "translation": "Usage: /mobile-logs [on|off|status] [@username]"
   },
   {
     "id": "api.command_mobile_logs.user_not_found.app_error",
@@ -1340,6 +1312,34 @@
   {
     "id": "api.command_mobile_logs.you",
     "translation": "you"
+  },
+  {
+    "id": "api.command_msg.desc",
+    "translation": "Send Direct Message to a user"
+  },
+  {
+    "id": "api.command_msg.dm_fail.app_error",
+    "translation": "An error occurred while creating the direct message."
+  },
+  {
+    "id": "api.command_msg.fail.app_error",
+    "translation": "An error occurred while messaging the user."
+  },
+  {
+    "id": "api.command_msg.hint",
+    "translation": "@[username] 'message'"
+  },
+  {
+    "id": "api.command_msg.missing.app_error",
+    "translation": "Unable to find the user."
+  },
+  {
+    "id": "api.command_msg.name",
+    "translation": "message"
+  },
+  {
+    "id": "api.command_msg.permission.app_error",
+    "translation": "You don't have the appropriate permissions to direct message this user."
   },
   {
     "id": "api.command_mute.desc",
