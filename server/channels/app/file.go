@@ -60,7 +60,7 @@ func (a *App) ExportFileBackend() filestore.FileBackend {
 
 func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
 	var fileBackendSettings filestore.FileBackendSettings
-	if a.License().IsCloud() && a.Config().FeatureFlags.CloudDedicatedExportUI && a.Config().FileSettings.DedicatedExportStore != nil && *a.Config().FileSettings.DedicatedExportStore {
+	if a.License() != nil && a.License().IsCloud() && a.Config().FeatureFlags.CloudDedicatedExportUI && a.Config().FileSettings.DedicatedExportStore != nil && *a.Config().FileSettings.DedicatedExportStore {
 		fileBackendSettings = filestore.NewExportFileBackendSettingsFromConfig(settings, false, false)
 	} else {
 		fileBackendSettings = filestore.NewFileBackendSettingsFromConfig(settings, false, false)

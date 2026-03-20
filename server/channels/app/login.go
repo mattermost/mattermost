@@ -310,7 +310,7 @@ func (a *App) AttachSessionCookies(rctx request.CTX, w http.ResponseWriter, r *h
 	http.SetCookie(w, csrfCookie)
 
 	// For context see: https://mattermost.atlassian.net/browse/MM-39583
-	if a.License().IsCloud() {
+	if a.License() != nil && a.License().IsCloud() {
 		a.AttachCloudSessionCookie(rctx, w, r)
 	}
 }
@@ -323,5 +323,5 @@ func GetProtocol(r *http.Request) string {
 }
 
 func isCWSLogin(a *App, token string) bool {
-	return a.License().IsCloud() && token != ""
+	return a.License() != nil && a.License().IsCloud() && token != ""
 }

@@ -2183,7 +2183,7 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 		"cyber-defense": "/cyber-defense-hq",
 	}
 
-	if !c.App.Channels().License().IsCloud() {
+	if c.App.Channels().License() == nil || !c.App.Channels().License().IsCloud() {
 		c.Err = model.NewAppError("loginCWS", "api.user.login_cws.license.error", nil, "", http.StatusUnauthorized)
 		return
 	}
@@ -2242,7 +2242,7 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// If a cloud preview, redirect to the correct use case URL
-	if c.App.License().IsCloudPreview() && useCase != "" {
+	if c.App.License() != nil && c.App.License().IsCloudPreview() && useCase != "" {
 		if url, ok := useCaseToURL[useCase]; ok {
 			redirectURL += url
 		}
