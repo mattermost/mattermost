@@ -261,13 +261,18 @@ jobs:
             export RACE_MODE="-race"
           fi
 
-          # When sharding is active, pass -run regex via the Make GOFLAGS variable
-          # to filter this shard's tests. This is safe because Make command-line
-          # variables are not exported as env vars, so `go list` (used to compute
-          # TE_PACKAGES/EE_PACKAGES) won't see the -run flag.
-          SHARD_RUN_FLAG=""
+          # When sharding, pass the -run filter as a Make variable override.
+          # GOFLAGS on the Make command line is expanded by Make (not shell),
+          # so regex chars like |()$ are safe. The key insight: we must NOT
+          # let this become a shell env var named GOFLAGS, because Go's env
+          # parser would also try to parse it. Make command-line vars override
+          # the Makefile's `GOFLAGS ?=` default without being exported.
+          SHARD_GOFLAGS=""
           if [[ "${{ inputs.shard-total }}" -gt 1 ]]; then
-            SHARD_RUN_FLAG="-run '${{ steps.test_split.outputs.run }}'"
+            SHARD_RUN='${{ steps.test_split.outputs.run }}'
+            if [[ -n "$SHARD_RUN" ]]; then
+              SHARD_GOFLAGS="-run=${SHARD_RUN}"
+            fi
           fi
 
           docker run --net ghactions_mm-test \
@@ -282,7 +287,7 @@ jobs:
             -v $PWD:/mattermost \
             -w /mattermost/server \
             $BUILD_IMAGE \
-            make test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID GOFLAGS="${SHARD_RUN_FLAG}"
+            make test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID ${SHARD_GOFLAGS:+GOFLAGS="$SHARD_GOFLAGS"}
 
       - name: Upload coverage to Codecov
         if: ${{ inputs.enablecoverage }}
