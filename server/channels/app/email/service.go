@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/url"
 	"path"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/throttled/throttled/v2"
@@ -149,8 +150,8 @@ type ServiceInterface interface {
 	SendDeactivateAccountEmail(email string, locale, siteURL string) error
 	SendNotificationMail(to, subject, htmlBody string) error
 	SendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader, messageID string, inReplyTo string, references string, category string) error
-	SendLicenseUpForRenewalEmail(email, name, locale, ctaTitle, ctaLink, ctaText string, daysToExpiration int) error
-	SendRemoveExpiredLicenseEmail(ctaText, ctaLink, email, locale string) error
+	SendLicenseUpForRenewalEmail(email, locale string, daysToExpiration int) error
+	SendRemoveExpiredLicenseEmail(email, locale string) error
 	AddNotificationEmailToBatch(user *model.User, post *model.Post, team *model.Team) *model.AppError
 	GetMessageForNotification(post *model.Post, teamName, siteUrl string, translateFunc i18n.TranslateFunc) string
 	GenerateHyperlinkForChannels(postMessage, teamName, teamURL string) (string, error)
@@ -160,6 +161,23 @@ type ServiceInterface interface {
 	SendIPFiltersChangedEmail(email string, userWhoChangedFilter *model.User, siteURL, portalURL, locale string, isWorkspaceOwner bool) error
 	SetStore(st store.Store)
 	Stop()
+}
+
+func (es *Service) getLicenseSkuName() string {
+	if license := es.license(); license != nil {
+		// Strip the "Mattermost " prefix if present, since the product name
+		// already appears in the email subject (e.g. "Your Mattermost Entry
+		// license" instead of "Your Mattermost Mattermost Entry license").
+		return strings.TrimPrefix(license.SkuName, "Mattermost ")
+	}
+	return ""
+}
+
+func (es *Service) getConfigSiteName() string {
+	if siteName := *es.config().TeamSettings.SiteName; siteName != "" {
+		return siteName
+	}
+	return "Mattermost"
 }
 
 func (es *Service) Store() store.Store {
