@@ -148,7 +148,10 @@ jobs:
               [[ -z "$pkg" ]] && continue
               # Accumulate time per package (multiple testsuites per package possible)
               ms=$(awk "BEGIN {printf \"%d\", $duration * 1000}")
-              PKG_TIMES["$pkg"]=$(( ${PKG_TIMES["$pkg"]:-0} + ms ))
+              # Use temporary var to avoid 'unbound variable' with set -u on
+              # associative array keys that don't exist yet
+              prev=0; [[ -v 'PKG_TIMES[$pkg]' ]] && prev=${PKG_TIMES["$pkg"]}
+              PKG_TIMES["$pkg"]=$(( prev + ms ))
             done < <(grep -oP '<testsuite[^>]*name="([^"]*)"[^>]*time="([^"]*)"' "$TIMING_FILE" \
               | sed -E 's/<testsuite[^>]*name="([^"]*)"[^>]*time="([^"]*)"/\2 \1/' || true)
 
@@ -174,7 +177,7 @@ jobs:
             SORTED_PKGS=""
             while IFS= read -r pkg; do
               [[ -z "$pkg" ]] && continue
-              ms=${PKG_TIMES["$pkg"]:-1}
+              ms=1; [[ -v 'PKG_TIMES[$pkg]' ]] && ms=${PKG_TIMES["$pkg"]}
               SORTED_PKGS+="${ms} ${pkg}"$'\n'
             done <<< "$ALL_PKGS"
 
