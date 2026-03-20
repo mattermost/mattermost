@@ -1410,11 +1410,9 @@ func (s *Server) doLicenseExpirationCheck() {
 		}
 
 		mlog.Debug("Sending license expired email.", mlog.String("user_email", user.Email))
-		s.Go(func() {
-			if err := s.SendRemoveExpiredLicenseEmail(user.Email, user.Locale); err != nil {
-				mlog.Error("Error while sending the license expired email.", mlog.String("user_email", user.Email), mlog.Err(err))
-			}
-		})
+		if err := s.SendRemoveExpiredLicenseEmail(user.Email, user.Locale); err != nil {
+			mlog.Error("Error while sending the license expired email.", mlog.String("user_email", user.Email), mlog.Err(err))
+		}
 	}
 
 	// remove the license
