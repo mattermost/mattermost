@@ -168,6 +168,10 @@ type PostPatch struct {
 	HasReactions *bool            `json:"has_reactions"`
 }
 
+func (p *PostPatch) IsEmpty() bool {
+	return p.IsPinned == nil && p.Message == nil && p.Props == nil && p.FileIds == nil && p.HasReactions == nil
+}
+
 type PostReminder struct {
 	TargetTime int64 `json:"target_time"`
 	// These fields are only used internally for interacting with DB.

@@ -978,6 +978,14 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request, teamId stri
 	}
 }
 
+func postEditTimeLimitExpired(cfg *model.Config, post *model.Post) bool {
+	limit := *cfg.ServiceSettings.PostEditTimeLimit
+	if limit == -1 {
+		return false
+	}
+	return model.GetMillis() > post.CreateAt+int64(limit)*1000
+}
+
 func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePostId()
 	if c.Err != nil {
@@ -1042,7 +1050,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		post.Props = originalPost.Props
 	}
 
-	if *c.App.Config().ServiceSettings.PostEditTimeLimit != -1 && model.GetMillis() > originalPost.CreateAt+int64(*c.App.Config().ServiceSettings.PostEditTimeLimit*1000) &&
+	if postEditTimeLimitExpired(c.App.Config(), originalPost) &&
 		(post.Message != originalPost.Message ||
 			!slices.Equal(post.FileIds, originalPost.FileIds) ||
 			model.StringInterfaceToJSON(post.GetProps()) != model.StringInterfaceToJSON(originalPost.GetProps()) ||
@@ -1180,7 +1188,7 @@ func postPatchChecks(c *Context, auditRec *model.AuditRecord, patch *model.PostP
 		return false
 	}
 
-	if *c.App.Config().ServiceSettings.PostEditTimeLimit != -1 && model.GetMillis() > originalPost.CreateAt+int64(*c.App.Config().ServiceSettings.PostEditTimeLimit*1000) && (patch.Message != nil || patch.FileIds != nil || patch.Props != nil || patch.IsPinned != nil || patch.HasReactions != nil) {
+	if postEditTimeLimitExpired(c.App.Config(), originalPost) && !patch.IsEmpty() {
 		c.Err = model.NewAppError("patchPost", "api.post.update_post.permissions_time_limit.app_error", map[string]any{"timeLimit": *c.App.Config().ServiceSettings.PostEditTimeLimit}, "", http.StatusBadRequest)
 		return isMember
 	}
@@ -1282,7 +1290,7 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 		return
 	}
 
-	if *c.App.Config().ServiceSettings.PostEditTimeLimit != -1 && model.GetMillis() > post.CreateAt+int64(*c.App.Config().ServiceSettings.PostEditTimeLimit*1000) {
+	if postEditTimeLimitExpired(c.App.Config(), post) {
 		c.Err = model.NewAppError("saveIsPinnedPost", "api.post.update_post.permissions_time_limit.app_error", map[string]any{"timeLimit": *c.App.Config().ServiceSettings.PostEditTimeLimit}, "", http.StatusBadRequest)
 		return
 	}
