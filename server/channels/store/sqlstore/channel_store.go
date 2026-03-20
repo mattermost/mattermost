@@ -3036,9 +3036,7 @@ func (s SqlChannelStore) Autocomplete(rctx request.CTX, userID, term string, inc
 			sq.Expr("c.TeamId = t.id"),
 			sq.Expr("t.id = tm.TeamId"),
 			sq.Eq{"tm.UserId": userID},
-		}).
-		OrderBy("c.DisplayName").
-		Limit(model.ChannelSearchDefaultLimit)
+		})
 
 	// Always filter out soft-deleted team memberships - users removed from
 	// a team should not see channels from that team regardless of includeDeleted
@@ -3069,6 +3067,10 @@ func (s SqlChannelStore) Autocomplete(rctx request.CTX, userID, term string, inc
 		query = query.Where(searchClause)
 	}
 
+	query = orderByDisplayNameMatch(query, term)
+
+	query = query.Limit(model.ChannelSearchDefaultLimit)
+
 	sql, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "Autocomplete_Tosql")
@@ -3086,7 +3088,6 @@ func (s SqlChannelStore) AutocompleteInTeam(rctx request.CTX, teamID, userID, te
 	query := s.getQueryBuilder().Select(channelSliceColumns(true, "c")...).
 		From("Channels c").
 		Where(sq.Eq{"c.TeamId": teamID}).
-		OrderBy("c.DisplayName").
 		Limit(model.ChannelSearchDefaultLimit)
 
 	if !includeDeleted {
@@ -3113,6 +3114,8 @@ func (s SqlChannelStore) AutocompleteInTeam(rctx request.CTX, teamID, userID, te
 	if searchClause != nil {
 		query = query.Where(searchClause)
 	}
+
+	query = orderByDisplayNameMatch(query, term)
 
 	return s.performSearch(query, term)
 }
@@ -3581,6 +3584,18 @@ func (s SqlChannelStore) searchClause(term string) sq.Sqlizer {
 		likeClause,
 		s.buildFulltextClause(term, "c.Name", "c.DisplayName", "c.Purpose"),
 	}
+}
+
+// orderByDisplayNameMatch adds an ORDER BY clause that prioritizes channels whose DisplayName matches the search term,
+// then sorts alphabetically by DisplayName.
+func orderByDisplayNameMatch(query sq.SelectBuilder, term string) sq.SelectBuilder {
+	sanitizedTerm := sanitizeSearchTerm(term, "*")
+	if sanitizedTerm == "" {
+		return query.OrderBy("c.DisplayName")
+	}
+
+	likeTerm := wildcardSearchTerm(sanitizedTerm)
+	return query.OrderByClause("CASE WHEN LOWER(c.DisplayName) LIKE LOWER(?) ESCAPE '*' THEN 0 ELSE 1 END, c.DisplayName", likeTerm)
 }
 
 func (s SqlChannelStore) searchGroupChannelsQuery(userId, term string) sq.SelectBuilder {

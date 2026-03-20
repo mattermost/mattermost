@@ -8,6 +8,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	_ "image/jpeg"
+	_ "image/png"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -140,11 +142,28 @@ func TestAdjustProfileImage(t *testing.T) {
 
 	// default image should not require adjustment
 	user := th.BasicUser
-	image, appErr := th.App.GetDefaultProfileImage(user)
+	defaultImg, appErr := th.App.GetDefaultProfileImage(user)
 	require.Nil(t, appErr)
-	image2, appErr := th.App.AdjustImage(th.Context, bytes.NewReader(image))
+	image2, appErr := th.App.AdjustImage(th.Context, bytes.NewReader(defaultImg))
 	require.Nil(t, appErr)
-	assert.Equal(t, image, image2.Bytes())
+	assert.Equal(t, defaultImg, image2.Bytes())
+
+	t.Run("EXIF orientation is applied for rotated images", func(t *testing.T) {
+		// quadrants-orientation-8.png: 128×128 color quadrants with EXIF orientation 8.
+		// quadrants-orientation-1.png: same visual content already rotated, EXIF orientation 1.
+		rotated, err := testutils.ReadTestFile("exif_samples/quadrants-orientation-8.png")
+		require.NoError(t, err)
+		normal, err := testutils.ReadTestFile("exif_samples/quadrants-orientation-1.png")
+		require.NoError(t, err)
+
+		rotatedResult, appErr := th.App.AdjustImage(th.Context, bytes.NewReader(rotated))
+		require.Nil(t, appErr)
+		normalResult, appErr := th.App.AdjustImage(th.Context, bytes.NewReader(normal))
+		require.Nil(t, appErr)
+
+		assert.Equal(t, rotatedResult.Bytes(), normalResult.Bytes(),
+			"EXIF-rotated image should produce the same profile picture as the normally-oriented one")
+	})
 }
 
 func TestUpdateUserToRestrictedDomain(t *testing.T) {
