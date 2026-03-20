@@ -1640,7 +1640,7 @@ func TestUpdatePost(t *testing.T) {
 	})
 
 	t.Run("should prevent editing when create_post permission is revoked", func(t *testing.T) {
-		th.LoginBasic(t)
+		th.LoginBasic()
 
 		postToEdit, _, appErr := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
@@ -1649,8 +1649,8 @@ func TestUpdatePost(t *testing.T) {
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
-		th.RemovePermissionFromRole(t, model.PermissionCreatePost.Id, model.ChannelUserRoleId)
-		defer th.AddPermissionToRole(t, model.PermissionCreatePost.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(model.PermissionCreatePost.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(model.PermissionCreatePost.Id, model.ChannelUserRoleId)
 
 		updatePost := &model.Post{
 			Id:        postToEdit.Id,
@@ -2049,7 +2049,7 @@ func TestPatchPost(t *testing.T) {
 	})
 
 	t.Run("should prevent patching when create_post permission is revoked", func(t *testing.T) {
-		th.LoginBasic(t)
+		th.LoginBasic()
 
 		postToEdit, _, err := client.CreatePost(context.Background(), &model.Post{
 			ChannelId: channel.Id,
@@ -2057,9 +2057,9 @@ func TestPatchPost(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		defaultPerms := th.SaveDefaultRolePermissions(t)
-		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
-		th.RemovePermissionFromRole(t, model.PermissionCreatePost.Id, model.ChannelUserRoleId)
+		defaultPerms := th.SaveDefaultRolePermissions()
+		defer th.RestoreDefaultRolePermissions(defaultPerms)
+		th.RemovePermissionFromRole(model.PermissionCreatePost.Id, model.ChannelUserRoleId)
 
 		patch := &model.PostPatch{
 			Message: model.NewPointer("edited message"),
