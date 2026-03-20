@@ -1006,14 +1006,14 @@ func (es *Service) CreateVerifyEmailToken(userID string, newEmail string) (*mode
 func (es *Service) SendLicenseUpForRenewalEmail(email, locale string, daysToExpiration int) error {
 	T := i18n.GetUserTranslations(locale)
 	skuName := es.getLicenseSkuName()
+	prefixedSkuName := es.getPrefixedLicenseSkuName()
 	subject := T("api.templates.license_up_for_renewal_subject",
-		map[string]any{"SkuName": skuName})
+		map[string]any{"SkuName": prefixedSkuName})
 	siteName := es.getConfigSiteName()
 	siteURL := *es.config().ServiceSettings.SiteURL
 	data := es.NewEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL
-	data.Props["Title"] = T("api.templates.license_up_for_renewal_title",
-		map[string]any{"SkuName": skuName})
+	data.Props["Title"] = T("api.templates.license_up_for_renewal_title")
 	data.Props["Button"] = T("api.templates.license_up_for_renewal_contact_sales")
 	data.Props["ButtonURL"] = "https://mattermost.com/contact-sales/"
 	data.Props["NeedHelpTitle"] = T("api.templates.license_need_help.title")
@@ -1036,8 +1036,9 @@ func (es *Service) SendLicenseUpForRenewalEmail(email, locale string, daysToExpi
 func (es *Service) SendRemoveExpiredLicenseEmail(email, locale string) error {
 	T := i18n.GetUserTranslations(locale)
 	skuName := es.getLicenseSkuName()
+	prefixedSkuName := es.getPrefixedLicenseSkuName()
 	subject := T("api.templates.remove_expired_license.subject",
-		map[string]any{"SkuName": skuName})
+		map[string]any{"SkuName": prefixedSkuName})
 	siteName := es.getConfigSiteName()
 	siteURL := *es.config().ServiceSettings.SiteURL
 	data := es.NewEmailTemplateData(locale)

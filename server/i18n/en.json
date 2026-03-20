@@ -3956,7 +3956,7 @@
   },
   {
     "id": "api.templates.license_up_for_renewal_title",
-    "translation": "Your {{.SkuName}} license is up for renewal"
+    "translation": "Your Mattermost license is up for renewal"
   },
   {
     "id": "api.templates.mfa_activated_body.info",

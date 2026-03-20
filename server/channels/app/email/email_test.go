@@ -37,49 +37,64 @@ func TestCondenseSiteURL(t *testing.T) {
 
 func TestGetLicenseSkuName(t *testing.T) {
 	tests := []struct {
-		name     string
-		license  *model.License
-		expected string
+		name             string
+		license          *model.License
+		expectedSku      string
+		expectedPrefixed string
 	}{
 		{
-			name:     "nil license",
-			license:  nil,
-			expected: "Mattermost",
+			name:             "nil license",
+			license:          nil,
+			expectedSku:      "Mattermost",
+			expectedPrefixed: "Mattermost",
 		},
 		{
-			name:     "empty sku name",
-			license:  &model.License{SkuName: ""},
-			expected: "Mattermost",
+			name:             "empty sku name",
+			license:          &model.License{SkuName: ""},
+			expectedSku:      "Mattermost",
+			expectedPrefixed: "Mattermost",
 		},
 		{
-			name:     "Mattermost Professional",
-			license:  &model.License{SkuName: "Mattermost Professional"},
-			expected: "Mattermost Professional",
+			name:             "Professional",
+			license:          &model.License{SkuName: "Professional"},
+			expectedSku:      "Professional",
+			expectedPrefixed: "Mattermost Professional",
 		},
 		{
-			name:     "Mattermost Enterprise",
-			license:  &model.License{SkuName: "Mattermost Enterprise"},
-			expected: "Mattermost Enterprise",
+			name:             "Enterprise",
+			license:          &model.License{SkuName: "Enterprise"},
+			expectedSku:      "Enterprise",
+			expectedPrefixed: "Mattermost Enterprise",
 		},
 		{
-			name:     "Mattermost Enterprise Advanced",
-			license:  &model.License{SkuName: "Mattermost Enterprise Advanced"},
-			expected: "Mattermost Enterprise Advanced",
+			name:             "Enterprise Advanced",
+			license:          &model.License{SkuName: "Enterprise Advanced"},
+			expectedSku:      "Enterprise Advanced",
+			expectedPrefixed: "Mattermost Enterprise Advanced",
 		},
 		{
-			name:     "Mattermost Entry",
-			license:  &model.License{SkuName: "Mattermost Entry"},
-			expected: "Mattermost Entry",
+			name:             "Entry",
+			license:          &model.License{SkuName: "Entry"},
+			expectedSku:      "Entry",
+			expectedPrefixed: "Mattermost Entry",
 		},
 		{
-			name:     "E10 without Mattermost prefix",
-			license:  &model.License{SkuName: "E10"},
-			expected: "Mattermost E10",
+			name:             "Mattermost Entry (prefixed by license server)",
+			license:          &model.License{SkuName: "Mattermost Entry"},
+			expectedSku:      "Entry",
+			expectedPrefixed: "Mattermost Entry",
 		},
 		{
-			name:     "E20 without Mattermost prefix",
-			license:  &model.License{SkuName: "E20"},
-			expected: "Mattermost E20",
+			name:             "E10",
+			license:          &model.License{SkuName: "E10"},
+			expectedSku:      "E10",
+			expectedPrefixed: "Mattermost E10",
+		},
+		{
+			name:             "E20",
+			license:          &model.License{SkuName: "E20"},
+			expectedSku:      "E20",
+			expectedPrefixed: "Mattermost E20",
 		},
 	}
 
@@ -88,7 +103,8 @@ func TestGetLicenseSkuName(t *testing.T) {
 			es := &Service{
 				license: func() *model.License { return tt.license },
 			}
-			require.Equal(t, tt.expected, es.getLicenseSkuName())
+			require.Equal(t, tt.expectedSku, es.getLicenseSkuName())
+			require.Equal(t, tt.expectedPrefixed, es.getPrefixedLicenseSkuName())
 		})
 	}
 }
