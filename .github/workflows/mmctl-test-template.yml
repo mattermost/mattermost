@@ -57,14 +57,10 @@ jobs:
       - name: Compute plugin cache key
         id: plugin-cache-key
         run: |
-          # mmctl tests only need the jira plugin for prepackaged plugin tests,
-          # not all 15 plugins from the Makefile. We hardcode this subset here
-          # and derive the cache key from the SAME value to keep them in sync.
-          # If you change the plugin list below, update MMCTL_PLUGIN_PACKAGES too.
-          MMCTL_PLUGIN_PACKAGES="mattermost-plugin-jira-v3.2.5"
-          PLUGIN_HASH=$(echo "$MMCTL_PLUGIN_PACKAGES" | sha256sum | cut -d' ' -f1)
+          # Extract PLUGIN_PACKAGES lines from Makefile to derive a stable cache key.
+          # Cache auto-invalidates whenever any plugin version changes in the Makefile.
+          PLUGIN_HASH=$(grep '^PLUGIN_PACKAGES' server/Makefile | sha256sum | cut -d' ' -f1)
           echo "hash=$PLUGIN_HASH" >> "$GITHUB_OUTPUT"
-          echo "packages=$MMCTL_PLUGIN_PACKAGES" >> "$GITHUB_OUTPUT"
 
       - name: Cache prepackaged plugins
         id: plugin-cache
@@ -77,7 +73,7 @@ jobs:
         if: steps.plugin-cache.outputs.cache-hit != 'true'
         run: |
           cd server
-          make prepackaged-plugins PLUGIN_PACKAGES="${{ steps.plugin-cache-key.outputs.packages }}"
+          make prepackaged-plugins PLUGIN_PACKAGES=mattermost-plugin-jira-v3.2.5
 
       - name: Run docker compose
         run: |
