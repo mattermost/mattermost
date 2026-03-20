@@ -95,7 +95,6 @@
               required:
                 - title
                 - type
-                - props
               properties:
                 title:
                   type: string
@@ -103,23 +102,22 @@
                   maxLength: 256
                 type:
                   type: string
-                  enum: [board]
+                  enum: [kanban]
                   description: |
                     The type of the view.
-                    * `board` - a board view with linked properties and subviews
+                    * `kanban` - a kanban view
                 description:
                   type: string
                   description: The description of the view
                   maxLength: 1024
-                icon:
-                  type: string
-                  description: The icon for the view
-                  maxLength: 256
                 sort_order:
                   type: integer
                   description: The display order of the view within the channel
                 props:
-                  $ref: "#/components/schemas/ViewBoardProps"
+                  type: object
+                  description: Arbitrary key-value properties for the view
+                  additionalProperties:
+                    type: string
         description: View object to be created
         required: true
       responses:
