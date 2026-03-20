@@ -223,7 +223,7 @@ const PDFPreview = memo(({
 
     const prevStatus = useRef<Status>(status);
     useEffect(() => {
-        if (prevStatus.current === 'fail' && status === 'success') {
+        if (prevStatus.current !== status && status === 'success') {
             for (let i = 0; i < pdfFromState.numPages; i++) {
                 renderPDFPage(i);
             }
