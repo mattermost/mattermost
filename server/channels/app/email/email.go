@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"html"
 	"html/template"
 	"io"
 	"net/http"
@@ -1015,7 +1016,7 @@ func (es *Service) SendLicenseUpForRenewalEmail(email, locale string, daysToExpi
 	data.Props["ButtonURL"] = "https://mattermost.com/contact-sales/"
 	data.Props["NeedHelpTitle"] = T("api.templates.license_need_help.title")
 	data.Props["SubTitleTwo"] = T("api.templates.license_up_for_renewal_subtitle_two")
-	data.HTML["SubTitle"] = template.HTML(T("api.templates.license_up_for_renewal_subtitle", map[string]any{"SiteURL": siteURL, "SiteName": siteName, "Days": daysToExpiration}))
+	data.HTML["SubTitle"] = template.HTML(T("api.templates.license_up_for_renewal_subtitle", map[string]any{"SiteURL": html.EscapeString(siteURL), "SiteName": html.EscapeString(siteName), "Days": daysToExpiration}))
 	data.HTML["NeedHelpInfo"] = template.HTML(T("api.templates.license_need_help.info"))
 
 	body, err := es.templatesContainer.RenderToString("license_notification", data)
@@ -1044,7 +1045,7 @@ func (es *Service) SendRemoveExpiredLicenseEmail(email, locale string) error {
 	data.Props["ButtonURL"] = "https://mattermost.com/contact-sales/"
 	data.Props["NeedHelpTitle"] = T("api.templates.license_need_help.title")
 	data.Props["SubTitleTwo"] = T("api.templates.remove_expired_license.body.subtitle_two")
-	data.HTML["SubTitle"] = template.HTML(T("api.templates.remove_expired_license.body.subtitle", map[string]any{"SkuName": skuName, "SiteURL": siteURL, "SiteName": siteName}))
+	data.HTML["SubTitle"] = template.HTML(T("api.templates.remove_expired_license.body.subtitle", map[string]any{"SkuName": html.EscapeString(skuName), "SiteURL": html.EscapeString(siteURL), "SiteName": html.EscapeString(siteName)}))
 	data.HTML["NeedHelpInfo"] = template.HTML(T("api.templates.license_need_help.info"))
 
 	body, err := es.templatesContainer.RenderToString("license_notification", data)
