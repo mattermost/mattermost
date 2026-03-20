@@ -29,14 +29,8 @@ func makeView(channelID, creatorID string) *model.View {
 	return &model.View{
 		ChannelId: channelID,
 		CreatorId: creatorID,
-		Type:      model.ViewTypeBoard,
-		Title:     "Test Board",
-		Props: &model.ViewBoardProps{
-			LinkedProperties: []string{model.NewId()},
-			Subviews: []model.Subview{
-				{Title: "Kanban", Type: model.SubviewTypeKanban},
-			},
-		},
+		Type:      model.ViewTypeKanban,
+		Title:     "Test Kanban",
 	}
 }
 
@@ -55,34 +49,33 @@ func testSaveView(t *testing.T, ss store.Store) {
 		assert.NotZero(t, saved.UpdateAt)
 		assert.Equal(t, channelID, saved.ChannelId)
 		assert.Equal(t, creatorID, saved.CreatorId)
-		assert.Equal(t, model.ViewTypeBoard, saved.Type)
-		assert.Equal(t, "Test Board", saved.Title)
+		assert.Equal(t, model.ViewTypeKanban, saved.Type)
+		assert.Equal(t, "Test Kanban", saved.Title)
 	})
 
 	t.Run("persists and round-trips props correctly", func(t *testing.T) {
 		v := makeView(channelID, creatorID)
-		v.Title = "Props Board"
+		v.Title = "Props Kanban"
+		v.Props = model.StringInterface{"color": "blue", "count": float64(3)}
 		saved, err := ss.View().Save(v)
 		require.NoError(t, err)
 
 		fetched, err := ss.View().Get(saved.Id)
 		require.NoError(t, err)
 		require.NotNil(t, fetched.Props)
-		assert.Equal(t, saved.Props.LinkedProperties, fetched.Props.LinkedProperties)
-		assert.Len(t, fetched.Props.Subviews, 1)
-		assert.Equal(t, model.SubviewTypeKanban, fetched.Props.Subviews[0].Type)
+		assert.Equal(t, "blue", fetched.Props["color"])
+		assert.Equal(t, float64(3), fetched.Props["count"])
 	})
 
-	t.Run("generates subview IDs via PreSave", func(t *testing.T) {
+	t.Run("saves view without props", func(t *testing.T) {
 		v := makeView(channelID, creatorID)
-		v.Title = "Subview ID Board"
+		v.Title = "No Props Kanban"
 		saved, err := ss.View().Save(v)
 		require.NoError(t, err)
 
 		fetched, err := ss.View().Get(saved.Id)
 		require.NoError(t, err)
-		require.Len(t, fetched.Props.Subviews, 1)
-		assert.True(t, model.IsValidId(fetched.Props.Subviews[0].Id))
+		assert.Nil(t, fetched.Props)
 	})
 }
 
@@ -125,19 +118,19 @@ func testGetViewsForChannel(t *testing.T, ss store.Store) {
 	creatorID := model.NewId()
 
 	v1 := makeView(channelID, creatorID)
-	v1.Title = "Board A"
+	v1.Title = "Kanban A"
 	v1.SortOrder = 1
 	saved1, err := ss.View().Save(v1)
 	require.NoError(t, err)
 
 	v2 := makeView(channelID, creatorID)
-	v2.Title = "Board B"
+	v2.Title = "Kanban B"
 	v2.SortOrder = 0
 	saved2, err := ss.View().Save(v2)
 	require.NoError(t, err)
 
 	v3 := makeView(otherChannelID, creatorID)
-	v3.Title = "Other Channel Board"
+	v3.Title = "Other Channel Kanban"
 	_, err = ss.View().Save(v3)
 	require.NoError(t, err)
 
@@ -179,7 +172,7 @@ func testGetViewsForChannel(t *testing.T, ss store.Store) {
 		var saved []*model.View
 		for i := range 3 {
 			v := makeView(ch, creator)
-			v.Title = "Paginate Board"
+			v.Title = "Paginate Kanban"
 			v.SortOrder = i
 			s, err := ss.View().Save(v)
 			require.NoError(t, err)
@@ -205,7 +198,7 @@ func testGetViewsForChannel(t *testing.T, ss store.Store) {
 		var created []*model.View
 		for _, so := range orders {
 			v := makeView(ch, creator)
-			v.Title = "SortOrder Board"
+			v.Title = "SortOrder Kanban"
 			v.SortOrder = so
 			s, err := ss.View().Save(v)
 			require.NoError(t, err)
@@ -229,7 +222,7 @@ func testGetViewsForChannel(t *testing.T, ss store.Store) {
 		creator := model.NewId()
 		for i := range model.ViewQueryDefaultPerPage + 1 {
 			v := makeView(ch, creator)
-			v.Title = "Default PerPage Board"
+			v.Title = "Default PerPage Kanban"
 			v.SortOrder = i
 			_, err := ss.View().Save(v)
 			require.NoError(t, err)
@@ -252,7 +245,7 @@ func testGetViewsForChannel(t *testing.T, ss store.Store) {
 		creator := model.NewId()
 		for i := range model.ViewQueryMaxPerPage + 1 {
 			v := makeView(ch, creator)
-			v.Title = "Clamp Board"
+			v.Title = "Clamp Kanban"
 			v.SortOrder = i
 			_, err := ss.View().Save(v)
 			require.NoError(t, err)
@@ -301,14 +294,12 @@ func testUpdateView(t *testing.T, ss store.Store) {
 		updated := saved.Clone()
 		updated.Title = "Updated Title"
 		updated.Description = "A description"
-		updated.Icon = "🚀"
 		updated.SortOrder = 5
 
 		result, err := ss.View().Update(updated)
 		require.NoError(t, err)
 		assert.Equal(t, "Updated Title", result.Title)
 		assert.Equal(t, "A description", result.Description)
-		assert.Equal(t, "🚀", result.Icon)
 		assert.Equal(t, 5, result.SortOrder)
 		assert.GreaterOrEqual(t, result.UpdateAt, saved.UpdateAt)
 	})
@@ -317,18 +308,14 @@ func testUpdateView(t *testing.T, ss store.Store) {
 		fetched, err := ss.View().Get(saved.Id)
 		require.NoError(t, err)
 
-		propA := model.NewId()
-		propB := model.NewId()
-		fetched.Props = &model.ViewBoardProps{
-			LinkedProperties: []string{propA, propB},
-			Subviews:         []model.Subview{{Title: "Kanban", Type: model.SubviewTypeKanban}},
-		}
+		fetched.Props = model.StringInterface{"foo": "bar", "count": float64(42)}
 		_, err = ss.View().Update(fetched)
 		require.NoError(t, err)
 
 		refetched, err := ss.View().Get(saved.Id)
 		require.NoError(t, err)
-		assert.Equal(t, []string{propA, propB}, refetched.Props.LinkedProperties)
+		assert.Equal(t, "bar", refetched.Props["foo"])
+		assert.Equal(t, float64(42), refetched.Props["count"])
 	})
 
 	t.Run("returns not found for unknown ID", func(t *testing.T) {

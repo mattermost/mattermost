@@ -11489,22 +11489,6 @@
     "translation": "Invalid UserId field for session."
   },
   {
-    "id": "model.subview.is_valid.id.app_error",
-    "translation": "Invalid subview ID."
-  },
-  {
-    "id": "model.subview.is_valid.title.app_error",
-    "translation": "Subview title is required."
-  },
-  {
-    "id": "model.subview.is_valid.title_length.app_error",
-    "translation": "Subview title is too long."
-  },
-  {
-    "id": "model.subview.is_valid.type.app_error",
-    "translation": "Invalid subview type."
-  },
-  {
     "id": "model.team.is_valid.characters.app_error",
     "translation": "Name must be 2 or more lowercase alphanumeric characters."
   },
@@ -11845,24 +11829,8 @@
     "translation": "View description is too long."
   },
   {
-    "id": "model.view.is_valid.icon.app_error",
-    "translation": "View icon is too long."
-  },
-  {
     "id": "model.view.is_valid.id.app_error",
     "translation": "Invalid view ID."
-  },
-  {
-    "id": "model.view.is_valid.props.linked_properties.app_error",
-    "translation": "Board view must have at least one linked property."
-  },
-  {
-    "id": "model.view.is_valid.props.linked_properties.invalid_id.app_error",
-    "translation": "Board view contains an invalid linked property ID."
-  },
-  {
-    "id": "model.view.is_valid.props.subviews.app_error",
-    "translation": "Board view must have at least one subview."
   },
   {
     "id": "model.view.is_valid.title.app_error",

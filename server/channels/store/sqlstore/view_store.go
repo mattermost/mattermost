@@ -35,7 +35,7 @@ func newSqlViewStore(sqlStore *SqlStore) store.ViewStore {
 }
 
 // dbView is an intermediate struct used to scan rows from the Views table.
-// Props is stored as raw JSON bytes and converted to/from *model.ViewBoardProps.
+// Props is stored as raw JSON bytes and converted to/from model.StringInterface.
 type dbView struct {
 	Id          string
 	ChannelId   string
@@ -43,7 +43,6 @@ type dbView struct {
 	CreatorId   string
 	Title       string
 	Description string
-	Icon        string
 	SortOrder   int
 	Props       []byte
 	CreateAt    int64
@@ -59,7 +58,6 @@ func (d *dbView) toModel() (*model.View, error) {
 		CreatorId:   d.CreatorId,
 		Title:       d.Title,
 		Description: d.Description,
-		Icon:        d.Icon,
 		SortOrder:   d.SortOrder,
 		CreateAt:    d.CreateAt,
 		UpdateAt:    d.UpdateAt,
@@ -67,17 +65,17 @@ func (d *dbView) toModel() (*model.View, error) {
 	}
 
 	if len(d.Props) > 0 {
-		var props model.ViewBoardProps
+		var props model.StringInterface
 		if err := json.Unmarshal(d.Props, &props); err != nil {
 			return nil, errors.Wrap(err, "failed to unmarshal view props")
 		}
-		v.Props = &props
+		v.Props = props
 	}
 
 	return v, nil
 }
 
-func marshalViewProps(props *model.ViewBoardProps, binaryParams bool) (any, error) {
+func marshalViewProps(props model.StringInterface, binaryParams bool) (any, error) {
 	if props == nil {
 		return nil, nil
 	}
@@ -94,7 +92,7 @@ func marshalViewProps(props *model.ViewBoardProps, binaryParams bool) (any, erro
 func viewColumns() []string {
 	return []string{
 		"Id", "ChannelId", "Type", "CreatorId", "Title",
-		"Description", "Icon", "SortOrder", "Props",
+		"Description", "SortOrder", "Props",
 		"CreateAt", "UpdateAt", "DeleteAt",
 	}
 }
@@ -115,7 +113,7 @@ func (s *SqlViewStore) Save(view *model.View) (*model.View, error) {
 		Columns(viewColumns()...).
 		Values(
 			view.Id, view.ChannelId, view.Type, view.CreatorId, view.Title,
-			view.Description, view.Icon, view.SortOrder, propsVal,
+			view.Description, view.SortOrder, propsVal,
 			view.CreateAt, view.UpdateAt, view.DeleteAt,
 		)
 
@@ -215,7 +213,6 @@ func (s *SqlViewStore) Update(view *model.View) (*model.View, error) {
 		Update("Views").
 		Set("Title", view.Title).
 		Set("Description", view.Description).
-		Set("Icon", view.Icon).
 		Set("SortOrder", view.SortOrder).
 		Set("Props", propsVal).
 		Set("UpdateAt", view.UpdateAt).
