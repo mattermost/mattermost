@@ -9,6 +9,7 @@ import type {MessageAttachment as MessageAttachmentType} from '@mattermost/types
 import type {PostImage} from '@mattermost/types/posts';
 
 import ExternalImage from 'components/external_image';
+import Markdown from 'components/markdown';
 import MessageAttachment from 'components/post_view/message_attachments/message_attachment/message_attachment';
 
 import {Constants} from 'utils/constants';
@@ -190,19 +191,20 @@ describe('components/post_view/MessageAttachment', () => {
         expect(authorName.text()).toBe('Bot (v2)');
     });
 
-    test('should decode HTML entities in footer', () => {
+    test('should pass footer text to Markdown for entity decoding', () => {
+        const footerText = 'Google Calendar &#40;via plugin&#41;';
         const props = {
             ...baseProps,
             attachment: {
                 ...attachment,
-                footer: 'Google Calendar &#40;via plugin&#41;',
+                footer: footerText,
                 footer_icon: undefined,
             } as unknown as MessageAttachmentType,
         };
 
         const wrapper = shallow(<MessageAttachment {...props}/>);
-        const footer = wrapper.find('.attachment__footer-container span');
-        expect(footer.text()).toBe('Google Calendar (via plugin)');
+        const footerMarkdown = wrapper.find('.attachment__footer-container').find(Markdown);
+        expect(footerMarkdown.prop('message')).toBe(footerText);
     });
 
     test('should match snapshot when the attachment has an emoji in the title', () => {
