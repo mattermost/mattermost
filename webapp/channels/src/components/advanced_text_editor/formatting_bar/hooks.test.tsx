@@ -20,11 +20,11 @@ describe('splitFormattingBarControls', () => {
             expect(hiddenControls).toEqual(['code', 'quote', 'ul', 'ol']);
         });
 
-        test('narrow mode shows 3 controls', () => {
+        test('narrow mode shows 2 controls', () => {
             const {controls, hiddenControls} = splitFormattingBarControls('narrow', 0, false);
-            expect(controls).toHaveLength(3);
-            expect(controls).toEqual(['bold', 'italic', 'strike']);
-            expect(hiddenControls).toHaveLength(6);
+            expect(controls).toHaveLength(2);
+            expect(controls).toEqual(['bold', 'italic']);
+            expect(hiddenControls).toHaveLength(7);
         });
 
         test('min mode shows 1 control', () => {
@@ -49,18 +49,18 @@ describe('splitFormattingBarControls', () => {
             expect(hiddenControls).toHaveLength(0);
         });
 
-        test('normal mode reduces to 3 controls with 1 additional control', () => {
+        test('normal mode reduces to 4 controls with 1 additional control', () => {
             const {controls, hiddenControls} = splitFormattingBarControls('normal', 1, false);
-            expect(controls).toHaveLength(3);
-            expect(controls).toEqual(['bold', 'italic', 'strike']);
-            expect(hiddenControls).toHaveLength(6);
+            expect(controls).toHaveLength(4);
+            expect(controls).toEqual(['bold', 'italic', 'strike', 'heading']);
+            expect(hiddenControls).toHaveLength(5);
         });
 
-        test('narrow mode keeps 3 controls with only 1 additional control (special case)', () => {
+        test('narrow mode keeps 2 controls with only 1 additional control (special case)', () => {
             const {controls, hiddenControls} = splitFormattingBarControls('narrow', 1, false);
-            expect(controls).toHaveLength(3);
-            expect(controls).toEqual(['bold', 'italic', 'strike']);
-            expect(hiddenControls).toHaveLength(6);
+            expect(controls).toHaveLength(2);
+            expect(controls).toEqual(['bold', 'italic']);
+            expect(hiddenControls).toHaveLength(7);
         });
 
         test('narrow mode reduces to 1 control with 2+ additional controls', () => {
@@ -93,11 +93,11 @@ describe('splitFormattingBarControls', () => {
             expect(hiddenControls).toHaveLength(4);
         });
 
-        test('RHS narrow mode shows 3 controls when no additional controls', () => {
+        test('RHS narrow mode shows 2 controls when no additional controls', () => {
             const {controls, hiddenControls} = splitFormattingBarControls('narrow', 0, true);
-            expect(controls).toHaveLength(3);
-            expect(controls).toEqual(['bold', 'italic', 'strike']);
-            expect(hiddenControls).toHaveLength(6);
+            expect(controls).toHaveLength(2);
+            expect(controls).toEqual(['bold', 'italic']);
+            expect(hiddenControls).toHaveLength(7);
         });
 
         test('RHS min mode shows 1 control when no additional controls', () => {
@@ -116,11 +116,11 @@ describe('splitFormattingBarControls', () => {
             expect(hiddenControls).toHaveLength(0);
         });
 
-        test('RHS normal mode reduces to 3 controls with additional controls', () => {
+        test('RHS normal mode reduces to 4 controls with additional controls', () => {
             const {controls, hiddenControls} = splitFormattingBarControls('normal', 1, true);
-            expect(controls).toHaveLength(3);
-            expect(controls).toEqual(['bold', 'italic', 'strike']);
-            expect(hiddenControls).toHaveLength(6);
+            expect(controls).toHaveLength(4);
+            expect(controls).toEqual(['bold', 'italic', 'strike', 'heading']);
+            expect(hiddenControls).toHaveLength(5);
         });
 
         test('RHS narrow mode reduces to 1 control with 1 additional control (different from center!)', () => {
@@ -146,9 +146,9 @@ describe('splitFormattingBarControls', () => {
     });
 
     describe('Key behavioral differences between Center and RHS', () => {
-        test('Center narrow mode with 1 additional control keeps 3 icons (special case)', () => {
+        test('Center narrow mode with 1 additional control keeps 2 icons (special case)', () => {
             const center = splitFormattingBarControls('narrow', 1, false);
-            expect(center.controls).toHaveLength(3);
+            expect(center.controls).toHaveLength(2);
         });
 
         test('RHS narrow mode with 1 additional control shows only 1 icon (always reduces)', () => {
@@ -166,8 +166,8 @@ describe('splitFormattingBarControls', () => {
             // Normal mode
             const centerNormal = splitFormattingBarControls('normal', 2, false);
             const rhsNormal = splitFormattingBarControls('normal', 2, true);
-            expect(centerNormal.controls).toHaveLength(3);
-            expect(rhsNormal.controls).toHaveLength(3);
+            expect(centerNormal.controls).toHaveLength(4);
+            expect(rhsNormal.controls).toHaveLength(4);
 
             // Min mode
             const centerMin = splitFormattingBarControls('min', 2, false);
