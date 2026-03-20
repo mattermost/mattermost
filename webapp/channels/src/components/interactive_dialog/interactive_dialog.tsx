@@ -90,11 +90,23 @@ export default class InteractiveDialog extends React.PureComponent<Props, State>
 
         const {url, callbackId, state} = this.props;
 
+        // Convert boolean values to string ("true"/"false") before submission
+        // to ensure consistent typing for plugins expecting map[string]string
+        const submission: { [x: string]: string } = {};
+        for (const key of Object.keys(values)) {
+            const val = values[key];
+            if (typeof val === 'boolean') {
+                submission[key] = String(val);
+            } else {
+                submission[key] = val as string;
+            }
+        }
+
         const dialog: DialogSubmission = {
             url,
             callback_id: callbackId ?? '',
             state: state ?? '',
-            submission: values as { [x: string]: string },
+            submission,
             user_id: '',
             channel_id: '',
             team_id: '',

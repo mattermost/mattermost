@@ -105,6 +105,78 @@ describe('components/interactive_dialog/InteractiveDialog', () => {
         });
     });
 
+    describe('bool element submission values', () => {
+        test('should submit boolean values as strings', async () => {
+            const boolElement: TDialogElement = {
+                data_source: '',
+                display_name: 'Boolean Selector',
+                name: 'somebool',
+                optional: false,
+                type: 'bool',
+                placeholder: 'Subscribe?',
+                subtype: '',
+                default: 'true',
+                help_text: '',
+                min_length: 0,
+                max_length: 0,
+                options: [],
+            };
+
+            const submitMock = jest.fn().mockResolvedValue({data: {}});
+            const props = {
+                ...baseProps,
+                elements: [boolElement],
+                actions: {
+                    submitInteractiveDialog: submitMock,
+                    lookupInteractiveDialog: jest.fn(),
+                },
+            };
+
+            const wrapper = shallow<InteractiveDialog>(<InteractiveDialog {...props}/>);
+            await wrapper.instance().handleSubmit(submitEvent);
+
+            expect(submitMock).toHaveBeenCalledTimes(1);
+            const submittedDialog = submitMock.mock.calls[0][0];
+            expect(submittedDialog.submission.somebool).toBe('true');
+            expect(typeof submittedDialog.submission.somebool).toBe('string');
+        });
+
+        test('should submit false boolean values as string "false"', async () => {
+            const boolElement: TDialogElement = {
+                data_source: '',
+                display_name: 'Boolean Selector',
+                name: 'somebool',
+                optional: false,
+                type: 'bool',
+                placeholder: 'Subscribe?',
+                subtype: '',
+                default: 'false',
+                help_text: '',
+                min_length: 0,
+                max_length: 0,
+                options: [],
+            };
+
+            const submitMock = jest.fn().mockResolvedValue({data: {}});
+            const props = {
+                ...baseProps,
+                elements: [boolElement],
+                actions: {
+                    submitInteractiveDialog: submitMock,
+                    lookupInteractiveDialog: jest.fn(),
+                },
+            };
+
+            const wrapper = shallow<InteractiveDialog>(<InteractiveDialog {...props}/>);
+            await wrapper.instance().handleSubmit(submitEvent);
+
+            expect(submitMock).toHaveBeenCalledTimes(1);
+            const submittedDialog = submitMock.mock.calls[0][0];
+            expect(submittedDialog.submission.somebool).toBe('false');
+            expect(typeof submittedDialog.submission.somebool).toBe('string');
+        });
+    });
+
     describe('bool element in Interactive Dialog', () => {
         const element: TDialogElement = {
             data_source: '',
