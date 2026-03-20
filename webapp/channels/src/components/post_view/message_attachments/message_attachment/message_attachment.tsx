@@ -546,7 +546,11 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
             footer = (
                 <div className='attachment__footer-container'>
                     {footerIcon}
-                    <span>{truncate(decodeHtmlEntities(attachment.footer), {length: Constants.MAX_ATTACHMENT_FOOTER_LENGTH, omission: '…'})}</span>
+                    <Markdown
+                        message={truncate(attachment.footer, {length: Constants.MAX_ATTACHMENT_FOOTER_LENGTH, omission: '…'})}
+                        options={options}
+                        postId={this.props.postId}
+                    />
                 </div>
             );
         }

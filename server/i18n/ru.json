@@ -10166,5 +10166,153 @@
   {
     "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
     "translation": "Невозможно сохранить черновик в ограниченном канале личных сообщений"
+  },
+  {
+    "id": "api.encoding_error",
+    "translation": "Обнаружена ошибка при кодировании JSON для ответа API"
+  },
+  {
+    "id": "api.file.get_file.invalid_flagged_post.app_error",
+    "translation": "Неправильно указан идентификатор сообщения с флагом."
+  },
+  {
+    "id": "api.file.get_file.plugin_hook_timeout",
+    "translation": "Хук плагина отработал по таймеру"
+  },
+  {
+    "id": "api.file.get_file.rejected_by_plugin",
+    "translation": "Загрузка файлов отклонена плагином"
+  },
+  {
+    "id": "api.file.get_file_info.app_error",
+    "translation": "Не удалось получить информацию о файле."
+  },
+  {
+    "id": "api.file.get_file_preview.rejected_by_plugin",
+    "translation": "Загрузка предварительного просмотра файла отклонена плагином"
+  },
+  {
+    "id": "api.file.get_file_thumbnail.rejected_by_plugin",
+    "translation": "Загрузка миниатюры файла отклонена плагином"
+  },
+  {
+    "id": "api.file.get_public_file.rejected_by_plugin",
+    "translation": "Плагин отклонил загрузку общедоступного файла"
+  },
+  {
+    "id": "api.file.upload_file.get_channel.app_error",
+    "translation": "Невозможно загрузить файл в ограниченные ЛС"
+  },
+  {
+    "id": "api.file.upload_file.restricted_dm.error",
+    "translation": "Невозможно загрузить файл в ограниченные ЛС"
+  },
+  {
+    "id": "api.ldap.invalid_test_type.app_error",
+    "translation": "Неверный тип теста: {{.TestType}}"
+  },
+  {
+    "id": "api.license.load_metric.app_error",
+    "translation": "Не удалось вычислить активных пользователей за месяц."
+  },
+  {
+    "id": "api.oauth.allow_oauth.pkce_required_public.app_error",
+    "translation": "PKCE (Proof Key for Code Exchange) требуется для общих OAuth-клиентов, использующих поток кодов авторизации."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.disabled.app_error",
+    "translation": "Поставщик услуг OAuth отключен."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.invalid_url.app_error",
+    "translation": "Неверная конфигурация URL для метаданных сервера авторизации."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.site_url_required.app_error",
+    "translation": "URL сайта должен быть настроен на предоставление метаданных сервера авторизации."
+  },
+  {
+    "id": "api.oauth.get_access_token.resource_mismatch.app_error",
+    "translation": "Несоответствие параметров ресурса между запросами на авторизацию и токен."
+  },
+  {
+    "id": "api.oauth.regenerate_secret.public_client.app_error",
+    "translation": "invalid_request: Невозможно пересоздать пароль для общих OAuth-клиентов."
+  },
+  {
+    "id": "api.plugin.install.check_directory.app_error",
+    "translation": "При проверке конфигурации директории плагина произошла ошибка."
+  },
+  {
+    "id": "api.plugin.install.directory_conflict.app_error",
+    "translation": "Невозможно установить плагин: PluginSettings.Directory конфликтует с ImportSettings.Directory."
+  },
+  {
+    "id": "api.post.burn_post.user_not_in_channel.app_error",
+    "translation": "У тебя нет разрешения на сожжение этого сообщения. Ты должен быть участником канала."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.app_error",
+    "translation": "При создании сообщения сгораемого при прочтении произошла ошибка."
+  },
+  {
+    "id": "api.post.create_post.can_not_post_in_restricted_dm.error",
+    "translation": "Невозможно отправить сообщение в ограниченный канал личных сообщений."
+  },
+  {
+    "id": "api.post.delete_post.can_not_delete_from_restricted_dm.error",
+    "translation": "Невозможно удалить сообщение в ограниченном канале личных сообщений."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.bot_dm.app_error",
+    "translation": "В ЛС с ботами или агентами ИИ запрещены сообщения сгораемые при прочтении."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.channel.app_error",
+    "translation": "Произошла ошибка при проверке канала для сообщения сгораемого при прочтении."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.config.app_error",
+    "translation": "Функция сжигания сообщений при прочтении не включена. Пожалуйста, включите флаг функции и настройки службы."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.license.app_error",
+    "translation": "Для сообщений сгораемых при прочтении требуется лицензия Enterprise Advanced."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.self_dm.app_error",
+    "translation": "Сообщения сгораемые при прочтении запрещены для отправки самому себе."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.user.app_error",
+    "translation": "Произошла ошибка при проверке пользователя на сообщение сгораемое при прочтении."
+  },
+  {
+    "id": "api.post.fill_in_post_props.invalid_ai_generated_user.app_error",
+    "translation": "Пользователь, сгенерированный ИИ, должен быть либо создателем сообщения, либо ботом."
+  },
+  {
+    "id": "api.post.get_link_metadata_for_permalink.burn_on_read.app_error",
+    "translation": "Невозможно получить метаданные ссылки для постоянной ссылки сообщения сгораемого при прочтении."
+  },
+  {
+    "id": "api.post.get_posts_for_reporting.channel_not_found",
+    "translation": "Канал не найден"
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_burn_on_read_post.error",
+    "translation": "Сообщения, сгораемые при прочтении, не могут быть обновлены."
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "Невозможно обновить сообщение в ограниченном канале личных сообщений."
+  },
+  {
+    "id": "api.post.reveal_post.cannot_reveal_own_post.app_error",
+    "translation": "Ты не можешь раскрыть собственное сообщение сгораемое при прочтении."
+  },
+  {
+    "id": "api.post.reveal_post.disabled.app_error",
+    "translation": "Функция при прочтении сжечь не включена или требует лицензии Enterprise Advanced."
   }
 ]
