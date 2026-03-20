@@ -198,18 +198,77 @@ jobs:
       logsartifact: postgres-binary-server-test-logs
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: false
+  # -- Sharded into 4 parallel runners for ~3× wall-time improvement --
+  # See: https://github.com/mattermost/mattermost/blob/master/mmworkbrain/content/docs/status/ci-test-sharding-analysis.md
   test-postgres-normal:
-    name: Postgres
+    name: Postgres (shard ${{ matrix.shard }})
     needs: go
+    strategy:
+      fail-fast: false # Let all shards complete so we get full test results
+      matrix:
+        shard: [0, 1, 2, 3]
     uses: ./.github/workflows/server-test-template.yml
     secrets: inherit
     with:
-      name: Postgres
+      name: "Postgres (shard ${{ matrix.shard }})"
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
-      logsartifact: postgres-server-test-logs
+      # Each shard gets a unique artifact name so they don't collide
+      logsartifact: "postgres-server-test-logs-shard-${{ matrix.shard }}"
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: false
+      shard-index: ${{ matrix.shard }}
+      shard-total: 4
+  # -- Merge JUnit XML from all shards for reporting and timing cache --
+  merge-postgres-test-results:
+    name: Merge Postgres Test Results
+    needs: test-postgres-normal
+    if: always()
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Download all shard artifacts
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        with:
+          pattern: postgres-server-test-logs-shard-*
+          path: shards
+
+      - name: Setup Node for junit-report-merger
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: 20
+
+      - name: Merge JUnit reports
+        run: |
+          npx junit-report-merger@7 merged-report.xml "shards/*/report.xml"
+
+      # Prepare files with expected names for the report workflow
+      - name: Prepare merged artifact
+        run: |
+          mkdir -p merged
+          cp merged-report.xml merged/report.xml
+          cp shards/postgres-server-test-logs-shard-0/test-name merged/test-name
+          cp shards/postgres-server-test-logs-shard-0/pr-number merged/pr-number
+
+      # Upload merged artifact with the name the report workflow expects (*-test-logs)
+      - name: Upload merged test logs
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: postgres-server-test-logs
+          path: merged/
+
+      # Save merged JUnit XML as timing data for future shard balancing.
+      # Path must match the restore path in server-test-template.yml.
+      - name: Prepare timing cache
+        run: |
+          mkdir -p server
+          cp merged-report.xml server/prev-report.xml
+
+      - name: Save test timing cache
+        uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: server/prev-report.xml
+          key: server-test-timing-${{ github.base_ref || github.ref_name }}-${{ github.run_id }}
+
   test-postgres-normal-fips:
     # Skip FIPS testing for forks, which won't have docker login credentials.
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository

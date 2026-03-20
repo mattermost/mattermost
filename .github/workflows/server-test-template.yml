@@ -29,6 +29,15 @@ on:
         required: false
         default: false
         type: boolean
+      # -- Test sharding inputs (leave defaults for non-sharded callers) --
+      shard-index:
+        required: false
+        type: number
+        default: -1 # -1 = no sharding; run all tests
+      shard-total:
+        required: false
+        type: number
+        default: 1
 
 permissions:
   id-token: write
@@ -52,6 +61,50 @@ jobs:
 
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # -- Test sharding: set up Go on the runner so go-test-split-action can list tests --
+      - name: Setup Go for test splitting
+        if: inputs.shard-total > 1
+        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+        with:
+          go-version: ${{ inputs.go-version }}
+          cache: false # The Docker build image handles module caching; this is only for listing tests
+
+      # -- Create go.work so `go test -list` can resolve all server packages --
+      - name: Setup Go workspace for test listing
+        if: inputs.shard-total > 1
+        working-directory: server
+        run: |
+          go work init
+          go work use .
+          go work use ./public
+          go work use ./enterprise
+
+      # -- Restore JUnit timing data from a previous run for balanced shard splitting --
+      - name: Restore test timing data
+        if: inputs.shard-total > 1
+        id: timing-cache
+        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: server/prev-report.xml
+          key: server-test-timing-${{ github.base_ref || github.ref_name }}
+          restore-keys: |
+            server-test-timing-master
+
+      # -- Split tests across shards using JUnit timing data for balance --
+      - name: Split tests by timing
+        if: inputs.shard-total > 1
+        id: test_split
+        uses: hashicorp-forge/go-test-split-action@796bfab5e11ab4fcb1e06a93fccab2d093289528 # v2.0.0
+        with:
+          total: ${{ inputs.shard-total }}
+          index: ${{ inputs.shard-index }}
+          # Same packages as TE_PACKAGES + EE_PACKAGES in the Makefile
+          packages: "./public/... ./... ./enterprise/..."
+          working-directory: server
+          # Use timing from previous run if available; falls back to count-based split
+          junit-summary: server/prev-report.xml
+
       - name: Setup BUILD_IMAGE
         id: build
         run: |
@@ -85,6 +138,16 @@ jobs:
           if [[ ${{ github.ref_name }} == 'master' && ${{ inputs.fullyparallel }} != true ]]; then
             export RACE_MODE="-race"
           fi
+
+          # When sharding is active, pass -run regex via the Make GOFLAGS variable
+          # to filter this shard's tests. This is safe because Make command-line
+          # variables are not exported as env vars, so `go list` (used to compute
+          # TE_PACKAGES/EE_PACKAGES) won't see the -run flag.
+          SHARD_RUN_FLAG=""
+          if [[ "${{ inputs.shard-total }}" -gt 1 ]]; then
+            SHARD_RUN_FLAG="-run '${{ steps.test_split.outputs.run }}'"
+          fi
+
           docker run --net ghactions_mm-test \
             --ulimit nofile=8096:8096 \
             --env-file=server/build/dotenv/test.env \
@@ -97,7 +160,8 @@ jobs:
             -v $PWD:/mattermost \
             -w /mattermost/server \
             $BUILD_IMAGE \
-            make test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID
+            make test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID GOFLAGS="${SHARD_RUN_FLAG}"
+
       - name: Upload coverage to Codecov
         if: ${{ inputs.enablecoverage }}
         uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
