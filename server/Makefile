@@ -52,7 +52,13 @@ MMCTL_BUILD_TAGS =
 MMCTL_TESTFLAGS ?= -timeout 30m
 MMCTL_PKG = github.com/mattermost/mattermost/server/v8/cmd/mmctl/commands
 MMCTL_BUILD_DATE = $(shell date -u +'%Y-%m-%dT%H:%M:%SZ')
+MMCTL_GIT_COMMIT = $(shell git rev-parse HEAD)
+MMCTL_GIT_TREE_STATE = $(shell if [ -n "$$(git status --porcelain 2>/dev/null)" ]; then echo "dirty"; else echo "clean"; fi)
+MMCTL_COMMIT_DATE = $(shell TZ=UTC git log -1 --date=format-local:'%Y-%m-%dT%H:%M:%SZ' --format='%cd' 2>/dev/null || echo "dev")
 MMCTL_LDFLAGS += -X "$(MMCTL_PKG).buildDate=$(MMCTL_BUILD_DATE)"
+MMCTL_LDFLAGS += -X "$(MMCTL_PKG).gitCommit=$(MMCTL_GIT_COMMIT)"
+MMCTL_LDFLAGS += -X "$(MMCTL_PKG).gitTreeState=$(MMCTL_GIT_TREE_STATE)"
+MMCTL_LDFLAGS += -X "$(MMCTL_PKG).commitDate=$(MMCTL_COMMIT_DATE)"
 
 # Enterprise
 BUILD_ENTERPRISE_DIR ?= ../../enterprise
@@ -106,7 +112,8 @@ ifeq ($(HOME),/)
 endif
 
 # Go Flags
-GOFLAGS ?= $(GOFLAGS:)
+# Use -buildvcs=false to avoid embedding VCS info which can cause false positives in container scanning tools
+export GOFLAGS ?= -buildvcs=false
 # We need to export GOBIN to allow it to be set
 # for processes spawned from the Makefile
 export GOBIN ?= $(PWD)/bin
@@ -154,18 +161,18 @@ TEMPLATES_DIR=templates
 
 # Plugins Packages
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
-PLUGIN_PACKAGES += mattermost-plugin-calls-v1.11.1
+PLUGIN_PACKAGES += mattermost-plugin-calls-v1.11.4
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.6.0
-PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.12.0
-PLUGIN_PACKAGES += mattermost-plugin-jira-v4.5.1
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.7.0
+PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.12.1
+PLUGIN_PACKAGES += mattermost-plugin-jira-v4.6.0
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.8.0
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.12.0
 PLUGIN_PACKAGES += mattermost-plugin-agents-v1.7.2
 PLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.2
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.6.0
-PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.4.0
+PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.4.1
 PLUGIN_PACKAGES += mattermost-plugin-metrics-v0.7.0
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.3.0
 
@@ -174,7 +181,7 @@ PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.3.0
 # download the package from to work. This will no longer be needed when we unify
 # the way we pre-package FIPS and non-FIPS plugins.
 ifeq ($(FIPS_ENABLED),true)
-	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.7.0%2B1031c5e-fips
+	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.8.0%2Bc4449ac-fips
 	PLUGIN_PACKAGES += mattermost-plugin-agents-v1.7.2%2B866e2dd-fips
 	PLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.2%2B4282c63-fips
 endif
@@ -859,11 +866,11 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 
 mmctl-build: setup-go-work ## Compiles and generates the mmctl binary
-	go build -trimpath -ldflags '$(MMCTL_LDFLAGS)' -o bin/mmctl ./cmd/mmctl
+	$(GO) build $(GOFLAGS) -trimpath -ldflags '$(MMCTL_LDFLAGS)' -o bin/mmctl ./cmd/mmctl
 
 mmctl-docs: setup-go-work ## Generate the mmctl docs
 	rm -rf ./cmd/mmctl/docs
-	cd ./cmd/mmctl && go run mmctl.go docs
+	cd ./cmd/mmctl && $(GO) run mmctl.go docs
 
 ## Help documentation à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 help:

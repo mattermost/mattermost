@@ -3,17 +3,17 @@
   "browser": {
     "./client/web_client.jsx": "./client/browser_web_client.jsx"
   },
-  "version": "11.4.0",
+  "version": "11.6.0",
   "private": true,
   "dependencies": {
     "@floating-ui/react": "0.26.6",
     "@giphy/js-fetch-api": "5.7.0",
     "@giphy/react-components": "10.1.0",
     "@guyplusplus/turndown-plugin-gfm": "1.0.7",
-    "@mattermost/client": "11.4.0",
-    "@mattermost/desktop-api": "6.0.0-1",
-    "@mattermost/shared": "11.4.0",
-    "@mattermost/types": "11.4.0",
+    "@mattermost/client": "11.6.0",
+    "@mattermost/desktop-api": "6.2.0-1",
+    "@mattermost/shared": "11.6.0",
+    "@mattermost/types": "11.6.0",
     "@mui/base": "5.0.0-alpha.127",
     "@mui/material": "5.11.16",
     "@mui/styled-engine-sc": "5.11.11",
@@ -189,6 +189,7 @@
     "stats": "cross-env NODE_ENV=production webpack --profile --json > webpack_stats.json",
     "i18n-extract": "formatjs extract 'src/**/*.{js,jsx,ts,tsx}' --additional-function-names localizeMessage --ignore 'src/**/*.d.ts' --ignore 'src/**/*.test.{js,jsx,ts,tsx}' --out-file src/i18n/en.json --format scripts/formatter.js --id-interpolation-pattern '[sha512:contenthash:base64:6]' --preserve-whitespace",
     "i18n-extract:check": "npm run i18n-extract -- --throws --out-file .i18n-check.tmp.json && diff src/i18n/en.json .i18n-check.tmp.json && rm -f .i18n-check.tmp.json || (rm -f .i18n-check.tmp.json && echo '\nen.json is out of sync with code. \nTo update: npm run i18n-extract' && exit 1)",
+    "i18n-verify-translations": "formatjs verify './src/i18n/*.json' --source-locale 'en' --structural-equality",
     "check-types": "tsc -b",
     "make-emojis": "node --experimental-json-modules build/emoji/make_emojis.mjs"
   }
