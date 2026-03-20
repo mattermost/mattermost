@@ -199,7 +199,6 @@ jobs:
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: false
   # -- Sharded into 4 parallel runners for ~3× wall-time improvement --
-  # See: https://github.com/mattermost/mattermost/blob/master/mmworkbrain/content/docs/status/ci-test-sharding-analysis.md
   test-postgres-normal:
     name: Postgres (shard ${{ matrix.shard }})
     needs: go
