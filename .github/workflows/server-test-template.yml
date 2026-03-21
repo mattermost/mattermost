@@ -62,22 +62,21 @@ jobs:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      # ── Package-level test sharding ────────────────────────────────────
-      # When shard-total > 1, we split Go test packages across N parallel
-      # runners. Each shard overrides TE_PACKAGES and EE_PACKAGES in the
-      # Makefile to run only its assigned packages.
+      # ── Test-level sharding ────────────────────────────────────────────
+      # When shard-total > 1, we split tests across N parallel runners.
       #
-      # How it works:
-      #   1. List all Go test packages via `go list` inside the build container.
-      #   2. Optionally use JUnit XML timing data from a previous run to
-      #      estimate package durations for balanced splitting.
-      #   3. Assign packages to this shard using greedy bin-packing (by timing)
-      #      or round-robin (fallback), then output filtered package lists.
+      # Two-tier splitting strategy:
+      #   - "Light" packages (< 2 min): assigned whole to a shard
+      #   - "Heavy" packages (≥ 2 min, e.g. api4, app): individual tests
+      #     are distributed across shards using -run regex filters
       #
-      # Why package-level (not test-level)?
-      #   The Makefile passes $(GOFLAGS) unquoted to /bin/sh, so -run regexes
-      #   containing shell metacharacters (|, (, ), $) cause syntax errors.
-      #   Package names are plain Go import paths — no shell metacharacters.
+      # Timing data comes from a cached gotestsum.json (JSONL with per-test
+      # Elapsed times) from the previous run. Falls back to JUnit XML
+      # package-level timing, then round-robin if no timing data exists.
+      #
+      # Each shard generates a wrapper script that calls gotestsum directly
+      # (bypassing the Makefile) to support multiple invocations: one for
+      # light packages and one per heavy-package split.
       # ─────────────────────────────────────────────────────────────────────
 
       - name: Restore test timing data
@@ -85,13 +84,15 @@ jobs:
         id: timing-cache
         uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         with:
-          path: server/prev-report.xml
+          path: |
+            server/prev-report.xml
+            server/prev-gotestsum.json
           # Try branch-specific timing first, fall back to master
           key: server-test-timing-${{ github.base_ref || github.ref_name }}
           restore-keys: |
             server-test-timing-master
 
-      - name: Split packages across shards
+      - name: Split tests across shards
         if: inputs.shard-total > 1
         id: test_split
         working-directory: server
@@ -102,149 +103,162 @@ jobs:
           set -euo pipefail
 
           # ── Step 1: List all test packages ──
-          # Use grep to find directories containing test files, then convert
-          # to Go import paths. Faster and more reliable than `go list` which
-          # requires full module setup.
           echo "::group::Listing test packages"
-
-          # Find all _test.go files, extract unique directories, convert to
-          # Go-style import paths relative to module root
           TE_PKGS=$(find ./public/ ./ -name '*_test.go' -not -path './enterprise/*' -not -path './cmd/mmctl/*' 2>/dev/null \
             | sed 's|/[^/]*$||' | sort -u \
             | sed 's|^\./|github.com/mattermost/mattermost/server/v8/|' \
             | sed 's|github.com/mattermost/mattermost/server/v8/public/|github.com/mattermost/mattermost/server/public/|')
-
           EE_PKGS=$(find ./enterprise/ -name '*_test.go' 2>/dev/null \
             | sed 's|/[^/]*$||' | sort -u \
             | sed 's|^\./|github.com/mattermost/mattermost/server/v8/|')
-
-          # Combine all packages for sharding
-          ALL_PKGS=$(echo "$TE_PKGS"; echo "$EE_PKGS")
-          ALL_PKGS=$(echo "$ALL_PKGS" | grep -v '^$' | sort -u)
+          ALL_PKGS=$(printf '%s\n%s' "$TE_PKGS" "$EE_PKGS" | grep -v '^$' | sort -u)
           TOTAL_PKGS=$(echo "$ALL_PKGS" | wc -l)
           echo "Found $TOTAL_PKGS test packages"
           echo "::endgroup::"
 
           if [[ "$TOTAL_PKGS" -eq 0 ]]; then
-            echo "WARNING: No test packages found, shard will run nothing"
-            echo "te_packages=" >> "$GITHUB_OUTPUT"
-            echo "ee_packages=" >> "$GITHUB_OUTPUT"
+            echo "WARNING: No test packages found"
+            echo "has_packages=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          # ── Step 2: Try timing-based split (greedy bin-packing) ──
-          # If we have JUnit XML from a previous run, aggregate test durations
-          # per package and use greedy bin-packing to balance wall-clock time.
-          TIMING_FILE="prev-report.xml"
-          USE_TIMING=false
-          declare -A PKG_TIMES=()
+          echo "$ALL_PKGS" > all-packages.txt
 
-          if [[ -f "$TIMING_FILE" ]]; then
-            echo "::group::Extracting package timing from JUnit XML"
+          # ── Step 2: Use Node.js for fast timing parse + shard assignment ──
+          # Node is pre-installed on ubuntu runners and handles JSON/XML
+          # parsing orders of magnitude faster than bash loops.
+          node -e '
+          const fs = require("fs");
 
-            # JUnit XML <testsuite> elements have name="pkg" and time="seconds"
-            # Extract package-level durations
-            # Extract name= and time= from <testsuite> elements (attribute order varies)
-            while IFS= read -r line; do
-              pkg=$(echo "$line" | grep -oP 'name="\K[^"]+' || true)
-              duration=$(echo "$line" | grep -oP '\btime="\K[^"]+' || true)
-              [[ -z "$pkg" || -z "$duration" ]] && continue
-              ms=$(awk "BEGIN {printf \"%d\", $duration * 1000}")
-              prev=0; [[ -v 'PKG_TIMES[$pkg]' ]] && prev=${PKG_TIMES["$pkg"]}
-              PKG_TIMES["$pkg"]=$(( prev + ms ))
-            done < <(grep '<testsuite ' "$TIMING_FILE" || true)
+          const SHARD_INDEX = parseInt(process.env.SHARD_INDEX);
+          const SHARD_TOTAL = parseInt(process.env.SHARD_TOTAL);
+          const HEAVY_MS = 120000; // 2 min: packages above this get test-level splitting
 
-            if [[ ${#PKG_TIMES[@]} -gt 0 ]]; then
-              USE_TIMING=true
-              echo "Found timing data for ${#PKG_TIMES[@]} packages"
-            fi
-            echo "::endgroup::"
-          fi
+          const allPkgs = fs.readFileSync("all-packages.txt", "utf8").trim().split("\n");
+          const pkgTimes = {};
+          const testTimes = {}; // "pkg::TestName" -> ms
 
-          # ── Step 3: Assign packages to shards ──
-          echo "::group::Assigning packages to shard $SHARD_INDEX of $SHARD_TOTAL"
+          // ── Parse gotestsum.json (JSONL) for per-test timing ──
+          // This gives us Elapsed time per top-level test function.
+          if (fs.existsSync("prev-gotestsum.json")) {
+            console.log("::group::Parsing gotestsum.json timing data");
+            const lines = fs.readFileSync("prev-gotestsum.json", "utf8").split("\n");
+            for (const line of lines) {
+              if (!line.includes("\"pass\"")) continue;
+              try {
+                const d = JSON.parse(line);
+                if (!d.Test || !d.Package) continue;
+                // Aggregate package time from test pass events
+                const elapsed = Math.round((d.Elapsed || 0) * 1000);
+                pkgTimes[d.Package] = (pkgTimes[d.Package] || 0) + elapsed;
+                // Top-level test name (use max elapsed for parent vs subtests)
+                const top = d.Test.split("/")[0];
+                const key = d.Package + "::" + top;
+                testTimes[key] = Math.max(testTimes[key] || 0, elapsed);
+              } catch(e) {}
+            }
+            console.log("gotestsum.json: " + Object.keys(pkgTimes).length + " packages, " + Object.keys(testTimes).length + " tests");
+            console.log("::endgroup::");
+          }
 
-          # Initialize shard load counters
-          declare -a SHARD_LOAD=()
-          for ((i=0; i<SHARD_TOTAL; i++)); do SHARD_LOAD[$i]=0; done
+          // ── Fallback: parse JUnit XML for package-level timing ──
+          if (Object.keys(pkgTimes).length === 0 && fs.existsSync("prev-report.xml")) {
+            console.log("::group::Parsing JUnit XML timing data (fallback)");
+            const xml = fs.readFileSync("prev-report.xml", "utf8");
+            for (const m of xml.matchAll(/<testsuite[^>]*>/g)) {
+              const name = m[0].match(/name="([^"]+)"/)?.[1];
+              const time = m[0].match(/\\btime="([^"]+)"/)?.[1];
+              if (name && time) pkgTimes[name] = (pkgTimes[name] || 0) + Math.round(parseFloat(time) * 1000);
+            }
+            console.log("JUnit XML: " + Object.keys(pkgTimes).length + " packages (no per-test data)");
+            console.log("::endgroup::");
+          }
 
-          declare -a MY_PKGS=()
+          const hasTimingData = Object.keys(pkgTimes).length > 0;
+          const hasTestTiming = Object.keys(testTimes).length > 0;
 
-          if [[ "$USE_TIMING" == "true" ]]; then
-            # Greedy bin-packing: sort packages by duration desc, assign each
-            # to the shard with the smallest total load
-            SORTED_PKGS=""
-            while IFS= read -r pkg; do
-              [[ -z "$pkg" ]] && continue
-              ms=1; [[ -v 'PKG_TIMES[$pkg]' ]] && ms=${PKG_TIMES["$pkg"]}
-              SORTED_PKGS+="${ms} ${pkg}"$'\n'
-            done <<< "$ALL_PKGS"
+          // ── Identify heavy packages ──
+          const heavyPkgs = new Set();
+          if (hasTestTiming) {
+            for (const [pkg, ms] of Object.entries(pkgTimes)) {
+              if (ms > HEAVY_MS) heavyPkgs.add(pkg);
+            }
+          }
+          if (heavyPkgs.size > 0) {
+            console.log("Heavy packages (test-level splitting):");
+            for (const p of heavyPkgs) console.log("  " + (pkgTimes[p]/1000).toFixed(0) + "s  " + p.split("/").pop());
+          }
 
-            SORTED_PKGS=$(echo -n "$SORTED_PKGS" | sort -rn)
+          // ── Build work items ──
+          const items = []; // {ms, type: "P"|"T", pkg, test?}
+          for (const pkg of allPkgs) {
+            if (!pkg) continue;
+            if (heavyPkgs.has(pkg)) {
+              // Split into individual test items
+              const tests = Object.entries(testTimes)
+                .filter(([k]) => k.startsWith(pkg + "::"))
+                .map(([k, ms]) => ({ms, type: "T", pkg, test: k.split("::")[1]}));
+              if (tests.length > 0) {
+                items.push(...tests);
+              } else {
+                items.push({ms: pkgTimes[pkg] || 1, type: "P", pkg});
+              }
+            } else {
+              items.push({ms: pkgTimes[pkg] || 1, type: "P", pkg});
+            }
+          }
+          items.sort((a, b) => b.ms - a.ms);
 
-            while IFS=' ' read -r ms pkg; do
-              [[ -z "$pkg" ]] && continue
+          // ── Greedy bin-packing ──
+          const shards = Array.from({length: SHARD_TOTAL}, () => ({load: 0, whole: [], heavy: {}}));
 
-              # Find shard with smallest load
-              min_shard=0
-              min_load=${SHARD_LOAD[0]}
-              for ((i=1; i<SHARD_TOTAL; i++)); do
-                if [[ ${SHARD_LOAD[$i]} -lt $min_load ]]; then
-                  min_shard=$i
-                  min_load=${SHARD_LOAD[$i]}
-                fi
-              done
+          if (!hasTimingData) {
+            // Round-robin fallback when no timing data
+            console.log("No timing data — using round-robin");
+            allPkgs.forEach((pkg, i) => { if (pkg) shards[i % SHARD_TOTAL].whole.push(pkg); });
+          } else {
+            for (const item of items) {
+              const min = shards.reduce((m, s, i) => s.load < shards[m].load ? i : m, 0);
+              shards[min].load += item.ms;
+              if (item.type === "P") {
+                shards[min].whole.push(item.pkg);
+              } else {
+                if (!shards[min].heavy[item.pkg]) shards[min].heavy[item.pkg] = [];
+                shards[min].heavy[item.pkg].push(item.test);
+              }
+            }
+          }
 
-              SHARD_LOAD[$min_shard]=$(( ${SHARD_LOAD[$min_shard]} + ms ))
-              if [[ $min_shard -eq $SHARD_INDEX ]]; then
-                MY_PKGS+=("$pkg")
-              fi
-            done <<< "$SORTED_PKGS"
+          // ── Report ──
+          console.log("::group::Shard assignment");
+          for (let i = 0; i < SHARD_TOTAL; i++) {
+            const s = shards[i];
+            const hRuns = Object.keys(s.heavy).length;
+            const hTests = Object.values(s.heavy).reduce((n, a) => n + a.length, 0);
+            const marker = i === SHARD_INDEX ? " ← THIS SHARD" : "";
+            console.log("Shard " + i + ": " + (s.load/1000).toFixed(1) + "s | " + s.whole.length + " pkgs" + (hRuns > 0 ? ", " + hRuns + " heavy splits (" + hTests + " tests)" : "") + marker);
+          }
+          console.log("::endgroup::");
 
-            echo "Timing-based assignment:"
-          else
-            # Round-robin fallback
-            INDEX=0
-            while IFS= read -r pkg; do
-              [[ -z "$pkg" ]] && continue
-              if [[ $((INDEX % SHARD_TOTAL)) -eq $SHARD_INDEX ]]; then
-                MY_PKGS+=("$pkg")
-              fi
-              INDEX=$((INDEX + 1))
-            done <<< "$ALL_PKGS"
+          // ── Output for this shard ──
+          const myShard = shards[SHARD_INDEX];
+          const te = myShard.whole.filter(p => !p.includes("/enterprise/")).join(" ");
+          const ee = myShard.whole.filter(p => p.includes("/enterprise/")).join(" ");
 
-            echo "Round-robin assignment:"
-          fi
+          fs.writeFileSync("shard-te-packages.txt", te);
+          fs.writeFileSync("shard-ee-packages.txt", ee);
 
-          echo "Shard $SHARD_INDEX: ${#MY_PKGS[@]} of $TOTAL_PKGS packages"
-          for ((i=0; i<SHARD_TOTAL; i++)); do
-            echo "  Shard $i: load=${SHARD_LOAD[$i]}ms"
-          done
-          echo "::endgroup::"
+          // Heavy package runs: one line per run as "pkg REGEX"
+          const heavyRuns = Object.entries(myShard.heavy).map(([pkg, tests]) => {
+            const regex = tests.map(t => "^" + t + "$").join("|");
+            return pkg + " " + regex;
+          });
+          fs.writeFileSync("shard-heavy-runs.txt", heavyRuns.join("\n"));
 
-          # ── Step 4: Split into TE and EE package lists ──
-          # The Makefile uses separate TE_PACKAGES and EE_PACKAGES variables.
-          SHARD_TE=""
-          SHARD_EE=""
-          for pkg in "${MY_PKGS[@]}"; do
-            if [[ "$pkg" == *"/enterprise/"* ]]; then
-              SHARD_EE+="$pkg "
-            else
-              SHARD_TE+="$pkg "
-            fi
-          done
+          console.log("Light packages: " + myShard.whole.length + " (" + te.split(" ").filter(Boolean).length + " TE, " + ee.split(" ").filter(Boolean).length + " EE)");
+          console.log("Heavy package runs: " + heavyRuns.length);
+          '
 
-          # Trim trailing space
-          SHARD_TE="${SHARD_TE% }"
-          SHARD_EE="${SHARD_EE% }"
-
-          echo "TE packages: $(echo "$SHARD_TE" | wc -w) | EE packages: $(echo "$SHARD_EE" | wc -w)"
-
-          # Write package lists to files. The Run Tests step reads these
-          # and passes them as Make variable overrides. Files avoid the
-          # quoting/escaping issues of passing long lists through GHA outputs.
-          echo "$SHARD_TE" > shard-te-packages.txt
-          echo "$SHARD_EE" > shard-ee-packages.txt
           echo "has_packages=true" >> "$GITHUB_OUTPUT"
 
       - name: Setup BUILD_IMAGE
@@ -281,18 +295,97 @@ jobs:
             export RACE_MODE="-race"
           fi
 
-          # When sharding, override TE_PACKAGES and EE_PACKAGES so Make only
-          # runs this shard's packages. Package lists are read from files
-          # written by the split step, then passed as Make variable overrides
-          # via a wrapper script (to preserve quoting through docker exec).
           MAKE_ARGS="test-server${RACE_MODE} BUILD_NUMBER=${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}"
           DOCKER_CMD="make ${MAKE_ARGS}"
+
+          # When sharding with heavy package splits, generate a multi-run
+          # wrapper script that calls gotestsum directly. This bypasses the
+          # Makefile to support multiple gotestsum invocations (one per
+          # heavy package subset + one for all light packages) with separate
+          # JUnit/JSON output files that get merged at the end.
           if [[ "${{ inputs.shard-total }}" -gt 1 && -f server/shard-te-packages.txt ]]; then
             SHARD_TE=$(cat server/shard-te-packages.txt)
             SHARD_EE=$(cat server/shard-ee-packages.txt)
-            # Write wrapper script using printf (heredocs can confuse GHA YAML parser)
-            printf '#!/bin/bash\nexec make %s TE_PACKAGES="%s" EE_PACKAGES="%s"\n' \
-              "${MAKE_ARGS}" "${SHARD_TE}" "${SHARD_EE}" > server/run-shard-tests.sh
+            HEAVY_RUNS=""
+            if [[ -f server/shard-heavy-runs.txt && -s server/shard-heavy-runs.txt ]]; then
+              HEAVY_RUNS=$(cat server/shard-heavy-runs.txt)
+            fi
+
+            if [[ -z "$HEAVY_RUNS" ]]; then
+              # No heavy packages to split — simple single-run via Makefile
+              printf '#!/bin/bash\nexec make %s TE_PACKAGES="%s" EE_PACKAGES="%s"\n' \
+                "${MAKE_ARGS}" "${SHARD_TE}" "${SHARD_EE}" > server/run-shard-tests.sh
+            else
+              # Multi-run wrapper: calls gotestsum directly for each group
+              {
+                echo '#!/bin/bash'
+                echo 'set -euo pipefail'
+                echo ''
+                echo '# Multi-run shard test script (auto-generated)'
+                echo '# Calls gotestsum directly to support per-package -run filters.'
+                echo 'GOBIN="$(pwd)/bin"'
+                echo 'GOFLAGS_BASE="-buildvcs=false -timeout=90m"'
+                echo 'COVERAGE_FLAG=""'
+                echo 'if [[ "${ENABLE_COVERAGE:-false}" == "true" ]]; then'
+                echo '  COVERAGE_FLAG="-coverprofile=cover-$RUN_IDX.out -covermode=atomic"'
+                echo 'fi'
+                echo 'RACE_FLAG="${RACE_MODE:-}"'
+                echo ''
+                echo 'RUN_IDX=0'
+                echo '# run_gotestsum PACKAGES [RUN_REGEX]'
+                echo '# $1 = space-separated package list'
+                echo '# $2 = optional -run regex (no quotes needed, passed directly)'
+                echo 'run_gotestsum() {'
+                echo '  local junitfile="report-${RUN_IDX}.xml"'
+                echo '  local jsonfile="gotestsum-${RUN_IDX}.json"'
+                echo '  local run_flag=""'
+                echo '  if [[ -n "${2:-}" ]]; then run_flag="-run $2"; fi'
+                echo '  RUN_IDX=$((RUN_IDX + 1))'
+                echo '  GOTESTSUM_JUNITFILE="$junitfile" GOTESTSUM_JSONFILE="$jsonfile" \'
+                echo '    "$GOBIN/gotestsum" --rerun-fails=3 --packages="$1" -- $GOFLAGS_BASE $RACE_FLAG $COVERAGE_FLAG $run_flag'
+                echo '}'
+                echo ''
+
+                # Light packages (single run, no -run filter)
+                ALL_LIGHT="${SHARD_TE} ${SHARD_EE}"
+                ALL_LIGHT="${ALL_LIGHT## }"
+                ALL_LIGHT="${ALL_LIGHT%% }"
+                if [[ -n "$ALL_LIGHT" ]]; then
+                  LIGHT_COUNT=$(echo "$ALL_LIGHT" | wc -w)
+                  echo "# Light packages ($LIGHT_COUNT packages)"
+                  echo "run_gotestsum \"$ALL_LIGHT\""
+                  echo ''
+                fi
+
+                # Heavy package runs (each with -run filter)
+                while IFS= read -r line; do
+                  [[ -z "$line" ]] && continue
+                  PKG="${line%% *}"
+                  REGEX="${line#* }"
+                  SHORT_PKG="${PKG##*/}"
+                  TEST_COUNT=$(echo "$REGEX" | tr '|' '\n' | wc -l)
+                  echo "# Heavy: $SHORT_PKG ($TEST_COUNT tests)"
+                  echo "run_gotestsum \"$PKG\" \"$REGEX\""
+                  echo ''
+                done <<< "$HEAVY_RUNS"
+
+                # Merge results at the end
+                echo '# Merge JUnit XMLs and JSON logs from all runs'
+                echo 'if ls report-*.xml 1>/dev/null 2>&1; then'
+                echo '  # Simple concatenation works for the merge job (uses junit-report-merger later)'
+                echo '  head -1 report-0.xml > report.xml'  # XML header
+                echo '  echo "<testsuites>" >> report.xml'
+                echo '  for f in report-*.xml; do'
+                echo '    grep -v "<?xml" "$f" | grep -v "^<testsuites" | grep -v "^</testsuites" >> report.xml || true'
+                echo '  done'
+                echo '  echo "</testsuites>" >> report.xml'
+                echo 'fi'
+                echo 'cat gotestsum-*.json > gotestsum.json 2>/dev/null || true'
+                echo ''
+                echo 'echo "Shard complete: $RUN_IDX gotestsum runs"'
+              } > server/run-shard-tests.sh
+            fi
+
             chmod +x server/run-shard-tests.sh
             DOCKER_CMD="/mattermost/server/run-shard-tests.sh"
           fi

@@ -255,17 +255,22 @@ jobs:
           name: postgres-server-test-logs
           path: merged/
 
-      # Save merged JUnit XML as timing data for future shard balancing.
-      # Path must match the restore path in server-test-template.yml.
+      # Save merged timing data for future shard balancing.
+      # Includes both JUnit XML (package-level) and gotestsum.json (per-test).
+      # Paths must match the restore step in server-test-template.yml.
       - name: Prepare timing cache
         run: |
           mkdir -p server
           cp merged-report.xml server/prev-report.xml
+          # Merge gotestsum.json (JSONL) from all shards for per-test timing
+          cat shards/*/gotestsum.json > server/prev-gotestsum.json 2>/dev/null || true
 
       - name: Save test timing cache
         uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         with:
-          path: server/prev-report.xml
+          path: |
+            server/prev-report.xml
+            server/prev-gotestsum.json
           key: server-test-timing-${{ github.base_ref || github.ref_name }}-${{ github.run_id }}
 
   test-postgres-normal-fips:
