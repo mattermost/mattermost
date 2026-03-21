@@ -27,20 +27,24 @@ describe('SyncStatusFooter', () => {
     });
 
     test('should not render when hasPolicies is false', () => {
-        renderWithContext(<SyncStatusFooter
-            teamId='team1'
-            hasPolicies={false}
-                          />);
+        renderWithContext(
+            <SyncStatusFooter
+                teamId='team1'
+                hasPolicies={false}
+            />,
+        );
         expect(screen.queryByText(/synced/i)).not.toBeInTheDocument();
         expect(screen.queryByText(/Sync now/i)).not.toBeInTheDocument();
     });
 
     test('should show "Never synced" when no completed jobs exist', async () => {
         mockGetJobsByType.mockReturnValue({type: 'MOCK', data: []});
-        renderWithContext(<SyncStatusFooter
-            teamId='team1'
-            hasPolicies={true}
-                          />);
+        renderWithContext(
+            <SyncStatusFooter
+                teamId='team1'
+                hasPolicies={true}
+            />,
+        );
 
         await waitFor(() => {
             expect(screen.getByText(/Never synced/i)).toBeInTheDocument();
@@ -52,14 +56,16 @@ describe('SyncStatusFooter', () => {
         const recentJob = {
             id: 'job1',
             status: 'success',
-            last_activity_at: Date.now() - 5 * 60000, // 5 minutes ago
+            last_activity_at: Date.now() - (5 * 60000), // 5 minutes ago
             data: {team_id: 'team1'},
         };
         mockGetJobsByType.mockReturnValue({type: 'MOCK', data: [recentJob]});
-        renderWithContext(<SyncStatusFooter
-            teamId='team1'
-            hasPolicies={true}
-                          />);
+        renderWithContext(
+            <SyncStatusFooter
+                teamId='team1'
+                hasPolicies={true}
+            />,
+        );
 
         await waitFor(() => {
             expect(screen.getByText(/Last synced 5 minutes ago/i)).toBeInTheDocument();
@@ -68,10 +74,12 @@ describe('SyncStatusFooter', () => {
 
     test('should show "Syncing..." after clicking Sync now', async () => {
         mockGetJobsByType.mockReturnValue({type: 'MOCK', data: []});
-        renderWithContext(<SyncStatusFooter
-            teamId='team1'
-            hasPolicies={true}
-                          />);
+        renderWithContext(
+            <SyncStatusFooter
+                teamId='team1'
+                hasPolicies={true}
+            />,
+        );
 
         await waitFor(() => {
             expect(screen.getByText(/Sync now/i)).toBeInTheDocument();
@@ -86,10 +94,12 @@ describe('SyncStatusFooter', () => {
 
     test('should fetch jobs with teamId parameter', async () => {
         mockGetJobsByType.mockReturnValue({type: 'MOCK', data: []});
-        renderWithContext(<SyncStatusFooter
-            teamId='team123'
-            hasPolicies={true}
-                          />);
+        renderWithContext(
+            <SyncStatusFooter
+                teamId='team123'
+                hasPolicies={true}
+            />,
+        );
 
         await waitFor(() => {
             expect(mockGetJobsByType).toHaveBeenCalledWith('access_control_sync', 0, 10, 'team123');

@@ -84,7 +84,7 @@ export const useChannelAccessControlActions = (channelId?: string, teamId?: stri
             return dispatch(validateExpressionAgainstRequester(expression, channelId, teamId));
         },
 
-        createAccessControlSyncJob: (jobData: {policy_id: string; team_id?: string}) => {
+        createAccessControlSyncJob: (jobData: {policy_id?: string; team_id?: string}) => {
             return dispatch(createAccessControlSyncJob(jobData));
         },
 
