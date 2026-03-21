@@ -4,11 +4,16 @@
 package commands
 
 import (
+	"context"
 	"encoding/json"
+	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
@@ -16,6 +21,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
 
+// PacketPullTestSuite tests offline support packet functionality (no build tag required)
 type PacketPullTestSuite struct {
 	suite.Suite
 }
@@ -349,5 +355,118 @@ func TestCreateTarGzArchive(t *testing.T) {
 		archivePath := filepath.Join(t.TempDir(), "nonexistent", "test-should-fail.tar.gz")
 		err = createTarGzArchive(sourceDir, archivePath)
 		require.Error(t, err)
+	})
+}
+
+// TestSupportPacketCmdF tests online support packet and routing (uses MmctlUnitTestSuite)
+func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
+	printer.SetFormat(printer.FormatPlain)
+	s.T().Cleanup(func() { printer.SetFormat(printer.FormatJSON) })
+
+	s.Run("Download Support Packet with default filename", func() {
+		printer.Clean()
+
+		reader := io.NopCloser(strings.NewReader("some bytes"))
+		s.client.
+			EXPECT().
+			GenerateSupportPacket(context.TODO()).
+			Return(reader, "mm_support_packet.zip", &model.Response{}, nil).
+			Times(1)
+
+		defer func() {
+			err := os.Remove("mm_support_packet.zip")
+			s.NoError(err)
+		}()
+
+		err := systemSupportPacketCmdF(s.client, SystemSupportPacketCmd, []string{})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 2)
+		s.Require().Equal(printer.GetLines()[0], "Downloading Support Packet")
+		s.Require().Equal(printer.GetLines()[1], "Downloaded Support Packet to mm_support_packet.zip")
+
+		b, err := os.ReadFile("mm_support_packet.zip")
+		s.NoError(err)
+		s.Equal(b, []byte("some bytes"))
+	})
+
+	s.Run("Download Support Packet with custom filename", func() {
+		printer.Clean()
+
+		reader := io.NopCloser(strings.NewReader("some bytes"))
+		s.client.
+			EXPECT().
+			GenerateSupportPacket(context.TODO()).
+			Return(reader, "mm_support_packet.zip", &model.Response{}, nil).
+			Times(1)
+
+		systemSupportPacketCmd := &cobra.Command{}
+		systemSupportPacketCmd.Flags().StringP("output-file", "o", "", "Define the output file name")
+		err := systemSupportPacketCmd.ParseFlags([]string{"-o", "foo.zip"})
+		s.Require().NoError(err)
+
+		defer func() {
+			err = os.Remove("foo.zip")
+			s.Require().NoError(err)
+		}()
+
+		err = systemSupportPacketCmdF(s.client, systemSupportPacketCmd, []string{})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 2)
+		s.Require().Equal(printer.GetLines()[0], "Downloading Support Packet")
+		s.Require().Equal(printer.GetLines()[1], "Downloaded Support Packet to foo.zip")
+
+		b, err := os.ReadFile("foo.zip")
+		s.Require().NoError(err)
+		s.Equal(string(b), "some bytes")
+	})
+
+	s.Run("Request to the server fails", func() {
+		printer.Clean()
+
+		s.client.
+			EXPECT().
+			GenerateSupportPacket(context.TODO()).
+			Return(nil, "", &model.Response{}, errors.New("mock error")).
+			Times(1)
+
+		err := systemSupportPacketCmdF(s.client, SystemSupportPacketCmd, []string{})
+		s.Require().Error(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], "Downloading Support Packet")
+	})
+
+	s.Run("Offline flag routes to offline mode", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("offline", false, "")
+		cmd.Flags().String("directory", "/nonexistent", "")
+		cmd.Flags().StringP("output-file", "o", "", "")
+		cmd.Flags().Bool("no-sanitize", false, "")
+		err := cmd.ParseFlags([]string{"--offline"})
+		s.Require().NoError(err)
+
+		err = systemSupportPacketWrapperF(cmd, []string{})
+		s.Require().Error(err)
+		// Offline path produces a directory validation error, not a client error
+		s.Require().Contains(err.Error(), "does not appear to be a Mattermost installation")
+	})
+
+	s.Run("Without offline flag routes to online mode", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("offline", false, "")
+		cmd.Flags().String("directory", "/opt/mattermost", "")
+		cmd.Flags().StringP("output-file", "o", "", "")
+		cmd.Flags().Bool("no-sanitize", false, "")
+
+		err := systemSupportPacketWrapperF(cmd, []string{})
+		s.Require().Error(err)
+		// Online path tries to create an API client and fails
+		s.Require().Contains(err.Error(), "failed to create client")
 	})
 }

@@ -6,10 +6,6 @@ package commands
 import (
 	"context"
 	"fmt"
-	"io"
-	"os"
-	"path/filepath"
-	"time"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -70,33 +66,9 @@ var SystemStatusCmd = &cobra.Command{
 	RunE:    withClient(systemStatusCmdF),
 }
 
-var SystemSupportPacketCmd = &cobra.Command{
-	Use:   "supportpacket",
-	Short: "Download a Support Packet",
-	Long: `Generate and download a Support Packet of the server to share it with Mattermost Support.
-
-By default, this command connects to the Mattermost server via API and generates a support packet.
-Use the --offline flag to collect diagnostics directly from the filesystem when the server is unavailable.`,
-	Example: `  # Download support packet from running server (API-based)
-  system supportpacket
-
-  # Collect diagnostics offline (filesystem-based, no server connection)
-  system supportpacket --offline
-
-  # Offline mode with custom Mattermost directory
-  system supportpacket --offline --directory /opt/mattermost`,
-	Args: cobra.NoArgs,
-	RunE: systemSupportPacketWrapperF,
-}
-
 func init() {
 	SystemSetBusyCmd.Flags().UintP("seconds", "s", 3600, "Number of seconds until server is automatically marked as not busy.")
 	_ = SystemSetBusyCmd.MarkFlagRequired("seconds")
-
-	SystemSupportPacketCmd.Flags().StringP("output-file", "o", "", "Define the output file name")
-	SystemSupportPacketCmd.Flags().Bool("offline", false, "Collect diagnostics from filesystem without connecting to server")
-	SystemSupportPacketCmd.Flags().String("directory", "/opt/mattermost", "Path to Mattermost installation directory (offline mode only)")
-	SystemSupportPacketCmd.Flags().Bool("no-sanitize", false, "Disable sanitization of sensitive config data (offline mode only)")
 
 	SystemCmd.AddCommand(
 		SystemGetBusyCmd,
@@ -104,7 +76,6 @@ func init() {
 		SystemClearBusyCmd,
 		SystemVersionCmd,
 		SystemStatusCmd,
-		SystemSupportPacketCmd,
 	)
 	RootCmd.AddCommand(SystemCmd)
 }
@@ -195,127 +166,5 @@ Filestore Status: {{.filestore_status}}`, status)
 		return fmt.Errorf("filestore status is unhealthy: %s", filestoreStatus)
 	}
 
-	return nil
-}
-
-// systemSupportPacketWrapperF routes to either online (API) or offline (filesystem) mode
-func systemSupportPacketWrapperF(cmd *cobra.Command, args []string) error {
-	offline, _ := cmd.Flags().GetBool("offline")
-
-	if offline {
-		// Offline mode - collect from filesystem
-		return systemSupportPacketOfflineCmdF(cmd, args)
-	}
-
-	// Online mode - use existing API-based collection
-	// We need to wrap this with withClient since it needs a server connection
-	return withClient(systemSupportPacketCmdF)(cmd, args)
-}
-
-// getOutputPath returns the user-specified output file, or falls back to the provided default.
-func getOutputPath(cmd *cobra.Command, defaultName string) string {
-	outputFile, _ := cmd.Flags().GetString("output-file")
-	if outputFile != "" {
-		return outputFile
-	}
-	return defaultName
-}
-
-// systemSupportPacketCmdF handles API-based support packet generation (existing behavior)
-func systemSupportPacketCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
-	printer.SetSingle(true)
-
-	printer.Print("Downloading Support Packet")
-
-	data, rFilename, _, err := c.GenerateSupportPacket(context.TODO())
-	if err != nil {
-		return fmt.Errorf("unable to fetch Support Packet: %w", err)
-	}
-
-	filename := getOutputPath(cmd, rFilename)
-
-	file, err := os.Create(filename)
-	if err != nil {
-		return fmt.Errorf("failed to create zip file: %w", err)
-	}
-
-	_, err = io.Copy(file, data)
-	if err != nil {
-		return fmt.Errorf("failed to write to zip file: %w", err)
-	}
-
-	printer.PrintT("Downloaded Support Packet to {{ .filename }}", map[string]string{"filename": filename})
-	return nil
-}
-
-// systemSupportPacketOfflineCmdF handles filesystem-based support packet generation (new offline mode)
-func systemSupportPacketOfflineCmdF(cmd *cobra.Command, _ []string) error {
-	printer.SetSingle(true)
-
-	// Parse flags
-	mmDir, _ := cmd.Flags().GetString("directory")
-	noSanitize, _ := cmd.Flags().GetBool("no-sanitize")
-	sanitize := !noSanitize
-
-	// Validate Mattermost directory
-	if err := validateMattermostDirectory(mmDir); err != nil {
-		return err
-	}
-
-	// Generate output path
-	timestamp := time.Now().UTC().Format("20060102-150405")
-	defaultName := filepath.Join(".", fmt.Sprintf("support-packet_%s.tar.gz", timestamp))
-	outputPath := getOutputPath(cmd, defaultName)
-
-	// Create temp directory for collection
-	tempDir, err := os.MkdirTemp("", "mmctl-supportpacket-*")
-	if err != nil {
-		return fmt.Errorf("failed to create temporary directory: %w", err)
-	}
-
-	archiveFailed := false
-	defer func() {
-		if archiveFailed {
-			// Preserve temp directory so user can manually recover collected files
-			return
-		}
-		if removeErr := os.RemoveAll(tempDir); removeErr != nil {
-			printer.PrintError(fmt.Sprintf("Warning: Failed to cleanup temporary directory: %s", tempDir))
-		}
-	}()
-
-	printer.Print("Collecting diagnostics from filesystem...")
-
-	// Collect Mattermost files
-	filesCollected, err := collectMattermostFiles(mmDir, tempDir, sanitize)
-	if err != nil {
-		return fmt.Errorf("config sanitization failed - cannot safely archive: %w", err)
-	}
-
-	// Collect system diagnostics
-	configPath := filepath.Join(mmDir, "config", "config.json")
-	diagCount := collectSystemDiagnostics(tempDir, configPath)
-	filesCollected += diagCount
-
-	// Validate we collected something
-	if filesCollected == 0 {
-		return fmt.Errorf("collection failed completely - no files were collected")
-	}
-
-	if sanitize {
-		printer.Print("Collection complete. Sensitive config fields sanitized.")
-	} else {
-		printer.Print("Collection complete. No sanitization applied (--no-sanitize flag used).")
-	}
-
-	// Create archive
-	if err := createTarGzArchive(tempDir, outputPath); err != nil {
-		archiveFailed = true
-		printer.PrintError(fmt.Sprintf("Archive creation failed. Collected files are in: %s", tempDir))
-		printer.PrintError("You can manually tar/zip this directory.")
-		return fmt.Errorf("failed to create archive: %w", err)
-	}
-
-	printer.PrintT("Support packet created successfully: {{.Path}}", map[string]string{"Path": outputPath})
 	return nil
 }
