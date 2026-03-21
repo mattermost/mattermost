@@ -144,16 +144,15 @@ jobs:
 
             # JUnit XML <testsuite> elements have name="pkg" and time="seconds"
             # Extract package-level durations
-            while IFS=' ' read -r duration pkg; do
-              [[ -z "$pkg" ]] && continue
-              # Accumulate time per package (multiple testsuites per package possible)
+            # Extract name= and time= from <testsuite> elements (attribute order varies)
+            while IFS= read -r line; do
+              pkg=$(echo "$line" | grep -oP 'name="\K[^"]+' || true)
+              duration=$(echo "$line" | grep -oP '\btime="\K[^"]+' || true)
+              [[ -z "$pkg" || -z "$duration" ]] && continue
               ms=$(awk "BEGIN {printf \"%d\", $duration * 1000}")
-              # Use temporary var to avoid 'unbound variable' with set -u on
-              # associative array keys that don't exist yet
               prev=0; [[ -v 'PKG_TIMES[$pkg]' ]] && prev=${PKG_TIMES["$pkg"]}
               PKG_TIMES["$pkg"]=$(( prev + ms ))
-            done < <(grep -oP '<testsuite[^>]*name="([^"]*)"[^>]*time="([^"]*)"' "$TIMING_FILE" \
-              | sed -E 's/<testsuite[^>]*name="([^"]*)"[^>]*time="([^"]*)"/\2 \1/' || true)
+            done < <(grep '<testsuite ' "$TIMING_FILE" || true)
 
             if [[ ${#PKG_TIMES[@]} -gt 0 ]]; then
               USE_TIMING=true
