@@ -116,8 +116,7 @@
                 props:
                   type: object
                   description: Arbitrary key-value properties for the view
-                  additionalProperties:
-                    type: string
+                  additionalProperties: true
         description: View object to be created
         required: true
       responses:

@@ -384,8 +384,7 @@ components:
         props:
           type: object
           description: Arbitrary key-value properties for the view
-          additionalProperties:
-            type: string
+          additionalProperties: true
         create_at:
           description: The time in milliseconds the view was created
           type: integer
@@ -411,8 +410,7 @@ components:
         props:
           type: object
           description: Arbitrary key-value properties for the view
-          additionalProperties:
-            type: string
+          additionalProperties: true
     ViewsWithCount:
       type: object
       description: Paginated list of views with total count
