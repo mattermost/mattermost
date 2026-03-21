@@ -358,4 +358,3 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		s.Require().Equal(printer.GetLines()[0], unhealthyStatus)
 	})
 }
-
