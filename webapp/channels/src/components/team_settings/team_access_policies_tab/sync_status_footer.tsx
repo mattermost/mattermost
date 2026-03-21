@@ -12,6 +12,14 @@ import {getJobsByType} from 'mattermost-redux/actions/jobs';
 
 import './sync_status_footer.scss';
 
+const JOB_TYPE_ACCESS_CONTROL_SYNC = 'access_control_sync' as JobType;
+const JOB_STATUS_SUCCESS = 'success';
+const JOBS_PER_PAGE = 10;
+const POLL_INTERVAL_MS = 3000;
+const MS_PER_MINUTE = 60000;
+const MINUTES_PER_HOUR = 60;
+const HOURS_PER_DAY = 24;
+
 type Props = {
     teamId: string;
     hasPolicies: boolean;
@@ -22,29 +30,28 @@ function getRelativeTime(timestamp: number, formatMessage: ReturnType<typeof use
         return formatMessage({id: 'team_settings.sync_status.never', defaultMessage: 'Never synced.'});
     }
 
-    const now = Date.now();
-    const diffMs = now - timestamp;
-    const diffMinutes = Math.floor(diffMs / 60000);
+    const diffMs = Date.now() - timestamp;
+    const diffMinutes = Math.floor(diffMs / MS_PER_MINUTE);
 
     if (diffMinutes < 1) {
         return formatMessage({id: 'team_settings.sync_status.just_now', defaultMessage: 'Last synced just now.'});
     }
-    if (diffMinutes < 60) {
+    if (diffMinutes < MINUTES_PER_HOUR) {
         return formatMessage(
             {id: 'team_settings.sync_status.minutes_ago', defaultMessage: 'Last synced {count} {count, plural, one {minute} other {minutes}} ago.'},
             {count: diffMinutes},
         );
     }
 
-    const diffHours = Math.floor(diffMinutes / 60);
-    if (diffHours < 24) {
+    const diffHours = Math.floor(diffMinutes / MINUTES_PER_HOUR);
+    if (diffHours < HOURS_PER_DAY) {
         return formatMessage(
             {id: 'team_settings.sync_status.hours_ago', defaultMessage: 'Last synced {count} {count, plural, one {hour} other {hours}} ago.'},
             {count: diffHours},
         );
     }
 
-    const diffDays = Math.floor(diffHours / 24);
+    const diffDays = Math.floor(diffHours / HOURS_PER_DAY);
     return formatMessage(
         {id: 'team_settings.sync_status.days_ago', defaultMessage: 'Last synced {count} {count, plural, one {day} other {days}} ago.'},
         {count: diffDays},
@@ -61,9 +68,9 @@ export default function SyncStatusFooter({teamId, hasPolicies}: Props) {
 
     const fetchSyncStatus = useCallback(async () => {
         try {
-            const result = await dispatch(getJobsByType('access_control_sync' as JobType, 0, 10, teamId));
+            const result = await dispatch(getJobsByType(JOB_TYPE_ACCESS_CONTROL_SYNC, 0, JOBS_PER_PAGE, teamId));
             if (result.data) {
-                const completedJob = (result.data as Job[]).find((job) => job.status === 'success');
+                const completedJob = (result.data as Job[]).find((job) => job.status === JOB_STATUS_SUCCESS);
                 if (completedJob) {
                     setLastSyncedAt(completedJob.last_activity_at);
                 }
@@ -96,15 +103,15 @@ export default function SyncStatusFooter({teamId, hasPolicies}: Props) {
         }
 
         const interval = setInterval(async () => {
-            const result = await dispatch(getJobsByType('access_control_sync' as JobType, 0, 10, teamId));
+            const result = await dispatch(getJobsByType(JOB_TYPE_ACCESS_CONTROL_SYNC, 0, JOBS_PER_PAGE, teamId));
             if (result.data) {
-                const completedJob = (result.data as Job[]).find((job) => job.status === 'success');
+                const completedJob = (result.data as Job[]).find((job) => job.status === JOB_STATUS_SUCCESS);
                 if (completedJob && completedJob.last_activity_at > lastSyncedAt) {
                     setLastSyncedAt(completedJob.last_activity_at);
                     setSyncing(false);
                 }
             }
-        }, 3000);
+        }, POLL_INTERVAL_MS);
 
         return () => clearInterval(interval);
     }, [syncing, dispatch, teamId, lastSyncedAt]);
