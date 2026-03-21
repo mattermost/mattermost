@@ -222,6 +222,14 @@ func (s LocalCacheChannelStore) GetPinnedPostCount(channelId string, allowFromCa
 	return count, nil
 }
 
+func (s LocalCacheChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64, channelOptions ...model.ChannelOption) (*model.Channel, error) {
+	newChannel, err := s.ChannelStore.Save(rctx, channel, maxChannelsPerTeam, channelOptions...)
+	if err == nil {
+		s.rootStore.doStandardAddToCache(s.rootStore.channelByIdCache, newChannel.Id, newChannel)
+	}
+	return newChannel, err
+}
+
 func (s LocalCacheChannelStore) Get(id string, allowFromCache bool) (*model.Channel, error) {
 	if allowFromCache {
 		var cacheItem *model.Channel
