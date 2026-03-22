@@ -685,6 +685,49 @@
         }
     }
 
+    &.post--burn-on-read-revealed {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+
+        * {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        button,
+        input,
+        textarea,
+        select,
+        a,
+        [role="button"],
+        [tabindex] {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+        }
+    }
+
+    @media print {
+        &.post--burn-on-read-revealed {
+            -webkit-filter: blur(8px);
+            filter: blur(8px);
+            opacity: 0.3;
+        }
+    }
+
+    .bor-window-blurred &.post--burn-on-read-revealed {
+        .post__body {
+            -webkit-filter: blur(10px);
+            filter: blur(10px);
+            transition: filter 0.1s ease-in-out;
+        }
+    }
+
     &.post--thread {
         &.same--user {
             .post__header,

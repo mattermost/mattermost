@@ -8,6 +8,7 @@ import {FireIcon} from '@mattermost/compass-icons/components';
 
 import WithTooltip from 'components/with_tooltip';
 
+import {useBurnOnReadScreenshotDetection} from 'hooks/useBurnOnReadScreenshotDetection';
 import {useBurnOnReadTimer} from 'hooks/useBurnOnReadTimer';
 import {getAriaAnnouncementInterval, formatAriaAnnouncement} from 'utils/burn_on_read_timer_utils';
 import Constants from 'utils/constants';
@@ -27,6 +28,8 @@ const BurnOnReadTimerChip = ({expireAt, onClick}: Props) => {
     const {displayText, remainingMs, isWarning, isExpired} = useBurnOnReadTimer({
         expireAt: expireAt || Date.now(),
     });
+
+    useBurnOnReadScreenshotDetection(true);
 
     const handleClick = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
