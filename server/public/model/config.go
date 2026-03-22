@@ -5195,7 +5195,7 @@ func collectTaggedPaths(t reflect.Type, tagKey, tagValue, prefix string) map[str
 
 // CloudRestrictedPaths returns the set of config field paths tagged as cloud_restrictable.
 func CloudRestrictedPaths() map[string]bool {
-	return collectTaggedPaths(reflect.TypeOf(Config{}), ConfigAccessTagType, ConfigAccessTagCloudRestrictable, "")
+	return collectTaggedPaths(reflect.TypeFor[Config](), ConfigAccessTagType, ConfigAccessTagCloudRestrictable, "")
 }
 
 // FilterCloudRestrictedChanges removes changes whose paths match cloud-restrictable config fields.
