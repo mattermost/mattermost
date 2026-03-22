@@ -165,3 +165,6 @@ docker-compose.override.yaml
 AGENTS.md
 .cursorrules
 .cursor/
+-e server/prev-gotestsum.json
+server/prev-report.xml
+server/shard-*.txt

@@ -283,20 +283,54 @@ jobs:
             server/prev-gotestsum.json
           key: server-test-timing-${{ github.base_ref || github.ref_name }}-${{ github.run_id }}
 
-  test-postgres-normal-fips:
-    # Skip FIPS testing for forks, which won't have docker login credentials.
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
-    name: Postgres (FIPS)
+  # ── FIPS: compile-only check on PRs (~2 min), full sharded tests on master ──
+  test-fips-compile:
+    # Fast FIPS build check on PRs — catches crypto/compilation issues without running full test suite
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    name: FIPS Compile Check
     needs: go
+    runs-on: ubuntu-latest-8-cores
+    steps:
+      - name: buildenv/docker-login
+        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Checkout mattermost project
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: FIPS compile check
+        # Verifies the server builds successfully with FIPS-enabled Go toolchain.
+        # Full FIPS test suite runs on master merges only (see test-postgres-fips below).
+        run: |
+          BUILD_IMAGE="mattermost/mattermost-build-server-fips:${{ needs.go.outputs.version }}"
+          docker run --rm \
+            -v "$(pwd):/mattermost" \
+            -w /mattermost/server \
+            --env FIPS_ENABLED=true \
+            "$BUILD_IMAGE" \
+            bash -c "go build ./..."
+
+  test-postgres-fips:
+    # Full FIPS test suite — runs sharded on master pushes only.
+    # PRs get a fast compile check (test-fips-compile) instead.
+    if: github.event_name == 'push'
+    name: Postgres FIPS (shard ${{ matrix.shard }})
+    needs: go
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
     uses: ./.github/workflows/server-test-template.yml
     secrets: inherit
     with:
-      name: Postgres
+      name: "Postgres FIPS (shard ${{ matrix.shard }})"
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
-      logsartifact: postgres-server-test-logs
+      logsartifact: "postgres-server-fips-test-logs-shard-${{ matrix.shard }}"
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: true
+      shard-index: ${{ matrix.shard }}
+      shard-total: 4
   test-coverage:
     name: Generate Test Coverage
     # Disabled: Running out of memory and causing spurious failures.
