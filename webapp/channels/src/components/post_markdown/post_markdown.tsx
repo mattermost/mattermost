@@ -10,6 +10,7 @@ import {Posts} from 'mattermost-redux/constants';
 
 import Markdown from 'components/markdown';
 import {DataSpillageReport} from 'components/post_view/data_spillage_report/data_spillage_report';
+import {TimerMessage} from 'components/post_view/timer_message/timer_message';
 
 import {PostTypes} from 'utils/constants';
 import {isChannelNamesMap, type TextFormattingOptions} from 'utils/text_formatting';
@@ -139,7 +140,7 @@ export default class PostMarkdown extends React.PureComponent<Props> {
             highlightKeys = this.props.highlightKeys;
         }
 
-        return (
+        const markdownContent = message ? (
             <Markdown
                 imageProps={this.props.imageProps}
                 message={message}
@@ -153,6 +154,25 @@ export default class PostMarkdown extends React.PureComponent<Props> {
                 postId={this.props.post?.id}
                 editedAt={this.props.showPostEditedIndicator ? this.props.post?.edit_at : undefined}
             />
+        ) : null;
+
+        if (this.props.post?.type === PostTypes.CUSTOM_TIMER) {
+            return (
+                <div className='TimerMessage__container'>
+                    <TimerMessage post={this.props.post} isRHS={this.props.isRHS} />
+                    {markdownContent && (
+                        <div className='TimerMessage__markdown'>
+                            {markdownContent}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        return (
+            <>
+                {markdownContent}
+            </>
         );
     }
 }

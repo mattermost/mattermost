@@ -1742,6 +1742,42 @@
     "translation": "shrug"
   },
   {
+    "id": "api.command_timer.expired",
+    "translation": "Timer expired: {{.Message}}"
+  },
+  {
+    "id": "api.command_timer.expired_no_message",
+    "translation": "Timer expired."
+  },
+  {
+    "id": "api.command_timer.desc",
+    "translation": "Set a timer and get notified when it ends (e.g. 30s, 15m, 1h)."
+  },
+  {
+    "id": "api.command_timer.hint",
+    "translation": "[duration] [optional message]"
+  },
+  {
+    "id": "api.command_timer.name",
+    "translation": "timer"
+  },
+  {
+    "id": "api.command_timer.empty",
+    "translation": "Please provide a duration, e.g. `/timer 5m`"
+  },
+  {
+    "id": "api.command_timer.invalid_format",
+    "translation": "Invalid duration format. Use e.g. `5m`, `30s`, `1h`."
+  },
+  {
+    "id": "api.command_timer.invalid_duration",
+    "translation": "Timer duration must be between 1 second and 4 hours."
+  },
+  {
+    "id": "api.command_timer.create_failed",
+    "translation": "Failed to create timer post"
+  },
+  {
     "id": "api.config.get_config.restricted_merge.app_error",
     "translation": "Failed to merge given config."
   },

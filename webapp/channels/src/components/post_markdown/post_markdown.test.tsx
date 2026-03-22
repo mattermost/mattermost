@@ -356,4 +356,48 @@ describe('components/PostMarkdown', () => {
 
         expect(screen.queryByTestId('data-spillage-report')).toBeInTheDocument();
     });
+
+    test('should render timer message for custom_timer post', () => {
+        const timerPost = TestHelper.getPostMock({
+            type: PostTypes.CUSTOM_TIMER as PostType,
+            message: 'Deploy starts',
+            props: {
+                timer_target: Date.now() + 60000,
+            },
+        });
+
+        const props = {
+            ...baseProps,
+            message: 'Deploy starts',
+            post: timerPost,
+        };
+
+        const {container} = renderWithContext(<PostMarkdown {...props}/>, state);
+
+        expect(container.querySelector('.TimerMessage__container')).toBeInTheDocument();
+        expect(container.querySelector('.TimerMessage')).toBeInTheDocument();
+        expect(screen.getByText('Deploy starts')).toBeInTheDocument();
+    });
+
+    test('should render timer message without text for empty message', () => {
+        const timerPost = TestHelper.getPostMock({
+            type: PostTypes.CUSTOM_TIMER as PostType,
+            message: '',
+            props: {
+                timer_target: Date.now() + 60000,
+            },
+        });
+
+        const props = {
+            ...baseProps,
+            message: '',
+            post: timerPost,
+        };
+
+        const {container} = renderWithContext(<PostMarkdown {...props}/>, state);
+
+        expect(container.querySelector('.TimerMessage__container')).toBeInTheDocument();
+        expect(container.querySelector('.TimerMessage')).toBeInTheDocument();
+        expect(container.querySelector('.TimerMessage__markdown')).not.toBeInTheDocument();
+    });
 });
