@@ -4,6 +4,8 @@
 package teams
 
 import (
+	"fmt"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -172,6 +174,9 @@ func (ts *TeamService) JoinUserToTeam(rctx request.CTX, team *model.Team, user *
 			if err != nil {
 				return nil, false, err
 			}
+			if tm == nil {
+				return nil, false, fmt.Errorf("preSaveHook returned nil TeamMember without error")
+			}
 		}
 
 		tmr, nErr := ts.store.SaveMember(rctx, tm, *ts.config().TeamSettings.MaxUsersPerTeam)
@@ -200,6 +205,9 @@ func (ts *TeamService) JoinUserToTeam(rctx request.CTX, team *model.Team, user *
 		tm, err = hook(tm)
 		if err != nil {
 			return nil, false, err
+		}
+		if tm == nil {
+			return nil, false, fmt.Errorf("preSaveHook returned nil TeamMember without error")
 		}
 	}
 
