@@ -151,10 +151,12 @@ func (ps *PlatformService) CleanUpConfig() error {
 	return ps.configStore.CleanUp()
 }
 
+// ListConfigurations delegates to the config store to retrieve configuration history.
 func (ps *PlatformService) ListConfigurations(limit int, includeDiffs string) ([]*model.ConfigListItem, error) {
 	return ps.configStore.ListConfigurations(limit, includeDiffs)
 }
 
+// GetConfigByID delegates to the config store to retrieve a configuration by its ID.
 func (ps *PlatformService) GetConfigByID(id string) (*model.Config, error) {
 	return ps.configStore.GetConfigByID(id)
 }

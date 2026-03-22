@@ -247,6 +247,7 @@ func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bo
 	return a.Srv().platform.SaveConfig(newCfg, sendConfigChangeClusterMessage)
 }
 
+// ListConfigurations returns metadata for stored configuration entries with optional diffs.
 func (a *App) ListConfigurations(limit int, includeDiffs string) ([]*model.ConfigListItem, *model.AppError) {
 	items, err := a.Srv().platform.ListConfigurations(limit, includeDiffs)
 	if err != nil {
@@ -255,6 +256,7 @@ func (a *App) ListConfigurations(limit int, includeDiffs string) ([]*model.Confi
 	return items, nil
 }
 
+// RollbackConfig restores a historical configuration identified by its ID.
 func (a *App) RollbackConfig(id string) (*model.Config, *model.Config, *model.AppError) {
 	historicalCfg, err := a.Srv().platform.GetConfigByID(id)
 	if err != nil {
