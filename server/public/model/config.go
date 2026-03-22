@@ -5198,7 +5198,23 @@ func CloudRestrictedPaths() map[string]bool {
 	return collectTaggedPaths(reflect.TypeFor[Config](), ConfigAccessTagType, ConfigAccessTagCloudRestrictable, "")
 }
 
-// FilterCloudRestrictedChanges removes changes whose paths match cloud-restrictable config fields.
+// isCloudRestricted checks whether a change path matches or is a descendant
+// of any cloud-restrictable config field path (e.g. "SqlSettings.ReplicaLagSettings"
+// also matches "SqlSettings.ReplicaLagSettings[0].DataSource").
+func isCloudRestricted(path string, restricted map[string]bool) bool {
+	if restricted[path] {
+		return true
+	}
+	for rp := range restricted {
+		if strings.HasPrefix(path, rp+".") || strings.HasPrefix(path, rp+"[") {
+			return true
+		}
+	}
+	return false
+}
+
+// FilterCloudRestrictedChanges removes changes whose paths match or descend from
+// cloud-restrictable config fields.
 func FilterCloudRestrictedChanges(items []*ConfigListItem) {
 	restricted := CloudRestrictedPaths()
 	for _, item := range items {
@@ -5207,7 +5223,7 @@ func FilterCloudRestrictedChanges(items []*ConfigListItem) {
 		}
 		filtered := make([]ConfigChange, 0, len(item.Changes))
 		for _, ch := range item.Changes {
-			if !restricted[ch.Path] {
+			if !isCloudRestricted(ch.Path, restricted) {
 				filtered = append(filtered, ch)
 			}
 		}
