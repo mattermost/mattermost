@@ -164,17 +164,16 @@ func (ts *TeamService) JoinUserToTeam(rctx request.CTX, team *model.Team, user *
 		tm.SchemeAdmin = true
 	}
 
-	for _, hook := range preSaveHooks {
-		var err error
-		tm, err = hook(tm)
-		if err != nil {
-			return nil, false, err
-		}
-	}
-
 	rtm, err := ts.store.GetMember(rctx, team.Id, user.Id)
 	if err != nil {
 		// Membership appears to be missing. Lets try to add.
+		for _, hook := range preSaveHooks {
+			tm, err = hook(tm)
+			if err != nil {
+				return nil, false, err
+			}
+		}
+
 		tmr, nErr := ts.store.SaveMember(rctx, tm, *ts.config().TeamSettings.MaxUsersPerTeam)
 		if nErr != nil {
 			return nil, false, nErr
@@ -195,6 +194,13 @@ func (ts *TeamService) JoinUserToTeam(rctx request.CTX, team *model.Team, user *
 
 	if membersCount >= int64(*ts.config().TeamSettings.MaxUsersPerTeam) {
 		return nil, false, MaxMemberCountError
+	}
+
+	for _, hook := range preSaveHooks {
+		tm, err = hook(tm)
+		if err != nil {
+			return nil, false, err
+		}
 	}
 
 	member, nErr := ts.store.UpdateMember(rctx, tm)

@@ -786,7 +786,8 @@ func (a *App) JoinUserToTeam(rctx request.CTX, team *model.Team, user *model.Use
 			return true
 		}, plugin.TeamMemberWillBeAddedID)
 		if rejectionReason != "" {
-			return nil, fmt.Errorf("rejected by plugin: %s", rejectionReason)
+			return nil, model.NewAppError("JoinUserToTeam", "app.team.join_user_to_team.rejected_by_plugin",
+				map[string]any{"Reason": rejectionReason}, "", http.StatusBadRequest)
 		}
 		return tm, nil
 	}
