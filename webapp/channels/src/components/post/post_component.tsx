@@ -722,7 +722,7 @@ function PostComponent(props: Props) {
                 <BurnOnReadTimerChip
                     expireAt={post.metadata.expire_at as number}
                     onClick={handleTimerChipClick}
-                    isRecipient={!isSender}
+                    isRecipient={post.user_id !== props.currentUserId}
                 />
             );
         }
