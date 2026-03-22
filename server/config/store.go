@@ -422,3 +422,14 @@ func (s *Store) ListConfigurations(limit int, includeDiffs string) ([]*model.Con
 		return nil, errors.New("listing configurations is only supported with database-backed config stores")
 	}
 }
+
+// GetConfigByID retrieves a historical configuration by its ID.
+// This only works with DatabaseStore; returns an error for FileStore.
+func (s *Store) GetConfigByID(id string) (*model.Config, error) {
+	switch bs := s.backingStore.(type) {
+	case *DatabaseStore:
+		return bs.getConfigByID(id)
+	default:
+		return nil, errors.New("retrieving configurations by ID is only supported with database-backed config stores")
+	}
+}

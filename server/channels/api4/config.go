@@ -39,6 +39,7 @@ func (api *API) InitConfig() {
 	api.BaseRoutes.APIRoot.Handle("/config/client", api.APIHandler(getClientConfig)).Methods(http.MethodGet)
 	api.BaseRoutes.APIRoot.Handle("/config/environment", api.APISessionRequired(getEnvironmentConfig)).Methods(http.MethodGet)
 	api.BaseRoutes.APIRoot.Handle("/config/list", api.APISessionRequired(listConfigurations)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/config/rollback", api.APISessionRequired(rollbackConfig)).Methods(http.MethodPost)
 }
 
 func init() {
@@ -488,6 +489,38 @@ func listConfigurations(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	if err := json.NewEncoder(w).Encode(items); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func rollbackConfig(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), model.SysconsoleWritePermissions) {
+		c.SetPermissionError(model.SysconsoleWritePermissions...)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventRollbackConfig, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+
+	var body struct {
+		ConfigID string `json:"config_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.ConfigID == "" {
+		c.SetInvalidParamWithErr("config_id", err)
+		return
+	}
+
+	_, newCfg, appErr := c.App.RollbackConfig(body.ConfigID)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	c.App.SanitizedConfig(newCfg)
+
+	auditRec.Success()
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	if err := json.NewEncoder(w).Encode(newCfg); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

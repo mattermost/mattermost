@@ -253,6 +253,14 @@ func (a *App) ListConfigurations(limit int, includeDiffs string) ([]*model.Confi
 	return items, nil
 }
 
+func (a *App) RollbackConfig(id string) (*model.Config, *model.Config, *model.AppError) {
+	historicalCfg, err := a.Srv().platform.GetConfigByID(id)
+	if err != nil {
+		return nil, nil, model.NewAppError("RollbackConfig", "api.config.rollback_config.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
+	}
+	return a.SaveConfig(historicalCfg, true)
+}
+
 func (a *App) HandleMessageExportConfig(cfg *model.Config, appCfg *model.Config) {
 	// If the Message Export feature has been toggled in the System Console, rewrite the ExportFromTimestamp field to an
 	// appropriate value. The rewriting occurs here to ensure it doesn't affect values written to the config file

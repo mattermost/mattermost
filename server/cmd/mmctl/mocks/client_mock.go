@@ -2234,6 +2234,22 @@ func (mr *MockClientMockRecorder) RevokeUserAccessToken(arg0, arg1 interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeUserAccessToken", reflect.TypeOf((*MockClient)(nil).RevokeUserAccessToken), arg0, arg1)
 }
 
+// RollbackConfig mocks base method.
+func (m *MockClient) RollbackConfig(arg0 context.Context, arg1 string) (*model.Config, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RollbackConfig", arg0, arg1)
+	ret0, _ := ret[0].(*model.Config)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// RollbackConfig indicates an expected call of RollbackConfig.
+func (mr *MockClientMockRecorder) RollbackConfig(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RollbackConfig", reflect.TypeOf((*MockClient)(nil).RollbackConfig), arg0, arg1)
+}
+
 // SearchTeams mocks base method.
 func (m *MockClient) SearchTeams(arg0 context.Context, arg1 *model.TeamSearch) ([]*model.Team, *model.Response, error) {
 	m.ctrl.T.Helper()

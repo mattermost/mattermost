@@ -1160,3 +1160,36 @@ func (s *MmctlUnitTestSuite) TestConfigListCmd() {
 		s.Require().Len(printer.GetLines(), 2)
 	})
 }
+
+func (s *MmctlUnitTestSuite) TestConfigRollbackCmd() {
+	s.Run("Successful rollback", func() {
+		printer.Clean()
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+
+		s.client.
+			EXPECT().
+			RollbackConfig(context.TODO(), "abc123def456ghi789jkl0mn").
+			Return(cfg, &model.Response{}, nil).
+			Times(1)
+
+		err := configRollbackCmdF(s.client, &cobra.Command{}, []string{"abc123def456ghi789jkl0mn"})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Contains(printer.GetLines()[0], "rolled back successfully")
+	})
+
+	s.Run("Rollback returns error", func() {
+		printer.Clean()
+
+		s.client.
+			EXPECT().
+			RollbackConfig(context.TODO(), "nonexistent").
+			Return(nil, &model.Response{}, errors.New("configuration not found")).
+			Times(1)
+
+		err := configRollbackCmdF(s.client, &cobra.Command{}, []string{"nonexistent"})
+		s.Require().NotNil(err)
+		s.Require().Contains(err.Error(), "unable to rollback configuration")
+	})
+}

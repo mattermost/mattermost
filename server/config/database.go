@@ -472,3 +472,16 @@ func (ds *DatabaseStore) getConfigValuesByIDs(ids []string) (map[string][]byte, 
 	}
 	return result, nil
 }
+
+func (ds *DatabaseStore) getConfigByID(id string) (*model.Config, error) {
+	var value []byte
+	if err := ds.db.Get(&value, "SELECT Value FROM Configurations WHERE Id = $1", id); err != nil {
+		return nil, errors.Wrapf(err, "failed to fetch configuration %s", id)
+	}
+
+	cfg := &model.Config{}
+	if err := json.Unmarshal(value, cfg); err != nil {
+		return nil, errors.Wrapf(err, "failed to unmarshal configuration %s", id)
+	}
+	return cfg, nil
+}

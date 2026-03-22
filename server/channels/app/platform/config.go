@@ -155,6 +155,10 @@ func (ps *PlatformService) ListConfigurations(limit int, includeDiffs string) ([
 	return ps.configStore.ListConfigurations(limit, includeDiffs)
 }
 
+func (ps *PlatformService) GetConfigByID(id string) (*model.Config, error) {
+	return ps.configStore.GetConfigByID(id)
+}
+
 // ConfigureLogger applies the specified configuration to a logger.
 func (ps *PlatformService) ConfigureLogger(name string, logger *mlog.Logger, logSettings *model.LogSettings, getPath func(string) string) error {
 	// Advanced logging is E20 only, however logging must be initialized before the license

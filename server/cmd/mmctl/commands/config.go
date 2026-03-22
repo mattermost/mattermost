@@ -139,6 +139,15 @@ var ConfigListCmd = &cobra.Command{
 	RunE:    withClient(configListCmdF),
 }
 
+var ConfigRollbackCmd = &cobra.Command{
+	Use:     "rollback [config_id]",
+	Short:   "Rollback to a previous configuration",
+	Long:    "Restores a previous configuration by ID. Use 'config list' to find available config IDs. This creates a new config entry preserving the full audit trail.",
+	Example: "  config rollback abc123def456ghi789jkl0mn",
+	Args:    cobra.ExactArgs(1),
+	RunE:    withClient(configRollbackCmdF),
+}
+
 func init() {
 	ConfigResetCmd.Flags().Bool("confirm", false, "confirm you really want to reset all configuration settings to its default value")
 
@@ -166,6 +175,7 @@ func init() {
 		ConfigSubpathCmd,
 		ConfigExportCmd,
 		ConfigListCmd,
+		ConfigRollbackCmd,
 	)
 	RootCmd.AddCommand(ConfigCmd)
 }
@@ -714,4 +724,15 @@ func formatConfigValue(v any) string {
 	default:
 		return fmt.Sprintf("%v", v)
 	}
+}
+
+func configRollbackCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	_, _, err := c.RollbackConfig(context.TODO(), args[0])
+	if err != nil {
+		return fmt.Errorf("unable to rollback configuration: %w", err)
+	}
+
+	printer.Print(fmt.Sprintf("Configuration rolled back successfully to %s.", args[0]))
+
+	return nil
 }
