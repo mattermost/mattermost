@@ -19,9 +19,10 @@ import './burn_on_read_timer_chip.scss';
 interface Props {
     expireAt?: number;
     onClick: () => void;
+    isRecipient?: boolean;
 }
 
-const BurnOnReadTimerChip = ({expireAt, onClick}: Props) => {
+const BurnOnReadTimerChip = ({expireAt, onClick, isRecipient = false}: Props) => {
     const {formatMessage} = useIntl();
     const [lastAnnouncement, setLastAnnouncement] = useState<number>(0);
 
@@ -29,7 +30,7 @@ const BurnOnReadTimerChip = ({expireAt, onClick}: Props) => {
         expireAt: expireAt || Date.now(),
     });
 
-    useBurnOnReadScreenshotDetection(true);
+    useBurnOnReadScreenshotDetection(isRecipient);
 
     const handleClick = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
