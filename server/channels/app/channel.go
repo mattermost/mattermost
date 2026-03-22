@@ -1604,6 +1604,18 @@ func (a *App) DeleteChannel(rctx request.CTX, channel *model.Channel, userID str
 		return err
 	}
 
+	var archiveRejectionReason string
+	pluginContext := pluginContext(rctx)
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+		archiveRejectionReason = hooks.ChannelWillBeArchived(pluginContext, channel)
+		return archiveRejectionReason == ""
+	}, plugin.ChannelWillBeArchivedID)
+
+	if archiveRejectionReason != "" {
+		return model.NewAppError("DeleteChannel", "app.channel.delete_channel.rejected_by_plugin",
+			map[string]any{"Reason": archiveRejectionReason}, "", http.StatusBadRequest)
+	}
+
 	if user != nil {
 		T := i18n.GetUserTranslations(user.Locale)
 
@@ -1754,6 +1766,25 @@ func (a *App) addUserToChannel(rctx request.CTX, user *model.User, channel *mode
 		} else if appErr != nil {
 			return nil, appErr
 		}
+	}
+
+	var rejectionReason string
+	pluginContext := pluginContext(rctx)
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+		updatedMember, reason := hooks.ChannelMemberWillBeAdded(pluginContext, newMember)
+		if reason != "" {
+			rejectionReason = reason
+			return false
+		}
+		if updatedMember != nil {
+			newMember = updatedMember
+		}
+		return true
+	}, plugin.ChannelMemberWillBeAddedID)
+
+	if rejectionReason != "" {
+		return nil, model.NewAppError("AddUserToChannel", "app.channel.add_user.to.channel.rejected_by_plugin",
+			map[string]any{"Reason": rejectionReason}, "", http.StatusBadRequest)
 	}
 
 	newMember, nErr = a.Srv().Store().Channel().SaveMember(rctx, newMember)

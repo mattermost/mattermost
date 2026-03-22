@@ -136,7 +136,10 @@ func (ts *TeamService) PatchTeam(teamID string, patch *model.TeamPatch) (*model.
 // 1. a pointer to the team member, if successful
 // 2. a boolean: true if the user has a non-deleted team member for that team already, otherwise false.
 // 3. a pointer to an AppError if something went wrong.
-func (ts *TeamService) JoinUserToTeam(rctx request.CTX, team *model.Team, user *model.User) (*model.TeamMember, bool, error) {
+//
+// An optional preSaveHook can be provided to inspect/modify the TeamMember before it is persisted.
+// If the hook returns an error, the addition is rejected.
+func (ts *TeamService) JoinUserToTeam(rctx request.CTX, team *model.Team, user *model.User, preSaveHooks ...func(*model.TeamMember) (*model.TeamMember, error)) (*model.TeamMember, bool, error) {
 	if !ts.IsTeamEmailAllowed(user, team) {
 		return nil, false, AcceptedDomainError
 	}
@@ -159,6 +162,14 @@ func (ts *TeamService) JoinUserToTeam(rctx request.CTX, team *model.Team, user *
 
 	if team.Email == user.Email {
 		tm.SchemeAdmin = true
+	}
+
+	for _, hook := range preSaveHooks {
+		var err error
+		tm, err = hook(tm)
+		if err != nil {
+			return nil, false, err
+		}
 	}
 
 	rtm, err := ts.store.GetMember(rctx, team.Id, user.Id)
