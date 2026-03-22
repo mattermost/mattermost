@@ -792,10 +792,6 @@
     "translation": "Не удалось найти указанный канал. Пожалуйста, используйте [дескриптор канала](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) для идентификации каналов."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Не удалось отключить канал {{.Channel}}, поскольку вы не являетесь его участником."
-  },
-  {
     "id": "api.command_mute.success_mute",
     "translation": "Вы не будете получать уведомления для {{.Channel}} до тех пор, пока отключен звук."
   },
@@ -1488,10 +1484,6 @@
     "translation": "Ошибка запуска сервера, err:%v"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Slack пользователь с email {{.Email}} и паролем {{.Password}} импортирован.\r\n"
-  },
-  {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "Не удалось импортировать пользователя Integration / Slack Bot {{.Username}}.\r\n"
   },
@@ -1514,10 +1506,6 @@
   {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\r\nПользователи созданы:\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Slack пользователь с email {{.Email}} и паролем {{.Password}} импортирован.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
@@ -8568,10 +8556,6 @@
     "translation": "Не удалось открыть файл CA для {{.Backend}}"
   },
   {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "Сервер CWS не доступен."
-  },
-  {
     "id": "app.group.username_conflict",
     "translation": "пользователь с таким именем \"{{.Username}}\" уже существует."
   },
@@ -8598,10 +8582,6 @@
   {
     "id": "app.oauth.remove_auth_data_by_client_id.app_error",
     "translation": "Невозможно удалить данные oauth."
-  },
-  {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "Серверу CWS не удалось подписаться на рассылку новостей."
   },
   {
     "id": "api.license.request-trial.bad-request.business-email",
@@ -9908,10 +9888,6 @@
     "translation": "Не удалось восстановить вложения файлов в сообщении."
   },
   {
-    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
-    "translation": "Роли пользователей не соответствуют статусу гостя."
-  },
-  {
     "id": "app.role.delete.app_error",
     "translation": "Невозможно удалить роль."
   },
@@ -10050,5 +10026,293 @@
   {
     "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
     "translation": "Неверное значение свойства Атрибут : {{.AttributeName}} ({{.Reason}})."
+  },
+  {
+    "id": "api.admin.add_certificate.multiple_files.app_error",
+    "translation": "Слишком много файлов в разделе 'certificate' в запросе."
+  },
+  {
+    "id": "api.admin.remove_certificate.app_error",
+    "translation": "Не удалось удалить сертификат."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.rejected",
+    "translation": "У пользователя нет необходимых атрибутов, чтобы присоединиться к каналу."
+  },
+  {
+    "id": "api.access_control_policy.get_channels.limit.app_error",
+    "translation": "Ограничение на количество каналов недействительно."
+  },
+  {
+    "id": "api.access_control_policy.get_fields.limit.app_error",
+    "translation": "Ограничение на получение полей недействительно."
+  },
+  {
+    "id": "api.admin.add_certificate.app_error",
+    "translation": "Не удалось добавить сертификат."
+  },
+  {
+    "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
+    "translation": "Идентификатор канала не совпадает с идентификатором сообщения, отмеченного флагом."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations_for_channel.restricted_permission.app_error",
+    "translation": "Невозможно добавить разрешение, которое ограничено схемой разрешений команды или системы."
+  },
+  {
+    "id": "api.channel.patch_update_channel.auto_translation_restricted.app_error",
+    "translation": "Автоматический перевод для этого канала запрещен."
+  },
+  {
+    "id": "api.channel.patch_update_channel.feature_not_available.app_error",
+    "translation": "Функция автоматического перевода недоступна."
+  },
+  {
+    "id": "api.channel.patch_update_channel.no_changes.app_error",
+    "translation": "Изменений в патче нет."
+  },
+  {
+    "id": "api.channel.patch_update_channel.restricted_dm.app_error",
+    "translation": "Невозможно обновить ограниченный канал личных сообщений."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.create_post.error",
+    "translation": "Не удалось отправить сообщение об обновлении автоперевода."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.disabled",
+    "translation": "@%s отключил автоперевод для этого канала. Все новые сообщения будут появляться на языке оригинала."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.enabled",
+    "translation": "@%s включил автоперевод для этого канала. Все новые сообщения будут появляться на выбранном тобой языке."
+  },
+  {
+    "id": "api.channel.post_update_channel_autotranslation_message.retrieve_user.error",
+    "translation": "Не удалось получить пользователя при обновлении статуса автоперевода"
+  },
+  {
+    "id": "api.channel.update_channel.not_allowed.app_error",
+    "translation": "Каналы, задействованные в политике, не могут быть обновлены."
+  },
+  {
+    "id": "api.channel.update_channel_member_autotranslation.channel_not_enabled.app_error",
+    "translation": "Автоперевод не включен для этого канала."
+  },
+  {
+    "id": "api.channel.update_channel_member_autotranslation.feature_not_available.app_error",
+    "translation": "Автоперевод недоступен."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",
+    "translation": "Неверное обновление участника канала: у участника канала всегда есть схема пользователя."
+  },
+  {
+    "id": "api.command.execute_command.restricted_dm.error",
+    "translation": "Невозможно отправить сообщение в ограниченные ЛС"
+  },
+  {
+    "id": "api.command.move_command.creator_no_permission.app_error",
+    "translation": "Нет разрешения на перемещение команды"
+  },
+  {
+    "id": "api.command_share.service_inactive",
+    "translation": "Служба \"Общие каналы\" включена, но не активна."
+  },
+  {
+    "id": "api.context.session_cookie_not_allowed.app_error",
+    "translation": "Аутентификация на основе кукисов не разрешена для этой конечной точки. Используй аутентификацию на основе заголовков."
+  },
+  {
+    "id": "api.data_spillage.error.comment_required",
+    "translation": "Пожалуйста, добавь комментарий, объясняющий, почему ты помечаешь это сообщение."
+  },
+  {
+    "id": "api.data_spillage.error.comment_too_long",
+    "translation": "Причина карантина сообщения не может быть длиннее {{.MaxLength}} символов."
+  },
+  {
+    "id": "api.data_spillage.error.disabled",
+    "translation": "Функция обработки утечки данных отключена."
+  },
+  {
+    "id": "api.data_spillage.error.invalid_post_type",
+    "translation": "Помещение в карантин сообщения типа '{{.PostType}}' не допускается."
+  },
+  {
+    "id": "api.data_spillage.error.license",
+    "translation": "Твоя лицензия не поддерживает функцию обработки утечки данных."
+  },
+  {
+    "id": "api.data_spillage.error.not_available_on_team",
+    "translation": "Функция обработки утечки данных не включена в этой команде."
+  },
+  {
+    "id": "api.data_spillage.error.post_not_in_progress",
+    "translation": "Сообщение, помещенное в карантин, должно находиться в статусе \"Ожидание\" или \"Назначено\", чтобы его можно было сохранить или удалить."
+  },
+  {
+    "id": "api.data_spillage.error.reason_invalid",
+    "translation": "Неизвестная причина, указанная для помещения сообщения в карантин."
+  },
+  {
+    "id": "api.data_spillage.error.reason_required",
+    "translation": "Пожалуйста, выберите причину помещения этого сообщения в карантин."
+  },
+  {
+    "id": "api.data_spillage.error.user_not_reviewer",
+    "translation": "Пользователь не является рецензентом контента."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
+    "translation": "Невозможно сохранить черновик в ограниченном канале личных сообщений"
+  },
+  {
+    "id": "api.encoding_error",
+    "translation": "Обнаружена ошибка при кодировании JSON для ответа API"
+  },
+  {
+    "id": "api.file.get_file.invalid_flagged_post.app_error",
+    "translation": "Неправильно указан идентификатор сообщения с флагом."
+  },
+  {
+    "id": "api.file.get_file.plugin_hook_timeout",
+    "translation": "Хук плагина отработал по таймеру"
+  },
+  {
+    "id": "api.file.get_file.rejected_by_plugin",
+    "translation": "Загрузка файлов отклонена плагином"
+  },
+  {
+    "id": "api.file.get_file_info.app_error",
+    "translation": "Не удалось получить информацию о файле."
+  },
+  {
+    "id": "api.file.get_file_preview.rejected_by_plugin",
+    "translation": "Загрузка предварительного просмотра файла отклонена плагином"
+  },
+  {
+    "id": "api.file.get_file_thumbnail.rejected_by_plugin",
+    "translation": "Загрузка миниатюры файла отклонена плагином"
+  },
+  {
+    "id": "api.file.get_public_file.rejected_by_plugin",
+    "translation": "Плагин отклонил загрузку общедоступного файла"
+  },
+  {
+    "id": "api.file.upload_file.get_channel.app_error",
+    "translation": "Невозможно загрузить файл в ограниченные ЛС"
+  },
+  {
+    "id": "api.file.upload_file.restricted_dm.error",
+    "translation": "Невозможно загрузить файл в ограниченные ЛС"
+  },
+  {
+    "id": "api.ldap.invalid_test_type.app_error",
+    "translation": "Неверный тип теста: {{.TestType}}"
+  },
+  {
+    "id": "api.license.load_metric.app_error",
+    "translation": "Не удалось вычислить активных пользователей за месяц."
+  },
+  {
+    "id": "api.oauth.allow_oauth.pkce_required_public.app_error",
+    "translation": "PKCE (Proof Key for Code Exchange) требуется для общих OAuth-клиентов, использующих поток кодов авторизации."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.disabled.app_error",
+    "translation": "Поставщик услуг OAuth отключен."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.invalid_url.app_error",
+    "translation": "Неверная конфигурация URL для метаданных сервера авторизации."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.site_url_required.app_error",
+    "translation": "URL сайта должен быть настроен на предоставление метаданных сервера авторизации."
+  },
+  {
+    "id": "api.oauth.get_access_token.resource_mismatch.app_error",
+    "translation": "Несоответствие параметров ресурса между запросами на авторизацию и токен."
+  },
+  {
+    "id": "api.oauth.regenerate_secret.public_client.app_error",
+    "translation": "invalid_request: Невозможно пересоздать пароль для общих OAuth-клиентов."
+  },
+  {
+    "id": "api.plugin.install.check_directory.app_error",
+    "translation": "При проверке конфигурации директории плагина произошла ошибка."
+  },
+  {
+    "id": "api.plugin.install.directory_conflict.app_error",
+    "translation": "Невозможно установить плагин: PluginSettings.Directory конфликтует с ImportSettings.Directory."
+  },
+  {
+    "id": "api.post.burn_post.user_not_in_channel.app_error",
+    "translation": "У тебя нет разрешения на сожжение этого сообщения. Ты должен быть участником канала."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.app_error",
+    "translation": "При создании сообщения сгораемого при прочтении произошла ошибка."
+  },
+  {
+    "id": "api.post.create_post.can_not_post_in_restricted_dm.error",
+    "translation": "Невозможно отправить сообщение в ограниченный канал личных сообщений."
+  },
+  {
+    "id": "api.post.delete_post.can_not_delete_from_restricted_dm.error",
+    "translation": "Невозможно удалить сообщение в ограниченном канале личных сообщений."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.bot_dm.app_error",
+    "translation": "В ЛС с ботами или агентами ИИ запрещены сообщения сгораемые при прочтении."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.channel.app_error",
+    "translation": "Произошла ошибка при проверке канала для сообщения сгораемого при прочтении."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.config.app_error",
+    "translation": "Функция сжигания сообщений при прочтении не включена. Пожалуйста, включите флаг функции и настройки службы."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.license.app_error",
+    "translation": "Для сообщений сгораемых при прочтении требуется лицензия Enterprise Advanced."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.self_dm.app_error",
+    "translation": "Сообщения сгораемые при прочтении запрещены для отправки самому себе."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.user.app_error",
+    "translation": "Произошла ошибка при проверке пользователя на сообщение сгораемое при прочтении."
+  },
+  {
+    "id": "api.post.fill_in_post_props.invalid_ai_generated_user.app_error",
+    "translation": "Пользователь, сгенерированный ИИ, должен быть либо создателем сообщения, либо ботом."
+  },
+  {
+    "id": "api.post.get_link_metadata_for_permalink.burn_on_read.app_error",
+    "translation": "Невозможно получить метаданные ссылки для постоянной ссылки сообщения сгораемого при прочтении."
+  },
+  {
+    "id": "api.post.get_posts_for_reporting.channel_not_found",
+    "translation": "Канал не найден"
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_burn_on_read_post.error",
+    "translation": "Сообщения, сгораемые при прочтении, не могут быть обновлены."
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "Невозможно обновить сообщение в ограниченном канале личных сообщений."
+  },
+  {
+    "id": "api.post.reveal_post.cannot_reveal_own_post.app_error",
+    "translation": "Ты не можешь раскрыть собственное сообщение сгораемое при прочтении."
+  },
+  {
+    "id": "api.post.reveal_post.disabled.app_error",
+    "translation": "Функция при прочтении сжечь не включена или требует лицензии Enterprise Advanced."
   }
 ]

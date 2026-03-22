@@ -7,7 +7,7 @@ import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import type {ClientConfig, WarnMetricStatus} from '@mattermost/types/config';
+import type {ClientConfig} from '@mattermost/types/config';
 import type {PreferenceType} from '@mattermost/types/preferences';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -34,13 +34,8 @@ type Props = {
     dismissedExpiringTrialLicense?: boolean;
     dismissedExpiringLicense?: boolean;
     dismissedExpiredLicense?: boolean;
-    dismissedNumberOfActiveUsersWarnMetricStatus?: boolean;
-    dismissedNumberOfActiveUsersWarnMetricStatusAck?: boolean;
-    dismissedNumberOfPostsWarnMetricStatus?: boolean;
-    dismissedNumberOfPostsWarnMetricStatusAck?: boolean;
     siteURL: string;
     currentUserId: string;
-    warnMetricsStatus?: Record<string, WarnMetricStatus>;
     actions: {
         dismissNotice: (notice: string) => void;
         savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<ActionResult>;
@@ -67,8 +62,6 @@ const ConfigurationAnnouncementBar = (props: Props) => {
         props.actions.dismissNotice(AnnouncementBarMessages.TRIAL_LICENSE_EXPIRING);
     };
 
-    const renewLinkTelemetry = {success: 'renew_license_banner_success', error: 'renew_license_banner_fail'};
-
     // System administrators
     if (props.canViewSystemErrors) {
         if ((isLicensePastGracePeriod(props.license) || isLicenseExpired(props.license)) && !props.dismissedExpiredLicense) {
@@ -93,7 +86,6 @@ const ConfigurationAnnouncementBar = (props: Props) => {
                             {message}
                             <RenewalLink
                                 className='btn btn-tertiary btn-xs btn-inverted annnouncementBar__renewLicense'
-                                telemetryInfo={renewLinkTelemetry}
                             />
                         </div>
                     }
@@ -199,7 +191,6 @@ const ConfigurationAnnouncementBar = (props: Props) => {
                             {message}
                             <RenewalLink
                                 className='btn btn-tertiary btn-xs btn-inverted annnouncementBar__renewLicense'
-                                telemetryInfo={renewLinkTelemetry}
                             />
                         </div>
                     }

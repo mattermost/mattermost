@@ -69,16 +69,16 @@ test('Post actions tab support', async ({pw, axe}) => {
     await channelsPage.postDotMenu.followMessageMenuItem.press('ArrowDown');
     await expect(channelsPage.postDotMenu.markAsUnreadMenuItem).toBeFocused();
 
-    // * Should move focus to Remind after arrow down
-    await channelsPage.postDotMenu.markAsUnreadMenuItem.press('ArrowDown');
-    await expect(channelsPage.postDotMenu.remindMenuItem).toBeFocused();
-
     // * Should move focus to Save after arrow down
-    await channelsPage.postDotMenu.remindMenuItem.press('ArrowDown');
+    await channelsPage.postDotMenu.markAsUnreadMenuItem.press('ArrowDown');
     await expect(channelsPage.postDotMenu.saveMenuItem).toBeFocused();
 
-    // * Should move focus to Pin to Channel after arrow down
+    // * Should move focus to Remind after arrow down
     await channelsPage.postDotMenu.saveMenuItem.press('ArrowDown');
+    await expect(channelsPage.postDotMenu.remindMenuItem).toBeFocused();
+
+    // * Should move focus to Pin to Channel after arrow down
+    await channelsPage.postDotMenu.remindMenuItem.press('ArrowDown');
     await expect(channelsPage.postDotMenu.pinToChannelMenuItem).toBeFocused();
 
     if (config.FeatureFlags['MoveThreadsEnabled'] && license.IsLicensed === 'true') {
@@ -86,25 +86,25 @@ test('Post actions tab support', async ({pw, axe}) => {
         await channelsPage.postDotMenu.pinToChannelMenuItem.press('ArrowDown');
         await expect(channelsPage.postDotMenu.moveThreadMenuItem).toBeFocused();
 
-        // * Should move focus to Copy Link after arrow down
+        // * Should move focus to Copy Text after arrow down
         await channelsPage.postDotMenu.moveThreadMenuItem.press('ArrowDown');
-        await expect(channelsPage.postDotMenu.copyLinkMenuItem).toBeFocused();
+        await expect(channelsPage.postDotMenu.copyTextMenuItem).toBeFocused();
     } else {
-        // * Should move focus to Copy Link after arrow down
+        // * Should move focus to Copy Text after arrow down
         await channelsPage.postDotMenu.pinToChannelMenuItem.press('ArrowDown');
-        await expect(channelsPage.postDotMenu.copyLinkMenuItem).toBeFocused();
+        await expect(channelsPage.postDotMenu.copyTextMenuItem).toBeFocused();
     }
+
+    // * Should move focus to Copy Link after arrow down
+    await channelsPage.postDotMenu.copyTextMenuItem.press('ArrowDown');
+    await expect(channelsPage.postDotMenu.copyLinkMenuItem).toBeFocused();
 
     // * Should move focus to Edit after arrow down
     await channelsPage.postDotMenu.copyLinkMenuItem.press('ArrowDown');
     await expect(channelsPage.postDotMenu.editMenuItem).toBeFocused();
 
-    // * Should move focus to Copy Text after arrow down
-    await channelsPage.postDotMenu.editMenuItem.press('ArrowDown');
-    await expect(channelsPage.postDotMenu.copyTextMenuItem).toBeFocused();
-
     // * Should move focus to Delete after arrow down
-    await channelsPage.postDotMenu.copyTextMenuItem.press('ArrowDown');
+    await channelsPage.postDotMenu.editMenuItem.press('ArrowDown');
     await expect(channelsPage.postDotMenu.deleteMenuItem).toBeFocused();
 
     // * Then, should move focus back to Reply after arrow down

@@ -34,10 +34,6 @@ describe('components/admin_console/permission_schemes_settings/guest_permissions
         },
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should render guest permissions tree with headers', () => {
         const {container} = renderWithContext(<GuestPermissionsTree {...defaultProps}/>);
 

@@ -12,7 +12,7 @@ import {Client4} from 'mattermost-redux/client';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
-import {getChannelAndMyMember, getChannelMembers} from './channels';
+import {getChannel, getChannelAndMyMember, getChannelMembers} from './channels';
 import {logError} from './errors';
 import {receivedFiles} from './files';
 import {forceLogoutIfNecessary} from './helpers';
@@ -31,7 +31,14 @@ export function getMissingChannelsFromPosts(posts: PostList['posts']): ThunkActi
         Object.values(posts).forEach((post) => {
             const id = post.channel_id;
 
-            if (!channels[id] || !myMembers[id]) {
+            if (!channels[id]) {
+                // Fetch channel data independently so a 403 on the membership request (e.g. for public channels
+                // the user hasn't joined) doesn't prevent the channel from being loaded.
+                promises.push(dispatch(getChannel(id)));
+            }
+
+            if (!myMembers[id]) {
+                // Best-effort: will 403 for non-member public channels, which is fine.
                 promises.push(dispatch(getChannelAndMyMember(id)));
             }
 
@@ -54,7 +61,14 @@ export function getMissingChannelsFromFiles(files: Map<string, FileSearchResultI
         Object.values(files).forEach((file) => {
             const id = file.channel_id;
 
-            if (!channels[id] || !myMembers[id]) {
+            if (!channels[id]) {
+                // Fetch channel data independently so a 403 on the membership request (e.g. for public channels
+                // the user hasn't joined) doesn't prevent the channel from being loaded.
+                promises.push(dispatch(getChannel(id)));
+            }
+
+            if (!myMembers[id]) {
+                // Best-effort: will 403 for non-member public channels, which is fine.
                 promises.push(dispatch(getChannelAndMyMember(id)));
             }
 

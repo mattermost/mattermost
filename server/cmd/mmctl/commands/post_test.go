@@ -64,7 +64,7 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelArg, "").
+			GetChannel(context.TODO(), channelArg).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -91,7 +91,7 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelArg, "").
+			GetChannel(context.TODO(), channelArg).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -123,7 +123,7 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelArg, "").
+			GetChannel(context.TODO(), channelArg).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -162,7 +162,7 @@ func (s *MmctlUnitTestSuite) TestPostListCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName, "").
+			GetChannel(context.TODO(), channelName).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -187,7 +187,7 @@ func (s *MmctlUnitTestSuite) TestPostListCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName, "").
+			GetChannel(context.TODO(), channelName).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -235,7 +235,7 @@ func (s *MmctlUnitTestSuite) TestPostListCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName, "").
+			GetChannel(context.TODO(), channelName).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 

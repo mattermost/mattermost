@@ -1265,12 +1265,14 @@ func TestAppUpdateTeamScheme(t *testing.T) {
 		},
 	}
 	// ensure user can update channel properties before applying the scheme
-	require.True(t, th.App.SessionHasPermissionToChannel(th.Context, session, channel.Id, model.PermissionManagePublicChannelProperties))
+	ok, _ := th.App.SessionHasPermissionToChannel(th.Context, session, channel.Id, model.PermissionManagePublicChannelProperties)
+	require.True(t, ok)
 	// apply the team scheme
 	team2.SchemeId = &team2Scheme.Id
 	_, appErr = th.App.UpdateTeamScheme(team2)
 	require.Nil(t, appErr)
-	require.False(t, th.App.SessionHasPermissionToChannel(th.Context, session, channel.Id, model.PermissionManagePublicChannelProperties))
+	ok, _ = th.App.SessionHasPermissionToChannel(th.Context, session, channel.Id, model.PermissionManagePublicChannelProperties)
+	require.False(t, ok)
 }
 
 func TestGetTeamMembers(t *testing.T) {
@@ -1792,6 +1794,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 			Emails: []string{"idontexist@mattermost.com"},
 		}
 		emailServiceMock.On("SendInviteEmails",
+			mock.Anything,
 			mock.AnythingOfType("*model.Team"),
 			mock.AnythingOfType("string"),
 			mock.AnythingOfType("string"),
@@ -1817,6 +1820,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 			Emails: []string{"idontexist@mattermost.com"},
 		}
 		emailServiceMock.On("SendInviteEmails",
+			mock.Anything,
 			mock.AnythingOfType("*model.Team"),
 			mock.AnythingOfType("string"),
 			mock.AnythingOfType("string"),
@@ -1843,6 +1847,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 			ChannelIds: []string{th.BasicChannel.Id},
 		}
 		emailServiceMock.On("SendInviteEmailsToTeamAndChannels",
+			mock.Anything,
 			mock.AnythingOfType("*model.Team"),
 			mock.AnythingOfType("[]*model.Channel"),
 			mock.AnythingOfType("string"),
@@ -1871,6 +1876,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 			Emails: []string{"idontexist@mattermost.com"},
 		}
 		emailServiceMock.On("SendInviteEmails",
+			mock.Anything,
 			mock.AnythingOfType("*model.Team"),
 			mock.AnythingOfType("string"),
 			mock.AnythingOfType("string"),
@@ -1902,6 +1908,7 @@ func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 	t.Run("it return list of email with no error on success", func(t *testing.T) {
 		emailServiceMock := emailmocks.ServiceInterface{}
 		emailServiceMock.On("SendGuestInviteEmails",
+			mock.Anything,
 			mock.AnythingOfType("*model.Team"),
 			mock.AnythingOfType("[]*model.Channel"),
 			mock.AnythingOfType("string"),
@@ -1930,6 +1937,7 @@ func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 	t.Run("it should assign errors to emails when failing to send", func(t *testing.T) {
 		emailServiceMock := emailmocks.ServiceInterface{}
 		emailServiceMock.On("SendGuestInviteEmails",
+			mock.Anything,
 			mock.AnythingOfType("*model.Team"),
 			mock.AnythingOfType("[]*model.Channel"),
 			mock.AnythingOfType("string"),

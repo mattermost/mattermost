@@ -1,10 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ReactWrapper} from 'enzyme';
 import React from 'react';
-import {Provider} from 'react-redux';
-import {BrowserRouter} from 'react-router-dom';
 
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
@@ -12,31 +9,13 @@ import type {UserProfile} from '@mattermost/types/users';
 import {General} from 'mattermost-redux/constants';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import {act} from 'tests/react_testing_utils';
-import mockStore from 'tests/test_store';
+import {renderWithContext, act, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import GroupMemberList from './group_member_list';
 import type {GroupMember} from './group_member_list';
 
 import {Load} from '../constants';
-
-jest.mock('react-redux', () => ({
-    ...jest.requireActual('react-redux'),
-    useDispatch: jest.fn().mockReturnValue(() => {}),
-}));
-
-const actImmediate = (wrapper: ReactWrapper) =>
-    act(
-        () =>
-            new Promise<void>((resolve) => {
-                setImmediate(() => {
-                    wrapper.update();
-                    resolve();
-                });
-            }),
-    );
 
 describe('component/user_group_popover/group_member_list', () => {
     const profiles: Record<string, UserProfile> = {};
@@ -111,52 +90,52 @@ describe('component/user_group_popover/group_member_list', () => {
     };
 
     test('should match snapshot', async () => {
-        const store = await mockStore(initialState);
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <BrowserRouter>
-                    <GroupMemberList
-                        {...baseProps}
-                    />
-                </BrowserRouter>
-            </Provider>,
-        );
-        await actImmediate(wrapper);
+        let baseElement: HTMLElement;
+        await act(async () => {
+            ({baseElement} = renderWithContext(
+                <GroupMemberList
+                    {...baseProps}
+                />,
+                initialState as any,
+            ));
+        });
 
-        expect(wrapper).toMatchSnapshot();
+        expect(baseElement!).toMatchSnapshot();
     });
 
     test('should open dms', async () => {
-        const store = await mockStore(initialState);
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <BrowserRouter>
-                    <GroupMemberList
-                        {...baseProps}
-                    />
-                </BrowserRouter>
-            </Provider>,
-        );
-        await actImmediate(wrapper);
+        let container: HTMLElement;
+        await act(async () => {
+            ({container} = renderWithContext(
+                <GroupMemberList
+                    {...baseProps}
+                />,
+                initialState as any,
+            ));
+        });
 
-        wrapper.find('.group-member-list_dm-button').first().simulate('click');
+        const dmButton = container!.querySelector('.group-member-list_dm-button');
+        if (dmButton) {
+            await userEvent.click(dmButton);
+        }
         expect(baseProps.actions.openDirectChannelToUserId).toHaveBeenCalledTimes(0);
     });
 
     test('should show user overlay and hide', async () => {
-        const store = await mockStore(initialState);
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <BrowserRouter>
-                    <GroupMemberList
-                        {...baseProps}
-                    />
-                </BrowserRouter>
-            </Provider>,
-        );
-        await actImmediate(wrapper);
+        let container: HTMLElement;
+        await act(async () => {
+            ({container} = renderWithContext(
+                <GroupMemberList
+                    {...baseProps}
+                />,
+                initialState as any,
+            ));
+        });
 
-        wrapper.find('.group-member-list_item').first().simulate('click');
+        const listItem = container!.querySelector('.group-member-list_item');
+        if (listItem) {
+            await userEvent.click(listItem);
+        }
         expect(baseProps.showUserOverlay).toHaveBeenCalledTimes(0);
         expect(baseProps.hide).toHaveBeenCalledTimes(0);
     });

@@ -436,6 +436,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 			redirectURL = utils.AppendQueryParamsToURL(redirectURL, map[string]string{
 				model.SessionCookieToken: c.AppContext.Session().Token,
 				model.SessionCookieCsrf:  c.AppContext.Session().GetCSRF(),
+				"srv":                    c.App.GetSiteURL(), // Server URL for mobile client verification
 			})
 			utils.RenderMobileAuthComplete(w, redirectURL)
 

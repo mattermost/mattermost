@@ -6,8 +6,9 @@
 import React, {PureComponent} from 'react';
 import {defineMessage, defineMessages, FormattedDate, FormattedMessage, FormattedList, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
-import ReactSelect from 'react-select';
+import {useSelector} from 'react-redux';
 import type {OnChangeValue, ActionMeta, StylesConfig} from 'react-select';
+import ReactSelect from 'react-select';
 
 import type {UserPropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 import type {UserProfile} from '@mattermost/types/users';
@@ -16,6 +17,8 @@ import type {LogErrorOptions} from 'mattermost-redux/actions/errors';
 import {LogErrorBarMode} from 'mattermost-redux/actions/errors';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isEmail} from 'mattermost-redux/utils/helpers';
+
+import {getPluginDisplayName} from 'selectors/plugins';
 
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
@@ -26,6 +29,8 @@ import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 import {AnnouncementBarMessages, AnnouncementBarTypes, AcceptedProfileImageTypes, Constants, ValidationErrors} from 'utils/constants';
 import {validHttpUrl} from 'utils/url';
 import * as Utils from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import SettingDesktopHeader from '../headers/setting_desktop_header';
 import SettingMobileHeader from '../headers/setting_mobile_header';
@@ -187,6 +192,16 @@ type State = {
     emailError?: string;
     customAttributeValues: Record<string, string | string[]>;
 }
+
+// Private component to get plugin display name
+type PluginDisplayNameProps = {
+    pluginId?: string;
+};
+
+const PluginDisplayName: React.FC<PluginDisplayNameProps> = ({pluginId}) => {
+    const displayName = useSelector((state: GlobalState) => getPluginDisplayName(state, pluginId));
+    return <>{displayName}</>;
+};
 
 export class UserSettingsGeneralTab extends PureComponent<Props, State> {
     public submitActive = false;
@@ -1424,7 +1439,10 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             return <></>;
         }
 
-        const attributeSections = this.props.customProfileAttributeFields.map((attribute) => {
+        const attributeSections = this.props.customProfileAttributeFields.filter((attribute) => {
+            // Hide source_only fields from user profiles
+            return attribute.attrs?.access_mode !== 'source_only';
+        }).map((attribute) => {
             const sectionName = 'customAttribute_' + attribute.id;
             const active = this.props.activeSection === sectionName;
             let max = null;
@@ -1462,7 +1480,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
             if (active) {
                 const inputs = [];
-                let extraInfo: JSX.Element|string;
+                let extraInfo: JSX.Element|string = '';
                 let submit = null;
 
                 const validate = () => {
@@ -1490,8 +1508,12 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     return undefined;
                 };
 
-                if ((this.props.user.auth_service === Constants.LDAP_SERVICE && attribute.attrs?.ldap) ||
-                    (this.props.user.auth_service === Constants.SAML_SERVICE && attribute.attrs?.saml)) {
+                const isProtected = Boolean(attribute.attrs?.protected);
+                const isSynced = Boolean((this.props.user.auth_service === Constants.LDAP_SERVICE && attribute.attrs?.ldap) ||
+                    (this.props.user.auth_service === Constants.SAML_SERVICE && attribute.attrs?.saml));
+                const isAdminManaged = attribute.attrs?.managed === 'admin';
+
+                if (isSynced) {
                     extraInfo = (
                         <span>
                             <FormattedMessage
@@ -1500,7 +1522,18 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                             />
                         </span>
                     );
-                } else if (attribute.attrs?.managed === 'admin') {
+                } else if (isProtected) {
+                    extraInfo = (
+                        <span>
+                            <FormattedMessage
+                                id='user.settings.general.field_managed_by_plugin'
+                                defaultMessage='This field is managed by a plugin and cannot be edited.'
+                            />
+                            {' ('}<PluginDisplayName pluginId={attribute.attrs?.source_plugin_id}/>{')'}
+
+                        </span>
+                    );
+                } else if (isAdminManaged) {
                     extraInfo = (
                         <span>
                             <FormattedMessage
@@ -1509,7 +1542,10 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                             />
                         </span>
                     );
-                } else {
+                }
+
+                // Only render inputs if the field is not synced, admin-managed, or protected
+                if (!isSynced && !isAdminManaged && !isProtected) {
                     let attributeLabel: JSX.Element | string = (
                         attribute.name
                     );
@@ -1533,7 +1569,6 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                                 options={opts}
                                 isClearable={true}
                                 isSearchable={false}
-                                isDisabled={false}
                                 placeholder={formatMessage({
                                     id: 'user.settings.general.select',
                                     defaultMessage: 'Select',
@@ -1570,6 +1605,10 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                             </div>,
                         );
                     }
+                }
+
+                // Only enable submit and show default extra info if field is editable
+                if (!isSynced && !isAdminManaged && !isProtected) {
                     extraInfo = (
                         <span>
                             <FormattedMessage
@@ -1578,7 +1617,6 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                             />
                         </span>
                     );
-
                     submit = this.submitAttribute.bind(this, [attribute.id]);
                 }
 
@@ -1697,7 +1735,6 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     onFileChange={this.updatePicture}
                     submitActive={this.submitActive}
                     loadingPicture={this.state.loadingPicture}
-                    maxFileSize={this.props.maxFileSize}
                     helpText={helpText}
                 />
             );

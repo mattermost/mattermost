@@ -2,10 +2,15 @@
 // See LICENSE.txt for license information.
 
 import {screen} from '@testing-library/react';
+import cloneDeep from 'lodash/cloneDeep';
 import React from 'react';
 
 import type {PropertyValue} from '@mattermost/types/properties';
 import type {Team} from '@mattermost/types/teams';
+
+import state from 'mattermost-redux/store/initial_state';
+
+import type {TeamFieldMetadata} from 'components/properties_card_view/properties_card_view';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
@@ -23,23 +28,14 @@ describe('TeamPropertyRenderer', () => {
         value: {
             value: 'team-id-123',
         } as PropertyValue<string>,
+        metadata: {} as TeamFieldMetadata,
     };
 
     test('should render team name and icon when team exists', () => {
-        const state = {
-            entities: {
-                teams: {
-                    teams: {
-                        'team-id-123': mockTeam,
-                    },
-                },
-            },
-        };
+        const props = cloneDeep(defaultProps);
+        props.metadata.team = mockTeam;
 
-        renderWithContext(
-            <TeamPropertyRenderer {...defaultProps}/>,
-            state,
-        );
+        renderWithContext(<TeamPropertyRenderer {...props}/>, state);
 
         expect(screen.getByTestId('team-property')).toBeVisible();
         expect(screen.getByText('Test Team')).toBeVisible();
@@ -48,14 +44,6 @@ describe('TeamPropertyRenderer', () => {
     });
 
     test('should render deleted team message when team does not exist', () => {
-        const state = {
-            entities: {
-                teams: {
-                    teams: {},
-                },
-            },
-        };
-
         renderWithContext(
             <TeamPropertyRenderer {...defaultProps}/>,
             state,

@@ -1,92 +1,34 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/new_channel_modal should match snapshot 1`] = `
-<Menu
-  anchorOrigin={
-    Object {
-      "horizontal": "left",
-      "vertical": "bottom",
-    }
-  }
-  menu={
-    Object {
-      "aria-label": "Add Channels",
-      "className": "AddChannelsCtaDropdown",
-      "id": "AddChannelCtaDropdown",
-      "onToggle": [Function],
-    }
-  }
-  menuButton={
-    Object {
-      "children": <React.Fragment>
-        <i
-          aria-hidden={true}
-          className="icon-plus-box"
-        />
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Add Channels"
-          id="sidebar_left.addChannelsCta"
-        />
-      </React.Fragment>,
-      "class": "SidebarChannelNavigator__addChannelsCtaLhsButton SidebarChannelNavigator__addChannelsCtaLhsButton--untouched",
-      "id": "addChannelsCta",
-    }
-  }
-  transformOrigin={
-    Object {
-      "horizontal": -20,
-      "vertical": "top",
-    }
-  }
->
-  <MenuItem
-    id="showMoreChannels"
-    key="showMoreChannels"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Browse channels"
-        id="sidebar_left.add_channel_dropdown.browseChannels"
-      />
-    }
-    leadingElement={
-      <GlobeIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItem
-    id="showNewChannel"
-    key="showNewChannel"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Create new channel"
-        id="sidebar_left.add_channel_dropdown.createNewChannel"
-      />
-    }
-    leadingElement={
-      <PlusIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-</Menu>
+<div>
+  <button
+    aria-controls="AddChannelCtaDropdown"
+    aria-expanded="false"
+    aria-haspopup="true"
+    class="SidebarChannelNavigator__addChannelsCtaLhsButton SidebarChannelNavigator__addChannelsCtaLhsButton--untouched"
+    id="addChannelsCta"
+  >
+    <i
+      aria-hidden="true"
+      class="icon-plus-box"
+    />
+    Add Channels
+  </button>
+</div>
 `;
 
 exports[`components/new_channel_modal should match snapshot when user has only join channel permissions 1`] = `
-<button
-  className="SidebarChannelNavigator__addChannelsCtaLhsButton SidebarChannelNavigator__addChannelsCtaLhsButton--untouched"
-  id="addChannelsCta"
-  onClick={[Function]}
->
-  <i
-    aria-hidden={true}
-    className="icon-plus-box"
-  />
-  <MemoizedFormattedMessage
-    defaultMessage="Add Channels"
-    id="sidebar_left.addChannelsCta"
-  />
-</button>
+<div>
+  <button
+    class="SidebarChannelNavigator__addChannelsCtaLhsButton SidebarChannelNavigator__addChannelsCtaLhsButton--untouched"
+    id="addChannelsCta"
+  >
+    <i
+      aria-hidden="true"
+      class="icon-plus-box"
+    />
+    Add Channels
+  </button>
+</div>
 `;

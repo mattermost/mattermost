@@ -242,13 +242,9 @@ func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
 
 	databaseType, schemaVersion, err := th.Service.DatabaseTypeAndSchemaVersion()
 	require.NoError(t, err)
-	if *th.Service.Config().SqlSettings.DriverName == model.DatabaseDriverPostgres {
-		assert.Equal(t, "postgres", databaseType)
-	} else {
-		assert.Equal(t, "mysql", databaseType)
-	}
+	assert.Equal(t, "postgres", databaseType)
 
-	// It's hard to check wheather the schema version is correct or not.
+	// It's hard to check whether the schema version is correct or not.
 	// So, we just check if it's greater than 1.
 	assert.GreaterOrEqual(t, schemaVersion, strconv.Itoa(1))
 }

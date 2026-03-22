@@ -1,108 +1,138 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useRef, useCallback} from 'react';
-import {Modal, type ModalBody} from 'react-bootstrap';
-import ReactDOM from 'react-dom';
+import React, {useState, useRef, useCallback, useEffect} from 'react';
 import {useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
+
+import {GenericModal} from '@mattermost/components';
+
+import {Permissions} from 'mattermost-redux/constants';
+import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import TeamSettings from 'components/team_settings';
 
 import {focusElement} from 'utils/a11y_utils';
+
+import type {GlobalState} from 'types/store';
+
+import './team_settings_modal.scss';
 
 const SettingsSidebar = React.lazy(() => import('components/settings_sidebar'));
 
 const SHOW_PANEL_ERROR_STATE_TAB_SWITCH_TIMEOUT = 3000;
 
 type Props = {
+    isOpen: boolean;
     onExited: () => void;
-    canInviteUsers: boolean;
     focusOriginElement?: string;
 }
 
-const TeamSettingsModal = ({onExited, canInviteUsers, focusOriginElement}: Props) => {
+const TeamSettingsModal = ({isOpen, onExited, focusOriginElement}: Props) => {
     const [activeTab, setActiveTab] = useState('info');
-    const [show, setShow] = useState<boolean>(true);
-    const [hasChanges, setHasChanges] = useState<boolean>(false);
-    const [hasChangeTabError, setHasChangeTabError] = useState<boolean>(false);
-    const [hasBeenWarned, setHasBeenWarned] = useState<boolean>(false);
-    const [justSaved, setJustSaved] = useState<boolean>(false);
-    const modalBodyRef = useRef<ModalBody>(null);
+    const [show, setShow] = useState(isOpen);
+    const [areThereUnsavedChanges, setAreThereUnsavedChanges] = useState(false);
+    const [showTabSwitchError, setShowTabSwitchError] = useState(false);
+    const [hasBeenWarned, setHasBeenWarned] = useState(false);
+    const modalBodyRef = useRef<HTMLDivElement>(null);
     const {formatMessage} = useIntl();
 
+    const teamId = useSelector(getCurrentTeamId);
+    const canInviteUsers = useSelector((state: GlobalState) =>
+        haveITeamPermission(state, teamId, Permissions.INVITE_USER),
+    );
+
+    useEffect(() => {
+        setShow(isOpen);
+    }, [isOpen]);
+
     const updateTab = useCallback((tab: string) => {
-        if (hasChanges) {
-            setHasChangeTabError(true);
+        if (areThereUnsavedChanges) {
+            setShowTabSwitchError(true);
+            setTimeout(() => {
+                setShowTabSwitchError(false);
+            }, SHOW_PANEL_ERROR_STATE_TAB_SWITCH_TIMEOUT);
             return;
         }
         setActiveTab(tab);
-        setHasChanges(false);
-        setHasChangeTabError(false);
-        setHasBeenWarned(false);
-    }, [hasChanges]);
+
+        if (modalBodyRef.current) {
+            modalBodyRef.current.scrollTop = 0;
+        }
+    }, [areThereUnsavedChanges]);
 
     const handleHide = useCallback(() => {
         // Prevent modal closing if there are unsaved changes (warn once, then allow)
-        // Don't warn if showing "Settings saved"
-        if (hasChanges && !hasBeenWarned && !justSaved) {
+        if (areThereUnsavedChanges && !hasBeenWarned) {
             setHasBeenWarned(true);
-            setHasChangeTabError(true);
+            setShowTabSwitchError(true);
             setTimeout(() => {
-                setHasChangeTabError(false);
+                setShowTabSwitchError(false);
             }, SHOW_PANEL_ERROR_STATE_TAB_SWITCH_TIMEOUT);
         } else {
-            setShow(false);
+            handleHideConfirm();
         }
-    }, [hasChanges, hasBeenWarned, justSaved]);
+    }, [areThereUnsavedChanges, hasBeenWarned]);
 
-    const handleClose = useCallback(() => {
+    const handleHideConfirm = useCallback(() => {
+        setShow(false);
+    }, []);
+
+    const handleExited = useCallback(() => {
+        // Reset all state
+        setActiveTab('info');
+        setAreThereUnsavedChanges(false);
+        setShowTabSwitchError(false);
+        setHasBeenWarned(false);
+
+        // Restore focus
         if (focusOriginElement) {
             focusElement(focusOriginElement, true);
         }
-        setActiveTab('info');
-        setHasChanges(false);
-        setHasChangeTabError(false);
-        setHasBeenWarned(false);
-        setJustSaved(false);
+
+        // Notify parent
         onExited();
     }, [onExited, focusOriginElement]);
 
-    const handleCollapse = useCallback(() => {
-        const el = ReactDOM.findDOMNode(modalBodyRef.current) as HTMLDivElement;
-        el?.closest('.modal-dialog')!.classList.remove('display--content');
-        setActiveTab('');
-    }, []);
-
     const tabs = [
-        {name: 'info', uiName: formatMessage({id: 'team_settings_modal.infoTab', defaultMessage: 'Info'}), icon: 'icon icon-information-outline', iconTitle: formatMessage({id: 'generic_icons.info', defaultMessage: 'Info Icon'})},
+        {
+            name: 'info',
+            uiName: formatMessage({id: 'team_settings_modal.infoTab', defaultMessage: 'Info'}),
+            icon: 'icon icon-information-outline',
+            iconTitle: formatMessage({id: 'generic_icons.info', defaultMessage: 'Info Icon'}),
+        },
+        {
+            name: 'access',
+            uiName: formatMessage({id: 'team_settings_modal.accessTab', defaultMessage: 'Access'}),
+            icon: 'icon icon-account-multiple-outline',
+            iconTitle: formatMessage({id: 'generic_icons.member', defaultMessage: 'Member Icon'}),
+            display: canInviteUsers,
+        },
     ];
-    if (canInviteUsers) {
-        tabs.push({name: 'access', uiName: formatMessage({id: 'team_settings_modal.accessTab', defaultMessage: 'Access'}), icon: 'icon icon-account-multiple-outline', iconTitle: formatMessage({id: 'generic_icons.member', defaultMessage: 'Member Icon'})});
-    }
+
+    const modalTitle = formatMessage({id: 'team_settings_modal.title', defaultMessage: 'Team Settings'});
 
     return (
-        <Modal
-            dialogClassName='a11y__modal settings-modal'
+        <GenericModal
+            id='teamSettingsModal'
+            ariaLabel={modalTitle}
+            className='TeamSettingsModal settings-modal'
             show={show}
             onHide={handleHide}
-            onExited={handleClose}
-            role='none'
-            aria-labelledby='teamSettingsModalLabel'
-            id='teamSettingsModal'
+            preventClose={areThereUnsavedChanges && !hasBeenWarned}
+            onExited={handleExited}
+            compassDesign={true}
+            modalHeaderText={modalTitle}
+            bodyPadding={false}
+            modalLocation={'top'}
+            enforceFocus={false}
         >
-            <Modal.Header
-                id='teamSettingsModalLabel'
-                closeButton={true}
-            >
-                <Modal.Title
-                    componentClass='h2'
-                    className='modal-header__title'
+            <div className='TeamSettingsModal__bodyWrapper'>
+                <div
+                    ref={modalBodyRef}
+                    className='settings-table'
                 >
-                    {formatMessage({id: 'team_settings_modal.title', defaultMessage: 'Team Settings'})}
-                </Modal.Title>
-            </Modal.Header>
-            <Modal.Body ref={modalBodyRef}>
-                <div className='settings-table'>
                     <div className='settings-links'>
                         <React.Suspense fallback={null}>
                             <SettingsSidebar
@@ -115,18 +145,15 @@ const TeamSettingsModal = ({onExited, canInviteUsers, focusOriginElement}: Props
                     <div className='settings-content minimize-settings'>
                         <TeamSettings
                             activeTab={activeTab}
-                            hasChanges={hasChanges}
-                            setHasChanges={setHasChanges}
-                            hasChangeTabError={hasChangeTabError}
-                            setHasChangeTabError={setHasChangeTabError}
-                            setJustSaved={setJustSaved}
-                            closeModal={handleHide}
-                            collapseModal={handleCollapse}
+                            areThereUnsavedChanges={areThereUnsavedChanges}
+                            setAreThereUnsavedChanges={setAreThereUnsavedChanges}
+                            showTabSwitchError={showTabSwitchError}
+                            setShowTabSwitchError={setShowTabSwitchError}
                         />
                     </div>
                 </div>
-            </Modal.Body>
-        </Modal>
+            </div>
+        </GenericModal>
     );
 };
 

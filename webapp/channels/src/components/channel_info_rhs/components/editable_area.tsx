@@ -5,13 +5,17 @@ import React from 'react';
 import {useIntl} from 'react-intl';
 import styled from 'styled-components';
 
+import WithTooltip from 'components/with_tooltip';
+
 const EditButton = styled.button`
     border: 0;
     margin: 0px;
     padding: 0px;
     border-radius: 4px;
-    background: rgba(var(--center-channel-color-rgb), 0.04);
-    color: rgba(var(--center-channel-color-rgb), 0.75);
+    background: none;
+    position: relative;
+    top: -2px;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
     &:hover {
         background: rgba(var(--center-channel-color-rgb), 0.08);
         color: rgba(var(--center-channel-color-rgb), 0.75);
@@ -47,9 +51,10 @@ interface EditableAreaProps {
     emptyLabel: string;
     onEdit: () => void;
     className?: string;
+    editTooltip?: string;
 }
 
-const EditableAreaBase = ({editable, content, emptyLabel, onEdit, className}: EditableAreaProps) => {
+const EditableAreaBase = ({editable, content, emptyLabel, onEdit, className, editTooltip}: EditableAreaProps) => {
     const {formatMessage} = useIntl();
 
     const allowEditArea = editable && content;
@@ -70,12 +75,14 @@ const EditableAreaBase = ({editable, content, emptyLabel, onEdit, className}: Ed
             </div>
             <div className='EditableArea__edit'>
                 {allowEditArea ? (
-                    <EditButton
-                        onClick={onEdit}
-                        aria-label={formatMessage({id: 'channel_info_rhs.edit_link', defaultMessage: 'Edit'})}
-                    >
-                        <i className='icon icon-pencil-outline'/>
-                    </EditButton>
+                    <WithTooltip title={editTooltip || formatMessage({id: 'channel_info_rhs.edit_link', defaultMessage: 'Edit'})}>
+                        <EditButton
+                            onClick={onEdit}
+                            aria-label={formatMessage({id: 'channel_info_rhs.edit_link', defaultMessage: 'Edit'})}
+                        >
+                            <i className='icon icon-pencil-outline'/>
+                        </EditButton>
+                    </WithTooltip>
                 ) : ''}
             </div>
         </div>
@@ -90,14 +97,13 @@ const EditableArea = styled(EditableAreaBase)`
             margin-bottom:0;
         }
     }
-    &:hover {
-        &>.EditableArea__edit {
-            visibility: visible;
-        }
+    &:hover > .EditableArea__edit,
+    &:focus-within > .EditableArea__edit {
+        opacity: 1;
     }
 
     &>.EditableArea__edit {
-        visibility: hidden;
+        opacity: 0;
         width: 24px;
     }
 `;
