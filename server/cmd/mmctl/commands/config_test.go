@@ -1139,6 +1139,33 @@ func (s *MmctlUnitTestSuite) TestConfigListCmd() {
 		s.Require().Equal("https://mm.example.com", item.Changes[0].NewValue)
 	})
 
+	s.Run("No-delta takes precedence over detailed", func() {
+		printer.Clean()
+		items := []*model.ConfigListItem{
+			{Id: "abc123def456ghi789jkl0mn", CreateAt: 1700000000000, Active: true},
+			{Id: "xyz789abc012def345ghi6mn", CreateAt: 1699999000000, Active: false},
+		}
+
+		s.client.
+			EXPECT().
+			ListConfigurations(context.TODO(), 5, "").
+			Return(items, &model.Response{}, nil).
+			Times(1)
+
+		cmd := newListCmd()
+		_ = cmd.Flags().Set("detailed", "true")
+		_ = cmd.Flags().Set("no-delta", "true")
+
+		err := configListCmdF(s.client, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 2)
+		// Verify no changes are present on either item
+		for _, line := range printer.GetLines() {
+			item := line.(*model.ConfigListItem)
+			s.Require().Empty(item.Changes)
+		}
+	})
+
 	s.Run("No-delta mode skips diffs", func() {
 		printer.Clean()
 		items := []*model.ConfigListItem{

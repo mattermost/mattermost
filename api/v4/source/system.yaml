@@ -521,13 +521,15 @@
               schema:
                 type: array
                 items:
-                  type: object
+                  $ref: "#/components/schemas/ConfigListItem"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
   /api/v4/config/rollback:
     post:
       tags:
@@ -565,6 +567,8 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /api/v4/config/patch:
     put:
       tags:

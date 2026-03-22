@@ -486,6 +486,10 @@ func listConfigurations(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if c.App.Channels().License().IsCloud() {
+		model.FilterCloudRestrictedChanges(items)
+	}
+
 	auditRec.Success()
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	if err := json.NewEncoder(w).Encode(items); err != nil {
@@ -509,6 +513,8 @@ func rollbackConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParamWithErr("config_id", err)
 		return
 	}
+
+	auditRec.AddMeta("config_id", body.ConfigID)
 
 	_, newCfg, appErr := c.App.RollbackConfig(body.ConfigID)
 	if appErr != nil {

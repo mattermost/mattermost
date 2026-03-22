@@ -1403,6 +1403,36 @@ components:
                 description: Map of all available LDAP attributes
                 additionalProperties:
                   type: string
+    ConfigChange:
+      type: object
+      description: A single setting change between two configuration versions.
+      properties:
+        path:
+          type: string
+          description: The dot-separated path of the changed setting.
+        old_value:
+          description: The previous value of the setting. Only present when detailed diffs are requested.
+        new_value:
+          description: The new value of the setting. Only present when detailed diffs are requested.
+    ConfigListItem:
+      type: object
+      description: Metadata about a stored configuration entry.
+      properties:
+        id:
+          type: string
+          description: The unique identifier of the configuration.
+        create_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the configuration was created.
+        active:
+          type: boolean
+          description: Whether this is the currently active configuration.
+        changes:
+          type: array
+          description: The list of setting changes from the previous configuration.
+          items:
+            $ref: "#/components/schemas/ConfigChange"
     Config:
       type: object
       properties:
