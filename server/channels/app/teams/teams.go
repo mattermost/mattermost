@@ -134,6 +134,20 @@ func (ts *TeamService) PatchTeam(teamID string, patch *model.TeamPatch) (*model.
 	return team, nil
 }
 
+func applyPreSaveHooks(hooks []func(*model.TeamMember) (*model.TeamMember, error), tm *model.TeamMember) (*model.TeamMember, error) {
+	for _, hook := range hooks {
+		var err error
+		tm, err = hook(tm)
+		if err != nil {
+			return nil, err
+		}
+		if tm == nil {
+			return nil, fmt.Errorf("preSaveHook returned nil TeamMember without error")
+		}
+	}
+	return tm, nil
+}
+
 // JoinUserToTeam adds a user to the team and it returns three values:
 // 1. a pointer to the team member, if successful
 // 2. a boolean: true if the user has a non-deleted team member for that team already, otherwise false.
@@ -169,14 +183,9 @@ func (ts *TeamService) JoinUserToTeam(rctx request.CTX, team *model.Team, user *
 	rtm, err := ts.store.GetMember(rctx, team.Id, user.Id)
 	if err != nil {
 		// Membership appears to be missing. Lets try to add.
-		for _, hook := range preSaveHooks {
-			tm, err = hook(tm)
-			if err != nil {
-				return nil, false, err
-			}
-			if tm == nil {
-				return nil, false, fmt.Errorf("preSaveHook returned nil TeamMember without error")
-			}
+		tm, err = applyPreSaveHooks(preSaveHooks, tm)
+		if err != nil {
+			return nil, false, err
 		}
 
 		tmr, nErr := ts.store.SaveMember(rctx, tm, *ts.config().TeamSettings.MaxUsersPerTeam)
@@ -201,14 +210,9 @@ func (ts *TeamService) JoinUserToTeam(rctx request.CTX, team *model.Team, user *
 		return nil, false, MaxMemberCountError
 	}
 
-	for _, hook := range preSaveHooks {
-		tm, err = hook(tm)
-		if err != nil {
-			return nil, false, err
-		}
-		if tm == nil {
-			return nil, false, fmt.Errorf("preSaveHook returned nil TeamMember without error")
-		}
+	tm, err = applyPreSaveHooks(preSaveHooks, tm)
+	if err != nil {
+		return nil, false, err
 	}
 
 	member, nErr := ts.store.UpdateMember(rctx, tm)
