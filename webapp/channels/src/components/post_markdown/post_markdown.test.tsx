@@ -362,7 +362,7 @@ describe('components/PostMarkdown', () => {
             type: PostTypes.CUSTOM_TIMER as PostType,
             message: 'Deploy starts',
             props: {
-                timer_target: Date.now() + 60000,
+                expire_at: Date.now() + 60000,
             },
         });
 
@@ -384,7 +384,7 @@ describe('components/PostMarkdown', () => {
             type: PostTypes.CUSTOM_TIMER as PostType,
             message: '',
             props: {
-                timer_target: Date.now() + 60000,
+                expire_at: Date.now() + 60000,
             },
         });
 

@@ -78,7 +78,7 @@ func TestTimerCommand(t *testing.T) {
 
 		assert.Equal(t, "test timer", timerPost.Message)
 
-		targetProp, ok := timerPost.GetProp("timer_target").(float64)
+		targetProp, ok := timerPost.GetProp(model.PostPropsExpireAt).(float64)
 		require.True(t, ok)
 
 		targetTime := time.UnixMilli(int64(targetProp))

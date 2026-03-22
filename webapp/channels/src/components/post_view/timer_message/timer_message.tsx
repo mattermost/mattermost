@@ -13,7 +13,7 @@ type Props = {
 };
 
 export const TimerMessage = ({ post, isRHS }: Props) => {
-    const targetTimestamp = post.props?.timer_target as number | undefined;
+    const targetTimestamp = post.props?.expire_at as number | undefined;
     const [timeLeft, setTimeLeft] = useState<number>(() => {
         if (!targetTimestamp) {
             return 0;

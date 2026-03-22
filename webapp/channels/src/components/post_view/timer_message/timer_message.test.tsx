@@ -11,7 +11,7 @@ import {TimerMessage} from './timer_message';
 describe('components/post_view/timer_message/TimerMessage', () => {
     const basePost = TestHelper.getPostMock({
         props: {
-            timer_target: Date.now() + 60000, // 1 minute from now
+            expire_at: Date.now() + 60000, // 1 minute from now
         },
     });
 
@@ -35,7 +35,7 @@ describe('components/post_view/timer_message/TimerMessage', () => {
     test('should render expired state when timer target is in the past', () => {
         const expiredPost = TestHelper.getPostMock({
             props: {
-                timer_target: Date.now() - 1000,
+                expire_at: Date.now() - 1000,
             },
         });
 
@@ -47,7 +47,7 @@ describe('components/post_view/timer_message/TimerMessage', () => {
         expect(screen.getByText('00:00')).toBeInTheDocument();
     });
 
-    test('should return null when post has no timer_target prop', () => {
+    test('should return null when post has no expire_at prop', () => {
         const noTimerPost = TestHelper.getPostMock({
             props: {},
         });
@@ -63,7 +63,7 @@ describe('components/post_view/timer_message/TimerMessage', () => {
         const deletedPost = TestHelper.getPostMock({
             delete_at: Date.now(),
             props: {
-                timer_target: Date.now() + 60000,
+                expire_at: Date.now() + 60000,
             },
         });
 

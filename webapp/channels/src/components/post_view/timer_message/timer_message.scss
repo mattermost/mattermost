@@ -11,14 +11,8 @@
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
     transition: all 0.3s ease;
 
-    &:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.08);
-    }
-
     &.expired {
         background: var(--error-text);
-        animation: pulseTimer 2s infinite;
     }
     
     .countdown {
@@ -27,11 +21,6 @@
     }
 }
 
-@keyframes pulseTimer {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.02); }
-    100% { transform: scale(1); }
-}
 
 .TimerMessage__container {
     display: flex;

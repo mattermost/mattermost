@@ -26,11 +26,11 @@ func init() {
 	app.RegisterCommandProvider(&TimerProvider{})
 }
 
-func (*TimerProvider) GetTrigger() string {
+func (timer *TimerProvider) GetTrigger() string {
 	return CmdTimer
 }
 
-func (*TimerProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
+func (timer *TimerProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CmdTimer,
 		AutoComplete:     true,
@@ -40,19 +40,29 @@ func (*TimerProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Comman
 	}
 }
 
-func (*TimerProvider) DoCommand(a *app.App, rctx request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
+func (timer *TimerProvider) DoCommand(a *app.App, rctx request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	parts := strings.SplitN(message, " ", 2)
 	if len(parts) == 0 || parts[0] == "" {
-		return &model.CommandResponse{Text: args.T("api.command_timer.empty"), ResponseType: model.CommandResponseTypeEphemeral}
+		return &model.CommandResponse{
+			Text:         args.T("api.command_timer.empty"),
+			ResponseType: model.CommandResponseTypeEphemeral,
+		}
 	}
 
 	durationStr := parts[0]
 	duration, err := time.ParseDuration(durationStr)
+	const maxTimerDuration = 4 * time.Hour
 	if err != nil {
-		return &model.CommandResponse{Text: args.T("api.command_timer.invalid_format"), ResponseType: model.CommandResponseTypeEphemeral}
+		return &model.CommandResponse{
+			Text:         args.T("api.command_timer.invalid_format"),
+			ResponseType: model.CommandResponseTypeEphemeral,
+		}
 	}
-	if duration <= 0 || duration > 4*time.Hour {
-		return &model.CommandResponse{Text: args.T("api.command_timer.invalid_duration"), ResponseType: model.CommandResponseTypeEphemeral}
+	if duration <= 0 || duration > maxTimerDuration {
+		return &model.CommandResponse{
+			Text:         args.T("api.command_timer.invalid_duration"),
+			ResponseType: model.CommandResponseTypeEphemeral,
+		}
 	}
 
 	timerMsg := ""
@@ -69,7 +79,7 @@ func (*TimerProvider) DoCommand(a *app.App, rctx request.CTX, args *model.Comman
 		Message:   timerMsg,
 		Type:      fmt.Sprintf("%stimer", model.PostCustomTypePrefix),
 	}
-	timerPost.AddProp("timer_target", targetTime.UnixMilli())
+	timerPost.AddProp(model.PostPropsExpireAt, targetTime.UnixMilli())
 
 	createdPost, _, appErr := a.CreatePostMissingChannel(rctx, timerPost, true, true)
 	if appErr != nil {
@@ -98,7 +108,7 @@ func (*TimerProvider) DoCommand(a *app.App, rctx request.CTX, args *model.Comman
 
 		var replyMsg string
 		if timerMsg != "" {
-			replyMsg = args.T("api.command_timer.expired", map[string]interface{}{"Message": timerMsg})
+			replyMsg = args.T("api.command_timer.expired", map[string]any{"Message": timerMsg})
 		} else {
 			replyMsg = args.T("api.command_timer.expired_no_message")
 		}
