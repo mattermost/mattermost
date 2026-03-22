@@ -6,7 +6,9 @@ package app
 import (
 	"crypto/ecdsa"
 	"crypto/rand"
+	"database/sql"
 	"encoding/json"
+	stderrors "errors"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -256,7 +258,10 @@ func (a *App) ListConfigurations(limit int, includeDiffs string) ([]*model.Confi
 func (a *App) RollbackConfig(id string) (*model.Config, *model.Config, *model.AppError) {
 	historicalCfg, err := a.Srv().platform.GetConfigByID(id)
 	if err != nil {
-		return nil, nil, model.NewAppError("RollbackConfig", "api.config.rollback_config.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		if stderrors.Is(err, sql.ErrNoRows) {
+			return nil, nil, model.NewAppError("RollbackConfig", "api.config.rollback_config.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		}
+		return nil, nil, model.NewAppError("RollbackConfig", "api.config.rollback_config.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return a.SaveConfig(historicalCfg, true)
 }

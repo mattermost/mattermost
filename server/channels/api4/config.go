@@ -520,6 +520,18 @@ func rollbackConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	if c.App.Channels().License().IsCloud() {
+		js, err := newCfg.ToJSONFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)
+		if err != nil {
+			c.Err = model.NewAppError("rollbackConfig", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return
+		}
+		if _, err := w.Write(js); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
+		return
+	}
+
 	if err := json.NewEncoder(w).Encode(newCfg); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}

@@ -658,7 +658,11 @@ func configListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 
 	if len(items) == 0 {
-		printer.Print("No configurations found. This feature requires a database-backed config store.")
+		if printer.GetFormat() == printer.FormatJSON {
+			printer.Print([]any{})
+		} else {
+			printer.Print("No configurations found.")
+		}
 		return nil
 	}
 

@@ -366,27 +366,42 @@ func (ds *DatabaseStore) listConfigurations(limit int, includeDiffs string) ([]*
 		LIMIT $1
 	`
 
+	// When diffs are enabled, fetch one extra predecessor row so the oldest
+	// visible item can be diffed against its predecessor.
+	queryLimit := limit
+	if includeDiffs != "" {
+		queryLimit = limit + 1
+	}
+
 	var rows []configListRow
-	if err := ds.db.Select(&rows, query, limit); err != nil {
+	if err := ds.db.Select(&rows, query, queryLimit); err != nil {
 		return nil, errors.Wrap(err, "failed to list configurations")
 	}
 
-	items := make([]*model.ConfigListItem, len(rows))
+	// Build the full set for diffing, but only return up to limit items
+	allItems := make([]*model.ConfigListItem, len(rows))
 	for i, row := range rows {
-		items[i] = &model.ConfigListItem{
+		allItems[i] = &model.ConfigListItem{
 			Id:       row.Id,
 			CreateAt: row.CreateAt,
 			Active:   row.Active,
 		}
 	}
 
-	if includeDiffs == "" || len(items) <= 1 {
+	// Items to return (capped at limit)
+	items := allItems
+	if len(items) > limit {
+		items = allItems[:limit]
+	}
+
+	if includeDiffs == "" || len(allItems) <= 1 {
 		return items, nil
 	}
 
-	// Fetch config values and compute diffs between consecutive entries
-	ids := make([]string, len(items))
-	for i, item := range items {
+	// Fetch config values for all rows (including the extra predecessor)
+	// and compute diffs between consecutive entries.
+	ids := make([]string, len(allItems))
+	for i, item := range allItems {
 		ids[i] = item.Id
 	}
 
@@ -409,9 +424,10 @@ func (ds *DatabaseStore) listConfigurations(limit int, includeDiffs string) ([]*
 		configs[id] = cfg
 	}
 
-	// Sort chronologically (oldest first) for diffing
-	sorted := make([]*model.ConfigListItem, len(items))
-	copy(sorted, items)
+	// Sort chronologically (oldest first) for diffing, using allItems
+	// so the extra predecessor is included in the diff computation.
+	sorted := make([]*model.ConfigListItem, len(allItems))
+	copy(sorted, allItems)
 	sort.Slice(sorted, func(i, j int) bool {
 		return sorted[i].CreateAt < sorted[j].CreateAt
 	})

@@ -488,6 +488,83 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+  /api/v4/config/list:
+    get:
+      tags:
+        - system
+      summary: List configuration history
+      description: |
+        Retrieve a list of previous configurations with optional diffs between them.
+
+        ##### Permissions
+        Must have `manage_system` permission.
+      operationId: ListConfigurations
+      parameters:
+        - name: limit
+          in: query
+          description: The number of configuration history entries to return. Default is 5, maximum is 100.
+          required: false
+          schema:
+            type: integer
+            default: 5
+        - name: include_diffs
+          in: query
+          description: Whether to include diffs between configurations. Set to "true" to include.
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Configuration history retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /api/v4/config/rollback:
+    post:
+      tags:
+        - system
+      summary: Rollback to a previous configuration
+      description: |
+        Rollback the server configuration to a previous version identified by its config ID.
+
+        ##### Permissions
+        Must have `manage_system` permission.
+      operationId: RollbackConfig
+      requestBody:
+        description: The config ID to rollback to
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                config_id:
+                  type: string
+                  description: The ID of the configuration to rollback to
+              required:
+                - config_id
+      responses:
+        "200":
+          description: Configuration rollback successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Config"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
   /api/v4/config/patch:
     put:
       tags:
