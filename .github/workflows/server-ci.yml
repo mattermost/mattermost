@@ -301,6 +301,8 @@ jobs:
       - name: FIPS compile check
         # Verifies the server builds successfully with FIPS-enabled Go toolchain.
         # Full FIPS test suite runs on master merges only (see test-postgres-fips below).
+        # Uses setup-go-work to resolve monorepo inter-module dependencies,
+        # then builds all server packages (same as the full test job, minus running tests).
         run: |
           BUILD_IMAGE="mattermost/mattermost-build-server-fips:${{ needs.go.outputs.version }}"
           docker run --rm \
@@ -308,7 +310,7 @@ jobs:
             -w /mattermost/server \
             --env FIPS_ENABLED=true \
             "$BUILD_IMAGE" \
-            bash -c "go build ./..."
+            bash -c "make setup-go-work && go build ./..."
 
   test-postgres-fips:
     # Full FIPS test suite — runs sharded on master pushes only.
