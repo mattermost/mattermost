@@ -82,7 +82,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
           # Write PR body to a temp path that survives checkout
-          echo "$PR_BODY" > "$RUNNER_TEMP/pr_body.txt"
+          printf '%s\n' "$PR_BODY" > "$RUNNER_TEMP/pr_body.txt"
 
       # Required: claude-code-action needs a git directory to initialize.
       - name: ci/checkout
@@ -101,7 +101,11 @@ jobs:
 
           # Fetch the PR head and base branch, then diff locally (no API size limits)
           git fetch origin "$BASE_BRANCH" "pull/$PR_NUM/head:pr-$PR_NUM" --depth=50
-          MERGE_BASE=$(git merge-base "origin/$BASE_BRANCH" "pr-$PR_NUM")
+          if ! MERGE_BASE=$(git merge-base "origin/$BASE_BRANCH" "pr-$PR_NUM" 2>/dev/null); then
+            echo "Merge base not found in shallow history — fetching full history"
+            git fetch --unshallow origin "$BASE_BRANCH" "pull/$PR_NUM/head:pr-$PR_NUM"
+            MERGE_BASE=$(git merge-base "origin/$BASE_BRANCH" "pr-$PR_NUM")
+          fi
           git diff "$MERGE_BASE" "pr-$PR_NUM" > full_diff.diff
 
           # Derive file list from the diff (avoids a second API call)
