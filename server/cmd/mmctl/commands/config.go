@@ -12,6 +12,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
@@ -129,6 +130,15 @@ var ConfigExportCmd = &cobra.Command{
 	RunE:    withClient(configExportCmdF),
 }
 
+var ConfigListCmd = &cobra.Command{
+	Use:     "list",
+	Short:   "List stored configurations",
+	Long:    "Lists recent configuration entries from the database-backed config store, showing Id, creation time, and active status.",
+	Example: "  config list\n  config list --limit 10",
+	Args:    cobra.NoArgs,
+	RunE:    withClient(configListCmdF),
+}
+
 func init() {
 	ConfigResetCmd.Flags().Bool("confirm", false, "confirm you really want to reset all configuration settings to its default value")
 
@@ -139,6 +149,10 @@ func init() {
 
 	ConfigExportCmd.Flags().Bool("remove-masked", true, "remove masked values from the exported configuration")
 	ConfigExportCmd.Flags().Bool("remove-defaults", false, "remove default values from the exported configuration")
+
+	ConfigListCmd.Flags().Int("limit", 5, "Maximum number of configurations to list")
+	ConfigListCmd.Flags().Bool("detailed", false, "Show old and new values for each change")
+	ConfigListCmd.Flags().Bool("no-delta", false, "Skip delta computation, show only config metadata")
 
 	ConfigCmd.AddCommand(
 		ConfigGetCmd,
@@ -151,6 +165,7 @@ func init() {
 		ConfigMigrateCmd,
 		ConfigSubpathCmd,
 		ConfigExportCmd,
+		ConfigListCmd,
 	)
 	RootCmd.AddCommand(ConfigCmd)
 }
@@ -612,4 +627,91 @@ func configExportCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 	printer.Print(config)
 
 	return nil
+}
+
+func configListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	limit, _ := cmd.Flags().GetInt("limit")
+	detailed, _ := cmd.Flags().GetBool("detailed")
+	noDelta, _ := cmd.Flags().GetBool("no-delta")
+
+	includeDiffs := "true"
+	if detailed {
+		includeDiffs = "detailed"
+	}
+	if noDelta {
+		includeDiffs = ""
+	}
+
+	items, _, err := c.ListConfigurations(context.TODO(), limit, includeDiffs)
+	if err != nil {
+		return fmt.Errorf("unable to list configurations: %w", err)
+	}
+
+	if len(items) == 0 {
+		printer.Print("No configurations found. This feature requires a database-backed config store.")
+		return nil
+	}
+
+	// "%-26s  %s  %-8s  " = Id(26) + 2 + date(20) + 2 + status(8) + 2
+	const prefix = "%-26s  %s  %-8s"
+	const padWidth = 26 + 2 + 20 + 2 + 8 + 2
+	pad := strings.Repeat(" ", padWidth)
+
+	for _, item := range items {
+		created := time.UnixMilli(item.CreateAt).UTC().Format(time.RFC3339)
+		status := "inactive"
+		if item.Active {
+			status = "active"
+		}
+		header := fmt.Sprintf(prefix, item.Id, created, status)
+
+		if printer.GetFormat() != printer.FormatJSON && len(item.Changes) > 0 {
+			for i, change := range item.Changes {
+				var changeLine string
+				if detailed {
+					oldStr := formatConfigValue(change.OldValue)
+					newStr := formatConfigValue(change.NewValue)
+					if oldStr == model.FakeSetting || newStr == model.FakeSetting {
+						changeLine = fmt.Sprintf("%s: [redacted]", change.Path)
+					} else {
+						changeLine = fmt.Sprintf("%s: %s -> %s", change.Path, oldStr, newStr)
+					}
+				} else {
+					changeLine = change.Path
+				}
+				if i == 0 {
+					printer.PrintT(header+"  "+changeLine, item)
+				} else {
+					printer.Print(pad + changeLine)
+				}
+			}
+		} else {
+			printer.PrintT(header, item)
+		}
+	}
+
+	return nil
+}
+
+func formatConfigValue(v any) string {
+	if v == nil {
+		return "<nil>"
+	}
+	rv := reflect.ValueOf(v)
+	switch rv.Kind() {
+	case reflect.Map, reflect.Slice:
+		b, err := json.Marshal(v)
+		if err != nil {
+			return fmt.Sprintf("%v", v)
+		}
+		return string(b)
+	case reflect.Float32, reflect.Float64:
+		f := rv.Float()
+		if f == float64(int64(f)) {
+			return strconv.FormatInt(int64(f), 10)
+		}
+		return strconv.FormatFloat(f, 'f', -1, 64)
+	default:
+		return fmt.Sprintf("%v", v)
+	}
 }

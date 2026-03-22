@@ -5148,6 +5148,21 @@ type GetConfigOptions struct {
 	RemoveDefaults bool
 }
 
+// ConfigChange represents a single setting change between two configuration versions.
+type ConfigChange struct {
+	Path     string `json:"path"`
+	OldValue any    `json:"old_value,omitempty"`
+	NewValue any    `json:"new_value,omitempty"`
+}
+
+// ConfigListItem represents metadata about a stored configuration entry.
+type ConfigListItem struct {
+	Id       string         `json:"id"`
+	CreateAt int64          `json:"create_at"`
+	Active   bool           `json:"active"`
+	Changes  []ConfigChange `json:"changes,omitempty"`
+}
+
 // FilterConfig returns a map[string]any representation of the configuration.
 // Also, the function can filter the configuration by the options passed
 // in the argument. The options are used to remove the default values, the masked

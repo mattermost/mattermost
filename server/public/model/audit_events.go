@@ -110,6 +110,7 @@ const (
 const (
 	AuditEventConfigReload         = "configReload"         // reload server configuration
 	AuditEventGetConfig            = "getConfig"            // get current server configuration
+	AuditEventListConfigurations   = "listConfigurations"   // list stored configuration history
 	AuditEventLocalGetClientConfig = "localGetClientConfig" // get client configuration locally
 	AuditEventLocalGetConfig       = "localGetConfig"       // get server configuration locally
 	AuditEventLocalPatchConfig     = "localPatchConfig"     // update server configuration locally

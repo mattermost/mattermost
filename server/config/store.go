@@ -411,3 +411,14 @@ func (s *Store) CleanUp() error {
 		return nil
 	}
 }
+
+// ListConfigurations returns metadata for recent configurations.
+// This only works with DatabaseStore; returns an error for FileStore.
+func (s *Store) ListConfigurations(limit int, includeDiffs string) ([]*model.ConfigListItem, error) {
+	switch bs := s.backingStore.(type) {
+	case *DatabaseStore:
+		return bs.listConfigurations(limit, includeDiffs)
+	default:
+		return nil, errors.New("listing configurations is only supported with database-backed config stores")
+	}
+}

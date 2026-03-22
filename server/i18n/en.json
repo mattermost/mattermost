@@ -1746,6 +1746,10 @@
     "translation": "Failed to merge given config."
   },
   {
+    "id": "api.config.list_configurations.app_error",
+    "translation": "Unable to list configurations."
+  },
+  {
     "id": "api.config.migrate_config.app_error",
     "translation": "Failed to migrate config store."
   },

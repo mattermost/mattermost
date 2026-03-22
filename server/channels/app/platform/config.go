@@ -151,6 +151,10 @@ func (ps *PlatformService) CleanUpConfig() error {
 	return ps.configStore.CleanUp()
 }
 
+func (ps *PlatformService) ListConfigurations(limit int, includeDiffs string) ([]*model.ConfigListItem, error) {
+	return ps.configStore.ListConfigurations(limit, includeDiffs)
+}
+
 // ConfigureLogger applies the specified configuration to a logger.
 func (ps *PlatformService) ConfigureLogger(name string, logger *mlog.Logger, logSettings *model.LogSettings, getPath func(string) string) error {
 	// Advanced logging is E20 only, however logging must be initialized before the license

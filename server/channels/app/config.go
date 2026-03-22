@@ -7,6 +7,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/rand"
 	"encoding/json"
+	"net/http"
 	"net/url"
 	"reflect"
 	"strconv"
@@ -242,6 +243,14 @@ func (a *App) GetEnvironmentConfig(filter func(reflect.StructField) bool) map[st
 // SaveConfig replaces the active configuration, optionally notifying cluster peers.
 func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError) {
 	return a.Srv().platform.SaveConfig(newCfg, sendConfigChangeClusterMessage)
+}
+
+func (a *App) ListConfigurations(limit int, includeDiffs string) ([]*model.ConfigListItem, *model.AppError) {
+	items, err := a.Srv().platform.ListConfigurations(limit, includeDiffs)
+	if err != nil {
+		return nil, model.NewAppError("ListConfigurations", "api.config.list_configurations.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return items, nil
 }
 
 func (a *App) HandleMessageExportConfig(cfg *model.Config, appCfg *model.Config) {

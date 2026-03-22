@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
@@ -349,4 +350,125 @@ func (ds *DatabaseStore) cleanUp(thresholdCreateAt int64) error {
 	}
 
 	return nil
+}
+
+func (ds *DatabaseStore) listConfigurations(limit int, includeDiffs string) ([]*model.ConfigListItem, error) {
+	type configListRow struct {
+		Id       string `db:"id"`
+		CreateAt int64  `db:"createat"`
+		Active   bool   `db:"active"`
+	}
+
+	query := `
+		SELECT Id, CreateAt, COALESCE(Active, false) AS Active
+		FROM Configurations
+		ORDER BY Active DESC NULLS LAST, CreateAt DESC
+		LIMIT $1
+	`
+
+	var rows []configListRow
+	if err := ds.db.Select(&rows, query, limit); err != nil {
+		return nil, errors.Wrap(err, "failed to list configurations")
+	}
+
+	items := make([]*model.ConfigListItem, len(rows))
+	for i, row := range rows {
+		items[i] = &model.ConfigListItem{
+			Id:       row.Id,
+			CreateAt: row.CreateAt,
+			Active:   row.Active,
+		}
+	}
+
+	if includeDiffs == "" || len(items) <= 1 {
+		return items, nil
+	}
+
+	// Fetch config values and compute diffs between consecutive entries
+	ids := make([]string, len(items))
+	for i, item := range items {
+		ids[i] = item.Id
+	}
+
+	values, err := ds.getConfigValuesByIDs(ids)
+	if err != nil {
+		return nil, err
+	}
+
+	// Unmarshal configs and apply SetDefaults() so that diffs only reflect
+	// intentional user changes, not new fields introduced by server upgrades.
+	// Without SetDefaults(), upgrading the server would cause every new config
+	// field to appear as a diff (nil -> default value), which is noise.
+	configs := make(map[string]*model.Config, len(values))
+	for id, raw := range values {
+		cfg := &model.Config{}
+		if err := json.Unmarshal(raw, cfg); err != nil {
+			return nil, errors.Wrapf(err, "failed to unmarshal config %s", id)
+		}
+		cfg.SetDefaults()
+		configs[id] = cfg
+	}
+
+	// Sort chronologically (oldest first) for diffing
+	sorted := make([]*model.ConfigListItem, len(items))
+	copy(sorted, items)
+	sort.Slice(sorted, func(i, j int) bool {
+		return sorted[i].CreateAt < sorted[j].CreateAt
+	})
+
+	detailed := includeDiffs == "detailed"
+	changesMap := make(map[string][]model.ConfigChange)
+	for i := 1; i < len(sorted); i++ {
+		prevCfg := configs[sorted[i-1].Id]
+		currCfg := configs[sorted[i].Id]
+		if prevCfg == nil || currCfg == nil {
+			continue
+		}
+		diffs, diffErr := Diff(prevCfg, currCfg)
+		if diffErr != nil {
+			continue
+		}
+		diffs = diffs.Sanitize()
+
+		changes := make([]model.ConfigChange, len(diffs))
+		for j, d := range diffs {
+			changes[j] = model.ConfigChange{Path: d.Path}
+			if detailed {
+				changes[j].OldValue = d.BaseVal
+				changes[j].NewValue = d.ActualVal
+			}
+		}
+		changesMap[sorted[i].Id] = changes
+	}
+
+	for _, item := range items {
+		if c, ok := changesMap[item.Id]; ok {
+			item.Changes = c
+		}
+	}
+
+	return items, nil
+}
+
+func (ds *DatabaseStore) getConfigValuesByIDs(ids []string) (map[string][]byte, error) {
+	query, args, err := sqlx.In("SELECT Id, Value FROM Configurations WHERE Id IN (?)", ids)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to build query")
+	}
+	query = ds.db.Rebind(query)
+
+	type row struct {
+		Id    string `db:"id"`
+		Value []byte `db:"value"`
+	}
+	var rows []row
+	if err := ds.db.Select(&rows, query, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to fetch configuration values")
+	}
+
+	result := make(map[string][]byte, len(rows))
+	for _, r := range rows {
+		result[r.Id] = r.Value
+	}
+	return result, nil
 }

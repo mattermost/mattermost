@@ -4307,6 +4307,23 @@ func (c *Client4) ReloadConfig(ctx context.Context) (*Response, error) {
 	return BuildResponse(r), nil
 }
 
+// ListConfigurations returns metadata for stored configuration entries.
+func (c *Client4) ListConfigurations(ctx context.Context, limit int, includeDiffs string) ([]*ConfigListItem, *Response, error) {
+	query := url.Values{}
+	if limit > 0 {
+		query.Set("limit", strconv.Itoa(limit))
+	}
+	if includeDiffs != "" {
+		query.Set("include_diffs", includeDiffs)
+	}
+	r, err := c.doAPIGetWithQuery(ctx, c.configRoute().Join("list"), query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*ConfigListItem](r)
+}
+
 // GetClientConfig will retrieve the parts of the server configuration needed by the client.
 func (c *Client4) GetClientConfig(ctx context.Context, etag string) (map[string]string, *Response, error) {
 	r, err := c.doAPIGet(ctx, c.configRoute().Join("client"), etag)

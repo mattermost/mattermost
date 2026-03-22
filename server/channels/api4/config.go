@@ -38,6 +38,7 @@ func (api *API) InitConfig() {
 	api.BaseRoutes.APIRoot.Handle("/config/reload", api.APISessionRequired(configReload)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/config/client", api.APIHandler(getClientConfig)).Methods(http.MethodGet)
 	api.BaseRoutes.APIRoot.Handle("/config/environment", api.APISessionRequired(getEnvironmentConfig)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/config/list", api.APISessionRequired(listConfigurations)).Methods(http.MethodGet)
 }
 
 func init() {
@@ -456,5 +457,37 @@ func makeFilterConfigByPermission(accessType filterType) func(c *Context, struct
 
 		// with manage_system, default to allow, otherwise default not-allow
 		return c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+	}
+}
+
+func listConfigurations(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), model.SysconsoleReadPermissions) {
+		c.SetPermissionError(model.SysconsoleReadPermissions...)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventListConfigurations, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+
+	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+	if limit <= 0 {
+		limit = 5
+	}
+	if limit > 100 {
+		limit = 100
+	}
+
+	includeDiffs := r.URL.Query().Get("include_diffs")
+
+	items, appErr := c.App.ListConfigurations(limit, includeDiffs)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	if err := json.NewEncoder(w).Encode(items); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
