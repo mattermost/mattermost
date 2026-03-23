@@ -4,21 +4,26 @@
 package platform
 
 import (
+	"context"
+	"time"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+)
+
+// Watcher tuning knobs — declared as vars so tests can override them.
+var (
+	searchEngineRetryInitial        = 15 * time.Second
+	searchEngineRetryMax            = 5 * time.Minute
+	searchEngineHealthInterval      = 60 * time.Second
+	searchEngineHealthFailThreshold = 3
+	searchEngineStopTimeout         = 15 * time.Second
 )
 
 func (ps *PlatformService) StartSearchEngine() (string, string) {
-	if ps.SearchEngine.ElasticsearchEngine != nil && ps.SearchEngine.ElasticsearchEngine.IsEnabled() {
-		ps.Go(func() {
-			if err := ps.SearchEngine.ElasticsearchEngine.Start(); err != nil {
-				ps.Log().Error(err.Error())
-				return
-			}
-			if model.SafeDereference(ps.Config().ElasticsearchSettings.EnableSearchPublicChannelsWithoutMembership) {
-				ps.backfillPostsChannelType(ps.SearchEngine.ElasticsearchEngine)
-			}
-		})
+	if ps.SearchEngine.ElasticsearchEngine != nil {
+		ps.startSearchEngineWatcher()
 	}
 
 	configListenerId := ps.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
@@ -46,33 +51,18 @@ func (ps *PlatformService) StartSearchEngine() (string, string) {
 		startingBackfill := !model.SafeDereference(oldESCfg.EnableSearchPublicChannelsWithoutMembership) &&
 			model.SafeDereference(newESCfg.EnableSearchPublicChannelsWithoutMembership)
 
-		if startingES {
-			ps.Go(func() {
-				if err := ps.SearchEngine.ElasticsearchEngine.Start(); err != nil {
-					ps.Log().Error(err.Error())
-					return
-				}
-				if model.SafeDereference(newESCfg.EnableSearchPublicChannelsWithoutMembership) {
-					ps.backfillPostsChannelType(ps.SearchEngine.ElasticsearchEngine)
-				}
-			})
-		} else if stoppingES {
+		if connectionChanged && model.SafeDereference(oldESCfg.EnableIndexing) {
+			// Force reconnect: stop engine in ps.Go (so we don't block the
+			// synchronous config listener), then notify the watcher to restart.
 			ps.Go(func() {
 				if err := ps.SearchEngine.ElasticsearchEngine.Stop(); err != nil {
-					ps.Log().Error(err.Error())
+					ps.Log().Warn(err.Error())
 				}
+				ps.notifySearchEngineWatcher()
 			})
-		} else if connectionChanged {
-			ps.Go(func() {
-				if model.SafeDereference(oldESCfg.EnableIndexing) {
-					if err := ps.SearchEngine.ElasticsearchEngine.Stop(); err != nil {
-						ps.Log().Error(err.Error())
-					}
-					if err := ps.SearchEngine.ElasticsearchEngine.Start(); err != nil {
-						ps.Log().Error(err.Error())
-					}
-				}
-			})
+		} else if startingES || stoppingES {
+			// Watcher will detect the IsEnabled() change on its next evaluation.
+			ps.notifySearchEngineWatcher()
 		}
 
 		// Backfill was enabled but ES was already running (not starting fresh).
@@ -92,22 +82,21 @@ func (ps *PlatformService) StartSearchEngine() (string, string) {
 		if ps.SearchEngine == nil {
 			return
 		}
-		if oldLicense == nil && newLicense != nil {
-			if ps.SearchEngine.ElasticsearchEngine != nil && ps.SearchEngine.ElasticsearchEngine.IsActive() {
-				ps.Go(func() {
-					if err := ps.SearchEngine.ElasticsearchEngine.Start(); err != nil {
-						ps.Log().Error(err.Error())
-					}
-				})
-			}
-		} else if oldLicense != nil && newLicense == nil {
+		if oldLicense != nil && newLicense == nil {
+			// License removed — stop engine. The watcher will retry Start()
+			// which returns nil without a license, so it backs off gracefully.
+			// When the license is re-added, the watcher picks it up.
 			if ps.SearchEngine.ElasticsearchEngine != nil {
 				ps.Go(func() {
 					if err := ps.SearchEngine.ElasticsearchEngine.Stop(); err != nil {
-						ps.Log().Error(err.Error())
+						ps.Log().Warn(err.Error())
 					}
+					ps.notifySearchEngineWatcher()
 				})
 			}
+		} else if oldLicense == nil && newLicense != nil {
+			// License added — watcher will try Start() on next evaluation.
+			ps.notifySearchEngineWatcher()
 		}
 	})
 
@@ -115,11 +104,241 @@ func (ps *PlatformService) StartSearchEngine() (string, string) {
 }
 
 func (ps *PlatformService) StopSearchEngine() {
+	ps.stopSearchEngineWatcher()
 	ps.RemoveConfigListener(ps.searchConfigListenerId)
 	ps.RemoveLicenseListener(ps.searchLicenseListenerId)
 	if ps.SearchEngine != nil && ps.SearchEngine.ElasticsearchEngine != nil && ps.SearchEngine.ElasticsearchEngine.IsActive() {
 		if err := ps.SearchEngine.ElasticsearchEngine.Stop(); err != nil {
 			ps.Log().Error("Failed to stop Elasticsearch engine", mlog.Err(err))
 		}
+	}
+}
+
+// startSearchEngineWatcher launches the background watcher goroutine if not
+// already running. The watcher monitors engine health and retries Start() with
+// exponential backoff when the engine is not active.
+//
+// It uses a raw goroutine (not ps.Go()) so that it does not block
+// waitForGoroutines() during shutdown — stopSearchEngineWatcher() manages
+// its lifecycle via context cancellation.
+//
+// Idempotent: no-op if a watcher is already running.
+func (ps *PlatformService) startSearchEngineWatcher() {
+	ps.searchEngineWatcherMut.Lock()
+	defer ps.searchEngineWatcherMut.Unlock()
+
+	if ps.searchEngineWatcherCancel != nil {
+		return // already running (possibly parked when disabled — still alive)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan struct{})
+	notify := make(chan struct{}, 1)
+
+	ps.searchEngineWatcherCancel = cancel
+	ps.searchEngineWatcherDone = done
+	ps.searchEngineWatcherNotify = notify
+
+	go ps.runSearchEngineWatcher(ctx, done, notify)
+}
+
+// stopSearchEngineWatcher cancels the watcher's context and waits for it to
+// exit with a bounded timeout. If the watcher does not stop in time (e.g.
+// stuck in a long Start() call), the goroutine is abandoned and will
+// self-terminate when its blocking call returns and it checks ctx.Err().
+//
+// The mutex is NOT held during the wait — only for field access.
+func (ps *PlatformService) stopSearchEngineWatcher() {
+	ps.searchEngineWatcherMut.Lock()
+	cancel := ps.searchEngineWatcherCancel
+	done := ps.searchEngineWatcherDone
+	ps.searchEngineWatcherCancel = nil
+	ps.searchEngineWatcherDone = nil
+	ps.searchEngineWatcherNotify = nil
+	ps.searchEngineWatcherMut.Unlock()
+
+	if cancel == nil {
+		return // not running
+	}
+
+	cancel()
+
+	select {
+	case <-done:
+	case <-time.After(searchEngineStopTimeout):
+		ps.Log().Warn("Search engine watcher did not stop in time; abandoning goroutine",
+			mlog.Duration("timeout", searchEngineStopTimeout))
+	}
+}
+
+// notifySearchEngineWatcher sends a non-blocking signal to the watcher to
+// re-evaluate engine state immediately. If a signal is already pending, this
+// is a no-op (the watcher will re-evaluate when it reads the existing one).
+func (ps *PlatformService) notifySearchEngineWatcher() {
+	ps.searchEngineWatcherMut.Lock()
+	ch := ps.searchEngineWatcherNotify
+	ps.searchEngineWatcherMut.Unlock()
+
+	if ch != nil {
+		select {
+		case ch <- struct{}{}:
+		default:
+		}
+	}
+}
+
+// runSearchEngineWatcher is the main loop of the watcher. It operates as a
+// state machine driven by engine state:
+//
+//	(start)
+//	   |
+//	   v
+//	IsEnabled()? --no--> PARK (wait for notify or cancel)
+//	   |
+//	  yes
+//	   |
+//	   v
+//	IsActive()? --yes--> HEALTH CHECK (periodic)
+//	   |                        |
+//	  no                 N consecutive failures
+//	   |                        |
+//	   v                   Stop() engine
+//	RETRY PHASE <---------------+
+//	   |
+//	   | wait (exponential backoff, interruptible by notify/cancel)
+//	   v
+//	Start()
+//	   |--error--> backoff*2 (capped), retry
+//	   |--ok-----> reset backoff, HEALTH CHECK
+//
+//	Any state -- ctx.Done() --> EXIT
+//	Any state -- notify     --> immediate re-evaluation
+func (ps *PlatformService) runSearchEngineWatcher(ctx context.Context, done chan struct{}, notify <-chan struct{}) {
+	defer close(done)
+
+	engine := ps.SearchEngine.ElasticsearchEngine
+	if engine == nil {
+		return
+	}
+
+	backoff := searchEngineRetryInitial
+	consecutiveFailures := 0
+	rctx := request.EmptyContext(ps.logger)
+
+	// Timer starts at 0 for immediate first evaluation.
+	timer := time.NewTimer(0)
+	defer timer.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-notify:
+			// Something changed (config, license, etc.) — re-evaluate immediately.
+			timer.Reset(0)
+			backoff = searchEngineRetryInitial
+			consecutiveFailures = 0
+			continue
+		case <-timer.C:
+		}
+
+		// Prioritize shutdown: if select picked timer.C over ctx.Done()
+		// (random when both are ready), exit now.
+		if ctx.Err() != nil {
+			return
+		}
+
+		// ── DISABLED: park until notified or cancelled ──
+		if !engine.IsEnabled() {
+			if engine.IsActive() {
+				if err := engine.Stop(); err != nil {
+					ps.Log().Warn("Search engine watcher: Stop() returned error while disabling",
+						mlog.Err(err),
+						mlog.String("engine", engine.GetName()))
+				}
+			}
+			ps.Log().Info("Search engine watcher: engine disabled, parking")
+			select {
+			case <-ctx.Done():
+				return
+			case <-notify:
+				timer.Reset(0)
+			}
+			continue
+		}
+
+		// ── INACTIVE: retry Start() ──
+		if !engine.IsActive() {
+			if err := engine.Start(); err != nil {
+				backoff = min(backoff*2, searchEngineRetryMax)
+				ps.Log().Warn("Search engine watcher: Start() failed, will retry",
+					mlog.Err(err),
+					mlog.Duration("next_backoff", backoff),
+					mlog.String("engine", engine.GetName()))
+				timer.Reset(backoff)
+				continue
+			}
+
+			// Don't start new work during shutdown.
+			if ctx.Err() != nil {
+				return
+			}
+
+			// Start() returned nil but engine may not be active (e.g. no license).
+			if !engine.IsActive() {
+				backoff = min(backoff*2, searchEngineRetryMax)
+				ps.Log().Warn("Search engine watcher: Start() returned no error but engine is not active, will retry",
+					mlog.Duration("next_backoff", backoff),
+					mlog.String("engine", engine.GetName()))
+				timer.Reset(backoff)
+				continue
+			}
+
+			// Successfully started.
+			ps.Log().Info("Search engine watcher: engine started successfully",
+				mlog.String("engine", engine.GetName()))
+			backoff = searchEngineRetryInitial
+			consecutiveFailures = 0
+
+			if model.SafeDereference(ps.Config().ElasticsearchSettings.EnableSearchPublicChannelsWithoutMembership) {
+				ps.Go(func() {
+					ps.backfillPostsChannelType(engine)
+				})
+			}
+
+			timer.Reset(searchEngineHealthInterval)
+			continue
+		}
+
+		// ── ACTIVE: health check ──
+		if err := engine.HealthCheck(rctx); err != nil {
+			consecutiveFailures++
+			if consecutiveFailures >= searchEngineHealthFailThreshold {
+				ps.Log().Error("Search engine health check failed repeatedly; stopping engine",
+					mlog.Err(err),
+					mlog.Int("consecutive_failures", consecutiveFailures),
+					mlog.String("engine", engine.GetName()))
+
+				if stopErr := engine.Stop(); stopErr != nil {
+					ps.Log().Warn("Search engine watcher: Stop() returned error (may already be stopped)",
+						mlog.Err(stopErr),
+						mlog.String("engine", engine.GetName()))
+				}
+				consecutiveFailures = 0
+				backoff = searchEngineRetryInitial
+				timer.Reset(backoff)
+				continue
+			}
+
+			ps.Log().Warn("Search engine health check failed",
+				mlog.Err(err),
+				mlog.Int("consecutive_failures", consecutiveFailures),
+				mlog.Int("threshold", searchEngineHealthFailThreshold),
+				mlog.String("engine", engine.GetName()))
+		} else {
+			consecutiveFailures = 0
+		}
+
+		timer.Reset(searchEngineHealthInterval)
 	}
 }

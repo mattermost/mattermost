@@ -4,6 +4,7 @@
 package platform
 
 import (
+	"context"
 	"crypto/ecdsa"
 	"errors"
 	"fmt"
@@ -93,6 +94,11 @@ type PlatformService struct {
 	SearchEngine            *searchengine.Broker
 	searchConfigListenerId  string
 	searchLicenseListenerId string
+
+	searchEngineWatcherMut    sync.Mutex
+	searchEngineWatcherCancel context.CancelFunc // nil when watcher is not running
+	searchEngineWatcherDone   chan struct{}      // closed when watcher goroutine exits
+	searchEngineWatcherNotify chan struct{}      // buffered(1), non-blocking wake signal
 
 	ldapDiagnostic einterfaces.LdapDiagnosticInterface
 
