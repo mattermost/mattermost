@@ -37,46 +37,28 @@ func TestUpdateAssetsSubpathFromConfig(t *testing.T) {
 	})
 
 	t.Run("no config", func(t *testing.T) {
-		tempDir, err := os.MkdirTemp("", "test_update_assets_subpath")
-		require.NoError(t, err)
-		defer func() {
-			err = os.RemoveAll(tempDir)
-			require.NoError(t, err)
-		}()
-		err = os.Chdir(tempDir)
-		require.NoError(t, err)
+		tempDir := t.TempDir()
+		t.Chdir(tempDir)
 
-		err = utils.UpdateAssetsSubpathFromConfig(nil)
+		err := utils.UpdateAssetsSubpathFromConfig(nil)
 		require.Error(t, err)
 	})
 }
 
 func TestUpdateAssetsSubpath(t *testing.T) {
 	t.Run("no client dir", func(t *testing.T) {
-		tempDir, err := os.MkdirTemp("", "test_update_assets_subpath")
-		require.NoError(t, err)
-		defer func() {
-			err = os.RemoveAll(tempDir)
-			require.NoError(t, err)
-		}()
-		err = os.Chdir(tempDir)
-		require.NoError(t, err)
+		tempDir := t.TempDir()
+		t.Chdir(tempDir)
 
-		err = utils.UpdateAssetsSubpath("/")
+		err := utils.UpdateAssetsSubpath("/")
 		require.Error(t, err)
 	})
 
 	t.Run("valid", func(t *testing.T) {
-		tempDir, err := os.MkdirTemp("", "test_update_assets_subpath")
-		require.NoError(t, err)
-		defer func() {
-			err = os.RemoveAll(tempDir)
-			require.NoError(t, err)
-		}()
-		err = os.Chdir(tempDir)
-		require.NoError(t, err)
+		tempDir := t.TempDir()
+		t.Chdir(tempDir)
 
-		err = os.Mkdir(model.ClientDir, 0700)
+		err := os.Mkdir(model.ClientDir, 0700)
 		require.NoError(t, err)
 
 		testCases := []struct {
