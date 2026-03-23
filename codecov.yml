@@ -1,0 +1,32 @@
+codecov:
+  require_ci_to_pass: false
+
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+        informational: true
+    patch:
+      default:
+        target: 50%
+        informational: true
+
+  # Exclude generated code, mocks, and test infrastructure from reporting.
+  # Go compiles these into the test binary, so they appear in cover.out,
+  # but they aren't production code and inflate the denominator.
+  # Without these exclusions: 36.3% (146K stmts). With: 52.7% (100K stmts).
+  ignore:
+    - "server/**/retrylayer/**"
+    - "server/**/timerlayer/**"
+    - "server/**/*_serial_gen.go"
+    - "server/**/mocks/**"
+    - "server/**/storetest/**"
+    - "server/**/plugintest/**"
+    - "server/**/searchtest/**"
+
+comment:
+  layout: "condensed_header,diff,flags"
+  behavior: default
+  require_changes: true

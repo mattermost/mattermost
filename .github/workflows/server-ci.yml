@@ -380,6 +380,18 @@ jobs:
           disable_search: true
           files: cover.out
           flags: server
+
+      # Retain the merged profile for offline analysis and historical comparison.
+      # 30-day retention keeps storage minimal (~3.5MB/run × ~20 runs/day = ~2.1GB).
+      # 90 days was considered (~6.3GB) but deferred to keep costs low — extend if
+      # historical analysis beyond a month proves necessary.
+      - name: Upload merged coverage artifact
+        if: hashFiles('cover.out') != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: server-coverage-merged
+          path: cover.out
+          retention-days: 30
   test-mmctl:
     name: Run mmctl tests
     needs: go
