@@ -120,17 +120,17 @@ const PDFPreview = memo(({
 
         const page = await pdf.getPage(pageIndex + 1);
 
-        const pdfPages = Object.assign({}, pdfFromState.pages);
-        pdfPages[pageIndex] = page;
-
-        const pdfPagesLoaded = Object.assign({}, pdfFromState.pagesLoaded);
-        pdfPagesLoaded[pageIndex] = true;
-
         setPdfFromState((prev) => {
             return {
                 ...prev,
-                pages: pdfPages,
-                pagesLoaded: pdfPagesLoaded,
+                pages: {
+                    ...prev.pages,
+                    [pageIndex]: page,
+                },
+                pagesLoaded: {
+                    ...prev.pagesLoaded,
+                    [pageIndex]: true,
+                },
             };
         });
 
