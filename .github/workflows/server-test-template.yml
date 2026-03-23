@@ -70,10 +70,13 @@ jobs:
           path: |
             server/prev-report.xml
             server/prev-gotestsum.json
-          # Try branch-specific timing first, fall back to master
-          key: server-test-timing-${{ github.base_ref || github.ref_name }}
+          # On PRs, base_ref=master; on push, ref_name=master (or release-*).
+          # This never matches exactly (save key has -run_id suffix), so it
+          # always falls through to restore-keys prefix matching below.
+          key: server-test-timing-${{ github.base_ref || github.ref_name }}-latest
           restore-keys: |
-            server-test-timing-master
+            server-test-timing-${{ github.base_ref || github.ref_name }}-
+            server-test-timing-master-
 
       - name: Setup BUILD_IMAGE
         id: build

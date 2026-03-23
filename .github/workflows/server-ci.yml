@@ -272,14 +272,21 @@ jobs:
             echo "has_timing=false" >> "$GITHUB_OUTPUT"
           fi
 
+      # Only save timing cache on push (master/release). PR branch caches are
+      # scoped to that branch and can't be restored by master or other PRs,
+      # so saving them wastes storage. The restore step in server-test-template
+      # uses prefix matching on restore-keys to find the latest master cache.
       - name: Save test timing cache
-        if: steps.timing-prep.outputs.has_timing == 'true'
+        if: steps.timing-prep.outputs.has_timing == 'true' && github.event_name == 'push'
         uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         with:
           path: |
             server/prev-report.xml
             server/prev-gotestsum.json
-          key: server-test-timing-${{ github.base_ref || github.ref_name }}-${{ github.run_id }}
+          # Use run_id suffix to avoid immutable cache key conflicts.
+          # Restore uses prefix matching on "server-test-timing-<branch>" to
+          # find the latest entry.
+          key: server-test-timing-${{ github.ref_name }}-${{ github.run_id }}
 
   test-postgres-normal-fips:
     # Skip FIPS testing for forks, which won't have docker login credentials.
