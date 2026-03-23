@@ -162,16 +162,16 @@ describe("shard-split.js", () => {
 
   describe("heavy package splitting", () => {
     it("splits packages over HEAVY_MS threshold into individual tests", () => {
-      // Create timing data where api4 is very heavy (> 120s = 120000ms)
+      // Create timing data where api4 is very heavy (> 300s = 300000ms)
       const lines = [];
-      // api4: 6 tests totaling 152.2s (> 120s threshold)
+      // api4: 6 tests totaling 452.2s (> 300s threshold)
       for (const [test, elapsed] of [
-        ["TestGetChannel", 45.2],
-        ["TestCreatePost", 38.1],
-        ["TestUpdateChannel", 22.5],
-        ["TestDeleteChannel", 18.3],
-        ["TestGetChannelMembers", 15.7],
-        ["TestSearchChannels", 12.4],
+        ["TestGetChannel", 145.2],
+        ["TestCreatePost", 98.1],
+        ["TestUpdateChannel", 72.5],
+        ["TestDeleteChannel", 58.3],
+        ["TestGetChannelMembers", 45.7],
+        ["TestSearchChannels", 32.4],
       ]) {
         lines.push(
           JSON.stringify({
