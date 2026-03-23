@@ -22,6 +22,7 @@ type TeamSelectOption = {label: string; value: string}
 
 export interface Props extends PropsFromRedux {
     option: FilterOption;
+
     /** Passed by `Filter` for all filter list components; unused here. */
     optionKey?: string;
     updateValues: (values: FilterValues, optionKey: string) => void;

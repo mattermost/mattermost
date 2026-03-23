@@ -10,9 +10,9 @@ import UsersToRemove from './users_to_remove';
 
 describe('components/admin_console/team_channel_settings/group/UsersToRemove', () => {
     const user1 = TestHelper.getUserMock({id: 'userid1', username: 'user-1', is_bot: false});
-    const membership1 = TestHelper.getTeamMembershipMock({user_id: 'userId1', roles: 'team_user', scheme_admin: false});
+    const membership1 = TestHelper.getTeamMembershipMock({user_id: 'userid1', roles: 'team_user', scheme_admin: false});
     const user2 = TestHelper.getUserMock({id: 'userid2', username: 'user-2', is_bot: false});
-    const membership2 = TestHelper.getTeamMembershipMock({user_id: 'userId2', roles: 'team_user team_admin', scheme_admin: true});
+    const membership2 = TestHelper.getTeamMembershipMock({user_id: 'userid2', roles: 'team_user team_admin', scheme_admin: true});
     const scope: 'team' | 'channel' = 'team';
     const baseProps = {
         members: [user1, user2],
