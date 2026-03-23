@@ -41,8 +41,8 @@ func TestCheckAPIVersionComments(t *testing.T) {
 
 	// Enable debug flag to have packagesdriver/sizes.go print stderr of `go list` command.
 	// We want to surface any error text that may exist in stderr of this command.
-	prevEnvValue := os.Getenv("GOPACKAGESPRINTGOLISTERRORS")
-	os.Setenv("GOPACKAGESPRINTGOLISTERRORS", "true")
+	// t.Setenv prevents t.Parallel — env var has no config equivalent
+	t.Setenv("GOPACKAGESPRINTGOLISTERRORS", "true")
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -56,5 +56,4 @@ func TestCheckAPIVersionComments(t *testing.T) {
 			}
 		})
 	}
-	os.Setenv("GOPACKAGESPRINTGOLISTERRORS", prevEnvValue)
 }
