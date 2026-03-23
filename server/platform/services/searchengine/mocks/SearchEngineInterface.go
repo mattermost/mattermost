@@ -311,6 +311,26 @@ func (_m *SearchEngineInterface) GetVersion() int {
 	return r0
 }
 
+// HealthCheck provides a mock function with given fields: rctx
+func (_m *SearchEngineInterface) HealthCheck(rctx request.CTX) *model.AppError {
+	ret := _m.Called(rctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for HealthCheck")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX) *model.AppError); ok {
+		r0 = rf(rctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // IndexChannel provides a mock function with given fields: rctx, channel, userIDs, teamMemberIDs
 func (_m *SearchEngineInterface) IndexChannel(rctx request.CTX, channel *model.Channel, userIDs []string, teamMemberIDs []string) *model.AppError {
 	ret := _m.Called(rctx, channel, userIDs, teamMemberIDs)

@@ -9001,6 +9001,14 @@
     "translation": "Failed to parse {{.Backend}} server version."
   },
   {
+    "id": "ent.elasticsearch.healthcheck.not_started.app_error",
+    "translation": "{{.Backend}} is not started."
+  },
+  {
+    "id": "ent.elasticsearch.healthcheck.unreachable.app_error",
+    "translation": "{{.Backend}} health check failed: server unreachable."
+  },
+  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "{{.Backend}} is already stopped."
   },

@@ -241,6 +241,36 @@ func (os *OpensearchInterfaceImpl) Start() *model.AppError {
 	return nil
 }
 
+// snapshotClient returns the current client reference under the read lock,
+// releasing the lock before returning. This lets HealthCheck make a blocking
+// network call without holding the RLock for its full duration.
+// See ElasticsearchInterfaceImpl.snapshotClient for the full rationale.
+func (os *OpensearchInterfaceImpl) snapshotClient() (*opensearchapi.Client, bool) {
+	os.mutex.RLock()
+	defer os.mutex.RUnlock()
+
+	if atomic.LoadInt32(&os.ready) == 0 {
+		return nil, false
+	}
+	return os.client, true
+}
+
+func (os *OpensearchInterfaceImpl) HealthCheck(_ request.CTX) *model.AppError {
+	client, ok := os.snapshotClient()
+	if !ok {
+		return model.NewAppError("Opensearch.HealthCheck", "ent.elasticsearch.healthcheck.not_started.app_error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if _, err := client.Cluster.Health(ctx, nil); err != nil {
+		return model.NewAppError("Opensearch.HealthCheck", "ent.elasticsearch.healthcheck.unreachable.app_error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusBadGateway).Wrap(err)
+	}
+
+	return nil
+}
+
 func (os *OpensearchInterfaceImpl) Stop() *model.AppError {
 	os.mutex.Lock()
 	defer os.mutex.Unlock()

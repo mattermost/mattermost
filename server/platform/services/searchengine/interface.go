@@ -13,6 +13,7 @@ import (
 type SearchEngineInterface interface {
 	Start() *model.AppError
 	Stop() *model.AppError
+	HealthCheck(rctx request.CTX) *model.AppError
 	GetFullVersion() string
 	GetVersion() int
 	GetPlugins() []string
