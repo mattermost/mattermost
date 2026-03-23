@@ -489,10 +489,15 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 }
 
 func TestGetSanitizedConfigFile(t *testing.T) {
+	// t.Setenv is correct here: this test verifies that feature flags set via
+	// environment variables (the production mechanism) appear in the sanitized
+	// config output. UpdateConfig won't work because SetDefaults() resets
+	// FeatureFlags before applyEnvironmentMap() re-applies env overrides.
+	t.Setenv("MM_FEATUREFLAGS_TestFeature", "true")
+
 	th := Setup(t)
 
 	th.Service.UpdateConfig(func(cfg *model.Config) {
-		cfg.FeatureFlags.TestFeature = "true"
 		cfg.ServiceSettings.AllowedUntrustedInternalConnections = model.NewPointer("example.com")
 	})
 
