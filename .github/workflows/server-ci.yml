@@ -237,19 +237,15 @@ jobs:
           done
           echo '</testsuites>' >> merged-report.xml
 
-      # Prepare files with expected names for the report workflow
+      # Prepare merged artifact for server-ci-report.yml:
+      # - test-name: display name for the GitHub Check created by action-junit-report
+      # - pr-number: used to post flaky test summaries as PR comments
       - name: Prepare merged artifact
         run: |
           mkdir -p merged
           cp merged-report.xml merged/report.xml
-          # Find the first shard artifact that has test-name and pr-number
-          for dir in shards/postgres-server-test-logs*/; do
-            if [[ -f "${dir}test-name" ]]; then
-              cp "${dir}test-name" merged/test-name
-              cp "${dir}pr-number" merged/pr-number
-              break
-            fi
-          done
+          echo "Postgres" > merged/test-name
+          echo "${{ github.event.pull_request.number }}" > merged/pr-number
 
       # Upload merged artifact with the name the report workflow expects
       - name: Upload merged test logs
