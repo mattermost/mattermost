@@ -16,6 +16,23 @@ const (
 	postReadStatusBatchInterval  = 500 * time.Millisecond
 )
 
+// QueueSinglePostReadStatus enqueues a single post read status entry for bulk writing.
+func (ps *PlatformService) QueueSinglePostReadStatus(postID string, userID string) {
+	status := &model.PostReadStatus{
+		PostId:   postID,
+		UserId:   userID,
+		CreateAt: model.GetMillis(),
+	}
+	select {
+	case ps.postReadStatusChan <- status:
+	default:
+		ps.Log().Warn("Post read status channel is full. Falling back to direct write.")
+		if err := ps.Store.PostReadStatus().SaveMultiple([]*model.PostReadStatus{status}); err != nil {
+			ps.Log().Warn("Failed to save post read status directly", mlog.Err(err))
+		}
+	}
+}
+
 // QueuePostReadStatus enqueues post read status entries for bulk writing.
 func (ps *PlatformService) QueuePostReadStatus(postIDs []string, userID string) {
 	now := model.GetMillis()

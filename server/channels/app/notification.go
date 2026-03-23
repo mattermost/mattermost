@@ -430,6 +430,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 			}
 
 			if a.userAllowsEmail(rctx, profileMap[id], channelMemberNotifyPropsMap[id], post) {
+				a.QueueSinglePostReadStatus(post.Id, id)
 				senderProfileImage, _, err := a.GetProfileImage(sender)
 				if err != nil {
 					rctx.Logger().Warn("Unable to get the sender user profile image.", mlog.String("user_id", sender.Id), mlog.Err(err))
@@ -720,6 +721,8 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 		if shouldAckWebsocketNotification(channel.Type, userNotificationLevel, channelNotificationLevel) {
 			usersToAck = append(usersToAck, id)
 		}
+
+		a.QueueSinglePostReadStatus(post.Id, id)
 	}
 	usePostedAckHook(message, post.UserId, channel.Type, usersToAck)
 

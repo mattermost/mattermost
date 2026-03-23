@@ -582,7 +582,11 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.App.QueuePostReadStatus([]string{post.Id}, c.AppContext.Session().UserId)
+	postIDs := []string{post.Id}
+	if previewPost := post.GetPreviewPost(); previewPost != nil {
+		postIDs = append(postIDs, previewPost.Post.Id)
+	}
+	c.App.QueuePostReadStatus(postIDs, c.AppContext.Session().UserId)
 
 	w.Header().Set(model.HeaderEtagServer, post.Etag())
 	if err := post.EncodeJSON(w); err != nil {
@@ -1834,7 +1838,7 @@ func revealPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
 
-	c.App.QueuePostReadStatus([]string{revealedPost.Id}, userId)
+	c.App.QueueSinglePostReadStatus(revealedPost.Id, userId)
 
 	auditRec.Success()
 	auditRec.AddEventResultState(revealedPost)
