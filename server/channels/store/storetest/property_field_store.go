@@ -98,19 +98,19 @@ func testCreatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 			GroupID:    model.NewId(),
 			Name:       "Field with ObjectType",
 			Type:       model.PropertyFieldTypeText,
-			ObjectType: "create_test_type",
+			ObjectType: model.PropertyFieldObjectTypePost,
 			TargetID:   model.NewId(),
 			TargetType: string(model.PropertyFieldTargetLevelChannel),
 		}
 		created, err := ss.PropertyField().Create(field)
 		require.NoError(t, err)
 		require.NotZero(t, created.ID)
-		require.Equal(t, "create_test_type", created.ObjectType)
+		require.Equal(t, model.PropertyFieldObjectTypePost, created.ObjectType)
 
 		// Verify it can be retrieved with ObjectType intact
 		retrieved, err := ss.PropertyField().Get("", created.ID)
 		require.NoError(t, err)
-		require.Equal(t, "create_test_type", retrieved.ObjectType)
+		require.Equal(t, model.PropertyFieldObjectTypePost, retrieved.ObjectType)
 	})
 
 	t.Run("should be able to create a property field without ObjectType for backwards compatibility", func(t *testing.T) {
