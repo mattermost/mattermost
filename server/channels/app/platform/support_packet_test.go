@@ -489,11 +489,10 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 }
 
 func TestGetSanitizedConfigFile(t *testing.T) {
-	t.Setenv("MM_FEATUREFLAGS_TestFeature", "true")
-
 	th := Setup(t)
 
 	th.Service.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.TestFeature = "true"
 		cfg.ServiceSettings.AllowedUntrustedInternalConnections = model.NewPointer("example.com")
 	})
 
