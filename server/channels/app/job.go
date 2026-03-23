@@ -166,8 +166,8 @@ func (a *App) resolveTeamSyncChannelIDs(rctx request.CTX, teamID, requesterID st
 		}
 		childIDs, ok := policy.Props["child_ids"].([]string)
 		if !ok {
-			// Handle []interface{} from JSON unmarshaling
-			if rawIDs, ok2 := policy.Props["child_ids"].([]interface{}); ok2 {
+			// Handle []any from JSON unmarshaling
+			if rawIDs, ok2 := policy.Props["child_ids"].([]any); ok2 {
 				for _, raw := range rawIDs {
 					if id, ok3 := raw.(string); ok3 {
 						channelIDs = append(channelIDs, id)
