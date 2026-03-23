@@ -5,7 +5,6 @@ package api4
 
 import (
 	"context"
-	"os"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -15,11 +14,10 @@ import (
 )
 
 func TestCreateAccessControlPolicy(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
 	th := Setup(t).InitBasic(t)
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
-	})
+	
+	// Enable AttributeBasedAccessControl feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true })
 
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       th.BasicChannel.Id,
@@ -273,11 +271,10 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 }
 
 func TestGetAccessControlPolicy(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
 	th := Setup(t).InitBasic(t)
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
-	})
+	
+	// Enable AttributeBasedAccessControl feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true })
 
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       model.NewId(),
@@ -336,11 +333,10 @@ func TestGetAccessControlPolicy(t *testing.T) {
 }
 
 func TestDeleteAccessControlPolicy(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
 	th := Setup(t).InitBasic(t)
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
-	})
+	
+	// Enable AttributeBasedAccessControl feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true })
 
 	samplePolicyID := model.NewId()
 
@@ -400,11 +396,10 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 }
 
 func TestCheckExpression(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
 	th := Setup(t).InitBasic(t)
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
-	})
+	
+	// Enable AttributeBasedAccessControl feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true })
 
 	t.Run("CheckExpression without license", func(t *testing.T) {
 		_, resp, err := th.SystemAdminClient.CheckExpression(context.Background(), "true")
@@ -504,11 +499,10 @@ func TestCheckExpression(t *testing.T) {
 }
 
 func TestTestExpression(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
 	th := Setup(t).InitBasic(t)
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
-	})
+	
+	// Enable AttributeBasedAccessControl feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true })
 
 	t.Run("TestExpression without license", func(t *testing.T) {
 		_, resp, err := th.SystemAdminClient.TestExpression(context.Background(), model.QueryExpressionParams{})
@@ -555,11 +549,10 @@ func TestTestExpression(t *testing.T) {
 }
 
 func TestSearchAccessControlPolicies(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
 	th := Setup(t).InitBasic(t)
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
-	})
+	
+	// Enable AttributeBasedAccessControl feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true })
 
 	t.Run("SearchAccessControlPolicies without license", func(t *testing.T) {
 		_, resp, err := th.SystemAdminClient.SearchAccessControlPolicies(context.Background(), model.AccessControlPolicySearch{})
@@ -608,11 +601,10 @@ func TestSearchAccessControlPolicies(t *testing.T) {
 }
 
 func TestAssignAccessPolicy(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
 	th := Setup(t).InitBasic(t)
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
-	})
+	
+	// Enable AttributeBasedAccessControl feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true })
 
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       model.NewId(),
@@ -681,11 +673,10 @@ func TestAssignAccessPolicy(t *testing.T) {
 }
 
 func TestUnassignAccessPolicy(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
 	th := Setup(t).InitBasic(t)
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
-	})
+	
+	// Enable AttributeBasedAccessControl feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true })
 
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       model.NewId(),
@@ -758,11 +749,10 @@ func TestUnassignAccessPolicy(t *testing.T) {
 }
 
 func TestGetChannelsForAccessControlPolicy(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
 	th := Setup(t).InitBasic(t)
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
-	})
+	
+	// Enable AttributeBasedAccessControl feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true })
 
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       model.NewId(),
@@ -820,11 +810,10 @@ func TestGetChannelsForAccessControlPolicy(t *testing.T) {
 }
 
 func TestSearchChannelsForAccessControlPolicy(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
 	th := Setup(t).InitBasic(t)
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
-	})
+	
+	// Enable AttributeBasedAccessControl feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true })
 
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       model.NewId(),
