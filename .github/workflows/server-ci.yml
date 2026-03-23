@@ -325,7 +325,7 @@ jobs:
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: "coverage-server-test-logs-shard-${{ matrix.shard }}"
-      fullyparallel: true
+      fullyparallel: false
       enablecoverage: true
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: false
