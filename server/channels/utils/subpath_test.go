@@ -29,12 +29,8 @@ func TestUpdateAssetsSubpathFromConfig(t *testing.T) {
 	})
 
 	t.Run("IS_CI=true", func(t *testing.T) {
-		err := os.Setenv("IS_CI", "true")
-		require.NoError(t, err)
-		defer func() {
-			err = os.Unsetenv("IS_CI")
-			require.NoError(t, err)
-		}()
+		// t.Setenv prevents t.Parallel — env var has no config equivalent
+		t.Setenv("IS_CI", "true")
 
 		err = utils.UpdateAssetsSubpathFromConfig(nil)
 		require.NoError(t, err)

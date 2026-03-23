@@ -2182,8 +2182,8 @@ func TestConfigDefaultCallsPluginState(t *testing.T) {
 	})
 
 	t.Run("should enable Calls plugin by default on Cloud", func(t *testing.T) {
-		os.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
-		defer os.Unsetenv("MM_CLOUD_INSTALLATION_ID")
+		// t.Setenv prevents t.Parallel — env var has no config equivalent
+		t.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
 		c1 := Config{}
 		c1.SetDefaults()
 
@@ -2215,8 +2215,8 @@ func TestConfigDefaultAIPluginState(t *testing.T) {
 	})
 
 	t.Run("should enable AI plugin by default on Cloud", func(t *testing.T) {
-		os.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
-		defer os.Unsetenv("MM_CLOUD_INSTALLATION_ID")
+		// t.Setenv prevents t.Parallel — env var has no config equivalent
+		t.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
 		c1 := Config{}
 		c1.SetDefaults()
 
