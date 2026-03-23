@@ -5,6 +5,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
+import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {getTeamStats, getTeamMembersByIds} from 'mattermost-redux/actions/teams';
@@ -31,6 +32,7 @@ import ChannelInviteModal from './channel_invite_modal';
 type OwnProps = {
     channelId?: string;
     teamId?: string;
+    channel?: Channel;
 }
 
 function makeMapStateToProps(initialState: GlobalState, initialProps: OwnProps) {
@@ -47,8 +49,9 @@ function makeMapStateToProps(initialState: GlobalState, initialProps: OwnProps) 
 
     return (state: GlobalState, props: OwnProps) => {
         // Check if this is an ABAC channel to bypass contaminated Redux state
-        const channel = props.channelId ? getChannel(state, props.channelId) : null;
+        const channel = props.channelId ? getChannel(state, props.channelId) : props.channel;
         const isAbacChannel = Boolean(channel?.policy_enforced);
+        const effectiveTeamId = props.teamId ?? channel?.team_id;
 
         let profilesNotInCurrentChannel: UserProfile[];
         let profilesInCurrentChannel: UserProfile[];
@@ -60,12 +63,12 @@ function makeMapStateToProps(initialState: GlobalState, initialProps: OwnProps) 
             profilesNotInCurrentChannel = [];
             profilesInCurrentChannel = [];
             profilesNotInCurrentTeam = [];
-            membersInTeam = props.teamId ? getMembersInTeam(state, props.teamId) : getMembersInCurrentTeam(state);
-        } else if (props.channelId && props.teamId) {
+            membersInTeam = effectiveTeamId ? getMembersInTeam(state, effectiveTeamId) : getMembersInCurrentTeam(state);
+        } else if (props.channelId && effectiveTeamId) {
             profilesNotInCurrentChannel = doGetProfilesNotInChannel(state, props.channelId);
             profilesInCurrentChannel = doGetProfilesInChannel(state, props.channelId);
-            profilesNotInCurrentTeam = getProfilesNotInTeam(state, props.teamId);
-            membersInTeam = getMembersInTeam(state, props.teamId);
+            profilesNotInCurrentTeam = getProfilesNotInTeam(state, effectiveTeamId);
+            membersInTeam = getMembersInTeam(state, effectiveTeamId);
         } else {
             profilesNotInCurrentChannel = getProfilesNotInCurrentChannel(state);
             profilesInCurrentChannel = getProfilesInCurrentChannel(state);
@@ -78,7 +81,7 @@ function makeMapStateToProps(initialState: GlobalState, initialProps: OwnProps) 
         const config = getConfig(state);
         const license = getLicense(state);
 
-        const currentTeam = props.teamId ? getTeam(state, props.teamId) : getCurrentTeam(state);
+        const currentTeam = effectiveTeamId ? getTeam(state, effectiveTeamId) : getCurrentTeam(state);
         const teamId = currentTeam?.id;
         const isPrivateChannel = channel?.type === 'P';
 
