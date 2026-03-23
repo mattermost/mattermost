@@ -408,7 +408,6 @@ func TestPropertyField_IsValid(t *testing.T) {
 		require.NoError(t, pf.IsValid())
 	})
 
-
 	t.Run("protected field validation", func(t *testing.T) {
 		baseField := func() *PropertyField {
 			return &PropertyField{
