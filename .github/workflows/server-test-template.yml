@@ -101,6 +101,54 @@ jobs:
           docker compose --ansi never exec -T minio sh -c 'mkdir -p /data/mattermost-test';
           docker compose --ansi never ps
 
+      # ── Test-level sharding ────────────────────────────────────────────
+      # When shard-total > 1, we split tests across N parallel runners.
+      #
+      # Two-tier splitting strategy:
+      #   - "Light" packages (< 2 min): assigned whole to a shard
+      #   - "Heavy" packages (≥ 2 min, e.g. api4, app): individual tests
+      #     are distributed across shards using -run regex filters
+      #
+      # See server/scripts/shard-split.js for the full algorithm.
+      # ─────────────────────────────────────────────────────────────────────
+
+      - name: Split tests across shards
+        if: inputs.shard-total > 1
+        id: test_split
+        working-directory: server
+        env:
+          SHARD_INDEX: ${{ inputs.shard-index }}
+          SHARD_TOTAL: ${{ inputs.shard-total }}
+        run: |
+          set -euo pipefail
+
+          # ── List all test packages ──
+          echo "::group::Listing test packages"
+          TE_PKGS=$(find ./public/ ./ -name '*_test.go' -not -path './enterprise/*' -not -path './cmd/mmctl/*' 2>/dev/null \
+            | sed 's|/[^/]*$||' | sort -u \
+            | sed 's|^\./|github.com/mattermost/mattermost/server/v8/|' \
+            | sed 's|github.com/mattermost/mattermost/server/v8/public/|github.com/mattermost/mattermost/server/public/|')
+          EE_PKGS=$(find ./enterprise/ -name '*_test.go' 2>/dev/null \
+            | sed 's|/[^/]*$||' | sort -u \
+            | sed 's|^\./|github.com/mattermost/mattermost/server/v8/|')
+          ALL_PKGS=$(printf '%s\n%s' "$TE_PKGS" "$EE_PKGS" | grep -v '^$' | sort -u)
+          TOTAL_PKGS=$(echo "$ALL_PKGS" | wc -l)
+          echo "Found $TOTAL_PKGS test packages"
+          echo "::endgroup::"
+
+          if [[ "$TOTAL_PKGS" -eq 0 ]]; then
+            echo "WARNING: No test packages found"
+            echo "has_packages=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "$ALL_PKGS" > all-packages.txt
+
+          # ── Run shard solver ──
+          node scripts/shard-split.js
+
+          echo "has_packages=true" >> "$GITHUB_OUTPUT"
+
       - name: Run Tests
         env:
           BUILD_IMAGE: ${{ steps.build.outputs.BUILD_IMAGE }}
@@ -108,6 +156,32 @@ jobs:
           if [[ ${{ github.ref_name }} == 'master' && ${{ inputs.fullyparallel }} != true ]]; then
             export RACE_MODE="-race"
           fi
+
+          MAKE_ARGS="test-server${RACE_MODE} BUILD_NUMBER=${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}"
+          DOCKER_CMD="make ${MAKE_ARGS}"
+
+          # When sharding is active, use the multi-run wrapper script
+          if [[ "${{ inputs.shard-total }}" -gt 1 && -f server/shard-te-packages.txt ]]; then
+            SHARD_TE=$(cat server/shard-te-packages.txt)
+            SHARD_EE=$(cat server/shard-ee-packages.txt)
+            HEAVY_RUNS=""
+            if [[ -f server/shard-heavy-runs.txt && -s server/shard-heavy-runs.txt ]]; then
+              HEAVY_RUNS=$(cat server/shard-heavy-runs.txt)
+            fi
+
+            if [[ -z "$HEAVY_RUNS" ]]; then
+              # No heavy packages — single run via Makefile with package filter
+              printf '#!/bin/bash\nexec make %s TE_PACKAGES="%s" EE_PACKAGES="%s"\n' \
+                "${MAKE_ARGS}" "${SHARD_TE}" "${SHARD_EE}" > server/run-shard-tests.sh
+            else
+              # Use the multi-run wrapper script
+              cp server/scripts/run-shard-tests.sh server/run-shard-tests.sh
+            fi
+
+            chmod +x server/run-shard-tests.sh
+            DOCKER_CMD="/mattermost/server/run-shard-tests.sh"
+          fi
+
           docker run --net ghactions_mm-test \
             --ulimit nofile=8096:8096 \
             --env-file=server/build/dotenv/test.env \
@@ -120,7 +194,7 @@ jobs:
             -v $PWD:/mattermost \
             -w /mattermost/server \
             $BUILD_IMAGE \
-            make test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID
+            $DOCKER_CMD
       - name: Upload coverage to Codecov
         if: ${{ inputs.enablecoverage }}
         uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
