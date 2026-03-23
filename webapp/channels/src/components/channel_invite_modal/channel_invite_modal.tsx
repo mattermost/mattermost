@@ -11,7 +11,7 @@ import {injectIntl, FormattedMessage, defineMessage} from 'react-intl';
 import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
 import type {Group, GroupSearchParams} from '@mattermost/types/groups';
-import type {TeamMembership} from '@mattermost/types/teams';
+import type {TeamMemberWithError, TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
@@ -71,8 +71,10 @@ export type Props = {
     emailInvitationsEnabled?: boolean;
     groups: Group[];
     isGroupsEnabled: boolean;
+    canAddUsersNotInTeam: boolean;
     actions: {
         addUsersToChannel: (channelId: string, userIds: string[]) => Promise<ActionResult>;
+        addUsersToTeam: (teamId: string, userIds: string[]) => Promise<ActionResult<TeamMemberWithError[]>>;
         getProfilesNotInChannel: (teamId: string, channelId: string, groupConstrained: boolean, page: number, perPage?: number, cursorId?: string) => Promise<ActionResult>;
         getProfilesInChannel: (channelId: string, page: number, perPage: number, sort: string, options: {active?: boolean}) => Promise<ActionResult>;
         getTeamStats: (teamId: string) => void;
@@ -87,6 +89,24 @@ export type Props = {
 // Helper function to check if an option is a user
 const isUser = (option: UserProfileValue | GroupValue): option is UserProfileValue => {
     return (option as UserProfile).username !== undefined;
+};
+
+const mergeUniqueUsers = (existingUsers: UserProfileValue[], nextUsers: UserProfileValue[]) => {
+    const seenIds = new Set(existingUsers.map((user) => user.id));
+    const mergedUsers = [...existingUsers];
+
+    nextUsers.forEach((user) => {
+        if (!seenIds.has(user.id)) {
+            seenIds.add(user.id);
+            mergedUsers.push(user);
+        }
+    });
+
+    return mergedUsers;
+};
+
+const getFirstTeamMemberError = (teamMemberResults?: TeamMemberWithError[]) => {
+    return teamMemberResults?.find((member) => member.error)?.error;
 };
 
 const ChannelInviteModalComponent = (props: Props) => {
@@ -331,6 +351,73 @@ const ChannelInviteModalComponent = (props: Props) => {
             }
         });
     }, [props, selectedUsers, handleInviteError, onHide]);
+
+    const handleAddUsersToTeamAndChannel = useCallback(async () => {
+        const {actions, channel, intl} = props;
+        if (usersNotInTeam.length === 0) {
+            return;
+        }
+
+        setSaving(true);
+        setInviteError(undefined);
+
+        const blockedUsers = usersNotInTeam;
+        const addUsersToTeamResult = await actions.addUsersToTeam(channel.team_id, blockedUsers.map((user) => user.id));
+
+        if (addUsersToTeamResult.error) {
+            handleInviteError(addUsersToTeamResult.error);
+            return;
+        }
+
+        const failedUserIds = new Set(
+            (addUsersToTeamResult.data || []).filter((member) => member.error).map((member) => member.user_id),
+        );
+        const usersAddedToTeam = blockedUsers.filter((user) => !failedUserIds.has(user.id));
+        const usersStillMissingFromTeam = blockedUsers.filter((user) => failedUserIds.has(user.id));
+        const userIdsToAddToChannel = Array.from(new Set([
+            ...selectedUsers.map((user) => user.id),
+            ...usersAddedToTeam.map((user) => user.id),
+        ]));
+
+        if (userIdsToAddToChannel.length === 0) {
+            setSaving(false);
+            setUsersNotInTeam(usersStillMissingFromTeam);
+            setInviteError(
+                getFirstTeamMemberError(addUsersToTeamResult.data)?.message ||
+                intl.formatMessage({
+                    id: 'channel_invite.add_to_team_and_channel.partial_failure',
+                    defaultMessage: 'Some people could not be added to the team.',
+                }),
+            );
+            return;
+        }
+
+        const addUsersToChannelResult = await actions.addUsersToChannel(channel.id, userIdsToAddToChannel);
+        if (addUsersToChannelResult.error) {
+            setSelectedUsers((prevState) => mergeUniqueUsers(prevState, usersAddedToTeam));
+            setUsersNotInTeam(usersStillMissingFromTeam);
+            handleInviteError(addUsersToChannelResult.error);
+            return;
+        }
+
+        if (usersStillMissingFromTeam.length > 0) {
+            setSaving(false);
+            setSelectedUsers([]);
+            setUsersNotInTeam(usersStillMissingFromTeam);
+            setInviteError(
+                getFirstTeamMemberError(addUsersToTeamResult.data)?.message ||
+                intl.formatMessage({
+                    id: 'channel_invite.add_to_team_and_channel.partial_failure',
+                    defaultMessage: 'Some people could not be added to the team.',
+                }),
+            );
+            return;
+        }
+
+        setSaving(false);
+        setInviteError(undefined);
+        onHide();
+    }, [props, selectedUsers, usersNotInTeam, handleInviteError, onHide]);
 
     // Handle search
     const search = useCallback((searchTerm: string) => {
@@ -688,6 +775,11 @@ const ChannelInviteModalComponent = (props: Props) => {
                         guests={guestsNotInTeam}
                         teamId={channel.team_id}
                         users={usersNotInTeam}
+                        {...((props.canAddUsersNotInTeam && !props.skipCommit) ? {
+                            canAddUsersToTeamAndChannel: true,
+                            isAddingUsersToTeamAndChannel: saving,
+                            onAddUsersToTeamAndChannel: handleAddUsersToTeamAndChannel,
+                        } : {})}
                     />
                     {(props.emailInvitationsEnabled && props.canInviteGuests && !channel.policy_enforced) && inviteGuestLink}
                 </div>

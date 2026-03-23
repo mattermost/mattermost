@@ -5,7 +5,7 @@ import React from 'react';
 
 import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
-import type {TeamMembership} from '@mattermost/types/teams';
+import type {TeamMemberWithError, TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
@@ -121,6 +121,7 @@ describe('components/channel_invite_modal', () => {
 
                 return Promise.resolve({error});
             }),
+            addUsersToTeam: jest.fn().mockImplementation(() => Promise.resolve({data: []})),
             getProfilesNotInChannel: jest.fn().mockImplementation(() => Promise.resolve()),
             getProfilesInChannel: jest.fn().mockImplementation(() => Promise.resolve()),
             searchAssociatedGroupsForReference: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -132,6 +133,7 @@ describe('components/channel_invite_modal', () => {
             getTeamMembersByIds: jest.fn(),
         },
         onExited: jest.fn(),
+        canAddUsersNotInTeam: false,
     };
 
     beforeAll(() => {
@@ -437,6 +439,43 @@ describe('components/channel_invite_modal', () => {
                 expect.stringContaining('something'),
                 expect.any(Object),
             );
+        });
+    });
+
+    test('should add eligible users to the team and channel from the warning banner', async () => {
+        const addUsersToTeamMock = jest.fn().mockResolvedValue({data: [] as TeamMemberWithError[]});
+        const addUsersToChannelMock = jest.fn().mockResolvedValue({data: true});
+
+        const props = {
+            ...baseProps,
+            canAddUsersNotInTeam: true,
+            actions: {
+                ...baseProps.actions,
+                addUsersToTeam: addUsersToTeamMock,
+                addUsersToChannel: addUsersToChannelMock,
+            },
+            profilesNotInCurrentChannel: [users[0]],
+            includeUsers: {'user-1': users[0]},
+        };
+
+        renderWithContext(
+            <ChannelInviteModal
+                {...props}
+            />,
+        );
+
+        const input = screen.getByRole('combobox', {name: /search for people/i});
+        await userEvent.type(input, 'user-1');
+
+        const option = await screen.findByText('user-1', {selector: '.more-modal__name > span'});
+        await userEvent.click(option);
+
+        const button = await screen.findByRole('button', {name: 'Add to team and channel'});
+        await userEvent.click(button);
+
+        await waitFor(() => {
+            expect(addUsersToTeamMock).toHaveBeenCalledWith(channel.team_id, ['user-1']);
+            expect(addUsersToChannelMock).toHaveBeenCalledWith(channel.id, ['user-1']);
         });
     });
 

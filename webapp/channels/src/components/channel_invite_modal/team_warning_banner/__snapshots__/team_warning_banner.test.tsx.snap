@@ -208,7 +208,6 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
     }
   >
     <AlertBanner
-      footerMessage={false}
       id="teamWarningBanner"
       message={
         Array [
@@ -699,7 +698,6 @@ exports[`components/channel_invite_modal/team_warning_banner should match snapsh
     }
   >
     <AlertBanner
-      footerMessage={false}
       id="teamWarningBanner"
       message={
         Array [
