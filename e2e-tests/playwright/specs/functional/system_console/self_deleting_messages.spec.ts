@@ -273,12 +273,8 @@ test.describe('System Console > Self-Deleting Messages', () => {
         expect(await durationDropdown.inputValue()).toBe('300');
         expect(await maxTTLDropdown.inputValue()).toBe('259200');
 
-        // # Reload page
-        await page.reload();
-        await systemConsolePage.toBeVisible();
-
-        // # Navigate to Posts section again
-        await systemConsolePage.sidebar.siteConfiguration.posts.click();
+        // # Reload directly to Posts section
+        await page.goto('/admin_console/site_config/posts');
         await page.waitForLoadState('networkidle');
 
         // * Verify values persist after reload

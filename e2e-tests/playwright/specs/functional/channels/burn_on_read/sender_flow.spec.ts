@@ -121,14 +121,13 @@ test.describe('Burn-on-Read Sender Flow', () => {
         await recipient2Post.concealedPlaceholder.clickToReveal();
         await recipient2Post.concealedPlaceholder.waitForReveal();
 
-        // # Refresh sender's view and check final count
+        // # Refresh sender's view — all recipients revealed, sender timer should start
         await senderPage.page.reload();
         await senderPage.toBeVisible();
         senderPost = await senderPage.getLastPost();
-        await expect(senderPost.burnOnReadBadge.container).toBeVisible({timeout: 15000});
-        await senderPost.burnOnReadBadge.hover();
-        recipientCount = await senderPost.burnOnReadBadge.getRecipientCount();
-        expect(recipientCount.revealed).toBe(2);
+
+        // * After all recipients reveal, badge transitions to timer chip
+        await expect(senderPost.burnOnReadTimerChip.container).toBeVisible({timeout: 15000});
     });
 
     test('MM-66742_17 sender manually deletes for all recipients', {tag: [BOR_TAG]}, async ({pw}) => {
