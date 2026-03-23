@@ -96,7 +96,6 @@ describe('propertiesReducer', () => {
         });
 
         test('RECEIVED_PROPERTY_FIELDS skips PSA v1 fields but keeps valid ones', () => {
-            const consoleWarn = jest.spyOn(console, 'warn').mockImplementation();
             const validField = makeField({id: 'f1', object_type: 'post'});
             const v1Field = makeField({id: 'f2', object_type: ''});
 
@@ -107,12 +106,9 @@ describe('propertiesReducer', () => {
 
             expect(state.fields.byId.f1).toBe(validField);
             expect(state.fields.byId.f2).toBeUndefined();
-            expect(consoleWarn).toHaveBeenCalled();
-            consoleWarn.mockRestore();
         });
 
         test('RECEIVED_PROPERTY_FIELDS skips soft-deleted fields but keeps valid ones', () => {
-            const consoleWarn = jest.spyOn(console, 'warn').mockImplementation();
             const validField = makeField({id: 'f1', object_type: 'post'});
             const deletedField = makeField({id: 'f2', object_type: 'post', delete_at: 999});
 
@@ -123,12 +119,9 @@ describe('propertiesReducer', () => {
 
             expect(state.fields.byId.f1).toBe(validField);
             expect(state.fields.byId.f2).toBeUndefined();
-            expect(consoleWarn).toHaveBeenCalled();
-            consoleWarn.mockRestore();
         });
 
         test('RECEIVED_PROPERTY_FIELDS returns same state ref when all fields are invalid', () => {
-            const consoleWarn = jest.spyOn(console, 'warn').mockImplementation();
             const v1Field = makeField({id: 'f1', object_type: ''});
 
             const state = propertiesReducer(initialState, {
@@ -137,7 +130,6 @@ describe('propertiesReducer', () => {
             });
 
             expect(state.fields).toBe(initialState.fields);
-            consoleWarn.mockRestore();
         });
 
         test('RECEIVED_PROPERTY_FIELDS for brand-new objectType creates nested structure', () => {

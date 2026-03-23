@@ -91,13 +91,13 @@ export const getPropertyValuesForTargetByFieldIds = createSelector(
     },
 );
 
-export function getPropertyValuesForField(
-    state: GlobalState,
-    fieldId: string,
-): Array<PropertyValue<unknown>> {
-    const fieldValues = state.entities.properties.values.byFieldId[fieldId];
-    if (!fieldValues) {
-        return [];
-    }
-    return Object.values(fieldValues);
-}
+export const getPropertyValuesForField = createSelector(
+    'getPropertyValuesForField',
+    (state: GlobalState, fieldId: string) => state.entities.properties.values.byFieldId[fieldId],
+    (fieldValues) => {
+        if (!fieldValues) {
+            return [];
+        }
+        return Object.values(fieldValues);
+    },
+);

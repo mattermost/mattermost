@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PropertyField, PropertyFieldsState, PropertyGroupsState, PropertyValuesState, PropertiesState} from '@mattermost/types/properties';
+import {combineReducers} from 'redux';
+
+import type {PropertyField, PropertyFieldsState, PropertyGroupsState, PropertyValuesState} from '@mattermost/types/properties';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {PropertyTypes, UserTypes} from 'mattermost-redux/action_types';
@@ -36,7 +38,6 @@ function fieldsReducer(state: PropertyFieldsState = initialFieldsState, action: 
 
         for (const field of fields) {
             if (isPSAv1PropertyField(field) || field.delete_at > 0) {
-                console.warn('RECEIVED_PROPERTY_FIELDS: skipping invalid field (PSA v1 or soft-deleted):', field.id); // eslint-disable-line no-console
                 continue;
             }
 
@@ -79,18 +80,18 @@ function fieldsReducer(state: PropertyFieldsState = initialFieldsState, action: 
         const groupId = field.group_id;
 
         const nextById = {...state.byId};
-        delete nextById[fieldId];
+        Reflect.deleteProperty(nextById, fieldId);
 
         const nextByObjectType = {...state.byObjectType};
         nextByObjectType[objectType] = {...nextByObjectType[objectType]};
         nextByObjectType[objectType][groupId] = {...nextByObjectType[objectType][groupId]};
-        delete nextByObjectType[objectType][groupId][fieldId];
+        Reflect.deleteProperty(nextByObjectType[objectType][groupId], fieldId);
 
         // Clean up empty buckets
         if (Object.keys(nextByObjectType[objectType][groupId]).length === 0) {
-            delete nextByObjectType[objectType][groupId];
+            Reflect.deleteProperty(nextByObjectType[objectType], groupId);
             if (Object.keys(nextByObjectType[objectType]).length === 0) {
-                delete nextByObjectType[objectType];
+                Reflect.deleteProperty(nextByObjectType, objectType);
             }
         }
 
@@ -148,17 +149,17 @@ function valuesReducer(state: PropertyValuesState = initialValuesState, action: 
 
         const nextByTargetId = {...state.byTargetId};
         nextByTargetId[targetId] = {...nextByTargetId[targetId]};
-        delete nextByTargetId[targetId][fieldId];
+        Reflect.deleteProperty(nextByTargetId[targetId], fieldId);
         if (Object.keys(nextByTargetId[targetId]).length === 0) {
-            delete nextByTargetId[targetId];
+            Reflect.deleteProperty(nextByTargetId, targetId);
         }
 
         const nextByFieldId = {...state.byFieldId};
         if (nextByFieldId[fieldId]) {
             nextByFieldId[fieldId] = {...nextByFieldId[fieldId]};
-            delete nextByFieldId[fieldId][targetId];
+            Reflect.deleteProperty(nextByFieldId[fieldId], targetId);
             if (Object.keys(nextByFieldId[fieldId]).length === 0) {
-                delete nextByFieldId[fieldId];
+                Reflect.deleteProperty(nextByFieldId, fieldId);
             }
         }
 
@@ -176,14 +177,14 @@ function valuesReducer(state: PropertyValuesState = initialValuesState, action: 
         const nextByTargetId = {...state.byTargetId};
         for (const targetId of Object.keys(affectedTargets)) {
             nextByTargetId[targetId] = {...nextByTargetId[targetId]};
-            delete nextByTargetId[targetId][fieldId];
+            Reflect.deleteProperty(nextByTargetId[targetId], fieldId);
             if (Object.keys(nextByTargetId[targetId]).length === 0) {
-                delete nextByTargetId[targetId];
+                Reflect.deleteProperty(nextByTargetId, targetId);
             }
         }
 
         const nextByFieldId = {...state.byFieldId};
-        delete nextByFieldId[fieldId];
+        Reflect.deleteProperty(nextByFieldId, fieldId);
 
         return {byTargetId: nextByTargetId, byFieldId: nextByFieldId};
     }
@@ -199,15 +200,15 @@ function valuesReducer(state: PropertyValuesState = initialValuesState, action: 
         for (const fieldId of Object.keys(affectedFields)) {
             if (nextByFieldId[fieldId]) {
                 nextByFieldId[fieldId] = {...nextByFieldId[fieldId]};
-                delete nextByFieldId[fieldId][targetId];
+                Reflect.deleteProperty(nextByFieldId[fieldId], targetId);
                 if (Object.keys(nextByFieldId[fieldId]).length === 0) {
-                    delete nextByFieldId[fieldId];
+                    Reflect.deleteProperty(nextByFieldId, fieldId);
                 }
             }
         }
 
         const nextByTargetId = {...state.byTargetId};
-        delete nextByTargetId[targetId];
+        Reflect.deleteProperty(nextByTargetId, targetId);
 
         return {byTargetId: nextByTargetId, byFieldId: nextByFieldId};
     }
@@ -238,19 +239,8 @@ function groupsReducer(state: PropertyGroupsState = initialGroupsState, action: 
     }
 }
 
-const initialState: PropertiesState = {
-    fields: initialFieldsState,
-    values: initialValuesState,
-    groups: initialGroupsState,
-};
-
-export default function propertiesReducer(
-    state: PropertiesState = initialState,
-    action: MMReduxAction,
-): PropertiesState {
-    return {
-        fields: fieldsReducer(state.fields, action),
-        values: valuesReducer(state.values, action),
-        groups: groupsReducer(state.groups, action),
-    };
-}
+export default combineReducers({
+    fields: fieldsReducer,
+    values: valuesReducer,
+    groups: groupsReducer,
+});
