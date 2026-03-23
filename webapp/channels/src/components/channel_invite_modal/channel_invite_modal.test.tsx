@@ -479,6 +479,70 @@ describe('components/channel_invite_modal', () => {
         });
     });
 
+    test('should add missing users to the team while preserving already-selected team members', async () => {
+        const addUsersToTeamMock = jest.fn().mockResolvedValue({data: [] as TeamMemberWithError[]});
+        const addUsersToChannelMock = jest.fn().mockResolvedValue({data: true});
+
+        const teammate = users[1];
+        const outsider = users[0];
+
+        const props = {
+            ...baseProps,
+            canAddUsersNotInTeam: true,
+            actions: {
+                ...baseProps.actions,
+                addUsersToTeam: addUsersToTeamMock,
+                addUsersToChannel: addUsersToChannelMock,
+            },
+            profilesNotInCurrentChannel: [outsider, teammate],
+            includeUsers: {
+                [outsider.id]: outsider,
+                [teammate.id]: teammate,
+            },
+            membersInTeam: {
+                [teammate.id]: {
+                    user_id: teammate.id,
+                    team_id: channel.team_id,
+                    roles: '',
+                    delete_at: 0,
+                    scheme_admin: false,
+                    scheme_guest: false,
+                    scheme_user: true,
+                    mention_count: 0,
+                    mention_count_root: 0,
+                    msg_count: 0,
+                    msg_count_root: 0,
+                } as TeamMembership,
+            },
+        };
+
+        renderWithContext(
+            <ChannelInviteModal
+                {...props}
+            />,
+        );
+
+        const input = screen.getByRole('combobox', {name: /search for people/i});
+        await userEvent.type(input, outsider.username);
+
+        const outsiderOption = await screen.findByText(outsider.username, {selector: '.more-modal__name > span'});
+        await userEvent.click(outsiderOption);
+
+        await userEvent.clear(input);
+        await userEvent.type(input, teammate.username);
+
+        const teammateOption = await screen.findByText(teammate.username, {selector: '.more-modal__name > span'});
+        await userEvent.click(teammateOption);
+
+        const button = await screen.findByRole('button', {name: 'Add to team and channel'});
+        await userEvent.click(button);
+
+        await waitFor(() => {
+            expect(addUsersToTeamMock).toHaveBeenCalledWith(channel.team_id, [outsider.id]);
+            expect(addUsersToChannelMock).toHaveBeenCalledWith(channel.id, [teammate.id, outsider.id]);
+        });
+    });
+
     test('should send the invite as guest param through the link', () => {
         const props = {
             ...baseProps,
