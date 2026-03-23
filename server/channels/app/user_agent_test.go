@@ -314,3 +314,39 @@ func TestGetBrowserVersion(t *testing.T) {
 		})
 	}
 }
+
+func TestGetDesktopAppVersion(t *testing.T) {
+	tests := []struct {
+		ua      string
+		version string
+		ok      bool
+	}{
+		{"Mattermost/5.0.0", "5.0.0", true},
+		{"Mattermost/5.3.1 Chrome/110.0.5481.177", "5.3.1", true},
+		{"Mozilla/5.0 ... Mattermost/5.9.0", "5.9.0", true},
+		{"Mattermost/5.0.0-alpha", "5.0.0-alpha", true},
+		{"Mattermost/6.0.0-rc.1 Electron/31.2.1", "6.0.0-rc.1", true},
+		{"Mattermost Mobile/1.2.3", "", false},
+		{"Mozilla/5.0 Chrome/120.0.0", "", false},
+		{"Mattermost/", "", false},
+		{"", "", false},
+		{"   ", "", false},
+		{"Mattermost", "", false},
+		{"Mattermost  5.0.0", "", false},
+		{"Mattermost/   \t", "", false},
+		{"MATTERMOST/5.0.0", "", false},
+		{"mattermost/5.0.0", "", false},
+		{"mmctl/1.2.3", "", false},
+		{"Franz/4.0.4 Chrome/52.0.2743.82 Electron/1.3.1", "", false},
+		{"MattermostMobile/1.0", "", false},
+		{"SomeMattermost/2.0.0", "", false},
+		{"Chrome/120.0.0 SomeMattermost/2.0.0", "", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.ua, func(t *testing.T) {
+			version, ok := GetDesktopAppVersion(tt.ua)
+			assert.Equal(t, tt.ok, ok)
+			assert.Equal(t, tt.version, version)
+		})
+	}
+}

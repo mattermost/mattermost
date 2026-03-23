@@ -2712,10 +2712,6 @@
     "translation": "उपयोगकर्ता {{.Username}} का स्लैक एक्सपोर्ट में कोई ईमेल पता नहीं है। {{.Email}} को प्लेसहोल्डर के रूप में इस्तेमाल किया। एक बार सिस्टम में लॉग इन करने के बाद उपयोगकर्ता को अपना ईमेल अपडेट करना चाहिए।\n"
   },
   {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "ईमेल {{.Email}} और पासवर्ड {{.Password}} के साथ स्लैक उपयोगकर्ता को आयात किया गया है।\n"
-  },
-  {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\nउपयोगकर्ता बनाए गए:\n"
   },
@@ -2738,10 +2734,6 @@
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "इंटीग्रेशन/स्लैक बॉट उपयोगकर्ता {{.Username}} आयात करने में असमर्थ\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "ईमेल {{.Email}} और पासवर्ड {{.Password}} के साथ इंटीग्रेशन/स्लैक बॉट उपयोगकर्ता आयात किया गया है।\n"
   },
   {
     "id": "api.channel.create_channel.direct_channel.team_restricted_error",

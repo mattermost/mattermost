@@ -1,109 +1,151 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/threading/common/thread_menu should match snapshot 1`] = `
-<MenuWrapper
-  animationComponent={[Function]}
-  className=""
-  stopPropagationOnToggle={true}
->
-  <button>
-    test
-  </button>
-  <Menu
-    ariaLabel="Actions"
-    openLeft={true}
-  >
-    <MenuItemAction
-      buttonClass="PopoutMenuItem"
-      icon={
-        <i
-          className="icon icon-dock-window"
-        />
-      }
-      onClick={[Function]}
-      show={true}
-      text="Open in new window"
-    />
-    <MenuItemAction
-      extraText="You will be notified about replies"
-      onClick={[Function]}
-      show={true}
-      text="Follow thread"
-    />
-    <MenuItemAction
-      onClick={[Function]}
-      show={true}
-      text="Open in channel"
-    />
-    <MenuItemAction
-      onClick={[Function]}
-      show={true}
-      text="Mark as unread"
-    />
-    <MenuItemAction
-      onClick={[Function]}
-      show={true}
-      text="Save"
-    />
-    <MenuItemAction
-      onClick={[Function]}
-      show={true}
-      text="Copy link"
-    />
-  </Menu>
-</MenuWrapper>
+<body>
+  <div>
+    <div
+      class="MenuWrapper "
+    >
+      <button>
+        test
+      </button>
+    </div>
+  </div>
+</body>
 `;
 
 exports[`components/threading/common/thread_menu should match snapshot after opening 1`] = `
-<MenuWrapper
-  animationComponent={[Function]}
-  className=""
-  stopPropagationOnToggle={true}
->
-  <button>
-    test
-  </button>
-  <Menu
-    ariaLabel="Actions"
-    openLeft={true}
-  >
-    <MenuItemAction
-      buttonClass="PopoutMenuItem"
-      icon={
-        <i
-          className="icon icon-dock-window"
-        />
-      }
-      onClick={[Function]}
-      show={true}
-      text="Open in new window"
-    />
-    <MenuItemAction
-      extraText="You will be notified about replies"
-      onClick={[Function]}
-      show={true}
-      text="Follow thread"
-    />
-    <MenuItemAction
-      onClick={[Function]}
-      show={true}
-      text="Open in channel"
-    />
-    <MenuItemAction
-      onClick={[Function]}
-      show={true}
-      text="Mark as unread"
-    />
-    <MenuItemAction
-      onClick={[Function]}
-      show={true}
-      text="Save"
-    />
-    <MenuItemAction
-      onClick={[Function]}
-      show={true}
-      text="Copy link"
-    />
-  </Menu>
-</MenuWrapper>
+<body>
+  <div>
+    <div
+      class="MenuWrapper  MenuWrapper--open"
+    >
+      <button>
+        test
+      </button>
+      <div
+        aria-label="Actions"
+        class="a11y__popup Menu MenuWrapperAnimation-enter MenuWrapperAnimation-enter-active"
+      >
+        <ul
+          class="Menu__content dropdown-menu openLeft"
+          role="menu"
+        >
+          <li
+            class="MenuItem MenuItem--with-icon"
+            role="menuitem"
+          >
+            <button
+              class="style--none PopoutMenuItem"
+              data-testid="undefined-button"
+              id="undefined-button"
+            >
+              <span
+                class="MenuItem__primary-text"
+              >
+                <span
+                  class="icon"
+                >
+                  <i
+                    class="icon icon-dock-window"
+                  />
+                </span>
+                <div
+                  class="text"
+                >
+                  Open in new window
+                </div>
+              </span>
+            </button>
+          </li>
+          <li
+            class="MenuItem"
+            role="menuitem"
+          >
+            <button
+              class="style--none MenuItem__with-help"
+              data-testid="undefined-button"
+              id="undefined-button"
+            >
+              <span
+                class="MenuItem__primary-text"
+              >
+                Follow thread
+              </span>
+              <span
+                class="MenuItem__help-text"
+              >
+                You will be notified about replies
+              </span>
+            </button>
+          </li>
+          <li
+            class="MenuItem"
+            role="menuitem"
+          >
+            <button
+              class="style--none"
+              data-testid="undefined-button"
+              id="undefined-button"
+            >
+              <span
+                class="MenuItem__primary-text"
+              >
+                Open in channel
+              </span>
+            </button>
+          </li>
+          <li
+            class="MenuItem"
+            role="menuitem"
+          >
+            <button
+              class="style--none"
+              data-testid="undefined-button"
+              id="undefined-button"
+            >
+              <span
+                class="MenuItem__primary-text"
+              >
+                Mark as unread
+              </span>
+            </button>
+          </li>
+          <li
+            class="MenuItem"
+            role="menuitem"
+          >
+            <button
+              class="style--none"
+              data-testid="undefined-button"
+              id="undefined-button"
+            >
+              <span
+                class="MenuItem__primary-text"
+              >
+                Save
+              </span>
+            </button>
+          </li>
+          <li
+            class="MenuItem"
+            role="menuitem"
+          >
+            <button
+              class="style--none"
+              data-testid="undefined-button"
+              id="undefined-button"
+            >
+              <span
+                class="MenuItem__primary-text"
+              >
+                Copy link
+              </span>
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</body>
 `;
