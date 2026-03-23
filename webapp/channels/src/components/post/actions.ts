@@ -39,7 +39,7 @@ export function removePostCloseRHSDeleteDraft(post: ExtendedPost): ActionFunc<bo
     };
 }
 
-export function highlightPostInChannel(postId: string): ActionFuncAsync {
+export function highlightPostInChannelPopout(postId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const team = getCurrentTeam(state);

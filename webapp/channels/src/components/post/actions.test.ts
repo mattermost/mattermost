@@ -8,7 +8,7 @@ import {getHistory} from 'utils/browser_history';
 import {ActionTypes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
-import {highlightPostInChannel} from './actions';
+import {highlightPostInChannelPopout} from './actions';
 
 jest.mock('actions/views/channel', () => ({
     loadPostsAround: jest.fn(() => ({type: 'MOCK_LOAD_POSTS_AROUND'})),
@@ -18,7 +18,7 @@ jest.mock('utils/browser_history', () => ({
     getHistory: jest.fn(),
 }));
 
-describe('highlightPostInChannel', () => {
+describe('highlightPostInChannelPopout', () => {
     const team = TestHelper.getTeamMock({id: 'team_id', name: 'test-team'});
     const currentUser = TestHelper.getUserMock({id: 'current_user_id', username: 'currentuser'});
     const channel = TestHelper.getChannelMock({id: 'channel_id', name: 'town-square', type: 'O'});
@@ -68,20 +68,20 @@ describe('highlightPostInChannel', () => {
             },
         });
 
-        const result = await store.dispatch(highlightPostInChannel('post_id'));
+        const result = await store.dispatch(highlightPostInChannelPopout('post_id'));
         expect(result).toEqual({data: false});
         expect(jest.mocked(loadPostsAround)).not.toHaveBeenCalled();
     });
 
     test('should load posts around the target post', async () => {
         const store = testConfigureStore(baseState);
-        await store.dispatch(highlightPostInChannel('post_123'));
+        await store.dispatch(highlightPostInChannelPopout('post_123'));
         expect(jest.mocked(loadPostsAround)).toHaveBeenCalledWith('channel_id', 'post_123');
     });
 
     test('should dispatch RECEIVED_FOCUSED_POST and navigate to popout URL', async () => {
         const store = testConfigureStore(baseState);
-        await store.dispatch(highlightPostInChannel('post_123'));
+        await store.dispatch(highlightPostInChannelPopout('post_123'));
 
         const actions = store.getActions();
         expect(actions).toContainEqual({

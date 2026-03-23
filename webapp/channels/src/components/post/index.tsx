@@ -44,7 +44,7 @@ import {getDisplayNameByUser} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
-import {highlightPostInChannel, removePostCloseRHSDeleteDraft} from './actions';
+import {highlightPostInChannelPopout, removePostCloseRHSDeleteDraft} from './actions';
 import PostComponent from './post_component';
 
 type OwnProps = {
@@ -254,7 +254,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
         actions: bindActionCreators({
             markPostAsUnread,
             emitShortcutReactToLastPostFrom,
-            highlightPostInChannel,
+            highlightPostInChannelPopout,
             selectPost,
             selectPostFromRightHandSideSearch,
             setRhsExpanded,

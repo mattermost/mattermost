@@ -110,7 +110,7 @@ export type Props = {
         savePreferences: (userId: string, preferences: Array<{category: string; user_id: string; name: string; value: string}>) => void;
         openModal: <P>(modalData: ModalData<P>) => void;
         closeModal: (modalId: string) => void;
-        highlightPostInChannel: (postId: string) => void;
+        highlightPostInChannelPopout: (postId: string) => void;
     };
     timestampProps?: Partial<TimestampProps>;
     shouldHighlight?: boolean;
@@ -410,7 +410,7 @@ function PostComponent(props: Props) {
         props.actions.setRhsExpanded(false);
 
         if (isChannelPopoutWindow() && props.isPinnedPosts) {
-            props.actions.highlightPostInChannel(post.id);
+            props.actions.highlightPostInChannelPopout(post.id);
             return;
         }
 

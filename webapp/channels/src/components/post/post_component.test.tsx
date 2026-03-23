@@ -56,7 +56,7 @@ describe('PostComponent', () => {
             savePreferences: jest.fn(),
             openModal: jest.fn(),
             closeModal: jest.fn(),
-            highlightPostInChannel: jest.fn(),
+            highlightPostInChannelPopout: jest.fn(),
         },
         isChannelAutotranslated: false,
     };
