@@ -5,12 +5,18 @@ package sharedchannel
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
+)
+
+const (
+	// Error IDs returned by the app layer that indicate an idempotent no-op.
+	errIDAddUserToChannelFailed  = "api.channel.add_user.to.channel.failed.app_error"
+	errIDSaveMemberExists        = "app.channel.save_member.exists.app_error"
+	errIDGetChannelMemberMissing = "app.channel.get_member.missing.app_error"
 )
 
 // onReceiveMembershipChanges processes channel membership changes from a remote cluster.
@@ -136,8 +142,8 @@ func (scs *Service) processMemberAdd(change *model.MembershipChangeMsg, channel 
 	_, appErr := scs.app.AddUserToChannel(rctx, user, channel, true)
 	if appErr != nil {
 		// Skip "already added" errors — idempotent
-		if appErr.Id != "api.channel.add_user.to_channel.failed.app_error" &&
-			appErr.Id != "app.channel.save_member.exists.app_error" {
+		if appErr.Id != errIDAddUserToChannelFailed &&
+			appErr.Id != errIDSaveMemberExists {
 			return fmt.Errorf("cannot add user to channel: %w", appErr)
 		}
 	}
@@ -171,7 +177,7 @@ func (scs *Service) processMemberRemove(change *model.MembershipChangeMsg, rc *m
 	appErr := scs.app.RemoveUserFromChannel(rctx, change.UserId, "", channel)
 	if appErr != nil {
 		// Ignore "not found" errors - the user might already be removed
-		if strings.Contains(appErr.Error(), "store.sql_channel.remove_member.missing.app_error") {
+		if appErr.Id == errIDGetChannelMemberMissing {
 			return nil
 		}
 		return fmt.Errorf("cannot remove user from channel: %w", appErr)
