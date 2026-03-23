@@ -193,6 +193,11 @@ func (pf *PropertyField) IsValid() error {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "object_type", "Reason": "value exceeds maximum length"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
+	// PSAv2 properties must have a valid ObjectType
+	if !pf.IsPSAv1() && !IsValidPropertyFieldObjectType(pf.ObjectType) {
+		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "object_type", "Reason": "unknown value"}, "id="+pf.ID, http.StatusBadRequest)
+	}
+
 	if pf.Type != PropertyFieldTypeText &&
 		pf.Type != PropertyFieldTypeSelect &&
 		pf.Type != PropertyFieldTypeMultiselect &&

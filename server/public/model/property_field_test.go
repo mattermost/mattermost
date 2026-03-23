@@ -352,20 +352,62 @@ func TestPropertyField_IsValid(t *testing.T) {
 		require.Error(t, pf.IsValid())
 	})
 
-	t.Run("ObjectType at maximum length is valid", func(t *testing.T) {
-		maxLengthObjectType := strings.Repeat("a", PropertyFieldObjectTypeMaxRunes)
+	t.Run("PSAv2 invalid ObjectType", func(t *testing.T) {
 		pf := &PropertyField{
 			ID:         NewId(),
 			GroupID:    NewId(),
 			Name:       "test field",
 			Type:       PropertyFieldTypeText,
 			TargetType: string(PropertyFieldTargetLevelSystem),
-			ObjectType: maxLengthObjectType,
+			ObjectType: "invalid",
+			CreateAt:   GetMillis(),
+			UpdateAt:   GetMillis(),
+		}
+		require.Error(t, pf.IsValid())
+	})
+
+	t.Run("PSAv2 valid ObjectType post", func(t *testing.T) {
+		pf := &PropertyField{
+			ID:         NewId(),
+			GroupID:    NewId(),
+			Name:       "test field",
+			Type:       PropertyFieldTypeText,
+			TargetType: string(PropertyFieldTargetLevelSystem),
+			ObjectType: PropertyFieldObjectTypePost,
 			CreateAt:   GetMillis(),
 			UpdateAt:   GetMillis(),
 		}
 		require.NoError(t, pf.IsValid())
 	})
+
+	t.Run("PSAv2 valid ObjectType channel", func(t *testing.T) {
+		pf := &PropertyField{
+			ID:         NewId(),
+			GroupID:    NewId(),
+			Name:       "test field",
+			Type:       PropertyFieldTypeText,
+			TargetType: string(PropertyFieldTargetLevelSystem),
+			ObjectType: PropertyFieldObjectTypeChannel,
+			CreateAt:   GetMillis(),
+			UpdateAt:   GetMillis(),
+		}
+		require.NoError(t, pf.IsValid())
+	})
+
+	t.Run("PSAv2 valid ObjectType user", func(t *testing.T) {
+		pf := &PropertyField{
+			ID:         NewId(),
+			GroupID:    NewId(),
+			Name:       "test field",
+			Type:       PropertyFieldTypeText,
+			TargetType: string(PropertyFieldTargetLevelSystem),
+			ObjectType: PropertyFieldObjectTypeUser,
+			CreateAt:   GetMillis(),
+			UpdateAt:   GetMillis(),
+		}
+		require.NoError(t, pf.IsValid())
+	})
+
 
 	t.Run("protected field validation", func(t *testing.T) {
 		baseField := func() *PropertyField {
