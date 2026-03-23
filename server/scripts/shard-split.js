@@ -37,7 +37,11 @@ const fs = require("fs");
 
 const SHARD_INDEX = parseInt(process.env.SHARD_INDEX);
 const SHARD_TOTAL = parseInt(process.env.SHARD_TOTAL);
-const HEAVY_MS = 120000; // 2 min: packages above this get test-level splitting
+const HEAVY_MS = 300000; // 5 min: packages above this get test-level splitting
+// Only api4 (~38 min) and app (~15 min) exceed this threshold.
+// Packages like sqlstore (~3 min) stay whole to preserve test isolation —
+// their integrity tests scan the entire database and break if split across
+// shards where other tests leave data behind.
 
 if (isNaN(SHARD_INDEX) || isNaN(SHARD_TOTAL) || SHARD_TOTAL < 1) {
   console.error("ERROR: SHARD_INDEX and SHARD_TOTAL must be set");
