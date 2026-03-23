@@ -224,14 +224,18 @@ jobs:
           pattern: postgres-server-test-logs*
           path: shards
 
-      - name: Setup Node for junit-report-merger
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
-        with:
-          node-version: 20
-
       - name: Merge JUnit reports
         run: |
-          npx junit-report-merger@7 merged-report.xml "shards/*/report.xml"
+          # Inline XML merge — no external npm dependency (supply chain safety)
+          echo '<?xml version="1.0" encoding="UTF-8"?>' > merged-report.xml
+          echo '<testsuites>' >> merged-report.xml
+          for f in shards/*/report.xml; do
+            if [[ -f "$f" ]]; then
+              # Extract <testsuite> elements, skip XML declarations and root wrappers
+              sed -n '/<testsuite[> ]/,/<\/testsuite>/p' "$f" >> merged-report.xml
+            fi
+          done
+          echo '</testsuites>' >> merged-report.xml
 
       # Prepare files with expected names for the report workflow
       - name: Prepare merged artifact
