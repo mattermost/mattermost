@@ -4,6 +4,7 @@
 package sharedchannel
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -357,7 +358,7 @@ func TestProcessMemberAdd_IdempotentForExistingMember(t *testing.T) {
 	mockUserStore.On("Get", mockTypeContext, userId).Return(remoteUser, nil)
 
 	// Simulate "already added" error from AddUserToChannel
-	alreadyAddedErr := model.NewAppError("AddUserToChannel", "app.channel.save_member.exists.app_error", nil, "", 400)
+	alreadyAddedErr := model.NewAppError("AddUserToChannel", "app.channel.save_member.exists.app_error", nil, "", http.StatusBadRequest)
 	mockApp.On("AddUserToChannel", mockTypeReqContext, mockTypeUser, mockTypeChannel, true).Return(nil, alreadyAddedErr)
 
 	syncMsg := &model.SyncMsg{ChannelId: channelId}
@@ -388,7 +389,7 @@ func TestProcessMemberRemove_IdempotentForNonMember(t *testing.T) {
 	mockUserStore.On("Get", mockTypeContext, userId).Return(remoteUser, nil)
 
 	// Simulate "not found" error from RemoveUserFromChannel
-	notFoundErr := model.NewAppError("RemoveUserFromChannel", "store.sql_channel.remove_member.missing.app_error", nil, "", 404)
+	notFoundErr := model.NewAppError("RemoveUserFromChannel", "store.sql_channel.remove_member.missing.app_error", nil, "", http.StatusNotFound)
 	mockApp.On("RemoveUserFromChannel", mockTypeReqContext, userId, "", channel).Return(notFoundErr)
 
 	change := &model.MembershipChangeMsg{

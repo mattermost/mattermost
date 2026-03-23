@@ -253,9 +253,16 @@ func (scs *Service) addTask(task syncTask) {
 		// if the task was already scheduled, we only update the
 		// existingMsg in case there is new information
 		originalTask.existingMsg = task.existingMsg
-		// preserve originRemoteID from the new task if non-empty
-		if task.originRemoteID != "" {
-			originalTask.originRemoteID = task.originRemoteID
+
+		// originRemoteID identifies which remote initiated a change so processTask
+		// can skip sending back to that remote. When multiple events merge within
+		// the NotifyMinimumDelay window we can only safely skip a remote if every
+		// merged event came from that same remote. If the origins differ (e.g.
+		// remote-A join + remote-B join, or remote join + local join) we must clear
+		// originRemoteID so the sync fans out to all remotes. The receiver is
+		// idempotent, so the worst case is a redundant sync to the originating remote.
+		if task.originRemoteID != originalTask.originRemoteID {
+			originalTask.originRemoteID = ""
 		}
 		scs.tasks[task.id] = originalTask
 	} else {
