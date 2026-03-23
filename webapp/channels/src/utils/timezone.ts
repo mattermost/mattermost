@@ -47,6 +47,18 @@ export function parseDateInTimezone(value: string, timezone?: string): Moment | 
         return parsed.isValid() ? parsed : null;
     }
 
-    const parsed = moment.tz(value, timezone);
+    // Detect date-only strings (YYYY-MM-DD format, no time component)
+    const isDateOnly = (/^\d{4}-\d{2}-\d{2}$/).test(value);
+
+    if (isDateOnly) {
+        // For date-only strings, parse AS IF in the target timezone
+        // '2025-01-15' in EST should be Jan 15 in EST, not converted from UTC
+        const parsed = moment.tz(value, timezone);
+        return parsed.isValid() ? parsed : null;
+    }
+
+    // For datetime strings (with time/UTC indicator), parse as UTC then convert
+    // '2025-01-15T14:30:00Z' is absolute UTC time, convert to target timezone
+    const parsed = moment.utc(value).tz(timezone);
     return parsed.isValid() ? parsed : null;
 }

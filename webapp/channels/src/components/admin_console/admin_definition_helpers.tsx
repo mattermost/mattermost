@@ -113,6 +113,7 @@ export const getRestrictedIndicator = (displayBlocked = false, minimumPlanRequir
             minimumPlanRequiredForFeature={minimumPlanRequiredForFeature}
             tooltipMessageBlocked={defineMessage({
                 id: 'admin.sidebar.restricted_indicator.tooltip.message.blocked',
+                // eslint-disable-next-line formatjs/enforce-placeholders -- Placeholders provided in RestrictedIndicator
                 defaultMessage: 'This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial',
             })}
         />

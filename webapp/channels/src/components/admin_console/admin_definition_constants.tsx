@@ -25,7 +25,7 @@ const SECTION_TLS = (
     <tr>
         <td>
             <FormattedMessage
-                id='admin.connectionSecurityTls'
+                id='admin.connectionSecurityTls.title'
                 defaultMessage='TLS'
             />
         </td>

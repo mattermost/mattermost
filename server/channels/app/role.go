@@ -7,12 +7,14 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"reflect"
 	"slices"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -276,13 +278,93 @@ func (a *App) CheckRolesExist(roleNames []string) *model.AppError {
 }
 
 func (a *App) sendUpdatedRoleEvent(role *model.Role) *model.AppError {
-	message := model.NewWebSocketEvent(model.WebsocketEventRoleUpdated, "", "", "", nil, "")
 	roleJSON, jsonErr := json.Marshal(role)
 	if jsonErr != nil {
 		return model.NewAppError("sendUpdatedRoleEvent", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
-	message.Add("role", string(roleJSON))
-	a.Publish(message)
+
+	publishEvent := func(teamID, channelID string) {
+		message := model.NewWebSocketEvent(model.WebsocketEventRoleUpdated, teamID, channelID, "", nil, "")
+		message.Add("role", string(roleJSON))
+		a.Publish(message)
+	}
+
+	// Built-in system roles apply to all users; broadcast globally without a DB lookup.
+	if role.BuiltIn {
+		publishEvent("", "")
+		return nil
+	}
+
+	// Scheme-managed roles: use SchemeId to look up the owning scheme.
+	if role.SchemeId == nil {
+		// No owning scheme — treat as global (e.g. custom non-scheme role).
+		publishEvent("", "")
+		return nil
+	}
+	scheme, err := a.Srv().Store().Scheme().Get(*role.SchemeId)
+	if err != nil {
+		a.Log().Error("Failed to look up scheme for role event; skipping broadcast",
+			mlog.String("role_id", role.Id),
+			mlog.String("scheme_id", *role.SchemeId),
+			mlog.Err(err))
+		return nil
+	}
+
+	const pageSize = 1000
+	const maxBroadcasts = 100000
+	switch scheme.Scope {
+	case model.SchemeScopeTeam:
+		totalBroadcasts := 0
+		offset := 0
+		for {
+			teams, storeErr := a.Srv().Store().Team().GetTeamsByScheme(scheme.Id, offset, pageSize)
+			if storeErr != nil {
+				return model.NewAppError("sendUpdatedRoleEvent", "app.role.send_updated_role_event.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
+			}
+			for _, team := range teams {
+				publishEvent(team.Id, "")
+			}
+			totalBroadcasts += len(teams)
+			if len(teams) < pageSize {
+				break
+			}
+			if totalBroadcasts >= maxBroadcasts {
+				a.Log().Error("sendUpdatedRoleEvent: hit broadcast limit for team scheme",
+					mlog.String("scheme_id", scheme.Id),
+					mlog.Int("totalBroadcasts", totalBroadcasts))
+				break
+			}
+			offset += pageSize
+		}
+	case model.SchemeScopeChannel:
+		totalBroadcasts := 0
+		offset := 0
+		for {
+			channels, storeErr := a.Srv().Store().Channel().GetChannelsByScheme(scheme.Id, offset, pageSize)
+			if storeErr != nil {
+				return model.NewAppError("sendUpdatedRoleEvent", "app.role.send_updated_role_event.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
+			}
+			for _, channel := range channels {
+				publishEvent("", channel.Id)
+			}
+			totalBroadcasts += len(channels)
+			if len(channels) < pageSize {
+				break
+			}
+			if totalBroadcasts >= maxBroadcasts {
+				a.Log().Error("sendUpdatedRoleEvent: hit broadcast limit for channel scheme",
+					mlog.String("scheme_id", scheme.Id),
+					mlog.Int("totalBroadcasts", totalBroadcasts))
+				break
+			}
+			offset += pageSize
+		}
+	case model.SchemeScopePlaybook, model.SchemeScopeRun:
+		// Playbook/run schemes don't map to teams or channels; broadcast globally.
+		publishEvent("", "")
+	default:
+		return model.NewAppError("sendUpdatedRoleEvent", "app.role.send_updated_role_event.unknown_scope", nil, fmt.Sprintf("unknown scheme scope: %s", scheme.Scope), http.StatusInternalServerError)
+	}
 	return nil
 }
 

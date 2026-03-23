@@ -9,12 +9,17 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestStripMarkdown(t *testing.T) {
-	tests := []struct {
-		name string
-		args string
-		want string
-	}{
+// stripMarkdownTestCase defines a test case for markdown stripping functions.
+type stripMarkdownTestCase struct {
+	name string
+	args string
+	want string
+}
+
+// getStripMarkdownTestCases returns the shared test cases for StripMarkdown and StripMarkdownAndDecode.
+// These test cases do not contain HTML entities that would be decoded differently by the two functions.
+func getStripMarkdownTestCases() []stripMarkdownTestCase {
+	return []stripMarkdownTestCase{
 		{
 			name: "emoji: same",
 			args: "Hey :smile: :+1: :)",
@@ -260,7 +265,7 @@ func TestStripMarkdown(t *testing.T) {
 			want: "&<>'",
 		},
 		{
-			name: "text: multiple entities",
+			name: "text: multiple entities reversed",
 			args: "'><&",
 			want: "'><&",
 		},
@@ -270,6 +275,10 @@ func TestStripMarkdown(t *testing.T) {
 			want: "",
 		},
 	}
+}
+
+func TestStripMarkdown(t *testing.T) {
+	tests := getStripMarkdownTestCases()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := StripMarkdown(tt.args)
@@ -279,6 +288,173 @@ func TestStripMarkdown(t *testing.T) {
 			assert.Equal(t, tt.want, got)
 		})
 	}
+}
+
+func TestStripMarkdownAndDecode(t *testing.T) {
+	// First, run the shared test cases - StripMarkdownAndDecode should produce the same
+	// results as StripMarkdown for inputs without HTML entities
+	t.Run("shared test cases", func(t *testing.T) {
+		tests := getStripMarkdownTestCases()
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				got, err := StripMarkdownAndDecode(tt.args)
+				if err != nil {
+					t.Fatalf("error: %v", err)
+				}
+				assert.Equal(t, tt.want, got)
+			})
+		}
+	})
+
+	// Additional test cases specific to HTML entity decoding
+	t.Run("HTML entity decoding", func(t *testing.T) {
+		entityTests := []stripMarkdownTestCase{
+			// Named HTML entities
+			{
+				name: "named entity: &lt;",
+				args: "1 &lt; 2",
+				want: "1 < 2",
+			},
+			{
+				name: "named entity: &gt;",
+				args: "2 &gt; 1",
+				want: "2 > 1",
+			},
+			{
+				name: "named entity: &amp;",
+				args: "you &amp; me",
+				want: "you & me",
+			},
+			{
+				name: "named entity: &quot;",
+				args: "&quot;quoted&quot;",
+				want: `"quoted"`,
+			},
+			{
+				name: "named entity: &apos;",
+				args: "it&apos;s fine",
+				want: "it's fine",
+			},
+			// Decimal numeric entities (as used by the plugin)
+			{
+				name: "numeric entity: &#33; (exclamation)",
+				args: "Hello&#33;",
+				want: "Hello!",
+			},
+			{
+				name: "numeric entity: &#35; (hash)",
+				args: "&#35;channel",
+				want: "#channel",
+			},
+			{
+				name: "numeric entity: &#40; and &#41; (parentheses)",
+				args: "func&#40;arg&#41;",
+				want: "func(arg)",
+			},
+			{
+				name: "numeric entity: &#42; (asterisk)",
+				args: "&#42;bold&#42;",
+				want: "*bold*",
+			},
+			{
+				name: "numeric entity: &#43; (plus)",
+				args: "1 &#43; 1",
+				want: "1 + 1",
+			},
+			{
+				name: "numeric entity: &#45; (dash)",
+				args: "a &#45; b",
+				want: "a - b",
+			},
+			{
+				name: "numeric entity: &#46; (period)",
+				args: "end&#46;",
+				want: "end.",
+			},
+			{
+				name: "numeric entity: &#47; (forward slash)",
+				args: "path&#47;to&#47;file",
+				want: "path/to/file",
+			},
+			{
+				name: "numeric entity: &#58; (colon)",
+				args: "key&#58; value",
+				want: "key: value",
+			},
+			{
+				name: "numeric entity: &#60; and &#62; (angle brackets)",
+				args: "&#60;tag&#62;",
+				want: "<tag>",
+			},
+			{
+				name: "numeric entity: &#91; and &#93; (square brackets)",
+				args: "&#91;link&#93;",
+				want: "[link]",
+			},
+			{
+				name: "numeric entity: &#92; (backslash)",
+				args: "path&#92;file",
+				want: "path\\file",
+			},
+			{
+				name: "numeric entity: &#95; (underscore)",
+				args: "snake&#95;case",
+				want: "snake_case",
+			},
+			{
+				name: "numeric entity: &#96; (backtick)",
+				args: "&#96;code&#96;",
+				want: "`code`",
+			},
+			{
+				name: "numeric entity: &#124; (vertical bar)",
+				args: "a &#124; b",
+				want: "a | b",
+			},
+			{
+				name: "numeric entity: &#126; (tilde)",
+				args: "&#126;channel",
+				want: "~channel",
+			},
+			// Mixed content
+			{
+				name: "mixed: markdown and entities",
+				args: "**bold** and &#60;tag&#62;",
+				want: "bold and <tag>",
+			},
+			{
+				name: "mixed: multiple numeric entities",
+				args: "&#33;&#35;&#40;&#41;&#42;",
+				want: "!#()*",
+			},
+			{
+				name: "mixed: sentence with encoded punctuation",
+				args: "Hello&#33; How are you&#63;",
+				want: "Hello! How are you?",
+			},
+			// Edge cases
+			{
+				name: "invalid entity: preserved as-is after decode",
+				args: "&invalid;",
+				want: "&invalid;",
+			},
+			{
+				name: "partial entity: ampersand alone",
+				args: "Tom & Jerry",
+				want: "Tom & Jerry",
+			},
+		}
+
+		for _, tt := range entityTests {
+			t.Run(tt.name, func(t *testing.T) {
+				got, err := StripMarkdownAndDecode(tt.args)
+				if err != nil {
+					t.Fatalf("error: %v", err)
+				}
+				assert.Equal(t, tt.want, got)
+			})
+		}
+	})
 }
 
 func TestMarkdownToHTML(t *testing.T) {

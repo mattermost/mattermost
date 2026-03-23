@@ -152,6 +152,7 @@ type ChannelPatch struct {
 	Purpose          *string            `json:"purpose"`
 	GroupConstrained *bool              `json:"group_constrained"`
 	BannerInfo       *ChannelBannerInfo `json:"banner_info"`
+	AutoTranslation  *bool              `json:"autotranslation"`
 }
 
 func (c *ChannelPatch) Auditable() map[string]any {
@@ -263,10 +264,6 @@ func (o *Channel) DeepCopy() *Channel {
 		cCopy.SchemeId = NewPointer(*o.SchemeId)
 	}
 	return &cCopy
-}
-
-func (o *Channel) Etag() string {
-	return Etag(o.Id, o.UpdateAt)
 }
 
 func (o *Channel) IsValid() *AppError {
@@ -402,6 +399,10 @@ func (o *Channel) Patch(patch *ChannelPatch) {
 		if patch.BannerInfo.BackgroundColor != nil {
 			o.BannerInfo.BackgroundColor = patch.BannerInfo.BackgroundColor
 		}
+	}
+
+	if patch.AutoTranslation != nil {
+		o.AutoTranslation = *patch.AutoTranslation
 	}
 }
 

@@ -66,7 +66,9 @@ export const adminConsoleUserManagementTablePropertiesInitialState: AdminConsole
     cursorDirection: CursorPaginationDirection.next,
     cursorUserId: '',
     cursorColumnValue: '',
-    columnVisibility: {},
+    columnVisibility: {
+        channelCountColumn: false,
+    },
     searchTerm: '',
     filterTeam: '',
     filterTeamLabel: '',

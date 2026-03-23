@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+/* eslint-disable formatjs/enforce-placeholders -- link placeholders provided by admin panel components */
+
 import React from 'react';
 import {type MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessage, defineMessages} from 'react-intl';
@@ -53,7 +55,7 @@ const messages = defineMessages({
     systemSchemeBannerText: {id: 'admin.permissions.systemSchemeBannerText', defaultMessage: 'Set the default permissions inherited by all teams unless a <link>Team Override Scheme</link> is applied.'},
     systemSchemeBannerButton: {id: 'admin.permissions.systemSchemeBannerButton', defaultMessage: 'Edit Scheme'},
     teamOverrideSchemesTitle: {id: 'admin.permissions.teamOverrideSchemesTitle', defaultMessage: 'Team Override Schemes'},
-    teamOverrideSchemesBannerText: {id: 'admin.permissions.teamOverrideSchemesBannerText', defaultMessage: 'Use when specific teams need permission exceptions to the <link>System Scheme</link>'},
+    teamOverrideSchemesBannerText: {id: 'admin.permissions.teamOverrideSchemesBannerText', defaultMessage: 'Use when specific teams need permission exceptions to the <link>System Scheme</link>.'},
     teamOverrideSchemesNewButton: {id: 'admin.permissions.teamOverrideSchemesNewButton', defaultMessage: 'New Team Override Scheme'},
 });
 

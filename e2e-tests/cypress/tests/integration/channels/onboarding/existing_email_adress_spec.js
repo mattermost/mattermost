@@ -31,8 +31,11 @@ function signupWithEmail(name, pw) {
     // # Type 'unique1pw' for password
     cy.get('#input_password-input').type(pw);
 
+    // # Check the terms and privacy checkbox
+    cy.get('#signup-body-card-form-check-terms-and-privacy').check();
+
     // # Click on Create Account button
-    cy.findByText('Create Account').click();
+    cy.findByText('Create account').click();
 }
 
 describe('Cloud Onboarding', () => {

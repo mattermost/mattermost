@@ -437,6 +437,13 @@ function isAppSelectOption(v: unknown): v is AppSelectOption {
 
 export type AppFieldType = string;
 
+// DateTime field configuration
+export type DateTimeConfig = {
+    time_interval?: number; // Minutes between time options (default: 60)
+    location_timezone?: string; // IANA timezone for display (e.g., "America/Denver", "Asia/Tokyo")
+    allow_manual_time_entry?: boolean; // Allow text entry for time
+};
+
 // This should go in mattermost-redux
 export type AppField = {
 
@@ -468,7 +475,10 @@ export type AppField = {
     min_length?: number;
     max_length?: number;
 
-    // Date props
+    // Date/datetime configuration
+    datetime_config?: DateTimeConfig;
+
+    // Simple date/datetime configuration (fallback when datetime_config not provided)
     min_date?: string;
     max_date?: string;
     time_interval?: number;

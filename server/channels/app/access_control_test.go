@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
@@ -482,6 +483,53 @@ func TestUnassignPoliciesFromChannels(t *testing.T) {
 
 		appErr := th.App.UnassignPoliciesFromChannels(th.Context, parentPolicy.ID, []string{ch1.Id, ch2.Id})
 		require.Nil(t, appErr)
+	})
+
+	t.Run("Invalidate channel cache", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+
+		channelID := model.NewId()
+		parentPolicyID := model.NewId()
+
+		// Create a child policy for the channel that only has the parent policy as an import (no rules)
+		childPolicy := &model.AccessControlPolicy{
+			Type:     model.AccessControlPolicyTypeChannel,
+			ID:       channelID,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{parentPolicyID},
+			Rules:    []model.AccessControlPolicyRule{},
+		}
+
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+
+		mockAccessControlPolicyStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockAccessControlPolicyStore)
+		// Mock SearchPolicies to return the child policy as a child of the parent
+		mockAccessControlPolicyStore.On("SearchPolicies", thMock.Context, model.AccessControlPolicySearch{
+			Type:     model.AccessControlPolicyTypeChannel,
+			ParentID: parentPolicyID,
+			Limit:    1000,
+		}).Return([]*model.AccessControlPolicy{childPolicy}, int64(1), nil)
+
+		mockChannelStore := storemocks.ChannelStore{}
+		mockStore.On("Channel").Return(&mockChannelStore)
+		// Expect InvalidateChannel to be called
+		mockChannelStore.On("InvalidateChannel", channelID).Once()
+
+		mockAccessControl := &mocks.AccessControlServiceInterface{}
+		thMock.App.Srv().ch.AccessControl = mockAccessControl
+
+		// Mock GetPolicy to return the child policy
+		mockAccessControl.On("GetPolicy", thMock.Context, channelID).Return(childPolicy, nil).Once()
+
+		// Mock DeletePolicy to return nil (successful deletion)
+		mockAccessControl.On("DeletePolicy", thMock.Context, channelID).Return(nil).Once()
+
+		appErr := thMock.App.UnassignPoliciesFromChannels(thMock.Context, parentPolicyID, []string{channelID})
+		require.Nil(t, appErr)
+
+		mockChannelStore.AssertCalled(t, "InvalidateChannel", channelID)
 	})
 }
 

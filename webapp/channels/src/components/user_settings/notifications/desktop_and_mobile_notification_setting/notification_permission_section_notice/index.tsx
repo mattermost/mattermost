@@ -9,6 +9,7 @@ import NotificationPermissionNeverGrantedNotice from 'components/user_settings/n
 import NotificationPermissionUnsupportedSectionNotice from 'components/user_settings/notifications/desktop_and_mobile_notification_setting/notification_permission_section_notice/notification_permission_unsupported_section_notice';
 
 import {getNotificationPermission, isNotificationAPISupported, NotificationPermissionDenied, NotificationPermissionNeverGranted} from 'utils/notifications';
+import * as UserAgent from 'utils/user_agent';
 
 import NotificationPermissionDesktopDeniedSectionNotice from './notification_permission_desktop_denied_section_notice';
 
@@ -23,7 +24,8 @@ export default function NotificationPermissionSectionNotice() {
         setNotificationPermission(permission);
     }
 
-    if (!isNotificationSupported) {
+    // Don't show unsupported notice for MS 365 mobile apps (Teams, Outlook) as they intentionally don't support notifications
+    if (!isNotificationSupported && !UserAgent.isM365Mobile()) {
         return <NotificationPermissionUnsupportedSectionNotice/>;
     }
 

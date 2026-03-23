@@ -82,14 +82,14 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
                 <hgroup>
                     <h1 className='content-flagging-section-title'>
                         <FormattedMessage
-                            id='admin.contentFlagging.additionalSettings.title'
+                            id='admin.dataSpillage.additionalSettings.title'
                             defaultMessage='Additional Settings'
                         />
                     </h1>
                     <h5 className='content-flagging-section-description'>
                         <FormattedMessage
-                            id='admin.contentFlagging.additionalSettings.description'
-                            defaultMessage='Configure how you want the flagging to behave'
+                            id='admin.dataSpillage.additionalSettings.description'
+                            defaultMessage='Configure how you want the quarantine to behave'
                         />
                     </h5>
                 </hgroup>
@@ -101,8 +101,8 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
                     <div className='content-flagging-section-setting'>
                         <div className='setting-title'>
                             <FormattedMessage
-                                id='admin.contentFlagging.additionalSettings.reasonsForFlagging'
-                                defaultMessage='Reasons for flagging'
+                                id='admin.dataSpillage.additionalSettings.reasonsForFlagging'
+                                defaultMessage='Reasons for quarantine'
                             />
                         </div>
 
@@ -132,7 +132,7 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
                     <div className='content-flagging-section-setting'>
                         <div className='setting-title'>
                             <FormattedMessage
-                                id='admin.contentFlagging.additionalSettings.requireReporterComment'
+                                id='admin.dataSpillage.additionalSettings.requireReporterComment'
                                 defaultMessage='Require reporters to add comment'
                             />
                         </div>
@@ -175,7 +175,7 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
                     <div className='content-flagging-section-setting'>
                         <div className='setting-title'>
                             <FormattedMessage
-                                id='admin.contentFlagging.additionalSettings.requireReviewerComment'
+                                id='admin.dataSpillage.additionalSettings.requireReviewerComment'
                                 defaultMessage='Require reviewers to add comment'
                             />
                         </div>
@@ -218,7 +218,7 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
                     <div className='content-flagging-section-setting'>
                         <div className='setting-title'>
                             <FormattedMessage
-                                id='admin.contentFlagging.additionalSettings.hideFlaggedPosts'
+                                id='admin.dataSpillage.additionalSettings.hideFlaggedPosts'
                                 defaultMessage='Hide message from channel while it is being reviewed'
                             />
                         </div>
