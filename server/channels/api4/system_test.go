@@ -67,11 +67,8 @@ func TestGetPing(t *testing.T) {
 		_, ok := respMap["TestFeatureFlag"]
 		assert.Equal(t, false, ok)
 
-		// Run the environment variable override code to test
-		os.Setenv("MM_FEATUREFLAGS_TESTFEATURE", "testvalueunique")
-		defer os.Unsetenv("MM_FEATUREFLAGS_TESTFEATURE")
-		err = th.App.ReloadConfig()
-		require.NoError(t, err)
+		// Run the feature flag update to test
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.TestFeature = "testvalueunique" })
 
 		respMap, resp, err = client.GetPingWithOptions(context.Background(), model.SystemPingOptions{})
 		require.NoError(t, err)

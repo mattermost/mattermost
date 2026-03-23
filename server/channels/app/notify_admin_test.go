@@ -5,7 +5,6 @@ package app
 
 import (
 	"fmt"
-	"os"
 	"testing"
 	"time"
 
@@ -167,8 +166,8 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
-		os.Setenv("MM_NOTIFY_ADMIN_COOL_OFF_DAYS", "0.00003472222222") // set to 3 seconds
-		defer os.Unsetenv("MM_NOTIFY_ADMIN_COOL_OFF_DAYS")
+		// t.Setenv prevents t.Parallel — env var has no config equivalent
+		t.Setenv("MM_NOTIFY_ADMIN_COOL_OFF_DAYS", "0.00003472222222") // set to 3 seconds
 
 		// some notifications
 		_, appErr := th.App.SaveAdminNotifyData(&model.NotifyAdminData{

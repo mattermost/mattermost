@@ -563,13 +563,14 @@ func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
 	require.NoError(t, err)
 	defer os.Remove(logFile.Name())
 
-	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED", "true")
-	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME", logFile.Name())
-	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED")
-	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME")
-
 	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
 	th := SetupWithServerOptions(t, options)
+	
+	// Enable audit logging to file
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
+		cfg.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
+	})
 
 	cfg, _, err := th.SystemAdminClient.GetConfig(context.Background())
 	require.NoError(t, err)
@@ -603,12 +604,13 @@ func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
 }
 
 func TestGetEnvironmentConfig(t *testing.T) {
-	os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://example.mattermost.com")
-	os.Setenv("MM_SERVICESETTINGS_ENABLECUSTOMEMOJI", "true")
-	defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
-	defer os.Unsetenv("MM_SERVICESETTINGS_ENABLECUSTOMEMOJI")
-
 	th := Setup(t)
+	
+	// Set service settings for environment config test
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.SiteURL = model.NewPointer("http://example.mattermost.com")
+		cfg.ServiceSettings.EnableCustomEmoji = model.NewPointer(true)
+	})
 
 	t.Run("as system admin", func(t *testing.T) {
 		SystemAdminClient := th.SystemAdminClient
