@@ -1,108 +1,59 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`admin_console/system_roles should match snapshot 1`] = `
-<div
-  className="wrapper--fixed"
->
-  <AdminHeader>
-    <MemoizedFormattedMessage
-      defaultMessage="Delegated Granular Administration"
-      id="admin.permissions.systemRoles"
-    />
-  </AdminHeader>
+<div>
   <div
-    className="admin-console__wrapper"
+    class="wrapper--fixed"
   >
     <div
-      className="admin-console__content"
+      class="admin-console__header"
     >
-      <AdminPanel
-        id="SystemRoles"
-        subtitle={
-          Object {
-            "defaultMessage": "Manage different levels of access to the system console.",
-            "id": "admin.permissions.systemRolesBannerText",
-          }
-        }
-        title={
-          Object {
-            "defaultMessage": "Admin Roles",
-            "id": "admin.permissions.systemRolesBannerTitle",
-          }
-        }
+      Delegated Granular Administration
+    </div>
+    <div
+      class="admin-console__wrapper"
+    >
+      <div
+        class="admin-console__content"
       >
         <div
-          className="SystemRoles"
+          class="AdminPanel clearfix "
+          id="SystemRoles"
         >
-          <DataGrid
-            columns={
-              Array [
-                Object {
-                  "field": "role",
-                  "name": "Role",
-                  "width": 2,
-                },
-                Object {
-                  "field": "description",
-                  "name": "Description",
-                  "width": 3,
-                },
-                Object {
-                  "field": "type",
-                  "name": "Type",
-                  "width": 2,
-                },
-                Object {
-                  "field": "edit",
-                  "name": "",
-                  "textAlign": "right",
-                  "width": 1,
-                },
-              ]
-            }
-            endCount={1}
-            loading={false}
-            nextPage={[Function]}
-            previousPage={[Function]}
-            rows={
-              Array [
-                Object {
-                  "cells": Object {
-                    "description": <Memo(MemoizedFormattedMessage)
-                      defaultMessage="Access to modifying everything."
-                      id="admin.permissions.roles.system_admin.description"
-                    />,
-                    "edit": <span
-                      className="SystemRoles_editRow"
-                      data-testid="system_admin_edit"
-                    >
-                      <Link
-                        to="/admin_console/user_management/system_roles/system_admin"
-                      >
-                        <Memo(MemoizedFormattedMessage)
-                          defaultMessage="Edit"
-                          id="admin.permissions.roles.edit"
-                        />
-                      </Link>
-                    </span>,
-                    "role": <Memo(MemoizedFormattedMessage)
-                      defaultMessage="System Admin"
-                      id="admin.permissions.roles.system_admin.name"
-                    />,
-                    "type": <Memo(MemoizedFormattedMessage)
-                      defaultMessage="System Role"
-                      id="admin.permissions.roles.system_admin.type"
-                    />,
-                  },
-                  "onClick": [Function],
-                },
-              ]
-            }
-            startCount={0}
-            term=""
-          />
+          <div
+            class="header"
+          >
+            <div>
+              <h3>
+                Admin Roles
+              </h3>
+              <div
+                class="mt-2"
+              >
+                Manage different levels of access to the system console.
+              </div>
+            </div>
+          </div>
+          <div
+            class="SystemRoles"
+          >
+            <div
+              class="DataGrid"
+            >
+              <div
+                class="DataGrid_header"
+              />
+              <div
+                class="DataGrid_rows"
+              >
+                <div
+                  class="DataGrid_row"
+                />
+              </div>
+            </div>
+          </div>
         </div>
-      </AdminPanel>
+      </div>
     </div>
   </div>
 </div>

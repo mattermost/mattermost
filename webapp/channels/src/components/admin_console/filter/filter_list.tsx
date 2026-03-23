@@ -43,7 +43,7 @@ const FilterList = ({
                 <FilterItem
                     key={index}
                     name={optionKey}
-                    checked={value}
+                    checked={Boolean(value)}
                     label={name}
                     updateOption={updateOption}
                 />

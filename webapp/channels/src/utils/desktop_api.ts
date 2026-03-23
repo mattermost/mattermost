@@ -9,7 +9,9 @@ import {isDesktopApp} from 'utils/user_agent';
 
 declare global {
     interface Window {
-        desktopAPI?: Partial<DesktopAPI>;
+        desktopAPI?: Partial<DesktopAPI> & {
+            updatePopoutTitleTemplate?: (template: string) => void;
+        };
     }
 }
 
