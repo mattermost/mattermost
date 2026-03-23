@@ -43,7 +43,7 @@ export default class BurnOnReadTimerChip {
     async getTimeRemainingInSeconds(): Promise<number> {
         const timeText = await this.getTimeRemaining();
         const parts = timeText.split(':');
-        
+
         if (parts.length !== 2) {
             throw new Error(`Invalid timer format: ${timeText}`);
         }
@@ -74,11 +74,10 @@ export default class BurnOnReadTimerChip {
      */
     async getTooltipText(): Promise<string> {
         await this.hover();
-        
+
         // Wait for tooltip to appear
         const tooltip = this.container.page().locator('[role="tooltip"]').first();
         await tooltip.waitFor({state: 'visible', timeout: 2000});
         return (await tooltip.textContent()) || '';
     }
 }
-

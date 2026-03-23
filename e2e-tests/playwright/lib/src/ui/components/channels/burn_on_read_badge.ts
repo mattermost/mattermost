@@ -58,7 +58,7 @@ export default class BurnOnReadBadge {
     async getRecipientCount(): Promise<{revealed: number; total: number}> {
         const tooltipText = await this.getTooltipText();
         const match = tooltipText.match(/Read by (\d+) of (\d+)/);
-        
+
         if (!match) {
             throw new Error(`Could not parse recipient count from tooltip: ${tooltipText}`);
         }
@@ -69,4 +69,3 @@ export default class BurnOnReadBadge {
         };
     }
 }
-

@@ -128,4 +128,3 @@ export function parseTimeRemaining(timerText: string): number {
     const seconds = parseInt(parts[1], 10);
     return minutes * 60 + seconds;
 }
-

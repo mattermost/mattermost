@@ -23,7 +23,9 @@ export default class SelfDeletingMessages {
         this.enableToggleTrue = this.container.getByTestId('ServiceSettings.EnableBurnOnReadtrue');
         this.enableToggleFalse = this.container.getByTestId('ServiceSettings.EnableBurnOnReadfalse');
         this.durationDropdown = this.container.getByTestId('ServiceSettings.BurnOnReadDurationSecondsdropdown');
-        this.maxTimeToLiveDropdown = this.container.getByTestId('ServiceSettings.BurnOnReadMaximumTimeToLiveSecondsdropdown');
+        this.maxTimeToLiveDropdown = this.container.getByTestId(
+            'ServiceSettings.BurnOnReadMaximumTimeToLiveSecondsdropdown',
+        );
         this.saveButton = this.container.getByRole('button', {name: 'Save'});
     }
 
@@ -71,4 +73,3 @@ export default class SelfDeletingMessages {
         return await this.maxTimeToLiveDropdown.isDisabled();
     }
 }
-

@@ -13,15 +13,15 @@ export default class BurnOnReadConfirmationModal {
 
     constructor(container: Locator) {
         this.container = container;
-        
+
         // Modal elements
         this.title = container.locator('.modal-title, h1, [role="heading"]').first();
         this.message = container.locator('.modal-body, .modal-message').first();
-        
+
         // Action buttons - use flexible selectors
         this.deleteButton = container.getByRole('button', {name: /delete|burn|confirm/i});
         this.cancelButton = container.getByRole('button', {name: /cancel/i});
-        
+
         // Checkbox for "don't show again" preference
         this.dontShowAgainCheckbox = container.getByRole('checkbox');
     }
@@ -87,4 +87,3 @@ export default class BurnOnReadConfirmationModal {
         return await this.dontShowAgainCheckbox.isChecked();
     }
 }
-

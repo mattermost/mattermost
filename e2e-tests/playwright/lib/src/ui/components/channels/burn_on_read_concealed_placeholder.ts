@@ -10,7 +10,7 @@ export default class BurnOnReadConcealedPlaceholder {
 
     constructor(container: Locator) {
         this.container = container;
-        
+
         // The container itself is the button - no need for nested locator
         this.icon = container.locator('.BurnOnReadConcealedPlaceholder__icon');
         this.text = container.locator('.BurnOnReadConcealedPlaceholder__text');
@@ -54,4 +54,3 @@ export default class BurnOnReadConcealedPlaceholder {
         return (await this.container.getAttribute('aria-label')) || '';
     }
 }
-

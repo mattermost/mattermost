@@ -66,7 +66,7 @@ test.describe('System Console > Self-Deleting Messages', () => {
 
         // # Navigate away and back to verify persistence
         await systemConsolePage.sidebar.userManagement.users.click();
-        await systemConsolePage.systemUsers.toBeVisible();
+        await systemConsolePage.users.toBeVisible();
         await systemConsolePage.sidebar.siteConfiguration.posts.click();
         await page.waitForLoadState('networkidle');
 
@@ -116,7 +116,7 @@ test.describe('System Console > Self-Deleting Messages', () => {
 
         // # Navigate away and back
         await systemConsolePage.sidebar.userManagement.users.click();
-        await systemConsolePage.systemUsers.toBeVisible();
+        await systemConsolePage.users.toBeVisible();
         await systemConsolePage.sidebar.siteConfiguration.posts.click();
         await page.waitForLoadState('networkidle');
 
@@ -166,7 +166,7 @@ test.describe('System Console > Self-Deleting Messages', () => {
 
         // # Navigate away and back
         await systemConsolePage.sidebar.userManagement.users.click();
-        await systemConsolePage.systemUsers.toBeVisible();
+        await systemConsolePage.users.toBeVisible();
         await systemConsolePage.sidebar.siteConfiguration.posts.click();
         await page.waitForLoadState('networkidle');
 
@@ -470,4 +470,3 @@ test.describe('System Console > Self-Deleting Messages', () => {
         }
     });
 });
-
