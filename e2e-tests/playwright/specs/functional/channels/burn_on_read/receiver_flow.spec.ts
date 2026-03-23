@@ -6,17 +6,8 @@ import {expect, test} from '@mattermost/playwright-lib';
 import {BOR_TAG, setupBorTest, createSecondUser} from './support';
 
 test.describe('Burn-on-Read Receiver Flow', () => {
-    test.beforeEach(async ({pw}) => {
-        await pw.ensureLicense();
-        await pw.skipIfNoLicense();
-    });
-
-    /**
-     * @objective Verify receiver sees concealed placeholder for BoR message
-     * and can reveal it by clicking
-     */
     test(
-        'receiver sees concealed placeholder and reveals message',
+        'MM-66742_9 receiver sees concealed placeholder and reveals message',
         {tag: [BOR_TAG]},
         async ({pw}) => {
             // # Initialize setup with BoR enabled
@@ -70,11 +61,8 @@ test.describe('Burn-on-Read Receiver Flow', () => {
         },
     );
 
-    /**
-     * @objective Verify receiver can manually burn a revealed BoR message
-     */
     test(
-        'receiver manually burns revealed message via timer chip',
+        'MM-66742_10 receiver manually burns revealed message via timer chip',
         {tag: [BOR_TAG]},
         async ({pw}) => {
             // # Initialize setup with BoR enabled
@@ -127,12 +115,8 @@ test.describe('Burn-on-Read Receiver Flow', () => {
         },
     );
 
-    /**
-     * @objective Verify receiver can use "don't show again" checkbox in burn confirmation
-     * This test verifies the checkbox is available and can be clicked during burn confirmation
-     */
     test(
-        'receiver uses dont show again preference for burn confirmation',
+        'MM-66742_11 receiver uses dont show again preference for burn confirmation',
         {tag: [BOR_TAG]},
         async ({pw}) => {
             // # Initialize setup with BoR enabled
@@ -183,11 +167,8 @@ test.describe('Burn-on-Read Receiver Flow', () => {
         },
     );
 
-    /**
-     * @objective Verify BoR message timer counts down correctly after reveal
-     */
     test(
-        'timer chip displays countdown after reveal',
+        'MM-66742_12 timer chip displays countdown after reveal',
         {tag: [BOR_TAG]},
         async ({pw}) => {
             // # Initialize setup with 60 second duration
@@ -245,14 +226,11 @@ test.describe('Burn-on-Read Receiver Flow', () => {
         },
     );
 
-    /**
-     * @objective Verify BoR message auto-deletes when timer expires
-     * Note: Uses short duration for faster test execution
-     */
     test(
-        'message auto-deletes after timer expires',
+        'MM-66742_13 message auto-deletes after timer expires',
         {tag: [BOR_TAG]},
-        async ({pw}) => {
+        async ({pw}, testInfo) => {
+            testInfo.setTimeout(120000);
             // # Initialize setup with very short duration (10 seconds)
             const {user: sender, team, adminClient} = await setupBorTest(pw, {
                 durationSeconds: 10,
@@ -309,11 +287,8 @@ test.describe('Burn-on-Read Receiver Flow', () => {
         },
     );
 
-    /**
-     * @objective Verify receiver sees flame badge before revealing
-     */
     test(
-        'receiver sees flame badge on concealed message',
+        'MM-66742_14 receiver sees flame badge on concealed message',
         {tag: [BOR_TAG]},
         async ({pw}) => {
             // # Initialize setup with BoR enabled

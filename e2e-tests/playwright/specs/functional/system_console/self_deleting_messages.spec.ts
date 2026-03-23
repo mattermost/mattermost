@@ -25,7 +25,7 @@ test.describe('System Console > Self-Deleting Messages', () => {
         await systemConsolePage.toBeVisible();
 
         // # Navigate to Posts section
-        await systemConsolePage.sidebar.goToItem('Posts');
+        await systemConsolePage.sidebar.siteConfiguration.posts.click();
         await page.waitForLoadState('networkidle');
 
         // * Verify Posts section is visible
@@ -65,9 +65,9 @@ test.describe('System Console > Self-Deleting Messages', () => {
         await pw.waitUntil(async () => (await saveButton.textContent()) === 'Save');
 
         // # Navigate away and back to verify persistence
-        await systemConsolePage.sidebar.goToItem('Users');
+        await systemConsolePage.sidebar.userManagement.users.click();
         await systemConsolePage.systemUsers.toBeVisible();
-        await systemConsolePage.sidebar.goToItem('Posts');
+        await systemConsolePage.sidebar.siteConfiguration.posts.click();
         await page.waitForLoadState('networkidle');
 
         // * Verify feature is still enabled
@@ -100,7 +100,7 @@ test.describe('System Console > Self-Deleting Messages', () => {
         await systemConsolePage.toBeVisible();
 
         // # Navigate to Posts section
-        await systemConsolePage.sidebar.goToItem('Posts');
+        await systemConsolePage.sidebar.siteConfiguration.posts.click();
         await page.waitForLoadState('networkidle');
 
         const postsSection = page.getByTestId('sysconsole_section_PostSettings');
@@ -115,9 +115,9 @@ test.describe('System Console > Self-Deleting Messages', () => {
         await pw.waitUntil(async () => (await saveButton.textContent()) === 'Save');
 
         // # Navigate away and back
-        await systemConsolePage.sidebar.goToItem('Users');
+        await systemConsolePage.sidebar.userManagement.users.click();
         await systemConsolePage.systemUsers.toBeVisible();
-        await systemConsolePage.sidebar.goToItem('Posts');
+        await systemConsolePage.sidebar.siteConfiguration.posts.click();
         await page.waitForLoadState('networkidle');
 
         // * Verify duration is still 60 seconds
@@ -150,7 +150,7 @@ test.describe('System Console > Self-Deleting Messages', () => {
         await systemConsolePage.toBeVisible();
 
         // # Navigate to Posts section
-        await systemConsolePage.sidebar.goToItem('Posts');
+        await systemConsolePage.sidebar.siteConfiguration.posts.click();
         await page.waitForLoadState('networkidle');
 
         const postsSection = page.getByTestId('sysconsole_section_PostSettings');
@@ -165,9 +165,9 @@ test.describe('System Console > Self-Deleting Messages', () => {
         await pw.waitUntil(async () => (await saveButton.textContent()) === 'Save');
 
         // # Navigate away and back
-        await systemConsolePage.sidebar.goToItem('Users');
+        await systemConsolePage.sidebar.userManagement.users.click();
         await systemConsolePage.systemUsers.toBeVisible();
-        await systemConsolePage.sidebar.goToItem('Posts');
+        await systemConsolePage.sidebar.siteConfiguration.posts.click();
         await page.waitForLoadState('networkidle');
 
         // * Verify max TTL is still 1 day
@@ -200,7 +200,7 @@ test.describe('System Console > Self-Deleting Messages', () => {
         await systemConsolePage.toBeVisible();
 
         // # Navigate to Posts section
-        await systemConsolePage.sidebar.goToItem('Posts');
+        await systemConsolePage.sidebar.siteConfiguration.posts.click();
         await page.waitForLoadState('networkidle');
 
         const postsSection = page.getByTestId('sysconsole_section_PostSettings');
@@ -260,7 +260,7 @@ test.describe('System Console > Self-Deleting Messages', () => {
         await systemConsolePage.toBeVisible();
 
         // # Navigate to Posts section
-        await systemConsolePage.sidebar.goToItem('Posts');
+        await systemConsolePage.sidebar.siteConfiguration.posts.click();
         await page.waitForLoadState('networkidle');
 
         const postsSection = page.getByTestId('sysconsole_section_PostSettings');
@@ -278,7 +278,7 @@ test.describe('System Console > Self-Deleting Messages', () => {
         await systemConsolePage.toBeVisible();
 
         // # Navigate to Posts section again
-        await systemConsolePage.sidebar.goToItem('Posts');
+        await systemConsolePage.sidebar.siteConfiguration.posts.click();
         await page.waitForLoadState('networkidle');
 
         // * Verify values persist after reload
@@ -313,7 +313,7 @@ test.describe('System Console > Self-Deleting Messages', () => {
         await systemConsolePage.toBeVisible();
 
         // # Navigate to Posts section
-        await systemConsolePage.sidebar.goToItem('Posts');
+        await systemConsolePage.sidebar.siteConfiguration.posts.click();
         await page.waitForLoadState('networkidle');
 
         const postsSection = page.getByTestId('sysconsole_section_PostSettings');
@@ -360,7 +360,7 @@ test.describe('System Console > Self-Deleting Messages', () => {
         await systemConsolePage.toBeVisible();
 
         // # Navigate to Posts section
-        await systemConsolePage.sidebar.goToItem('Posts');
+        await systemConsolePage.sidebar.siteConfiguration.posts.click();
         await page.waitForLoadState('networkidle');
 
         const postsSection = page.getByTestId('sysconsole_section_PostSettings');

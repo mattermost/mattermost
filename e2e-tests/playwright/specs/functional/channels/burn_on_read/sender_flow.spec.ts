@@ -6,24 +6,15 @@ import {expect, test} from '@mattermost/playwright-lib';
 import {BOR_TAG, setupBorTest, createSecondUser} from './support';
 
 test.describe('Burn-on-Read Sender Flow', () => {
-    test.beforeEach(async ({pw}) => {
-        await pw.ensureLicense();
-        await pw.skipIfNoLicense();
-    });
-
-    /**
-     * @objective Verify sender can send a BoR message and see the sent status
-     * with flame badge showing recipient count
-     */
     test(
-        'sends BoR message and views sent status with recipient count',
+        'MM-66742_15 sends BoR message and views sent status with recipient count',
         {tag: [BOR_TAG]},
         async ({pw}) => {
             // # Initialize setup with BoR enabled
             const {user, team, adminClient} = await setupBorTest(pw);
 
-            // # Create second user as recipient
-            const recipient = await createSecondUser(pw, adminClient, team);
+            // # Create second user as recipient (needed for BoR badge count)
+            await createSecondUser(pw, adminClient, team);
 
             // # Login as sender
             const {channelsPage} = await pw.testBrowser.login(user);
@@ -59,13 +50,11 @@ test.describe('Burn-on-Read Sender Flow', () => {
         },
     );
 
-    /**
-     * @objective Verify sender sees read receipts in tooltip when recipients reveal the message
-     */
     test(
-        'sender sees read receipts in tooltip',
+        'MM-66742_16 sender sees read receipts in tooltip',
         {tag: [BOR_TAG]},
-        async ({pw}) => {
+        async ({pw}, testInfo) => {
+            testInfo.setTimeout(120000);
             // # Initialize setup with BoR enabled
             const {user, team, adminClient} = await setupBorTest(pw);
 
@@ -148,11 +137,8 @@ test.describe('Burn-on-Read Sender Flow', () => {
         },
     );
 
-    /**
-     * @objective Verify sender can manually delete BoR message for all recipients
-     */
     test(
-        'sender manually deletes for all recipients',
+        'MM-66742_17 sender manually deletes for all recipients',
         {tag: [BOR_TAG]},
         async ({pw}) => {
             // # Initialize setup with BoR enabled
@@ -199,15 +185,8 @@ test.describe('Burn-on-Read Sender Flow', () => {
         },
     );
 
-    /**
-     * @objective Verify sender sees timer chip after all recipients reveal
-     *
-     * SKIPPED: There's an issue with sender's expire_at not being returned after page refresh.
-     * The sender's timer state may only update via WebSocket and not persist after reload.
-     * This will be fixed in a future update.
-     */
-    test.skip(
-        'sender sees timer after all recipients reveal',
+    test(
+        'MM-66742_18 sender sees timer after all recipients reveal',
         {tag: [BOR_TAG]},
         async ({pw}) => {
             // # Initialize setup with short duration

@@ -6,17 +6,8 @@ import {expect, test} from '@mattermost/playwright-lib';
 import {BOR_TAG, setupBorTest, createSecondUser} from './support';
 
 test.describe('Burn-on-Read Restrictions', () => {
-    test.beforeEach(async ({pw}) => {
-        await pw.ensureLicense();
-        await pw.skipIfNoLicense();
-    });
-
-    /**
-     * @objective Verify BoR posts cannot be replied to via dot menu
-     * The Reply option should not appear in the dot menu for BoR posts
-     */
     test(
-        'no reply option in dot menu for BoR post',
+        'MM-66742_19 no reply option in dot menu for BoR post',
         {tag: [BOR_TAG]},
         async ({pw}) => {
             // # Initialize setup with BoR enabled
@@ -65,12 +56,8 @@ test.describe('Burn-on-Read Restrictions', () => {
         },
     );
 
-    /**
-     * @objective Verify BoR posts cannot be pinned
-     * The Pin option should not appear in the dot menu for BoR posts
-     */
     test(
-        'no pin option in dot menu for BoR post',
+        'MM-66742_20 no pin option in dot menu for BoR post',
         {tag: [BOR_TAG]},
         async ({pw}) => {
             // # Initialize setup with BoR enabled
@@ -119,12 +106,8 @@ test.describe('Burn-on-Read Restrictions', () => {
         },
     );
 
-    /**
-     * @objective Verify BoR posts cannot be edited
-     * The Edit option should not appear in the dot menu for BoR posts
-     */
     test(
-        'no edit option in dot menu for BoR post (sender)',
+        'MM-66742_21 no edit option in dot menu for BoR post (sender)',
         {tag: [BOR_TAG]},
         async ({pw}) => {
             // # Initialize setup with BoR enabled
@@ -165,12 +148,8 @@ test.describe('Burn-on-Read Restrictions', () => {
         },
     );
 
-    /**
-     * @objective Verify BoR posts cannot be forwarded
-     * The Forward option should not appear in the dot menu for BoR posts
-     */
     test(
-        'no forward option in dot menu for BoR post',
+        'MM-66742_22 no forward option in dot menu for BoR post',
         {tag: [BOR_TAG]},
         async ({pw}) => {
             // # Initialize setup with BoR enabled
@@ -219,12 +198,8 @@ test.describe('Burn-on-Read Restrictions', () => {
         },
     );
 
-    /**
-     * @objective Verify BoR posts cannot have text copied (receiver)
-     * The Copy Text option should not appear in the dot menu for BoR posts for receiver
-     */
     test(
-        'no copy text option in dot menu for BoR post (receiver)',
+        'MM-66742_23 no copy text option in dot menu for BoR post (receiver)',
         {tag: [BOR_TAG]},
         async ({pw}) => {
             // # Initialize setup with BoR enabled
@@ -273,12 +248,8 @@ test.describe('Burn-on-Read Restrictions', () => {
         },
     );
 
-    /**
-     * @objective Verify receiver cannot copy link to BoR post
-     * The Copy Link option should not appear for receivers of BoR posts
-     */
     test(
-        'no copy link option for receiver of BoR post',
+        'MM-66742_24 no copy link option for receiver of BoR post',
         {tag: [BOR_TAG]},
         async ({pw}) => {
             // # Initialize setup with BoR enabled
@@ -327,12 +298,8 @@ test.describe('Burn-on-Read Restrictions', () => {
         },
     );
 
-    /**
-     * @objective Verify sender CAN copy link to their own BoR post
-     * The Copy Link option should appear for senders of BoR posts
-     */
     test(
-        'sender can copy link to own BoR post',
+        'MM-66742_25 sender can copy link to own BoR post',
         {tag: [BOR_TAG]},
         async ({pw}) => {
             // # Initialize setup with BoR enabled
@@ -373,12 +340,8 @@ test.describe('Burn-on-Read Restrictions', () => {
         },
     );
 
-    /**
-     * @objective Verify no Follow Thread option for BoR posts
-     * BoR posts don't support threading, so Follow Thread should not appear
-     */
     test(
-        'no follow thread option for BoR post',
+        'MM-66742_26 no follow thread option for BoR post',
         {tag: [BOR_TAG]},
         async ({pw}) => {
             // # Initialize setup with BoR enabled
@@ -427,16 +390,8 @@ test.describe('Burn-on-Read Restrictions', () => {
         },
     );
 
-    /**
-     * @objective Verify Shift+UP keyboard shortcut does not open reply for BoR posts
-     * This was a specific bug that was fixed - BoR posts should not be selected for reply
-     *
-     * SKIPPED: Test exposes a bug where Shift+UP still opens RHS for revealed BoR posts.
-     * The isPostInteractable fix may not be applied to this branch or may not cover
-     * revealed BoR messages. Bug needs investigation.
-     */
-    test.skip(
-        'keyboard shortcut Shift+UP does not open reply for BoR post',
+    test(
+        'MM-66742_27 keyboard shortcut Shift+UP does not open reply for BoR post',
         {tag: [BOR_TAG]},
         async ({pw}) => {
             // # Initialize setup with BoR enabled
@@ -492,12 +447,8 @@ test.describe('Burn-on-Read Restrictions', () => {
         },
     );
 
-    /**
-     * @objective Verify Delete option appears for revealed BoR posts
-     * This is the expected behavior - delete should work for BoR posts
-     */
     test(
-        'delete option available for revealed BoR post',
+        'MM-66742_28 delete option available for revealed BoR post',
         {tag: [BOR_TAG]},
         async ({pw}) => {
             // # Initialize setup with BoR enabled

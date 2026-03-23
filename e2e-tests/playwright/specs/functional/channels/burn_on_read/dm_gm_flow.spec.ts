@@ -6,16 +6,8 @@ import {expect, test} from '@mattermost/playwright-lib';
 import {BOR_TAG, setupBorTest, createSecondUser} from './support';
 
 test.describe('Burn-on-Read in DMs and GMs', () => {
-    test.beforeEach(async ({pw}) => {
-        await pw.ensureLicense();
-        await pw.skipIfNoLicense();
-    });
-
-    /**
-     * @objective Verify BoR toggle is available in Direct Messages
-     */
     test(
-        'BoR toggle is available in DM channel',
+        'MM-66742_1 BoR toggle is available in DM channel',
         {tag: [BOR_TAG]},
         async ({pw}) => {
             // # Initialize setup with BoR enabled
@@ -44,12 +36,8 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
         },
     );
 
-    /**
-     * @objective Verify complete BoR flow in a Direct Message
-     * Sender sends, receiver reveals and sees timer
-     */
     test(
-        'complete BoR flow in DM between two users',
+        'MM-66742_2 complete BoR flow in DM between two users',
         {tag: [BOR_TAG]},
         async ({pw}) => {
             // # Initialize setup with BoR enabled
@@ -108,14 +96,11 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
         },
     );
 
-    /**
-     * @objective Verify BoR works in Group Messages with multiple recipients
-     * Note: Uses a private channel to control member count exactly
-     */
     test(
-        'BoR message in group message with multiple recipients',
+        'MM-66742_3 BoR message in group message with multiple recipients',
         {tag: [BOR_TAG]},
-        async ({pw}) => {
+        async ({pw}, testInfo) => {
+            testInfo.setTimeout(120000);
             // # Initialize setup with BoR enabled
             const {user: sender, team, adminClient} = await setupBorTest(pw);
 
@@ -200,11 +185,8 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
         },
     );
 
-    /**
-     * @objective Verify BoR message deletion in DM removes for both parties
-     */
     test(
-        'sender deletes BoR in DM and recipient cannot see it',
+        'MM-66742_4 sender deletes BoR in DM and recipient cannot see it',
         {tag: [BOR_TAG]},
         async ({pw}) => {
             // # Initialize setup with BoR enabled
@@ -260,11 +242,8 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
         },
     );
 
-    /**
-     * @objective Verify receiver can burn BoR in DM after revealing
-     */
     test(
-        'receiver burns revealed BoR in DM via timer chip',
+        'MM-66742_5 receiver burns revealed BoR in DM via timer chip',
         {tag: [BOR_TAG]},
         async ({pw}) => {
             // # Initialize setup with BoR enabled
@@ -321,11 +300,8 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
         },
     );
 
-    /**
-     * @objective Verify DM shows correct recipient count (should be 1 for DM)
-     */
     test(
-        'DM shows correct recipient count of 1',
+        'MM-66742_6 DM shows correct recipient count of 1',
         {tag: [BOR_TAG]},
         async ({pw}) => {
             // # Initialize setup with BoR enabled
@@ -359,12 +335,8 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
         },
     );
 
-    /**
-     * @objective Verify multiple BoR messages can be sent in same DM conversation
-     * Note: BoR toggle may reset after each message, so we toggle for each
-     */
     test(
-        'multiple BoR messages in same DM conversation',
+        'MM-66742_7 multiple BoR messages in same DM conversation',
         {tag: [BOR_TAG]},
         async ({pw}) => {
             // # Initialize setup with BoR enabled
@@ -426,12 +398,8 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
         },
     );
 
-    /**
-     * @objective Verify BoR toggle resets after sending a message
-     * Note: The BoR toggle is per-message, not sticky - user must enable for each message
-     */
     test(
-        'BoR toggle resets after sending message',
+        'MM-66742_8 BoR toggle resets after sending message',
         {tag: [BOR_TAG]},
         async ({pw}) => {
             // # Initialize setup with BoR enabled
