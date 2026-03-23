@@ -244,9 +244,11 @@ test.describe('Burn-on-Read Restrictions', () => {
         await receiverPage.page.keyboard.press('Shift+ArrowUp');
 
         // * Verify RHS does not open with the BoR message
-        await expect(receiverPage.sidebarRight.container).toBeHidden({timeout: 2000}).catch(async () => {
-            await expect(receiverPage.sidebarRight.container).not.toContainText(message);
-        });
+        await expect(receiverPage.sidebarRight.container)
+            .toBeHidden({timeout: 2000})
+            .catch(async () => {
+                await expect(receiverPage.sidebarRight.container).not.toContainText(message);
+            });
     });
 
     test('MM-66742_28 delete option available for revealed BoR post', {tag: [BOR_TAG]}, async ({pw}) => {
