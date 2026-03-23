@@ -199,18 +199,26 @@ jobs:
       logsartifact: postgres-binary-server-test-logs
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: false
+  # -- Sharded into 4 parallel runners for ~88% wall-time improvement --
   test-postgres-normal:
-    name: Postgres
+    name: Postgres (shard ${{ matrix.shard }})
     needs: go
+    strategy:
+      fail-fast: false # Let all shards complete so we get full test results
+      matrix:
+        shard: [0, 1, 2, 3]
     uses: ./.github/workflows/server-test-template.yml
     secrets: inherit
     with:
-      name: Postgres
+      name: "Postgres (shard ${{ matrix.shard }})"
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
-      logsartifact: postgres-server-test-logs
+      # Each shard gets a unique artifact name so they don't collide
+      logsartifact: "postgres-server-test-logs-shard-${{ matrix.shard }}"
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: false
+      shard-index: ${{ matrix.shard }}
+      shard-total: 4
   # -- Merge test results (handles both single-run and future sharded runs) --
   merge-postgres-test-results:
     name: Merge Postgres Test Results
@@ -221,7 +229,7 @@ jobs:
       - name: Download all shard artifacts
         uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
         with:
-          pattern: postgres-server-test-logs*
+          pattern: postgres-server-test-logs-shard-*
           path: shards
 
       - name: Setup Node for junit-report-merger
@@ -239,7 +247,7 @@ jobs:
           mkdir -p merged
           cp merged-report.xml merged/report.xml
           # Find the first shard artifact that has test-name and pr-number
-          for dir in shards/postgres-server-test-logs*/; do
+          for dir in shards/postgres-server-test-logs-shard-*/; do
             if [[ -f "${dir}test-name" ]]; then
               cp "${dir}test-name" merged/test-name
               cp "${dir}pr-number" merged/pr-number
