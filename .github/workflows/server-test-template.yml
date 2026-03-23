@@ -17,7 +17,7 @@ on:
       fullyparallel:
         required: false
         type: boolean
-        default: false
+        default: true
       enablecoverage:
         required: false
         type: boolean
