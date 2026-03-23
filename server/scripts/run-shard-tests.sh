@@ -109,4 +109,14 @@ fi
 
 cat gotestsum-*.json > gotestsum.json 2>/dev/null || true
 
+# ── Merge coverage profiles (if coverage is enabled) ──
+if [[ "${ENABLE_COVERAGE:-false}" == "true" ]] && ls cover-*.out 1>/dev/null 2>&1; then
+  echo "Merging coverage profiles..."
+  {
+    head -1 cover-1.out  # "mode: atomic" header
+    tail -q -n +2 cover-*.out  # data lines from all files
+  } > cover.out
+  echo "Merged $(ls cover-*.out | wc -l) coverage files into cover.out"
+fi
+
 echo "Shard complete: $RUN_IDX gotestsum runs"

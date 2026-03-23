@@ -197,7 +197,8 @@ jobs:
             $BUILD_IMAGE \
             $DOCKER_CMD
       - name: Upload coverage to Codecov
-        if: ${{ inputs.enablecoverage }}
+        # Skip per-shard upload when sharding is active — the merge job handles it.
+        if: ${{ inputs.enablecoverage && inputs.shard-total <= 1 }}
         uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
