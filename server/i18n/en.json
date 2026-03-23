@@ -3055,6 +3055,10 @@
     "translation": "Cannot delete a protected property field via API."
   },
   {
+    "id": "api.property_field.get.invalid_target_type.app_error",
+    "translation": "A valid target_type (system, team, or channel) is required."
+  },
+  {
     "id": "api.property_field.get.target_id_required.app_error",
     "translation": "A target_id is required when querying by channel or team target_type."
   },

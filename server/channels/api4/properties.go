@@ -175,9 +175,11 @@ func getPropertyFields(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Optional target_type filter
-	if targetType := query.Get("target_type"); targetType != "" {
-		opts.TargetType = targetType
+	// Required target_type filter
+	opts.TargetType = query.Get("target_type")
+	if !model.IsValidPSAv2PropertyFieldTargetType(opts.TargetType) {
+		c.Err = model.NewAppError("getPropertyFields", "api.property_field.get.invalid_target_type.app_error", nil, "", http.StatusBadRequest)
+		return
 	}
 
 	// Optional target_id filter
@@ -191,25 +193,28 @@ func getPropertyFields(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "object_type", c.Params.ObjectType)
 
 	// Resource-scoped target types require a target_id for access checks
-	if opts.TargetType == "channel" || opts.TargetType == "team" {
+	switch opts.TargetType {
+	case "channel":
 		if len(opts.TargetIDs) == 0 {
 			c.Err = model.NewAppError("getPropertyFields", "api.property_field.get.target_id_required.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
-
-		switch opts.TargetType {
-		case "channel":
-			hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), opts.TargetIDs[0], model.PermissionReadChannel)
-			if !hasPermission {
-				c.SetPermissionError(model.PermissionReadChannel)
-				return
-			}
-		case "team":
-			if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), opts.TargetIDs[0], model.PermissionViewTeam) {
-				c.SetPermissionError(model.PermissionViewTeam)
-				return
-			}
+		hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), opts.TargetIDs[0], model.PermissionReadChannel)
+		if !hasPermission {
+			c.SetPermissionError(model.PermissionReadChannel)
+			return
 		}
+	case "team":
+		if len(opts.TargetIDs) == 0 {
+			c.Err = model.NewAppError("getPropertyFields", "api.property_field.get.target_id_required.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), opts.TargetIDs[0], model.PermissionViewTeam) {
+			c.SetPermissionError(model.PermissionViewTeam)
+			return
+		}
+	case "system":
+		// System-level fields are visible to all authenticated users
 	}
 
 	fields, err := c.App.SearchPropertyFields(group.ID, opts)
