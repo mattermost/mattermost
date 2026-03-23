@@ -11822,5 +11822,85 @@
   {
     "id": "app.data_spillage.flag_post.marshal_reason.app_error",
     "translation": "Nie udało się pobrać powodu użytkownika flagującego"
+  },
+  {
+    "id": "app.data_spillage.flag_post_confirmation.message",
+    "translation": "Wiadomość od @{{.username}} została poddana kwarantannie w celu sprawdzenia. Zostaniesz powiadomiony, gdy zostanie ona sprawdzona przez recenzenta."
+  },
+  {
+    "id": "app.data_spillage.get_group.error",
+    "translation": "Nie można pobrać grupy właściwości flagowania zawartości."
+  },
+  {
+    "id": "app.data_spillage.get_reviewer_settings.app_error",
+    "translation": "Nie udało się pobrać ustawień recenzenta treści z bazy danych"
+  },
+  {
+    "id": "app.data_spillage.get_status_property.app_error",
+    "translation": "Nie udało się uzyskać pola właściwości Status."
+  },
+  {
+    "id": "app.data_spillage.get_thread_replies.app_error",
+    "translation": "Nie udało się pobrać odpowiedzi wątku dla oflagowanego posta."
+  },
+  {
+    "id": "app.data_spillage.get_users_in_team.app_error",
+    "translation": "Nie udało się szukać recenzentów w zespole."
+  },
+  {
+    "id": "app.data_spillage.keep_flag_post.marshal_comment.app_error",
+    "translation": "Nie udało się zebrać komentarza recenzenta"
+  },
+  {
+    "id": "app.data_spillage.keep_post.status_update.app_error",
+    "translation": "Nie udało się zaktualizować statusu oflagowanego postu podczas usuwania oflagowanego postu "
+  },
+  {
+    "id": "app.data_spillage.keep_post.undelete.app_error",
+    "translation": "Nie udało się zaktualizować posta w bazie danych podczas próby usunięcia oflagowanego posta i powiązanych z nim danych."
+  },
+  {
+    "id": "app.data_spillage.marshal_property_values.app_error",
+    "translation": "Nie udało się pobrać wartości właściwości Content Flagging do wysłania w zdarzeniu WebSocket."
+  },
+  {
+    "id": "app.data_spillage.missing_flagged_post_id_field.app_error",
+    "translation": "Nie można znaleźć pola właściwości Flagged Post ID."
+  },
+  {
+    "id": "app.data_spillage.missing_manage_by_field.app_error",
+    "translation": "Nie udało się znaleźć pola właściwości Zarządzaj przez."
+  },
+  {
+    "id": "app.data_spillage.missing_reporting_user_id_field.app_error",
+    "translation": "Nie można znaleźć pola użytkownika raportującego."
+  },
+  {
+    "id": "app.data_spillage.missing_reporting_user_id_property_value.app_error",
+    "translation": "Nie można znaleźć wartości dla pola użytkownika raportującego."
+  },
+  {
+    "id": "app.data_spillage.missing_status_field.app_error",
+    "translation": "Nie znaleziono pola właściwości Status."
+  },
+  {
+    "id": "app.data_spillage.no_status_property.app_error",
+    "translation": "Nie można pobrać oflagowanego posta, ponieważ nie jest on oflagowany."
+  },
+  {
+    "id": "app.data_spillage.permanently_delete.marshal_comment.app_error",
+    "translation": "Nie udało się zebrać komentarza recenzenta"
+  },
+  {
+    "id": "app.data_spillage.permanently_delete.update_property_value.app_error",
+    "translation": "Nie udało się zaktualizować statusu oflagowanego postu podczas trwałego usunięcia oflagowanego postu."
+  },
+  {
+    "id": "app.data_spillage.save_reviewer_settings.app_error",
+    "translation": "Nie udało się zapisać ustawień weryfikatora treści w bazie danych."
+  },
+  {
+    "id": "app.data_spillage.search_common_reviewers.app_error",
+    "translation": "Nie udało się szukać terminu w Common Reviewers."
   }
 ]
