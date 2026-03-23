@@ -136,6 +136,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 		mockStore.On("Command").Return(th.App.Srv().Store().Command())
 		mockStore.On("Role").Return(th.App.Srv().Store().Role())
 		mockStore.On("Scheme").Return(th.App.Srv().Store().Scheme())
+		mockStore.On("PostReadStatus").Return(th.App.Srv().Store().PostReadStatus())
 		mockStore.On("Close").Return(nil)
 		mockStore.On("GetDBSchemaVersion").Return(1, nil)
 		mockStore.On("GetDbVersion", false).Return("1.0.0", nil)

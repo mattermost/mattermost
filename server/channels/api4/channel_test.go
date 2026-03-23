@@ -6158,6 +6158,7 @@ func TestGetChannelModerations(t *testing.T) {
 		mockStore.On("System").Return(th.App.Srv().Store().System())
 		mockStore.On("License").Return(th.App.Srv().Store().License())
 		mockStore.On("Role").Return(th.App.Srv().Store().Role())
+		mockStore.On("PostReadStatus").Return(th.App.Srv().Store().PostReadStatus())
 		mockStore.On("Close").Return(nil)
 		th.App.Srv().SetStore(&mockStore)
 
@@ -6316,6 +6317,7 @@ func TestPatchChannelModerations(t *testing.T) {
 		mockStore.On("System").Return(th.App.Srv().Store().System())
 		mockStore.On("License").Return(th.App.Srv().Store().License())
 		mockStore.On("Role").Return(th.App.Srv().Store().Role())
+		mockStore.On("PostReadStatus").Return(th.App.Srv().Store().PostReadStatus())
 		mockStore.On("Close").Return(nil)
 		th.App.Srv().SetStore(&mockStore)
 

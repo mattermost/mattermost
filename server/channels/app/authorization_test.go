@@ -278,6 +278,7 @@ func TestSessionHasPermissionToChannel(t *testing.T) {
 		mockStore.On("Team").Return(th.App.Srv().Store().Team())
 		mockStore.On("User").Return(th.App.Srv().Store().User())
 		mockStore.On("Webhook").Return(th.App.Srv().Store().Webhook())
+		mockStore.On("PostReadStatus").Return(th.App.Srv().Store().PostReadStatus())
 		mockStore.On("Close").Return(nil)
 		th.App.Srv().SetStore(&mockStore)
 
@@ -375,6 +376,7 @@ func TestSessionHasPermissionToChannels(t *testing.T) {
 		mockStore.On("Team").Return(th.App.Srv().Store().Team())
 		mockStore.On("User").Return(th.App.Srv().Store().User())
 		mockStore.On("Webhook").Return(th.App.Srv().Store().Webhook())
+		mockStore.On("PostReadStatus").Return(th.App.Srv().Store().PostReadStatus())
 		mockStore.On("Close").Return(nil)
 		th.App.Srv().SetStore(&mockStore)
 
