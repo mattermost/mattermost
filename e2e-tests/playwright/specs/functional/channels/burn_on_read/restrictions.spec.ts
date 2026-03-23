@@ -7,453 +7,273 @@ import {BOR_TAG, setupBorTest, createSecondUser} from './support';
 
 test.describe('Burn-on-Read Restrictions', () => {
     test('MM-66742_19 no reply option in dot menu for BoR post', {tag: [BOR_TAG]}, async ({pw}) => {
-        // # Initialize setup with BoR enabled
         const {user: sender, team, adminClient} = await setupBorTest(pw);
-
-        // # Create receiver
         const receiver = await createSecondUser(pw, adminClient, team);
-
-        // # Create DM for controlled environment
         await adminClient.createDirectChannel([sender.id, receiver.id]);
 
-        // # Login as sender and post BoR message
         const {channelsPage: senderPage} = await pw.testBrowser.login(sender);
-        await senderPage.goto(team.name);
-        await senderPage.toBeVisible();
         await senderPage.goto(team.name, `@${receiver.username}`);
+        await senderPage.toBeVisible();
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        const message = `No reply test ${await pw.random.id()}`;
-        await senderPage.postMessage(message);
+        await senderPage.postMessage(`No reply test ${await pw.random.id()}`);
 
-        // # Login as receiver
         const {channelsPage: receiverPage} = await pw.testBrowser.login(receiver);
-        await receiverPage.goto(team.name);
-        await receiverPage.toBeVisible();
         await receiverPage.goto(team.name, `@${sender.username}`);
+        await receiverPage.toBeVisible();
 
-        // # Get the BoR post and reveal it
         const borPost = await receiverPage.getLastPost();
         await borPost.concealedPlaceholder.clickToReveal();
         await borPost.concealedPlaceholder.waitForReveal();
 
-        // # Hover over post to show action buttons
-        await borPost.container.hover();
-
-        // # Open dot menu
-        const postId = await borPost.getId();
-        const dotMenuButton = receiverPage.page.locator(`#post_${postId}`).getByRole('button', {name: 'More'});
-        await dotMenuButton.click();
+        // # Open dot menu via page object
+        await borPost.hover();
+        await borPost.postMenu.openDotMenu();
 
         // * Verify Reply option is NOT present
-        const replyOption = receiverPage.page.getByTestId(`reply_to_post_${postId}`);
-        await expect(replyOption).not.toBeVisible();
+        await expect(receiverPage.postDotMenu.replyMenuItem).not.toBeVisible();
 
-        // Close menu by pressing Escape
         await receiverPage.page.keyboard.press('Escape');
     });
 
     test('MM-66742_20 no pin option in dot menu for BoR post', {tag: [BOR_TAG]}, async ({pw}) => {
-        // # Initialize setup with BoR enabled
         const {user: sender, team, adminClient} = await setupBorTest(pw);
-
-        // # Create receiver
         const receiver = await createSecondUser(pw, adminClient, team);
-
-        // # Create DM for controlled environment
         await adminClient.createDirectChannel([sender.id, receiver.id]);
 
-        // # Login as sender and post BoR message
         const {channelsPage: senderPage} = await pw.testBrowser.login(sender);
-        await senderPage.goto(team.name);
-        await senderPage.toBeVisible();
         await senderPage.goto(team.name, `@${receiver.username}`);
+        await senderPage.toBeVisible();
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        const message = `No pin test ${await pw.random.id()}`;
-        await senderPage.postMessage(message);
+        await senderPage.postMessage(`No pin test ${await pw.random.id()}`);
 
-        // # Login as receiver
         const {channelsPage: receiverPage} = await pw.testBrowser.login(receiver);
-        await receiverPage.goto(team.name);
-        await receiverPage.toBeVisible();
         await receiverPage.goto(team.name, `@${sender.username}`);
+        await receiverPage.toBeVisible();
 
-        // # Get the BoR post and reveal it
         const borPost = await receiverPage.getLastPost();
         await borPost.concealedPlaceholder.clickToReveal();
         await borPost.concealedPlaceholder.waitForReveal();
 
-        // # Hover over post to show action buttons
-        await borPost.container.hover();
-
-        // # Open dot menu
-        const postId = await borPost.getId();
-        const dotMenuButton = receiverPage.page.locator(`#post_${postId}`).getByRole('button', {name: 'More'});
-        await dotMenuButton.click();
+        await borPost.hover();
+        await borPost.postMenu.openDotMenu();
 
         // * Verify Pin option is NOT present
-        const pinOption = receiverPage.page.getByTestId(`pin_post_${postId}`);
-        await expect(pinOption).not.toBeVisible();
+        await expect(receiverPage.postDotMenu.pinToChannelMenuItem).not.toBeVisible();
 
-        // Close menu
         await receiverPage.page.keyboard.press('Escape');
     });
 
     test('MM-66742_21 no edit option in dot menu for BoR post (sender)', {tag: [BOR_TAG]}, async ({pw}) => {
-        // # Initialize setup with BoR enabled
         const {user: sender, team, adminClient} = await setupBorTest(pw);
-
-        // # Create receiver for valid BoR post
         const receiver = await createSecondUser(pw, adminClient, team);
-
-        // # Create DM for controlled environment
         await adminClient.createDirectChannel([sender.id, receiver.id]);
 
-        // # Login as sender and post BoR message
         const {channelsPage: senderPage} = await pw.testBrowser.login(sender);
-        await senderPage.goto(team.name);
-        await senderPage.toBeVisible();
         await senderPage.goto(team.name, `@${receiver.username}`);
+        await senderPage.toBeVisible();
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        const message = `No edit test ${await pw.random.id()}`;
-        await senderPage.postMessage(message);
+        await senderPage.postMessage(`No edit test ${await pw.random.id()}`);
 
-        // # Get the BoR post (sender can see their own message)
         const borPost = await senderPage.getLastPost();
 
-        // # Hover over post to show action buttons
-        await borPost.container.hover();
+        await borPost.hover();
+        await borPost.postMenu.openDotMenu();
 
-        // # Open dot menu
-        const postId = await borPost.getId();
-        const dotMenuButton = senderPage.page.locator(`#post_${postId}`).getByRole('button', {name: 'More'});
-        await dotMenuButton.click();
+        // * Verify Edit option is NOT present (even for sender)
+        await expect(senderPage.postDotMenu.editMenuItem).not.toBeVisible();
 
-        // * Verify Edit option is NOT present (even for sender's own BoR post)
-        const editOption = senderPage.page.getByTestId(`edit_post_${postId}`);
-        await expect(editOption).not.toBeVisible();
-
-        // Close menu
         await senderPage.page.keyboard.press('Escape');
     });
 
     test('MM-66742_22 no forward option in dot menu for BoR post', {tag: [BOR_TAG]}, async ({pw}) => {
-        // # Initialize setup with BoR enabled
         const {user: sender, team, adminClient} = await setupBorTest(pw);
-
-        // # Create receiver
         const receiver = await createSecondUser(pw, adminClient, team);
-
-        // # Create DM for controlled environment
         await adminClient.createDirectChannel([sender.id, receiver.id]);
 
-        // # Login as sender and post BoR message
         const {channelsPage: senderPage} = await pw.testBrowser.login(sender);
-        await senderPage.goto(team.name);
-        await senderPage.toBeVisible();
         await senderPage.goto(team.name, `@${receiver.username}`);
+        await senderPage.toBeVisible();
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        const message = `No forward test ${await pw.random.id()}`;
-        await senderPage.postMessage(message);
+        await senderPage.postMessage(`No forward test ${await pw.random.id()}`);
 
-        // # Login as receiver
         const {channelsPage: receiverPage} = await pw.testBrowser.login(receiver);
-        await receiverPage.goto(team.name);
-        await receiverPage.toBeVisible();
         await receiverPage.goto(team.name, `@${sender.username}`);
+        await receiverPage.toBeVisible();
 
-        // # Get the BoR post and reveal it
         const borPost = await receiverPage.getLastPost();
         await borPost.concealedPlaceholder.clickToReveal();
         await borPost.concealedPlaceholder.waitForReveal();
 
-        // # Hover over post to show action buttons
-        await borPost.container.hover();
-
-        // # Open dot menu
-        const postId = await borPost.getId();
-        const dotMenuButton = receiverPage.page.locator(`#post_${postId}`).getByRole('button', {name: 'More'});
-        await dotMenuButton.click();
+        await borPost.hover();
+        await borPost.postMenu.openDotMenu();
 
         // * Verify Forward option is NOT present
-        const forwardOption = receiverPage.page.getByTestId(`forward_post_${postId}`);
-        await expect(forwardOption).not.toBeVisible();
+        await expect(receiverPage.postDotMenu.forwardMenuItem).not.toBeVisible();
 
-        // Close menu
         await receiverPage.page.keyboard.press('Escape');
     });
 
     test('MM-66742_23 no copy text option in dot menu for BoR post (receiver)', {tag: [BOR_TAG]}, async ({pw}) => {
-        // # Initialize setup with BoR enabled
         const {user: sender, team, adminClient} = await setupBorTest(pw);
-
-        // # Create receiver
         const receiver = await createSecondUser(pw, adminClient, team);
-
-        // # Create DM for controlled environment
         await adminClient.createDirectChannel([sender.id, receiver.id]);
 
-        // # Login as sender and post BoR message
         const {channelsPage: senderPage} = await pw.testBrowser.login(sender);
-        await senderPage.goto(team.name);
-        await senderPage.toBeVisible();
         await senderPage.goto(team.name, `@${receiver.username}`);
+        await senderPage.toBeVisible();
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        const message = `No copy test ${await pw.random.id()}`;
-        await senderPage.postMessage(message);
+        await senderPage.postMessage(`No copy test ${await pw.random.id()}`);
 
-        // # Login as receiver
         const {channelsPage: receiverPage} = await pw.testBrowser.login(receiver);
-        await receiverPage.goto(team.name);
-        await receiverPage.toBeVisible();
         await receiverPage.goto(team.name, `@${sender.username}`);
+        await receiverPage.toBeVisible();
 
-        // # Get the BoR post and reveal it
         const borPost = await receiverPage.getLastPost();
         await borPost.concealedPlaceholder.clickToReveal();
         await borPost.concealedPlaceholder.waitForReveal();
 
-        // # Hover over post to show action buttons
-        await borPost.container.hover();
-
-        // # Open dot menu
-        const postId = await borPost.getId();
-        const dotMenuButton = receiverPage.page.locator(`#post_${postId}`).getByRole('button', {name: 'More'});
-        await dotMenuButton.click();
+        await borPost.hover();
+        await borPost.postMenu.openDotMenu();
 
         // * Verify Copy Text option is NOT present for receiver
-        const copyOption = receiverPage.page.getByTestId(`copy_${postId}`);
-        await expect(copyOption).not.toBeVisible();
+        await expect(receiverPage.postDotMenu.copyTextMenuItem).not.toBeVisible();
 
-        // Close menu
         await receiverPage.page.keyboard.press('Escape');
     });
 
     test('MM-66742_24 no copy link option for receiver of BoR post', {tag: [BOR_TAG]}, async ({pw}) => {
-        // # Initialize setup with BoR enabled
         const {user: sender, team, adminClient} = await setupBorTest(pw);
-
-        // # Create receiver
         const receiver = await createSecondUser(pw, adminClient, team);
-
-        // # Create DM for controlled environment
         await adminClient.createDirectChannel([sender.id, receiver.id]);
 
-        // # Login as sender and post BoR message
         const {channelsPage: senderPage} = await pw.testBrowser.login(sender);
-        await senderPage.goto(team.name);
-        await senderPage.toBeVisible();
         await senderPage.goto(team.name, `@${receiver.username}`);
+        await senderPage.toBeVisible();
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        const message = `No copy link test ${await pw.random.id()}`;
-        await senderPage.postMessage(message);
+        await senderPage.postMessage(`No copy link test ${await pw.random.id()}`);
 
-        // # Login as receiver
         const {channelsPage: receiverPage} = await pw.testBrowser.login(receiver);
-        await receiverPage.goto(team.name);
-        await receiverPage.toBeVisible();
         await receiverPage.goto(team.name, `@${sender.username}`);
+        await receiverPage.toBeVisible();
 
-        // # Get the BoR post and reveal it
         const borPost = await receiverPage.getLastPost();
         await borPost.concealedPlaceholder.clickToReveal();
         await borPost.concealedPlaceholder.waitForReveal();
 
-        // # Hover over post to show action buttons
-        await borPost.container.hover();
+        await borPost.hover();
+        await borPost.postMenu.openDotMenu();
 
-        // # Open dot menu
-        const postId = await borPost.getId();
-        const dotMenuButton = receiverPage.page.locator(`#post_${postId}`).getByRole('button', {name: 'More'});
-        await dotMenuButton.click();
+        // * Verify Copy Link option is NOT present for receiver
+        await expect(receiverPage.postDotMenu.copyLinkMenuItem).not.toBeVisible();
 
-        // * Verify Copy Link (permalink) option is NOT present for receiver
-        const permalinkOption = receiverPage.page.getByTestId(`permalink_${postId}`);
-        await expect(permalinkOption).not.toBeVisible();
-
-        // Close menu
         await receiverPage.page.keyboard.press('Escape');
     });
 
     test('MM-66742_25 sender can copy link to own BoR post', {tag: [BOR_TAG]}, async ({pw}) => {
-        // # Initialize setup with BoR enabled
         const {user: sender, team, adminClient} = await setupBorTest(pw);
-
-        // # Create receiver for valid BoR post
         const receiver = await createSecondUser(pw, adminClient, team);
-
-        // # Create DM for controlled environment
         await adminClient.createDirectChannel([sender.id, receiver.id]);
 
-        // # Login as sender and post BoR message
         const {channelsPage: senderPage} = await pw.testBrowser.login(sender);
-        await senderPage.goto(team.name);
-        await senderPage.toBeVisible();
         await senderPage.goto(team.name, `@${receiver.username}`);
+        await senderPage.toBeVisible();
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        const message = `Sender copy link test ${await pw.random.id()}`;
-        await senderPage.postMessage(message);
+        await senderPage.postMessage(`Sender copy link test ${await pw.random.id()}`);
 
-        // # Get the BoR post
         const borPost = await senderPage.getLastPost();
 
-        // # Hover over post to show action buttons
-        await borPost.container.hover();
+        await borPost.hover();
+        await borPost.postMenu.openDotMenu();
 
-        // # Open dot menu
-        const postId = await borPost.getId();
-        const dotMenuButton = senderPage.page.locator(`#post_${postId}`).getByRole('button', {name: 'More'});
-        await dotMenuButton.click();
+        // * Verify Copy Link option IS present for sender
+        await expect(senderPage.postDotMenu.copyLinkMenuItem).toBeVisible();
 
-        // * Verify Copy Link (permalink) option IS present for sender
-        const permalinkOption = senderPage.page.getByTestId(`permalink_${postId}`);
-        await expect(permalinkOption).toBeVisible();
-
-        // Close menu
         await senderPage.page.keyboard.press('Escape');
     });
 
     test('MM-66742_26 no follow thread option for BoR post', {tag: [BOR_TAG]}, async ({pw}) => {
-        // # Initialize setup with BoR enabled
         const {user: sender, team, adminClient} = await setupBorTest(pw);
-
-        // # Create receiver
         const receiver = await createSecondUser(pw, adminClient, team);
-
-        // # Create DM for controlled environment
         await adminClient.createDirectChannel([sender.id, receiver.id]);
 
-        // # Login as sender and post BoR message
         const {channelsPage: senderPage} = await pw.testBrowser.login(sender);
-        await senderPage.goto(team.name);
-        await senderPage.toBeVisible();
         await senderPage.goto(team.name, `@${receiver.username}`);
+        await senderPage.toBeVisible();
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        const message = `No follow test ${await pw.random.id()}`;
-        await senderPage.postMessage(message);
+        await senderPage.postMessage(`No follow test ${await pw.random.id()}`);
 
-        // # Login as receiver
         const {channelsPage: receiverPage} = await pw.testBrowser.login(receiver);
-        await receiverPage.goto(team.name);
-        await receiverPage.toBeVisible();
         await receiverPage.goto(team.name, `@${sender.username}`);
+        await receiverPage.toBeVisible();
 
-        // # Get the BoR post and reveal it
         const borPost = await receiverPage.getLastPost();
         await borPost.concealedPlaceholder.clickToReveal();
         await borPost.concealedPlaceholder.waitForReveal();
 
-        // # Hover over post to show action buttons
-        await borPost.container.hover();
-
-        // # Open dot menu
-        const postId = await borPost.getId();
-        const dotMenuButton = receiverPage.page.locator(`#post_${postId}`).getByRole('button', {name: 'More'});
-        await dotMenuButton.click();
+        await borPost.hover();
+        await borPost.postMenu.openDotMenu();
 
         // * Verify Follow Thread option is NOT present
-        const followOption = receiverPage.page.getByTestId(`follow_post_thread_${postId}`);
-        await expect(followOption).not.toBeVisible();
+        await expect(receiverPage.postDotMenu.followMessageMenuItem).not.toBeVisible();
 
-        // Close menu
         await receiverPage.page.keyboard.press('Escape');
     });
 
     test('MM-66742_27 keyboard shortcut Shift+UP does not open reply for BoR post', {tag: [BOR_TAG]}, async ({pw}) => {
-        // # Initialize setup with BoR enabled
         const {user: sender, team, adminClient} = await setupBorTest(pw);
-
-        // # Create receiver
         const receiver = await createSecondUser(pw, adminClient, team);
-
-        // # Create DM for controlled environment
         await adminClient.createDirectChannel([sender.id, receiver.id]);
 
-        // # Login as sender and post BoR message
         const {channelsPage: senderPage} = await pw.testBrowser.login(sender);
-        await senderPage.goto(team.name);
-        await senderPage.toBeVisible();
         await senderPage.goto(team.name, `@${receiver.username}`);
+        await senderPage.toBeVisible();
         await senderPage.centerView.postCreate.toggleBurnOnRead();
         const message = `Keyboard test ${await pw.random.id()}`;
         await senderPage.postMessage(message);
 
-        // # Login as receiver
         const {channelsPage: receiverPage} = await pw.testBrowser.login(receiver);
-        await receiverPage.goto(team.name);
-        await receiverPage.toBeVisible();
         await receiverPage.goto(team.name, `@${sender.username}`);
+        await receiverPage.toBeVisible();
 
-        // # Get the BoR post and reveal it
         const borPost = await receiverPage.getLastPost();
         await borPost.concealedPlaceholder.clickToReveal();
         await borPost.concealedPlaceholder.waitForReveal();
 
-        // # Focus on the message input box
+        // # Focus on the message input box and press Shift+UP
         await receiverPage.centerView.postCreate.input.click();
-
-        // # Press Shift+UP to try to open reply
         await receiverPage.page.keyboard.press('Shift+ArrowUp');
 
-        // * Verify RHS reply thread is NOT opened
-        // Wait a brief moment for any potential RHS to open
-        await receiverPage.page.waitForTimeout(500);
-
-        // Check that the RHS is not open or doesn't show the BoR post content
-        const rhsContainer = receiverPage.page.locator('#rhsContainer');
-        const isRhsVisible = await rhsContainer.isVisible();
-
-        if (isRhsVisible) {
-            // If RHS is visible, it should NOT contain the BoR message
-            // (it might show something else if there are other posts)
-            const rhsContent = await rhsContainer.textContent();
-            expect(rhsContent).not.toContain(message);
-        }
-        // If RHS is not visible, that's the expected behavior for BoR
+        // * Verify RHS does not open with the BoR message
+        await expect(receiverPage.sidebarRight.container).toBeHidden({timeout: 2000}).catch(async () => {
+            await expect(receiverPage.sidebarRight.container).not.toContainText(message);
+        });
     });
 
     test('MM-66742_28 delete option available for revealed BoR post', {tag: [BOR_TAG]}, async ({pw}) => {
-        // # Initialize setup with BoR enabled
         const {user: sender, team, adminClient} = await setupBorTest(pw);
-
-        // # Create receiver
         const receiver = await createSecondUser(pw, adminClient, team);
-
-        // # Create DM for controlled environment
         await adminClient.createDirectChannel([sender.id, receiver.id]);
 
-        // # Login as sender and post BoR message
         const {channelsPage: senderPage} = await pw.testBrowser.login(sender);
-        await senderPage.goto(team.name);
-        await senderPage.toBeVisible();
         await senderPage.goto(team.name, `@${receiver.username}`);
+        await senderPage.toBeVisible();
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        const message = `Delete test ${await pw.random.id()}`;
-        await senderPage.postMessage(message);
+        await senderPage.postMessage(`Delete test ${await pw.random.id()}`);
 
-        // # Login as receiver
         const {channelsPage: receiverPage} = await pw.testBrowser.login(receiver);
-        await receiverPage.goto(team.name);
-        await receiverPage.toBeVisible();
         await receiverPage.goto(team.name, `@${sender.username}`);
+        await receiverPage.toBeVisible();
 
-        // # Get the BoR post and reveal it
         const borPost = await receiverPage.getLastPost();
         await borPost.concealedPlaceholder.clickToReveal();
         await borPost.concealedPlaceholder.waitForReveal();
 
-        // # Hover over post to show action buttons
-        await borPost.container.hover();
+        await borPost.hover();
+        await borPost.postMenu.openDotMenu();
 
-        // # Open dot menu
-        const postId = await borPost.getId();
-        const dotMenuButton = receiverPage.page.locator(`#post_${postId}`).getByRole('button', {name: 'More'});
-        await dotMenuButton.click();
+        // * Verify Delete option IS present
+        await expect(receiverPage.postDotMenu.deleteMenuItem).toBeVisible();
 
-        // * Verify Delete option IS present (BoR posts can be deleted)
-        const deleteOption = receiverPage.page.getByTestId(`delete_post_${postId}`);
-        await expect(deleteOption).toBeVisible();
-
-        // Close menu
         await receiverPage.page.keyboard.press('Escape');
     });
 });

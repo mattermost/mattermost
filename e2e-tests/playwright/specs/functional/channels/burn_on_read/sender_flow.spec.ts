@@ -108,6 +108,7 @@ test.describe('Burn-on-Read Sender Flow', () => {
         await senderPage.page.reload();
         await senderPage.toBeVisible();
         senderPost = await senderPage.getLastPost();
+        await expect(senderPost.burnOnReadBadge.container).toBeVisible({timeout: 15000});
         await senderPost.burnOnReadBadge.hover();
         recipientCount = await senderPost.burnOnReadBadge.getRecipientCount();
         expect(recipientCount.revealed).toBe(1);
@@ -124,6 +125,7 @@ test.describe('Burn-on-Read Sender Flow', () => {
         await senderPage.page.reload();
         await senderPage.toBeVisible();
         senderPost = await senderPage.getLastPost();
+        await expect(senderPost.burnOnReadBadge.container).toBeVisible({timeout: 15000});
         await senderPost.burnOnReadBadge.hover();
         recipientCount = await senderPost.burnOnReadBadge.getRecipientCount();
         expect(recipientCount.revealed).toBe(2);
