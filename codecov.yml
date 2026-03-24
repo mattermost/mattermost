@@ -43,8 +43,5 @@ ignore:
   # Plugin test helpers
   - "server/public/plugin/plugintest"
 
-  # Client wrappers (thin HTTP methods, tested via integration tests)
-  - "server/public/model/client4.go"
-
   # mmctl mocks
   - "server/cmd/mmctl/mocks"
