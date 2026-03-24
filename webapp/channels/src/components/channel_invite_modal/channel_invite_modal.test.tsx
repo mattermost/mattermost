@@ -15,7 +15,7 @@ import ChannelInviteModal from 'components/channel_invite_modal/channel_invite_m
 import type {Value} from 'components/multiselect/multiselect';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
-import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
 
 type UserProfileValue = Value & UserProfile;
 
@@ -472,6 +472,8 @@ describe('components/channel_invite_modal', () => {
 
         const button = await screen.findByRole('button', {name: 'Add to team and channel'});
         await userEvent.click(button);
+        const confirmModal = await screen.findByTestId('channelInviteAddToTeamConfirmModal');
+        await userEvent.click(within(confirmModal).getByRole('button', {name: 'Add to team and channel'}));
 
         await waitFor(() => {
             expect(addUsersToTeamMock).toHaveBeenCalledWith(channel.team_id, ['user-1']);
@@ -536,6 +538,8 @@ describe('components/channel_invite_modal', () => {
 
         const button = await screen.findByRole('button', {name: 'Add to team and channel'});
         await userEvent.click(button);
+        const confirmModal = await screen.findByTestId('channelInviteAddToTeamConfirmModal');
+        await userEvent.click(within(confirmModal).getByRole('button', {name: 'Add to team and channel'}));
 
         await waitFor(() => {
             expect(addUsersToTeamMock).toHaveBeenCalledWith(channel.team_id, [outsider.id]);

@@ -162,6 +162,26 @@ describe('components/channel_invite_modal/team_warning_banner', () => {
         expect(onAddUsersToTeamAndChannel).toHaveBeenCalledTimes(1);
     });
 
+    test('should disable add to team and channel action while saving', () => {
+        const users = createUsers(1);
+        const onAddUsersToTeamAndChannel = jest.fn();
+
+        renderWithContext(
+            <Provider store={store}>
+                <TeamWarningBanner
+                    teamId={teamId}
+                    users={users}
+                    guests={[]}
+                    canAddUsersToTeamAndChannel={true}
+                    isAddingUsersToTeamAndChannel={true}
+                    onAddUsersToTeamAndChannel={onAddUsersToTeamAndChannel}
+                />
+            </Provider>,
+        );
+
+        expect(screen.getByRole('button', {name: 'Add to team and channel'})).toBeDisabled();
+    });
+
     test('should match snapshot for team_warning_banner with > 10 guest profiles', () => {
         const guests = createUsers(11);
 

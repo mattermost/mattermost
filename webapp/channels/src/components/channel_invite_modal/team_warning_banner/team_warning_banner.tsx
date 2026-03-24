@@ -24,6 +24,7 @@ export type Props = {
     canAddUsersToTeamAndChannel?: boolean;
     isAddingUsersToTeamAndChannel?: boolean;
     onAddUsersToTeamAndChannel?: () => void;
+    actionButtonId?: string;
 }
 
 const TeamWarningBanner = (props: Props) => {
@@ -34,6 +35,7 @@ const TeamWarningBanner = (props: Props) => {
         canAddUsersToTeamAndChannel,
         isAddingUsersToTeamAndChannel,
         onAddUsersToTeamAndChannel,
+        actionButtonId,
     } = props;
 
     const {formatMessage} = useIntl();
@@ -189,6 +191,7 @@ const TeamWarningBanner = (props: Props) => {
 
     const actionButton = canAddUsersToTeamAndChannel && users.length > 0 && onAddUsersToTeamAndChannel ? (
         <button
+            id={actionButtonId}
             type='button'
             className='btn btn-tertiary btn-sm'
             onClick={onAddUsersToTeamAndChannel}

@@ -22,6 +22,7 @@ import {displayUsername, filterProfilesStartingWithTerm, isGuest} from 'mattermo
 
 import AlertBanner from 'components/alert_banner';
 import useAccessControlAttributes, {EntityType} from 'components/common/hooks/useAccessControlAttributes';
+import ConfirmModal from 'components/confirm_modal';
 import InvitationModal from 'components/invitation_modal';
 import MultiSelect from 'components/multiselect/multiselect';
 import type {Value} from 'components/multiselect/multiselect';
@@ -121,6 +122,7 @@ const ChannelInviteModalComponent = (props: Props) => {
     const [inviteError, setInviteError] = useState<string | undefined>(undefined);
     const [pageCursors, setPageCursors] = useState<{[page: number]: string}>({});
     const [abacFilteredUsers, setAbacFilteredUsers] = useState<UserProfile[]>([]);
+    const [showAddToTeamConfirmModal, setShowAddToTeamConfirmModal] = useState(false);
 
     const searchTimeoutId = useRef<number>(0);
     const selectedItemRef = useRef<HTMLDivElement>(null);
@@ -418,6 +420,19 @@ const ChannelInviteModalComponent = (props: Props) => {
         setInviteError(undefined);
         onHide();
     }, [props, selectedUsers, usersNotInTeam, handleInviteError, onHide]);
+
+    const openAddUsersToTeamConfirmModal = useCallback(() => {
+        setShowAddToTeamConfirmModal(true);
+    }, []);
+
+    const closeAddUsersToTeamConfirmModal = useCallback(() => {
+        setShowAddToTeamConfirmModal(false);
+    }, []);
+
+    const confirmAddUsersToTeamAndChannel = useCallback(() => {
+        setShowAddToTeamConfirmModal(false);
+        void handleAddUsersToTeamAndChannel();
+    }, [handleAddUsersToTeamAndChannel]);
 
     // Handle search
     const search = useCallback((searchTerm: string) => {
@@ -778,12 +793,41 @@ const ChannelInviteModalComponent = (props: Props) => {
                         {...((props.canAddUsersNotInTeam && !props.skipCommit) ? {
                             canAddUsersToTeamAndChannel: true,
                             isAddingUsersToTeamAndChannel: saving,
-                            onAddUsersToTeamAndChannel: handleAddUsersToTeamAndChannel,
+                            onAddUsersToTeamAndChannel: openAddUsersToTeamConfirmModal,
                         } : {})}
                     />
                     {(props.emailInvitationsEnabled && props.canInviteGuests && !channel.policy_enforced) && inviteGuestLink}
                 </div>
             </div>
+            <ConfirmModal
+                id='channelInviteAddToTeamConfirmModal'
+                show={showAddToTeamConfirmModal}
+                title={(
+                    <FormattedMessage
+                        id='channel_invite.add_to_team_and_channel.confirm.title'
+                        defaultMessage='Add people to the team and channel?'
+                    />
+                )}
+                message={(
+                    <FormattedMessage
+                        id='channel_invite.add_to_team_and_channel.confirm.message'
+                        defaultMessage='This will add the selected people to the {team} team so they can also be added to this channel. Team members may gain access to other public channels and team-level resources based on their permissions.'
+                        values={{
+                            team: <strong>{channel.display_name ? undefined : undefined}</strong>,
+                        }}
+                    />
+                )}
+                confirmButtonText={(
+                    <FormattedMessage
+                        id='channel_invite.add_to_team_and_channel.confirm.confirmButton'
+                        defaultMessage='Add to team and channel'
+                    />
+                )}
+                confirmButtonClass='btn btn-primary'
+                onConfirm={confirmAddUsersToTeamAndChannel}
+                onCancel={closeAddUsersToTeamConfirmModal}
+                isStacked={true}
+            />
         </GenericModal>
     );
 };
