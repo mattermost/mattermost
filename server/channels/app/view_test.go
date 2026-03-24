@@ -17,13 +17,9 @@ import (
 func makeTestView(channelID, userID string) *model.View {
 	return &model.View{
 		ChannelId: channelID,
-		Type:      model.ViewTypeBoard,
+		Type:      model.ViewTypeKanban,
 		CreatorId: userID,
 		Title:     "Test View",
-		Props: &model.ViewBoardProps{
-			Subviews:         []model.Subview{{Title: "Default", Type: model.SubviewTypeKanban}},
-			LinkedProperties: []string{model.NewId()},
-		},
 	}
 }
 
@@ -37,22 +33,6 @@ func TestAppCreateView(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotEmpty(t, saved.Id)
 		assert.Equal(t, th.BasicChannel.Id, saved.ChannelId)
-	})
-
-	t.Run("board view without subviews fails validation", func(t *testing.T) {
-		view := makeTestView(th.BasicChannel.Id, th.BasicUser.Id)
-		view.Props.Subviews = nil
-		_, appErr := th.App.CreateView(th.Context, view, "")
-		require.NotNil(t, appErr)
-		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
-	})
-
-	t.Run("board view without linked properties fails validation", func(t *testing.T) {
-		view := makeTestView(th.BasicChannel.Id, th.BasicUser.Id)
-		view.Props.LinkedProperties = nil
-		_, appErr := th.App.CreateView(th.Context, view, "")
-		require.NotNil(t, appErr)
-		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	})
 
 	t.Run("exceeding max views per channel returns error", func(t *testing.T) {
@@ -156,15 +136,11 @@ func TestAppUpdateView(t *testing.T) {
 		ghost := &model.View{
 			Id:        model.NewId(),
 			ChannelId: th.BasicChannel.Id,
-			Type:      model.ViewTypeBoard,
+			Type:      model.ViewTypeKanban,
 			CreatorId: th.BasicUser.Id,
 			Title:     "Ghost",
-			Props: &model.ViewBoardProps{
-				Subviews:         []model.Subview{{Id: model.NewId(), Title: "Default", Type: model.SubviewTypeKanban}},
-				LinkedProperties: []string{model.NewId()},
-			},
-			CreateAt: model.GetMillis(),
-			UpdateAt: model.GetMillis(),
+			CreateAt:  model.GetMillis(),
+			UpdateAt:  model.GetMillis(),
 		}
 		newTitle := "Title"
 		_, appErr := th.App.UpdateView(th.Context, ghost, &model.ViewPatch{Title: &newTitle}, "")
