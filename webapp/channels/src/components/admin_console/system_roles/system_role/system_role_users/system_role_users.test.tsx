@@ -10,7 +10,7 @@ import {TestHelper} from 'utils/test_helper';
 import SystemRoleUsers from './system_role_users';
 
 describe('admin_console/system_role_users', () => {
-    const makeProps = () => ({
+    const getBaseProps = () => ({
         users: [TestHelper.getUserMock()],
         role: TestHelper.getRoleMock(),
         totalCount: 5,
@@ -34,7 +34,7 @@ describe('admin_console/system_role_users', () => {
     });
 
     test('should match snapshot', async () => {
-        const props = makeProps();
+        const props = getBaseProps();
         const {container} = renderWithContext(
             <SystemRoleUsers
                 {...props}
@@ -49,7 +49,7 @@ describe('admin_console/system_role_users', () => {
     });
 
     test('should match snapshot with readOnly true', async () => {
-        const props = makeProps();
+        const props = getBaseProps();
         const {container} = renderWithContext(
             <SystemRoleUsers
                 {...props}

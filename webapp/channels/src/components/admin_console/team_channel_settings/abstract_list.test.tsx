@@ -6,7 +6,7 @@ import {FormattedMessage} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 
-import {act, renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import AbstractList from './abstract_list';
@@ -49,25 +49,25 @@ describe('admin_console/team_channel_settings/AbstractList', () => {
             removeGroup: jest.fn(),
         };
 
-        let container: HTMLElement;
-        await act(async () => {
-            const result = renderWithContext(
-                <AbstractList
-                    onPageChangedCallback={jest.fn()}
-                    total={0}
-                    header={header}
-                    renderRow={renderRow}
-                    emptyListText={{
-                        id: 'test',
-                        defaultMessage: 'test',
-                    }}
-                    actions={actions}
-                />,
-            );
-            container = result.container;
+        const {container} = renderWithContext(
+            <AbstractList
+                onPageChangedCallback={jest.fn()}
+                total={0}
+                header={header}
+                renderRow={renderRow}
+                emptyListText={{
+                    id: 'test',
+                    defaultMessage: 'test',
+                }}
+                actions={actions}
+            />,
+        );
+
+        await waitFor(() => {
+            expect(actions.getData).toHaveBeenCalled();
         });
 
-        expect(container!).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, with data', async () => {
@@ -82,26 +82,26 @@ describe('admin_console/team_channel_settings/AbstractList', () => {
             removeGroup: jest.fn(),
         };
 
-        let container: HTMLElement;
-        await act(async () => {
-            const result = renderWithContext(
-                <AbstractList
-                    data={testTeams}
-                    onPageChangedCallback={jest.fn()}
-                    total={testTeams.length}
-                    header={header}
-                    renderRow={renderRow}
-                    emptyListText={{
-                        id: 'test',
-                        defaultMessage: 'test',
-                    }}
-                    actions={actions}
-                />,
-            );
-            container = result.container;
+        const {container} = renderWithContext(
+            <AbstractList
+                data={testTeams}
+                onPageChangedCallback={jest.fn()}
+                total={testTeams.length}
+                header={header}
+                renderRow={renderRow}
+                emptyListText={{
+                    id: 'test',
+                    defaultMessage: 'test',
+                }}
+                actions={actions}
+            />,
+        );
+
+        await waitFor(() => {
+            expect(actions.getData).toHaveBeenCalled();
         });
 
-        expect(container!).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     const renderRow = jest.fn((item) => {

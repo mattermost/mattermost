@@ -11,7 +11,7 @@ import TeamFilterDropdown from './team_filter_dropdown';
 import type {FilterOption} from '../filter';
 
 describe('admin_console/filter/team_filter_dropdown/TeamFilterDropdown', () => {
-    const makeProps = () => ({
+    const getBaseProps = () => ({
         getTeams: jest.fn().mockResolvedValue({data: {teams: [
             {id: 'team-1', display_name: 'Alpha Team'},
             {id: 'team-2', display_name: 'Beta Team'},
@@ -21,7 +21,7 @@ describe('admin_console/filter/team_filter_dropdown/TeamFilterDropdown', () => {
     });
 
     test('should render filter name and load teams on mount', async () => {
-        const props = makeProps();
+        const props = getBaseProps();
         const option: FilterOption = {
             name: 'Teams',
             keys: ['team_ids'],
@@ -46,7 +46,7 @@ describe('admin_console/filter/team_filter_dropdown/TeamFilterDropdown', () => {
     });
 
     test('should show selected teams when team_ids match loaded teams', async () => {
-        const props = makeProps();
+        const props = getBaseProps();
         const option: FilterOption = {
             name: 'Teams',
             keys: ['team_ids'],
@@ -70,7 +70,7 @@ describe('admin_console/filter/team_filter_dropdown/TeamFilterDropdown', () => {
     });
 
     test('should show no selected teams when team_ids value is undefined', async () => {
-        const props = makeProps();
+        const props = getBaseProps();
         const option: FilterOption = {
             name: 'Teams',
             keys: ['team_ids'],
@@ -94,7 +94,7 @@ describe('admin_console/filter/team_filter_dropdown/TeamFilterDropdown', () => {
     });
 
     test('should show no selected teams when team_ids value is a non-array', async () => {
-        const props = makeProps();
+        const props = getBaseProps();
         const option: FilterOption = {
             name: 'Teams',
             keys: ['team_ids'],
