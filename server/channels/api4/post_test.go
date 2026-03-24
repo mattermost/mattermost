@@ -5056,14 +5056,14 @@ func TestGetPostStripActionIntegrations(t *testing.T) {
 }
 
 func TestPostReminder(t *testing.T) {
-	t.Skip("MM-60329")
-
 	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	userWSClient := th.CreateConnectedWebSocketClient(t)
 
-	targetTime := time.Now().UTC().Unix()
+	// Set target time 1s in the future so the reminder processor picks it up
+	// on its next tick rather than relying on it already being in the past (MM-60329).
+	targetTime := time.Now().UTC().Unix() + 1
 	resp, err := client.SetPostReminder(context.Background(), &model.PostReminder{
 		TargetTime: targetTime,
 		PostId:     th.BasicPost.Id,
@@ -5104,7 +5104,7 @@ func TestPostReminder(t *testing.T) {
 					require.Equal(t, th.BasicTeam.Name, parsedPost.GetProp("team_name").(string))
 					return
 				}
-			case <-time.After(5 * time.Second):
+			case <-time.After(15 * time.Second):
 				return
 			}
 		}
