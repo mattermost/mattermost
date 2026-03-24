@@ -70,10 +70,11 @@ jobs:
           path: |
             server/prev-report.xml
             server/prev-gotestsum.json
-          # Try branch-specific timing first, fall back to master
-          key: server-test-timing-${{ github.base_ref || github.ref_name }}
+          # Always restore from master — timing is only saved on the default
+          # branch and is stable enough for shard balancing.
+          key: server-test-timing-master
           restore-keys: |
-            server-test-timing-master
+            server-test-timing-
 
       - name: Setup BUILD_IMAGE
         id: build
