@@ -15,6 +15,7 @@ import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {fakeDate} from 'tests/helpers/date';
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {TestHelper} from 'utils/test_helper';
 import {copyToClipboard} from 'utils/utils';
 
 import ThreadMenu from '../thread_menu';
@@ -25,6 +26,10 @@ jest.mock('actions/post_actions');
 jest.mock('utils/utils');
 jest.mock('hooks/useReadout', () => ({
     useReadout: () => jest.fn(),
+}));
+jest.mock('utils/popouts/popout_windows', () => ({
+    canPopout: jest.fn(() => true),
+    popoutThread: jest.fn(),
 }));
 
 const mockRouting = {
@@ -51,12 +56,41 @@ jest.mock('react-redux', () => ({
 describe('components/threading/common/thread_menu', () => {
     let props: ComponentProps<typeof ThreadMenu>;
 
+    const currentUserId = 'uid';
+    const currentTeamId = 'tid';
+    const channel = TestHelper.getChannelMock({
+        id: 'channel-id-123',
+    });
+    const threadId = '1y8hpek81byspd4enyk9mp1ncw';
+    const post = TestHelper.getPostMock(({
+        id: threadId,
+        channel_id: channel.id,
+    }));
+
     const baseState = {
         entities: {
-            preferences: {myPreferences: {}},
-            teams: {currentTeamId: 'tid'},
-            general: {config: {}},
-            users: {currentUserId: 'uid'},
+            channels: {
+                channels: {
+                    [channel.id]: channel,
+                },
+            },
+            general: {
+                config: {},
+            },
+            posts: {
+                posts: {
+                    [post.id]: post,
+                },
+            },
+            preferences: {
+                myPreferences: {},
+            },
+            teams: {
+                currentTeamId,
+            },
+            users: {
+                currentUserId,
+            },
         },
         views: {
             browser: {
@@ -67,7 +101,7 @@ describe('components/threading/common/thread_menu', () => {
 
     beforeEach(() => {
         props = {
-            threadId: '1y8hpek81byspd4enyk9mp1ncw',
+            threadId,
             unreadTimestamp: 1610486901110,
             hasUnreads: false,
             isFollowing: false,
@@ -108,6 +142,7 @@ describe('components/threading/common/thread_menu', () => {
                 {...props}
                 isFollowing={false}
             />,
+            baseState,
         );
 
         const menuButton = screen.getByRole('button', {name: 'More Actions'});
@@ -117,7 +152,7 @@ describe('components/threading/common/thread_menu', () => {
         await userEvent.click(followButton);
 
         await waitFor(() => {
-            expect(setThreadFollow).toHaveBeenCalledWith('uid', 'tid', '1y8hpek81byspd4enyk9mp1ncw', true);
+            expect(setThreadFollow).toHaveBeenCalledWith(currentUserId, currentTeamId, threadId, true);
             expect(mockDispatch).toHaveBeenCalledTimes(1);
         });
     });
@@ -138,7 +173,7 @@ describe('components/threading/common/thread_menu', () => {
         await userEvent.click(unfollowButton);
 
         await waitFor(() => {
-            expect(setThreadFollow).toHaveBeenCalledWith('uid', 'tid', '1y8hpek81byspd4enyk9mp1ncw', false);
+            expect(setThreadFollow).toHaveBeenCalledWith(currentUserId, currentTeamId, threadId, false);
             expect(mockDispatch).toHaveBeenCalledTimes(1);
         });
     });
@@ -158,7 +193,7 @@ describe('components/threading/common/thread_menu', () => {
         await userEvent.click(openInChannelButton);
 
         await waitFor(() => {
-            expect(mockRouting.goToInChannel).toHaveBeenCalledWith('1y8hpek81byspd4enyk9mp1ncw');
+            expect(mockRouting.goToInChannel).toHaveBeenCalledWith(threadId);
             expect(mockDispatch).not.toHaveBeenCalled();
         });
     });
@@ -181,8 +216,8 @@ describe('components/threading/common/thread_menu', () => {
 
         await waitFor(() => {
             expect(markLastPostInThreadAsUnread).not.toHaveBeenCalled();
-            expect(updateThreadRead).toHaveBeenCalledWith('uid', 'tid', '1y8hpek81byspd4enyk9mp1ncw', 1612582579566);
-            expect(manuallyMarkThreadAsUnread).toHaveBeenCalledWith('1y8hpek81byspd4enyk9mp1ncw', 1612582579566);
+            expect(updateThreadRead).toHaveBeenCalledWith(currentUserId, currentTeamId, threadId, 1612582579566);
+            expect(manuallyMarkThreadAsUnread).toHaveBeenCalledWith(threadId, 1612582579566);
             expect(mockDispatch).toHaveBeenCalledTimes(2);
         });
         resetFakeDate();
@@ -205,8 +240,8 @@ describe('components/threading/common/thread_menu', () => {
 
         await waitFor(() => {
             expect(updateThreadRead).not.toHaveBeenCalled();
-            expect(markLastPostInThreadAsUnread).toHaveBeenCalledWith('uid', 'tid', '1y8hpek81byspd4enyk9mp1ncw');
-            expect(manuallyMarkThreadAsUnread).toHaveBeenCalledWith('1y8hpek81byspd4enyk9mp1ncw', 1610486901110);
+            expect(markLastPostInThreadAsUnread).toHaveBeenCalledWith(currentUserId, currentTeamId, threadId);
+            expect(manuallyMarkThreadAsUnread).toHaveBeenCalledWith(threadId, 1610486901110);
             expect(mockDispatch).toHaveBeenCalledTimes(2);
         });
     });
@@ -226,7 +261,7 @@ describe('components/threading/common/thread_menu', () => {
         await userEvent.click(saveButton);
 
         await waitFor(() => {
-            expect(savePost).toHaveBeenCalledWith('1y8hpek81byspd4enyk9mp1ncw');
+            expect(savePost).toHaveBeenCalledWith(threadId);
             expect(mockDispatch).toHaveBeenCalledTimes(1);
         });
     });
@@ -239,10 +274,10 @@ describe('components/threading/common/thread_menu', () => {
                 entities: {
                     preferences: {
                         myPreferences: {
-                            'flagged_post--1y8hpek81byspd4enyk9mp1ncw': {
-                                user_id: 'uid',
+                            [`flagged_post--${post.id}`]: {
+                                user_id: currentUserId,
                                 category: 'flagged_post',
-                                name: '1y8hpek81byspd4enyk9mp1ncw',
+                                name: threadId,
                                 value: 'true',
                             },
                         },
@@ -258,7 +293,7 @@ describe('components/threading/common/thread_menu', () => {
         await userEvent.click(unsaveButton);
 
         await waitFor(() => {
-            expect(unsavePost).toHaveBeenCalledWith('1y8hpek81byspd4enyk9mp1ncw');
+            expect(unsavePost).toHaveBeenCalledWith(threadId);
             expect(mockDispatch).toHaveBeenCalledTimes(1);
         });
     });
@@ -278,9 +313,8 @@ describe('components/threading/common/thread_menu', () => {
         await userEvent.click(copyLinkButton);
 
         await waitFor(() => {
-            expect(copyToClipboard).toHaveBeenCalledWith('http://localhost:8065/team-name-1/pl/1y8hpek81byspd4enyk9mp1ncw');
+            expect(copyToClipboard).toHaveBeenCalledWith(`http://localhost:8065/team-name-1/pl/${threadId}`);
             expect(mockDispatch).not.toHaveBeenCalled();
         });
     });
 });
-

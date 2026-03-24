@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {act, waitFor} from '@testing-library/react';
+import {waitFor} from '@testing-library/react';
+import cloneDeep from 'lodash/cloneDeep';
 import React from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -13,22 +14,14 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {Client4} from 'mattermost-redux/client';
 
+import type {PostPreviewFieldMetadata} from 'components/properties_card_view/properties_card_view';
+
 import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
 
 import PostPreviewPropertyRenderer from './post_preview_property_renderer';
-
-jest.mock('components/common/hooks/useChannel');
-jest.mock('components/common/hooks/use_team');
-jest.mock('components/common/hooks/usePost');
-jest.mock('mattermost-redux/client');
-
-const mockUseChannel = require('components/common/hooks/useChannel').useChannel as jest.MockedFunction<any>;
-const mockUseTeam = require('components/common/hooks/use_team').useTeam as jest.MockedFunction<any>;
-const mockedUsePost = require('components/common/hooks/usePost').usePost as jest.MockedFunction<any>;
-const mockedClient4 = jest.mocked(Client4);
 
 describe('PostPreviewPropertyRenderer', () => {
     const mockUser: UserProfile = {
@@ -70,7 +63,10 @@ describe('PostPreviewPropertyRenderer', () => {
         metadata: {
             fetchDeletedPost: true,
             getPost: (postId: string) => Client4.getFlaggedPost(postId),
-        },
+            post: mockPost,
+            channel: mockChannel,
+            team: mockTeam,
+        } as PostPreviewFieldMetadata,
     };
 
     const baseState: DeepPartial<GlobalState> = {
@@ -101,15 +97,7 @@ describe('PostPreviewPropertyRenderer', () => {
         },
     };
 
-    beforeEach(() => {
-        mockedUsePost.mockReturnValue(null);
-        mockedClient4.getFlaggedPost.mockResolvedValue(mockPost);
-    });
-
     it('should render PostMessagePreview when all data is available', async () => {
-        mockUseChannel.mockReturnValue(mockChannel);
-        mockUseTeam.mockReturnValue(mockTeam);
-
         const {getByTestId, getByText} = renderWithContext(
             <PostPreviewPropertyRenderer {...defaultProps}/>,
             baseState,
@@ -124,42 +112,38 @@ describe('PostPreviewPropertyRenderer', () => {
     });
 
     it('should return null when post is not found', async () => {
-        mockUseChannel.mockReturnValue(mockChannel);
-        mockUseTeam.mockReturnValue(mockTeam);
-        mockedClient4.getFlaggedPost.mockRejectedValue({message: 'Post not found'});
+        const props = cloneDeep(defaultProps);
+        props.metadata.post = undefined;
 
         const {container} = renderWithContext(
-            <PostPreviewPropertyRenderer {...defaultProps}/>,
+            <PostPreviewPropertyRenderer {...props}/>,
             baseState,
         );
-        await act(async () => {});
 
         expect(container.firstChild).toBeNull();
     });
 
     it('should return null when channel is not found', async () => {
-        mockUseChannel.mockReturnValue(null);
-        mockUseTeam.mockReturnValue(mockTeam);
+        const props = cloneDeep(defaultProps);
+        props.metadata.channel = undefined;
 
         const {container} = renderWithContext(
-            <PostPreviewPropertyRenderer {...defaultProps}/>,
+            <PostPreviewPropertyRenderer {...props}/>,
             baseState,
         );
 
-        await act(async () => {});
         expect(container.firstChild).toBeNull();
     });
 
     it('should return null when team is not found', async () => {
-        mockUseChannel.mockReturnValue(mockChannel);
-        mockUseTeam.mockReturnValue(null);
+        const props = cloneDeep(defaultProps);
+        props.metadata.team = undefined;
 
         const {container} = renderWithContext(
-            <PostPreviewPropertyRenderer {...defaultProps}/>,
+            <PostPreviewPropertyRenderer {...props}/>,
             baseState,
         );
 
-        await act(async () => {});
         expect(container.firstChild).toBeNull();
     });
 
@@ -169,15 +153,14 @@ describe('PostPreviewPropertyRenderer', () => {
             type: 'P' as const,
         };
 
-        mockUseChannel.mockReturnValue(privateChannel);
-        mockUseTeam.mockReturnValue(mockTeam);
+        const props = cloneDeep(defaultProps);
+        props.metadata.channel = privateChannel;
 
         const {getByTestId, getByText} = renderWithContext(
-            <PostPreviewPropertyRenderer {...defaultProps}/>,
+            <PostPreviewPropertyRenderer {...props}/>,
             baseState,
         );
 
-        await act(async () => {});
         expect(getByTestId('post-preview-property')).toBeVisible();
         expect(getByText('Test post message')).toBeVisible();
         expect(getByText('Originally posted in ~Test Channel')).toBeVisible();
@@ -194,15 +177,15 @@ describe('PostPreviewPropertyRenderer', () => {
             name: '',
         };
 
-        mockUseChannel.mockReturnValue(channelWithoutDisplayName);
-        mockUseTeam.mockReturnValue(teamWithoutName);
+        const props = cloneDeep(defaultProps);
+        props.metadata.channel = channelWithoutDisplayName;
+        props.metadata.team = teamWithoutName;
 
         const {getByTestId, getByText} = renderWithContext(
-            <PostPreviewPropertyRenderer {...defaultProps}/>,
+            <PostPreviewPropertyRenderer {...props}/>,
             baseState,
         );
 
-        await act(async () => {});
         expect(getByTestId('post-preview-property')).toBeVisible();
         expect(getByText('Test post message')).toBeVisible();
         expect(getByText('Originally posted in ~')).toBeVisible();
@@ -233,16 +216,14 @@ describe('PostPreviewPropertyRenderer', () => {
             },
         } as Post;
 
-        mockedClient4.getFlaggedPost.mockResolvedValue(postWithAttachments);
-        mockUseChannel.mockReturnValue(mockChannel);
-        mockUseTeam.mockReturnValue(mockTeam);
+        const props = cloneDeep(defaultProps);
+        props.metadata.post = postWithAttachments;
 
         const {getByTestId, getByText} = renderWithContext(
-            <PostPreviewPropertyRenderer {...defaultProps}/>,
+            <PostPreviewPropertyRenderer {...props}/>,
             baseState,
         );
 
-        await act(async () => {});
         expect(getByTestId('post-preview-property')).toBeVisible();
         expect(getByText('Post with file attachment')).toBeVisible();
         expect(getByText('Originally posted in ~Test Channel')).toBeVisible();

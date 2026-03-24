@@ -9,7 +9,8 @@ import {DotsVerticalIcon} from '@mattermost/compass-icons/components';
 import type {UserThread} from '@mattermost/types/threads';
 
 import {setThreadFollow, updateThreadRead, markLastPostInThreadAsUnread} from 'mattermost-redux/actions/threads';
-import {isPostFlagged} from 'mattermost-redux/selectors/entities/posts';
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getPost, isPostFlagged} from 'mattermost-redux/selectors/entities/posts';
 
 import {
     flagPost as savePost,
@@ -19,6 +20,7 @@ import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
 
 import * as Menu from 'components/menu';
 import {focusPost} from 'components/permalink_view/actions';
+import {getThreadPopoutTitle} from 'components/thread_popout/thread_popout';
 
 import {useReadout} from 'hooks/useReadout';
 import {canPopout, popoutThread} from 'utils/popouts/popout_windows';
@@ -55,6 +57,8 @@ function ThreadMenu({
     } = useThreadRouting();
 
     const isSaved = useSelector((state: GlobalState) => isPostFlagged(state, threadId));
+    const post = useSelector((state: GlobalState) => getPost(state, threadId));
+    const channel = useSelector((state: GlobalState) => getChannel(state, post.channel_id));
     const readAloud = useReadout();
 
     const handleReadUnread = useCallback(() => {
@@ -83,10 +87,14 @@ function ThreadMenu({
     ]);
 
     const popout = useCallback(() => {
-        popoutThread(intl, threadId, team, (postId, returnTo) => {
-            dispatch(focusPost(postId, returnTo, currentUserId, {skipRedirectReplyPermalink: true}));
-        });
-    }, [threadId, team, intl, dispatch, currentUserId]);
+        popoutThread(
+            intl.formatMessage(getThreadPopoutTitle(channel)),
+            threadId,
+            team,
+            (postId, returnTo) => {
+                dispatch(focusPost(postId, returnTo, currentUserId, {skipRedirectReplyPermalink: true}));
+            });
+    }, [threadId, team, intl, dispatch, currentUserId, channel]);
 
     return (
         <Menu.Container
@@ -111,7 +119,7 @@ function ThreadMenu({
                 id: `thread-menu-dropdown-${threadId}`,
             }}
         >
-            {!canPopout() && (
+            {canPopout() && (
                 <Menu.Item
                     labels={
                         <FormattedMessage

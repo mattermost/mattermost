@@ -22,12 +22,14 @@ import {ensureString} from 'mattermost-redux/utils/post_utils';
 import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
 
 import Markdown from 'components/markdown';
+import PostHeaderTranslateIcon from 'components/post/post_header_translate_icon';
 import {makeGetMentionKeysForPost} from 'components/post_markdown';
 import PriorityBadge from 'components/post_priority/post_priority_badge';
 import Timestamp from 'components/timestamp';
 import Tag from 'components/widgets/tag/tag';
 import Avatars from 'components/widgets/users/avatars';
 
+import {getPostTranslatedMessage, getPostTranslation} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -55,6 +57,7 @@ type Props = {
     postsInThread?: Post[];
     thread?: UserThread | null;
     isPostPriorityEnabled?: boolean;
+    isChannelAutotranslated?: boolean;
 };
 
 const markdownPreviewOptions = {
@@ -75,10 +78,11 @@ function ThreadItem({
     threadId,
     isFirstThreadInList,
     isPostPriorityEnabled,
+    isChannelAutotranslated,
 }: Props & OwnProps): React.ReactElement|null {
     const dispatch = useDispatch();
     const {select, goToInChannel, currentTeamId} = useThreadRouting();
-    const {formatMessage} = useIntl();
+    const {formatMessage, locale} = useIntl();
     const currentUserId = useSelector(getCurrentUserId);
     const msgDeleted = formatMessage({id: 'post_body.deleted', defaultMessage: '(message deleted)'});
     const postAuthor = ensureString(post?.props?.override_username) || displayName;
@@ -192,6 +196,12 @@ function ThreadItem({
         unreadTimestamp = p.edit_at || p.create_at;
     }
 
+    const translation = getPostTranslation(post, locale);
+    let message = post.message;
+    if (isChannelAutotranslated && post.type === '' && translation?.state === 'ready') {
+        message = getPostTranslatedMessage(message, translation);
+    }
+
     return (
         <>
             <div
@@ -241,6 +251,13 @@ function ThreadItem({
                                 />
                             )
                         )}
+                        {isChannelAutotranslated && (
+                            <PostHeaderTranslateIcon
+                                postId={post.id}
+                                translationState={translation?.state}
+                                postType={post.type}
+                            />
+                        )}
                     </div>
                     <Timestamp
                         {...THREADING_TIME}
@@ -265,9 +282,9 @@ function ThreadItem({
                     onClick={handleFormattedTextClick}
                     onKeyDown={handleFormattedTextClick}
                 >
-                    {post.message ? (
+                    {message ? (
                         <Markdown
-                            message={post.state === Posts.POST_DELETED ? msgDeleted : post.message}
+                            message={post.state === Posts.POST_DELETED ? msgDeleted : message}
                             options={markdownPreviewOptions}
                             imagesMetadata={post?.metadata && post?.metadata?.images}
                             mentionKeys={mentionsKeys}

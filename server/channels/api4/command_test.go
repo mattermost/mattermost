@@ -325,6 +325,52 @@ func TestUpdateCommand(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
+
+	t.Run("CannotUpdateCommandToDuplicateCustomTrigger", func(t *testing.T) {
+		cmdA := &model.Command{
+			CreatorId: th.BasicUser.Id,
+			TeamId:    team.Id,
+			URL:       "http://nowhere.com/a",
+			Method:    model.CommandMethodPost,
+			Trigger:   "duplicate_custom_a",
+		}
+		createdCmdA, appErr := th.App.CreateCommand(cmdA)
+		require.Nil(t, appErr)
+
+		cmdB := &model.Command{
+			CreatorId: th.BasicUser.Id,
+			TeamId:    team.Id,
+			URL:       "http://nowhere.com/b",
+			Method:    model.CommandMethodPost,
+			Trigger:   "duplicate_custom_b",
+		}
+		createdCmdB, appErr := th.App.CreateCommand(cmdB)
+		require.Nil(t, appErr)
+
+		createdCmdB.Trigger = createdCmdA.Trigger
+		_, resp, err := th.Client.UpdateCommand(context.Background(), createdCmdB)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.command.duplicate_trigger.app_error")
+	})
+
+	t.Run("CannotUpdateCommandToBuiltInTrigger", func(t *testing.T) {
+		cmd := &model.Command{
+			CreatorId: th.BasicUser.Id,
+			TeamId:    team.Id,
+			URL:       "http://nowhere.com/c",
+			Method:    model.CommandMethodPost,
+			Trigger:   "custom_for_builtin_collision",
+		}
+		createdCmd, appErr := th.App.CreateCommand(cmd)
+		require.Nil(t, appErr)
+
+		createdCmd.Trigger = "join"
+		_, resp, err := th.Client.UpdateCommand(context.Background(), createdCmd)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.command.duplicate_trigger.app_error")
+	})
 }
 
 func TestMoveCommand(t *testing.T) {
@@ -509,6 +555,38 @@ func TestMoveCommand(t *testing.T) {
 
 		// Verify the command was not moved
 		notMovedCmd, _ := th.App.GetCommand(rcmd.Id)
+		require.Equal(t, team.Id, notMovedCmd.TeamId)
+	})
+
+	t.Run("CannotMoveCommandToTeamWithDuplicateTrigger", func(t *testing.T) {
+		trigger := "move_duplicate_trigger"
+
+		sourceCmd := &model.Command{
+			CreatorId: th.BasicUser.Id,
+			TeamId:    team.Id,
+			URL:       "http://nowhere.com/source",
+			Method:    model.CommandMethodPost,
+			Trigger:   trigger,
+		}
+		sourceCreatedCmd, appErr := th.App.CreateCommand(sourceCmd)
+		require.Nil(t, appErr)
+
+		targetCmd := &model.Command{
+			CreatorId: th.BasicUser.Id,
+			TeamId:    newTeam.Id,
+			URL:       "http://nowhere.com/target",
+			Method:    model.CommandMethodPost,
+			Trigger:   trigger,
+		}
+		_, appErr = th.App.CreateCommand(targetCmd)
+		require.Nil(t, appErr)
+
+		resp, err := th.Client.MoveCommand(context.Background(), newTeam.Id, sourceCreatedCmd.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.command.duplicate_trigger.app_error")
+
+		notMovedCmd, _ := th.App.GetCommand(sourceCreatedCmd.Id)
 		require.Equal(t, team.Id, notMovedCmd.TeamId)
 	})
 }

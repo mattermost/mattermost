@@ -70,9 +70,6 @@ export default class PluggableErrorBoundary extends React.PureComponent<Props, S
                         <FormattedMessage
                             id='pluggable.errorRefresh'
                             defaultMessage='Refresh?'
-                            values={{
-                                pluginId: this.props.pluginId,
-                            }}
                         />
                     </a>
                 </WrapperDiv>

@@ -403,7 +403,8 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 			redirectURL = utils.AppendQueryParamsToURL(c.GetSiteURLHeader()+"/login/desktop", queryString)
 
 			auditRec.Success()
-			c.LogAudit("success")
+			auditRec.Actor.UserId = user.Id
+			c.LogAuditWithUserId(user.Id, "authenticated")
 
 			w.Header().Set("Content-Type", "text/html; charset=utf-8")
 			http.Redirect(w, r, redirectURL, http.StatusTemporaryRedirect)
@@ -435,6 +436,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 			redirectURL = utils.AppendQueryParamsToURL(redirectURL, map[string]string{
 				model.SessionCookieToken: c.AppContext.Session().Token,
 				model.SessionCookieCsrf:  c.AppContext.Session().GetCSRF(),
+				"srv":                    c.App.GetSiteURL(), // Server URL for mobile client verification
 			})
 			utils.RenderMobileAuthComplete(w, redirectURL)
 

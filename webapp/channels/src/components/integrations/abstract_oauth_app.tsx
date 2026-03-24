@@ -375,7 +375,7 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
                     <Link to={`/${this.props.team.name}/integrations/oauth2-apps`}>
                         <FormattedMessage
                             id='installed_oauth_apps.header'
-                            defaultMessage='Installed OAuth2 Apps'
+                            defaultMessage='OAuth 2.0 Applications'
                         />
                     </Link>
                     <FormattedMessage

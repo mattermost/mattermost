@@ -59,6 +59,7 @@ import SharedChannelIndicator from 'components/shared_channel_indicator';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 
+import {getArchiveIconClassName} from 'utils/channel_utils';
 import {Constants, StoragePrefixes} from 'utils/constants';
 import {getIntl} from 'utils/i18n';
 import * as Utils from 'utils/utils';
@@ -195,7 +196,7 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
                     defaultMessage: 'Archived channel',
                 })}
             >
-                <i className='icon icon-archive-outline'/>
+                <i className={`icon ${getArchiveIconClassName(channel.type)}`}/>
             </span>
         );
     } else if (hasDraft) {
@@ -654,9 +655,13 @@ export default class SwitchChannelProvider extends Provider {
 
         resultsCallback({
             matchedPretext: channelPrefix,
-            items: combinedItems,
-            terms: combinedTerms,
-            component: ConnectedSwitchChannelSuggestion,
+            groups: [{
+                key: 'channels',
+                label: defineMessage({id: 'suggestion.channels', defaultMessage: 'Channels'}),
+                items: combinedItems,
+                terms: combinedTerms,
+                component: ConnectedSwitchChannelSuggestion,
+            }],
         });
     }
 
@@ -667,7 +672,7 @@ export default class SwitchChannelProvider extends Provider {
         const currentUserId = getCurrentUserId(this.store.getState());
 
         // The naming format is fullname (nickname)
-        // username is shown seperately
+        // username is shown separately
         if ((user.first_name || user.last_name) && user.nickname) {
             displayName += Utils.getFullName(user);
             if (user.id !== currentUserId) {

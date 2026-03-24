@@ -43,7 +43,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         disabled={true}
         helpText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="The type of the search backend."
+            defaultMessage="The type of the search backend. Changing this setting requires a server restart before taking effect."
             id="admin.elasticsearch.backendDescription"
           />
         }
@@ -277,7 +277,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
           />
         }
         id="testConfig"
-        includeDetailedError={false}
+        includeDetailedError={true}
         requestAction={[Function]}
         saveNeeded={false}
         showSuccessMessage={true}
@@ -335,6 +335,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="This purges the channels index and re-indexes all channels in the database, from oldest to newest. Channel autocomplete is available during indexing but search results may be incomplete until the indexing job is complete.
+
 <b>Note- Please ensure no other indexing job is in progress in the table above.</b>"
             id="admin.elasticsearch.rebuildChannelsIndex.helpText"
             values={
@@ -365,7 +366,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
       <RequestButton
         buttonText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Purge Index"
+            defaultMessage="Purge Indexes"
             id="admin.elasticsearch.purgeIndexesButton"
           />
         }
@@ -461,6 +462,24 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         onChange={[Function]}
         setByEnv={false}
         value={false}
+      />
+      <Memo(BooleanSetting)
+        disabled={true}
+        helpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="When enabled, users can find messages in public channels they have not joined. When enabled for the first time, existing posts will be updated in the background. This process is throttled to avoid impacting search performance. This setting has no effect when Compliance Mode is enabled."
+            id="admin.elasticsearch.enableSearchPublicChannelsWithoutMembershipDescription"
+          />
+        }
+        id="enableSearchPublicChannelsWithoutMembership"
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Allow searching public channels without membership:"
+            id="admin.elasticsearch.enableSearchPublicChannelsWithoutMembershipTitle"
+          />
+        }
+        onChange={[Function]}
+        setByEnv={false}
       />
     </Memo(SettingsGroup)>
     <div
@@ -536,7 +555,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         disabled={false}
         helpText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="The type of the search backend."
+            defaultMessage="The type of the search backend. Changing this setting requires a server restart before taking effect."
             id="admin.elasticsearch.backendDescription"
           />
         }
@@ -770,7 +789,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
           />
         }
         id="testConfig"
-        includeDetailedError={false}
+        includeDetailedError={true}
         requestAction={[Function]}
         saveNeeded={false}
         showSuccessMessage={true}
@@ -827,6 +846,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="This purges the channels index and re-indexes all channels in the database, from oldest to newest. Channel autocomplete is available during indexing but search results may be incomplete until the indexing job is complete.
+
 <b>Note- Please ensure no other indexing job is in progress in the table above.</b>"
             id="admin.elasticsearch.rebuildChannelsIndex.helpText"
             values={
@@ -857,7 +877,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
       <RequestButton
         buttonText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Purge Index"
+            defaultMessage="Purge Indexes"
             id="admin.elasticsearch.purgeIndexesButton"
           />
         }
@@ -953,6 +973,24 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         onChange={[Function]}
         setByEnv={false}
         value={false}
+      />
+      <Memo(BooleanSetting)
+        disabled={false}
+        helpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="When enabled, users can find messages in public channels they have not joined. When enabled for the first time, existing posts will be updated in the background. This process is throttled to avoid impacting search performance. This setting has no effect when Compliance Mode is enabled."
+            id="admin.elasticsearch.enableSearchPublicChannelsWithoutMembershipDescription"
+          />
+        }
+        id="enableSearchPublicChannelsWithoutMembership"
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Allow searching public channels without membership:"
+            id="admin.elasticsearch.enableSearchPublicChannelsWithoutMembershipTitle"
+          />
+        }
+        onChange={[Function]}
+        setByEnv={false}
       />
     </Memo(SettingsGroup)>
     <div

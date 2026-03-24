@@ -248,16 +248,12 @@ func (s SqlChannelMemberHistoryStore) PermanentDeleteBatchForRetentionPolicies(r
 
 // DeleteOrphanedRows removes entries from ChannelMemberHistory when a corresponding channel no longer exists.
 func (s SqlChannelMemberHistoryStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
-	// TODO: https://mattermost.atlassian.net/browse/MM-63368
-	// We need the extra level of nesting to deal with MySQL's locking
 	const query = `
-	DELETE FROM ChannelMemberHistory WHERE (ChannelId, UserId, JoinTime) IN (
-		SELECT ChannelId, UserId, JoinTime FROM (
-			SELECT ChannelId, UserId, JoinTime FROM ChannelMemberHistory
-			LEFT JOIN Channels ON ChannelMemberHistory.ChannelId = Channels.Id
-			WHERE Channels.Id IS NULL
-			LIMIT ?
-		) AS A
+	DELETE FROM ChannelMemberHistory WHERE ctid IN (
+		SELECT ChannelMemberHistory.ctid FROM ChannelMemberHistory
+		LEFT JOIN Channels ON ChannelMemberHistory.ChannelId = Channels.Id
+		WHERE Channels.Id IS NULL
+		LIMIT $1
 	)`
 	result, err := s.GetMaster().Exec(query, limit)
 	if err != nil {
@@ -268,39 +264,22 @@ func (s SqlChannelMemberHistoryStore) DeleteOrphanedRows(limit int) (deleted int
 }
 
 func (s SqlChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
-	var (
-		query string
-		args  []any
-		err   error
-	)
-
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		var innerSelect string
-		innerSelect, args, err = s.getQueryBuilder().
-			Select("ctid").
-			From("ChannelMemberHistory").
-			Where(sq.And{
-				sq.NotEq{"LeaveTime": nil},
-				sq.LtOrEq{"LeaveTime": endTime},
-			}).Limit(uint64(limit)).
-			ToSql()
-		if err != nil {
-			return 0, errors.Wrap(err, "channel_member_history_to_sql")
-		}
-		query, _, err = s.getQueryBuilder().
-			Delete("ChannelMemberHistory").
-			Where(fmt.Sprintf(
-				"ctid IN (%s)", innerSelect,
-			)).ToSql()
-	} else {
-		query, args, err = s.getQueryBuilder().
-			Delete("ChannelMemberHistory").
-			Where(sq.And{
-				sq.NotEq{"LeaveTime": nil},
-				sq.LtOrEq{"LeaveTime": endTime},
-			}).
-			Limit(uint64(limit)).ToSql()
+	innerSelect, args, err := s.getQueryBuilder().
+		Select("ctid").
+		From("ChannelMemberHistory").
+		Where(sq.And{
+			sq.NotEq{"LeaveTime": nil},
+			sq.LtOrEq{"LeaveTime": endTime},
+		}).Limit(uint64(limit)).
+		ToSql()
+	if err != nil {
+		return 0, errors.Wrap(err, "channel_member_history_to_sql")
 	}
+	query, _, err := s.getQueryBuilder().
+		Delete("ChannelMemberHistory").
+		Where(fmt.Sprintf(
+			"ctid IN (%s)", innerSelect,
+		)).ToSql()
 	if err != nil {
 		return 0, errors.Wrap(err, "channel_member_history_to_sql")
 	}
@@ -314,6 +293,40 @@ func (s SqlChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit 
 		return 0, errors.Wrapf(err, "PermanentDeleteBatch endTime=%d limit=%d", endTime, limit)
 	}
 	return rowsAffected, nil
+}
+
+// GetMembershipChanges returns all membership events (joins and leaves) for a channel since the given timestamp.
+// Uses inclusive comparison (>=) so events at the cursor timestamp are re-fetched rather than lost at batch
+// boundaries. This may cause redundant re-sends when consecutive batches share a boundary timestamp, but the
+// receiver is idempotent so duplicates are harmless. A composite cursor (timestamp + ID) like posts use would
+// eliminate duplicates, but would require a schema change to SharedChannelRemotes; the current trade-off avoids that.
+func (s SqlChannelMemberHistoryStore) GetMembershipChanges(channelID string, since int64, limit int) ([]*model.ChannelMemberHistory, error) {
+	query, args, err := s.getQueryBuilder().
+		Select("ChannelId", "UserId", "JoinTime", "LeaveTime").
+		From("ChannelMemberHistory").
+		Where(sq.And{
+			sq.Eq{"ChannelId": channelID},
+			sq.Or{
+				sq.GtOrEq{"JoinTime": since},
+				sq.And{
+					sq.NotEq{"LeaveTime": nil},
+					sq.GtOrEq{"LeaveTime": since},
+				},
+			},
+		}).
+		OrderBy("GREATEST(JoinTime, COALESCE(LeaveTime, 0)) ASC", "UserId ASC").
+		Limit(uint64(limit)).
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "channel_member_history_to_sql")
+	}
+
+	histories := []*model.ChannelMemberHistory{}
+	if err := s.GetReplica().Select(&histories, query, args...); err != nil {
+		return nil, errors.Wrapf(err, "GetMembershipChanges channelId=%s since=%d limit=%d", channelID, since, limit)
+	}
+
+	return histories, nil
 }
 
 // GetChannelsLeftSince returns list of channels that the user has left after a given time,

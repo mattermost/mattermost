@@ -609,7 +609,7 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                                 <div className='form__help'>
                                     <FormattedMessage
                                         id='add_command.username.help'
-                                        defaultMessage='(Optional) Specify the name to use when posting responses for this slash command. Usernames can be up to 22 characters, and contain lowercase letters, numbers, and the symbols \"-\", \"_\", and \".\". If left blank, your Mattermost username is used.'
+                                        defaultMessage='(Optional) Specify the name to use when posting responses for this slash command. Usernames can be up to 22 characters, and contain lowercase letters, numbers, and the symbols "-", "_", and ".". If left blank, your Mattermost username is used.'
                                     />
                                 </div>
                             </div>

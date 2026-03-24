@@ -1,39 +1,16 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/global/AtMentionsButton should match snapshot 1`] = `
-<WithTooltip
-  title={
-    <React.Fragment>
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Recent mentions"
-        id="channel_header.recentMentions"
-      />
-      <Memo(KeyboardShortcutSequence)
-        hideDescription={true}
-        isInsideTooltip={true}
-        shortcut={
-          Object {
-            "default": Object {
-              "defaultMessage": "Recent mentions:	Ctrl|Shift|M",
-              "id": "shortcuts.nav.recent_mentions",
-            },
-            "mac": Object {
-              "defaultMessage": "Recent mentions:	⌘|Shift|M",
-              "id": "shortcuts.nav.recent_mentions.mac",
-            },
-          }
-        }
-      />
-    </React.Fragment>
-  }
->
-  <HeaderIconButton
+<div>
+  <button
     aria-controls="searchContainer"
-    aria-expanded={false}
+    aria-expanded="false"
     aria-label="Recent mentions"
-    icon="at"
-    onClick={[Function]}
-    toggled={false}
-  />
-</WithTooltip>
+    class="HeaderIconButton"
+  >
+    <i
+      class="icon-at"
+    />
+  </button>
+</div>
 `;
