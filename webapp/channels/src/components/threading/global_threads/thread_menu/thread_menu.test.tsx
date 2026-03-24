@@ -101,6 +101,7 @@ describe('components/threading/common/thread_menu', () => {
 
     beforeEach(() => {
         props = {
+            idPrefix: 'test-thread-menu',
             threadId,
             unreadTimestamp: 1610486901110,
             hasUnreads: false,

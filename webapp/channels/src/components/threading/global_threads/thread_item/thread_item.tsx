@@ -267,6 +267,7 @@ function ThreadItem({
                 </div>
                 <div className='menu-anchor alt-visible'>
                     <ThreadMenu
+                        idPrefix='thread-list-menu'
                         threadId={threadId}
                         isFollowing={isFollowing ?? false}
                         hasUnreads={Boolean(newReplies)}

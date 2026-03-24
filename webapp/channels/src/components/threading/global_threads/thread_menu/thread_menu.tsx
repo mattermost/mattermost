@@ -32,6 +32,7 @@ import type {GlobalState} from 'types/store';
 import {useThreadRouting} from '../../hooks';
 
 type Props = {
+    idPrefix: string;
     threadId: UserThread['id'];
     isFollowing?: boolean;
     hasUnreads: boolean;
@@ -39,6 +40,7 @@ type Props = {
 };
 
 function ThreadMenu({
+    idPrefix,
     threadId,
     isFollowing = false,
     unreadTimestamp,
@@ -99,7 +101,7 @@ function ThreadMenu({
     return (
         <Menu.Container
             menuButton={{
-                id: `thread-menu-${threadId}`,
+                id: `${idPrefix}-${threadId}`,
                 class: 'btn btn-icon btn-sm',
                 'aria-label': formatMessage({
                     id: 'threading.threadHeader.menu',
@@ -116,7 +118,7 @@ function ThreadMenu({
                 }),
             }}
             menu={{
-                id: `thread-menu-dropdown-${threadId}`,
+                id: `${idPrefix}-dropdown-${threadId}`,
             }}
         >
             {canPopout() && (

@@ -140,6 +140,7 @@ const ThreadPane = ({
                         />
                         <PopoutButton onClick={popout}/>
                         <ThreadMenu
+                            idPrefix='thread-menu'
                             threadId={threadId}
                             isFollowing={isFollowing}
                             hasUnreads={isFollowing && Boolean((thread as UserThread).unread_replies || (thread as UserThread).unread_mentions)}
