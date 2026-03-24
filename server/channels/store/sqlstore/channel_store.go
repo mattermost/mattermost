@@ -1777,21 +1777,22 @@ func (s SqlChannelStore) saveMultipleMembers(members []*model.ChannelMember) ([]
 		defaultTeamRolesByChannel[defaultRoles.Id] = defaultRoles
 	}
 
-	query := s.getQueryBuilder().Insert("ChannelMembers").Columns(channelMemberSliceColumns()...)
-	for _, member := range members {
-		query = query.Values(channelMemberToSlice(member)...)
-	}
-
-	sql, args, err := query.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "channel_members_tosql")
-	}
-
-	if _, err := s.GetMaster().Exec(sql, args...); err != nil {
-		if IsUniqueConstraintError(err, []string{"ChannelId", "channelmembers_pkey", "PRIMARY"}) {
-			return nil, store.NewErrConflict("ChannelMembers", err, "")
+	chunks := chunkSlice(members, len(channelMemberSliceColumns()))
+	for _, chunk := range chunks {
+		query := s.getQueryBuilder().Insert("ChannelMembers").Columns(channelMemberSliceColumns()...)
+		for _, member := range chunk {
+			query = query.Values(channelMemberToSlice(member)...)
 		}
-		return nil, errors.Wrap(err, "channel_members_save")
+		sql, args, err := query.ToSql()
+		if err != nil {
+			return nil, errors.Wrap(err, "channel_members_tosql")
+		}
+		if _, err := s.GetMaster().Exec(sql, args...); err != nil {
+			if IsUniqueConstraintError(err, []string{"ChannelId", "channelmembers_pkey", "PRIMARY"}) {
+				return nil, store.NewErrConflict("ChannelMembers", err, "")
+			}
+			return nil, errors.Wrap(err, "channel_members_save")
+		}
 	}
 
 	newMembers := []*model.ChannelMember{}
