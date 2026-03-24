@@ -191,6 +191,9 @@ func (a *App) DeletePropertyField(rctx request.CTX, groupID, id string, bypassPr
 	if err != nil {
 		return model.NewAppError("DeletePropertyField", "app.property_field.delete.get_existing.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+	if existing == nil {
+		return model.NewAppError("DeletePropertyField", "app.property_field.delete.not_found.app_error", nil, "", http.StatusNotFound)
+	}
 
 	if !bypassProtectedCheck && existing.Protected {
 		return model.NewAppError(
