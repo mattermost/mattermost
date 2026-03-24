@@ -163,9 +163,21 @@ func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(pos
 		return err
 	}
 
+	var postsForPersistentNotificationCleanup []*model.Post
+
 	for _, post := range posts {
-		channel := channelsMap[post.ChannelId]
-		team := teamsMap[channel.TeamId]
+		channel, ok := channelsMap[post.ChannelId]
+		if !ok {
+			postsForPersistentNotificationCleanup = append(postsForPersistentNotificationCleanup, post)
+			continue
+		}
+
+		team, ok := teamsMap[channel.TeamId]
+		if !ok {
+			postsForPersistentNotificationCleanup = append(postsForPersistentNotificationCleanup, post)
+			continue
+		}
+
 		// GMs and DMs don't belong to any team
 		if channel.IsGroupOrDirect() {
 			team = &model.Team{}
@@ -207,6 +219,14 @@ func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(pos
 
 		if err := fn(post, channel, team, mentions, profileMap, channelNotifyProps); err != nil {
 			return err
+		}
+	}
+
+	if len(postsForPersistentNotificationCleanup) > 0 {
+		for _, post := range postsForPersistentNotificationCleanup {
+			if appErr := a.DeletePersistentNotification(request.EmptyContext(a.Log()), post); appErr != nil {
+				a.Log().Warn("Failed to delete persistent notification for post", mlog.String("post_id", post.Id), mlog.String("channel_id", post.ChannelId), mlog.Err(appErr))
+			}
 		}
 	}
 
