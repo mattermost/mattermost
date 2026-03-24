@@ -293,8 +293,9 @@ jobs:
           key: server-test-timing-master-${{ github.run_id }}
 
   test-postgres-normal-fips:
-    # Skip FIPS testing for forks, which won't have docker login credentials.
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    # FIPS compile check already runs in enterprise CI for PRs.
+    # Only run full FIPS tests on pushes to the default branch.
+    if: github.event_name == 'push'
     name: Postgres (FIPS)
     needs: go
     uses: ./.github/workflows/server-test-template.yml
