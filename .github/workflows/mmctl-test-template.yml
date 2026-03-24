@@ -32,7 +32,7 @@ jobs:
       - name: buildenv/docker-login
         # Only FIPS requires login for private build container. (Forks won't have credentials.)
         if: inputs.fips-enabled
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -54,11 +54,6 @@ jobs:
         run: |
           echo "${{ inputs.name }}" > server/test-name
           echo "${{ github.event.pull_request.number }}" > server/pr-number
-      - name: Setup needed prepackaged plugins
-        run: |
-          cd server
-          make prepackaged-plugins PLUGIN_PACKAGES=mattermost-plugin-jira-v3.2.5
-
       - name: Run docker compose
         run: |
           cd server/build

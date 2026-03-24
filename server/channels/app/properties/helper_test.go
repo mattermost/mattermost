@@ -39,6 +39,10 @@ func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
 	})
 	require.NoError(tb, err)
 
+	tb.Cleanup(func() {
+		s.Close()
+	})
+
 	return &TestHelper{
 		service: service,
 		dbStore: s,

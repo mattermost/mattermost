@@ -352,19 +352,134 @@ func TestPropertyField_IsValid(t *testing.T) {
 		require.Error(t, pf.IsValid())
 	})
 
-	t.Run("ObjectType at maximum length is valid", func(t *testing.T) {
-		maxLengthObjectType := strings.Repeat("a", PropertyFieldObjectTypeMaxRunes)
+	t.Run("PSAv2 invalid ObjectType", func(t *testing.T) {
 		pf := &PropertyField{
 			ID:         NewId(),
 			GroupID:    NewId(),
 			Name:       "test field",
 			Type:       PropertyFieldTypeText,
 			TargetType: string(PropertyFieldTargetLevelSystem),
-			ObjectType: maxLengthObjectType,
+			ObjectType: "invalid",
+			CreateAt:   GetMillis(),
+			UpdateAt:   GetMillis(),
+		}
+		require.Error(t, pf.IsValid())
+	})
+
+	t.Run("PSAv2 valid ObjectType post", func(t *testing.T) {
+		pf := &PropertyField{
+			ID:         NewId(),
+			GroupID:    NewId(),
+			Name:       "test field",
+			Type:       PropertyFieldTypeText,
+			TargetType: string(PropertyFieldTargetLevelSystem),
+			ObjectType: PropertyFieldObjectTypePost,
 			CreateAt:   GetMillis(),
 			UpdateAt:   GetMillis(),
 		}
 		require.NoError(t, pf.IsValid())
+	})
+
+	t.Run("PSAv2 valid ObjectType channel", func(t *testing.T) {
+		pf := &PropertyField{
+			ID:         NewId(),
+			GroupID:    NewId(),
+			Name:       "test field",
+			Type:       PropertyFieldTypeText,
+			TargetType: string(PropertyFieldTargetLevelSystem),
+			ObjectType: PropertyFieldObjectTypeChannel,
+			CreateAt:   GetMillis(),
+			UpdateAt:   GetMillis(),
+		}
+		require.NoError(t, pf.IsValid())
+	})
+
+	t.Run("PSAv2 valid ObjectType user", func(t *testing.T) {
+		pf := &PropertyField{
+			ID:         NewId(),
+			GroupID:    NewId(),
+			Name:       "test field",
+			Type:       PropertyFieldTypeText,
+			TargetType: string(PropertyFieldTargetLevelSystem),
+			ObjectType: PropertyFieldObjectTypeUser,
+			CreateAt:   GetMillis(),
+			UpdateAt:   GetMillis(),
+		}
+		require.NoError(t, pf.IsValid())
+	})
+
+	t.Run("protected field validation", func(t *testing.T) {
+		baseField := func() *PropertyField {
+			return &PropertyField{
+				ID:       NewId(),
+				GroupID:  NewId(),
+				Name:     "test field",
+				Type:     PropertyFieldTypeText,
+				CreateAt: GetMillis(),
+				UpdateAt: GetMillis(),
+			}
+		}
+
+		t.Run("non-protected field without permissions is valid", func(t *testing.T) {
+			pf := baseField()
+			pf.Protected = false
+			pf.PermissionField = nil
+			require.NoError(t, pf.IsValid())
+		})
+
+		t.Run("non-protected field with admin or member field permission is valid", func(t *testing.T) {
+			for _, level := range []PermissionLevel{PermissionLevelSysadmin, PermissionLevelMember} {
+				pf := baseField()
+				pf.Protected = false
+				pf.PermissionField = NewPointer(level)
+				pf.PermissionValues = NewPointer(PermissionLevelMember)
+				pf.PermissionOptions = NewPointer(PermissionLevelMember)
+				require.NoError(t, pf.IsValid(), "should be valid with field permission %s", level)
+			}
+		})
+
+		t.Run("non-protected field with field=none is invalid", func(t *testing.T) {
+			pf := baseField()
+			pf.Protected = false
+			pf.PermissionField = NewPointer(PermissionLevelNone)
+			pf.PermissionValues = NewPointer(PermissionLevelMember)
+			pf.PermissionOptions = NewPointer(PermissionLevelMember)
+			require.Error(t, pf.IsValid())
+		})
+
+		t.Run("protected field with field=none is valid", func(t *testing.T) {
+			pf := baseField()
+			pf.Protected = true
+			pf.PermissionField = NewPointer(PermissionLevelNone)
+			pf.PermissionValues = NewPointer(PermissionLevelMember)
+			pf.PermissionOptions = NewPointer(PermissionLevelSysadmin)
+			require.NoError(t, pf.IsValid())
+		})
+
+		t.Run("protected field with nil permissions is invalid", func(t *testing.T) {
+			pf := baseField()
+			pf.Protected = true
+			pf.PermissionField = nil
+			require.Error(t, pf.IsValid())
+		})
+
+		t.Run("protected field with field=admin is invalid", func(t *testing.T) {
+			pf := baseField()
+			pf.Protected = true
+			pf.PermissionField = NewPointer(PermissionLevelSysadmin)
+			pf.PermissionValues = NewPointer(PermissionLevelMember)
+			pf.PermissionOptions = NewPointer(PermissionLevelMember)
+			require.Error(t, pf.IsValid())
+		})
+
+		t.Run("protected field with field=member is invalid", func(t *testing.T) {
+			pf := baseField()
+			pf.Protected = true
+			pf.PermissionField = NewPointer(PermissionLevelMember)
+			pf.PermissionValues = NewPointer(PermissionLevelMember)
+			pf.PermissionOptions = NewPointer(PermissionLevelMember)
+			require.Error(t, pf.IsValid())
+		})
 	})
 }
 
@@ -468,7 +583,7 @@ func TestPropertyFieldPatch_IsValid(t *testing.T) {
 }
 
 func TestPropertyField_Patch(t *testing.T) {
-	t.Run("patches all fields", func(t *testing.T) {
+	t.Run("replace mode patches all fields", func(t *testing.T) {
 		pf := &PropertyField{
 			Name:       "original name",
 			Type:       PropertyFieldTypeText,
@@ -484,7 +599,7 @@ func TestPropertyField_Patch(t *testing.T) {
 			Attrs:      &StringInterface{"key": "value"},
 		}
 
-		pf.Patch(patch)
+		pf.Patch(patch, false)
 
 		assert.Equal(t, "new name", pf.Name)
 		assert.Equal(t, PropertyFieldTypeSelect, pf.Type)
@@ -505,12 +620,97 @@ func TestPropertyField_Patch(t *testing.T) {
 			Name: NewPointer("new name"),
 		}
 
-		pf.Patch(patch)
+		pf.Patch(patch, false)
 
 		assert.Equal(t, "new name", pf.Name)
 		assert.Equal(t, PropertyFieldTypeText, pf.Type)
 		assert.Equal(t, "original_target", pf.TargetID)
 		assert.Equal(t, "original_type", pf.TargetType)
+	})
+
+	t.Run("replace mode replaces attrs entirely", func(t *testing.T) {
+		pf := &PropertyField{
+			Name:  "test",
+			Type:  PropertyFieldTypeSelect,
+			Attrs: StringInterface{"subtype": "color", "options": []any{"red", "blue"}},
+		}
+
+		patch := &PropertyFieldPatch{
+			Attrs: &StringInterface{"options": []any{"green"}},
+		}
+
+		pf.Patch(patch, false)
+
+		assert.Equal(t, StringInterface{"options": []any{"green"}}, pf.Attrs)
+		assert.Nil(t, pf.Attrs["subtype"])
+	})
+
+	t.Run("merge preserves existing keys when patching a subset", func(t *testing.T) {
+		pf := &PropertyField{
+			Name:  "test",
+			Type:  PropertyFieldTypeSelect,
+			Attrs: StringInterface{"subtype": "color", "options": []any{"red", "blue"}},
+		}
+
+		patch := &PropertyFieldPatch{
+			Attrs: &StringInterface{"options": []any{"green"}},
+		}
+
+		pf.Patch(patch, true)
+
+		assert.Equal(t, "color", pf.Attrs["subtype"])
+		assert.EqualValues(t, []any{"green"}, pf.Attrs["options"])
+	})
+
+	t.Run("merge with nil value deletes a key", func(t *testing.T) {
+		pf := &PropertyField{
+			Name:  "test",
+			Type:  PropertyFieldTypeSelect,
+			Attrs: StringInterface{"subtype": "color", "options": []any{"red"}},
+		}
+
+		patch := &PropertyFieldPatch{
+			Attrs: &StringInterface{"subtype": nil},
+		}
+
+		pf.Patch(patch, true)
+
+		_, exists := pf.Attrs["subtype"]
+		assert.False(t, exists)
+		assert.EqualValues(t, []any{"red"}, pf.Attrs["options"])
+	})
+
+	t.Run("merge on nil existing attrs initializes the map", func(t *testing.T) {
+		pf := &PropertyField{
+			Name: "test",
+			Type: PropertyFieldTypeText,
+		}
+
+		patch := &PropertyFieldPatch{
+			Attrs: &StringInterface{"key": "value"},
+		}
+
+		pf.Patch(patch, true)
+
+		assert.Equal(t, StringInterface{"key": "value"}, pf.Attrs)
+	})
+
+	t.Run("merge on nil existing attrs with a nil key in the patch doesn't store the nil key", func(t *testing.T) {
+		pf := &PropertyField{
+			Name: "test",
+			Type: PropertyFieldTypeText,
+		}
+
+		patch := &PropertyFieldPatch{
+			Attrs: &StringInterface{"keep": "value", "remove": nil},
+		}
+
+		pf.Patch(patch, true)
+
+		assert.Equal(t, "value", pf.Attrs["keep"])
+		_, exists := pf.Attrs["remove"]
+		assert.False(t, exists)
+		assert.Len(t, pf.Attrs, 1)
 	})
 }
 

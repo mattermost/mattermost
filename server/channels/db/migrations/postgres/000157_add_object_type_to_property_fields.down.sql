@@ -1,1 +1,0 @@
-ALTER TABLE PropertyFields DROP COLUMN IF EXISTS ObjectType;

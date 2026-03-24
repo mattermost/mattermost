@@ -41,6 +41,9 @@ type syncData struct {
 	attachments       []attachment
 	mentionTransforms map[string]string
 
+	membershipChanges          []*model.MembershipChangeMsg
+	resultNextMembershipCursor int64
+
 	resultRepeat                bool
 	resultNextCursor            model.GetPostsSinceForSyncCursor
 	GlobalUserSyncLastTimestamp int64
@@ -62,7 +65,7 @@ func newSyncData(task syncTask, rc *model.RemoteCluster, scr *model.SharedChanne
 }
 
 func (sd *syncData) isEmpty() bool {
-	return len(sd.users) == 0 && len(sd.profileImages) == 0 && len(sd.posts) == 0 && len(sd.reactions) == 0 && len(sd.acknowledgements) == 0 && len(sd.attachments) == 0
+	return len(sd.users) == 0 && len(sd.profileImages) == 0 && len(sd.posts) == 0 && len(sd.reactions) == 0 && len(sd.acknowledgements) == 0 && len(sd.attachments) == 0 && len(sd.membershipChanges) == 0
 }
 
 func (sd *syncData) isCursorChanged() bool {
@@ -169,6 +172,11 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 	// fetch new posts or retry post.
 	if err := scs.fetchPostsForSync(sd); err != nil {
 		return fmt.Errorf("cannot fetch posts for sync %v: %w", sd, err)
+	}
+
+	// fetch membership changes from ChannelMemberHistory
+	if err := scs.fetchMembershipsForSync(sd); err != nil {
+		return fmt.Errorf("cannot fetch memberships for sync %v: %w", sd, err)
 	}
 
 	if !rc.IsOnline() {
@@ -340,6 +348,158 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 	sd.resultRepeat = count >= maxPostsPerSync
 
 	return nil
+}
+
+// fetchMembershipsForSync populates the sync data with membership changes from ChannelMemberHistory.
+func (scs *Service) fetchMembershipsForSync(sd *syncData) error {
+	if !scs.server.Config().FeatureFlags.EnableSharedChannelsMemberSync {
+		return nil
+	}
+
+	start := time.Now()
+	defer func() {
+		if metrics := scs.server.GetMetrics(); metrics != nil {
+			metrics.ObserveSharedChannelsSyncCollectionStepDuration(sd.rc.RemoteId, "Memberships", time.Since(start).Seconds())
+		}
+	}()
+
+	cursor := sd.scr.LastMembersSyncAt
+	limit := scs.GetMemberSyncBatchSize()
+
+	histories, err := scs.server.GetStore().ChannelMemberHistory().GetMembershipChanges(sd.task.channelID, cursor, limit)
+	if err != nil {
+		return fmt.Errorf("could not fetch membership changes for sync: %w", err)
+	}
+
+	if len(histories) == 0 {
+		return nil
+	}
+
+	// Deduplicate by user — for users with multiple events (join/leave/rejoin cycles),
+	// resolve to the most recent event to determine current state.
+	type userState struct {
+		isAdd     bool
+		eventTime int64 // max of JoinTime/LeaveTime for this user
+	}
+	byUser := make(map[string]*userState)
+
+	var maxCursor int64
+	for _, h := range histories {
+		// Track the max event time for the next cursor
+		if h.JoinTime > maxCursor {
+			maxCursor = h.JoinTime
+		}
+		if h.LeaveTime != nil && *h.LeaveTime > maxCursor {
+			maxCursor = *h.LeaveTime
+		}
+
+		// Determine this event's effective time and whether it represents a join or leave
+		var eventTime int64
+		var isAdd bool
+		if h.LeaveTime == nil || h.JoinTime > *h.LeaveTime {
+			// User is currently a member (no leave, or rejoined after leaving)
+			isAdd = true
+			eventTime = h.JoinTime
+		} else {
+			// User left
+			isAdd = false
+			eventTime = *h.LeaveTime
+		}
+
+		// Keep only the most recent state per user
+		if existing, ok := byUser[h.UserId]; !ok || eventTime > existing.eventTime {
+			byUser[h.UserId] = &userState{isAdd: isAdd, eventTime: eventTime}
+		}
+	}
+
+	// Build MembershipChangeMsg entries
+	for userID, state := range byUser {
+		if state.isAdd {
+			user, userErr := scs.server.GetStore().User().Get(context.Background(), userID)
+			if userErr != nil {
+				scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "Failed to get user for membership sync",
+					mlog.String("user_id", userID),
+					mlog.String("channel_id", sd.task.channelID),
+					mlog.Err(userErr),
+				)
+				continue
+			}
+
+			sd.membershipChanges = append(sd.membershipChanges, &model.MembershipChangeMsg{
+				ChannelId:  sd.task.channelID,
+				UserId:     userID,
+				IsAdd:      true,
+				ChangeTime: state.eventTime,
+			})
+
+			doSync, _, syncErr := scs.shouldUserSync(user, sd.task.channelID, sd.rc)
+			if syncErr == nil && doSync {
+				sd.users[user.Id] = user
+			}
+		} else {
+			sd.membershipChanges = append(sd.membershipChanges, &model.MembershipChangeMsg{
+				ChannelId:  sd.task.channelID,
+				UserId:     userID,
+				IsAdd:      false,
+				ChangeTime: state.eventTime,
+			})
+		}
+	}
+
+	sd.resultNextMembershipCursor = maxCursor
+
+	// If we hit the limit, there may be more data to fetch
+	if len(histories) >= limit {
+		sd.resultRepeat = true
+	}
+
+	return nil
+}
+
+// sendMembershipSyncData sends the collected membership changes to the remote cluster.
+func (scs *Service) sendMembershipSyncData(sd *syncData) error {
+	start := time.Now()
+	defer func() {
+		if metrics := scs.server.GetMetrics(); metrics != nil {
+			metrics.ObserveSharedChannelsSyncSendStepDuration(sd.rc.RemoteId, "Memberships", time.Since(start).Seconds())
+		}
+	}()
+
+	msg := model.NewSyncMsg(sd.task.channelID)
+	msg.MembershipChanges = sd.membershipChanges
+
+	// Include only user profiles for users referenced by membership adds,
+	// not the full sd.users map which may contain post authors and other users.
+	memberUsers := make(map[string]*model.User)
+	for _, mc := range sd.membershipChanges {
+		if mc.IsAdd {
+			if u, ok := sd.users[mc.UserId]; ok {
+				memberUsers[mc.UserId] = u
+			}
+		}
+	}
+	msg.Users = memberUsers
+
+	return scs.sendSyncMsgToRemote(msg, sd.rc, func(syncResp model.SyncResponse, errResp error) {
+		if len(syncResp.MembershipErrors) != 0 {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Response indicates error for membership(s) sync",
+				mlog.String("channel_id", sd.task.channelID),
+				mlog.String("remote_id", sd.rc.RemoteId),
+				mlog.Array("membership_errors", syncResp.MembershipErrors),
+			)
+		}
+
+		// Update the membership cursor on success
+		if errResp == nil && sd.resultNextMembershipCursor > 0 {
+			if err := scs.updateMembershipSyncCursor(sd.task.channelID, sd.rc.RemoteId, sd.resultNextMembershipCursor); err != nil {
+				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to update membership sync cursor",
+					mlog.String("channel_id", sd.task.channelID),
+					mlog.String("remote_id", sd.rc.RemoteId),
+					mlog.Err(err),
+				)
+			}
+		}
+	})
 }
 
 func appendPosts(dest []*model.Post, posts []*model.Post, postStore store.PostStore, timestamp int64, logger mlog.LoggerIFace) []*model.Post {
@@ -576,7 +736,7 @@ func (scs *Service) filterPostsForSync(sd *syncData) {
 
 // sendSyncData sends all the collected users, posts, reactions, images, and attachments to the
 // remote cluster.
-// The order of items sent is important: users -> attachments -> posts -> reactions -> profile images
+// The order of items sent is important: users -> memberships -> attachments -> posts -> reactions -> profile images
 func (scs *Service) sendSyncData(sd *syncData) error {
 	start := time.Now()
 	defer func() {
@@ -592,6 +752,13 @@ func (scs *Service) sendSyncData(sd *syncData) error {
 	if len(sd.users) != 0 {
 		if err := scs.sendUserSyncData(sd); err != nil {
 			merr.Append(fmt.Errorf("cannot send user sync data: %w", err))
+		}
+	}
+
+	// send membership changes (after users so the remote has profiles for added members)
+	if len(sd.membershipChanges) != 0 {
+		if err := scs.sendMembershipSyncData(sd); err != nil {
+			merr.Append(fmt.Errorf("cannot send membership sync data: %w", err))
 		}
 	}
 
