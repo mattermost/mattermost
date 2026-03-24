@@ -318,15 +318,20 @@ func TestGetJobsByType_TeamAdminAccessControlSync(t *testing.T) {
 		require.Equal(t, teamJob.Id, jobs[0].Id)
 	})
 
-	t.Run("falls back to global jobs when no team-scoped jobs exist", func(t *testing.T) {
+	t.Run("returns empty when no team-scoped jobs exist for that team", func(t *testing.T) {
+		jobs, _, err := th.SystemAdminClient.GetJobsByTypeForTeam(context.Background(), model.JobTypeAccessControlSync, 0, 60, model.NewId())
+		require.NoError(t, err)
+		require.Empty(t, jobs)
+	})
+
+	t.Run("team admin cannot query jobs for a team they are not admin of", func(t *testing.T) {
 		th.LoginTeamAdmin(t)
 		defer th.LoginBasic(t)
 
-		newTeamID := model.NewId()
-		jobs, _, err := th.SystemAdminClient.GetJobsByTypeForTeam(context.Background(), model.JobTypeAccessControlSync, 0, 60, newTeamID)
-		require.NoError(t, err)
-		require.Len(t, jobs, 1)
-		require.Equal(t, systemJob.Id, jobs[0].Id)
+		otherTeamID := model.NewId()
+		_, resp, err := th.Client.GetJobsByTypeForTeam(context.Background(), model.JobTypeAccessControlSync, 0, 60, otherTeamID)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 	})
 }
 

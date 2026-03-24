@@ -277,11 +277,12 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Team admin fallback: allow reading access_control_sync jobs scoped to their team.
+	// Team admin path: allow reading access_control_sync jobs scoped to their team.
 	teamID := r.URL.Query().Get("team_id")
+	hasTeamFilter := teamID != "" && model.IsValidId(teamID)
 	isTeamScopedSyncRequest := !hasPermission &&
 		c.Params.JobType == model.JobTypeAccessControlSync &&
-		teamID != "" && model.IsValidId(teamID) &&
+		hasTeamFilter &&
 		c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageTeamAccessRules)
 
 	if !hasPermission && !isTeamScopedSyncRequest {
@@ -291,34 +292,23 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var jobs []*model.Job
 
-	// When team_id is provided, query team-scoped jobs.
-	// Falls back to global sync jobs if no team-scoped jobs exist yet.
-	if teamID != "" && model.IsValidId(teamID) {
+	if hasTeamFilter {
+		// When team_id is provided, return only jobs scoped to that team.
+		// Sorted by CreateAt DESC; limited to the requested page size.
 		teamJobs, appErr := c.App.GetJobsByTypeAndData(c.AppContext, c.Params.JobType, map[string]string{"team_id": teamID})
 		if appErr != nil {
 			c.Err = appErr
 			return
 		}
-
-		if len(teamJobs) > 0 {
-			sort.Slice(teamJobs, func(i, j int) bool {
-				return teamJobs[i].CreateAt > teamJobs[j].CreateAt
-			})
-			jobs = teamJobs
-		} else {
-			// Fallback: return global sync jobs (no team_id) for initial sync status.
-			allJobs, appErr := c.App.GetJobsByTypePage(c.AppContext, c.Params.JobType, 0, c.Params.PerPage)
-			if appErr != nil {
-				c.Err = appErr
-				return
-			}
-			for _, job := range allJobs {
-				if job.Data["team_id"] == "" {
-					jobs = append(jobs, job)
-				}
-			}
+		sort.Slice(teamJobs, func(i, j int) bool {
+			return teamJobs[i].CreateAt > teamJobs[j].CreateAt
+		})
+		if len(teamJobs) > c.Params.PerPage {
+			teamJobs = teamJobs[:c.Params.PerPage]
 		}
+		jobs = teamJobs
 	} else {
+		// Store returns jobs ordered by CreateAt DESC; pagination applied at the store level.
 		var appErr *model.AppError
 		jobs, appErr = c.App.GetJobsByTypePage(c.AppContext, c.Params.JobType, c.Params.Page, c.Params.PerPage)
 		if appErr != nil {
