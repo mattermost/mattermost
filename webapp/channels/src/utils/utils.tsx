@@ -909,6 +909,7 @@ export function loadImage(
     request.open('GET', url, true);
     request.responseType = 'arraybuffer';
     request.onload = onLoad;
+    request.onerror = onLoad;
     request.onprogress = (e) => {
         if (onProgress) {
             let total = 0;
