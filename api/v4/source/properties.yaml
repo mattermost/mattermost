@@ -86,7 +86,7 @@
         - properties
       summary: Get property fields
       description: >
-        Get a list of property fields for a specific group and object type. Filter by target_type and target_id to narrow results. Uses cursor-based pagination.
+        Get a list of property fields for a specific group and object type. Requires a target_type parameter to scope the query. Filter further by target_id to narrow results. Uses cursor-based pagination.
       operationId: GetPropertyFields
       parameters:
         - name: group_name
@@ -103,9 +103,14 @@
             type: string
         - name: target_type
           in: query
-          description: Filter by target type
+          description: The scope level to query. Must be one of 'system', 'team', or 'channel'.
+          required: true
           schema:
             type: string
+            enum:
+              - system
+              - team
+              - channel
         - name: target_id
           in: query
           description: Filter by target ID. Required when target_type is 'channel' or 'team'.

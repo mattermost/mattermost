@@ -8,6 +8,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	_ "image/jpeg"
+	_ "image/png"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -22,6 +24,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	oauthgitlab "github.com/mattermost/mattermost/server/v8/channels/app/oauthproviders/gitlab"
+	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
@@ -140,11 +143,28 @@ func TestAdjustProfileImage(t *testing.T) {
 
 	// default image should not require adjustment
 	user := th.BasicUser
-	image, appErr := th.App.GetDefaultProfileImage(user)
+	defaultImg, appErr := th.App.GetDefaultProfileImage(user)
 	require.Nil(t, appErr)
-	image2, appErr := th.App.AdjustImage(th.Context, bytes.NewReader(image))
+	image2, appErr := th.App.AdjustImage(th.Context, bytes.NewReader(defaultImg))
 	require.Nil(t, appErr)
-	assert.Equal(t, image, image2.Bytes())
+	assert.Equal(t, defaultImg, image2.Bytes())
+
+	t.Run("EXIF orientation is applied for rotated images", func(t *testing.T) {
+		// quadrants-orientation-8.png: 128×128 color quadrants with EXIF orientation 8.
+		// quadrants-orientation-1.png: same visual content already rotated, EXIF orientation 1.
+		rotated, err := testutils.ReadTestFile("exif_samples/quadrants-orientation-8.png")
+		require.NoError(t, err)
+		normal, err := testutils.ReadTestFile("exif_samples/quadrants-orientation-1.png")
+		require.NoError(t, err)
+
+		rotatedResult, appErr := th.App.AdjustImage(th.Context, bytes.NewReader(rotated))
+		require.Nil(t, appErr)
+		normalResult, appErr := th.App.AdjustImage(th.Context, bytes.NewReader(normal))
+		require.Nil(t, appErr)
+
+		assert.Equal(t, rotatedResult.Bytes(), normalResult.Bytes(),
+			"EXIF-rotated image should produce the same profile picture as the normally-oriented one")
+	})
 }
 
 func TestUpdateUserToRestrictedDomain(t *testing.T) {
@@ -248,6 +268,41 @@ func TestUpdateUser(t *testing.T) {
 		require.NotNil(t, updatedUser)
 		require.Equal(t, updatedUser.LastPictureUpdate, iLastPictureUpdate)
 	})
+}
+
+func TestUpdateUserNilUpdateResult(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupWithStoreMock(t)
+
+	fakeUserID := model.NewId()
+	mockUser := &model.User{
+		Id:       fakeUserID,
+		Username: "testuser",
+		Email:    "test@example.com",
+	}
+
+	mockUserStore := storemocks.UserStore{}
+	mockUserStore.On("Get", mock.Anything, mock.Anything).Return(mockUser, nil)
+	// Simulate a store that returns (nil, nil) — no error but no result
+	mockUserStore.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil, nil)
+
+	mockSessionStore := storemocks.SessionStore{}
+	mockOAuthStore := storemocks.OAuthStore{}
+
+	var err error
+	th.App.ch.srv.userService, err = users.New(users.ServiceConfig{
+		UserStore:    &mockUserStore,
+		SessionStore: &mockSessionStore,
+		OAuthStore:   &mockOAuthStore,
+		ConfigFn:     th.App.ch.srv.platform.Config,
+		LicenseFn:    th.App.ch.srv.License,
+	})
+	require.NoError(t, err)
+
+	updatedUser, appErr := th.App.UpdateUser(th.Context, mockUser, false)
+	require.Nil(t, updatedUser, "expected nil user when store returns nil update")
+	require.NotNil(t, appErr, "expected error when store returns nil update")
+	require.Equal(t, "app.user.update.find.app_error", appErr.Id)
 }
 
 func TestUpdateUserMissingFields(t *testing.T) {

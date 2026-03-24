@@ -437,7 +437,7 @@ func TestGetPropertyFields(t *testing.T) {
 	t.Run("successful get should return fields", func(t *testing.T) {
 		th.LoginBasic(t)
 
-		fields, resp, err := th.Client.GetPropertyFields(context.Background(), group.Name, "post", model.PropertyFieldSearch{PerPage: 60})
+		fields, resp, err := th.Client.GetPropertyFields(context.Background(), group.Name, "post", model.PropertyFieldSearch{PerPage: 60, TargetType: "system"})
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
@@ -472,7 +472,7 @@ func TestGetPropertyFields(t *testing.T) {
 		}
 
 		// First request without cursor
-		page0, resp, err := th.Client.GetPropertyFields(context.Background(), group.Name, "post", model.PropertyFieldSearch{PerPage: 2})
+		page0, resp, err := th.Client.GetPropertyFields(context.Background(), group.Name, "post", model.PropertyFieldSearch{PerPage: 2, TargetType: "system"})
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.Len(t, page0, 2)
@@ -481,6 +481,7 @@ func TestGetPropertyFields(t *testing.T) {
 		lastField := page0[len(page0)-1]
 		page1, resp, err := th.Client.GetPropertyFields(context.Background(), group.Name, "post", model.PropertyFieldSearch{
 			PerPage:        2,
+			TargetType:     "system",
 			CursorID:       lastField.ID,
 			CursorCreateAt: lastField.CreateAt,
 		})
@@ -503,6 +504,7 @@ func TestGetPropertyFields(t *testing.T) {
 
 		_, resp, err := th.Client.GetPropertyFields(context.Background(), group.Name, "post", model.PropertyFieldSearch{
 			PerPage:        2,
+			TargetType:     "system",
 			CursorID:       "not-a-valid-id",
 			CursorCreateAt: 12345,
 		})
@@ -513,7 +515,7 @@ func TestGetPropertyFields(t *testing.T) {
 	t.Run("get should only return fields from the specified group", func(t *testing.T) {
 		th.LoginBasic(t)
 
-		fields, resp, err := th.Client.GetPropertyFields(context.Background(), group.Name, "post", model.PropertyFieldSearch{PerPage: 60})
+		fields, resp, err := th.Client.GetPropertyFields(context.Background(), group.Name, "post", model.PropertyFieldSearch{PerPage: 60, TargetType: "system"})
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
@@ -628,13 +630,13 @@ func TestGetPropertyFieldsScopeAccess(t *testing.T) {
 		resp.Body.Close()
 	})
 
-	// No target_type at all should succeed (no scope check needed)
-	t.Run("no target_type should succeed", func(t *testing.T) {
+	// No target_type at all should fail with bad request
+	t.Run("no target_type should fail", func(t *testing.T) {
 		th.LoginBasic(t)
 
 		resp, err := th.Client.DoAPIGet(context.Background(), baseURL, "")
-		require.NoError(t, err)
-		require.Equal(t, http.StatusOK, resp.StatusCode)
+		require.Error(t, err)
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 		resp.Body.Close()
 	})
 }
@@ -711,19 +713,13 @@ func TestGetPropertyFieldsFiltering(t *testing.T) {
 		return ids
 	}
 
-	t.Run("no filters returns all fields", func(t *testing.T) {
+	t.Run("no target_type returns bad request", func(t *testing.T) {
 		th.LoginBasic(t)
 
 		resp, err := th.Client.DoAPIGet(context.Background(), baseURL, "")
-		require.NoError(t, err)
-		require.Equal(t, http.StatusOK, resp.StatusCode)
-
-		ids := fieldIDs(decodeFields(t, resp))
+		require.Error(t, err)
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 		resp.Body.Close()
-
-		require.True(t, ids[createdSystemField.ID], "system field should be present")
-		require.True(t, ids[createdChannelField.ID], "channel field should be present")
-		require.True(t, ids[createdOtherChannelField.ID], "other channel field should be present")
 	})
 
 	t.Run("filter by target_type=system returns only system fields", func(t *testing.T) {

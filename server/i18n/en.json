@@ -2597,6 +2597,10 @@
     "translation": "invalid_request: Bad request."
   },
   {
+    "id": "api.oauth.get_access_token.client_id_mismatch.app_error",
+    "translation": "invalid_grant: Token grant was not issued to this client."
+  },
+  {
     "id": "api.oauth.get_access_token.credentials.app_error",
     "translation": "invalid_client: Invalid client credentials."
   },
@@ -3053,6 +3057,10 @@
   {
     "id": "api.property_field.delete.protected_via_api.app_error",
     "translation": "Cannot delete a protected property field via API."
+  },
+  {
+    "id": "api.property_field.get.invalid_target_type.app_error",
+    "translation": "A valid target_type (system, team, or channel) is required."
   },
   {
     "id": "api.property_field.get.target_id_required.app_error",
@@ -5648,7 +5656,7 @@
   },
   {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
-    "translation": "Cannot register Custom Profile Attributes property group"
+    "translation": "Unable to retrieve the custom profile attributes property group."
   },
   {
     "id": "app.custom_profile_attributes.create_property_field.app_error",
@@ -5760,7 +5768,7 @@
   },
   {
     "id": "app.data_spillage.get_group.error",
-    "translation": "Failed to get Content Flagging bot."
+    "translation": "Unable to retrieve the content flagging property group."
   },
   {
     "id": "app.data_spillage.get_reviewer_settings.app_error",
@@ -7889,6 +7897,14 @@
   {
     "id": "app.role.save.invalid_role.app_error",
     "translation": "The role was not valid."
+  },
+  {
+    "id": "app.role.send_updated_role_event.app_error",
+    "translation": "An error occurred while broadcasting the role update."
+  },
+  {
+    "id": "app.role.send_updated_role_event.unknown_scope",
+    "translation": "An error occurred while broadcasting the role update: unknown scheme scope."
   },
   {
     "id": "app.save_config.app_error",
@@ -10747,6 +10763,10 @@
   {
     "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
     "translation": "Invalid domain for move thread settings"
+  },
+  {
+    "id": "model.config.is_valid.native_app_settings.download_link.app_error",
+    "translation": "One or more app download links are not valid URLs."
   },
   {
     "id": "model.config.is_valid.notification_settings.invalid_event",

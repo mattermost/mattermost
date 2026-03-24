@@ -1772,7 +1772,7 @@ func (a *App) addUserToChannel(rctx request.CTX, user *model.User, channel *mode
 	// Synchronize membership change for shared channels
 	if channel.IsShared() {
 		if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
-			scs.HandleMembershipChange(channel.Id, user.Id, true, user.GetRemoteID())
+			scs.NotifyMembershipChanged(channel.Id, user.GetRemoteID())
 		}
 	}
 
@@ -2844,9 +2844,8 @@ func (a *App) removeUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 
 	// Synchronize membership change for shared channels
 	if channel.IsShared() {
-		// isAdd=false, empty remoteId means locally initiated
 		if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
-			scs.HandleMembershipChange(channel.Id, userIDToRemove, false, "")
+			scs.NotifyMembershipChanged(channel.Id, "")
 		}
 	}
 
