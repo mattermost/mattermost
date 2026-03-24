@@ -83,8 +83,6 @@ func TestRunServerSystemdNotification(t *testing.T) {
 	socketPath := socketFile.Name()
 	os.Remove(socketPath)
 
-	// Set the socket path in the process environment
-	originalSocket := os.Getenv("NOTIFY_SOCKET")
 	// t.Setenv prevents t.Parallel — env var has no config equivalent
 	t.Setenv("NOTIFY_SOCKET", socketPath)
 

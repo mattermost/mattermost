@@ -32,7 +32,7 @@ func TestUpdateAssetsSubpathFromConfig(t *testing.T) {
 		// t.Setenv prevents t.Parallel — env var has no config equivalent
 		t.Setenv("IS_CI", "true")
 
-		err = utils.UpdateAssetsSubpathFromConfig(nil)
+		err := utils.UpdateAssetsSubpathFromConfig(nil)
 		require.NoError(t, err)
 	})
 
