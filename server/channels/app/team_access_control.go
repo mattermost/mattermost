@@ -121,10 +121,10 @@ func GetAndClearPolicyLastTeam(policyID string) (string, bool) {
 	return teamID, true
 }
 
-// ValidateTeamAdminPolicyOwnership verifies that a policy is team-scoped to the
-// given team. Returns an error if the policy doesn't exist, spans multiple teams,
-// or belongs to a different team.
-func (a *App) ValidateTeamAdminPolicyOwnership(rctx request.CTX, teamID, policyID string) *model.AppError {
+// ValidateTeamAdminPolicyOwnership checks whether a policy is scoped to a given team.
+// Returns (true, nil) if the policy belongs to the team, (false, nil) if it does not,
+// or (false, err) if an internal error occurred during the check.
+func (a *App) ValidateTeamAdminPolicyOwnership(rctx request.CTX, teamID, policyID string) (bool, *model.AppError) {
 	policies, _, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
 		IDs:    []string{policyID},
 		Type:   model.AccessControlPolicyTypeParent,
@@ -132,19 +132,12 @@ func (a *App) ValidateTeamAdminPolicyOwnership(rctx request.CTX, teamID, policyI
 		Limit:  1,
 	})
 	if err != nil {
-		return model.NewAppError("ValidateTeamAdminPolicyOwnership",
+		return false, model.NewAppError("ValidateTeamAdminPolicyOwnership",
 			"app.team.access_policies.ownership_check.app_error",
 			nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if len(policies) == 0 {
-		return model.NewAppError("ValidateTeamAdminPolicyOwnership",
-			"app.team.access_policies.policy_not_in_team.app_error",
-			map[string]any{"PolicyId": policyID, "TeamId": teamID},
-			"policy is not scoped to this team", http.StatusForbidden)
-	}
-
-	return nil
+	return len(policies) > 0, nil
 }
 
 // ValidateTeamScopePolicyChannelAssignment validates that all channels are eligible

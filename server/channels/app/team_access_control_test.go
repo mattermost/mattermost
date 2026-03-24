@@ -334,8 +334,9 @@ func TestValidateTeamAdminPolicyOwnership(t *testing.T) {
 		ch1 := th.CreatePrivateChannel(t, th.BasicTeam)
 		teamPolicy, _ := createTestPolicyHierarchy(t, th, []*model.Channel{ch1})
 
-		appErr := th.App.ValidateTeamAdminPolicyOwnership(th.Context, th.BasicTeam.Id, teamPolicy.ID)
+		owned, appErr := th.App.ValidateTeamAdminPolicyOwnership(th.Context, th.BasicTeam.Id, teamPolicy.ID)
 		require.Nil(t, appErr)
+		assert.True(t, owned)
 	})
 
 	t.Run("policy scoped to different team fails", func(t *testing.T) {
@@ -343,9 +344,9 @@ func TestValidateTeamAdminPolicyOwnership(t *testing.T) {
 		ch1 := th.CreatePrivateChannel(t, otherTeam)
 		otherTeamPolicy, _ := createTestPolicyHierarchy(t, th, []*model.Channel{ch1})
 
-		appErr := th.App.ValidateTeamAdminPolicyOwnership(th.Context, th.BasicTeam.Id, otherTeamPolicy.ID)
-		require.NotNil(t, appErr)
-		assert.Equal(t, "app.team.access_policies.policy_not_in_team.app_error", appErr.Id)
+		owned, appErr := th.App.ValidateTeamAdminPolicyOwnership(th.Context, th.BasicTeam.Id, otherTeamPolicy.ID)
+		require.Nil(t, appErr)
+		assert.False(t, owned)
 	})
 
 	t.Run("cross-team policy fails", func(t *testing.T) {
@@ -354,23 +355,23 @@ func TestValidateTeamAdminPolicyOwnership(t *testing.T) {
 		ch2 := th.CreatePrivateChannel(t, otherTeam)
 		crossPolicy, _ := createTestPolicyHierarchy(t, th, []*model.Channel{ch1, ch2})
 
-		appErr := th.App.ValidateTeamAdminPolicyOwnership(th.Context, th.BasicTeam.Id, crossPolicy.ID)
-		require.NotNil(t, appErr)
-		assert.Equal(t, "app.team.access_policies.policy_not_in_team.app_error", appErr.Id)
+		owned, appErr := th.App.ValidateTeamAdminPolicyOwnership(th.Context, th.BasicTeam.Id, crossPolicy.ID)
+		require.Nil(t, appErr)
+		assert.False(t, owned)
 	})
 
 	t.Run("policy with no channels fails", func(t *testing.T) {
 		noChannelPolicy, _ := createTestPolicyHierarchy(t, th, []*model.Channel{})
 
-		appErr := th.App.ValidateTeamAdminPolicyOwnership(th.Context, th.BasicTeam.Id, noChannelPolicy.ID)
-		require.NotNil(t, appErr)
-		assert.Equal(t, "app.team.access_policies.policy_not_in_team.app_error", appErr.Id)
+		owned, appErr := th.App.ValidateTeamAdminPolicyOwnership(th.Context, th.BasicTeam.Id, noChannelPolicy.ID)
+		require.Nil(t, appErr)
+		assert.False(t, owned)
 	})
 
 	t.Run("nonexistent policy fails", func(t *testing.T) {
-		appErr := th.App.ValidateTeamAdminPolicyOwnership(th.Context, th.BasicTeam.Id, model.NewId())
-		require.NotNil(t, appErr)
-		assert.Equal(t, "app.team.access_policies.policy_not_in_team.app_error", appErr.Id)
+		owned, appErr := th.App.ValidateTeamAdminPolicyOwnership(th.Context, th.BasicTeam.Id, model.NewId())
+		require.Nil(t, appErr)
+		assert.False(t, owned)
 	})
 }
 

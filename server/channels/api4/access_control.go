@@ -63,8 +63,13 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 			}
 			// For updates, verify the team admin owns the policy
 			if policy.ID != "" {
-				if appErr := c.App.ValidateTeamAdminPolicyOwnership(c.AppContext, teamID, policy.ID); appErr != nil {
+				owned, appErr := c.App.ValidateTeamAdminPolicyOwnership(c.AppContext, teamID, policy.ID)
+				if appErr != nil {
 					c.Err = appErr
+					return
+				}
+				if !owned {
+					c.SetPermissionError(model.PermissionManageTeamAccessRules)
 					return
 				}
 			}
@@ -137,8 +142,13 @@ func getAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 			teamID := r.URL.Query().Get("team_id")
 			if teamID != "" && model.IsValidId(teamID) &&
 				c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageTeamAccessRules) {
-				if appErr := c.App.ValidateTeamAdminPolicyOwnership(c.AppContext, teamID, policyID); appErr != nil {
+				owned, appErr := c.App.ValidateTeamAdminPolicyOwnership(c.AppContext, teamID, policyID)
+				if appErr != nil {
 					c.Err = appErr
+					return
+				}
+				if !owned {
+					c.SetPermissionError(model.PermissionManageTeamAccessRules)
 					return
 				}
 			} else {
@@ -180,32 +190,37 @@ func deleteAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 	if !hasSystemPermission {
 		// Try delegated admin permissions: channel admin first, then team admin
 		channelPermErr := c.App.ValidateAccessControlPolicyPermission(c.AppContext, c.AppContext.Session().UserId, policyID)
-
 		if channelPermErr != nil {
-			// Try team-admin permission: extract team_id from query param
 			teamID := r.URL.Query().Get("team_id")
-			if teamID != "" && model.IsValidId(teamID) &&
-				c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageTeamAccessRules) {
-				if appErr := c.App.ValidateTeamAdminPolicyOwnership(c.AppContext, teamID, policyID); appErr != nil {
-					// Allow delete only if cache confirms this team just unassigned AND policy is still channelless.
-					cachedTeamID, ok := app.GetAndClearPolicyLastTeam(policyID)
-					if !ok || cachedTeamID != teamID {
-						c.Err = appErr
-						return
-					}
-					childCount, _, searchErr := c.App.Srv().Store().AccessControlPolicy().SearchPolicies(c.AppContext, model.AccessControlPolicySearch{
-						ParentID: policyID,
-						Type:     model.AccessControlPolicyTypeChannel,
-						Limit:    1,
-					})
-					if searchErr != nil || len(childCount) > 0 {
-						c.Err = appErr
-						return
-					}
-				}
-			} else {
+			if teamID == "" || !model.IsValidId(teamID) {
 				c.SetPermissionError(model.PermissionManageSystem)
 				return
+			}
+			if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageTeamAccessRules) {
+				c.SetPermissionError(model.PermissionManageTeamAccessRules)
+				return
+			}
+			owned, appErr := c.App.ValidateTeamAdminPolicyOwnership(c.AppContext, teamID, policyID)
+			if appErr != nil {
+				c.Err = appErr
+				return
+			}
+			if !owned {
+				// Allow delete only if cache confirms this team just unassigned AND policy is still channelless.
+				cachedTeamID, ok := app.GetAndClearPolicyLastTeam(policyID)
+				if !ok || cachedTeamID != teamID {
+					c.SetPermissionError(model.PermissionManageTeamAccessRules)
+					return
+				}
+				childCount, _, searchErr := c.App.Srv().Store().AccessControlPolicy().SearchPolicies(c.AppContext, model.AccessControlPolicySearch{
+					ParentID: policyID,
+					Type:     model.AccessControlPolicyTypeChannel,
+					Limit:    1,
+				})
+				if searchErr != nil || len(childCount) > 0 {
+					c.SetPermissionError(model.PermissionManageTeamAccessRules)
+					return
+				}
 			}
 		}
 	}
@@ -283,9 +298,14 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 	teamID := checkExpressionRequest.TeamId
-	hasTeamPermission := !hasSystemPermission && teamID != "" && model.IsValidId(teamID) &&
+	if teamID != "" && !model.IsValidId(teamID) {
+		c.SetInvalidParam("teamId")
+		return
+	}
+
+	hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+	hasTeamPermission := !hasSystemPermission && teamID != "" &&
 		c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageTeamAccessRules)
 
 	if !hasSystemPermission && !hasTeamPermission {
@@ -363,10 +383,15 @@ func validateExpressionAgainstRequester(c *Context, w http.ResponseWriter, r *ht
 		return
 	}
 
+	teamID := request.TeamId
+	if teamID != "" && !model.IsValidId(teamID) {
+		c.SetInvalidParam("teamId")
+		return
+	}
+
 	hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 	if !hasSystemPermission {
-		teamID := request.TeamId
-		hasTeamPermission := teamID != "" && model.IsValidId(teamID) &&
+		hasTeamPermission := teamID != "" &&
 			c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageTeamAccessRules)
 		if !hasTeamPermission {
 			if channelId == "" {
@@ -413,14 +438,12 @@ func searchAccessControlPolicies(c *Context, w http.ResponseWriter, r *http.Requ
 	var appErr *model.AppError
 
 	if props.TeamID != "" {
-		// Team-scoped search: requires manage_system OR team-level manage_team_access_rules
+		// Team-scoped search: requires manage_team_access_rules (system admins have this implicitly)
 		if !model.IsValidId(props.TeamID) {
 			c.SetInvalidParam("team_id")
 			return
 		}
-		hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
-		hasTeamPermission := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), props.TeamID, model.PermissionManageTeamAccessRules)
-		if !hasSystemPermission && !hasTeamPermission {
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), props.TeamID, model.PermissionManageTeamAccessRules) {
 			c.SetPermissionError(model.PermissionManageTeamAccessRules)
 			return
 		}
@@ -548,8 +571,13 @@ func setActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 				// Try team-admin permission via team_id in request
 				if list.TeamID != "" && model.IsValidId(list.TeamID) &&
 					c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), list.TeamID, model.PermissionManageTeamAccessRules) {
-					if appErr := c.App.ValidateTeamAdminPolicyOwnership(c.AppContext, list.TeamID, entry.ID); appErr != nil {
+					owned, appErr := c.App.ValidateTeamAdminPolicyOwnership(c.AppContext, list.TeamID, entry.ID)
+					if appErr != nil {
 						c.Err = appErr
+						return
+					}
+					if !owned {
+						c.SetPermissionError(model.PermissionManageTeamAccessRules)
 						return
 					}
 				} else {
@@ -601,16 +629,20 @@ func assignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionManageTeamAccessRules)
 			return
 		}
-		// Policy must be team-scoped to this team, Channel validation below ensures all
+		// Policy must be team-scoped to this team. Channel validation below ensures all
 		// channels belong to the requesting team regardless.
-		ownershipErr := c.App.ValidateTeamAdminPolicyOwnership(c.AppContext, assignments.TeamID, policyID)
+		owned, ownershipErr := c.App.ValidateTeamAdminPolicyOwnership(c.AppContext, assignments.TeamID, policyID)
 		if ownershipErr != nil {
+			c.Err = ownershipErr
+			return
+		}
+		if !owned {
 			// Allow assign if: (a) cache confirms this team just unassigned, or
 			// (b) policy is a channelless parent with no cache entry (newly created).
 			cachedTeamID, cached := app.GetAndClearPolicyLastTeam(policyID)
 			if cached {
 				if cachedTeamID != assignments.TeamID {
-					c.Err = ownershipErr
+					c.SetPermissionError(model.PermissionManageTeamAccessRules)
 					return
 				}
 				// Verify policy is still channelless (channels could have been re-attached)
@@ -620,13 +652,13 @@ func assignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 					Limit:    1,
 				})
 				if searchErr != nil || len(childCount) > 0 {
-					c.Err = ownershipErr
+					c.SetPermissionError(model.PermissionManageTeamAccessRules)
 					return
 				}
 			} else {
 				policy, getErr := c.App.GetAccessControlPolicy(c.AppContext, policyID)
 				if getErr != nil || policy == nil || policy.Type != model.AccessControlPolicyTypeParent {
-					c.Err = ownershipErr
+					c.SetPermissionError(model.PermissionManageTeamAccessRules)
 					return
 				}
 				childCount, _, searchErr := c.App.Srv().Store().AccessControlPolicy().SearchPolicies(c.AppContext, model.AccessControlPolicySearch{
@@ -635,7 +667,7 @@ func assignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 					Limit:    1,
 				})
 				if searchErr != nil || len(childCount) > 0 {
-					c.Err = ownershipErr
+					c.SetPermissionError(model.PermissionManageTeamAccessRules)
 					return
 				}
 			}
@@ -690,8 +722,13 @@ func unassignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionManageTeamAccessRules)
 			return
 		}
-		if appErr := c.App.ValidateTeamAdminPolicyOwnership(c.AppContext, assignments.TeamID, policyID); appErr != nil {
+		owned, appErr := c.App.ValidateTeamAdminPolicyOwnership(c.AppContext, assignments.TeamID, policyID)
+		if appErr != nil {
 			c.Err = appErr
+			return
+		}
+		if !owned {
+			c.SetPermissionError(model.PermissionManageTeamAccessRules)
 			return
 		}
 	}
@@ -733,8 +770,13 @@ func getChannelsForAccessControlPolicy(c *Context, w http.ResponseWriter, r *htt
 		teamID := r.URL.Query().Get("team_id")
 		if teamID != "" && model.IsValidId(teamID) &&
 			c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageTeamAccessRules) {
-			if appErr := c.App.ValidateTeamAdminPolicyOwnership(c.AppContext, teamID, policyID); appErr != nil {
+			owned, appErr := c.App.ValidateTeamAdminPolicyOwnership(c.AppContext, teamID, policyID)
+			if appErr != nil {
 				c.Err = appErr
+				return
+			}
+			if !owned {
+				c.SetPermissionError(model.PermissionManageTeamAccessRules)
 				return
 			}
 		} else {
@@ -788,8 +830,13 @@ func searchChannelsForAccessControlPolicy(c *Context, w http.ResponseWriter, r *
 		teamID := r.URL.Query().Get("team_id")
 		if teamID != "" && model.IsValidId(teamID) &&
 			c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageTeamAccessRules) {
-			if appErr := c.App.ValidateTeamAdminPolicyOwnership(c.AppContext, teamID, c.Params.PolicyId); appErr != nil {
+			owned, appErr := c.App.ValidateTeamAdminPolicyOwnership(c.AppContext, teamID, c.Params.PolicyId)
+			if appErr != nil {
 				c.Err = appErr
+				return
+			}
+			if !owned {
+				c.SetPermissionError(model.PermissionManageTeamAccessRules)
 				return
 			}
 		} else {
