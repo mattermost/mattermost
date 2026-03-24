@@ -835,21 +835,22 @@ func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersP
 		}
 	}
 
-	query := s.getQueryBuilder().Insert("TeamMembers").Columns(teamMemberSliceColumns()...)
-	for _, member := range members {
-		query = query.Values(teamMemberToSlice(member)...)
-	}
-
-	sql, args, err := query.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "insert_members_to_sql")
-	}
-
-	if _, err = s.GetMaster().Exec(sql, args...); err != nil {
-		if IsUniqueConstraintError(err, []string{"TeamId", "teammembers_pkey", "PRIMARY"}) {
-			return nil, store.NewErrConflict("TeamMember", err, "")
+	chunks := chunkSlice(members, len(teamMemberSliceColumns()))
+	for _, chunk := range chunks {
+		query := s.getQueryBuilder().Insert("TeamMembers").Columns(teamMemberSliceColumns()...)
+		for _, member := range chunk {
+			query = query.Values(teamMemberToSlice(member)...)
 		}
-		return nil, errors.Wrap(err, "unable_to_save_team_member")
+		sql, args, err := query.ToSql()
+		if err != nil {
+			return nil, errors.Wrap(err, "insert_members_to_sql")
+		}
+		if _, err = s.GetMaster().Exec(sql, args...); err != nil {
+			if IsUniqueConstraintError(err, []string{"TeamId", "teammembers_pkey", "PRIMARY"}) {
+				return nil, store.NewErrConflict("TeamMember", err, "")
+			}
+			return nil, errors.Wrap(err, "unable_to_save_team_member")
+		}
 	}
 
 	newMembers := []*model.TeamMember{}
