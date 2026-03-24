@@ -663,6 +663,10 @@ export function autolinkChannelMentions(
     return output;
 }
 
+export function escapeRegex(text?: string): string {
+    return text?.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&') || '';
+}
+
 export function escapeReplaceSpecialPatterns(text?: string): string {
     return text?.replace(/[$]/g, '$$$$') || '';
 }
@@ -751,10 +755,10 @@ export function highlightCurrentMentions(
         let pattern;
         if (cjkrPattern.test(mention.key)) {
             // In the case of CJK mention key, even if there's no delimiters (such as spaces) at both ends of a word, it is recognized as a mention key
-            pattern = new RegExp(`()(${RegExp.escape(mention.key)})()`, flags);
+            pattern = new RegExp(`()(${escapeRegex(mention.key)})()`, flags);
         } else {
             pattern = new RegExp(
-                `(^|\\W)(${RegExp.escape(mention.key)})(\\b|_+\\b)`,
+                `(^|\\W)(${escapeRegex(mention.key)})(\\b|_+\\b)`,
                 flags,
             );
         }
@@ -824,10 +828,10 @@ export function highlightWithoutNotificationKeywords(
             let pattern;
             if (cjkrPattern.test(key)) {
             // If the key contains Chinese, Japanese, Korean or Russian characters, don't mark word boundaries
-                pattern = new RegExp(`()(${RegExp.escape(key)})()`, 'gi');
+                pattern = new RegExp(`()(${escapeRegex(key)})()`, 'gi');
             } else {
             // If the key contains only English characters, mark word boundaries
-                pattern = new RegExp(`(^|\\W)(${RegExp.escape(key)})(\\b|_+\\b)`, 'gi');
+                pattern = new RegExp(`(^|\\W)(${escapeRegex(key)})(\\b|_+\\b)`, 'gi');
             }
 
             // Replace the key with the token for each occurrence of the key
@@ -969,14 +973,14 @@ function convertSearchTermToRegex(term: string): SearchPattern {
 
     if (cjkrPattern.test(term)) {
         // term contains Chinese, Japanese, or Korean characters so don't mark word boundaries
-        pattern = '()(' + RegExp.escape(term.replace(/\*/g, '')) + ')';
+        pattern = '()(' + escapeRegex(term.replace(/\*/g, '')) + ')';
     } else if ((/[^\s][*]$/).test(term)) {
-        pattern = '\\b()(' + RegExp.escape(term.substring(0, term.length - 1)) + ')';
+        pattern = '\\b()(' + escapeRegex(term.substring(0, term.length - 1)) + ')';
     } else if (term.startsWith('@') || term.startsWith('#')) {
         // needs special handling of the first boundary because a word boundary doesn't work before a symbol
-        pattern = '(\\W|^)(' + RegExp.escape(term) + ')\\b';
+        pattern = '(\\W|^)(' + escapeRegex(term) + ')\\b';
     } else {
-        pattern = '\\b()(' + RegExp.escape(term) + ')\\b';
+        pattern = '\\b()(' + escapeRegex(term) + ')\\b';
     }
 
     return {
