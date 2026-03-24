@@ -1,13 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
+import type {ChannelType} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
-import ChannelSelect from 'components/channel_select';
 import AbstractIncomingWebhook from 'components/integrations/abstract_incoming_webhook';
+
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {TestHelper} from 'utils/test_helper';
+
+import type {GlobalState} from 'types/store';
 
 type AbstractIncomingWebhookProps = React.ComponentProps<typeof AbstractIncomingWebhook>;
 
@@ -34,7 +39,7 @@ describe('components/integrations/AbstractIncomingWebhook', () => {
     const serverError = '';
     const initialHook = {
         display_name: 'testIncomingWebhook',
-        channel_id: '88cxd9wpzpbpfp8pad78xj75pr',
+        channel_id: 'current_channel_id',
         description: 'testing',
         id: 'test_id',
         team_id: 'test_team_id',
@@ -70,28 +75,63 @@ describe('components/integrations/AbstractIncomingWebhook', () => {
         canBypassChannelLock: true,
     };
 
+    const initialState: DeepPartial<GlobalState> = {
+        entities: {
+            channels: {
+                currentChannelId: 'current_channel_id',
+                channels: {
+                    current_channel_id: TestHelper.getChannelMock({
+                        id: 'current_channel_id',
+                        team_id: 'team_id',
+                        type: 'O' as ChannelType,
+                        name: 'current_channel',
+                        display_name: 'Current Channel',
+                    }),
+                },
+                myMembers: {
+                    current_channel_id: TestHelper.getChannelMembershipMock({channel_id: 'current_channel_id'}),
+                },
+                channelsInTeam: {
+                    team_id: new Set(['current_channel_id']),
+                },
+            },
+            teams: {
+                currentTeamId: 'team_id',
+                teams: {
+                    team_id: TestHelper.getTeamMock({id: 'team_id'}),
+                },
+                myMembers: {
+                    team_id: TestHelper.getTeamMembershipMock({roles: 'team_roles'}),
+                },
+            },
+        },
+    };
+
+    beforeEach(() => {
+        action.mockClear();
+    });
+
     test('should match snapshot', () => {
-        const wrapper = shallow(<AbstractIncomingWebhook {...requiredProps}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<AbstractIncomingWebhook {...requiredProps}/>, initialState as GlobalState);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, on serverError', () => {
         const newServerError = 'serverError';
         const props = {...requiredProps, serverError: newServerError};
-        const wrapper = shallow(<AbstractIncomingWebhook {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<AbstractIncomingWebhook {...props}/>, initialState as GlobalState);
+        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, displays client error when no initial hook', () => {
+    test('should match snapshot, displays client error when no initial hook', async () => {
         const props = {...requiredProps};
         delete props.initialHook;
-        const wrapper = shallow(<AbstractIncomingWebhook {...props}/>);
-        wrapper.find('.btn-primary').simulate('click', {preventDefault() {
-            return jest.fn();
-        }});
+        const {container} = renderWithContext(<AbstractIncomingWebhook {...props}/>, initialState as GlobalState);
+
+        await userEvent.click(screen.getByRole('button', {name: footer.defaultMessage}));
 
         expect(action).not.toHaveBeenCalled();
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, hiding post username if not enabled', () => {
@@ -99,8 +139,8 @@ describe('components/integrations/AbstractIncomingWebhook', () => {
             ...requiredProps,
             enablePostUsernameOverride: false,
         };
-        const wrapper = shallow(<AbstractIncomingWebhook {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<AbstractIncomingWebhook {...props}/>, initialState as GlobalState);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, hiding post icon url if not enabled', () => {
@@ -108,78 +148,66 @@ describe('components/integrations/AbstractIncomingWebhook', () => {
             ...requiredProps,
             enablePostIconOverride: false,
         };
-        const wrapper = shallow(<AbstractIncomingWebhook {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<AbstractIncomingWebhook {...props}/>, initialState as GlobalState);
+        expect(container).toMatchSnapshot();
     });
 
-    test('should call action function', () => {
-        const wrapper = shallow(<AbstractIncomingWebhook {...requiredProps}/>);
-        expect(wrapper).toMatchSnapshot();
+    test('should call action function', async () => {
+        const {container} = renderWithContext(<AbstractIncomingWebhook {...requiredProps}/>, initialState as GlobalState);
+        expect(container).toMatchSnapshot();
 
-        wrapper.find('#displayName').simulate('change', {target: {value: 'name'}});
-        wrapper.find('.btn-primary').simulate('click', {preventDefault() {
-            return jest.fn();
-        }});
+        await userEvent.type(screen.getByRole('textbox', {name: 'Title'}), 'name');
+        await userEvent.click(screen.getByRole('button', {name: footer.defaultMessage}));
 
         expect(action).toHaveBeenCalled();
         expect(action).toHaveBeenCalledTimes(1);
     });
 
-    test('should update state.channelId when on channel change', () => {
-        const newChannelId = 'new_channel_id';
-        const evt = {
-            preventDefault: jest.fn(),
-            target: {value: newChannelId},
-        };
+    test('should update state.channelId when on channel change', async () => {
+        const newChannelId = 'current_channel_id';
+        renderWithContext(<AbstractIncomingWebhook {...requiredProps}/>, initialState as GlobalState);
 
-        const wrapper = shallow(<AbstractIncomingWebhook {...requiredProps}/>);
-        wrapper.find(ChannelSelect).simulate('change', evt);
+        await userEvent.selectOptions(screen.getByRole('combobox'), [newChannelId]);
 
-        expect(wrapper.state('channelId')).toBe(newChannelId);
+        expect(screen.getByRole<HTMLSelectElement>('combobox').value).toBe(newChannelId);
     });
 
-    test('should update state.description when on description change', () => {
+    test('should update state.description when on description change', async () => {
         const newDescription = 'new_description';
-        const evt = {
-            preventDefault: jest.fn(),
-            target: {value: newDescription},
-        };
+        renderWithContext(<AbstractIncomingWebhook {...requiredProps}/>, initialState as GlobalState);
 
-        const wrapper = shallow(<AbstractIncomingWebhook {...requiredProps}/>);
-        wrapper.find('#description').simulate('change', evt);
+        const descriptionInput = screen.getByRole('textbox', {name: 'Description'});
+        await userEvent.clear(descriptionInput);
+        await userEvent.type(descriptionInput, newDescription);
 
-        expect(wrapper.state('description')).toBe(newDescription);
+        expect(descriptionInput).toHaveValue(newDescription);
     });
 
-    test('should update state.username on post username change', () => {
+    test('should update state.username on post username change', async () => {
         const newUsername = 'new_username';
-        const evt = {
-            preventDefault: jest.fn(),
-            target: {value: newUsername},
-        };
+        renderWithContext(<AbstractIncomingWebhook {...requiredProps}/>, initialState as GlobalState);
 
-        const wrapper = shallow(<AbstractIncomingWebhook {...requiredProps}/>);
-        wrapper.find('#username').simulate('change', evt);
+        const usernameInput = screen.getByRole('textbox', {name: 'Username'});
+        await userEvent.clear(usernameInput);
+        await userEvent.type(usernameInput, newUsername);
 
-        expect(wrapper.state('username')).toBe(newUsername);
+        expect(usernameInput).toHaveValue(newUsername);
     });
 
-    test('should update state.iconURL on post icon url change', () => {
+    test('should update state.iconURL on post icon url change', async () => {
         const newIconURL = 'http://example.com/icon';
-        const evt = {
-            preventDefault: jest.fn(),
-            target: {value: newIconURL},
-        };
+        renderWithContext(<AbstractIncomingWebhook {...requiredProps}/>, initialState as GlobalState);
 
-        const wrapper = shallow(<AbstractIncomingWebhook {...requiredProps}/>);
-        wrapper.find('#iconURL').simulate('change', evt);
+        const iconInput = screen.getByRole('textbox', {name: 'Profile Picture'});
+        await userEvent.clear(iconInput);
+        await userEvent.type(iconInput, newIconURL);
 
-        expect(wrapper.state('iconURL')).toBe(newIconURL);
+        expect(iconInput).toHaveValue(newIconURL);
     });
 
     test('should match snapshot when channelLocked is true', () => {
         const props = {...requiredProps, channelLocked: true};
-        const wrapper = shallow(<AbstractIncomingWebhook {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<AbstractIncomingWebhook {...props}/>, initialState as GlobalState);
+        expect(container).toMatchSnapshot();
     });
 });

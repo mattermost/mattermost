@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
-import {Client4} from 'mattermost-redux/client';
-
 import {uploadBrandImage, deleteBrandImage} from 'actions/admin_actions.jsx';
+
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import BrandImageSetting from './brand_image_setting';
 
@@ -16,7 +15,10 @@ jest.mock('actions/admin_actions.jsx', () => ({
     deleteBrandImage: jest.fn(),
 }));
 
-Client4.setUrl('http://localhost:8065');
+// Mock fetch for the brand image URL check in componentDidMount
+global.fetch = jest.fn(() =>
+    Promise.resolve({status: 404} as Response),
+);
 
 describe('components/admin_console/brand_image_setting', () => {
     const baseProps = {
@@ -26,21 +28,71 @@ describe('components/admin_console/brand_image_setting', () => {
         unRegisterSaveAction: jest.fn(),
     };
 
-    test('should have called deleteBrandImage or uploadBrandImage on save depending on component state', () => {
-        const wrapper = shallow<BrandImageSetting>(
-            <BrandImageSetting {...baseProps}/>,
+    test('should have called deleteBrandImage or uploadBrandImage on save depending on component state', async () => {
+        let saveAction: (() => Promise<unknown>) | undefined;
+        const registerSaveAction = jest.fn((fn: () => Promise<unknown>) => {
+            saveAction = fn;
+        });
+
+        const {container} = renderWithContext(
+            <BrandImageSetting
+                {...baseProps}
+                registerSaveAction={registerSaveAction}
+            />,
         );
 
-        const instance = wrapper.instance();
+        // Wait for componentDidMount fetch to resolve
+        await waitFor(() => {
+            expect(registerSaveAction).toHaveBeenCalled();
+        });
+        expect(saveAction).toBeDefined();
 
-        wrapper.setState({deleteBrandImage: false, brandImage: new Blob(['brand_image_file'])});
-        instance.handleSave();
+        // Simulate selecting a file via the file input to set brandImage
+        const file = new File(['brand_image_file'], 'brand.png', {type: 'image/png'});
+        const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+        await userEvent.upload(fileInput, file);
+
+        // Now call save - should call uploadBrandImage
+        await saveAction!();
         expect(deleteBrandImage).toHaveBeenCalledTimes(0);
         expect(uploadBrandImage).toHaveBeenCalledTimes(1);
 
-        wrapper.setState({deleteBrandImage: true, brandImage: undefined});
-        instance.handleSave();
+        // To test deleteBrandImage path, we re-mount with fetch returning 200
+        jest.clearAllMocks();
+        (global.fetch as jest.Mock).mockImplementationOnce(() =>
+            Promise.resolve({status: 200} as Response),
+        );
+
+        let saveAction2: (() => Promise<unknown>) | undefined;
+        const registerSaveAction2 = jest.fn((fn: () => Promise<unknown>) => {
+            saveAction2 = fn;
+        });
+
+        renderWithContext(
+            <BrandImageSetting
+                {...baseProps}
+                registerSaveAction={registerSaveAction2}
+            />,
+        );
+
+        await waitFor(() => {
+            expect(registerSaveAction2).toHaveBeenCalled();
+        });
+        expect(saveAction2).toBeDefined();
+
+        // Wait for the brand image to be detected and delete button to appear
+        await waitFor(() => {
+            expect(screen.getByText('×')).toBeInTheDocument();
+        });
+        const deleteButton = screen.getByText('×').closest('button')!;
+        await userEvent.click(deleteButton);
+
+        await waitFor(() => {
+            expect(screen.getByText('No brand image uploaded')).toBeInTheDocument();
+        });
+
+        await saveAction2!();
         expect(deleteBrandImage).toHaveBeenCalledTimes(1);
-        expect(uploadBrandImage).toHaveBeenCalledTimes(1);
+        expect(uploadBrandImage).toHaveBeenCalledTimes(0);
     });
 });

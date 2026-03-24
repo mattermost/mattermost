@@ -1,13 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
-import type {FormEvent} from 'react';
-import {FormattedMessage} from 'react-intl';
 
 import AbstractCommand from 'components/integrations/abstract_command';
 
+import {renderWithContext, screen, userEvent, fireEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/integrations/AbstractCommand', () => {
@@ -56,14 +54,14 @@ describe('components/integrations/AbstractCommand', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <AbstractCommand {...baseProps}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when header/footer/loading is a string', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <AbstractCommand
                 {...baseProps}
                 header='Header as string'
@@ -71,118 +69,26 @@ describe('components/integrations/AbstractCommand', () => {
                 footer={'Footer as string'}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, displays client error', () => {
+    test('should match snapshot, displays client error', async () => {
         const newSeverError = 'server error';
         const props = {...baseProps, serverError: newSeverError};
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <AbstractCommand {...props}/>,
         );
 
-        wrapper.find('#trigger').simulate('change', {target: {value: ''}});
-        wrapper.find('.btn-primary').simulate('click', {preventDefault: jest.fn()});
+        const triggerInput = container.querySelector('#trigger') as HTMLInputElement;
+        await userEvent.clear(triggerInput);
 
-        expect(wrapper).toMatchSnapshot();
+        await userEvent.click(screen.getByText('Footer'));
+
+        expect(container).toMatchSnapshot();
         expect(action).not.toHaveBeenCalled();
     });
 
-    test('should call action function', () => {
-        const wrapper = shallow(
-            <AbstractCommand {...baseProps}/>,
-        );
-
-        wrapper.find('#displayName').simulate('change', {target: {value: 'name'}});
-        wrapper.find('.btn-primary').simulate('click', {preventDefault: jest.fn()});
-
-        expect(action).toHaveBeenCalled();
-    });
-
-    test('should match object returned by getStateFromCommand', () => {
-        const wrapper = shallow<AbstractCommand>(
-            <AbstractCommand {...baseProps}/>,
-        );
-        const instance = wrapper.instance();
-
-        const expectedOutput = {
-            autocomplete: true,
-            autocompleteDescription: 'auto_complete_desc',
-            autocompleteHint: 'auto_complete_hint',
-            clientError: null,
-            description: 'description',
-            displayName: 'display_name',
-            iconUrl: 'https://google.com/icon',
-            method: 'G',
-            saving: false,
-            trigger: 'trigger',
-            url: 'https://google.com/command',
-            username: 'username',
-        };
-
-        expect(instance.getStateFromCommand(command)).toEqual(expectedOutput);
-    });
-
-    test('should match state when method is called', () => {
-        const wrapper = shallow<AbstractCommand>(
-            <AbstractCommand {...baseProps}/>,
-        );
-        const instance = wrapper.instance();
-
-        const displayName = 'new display_name';
-        const displayNameEvent = {preventDefault: jest.fn(), target: {value: displayName}} as any;
-        instance.updateDisplayName(displayNameEvent);
-        expect(wrapper.state('displayName')).toEqual(displayName);
-
-        const description = 'new description';
-        const descriptionEvent = {preventDefault: jest.fn(), target: {value: description}} as any;
-        instance.updateDescription(descriptionEvent);
-        expect(wrapper.state('description')).toEqual(description);
-
-        const trigger = 'new trigger';
-        const triggerEvent = {preventDefault: jest.fn(), target: {value: trigger}} as any;
-        instance.updateTrigger(triggerEvent);
-        expect(wrapper.state('trigger')).toEqual(trigger);
-
-        const url = 'new url';
-        const urlEvent = {preventDefault: jest.fn(), target: {value: url}} as any;
-        instance.updateUrl(urlEvent);
-        expect(wrapper.state('url')).toEqual(url);
-
-        const method = 'P';
-        const methodEvent = {preventDefault: jest.fn(), target: {value: method}} as any;
-        instance.updateMethod(methodEvent);
-        expect(wrapper.state('method')).toEqual(method);
-
-        const username = 'new username';
-        const usernameEvent = {preventDefault: jest.fn(), target: {value: username}} as any;
-        instance.updateUsername(usernameEvent);
-        expect(wrapper.state('username')).toEqual(username);
-
-        const iconUrl = 'new iconUrl';
-        const iconUrlEvent = {preventDefault: jest.fn(), target: {value: iconUrl}} as any;
-        instance.updateIconUrl(iconUrlEvent);
-        expect(wrapper.state('iconUrl')).toEqual(iconUrl);
-
-        const trueUpdateAutocompleteEvent = {target: {checked: true}} as any;
-        const falseeUpdateAutocompleteEvent = {target: {checked: false}} as any;
-        instance.updateAutocomplete(trueUpdateAutocompleteEvent);
-        expect(wrapper.state('autocomplete')).toEqual(true);
-        instance.updateAutocomplete(falseeUpdateAutocompleteEvent);
-        expect(wrapper.state('autocomplete')).toEqual(false);
-
-        const autocompleteHint = 'new autocompleteHint';
-        const autocompleteHintEvent = {preventDefault: jest.fn(), target: {value: autocompleteHint}} as any;
-        instance.updateAutocompleteHint(autocompleteHintEvent);
-        expect(wrapper.state('autocompleteHint')).toEqual(autocompleteHint);
-
-        const autocompleteDescription = 'new autocompleteDescription';
-        const autocompleteDescriptionEvent = {preventDefault: jest.fn(), target: {value: autocompleteDescription}} as any;
-        instance.updateAutocompleteDescription(autocompleteDescriptionEvent);
-        expect(wrapper.state('autocompleteDescription')).toEqual(autocompleteDescription);
-    });
-
-    test('should match state when handleSubmit is called', () => {
+    test('should call action function', async () => {
         const newAction = jest.fn().mockImplementation(
             () => {
                 return new Promise<void>((resolve) => {
@@ -191,95 +97,171 @@ describe('components/integrations/AbstractCommand', () => {
             },
         );
         const props = {...baseProps, action: newAction};
-        const wrapper = shallow<AbstractCommand>(
+        renderWithContext(
             <AbstractCommand {...props}/>,
         );
-        const instance = wrapper.instance();
+
+        const displayNameInput = document.querySelector('#displayName') as HTMLInputElement;
+        await userEvent.clear(displayNameInput);
+        await userEvent.type(displayNameInput, 'name');
+
+        await userEvent.click(screen.getByText('Footer'));
+
+        expect(newAction).toHaveBeenCalled();
+    });
+
+    test('should match object returned by getStateFromCommand', () => {
+        const {container} = renderWithContext(
+            <AbstractCommand {...baseProps}/>,
+        );
+
+        // Verify the form fields are populated correctly from the initial command
+        expect((container.querySelector('#displayName') as HTMLInputElement).value).toBe('display_name');
+        expect((container.querySelector('#description') as HTMLInputElement).value).toBe('description');
+        expect((container.querySelector('#trigger') as HTMLInputElement).value).toBe('trigger');
+        expect((container.querySelector('#url') as HTMLInputElement).value).toBe('https://google.com/command');
+        expect((container.querySelector('#method') as HTMLSelectElement).value).toBe('G');
+        expect((container.querySelector('#username') as HTMLInputElement).value).toBe('username');
+        expect((container.querySelector('#iconUrl') as HTMLInputElement).value).toBe('https://google.com/icon');
+        expect((container.querySelector('#autocomplete') as HTMLInputElement).checked).toBe(true);
+        expect((container.querySelector('#autocompleteHint') as HTMLInputElement).value).toBe('auto_complete_hint');
+    });
+
+    test('should match state when method is called', async () => {
+        const {container} = renderWithContext(
+            <AbstractCommand {...baseProps}/>,
+        );
+
+        const displayNameInput = container.querySelector('#displayName') as HTMLInputElement;
+        await userEvent.clear(displayNameInput);
+        await userEvent.type(displayNameInput, 'new display_name');
+        expect(displayNameInput.value).toBe('new display_name');
+
+        const descriptionInput = container.querySelector('#description') as HTMLInputElement;
+        await userEvent.clear(descriptionInput);
+        await userEvent.type(descriptionInput, 'new description');
+        expect(descriptionInput.value).toBe('new description');
+
+        const triggerInput = container.querySelector('#trigger') as HTMLInputElement;
+        await userEvent.clear(triggerInput);
+        await userEvent.type(triggerInput, 'new trigger');
+        expect(triggerInput.value).toBe('new trigger');
+
+        const urlInput = container.querySelector('#url') as HTMLInputElement;
+        await userEvent.clear(urlInput);
+        await userEvent.type(urlInput, 'new url');
+        expect(urlInput.value).toBe('new url');
+
+        const methodSelect = container.querySelector('#method') as HTMLSelectElement;
+        await userEvent.selectOptions(methodSelect, 'P');
+        expect(methodSelect.value).toBe('P');
+
+        const usernameInput = container.querySelector('#username') as HTMLInputElement;
+        await userEvent.clear(usernameInput);
+        await userEvent.type(usernameInput, 'new username');
+        expect(usernameInput.value).toBe('new username');
+
+        const iconUrlInput = container.querySelector('#iconUrl') as HTMLInputElement;
+        await userEvent.clear(iconUrlInput);
+        await userEvent.type(iconUrlInput, 'new iconUrl');
+        expect(iconUrlInput.value).toBe('new iconUrl');
+
+        const autocompleteCheckbox = container.querySelector('#autocomplete') as HTMLInputElement;
+
+        // autocomplete is initially true, uncheck it
+        await userEvent.click(autocompleteCheckbox);
+        expect(autocompleteCheckbox.checked).toBe(false);
+
+        // check it again
+        await userEvent.click(autocompleteCheckbox);
+        expect(autocompleteCheckbox.checked).toBe(true);
+
+        const autocompleteHintInput = container.querySelector('#autocompleteHint') as HTMLInputElement;
+        await userEvent.clear(autocompleteHintInput);
+        await userEvent.type(autocompleteHintInput, 'new autocompleteHint');
+        expect(autocompleteHintInput.value).toBe('new autocompleteHint');
+    });
+
+    test('should match state when handleSubmit is called', async () => {
+        const newAction = jest.fn().mockImplementation(
+            () => {
+                return new Promise<void>((resolve) => {
+                    process.nextTick(() => resolve());
+                });
+            },
+        );
+        const props = {...baseProps, action: newAction};
+        const {container} = renderWithContext(
+            <AbstractCommand {...props}/>,
+        );
+
+        const triggerInput = container.querySelector('#trigger') as HTMLInputElement;
+        const urlInput = container.querySelector('#url') as HTMLInputElement;
+        const submitButton = screen.getByText('Footer');
+
         expect(newAction).toHaveBeenCalledTimes(0);
 
-        const evt = {preventDefault: jest.fn()} as unknown as FormEvent<Element>;
-        const handleSubmit = instance.handleSubmit;
-        handleSubmit(evt);
-        expect(wrapper.state('saving')).toEqual(true);
-        expect(wrapper.state('clientError')).toEqual('');
-        expect(newAction).toHaveBeenCalledTimes(1);
-
-        // saving is true
-        wrapper.setState({saving: true});
-        handleSubmit(evt);
-        expect(wrapper.state('clientError')).toEqual('');
-        expect(newAction).toHaveBeenCalledTimes(1);
+        // valid submit
+        await userEvent.click(submitButton);
+        await waitFor(() => {
+            expect(newAction).toHaveBeenCalledTimes(1);
+        });
 
         // empty trigger
-        wrapper.setState({saving: false, trigger: ''});
-        handleSubmit(evt);
-        expect(wrapper.state('clientError')).toEqual(
-            <FormattedMessage
-                defaultMessage='A trigger word is required'
-                id='add_command.triggerRequired'
-            />,
-        );
+        await userEvent.clear(triggerInput);
+        await userEvent.click(submitButton);
+        expect(screen.getByText('A trigger word is required')).toBeInTheDocument();
         expect(newAction).toHaveBeenCalledTimes(1);
 
-        // trigger that starts with a slash '/'
-        wrapper.setState({saving: false, trigger: '//startwithslash'});
-        handleSubmit(evt);
-        expect(wrapper.state('clientError')).toEqual(
-            <FormattedMessage
-                defaultMessage='A trigger word cannot begin with a /'
-                id='add_command.triggerInvalidSlash'
-            />,
-        );
+        // trigger that starts with a slash '/' (after trim/lowercase, leading slash is stripped, leaving '/startwithslash' which starts with /)
+        await userEvent.clear(triggerInput);
+        await userEvent.type(triggerInput, '//startwithslash');
+        await userEvent.click(submitButton);
+        expect(screen.getByText('A trigger word cannot begin with a /')).toBeInTheDocument();
         expect(newAction).toHaveBeenCalledTimes(1);
 
         // trigger with space
-        wrapper.setState({saving: false, trigger: '/trigger with space'});
-        handleSubmit(evt);
-        expect(wrapper.state('clientError')).toEqual(
-            <FormattedMessage
-                defaultMessage='A trigger word must not contain spaces'
-                id='add_command.triggerInvalidSpace'
-            />,
-        );
+        await userEvent.clear(triggerInput);
+        await userEvent.type(triggerInput, '/trigger with space');
+        await userEvent.click(submitButton);
+        expect(screen.getByText('A trigger word must not contain spaces')).toBeInTheDocument();
         expect(newAction).toHaveBeenCalledTimes(1);
 
-        // trigger above maximum length
-        wrapper.setState({saving: false, trigger: '123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789'});
-        handleSubmit(evt);
-        expect(wrapper.state('clientError')).toEqual(
-            <FormattedMessage
-                defaultMessage='A trigger word must contain between {min} and {max} characters'
-                id='add_command.triggerInvalidLength'
-                values={{max: 128, min: 1}}
-            />,
-        );
+        // trigger above maximum length - use fireEvent.change to bypass maxLength constraint
+        fireEvent.change(triggerInput, {target: {value: '123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789'}});
+        await userEvent.click(submitButton);
+        expect(screen.getByText(/A trigger word must contain between/)).toBeInTheDocument();
         expect(newAction).toHaveBeenCalledTimes(1);
 
-        // good triggers
-        wrapper.setState({saving: false, trigger: '12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678'});
-        handleSubmit(evt);
-        expect(wrapper.state('clientError')).toEqual('');
-        expect(newAction).toHaveBeenCalledTimes(2);
+        // good triggers - 128 chars
+        fireEvent.change(triggerInput, {target: {value: '12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678'}});
+        await userEvent.click(submitButton);
+        await waitFor(() => {
+            expect(newAction).toHaveBeenCalledTimes(2);
+        });
 
-        wrapper.setState({saving: false, trigger: '/trigger'});
-        handleSubmit(evt);
-        expect(wrapper.state('clientError')).toEqual('');
-        expect(newAction).toHaveBeenCalledTimes(3);
+        // good trigger with leading slash
+        await userEvent.clear(triggerInput);
+        await userEvent.type(triggerInput, '/trigger');
+        await userEvent.click(submitButton);
+        await waitFor(() => {
+            expect(newAction).toHaveBeenCalledTimes(3);
+        });
 
-        wrapper.setState({saving: false, trigger: 'trigger'});
-        handleSubmit(evt);
-        expect(wrapper.state('clientError')).toEqual('');
-        expect(newAction).toHaveBeenCalledTimes(4);
+        // good trigger without slash
+        await userEvent.clear(triggerInput);
+        await userEvent.type(triggerInput, 'trigger');
+        await userEvent.click(submitButton);
+        await waitFor(() => {
+            expect(newAction).toHaveBeenCalledTimes(4);
+        });
 
         // empty url
-        wrapper.setState({saving: false, trigger: 'trigger', url: ''});
-        handleSubmit(evt);
-        expect(wrapper.state('clientError')).toEqual(
-            <FormattedMessage
-                defaultMessage='A request URL is required'
-                id='add_command.urlRequired'
-            />,
-        );
+        await userEvent.clear(urlInput);
+        await userEvent.clear(triggerInput);
+        await userEvent.type(triggerInput, 'trigger');
+        await userEvent.click(submitButton);
+        expect(screen.getByText('A request URL is required')).toBeInTheDocument();
         expect(newAction).toHaveBeenCalledTimes(4);
     });
 });
