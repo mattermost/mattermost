@@ -431,7 +431,9 @@ const ChannelInviteModalComponent = (props: Props) => {
 
     const confirmAddUsersToTeamAndChannel = useCallback(() => {
         setShowAddToTeamConfirmModal(false);
-        void handleAddUsersToTeamAndChannel();
+        handleAddUsersToTeamAndChannel().catch(() => {
+            // Errors are handled inside handleAddUsersToTeamAndChannel.
+        });
     }, [handleAddUsersToTeamAndChannel]);
 
     // Handle search
