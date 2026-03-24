@@ -7932,6 +7932,22 @@ func (s *TimerLayerPropertyFieldStore) CountForTarget(groupID string, targetType
 	return result, err
 }
 
+func (s *TimerLayerPropertyFieldStore) CountLinkedFields(fieldID string) (int64, error) {
+	start := time.Now()
+
+	result, err := s.PropertyFieldStore.CountLinkedFields(fieldID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.CountLinkedFields", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPropertyFieldStore) Create(field *model.PropertyField) (*model.PropertyField, error) {
 	start := time.Now()
 
@@ -8044,6 +8060,22 @@ func (s *TimerLayerPropertyFieldStore) Update(groupID string, fields []*model.Pr
 	return result, err
 }
 
+func (s *TimerLayerPropertyFieldStore) UpdateAndPropagate(groupID string, fields []*model.PropertyField, propagations []store.PropagationRequest) ([]*model.PropertyField, error) {
+	start := time.Now()
+
+	result, err := s.PropertyFieldStore.UpdateAndPropagate(groupID, fields, propagations)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.UpdateAndPropagate", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPropertyGroupStore) Get(name string) (*model.PropertyGroup, error) {
 	start := time.Now()
 
@@ -8152,6 +8184,22 @@ func (s *TimerLayerPropertyValueStore) DeleteForTarget(groupID string, targetTyp
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PropertyValueStore.DeleteForTarget", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerPropertyValueStore) DeleteValuesReferencingOptions(linkedFieldIDs []string, optionIDs []string, fieldType model.PropertyFieldType) error {
+	start := time.Now()
+
+	err := s.PropertyValueStore.DeleteValuesReferencingOptions(linkedFieldIDs, optionIDs, fieldType)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyValueStore.DeleteValuesReferencingOptions", success, elapsed)
 	}
 	return err
 }

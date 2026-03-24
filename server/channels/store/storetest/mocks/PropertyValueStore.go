@@ -128,6 +128,24 @@ func (_m *PropertyValueStore) DeleteForTarget(groupID string, targetType string,
 	return r0
 }
 
+// DeleteValuesReferencingOptions provides a mock function with given fields: linkedFieldIDs, optionIDs, fieldType
+func (_m *PropertyValueStore) DeleteValuesReferencingOptions(linkedFieldIDs []string, optionIDs []string, fieldType model.PropertyFieldType) error {
+	ret := _m.Called(linkedFieldIDs, optionIDs, fieldType)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteValuesReferencingOptions")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func([]string, []string, model.PropertyFieldType) error); ok {
+		r0 = rf(linkedFieldIDs, optionIDs, fieldType)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Get provides a mock function with given fields: groupID, id
 func (_m *PropertyValueStore) Get(groupID string, id string) (*model.PropertyValue, error) {
 	ret := _m.Called(groupID, id)

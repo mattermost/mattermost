@@ -9933,6 +9933,27 @@ func (s *RetryLayerPropertyFieldStore) CountForTarget(groupID string, targetType
 
 }
 
+func (s *RetryLayerPropertyFieldStore) CountLinkedFields(fieldID string) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.PropertyFieldStore.CountLinkedFields(fieldID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPropertyFieldStore) Create(field *model.PropertyField) (*model.PropertyField, error) {
 
 	tries := 0
@@ -10080,6 +10101,27 @@ func (s *RetryLayerPropertyFieldStore) Update(groupID string, fields []*model.Pr
 
 }
 
+func (s *RetryLayerPropertyFieldStore) UpdateAndPropagate(groupID string, fields []*model.PropertyField, propagations []store.PropagationRequest) ([]*model.PropertyField, error) {
+
+	tries := 0
+	for {
+		result, err := s.PropertyFieldStore.UpdateAndPropagate(groupID, fields, propagations)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPropertyGroupStore) Get(name string) (*model.PropertyGroup, error) {
 
 	tries := 0
@@ -10211,6 +10253,27 @@ func (s *RetryLayerPropertyValueStore) DeleteForTarget(groupID string, targetTyp
 	tries := 0
 	for {
 		err := s.PropertyValueStore.DeleteForTarget(groupID, targetType, targetID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPropertyValueStore) DeleteValuesReferencingOptions(linkedFieldIDs []string, optionIDs []string, fieldType model.PropertyFieldType) error {
+
+	tries := 0
+	for {
+		err := s.PropertyValueStore.DeleteValuesReferencingOptions(linkedFieldIDs, optionIDs, fieldType)
 		if err == nil {
 			return nil
 		}

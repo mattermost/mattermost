@@ -380,3 +380,55 @@ func (s *SqlPropertyValueStore) DeleteForTarget(groupID string, targetType strin
 
 	return nil
 }
+
+func (s *SqlPropertyValueStore) DeleteValuesReferencingOptions(linkedFieldIDs []string, optionIDs []string, fieldType model.PropertyFieldType) error {
+	if len(linkedFieldIDs) == 0 || len(optionIDs) == 0 {
+		return nil
+	}
+
+	deleteAt := model.GetMillis()
+
+	switch fieldType {
+	case model.PropertyFieldTypeSelect:
+		// Select values are stored as JSON strings like "optionId"
+		// Build the quoted JSON string values for comparison
+		quotedIDs := make([]string, len(optionIDs))
+		for i, id := range optionIDs {
+			quotedIDs[i] = fmt.Sprintf("%q", id)
+		}
+
+		builder := s.getQueryBuilder().
+			Update("PropertyValues").
+			Set("DeleteAt", deleteAt).
+			Where(sq.Eq{"FieldID": linkedFieldIDs}).
+			Where(sq.Eq{"DeleteAt": 0}).
+			Where(sq.Eq{"Value": quotedIDs})
+
+		if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
+			return errors.Wrap(err, "property_value_delete_referencing_options_select")
+		}
+
+	case model.PropertyFieldTypeMultiselect:
+		// Multiselect values are stored as JSON arrays like ["opt1", "opt2"]
+		// Use the @> containment operator — one query per removed option
+		for _, optionID := range optionIDs {
+			quotedID := fmt.Sprintf("%q", optionID)
+			builder := s.getQueryBuilder().
+				Update("PropertyValues").
+				Set("DeleteAt", deleteAt).
+				Where(sq.Eq{"FieldID": linkedFieldIDs}).
+				Where(sq.Eq{"DeleteAt": 0}).
+				Where(sq.Expr("Value @> ?::jsonb", quotedID))
+
+			if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
+				return errors.Wrapf(err, "property_value_delete_referencing_options_multiselect option=%s", optionID)
+			}
+		}
+
+	default:
+		// Non-select types have no option references to clean up
+		return nil
+	}
+
+	return nil
+}

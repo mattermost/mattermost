@@ -6,6 +6,7 @@ package mocks
 
 import (
 	model "github.com/mattermost/mattermost/server/public/model"
+	store "github.com/mattermost/mattermost/server/v8/channels/store"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -91,6 +92,34 @@ func (_m *PropertyFieldStore) CountForTarget(groupID string, targetType string, 
 
 	if rf, ok := ret.Get(1).(func(string, string, string, bool) error); ok {
 		r1 = rf(groupID, targetType, targetID, includeDeleted)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CountLinkedFields provides a mock function with given fields: fieldID
+func (_m *PropertyFieldStore) CountLinkedFields(fieldID string) (int64, error) {
+	ret := _m.Called(fieldID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CountLinkedFields")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (int64, error)); ok {
+		return rf(fieldID)
+	}
+	if rf, ok := ret.Get(0).(func(string) int64); ok {
+		r0 = rf(fieldID)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(fieldID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -289,6 +318,36 @@ func (_m *PropertyFieldStore) Update(groupID string, fields []*model.PropertyFie
 
 	if rf, ok := ret.Get(1).(func(string, []*model.PropertyField) error); ok {
 		r1 = rf(groupID, fields)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpdateAndPropagate provides a mock function with given fields: groupID, fields, propagations
+func (_m *PropertyFieldStore) UpdateAndPropagate(groupID string, fields []*model.PropertyField, propagations []store.PropagationRequest) ([]*model.PropertyField, error) {
+	ret := _m.Called(groupID, fields, propagations)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateAndPropagate")
+	}
+
+	var r0 []*model.PropertyField
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, []*model.PropertyField, []store.PropagationRequest) ([]*model.PropertyField, error)); ok {
+		return rf(groupID, fields, propagations)
+	}
+	if rf, ok := ret.Get(0).(func(string, []*model.PropertyField, []store.PropagationRequest) []*model.PropertyField); ok {
+		r0 = rf(groupID, fields, propagations)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PropertyField)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, []*model.PropertyField, []store.PropagationRequest) error); ok {
+		r1 = rf(groupID, fields, propagations)
 	} else {
 		r1 = ret.Error(1)
 	}
