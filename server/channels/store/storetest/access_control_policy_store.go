@@ -255,13 +255,14 @@ func testAccessControlPolicyStoreSaveDuplicateName(t *testing.T, rctx request.CT
 		policy, err := ss.AccessControlPolicy().Save(rctx, policy)
 		require.NoError(t, err)
 		require.NotNil(t, policy)
+		require.Equal(t, 1, policy.Revision)
 
 		t.Cleanup(func() {
 			deleteErr := ss.AccessControlPolicy().Delete(rctx, policy.ID)
 			require.NoError(t, deleteErr)
 		})
 
-		// Update rules but keep same name — should succeed
+		// Update rules but keep same name — should succeed and bump revision
 		policy.Rules = []model.AccessControlPolicyRule{
 			{
 				Actions:    []string{"action"},
@@ -272,6 +273,49 @@ func testAccessControlPolicyStoreSaveDuplicateName(t *testing.T, rctx request.CT
 		policy, err = ss.AccessControlPolicy().Save(rctx, policy)
 		require.NoError(t, err)
 		require.NotNil(t, policy)
+		require.Equal(t, 2, policy.Revision)
+	})
+
+	t.Run("Changing policy name should not bump revision", func(t *testing.T) {
+		policy := &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Original Name",
+			Type:     model.AccessControlPolicyTypeParent,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Actions:    []string{"action"},
+					Expression: "user.properties.program == \"engineering\"",
+				},
+			},
+		}
+
+		policy, err := ss.AccessControlPolicy().Save(rctx, policy)
+		require.NoError(t, err)
+		require.Equal(t, 1, policy.Revision)
+
+		t.Cleanup(func() {
+			deleteErr := ss.AccessControlPolicy().Delete(rctx, policy.ID)
+			require.NoError(t, deleteErr)
+		})
+
+		// Change only the name — revision should NOT bump
+		policy.Name = "Renamed Policy"
+
+		policy, err = ss.AccessControlPolicy().Save(rctx, policy)
+		require.NoError(t, err)
+		require.NotNil(t, policy)
+		require.Equal(t, "Renamed Policy", policy.Name)
+		require.Equal(t, 1, policy.Revision)
+
+		// Verify the name persisted
+		fetched, err := ss.AccessControlPolicy().Get(rctx, policy.ID)
+		require.NoError(t, err)
+		require.Equal(t, "Renamed Policy", fetched.Name)
+		require.Equal(t, 1, fetched.Revision)
 	})
 
 	t.Run("Reusing name after deletion should succeed", func(t *testing.T) {
