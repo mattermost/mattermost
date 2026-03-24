@@ -1066,16 +1066,11 @@ func (s *SqlThreadStore) SaveMultipleMemberships(memberships []*model.ThreadMemb
 		return memberships, nil
 	}
 
-	query := s.getQueryBuilder().
-		Insert("ThreadMemberships").
-		Columns("PostId", "UserId", "Following", "LastViewed", "LastUpdated", "UnreadMentions")
-
 	for _, member := range memberships {
 		if err := member.IsValid(); err != nil {
 			return memberships, err
 		}
 		member.LastUpdated = model.GetMillis()
-		query = query.Values(member.PostId, member.UserId, member.Following, member.LastViewed, member.LastUpdated, member.UnreadMentions)
 	}
 
 	tx, err := s.GetMaster().Beginx()
@@ -1084,10 +1079,21 @@ func (s *SqlThreadStore) SaveMultipleMemberships(memberships []*model.ThreadMemb
 	}
 	defer finalizeTransactionX(tx, &err)
 
-	_, err = tx.ExecBuilder(query)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to save thread memberships")
+	// 6 columns: PostId, UserId, Following, LastViewed, LastUpdated, UnreadMentions
+	chunks := chunkSlice(memberships, 6)
+	for _, chunk := range chunks {
+		query := s.getQueryBuilder().
+			Insert("ThreadMemberships").
+			Columns("PostId", "UserId", "Following", "LastViewed", "LastUpdated", "UnreadMentions")
+		for _, member := range chunk {
+			query = query.Values(member.PostId, member.UserId, member.Following, member.LastViewed, member.LastUpdated, member.UnreadMentions)
+		}
+		_, err = tx.ExecBuilder(query)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to save thread memberships")
+		}
 	}
+
 	err = tx.Commit()
 	if err != nil {
 		return nil, errors.Wrap(err, "commit_transaction")
