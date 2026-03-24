@@ -60,35 +60,45 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check scope access for creation
-	switch field.TargetType {
-	case "channel":
-		if field.TargetID == "" {
-			c.Err = model.NewAppError("createPropertyField", "api.property_field.create.target_id_required.app_error", nil, "", http.StatusBadRequest)
-			return
-		}
-		hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), field.TargetID, model.PermissionCreatePost)
-		if !hasPermission {
-			c.SetPermissionError(model.PermissionCreatePost)
-			return
-		}
-	case "team":
-		if field.TargetID == "" {
-			c.Err = model.NewAppError("createPropertyField", "api.property_field.create.target_id_required.app_error", nil, "", http.StatusBadRequest)
-			return
-		}
-		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), field.TargetID, model.PermissionManageTeam) {
-			c.SetPermissionError(model.PermissionManageTeam)
-			return
-		}
-	case "system":
+	// Template fields have special handling: sysadmin required, no target_type needed
+	isTemplate := field.ObjectType == model.PropertyFieldObjectTypeTemplate
+
+	if isTemplate {
 		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 			c.SetPermissionError(model.PermissionManageSystem)
 			return
 		}
-	default:
-		c.Err = model.NewAppError("createPropertyField", "api.property_field.create.invalid_target_type.app_error", nil, "", http.StatusBadRequest)
-		return
+	} else {
+		// Check scope access for creation
+		switch field.TargetType {
+		case "channel":
+			if field.TargetID == "" {
+				c.Err = model.NewAppError("createPropertyField", "api.property_field.create.target_id_required.app_error", nil, "", http.StatusBadRequest)
+				return
+			}
+			hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), field.TargetID, model.PermissionCreatePost)
+			if !hasPermission {
+				c.SetPermissionError(model.PermissionCreatePost)
+				return
+			}
+		case "team":
+			if field.TargetID == "" {
+				c.Err = model.NewAppError("createPropertyField", "api.property_field.create.target_id_required.app_error", nil, "", http.StatusBadRequest)
+				return
+			}
+			if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), field.TargetID, model.PermissionManageTeam) {
+				c.SetPermissionError(model.PermissionManageTeam)
+				return
+			}
+		case "system":
+			if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+				c.SetPermissionError(model.PermissionManageSystem)
+				return
+			}
+		default:
+			c.Err = model.NewAppError("createPropertyField", "api.property_field.create.invalid_target_type.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
 	}
 
 	// Trim whitespace from name
@@ -97,24 +107,32 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Check if user is admin
 	isAdmin := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 
-	// Set permissions based on admin status.
-	// Permissions are not accepted from the request body; they're set by the server.
-	memberLevel := model.PermissionLevelMember
-	if !isAdmin {
-		// Non-admin: force all permissions to member level
-		field.PermissionField = &memberLevel
-		field.PermissionValues = &memberLevel
-		field.PermissionOptions = &memberLevel
+	if isTemplate {
+		// Template fields have hard-coded sysadmin permissions
+		sysadminLevel := model.PermissionLevelSysadmin
+		field.PermissionField = &sysadminLevel
+		field.PermissionValues = &sysadminLevel
+		field.PermissionOptions = &sysadminLevel
 	} else {
-		// Admin with nil fields: set defaults to member level
-		if field.PermissionField == nil {
+		// Set permissions based on admin status.
+		// Permissions are not accepted from the request body; they're set by the server.
+		memberLevel := model.PermissionLevelMember
+		if !isAdmin {
+			// Non-admin: force all permissions to member level
 			field.PermissionField = &memberLevel
-		}
-		if field.PermissionValues == nil {
 			field.PermissionValues = &memberLevel
-		}
-		if field.PermissionOptions == nil {
 			field.PermissionOptions = &memberLevel
+		} else {
+			// Admin with nil fields: set defaults to member level
+			if field.PermissionField == nil {
+				field.PermissionField = &memberLevel
+			}
+			if field.PermissionValues == nil {
+				field.PermissionValues = &memberLevel
+			}
+			if field.PermissionOptions == nil {
+				field.PermissionOptions = &memberLevel
+			}
 		}
 	}
 
@@ -177,11 +195,16 @@ func getPropertyFields(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Required target_type filter
-	opts.TargetType = query.Get("target_type")
-	if !model.IsValidPSAv2PropertyFieldTargetType(opts.TargetType) {
-		c.Err = model.NewAppError("getPropertyFields", "api.property_field.get.invalid_target_type.app_error", nil, "", http.StatusBadRequest)
-		return
+	// Template fields skip target_type requirement since they have no target scope
+	isTemplate := c.Params.ObjectType == model.PropertyFieldObjectTypeTemplate
+
+	if !isTemplate {
+		// Required target_type filter for non-template fields
+		opts.TargetType = query.Get("target_type")
+		if !model.IsValidPSAv2PropertyFieldTargetType(opts.TargetType) {
+			c.Err = model.NewAppError("getPropertyFields", "api.property_field.get.invalid_target_type.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
 	}
 
 	// Optional target_id filter
@@ -194,29 +217,33 @@ func getPropertyFields(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "group_name", c.Params.GroupName)
 	model.AddEventParameterToAuditRec(auditRec, "object_type", c.Params.ObjectType)
 
-	// Resource-scoped target types require a target_id for access checks
-	switch opts.TargetType {
-	case "channel":
-		if len(opts.TargetIDs) == 0 {
-			c.Err = model.NewAppError("getPropertyFields", "api.property_field.get.target_id_required.app_error", nil, "", http.StatusBadRequest)
-			return
+	if isTemplate {
+		// Template fields are visible to all authenticated users
+	} else {
+		// Resource-scoped target types require a target_id for access checks
+		switch opts.TargetType {
+		case "channel":
+			if len(opts.TargetIDs) == 0 {
+				c.Err = model.NewAppError("getPropertyFields", "api.property_field.get.target_id_required.app_error", nil, "", http.StatusBadRequest)
+				return
+			}
+			hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), opts.TargetIDs[0], model.PermissionReadChannel)
+			if !hasPermission {
+				c.SetPermissionError(model.PermissionReadChannel)
+				return
+			}
+		case "team":
+			if len(opts.TargetIDs) == 0 {
+				c.Err = model.NewAppError("getPropertyFields", "api.property_field.get.target_id_required.app_error", nil, "", http.StatusBadRequest)
+				return
+			}
+			if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), opts.TargetIDs[0], model.PermissionViewTeam) {
+				c.SetPermissionError(model.PermissionViewTeam)
+				return
+			}
+		case "system":
+			// System-level fields are visible to all authenticated users
 		}
-		hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), opts.TargetIDs[0], model.PermissionReadChannel)
-		if !hasPermission {
-			c.SetPermissionError(model.PermissionReadChannel)
-			return
-		}
-	case "team":
-		if len(opts.TargetIDs) == 0 {
-			c.Err = model.NewAppError("getPropertyFields", "api.property_field.get.target_id_required.app_error", nil, "", http.StatusBadRequest)
-			return
-		}
-		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), opts.TargetIDs[0], model.PermissionViewTeam) {
-			c.SetPermissionError(model.PermissionViewTeam)
-			return
-		}
-	case "system":
-		// System-level fields are visible to all authenticated users
 	}
 
 	fields, err := c.App.SearchPropertyFields(c.AppContext, group.ID, opts)
@@ -299,6 +326,31 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	if existingField.Protected {
 		c.Err = model.NewAppError("patchPropertyField", "api.property_field.update.protected_via_api.app_error", nil, "", http.StatusForbidden)
 		return
+	}
+
+	// Linked field restrictions
+	if existingField.LinkedFieldID != nil && *existingField.LinkedFieldID != "" {
+		if patch.Type != nil {
+			c.Err = model.NewAppError("patchPropertyField", "api.property_field.patch.linked_type_change.app_error", nil, "cannot modify type of a linked field", http.StatusBadRequest)
+			return
+		}
+		if patch.Attrs != nil {
+			if _, hasOpts := (*patch.Attrs)[model.PropertyFieldAttributeOptions]; hasOpts {
+				c.Err = model.NewAppError("patchPropertyField", "api.property_field.patch.linked_options_change.app_error", nil, "cannot modify options of a linked field", http.StatusBadRequest)
+				return
+			}
+		}
+		// LinkedFieldID patch validation: only allow unlink (empty string) or same value (no-op)
+		if patch.LinkedFieldID != nil && *patch.LinkedFieldID != "" && *patch.LinkedFieldID != *existingField.LinkedFieldID {
+			c.Err = model.NewAppError("patchPropertyField", "api.property_field.patch.linked_field_change.app_error", nil, "cannot change link target; unlink first then create a new linked field", http.StatusBadRequest)
+			return
+		}
+	} else {
+		// Field is not linked — reject attempts to set a new LinkedFieldID
+		if patch.LinkedFieldID != nil && *patch.LinkedFieldID != "" {
+			c.Err = model.NewAppError("patchPropertyField", "api.property_field.patch.cannot_link_existing.app_error", nil, "linked_field_id can only be set at creation time", http.StatusBadRequest)
+			return
+		}
 	}
 
 	// Detect if this is an options-only update
@@ -403,7 +455,17 @@ func deletePropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireGroupName().RequireObjectType().RequireTargetId()
+	c.RequireGroupName().RequireObjectType()
+	if c.Err != nil {
+		return
+	}
+
+	if c.Params.ObjectType == model.PropertyFieldObjectTypeTemplate {
+		c.Err = model.NewAppError("getPropertyValues", "api.property_value.template_no_values.app_error", nil, "template fields cannot have values", http.StatusBadRequest)
+		return
+	}
+
+	c.RequireTargetId()
 	if c.Err != nil {
 		return
 	}
@@ -461,7 +523,17 @@ func getPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func patchPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireGroupName().RequireObjectType().RequireTargetId()
+	c.RequireGroupName().RequireObjectType()
+	if c.Err != nil {
+		return
+	}
+
+	if c.Params.ObjectType == model.PropertyFieldObjectTypeTemplate {
+		c.Err = model.NewAppError("patchPropertyValues", "api.property_value.template_no_values.app_error", nil, "template fields cannot have values", http.StatusBadRequest)
+		return
+	}
+
+	c.RequireTargetId()
 	if c.Err != nil {
 		return
 	}
@@ -635,6 +707,11 @@ func hasTargetAccess(c *Context, objectType, targetID string, write bool) bool {
 				return false
 			}
 		}
+	case model.PropertyFieldObjectTypeTemplate:
+		// Templates don't have value targets — this should not be reached
+		// if value endpoints properly reject template object type
+		c.Err = model.NewAppError("hasTargetAccess", "api.property_value.template_no_values.app_error", nil, "template fields cannot have values", http.StatusBadRequest)
+		return false
 	default:
 		c.Err = model.NewAppError("hasTargetAccess", "api.property_value.invalid_object_type.app_error", nil, "", http.StatusBadRequest)
 		return false
@@ -646,7 +723,7 @@ func hasTargetAccess(c *Context, objectType, targetID string, write bool) bool {
 // Returns true if the only change is to attrs.options.
 func isOptionsOnlyPatch(patch *model.PropertyFieldPatch) bool {
 	// If any field property (besides attrs) is being updated, it's not options-only
-	if patch.Name != nil || patch.Type != nil || patch.TargetID != nil || patch.TargetType != nil {
+	if patch.Name != nil || patch.Type != nil || patch.TargetID != nil || patch.TargetType != nil || patch.LinkedFieldID != nil {
 		return false
 	}
 
