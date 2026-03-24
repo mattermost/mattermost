@@ -4,6 +4,7 @@
 package sharedchannel
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -73,9 +74,6 @@ func TestOnReceiveMembershipChanges_ChannelIdMismatch(t *testing.T) {
 
 	err := scs.onReceiveMembershipChanges(syncMsg, rc, nil)
 	require.NoError(t, err) // function returns nil even on individual failures
-
-	// The conflict check should never have been called since the mismatch was caught first
-	mockSharedChannelStore.AssertNotCalled(t, "GetUserChanges", mock.Anything, mock.Anything, mock.Anything)
 }
 
 func TestProcessMemberAdd_RejectsLocalUser(t *testing.T) {
@@ -93,9 +91,6 @@ func TestProcessMemberAdd_RejectsLocalUser(t *testing.T) {
 	// Local user has no remote ID
 	localUser := &model.User{Id: localUserId}
 	mockUserStore.On("Get", mockTypeContext, localUserId).Return(localUser, nil)
-
-	// No conflict
-	mockSharedChannelStore.On("GetUserChanges", localUserId, channelId, mock.AnythingOfType("int64")).Return([]*model.SharedChannelUser{}, nil)
 
 	syncMsg := &model.SyncMsg{
 		ChannelId: channelId,
@@ -132,9 +127,6 @@ func TestProcessMemberAdd_RejectsOtherRemoteUser(t *testing.T) {
 	otherRemoteUser := &model.User{Id: userId, RemoteId: &otherRemoteId}
 	mockUserStore.On("Get", mockTypeContext, userId).Return(otherRemoteUser, nil)
 
-	// No conflict
-	mockSharedChannelStore.On("GetUserChanges", userId, channelId, mock.AnythingOfType("int64")).Return([]*model.SharedChannelUser{}, nil)
-
 	syncMsg := &model.SyncMsg{
 		ChannelId: channelId,
 		MembershipChanges: []*model.MembershipChangeMsg{
@@ -169,12 +161,8 @@ func TestProcessMemberAdd_AllowsOwnRemoteUser(t *testing.T) {
 	remoteUser := &model.User{Id: userId, RemoteId: &remoteId}
 	mockUserStore.On("Get", mockTypeContext, userId).Return(remoteUser, nil)
 
-	// No conflict
-	mockSharedChannelStore.On("GetUserChanges", userId, channelId, mock.AnythingOfType("int64")).Return([]*model.SharedChannelUser{}, nil)
-
 	// Expect the add to proceed
 	mockApp.On("AddUserToChannel", mockTypeReqContext, mockTypeUser, mockTypeChannel, true).Return(&model.ChannelMember{}, nil)
-	mockSharedChannelStore.On("UpdateUserLastMembershipSyncAt", userId, channelId, remoteId, int64(1000)).Return(nil)
 
 	syncMsg := &model.SyncMsg{
 		ChannelId: channelId,
@@ -209,9 +197,6 @@ func TestProcessMemberRemove_RejectsLocalUser(t *testing.T) {
 	// Local user has no remote ID
 	localUser := &model.User{Id: localUserId}
 	mockUserStore.On("Get", mockTypeContext, localUserId).Return(localUser, nil)
-
-	// No conflict
-	mockSharedChannelStore.On("GetUserChanges", localUserId, channelId, mock.AnythingOfType("int64")).Return([]*model.SharedChannelUser{}, nil)
 
 	syncMsg := &model.SyncMsg{
 		ChannelId: channelId,
@@ -248,9 +233,6 @@ func TestProcessMemberRemove_RejectsOtherRemoteUser(t *testing.T) {
 	otherRemoteUser := &model.User{Id: userId, RemoteId: &otherRemoteId}
 	mockUserStore.On("Get", mockTypeContext, userId).Return(otherRemoteUser, nil)
 
-	// No conflict
-	mockSharedChannelStore.On("GetUserChanges", userId, channelId, mock.AnythingOfType("int64")).Return([]*model.SharedChannelUser{}, nil)
-
 	syncMsg := &model.SyncMsg{
 		ChannelId: channelId,
 		MembershipChanges: []*model.MembershipChangeMsg{
@@ -285,12 +267,8 @@ func TestProcessMemberRemove_AllowsOwnRemoteUser(t *testing.T) {
 	remoteUser := &model.User{Id: userId, RemoteId: &remoteId}
 	mockUserStore.On("Get", mockTypeContext, userId).Return(remoteUser, nil)
 
-	// No conflict
-	mockSharedChannelStore.On("GetUserChanges", userId, channelId, mock.AnythingOfType("int64")).Return([]*model.SharedChannelUser{}, nil)
-
 	// Expect the remove to proceed
 	mockApp.On("RemoveUserFromChannel", mockTypeReqContext, userId, "", channel).Return(nil)
-	mockSharedChannelStore.On("UpdateUserLastMembershipSyncAt", userId, channelId, remoteId, int64(1000)).Return(nil)
 
 	syncMsg := &model.SyncMsg{
 		ChannelId: channelId,
@@ -333,7 +311,7 @@ func TestProcessMemberAdd_RejectsLocalUser_ErrorMessage(t *testing.T) {
 		ChannelId: channelId,
 	}
 
-	err := scs.processMemberAdd(change, channel, rc, 1000, syncMsg)
+	err := scs.processMemberAdd(change, channel, rc, syncMsg)
 	require.Error(t, err)
 	assert.ErrorIs(t, err, ErrRemoteIDMismatch)
 	assert.Contains(t, err.Error(), "membership add sync failed")
@@ -360,8 +338,67 @@ func TestProcessMemberRemove_RejectsLocalUser_ErrorMessage(t *testing.T) {
 		ChangeTime: 1000,
 	}
 
-	err := scs.processMemberRemove(change, rc, 1000)
+	err := scs.processMemberRemove(change, rc)
 	require.Error(t, err)
 	assert.ErrorIs(t, err, ErrRemoteIDMismatch)
 	assert.Contains(t, err.Error(), "membership remove sync failed")
+}
+
+func TestProcessMemberAdd_IdempotentForExistingMember(t *testing.T) {
+	scs, _, mockApp, _, _, _, mockUserStore := setupMembershipTest(t)
+
+	channelId := model.NewId()
+	remoteId := model.NewId()
+	userId := model.NewId()
+	rc := &model.RemoteCluster{RemoteId: remoteId}
+	channel := &model.Channel{Id: channelId, Type: model.ChannelTypeOpen}
+
+	// User belongs to the sending remote
+	remoteUser := &model.User{Id: userId, RemoteId: &remoteId}
+	mockUserStore.On("Get", mockTypeContext, userId).Return(remoteUser, nil)
+
+	// Simulate "already added" error from AddUserToChannel
+	alreadyAddedErr := model.NewAppError("AddUserToChannel", errIDSaveMemberExists, nil, "", http.StatusBadRequest)
+	mockApp.On("AddUserToChannel", mockTypeReqContext, mockTypeUser, mockTypeChannel, true).Return(nil, alreadyAddedErr)
+
+	syncMsg := &model.SyncMsg{ChannelId: channelId}
+	change := &model.MembershipChangeMsg{
+		ChannelId:  channelId,
+		UserId:     userId,
+		IsAdd:      true,
+		ChangeTime: 1000,
+	}
+
+	err := scs.processMemberAdd(change, channel, rc, syncMsg)
+	require.NoError(t, err, "should succeed for already-added user (idempotent)")
+}
+
+func TestProcessMemberRemove_IdempotentForNonMember(t *testing.T) {
+	scs, _, mockApp, _, _, mockChannelStore, mockUserStore := setupMembershipTest(t)
+
+	channelId := model.NewId()
+	remoteId := model.NewId()
+	userId := model.NewId()
+	rc := &model.RemoteCluster{RemoteId: remoteId}
+	channel := &model.Channel{Id: channelId, Type: model.ChannelTypeOpen}
+
+	mockChannelStore.On("Get", channelId, true).Return(channel, nil)
+
+	// User belongs to the sending remote
+	remoteUser := &model.User{Id: userId, RemoteId: &remoteId}
+	mockUserStore.On("Get", mockTypeContext, userId).Return(remoteUser, nil)
+
+	// Simulate "not found" error from RemoveUserFromChannel
+	notFoundErr := model.NewAppError("RemoveUserFromChannel", errIDGetChannelMemberMissing, nil, "", http.StatusNotFound)
+	mockApp.On("RemoveUserFromChannel", mockTypeReqContext, userId, "", channel).Return(notFoundErr)
+
+	change := &model.MembershipChangeMsg{
+		ChannelId:  channelId,
+		UserId:     userId,
+		IsAdd:      false,
+		ChangeTime: 1000,
+	}
+
+	err := scs.processMemberRemove(change, rc)
+	require.NoError(t, err, "should succeed for already-removed user (idempotent)")
 }
