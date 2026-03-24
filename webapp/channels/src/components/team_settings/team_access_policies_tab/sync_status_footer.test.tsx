@@ -92,6 +92,28 @@ describe('SyncStatusFooter', () => {
         });
     });
 
+    test('should revert to "Sync now" when job creation returns an error', async () => {
+        mockGetJobsByType.mockReturnValue({type: 'MOCK', data: []});
+        mockCreateSyncJob.mockReturnValue({type: 'MOCK', error: {message: 'server error'}});
+        renderWithContext(
+            <SyncStatusFooter
+                teamId='team1'
+                hasPolicies={true}
+            />,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByText(/Sync now/i)).toBeInTheDocument();
+        });
+
+        await userEvent.click(screen.getByText(/Sync now/i));
+
+        await waitFor(() => {
+            expect(screen.getByText(/Sync now/i)).toBeInTheDocument();
+        });
+        expect(screen.queryByText(/Syncing/i)).not.toBeInTheDocument();
+    });
+
     test('should fetch jobs with teamId parameter', async () => {
         mockGetJobsByType.mockReturnValue({type: 'MOCK', data: []});
         renderWithContext(

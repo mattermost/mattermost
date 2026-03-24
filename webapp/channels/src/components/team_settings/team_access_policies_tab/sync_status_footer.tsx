@@ -90,7 +90,10 @@ export default function SyncStatusFooter({teamId, hasPolicies}: Props) {
     const handleSyncNow = useCallback(async () => {
         setSyncing(true);
         try {
-            await dispatch(createAccessControlSyncJob({team_id: teamId}));
+            const result = await dispatch(createAccessControlSyncJob({team_id: teamId}));
+            if (result.error) {
+                setSyncing(false);
+            }
         } catch {
             setSyncing(false);
         }
