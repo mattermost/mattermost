@@ -96,6 +96,12 @@ type FeatureFlags struct {
 
 	// Enable LIKE-based CJK (Chinese, Japanese, Korean) search for PostgreSQL
 	CJKSearch bool
+
+	// ChannelAutoArchiveUI enables the new channel auto-archive configuration
+	// UI in the System Console. The backend ChannelSettings are always respected;
+	// this flag only gates the admin UI surface.
+	// FEATURE_FLAG_REMOVAL: remove with MM-68901 once fully rolled out
+	ChannelAutoArchiveUI bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -141,6 +147,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableAIRecaps = false
 
 	f.CJKSearch = false
+
+	f.ChannelAutoArchiveUI = false
 }
 
 // ToMap returns the feature flags as a map[string]string

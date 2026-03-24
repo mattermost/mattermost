@@ -85,6 +85,8 @@ const (
 	AuditEventUpdateChannelMemberSchemeRoles     = "updateChannelMemberSchemeRoles"     // update scheme-based roles
 	AuditEventUpdateChannelPrivacy               = "updateChannelPrivacy"               // change channel privacy settings
 	AuditEventUpdateChannelScheme                = "updateChannelScheme"                // update permission scheme applied to channel
+	AuditEventChannelAutoArchive                 = "channelAutoArchive"                 // channel archived by the auto-archive background job
+	AuditEventChannelAutoArchiveConfigUpdate     = "channelAutoArchiveConfigUpdate"     // admin updated the ChannelSettings auto-archive configuration
 )
 
 // Commands

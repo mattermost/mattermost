@@ -2624,3 +2624,85 @@
         "404":
           $ref: "#/components/responses/NotFound"
 
+
+  /api/v4/channels/auto-archive/config:
+    get:
+      tags:
+        - channels
+      summary: Get channel auto-archive configuration
+      description: |
+        Retrieves the current channel auto-archive settings.
+
+        ##### Permissions
+        Must have `sysconsole_read_site_channels` permission.
+      operationId: GetChannelAutoArchiveConfig
+      responses:
+        "200":
+          description: Channel auto-archive settings retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChannelSettings"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    put:
+      tags:
+        - channels
+      summary: Update channel auto-archive configuration
+      description: |
+        Updates the channel auto-archive settings.
+
+        ##### Permissions
+        Must have `sysconsole_write_site_channels` permission.
+      operationId: UpdateChannelAutoArchiveConfig
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChannelSettings"
+      responses:
+        "200":
+          description: Channel auto-archive settings updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChannelSettings"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /api/v4/channels/auto-archive/run:
+    post:
+      tags:
+        - channels
+      summary: Trigger a channel auto-archive sweep
+      description: |
+        Manually triggers an immediate channel auto-archive sweep outside the
+        normal daily schedule. Useful for testing or one-off admin operations
+        after configuration changes.
+
+        ##### Permissions
+        Must have `manage_system` permission.
+      operationId: TriggerChannelAutoArchiveRun
+      responses:
+        "200":
+          description: Sweep completed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  channels_archived:
+                    type: integer
+                    description: Number of channels archived during this sweep
+                    example: 5
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"

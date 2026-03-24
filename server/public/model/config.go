@@ -130,6 +130,12 @@ const (
 	TeamSettingsDefaultCustomDescriptionText = ""
 	TeamSettingsDefaultUserStatusAwayTimeout = 300
 
+	// Channel Auto-Archive defaults
+	ChannelAutoArchiveDefaultEnabled        = false
+	ChannelAutoArchiveDefaultInactiveDays   = 90
+	ChannelAutoArchiveDefaultExcludePublic  = false
+	ChannelAutoArchiveDefaultExcludePrivate = true
+
 	SqlSettingsDefaultDataSource = "postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes"
 
 	FileSettingsDefaultDirectory                   = "./data/"
@@ -3955,6 +3961,50 @@ const ConfigAccessTagAnySysConsoleRead = "*_read"
 //	    // PermissionManageSystem can always read the value.
 //	    Product bool `access:write_restrictable`
 //	}
+
+// ChannelSettings controls channel lifecycle behaviour such as auto-archiving.
+type ChannelSettings struct {
+	// EnableAutoArchive controls whether channels are automatically archived
+	// after a period of inactivity. When true, channels with no messages for
+	// InactiveDaysBeforeArchive days are archived by a daily background job.
+	EnableAutoArchive *bool `access:"site_channels,write_restrictable,cloud_restrictable"`
+
+	// InactiveDaysBeforeArchive is the number of days without activity before
+	// a channel is eligible for auto-archiving. Minimum: 1, Maximum: 3650.
+	InactiveDaysBeforeArchive *int `access:"site_channels,write_restrictable,cloud_restrictable"`
+
+	// ExcludePublicChannels prevents public channels from being auto-archived.
+	ExcludePublicChannels *bool `access:"site_channels,write_restrictable,cloud_restrictable"`
+
+	// ExcludePrivateChannels prevents private channels from being auto-archived.
+	ExcludePrivateChannels *bool `access:"site_channels,write_restrictable,cloud_restrictable"`
+}
+
+func (s *ChannelSettings) SetDefaults() {
+	if s.EnableAutoArchive == nil {
+		s.EnableAutoArchive = NewPointer(ChannelAutoArchiveDefaultEnabled)
+	}
+	if s.InactiveDaysBeforeArchive == nil {
+		s.InactiveDaysBeforeArchive = NewPointer(ChannelAutoArchiveDefaultInactiveDays)
+	}
+	if s.ExcludePublicChannels == nil {
+		s.ExcludePublicChannels = NewPointer(ChannelAutoArchiveDefaultExcludePublic)
+	}
+	if s.ExcludePrivateChannels == nil {
+		s.ExcludePrivateChannels = NewPointer(ChannelAutoArchiveDefaultExcludePrivate)
+	}
+}
+
+func (s *ChannelSettings) isValid() *AppError {
+	if s.InactiveDaysBeforeArchive != nil {
+		days := *s.InactiveDaysBeforeArchive
+		if days < 1 || days > 3650 {
+			return NewAppError("Config.IsValid", "model.config.is_valid.channel_settings.inactive_days.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+	return nil
+}
+
 type Config struct {
 	ServiceSettings             ServiceSettings
 	TeamSettings                TeamSettings
@@ -4002,6 +4052,7 @@ type Config struct {
 	AccessControlSettings       AccessControlSettings
 	ContentFlaggingSettings     ContentFlaggingSettings
 	AutoTranslationSettings     AutoTranslationSettings
+	ChannelSettings             ChannelSettings
 }
 
 func (o *Config) Auditable() map[string]any {
@@ -4121,6 +4172,7 @@ func (o *Config) SetDefaults() {
 	o.ConnectedWorkspacesSettings.SetDefaults(isUpdate, o.ExperimentalSettings)
 	o.AccessControlSettings.SetDefaults()
 	o.ContentFlaggingSettings.SetDefaults()
+	o.ChannelSettings.SetDefaults()
 }
 
 func (o *Config) IsValid() *AppError {
