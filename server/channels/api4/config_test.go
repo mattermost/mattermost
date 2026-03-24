@@ -604,13 +604,13 @@ func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
 }
 
 func TestGetEnvironmentConfig(t *testing.T) {
-	th := Setup(t)
+	// These MUST be os.Setenv (not UpdateConfig) because GetEnvironmentConfig
+	// returns only config values sourced from environment variables.
+	// t.Setenv prevents t.Parallel — intentionally serial.
+	t.Setenv("MM_SERVICESETTINGS_SITEURL", "http://example.mattermost.com")
+	t.Setenv("MM_SERVICESETTINGS_ENABLECUSTOMEMOJI", "true")
 
-	// Set service settings for environment config test
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.ServiceSettings.SiteURL = model.NewPointer("http://example.mattermost.com")
-		cfg.ServiceSettings.EnableCustomEmoji = model.NewPointer(true)
-	})
+	th := Setup(t)
 
 	t.Run("as system admin", func(t *testing.T) {
 		SystemAdminClient := th.SystemAdminClient
