@@ -325,7 +325,10 @@ describe('Forward Message', () => {
 
             if (testLongComment) {
                 // # Enter long comment and add one char to make it too long
-                cy.get('#forward_post_textbox').invoke('val', longMessage).trigger('change').type(extraChars, {delay: 500});
+                cy.get('#forward_post_textbox').clear().then((el) => {
+                    el[0].textContent = longMessage;
+                    el[0].dispatchEvent(new Event('input', {bubbles: true}));
+                }).type(extraChars, {delay: 500});
 
                 // * Assert if error message is shown
                 cy.get('label.post-error').scrollIntoView().should('be.visible').should('contain', `Your message is too long. Character count: ${longMessage.length + extraChars.length}/${maxPostSize}`);
@@ -334,7 +337,10 @@ describe('Forward Message', () => {
                 cy.get('.GenericModal__button.confirm').should('be.disabled');
 
                 // # Enter a valid comment
-                cy.get('#forward_post_textbox').invoke('val', longMessage).trigger('change').type(' {backspace}');
+                cy.get('#forward_post_textbox').clear().then((el) => {
+                    el[0].textContent = longMessage;
+                    el[0].dispatchEvent(new Event('input', {bubbles: true}));
+                }).type(' {backspace}');
 
                 // * Assert if error message is removed
                 cy.get('label.post-error').should('not.exist');
@@ -342,7 +348,10 @@ describe('Forward Message', () => {
 
             if (comment) {
                 // # Enter comment
-                cy.get('#forward_post_textbox').invoke('val', comment).trigger('change').type(' {backspace}');
+                cy.get('#forward_post_textbox').clear().then((el) => {
+                    el[0].textContent = comment;
+                    el[0].dispatchEvent(new Event('input', {bubbles: true}));
+                }).type(' {backspace}');
 
                 // * Assert if error message is not present
                 cy.get('label.post-error').should('not.exist');

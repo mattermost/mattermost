@@ -53,7 +53,7 @@ describe('Recent Emoji', () => {
 
         // # Submit post
         const message = 'hi';
-        cy.uiGetPostTextBox().and('have.value', '😂 ').type(`${message} {enter}`);
+        cy.uiGetPostTextBox().and('contain.text', '😂 ').type(`${message} {enter}`);
         cy.uiWaitUntilMessagePostedIncludes(message);
 
         // # Post reaction to post

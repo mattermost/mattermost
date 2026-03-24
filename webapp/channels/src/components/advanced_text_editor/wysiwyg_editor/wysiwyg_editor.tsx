@@ -158,16 +158,13 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
             return;
         }
 
-        if (editor.isFocused) {
-            prevValueRef.current = value;
+        if (editor.isFocused && value !== '' && value === prevValueRef.current) {
             return;
         }
 
-        if (value !== prevValueRef.current) {
-            const currentMd = editor.getMarkdown();
-            if (value !== currentMd) {
-                editor.commands.setContent(value, {contentType: 'markdown'});
-            }
+        const currentMd = editor.getMarkdown();
+        if (value !== currentMd) {
+            editor.commands.setContent(value, {contentType: 'markdown'});
         }
         prevValueRef.current = value;
     }, [value, editor]);

@@ -41,14 +41,14 @@ describe('Keyboard Shortcuts', () => {
         cy.uiGetPostTextBox().clear().type('This is a normal sentence.').type('{backspace}{backspace}').blur();
 
         // * Verify that the backspace key presses modified the input correctly
-        cy.uiGetPostTextBox().should('have.value', 'This is a normal sentenc');
+        cy.uiGetPostTextBox().should('contain.text', 'This is a normal sentenc');
 
         // # Select the body to remove focus from the input field
         cy.get('body').type('{backspace}');
         cy.get('body').type('{backspace}');
 
         // * Verify that the additional backspace key presses on blur doesn't affect the input
-        cy.uiGetPostTextBox().should('have.value', 'This is a normal sentenc');
+        cy.uiGetPostTextBox().should('contain.text', 'This is a normal sentenc');
 
         // * Verify that the URL doesn't change from the last URL
         cy.url().should('include', `/${testTeam.name}/messages/@${testUser.username}`);

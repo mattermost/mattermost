@@ -74,8 +74,14 @@ function postMessageReplyInRHS(message: string): ChainableT<any> {
 Cypress.Commands.add('postMessageReplyInRHS', postMessageReplyInRHS);
 
 Cypress.Commands.add('uiPostMessageQuickly', (message) => {
-    cy.uiGetPostTextBox().should('be.visible').clear().
-        invoke('val', message).wait(TIMEOUTS.HALF_SEC).type(' {backspace}{enter}');
+    cy.uiGetPostTextBox().should('be.visible').then((el) => {
+        const isContentEditable = el[0].getAttribute('contenteditable') === 'true';
+        if (isContentEditable) {
+            cy.wrap(el).clear().type(message).wait(TIMEOUTS.HALF_SEC).type('{enter}');
+        } else {
+            cy.wrap(el).clear().invoke('val', message).wait(TIMEOUTS.HALF_SEC).type(' {backspace}{enter}');
+        }
+    });
     cy.waitUntil(() => {
         return cy.uiGetPostTextBox().then((el) => {
             return el[0].textContent === '';
@@ -97,13 +103,27 @@ function postMessageAndWait(textboxSelector: string, message: string, isComment 
         waitForCommentDraft(message);
     }
 
-    cy.get(textboxSelector).should('have.value', message).focus().type('{enter}').wait(TIMEOUTS.HALF_SEC);
+    cy.get(textboxSelector).then((el) => {
+        const isContentEditable = el[0].getAttribute('contenteditable') === 'true';
+        if (isContentEditable) {
+            cy.wrap(el).should('contain.text', message).focus().type('{enter}').wait(TIMEOUTS.HALF_SEC);
 
-    cy.get(textboxSelector).invoke('val').then((value: string) => {
-        if (value.length > 0 && value === message) {
-            cy.get(textboxSelector).type('{enter}').wait(TIMEOUTS.HALF_SEC);
+            cy.get(textboxSelector).then((retryEl) => {
+                if ((retryEl[0].textContent || '').trim().length > 0) {
+                    cy.wrap(retryEl).type('{enter}').wait(TIMEOUTS.HALF_SEC);
+                }
+            });
+        } else {
+            cy.wrap(el).should('have.value', message).focus().type('{enter}').wait(TIMEOUTS.HALF_SEC);
+
+            cy.get(textboxSelector).invoke('val').then((value: string) => {
+                if (value.length > 0 && value === message) {
+                    cy.get(textboxSelector).type('{enter}').wait(TIMEOUTS.HALF_SEC);
+                }
+            });
         }
     });
+
     return cy.waitUntil(() => {
         return cy.get(textboxSelector).then((el) => {
             return el[0].textContent === '';
@@ -205,7 +225,13 @@ Cypress.Commands.add('uiGetNthPost', uiGetNthPost);
 
 function postMessageFromFile(file: string, target = '#post_textbox'): ChainableT<any> {
     return cy.fixture(file, 'utf-8').then((text) => {
-        return cy.get(target).clear().invoke('val', text).wait(TIMEOUTS.HALF_SEC).type(' {backspace}{enter}').should('have.text', '');
+        return cy.get(target).then((el) => {
+            const isContentEditable = el[0].getAttribute('contenteditable') === 'true';
+            if (isContentEditable) {
+                return cy.wrap(el).clear().type(text, {delay: 0}).wait(TIMEOUTS.HALF_SEC).type('{enter}').should('have.text', '');
+            }
+            return cy.wrap(el).clear().invoke('val', text).wait(TIMEOUTS.HALF_SEC).type(' {backspace}{enter}').should('have.text', '');
+        });
     });
 }
 Cypress.Commands.add('postMessageFromFile', postMessageFromFile);
