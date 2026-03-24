@@ -98,19 +98,19 @@ func testCreatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 			GroupID:    model.NewId(),
 			Name:       "Field with ObjectType",
 			Type:       model.PropertyFieldTypeText,
-			ObjectType: "create_test_type",
+			ObjectType: model.PropertyFieldObjectTypeChannel,
 			TargetID:   model.NewId(),
 			TargetType: string(model.PropertyFieldTargetLevelChannel),
 		}
 		created, err := ss.PropertyField().Create(field)
 		require.NoError(t, err)
 		require.NotZero(t, created.ID)
-		require.Equal(t, "create_test_type", created.ObjectType)
+		require.Equal(t, model.PropertyFieldObjectTypeChannel, created.ObjectType)
 
 		// Verify it can be retrieved with ObjectType intact
 		retrieved, err := ss.PropertyField().Get("", created.ID)
 		require.NoError(t, err)
-		require.Equal(t, "create_test_type", retrieved.ObjectType)
+		require.Equal(t, model.PropertyFieldObjectTypeChannel, retrieved.ObjectType)
 	})
 
 	t.Run("should be able to create a property field without ObjectType for backwards compatibility", func(t *testing.T) {
@@ -235,7 +235,8 @@ func testGetManyPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 	t.Run("should fail on nonexisting fields", func(t *testing.T) {
 		fields, err := ss.PropertyField().GetMany("", []string{model.NewId(), model.NewId()})
 		require.Empty(t, fields)
-		require.ErrorContains(t, err, "missmatch results")
+		var target *store.ErrResultsMismatch
+		require.ErrorAs(t, err, &target)
 	})
 
 	groupID := model.NewId()
@@ -265,7 +266,8 @@ func testGetManyPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 	t.Run("should fail if at least one of the ids is nonexistent", func(t *testing.T) {
 		fields, err := ss.PropertyField().GetMany(groupID, []string{newFields[0].ID, newFields[1].ID, model.NewId()})
 		require.Empty(t, fields)
-		require.ErrorContains(t, err, "missmatch results")
+		var target *store.ErrResultsMismatch
+		require.ErrorAs(t, err, &target)
 	})
 
 	t.Run("should be able to retrieve existing property fields", func(t *testing.T) {
@@ -278,7 +280,8 @@ func testGetManyPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 	t.Run("should fail if asked for valid IDs but outside the group", func(t *testing.T) {
 		fields, err := ss.PropertyField().GetMany(groupID, []string{newFields[0].ID, newFieldOutsideGroup.ID})
 		require.Empty(t, fields)
-		require.ErrorContains(t, err, "missmatch results")
+		var target *store.ErrResultsMismatch
+		require.ErrorAs(t, err, &target)
 	})
 
 	t.Run("should be able to retrieve existing property fields from multiple groups", func(t *testing.T) {

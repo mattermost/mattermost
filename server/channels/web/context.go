@@ -667,6 +667,39 @@ func (c *Context) RequireFieldId() *Context {
 	return c
 }
 
+func (c *Context) RequireGroupName() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidPropertyGroupName(c.Params.GroupName) {
+		c.SetInvalidURLParam("group_name")
+	}
+	return c
+}
+
+func (c *Context) RequireObjectType() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidPropertyFieldObjectType(c.Params.ObjectType) {
+		c.SetInvalidURLParam("object_type")
+	}
+	return c
+}
+
+func (c *Context) RequireTargetId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.TargetId) {
+		c.SetInvalidURLParam("target_id")
+	}
+	return c
+}
+
 func (c *Context) RequireSchemeId() *Context {
 	if c.Err != nil {
 		return c

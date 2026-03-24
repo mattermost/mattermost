@@ -4,15 +4,25 @@
 package app
 
 import (
+	"net/http"
+
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
 // RegisterPropertyGroup registers a property group with the given name.
 // If the group already exists, it returns the existing group.
-func (a *App) RegisterPropertyGroup(name string) (*model.PropertyGroup, error) {
-	return a.Srv().propertyAccessService.propertyService.RegisterPropertyGroup(name)
+func (a *App) RegisterPropertyGroup(name string) (*model.PropertyGroup, *model.AppError) {
+	group, err := a.Srv().propertyAccessService.propertyService.RegisterPropertyGroup(name)
+	if err != nil {
+		return nil, model.NewAppError("RegisterPropertyGroup", "app.property_group.register.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return group, nil
 }
 
-func (a *App) GetPropertyGroup(name string) (*model.PropertyGroup, error) {
-	return a.Srv().propertyAccessService.propertyService.GetPropertyGroup(name)
+func (a *App) GetPropertyGroup(name string) (*model.PropertyGroup, *model.AppError) {
+	group, err := a.Srv().propertyAccessService.propertyService.GetPropertyGroup(name)
+	if err != nil {
+		return nil, model.NewAppError("GetPropertyGroup", "app.property_group.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return group, nil
 }
