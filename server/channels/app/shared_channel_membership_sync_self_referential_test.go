@@ -524,7 +524,6 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		assert.Contains(t, syncedInSecondCall, user3.Id, "Second sync must include the new user")
 	})
 	t.Run("Test 4: Sync failure and recovery", func(t *testing.T) {
-		t.Skip("MM-64687")
 		// This test verifies that membership sync handles remote server failures gracefully
 		// and successfully syncs members once the remote server recovers.
 		// We test that:
