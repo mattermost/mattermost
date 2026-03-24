@@ -32,6 +32,7 @@ type State = {
     error: string | null;
     errors: Record<string, React.ReactNode>;
     submitting: boolean;
+    pendingFileUploads: Record<string, boolean>;
 }
 
 export default class InteractiveDialog extends React.PureComponent<Props, State> {
@@ -55,6 +56,7 @@ export default class InteractiveDialog extends React.PureComponent<Props, State>
             error: null,
             errors: {},
             submitting: false,
+            pendingFileUploads: {},
         };
     }
 
@@ -90,6 +92,17 @@ export default class InteractiveDialog extends React.PureComponent<Props, State>
 
         const {url, callbackId, state} = this.props;
 
+        // Collect file IDs from all file-type elements for server-side validation
+        const fileIds: string[] = [];
+        if (elements) {
+            elements.forEach((elem) => {
+                if (elem.type === 'file' && values[elem.name]) {
+                    const ids = String(values[elem.name]).split(',').filter(Boolean);
+                    fileIds.push(...ids);
+                }
+            });
+        }
+
         const dialog: DialogSubmission = {
             url,
             callback_id: callbackId ?? '',
@@ -99,6 +112,7 @@ export default class InteractiveDialog extends React.PureComponent<Props, State>
             channel_id: '',
             team_id: '',
             cancelled: false,
+            ...(fileIds.length > 0 && {file_ids: fileIds}),
         };
 
         this.setState({submitting: true});
@@ -159,6 +173,21 @@ export default class InteractiveDialog extends React.PureComponent<Props, State>
         const values = {...this.state.values, [name]: value};
         this.setState({values});
     };
+
+    onFileUploadStateChange = (name: string, hasPending: boolean) => {
+        this.setState((prev) => ({
+            pendingFileUploads: {...prev.pendingFileUploads, [name]: hasPending},
+        }));
+    };
+
+    private get hasBlockingUpload(): boolean {
+        const fileFieldNames = new Set(
+            (this.props.elements ?? []).filter((e) => e.type === 'file').map((e) => e.name),
+        );
+        return Object.entries(this.state.pendingFileUploads).some(
+            ([name, pending]) => fileFieldNames.has(name) && pending,
+        );
+    }
 
     render() {
         const {
@@ -250,6 +279,8 @@ export default class InteractiveDialog extends React.PureComponent<Props, State>
                                         options={e.options}
                                         value={this.state.values[e.name]}
                                         onChange={this.onChange}
+                                        allowMultiple={e.allow_multiple}
+                                        onFileUploadStateChange={e.type === 'file' ? this.onFileUploadStateChange : undefined}
                                     />
                                 );
                             })}
@@ -275,6 +306,7 @@ export default class InteractiveDialog extends React.PureComponent<Props, State>
                             type='submit'
                             autoFocus={!elements || elements.length === 0}
                             className='btn btn-primary save-button'
+                            disabled={this.hasBlockingUpload}
                             spinning={this.state.submitting}
                             spinningText={
                                 <FormattedMessage

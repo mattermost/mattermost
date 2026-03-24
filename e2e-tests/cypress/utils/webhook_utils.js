@@ -570,6 +570,55 @@ function getTimezoneManualDialog(triggerId, webhookBaseUrl) {
     });
 }
 
+function getFileUploadDialog(triggerId, webhookBaseUrl) {
+    return {
+        trigger_id: triggerId,
+        url: `${webhookBaseUrl}/dialog_submit`,
+        dialog: {
+            callback_id: 'somecallbackid',
+            title: 'Title for Dialog Test with file upload element',
+            icon_url:
+                'https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png',
+            submit_label: 'Submit File Upload Test',
+            notify_on_cancel: true,
+            state: 'somestate',
+            elements: [
+                {
+                    display_name: 'Upload Single Document',
+                    name: 'single_document',
+                    type: 'file',
+                    placeholder: 'Select one document...',
+                    help_text: 'Upload a single document (replaces previous selection).',
+                    optional: false,
+                },
+                {
+                    display_name: 'Upload Multiple Files',
+                    name: 'multiple_files',
+                    type: 'file',
+                    allow_multiple: true,
+                    placeholder: 'Select multiple files...',
+                    help_text: 'Upload multiple files (can select and add more).',
+                    optional: false,
+                },
+                {
+                    display_name: 'Description',
+                    name: 'description',
+                    type: 'textarea',
+                    subtype: '',
+                    default: '',
+                    placeholder: 'Describe the uploaded files...',
+                    help_text: 'Provide a description for the uploaded files.',
+                    optional: true,
+                    min_length: 0,
+                    max_length: 500,
+                    data_source: '',
+                    options: null,
+                },
+            ],
+        },
+    };
+}
+
 module.exports = {
     getFullDialog,
     getSimpleDialog,
@@ -588,4 +637,5 @@ module.exports = {
     getCustomIntervalDialog,
     getRelativeDateDialog,
     getTimezoneManualDialog,
+    getFileUploadDialog,
 };

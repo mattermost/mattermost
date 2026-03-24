@@ -175,6 +175,7 @@ export type DialogSubmission = {
     };
     cancelled: boolean;
     type?: string;
+    file_ids?: string[];
 };
 
 export type DialogElement = {
@@ -191,6 +192,7 @@ export type DialogElement = {
     data_source: string;
     data_source_url?: string;
     multiselect?: boolean;
+    allow_multiple?: boolean;
     options: Array<{
         text: string;
         value: any;

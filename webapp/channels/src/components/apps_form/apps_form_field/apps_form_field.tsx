@@ -21,8 +21,12 @@ import type {InputTypes} from 'components/widgets/settings/text_setting';
 
 import AppsFormSelectField from './apps_form_select_field';
 
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
+
 import AppsFormDateField from '../apps_form_date_field';
 import AppsFormDateTimeField from '../apps_form_datetime_field';
+
+const DialogFileUpload = React.lazy(() => import('components/interactive_dialog/dialog_file_upload'));
 
 const TEXT_DEFAULT_MAX_LENGTH = 150;
 const TEXTAREA_DEFAULT_MAX_LENGTH = 3000;
@@ -114,6 +118,27 @@ export default class AppsFormField extends React.PureComponent<Props> {
         }
 
         switch (field.type) {
+        case AppFieldTypes.FILE: {
+            return (
+                <React.Suspense fallback={<LoadingSpinner/>}>
+                    <DialogFileUpload
+                        id={name}
+                        label={displayNameContent}
+                        helpText={helpTextContent}
+                        placeholder={placeholder}
+                        onFileSelected={(fileIds: string[]) => {
+                            // For now, handle multiple files by joining them
+                            // In the future, this should be updated to support arrays natively
+                            onChange(name, fileIds.join(','));
+                        }}
+                        disabled={field.readonly}
+                        error={errorText as string}
+                        value={value ? (value as string).split(',').filter(Boolean) : []}
+                        allowMultiple={field.allow_multiple}
+                    />
+                </React.Suspense>
+            );
+        }
         case AppFieldTypes.TEXT: {
             const subtype = field.subtype || 'text';
 

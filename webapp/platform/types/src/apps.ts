@@ -470,6 +470,9 @@ export type AppField = {
     multiselect?: boolean;
     lookup?: AppCall;
 
+    // File props
+    allow_multiple?: boolean;
+
     // Text props
     subtype?: string;
     min_length?: number;
@@ -558,6 +561,10 @@ function isAppField(v: unknown): v is AppField {
     }
 
     if (field.multiselect !== undefined && typeof field.multiselect !== 'boolean') {
+        return false;
+    }
+
+    if (field.allow_multiple !== undefined && typeof field.allow_multiple !== 'boolean') {
         return false;
     }
 

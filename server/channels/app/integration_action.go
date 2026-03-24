@@ -493,6 +493,27 @@ func (a *App) SubmitInteractiveDialog(rctx request.CTX, request model.SubmitDial
 	url := request.URL
 	request.URL = ""
 
+	// Validate submitted file IDs exist and belong to the submitting user
+	if len(request.FileIds) > model.MaxDialogFileIds {
+		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.too_many_file_ids",
+			map[string]any{"Max": model.MaxDialogFileIds}, "", http.StatusBadRequest)
+	}
+	request.FileIds = model.RemoveDuplicateStrings(request.FileIds)
+	for _, fileID := range request.FileIds {
+		fileInfo, appErr := a.GetFileInfo(rctx, fileID)
+		if appErr != nil {
+			// Only remap not-found and access-denied errors as client validation failures.
+			// Internal/store errors keep their original status so they are not misreported.
+			if appErr.StatusCode == http.StatusNotFound || appErr.StatusCode == http.StatusForbidden {
+				return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.invalid_file_id", map[string]any{"FileId": fileID}, appErr.Error(), http.StatusBadRequest)
+			}
+			return nil, appErr
+		}
+		if fileInfo.CreatorId != request.UserId {
+			return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.file_not_owned", map[string]any{"FileId": fileID}, "", http.StatusForbidden)
+		}
+	}
+
 	// Preserve Type field for field refresh functionality, otherwise default to dialog_submission
 	if request.Type != "refresh" {
 		request.Type = "dialog_submission"
@@ -509,6 +530,8 @@ func (a *App) SubmitInteractiveDialog(rctx request.CTX, request model.SubmitDial
 		mlog.String("user_id", request.UserId),
 		mlog.String("channel_id", request.ChannelId),
 		mlog.String("team_id", request.TeamId),
+		mlog.String("state", request.State),
+		mlog.Bool("cancelled", request.Cancelled),
 	)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
@@ -528,10 +551,12 @@ func (a *App) SubmitInteractiveDialog(rctx request.CTX, request model.SubmitDial
 
 	var response model.SubmitDialogResponse
 	if len(body) == 0 {
+		rctx.Logger().Info("SubmitDialogResponse empty body")
 		// Don't fail, an empty response is acceptable
 		return &response, nil
 	}
 
+	rctx.Logger().Info("SubmitDialogResponse body", mlog.String("body", string(body)))
 	err = json.Unmarshal(body, &response)
 	if err != nil {
 		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.decode_json_error", nil, "", http.StatusInternalServerError).Wrap(err)

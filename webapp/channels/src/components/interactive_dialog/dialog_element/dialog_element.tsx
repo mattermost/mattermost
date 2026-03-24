@@ -23,6 +23,8 @@ import RadioSetting from 'components/widgets/settings/radio_setting';
 import TextSetting from 'components/widgets/settings/text_setting';
 import type {InputTypes} from 'components/widgets/settings/text_setting';
 
+import DialogFileUpload from '../dialog_file_upload';
+
 const TEXT_DEFAULT_MAX_LENGTH = 150;
 const TEXTAREA_DEFAULT_MAX_LENGTH = 3000;
 
@@ -44,6 +46,8 @@ export type Props = {
     value?: string | number | boolean;
     onChange: (name: string, selected: string) => void;
     autoFocus?: boolean;
+    allowMultiple?: boolean;
+    onFileUploadStateChange?: (name: string, hasPending: boolean) => void;
     actions: {
         autocompleteActiveChannels: (term: string, success: (channels: Channel[]) => void, error?: (err: ServerError) => void) => (ActionResult | Promise<ActionResult | ActionResult[]>);
         autocompleteUsers: (search: string) => Promise<UserAutocomplete>;
@@ -83,6 +87,14 @@ export default class DialogElement extends React.PureComponent<Props, State> {
             value: defaultText,
         };
     }
+
+    private handlePendingChange = (hasPending: boolean) => {
+        this.props.onFileUploadStateChange?.(this.props.name, hasPending);
+    };
+
+    private handleFileSelected = (fileIds: string[]) => {
+        this.props.onChange(this.props.name, fileIds.join(','));
+    };
 
     private handleSelected = (selected: Selected) => {
         const {name, dataSource} = this.props;
@@ -218,6 +230,21 @@ export default class DialogElement extends React.PureComponent<Props, State> {
                     options={options}
                     value={textValue}
                     onChange={onChange}
+                />
+            );
+        } else if (type === 'file') {
+            const {onFileUploadStateChange} = this.props;
+            return (
+                <DialogFileUpload
+                    id={name}
+                    label={displayNameContent}
+                    helpText={helpTextContent}
+                    placeholder={placeholder}
+                    onFileSelected={this.handleFileSelected}
+                    onPendingChange={onFileUploadStateChange ? this.handlePendingChange : undefined}
+                    disabled={false}
+                    value={value ? (value as string).split(',').filter(Boolean) : []}
+                    allowMultiple={this.props.allowMultiple}
                 />
             );
         }

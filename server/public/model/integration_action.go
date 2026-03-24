@@ -37,7 +37,9 @@ const (
 	DialogElementTextareaMaxLength    = 3000
 	DialogElementSelectMaxLength      = 3000
 	DialogElementBoolMaxLength        = 150
+	DialogElementFileMaxLength        = 300
 	DefaultTimeIntervalMinutes        = 60 // Default time interval for DateTime fields
+	MaxDialogFileIds                  = 10
 
 	// Go date/time format constants
 	ISODateFormat                 = "2006-01-02"                // YYYY-MM-DD
@@ -363,6 +365,7 @@ type DialogElement struct {
 	DataSourceURL string               `json:"data_source_url,omitempty"`
 	Options       []*PostActionOptions `json:"options"`
 	MultiSelect   bool                 `json:"multiselect"`
+	AllowMultiple bool                 `json:"allow_multiple,omitempty"`
 	Refresh       bool                 `json:"refresh,omitempty"`
 
 	// Date/datetime field configuration
@@ -390,6 +393,7 @@ type SubmitDialogRequest struct {
 	TeamId     string         `json:"team_id"`
 	Submission map[string]any `json:"submission"`
 	Cancelled  bool           `json:"cancelled"`
+	FileIds    []string       `json:"file_ids,omitempty"`
 }
 
 type SubmitDialogResponseType string
@@ -612,6 +616,10 @@ func (e *DialogElement) IsValid() error {
 		multiErr = multierror.Append(multiErr, errors.Errorf("multiselect can only be used with select elements, got type %q", e.Type))
 	}
 
+	if e.AllowMultiple && e.Type != "file" {
+		multiErr = multierror.Append(multiErr, errors.Errorf("allow_multiple can only be used with file elements, got type %q", e.Type))
+	}
+
 	switch e.Type {
 	case "text":
 		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementTextMaxLength))
@@ -687,6 +695,19 @@ func (e *DialogElement) IsValid() error {
 			multiErr = multierror.Append(multiErr, errors.Errorf("time_interval must be between 1 and 1440 minutes, got %d", timeInterval))
 		} else if 1440%timeInterval != 0 {
 			multiErr = multierror.Append(multiErr, errors.Errorf("time_interval must be a divisor of 1440 (24 hours * 60 minutes) to create valid time intervals, got %d", timeInterval))
+		}
+
+	case "file":
+		multiErr = multierror.Append(multiErr, checkMaxLength("Placeholder", e.Placeholder, DialogElementFileMaxLength))
+		// File elements don't use Default value, MinLength, MaxLength, Options, or DataSource
+		if e.Default != "" {
+			multiErr = multierror.Append(multiErr, errors.New("file elements cannot have a default value"))
+		}
+		if len(e.Options) > 0 {
+			multiErr = multierror.Append(multiErr, errors.New("file elements cannot have options"))
+		}
+		if e.DataSource != "" {
+			multiErr = multierror.Append(multiErr, errors.New("file elements cannot have a data source"))
 		}
 
 	default:

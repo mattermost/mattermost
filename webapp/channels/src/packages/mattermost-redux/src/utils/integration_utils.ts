@@ -120,6 +120,15 @@ export function checkDialogElementForError(elem: DialogElement, value: any): Dia
             }
         }
         return null;
+    } else if (type === 'file') {
+        // File elements store file IDs, so we just need to check if file was uploaded
+        // The actual validation that file exists will be done server-side
+        if (value && typeof value !== 'string') {
+            return {
+                id: 'interactive_dialog.error.invalid_file',
+                defaultMessage: 'Invalid file upload.',
+            };
+        }
     }
 
     return null;
