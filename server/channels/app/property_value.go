@@ -49,6 +49,7 @@ func (a *App) UpsertPropertyValues(rctx request.CTX, values []*model.PropertyVal
 		return nil, model.NewAppError("UpsertPropertyValues", "app.property_value.upsert.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// Only publish websocket events for PSAv2 properties (those with an ObjectType)
 	if objectType != "" {
 		teamID, channelID, appErr := a.resolveValueBroadcastParams(rctx, objectType, targetID)
 		if appErr != nil {

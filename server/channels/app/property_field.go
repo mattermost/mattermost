@@ -33,7 +33,7 @@ func propertyFieldBroadcastParams(rctx request.CTX, field *model.PropertyField) 
 }
 
 func (a *App) publishPropertyFieldEvent(rctx request.CTX, eventType model.WebsocketEventType, field *model.PropertyField, connectionID string) {
-	if field == nil || field.ObjectType == "" {
+	if field == nil || field.IsPSAv1() {
 		return
 	}
 	teamID, channelID, ok := propertyFieldBroadcastParams(rctx, field)
@@ -207,7 +207,7 @@ func (a *App) DeletePropertyField(rctx request.CTX, groupID, id string, bypassPr
 	}
 
 	teamID, channelID, ok := propertyFieldBroadcastParams(rctx, existing)
-	if ok && existing.ObjectType != "" {
+	if ok && existing.IsPSAv2() {
 		message := model.NewWebSocketEvent(model.WebsocketEventPropertyFieldDeleted, teamID, channelID, "", nil, connectionID)
 		message.Add("field_id", existing.ID)
 		message.Add("object_type", existing.ObjectType)
