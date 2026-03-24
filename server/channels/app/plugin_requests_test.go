@@ -101,10 +101,10 @@ func TestServePluginPublicRequest(t *testing.T) {
 
 	t.Run("resolves path for valid plugin when subpath configured", func(t *testing.T) {
 		th := Setup(t)
-		
+
 		// Configure subpath in SiteURL
-		th.App.UpdateConfig(func(cfg *model.Config) { 
-			cfg.ServiceSettings.SiteURL = model.NewPointer("http://localhost:8065/subpath") 
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.SiteURL = model.NewPointer("http://localhost:8065/subpath")
 		})
 
 		installPlugin(t, th, "testplugin")
@@ -136,10 +136,10 @@ func TestServePluginPublicRequest(t *testing.T) {
 
 	t.Run("fails attempting to break out of path", func(t *testing.T) {
 		th := Setup(t)
-		
+
 		// Configure subpath in SiteURL
-		th.App.UpdateConfig(func(cfg *model.Config) { 
-			cfg.ServiceSettings.SiteURL = model.NewPointer("http://localhost:8065/subpath") 
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.SiteURL = model.NewPointer("http://localhost:8065/subpath")
 		})
 
 		installPlugin(t, th, "testplugin")

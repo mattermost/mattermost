@@ -1336,7 +1336,7 @@ func TestCreatePost(t *testing.T) {
 
 	t.Run("Should remove post file IDs for burn on read posts", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
-		
+
 		// Enable BurnOnRead feature flag
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 		enableBoRFeature(th)
@@ -4325,7 +4325,7 @@ func TestValidateMoveOrCopy(t *testing.T) {
 func TestPermanentDeletePost(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	
+
 	// Enable BurnOnRead feature flag
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 
@@ -4801,7 +4801,7 @@ func TestFilterPostsByChannelPermissions(t *testing.T) {
 
 func TestRevealPost(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	
+
 	// Enable BurnOnRead feature flag
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 
@@ -5056,7 +5056,7 @@ func TestRevealPost(t *testing.T) {
 
 func TestBurnPost(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	
+
 	// Enable BurnOnRead feature flag
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 
@@ -5174,7 +5174,7 @@ func TestBurnPost(t *testing.T) {
 
 func TestGetFlaggedPostsWithExpiredBurnOnRead(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	
+
 	// Enable BurnOnRead feature flag
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 
@@ -5367,7 +5367,7 @@ func TestGetFlaggedPostsWithExpiredBurnOnRead(t *testing.T) {
 
 func TestBurnOnReadRestrictionsForDMsAndBots(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	
+
 	// Enable BurnOnRead feature flag
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 

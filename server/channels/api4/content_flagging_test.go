@@ -521,7 +521,7 @@ func TestGetFlaggedPost(t *testing.T) {
 
 func TestFlagPost(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	
+
 	// Enable BurnOnRead feature flag
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 

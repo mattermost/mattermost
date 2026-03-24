@@ -306,7 +306,7 @@ func TestCreateUserAudit(t *testing.T) {
 
 	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
 	th := SetupWithServerOptions(t, options)
-	
+
 	// Enable audit logging to file
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
@@ -345,7 +345,7 @@ func TestUserLoginAudit(t *testing.T) {
 
 	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
 	th := SetupWithServerOptions(t, options)
-	
+
 	// Enable audit logging to file
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
@@ -391,7 +391,7 @@ func TestLogoutAuditAuthStatus(t *testing.T) {
 
 	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
 	th := SetupWithServerOptions(t, options)
-	
+
 	// Enable audit logging to file
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
@@ -6894,7 +6894,7 @@ func TestUpdatePasswordAudit(t *testing.T) {
 
 	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
 	th := SetupWithServerOptions(t, options)
-	
+
 	// Enable audit logging to file
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)

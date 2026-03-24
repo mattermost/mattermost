@@ -871,7 +871,7 @@ func TestCreatePostWithOutgoingHook_no_content_type(t *testing.T) {
 
 func TestMoveThread(t *testing.T) {
 	th := SetupEnterprise(t).InitBasic(t)
-	
+
 	// Enable MoveThreads feature flag
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.MoveThreadsEnabled = true })
 
@@ -5701,7 +5701,7 @@ func TestRestorePostVersion(t *testing.T) {
 
 func TestRevealPost(t *testing.T) {
 	th := SetupEnterprise(t).InitBasic(t)
-	
+
 	// Enable BurnOnRead feature flag
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 
@@ -5909,7 +5909,7 @@ func TestRevealPost(t *testing.T) {
 
 func TestCreateBurnOnReadPost(t *testing.T) {
 	th := SetupEnterprise(t).InitBasic(t)
-	
+
 	// Enable BurnOnRead feature flag
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 
@@ -6037,7 +6037,7 @@ func TestCreateBurnOnReadPost(t *testing.T) {
 
 func TestBurnPost(t *testing.T) {
 	th := SetupEnterprise(t).InitBasic(t)
-	
+
 	// Enable BurnOnRead feature flag
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 

@@ -14,7 +14,7 @@ import (
 
 func TestCreateRecap(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	
+
 	// Enable AI Recaps feature flag
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableAIRecaps = true })
 
@@ -51,7 +51,7 @@ func TestCreateRecap(t *testing.T) {
 
 func TestGetRecap(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	
+
 	// Enable AI Recaps feature flag
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableAIRecaps = true })
 
@@ -123,7 +123,7 @@ func TestGetRecap(t *testing.T) {
 
 func TestGetRecapsForUser(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	
+
 	// Enable AI Recaps feature flag
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableAIRecaps = true })
 
@@ -190,7 +190,7 @@ func TestGetRecapsForUser(t *testing.T) {
 
 func TestMarkRecapAsRead(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	
+
 	// Enable AI Recaps feature flag
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableAIRecaps = true })
 
@@ -246,7 +246,7 @@ func TestMarkRecapAsRead(t *testing.T) {
 
 func TestProcessRecapChannel(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	
+
 	// Enable AI Recaps feature flag
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableAIRecaps = true })
 

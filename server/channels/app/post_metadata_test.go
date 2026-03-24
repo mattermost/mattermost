@@ -246,7 +246,7 @@ func TestPreparePostForClient(t *testing.T) {
 	t.Run("burn on read post priority read from master", func(t *testing.T) {
 		// Verifies BoR post priority is correctly fetched when using master context
 		th := setup(t)
-		
+
 		// Enable BurnOnRead feature flag
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 
@@ -3364,7 +3364,7 @@ func TestGetLinkMetadataFromCache(t *testing.T) {
 
 func TestPreparePostForClient_BurnOnReadSenderExpireAt(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	
+
 	// Enable BurnOnRead feature flag
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 

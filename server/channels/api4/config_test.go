@@ -565,7 +565,7 @@ func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
 
 	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
 	th := SetupWithServerOptions(t, options)
-	
+
 	// Enable audit logging to file
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
@@ -605,7 +605,7 @@ func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
 
 func TestGetEnvironmentConfig(t *testing.T) {
 	th := Setup(t)
-	
+
 	// Set service settings for environment config test
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.ServiceSettings.SiteURL = model.NewPointer("http://example.mattermost.com")

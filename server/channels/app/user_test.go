@@ -2575,10 +2575,10 @@ func TestGetUsersForReporting(t *testing.T) {
 // Helper functions for remote user testing
 func setupRemoteClusterTest(t *testing.T) (*TestHelper, store.Store) {
 	th := setupSharedChannels(t).InitBasic(t)
-	
+
 	// Enable SharedChannelsDMs feature flag
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableSharedChannelsDMs = true })
-	
+
 	return th, th.App.Srv().Store()
 }
 
