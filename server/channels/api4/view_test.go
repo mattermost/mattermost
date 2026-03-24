@@ -21,12 +21,8 @@ func setupViewTest(t *testing.T) *TestHelper {
 
 func makeTestViewForAPI() *model.View {
 	return &model.View{
-		Title: "Test Board",
-		Type:  model.ViewTypeBoard,
-		Props: &model.ViewBoardProps{
-			LinkedProperties: []string{model.NewId()},
-			Subviews:         []model.Subview{{Title: "Kanban", Type: model.SubviewTypeKanban}},
-		},
+		Title: "Test Kanban",
+		Type:  model.ViewTypeKanban,
 	}
 }
 
