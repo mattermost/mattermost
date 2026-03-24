@@ -67,8 +67,11 @@ func TestGetPing(t *testing.T) {
 		_, ok := respMap["TestFeatureFlag"]
 		assert.Equal(t, false, ok)
 
-		// Run the feature flag update to test
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.TestFeature = "testvalueunique" })
+		// Feature flags in ping response come from env var overrides, not config.
+		// Must use real env vars + ReloadConfig to test this path.
+		t.Setenv("MM_FEATUREFLAGS_TESTFEATURE", "testvalueunique")
+		err = th.App.ReloadConfig()
+		require.NoError(t, err)
 
 		respMap, resp, err = client.GetPingWithOptions(context.Background(), model.SystemPingOptions{})
 		require.NoError(t, err)
