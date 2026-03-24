@@ -1417,8 +1417,8 @@ export const CacheTypes = {
 export const ZoomSettings = {
     DEFAULT_SCALE: 1.75,
     SCALE_DELTA: 0.25,
-    MIN_SCALE: 0.25,
-    MAX_SCALE: 3.0,
+    MIN_SCALE: 0.1,
+    MAX_SCALE: 5.0,
 };
 
 export const DataSpillagePropertyNames = {

@@ -15,9 +15,10 @@ import './image_preview.scss';
 interface Props {
     fileInfo: FileInfo;
     canDownloadFiles: boolean;
+    transform?: string;
 }
 
-export default function ImagePreview({fileInfo, canDownloadFiles}: Props) {
+export default function ImagePreview({fileInfo, canDownloadFiles, transform}: Props) {
     const isExternalFile = !fileInfo.id;
 
     let fileUrl;
@@ -30,10 +31,6 @@ export default function ImagePreview({fileInfo, canDownloadFiles}: Props) {
         previewUrl = fileInfo.has_preview_image ? getFilePreviewUrl(fileInfo.id) : fileUrl;
     }
 
-    if (!canDownloadFiles) {
-        return <img src={previewUrl}/>;
-    }
-
     let conditionalSVGStyleAttribute;
     if (getFileType(fileInfo.extension) === FileTypes.SVG) {
         conditionalSVGStyleAttribute = {
@@ -42,10 +39,26 @@ export default function ImagePreview({fileInfo, canDownloadFiles}: Props) {
         };
     }
 
+    const imageStyle = {
+        ...conditionalSVGStyleAttribute,
+        transform,
+    };
+
+    if (!canDownloadFiles) {
+        return (
+            <img
+                src={previewUrl}
+                style={imageStyle}
+                draggable={false}
+            />
+        );
+    }
+
     return (
-        <a
+        <div
             className='image_preview'
-            href='#'
+            draggable={false}
+            onDragStart={(e) => e.preventDefault()}
         >
             <img
                 className='image_preview__image'
@@ -53,8 +66,10 @@ export default function ImagePreview({fileInfo, canDownloadFiles}: Props) {
                 data-testid='imagePreview'
                 alt={'preview url image'}
                 src={previewUrl}
-                style={conditionalSVGStyleAttribute}
+                style={imageStyle}
+                draggable={false}
+                onDragStart={(e) => e.preventDefault()}
             />
-        </a>
+        </div>
     );
 }

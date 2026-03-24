@@ -27,6 +27,7 @@ import type {FilePreviewComponent} from 'types/store/plugins';
 import FilePreviewModalFooter from './file_preview_modal_footer/file_preview_modal_footer';
 import FilePreviewModalHeader from './file_preview_modal_header/file_preview_modal_header';
 import ImagePreview from './image_preview';
+import ImageControlsBar from './image_controls_bar';
 import PopoverBar from './popover_bar';
 import {isFileInfo, isLinkInfo} from './types';
 import type {LinkInfo} from './types';
@@ -72,6 +73,12 @@ type State = {
     showCloseBtn: boolean;
     showZoomControls: boolean;
     scale: Record<number, number>;
+    rotation: Record<number, number>;
+    flipHorizontal: Record<number, boolean>;
+    flipVertical: Record<number, boolean>;
+    translateX: Record<number, number>;
+    translateY: Record<number, number>;
+    isDraggingImage: boolean;
     content: string;
 }
 
@@ -81,6 +88,11 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         startIndex: 0,
         pluginFilePreviewComponents: [],
     };
+
+    private dragStartX = 0;
+    private dragStartY = 0;
+    private dragBaseX = 0;
+    private dragBaseY = 0;
 
     constructor(props: Props) {
         super(props);
@@ -95,6 +107,12 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
             showCloseBtn: false,
             showZoomControls: false,
             scale: Utils.fillRecord(ZoomSettings.DEFAULT_SCALE, this.props.fileInfos.length),
+            rotation: Utils.fillRecord(0, this.props.fileInfos.length),
+            flipHorizontal: Utils.fillRecord(false, this.props.fileInfos.length),
+            flipVertical: Utils.fillRecord(false, this.props.fileInfos.length),
+            translateX: Utils.fillRecord(0, this.props.fileInfos.length),
+            translateY: Utils.fillRecord(0, this.props.fileInfos.length),
+            isDraggingImage: false,
             content: '',
         };
     }
@@ -115,7 +133,11 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         this.showImage(id);
     };
 
-    handleKeyPress = (e: KeyboardEvent) => {
+    handleKeyUp = (e: KeyboardEvent) => {
+        if (this.isCurrentImagePreview()) {
+            return;
+        }
+
         if (Keyboard.isKeyPressed(e, KeyCodes.RIGHT)) {
             this.handleNext();
         } else if (Keyboard.isKeyPressed(e, KeyCodes.LEFT)) {
@@ -123,14 +145,26 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         }
     };
 
+    handleKeyDown = (e: KeyboardEvent) => {
+        this.handleImagePanByKeyboard(e);
+    };
+
+    handleKeyPress = (e: KeyboardEvent) => {
+        this.handleKeyUp(e);
+    };
+
     componentDidMount() {
-        document.addEventListener('keyup', this.handleKeyPress);
+        document.addEventListener('keyup', this.handleKeyUp);
+        document.addEventListener('keydown', this.handleKeyDown);
 
         this.showImage(this.props.startIndex);
     }
 
     componentWillUnmount() {
-        document.removeEventListener('keyup', this.handleKeyPress);
+        document.removeEventListener('keyup', this.handleKeyUp);
+        document.removeEventListener('keydown', this.handleKeyDown);
+        window.removeEventListener('mousemove', this.handleImageMouseMove);
+        window.removeEventListener('mouseup', this.handleImageMouseUp);
     }
 
     static getDerivedStateFromProps(props: Props, state: State) {
@@ -143,6 +177,13 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         if (props.fileInfos.length !== state.prevFileInfosCount) {
             updatedState.loaded = Utils.fillRecord(false, props.fileInfos.length);
             updatedState.progress = Utils.fillRecord(0, props.fileInfos.length);
+            updatedState.scale = Utils.fillRecord(ZoomSettings.DEFAULT_SCALE, props.fileInfos.length);
+            updatedState.rotation = Utils.fillRecord(0, props.fileInfos.length);
+            updatedState.flipHorizontal = Utils.fillRecord(false, props.fileInfos.length);
+            updatedState.flipVertical = Utils.fillRecord(false, props.fileInfos.length);
+            updatedState.translateX = Utils.fillRecord(0, props.fileInfos.length);
+            updatedState.translateY = Utils.fillRecord(0, props.fileInfos.length);
+            updatedState.isDraggingImage = false;
             updatedState.prevFileInfosCount = props.fileInfos.length;
         }
         return Object.keys(updatedState).length ? updatedState : null;
@@ -260,19 +301,175 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
     };
 
     handleZoomIn = () => {
-        let newScale = this.state.scale[this.state.imageIndex];
+        let newScale = this.state.scale[this.state.imageIndex] ?? ZoomSettings.DEFAULT_SCALE;
         newScale = Math.min(newScale + ZoomSettings.SCALE_DELTA, ZoomSettings.MAX_SCALE);
         this.setScale(this.state.imageIndex, newScale);
     };
 
     handleZoomOut = () => {
-        let newScale = this.state.scale[this.state.imageIndex];
+        let newScale = this.state.scale[this.state.imageIndex] ?? ZoomSettings.DEFAULT_SCALE;
         newScale = Math.max(newScale - ZoomSettings.SCALE_DELTA, ZoomSettings.MIN_SCALE);
         this.setScale(this.state.imageIndex, newScale);
     };
 
     handleZoomReset = () => {
         this.setScale(this.state.imageIndex, ZoomSettings.DEFAULT_SCALE);
+    };
+
+    handleImageWheel = (e: React.WheelEvent) => {
+        e.preventDefault();
+
+        if (e.deltaY < 0) {
+            this.handleZoomIn();
+        } else if (e.deltaY > 0) {
+            this.handleZoomOut();
+        }
+    };
+
+    private setRotation = (index: number, rotation: number) => {
+        this.setState((prevState) => {
+            return {
+                rotation: {
+                    ...prevState.rotation,
+                    [index]: rotation,
+                },
+            };
+        });
+    };
+
+    handleRotateClockwise = () => {
+        const currentRotation = this.state.rotation[this.state.imageIndex] ?? 0;
+        this.setRotation(this.state.imageIndex, (currentRotation + 90) % 360);
+    };
+
+    handleRotateCounterClockwise = () => {
+        const currentRotation = this.state.rotation[this.state.imageIndex] ?? 0;
+        this.setRotation(this.state.imageIndex, (currentRotation + 270) % 360);
+    };
+
+    private toggleFlipHorizontal = () => {
+        this.setState((prevState) => {
+            const index = prevState.imageIndex;
+            return {
+                flipHorizontal: {
+                    ...prevState.flipHorizontal,
+                    [index]: !prevState.flipHorizontal[index],
+                },
+            };
+        });
+    };
+
+    private toggleFlipVertical = () => {
+        this.setState((prevState) => {
+            const index = prevState.imageIndex;
+            return {
+                flipVertical: {
+                    ...prevState.flipVertical,
+                    [index]: !prevState.flipVertical[index],
+                },
+            };
+        });
+    };
+
+    private getImageTransform = (index: number): string => {
+        const zoom = this.state.scale[index] ?? ZoomSettings.DEFAULT_SCALE;
+        const rotation = this.state.rotation[index] ?? 0;
+        const flipX = this.state.flipHorizontal[index] ? -1 : 1;
+        const flipY = this.state.flipVertical[index] ? -1 : 1;
+        const translateX = this.state.translateX[index] ?? 0;
+        const translateY = this.state.translateY[index] ?? 0;
+
+        return `translate(${translateX}px, ${translateY}px) rotate(${rotation}deg) scale(${zoom * flipX}, ${zoom * flipY})`;
+    };
+
+    private setTranslate = (index: number, x: number, y: number) => {
+        this.setState((prevState) => {
+            return {
+                translateX: {
+                    ...prevState.translateX,
+                    [index]: x,
+                },
+                translateY: {
+                    ...prevState.translateY,
+                    [index]: y,
+                },
+            };
+        });
+    };
+
+    private isCurrentImagePreview = () => {
+        const fileInfo = this.props.fileInfos[this.state.imageIndex];
+        const fileType = this.getFileTypeFromFileInfo(fileInfo);
+        return this.state.loaded[this.state.imageIndex] && (fileType === FileTypes.IMAGE || fileType === FileTypes.SVG);
+    };
+
+    private handleImagePanByKeyboard = (e: KeyboardEvent): boolean => {
+        if (!this.isCurrentImagePreview()) {
+            return false;
+        }
+
+        const step = e.shiftKey ? 48 : 24;
+        const currentX = this.state.translateX[this.state.imageIndex] ?? 0;
+        const currentY = this.state.translateY[this.state.imageIndex] ?? 0;
+
+        if (Keyboard.isKeyPressed(e, KeyCodes.UP)) {
+            e.preventDefault();
+            this.setTranslate(this.state.imageIndex, currentX, currentY - step);
+            return true;
+        }
+
+        if (Keyboard.isKeyPressed(e, KeyCodes.DOWN)) {
+            e.preventDefault();
+            this.setTranslate(this.state.imageIndex, currentX, currentY + step);
+            return true;
+        }
+
+        if (Keyboard.isKeyPressed(e, KeyCodes.LEFT)) {
+            e.preventDefault();
+            this.setTranslate(this.state.imageIndex, currentX - step, currentY);
+            return true;
+        }
+
+        if (Keyboard.isKeyPressed(e, KeyCodes.RIGHT)) {
+            e.preventDefault();
+            this.setTranslate(this.state.imageIndex, currentX + step, currentY);
+            return true;
+        }
+
+        return false;
+    };
+
+    private handleImageMouseDown = (e: React.MouseEvent) => {
+        if (e.button !== 0 || !this.isCurrentImagePreview()) {
+            return;
+        }
+
+        e.preventDefault();
+
+        this.dragStartX = e.clientX;
+        this.dragStartY = e.clientY;
+        this.dragBaseX = this.state.translateX[this.state.imageIndex] ?? 0;
+        this.dragBaseY = this.state.translateY[this.state.imageIndex] ?? 0;
+
+        this.setState({isDraggingImage: true});
+        window.addEventListener('mousemove', this.handleImageMouseMove);
+        window.addEventListener('mouseup', this.handleImageMouseUp);
+    };
+
+    private handleImageMouseMove = (e: MouseEvent) => {
+        const deltaX = e.clientX - this.dragStartX;
+        const deltaY = e.clientY - this.dragStartY;
+        this.setTranslate(this.state.imageIndex, this.dragBaseX + deltaX, this.dragBaseY + deltaY);
+    };
+
+    private handleImageMouseUp = () => {
+        this.setState({isDraggingImage: false});
+        window.removeEventListener('mousemove', this.handleImageMouseMove);
+        window.removeEventListener('mouseup', this.handleImageMouseUp);
+    };
+
+    private handlePreventNativeDrag = (e: React.DragEvent) => {
+        e.preventDefault();
     };
 
     handleModalClose = () => {
@@ -323,6 +520,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
 
         let content;
         let zoomBar;
+        let imageControlsBar;
 
         if (isFileInfo(fileInfo) && fileInfo.archived) {
             content = (
@@ -339,6 +537,22 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                         <ImagePreview
                             fileInfo={fileInfo as FileInfo}
                             canDownloadFiles={this.props.canDownloadFiles}
+                            transform={this.getImageTransform(this.state.imageIndex)}
+                        />
+                    );
+                    const currentScale = this.state.scale[this.state.imageIndex] ?? ZoomSettings.DEFAULT_SCALE;
+                    imageControlsBar = (
+                        <ImageControlsBar
+                            canZoomIn={currentScale < ZoomSettings.MAX_SCALE}
+                            canZoomOut={currentScale > ZoomSettings.MIN_SCALE}
+                            isFlipHorizontal={Boolean(this.state.flipHorizontal[this.state.imageIndex])}
+                            isFlipVertical={Boolean(this.state.flipVertical[this.state.imageIndex])}
+                            handleZoomIn={this.handleZoomIn}
+                            handleZoomOut={this.handleZoomOut}
+                            handleRotateClockwise={this.handleRotateClockwise}
+                            handleRotateCounterClockwise={this.handleRotateCounterClockwise}
+                            handleFlipHorizontal={this.toggleFlipHorizontal}
+                            handleFlipVertical={this.toggleFlipVertical}
                         />
                     );
                 } else if (fileType === FileTypes.VIDEO || fileType === FileTypes.AUDIO) {
@@ -478,12 +692,18 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                                     'file-preview-modal__content',
                                     {
                                         'file-preview-modal__content-scrollable': (!isFileInfo(fileInfo) || !fileInfo.archived) && this.state.loaded[this.state.imageIndex] && (fileType === FileTypes.PDF),
+                                        'file-preview-modal__content-with-image-controls': Boolean(imageControlsBar),
+                                        'file-preview-modal__content-dragging': this.state.isDraggingImage,
                                     },
                                 )}
                                 onClick={this.handleBgClose}
+                                onWheel={imageControlsBar ? this.handleImageWheel : undefined}
+                                onMouseDown={imageControlsBar ? this.handleImageMouseDown : undefined}
+                                onDragStart={imageControlsBar ? this.handlePreventNativeDrag : undefined}
                             >
                                 {content}
                             </div>
+                            {imageControlsBar}
                             { this.props.isMobileView &&
                                 <FilePreviewModalFooter
                                     post={this.props.post}
