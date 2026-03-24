@@ -47,6 +47,11 @@ import TeamMenu from './channels/team_menu';
 import TeamSettingsModal from './channels/team_settings/team_settings_modal';
 import ThreadFooter from './channels/thread_footer';
 import UserProfilePopover from './channels/user_profile_popover';
+// Burn-on-Read Components
+import BurnOnReadBadge from './channels/burn_on_read_badge';
+import BurnOnReadTimerChip from './channels/burn_on_read_timer_chip';
+import BurnOnReadConcealedPlaceholder from './channels/burn_on_read_concealed_placeholder';
+import BurnOnReadConfirmationModal from './channels/burn_on_read_confirmation_modal';
 // System Console Components
 import {AdminSectionPanel, DropdownSetting, RadioSetting, TextInputSetting} from './system_console/base_components';
 import DelegatedGranularAdministration from './system_console/sections/user_management/delegated_granular_administration';
@@ -111,6 +116,12 @@ const components = {
     TeamSettingsModal,
     ThreadFooter,
     UserProfilePopover,
+
+    // Burn-on-Read
+    BurnOnReadBadge,
+    BurnOnReadTimerChip,
+    BurnOnReadConcealedPlaceholder,
+    BurnOnReadConfirmationModal,
 
     // System Console
     AdminSectionPanel,
@@ -182,6 +193,12 @@ export {
     TeamSettingsModal,
     ThreadFooter,
     UserProfilePopover,
+
+    // Burn-on-Read
+    BurnOnReadBadge,
+    BurnOnReadTimerChip,
+    BurnOnReadConcealedPlaceholder,
+    BurnOnReadConfirmationModal,
 
     // System Console
     AdminSectionPanel,
