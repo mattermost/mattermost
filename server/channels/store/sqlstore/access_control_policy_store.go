@@ -226,6 +226,9 @@ func (s *SqlAccessControlPolicyStore) Save(rctx request.CTX, policy *model.Acces
 					return nil, errors.Wrapf(err, "failed to update name for policy with id=%s", policy.ID)
 				}
 				existingPolicy.Name = storePolicy.Name
+				if err = tx.Commit(); err != nil {
+					return nil, errors.Wrap(err, "commit_transaction")
+				}
 			}
 			return existingPolicy, nil
 		}

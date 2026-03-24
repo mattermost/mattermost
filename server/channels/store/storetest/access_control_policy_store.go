@@ -28,7 +28,7 @@ func testAccessControlPolicyStoreSaveAndGet(t *testing.T, rctx request.CTX, ss s
 	t.Run("Save parent policy", func(t *testing.T) {
 		policy := &model.AccessControlPolicy{
 			ID:       model.NewId(),
-			Name:     "Name",
+			Name:     "Save Parent " + model.NewId(),
 			Type:     model.AccessControlPolicyTypeParent,
 			Active:   true,
 			Revision: 1,
@@ -372,7 +372,7 @@ func testAccessControlPolicyStoreDelete(t *testing.T, rctx request.CTX, ss store
 	t.Run("Delete parent policy", func(t *testing.T) {
 		policy := &model.AccessControlPolicy{
 			ID:       model.NewId(),
-			Name:     "Name",
+			Name:     "Delete Parent " + model.NewId(),
 			Type:     model.AccessControlPolicyTypeParent,
 			Active:   true,
 			Revision: 1,
@@ -486,7 +486,7 @@ func testAccessControlPolicyStoreGetAll(t *testing.T, rctx request.CTX, ss store
 	id := model.NewId()
 	parentPolicy := &model.AccessControlPolicy{
 		ID:       id,
-		Name:     "Name",
+		Name:     "GetAll Parent " + id,
 		Type:     model.AccessControlPolicyTypeParent,
 		Active:   true,
 		Revision: 1,
