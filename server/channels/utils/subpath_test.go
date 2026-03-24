@@ -37,6 +37,7 @@ func TestUpdateAssetsSubpathFromConfig(t *testing.T) {
 	})
 
 	t.Run("no config", func(t *testing.T) {
+		t.Setenv("IS_CI", "")
 		tempDir := t.TempDir()
 		t.Chdir(tempDir)
 
