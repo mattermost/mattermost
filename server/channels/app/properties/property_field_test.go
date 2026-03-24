@@ -4,6 +4,7 @@
 package properties
 
 import (
+	"fmt"
 	"net/http"
 	"testing"
 
@@ -862,5 +863,274 @@ func TestUpdatePropertyField(t *testing.T) {
 		result, err := th.service.UpdatePropertyField(rctx, groupID, field)
 		require.NoError(t, err)
 		assert.Equal(t, "SameName", result.Name)
+	})
+}
+
+func TestLinkedPropertyFields(t *testing.T) {
+	th := Setup(t)
+	groupID := model.NewId()
+
+	// Helper to create a source field with select options
+	createSourceField := func(t *testing.T, name string) *model.PropertyField {
+		t.Helper()
+		return th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    groupID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       name,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+					map[string]any{"id": model.NewId(), "name": "Option B"},
+				},
+			},
+		})
+	}
+
+	t.Run("create linked field copies source type and options", func(t *testing.T) {
+		source := createSourceField(t, "Source-"+model.NewId())
+
+		linked, err := th.service.CreatePropertyField(&model.PropertyField{
+			GroupID:       groupID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "Linked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText, // will be overwritten
+			LinkedFieldID: &source.ID,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, linked.LinkedFieldID)
+		assert.Equal(t, source.ID, *linked.LinkedFieldID)
+		assert.Equal(t, source.Type, linked.Type)
+
+		// Verify options were copied
+		sourceOpts := source.Attrs[model.PropertyFieldAttributeOptions]
+		linkedOpts := linked.Attrs[model.PropertyFieldAttributeOptions]
+		require.NotNil(t, linkedOpts)
+		assert.Equal(t, fmt.Sprintf("%v", sourceOpts), fmt.Sprintf("%v", linkedOpts))
+	})
+
+	t.Run("create linked field rejects non-existent source", func(t *testing.T) {
+		fakeID := model.NewId()
+		_, err := th.service.CreatePropertyField(&model.PropertyField{
+			GroupID:       groupID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "Linked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &fakeID,
+		})
+		require.Error(t, err)
+	})
+
+	t.Run("create linked field rejects chaining", func(t *testing.T) {
+		source := createSourceField(t, "ChainSource-"+model.NewId())
+
+		linked := th.CreatePropertyField(t, &model.PropertyField{
+			GroupID:       groupID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "ChainLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+
+		// Try to link to the linked field (chain)
+		_, err := th.service.CreatePropertyField(&model.PropertyField{
+			GroupID:       groupID,
+			ObjectType:    model.PropertyFieldObjectTypeChannel,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "ChainAttempt-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &linked.ID,
+		})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "no chains")
+	})
+
+	t.Run("update linked field blocks type change", func(t *testing.T) {
+		source := createSourceField(t, "TypeBlockSource-"+model.NewId())
+
+		linked := th.CreatePropertyField(t, &model.PropertyField{
+			GroupID:       groupID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "TypeBlockLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+
+		linked.Type = model.PropertyFieldTypeText
+		_, err := th.service.UpdatePropertyField(groupID, linked)
+		require.Error(t, err)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("update linked field blocks options change", func(t *testing.T) {
+		source := createSourceField(t, "OptsBlockSource-"+model.NewId())
+
+		linked := th.CreatePropertyField(t, &model.PropertyField{
+			GroupID:       groupID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "OptsBlockLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+
+		linked.Attrs[model.PropertyFieldAttributeOptions] = []any{
+			map[string]any{"id": model.NewId(), "name": "Different"},
+		}
+		_, err := th.service.UpdatePropertyField(groupID, linked)
+		require.Error(t, err)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("update linked field allows name change", func(t *testing.T) {
+		source := createSourceField(t, "NameChangeSource-"+model.NewId())
+
+		linked := th.CreatePropertyField(t, &model.PropertyField{
+			GroupID:       groupID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "NameChangeLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+
+		linked.Name = "NewName-" + model.NewId()
+		result, err := th.service.UpdatePropertyField(groupID, linked)
+		require.NoError(t, err)
+		assert.Equal(t, linked.Name, result.Name)
+	})
+
+	t.Run("update source field propagates options to linked fields", func(t *testing.T) {
+		source := createSourceField(t, "PropagateSource-"+model.NewId())
+
+		linked1 := th.CreatePropertyField(t, &model.PropertyField{
+			GroupID:       groupID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "PropLinked1-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+
+		linked2 := th.CreatePropertyField(t, &model.PropertyField{
+			GroupID:       groupID,
+			ObjectType:    model.PropertyFieldObjectTypeChannel,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "PropLinked2-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+
+		// Update source options
+		newOptions := []any{
+			map[string]any{"id": model.NewId(), "name": "New Option 1"},
+			map[string]any{"id": model.NewId(), "name": "New Option 2"},
+			map[string]any{"id": model.NewId(), "name": "New Option 3"},
+		}
+		source.Attrs[model.PropertyFieldAttributeOptions] = newOptions
+
+		result, err := th.service.UpdatePropertyFields(groupID, []*model.PropertyField{source})
+		require.NoError(t, err)
+		require.Len(t, result, 3) // source + 2 linked fields
+
+		// Verify linked fields got the new options
+		updatedLinked1, err := th.service.GetPropertyField(groupID, linked1.ID)
+		require.NoError(t, err)
+		updatedLinked2, err := th.service.GetPropertyField(groupID, linked2.ID)
+		require.NoError(t, err)
+
+		for _, linked := range []*model.PropertyField{updatedLinked1, updatedLinked2} {
+			opts := extractOptionIDs(linked.Attrs[model.PropertyFieldAttributeOptions])
+			expectedOpts := extractOptionIDs(newOptions)
+			assert.Equal(t, expectedOpts, opts)
+		}
+	})
+
+	t.Run("update source field blocks type change when dependents exist", func(t *testing.T) {
+		source := createSourceField(t, "TypeBlockDeps-"+model.NewId())
+
+		th.CreatePropertyField(t, &model.PropertyField{
+			GroupID:       groupID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "DepLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+
+		source.Type = model.PropertyFieldTypeMultiselect
+		_, err := th.service.UpdatePropertyField(groupID, source)
+		require.Error(t, err)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, http.StatusConflict, appErr.StatusCode)
+	})
+
+	t.Run("delete source field blocked when linked dependents exist", func(t *testing.T) {
+		source := createSourceField(t, "DeleteBlock-"+model.NewId())
+
+		th.CreatePropertyField(t, &model.PropertyField{
+			GroupID:       groupID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "DelDepLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+
+		err := th.service.DeletePropertyField(groupID, source.ID)
+		require.Error(t, err)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, http.StatusConflict, appErr.StatusCode)
+	})
+
+	t.Run("delete source field succeeds after dependents are deleted", func(t *testing.T) {
+		source := createSourceField(t, "DeleteOK-"+model.NewId())
+
+		linked := th.CreatePropertyField(t, &model.PropertyField{
+			GroupID:       groupID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "DeleteOKLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+
+		// Delete the linked dependent first
+		err := th.service.DeletePropertyField(groupID, linked.ID)
+		require.NoError(t, err)
+
+		// Now delete the source
+		err = th.service.DeletePropertyField(groupID, source.ID)
+		require.NoError(t, err)
+	})
+
+	t.Run("unlink field preserves type and options", func(t *testing.T) {
+		source := createSourceField(t, "UnlinkSource-"+model.NewId())
+
+		linked := th.CreatePropertyField(t, &model.PropertyField{
+			GroupID:       groupID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "UnlinkLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+
+		// Unlink by clearing LinkedFieldID
+		linked.LinkedFieldID = nil
+		result, err := th.service.UpdatePropertyField(groupID, linked)
+		require.NoError(t, err)
+		assert.Nil(t, result.LinkedFieldID)
+		assert.Equal(t, source.Type, result.Type)
 	})
 }

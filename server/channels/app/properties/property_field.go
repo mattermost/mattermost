@@ -4,11 +4,14 @@
 package properties
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 // Private implementation methods (database access)
@@ -19,9 +22,54 @@ func (ps *PropertyService) createPropertyField(field *model.PropertyField) (*mod
 		return ps.fieldStore.Create(field)
 	}
 
+	// If this field links to a source, validate the source and copy its schema
+	if field.LinkedFieldID != nil && *field.LinkedFieldID != "" {
+		// Fetch source field across all groups (empty groupID)
+		source, err := ps.fieldStore.Get("", *field.LinkedFieldID)
+		if err != nil {
+			return nil, model.NewAppError(
+				"CreatePropertyField",
+				"app.property_field.create.linked_source_not_found.app_error",
+				nil,
+				fmt.Sprintf("linked source field %q not found", *field.LinkedFieldID),
+				http.StatusBadRequest,
+			)
+		}
+
+		if source.DeleteAt != 0 {
+			return nil, model.NewAppError(
+				"CreatePropertyField",
+				"app.property_field.create.linked_source_deleted.app_error",
+				nil,
+				fmt.Sprintf("linked source field %q is deleted", *field.LinkedFieldID),
+				http.StatusBadRequest,
+			)
+		}
+
+		// Prevent chains: source must not itself be linked
+		if source.LinkedFieldID != nil && *source.LinkedFieldID != "" {
+			return nil, model.NewAppError(
+				"CreatePropertyField",
+				"app.property_field.create.linked_source_is_linked.app_error",
+				nil,
+				"cannot link to a field that is itself linked (no chains allowed)",
+				http.StatusBadRequest,
+			)
+		}
+
+		// Copy type and options from source
+		field.Type = source.Type
+		if field.Attrs == nil {
+			field.Attrs = make(model.StringInterface)
+		}
+		if source.Attrs != nil {
+			if opts, ok := source.Attrs[model.PropertyFieldAttributeOptions]; ok {
+				field.Attrs[model.PropertyFieldAttributeOptions] = opts
+			}
+		}
+	}
+
 	// Check for hierarchical name conflicts
-	// The store method uses a subquery to look up the channel's TeamId when needed
-	// Pass empty string for excludeID since we're creating a new field
 	conflictLevel, err := ps.fieldStore.CheckPropertyNameConflict(field, "")
 	if err != nil {
 		return nil, fmt.Errorf("failed to check property name conflict: %w", err)
@@ -110,11 +158,12 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 		existingByID[ef.ID] = ef
 	}
 
-	// Check each field for changes that require conflict validation
+	var propagations []store.PropagationRequest
+
+	// Check each field for changes that require conflict validation and linked field restrictions
 	for _, field := range fields {
 		existing, ok := existingByID[field.ID]
 		if !ok {
-			// Field not found - the store.Update will handle this error
 			continue
 		}
 
@@ -123,13 +172,70 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 			continue
 		}
 
+		// Block type changes on linked fields
+		if existing.LinkedFieldID != nil && *existing.LinkedFieldID != "" && field.Type != existing.Type {
+			return nil, model.NewAppError(
+				"UpdatePropertyFields",
+				"app.property_field.update.linked_type_change.app_error",
+				nil,
+				"cannot modify type of a linked field",
+				http.StatusBadRequest,
+			)
+		}
+
+		// Block options changes on linked fields
+		if existing.LinkedFieldID != nil && *existing.LinkedFieldID != "" && optionsChanged(existing.Attrs, field.Attrs) {
+			return nil, model.NewAppError(
+				"UpdatePropertyFields",
+				"app.property_field.update.linked_options_change.app_error",
+				nil,
+				"cannot modify options of a linked field",
+				http.StatusBadRequest,
+			)
+		}
+
+		// Block type changes on source fields with active linked dependents
+		if field.Type != existing.Type {
+			count, cErr := ps.fieldStore.CountLinkedFields(field.ID)
+			if cErr != nil {
+				return nil, fmt.Errorf("failed to count linked fields: %w", cErr)
+			}
+			if count > 0 {
+				return nil, model.NewAppError(
+					"UpdatePropertyFields",
+					"app.property_field.update.type_change_with_dependents.app_error",
+					nil,
+					"cannot change type of a field with active linked dependents",
+					http.StatusConflict,
+				)
+			}
+		}
+
+		// Build propagation requests for fields whose options changed
+		if optionsChanged(existing.Attrs, field.Attrs) {
+			count, cErr := ps.fieldStore.CountLinkedFields(field.ID)
+			if cErr != nil {
+				return nil, fmt.Errorf("failed to count linked fields for propagation: %w", cErr)
+			}
+			if count > 0 {
+				var opts any
+				if field.Attrs != nil {
+					opts = field.Attrs[model.PropertyFieldAttributeOptions]
+				}
+				propagations = append(propagations, store.PropagationRequest{
+					SourceFieldID: field.ID,
+					FieldType:     field.Type,
+					Options:       opts,
+				})
+			}
+		}
+
 		// Check if name, TargetType, or TargetID changed - these affect uniqueness
 		nameChanged := existing.Name != field.Name
 		targetTypeChanged := existing.TargetType != field.TargetType
 		targetIDChanged := existing.TargetID != field.TargetID
 
 		if nameChanged || targetTypeChanged || targetIDChanged {
-			// Check for conflicts, excluding the field being updated
 			conflictLevel, cErr := ps.fieldStore.CheckPropertyNameConflict(field, field.ID)
 			if cErr != nil {
 				return nil, fmt.Errorf("failed to check property name conflict: %w", cErr)
@@ -147,7 +253,58 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 		}
 	}
 
-	return ps.fieldStore.Update(groupID, fields)
+	// Use UpdateAndPropagate to atomically update fields and cascade options
+	result, err := ps.fieldStore.UpdateAndPropagate(groupID, fields, propagations)
+	if err != nil {
+		return nil, err
+	}
+
+	// Async orphan cleanup: for each propagation where options were removed,
+	// compute removed option IDs and clean up values referencing them
+	for _, prop := range propagations {
+		existing := existingByID[prop.SourceFieldID]
+		removedIDs := computeRemovedOptionIDs(existing.Attrs, prop.Options)
+		if len(removedIDs) == 0 {
+			continue
+		}
+
+		fieldType := prop.FieldType
+		sourceFieldID := prop.SourceFieldID
+
+		go func() {
+			// Find all linked field IDs for this source
+			linked, searchErr := ps.fieldStore.SearchPropertyFields(model.PropertyFieldSearchOpts{
+				LinkedFieldID:  sourceFieldID,
+				IncludeDeleted: false,
+				PerPage:        10000,
+			})
+			if searchErr != nil {
+				ps.logger.Warn("Failed to search linked fields for orphan cleanup",
+					mlog.String("source_field_id", sourceFieldID),
+					mlog.Err(searchErr),
+				)
+				return
+			}
+			if len(linked) == 0 {
+				return
+			}
+
+			linkedIDs := make([]string, len(linked))
+			for i, f := range linked {
+				linkedIDs[i] = f.ID
+			}
+
+			if deleteErr := ps.valueStore.DeleteValuesReferencingOptions(linkedIDs, removedIDs, fieldType); deleteErr != nil {
+				ps.logger.Warn("Failed to delete orphaned values after option removal",
+					mlog.String("source_field_id", sourceFieldID),
+					mlog.Int("removed_options", len(removedIDs)),
+					mlog.Err(deleteErr),
+				)
+			}
+		}()
+	}
+
+	return result, nil
 }
 
 func (ps *PropertyService) deletePropertyField(groupID, id string) error {
@@ -156,6 +313,21 @@ func (ps *PropertyService) deletePropertyField(groupID, id string) error {
 		if _, err := ps.getPropertyField(groupID, id); err != nil {
 			return fmt.Errorf("error getting property field %q for group %q: %w", id, groupID, err)
 		}
+	}
+
+	// Deletion protection: cannot delete a field that has active linked dependents
+	count, err := ps.fieldStore.CountLinkedFields(id)
+	if err != nil {
+		return fmt.Errorf("failed to count linked fields: %w", err)
+	}
+	if count > 0 {
+		return model.NewAppError(
+			"DeletePropertyField",
+			"app.property_field.delete.has_linked_dependents.app_error",
+			nil,
+			"cannot delete field with active linked dependents; unlink or delete dependent fields first",
+			http.StatusConflict,
+		)
 	}
 
 	if err := ps.valueStore.DeleteForField(groupID, id); err != nil {
@@ -329,4 +501,74 @@ func (ps *PropertyService) DeletePropertyField(rctx request.CTX, groupID, id str
 	}
 
 	return ps.deletePropertyField(groupID, id)
+}
+
+// optionsChanged compares the options in two attrs maps and returns true if they differ.
+func optionsChanged(oldAttrs, newAttrs model.StringInterface) bool {
+	oldOpts := oldAttrs[model.PropertyFieldAttributeOptions]
+	newOpts := newAttrs[model.PropertyFieldAttributeOptions]
+
+	oldJSON, err1 := json.Marshal(oldOpts)
+	newJSON, err2 := json.Marshal(newOpts)
+
+	if err1 != nil || err2 != nil {
+		// If marshaling fails, assume they differ
+		return true
+	}
+
+	return string(oldJSON) != string(newJSON)
+}
+
+// computeRemovedOptionIDs extracts option IDs from the old attrs that are no longer
+// present in the new options. Returns the list of removed option IDs.
+func computeRemovedOptionIDs(oldAttrs model.StringInterface, newOptions any) []string {
+	if oldAttrs == nil {
+		return nil
+	}
+
+	oldOptionsRaw := oldAttrs[model.PropertyFieldAttributeOptions]
+	if oldOptionsRaw == nil {
+		return nil
+	}
+
+	oldIDs := extractOptionIDs(oldOptionsRaw)
+	newIDs := extractOptionIDs(newOptions)
+
+	newIDSet := make(map[string]struct{}, len(newIDs))
+	for _, id := range newIDs {
+		newIDSet[id] = struct{}{}
+	}
+
+	var removed []string
+	for _, id := range oldIDs {
+		if _, exists := newIDSet[id]; !exists {
+			removed = append(removed, id)
+		}
+	}
+	return removed
+}
+
+// extractOptionIDs extracts the "id" field from each option in the given options value.
+func extractOptionIDs(options any) []string {
+	if options == nil {
+		return nil
+	}
+
+	b, err := json.Marshal(options)
+	if err != nil {
+		return nil
+	}
+
+	var opts []map[string]any
+	if err := json.Unmarshal(b, &opts); err != nil {
+		return nil
+	}
+
+	ids := make([]string, 0, len(opts))
+	for _, opt := range opts {
+		if id, ok := opt["id"].(string); ok && id != "" {
+			ids = append(ids, id)
+		}
+	}
+	return ids
 }

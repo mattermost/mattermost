@@ -246,6 +246,7 @@ func NewServer(options ...Option) (*Server, error) {
 			callerID, _ := CallerIDFromRequestContext(rctx)
 			return callerID
 		},
+		Logger: s.Log(),
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to create properties service")
