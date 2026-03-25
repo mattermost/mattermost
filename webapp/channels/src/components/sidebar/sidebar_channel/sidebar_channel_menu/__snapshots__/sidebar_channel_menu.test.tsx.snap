@@ -108,10 +108,42 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
         tabindex="-1"
       >
         <li
-          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="channelOpenInNewWindow"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Open in new window
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
           id="markAsUnread-channel_id"
           role="menuitem"
-          tabindex="0"
+          tabindex="-1"
         >
           <div
             class="leading-element"
@@ -417,10 +449,42 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
         tabindex="-1"
       >
         <li
-          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="channelOpenInNewWindow"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Open in new window
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
           id="markAsUnread-channel_id"
           role="menuitem"
-          tabindex="0"
+          tabindex="-1"
         >
           <div
             class="leading-element"
@@ -726,10 +790,42 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
         tabindex="-1"
       >
         <li
-          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="channelOpenInNewWindow"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Open in new window
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
           id="markAsUnread-channel_id"
           role="menuitem"
-          tabindex="0"
+          tabindex="-1"
         >
           <div
             class="leading-element"
@@ -1035,10 +1131,42 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
         tabindex="-1"
       >
         <li
-          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="channelOpenInNewWindow"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Open in new window
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
           id="markAsUnread-channel_id"
           role="menuitem"
-          tabindex="0"
+          tabindex="-1"
         >
           <div
             class="leading-element"
@@ -1276,10 +1404,42 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
         tabindex="-1"
       >
         <li
-          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="channelOpenInNewWindow"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Open in new window
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
           id="markAsUnread-channel_id"
           role="menuitem"
-          tabindex="0"
+          tabindex="-1"
         >
           <div
             class="leading-element"
@@ -1553,10 +1713,42 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
         tabindex="-1"
       >
         <li
-          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="channelOpenInNewWindow"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Open in new window
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
           id="markAsUnread-channel_id"
           role="menuitem"
-          tabindex="0"
+          tabindex="-1"
         >
           <div
             class="leading-element"
@@ -1859,10 +2051,42 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
         tabindex="-1"
       >
         <li
-          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="channelOpenInNewWindow"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Open in new window
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
           id="markAsUnread-channel_id"
           role="menuitem"
-          tabindex="0"
+          tabindex="-1"
         >
           <div
             class="leading-element"
@@ -2168,10 +2392,42 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
         tabindex="-1"
       >
         <li
-          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="channelOpenInNewWindow"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Open in new window
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
           id="markAsUnread-channel_id"
           role="menuitem"
-          tabindex="0"
+          tabindex="-1"
         >
           <div
             class="leading-element"
@@ -2477,10 +2733,42 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
         tabindex="-1"
       >
         <li
-          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="channelOpenInNewWindow"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Open in new window
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
           id="markAsUnread-channel_id"
           role="menuitem"
-          tabindex="0"
+          tabindex="-1"
         >
           <div
             class="leading-element"
@@ -2786,10 +3074,42 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
         tabindex="-1"
       >
         <li
-          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="channelOpenInNewWindow"
+          role="menuitem"
+          tabindex="-1"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Open in new window
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
           id="markAsRead-channel_id"
           role="menuitem"
-          tabindex="0"
+          tabindex="-1"
         >
           <div
             class="leading-element"
