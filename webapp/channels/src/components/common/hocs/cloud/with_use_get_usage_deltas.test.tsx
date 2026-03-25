@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount} from 'enzyme';
 import React from 'react';
 import type {ComponentType} from 'react';
+
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import withUseGetUsageDeltas from './with_use_get_usage_deltas';
 
@@ -19,10 +20,10 @@ describe('/components/common/hocs/cloud/with_use_get_usage_deltas', () => {
     test('should pass the useGetUsageDeltas', () => {
         const WrappedComponent = withUseGetUsageDeltas(TestComponent);
 
-        const wrapper = mount(
+        const {container} = renderWithContext(
             <WrappedComponent/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

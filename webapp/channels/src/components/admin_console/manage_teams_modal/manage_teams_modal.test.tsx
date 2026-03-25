@@ -1,19 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ReactWrapper} from 'enzyme';
-import {mount, shallow} from 'enzyme';
 import React from 'react';
-import {IntlProvider} from 'react-intl';
 
 import {General} from 'mattermost-redux/constants';
 
 import ManageTeamsModal from 'components/admin_console/manage_teams_modal/manage_teams_modal';
 
-import {act} from 'tests/react_testing_utils';
+import {renderWithContext, runPostRenderAct, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
-import ManageTeamsDropdown from './manage_teams_dropdown';
+/**
+ * `runPostRenderAct` rounds (each `await Promise.resolve()`): (1) passive effects run so `useEffect`
+ * starts `loadTeamsAndTeamMembers`; (2) mocked `actions.getTeamMembersForUser` resolves →
+ * `getTeamMembers` → `setTeamMembers`; (3) mocked `actions.getTeamsForUser` resolves → `setTeams`.
+ */
+const MANAGE_TEAMS_MODAL_ASYNC_ROUNDS = 3;
 
 describe('ManageTeamsModal', () => {
     const baseProps = {
@@ -35,25 +37,21 @@ describe('ManageTeamsModal', () => {
         },
     };
 
-    test('should match snapshot init', () => {
-        const wrapper = shallow(<ManageTeamsModal {...baseProps}/>);
-        expect(wrapper).toMatchSnapshot();
+    test('should match snapshot init', async () => {
+        const {baseElement} = renderWithContext(
+            <ManageTeamsModal {...baseProps}/>,
+        );
+
+        await runPostRenderAct(MANAGE_TEAMS_MODAL_ASYNC_ROUNDS);
+
+        expect(baseElement).toMatchSnapshot();
     });
 
     test('should call api calls on mount', async () => {
-        const intlProviderProps = {
-            defaultLocale: 'en',
-            locale: 'en',
-            messages: {testId: 'Actual value'},
-        };
-
-        await act(async () => {
-            mount(
-                <IntlProvider {...intlProviderProps}>
-                    <ManageTeamsModal {...baseProps}/>
-                </IntlProvider>,
-            );
-        });
+        renderWithContext(
+            <ManageTeamsModal {...baseProps}/>,
+        );
+        await runPostRenderAct(MANAGE_TEAMS_MODAL_ASYNC_ROUNDS);
 
         expect(baseProps.actions.getTeamMembersForUser).toHaveBeenCalledTimes(1);
         expect(baseProps.actions.getTeamMembersForUser).toHaveBeenCalledWith(baseProps.user.id);
@@ -61,7 +59,7 @@ describe('ManageTeamsModal', () => {
         expect(baseProps.actions.getTeamsForUser).toHaveBeenCalledWith(baseProps.user.id);
     });
 
-    test('should save data in state from api calls', async () => {
+    test('should show team from api data after load', async () => {
         const mockTeamData = TestHelper.getTeamMock({
             id: '123test',
             name: 'testTeam',
@@ -80,23 +78,16 @@ describe('ManageTeamsModal', () => {
                 getTeamsForUser,
             },
         };
-        const intlProviderProps = {
-            defaultLocale: 'en',
-            locale: 'en',
-            messages: {'test.value': 'Actual value'},
-        };
 
-        let wrapper: ReactWrapper<any>;
-        await act(async () => {
-            wrapper = mount(
-                <IntlProvider {...intlProviderProps}>
-                    <ManageTeamsModal {...props}/>
-                </IntlProvider>,
-            );
-        });
-        wrapper!.update();
+        renderWithContext(
+            <ManageTeamsModal {...props}/>,
+        );
 
-        expect(wrapper!.find('.manage-teams__team-name').text()).toEqual(mockTeamData.display_name);
-        expect(wrapper!.find(ManageTeamsDropdown).props().teamMember).toEqual({team_id: '123test'});
+        await runPostRenderAct(MANAGE_TEAMS_MODAL_ASYNC_ROUNDS);
+
+        expect(screen.getByText(mockTeamData.display_name)).toBeInTheDocument();
+
+        // Non-system-admin users get ManageTeamsDropdown; default role label for plain membership.
+        expect(screen.getByText('Team Member')).toBeInTheDocument();
     });
 });
