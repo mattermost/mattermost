@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import set from 'lodash/set';
 import React from 'react';
 import type {ComponentProps} from 'react';
 
@@ -13,12 +12,11 @@ import {
 } from 'actions/post_actions';
 import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
 
+import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {fakeDate} from 'tests/helpers/date';
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 import {copyToClipboard} from 'utils/utils';
-
-import type {GlobalState} from 'types/store';
 
 import ThreadMenu from '../thread_menu';
 
@@ -49,77 +47,94 @@ jest.mock('../../hooks', () => {
 });
 
 const mockDispatch = jest.fn();
-let mockState: GlobalState;
 
 jest.mock('react-redux', () => ({
     ...jest.requireActual('react-redux') as typeof import('react-redux'),
-    useSelector: (selector: (state: typeof mockState) => unknown) => selector(mockState),
     useDispatch: () => mockDispatch,
 }));
 
 describe('components/threading/common/thread_menu', () => {
     let props: ComponentProps<typeof ThreadMenu>;
+
+    const currentUserId = 'uid';
+    const currentTeamId = 'tid';
+    const channel = TestHelper.getChannelMock({
+        id: 'channel-id-123',
+    });
     const threadId = '1y8hpek81byspd4enyk9mp1ncw';
-    const channelId = 'channel-id-123';
+    const post = TestHelper.getPostMock(({
+        id: threadId,
+        channel_id: channel.id,
+    }));
+
+    const baseState = {
+        entities: {
+            channels: {
+                channels: {
+                    [channel.id]: channel,
+                },
+            },
+            general: {
+                config: {},
+            },
+            posts: {
+                posts: {
+                    [post.id]: post,
+                },
+            },
+            preferences: {
+                myPreferences: {},
+            },
+            teams: {
+                currentTeamId,
+            },
+            users: {
+                currentUserId,
+            },
+        },
+        views: {
+            browser: {
+                windowSize: 'desktopView',
+            },
+        },
+    };
 
     beforeEach(() => {
         props = {
+            idPrefix: 'test-thread-menu',
             threadId,
             unreadTimestamp: 1610486901110,
             hasUnreads: false,
             isFollowing: false,
-            children: (
-                <button>{'test'}</button>
-            ),
         };
-
-        const post = TestHelper.getPostMock({
-            id: threadId,
-            channel_id: channelId,
-        });
-        const channel = TestHelper.getChannelMock({
-            id: channelId,
-        });
-
-        mockState = {
-            entities: {
-                preferences: {
-                    myPreferences: {},
-                },
-                posts: {
-                    posts: {
-                        [threadId]: post,
-                    },
-                },
-                channels: {
-                    channels: {
-                        [channelId]: channel,
-                    },
-                },
-            },
-        } as unknown as GlobalState;
-
-        mockDispatch.mockClear();
-        mockRouting.goToInChannel.mockClear();
     });
 
-    test('should match snapshot', () => {
-        const {baseElement} = renderWithContext(
+    test('should render thread menu button', () => {
+        renderWithContext(
             <ThreadMenu
                 {...props}
             />,
+            baseState,
         );
-        expect(baseElement).toMatchSnapshot();
+        expect(screen.getByRole('button', {name: 'More Actions'})).toBeInTheDocument();
     });
 
-    test('should match snapshot after opening', async () => {
-        const {baseElement} = renderWithContext(
+    test('should open menu when button is clicked', async () => {
+        renderWithContext(
             <ThreadMenu
                 {...props}
             />,
+            baseState,
         );
-        await userEvent.click(screen.getByText('test'));
-        expect(baseElement).toMatchSnapshot();
+
+        const menuButton = screen.getByRole('button', {name: 'More Actions'});
+        await userEvent.click(menuButton);
+
+        expect(screen.getByRole('menuitem', {name: /Follow thread/})).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', {name: /Open in channel/})).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', {name: /Mark as unread/})).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', {name: /Save/})).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', {name: /Copy link/})).toBeInTheDocument();
     });
 
     test('should allow following', async () => {
@@ -128,11 +143,19 @@ describe('components/threading/common/thread_menu', () => {
                 {...props}
                 isFollowing={false}
             />,
+            baseState,
         );
-        await userEvent.click(screen.getByText('test'));
-        await userEvent.click(screen.getByText('Follow thread'));
-        expect(setThreadFollow).toHaveBeenCalledWith('uid', 'tid', '1y8hpek81byspd4enyk9mp1ncw', true);
-        expect(mockDispatch).toHaveBeenCalledTimes(1);
+
+        const menuButton = screen.getByRole('button', {name: 'More Actions'});
+        await userEvent.click(menuButton);
+
+        const followButton = await screen.findByRole('menuitem', {name: /Follow thread/});
+        await userEvent.click(followButton);
+
+        await waitFor(() => {
+            expect(setThreadFollow).toHaveBeenCalledWith(currentUserId, currentTeamId, threadId, true);
+            expect(mockDispatch).toHaveBeenCalledTimes(1);
+        });
     });
 
     test('should allow unfollowing', async () => {
@@ -141,11 +164,19 @@ describe('components/threading/common/thread_menu', () => {
                 {...props}
                 isFollowing={true}
             />,
+            baseState,
         );
-        await userEvent.click(screen.getByText('test'));
-        await userEvent.click(screen.getByText('Unfollow thread'));
-        expect(setThreadFollow).toHaveBeenCalledWith('uid', 'tid', '1y8hpek81byspd4enyk9mp1ncw', false);
-        expect(mockDispatch).toHaveBeenCalledTimes(1);
+
+        const menuButton = screen.getByRole('button', {name: 'More Actions'});
+        await userEvent.click(menuButton);
+
+        const unfollowButton = screen.getByRole('menuitem', {name: /Unfollow thread/});
+        await userEvent.click(unfollowButton);
+
+        await waitFor(() => {
+            expect(setThreadFollow).toHaveBeenCalledWith(currentUserId, currentTeamId, threadId, false);
+            expect(mockDispatch).toHaveBeenCalledTimes(1);
+        });
     });
 
     test('should allow opening in channel', async () => {
@@ -153,11 +184,19 @@ describe('components/threading/common/thread_menu', () => {
             <ThreadMenu
                 {...props}
             />,
+            baseState,
         );
-        await userEvent.click(screen.getByText('test'));
-        await userEvent.click(screen.getByText('Open in channel'));
-        expect(mockRouting.goToInChannel).toHaveBeenCalledWith('1y8hpek81byspd4enyk9mp1ncw');
-        expect(mockDispatch).not.toHaveBeenCalled();
+
+        const menuButton = screen.getByRole('button', {name: 'More Actions'});
+        await userEvent.click(menuButton);
+
+        const openInChannelButton = screen.getByRole('menuitem', {name: /Open in channel/});
+        await userEvent.click(openInChannelButton);
+
+        await waitFor(() => {
+            expect(mockRouting.goToInChannel).toHaveBeenCalledWith(threadId);
+            expect(mockDispatch).not.toHaveBeenCalled();
+        });
     });
 
     test('should allow marking as read', async () => {
@@ -167,13 +206,21 @@ describe('components/threading/common/thread_menu', () => {
                 {...props}
                 hasUnreads={true}
             />,
+            baseState,
         );
-        await userEvent.click(screen.getByText('test'));
-        await userEvent.click(screen.getByText('Mark as read'));
-        expect(markLastPostInThreadAsUnread).not.toHaveBeenCalled();
-        expect(updateThreadRead).toHaveBeenCalledWith('uid', 'tid', '1y8hpek81byspd4enyk9mp1ncw', 1612582579566);
-        expect(manuallyMarkThreadAsUnread).toHaveBeenCalledWith('1y8hpek81byspd4enyk9mp1ncw', 1612582579566);
-        expect(mockDispatch).toHaveBeenCalledTimes(2);
+
+        const menuButton = screen.getByRole('button', {name: 'More Actions'});
+        await userEvent.click(menuButton);
+
+        const markAsReadButton = screen.getByRole('menuitem', {name: /Mark as read/});
+        await userEvent.click(markAsReadButton);
+
+        await waitFor(() => {
+            expect(markLastPostInThreadAsUnread).not.toHaveBeenCalled();
+            expect(updateThreadRead).toHaveBeenCalledWith(currentUserId, currentTeamId, threadId, 1612582579566);
+            expect(manuallyMarkThreadAsUnread).toHaveBeenCalledWith(threadId, 1612582579566);
+            expect(mockDispatch).toHaveBeenCalledTimes(2);
+        });
         resetFakeDate();
     });
 
@@ -183,13 +230,21 @@ describe('components/threading/common/thread_menu', () => {
                 {...props}
                 hasUnreads={false}
             />,
+            baseState,
         );
-        await userEvent.click(screen.getByText('test'));
-        await userEvent.click(screen.getByText('Mark as unread'));
-        expect(updateThreadRead).not.toHaveBeenCalled();
-        expect(markLastPostInThreadAsUnread).toHaveBeenCalledWith('uid', 'tid', '1y8hpek81byspd4enyk9mp1ncw');
-        expect(manuallyMarkThreadAsUnread).toHaveBeenCalledWith('1y8hpek81byspd4enyk9mp1ncw', 1610486901110);
-        expect(mockDispatch).toHaveBeenCalledTimes(2);
+
+        const menuButton = screen.getByRole('button', {name: 'More Actions'});
+        await userEvent.click(menuButton);
+
+        const markAsUnreadButton = screen.getByRole('menuitem', {name: /Mark as unread/});
+        await userEvent.click(markAsUnreadButton);
+
+        await waitFor(() => {
+            expect(updateThreadRead).not.toHaveBeenCalled();
+            expect(markLastPostInThreadAsUnread).toHaveBeenCalledWith(currentUserId, currentTeamId, threadId);
+            expect(manuallyMarkThreadAsUnread).toHaveBeenCalledWith(threadId, 1610486901110);
+            expect(mockDispatch).toHaveBeenCalledTimes(2);
+        });
     });
 
     test('should allow saving', async () => {
@@ -197,32 +252,51 @@ describe('components/threading/common/thread_menu', () => {
             <ThreadMenu
                 {...props}
             />,
+            baseState,
         );
-        await userEvent.click(screen.getByText('test'));
-        await userEvent.click(screen.getByText('Save'));
-        expect(savePost).toHaveBeenCalledWith('1y8hpek81byspd4enyk9mp1ncw');
-        expect(mockDispatch).toHaveBeenCalledTimes(1);
-    });
 
-    test('should allow unsaving', async () => {
-        set(mockState, 'entities.preferences.myPreferences', {
-            'flagged_post--1y8hpek81byspd4enyk9mp1ncw': {
-                user_id: 'uid',
-                category: 'flagged_post',
-                name: '1y8hpek81byspd4enyk9mp1ncw',
-                value: 'true',
-            },
+        const menuButton = screen.getByRole('button', {name: 'More Actions'});
+        await userEvent.click(menuButton);
+
+        const saveButton = screen.getByRole('menuitem', {name: /Save/});
+        await userEvent.click(saveButton);
+
+        await waitFor(() => {
+            expect(savePost).toHaveBeenCalledWith(threadId);
+            expect(mockDispatch).toHaveBeenCalledTimes(1);
         });
-
+    });
+    test('should allow unsaving', async () => {
         renderWithContext(
             <ThreadMenu
                 {...props}
             />,
+            mergeObjects(baseState, {
+                entities: {
+                    preferences: {
+                        myPreferences: {
+                            [`flagged_post--${post.id}`]: {
+                                user_id: currentUserId,
+                                category: 'flagged_post',
+                                name: threadId,
+                                value: 'true',
+                            },
+                        },
+                    },
+                },
+            }),
         );
-        await userEvent.click(screen.getByText('test'));
-        await userEvent.click(screen.getByText('Unsave'));
-        expect(unsavePost).toHaveBeenCalledWith('1y8hpek81byspd4enyk9mp1ncw');
-        expect(mockDispatch).toHaveBeenCalledTimes(1);
+
+        const menuButton = screen.getByRole('button', {name: 'More Actions'});
+        await userEvent.click(menuButton);
+
+        const unsaveButton = screen.getByRole('menuitem', {name: /Unsave/});
+        await userEvent.click(unsaveButton);
+
+        await waitFor(() => {
+            expect(unsavePost).toHaveBeenCalledWith(threadId);
+            expect(mockDispatch).toHaveBeenCalledTimes(1);
+        });
     });
 
     test('should allow link copying', async () => {
@@ -230,10 +304,18 @@ describe('components/threading/common/thread_menu', () => {
             <ThreadMenu
                 {...props}
             />,
+            baseState,
         );
-        await userEvent.click(screen.getByText('test'));
-        await userEvent.click(screen.getByText('Copy link'));
-        expect(copyToClipboard).toHaveBeenCalledWith('http://localhost:8065/team-name-1/pl/1y8hpek81byspd4enyk9mp1ncw');
-        expect(mockDispatch).not.toHaveBeenCalled();
+
+        const menuButton = screen.getByRole('button', {name: 'More Actions'});
+        await userEvent.click(menuButton);
+
+        const copyLinkButton = screen.getByRole('menuitem', {name: /Copy link/});
+        await userEvent.click(copyLinkButton);
+
+        await waitFor(() => {
+            expect(copyToClipboard).toHaveBeenCalledWith(`http://localhost:8065/team-name-1/pl/${threadId}`);
+            expect(mockDispatch).not.toHaveBeenCalled();
+        });
     });
 });
