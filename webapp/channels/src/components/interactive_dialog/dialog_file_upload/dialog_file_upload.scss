@@ -10,8 +10,8 @@
 
     &__buttons {
         display: flex;
-        gap: 10px;
         align-items: center;
+        gap: 10px;
         margin-bottom: 10px;
     }
 
@@ -23,12 +23,12 @@
         display: flex;
         align-items: center;
         gap: 6px;
+        padding: 2px 0;
         color: var(--error-text);
         font-size: 0.9em;
         line-height: 1.3;
-        padding: 2px 0;
-        word-wrap: break-word;
         word-break: break-word;
+        word-wrap: break-word;
     }
 
     &__error-icon {
@@ -37,8 +37,8 @@
 
     .file-preview__container {
         display: flex;
-        flex-wrap: wrap;
         height: auto;
+        flex-wrap: wrap;
         margin: 8px 0;
     }
 }
