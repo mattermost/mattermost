@@ -245,19 +245,21 @@ func (s *SqlPostStore) SaveMultiple(rctx request.CTX, posts []*model.Post) ([]*m
 		}
 	}
 
-	builder := s.getQueryBuilder().Insert("Posts").Columns(postSliceColumns()...)
-	for _, post := range posts {
-		builder = builder.Values(postToSlice(post)...)
-	}
-
 	transaction, err := s.GetMaster().Beginx()
 	if err != nil {
 		return posts, -1, errors.Wrap(err, "begin_transaction")
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	if _, err = transaction.ExecBuilder(builder); err != nil {
-		return nil, -1, errors.Wrap(err, "failed to save Post")
+	chunks := chunkSlice(posts, len(postSliceColumns()))
+	for _, chunk := range chunks {
+		builder := s.getQueryBuilder().Insert("Posts").Columns(postSliceColumns()...)
+		for _, post := range chunk {
+			builder = builder.Values(postToSlice(post)...)
+		}
+		if _, err = transaction.ExecBuilder(builder); err != nil {
+			return nil, -1, errors.Wrap(err, "failed to save Post")
+		}
 	}
 
 	if err = s.updateThreadsFromPosts(transaction, posts); err != nil {
