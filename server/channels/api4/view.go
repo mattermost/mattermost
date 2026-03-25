@@ -435,11 +435,8 @@ func getPostsForView(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !isMember || !isMemberForAllPreviews {
-		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
-		if !isMemberForAllPreviews {
-			model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access_on_previews", true)
-		}
+	if !isMemberForAllPreviews {
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access_on_previews", true)
 	}
 	auditRec.Success()
 
