@@ -166,10 +166,7 @@ func (ps *PlatformService) processPostReadStatusUpdates() {
 
 		// Write in capped batches to avoid oversized SQL queries.
 		for i := 0; i < len(statuses); i += postReadStatusMaxBatchSize {
-			end := i + postReadStatusMaxBatchSize
-			if end > len(statuses) {
-				end = len(statuses)
-			}
+			end := min(i+postReadStatusMaxBatchSize, len(statuses))
 			if err := ps.Store.PostReadStatus().SaveMultiple(statuses[i:end]); err != nil {
 				ps.Log().Warn("Failed to save post read statuses", mlog.Err(err))
 			}
