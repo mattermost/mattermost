@@ -33,7 +33,7 @@
  *   shard-heavy-runs.txt    — heavy package runs, one per line: "pkg REGEX"
  */
 
-const fs = require("fs");
+const fs = require("node:fs");
 
 const SHARD_INDEX = parseInt(process.env.SHARD_INDEX);
 const SHARD_TOTAL = parseInt(process.env.SHARD_TOTAL);
