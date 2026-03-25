@@ -16,7 +16,7 @@ func cleanupCPAFields(t *testing.T, th *TestHelper) {
 	t.Helper()
 
 	cpaID, err := th.App.CpaGroupID()
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	fields, searchErr := th.App.Srv().Store().PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
 		GroupID: cpaID,
@@ -458,7 +458,7 @@ func TestPluginProperties(t *testing.T) {
 		cleanupCPAFields(t, th)
 
 		cpaID, err := th.App.CpaGroupID()
-		require.NoError(t, err)
+		require.Nil(t, err)
 
 		tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
 			package main
@@ -522,7 +522,7 @@ func TestPluginProperties(t *testing.T) {
 		cleanupCPAFields(t, th)
 
 		cpaID, err := th.App.CpaGroupID()
-		require.NoError(t, err)
+		require.Nil(t, err)
 
 		tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
 			package main
@@ -586,7 +586,7 @@ func TestPluginProperties(t *testing.T) {
 		cleanupCPAFields(t, th)
 
 		cpaID, err := th.App.CpaGroupID()
-		require.NoError(t, err)
+		require.Nil(t, err)
 
 		// Both plugins in same environment
 		tearDown, _, activationErrors := SetAppEnvironmentWithPlugins(t, []string{
@@ -686,7 +686,7 @@ func TestPluginProperties(t *testing.T) {
 		cleanupCPAFields(t, th)
 
 		cpaID, err := th.App.CpaGroupID()
-		require.NoError(t, err)
+		require.Nil(t, err)
 
 		tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
 			package main
@@ -745,7 +745,7 @@ func TestPluginProperties(t *testing.T) {
 		cleanupCPAFields(t, th)
 
 		cpaID, err := th.App.CpaGroupID()
-		require.NoError(t, err)
+		require.Nil(t, err)
 
 		// Both plugins in same environment
 		tearDown, _, activationErrors := SetAppEnvironmentWithPlugins(t, []string{
@@ -843,7 +843,7 @@ func TestPluginProperties(t *testing.T) {
 		cleanupCPAFields(t, th)
 
 		cpaID, err := th.App.CpaGroupID()
-		require.NoError(t, err)
+		require.Nil(t, err)
 
 		tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
 			package main
@@ -922,7 +922,7 @@ func TestPluginProperties(t *testing.T) {
 		cleanupCPAFields(t, th)
 
 		cpaID, err := th.App.CpaGroupID()
-		require.NoError(t, err)
+		require.Nil(t, err)
 
 		testTargetID := model.NewId()
 
@@ -1044,7 +1044,7 @@ func TestPluginProperties(t *testing.T) {
 		cleanupCPAFields(t, th)
 
 		cpaID, err := th.App.CpaGroupID()
-		require.NoError(t, err)
+		require.Nil(t, err)
 
 		// Both plugins in same environment
 		tearDown, _, activationErrors := SetAppEnvironmentWithPlugins(t, []string{

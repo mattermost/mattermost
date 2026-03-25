@@ -613,6 +613,22 @@ func (s *TimerLayerAccessControlPolicyStore) Get(rctx request.CTX, id string) (*
 	return result, err
 }
 
+func (s *TimerLayerAccessControlPolicyStore) GetPoliciesByFieldID(rctx request.CTX, fieldID string) ([]*model.AccessControlPolicy, error) {
+	start := time.Now()
+
+	result, err := s.AccessControlPolicyStore.GetPoliciesByFieldID(rctx, fieldID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AccessControlPolicyStore.GetPoliciesByFieldID", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerAccessControlPolicyStore) Save(rctx request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, error) {
 	start := time.Now()
 
@@ -3204,6 +3220,22 @@ func (s *TimerLayerChannelMemberHistoryStore) GetChannelsWithActivityDuring(star
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelMemberHistoryStore.GetChannelsWithActivityDuring", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelMemberHistoryStore) GetMembershipChanges(channelID string, since int64, limit int) ([]*model.ChannelMemberHistory, error) {
+	start := time.Now()
+
+	result, err := s.ChannelMemberHistoryStore.GetMembershipChanges(channelID, since, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelMemberHistoryStore.GetMembershipChanges", success, elapsed)
 	}
 	return result, err
 }
@@ -9985,10 +10017,10 @@ func (s *TimerLayerSharedChannelStore) GetRemoteByIds(channelID string, remoteID
 	return result, err
 }
 
-func (s *TimerLayerSharedChannelStore) GetRemoteForUser(remoteID string, userID string) (*model.RemoteCluster, error) {
+func (s *TimerLayerSharedChannelStore) GetRemoteForUser(remoteID string, userID string, includeDeleted bool) (*model.RemoteCluster, error) {
 	start := time.Now()
 
-	result, err := s.SharedChannelStore.GetRemoteForUser(remoteID, userID)
+	result, err := s.SharedChannelStore.GetRemoteForUser(remoteID, userID, includeDeleted)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -10045,22 +10077,6 @@ func (s *TimerLayerSharedChannelStore) GetSingleUser(userID string, channelID st
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.GetSingleUser", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerSharedChannelStore) GetUserChanges(userID string, channelID string, afterTime int64) ([]*model.SharedChannelUser, error) {
-	start := time.Now()
-
-	result, err := s.SharedChannelStore.GetUserChanges(userID, channelID, afterTime)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.GetUserChanges", success, elapsed)
 	}
 	return result, err
 }
@@ -10269,22 +10285,6 @@ func (s *TimerLayerSharedChannelStore) UpdateRemoteMembershipCursor(id string, s
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.UpdateRemoteMembershipCursor", success, elapsed)
-	}
-	return err
-}
-
-func (s *TimerLayerSharedChannelStore) UpdateUserLastMembershipSyncAt(userID string, channelID string, remoteID string, syncTime int64) error {
-	start := time.Now()
-
-	err := s.SharedChannelStore.UpdateUserLastMembershipSyncAt(userID, channelID, remoteID, syncTime)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.UpdateUserLastMembershipSyncAt", success, elapsed)
 	}
 	return err
 }
@@ -12265,6 +12265,22 @@ func (s *TimerLayerUserStore) AnalyticsGetInactiveUsersCount() (int64, error) {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.AnalyticsGetInactiveUsersCount", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerUserStore) AnalyticsGetSingleChannelGuestCount() (int64, error) {
+	start := time.Now()
+
+	result, err := s.UserStore.AnalyticsGetSingleChannelGuestCount()
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.AnalyticsGetSingleChannelGuestCount", success, elapsed)
 	}
 	return result, err
 }

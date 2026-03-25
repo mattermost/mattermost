@@ -19,7 +19,7 @@ func TestGetCPAField(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	cpaID, cErr := th.App.CpaGroupID()
-	require.NoError(t, cErr)
+	require.Nil(t, cErr)
 
 	rctx := th.emptyContextWithCallerID(anonymousCallerId)
 
@@ -161,7 +161,7 @@ func TestListCPAFields(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	cpaID, cErr := th.App.CpaGroupID()
-	require.NoError(t, cErr)
+	require.Nil(t, cErr)
 
 	rctx := th.emptyContextWithCallerID(anonymousCallerId)
 
@@ -293,7 +293,7 @@ func TestCreateCPAField(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	cpaID, cErr := th.App.CpaGroupID()
-	require.NoError(t, cErr)
+	require.Nil(t, cErr)
 
 	rctx := th.emptyContextWithCallerID(anonymousCallerId)
 
@@ -427,7 +427,7 @@ func TestPatchCPAField(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	cpaID, cErr := th.App.CpaGroupID()
-	require.NoError(t, cErr)
+	require.Nil(t, cErr)
 
 	rctx := th.emptyContextWithCallerID(anonymousCallerId)
 
@@ -685,7 +685,7 @@ func TestDeleteCPAField(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	cpaID, cErr := th.App.CpaGroupID()
-	require.NoError(t, cErr)
+	require.Nil(t, cErr)
 
 	rctx := th.emptyContextWithCallerID(anonymousCallerId)
 
@@ -767,7 +767,7 @@ func TestGetCPAValue(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	cpaID, cErr := th.App.CpaGroupID()
-	require.NoError(t, cErr)
+	require.Nil(t, cErr)
 
 	rctx := th.emptyContextWithCallerID(anonymousCallerId)
 
@@ -854,7 +854,7 @@ func TestListCPAValues(t *testing.T) {
 	}).InitBasic(t)
 
 	cpaID, cErr := th.App.CpaGroupID()
-	require.NoError(t, cErr)
+	require.Nil(t, cErr)
 
 	rctx := th.emptyContextWithCallerID(anonymousCallerId)
 
@@ -911,7 +911,7 @@ func TestPatchCPAValue(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	cpaID, cErr := th.App.CpaGroupID()
-	require.NoError(t, cErr)
+	require.Nil(t, cErr)
 
 	rctx := th.emptyContextWithCallerID(anonymousCallerId)
 
@@ -1039,7 +1039,7 @@ func TestDeleteCPAValues(t *testing.T) {
 	}).InitBasic(t)
 
 	cpaID, cErr := th.App.CpaGroupID()
-	require.NoError(t, cErr)
+	require.Nil(t, cErr)
 
 	rctx := th.emptyContextWithCallerID(anonymousCallerId)
 

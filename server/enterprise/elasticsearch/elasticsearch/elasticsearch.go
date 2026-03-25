@@ -6,6 +6,7 @@ package elasticsearch
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"slices"
 	"strings"
@@ -23,9 +24,11 @@ import (
 	elastic "github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/deletebyquery"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/core/updatebyquery"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/highlighterencoder"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/operator"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/scriptlanguage"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
 )
 
@@ -88,6 +91,31 @@ func (es *ElasticsearchInterfaceImpl) IsIndexingSync() bool {
 	return *es.Platform.Config().ElasticsearchSettings.LiveIndexingBatchSize <= 1
 }
 
+// fetchServerInfo retrieves and stores the server version and plugins from the given client.
+func (es *ElasticsearchInterfaceImpl) fetchServerInfo(client *elastic.TypedClient) *model.AppError {
+	version, major, appErr := checkMaxVersion(client)
+	if appErr != nil {
+		return appErr
+	}
+
+	es.version = major
+	es.fullVersion = version
+
+	// Since we are only retrieving plugins for the Support Packet generation, it doesn't make sense to kill the process if we get an error
+	// Instead, we will log it and move forward
+	resp, err := client.API.Cat.Plugins().Do(context.Background())
+	if err != nil {
+		es.Platform.Log().Warn("Error retrieving elasticsearch plugins", mlog.Err(err))
+	} else {
+		es.plugins = nil
+		for _, p := range resp {
+			es.plugins = append(es.plugins, *p.Component)
+		}
+	}
+
+	return nil
+}
+
 func (es *ElasticsearchInterfaceImpl) Start() *model.AppError {
 	if license := es.Platform.License(); license == nil || !*license.Features.Elasticsearch || !*es.Platform.Config().ElasticsearchSettings.EnableIndexing {
 		return nil
@@ -108,27 +136,13 @@ func (es *ElasticsearchInterfaceImpl) Start() *model.AppError {
 		return appErr
 	}
 
-	version, major, appErr := checkMaxVersion(es.client, es.Platform.Config())
-	if appErr != nil {
+	if appErr = es.fetchServerInfo(es.client); appErr != nil {
 		return appErr
 	}
 
-	// Since we are only retrieving plugins for the Support Packet generation, it doesn't make sense to kill the process if we get an error
-	// Instead, we will log it and move forward
-	resp, err := es.client.API.Cat.Plugins().Do(context.Background())
-	if err != nil {
-		es.Platform.Log().Warn("Error retrieving elasticsearch plugins", mlog.Err(err))
-	} else {
-		for _, p := range resp {
-			es.plugins = append(es.plugins, *p.Component)
-		}
-	}
-
-	es.version = major
-	es.fullVersion = version
-
 	ctx := context.Background()
 
+	var err error
 	esSettings := es.Platform.Config().ElasticsearchSettings
 	if *esSettings.LiveIndexingBatchSize > 1 {
 		es.bulkProcessor, err = NewBulk(
@@ -253,7 +267,7 @@ func (es *ElasticsearchInterfaceImpl) GetPlugins() []string {
 	return es.plugins
 }
 
-func (es *ElasticsearchInterfaceImpl) IndexPost(post *model.Post, teamId string) *model.AppError {
+func (es *ElasticsearchInterfaceImpl) IndexPost(post *model.Post, teamId string, channelType string) *model.AppError {
 	es.mutex.RLock()
 	defer es.mutex.RUnlock()
 
@@ -264,7 +278,7 @@ func (es *ElasticsearchInterfaceImpl) IndexPost(post *model.Post, teamId string)
 	indexName := common.BuildPostIndexName(*es.Platform.Config().ElasticsearchSettings.AggregatePostsAfterDays,
 		*es.Platform.Config().ElasticsearchSettings.IndexPrefix+common.IndexBasePosts, *es.Platform.Config().ElasticsearchSettings.IndexPrefix+common.IndexBasePosts_MONTH, time.Now(), post.CreateAt)
 
-	searchPost, err := common.ESPostFromPost(post, teamId)
+	searchPost, err := common.ESPostFromPost(post, teamId, channelType)
 	if err != nil {
 		return model.NewAppError("Elasticsearch.IndexPost", "ent.elasticsearch.index_post.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -578,12 +592,47 @@ func (es *ElasticsearchInterfaceImpl) SearchPosts(channels model.ChannelList, se
 		fullHighlightsQuery.Must = append([]types.Query(nil), highlightQueries...)
 	}
 
-	filters = append(filters,
-		types.Query{
+	// Build channel access filter, optionally including non-member public channels.
+	cfg := es.Platform.Config()
+	includePublicChannels := model.SafeDereference(cfg.ElasticsearchSettings.EnableSearchPublicChannelsWithoutMembership) &&
+		!model.SafeDereference(cfg.ComplianceSettings.Enable)
+
+	var channelFilter types.Query
+	if includePublicChannels {
+		teamIdSet := make(map[string]struct{})
+		for _, channel := range channels {
+			if channel.TeamId != "" {
+				teamIdSet[channel.TeamId] = struct{}{}
+			}
+		}
+		var teamIds []string
+		for id := range teamIdSet {
+			teamIds = append(teamIds, id)
+		}
+
+		channelFilter = types.Query{
+			Bool: &types.BoolQuery{
+				Should: []types.Query{
+					{Terms: &types.TermsQuery{TermsQuery: map[string]types.TermsQueryField{"channel_id": channelIds}}},
+					{Bool: &types.BoolQuery{
+						Filter: []types.Query{
+							{Term: map[string]types.TermQuery{"channel_type": {Value: "O"}}},
+							{Terms: &types.TermsQuery{TermsQuery: map[string]types.TermsQueryField{"team_id": teamIds}}},
+						},
+					}},
+				},
+			},
+		}
+	} else {
+		channelFilter = types.Query{
 			Terms: &types.TermsQuery{
 				TermsQuery: map[string]types.TermsQueryField{"channel_id": channelIds},
 			},
-		},
+		}
+	}
+
+	filters = append(filters,
+		channelFilter,
 		types.Query{
 			Bool: &types.BoolQuery{
 				Should: []types.Query{
@@ -718,6 +767,126 @@ func (es *ElasticsearchInterfaceImpl) DeleteChannelPosts(rctx request.CTX, chann
 		return model.NewAppError("Elasticsearch.DeleteChannelPosts", "ent.elasticsearch.delete_channel_posts.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	rctx.Logger().Info("Posts for channel deleted", mlog.String("channel_id", channelID), mlog.Int("deleted", *response.Deleted))
+
+	return nil
+}
+
+func (es *ElasticsearchInterfaceImpl) UpdatePostsChannelTypeByChannelId(rctx request.CTX, channelID string, channelType string) *model.AppError {
+	es.mutex.RLock()
+	defer es.mutex.RUnlock()
+
+	if atomic.LoadInt32(&es.ready) == 0 {
+		return model.NewAppError("Elasticsearch.UpdatePostsChannelTypeByChannelId", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
+	}
+
+	postIndexes, err := es.getPostIndexNames()
+	if err != nil {
+		return model.NewAppError("Elasticsearch.UpdatePostsChannelTypeByChannelId", "ent.elasticsearch.update_posts_channel_type.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*es.Platform.Config().ElasticsearchSettings.RequestTimeoutSeconds)*time.Second)
+	defer cancel()
+
+	query := &types.Query{
+		Bool: &types.BoolQuery{
+			Filter: []types.Query{{
+				Term: map[string]types.TermQuery{"channel_id": {Value: channelID}},
+			}},
+		},
+	}
+
+	scriptSource := "ctx._source.channel_type = params.channel_type"
+	lang := scriptlanguage.Painless
+	channelTypeJSON, jsonErr := json.Marshal(channelType)
+	if jsonErr != nil {
+		return model.NewAppError("Elasticsearch.UpdatePostsChannelTypeByChannelId", "ent.elasticsearch.update_posts_channel_type.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(jsonErr)
+	}
+
+	response, err := es.client.UpdateByQuery(strings.Join(postIndexes, ",")).
+		Request(&updatebyquery.Request{
+			Query: query,
+			Script: &types.Script{
+				Source: &scriptSource,
+				Lang:   &lang,
+				Params: map[string]json.RawMessage{
+					"channel_type": channelTypeJSON,
+				},
+			},
+		}).
+		Do(ctx)
+	if err != nil {
+		return model.NewAppError("Elasticsearch.UpdatePostsChannelTypeByChannelId", "ent.elasticsearch.update_posts_channel_type.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if len(response.Failures) > 0 {
+		rctx.Logger().Warn("UpdatePostsChannelTypeByChannelId had partial failures; consider a full bulk reindex to prevent missing posts",
+			mlog.String("channel_id", channelID),
+			mlog.Int("failure_count", len(response.Failures)),
+			mlog.Err(fmt.Errorf("first failure: %v", response.Failures[0])))
+	}
+	rctx.Logger().Info("Posts channel_type updated", mlog.String("channel_id", channelID), mlog.String("channel_type", channelType), mlog.Int("updated", model.SafeDereference(response.Updated)))
+
+	return nil
+}
+
+func (es *ElasticsearchInterfaceImpl) BackfillPostsChannelType(rctx request.CTX, channelIDs []string, channelType string) *model.AppError {
+	es.mutex.RLock()
+	defer es.mutex.RUnlock()
+
+	if atomic.LoadInt32(&es.ready) == 0 {
+		return model.NewAppError("Elasticsearch.BackfillPostsChannelType", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
+	}
+
+	postIndexes, err := es.getPostIndexNames()
+	if err != nil {
+		return model.NewAppError("Elasticsearch.BackfillPostsChannelType", "ent.elasticsearch.backfill_posts_channel_type.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Hour)
+	defer cancel()
+
+	query := &types.Query{
+		Bool: &types.BoolQuery{
+			Filter: []types.Query{{
+				Terms: &types.TermsQuery{
+					TermsQuery: map[string]types.TermsQueryField{
+						"channel_id": channelIDs,
+					},
+				},
+			}},
+		},
+	}
+
+	scriptSource := "ctx._source.channel_type = params.channel_type"
+	lang := scriptlanguage.Painless
+	channelTypeJSON, jsonErr := json.Marshal(channelType)
+	if jsonErr != nil {
+		return model.NewAppError("Elasticsearch.BackfillPostsChannelType", "ent.elasticsearch.backfill_posts_channel_type.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(jsonErr)
+	}
+
+	requestsPerSecond := "10000"
+	response, err := es.client.UpdateByQuery(strings.Join(postIndexes, ",")).
+		RequestsPerSecond(requestsPerSecond).
+		Request(&updatebyquery.Request{
+			Query: query,
+			Script: &types.Script{
+				Source: &scriptSource,
+				Lang:   &lang,
+				Params: map[string]json.RawMessage{
+					"channel_type": channelTypeJSON,
+				},
+			},
+		}).
+		Do(ctx)
+	if err != nil {
+		return model.NewAppError("Elasticsearch.BackfillPostsChannelType", "ent.elasticsearch.backfill_posts_channel_type.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if len(response.Failures) > 0 {
+		rctx.Logger().Warn("BackfillPostsChannelType had partial failures; consider a full bulk reindex to prevent missing posts",
+			mlog.String("channel_type", channelType),
+			mlog.Int("failure_count", len(response.Failures)),
+			mlog.Err(fmt.Errorf("first failure: %v", response.Failures[0])))
+	}
+	rctx.Logger().Info("Backfilled channel_type on posts", mlog.Int("updated", model.SafeDereference(response.Updated)), mlog.String("channel_type", channelType), mlog.Int("channel_count", len(channelIDs)))
 
 	return nil
 }
@@ -1362,8 +1531,7 @@ func (es *ElasticsearchInterfaceImpl) TestConfig(rctx request.CTX, cfg *model.Co
 		return appErr
 	}
 
-	_, _, appErr = checkMaxVersion(client, cfg)
-	if appErr != nil {
+	if appErr = es.fetchServerInfo(client); appErr != nil {
 		return appErr
 	}
 
@@ -1942,7 +2110,7 @@ func (es *ElasticsearchInterfaceImpl) DeleteFilesBatch(rctx request.CTX, endTime
 	return nil
 }
 
-func checkMaxVersion(client *elastic.TypedClient, cfg *model.Config) (string, int, *model.AppError) {
+func checkMaxVersion(client *elastic.TypedClient) (string, int, *model.AppError) {
 	resp, err := client.API.Core.Info().Do(context.Background())
 	if err != nil {
 		return "", 0, model.NewAppError("Elasticsearch.checkMaxVersion", "ent.elasticsearch.start.get_server_version.app_error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)

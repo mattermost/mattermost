@@ -194,9 +194,9 @@ func getCPAGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	groupID, err := c.App.CpaGroupID()
-	if err != nil {
-		c.Err = model.NewAppError("Api4.getCPAGroup", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	groupID, appErr := c.App.CpaGroupID()
+	if appErr != nil {
+		c.Err = model.NewAppError("Api4.getCPAGroup", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 		return
 	}
 

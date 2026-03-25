@@ -5,6 +5,7 @@ package properties
 
 import (
 	"errors"
+	"sync"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -22,6 +23,7 @@ type PropertyService struct {
 	propertyAccess    *PropertyAccessService
 	callerIDExtractor CallerIDExtractor
 	cpaGroupID        string
+	groupCache        sync.Map // name -> *model.PropertyGroup
 }
 
 type ServiceConfig struct {

@@ -87,6 +87,7 @@ func (scs *Service) processSyncMessage(rctx request.CTX, syncMsg *model.SyncMsg,
 		PostErrors:            make([]string, 0),
 		ReactionErrors:        make([]string, 0),
 		AcknowledgementErrors: make([]string, 0),
+		MembershipErrors:      make([]string, 0),
 	}
 
 	// Check if feature flag is enabled for membership changes
@@ -281,6 +282,7 @@ func (scs *Service) processSyncMessage(rctx request.CTX, syncMsg *model.SyncMsg,
 				mlog.Int("change_count", len(syncMsg.MembershipChanges)),
 				mlog.Err(err),
 			)
+			syncResp.MembershipErrors = append(syncResp.MembershipErrors, err.Error())
 			// Don't fail the entire sync if membership changes fail
 		}
 	}

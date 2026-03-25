@@ -255,10 +255,19 @@ func NewServer(options ...Option) (*Server, error) {
 		if s.ch == nil {
 			return false
 		}
+
 		_, err := s.ch.GetPluginStatus(pluginID)
 		return err == nil
 	})
 	s.propertyService.SetPropertyAccessService(propertyAccessService)
+
+	// Register builtin property groups after fully initializing the propertyService
+	if err = s.propertyService.RegisterBuiltinGroups([]*model.PropertyGroup{
+		{Name: model.CustomProfileAttributesPropertyGroupName},
+		{Name: model.ContentFlaggingGroupName},
+	}); err != nil {
+		return nil, errors.Wrap(err, "failed to register builtin property groups")
+	}
 
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
@@ -340,17 +349,17 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.createPushNotificationsHub(request.EmptyContext(s.Log()))
 
-	if err2 := i18n.InitTranslations(*s.platform.Config().LocalizationSettings.DefaultServerLocale, *s.platform.Config().LocalizationSettings.DefaultClientLocale); err2 != nil {
-		return nil, errors.Wrapf(err2, "unable to load Mattermost translation files")
+	if err = i18n.InitTranslations(*s.platform.Config().LocalizationSettings.DefaultServerLocale, *s.platform.Config().LocalizationSettings.DefaultClientLocale); err != nil {
+		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
 
 	templatesDir, ok := templates.GetTemplateDirectory()
 	if !ok {
 		return nil, errors.New("Failed find server templates in \"templates\" directory")
 	}
-	htmlTemplates, err2 := templates.New(templatesDir)
-	if err2 != nil {
-		return nil, errors.Wrap(err2, "cannot initialize server templates")
+	htmlTemplates, err := templates.New(templatesDir)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot initialize server templates")
 	}
 	s.htmlTemplates = htmlTemplates
 
