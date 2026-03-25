@@ -54,11 +54,6 @@ jobs:
         run: |
           echo "${{ inputs.name }}" > server/test-name
           echo "${{ github.event.pull_request.number }}" > server/pr-number
-      - name: Setup needed prepackaged plugins
-        run: |
-          cd server
-          make prepackaged-plugins PLUGIN_PACKAGES=mattermost-plugin-jira-v3.2.5
-
       - name: Run docker compose
         run: |
           cd server/build
