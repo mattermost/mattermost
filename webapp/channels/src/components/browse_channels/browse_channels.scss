@@ -151,6 +151,7 @@
                     display: flex;
                     align-items: center;
                     justify-content: flex-start;
+                    max-width: 920px;
 
                     .dot {
                         width: 3px;
@@ -195,7 +196,22 @@
             }
 
             .more-modal__actions {
+                position: relative;
+
+                .more-modal__actions-spacer {
+                    min-width: 54px;
+                    height: 32px;
+                    padding: 0 20px;
+                    font-size: 12px;
+                    font-weight: 600;
+                    line-height: 32px;
+                    visibility: hidden;
+                }
+
                 button {
+                    position: absolute;
+                    top: 0;
+                    right: 0;
                     display: none;
                     min-width: 54px;
                     height: 32px;

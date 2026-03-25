@@ -212,6 +212,15 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                     {channelPurposeContainer}
                 </div>
                 <div className='more-modal__actions'>
+                    <div
+                        className='more-modal__actions-spacer'
+                        aria-hidden='true'
+                    >
+                        <FormattedMessage
+                            id={this.isMemberOfChannel(channel.id) ? 'more_channels.view' : 'joinChannel.JoinButton'}
+                            defaultMessage={this.isMemberOfChannel(channel.id) ? 'View' : 'Join'}
+                        />
+                    </div>
                     {joinViewChannelButton}
                     {this.state.joiningChannel === channel.id && !this.isMemberOfChannel(channel.id) && (
                         <span
