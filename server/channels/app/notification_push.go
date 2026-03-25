@@ -233,10 +233,6 @@ func (a *App) sendPushNotification(notification *PostNotification, user *model.U
 	channel := notification.Channel
 	post := notification.Post
 
-	if *cfg.EmailSettings.PushNotificationContents != model.IdLoadedNotification {
-		a.QueueSinglePostReadStatus(post.Id, user.Id)
-	}
-
 	nameFormat := a.GetNotificationNameFormat(user)
 
 	channelName := notification.GetChannelName(nameFormat, user.Id)

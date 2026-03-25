@@ -430,7 +430,6 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 			}
 
 			if a.userAllowsEmail(rctx, profileMap[id], channelMemberNotifyPropsMap[id], post) {
-				a.QueueSinglePostReadStatus(post.Id, id)
 				senderProfileImage, _, err := a.GetProfileImage(sender)
 				if err != nil {
 					rctx.Logger().Warn("Unable to get the sender user profile image.", mlog.String("user_id", sender.Id), mlog.Err(err))
@@ -714,6 +713,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 
 	// Collect user IDs of whom we want to acknowledge the websocket event for notification metrics
 	usersToAck := []string{}
+	allUserIDs := make([]string, 0, len(profileMap))
 	for id, profile := range profileMap {
 		userNotificationLevel := profile.NotifyProps[model.DesktopNotifyProp]
 		channelNotificationLevel := channelMemberNotifyPropsMap[id][model.DesktopNotifyProp]
@@ -722,8 +722,10 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 			usersToAck = append(usersToAck, id)
 		}
 
-		a.QueueSinglePostReadStatus(post.Id, id)
+		allUserIDs = append(allUserIDs, id)
 	}
+	// Queue read statuses in a single batch for all notification recipients.
+	a.Srv().Platform().QueuePostReadStatusForPost(post.Id, allUserIDs)
 	usePostedAckHook(message, post.UserId, channel.Type, usersToAck)
 
 	appErr := a.publishWebsocketEventForPost(rctx, post, message)

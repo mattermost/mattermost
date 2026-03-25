@@ -57,7 +57,8 @@ type PlatformService struct {
 	// Channel for batching post read status updates
 	postReadStatusChan       chan *model.PostReadStatus
 	postReadStatusExitSignal chan struct{}
-	postReadStatusDoneSignal chan struct{}
+	postReadStatusWg         sync.WaitGroup
+	recentReadCache          *recentReadCache
 
 	cacheProvider cache.Provider
 	statusCache   cache.Cache
@@ -149,7 +150,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		statusUpdateDoneSignal:    make(chan struct{}),
 		postReadStatusChan:        make(chan *model.PostReadStatus, postReadStatusBufferSize),
 		postReadStatusExitSignal:  make(chan struct{}),
-		postReadStatusDoneSignal:  make(chan struct{}),
+		recentReadCache:           newRecentReadCache(),
 	}
 
 	// Assume the first user account has not been created yet. A call to the DB will later check if this is really the case.
@@ -436,8 +437,14 @@ func (ps *PlatformService) Start(broadcastHooks map[string]BroadcastHook) error 
 	// Must be done before hub start.
 	go ps.processStatusUpdates()
 
-	// Start the post read status update processor.
-	go ps.processPostReadStatusUpdates()
+	// Start the post read status update processors.
+	for i := 0; i < postReadStatusNumWorkers; i++ {
+		ps.postReadStatusWg.Add(1)
+		go func() {
+			defer ps.postReadStatusWg.Done()
+			ps.processPostReadStatusUpdates()
+		}()
+	}
 
 	ps.hubStart(broadcastHooks)
 
@@ -545,9 +552,9 @@ func (ps *PlatformService) Shutdown() error {
 	// wait for it to be stopped.
 	<-ps.statusUpdateDoneSignal
 
-	// Shutdown post read status processor.
+	// Shutdown post read status processors.
 	close(ps.postReadStatusExitSignal)
-	<-ps.postReadStatusDoneSignal
+	ps.postReadStatusWg.Wait()
 
 	ps.RemoveLicenseListener(ps.licenseListenerId)
 
