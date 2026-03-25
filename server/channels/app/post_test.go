@@ -5777,7 +5777,7 @@ func TestGetPostsForView(t *testing.T) {
 
 		channel := th.CreateChannel(t, th.BasicTeam)
 
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			_, _, err := th.App.CreatePost(th.Context, &model.Post{
 				ChannelId: channel.Id,
 				UserId:    th.BasicUser.Id,
