@@ -1167,6 +1167,52 @@ func TestLinkedPropertyFields(t *testing.T) {
 		assert.Contains(t, err.Error(), "template")
 	})
 
+	t.Run("update blocks setting LinkedFieldID on non-linked field", func(t *testing.T) {
+		// Create a regular (non-linked) field
+		regular := th.CreatePropertyField(t, &model.PropertyField{
+			GroupID:    groupID,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Name:       "Regular-" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+		})
+
+		require.Nil(t, regular.LinkedFieldID)
+
+		// Attempt to set LinkedFieldID on update — should be rejected
+		source := createSourceField(t, "LinkAttemptSource-"+model.NewId())
+		regular.LinkedFieldID = &source.ID
+		_, err := th.service.UpdatePropertyField(groupID, regular)
+		require.Error(t, err)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Contains(t, appErr.Error(), "creation time")
+	})
+
+	t.Run("update blocks changing LinkedFieldID to a different source", func(t *testing.T) {
+		source1 := createSourceField(t, "ChangeSource1-"+model.NewId())
+		source2 := createSourceField(t, "ChangeSource2-"+model.NewId())
+
+		linked := th.CreatePropertyField(t, &model.PropertyField{
+			GroupID:       groupID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "ChangeLink-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source1.ID,
+		})
+
+		// Attempt to change the link target — should be rejected
+		linked.LinkedFieldID = &source2.ID
+		_, err := th.service.UpdatePropertyField(groupID, linked)
+		require.Error(t, err)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Contains(t, appErr.Error(), "cannot change link target")
+	})
+
 	t.Run("linked CPA field with LinkedFieldID behaves correctly", func(t *testing.T) {
 		source := createSourceField(t, "CPASource-"+model.NewId())
 

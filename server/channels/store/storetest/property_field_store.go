@@ -2394,7 +2394,7 @@ func testCountLinkedFields(t *testing.T, _ request.CTX, ss store.Store) {
 			},
 		},
 	}
-	linked2, err = ss.PropertyField().Create(linked2)
+	_, err = ss.PropertyField().Create(linked2)
 	require.NoError(t, err)
 
 	t.Run("should return 2 when two linked fields exist", func(t *testing.T) {

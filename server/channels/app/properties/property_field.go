@@ -194,6 +194,35 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 			)
 		}
 
+		// Block setting LinkedFieldID on a field that wasn't linked at creation.
+		// LinkedFieldID can only be set during CreatePropertyField, which copies
+		// the source's type and options. Allowing it on update would create a
+		// link without that schema copy, causing type/options mismatches.
+		existingIsLinked := existing.LinkedFieldID != nil && *existing.LinkedFieldID != ""
+		newIsLinked := field.LinkedFieldID != nil && *field.LinkedFieldID != ""
+
+		if !existingIsLinked && newIsLinked {
+			return nil, model.NewAppError(
+				"UpdatePropertyFields",
+				"app.property_field.update.cannot_link_existing.app_error",
+				nil,
+				"linked_field_id can only be set at creation time",
+				http.StatusBadRequest,
+			)
+		}
+
+		// Block changing link target. To re-link, unlink first then create a
+		// new linked field.
+		if existingIsLinked && newIsLinked && *field.LinkedFieldID != *existing.LinkedFieldID {
+			return nil, model.NewAppError(
+				"UpdatePropertyFields",
+				"app.property_field.update.cannot_change_link_target.app_error",
+				nil,
+				"cannot change link target; unlink first then create a new linked field",
+				http.StatusBadRequest,
+			)
+		}
+
 		// Block type changes on source fields with active linked dependents
 		if field.Type != existing.Type {
 			count, cErr := ps.fieldStore.CountLinkedFields(field.ID)
@@ -281,9 +310,12 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 				}
 			}()
 
-			// Find all linked field IDs for this source using cursor-based pagination
+			// Find all linked field IDs for this source using cursor-based pagination.
+			// The source field itself is included intentionally: when an option is
+			// removed from a source, values referencing that option are orphaned on
+			// the source just as they are on its linked dependents.
 			const pageSize = 200
-			fieldIDs := []string{sourceFieldID} // include source field itself
+			fieldIDs := []string{sourceFieldID}
 			var cursor model.PropertyFieldSearchCursor
 			for {
 				page, searchErr := ps.fieldStore.SearchPropertyFields(model.PropertyFieldSearchOpts{
@@ -311,11 +343,6 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 					CreateAt:        last.CreateAt,
 				}
 			}
-			if len(fieldIDs) <= 1 {
-				// Only the source field, no linked dependents found
-				return
-			}
-
 			if deleteErr := ps.valueStore.DeleteValuesReferencingOptions(fieldIDs, removedIDs, fieldType); deleteErr != nil {
 				ps.logger.Warn("Failed to delete orphaned values after option removal",
 					mlog.String("source_field_id", sourceFieldID),

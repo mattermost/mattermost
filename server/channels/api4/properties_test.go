@@ -2840,11 +2840,11 @@ func TestLinkedProperties(t *testing.T) {
 	t.Run("create linked field with valid source", func(t *testing.T) {
 		// Create a template field as the source
 		sourceField := &model.PropertyField{
-			Name:              model.NewId(),
-			Type:              model.PropertyFieldTypeSelect,
-			GroupID:           group.ID,
-			ObjectType:        model.PropertyFieldObjectTypeTemplate,
-			TargetType:        "",
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: "",
 			Attrs: model.StringInterface{
 				"options": []map[string]any{
 					{"id": model.NewId(), "name": "Option A"},
