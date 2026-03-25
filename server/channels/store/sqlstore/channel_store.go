@@ -1789,11 +1789,7 @@ func (s SqlChannelStore) saveMultipleMembers(members []*model.ChannelMember) (_ 
 		for _, member := range chunk {
 			query = query.Values(channelMemberToSlice(member)...)
 		}
-		sql, args, qErr := query.ToSql()
-		if qErr != nil {
-			return nil, errors.Wrap(qErr, "channel_members_tosql")
-		}
-		if _, execErr := transaction.Exec(sql, args...); execErr != nil {
+		if _, execErr := transaction.ExecBuilder(query); execErr != nil {
 			if IsUniqueConstraintError(execErr, []string{"ChannelId", "channelmembers_pkey", "PRIMARY"}) {
 				return nil, store.NewErrConflict("ChannelMembers", execErr, "")
 			}

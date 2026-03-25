@@ -847,11 +847,7 @@ func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersP
 		for _, member := range chunk {
 			query = query.Values(teamMemberToSlice(member)...)
 		}
-		sql, args, qErr := query.ToSql()
-		if qErr != nil {
-			return nil, errors.Wrap(qErr, "insert_members_to_sql")
-		}
-		if _, execErr := transaction.Exec(sql, args...); execErr != nil {
+		if _, execErr := transaction.ExecBuilder(query); execErr != nil {
 			if IsUniqueConstraintError(execErr, []string{"TeamId", "teammembers_pkey", "PRIMARY"}) {
 				return nil, store.NewErrConflict("TeamMember", execErr, "")
 			}

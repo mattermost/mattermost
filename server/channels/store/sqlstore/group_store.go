@@ -244,22 +244,29 @@ func (s *SqlGroupStore) checkUsersExist(userIDs []string) error {
 	return nil
 }
 
+func groupMemberSliceColumns() []string {
+	return []string{"GroupId", "UserId", "CreateAt", "DeleteAt"}
+}
+
+func groupMemberToSlice(m *model.GroupMember) []any {
+	return []any{m.GroupId, m.UserId, m.CreateAt, m.DeleteAt}
+}
+
 func (s *SqlGroupStore) insertGroupUsers(txn *sqlxTxWrapper, groupId string, userIds []string) error {
 	if len(userIds) == 0 {
 		return nil
 	}
-	// 4 columns: GroupId, UserId, CreateAt, DeleteAt
 	createAt := model.GetMillis()
-	chunks := chunkSlice(userIds, 4, s.SqlStore.getMaxInsertParams())
+	chunks := chunkSlice(userIds, len(groupMemberSliceColumns()), s.SqlStore.getMaxInsertParams())
 	for _, chunk := range chunks {
 		builder := s.getQueryBuilder().
 			Insert("GroupMembers").
-			Columns("GroupId", "UserId", "CreateAt", "DeleteAt")
+			Columns(groupMemberSliceColumns()...)
 		for _, userId := range chunk {
 			builder = builder.Values(groupId, userId, createAt, 0)
 		}
 		if _, err := txn.ExecBuilder(builder); err != nil {
-			return err
+			return errors.Wrap(err, "failed to insert GroupMembers")
 		}
 	}
 	return nil
@@ -1928,22 +1935,36 @@ func (s *SqlGroupStore) UpsertMembers(groupID string, userIDs []string) (_ []*mo
 		})
 	}
 
+	upsertSuffix := sq.Expr("ON CONFLICT (groupid, userid) DO UPDATE SET CreateAt = ?, DeleteAt = ?", createAt, 0)
+
+	// Single member: skip transaction overhead.
+	if len(members) == 1 {
+		builder := s.getQueryBuilder().
+			Insert("GroupMembers").
+			Columns(groupMemberSliceColumns()...).
+			Values(groupMemberToSlice(members[0])...).
+			SuffixExpr(upsertSuffix)
+		if _, err = s.GetMaster().ExecBuilder(builder); err != nil {
+			return nil, errors.Wrap(err, "failed to save GroupMember")
+		}
+		return members, nil
+	}
+
 	transaction, err := s.GetMaster().Beginx()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	// 4 columns: GroupId, UserId, CreateAt, DeleteAt
-	chunks := chunkSlice(members, 4, s.SqlStore.getMaxInsertParams())
+	chunks := chunkSlice(members, len(groupMemberSliceColumns()), s.SqlStore.getMaxInsertParams())
 	for _, chunk := range chunks {
 		builder := s.getQueryBuilder().
 			Insert("GroupMembers").
-			Columns("GroupId", "UserId", "CreateAt", "DeleteAt")
+			Columns(groupMemberSliceColumns()...)
 		for _, m := range chunk {
-			builder = builder.Values(m.GroupId, m.UserId, m.CreateAt, m.DeleteAt)
+			builder = builder.Values(groupMemberToSlice(m)...)
 		}
-		builder = builder.SuffixExpr(sq.Expr("ON CONFLICT (groupid, userid) DO UPDATE SET CreateAt = ?, DeleteAt = ?", createAt, 0))
+		builder = builder.SuffixExpr(upsertSuffix)
 		if _, err = transaction.ExecBuilder(builder); err != nil {
 			return nil, errors.Wrap(err, "failed to save GroupMember")
 		}

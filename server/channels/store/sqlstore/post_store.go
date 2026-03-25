@@ -347,10 +347,13 @@ func (s *SqlPostStore) Save(rctx request.CTX, post *model.Post) (*model.Post, er
 }
 
 func (s *SqlPostStore) populateReplyCount(posts []*model.Post) error {
-	// Deduplicate root IDs.
+	// Deduplicate root IDs, skipping any root posts (RootId == "").
 	seen := make(map[string]struct{}, len(posts))
 	var rootIds []string
 	for _, post := range posts {
+		if post.RootId == "" {
+			continue
+		}
 		if _, ok := seen[post.RootId]; !ok {
 			seen[post.RootId] = struct{}{}
 			rootIds = append(rootIds, post.RootId)
