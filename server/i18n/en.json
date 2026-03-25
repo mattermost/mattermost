@@ -7877,8 +7877,20 @@
     "translation": "Encountered an invalid response from interactive dialog submission."
   },
   {
+    "id": "app.submit_interactive_dialog.file_not_owned",
+    "translation": "File {FileId} does not belong to the submitting user."
+  },
+  {
+    "id": "app.submit_interactive_dialog.invalid_file_id",
+    "translation": "File {FileId} is invalid or inaccessible."
+  },
+  {
     "id": "app.submit_interactive_dialog.json_error",
     "translation": "Encountered an error encoding JSON for the interactive dialog."
+  },
+  {
+    "id": "app.submit_interactive_dialog.too_many_file_ids",
+    "translation": "Too many file IDs submitted. Maximum allowed is {Max}."
   },
   {
     "id": "app.submit_interactive_dialog.read_body_error",

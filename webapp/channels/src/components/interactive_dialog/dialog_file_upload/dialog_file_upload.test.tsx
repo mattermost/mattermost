@@ -50,7 +50,10 @@ jest.mock('components/file_preview', () => {
         return (
             <div data-testid='file-preview'>
                 {props.fileInfos?.map((fi: any) => (
-                    <div key={fi.id} data-testid={`file-preview-item-${fi.id}`}>
+                    <div
+                        key={fi.id}
+                        data-testid={`file-preview-item-${fi.id}`}
+                    >
                         <span>{fi.name}</span>
                         <button
                             data-testid={`remove-file-${fi.id}`}
@@ -465,11 +468,13 @@ describe('components/interactive_dialog/dialog_file_upload/DialogFileUpload', ()
             expect(screen.getAllByTestId('file-preview-item-uploaded-id')).toHaveLength(1);
 
             // Parent echoes the ID back via value prop (as would happen after onFileSelected fires)
-            rerender(<DialogFileUpload
-                {...baseProps}
-                onFileSelected={onFileSelected}
-                value={['uploaded-id']}
-            />);
+            rerender(
+                <DialogFileUpload
+                    {...baseProps}
+                    onFileSelected={onFileSelected}
+                    value={['uploaded-id']}
+                />,
+            );
 
             // Wait a tick for any async hydration to run
             await act(async () => {
