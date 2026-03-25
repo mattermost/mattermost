@@ -22,6 +22,8 @@ jobs:
     steps:
       - name: Checkout PR code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - name: Checkout documentation repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -29,6 +31,7 @@ jobs:
           repository: mattermost/docs
           ref: master
           path: docs
+          persist-credentials: false
           sparse-checkout: |
             source/administration-guide
             source/deployment-guide
@@ -200,7 +203,7 @@ jobs:
           claude_args: |
             --model claude-sonnet-4-20250514
             --max-turns 30
-            --allowedTools "Bash(gh pr diff*),Bash(gh pr view*),mcp__github_inline_comment__create_inline_comment"
+            --allowedTools "Bash(gh pr diff*),Bash(gh pr view*),Read,Glob,Grep,mcp__github_inline_comment__create_inline_comment"
 
       - name: Manage docs/needed label
         if: ${{ steps.docs-analysis.outcome == 'success' }}
