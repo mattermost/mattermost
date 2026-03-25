@@ -210,27 +210,13 @@
             }
 
             .more-modal__actions {
-                position: relative;
-
-                .more-modal__actions-spacer {
-                    min-width: 54px;
-                    height: 32px;
-                    padding: 0 20px;
-                    font-size: 12px;
-                    font-weight: 600;
-                    line-height: 32px;
-                    visibility: hidden;
-                }
-
                 button {
-                    position: absolute;
-                    top: 0;
-                    right: 0;
-                    display: none;
                     min-width: 54px;
                     height: 32px;
                     font-size: 12px;
                     font-weight: 600;
+                    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+                    visibility: hidden;
                 }
             }
         }
@@ -243,7 +229,7 @@
             .more-modal__actions {
                 .primaryButton,
                 .outlineButton {
-                    display: inline-block;
+                    visibility: visible;
                 }
             }
         }
