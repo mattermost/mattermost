@@ -26,6 +26,8 @@ const DefaultPerPage = 10
 type accessControlPolicyV0_1 struct {
 	Imports []string                        `json:"imports"`
 	Rules   []model.AccessControlPolicyRule `json:"rules"`
+	Scope   string                          `json:"scope,omitempty"`
+	ScopeID string                          `json:"scope_id,omitempty"`
 }
 
 // These are the fields that meant to be unchanged with the policy versions.
@@ -61,6 +63,8 @@ func (s *storeAccessControlPolicy) toModel() (*model.AccessControlPolicy, error)
 
 	policy.Imports = p.Imports
 	policy.Rules = p.Rules
+	policy.Scope = p.Scope
+	policy.ScopeID = p.ScopeID
 
 	if err := json.Unmarshal(s.Props, &policy.Props); err != nil {
 		return nil, err
@@ -73,6 +77,8 @@ func fromModel(policy *model.AccessControlPolicy) (*storeAccessControlPolicy, er
 	data, err := json.Marshal(&accessControlPolicyV0_1{
 		Imports: policy.Imports,
 		Rules:   policy.Rules,
+		Scope:   policy.Scope,
+		ScopeID: policy.ScopeID,
 	})
 	if err != nil {
 		return nil, err
@@ -209,10 +215,27 @@ func (s *SqlAccessControlPolicyStore) Save(rctx request.CTX, policy *model.Acces
 		}
 
 		// Check if the policy has actually changed
-		// We compare data, name, and version fields, and ensure type hasn't changed
+		// We compare data and version fields. Name changes are cosmetic
+		// and should not create a new revision in history.
 		if bytes.Equal(storePolicy.Data, tmp.Data) &&
-			storePolicy.Name == tmp.Name &&
 			storePolicy.Version == tmp.Version {
+			// Update name in place if it changed, without bumping revision
+			if storePolicy.Name != tmp.Name {
+				nameUpdate := s.getQueryBuilder().
+					Update("AccessControlPolicies").
+					Set("Name", storePolicy.Name).
+					Where(sq.Eq{"ID": policy.ID})
+				if _, err = tx.ExecBuilder(nameUpdate); err != nil {
+					if IsUniqueConstraintError(err, []string{"Name", "idx_accesscontrolpolicies_name_type"}) {
+						return nil, store.NewErrConflict("AccessControlPolicy", err, "name="+policy.Name)
+					}
+					return nil, errors.Wrapf(err, "failed to update name for policy with id=%s", policy.ID)
+				}
+				existingPolicy.Name = storePolicy.Name
+				if err = tx.Commit(); err != nil {
+					return nil, errors.Wrap(err, "commit_transaction")
+				}
+			}
 			return existingPolicy, nil
 		}
 
@@ -255,6 +278,9 @@ func (s *SqlAccessControlPolicyStore) Save(rctx request.CTX, policy *model.Acces
 
 	_, err = tx.ExecBuilder(query)
 	if err != nil {
+		if IsUniqueConstraintError(err, []string{"Name", "idx_accesscontrolpolicies_name_type"}) {
+			return nil, store.NewErrConflict("AccessControlPolicy", err, "name="+policy.Name)
+		}
 		return nil, errors.Wrapf(err, "failed to save policy with id=%s", policy.ID)
 	}
 
@@ -603,7 +629,8 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 	count := s.getQueryBuilder().Select("COUNT(*)").From("AccessControlPolicies")
 
 	if opts.Term != "" {
-		condition := sq.Like{"Name": fmt.Sprintf("%%%s%%", opts.Term)}
+		safeTerm := sanitizeSearchTerm(opts.Term, "*")
+		condition := sq.Expr("LOWER(Name) LIKE LOWER(?) ESCAPE '*'", fmt.Sprintf("%%%s%%", safeTerm))
 		query = query.Where(condition)
 		count = count.Where(condition)
 	}
@@ -632,7 +659,8 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 	}
 
 	// TeamID scopes queries to a specific team. Channel policies use a direct
-	// join (ID == channel ID). Parent policies use child-channel aggregation.
+	// join (ID == channel ID). Parent policies match via child-channel aggregation
+	// (all channels in one team) or an explicit scope field in Data JSONB.
 	if opts.TeamID != "" {
 		if opts.Type == model.AccessControlPolicyTypeChannel {
 			condition := sq.Expr(`Id IN (SELECT Id FROM Channels WHERE TeamId = ?)`, opts.TeamID)
@@ -645,15 +673,19 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 				count = count.Where(parentCondition)
 			}
 
-			condition := sq.Expr(`Id IN (
-				SELECT parent_id FROM (
-					SELECT ch.TeamId, jsonb_array_elements_text(cp.Data -> 'imports') AS parent_id
-					FROM AccessControlPolicies cp
-					JOIN Channels ch ON ch.Id = cp.Id
-					WHERE cp.Type = 'channel'
-				) team_children
-				GROUP BY parent_id
-				HAVING COUNT(DISTINCT TeamId) = 1 AND MIN(TeamId) = ?)`, opts.TeamID)
+			condition := sq.Expr(`(
+				Id IN (
+					SELECT parent_id FROM (
+						SELECT ch.TeamId, jsonb_array_elements_text(cp.Data -> 'imports') AS parent_id
+						FROM AccessControlPolicies cp
+						JOIN Channels ch ON ch.Id = cp.Id
+						WHERE cp.Type = 'channel'
+					) team_children
+					GROUP BY parent_id
+					HAVING COUNT(DISTINCT TeamId) = 1 AND MIN(TeamId) = ?
+				)
+				OR (Data->>'scope' = 'team' AND Data->>'scope_id' = ?)
+			)`, opts.TeamID, opts.TeamID)
 			query = query.Where(condition)
 			count = count.Where(condition)
 		}

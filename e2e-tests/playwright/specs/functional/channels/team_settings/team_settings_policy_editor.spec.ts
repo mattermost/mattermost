@@ -13,6 +13,7 @@ import {
     ensureDepartmentAttribute,
     createParentPolicy,
     assignChannelsToPolicy,
+    unassignChannelsFromPolicy,
     createPrivateChannel,
     createTeamAdmin,
     setUserAttribute,
@@ -598,5 +599,130 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await expect(teamSettings.container.getByText(/Last synced just now/)).toBeVisible();
 
         await teamSettings.close();
+    });
+
+    test('MM-67594_1 Team admin can delete policy after removing all channels', async ({pw}) => {
+        // Scenario: Policy created via API → team admin opens editor → removes channel → deletes.
+        // Validates that the scope field persists team ownership through channel removal.
+        await pw.skipIfNoLicense();
+        const {adminClient, team} = await pw.initSetup();
+        await enableABACConfig(adminClient);
+        await ensureDepartmentAttribute(adminClient);
+
+        // # Setup: create channel, policy, and assign via API (fast, non-flaky)
+        const channel = await createPrivateChannel(adminClient, team.id);
+        const policyName = `Scope Delete ${Date.now()}`;
+        const policy = await createParentPolicy(adminClient, policyName);
+        await assignChannelsToPolicy(adminClient, policy.id, [channel.id]);
+
+        // # Create team admin and add to channel so they can see the policy
+        const teamAdmin = await createTeamAdmin(adminClient, team.id);
+        await setUserAttribute(adminClient, teamAdmin.id, 'Department', 'Engineering');
+        await adminClient.addToChannel(teamAdmin.id, channel.id);
+
+        // # Team admin logs in and opens team settings
+        const {page} = await pw.testBrowser.login(teamAdmin);
+        const channelsPage = new ChannelsPage(page);
+        await channelsPage.goto(team.name);
+        await page.waitForLoadState('networkidle');
+
+        const teamSettings = await channelsPage.openTeamSettings();
+        await teamSettings.openAccessPoliciesTab();
+        await page.waitForLoadState('networkidle');
+
+        // * Policy is visible
+        await expect(teamSettings.container.getByText(policyName)).toBeVisible({timeout: 10000});
+
+        // # Open editor by clicking policy row
+        await teamSettings.container.getByText(policyName).click();
+        await page.waitForLoadState('networkidle');
+
+        // # Remove the channel to enable delete
+        const removeLink = teamSettings.container.getByText('Remove').first();
+        await expect(removeLink).toBeVisible({timeout: 10000});
+        await removeLink.click();
+
+        // # Click Delete in the delete section
+        const deleteBtn = teamSettings.container
+            .locator('.TeamPolicyEditor__section--delete button')
+            .filter({hasText: 'Delete'});
+        await expect(deleteBtn).toBeEnabled({timeout: 10000});
+        await deleteBtn.click();
+
+        // # Confirm deletion
+        const deleteModal = page.locator('.TeamPolicyEditor__delete-modal');
+        await expect(deleteModal).toBeVisible({timeout: 10000});
+        await deleteModal.getByRole('button', {name: 'Delete'}).click();
+        await page.waitForLoadState('networkidle');
+
+        // * Back to list, policy is removed
+        await expect(teamSettings.container.getByText(policyName)).not.toBeVisible();
+
+        await teamSettings.close();
+    });
+
+    test('MM-67594_2 System admin cross-team channel changes toggle team admin visibility', async ({pw}) => {
+        // Scenario: System admin creates policy with team A channels → team admin A sees it →
+        // system admin adds team B channel (cross-team) → team admin A no longer sees it →
+        // system admin removes team B channel → team admin A sees it again.
+        await pw.skipIfNoLicense();
+        const {adminClient, team} = await pw.initSetup();
+        await enableABACConfig(adminClient);
+        await ensureDepartmentAttribute(adminClient);
+
+        // # Create a second team
+        const otherTeam = await adminClient.createTeam({
+            name: `other-${Date.now()}`,
+            display_name: 'Other Team',
+            type: 'O',
+        } as any);
+
+        // # Create team admin for team A with Department attribute
+        const teamAdmin = await createTeamAdmin(adminClient, team.id);
+        await setUserAttribute(adminClient, teamAdmin.id, 'Department', 'Engineering');
+
+        // # Create private channels in both teams
+        const channelA = await createPrivateChannel(adminClient, team.id);
+        const channelB = await createPrivateChannel(adminClient, otherTeam.id);
+        await adminClient.addToChannel(teamAdmin.id, channelA.id);
+
+        // # System admin creates policy and assigns team A channel
+        const policyName = `Cross-Team Scope Test ${Date.now()}`;
+        const policy = await createParentPolicy(adminClient, policyName);
+        await assignChannelsToPolicy(adminClient, policy.id, [channelA.id]);
+
+        // # Team admin logs in and opens team settings
+        const {page} = await pw.testBrowser.login(teamAdmin);
+        const channelsPage = new ChannelsPage(page);
+        await channelsPage.goto(team.name);
+        await page.waitForLoadState('networkidle');
+
+        // # Step 1: Team admin can see the policy (all channels in their team)
+        const teamSettings = await channelsPage.openTeamSettings();
+        await teamSettings.openAccessPoliciesTab();
+        await page.waitForLoadState('networkidle');
+        await expect(teamSettings.container.getByText(policyName)).toBeVisible({timeout: 10000});
+        await teamSettings.close();
+
+        // # Step 2: System admin adds a channel from team B (cross-team)
+        await assignChannelsToPolicy(adminClient, policy.id, [channelB.id]);
+
+        // # Team admin reopens team settings — policy should NOT be visible (cross-team)
+        const teamSettings2 = await channelsPage.openTeamSettings();
+        await teamSettings2.openAccessPoliciesTab();
+        await page.waitForLoadState('networkidle');
+        await expect(teamSettings2.container.getByText(policyName)).not.toBeVisible({timeout: 10000});
+        await teamSettings2.close();
+
+        // # Step 3: System admin removes team B channel (back to single-team)
+        await unassignChannelsFromPolicy(adminClient, policy.id, [channelB.id]);
+
+        // # Team admin reopens team settings — policy should be visible again
+        const teamSettings3 = await channelsPage.openTeamSettings();
+        await teamSettings3.openAccessPoliciesTab();
+        await page.waitForLoadState('networkidle');
+        await expect(teamSettings3.container.getByText(policyName)).toBeVisible({timeout: 10000});
+
+        await teamSettings3.close();
     });
 });
