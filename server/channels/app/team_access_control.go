@@ -106,7 +106,9 @@ func (a *App) ValidateTeamAdminPolicyOwnership(rctx request.CTX, teamID, policyI
 // This runs after every assign/unassign regardless of the caller's role, so that
 // system admins adding cross-team channels correctly clears the team scope.
 func (a *App) ReconcilePolicyTeamScope(rctx request.CTX, policyID string) *model.AppError {
-	// Find all child channel policies for this parent
+	// Find all child channel policies for this parent.
+	// Limit of 1000 is ok, since In practice a single policy will not have 1000+ channel
+	// private children.
 	children, _, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
 		ParentID: policyID,
 		Type:     model.AccessControlPolicyTypeChannel,

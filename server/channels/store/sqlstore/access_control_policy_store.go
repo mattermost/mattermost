@@ -609,7 +609,8 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 	count := s.getQueryBuilder().Select("COUNT(*)").From("AccessControlPolicies")
 
 	if opts.Term != "" {
-		condition := sq.Like{"Name": fmt.Sprintf("%%%s%%", opts.Term)}
+		safeTerm := sanitizeSearchTerm(opts.Term, "*")
+		condition := sq.Expr("LOWER(Name) LIKE LOWER(?) ESCAPE '*'", fmt.Sprintf("%%%s%%", safeTerm))
 		query = query.Where(condition)
 		count = count.Where(condition)
 	}

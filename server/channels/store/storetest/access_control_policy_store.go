@@ -472,6 +472,34 @@ func testAccessControlPolicyStoreSearch(t *testing.T, rctx request.CTX, ss store
 		require.NotNil(t, policies)
 		require.Len(t, policies, 15)
 	})
+
+	t.Run("search by term is case-insensitive", func(t *testing.T) {
+		policy := &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Engineering Department Policy",
+			Type:     model.AccessControlPolicyTypeParent,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{},
+			Rules:    []model.AccessControlPolicyRule{{Actions: []string{"*"}, Expression: "true"}},
+		}
+
+		_, err := ss.AccessControlPolicy().Save(rctx, policy)
+		require.NoError(t, err)
+		t.Cleanup(func() { _ = ss.AccessControlPolicy().Delete(rctx, policy.ID) })
+
+		// Search with different casings
+		for _, term := range []string{"engineering", "ENGINEERING", "Engineering", "eNgInEeRiNg"} {
+			results, _, err := ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+				Term:  term,
+				IDs:   []string{policy.ID},
+				Limit: 10,
+			})
+			require.NoError(t, err, "search for %q should not error", term)
+			require.Len(t, results, 1, "search for %q should find the policy", term)
+			require.Equal(t, policy.ID, results[0].ID)
+		}
+	})
 }
 
 func testAccessControlPolicyStoreSetActiveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
