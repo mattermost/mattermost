@@ -29,7 +29,7 @@ func createTestPolicyHierarchy(
 		Type:     model.AccessControlPolicyTypeParent,
 		Version:  model.AccessControlPolicyVersionV0_2,
 		Revision: 1,
-		Name:     "Test Team Policy",
+		Name:     "Test Team Policy " + model.NewId(),
 		Rules: []model.AccessControlPolicyRule{
 			{Expression: "true", Actions: []string{"*"}},
 		},
