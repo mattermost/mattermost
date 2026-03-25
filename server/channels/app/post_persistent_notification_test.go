@@ -308,6 +308,106 @@ func TestForEachPersistentNotificationPost(t *testing.T) {
 		// post2 persistent notification should have been cleaned up due to missing team
 		mockPostPersistentNotification.AssertCalled(t, "Delete", []string{post2.Id})
 	})
+
+	t.Run("should not cleanup DM posts that have no team", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+
+		user1 := &model.User{Id: "uid1", Username: "user-1"}
+		user2 := &model.User{Id: "uid2", Username: "user-2"}
+		profileMap := map[string]*model.User{user1.Id: user1, user2.Id: user2}
+		dmChannel := &model.Channel{Id: "dm-chid", TeamId: "", Type: model.ChannelTypeDirect, Name: model.GetDMNameFromIds(user1.Id, user2.Id)}
+
+		post1 := &model.Post{Id: "pid1", ChannelId: dmChannel.Id, Message: "hello", UserId: user1.Id}
+
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+
+		mockChannel := storemocks.ChannelStore{}
+		mockStore.On("Channel").Return(&mockChannel)
+		mockChannel.On("GetChannelsByIds", mock.Anything, mock.Anything).Return([]*model.Channel{dmChannel}, nil)
+
+		mockTeam := storemocks.TeamStore{}
+		mockStore.On("Team").Return(&mockTeam)
+		mockTeam.On("GetMany", mock.Anything).Return([]*model.Team{}, nil)
+
+		mockUser := storemocks.UserStore{}
+		mockStore.On("User").Return(&mockUser)
+		mockUser.On("GetAllProfilesInChannel", mock.Anything, mock.Anything, mock.Anything).Return(profileMap, nil)
+
+		mockGroup := storemocks.GroupStore{}
+		mockStore.On("Group").Return(&mockGroup)
+		mockGroup.On("GetGroups", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]*model.Group{}, nil)
+
+		mockPostPersistentNotification := storemocks.PostPersistentNotificationStore{}
+		mockStore.On("PostPersistentNotification").Return(&mockPostPersistentNotification)
+
+		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
+		cfg := th.App.Config()
+		*cfg.ServiceSettings.PostPriority = true
+		*cfg.ServiceSettings.AllowPersistentNotifications = true
+
+		fnCalled := []string{}
+		err := th.App.forEachPersistentNotificationPost([]*model.Post{post1}, func(post *model.Post, _ *model.Channel, _ *model.Team, _ *MentionResults, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
+			fnCalled = append(fnCalled, post.Id)
+			return nil
+		})
+		require.NoError(t, err)
+
+		// The callback should be called for the DM post even though there's no team
+		assert.Equal(t, []string{"pid1"}, fnCalled)
+		// Delete should NOT have been called — DMs don't need a team
+		mockPostPersistentNotification.AssertNotCalled(t, "Delete", mock.Anything)
+	})
+
+	t.Run("should not cleanup GM posts that have no team", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+
+		user1 := &model.User{Id: "uid1", Username: "user-1"}
+		user2 := &model.User{Id: "uid2", Username: "user-2"}
+		user3 := &model.User{Id: "uid3", Username: "user-3"}
+		profileMap := map[string]*model.User{user1.Id: user1, user2.Id: user2, user3.Id: user3}
+		gmChannel := &model.Channel{Id: "gm-chid", TeamId: "", Type: model.ChannelTypeGroup}
+
+		post1 := &model.Post{Id: "pid1", ChannelId: gmChannel.Id, Message: "hello @user-2", UserId: user1.Id}
+
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+
+		mockChannel := storemocks.ChannelStore{}
+		mockStore.On("Channel").Return(&mockChannel)
+		mockChannel.On("GetChannelsByIds", mock.Anything, mock.Anything).Return([]*model.Channel{gmChannel}, nil)
+		mockChannel.On("GetAllChannelMembersNotifyPropsForChannel", mock.Anything, mock.Anything).Return(map[string]model.StringMap{}, nil)
+
+		mockTeam := storemocks.TeamStore{}
+		mockStore.On("Team").Return(&mockTeam)
+		mockTeam.On("GetMany", mock.Anything).Return([]*model.Team{}, nil)
+
+		mockUser := storemocks.UserStore{}
+		mockStore.On("User").Return(&mockUser)
+		mockUser.On("GetAllProfilesInChannel", mock.Anything, mock.Anything, mock.Anything).Return(profileMap, nil)
+
+		mockGroup := storemocks.GroupStore{}
+		mockStore.On("Group").Return(&mockGroup)
+		mockGroup.On("GetGroups", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]*model.Group{}, nil)
+
+		mockPostPersistentNotification := storemocks.PostPersistentNotificationStore{}
+		mockStore.On("PostPersistentNotification").Return(&mockPostPersistentNotification)
+
+		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
+		cfg := th.App.Config()
+		*cfg.ServiceSettings.PostPriority = true
+		*cfg.ServiceSettings.AllowPersistentNotifications = true
+
+		fnCalled := []string{}
+		err := th.App.forEachPersistentNotificationPost([]*model.Post{post1}, func(post *model.Post, _ *model.Channel, _ *model.Team, _ *MentionResults, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
+			fnCalled = append(fnCalled, post.Id)
+			return nil
+		})
+		require.NoError(t, err)
+
+		// The callback should be called for the GM post even though there's no team
+		assert.Equal(t, []string{"pid1"}, fnCalled)
+		// Delete should NOT have been called — GMs don't need a team
+		mockPostPersistentNotification.AssertNotCalled(t, "Delete", mock.Anything)
+	})
 }
 
 func TestSendPersistentNotifications(t *testing.T) {

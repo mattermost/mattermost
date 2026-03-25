@@ -166,22 +166,22 @@ func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(pos
 	var postsForPersistentNotificationCleanup []*model.Post
 
 	for _, post := range posts {
-		channel, ok := channelsMap[post.ChannelId]
-		if !ok {
+		channel := channelsMap[post.ChannelId]
+		if channel == nil {
 			postsForPersistentNotificationCleanup = append(postsForPersistentNotificationCleanup, post)
 			continue
 		}
 
-		team, ok := teamsMap[channel.TeamId]
-		if !ok {
-			postsForPersistentNotificationCleanup = append(postsForPersistentNotificationCleanup, post)
-			continue
-		}
-
+		team := teamsMap[channel.TeamId]
 		// GMs and DMs don't belong to any team
 		if channel.IsGroupOrDirect() {
 			team = &model.Team{}
+		} else if team == nil {
+			// cleanup persistent notification for posts with missing teams when they are not DM or GM
+			postsForPersistentNotificationCleanup = append(postsForPersistentNotificationCleanup, post)
+			continue
 		}
+
 		profileMap := channelProfileMap[channel.Id]
 
 		// Ensure the sender is always in the profile map: for example, system admins can post
