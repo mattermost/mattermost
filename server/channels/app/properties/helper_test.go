@@ -68,11 +68,7 @@ func RequestContextWithCallerID(rctx request.CTX, callerID string) request.CTX {
 }
 
 // SetupCPAGroup registers the CPA group and returns the group ID.
-// It also resets the service's cached cpaGroupID to ensure clean state.
 func (th *TestHelper) SetupCPAGroup(tb testing.TB) string {
-	// Reset cached CPA group ID
-	th.service.cpaGroupID = ""
-
 	group, err := th.service.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
 	require.NoError(tb, err)
 	return group.ID

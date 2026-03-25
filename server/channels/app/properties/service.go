@@ -22,7 +22,6 @@ type PropertyService struct {
 	valueStore        store.PropertyValueStore
 	propertyAccess    *PropertyAccessService
 	callerIDExtractor CallerIDExtractor
-	cpaGroupID        string
 	groupCache        sync.Map // name -> *model.PropertyGroup
 }
 
@@ -44,7 +43,6 @@ func New(c ServiceConfig) (*PropertyService, error) {
 		valueStore:        c.PropertyValueStore,
 		callerIDExtractor: c.CallerIDExtractor,
 		propertyAccess:    nil,
-		cpaGroupID:        "",
 	}, nil
 }
 
@@ -62,14 +60,11 @@ func (ps *PropertyService) SetPropertyAccessService(pas *PropertyAccessService) 
 // requiresAccessControl checks if a group ID requires access control enforcement.
 // Currently, only the CPA group requires access control, but this may change in the future.
 func (ps *PropertyService) requiresAccessControl(groupID string) (bool, error) {
-	if ps.cpaGroupID == "" {
-		group, err := ps.GetPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
-		if err != nil {
-			return false, nil
-		}
-		ps.cpaGroupID = group.ID
+	group, err := ps.Group(model.CustomProfileAttributesPropertyGroupName)
+	if err != nil {
+		return false, nil
 	}
-	return groupID == ps.cpaGroupID, nil
+	return groupID == group.ID, nil
 }
 
 // SetPluginCheckerForTests sets the plugin checker on the underlying PropertyAccessService.
