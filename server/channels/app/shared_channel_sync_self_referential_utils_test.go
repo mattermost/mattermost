@@ -129,8 +129,10 @@ func (h *SelfReferentialSyncHandler) HandleRequest(w http.ResponseWriter, r *htt
 							if h.OnBatchSync != nil {
 								h.OnBatchSync(batch, currentCall)
 							}
-							if len(batch) == 1 && h.OnIndividualSync != nil {
-								h.OnIndividualSync(batch[0], currentCall)
+							if h.OnIndividualSync != nil {
+								for _, uid := range batch {
+									h.OnIndividualSync(uid, currentCall)
+								}
 							}
 						}
 					}

@@ -10021,7 +10021,7 @@
   },
   {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
-    "translation": "Die Eigenschaftsgruppe Benutzerdefinierte Profilattribute kann nicht registriert werden"
+    "translation": "Die Eigenschaftsgruppe der benutzerdefinierten Profilattribute kann nicht abgerufen werden."
   },
   {
     "id": "app.custom_profile_attributes.create_property_field.app_error",
@@ -11813,7 +11813,7 @@
   },
   {
     "id": "app.data_spillage.get_group.error",
-    "translation": "Der Bot für die Inhaltskennzeichnung konnte nicht gefunden werden."
+    "translation": "Die Eigenschaftsgruppe für die Inhaltskennzeichnung kann nicht abgerufen werden."
   },
   {
     "id": "app.data_spillage.get_reviewer_settings.app_error",
@@ -11958,5 +11958,53 @@
   {
     "id": "web.error.unsupported_desktop_app.title",
     "translation": "Update erforderlich"
+  },
+  {
+    "id": "api.slackimport.slack_add_bot_user.email",
+    "translation": "Der Integrations-/Slack-Bot-Benutzer mit der E-Mail {{.Email}} wurde importiert.\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.email",
+    "translation": "Slack-Benutzer mit der E-Mail {{.Email}} wurde importiert.\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.send_reset_email_failed",
+    "translation": "Mail zum Zurücksetzen des Passworts kann nicht an {{.Username}} mit{{.Email}} gesendet werden.\n"
+  },
+  {
+    "id": "app.limits.get_app_limits.single_channel_guest_count.store_error",
+    "translation": "Die Anzahl der Einzelkanal-Gäste konnte nicht ermittelt werden."
+  },
+  {
+    "id": "app.pap.get_policies_for_field_ids.app_error",
+    "translation": "Es konnten keine Richtlinien für die angegebenen Feld-IDs abgerufen werden."
+  },
+  {
+    "id": "app.role.send_updated_role_event.app_error",
+    "translation": "Beim Übertragen der Rollenaktualisierung ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "app.role.send_updated_role_event.unknown_scope",
+    "translation": "Beim Übertragen der Rollenaktualisierung ist ein Fehler aufgetreten: Unbekannter Schemabereich."
+  },
+  {
+    "id": "app.user.analytics_get_single_channel_guest_count.app_error",
+    "translation": "Die Anzahl der Einzelkanal-Gäste für die Analyse konnte nicht ermittelt werden."
+  },
+  {
+    "id": "ent.elasticsearch.backfill_posts_channel_type.error",
+    "translation": "Fehlschlag von {{.Backend}} beim Füllen der Kanaltypen von Beiträgen"
+  },
+  {
+    "id": "ent.elasticsearch.update_posts_channel_type.error",
+    "translation": "{{.Backend}} Kanal-Typ in Beiträgen nicht aktualisiert"
+  },
+  {
+    "id": "model.config.is_valid.native_app_settings.download_link.app_error",
+    "translation": "Ein oder mehrere Links zum Download der App sind keine gültigen URLs."
+  },
+  {
+    "id": "model.user_report_options.is_valid.invalid_guest_filter",
+    "translation": "Der vorgegebene Gast-Filter ist nicht gültig."
   }
 ]

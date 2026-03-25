@@ -172,13 +172,12 @@ type SharedChannelRemoteStatus struct {
 // SharedChannelUser stores a lastSyncAt timestamp on behalf of a remote cluster for
 // each user that has been synchronized.
 type SharedChannelUser struct {
-	Id                   string `json:"id"`
-	UserId               string `json:"user_id"`
-	ChannelId            string `json:"channel_id"`
-	RemoteId             string `json:"remote_id"`
-	CreateAt             int64  `json:"create_at"`
-	LastSyncAt           int64  `json:"last_sync_at"`
-	LastMembershipSyncAt int64  `json:"last_membership_sync_at"`
+	Id         string `json:"id"`
+	UserId     string `json:"user_id"`
+	ChannelId  string `json:"channel_id"`
+	RemoteId   string `json:"remote_id"`
+	CreateAt   int64  `json:"create_at"`
+	LastSyncAt int64  `json:"last_sync_at"`
 }
 
 func (scu *SharedChannelUser) PreSave() {
@@ -336,6 +335,8 @@ type SyncResponse struct {
 	AcknowledgementErrors        []string `json:"acknowledgement_errors"`
 
 	StatusErrors []string `json:"status_errors"` // user IDs for which the status sync failed
+
+	MembershipErrors []string `json:"membership_errors,omitempty"`
 }
 
 // RegisterPluginOpts is passed by plugins to the `RegisterPluginForSharedChannels` plugin API

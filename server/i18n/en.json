@@ -2597,6 +2597,10 @@
     "translation": "invalid_request: Bad request."
   },
   {
+    "id": "api.oauth.get_access_token.client_id_mismatch.app_error",
+    "translation": "invalid_grant: Token grant was not issued to this client."
+  },
+  {
     "id": "api.oauth.get_access_token.credentials.app_error",
     "translation": "invalid_client: Invalid client credentials."
   },
@@ -7021,6 +7025,10 @@
   {
     "id": "app.pap.save_policy.app_error",
     "translation": "Unable to save access control policy."
+  },
+  {
+    "id": "app.pap.save_policy.name_exists.app_error",
+    "translation": "A policy with this name already exists. Please choose a different name."
   },
   {
     "id": "app.pap.search_access_control_policies.app_error",
