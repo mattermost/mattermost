@@ -80,6 +80,7 @@ func init() {
 	ExtractCmd.Flags().String("model-dir", "../model", "Path to folder with the Mattermost model package source code")
 	ExtractCmd.Flags().String("plugin-dir", "../plugin", "Path to folder with the Mattermost plugin package source code")
 	ExtractCmd.Flags().Bool("contributor", false, "Allows contributors safely extract translations from source code without removing enterprise messages keys")
+	ExtractCmd.Flags().Bool("split-enterprise", false, "Write enterprise strings to a separate en.enterprise.json file instead of en.json")
 
 	CheckCmd.Flags().Bool("skip-dynamic", false, "Whether to skip dynamically added translations")
 	CheckCmd.Flags().String("portal-dir", "../customer-web-server", "Path to folder with the Mattermost Customer Portal source code")
@@ -87,6 +88,7 @@ func init() {
 	CheckCmd.Flags().String("server-dir", "./", "Path to folder with the Mattermost server source code")
 	CheckCmd.Flags().String("model-dir", "../model", "Path to folder with the Mattermost model package source code")
 	CheckCmd.Flags().String("plugin-dir", "../plugin", "Path to folder with the Mattermost plugin package source code")
+	CheckCmd.Flags().Bool("split-enterprise", false, "Check server and enterprise strings separately against their respective files")
 
 	CheckEmptySrcCmd.Flags().String("portal-dir", "../customer-web-server", "Path to folder with the Mattermost Customer Portal source code")
 	CheckEmptySrcCmd.Flags().String("enterprise-dir", "../../enterprise", "Path to folder with the Mattermost enterprise source code")
@@ -125,6 +127,13 @@ func resolveSymlink(path string) string {
 	return path
 }
 
+// srcStringOrigin tracks whether a string was found in enterprise code.
+// "enterprise" means the string was extracted from the enterprise directory.
+// "server" means it was extracted from server, model, or plugin directories.
+type srcStringOrigin struct {
+	IsEnterprise bool
+}
+
 func extractSrcStrings(enterpriseDir, mattermostDir, modelDir, pluginDir, portalDir string) map[string]bool {
 	i18nStrings := map[string]bool{}
 	walkFunc := func(p string, info os.FileInfo, err error) error {
@@ -143,6 +152,67 @@ func extractSrcStrings(enterpriseDir, mattermostDir, modelDir, pluginDir, portal
 		_ = filepath.Walk(resolveSymlink(pluginDir), walkFunc)
 	}
 	return i18nStrings
+}
+
+// extractSrcStringsWithOrigin is like extractSrcStrings but tracks which directory each string
+// was found in, enabling split output for enterprise vs server strings.
+func extractSrcStringsWithOrigin(enterpriseDir, mattermostDir, modelDir, pluginDir string) (serverStrings, enterpriseStrings map[string]bool) {
+	serverStrings = map[string]bool{}
+	enterpriseStrings = map[string]bool{}
+
+	serverWalkFunc := func(p string, info os.FileInfo, err error) error {
+		if strings.HasPrefix(p, path.Join(mattermostDir, "vendor")) {
+			return nil
+		}
+		return extractFromPath(p, info, err, serverStrings)
+	}
+
+	enterpriseWalkFunc := func(p string, info os.FileInfo, err error) error {
+		return extractFromPath(p, info, err, enterpriseStrings)
+	}
+
+	_ = filepath.Walk(resolveSymlink(mattermostDir), serverWalkFunc)
+	_ = filepath.Walk(resolveSymlink(modelDir), serverWalkFunc)
+	_ = filepath.Walk(resolveSymlink(pluginDir), serverWalkFunc)
+	_ = filepath.Walk(resolveSymlink(enterpriseDir), enterpriseWalkFunc)
+
+	// If a string appears in both server and enterprise, it belongs to server
+	// (enterprise is just using it, not defining it).
+	for id := range serverStrings {
+		delete(enterpriseStrings, id)
+	}
+
+	return serverStrings, enterpriseStrings
+}
+
+// getEnterpriseBaseFileSrcStrings reads existing enterprise translation strings from en.enterprise.json
+func getEnterpriseBaseFileSrcStrings(mattermostDir string) ([]Translation, error) {
+	jsonFile, err := os.ReadFile(path.Join(mattermostDir, "i18n", "en.enterprise.json"))
+	if err != nil {
+		if os.IsNotExist(err) {
+			return []Translation{}, nil
+		}
+		return nil, err
+	}
+	var translations []Translation
+	err = json.Unmarshal(jsonFile, &translations)
+	return translations, err
+}
+
+// writeTranslationFile writes a sorted list of translations to a JSON file.
+func writeTranslationFile(filePath string, translations []Translation) error {
+	sort.Slice(translations, func(i, j int) bool { return translations[i].Id < translations[j].Id })
+
+	f, err := os.Create(filePath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	encoder := json.NewEncoder(f)
+	encoder.SetIndent("", "  ")
+	encoder.SetEscapeHTML(false)
+	return encoder.Encode(translations)
 }
 
 func extractCmdF(command *cobra.Command, args []string) error {
@@ -174,6 +244,10 @@ func extractCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return errors.New("invalid plugin-dir parameter")
 	}
+	splitEnterprise, err := command.Flags().GetBool("split-enterprise")
+	if err != nil {
+		return errors.New("invalid split-enterprise parameter")
+	}
 	translationDir := mattermostDir
 	if portalDir != "" {
 		if enterpriseDir != "" || mattermostDir != "" {
@@ -181,7 +255,13 @@ func extractCmdF(command *cobra.Command, args []string) error {
 		}
 		skipDynamic = true // dynamics are not needed for portal
 		translationDir = portalDir
+		splitEnterprise = false // not applicable for portal
 	}
+
+	if splitEnterprise {
+		return extractSplitCmdF(skipDynamic, contributorMode, enterpriseDir, mattermostDir, modelDir, pluginDir)
+	}
+
 	i18nStrings := extractSrcStrings(enterpriseDir, mattermostDir, modelDir, pluginDir, portalDir)
 	if !skipDynamic {
 		addDynamicallyGeneratedStrings(i18nStrings)
@@ -228,22 +308,116 @@ func extractCmdF(command *cobra.Command, args []string) error {
 	for _, t := range resultMap {
 		result = append(result, t)
 	}
-	sort.Slice(result, func(i, j int) bool { return result[i].Id < result[j].Id })
 
-	f, err := os.Create(path.Join(mattermostDir, "i18n", "en.json"))
+	return writeTranslationFile(path.Join(mattermostDir, "i18n", "en.json"), result)
+}
+
+// extractSplitCmdF handles extraction with enterprise strings split into a separate file.
+// Server strings go to i18n/en.json, enterprise strings go to i18n/en.enterprise.json.
+func extractSplitCmdF(skipDynamic, contributorMode bool, enterpriseDir, mattermostDir, modelDir, pluginDir string) error {
+	serverStrings, entStrings := extractSrcStringsWithOrigin(enterpriseDir, mattermostDir, modelDir, pluginDir)
+	if !skipDynamic {
+		addDynamicallyGeneratedStrings(serverStrings)
+	}
+	// Delete any untranslated keys
+	delete(serverStrings, untranslatedKey)
+	delete(entStrings, untranslatedKey)
+
+	// Process server strings against existing en.json
+	sourceStrings, err := getBaseFileSrcStrings(mattermostDir)
 	if err != nil {
 		return err
 	}
-	defer f.Close()
 
-	encoder := json.NewEncoder(f)
-	encoder.SetIndent("", "  ")
-	encoder.SetEscapeHTML(false)
-	err = encoder.Encode(result)
+	serverResultMap := map[string]Translation{}
+	serverIdx := map[string]bool{}
+	var serverBaseList []string
+	for _, t := range sourceStrings {
+		serverIdx[t.Id] = true
+		serverBaseList = append(serverBaseList, t.Id)
+		serverResultMap[t.Id] = t
+	}
+
+	// Add new server strings
+	for id := range serverStrings {
+		if _, hasKey := serverIdx[id]; !hasKey {
+			serverResultMap[id] = Translation{Id: id, Translation: ""}
+		}
+	}
+
+	// Remove stale server strings (but keep enterprise ones in contributor mode)
+	for _, translationKey := range serverBaseList {
+		if _, inServer := serverStrings[translationKey]; !inServer {
+			if _, inEnt := entStrings[translationKey]; !inEnt {
+				if contributorMode && strings.HasPrefix(translationKey, enterpriseKeyPrefix) {
+					continue
+				}
+				delete(serverResultMap, translationKey)
+			} else {
+				// This string moved to enterprise — remove from server file
+				delete(serverResultMap, translationKey)
+			}
+		}
+	}
+
+	var serverResult []Translation
+	for _, t := range serverResultMap {
+		serverResult = append(serverResult, t)
+	}
+
+	// Process enterprise strings against existing en.enterprise.json
+	entSourceStrings, err := getEnterpriseBaseFileSrcStrings(mattermostDir)
 	if err != nil {
 		return err
 	}
 
+	entResultMap := map[string]Translation{}
+	entIdx := map[string]bool{}
+	for _, t := range entSourceStrings {
+		entIdx[t.Id] = true
+		entResultMap[t.Id] = t
+	}
+
+	// Also check if any enterprise strings had translations in the old en.json
+	// (migration: move existing translations from en.json to en.enterprise.json)
+	for _, t := range sourceStrings {
+		if _, isEnt := entStrings[t.Id]; isEnt {
+			if _, already := entResultMap[t.Id]; !already {
+				entResultMap[t.Id] = t
+				entIdx[t.Id] = true
+			}
+		}
+	}
+
+	// Add new enterprise strings
+	for id := range entStrings {
+		if _, hasKey := entIdx[id]; !hasKey {
+			entResultMap[id] = Translation{Id: id, Translation: ""}
+		}
+	}
+
+	// Remove stale enterprise strings
+	for id := range entIdx {
+		if _, hasKey := entStrings[id]; !hasKey {
+			delete(entResultMap, id)
+		}
+	}
+
+	var entResult []Translation
+	for _, t := range entResultMap {
+		entResult = append(entResult, t)
+	}
+
+	// Write both files
+	if err := writeTranslationFile(path.Join(mattermostDir, "i18n", "en.json"), serverResult); err != nil {
+		return fmt.Errorf("failed to write en.json: %w", err)
+	}
+	if err := writeTranslationFile(path.Join(mattermostDir, "i18n", "en.enterprise.json"), entResult); err != nil {
+		return fmt.Errorf("failed to write en.enterprise.json: %w", err)
+	}
+
+	fmt.Printf("Wrote %d server strings to en.json\n", len(serverResult))
+	fmt.Printf("Wrote %d enterprise strings to en.enterprise.json\n", len(entResult))
 	return nil
 }
 

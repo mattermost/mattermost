@@ -341,7 +341,7 @@ endif
 
 i18n-extract: ## Extract strings for translation from the source code
 	cd ../tools/mmgotool && $(GO) install .
-	$(GOBIN)/mmgotool i18n extract --portal-dir=""
+	$(GOBIN)/mmgotool i18n extract --portal-dir="" --split-enterprise
 
 i18n-check: ## Exit on empty translation strings and translation source strings
 	cd ../tools/mmgotool && $(GO) install .
