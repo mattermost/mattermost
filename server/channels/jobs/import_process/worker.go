@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/configservice"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/imports"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
@@ -100,32 +101,39 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 		}
 
 		// find JSONL import file.
-		var jsonFile io.ReadCloser
+		var jsonZipFile *zip.File
 		for _, f := range importZipReader.File {
-			if filepath.Ext(f.Name) != ".jsonl" {
-				continue
+			if imports.IsRootJsonlFile(f.Name) {
+				jsonZipFile = f
+				break
 			}
-			// avoid "zip slip"
-			if strings.Contains(f.Name, "..") {
-				return model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, "jsonFilePath contains path traversal", http.StatusForbidden)
-			}
-
-			jsonFile, err = f.Open()
-			if err != nil {
-				return model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, "", http.StatusInternalServerError).Wrap(err)
-			}
-
-			defer jsonFile.Close()
-			break
 		}
-
-		if jsonFile == nil {
+		if jsonZipFile == nil {
 			return model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.missing_jsonl", nil, "jsonFile was nil", http.StatusBadRequest)
 		}
 
+		// avoid "zip slip"
+		if strings.Contains(jsonZipFile.Name, "..") {
+			return model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, "jsonFilePath contains path traversal", http.StatusForbidden)
+		}
+
+		jsonFile, err := jsonZipFile.Open()
+		if err != nil {
+			return model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		defer jsonFile.Close()
+
 		extractContent := job.Data["extract_content"] == "true"
+
+		numWorkers := runtime.NumCPU()
+		if workersStr, ok := job.Data["workers"]; ok {
+			if n, err := strconv.Atoi(workersStr); err == nil && n > 0 {
+				numWorkers = n
+			}
+		}
+
 		// do the actual import.
-		lineNumber, appErr := app.BulkImportWithPath(appContext, jsonFile, importZipReader, false, extractContent, runtime.NumCPU(), model.ExportDataDir)
+		lineNumber, appErr := app.BulkImportWithPath(appContext, jsonFile, importZipReader, false, extractContent, numWorkers, model.ExportDataDir)
 		if appErr != nil {
 			job.Data["line_number"] = strconv.Itoa(lineNumber)
 			return appErr

@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/stretchr/testify/mock"
 
@@ -165,6 +166,134 @@ func TestPreparePostForClient(t *testing.T) {
 		assert.Equal(t, clientPost, post, "shouldn't have changed any metadata")
 	})
 
+	t.Run("priority read from master when context flag set", func(t *testing.T) {
+		// Verifies priority is read from master DB when master context flag is set
+		th := setup(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostPriority = true
+		})
+
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		// Create a real post with priority
+		post, _, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test message with priority",
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority:     model.NewPointer(model.PostPriorityUrgent),
+					RequestedAck: model.NewPointer(true),
+				},
+			},
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, err)
+
+		// Clear metadata to simulate fresh fetch
+		postWithoutPriority := post.Clone()
+		postWithoutPriority.Metadata = &model.PostMetadata{}
+
+		// Use master context to ensure we read from master DB
+		masterCtx := sqlstore.RequestContextWithMaster(th.Context)
+		clientPost := th.App.PreparePostForClient(masterCtx, postWithoutPriority, &model.PreparePostForClientOpts{
+			IncludePriority: true,
+		})
+
+		require.NotNil(t, clientPost.Metadata)
+		require.NotNil(t, clientPost.Metadata.Priority, "priority should be fetched from master DB")
+		assert.Equal(t, model.PostPriorityUrgent, *clientPost.Metadata.Priority.Priority)
+		assert.True(t, *clientPost.Metadata.Priority.RequestedAck)
+	})
+
+	t.Run("priority fetched from database when IncludePriority is true", func(t *testing.T) {
+		// Verifies priority is fetched from DB when it exists.
+		th := setup(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostPriority = true
+		})
+
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		post, _, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test message with priority",
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority:     model.NewPointer(model.PostPriorityUrgent),
+					RequestedAck: model.NewPointer(true),
+				},
+			},
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, err)
+
+		// Clear metadata to simulate fresh fetch
+		postWithoutPriority := post.Clone()
+		postWithoutPriority.Metadata = &model.PostMetadata{}
+
+		clientPost := th.App.PreparePostForClient(th.Context, postWithoutPriority, &model.PreparePostForClientOpts{
+			IncludePriority: true,
+		})
+
+		require.NotNil(t, clientPost.Metadata)
+		require.NotNil(t, clientPost.Metadata.Priority, "priority should be fetched from DB")
+		assert.Equal(t, model.PostPriorityUrgent, *clientPost.Metadata.Priority.Priority)
+		assert.True(t, *clientPost.Metadata.Priority.RequestedAck)
+	})
+
+	t.Run("burn on read post priority read from master", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
+		t.Cleanup(func() {
+			os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
+		})
+
+		// Verifies BoR post priority is correctly fetched when using master context
+		th := setup(t)
+
+		// Enable BoR feature with license and config
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostPriority = true
+			*cfg.ServiceSettings.EnableBurnOnRead = true
+		})
+
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		// Create a burn-on-read post with priority
+		post, _, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "burn on read message with priority",
+			Type:      model.PostTypeBurnOnRead,
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority:     model.NewPointer(model.PostPriorityUrgent),
+					RequestedAck: model.NewPointer(true),
+				},
+			},
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, err)
+		require.Equal(t, model.PostTypeBurnOnRead, post.Type)
+
+		// Clear metadata to simulate websocket broadcast scenario
+		postWithoutPriority := post.Clone()
+		postWithoutPriority.Metadata = &model.PostMetadata{}
+
+		// Use master context (as processBroadcastHookForBurnOnRead does)
+		masterCtx := sqlstore.RequestContextWithMaster(th.Context)
+		clientPost := th.App.PreparePostForClient(masterCtx, postWithoutPriority, &model.PreparePostForClientOpts{
+			IncludePriority: true,
+			RetainContent:   true,
+		})
+
+		require.NotNil(t, clientPost.Metadata)
+		require.NotNil(t, clientPost.Metadata.Priority, "BoR post priority should be fetched from master DB")
+		assert.Equal(t, model.PostPriorityUrgent, *clientPost.Metadata.Priority.Priority)
+		assert.True(t, *clientPost.Metadata.Priority.RequestedAck)
+	})
+
 	t.Run("reactions", func(t *testing.T) {
 		th := setup(t)
 
@@ -221,7 +350,7 @@ func TestPreparePostForClient(t *testing.T) {
 			ChannelId: th.BasicChannel.Id,
 			Message:   ":" + emoji.Name + ": :taco:",
 			Props: map[string]any{
-				model.PostPropsAttachments: []*model.SlackAttachment{
+				model.PostPropsAttachments: []*model.MessageAttachment{
 					{
 						Text: ":" + emoji.Name + ":",
 					},
@@ -264,7 +393,7 @@ func TestPreparePostForClient(t *testing.T) {
 			ChannelId: th.BasicChannel.Id,
 			Message:   ":" + emoji3.Name + ": :taco:",
 			Props: map[string]any{
-				model.PostPropsAttachments: []*model.SlackAttachment{
+				model.PostPropsAttachments: []*model.MessageAttachment{
 					{
 						Text: ":" + emoji4.Name + ":",
 					},
@@ -650,6 +779,51 @@ func TestPreparePostForClient(t *testing.T) {
 		require.Equal(t, referencedPost.Id, preview.PostID)
 	})
 
+	t.Run("permalink preview includes post priority metadata", func(t *testing.T) {
+		th := setup(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
+			*cfg.ServiceSettings.PostPriority = true
+		})
+
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		referencedPost, _, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "hello world with priority",
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority:     model.NewPointer(model.PostPriorityUrgent),
+					RequestedAck: model.NewPointer(true),
+				},
+			},
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, err)
+		referencedPost.Metadata.Embeds = nil
+
+		link := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
+
+		previewPost, _, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   link,
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, err)
+		previewPost.Metadata.Embeds = nil
+
+		clientPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, previewPost, &model.PreparePostForClientOpts{})
+		firstEmbed := clientPost.Metadata.Embeds[0]
+		preview := firstEmbed.Data.(*model.PreviewPost)
+
+		require.Equal(t, referencedPost.Id, preview.PostID)
+		require.NotNil(t, preview.Post.Metadata)
+		require.NotNil(t, preview.Post.Metadata.Priority)
+		assert.Equal(t, model.PostPriorityUrgent, *preview.Post.Metadata.Priority.Priority)
+		assert.True(t, *preview.Post.Metadata.Priority.RequestedAck)
+	})
+
 	t.Run("permalink previews for direct and group messages", func(t *testing.T) {
 		th := setup(t)
 
@@ -1020,7 +1194,7 @@ func TestGetEmbedForPost(t *testing.T) {
 		t.Run("should return a message attachment when the post has one", func(t *testing.T) {
 			embed, err := th.App.getEmbedForPost(th.Context, &model.Post{
 				Props: model.StringInterface{
-					model.PostPropsAttachments: []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.MessageAttachment{
 						{
 							Text: "test",
 						},
@@ -1097,7 +1271,7 @@ func TestGetEmbedForPost(t *testing.T) {
 		t.Run("should return an embedded message attachment", func(t *testing.T) {
 			embed, err := th.App.getEmbedForPost(th.Context, &model.Post{
 				Props: model.StringInterface{
-					model.PostPropsAttachments: []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.MessageAttachment{
 						{
 							Text: "test",
 						},
@@ -1508,13 +1682,13 @@ func TestGetEmojiNamesForPost(t *testing.T) {
 			Post: &model.Post{
 				Message: "this is a post",
 				Props: map[string]any{
-					model.PostPropsAttachments: []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.MessageAttachment{
 						{
 							Text:    ":emoji1:",
 							Pretext: ":emoji2:",
 						},
 						{
-							Fields: []*model.SlackAttachmentField{
+							Fields: []*model.MessageAttachmentField{
 								{
 									Value: ":emoji3:",
 								},
@@ -1536,11 +1710,11 @@ func TestGetEmojiNamesForPost(t *testing.T) {
 			Post: &model.Post{
 				Message: "this is :emoji1",
 				Props: map[string]any{
-					model.PostPropsAttachments: []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.MessageAttachment{
 						{
 							Text:    ":emoji2:",
 							Pretext: ":emoji2:",
-							Fields: []*model.SlackAttachmentField{
+							Fields: []*model.MessageAttachmentField{
 								{
 									Value: ":emoji3:",
 								},
@@ -1592,11 +1766,11 @@ func TestGetCustomEmojisForPost(t *testing.T) {
 		post := &model.Post{
 			Message: ":" + emojis[1].Name + ":",
 			Props: map[string]any{
-				model.PostPropsAttachments: []*model.SlackAttachment{
+				model.PostPropsAttachments: []*model.MessageAttachment{
 					{
 						Pretext: ":" + emojis[2].Name + ":",
 						Text:    ":" + emojis[3].Name + ":",
-						Fields: []*model.SlackAttachmentField{
+						Fields: []*model.MessageAttachmentField{
 							{
 								Value: ":" + emojis[4].Name + ":",
 							},
@@ -1618,7 +1792,7 @@ func TestGetCustomEmojisForPost(t *testing.T) {
 		post := &model.Post{
 			Message: ":secret: :" + emojis[0].Name + ":",
 			Props: map[string]any{
-				model.PostPropsAttachments: []*model.SlackAttachment{
+				model.PostPropsAttachments: []*model.MessageAttachment{
 					{
 						Text: ":imaginary:",
 					},
@@ -1829,7 +2003,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "empty attachments",
 			Post: &model.Post{
 				Props: map[string]any{
-					model.PostPropsAttachments: []*model.SlackAttachment{},
+					model.PostPropsAttachments: []*model.MessageAttachment{},
 				},
 			},
 			Expected: []string{},
@@ -1838,7 +2012,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "attachment with no fields that can contain images",
 			Post: &model.Post{
 				Props: map[string]any{
-					model.PostPropsAttachments: []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.MessageAttachment{
 						{
 							Title: "This is the title",
 						},
@@ -1851,7 +2025,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "images in text",
 			Post: &model.Post{
 				Props: map[string]any{
-					model.PostPropsAttachments: []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.MessageAttachment{
 						{
 							Text: "![logo](https://example.com/logo) and ![icon](https://example.com/icon)",
 						},
@@ -1864,7 +2038,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "images in pretext",
 			Post: &model.Post{
 				Props: map[string]any{
-					model.PostPropsAttachments: []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.MessageAttachment{
 						{
 							Pretext: "![logo](https://example.com/logo1) and ![icon](https://example.com/icon1)",
 						},
@@ -1877,9 +2051,9 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "images in fields",
 			Post: &model.Post{
 				Props: map[string]any{
-					model.PostPropsAttachments: []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.MessageAttachment{
 						{
-							Fields: []*model.SlackAttachmentField{
+							Fields: []*model.MessageAttachmentField{
 								{
 									Value: "![logo](https://example.com/logo2) and ![icon](https://example.com/icon2)",
 								},
@@ -1894,7 +2068,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "image in author_icon",
 			Post: &model.Post{
 				Props: map[string]any{
-					model.PostPropsAttachments: []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.MessageAttachment{
 						{
 							AuthorIcon: "https://example.com/icon2",
 						},
@@ -1907,7 +2081,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "image in image_url",
 			Post: &model.Post{
 				Props: map[string]any{
-					model.PostPropsAttachments: []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.MessageAttachment{
 						{
 							ImageURL: "https://example.com/image",
 						},
@@ -1920,7 +2094,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "image in thumb_url",
 			Post: &model.Post{
 				Props: map[string]any{
-					model.PostPropsAttachments: []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.MessageAttachment{
 						{
 							ThumbURL: "https://example.com/image",
 						},
@@ -1933,7 +2107,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "image in footer_icon",
 			Post: &model.Post{
 				Props: map[string]any{
-					model.PostPropsAttachments: []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.MessageAttachment{
 						{
 							FooterIcon: "https://example.com/image",
 						},
@@ -1946,9 +2120,9 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "images in multiple fields",
 			Post: &model.Post{
 				Props: map[string]any{
-					model.PostPropsAttachments: []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.MessageAttachment{
 						{
-							Fields: []*model.SlackAttachmentField{
+							Fields: []*model.MessageAttachmentField{
 								{
 									Value: "![logo](https://example.com/logo)",
 								},
@@ -1966,9 +2140,9 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "non-string field",
 			Post: &model.Post{
 				Props: map[string]any{
-					model.PostPropsAttachments: []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.MessageAttachment{
 						{
-							Fields: []*model.SlackAttachmentField{
+							Fields: []*model.MessageAttachmentField{
 								{
 									Value: 77,
 								},
@@ -1983,11 +2157,11 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "images in multiple locations",
 			Post: &model.Post{
 				Props: map[string]any{
-					model.PostPropsAttachments: []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.MessageAttachment{
 						{
 							Text:    "![text](https://example.com/text)",
 							Pretext: "![pretext](https://example.com/pretext)",
-							Fields: []*model.SlackAttachmentField{
+							Fields: []*model.MessageAttachmentField{
 								{
 									Value: "![field1](https://example.com/field1)",
 								},
@@ -2005,7 +2179,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			Name: "multiple attachments",
 			Post: &model.Post{
 				Props: map[string]any{
-					model.PostPropsAttachments: []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.MessageAttachment{
 						{
 							Text: "![logo](https://example.com/logo)",
 						},
@@ -3252,4 +3426,206 @@ func TestPreparePostForClient_BurnOnReadSenderExpireAt(t *testing.T) {
 	require.NotNil(t, preparedPost.Metadata)
 	require.NotZero(t, preparedPost.Metadata.ExpireAt)
 	require.Equal(t, receipt.ExpireAt, preparedPost.Metadata.ExpireAt)
+}
+func TestSanitizeChannelMentionsForUser(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("post with no channel mentions", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		post := &model.Post{
+			Message: "Regular post with no mentions",
+		}
+
+		result, _, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
+		require.Nil(t, err)
+		require.NotNil(t, result)
+		require.Nil(t, result.GetProp(model.PostPropsChannelMentions))
+	})
+
+	t.Run("removes inaccessible channel mentions", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		// Create a channel on a different team user is not member of
+		team2, err := th.App.CreateTeam(th.Context, &model.Team{
+			DisplayName: "Team 2",
+			Name:        "team-2",
+			Type:        model.TeamOpen,
+		})
+		require.Nil(t, err)
+
+		channel, err := th.App.CreateChannel(th.Context, &model.Channel{
+			TeamId:      team2.Id,
+			Name:        "test-channel",
+			DisplayName: "Test Channel",
+			Type:        model.ChannelTypeOpen,
+		}, false)
+		require.Nil(t, err)
+
+		post := &model.Post{
+			Message: "Check ~test-channel",
+		}
+		post.AddProp(model.PostPropsChannelMentions, map[string]any{
+			channel.Name: map[string]any{
+				"display_name": channel.DisplayName,
+				"team_name":    team2.Name,
+			},
+		})
+
+		result, _, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
+		require.Nil(t, err)
+		require.NotNil(t, result)
+		// Should remove the mention since user can't access the team
+		require.Nil(t, result.GetProp(model.PostPropsChannelMentions))
+	})
+
+	t.Run("includes accessible public channel mentions on retrieval", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		post := &model.Post{
+			Message: "Check ~" + th.BasicChannel.Name,
+		}
+		post.AddProp(model.PostPropsChannelMentions, map[string]any{
+			th.BasicChannel.Name: map[string]any{
+				"display_name": th.BasicChannel.DisplayName,
+				"team_name":    th.BasicTeam.Name,
+			},
+		})
+
+		result, _, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
+		require.Nil(t, err)
+		require.NotNil(t, result)
+
+		mentions := result.GetProp(model.PostPropsChannelMentions)
+		require.NotNil(t, mentions)
+		mentionsMap, ok := mentions.(map[string]any)
+		require.True(t, ok)
+		require.Contains(t, mentionsMap, th.BasicChannel.Name)
+	})
+
+	t.Run("uses fresh display name from database on retrieval", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		// Post has stale data
+		post := &model.Post{
+			Message: "Check ~" + th.BasicChannel.Name,
+		}
+		post.AddProp(model.PostPropsChannelMentions, map[string]any{
+			th.BasicChannel.Name: map[string]any{
+				"display_name": "Stale Display Name",
+				"team_name":    th.BasicTeam.Name,
+			},
+		})
+
+		result, _, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
+		require.Nil(t, err)
+		require.NotNil(t, result)
+
+		mentions := result.GetProp(model.PostPropsChannelMentions)
+		require.NotNil(t, mentions)
+		mentionsMap, ok := mentions.(map[string]any)
+		require.True(t, ok)
+
+		channelData, ok := mentionsMap[th.BasicChannel.Name].(map[string]any)
+		require.True(t, ok)
+		// Should have current display name from database, not stale data
+		require.Equal(t, th.BasicChannel.DisplayName, channelData["display_name"])
+	})
+}
+
+func TestFillInPostPropsWithCurrentTeamId(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("uses current_team_id for DM channel mention resolution", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		// Create a second team with a channel named "engineering"
+		team2, err := th.App.CreateTeam(th.Context, &model.Team{
+			DisplayName: "Team 2",
+			Name:        "team2",
+			Type:        model.TeamOpen,
+		})
+		require.Nil(t, err)
+
+		th.LinkUserToTeam(t, th.BasicUser, team2)
+
+		channel2, err := th.App.CreateChannel(th.Context, &model.Channel{
+			TeamId:      team2.Id,
+			Name:        "engineering",
+			DisplayName: "Engineering Team 2",
+			Type:        model.ChannelTypeOpen,
+		}, false)
+		require.Nil(t, err)
+
+		// Also create channel with same name on BasicTeam
+		channel1, err := th.App.CreateChannel(th.Context, &model.Channel{
+			TeamId:      th.BasicTeam.Id,
+			Name:        "engineering",
+			DisplayName: "Engineering Team 1",
+			Type:        model.ChannelTypeOpen,
+		}, false)
+		require.Nil(t, err)
+
+		// Create a DM channel
+		dmChannel, err := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
+		require.Nil(t, err)
+
+		// Create post in DM with channel mention and current_team_id
+		post := &model.Post{
+			ChannelId: dmChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "Check ~engineering",
+		}
+		post.AddProp(model.PostPropsCurrentTeamId, team2.Id)
+
+		// Fill in post props
+		appErr := th.App.FillInPostProps(th.Context, post, dmChannel)
+		require.Nil(t, appErr)
+
+		// Verify current_team_id was removed
+		require.Nil(t, post.GetProp(model.PostPropsCurrentTeamId))
+
+		// Verify channel mentions were populated from team2, not BasicTeam
+		mentions := post.GetProp(model.PostPropsChannelMentions)
+		require.NotNil(t, mentions)
+		mentionsMap, ok := mentions.(map[string]any)
+		require.True(t, ok)
+
+		channelData, ok := mentionsMap["engineering"].(map[string]any)
+		require.True(t, ok)
+		require.Equal(t, channel2.DisplayName, channelData["display_name"])
+		require.Equal(t, team2.Name, channelData["team_name"])
+		require.NotEqual(t, channel1.DisplayName, channelData["display_name"]) // Should NOT be from team1
+	})
+
+	t.Run("uses channel team_id for regular channels, ignores current_team_id", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		// Create a post in a regular team channel
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "Check ~off-topic",
+		}
+		// Add current_team_id (should be ignored for team channels)
+		post.AddProp(model.PostPropsCurrentTeamId, "some-other-team")
+
+		// Fill in post props
+		appErr := th.App.FillInPostProps(th.Context, post, th.BasicChannel)
+		require.Nil(t, appErr)
+
+		// Verify current_team_id was removed
+		require.Nil(t, post.GetProp(model.PostPropsCurrentTeamId))
+
+		// Should use BasicChannel's team_id, not current_team_id
+		mentions := post.GetProp(model.PostPropsChannelMentions)
+		if mentions != nil {
+			mentionsMap, ok := mentions.(map[string]any)
+			require.True(t, ok)
+			// If off-topic was found, it should be from BasicTeam
+			if channelData, exists := mentionsMap["off-topic"].(map[string]any); exists {
+				require.Equal(t, th.BasicTeam.Name, channelData["team_name"])
+			}
+		}
+	})
 }

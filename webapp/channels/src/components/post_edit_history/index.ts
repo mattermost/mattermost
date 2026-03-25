@@ -4,7 +4,7 @@
 import {connect} from 'react-redux';
 import type {ConnectedProps} from 'react-redux';
 
-import {getChannel, getCurrentChannel, isChannelAutotranslated} from 'mattermost-redux/selectors/entities/channels';
+import {getChannel, getCurrentChannel, isMyChannelAutotranslated} from 'mattermost-redux/selectors/entities/channels';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
 import {getSelectedPostId} from 'selectors/rhs';
@@ -22,7 +22,7 @@ function mapStateToProps(state: GlobalState) {
     return {
         channelDisplayName,
         originalPost,
-        isChannelAutotranslated: isChannelAutotranslated(state, originalPost.channel_id),
+        isChannelAutotranslated: isMyChannelAutotranslated(state, originalPost.channel_id),
     };
 }
 

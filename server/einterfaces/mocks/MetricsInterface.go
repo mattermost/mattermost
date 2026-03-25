@@ -528,6 +528,11 @@ func (_m *MetricsInterface) ObservePluginMultiHookIterationDuration(pluginID str
 	_m.Called(pluginID, elapsed)
 }
 
+// ObservePluginWebappPerf provides a mock function with given fields: platform, agent, pluginID, pluginMetricLabel, elapsed
+func (_m *MetricsInterface) ObservePluginWebappPerf(platform string, agent string, pluginID string, pluginMetricLabel string, elapsed float64) {
+	_m.Called(platform, agent, pluginID, pluginMetricLabel, elapsed)
+}
+
 // ObservePostsSearchDuration provides a mock function with given fields: elapsed
 func (_m *MetricsInterface) ObservePostsSearchDuration(elapsed float64) {
 	_m.Called(elapsed)

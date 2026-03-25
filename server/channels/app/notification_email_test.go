@@ -478,7 +478,7 @@ func TestGetNotificationEmailBodyWithUserPreference(t *testing.T) {
 	require.Contains(t, body, expectedTimeFormat, fmt.Sprintf("Expected email text '%s'. Got %s", expectedTimeFormat, body))
 }
 
-func TestGetNotificationEmailBodyFullNotificationWithSlackAttachments(t *testing.T) {
+func TestGetNotificationEmailBodyFullNotificationWithMessageAttachments(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 
@@ -488,7 +488,7 @@ func TestGetNotificationEmailBodyFullNotificationWithSlackAttachments(t *testing
 		Message: "This is the message",
 	}
 
-	messageAttachments := []*model.SlackAttachment{
+	messageAttachments := []*model.MessageAttachment{
 		{
 			Color:      "#FF0000",
 			Pretext:    "message attachment 1 pretext",
@@ -500,7 +500,7 @@ func TestGetNotificationEmailBodyFullNotificationWithSlackAttachments(t *testing
 			Text:       "message attachment 1 text",
 			ImageURL:   "https://example.com/slack_attachment_1/image",
 			ThumbURL:   "https://example.com/slack_attachment_1/thumb",
-			Fields: []*model.SlackAttachmentField{
+			Fields: []*model.MessageAttachmentField{
 				{
 					Short: true,
 					Title: "message attachment 1 field 1 title",
@@ -531,7 +531,7 @@ func TestGetNotificationEmailBodyFullNotificationWithSlackAttachments(t *testing
 		},
 	}
 
-	model.ParseSlackAttachment(post, messageAttachments)
+	model.ParseMessageAttachment(post, messageAttachments)
 
 	channel := &model.Channel{
 		Id:          "test-channel-id",

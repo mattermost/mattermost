@@ -87,13 +87,13 @@ export default function ContentFlaggingContentReviewers({id, onChange, value, di
                 <hgroup>
                     <h1 className='content-flagging-section-title'>
                         <FormattedMessage
-                            id='admin.contentFlagging.reviewerSettings.title'
+                            id='admin.dataSpillage.reviewerSettings.title'
                             defaultMessage='Content Reviewers'
                         />
                     </h1>
                     <h5 className='content-flagging-section-description'>
                         <FormattedMessage
-                            id='admin.contentFlagging.reviewerSettings.description'
+                            id='admin.dataSpillage.reviewerSettings.description'
                             defaultMessage='Define who should review content in your environment'
                         />
                     </h5>
@@ -106,7 +106,7 @@ export default function ContentFlaggingContentReviewers({id, onChange, value, di
                     <div className='content-flagging-section-setting'>
                         <div className='setting-title'>
                             <FormattedMessage
-                                id='admin.contentFlagging.reviewerSettings.sameReviewersForAllTeams'
+                                id='admin.dataSpillage.reviewerSettings.sameReviewersForAllTeams'
                                 defaultMessage='Same reviewers for all teams:'
                             />
                         </div>
@@ -151,7 +151,7 @@ export default function ContentFlaggingContentReviewers({id, onChange, value, di
                         <div className='content-flagging-section-setting'>
                             <div className='setting-title'>
                                 <FormattedMessage
-                                    id='admin.contentFlagging.reviewerSettings.commonReviewers'
+                                    id='admin.dataSpillage.reviewerSettings.commonReviewers'
                                     defaultMessage='Reviewers:'
                                 />
                             </div>
@@ -173,8 +173,8 @@ export default function ContentFlaggingContentReviewers({id, onChange, value, di
                         <div className='content-flagging-section-setting teamSpecificReviewerSection'>
                             <div className='setting-title'>
                                 <FormattedMessage
-                                    id='admin.contentFlagging.reviewerSettings.perTeamReviewers.title'
-                                    defaultMessage='Configure content flagging per team'
+                                    id='admin.dataSpillage.reviewerSettings.perTeamReviewers.title'
+                                    defaultMessage='Configure data spillage handling per team'
                                 />
                             </div>
 
@@ -190,7 +190,7 @@ export default function ContentFlaggingContentReviewers({id, onChange, value, di
                     <div className='content-flagging-section-setting'>
                         <div className='setting-title'>
                             <FormattedMessage
-                                id='admin.contentFlagging.reviewerSettings.additionalReviewers'
+                                id='admin.dataSpillage.reviewerSettings.additionalReviewers'
                                 defaultMessage='Additional reviewers'
                             />
                         </div>
@@ -201,7 +201,7 @@ export default function ContentFlaggingContentReviewers({id, onChange, value, di
                                     id='notifyOnDismissal_reviewers'
                                     label={
                                         <FormattedMessage
-                                            id='admin.contentFlagging.reviewerSettings.additionalReviewers.systemAdmins'
+                                            id='admin.dataSpillage.reviewerSettings.additionalReviewers.systemAdmins'
                                             defaultMessage='System Administrators'
                                         />
                                     }
@@ -215,7 +215,7 @@ export default function ContentFlaggingContentReviewers({id, onChange, value, di
                                     id='notifyOnDismissal_author'
                                     label={
                                         <FormattedMessage
-                                            id='admin.contentFlagging.reviewerSettings.additionalReviewers.teamAdmins'
+                                            id='admin.dataSpillage.reviewerSettings.additionalReviewers.teamAdmins'
                                             defaultMessage='Team Administrators'
                                         />
                                     }
@@ -228,8 +228,8 @@ export default function ContentFlaggingContentReviewers({id, onChange, value, di
 
                             <div className='helpText'>
                                 <FormattedMessage
-                                    id='admin.contentFlagging.reviewerSettings.additionalReviewers.helpText'
-                                    defaultMessage='If enabled, system administrators will be sent flagged posts for review from every team that they are a part of. Team administrators will only be sent flagged posts for review from their respective teams.'
+                                    id='admin.dataSpillage.reviewerSettings.additionalReviewers.helpText'
+                                    defaultMessage='If enabled, system administrators will be sent quarantined posts for review from every team that they are a part of. Team administrators will only be sent quarantined posts for review from their respective teams.'
                                 />
                             </div>
                         </div>

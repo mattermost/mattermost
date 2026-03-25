@@ -2,10 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React, {memo, useCallback} from 'react';
-import type {ReactNode} from 'react';
-import {useIntl} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {DotsVerticalIcon} from '@mattermost/compass-icons/components';
 import type {UserThread} from '@mattermost/types/threads';
 
 import {setThreadFollow, updateThreadRead, markLastPostInThreadAsUnread} from 'mattermost-redux/actions/threads';
@@ -18,10 +18,9 @@ import {
 } from 'actions/post_actions';
 import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
 
+import * as Menu from 'components/menu';
 import {focusPost} from 'components/permalink_view/actions';
 import {getThreadPopoutTitle} from 'components/thread_popout/thread_popout';
-import Menu from 'components/widgets/menu/menu';
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {useReadout} from 'hooks/useReadout';
 import {canPopout, popoutThread} from 'utils/popouts/popout_windows';
@@ -32,22 +31,20 @@ import type {GlobalState} from 'types/store';
 
 import {useThreadRouting} from '../../hooks';
 
-import './thread_menu.scss';
-
 type Props = {
+    idPrefix: string;
     threadId: UserThread['id'];
     isFollowing?: boolean;
     hasUnreads: boolean;
-    children: ReactNode;
     unreadTimestamp: number;
 };
 
 function ThreadMenu({
+    idPrefix,
     threadId,
     isFollowing = false,
     unreadTimestamp,
     hasUnreads,
-    children,
 }: Props) {
     const intl = useIntl();
     const {formatMessage} = intl;
@@ -102,117 +99,151 @@ function ThreadMenu({
     }, [threadId, team, intl, dispatch, currentUserId, channel]);
 
     return (
-        <MenuWrapper
-            stopPropagationOnToggle={true}
+        <Menu.Container
+            menuButton={{
+                id: `${idPrefix}-${threadId}`,
+                class: 'btn btn-icon btn-sm',
+                'aria-label': formatMessage({
+                    id: 'threading.threadHeader.menu',
+                    defaultMessage: 'More Actions',
+                }),
+                children: (
+                    <DotsVerticalIcon size={18}/>
+                ),
+            }}
+            menuButtonTooltip={{
+                text: formatMessage({
+                    id: 'threading.threadHeader.menu',
+                    defaultMessage: 'More Actions',
+                }),
+            }}
+            menu={{
+                id: `${idPrefix}-dropdown-${threadId}`,
+            }}
         >
-            {children}
-            <Menu
-                ariaLabel={formatMessage({
-                    id: 'threading.threadItem.menu',
-                    defaultMessage: 'Actions',
-                })}
-                openLeft={true}
-            >
-                {canPopout() && (
-                    <Menu.ItemAction
-                        buttonClass='PopoutMenuItem'
-                        text={formatMessage({
-                            id: 'threading.threadMenu.openInNewWindow',
-                            defaultMessage: 'Open in new window',
-                        })}
-                        onClick={popout}
-                        icon={<i className='icon icon-dock-window'/>}
+            {canPopout() && (
+                <Menu.Item
+                    labels={
+                        <FormattedMessage
+                            id='threading.threadMenu.openInNewWindow'
+                            defaultMessage='Open in new window'
+                        />
+                    }
+                    onClick={popout}
+                    leadingElement={<i className='icon icon-dock-window'/>}
+                />
+            )}
+            <Menu.Item
+                labels={isFollowing ? (
+                    <>
+                        <FormattedMessage
+                            id='threading.threadMenu.unfollow'
+                            defaultMessage='Unfollow thread'
+                        />
+                        <FormattedMessage
+                            id='threading.threadMenu.unfollowExtra'
+                            defaultMessage='You won’t be notified about replies'
+                        />
+                    </>
+                ) : (
+                    <>
+                        <FormattedMessage
+                            id='threading.threadMenu.follow'
+                            defaultMessage='Follow thread'
+                        />
+                        <FormattedMessage
+                            id='threading.threadMenu.followExtra'
+                            defaultMessage='You will be notified about replies'
+                        />
+                    </>)
+                }
+                onClick={useCallback((e: React.MouseEvent | React.KeyboardEvent) => {
+                    e.stopPropagation();
+
+                    dispatch(setThreadFollow(currentUserId, currentTeamId, threadId, !isFollowing));
+                    readAloud(isFollowing ? formatMessage({
+                        id: 'threading.threadMenu.unfollowed',
+                        defaultMessage: 'Unfollowed thread',
+                    }) : formatMessage({
+                        id: 'threading.threadMenu.followed',
+                        defaultMessage: 'Followed thread',
+                    }));
+                }, [currentUserId, currentTeamId, threadId, isFollowing, setThreadFollow, readAloud, formatMessage])}
+            />
+            <Menu.Item
+                labels={
+                    <FormattedMessage
+                        id='threading.threadMenu.openInChannel'
+                        defaultMessage='Open in channel'
+                    />
+                }
+                onClick={useCallback((e: React.MouseEvent | React.KeyboardEvent) => {
+                    e.stopPropagation();
+
+                    goToInChannel(threadId);
+                    readAloud(formatMessage({
+                        id: 'threading.threadMenu.openingChannel',
+                        defaultMessage: 'Opening channel',
+                    }));
+                }, [threadId, readAloud, formatMessage])}
+            />
+            <Menu.Item
+                labels={hasUnreads ? (
+                    <FormattedMessage
+                        id='threading.threadMenu.markRead'
+                        defaultMessage='Mark as read'
+                    />
+                ) : (
+                    <FormattedMessage
+                        id='threading.threadMenu.markUnread'
+                        defaultMessage='Mark as unread'
                     />
                 )}
-                <Menu.ItemAction
-                    {...isFollowing ? {
-                        text: formatMessage({
-                            id: 'threading.threadMenu.unfollow',
-                            defaultMessage: 'Unfollow thread',
-                        }),
-                        extraText: formatMessage({
-                            id: 'threading.threadMenu.unfollowExtra',
-                            defaultMessage: 'You won’t be notified about replies',
-                        }),
-                    } : {
-                        text: formatMessage({
-                            id: 'threading.threadMenu.follow',
-                            defaultMessage: 'Follow thread',
-                        }),
-                        extraText: formatMessage({
-                            id: 'threading.threadMenu.followExtra',
-                            defaultMessage: 'You will be notified about replies',
-                        }),
-                    }}
-                    onClick={useCallback(() => {
-                        dispatch(setThreadFollow(currentUserId, currentTeamId, threadId, !isFollowing));
-                        readAloud(isFollowing ? formatMessage({
-                            id: 'threading.threadMenu.unfollowed',
-                            defaultMessage: 'Unfollowed thread',
-                        }) : formatMessage({
-                            id: 'threading.threadMenu.followed',
-                            defaultMessage: 'Followed thread',
-                        }));
-                    }, [currentUserId, currentTeamId, threadId, isFollowing, setThreadFollow, readAloud, formatMessage])}
-                />
-                <Menu.ItemAction
-                    text={formatMessage({
-                        id: 'threading.threadMenu.openInChannel',
-                        defaultMessage: 'Open in channel',
-                    })}
-                    onClick={useCallback(() => {
-                        goToInChannel(threadId);
-                        readAloud(formatMessage({
-                            id: 'threading.threadMenu.openingChannel',
-                            defaultMessage: 'Opening channel',
-                        }));
-                    }, [threadId, readAloud, formatMessage])}
-                />
-                <Menu.ItemAction
-                    text={hasUnreads ? formatMessage({
-                        id: 'threading.threadMenu.markRead',
-                        defaultMessage: 'Mark as read',
-                    }) : formatMessage({
-                        id: 'threading.threadMenu.markUnread',
-                        defaultMessage: 'Mark as unread',
-                    })}
-                    onClick={handleReadUnread}
-                />
+                onClick={handleReadUnread}
+            />
+            <Menu.Item
+                labels={isSaved ? (
+                    <FormattedMessage
+                        id='threading.threadMenu.unsave'
+                        defaultMessage='Unsave'
+                    />
+                ) : (
+                    <FormattedMessage
+                        id='threading.threadMenu.save'
+                        defaultMessage='Save'
+                    />
+                )}
+                onClick={useCallback((e: React.MouseEvent | React.KeyboardEvent) => {
+                    e.stopPropagation();
 
-                <Menu.ItemAction
-                    text={isSaved ? formatMessage({
-                        id: 'threading.threadMenu.unsave',
-                        defaultMessage: 'Unsave',
+                    dispatch(isSaved ? unsavePost(threadId) : savePost(threadId));
+                    readAloud(isSaved ? formatMessage({
+                        id: 'threading.threadMenu.unsaved',
+                        defaultMessage: 'Unsaved',
                     }) : formatMessage({
-                        id: 'threading.threadMenu.save',
-                        defaultMessage: 'Save',
-                    })}
-                    onClick={useCallback(() => {
-                        dispatch(isSaved ? unsavePost(threadId) : savePost(threadId));
-                        readAloud(isSaved ? formatMessage({
-                            id: 'threading.threadMenu.unsaved',
-                            defaultMessage: 'Unsaved',
-                        }) : formatMessage({
-                            id: 'threading.threadMenu.saved',
-                            defaultMessage: 'Saved',
-                        }));
-                    }, [threadId, isSaved])}
-                />
-                <Menu.ItemAction
-                    text={formatMessage({
-                        id: 'threading.threadMenu.copy',
-                        defaultMessage: 'Copy link',
-                    })}
-                    onClick={useCallback(() => {
-                        copyToClipboard(`${getSiteURL()}/${team}/pl/${threadId}`);
-                        readAloud(formatMessage({
-                            id: 'threading.threadMenu.linkCopied',
-                            defaultMessage: 'Link copied',
-                        }));
-                    }, [team, threadId])}
-                />
-            </Menu>
-        </MenuWrapper>
+                        id: 'threading.threadMenu.saved',
+                        defaultMessage: 'Saved',
+                    }));
+                }, [threadId, isSaved])}
+            />
+            <Menu.Item
+                labels={
+                    <FormattedMessage
+                        id='threading.threadMenu.copy'
+                        defaultMessage='Copy link'
+                    />
+                }
+                onClick={useCallback((e: React.MouseEvent | React.KeyboardEvent) => {
+                    e.stopPropagation();
+
+                    copyToClipboard(`${getSiteURL()}/${team}/pl/${threadId}`);
+                    readAloud(formatMessage({
+                        id: 'threading.threadMenu.linkCopied',
+                        defaultMessage: 'Link copied',
+                    }));
+                }, [team, threadId])}
+            />
+        </Menu.Container>
     );
 }
 

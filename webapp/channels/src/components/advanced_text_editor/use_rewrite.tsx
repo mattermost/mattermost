@@ -124,6 +124,9 @@ const useRewrite = (
             return;
         }
         if (e.key === 'Enter') {
+            if (e.nativeEvent.isComposing) {
+                return;
+            }
             e.stopPropagation();
             handleRewrite(RewriteAction.CUSTOM, prompt);
         }

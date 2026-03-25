@@ -4,7 +4,9 @@
 package api4
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -778,6 +780,111 @@ func TestRegisterOAuthClient_DisabledFeatures(t *testing.T) {
 	_, resp, err = adminClient.RegisterOAuthClient(context.Background(), request)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
+}
+
+func TestRegisterOAuthClient_RedirectURIAllowlist(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+	client := th.Client
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
+		cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(true)
+	})
+
+	t.Run("allowlist empty registration succeeds", func(t *testing.T) {
+		cfg := th.App.Config()
+		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{}
+		th.App.UpdateConfig(func(c *model.Config) { *c = *cfg })
+
+		request := &model.ClientRegistrationRequest{
+			RedirectURIs: []string{"https://example.com/callback"},
+			ClientName:   model.NewPointer("Test Client"),
+		}
+		response, resp, err := client.RegisterOAuthClient(context.Background(), request)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, response)
+		assert.NotEmpty(t, response.ClientID)
+	})
+
+	t.Run("wildcard allowed URI succeeds", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"https://example.com/*", "https://*.test.com/**"}
+		})
+
+		request := &model.ClientRegistrationRequest{
+			RedirectURIs: []string{"https://example.com/callback"},
+			ClientName:   model.NewPointer("Test Client"),
+		}
+		response, resp, err := client.RegisterOAuthClient(context.Background(), request)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, response)
+
+		time.Sleep(time.Second) // avoid rate limit
+		request2 := &model.ClientRegistrationRequest{
+			RedirectURIs: []string{"https://app.test.com/deep/path/cb"},
+			ClientName:   model.NewPointer("Test Client 2"),
+		}
+		response2, resp2, err2 := client.RegisterOAuthClient(context.Background(), request2)
+		require.NoError(t, err2)
+		CheckCreatedStatus(t, resp2)
+		require.NotNil(t, response2)
+	})
+
+	t.Run("disallowed URI returns 400 invalid_redirect_uri", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"https://allowed.com/**"}
+		})
+
+		body, _ := json.Marshal(&model.ClientRegistrationRequest{
+			RedirectURIs: []string{"https://disallowed.com/callback"},
+			ClientName:   model.NewPointer("Test Client"),
+		})
+		req, err := http.NewRequest(http.MethodPost, client.APIURL+"/oauth/apps/register", bytes.NewReader(body))
+		require.NoError(t, err)
+		req.Header.Set("Content-Type", "application/json")
+		if client.AuthToken != "" {
+			req.Header.Set(model.HeaderAuth, model.HeaderBearer+" "+client.AuthToken)
+		}
+		httpResp, err := client.HTTPClient.Do(req)
+		require.NoError(t, err)
+		defer httpResp.Body.Close()
+		require.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
+		var dcrErr model.DCRError
+		jsonErr := json.NewDecoder(httpResp.Body).Decode(&dcrErr)
+		require.NoError(t, jsonErr)
+		assert.Equal(t, model.DCRErrorInvalidRedirectURI, dcrErr.Error)
+		assert.NotEmpty(t, dcrErr.ErrorDescription)
+	})
+
+	t.Run("multi redirect partial mismatch rejects request", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"https://allowed.com/**"}
+		})
+
+		time.Sleep(time.Second)
+		body, _ := json.Marshal(&model.ClientRegistrationRequest{
+			RedirectURIs: []string{"https://allowed.com/cb1", "https://disallowed.com/cb2"},
+			ClientName:   model.NewPointer("Test Client"),
+		})
+		req, err := http.NewRequest(http.MethodPost, client.APIURL+"/oauth/apps/register", bytes.NewReader(body))
+		require.NoError(t, err)
+		req.Header.Set("Content-Type", "application/json")
+		if client.AuthToken != "" {
+			req.Header.Set(model.HeaderAuth, model.HeaderBearer+" "+client.AuthToken)
+		}
+		httpResp, err := client.HTTPClient.Do(req)
+		require.NoError(t, err)
+		defer httpResp.Body.Close()
+		require.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
+		var dcrErr model.DCRError
+		jsonErr := json.NewDecoder(httpResp.Body).Decode(&dcrErr)
+		require.NoError(t, jsonErr)
+		assert.Equal(t, model.DCRErrorInvalidRedirectURI, dcrErr.Error)
+		assert.NotEmpty(t, dcrErr.ErrorDescription)
+	})
 }
 
 func TestRegisterOAuthClient_PublicClient_Success(t *testing.T) {

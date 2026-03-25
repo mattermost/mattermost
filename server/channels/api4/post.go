@@ -81,6 +81,11 @@ func createPostChecks(where string, c *Context, post *model.Post) {
 	}
 
 	postPriorityCheckWithContext(where, c, post.GetPriority(), post.RootId)
+	if c.Err != nil {
+		return
+	}
+
+	postBurnOnReadCheckWithContext(where, c, post, nil)
 }
 
 func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1041,6 +1046,12 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Users who can't create posts in a channel shouldn't be able to edit them either.
+	userCreatePostPermissionCheckWithContext(c, originalPost.ChannelId)
+	if c.Err != nil {
+		return
+	}
+
 	auditRec.AddEventPriorState(originalPost)
 	auditRec.AddEventObjectType("post")
 
@@ -1175,6 +1186,12 @@ func postPatchChecks(c *Context, auditRec *model.AuditRecord, message *string) b
 	ok, isMember := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, permission)
 	if !ok {
 		c.SetPermissionError(permission)
+		return false
+	}
+
+	// Users who can't create posts in a channel shouldn't be able to edit them either.
+	userCreatePostPermissionCheckWithContext(c, originalPost.ChannelId)
+	if c.Err != nil {
 		return false
 	}
 

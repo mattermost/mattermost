@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount} from 'enzyme';
 import React from 'react';
 import * as reactIntl from 'react-intl';
 
 import enMessages from 'i18n/en.json';
 import esMessages from 'i18n/es.json';
-import {mockStore} from 'tests/test_store';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import PostAriaLabelDiv from './post_aria_label_div';
@@ -49,43 +48,49 @@ describe('PostAriaLabelDiv', () => {
         post: TestHelper.getPostMock({
             user_id: author.id,
             message: 'This is a test.',
+            create_at: new Date('2020-01-15T12:00:00Z').getTime(),
         }),
         autotranslated: false,
     };
 
     test('should render aria-label in the given locale', () => {
-        const {mountOptions} = mockStore(baseState);
-
         (reactIntl.useIntl as jest.Mock).mockImplementation(() => reactIntl.createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'}));
 
-        let wrapper = mount(<PostAriaLabelDiv {...baseProps}/>, mountOptions);
-        let div = wrapper.childAt(0);
+        let renderResult = renderWithContext(<PostAriaLabelDiv {...baseProps}/>, baseState, {
+            locale: 'en',
+            intlMessages: enMessages,
+        });
 
-        expect(div.prop('aria-label')).toContain(author.username);
-        expect(div.prop('aria-label')).toContain('January');
+        let div = renderResult.container.firstChild as HTMLElement;
+        expect(div.getAttribute('aria-label')).toContain(author.username);
+        expect(div.getAttribute('aria-label')).toContain('January');
 
         (reactIntl.useIntl as jest.Mock).mockImplementation(() => reactIntl.createIntl({locale: 'es', messages: esMessages, defaultLocale: 'es'}));
 
-        wrapper = mount(<PostAriaLabelDiv {...baseProps}/>, mountOptions);
-        div = wrapper.childAt(0);
+        renderResult = renderWithContext(<PostAriaLabelDiv {...baseProps}/>, baseState, {
+            locale: 'es',
+            intlMessages: esMessages,
+        });
+        div = renderResult.container.firstChild as HTMLElement;
 
-        expect(div.prop('aria-label')).toContain(author.username);
-        expect(div.prop('aria-label')).toContain('enero');
+        expect(div.getAttribute('aria-label')).toContain(author.username);
+        expect(div.getAttribute('aria-label')).toContain('enero');
     });
 
     test('should pass other props through to the rendered div', () => {
-        const {mountOptions} = mockStore(baseState);
-
         (reactIntl.useIntl as jest.Mock).mockImplementation(() => reactIntl.createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'}));
 
         let props = baseProps;
 
-        let wrapper = mount(<PostAriaLabelDiv {...props}/>, mountOptions);
-        let div = wrapper.childAt(0);
+        let renderResult = renderWithContext(<PostAriaLabelDiv {...props}/>, baseState, {
+            locale: 'en',
+            intlMessages: enMessages,
+        });
+        let div = renderResult.container.firstChild as HTMLElement;
 
-        expect(div.prop('className')).toBeUndefined();
-        expect(div.prop('data-something')).toBeUndefined();
-        expect(div.children()).toHaveLength(0);
+        expect(div.className).toBe('');
+        expect(div.getAttribute('data-something')).toBeNull();
+        expect(div.childNodes.length).toBe(0);
 
         props = {
             ...props,
@@ -93,16 +98,20 @@ describe('PostAriaLabelDiv', () => {
             'data-something': 'something',
         } as Props;
 
-        wrapper = mount(
+        renderResult = renderWithContext(
             <PostAriaLabelDiv {...props}>
                 <p>{'This is a paragraph.'}</p>
             </PostAriaLabelDiv >,
-            mountOptions,
+            baseState,
+            {
+                locale: 'en',
+                intlMessages: enMessages,
+            },
         );
-        div = wrapper.childAt(0);
+        div = renderResult.container.firstChild as HTMLElement;
 
-        expect(div.prop('className')).toBe('some-class');
-        expect(div.prop('data-something')).toBe('something');
-        expect(div.children()).toHaveLength(1);
+        expect(div.className).toBe('some-class');
+        expect(div.getAttribute('data-something')).toBe('something');
+        expect(screen.getByText('This is a paragraph.')).toBeInTheDocument();
     });
 });

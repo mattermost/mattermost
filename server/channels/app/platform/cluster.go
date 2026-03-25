@@ -28,12 +28,27 @@ func (ps *PlatformService) NewClusterDiscoveryService() *ClusterDiscoveryService
 	return ds
 }
 
+// PlatformService.IsLeader returns true if this server is the leader of its cluster. If the server isn't in a cluster
+// (because it's not supported by the server or its license), this will always return true.
 func (ps *PlatformService) IsLeader() bool {
-	if ps.License() != nil && *ps.Config().ClusterSettings.Enable && ps.clusterIFace != nil {
-		return ps.clusterIFace.IsLeader()
+	license := ps.License()
+	if license == nil || license.Features == nil || license.Features.Cluster == nil || !*license.Features.Cluster {
+		// Clustering can't be enabled without a valid license that supports it
+		return true
 	}
 
-	return true
+	if !*ps.Config().ClusterSettings.Enable {
+		// Clustering is disabled
+		return true
+	}
+
+	if ps.clusterIFace == nil {
+		// Clustering isn't supported by this server
+		return true
+	}
+
+	// Check with the clustering code
+	return ps.clusterIFace.IsLeader()
 }
 
 func (ps *PlatformService) SetCluster(impl einterfaces.ClusterInterface) { //nolint:unused

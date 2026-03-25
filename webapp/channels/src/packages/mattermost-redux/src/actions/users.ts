@@ -9,7 +9,7 @@ import {batchActions} from 'redux-batched-actions';
 import type {UserAutocomplete} from '@mattermost/types/autocomplete';
 import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
-import type {UserProfile, UserStatus, GetFilteredUsersStatsOpts, UsersStats, UserCustomStatus, UserAccessToken} from '@mattermost/types/users';
+import type {UserProfile, UserStatus, GetFilteredUsersStatsOpts, UsersStats, UserCustomStatus, UserAccessToken, UserAuthUpdate} from '@mattermost/types/users';
 
 import {UserTypes, AdminTypes} from 'mattermost-redux/action_types';
 import {logError} from 'mattermost-redux/actions/errors';
@@ -685,19 +685,19 @@ export function getStatusesByIds(userIds: Array<UserProfile['id']>): ActionFuncA
 
 export function setStatus(status: UserStatus): ActionFuncAsync<UserStatus> {
     return async (dispatch, getState) => {
-        let recievedStatus: UserStatus;
+        let receivedStatus: UserStatus;
         try {
-            recievedStatus = await Client4.updateStatus(status);
+            receivedStatus = await Client4.updateStatus(status);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
             return {error};
         }
 
-        const updatedStatus = {[recievedStatus.user_id]: recievedStatus.status};
-        const dndEndTimes = {[recievedStatus.user_id]: recievedStatus?.dnd_end_time ?? 0};
-        const isManualStatus = {[recievedStatus.user_id]: recievedStatus?.manual ?? false};
-        const lastActivity = {[recievedStatus.user_id]: recievedStatus?.last_activity_at ?? 0};
+        const updatedStatus = {[receivedStatus.user_id]: receivedStatus.status};
+        const dndEndTimes = {[receivedStatus.user_id]: receivedStatus?.dnd_end_time ?? 0};
+        const isManualStatus = {[receivedStatus.user_id]: receivedStatus?.manual ?? false};
+        const lastActivity = {[receivedStatus.user_id]: receivedStatus?.last_activity_at ?? 0};
 
         dispatch(batchActions([
             {
@@ -718,7 +718,7 @@ export function setStatus(status: UserStatus): ActionFuncAsync<UserStatus> {
             },
         ], 'BATCHING_STATUS'));
 
-        return {data: recievedStatus};
+        return {data: receivedStatus};
     };
 }
 
@@ -1013,6 +1013,25 @@ export function patchUser(user: UserProfile): ActionFuncAsync<UserProfile> {
         }
 
         dispatch({type: UserTypes.RECEIVED_PROFILE, data});
+
+        return {data};
+    };
+}
+
+export function updateUserAuth(userId: string, userAuth: UserAuthUpdate): ActionFuncAsync<UserAuthUpdate> {
+    return async (dispatch, getState) => {
+        let data: UserAuthUpdate;
+        try {
+            data = await Client4.updateUserAuth(userId, userAuth);
+        } catch (error) {
+            dispatch(logError(error));
+            return {error};
+        }
+
+        const profile = getState().entities.users.profiles[userId];
+        if (profile) {
+            dispatch({type: UserTypes.RECEIVED_PROFILE, data: {...profile, auth_data: data.auth_data, auth_service: data.auth_service}});
+        }
 
         return {data};
     };
@@ -1434,6 +1453,7 @@ export default {
     getUserAudits,
     searchProfiles,
     updateMe,
+    updateUserAuth,
     updateUserRoles,
     updateUserMfa,
     updateUserPassword,

@@ -24,8 +24,12 @@ var mainHelper *testlib.MainHelper
 
 func getMockCacheProvider() cache.Provider {
 	mockCacheProvider := cachemocks.Provider{}
-	mockCacheProvider.On("NewCache", mock.Anything).
-		Return(cache.NewLRU(&cache.CacheOptions{Size: 128}), nil)
+	// Each NewCache call returns a fresh LRU so that caches are isolated
+	// from each other, matching production behaviour.
+	call := mockCacheProvider.On("NewCache", mock.Anything)
+	call.Run(func(args mock.Arguments) {
+		call.ReturnArguments = mock.Arguments{cache.NewLRU(&cache.CacheOptions{Size: 128}), nil}
+	})
 	mockCacheProvider.On("Type").Return("lru")
 	return &mockCacheProvider
 }
@@ -103,6 +107,8 @@ func getMockStore(t *testing.T) *mocks.Store {
 	fakeChannel2 := model.Channel{Id: "channel2", Name: "channel2-name"}
 	mockChannelStore := mocks.ChannelStore{}
 	mockChannelStore.On("ClearCaches").Return()
+	mockChannelStore.On("Save", mock.IsType(&request.Context{}), &fakeChannel1, int64(0)).Return(&fakeChannel1, nil)
+	mockChannelStore.On("Update", mock.IsType(&request.Context{}), &fakeChannel1).Return(&fakeChannel1, nil)
 	mockChannelStore.On("GetMemberCount", "id", true).Return(mockCount, nil)
 	mockChannelStore.On("GetMemberCount", "id", false).Return(mockCount, nil)
 	mockChannelStore.On("GetGuestCount", "id", true).Return(mockGuestCount, nil)

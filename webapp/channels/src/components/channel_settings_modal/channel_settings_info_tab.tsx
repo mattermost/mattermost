@@ -51,19 +51,36 @@ function ChannelSettingsInfoTab({
     const shouldShowPreviewPurpose = useSelector(showPreviewOnChannelSettingsPurposeModal);
     const shouldShowPreviewHeader = useSelector(showPreviewOnChannelSettingsHeaderModal);
 
+    const isPrivate = channel.type === Constants.PRIVATE_CHANNEL;
+    const isDirect = channel.type === Constants.DM_CHANNEL;
+    const isGroup = channel.type === Constants.GM_CHANNEL;
+    const isDMorGroupChannel = isDirect || isGroup;
+
     // Permissions for transforming channel type
-    const canConvertToPrivate = useSelector((state: GlobalState) =>
-        haveIChannelPermission(state, channel.team_id, channel.id, Permissions.CONVERT_PUBLIC_CHANNEL_TO_PRIVATE),
-    );
-    const canConvertToPublic = useSelector((state: GlobalState) =>
-        haveIChannelPermission(state, channel.team_id, channel.id, Permissions.CONVERT_PRIVATE_CHANNEL_TO_PUBLIC),
-    );
+    const canConvertToPrivate = useSelector((state: GlobalState) => {
+        if (isDMorGroupChannel) {
+            // Group channels can be converted to private,
+            // but that is handled in a different flow.
+            return false;
+        }
+        return haveIChannelPermission(state, channel.team_id, channel.id, Permissions.CONVERT_PUBLIC_CHANNEL_TO_PRIVATE);
+    });
+
+    const canConvertToPublic = useSelector((state: GlobalState) => {
+        if (isDMorGroupChannel) {
+            return false;
+        }
+        return haveIChannelPermission(state, channel.team_id, channel.id, Permissions.CONVERT_PRIVATE_CHANNEL_TO_PUBLIC);
+    });
 
     // Permissions for managing channel (name, header, purpose)
-    const channelPropertiesPermission = channel.type === Constants.PRIVATE_CHANNEL ? Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES : Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES;
-    const canManageChannelProperties = useSelector((state: GlobalState) =>
-        haveIChannelPermission(state, channel.team_id, channel.id, channelPropertiesPermission),
-    );
+    const channelPropertiesPermission = isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES : Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES;
+    const canManageChannelProperties = useSelector((state: GlobalState) => {
+        if (isDMorGroupChannel) {
+            return true;
+        }
+        return haveIChannelPermission(state, channel.team_id, channel.id, channelPropertiesPermission);
+    });
 
     // Constants
     const HEADER_MAX_LENGTH = 1024;
@@ -190,7 +207,7 @@ function ChannelSettingsInfoTab({
         }
     }, [formError, channelNameError, setFormError, formatMessage]);
 
-    const handleServerError = (err: ServerError) => {
+    const handleServerError = useCallback((err: ServerError) => {
         const errorMsg = err.message || formatMessage({id: 'channel_settings.unknown_error', defaultMessage: 'Something went wrong.'});
         setFormError(errorMsg);
         setSaveChangesPanelState('error');
@@ -203,7 +220,7 @@ function ChannelSettingsInfoTab({
         )) {
             setUrlError(errorMsg); // Set the URL error to show in the URL input
         }
-    };
+    }, [formatMessage]);
 
     // Validate & Save - using useCallback to ensure it has the latest state values
     const handleSave = useCallback(async (): Promise<boolean> => {
@@ -228,13 +245,24 @@ function ChannelSettingsInfoTab({
             }
         }
 
-        // Build updated channel object
-        const updated: Partial<Channel> = {
-            display_name: displayName.trim(),
-            name: channelUrl.trim(),
-            purpose: channelPurpose.trim(),
-            header: channelHeader.trim(),
-        };
+        const updated: Partial<Channel> = {};
+        if (!isDMorGroupChannel && displayName.trim() !== channel.display_name) {
+            updated.display_name = displayName.trim();
+        }
+        if (!isDMorGroupChannel && channelUrl.trim() !== channel.name) {
+            updated.name = channelUrl.trim();
+        }
+        if (!isDMorGroupChannel && channelPurpose.trim() !== channel.purpose) {
+            updated.purpose = channelPurpose.trim();
+        }
+        if (channelHeader.trim() !== channel.header) {
+            updated.header = channelHeader.trim();
+        }
+
+        if (Object.keys(updated).length === 0) {
+            // Return true if no changes were made
+            return true;
+        }
 
         const {data, error} = await dispatch(patchChannel(channel.id, updated));
         if (error) {
@@ -244,12 +272,14 @@ function ChannelSettingsInfoTab({
 
         // After every successful save, update local state to match the saved values
         // with this, we make sure that the unsavedChanges check will return false after saving
-        setDisplayName(data?.display_name ?? updated.display_name ?? '');
-        setChannelURL(data?.name ?? updated.name ?? '');
-        setChannelPurpose(data?.purpose ?? updated.purpose ?? '');
-        setChannelHeader(data?.header ?? updated.header ?? '');
+        if (!isDMorGroupChannel) {
+            setDisplayName(data?.display_name ?? updated.display_name ?? channel.display_name);
+            setChannelURL(data?.name ?? updated.name ?? channel.name);
+            setChannelPurpose(data?.purpose ?? updated.purpose ?? channel.purpose);
+        }
+        setChannelHeader(data?.header ?? updated.header ?? channel.header);
         return true;
-    }, [channel, displayName, channelType, channelUrl, channelPurpose, channelHeader, dispatch, formatMessage, handleServerError]);
+    }, [channel, displayName, channelType, isDMorGroupChannel, channelUrl, channelPurpose, channelHeader, dispatch, formatMessage, handleServerError]);
 
     // Handle save changes panel actions
     const handleSaveChanges = useCallback(async () => {
@@ -312,16 +342,19 @@ function ChannelSettingsInfoTab({
 
     // Memoize the calculation for whether to show the save changes panel
     const shouldShowPanel = useMemo(() => {
-        const unsavedChanges = channel ? (
-            displayName.trim() !== channel.display_name ||
-            channelUrl.trim() !== channel.name ||
-            channelPurpose.trim() !== channel.purpose ||
-            channelHeader.trim() !== channel.header ||
-            channelType !== channel.type
-        ) : false;
+        let unsavedChanges = false;
+        if (channel) {
+            unsavedChanges = unsavedChanges || channelHeader.trim() !== channel.header;
+            if (!isDMorGroupChannel) {
+                unsavedChanges = unsavedChanges || displayName.trim() !== channel.display_name;
+                unsavedChanges = unsavedChanges || channelUrl.trim() !== channel.name;
+                unsavedChanges = unsavedChanges || channelPurpose.trim() !== channel.purpose;
+                unsavedChanges = unsavedChanges || channelType !== channel.type;
+            }
+        }
 
         return unsavedChanges || saveChangesPanelState === 'saved';
-    }, [channel, displayName, channelUrl, channelPurpose, channelHeader, channelType, saveChangesPanelState]);
+    }, [channel, isDMorGroupChannel, displayName, channelUrl, channelPurpose, channelHeader, channelType, saveChangesPanelState]);
 
     return (
         <div className='ChannelSettingsModal__infoTab'>
@@ -348,74 +381,79 @@ function ChannelSettingsInfoTab({
             >
                 {formatMessage({id: 'channel_settings.channel_info_tab.name', defaultMessage: 'Channel Info'})}
             </div>
-            <ChannelNameFormField
-                value={displayName}
-                name='channel-settings-name'
-                placeholder={formatMessage({
-                    id: 'channel_settings_modal.name.placeholder',
-                    defaultMessage: 'Enter a name for your channel',
-                })}
-                onDisplayNameChange={(name) => {
-                    setDisplayName(name);
-                }}
-                onURLChange={handleURLChange}
-                onErrorStateChange={handleChannelNameError}
-                urlError={internalUrlError}
-                currentUrl={channelUrl}
-                readOnly={!canManageChannelProperties}
-                isEditingExistingChannel={true}
-            />
-
+            {!isDMorGroupChannel && (
+                <ChannelNameFormField
+                    value={displayName}
+                    name='channel-settings-name'
+                    placeholder={formatMessage({
+                        id: 'channel_settings_modal.name.placeholder',
+                        defaultMessage: 'Enter a name for your channel',
+                    })}
+                    onDisplayNameChange={(name) => {
+                        setDisplayName(name);
+                    }}
+                    onURLChange={handleURLChange}
+                    onErrorStateChange={handleChannelNameError}
+                    urlError={internalUrlError}
+                    currentUrl={channelUrl}
+                    readOnly={!canManageChannelProperties}
+                    isEditingExistingChannel={true}
+                />
+            )}
             {/* Channel Type Section*/}
-            <PublicPrivateSelector
-                className='ChannelSettingsModal__typeSelector'
-                selected={channelType}
-                publicButtonProps={{
-                    title: formatMessage({id: 'channel_modal.type.public.title', defaultMessage: 'Public Channel'}),
-                    description: formatMessage({id: 'channel_modal.type.public.description', defaultMessage: 'Anyone can join'}),
+            {!isDMorGroupChannel && (
+                <PublicPrivateSelector
+                    className='ChannelSettingsModal__typeSelector'
+                    selected={channelType}
+                    publicButtonProps={{
+                        title: formatMessage({id: 'channel_modal.type.public.title', defaultMessage: 'Public Channel'}),
+                        description: formatMessage({id: 'channel_modal.type.public.description', defaultMessage: 'Anyone can join'}),
 
-                    // Always disable public button if current channel is private, regardless of permissions
-                    disabled: channel.type === Constants.PRIVATE_CHANNEL || !canConvertToPublic,
-                }}
-                privateButtonProps={{
-                    title: formatMessage({id: 'channel_modal.type.private.title', defaultMessage: 'Private Channel'}),
-                    description: formatMessage({id: 'channel_modal.type.private.description', defaultMessage: 'Only invited members'}),
-                    disabled: !canConvertToPrivate,
-                }}
-                onChange={handleChannelTypeChange}
-            />
+                        // Always disable public button if current channel is private, regardless of permissions
+                        disabled: channel.type === Constants.PRIVATE_CHANNEL || !canConvertToPublic,
+                    }}
+                    privateButtonProps={{
+                        title: formatMessage({id: 'channel_modal.type.private.title', defaultMessage: 'Private Channel'}),
+                        description: formatMessage({id: 'channel_modal.type.private.description', defaultMessage: 'Only invited members'}),
+                        disabled: !canConvertToPrivate,
+                    }}
+                    onChange={handleChannelTypeChange}
+                />
+            )}
 
             {/* Purpose Section*/}
-            <AdvancedTextbox
-                id='channel_settings_purpose_textbox'
-                value={channelPurpose}
-                channelId={channel.id}
-                onChange={handlePurposeChange}
-                createMessage={formatMessage({
-                    id: 'channel_settings_modal.purpose.placeholder',
-                    defaultMessage: 'Enter a purpose for this channel (optional)',
-                })}
-                maxLength={Constants.MAX_CHANNELPURPOSE_LENGTH}
-                preview={shouldShowPreviewPurpose}
-                togglePreview={togglePurposePreview}
-                useChannelMentions={false}
-                onKeyPress={() => {}}
-                descriptionMessage={formatMessage({
-                    id: 'channel_settings.purpose.description',
-                    defaultMessage: 'Describe how this channel should be used.',
-                })}
-                hasError={channelPurpose.length > Constants.MAX_CHANNELPURPOSE_LENGTH}
-                errorMessage={channelPurpose.length > Constants.MAX_CHANNELPURPOSE_LENGTH ? formatMessage({
-                    id: 'channel_settings.error_purpose_length',
-                    defaultMessage: 'The text entered exceeds the character limit. The channel purpose is limited to {maxLength} characters.',
-                }, {
-                    maxLength: Constants.MAX_CHANNELPURPOSE_LENGTH,
-                }) : undefined
-                }
-                showCharacterCount={channelPurpose.length > Constants.MAX_CHANNELPURPOSE_LENGTH}
-                readOnly={!canManageChannelProperties}
-                name={formatMessage({id: 'channel_settings.purpose.label', defaultMessage: 'Channel Purpose'})}
-            />
+            {!isDMorGroupChannel && (
+                <AdvancedTextbox
+                    id='channel_settings_purpose_textbox'
+                    value={channelPurpose}
+                    channelId={channel.id}
+                    onChange={handlePurposeChange}
+                    createMessage={formatMessage({
+                        id: 'channel_settings_modal.purpose.placeholder',
+                        defaultMessage: 'Enter a purpose for this channel (optional)',
+                    })}
+                    maxLength={Constants.MAX_CHANNELPURPOSE_LENGTH}
+                    preview={shouldShowPreviewPurpose}
+                    togglePreview={togglePurposePreview}
+                    useChannelMentions={false}
+                    onKeyPress={() => {}}
+                    descriptionMessage={formatMessage({
+                        id: 'channel_settings.purpose.description',
+                        defaultMessage: 'Describe how this channel should be used.',
+                    })}
+                    hasError={channelPurpose.length > Constants.MAX_CHANNELPURPOSE_LENGTH}
+                    errorMessage={channelPurpose.length > Constants.MAX_CHANNELPURPOSE_LENGTH ? formatMessage({
+                        id: 'channel_settings.error_purpose_length',
+                        defaultMessage: 'The text entered exceeds the character limit. The channel purpose is limited to {maxLength} characters.',
+                    }, {
+                        maxLength: Constants.MAX_CHANNELPURPOSE_LENGTH,
+                    }) : undefined
+                    }
+                    showCharacterCount={channelPurpose.length > Constants.MAX_CHANNELPURPOSE_LENGTH}
+                    readOnly={!canManageChannelProperties}
+                    name={formatMessage({id: 'channel_settings.purpose.label', defaultMessage: 'Channel Purpose'})}
+                />
+            )}
 
             {/* Channel Header Section*/}
             <AdvancedTextbox

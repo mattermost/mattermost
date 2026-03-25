@@ -28,7 +28,7 @@ type PostContextKey string
 const (
 	PostSystemMessagePrefix       = "system_"
 	PostTypeDefault               = ""
-	PostTypeSlackAttachment       = "slack_attachment"
+	PostTypeMessageAttachment     = "slack_attachment"
 	PostTypeSystemGeneric         = "system_generic"
 	PostTypeJoinLeave             = "system_join_leave" // Deprecated, use PostJoinChannel or PostLeaveChannel instead
 	PostTypeJoinChannel           = "system_join_channel"
@@ -95,6 +95,7 @@ const (
 	PostPropsPreviewedPost            = "previewed_post"
 	PostPropsForceNotification        = "force_notification"
 	PostPropsChannelMentions          = "channel_mentions"
+	PostPropsCurrentTeamId            = "current_team_id"
 	PostPropsUnsafeLinks              = "unsafe_links"
 	PostPropsAIGeneratedByUserID      = "ai_generated_by"
 	PostPropsAIGeneratedByUsername    = "ai_generated_by_username"
@@ -298,6 +299,7 @@ type PostForIndexing struct {
 	Post
 	TeamId         string `json:"team_id"`
 	ParentCreateAt *int64 `json:"parent_create_at"`
+	ChannelType    string `json:"channel_type"`
 }
 
 type FileForIndexing struct {
@@ -511,7 +513,7 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypeMoveChannel,
 		PostTypeAddToTeam,
 		PostTypeRemoveFromTeam,
-		PostTypeSlackAttachment,
+		PostTypeMessageAttachment,
 		PostTypeHeaderChange,
 		PostTypePurposeChange,
 		PostTypeDisplaynameChange,
@@ -887,6 +889,36 @@ func (o *Post) ChannelMentions() []string {
 	return ChannelMentions(o.Message)
 }
 
+// ChannelMentionsAll returns all channel mentions from both the message and attachments.
+// This is used by FillInPostProps to populate channel_mentions for rendering.
+func (o *Post) ChannelMentionsAll() []string {
+	// Get mentions from message
+	messageMentions := ChannelMentions(o.Message)
+
+	// Get mentions from attachments
+	attachmentMentions := ChannelMentionsFromAttachments(o.Attachments())
+
+	// Combine and deduplicate
+	alreadyMentioned := make(map[string]bool)
+	var allMentions []string
+
+	for _, mention := range messageMentions {
+		if !alreadyMentioned[mention] {
+			allMentions = append(allMentions, mention)
+			alreadyMentioned[mention] = true
+		}
+	}
+
+	for _, mention := range attachmentMentions {
+		if !alreadyMentioned[mention] {
+			allMentions = append(allMentions, mention)
+			alreadyMentioned[mention] = true
+		}
+	}
+
+	return allMentions
+}
+
 // DisableMentionHighlights disables a posts mention highlighting and returns the first channel mention that was present in the message.
 func (o *Post) DisableMentionHighlights() string {
 	mention, hasMentions := findAtChannelMention(o.Message)
@@ -918,15 +950,15 @@ func findAtChannelMention(message string) (mention string, found bool) {
 	return
 }
 
-func (o *Post) Attachments() []*SlackAttachment {
-	if attachments, ok := o.GetProp(PostPropsAttachments).([]*SlackAttachment); ok {
+func (o *Post) Attachments() []*MessageAttachment {
+	if attachments, ok := o.GetProp(PostPropsAttachments).([]*MessageAttachment); ok {
 		return attachments
 	}
-	var ret []*SlackAttachment
+	var ret []*MessageAttachment
 	if attachments, ok := o.GetProp(PostPropsAttachments).([]any); ok {
 		for _, attachment := range attachments {
 			if enc, err := json.Marshal(attachment); err == nil {
-				var decoded SlackAttachment
+				var decoded MessageAttachment
 				if json.Unmarshal(enc, &decoded) == nil {
 					// Ignoring nil actions
 					i := 0
