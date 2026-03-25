@@ -171,9 +171,15 @@ jobs:
             fi
 
             if [[ -z "$HEAVY_RUNS" ]]; then
-              # No heavy packages — single run via Makefile with package filter
-              printf '#!/bin/bash\nexec make %s TE_PACKAGES="%s" EE_PACKAGES="%s"\n' \
-                "${MAKE_ARGS}" "${SHARD_TE}" "${SHARD_EE}" > server/run-shard-tests.sh
+              # No heavy packages — single run via Makefile with package filter.
+              # Read packages from files at runtime to avoid interpolating
+              # file-system-derived paths into a generated shell script.
+              cat > server/run-shard-tests.sh <<SHARD_EOF
+          #!/bin/bash
+          exec make ${MAKE_ARGS} \\
+            TE_PACKAGES="\$(cat shard-te-packages.txt)" \\
+            EE_PACKAGES="\$(cat shard-ee-packages.txt)"
+          SHARD_EOF
             else
               # Use the multi-run wrapper script
               cp server/scripts/run-shard-tests.sh server/run-shard-tests.sh
