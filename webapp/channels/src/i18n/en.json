@@ -270,6 +270,7 @@
   "admin.access_control.edit": "Edit",
   "admin.access_control.edit_policy.apply_policy": "Apply policy",
   "admin.access_control.edit_policy.cancel": "Cancel",
+  "admin.access_control.edit_policy.name_exists": "A policy with this name already exists. Please choose a different name.",
   "admin.access_control.edit_policy.save": "Save",
   "admin.access_control.edit_policy.save_policy": "Save policy",
   "admin.access_control.edit_policy.serverError": "There are errors in the form above: {serverError}",
