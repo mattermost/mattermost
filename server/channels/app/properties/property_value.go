@@ -5,18 +5,55 @@ package properties
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
+// rejectTemplateValues checks that none of the given values target a template
+// field. Template fields are definition-only and must never hold values.
+// This is enforced at the service layer to cover all entry points (API,
+// CPA endpoints, plugin API).
+func (ps *PropertyService) rejectTemplateValues(values []*model.PropertyValue) error {
+	// Collect unique (groupID, fieldID) pairs
+	type fieldKey struct{ groupID, fieldID string }
+	seen := make(map[fieldKey]struct{}, len(values))
+	for _, v := range values {
+		seen[fieldKey{v.GroupID, v.FieldID}] = struct{}{}
+	}
+
+	for key := range seen {
+		field, err := ps.fieldStore.Get(key.groupID, key.fieldID)
+		if err != nil {
+			return fmt.Errorf("failed to look up field %q: %w", key.fieldID, err)
+		}
+		if field.ObjectType == model.PropertyFieldObjectTypeTemplate {
+			return model.NewAppError(
+				"PropertyService",
+				"app.property_value.template_no_values.app_error",
+				nil,
+				fmt.Sprintf("template field %q cannot have values", key.fieldID),
+				http.StatusBadRequest,
+			)
+		}
+	}
+	return nil
+}
+
 // Private implementation methods (database access)
 
 func (ps *PropertyService) createPropertyValue(value *model.PropertyValue) (*model.PropertyValue, error) {
+	if err := ps.rejectTemplateValues([]*model.PropertyValue{value}); err != nil {
+		return nil, err
+	}
 	return ps.valueStore.Create(value)
 }
 
 func (ps *PropertyService) createPropertyValues(values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	if err := ps.rejectTemplateValues(values); err != nil {
+		return nil, err
+	}
 	return ps.valueStore.CreateMany(values)
 }
 
@@ -58,6 +95,9 @@ func (ps *PropertyService) upsertPropertyValue(value *model.PropertyValue) (*mod
 }
 
 func (ps *PropertyService) upsertPropertyValues(values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	if err := ps.rejectTemplateValues(values); err != nil {
+		return nil, err
+	}
 	return ps.valueStore.Upsert(values)
 }
 

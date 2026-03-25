@@ -28,6 +28,9 @@ func TestPropertyFieldStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("SearchPropertyFieldsSince", func(t *testing.T) { testSearchPropertyFieldsSince(t, rctx, ss) })
 	t.Run("CountForGroup", func(t *testing.T) { testCountForGroup(t, rctx, ss) })
 	t.Run("CheckPropertyNameConflict", func(t *testing.T) { testCheckPropertyNameConflict(t, rctx, ss) })
+	t.Run("CountLinkedFields", func(t *testing.T) { testCountLinkedFields(t, rctx, ss) })
+	t.Run("UpdateAndPropagate", func(t *testing.T) { testUpdateAndPropagate(t, rctx, ss) })
+	t.Run("SearchByLinkedFieldID", func(t *testing.T) { testSearchByLinkedFieldID(t, rctx, ss) })
 }
 
 func testCreatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
@@ -2331,5 +2334,244 @@ func testCheckPropertyNameConflict(t *testing.T, _ request.CTX, ss store.Store) 
 			require.NoError(t, err)
 			require.Equal(t, model.PropertyFieldTargetLevelChannel, conflict, "should still conflict with non-excluded property")
 		})
+	})
+}
+
+func testCountLinkedFields(t *testing.T, _ request.CTX, ss store.Store) {
+	groupID := model.NewId()
+
+	// Create a source field (template, select type, with options)
+	sourceField := &model.PropertyField{
+		GroupID:    groupID,
+		Name:       "Source Template Field",
+		Type:       model.PropertyFieldTypeSelect,
+		ObjectType: model.PropertyFieldObjectTypeTemplate,
+		Attrs: map[string]any{
+			"options": []any{
+				map[string]any{"name": "Option A"},
+				map[string]any{"name": "Option B"},
+			},
+		},
+	}
+	sourceField, err := ss.PropertyField().Create(sourceField)
+	require.NoError(t, err)
+
+	t.Run("should return 0 when no linked fields exist", func(t *testing.T) {
+		count, cErr := ss.PropertyField().CountLinkedFields(sourceField.ID)
+		require.NoError(t, cErr)
+		require.Equal(t, int64(0), count)
+	})
+
+	// Create 2 linked fields pointing to source
+	linked1 := &model.PropertyField{
+		GroupID:       groupID,
+		Name:          "Linked Field 1",
+		Type:          model.PropertyFieldTypeSelect,
+		ObjectType:    "user",
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &sourceField.ID,
+		Attrs: map[string]any{
+			"options": []any{
+				map[string]any{"name": "Option A"},
+				map[string]any{"name": "Option B"},
+			},
+		},
+	}
+	linked1, err = ss.PropertyField().Create(linked1)
+	require.NoError(t, err)
+
+	linked2 := &model.PropertyField{
+		GroupID:       groupID,
+		Name:          "Linked Field 2",
+		Type:          model.PropertyFieldTypeSelect,
+		ObjectType:    "user",
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &sourceField.ID,
+		Attrs: map[string]any{
+			"options": []any{
+				map[string]any{"name": "Option A"},
+				map[string]any{"name": "Option B"},
+			},
+		},
+	}
+	linked2, err = ss.PropertyField().Create(linked2)
+	require.NoError(t, err)
+
+	t.Run("should return 2 when two linked fields exist", func(t *testing.T) {
+		count, cErr := ss.PropertyField().CountLinkedFields(sourceField.ID)
+		require.NoError(t, cErr)
+		require.Equal(t, int64(2), count)
+	})
+
+	t.Run("should not count soft-deleted linked fields", func(t *testing.T) {
+		// Soft-delete one linked field
+		err := ss.PropertyField().Delete("", linked1.ID)
+		require.NoError(t, err)
+
+		count, cErr := ss.PropertyField().CountLinkedFields(sourceField.ID)
+		require.NoError(t, cErr)
+		require.Equal(t, int64(1), count)
+	})
+
+	t.Run("should count newly created linked fields", func(t *testing.T) {
+		linked3 := &model.PropertyField{
+			GroupID:       groupID,
+			Name:          "Linked Field 3",
+			Type:          model.PropertyFieldTypeSelect,
+			ObjectType:    "user",
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &sourceField.ID,
+			Attrs: map[string]any{
+				"options": []any{
+					map[string]any{"name": "Option A"},
+					map[string]any{"name": "Option B"},
+				},
+			},
+		}
+		_, cErr := ss.PropertyField().Create(linked3)
+		require.NoError(t, cErr)
+
+		count, cErr := ss.PropertyField().CountLinkedFields(sourceField.ID)
+		require.NoError(t, cErr)
+		require.Equal(t, int64(2), count)
+	})
+}
+
+func testUpdateAndPropagate(t *testing.T, _ request.CTX, ss store.Store) {
+	groupID := model.NewId()
+
+	optA := map[string]any{"id": model.NewId(), "name": "A"}
+	optB := map[string]any{"id": model.NewId(), "name": "B"}
+
+	// Create a source field with options [A, B]
+	sourceField := &model.PropertyField{
+		GroupID:    groupID,
+		Name:       "Propagation Source",
+		Type:       model.PropertyFieldTypeSelect,
+		ObjectType: model.PropertyFieldObjectTypeTemplate,
+		Attrs: map[string]any{
+			"options": []any{optA, optB},
+		},
+	}
+	sourceField, err := ss.PropertyField().Create(sourceField)
+	require.NoError(t, err)
+
+	// Create 2 linked fields pointing to source
+	linked1 := &model.PropertyField{
+		GroupID:       groupID,
+		Name:          "Propagation Linked 1",
+		Type:          model.PropertyFieldTypeSelect,
+		ObjectType:    "user",
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &sourceField.ID,
+		Attrs: map[string]any{
+			"options": []any{optA, optB},
+		},
+	}
+	linked1, err = ss.PropertyField().Create(linked1)
+	require.NoError(t, err)
+
+	linked2 := &model.PropertyField{
+		GroupID:       groupID,
+		Name:          "Propagation Linked 2",
+		Type:          model.PropertyFieldTypeSelect,
+		ObjectType:    "user",
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &sourceField.ID,
+		Attrs: map[string]any{
+			"options": []any{optA, optB},
+		},
+	}
+	linked2, err = ss.PropertyField().Create(linked2)
+	require.NoError(t, err)
+
+	t.Run("should propagate updated options to all linked fields", func(t *testing.T) {
+		optC := map[string]any{"id": model.NewId(), "name": "C"}
+		newOptions := []any{optA, optB, optC}
+
+		// Update source field's options to [A, B, C]
+		sourceField.Attrs = map[string]any{
+			"options": newOptions,
+		}
+
+		result, uErr := ss.PropertyField().UpdateAndPropagate("", []*model.PropertyField{sourceField}, []store.PropagationRequest{
+			{
+				SourceFieldID: sourceField.ID,
+				FieldType:     model.PropertyFieldTypeSelect,
+				Options:       newOptions,
+			},
+		})
+		require.NoError(t, uErr)
+
+		// The result should contain the source field + both linked fields (3 total)
+		require.Len(t, result, 3)
+
+		// Verify both linked fields now have the updated options
+		retrievedLinked1, gErr := ss.PropertyField().Get("", linked1.ID)
+		require.NoError(t, gErr)
+		options1 := retrievedLinked1.Attrs["options"].([]any)
+		require.Len(t, options1, 3)
+
+		retrievedLinked2, gErr := ss.PropertyField().Get("", linked2.ID)
+		require.NoError(t, gErr)
+		options2 := retrievedLinked2.Attrs["options"].([]any)
+		require.Len(t, options2, 3)
+	})
+}
+
+func testSearchByLinkedFieldID(t *testing.T, _ request.CTX, ss store.Store) {
+	groupID := model.NewId()
+
+	// Create a source field
+	sourceField := &model.PropertyField{
+		GroupID:    groupID,
+		Name:       "Search Source Field",
+		Type:       model.PropertyFieldTypeSelect,
+		ObjectType: model.PropertyFieldObjectTypeTemplate,
+		Attrs: map[string]any{
+			"options": []any{
+				map[string]any{"name": "X"},
+			},
+		},
+	}
+	sourceField, err := ss.PropertyField().Create(sourceField)
+	require.NoError(t, err)
+
+	// Create 3 linked fields pointing to source
+	for i := range 3 {
+		linked := &model.PropertyField{
+			GroupID:       groupID,
+			Name:          fmt.Sprintf("Search Linked %d", i),
+			Type:          model.PropertyFieldTypeSelect,
+			ObjectType:    "user",
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &sourceField.ID,
+			Attrs: map[string]any{
+				"options": []any{
+					map[string]any{"name": "X"},
+				},
+			},
+		}
+		_, cErr := ss.PropertyField().Create(linked)
+		require.NoError(t, cErr)
+		time.Sleep(time.Millisecond)
+	}
+
+	t.Run("should find all linked fields by LinkedFieldID", func(t *testing.T) {
+		results, sErr := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+			LinkedFieldID: sourceField.ID,
+			PerPage:       10,
+		})
+		require.NoError(t, sErr)
+		require.Len(t, results, 3)
+	})
+
+	t.Run("should return 0 results for non-existent LinkedFieldID", func(t *testing.T) {
+		results, sErr := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+			LinkedFieldID: model.NewId(),
+			PerPage:       10,
+		})
+		require.NoError(t, sErr)
+		require.Len(t, results, 0)
 	})
 }

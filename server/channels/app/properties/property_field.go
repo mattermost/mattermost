@@ -272,29 +272,51 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 		sourceFieldID := prop.SourceFieldID
 
 		go func() {
-			// Find all linked field IDs for this source
-			linked, searchErr := ps.fieldStore.SearchPropertyFields(model.PropertyFieldSearchOpts{
-				LinkedFieldID:  sourceFieldID,
-				IncludeDeleted: false,
-				PerPage:        10000,
-			})
-			if searchErr != nil {
-				ps.logger.Warn("Failed to search linked fields for orphan cleanup",
-					mlog.String("source_field_id", sourceFieldID),
-					mlog.Err(searchErr),
-				)
-				return
+			defer func() {
+				if r := recover(); r != nil {
+					ps.logger.Error("Panic in orphan cleanup goroutine",
+						mlog.String("source_field_id", sourceFieldID),
+						mlog.Any("panic", r),
+					)
+				}
+			}()
+
+			// Find all linked field IDs for this source using cursor-based pagination
+			const pageSize = 200
+			fieldIDs := []string{sourceFieldID} // include source field itself
+			var cursor model.PropertyFieldSearchCursor
+			for {
+				page, searchErr := ps.fieldStore.SearchPropertyFields(model.PropertyFieldSearchOpts{
+					LinkedFieldID:  sourceFieldID,
+					IncludeDeleted: false,
+					PerPage:        pageSize,
+					Cursor:         cursor,
+				})
+				if searchErr != nil {
+					ps.logger.Warn("Failed to search linked fields for orphan cleanup",
+						mlog.String("source_field_id", sourceFieldID),
+						mlog.Err(searchErr),
+					)
+					return
+				}
+				for _, f := range page {
+					fieldIDs = append(fieldIDs, f.ID)
+				}
+				if len(page) < pageSize {
+					break
+				}
+				last := page[len(page)-1]
+				cursor = model.PropertyFieldSearchCursor{
+					PropertyFieldID: last.ID,
+					CreateAt:        last.CreateAt,
+				}
 			}
-			if len(linked) == 0 {
+			if len(fieldIDs) <= 1 {
+				// Only the source field, no linked dependents found
 				return
 			}
 
-			linkedIDs := make([]string, len(linked))
-			for i, f := range linked {
-				linkedIDs[i] = f.ID
-			}
-
-			if deleteErr := ps.valueStore.DeleteValuesReferencingOptions(linkedIDs, removedIDs, fieldType); deleteErr != nil {
+			if deleteErr := ps.valueStore.DeleteValuesReferencingOptions(fieldIDs, removedIDs, fieldType); deleteErr != nil {
 				ps.logger.Warn("Failed to delete orphaned values after option removal",
 					mlog.String("source_field_id", sourceFieldID),
 					mlog.Int("removed_options", len(removedIDs)),
@@ -505,8 +527,13 @@ func (ps *PropertyService) DeletePropertyField(rctx request.CTX, groupID, id str
 
 // optionsChanged compares the options in two attrs maps and returns true if they differ.
 func optionsChanged(oldAttrs, newAttrs model.StringInterface) bool {
-	oldOpts := oldAttrs[model.PropertyFieldAttributeOptions]
-	newOpts := newAttrs[model.PropertyFieldAttributeOptions]
+	var oldOpts, newOpts any
+	if oldAttrs != nil {
+		oldOpts = oldAttrs[model.PropertyFieldAttributeOptions]
+	}
+	if newAttrs != nil {
+		newOpts = newAttrs[model.PropertyFieldAttributeOptions]
+	}
 
 	oldJSON, err1 := json.Marshal(oldOpts)
 	newJSON, err2 := json.Marshal(newOpts)

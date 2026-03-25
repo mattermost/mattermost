@@ -390,11 +390,11 @@ func (s *SqlPropertyValueStore) DeleteValuesReferencingOptions(linkedFieldIDs []
 
 	switch fieldType {
 	case model.PropertyFieldTypeSelect:
-		// Select values are stored as JSON strings like "optionId"
-		// Build the quoted JSON string values for comparison
-		quotedIDs := make([]string, len(optionIDs))
+		// Select values are stored as JSONB strings like "optionId".
+		// Cast each option ID to jsonb for type-safe comparison against the JSONB column.
+		valueConds := make(sq.Or, len(optionIDs))
 		for i, id := range optionIDs {
-			quotedIDs[i] = fmt.Sprintf("%q", id)
+			valueConds[i] = sq.Expr("Value = ?::jsonb", fmt.Sprintf("%q", id))
 		}
 
 		builder := s.getQueryBuilder().
@@ -402,20 +402,24 @@ func (s *SqlPropertyValueStore) DeleteValuesReferencingOptions(linkedFieldIDs []
 			Set("DeleteAt", deleteAt).
 			Where(sq.Eq{"FieldID": linkedFieldIDs}).
 			Where(sq.Eq{"DeleteAt": 0}).
-			Where(sq.Eq{"Value": quotedIDs})
+			Where(valueConds)
 
 		if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
 			return errors.Wrap(err, "property_value_delete_referencing_options_select")
 		}
 
 	case model.PropertyFieldTypeMultiselect:
-		// Multiselect values are stored as JSON arrays like ["opt1", "opt2"]
-		// Use the @> containment operator — one query per removed option
+		// Multiselect values are stored as JSON arrays like ["opt1", "opt2"].
+		// Remove each orphaned option from the array rather than deleting the
+		// entire value, so users don't lose their other valid selections.
 		for _, optionID := range optionIDs {
 			quotedID := fmt.Sprintf("%q", optionID)
+
+			// Remove the option from the JSON array for rows that contain it.
+			// Uses array subtraction: Value - text removes the element from the jsonb array.
 			builder := s.getQueryBuilder().
 				Update("PropertyValues").
-				Set("DeleteAt", deleteAt).
+				Set("Value", sq.Expr("Value - ?", optionID)).
 				Where(sq.Eq{"FieldID": linkedFieldIDs}).
 				Where(sq.Eq{"DeleteAt": 0}).
 				Where(sq.Expr("Value @> ?::jsonb", quotedID))
@@ -423,6 +427,18 @@ func (s *SqlPropertyValueStore) DeleteValuesReferencingOptions(linkedFieldIDs []
 			if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
 				return errors.Wrapf(err, "property_value_delete_referencing_options_multiselect option=%s", optionID)
 			}
+		}
+
+		// Soft-delete any rows whose array is now empty after option removal
+		builder := s.getQueryBuilder().
+			Update("PropertyValues").
+			Set("DeleteAt", deleteAt).
+			Where(sq.Eq{"FieldID": linkedFieldIDs}).
+			Where(sq.Eq{"DeleteAt": 0}).
+			Where(sq.Expr("Value = '[]'::jsonb"))
+
+		if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
+			return errors.Wrap(err, "property_value_delete_referencing_options_multiselect_empty")
 		}
 
 	default:

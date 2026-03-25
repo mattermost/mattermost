@@ -4,6 +4,7 @@
 package properties
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"testing"
@@ -1132,5 +1133,73 @@ func TestLinkedPropertyFields(t *testing.T) {
 		require.NoError(t, err)
 		assert.Nil(t, result.LinkedFieldID)
 		assert.Equal(t, source.Type, result.Type)
+	})
+
+	t.Run("template field value creation is rejected at service layer", func(t *testing.T) {
+		source := createSourceField(t, "TemplateValReject-"+model.NewId())
+
+		value := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "user",
+			GroupID:    groupID,
+			FieldID:    source.ID,
+			Value:      json.RawMessage(`"some value"`),
+		}
+
+		_, err := th.service.CreatePropertyValue(value)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "template")
+	})
+
+	t.Run("template field value upsert is rejected at service layer", func(t *testing.T) {
+		source := createSourceField(t, "TemplateUpsertReject-"+model.NewId())
+
+		value := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "user",
+			GroupID:    groupID,
+			FieldID:    source.ID,
+			Value:      json.RawMessage(`"some value"`),
+		}
+
+		_, err := th.service.UpsertPropertyValue(value)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "template")
+	})
+
+	t.Run("linked CPA field with LinkedFieldID behaves correctly", func(t *testing.T) {
+		source := createSourceField(t, "CPASource-"+model.NewId())
+
+		// Create a CPA-style linked field (user object type)
+		linked := th.CreatePropertyField(t, &model.PropertyField{
+			GroupID:       groupID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "CPALinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+
+		// Verify type and options were inherited
+		assert.Equal(t, source.Type, linked.Type)
+		assert.NotNil(t, linked.LinkedFieldID)
+		assert.Equal(t, source.ID, *linked.LinkedFieldID)
+	})
+
+	t.Run("CPA linked field delete succeeds", func(t *testing.T) {
+		source := createSourceField(t, "CPADelSource-"+model.NewId())
+
+		linked := th.CreatePropertyField(t, &model.PropertyField{
+			GroupID:       groupID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "CPADelLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+
+		// Deleting the linked field should succeed
+		err := th.service.DeletePropertyField(groupID, linked.ID)
+		require.NoError(t, err)
 	})
 }
