@@ -679,7 +679,7 @@ func getEditHistoryForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if originalPost.Type == model.PostTypeCard {
+	if originalPost.Type == model.PostTypeCard && c.App.Config().FeatureFlags.IntegratedBoards {
 		// Cards: collaborative model — any channel member with edit_post can view edit history
 	} else if c.AppContext.Session().UserId != originalPost.UserId {
 		c.SetPermissionError(model.PermissionEditPost)
@@ -738,18 +738,19 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 	auditRec.AddEventPriorState(post)
 	auditRec.AddEventObjectType("post")
 
-	if post.Type == model.PostTypeCard {
+	switch {
+	case c.AppContext.Session().UserId == post.UserId:
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionDeletePost); !ok {
+			c.SetPermissionError(model.PermissionDeletePost)
+			return
+		}
+	case post.Type == model.PostTypeCard && c.App.Config().FeatureFlags.IntegratedBoards:
 		// Cards: collaborative model — any user with delete_post can delete any card
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionDeletePost); !ok {
 			c.SetPermissionError(model.PermissionDeletePost)
 			return
 		}
-	} else if c.AppContext.Session().UserId == post.UserId {
-		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionDeletePost); !ok {
-			c.SetPermissionError(model.PermissionDeletePost)
-			return
-		}
-	} else {
+	default:
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionDeleteOthersPosts); !ok {
 			c.SetPermissionError(model.PermissionDeleteOthersPosts)
 			return
@@ -1075,7 +1076,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if originalPost.Type == model.PostTypeCard {
+	if originalPost.Type == model.PostTypeCard && c.App.Config().FeatureFlags.IntegratedBoards {
 		// Cards: collaborative model — skip ownership check
 		// PermissionEditPost already checked above
 	} else if c.AppContext.Session().UserId != originalPost.UserId {
@@ -1187,13 +1188,13 @@ func postPatchChecks(c *Context, auditRec *model.AuditRecord, message *string) b
 	auditRec.AddEventObjectType("post")
 
 	var permission *model.Permission
-
-	if originalPost.Type == model.PostTypeCard {
+	switch {
+	case c.AppContext.Session().UserId == originalPost.UserId:
+		permission = model.PermissionEditPost
+	case originalPost.Type == model.PostTypeCard && c.App.Config().FeatureFlags.IntegratedBoards:
 		// Cards: collaborative model — any member can edit any card
 		permission = model.PermissionEditPost
-	} else if c.AppContext.Session().UserId == originalPost.UserId {
-		permission = model.PermissionEditPost
-	} else {
+	default:
 		permission = model.PermissionEditOthersPosts
 	}
 
