@@ -45,3 +45,6 @@ ignore:
 
   # mmctl mocks
   - "server/cmd/mmctl/mocks"
+
+  # Thin HTTP client wrapper (~3.9k statements, tested via integration tests)
+  - "server/public/model/client4.go"
