@@ -347,36 +347,41 @@ func (s *SqlPostStore) Save(rctx request.CTX, post *model.Post) (*model.Post, er
 }
 
 func (s *SqlPostStore) populateReplyCount(posts []*model.Post) error {
-	rootIds := []string{}
+	// Deduplicate root IDs.
+	seen := make(map[string]struct{}, len(posts))
+	var rootIds []string
 	for _, post := range posts {
-		rootIds = append(rootIds, post.RootId)
-	}
-	countList := []struct {
-		RootId string
-		Count  int64
-	}{}
-	query := s.getQueryBuilder().
-		Select("RootId, COUNT(Id) AS Count").
-		From("Posts").
-		Where(sq.Eq{"RootId": rootIds}).
-		Where(sq.Eq{"Posts.DeleteAt": 0}).
-		GroupBy("RootId")
-
-	if err := s.GetMaster().SelectBuilder(&countList, query); err != nil {
-		return errors.Wrap(err, "failed to count Posts")
-	}
-
-	counts := map[string]int64{}
-	for _, count := range countList {
-		counts[count.RootId] = count.Count
-	}
-
-	for _, post := range posts {
-		count, ok := counts[post.RootId]
-		if !ok {
-			post.ReplyCount = 0
+		if _, ok := seen[post.RootId]; !ok {
+			seen[post.RootId] = struct{}{}
+			rootIds = append(rootIds, post.RootId)
 		}
-		post.ReplyCount = count
+	}
+
+	// Query in chunks — each root ID uses 1 parameter in the WHERE IN clause.
+	counts := map[string]int64{}
+	idChunks := chunkSlice(rootIds, 1, s.SqlStore.getMaxInsertParams())
+	for _, idChunk := range idChunks {
+		countList := []struct {
+			RootId string
+			Count  int64
+		}{}
+		query := s.getQueryBuilder().
+			Select("RootId, COUNT(Id) AS Count").
+			From("Posts").
+			Where(sq.Eq{"RootId": idChunk}).
+			Where(sq.Eq{"Posts.DeleteAt": 0}).
+			GroupBy("RootId")
+
+		if err := s.GetMaster().SelectBuilder(&countList, query); err != nil {
+			return errors.Wrap(err, "failed to count Posts")
+		}
+		for _, c := range countList {
+			counts[c.RootId] = c.Count
+		}
+	}
+
+	for _, post := range posts {
+		post.ReplyCount = counts[post.RootId]
 	}
 
 	return nil
