@@ -7027,6 +7027,10 @@
     "translation": "Unable to save access control policy."
   },
   {
+    "id": "app.pap.save_policy.name_exists.app_error",
+    "translation": "A policy with this name already exists. Please choose a different name."
+  },
+  {
     "id": "app.pap.search_access_control_policies.app_error",
     "translation": "Could not search access control policies."
   },
