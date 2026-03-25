@@ -303,10 +303,13 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 		sort.Slice(teamJobs, func(i, j int) bool {
 			return teamJobs[i].CreateAt > teamJobs[j].CreateAt
 		})
-		if len(teamJobs) > c.Params.PerPage {
-			teamJobs = teamJobs[:c.Params.PerPage]
+		start := c.Params.Page * c.Params.PerPage
+		if start >= len(teamJobs) {
+			jobs = []*model.Job{}
+		} else {
+			end := min(start+c.Params.PerPage, len(teamJobs))
+			jobs = teamJobs[start:end]
 		}
-		jobs = teamJobs
 	} else {
 		// Store returns jobs ordered by CreateAt DESC; pagination applied at the store level.
 		var appErr *model.AppError

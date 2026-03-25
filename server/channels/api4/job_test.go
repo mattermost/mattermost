@@ -324,6 +324,17 @@ func TestGetJobsByType_TeamAdminAccessControlSync(t *testing.T) {
 		require.Empty(t, jobs)
 	})
 
+	t.Run("pagination works correctly for team-scoped jobs", func(t *testing.T) {
+		// page=0 returns the job, page=1 returns empty (not the same page again)
+		jobs, _, err := th.SystemAdminClient.GetJobsByTypeForTeam(context.Background(), model.JobTypeAccessControlSync, 0, 1, th.BasicTeam.Id)
+		require.NoError(t, err)
+		require.Len(t, jobs, 1)
+
+		jobs, _, err = th.SystemAdminClient.GetJobsByTypeForTeam(context.Background(), model.JobTypeAccessControlSync, 1, 1, th.BasicTeam.Id)
+		require.NoError(t, err)
+		require.Empty(t, jobs)
+	})
+
 	t.Run("team admin cannot query jobs for a team they are not admin of", func(t *testing.T) {
 		th.LoginTeamAdmin(t)
 		defer th.LoginBasic(t)
