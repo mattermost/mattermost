@@ -29,6 +29,9 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
         update_at: 0,
         created_by: '',
         updated_by: '',
+        target_id: '',
+        target_type: '',
+        object_type: '',
     };
 
     const createAttribute = (id: string, name: string, attrs: Record<string, string>): UserPropertyField => ({
