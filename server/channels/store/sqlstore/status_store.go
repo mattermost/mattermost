@@ -21,6 +21,14 @@ type SqlStatusStore struct {
 	statusSelectQuery sq.SelectBuilder
 }
 
+func statusSliceColumns() []string {
+	return []string{"UserId", "Status", "Manual", "LastActivityAt", "DNDEndTime", "PrevStatus"}
+}
+
+func statusToSlice(st *model.Status) []any {
+	return []any{st.UserId, st.Status, st.Manual, st.LastActivityAt, st.DNDEndTime, st.PrevStatus}
+}
+
 func newSqlStatusStore(sqlStore *SqlStore) store.StatusStore {
 	s := SqlStatusStore{
 		SqlStore: sqlStore,
@@ -43,8 +51,8 @@ func newSqlStatusStore(sqlStore *SqlStore) store.StatusStore {
 func (s SqlStatusStore) SaveOrUpdate(st *model.Status) error {
 	query := s.getQueryBuilder().
 		Insert("Status").
-		Columns("UserId", "Status", "Manual", "LastActivityAt", "DNDEndTime", "PrevStatus").
-		Values(st.UserId, st.Status, st.Manual, st.LastActivityAt, st.DNDEndTime, st.PrevStatus)
+		Columns(statusSliceColumns()...).
+		Values(statusToSlice(st)...)
 
 	query = query.SuffixExpr(sq.Expr("ON CONFLICT (userid) DO UPDATE SET Status = EXCLUDED.Status, Manual = EXCLUDED.Manual, LastActivityAt = EXCLUDED.LastActivityAt, DNDEndTime = EXCLUDED.DNDEndTime, PrevStatus = EXCLUDED.PrevStatus"))
 
@@ -78,14 +86,13 @@ func (s SqlStatusStore) SaveOrUpdateMany(statuses map[string]*model.Status) (ret
 	}
 	defer finalizeTransactionX(transaction, &retErr)
 
-	// 6 columns: UserId, Status, Manual, LastActivityAt, DNDEndTime, PrevStatus
-	chunks := chunkSlice(statusList, 6, s.SqlStore.getMaxInsertParams())
+	chunks := chunkSlice(statusList, len(statusSliceColumns()), s.SqlStore.getMaxInsertParams())
 	for _, chunk := range chunks {
 		query := s.getQueryBuilder().
 			Insert("Status").
-			Columns("UserId", "Status", "Manual", "LastActivityAt", "DNDEndTime", "PrevStatus")
+			Columns(statusSliceColumns()...)
 		for _, st := range chunk {
-			query = query.Values(st.UserId, st.Status, st.Manual, st.LastActivityAt, st.DNDEndTime, st.PrevStatus)
+			query = query.Values(statusToSlice(st)...)
 		}
 		query = query.SuffixExpr(sq.Expr("ON CONFLICT (userid) DO UPDATE SET Status = EXCLUDED.Status, Manual = EXCLUDED.Manual, LastActivityAt = EXCLUDED.LastActivityAt, DNDEndTime = EXCLUDED.DNDEndTime, PrevStatus = EXCLUDED.PrevStatus"))
 		if _, err := transaction.ExecBuilder(query); err != nil {

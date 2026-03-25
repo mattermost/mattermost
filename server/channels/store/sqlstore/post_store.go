@@ -3052,33 +3052,45 @@ func (s *SqlPostStore) savePostsPersistentNotifications(transaction *sqlxTxWrapp
 
 func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts []*model.Post) error {
 	postsByRoot := map[string][]*model.Post{}
-	var rootIds []string
 	for _, post := range posts {
 		// skip if post is not a part of a thread
 		if post.RootId == "" {
 			continue
 		}
-		rootIds = append(rootIds, post.RootId)
 		postsByRoot[post.RootId] = append(postsByRoot[post.RootId], post)
 	}
-	if len(rootIds) == 0 {
+	if len(postsByRoot) == 0 {
 		return nil
 	}
-	query := s.getQueryBuilder().
-		Select(
-			"Threads.PostId",
-			"Threads.ChannelId",
-			"Threads.ReplyCount",
-			"Threads.LastReplyAt",
-			"Threads.Participants",
-			"COALESCE(Threads.ThreadDeleteAt, 0) AS DeleteAt",
-		).
-		From("Threads").
-		Where(sq.Eq{"Threads.PostId": rootIds})
 
+	// Deduplicated root IDs from map keys.
+	rootIds := make([]string, 0, len(postsByRoot))
+	for rootId := range postsByRoot {
+		rootIds = append(rootIds, rootId)
+	}
+
+	// Query existing threads in chunks to stay under the parameter limit.
+	// Each root ID uses 1 parameter in the WHERE IN clause.
 	threadsByRoots := []*model.Thread{}
-	if err := transaction.SelectBuilder(&threadsByRoots, query); err != nil {
-		return err
+	idChunks := chunkSlice(rootIds, 1, s.SqlStore.getMaxInsertParams())
+	for _, idChunk := range idChunks {
+		query := s.getQueryBuilder().
+			Select(
+				"Threads.PostId",
+				"Threads.ChannelId",
+				"Threads.ReplyCount",
+				"Threads.LastReplyAt",
+				"Threads.Participants",
+				"COALESCE(Threads.ThreadDeleteAt, 0) AS DeleteAt",
+			).
+			From("Threads").
+			Where(sq.Eq{"Threads.PostId": idChunk})
+
+		var batch []*model.Thread
+		if err := transaction.SelectBuilder(&batch, query); err != nil {
+			return err
+		}
+		threadsByRoots = append(threadsByRoots, batch...)
 	}
 
 	threadByRoot := map[string]*model.Thread{}

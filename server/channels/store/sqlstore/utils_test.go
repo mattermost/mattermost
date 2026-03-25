@@ -57,14 +57,25 @@ func TestChunkSlice(t *testing.T) {
 		require.Len(t, result[2], 100)
 	})
 
-	t.Run("very high columns per row", func(t *testing.T) {
-		// columnsPerRow > maxParams → chunkSize would be 0, forced to 1
-		items := []int{1, 2, 3}
-		result := chunkSlice(items, defaultMaxInsertParams+1, defaultMaxInsertParams)
-		require.Len(t, result, 3)
-		for _, chunk := range result {
-			require.Len(t, chunk, 1)
-		}
+	t.Run("columnsPerRow > maxParams panics", func(t *testing.T) {
+		require.Panics(t, func() {
+			chunkSlice([]int{1}, defaultMaxInsertParams+1, defaultMaxInsertParams)
+		})
+	})
+
+	t.Run("columnsPerRow <= 0 panics", func(t *testing.T) {
+		require.Panics(t, func() {
+			chunkSlice([]int{1}, 0, defaultMaxInsertParams)
+		})
+		require.Panics(t, func() {
+			chunkSlice([]int{1}, -1, defaultMaxInsertParams)
+		})
+	})
+
+	t.Run("maxParams <= 0 panics", func(t *testing.T) {
+		require.Panics(t, func() {
+			chunkSlice([]int{1}, 1, 0)
+		})
 	})
 }
 

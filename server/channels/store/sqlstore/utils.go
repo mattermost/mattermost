@@ -30,13 +30,19 @@ const defaultMaxInsertParams = 50_000
 // already fits in one chunk the original slice is returned with zero allocation
 // overhead.
 func chunkSlice[T any](items []T, columnsPerRow int, maxParams int) [][]T {
+	if columnsPerRow <= 0 {
+		panic(fmt.Sprintf("chunkSlice: columnsPerRow must be > 0, got %d", columnsPerRow))
+	}
+	if maxParams <= 0 {
+		panic(fmt.Sprintf("chunkSlice: maxParams must be > 0, got %d", maxParams))
+	}
+	if columnsPerRow > maxParams {
+		panic(fmt.Sprintf("chunkSlice: columnsPerRow (%d) must be <= maxParams (%d)", columnsPerRow, maxParams))
+	}
 	if len(items) == 0 {
 		return nil
 	}
 	chunkSize := maxParams / columnsPerRow
-	if chunkSize == 0 {
-		chunkSize = 1
-	}
 	if len(items) <= chunkSize {
 		return [][]T{items}
 	}
