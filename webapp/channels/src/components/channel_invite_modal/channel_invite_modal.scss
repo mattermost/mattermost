@@ -1,6 +1,15 @@
 @use 'utils/mixins';
 
 .channel-invite {
+    .modal-header {
+        padding-top: 16px;
+        padding-bottom: 16px;
+    }
+
+    .modal-body {
+        padding-top: 0;
+    }
+
     &__wrapper {
         display: flex;
         width: 100%;
@@ -26,6 +35,10 @@
         .invite-as-guest {
             margin-right: 0 !important;
         }
+
+        .AlertBanner {
+            margin: 0 -8px;
+        }
     }
     
     &__username {
@@ -41,5 +54,15 @@
         .TagGroup {
             margin-top: 12px;
         }
+    }
+
+    &__confirm-users {
+        font-weight: 600;
+    }
+
+    &__confirm-context {
+        margin-top: 12px;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 12px;
     }
 }

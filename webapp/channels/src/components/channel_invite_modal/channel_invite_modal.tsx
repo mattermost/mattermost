@@ -6,7 +6,7 @@ import './channel_invite_modal.scss';
 import isEqual from 'lodash/isEqual';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {IntlShape} from 'react-intl';
-import {injectIntl, FormattedMessage, defineMessage} from 'react-intl';
+import {injectIntl, FormattedList, FormattedMessage, defineMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
@@ -57,6 +57,7 @@ export type Props = {
     userStatuses: RelationOneToOne<UserProfile, string>;
     onExited: () => void;
     channel: Channel;
+    teamDisplayName?: string;
     teammateNameDisplaySetting: string;
 
     // skipCommit = true used with onAddCallback will result in users not being committed immediately
@@ -108,6 +109,12 @@ const mergeUniqueUsers = (existingUsers: UserProfileValue[], nextUsers: UserProf
 
 const getFirstTeamMemberError = (teamMemberResults?: TeamMemberWithError[]) => {
     return teamMemberResults?.find((member) => member.error)?.error;
+};
+
+const formatUsersForConfirmation = (users: UserProfileValue[]) => {
+    return users.map((user) => (
+        <strong key={user.id}>{user.username}</strong>
+    ));
 };
 
 const ChannelInviteModalComponent = (props: Props) => {
@@ -730,6 +737,8 @@ const ChannelInviteModalComponent = (props: Props) => {
     );
 
     const {channel} = props;
+    const teamDisplayName = props.teamDisplayName || channel.team_id;
+    const confirmationUsers = formatUsersForConfirmation(usersNotInTeam);
 
     return (
         <GenericModal
@@ -807,22 +816,24 @@ const ChannelInviteModalComponent = (props: Props) => {
                 title={(
                     <FormattedMessage
                         id='channel_invite.add_to_team_and_channel.confirm.title'
-                        defaultMessage='Add people to the team and channel?'
+                        defaultMessage='Add people to the channel and team?'
                     />
                 )}
                 message={(
                     <FormattedMessage
                         id='channel_invite.add_to_team_and_channel.confirm.message'
-                        defaultMessage='This will add the selected people to the {team} team so they can also be added to this channel. Team members may gain access to other public channels and team-level resources based on their permissions.'
+                        defaultMessage='{users} will be added to the {channel} channel. They will also get access to the {team} team and any public channels in the team.'
                         values={{
-                            team: <strong>{channel.display_name ? undefined : undefined}</strong>,
+                            users: <FormattedList value={confirmationUsers}/>,
+                            channel: <strong>{channel.display_name}</strong>,
+                            team: <strong>{teamDisplayName}</strong>,
                         }}
                     />
                 )}
                 confirmButtonText={(
                     <FormattedMessage
                         id='channel_invite.add_to_team_and_channel.confirm.confirmButton'
-                        defaultMessage='Add to team and channel'
+                        defaultMessage='Add to channel and team'
                     />
                 )}
                 confirmButtonClass='btn btn-primary'

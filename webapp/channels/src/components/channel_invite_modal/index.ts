@@ -113,6 +113,7 @@ function makeMapStateToProps(initialState: GlobalState, initialProps: OwnProps) 
             profilesInCurrentChannel,
             profilesNotInCurrentTeam,
             membersInTeam,
+            teamDisplayName: currentTeam?.display_name,
             teammateNameDisplaySetting,
             profilesFromRecentDMs,
             userStatuses,

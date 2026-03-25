@@ -129,7 +129,7 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
     confirmButtonClass="btn btn-primary"
     confirmButtonText={
       <Memo(MemoizedFormattedMessage)
-        defaultMessage="Add to team and channel"
+        defaultMessage="Add to channel and team"
         id="channel_invite.add_to_team_and_channel.confirm.confirmButton"
       />
     }
@@ -137,11 +137,19 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
     isStacked={true}
     message={
       <Memo(MemoizedFormattedMessage)
-        defaultMessage="This will add the selected people to the {team} team so they can also be added to this channel. Team members may gain access to other public channels and team-level resources based on their permissions."
+        defaultMessage="{users} will be added to the {channel} channel. They will also get access to the {team} team and any public channels in the team."
         id="channel_invite.add_to_team_and_channel.confirm.message"
         values={
           Object {
-            "team": <strong />,
+            "channel": <strong>
+              testing
+            </strong>,
+            "team": <strong>
+              Operations
+            </strong>,
+            "users": <FormattedList
+              value={Array []}
+            />,
           }
         }
       />
@@ -151,7 +159,7 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
     show={false}
     title={
       <Memo(MemoizedFormattedMessage)
-        defaultMessage="Add people to the team and channel?"
+        defaultMessage="Add people to the channel and team?"
         id="channel_invite.add_to_team_and_channel.confirm.title"
       />
     }
@@ -288,7 +296,7 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
     confirmButtonClass="btn btn-primary"
     confirmButtonText={
       <Memo(MemoizedFormattedMessage)
-        defaultMessage="Add to team and channel"
+        defaultMessage="Add to channel and team"
         id="channel_invite.add_to_team_and_channel.confirm.confirmButton"
       />
     }
@@ -296,11 +304,19 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
     isStacked={true}
     message={
       <Memo(MemoizedFormattedMessage)
-        defaultMessage="This will add the selected people to the {team} team so they can also be added to this channel. Team members may gain access to other public channels and team-level resources based on their permissions."
+        defaultMessage="{users} will be added to the {channel} channel. They will also get access to the {team} team and any public channels in the team."
         id="channel_invite.add_to_team_and_channel.confirm.message"
         values={
           Object {
-            "team": <strong />,
+            "channel": <strong>
+              testing
+            </strong>,
+            "team": <strong>
+              Operations
+            </strong>,
+            "users": <FormattedList
+              value={Array []}
+            />,
           }
         }
       />
@@ -310,7 +326,7 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
     show={false}
     title={
       <Memo(MemoizedFormattedMessage)
-        defaultMessage="Add people to the team and channel?"
+        defaultMessage="Add people to the channel and team?"
         id="channel_invite.add_to_team_and_channel.confirm.title"
       />
     }
@@ -447,7 +463,7 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
     confirmButtonClass="btn btn-primary"
     confirmButtonText={
       <Memo(MemoizedFormattedMessage)
-        defaultMessage="Add to team and channel"
+        defaultMessage="Add to channel and team"
         id="channel_invite.add_to_team_and_channel.confirm.confirmButton"
       />
     }
@@ -455,11 +471,19 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
     isStacked={true}
     message={
       <Memo(MemoizedFormattedMessage)
-        defaultMessage="This will add the selected people to the {team} team so they can also be added to this channel. Team members may gain access to other public channels and team-level resources based on their permissions."
+        defaultMessage="{users} will be added to the {channel} channel. They will also get access to the {team} team and any public channels in the team."
         id="channel_invite.add_to_team_and_channel.confirm.message"
         values={
           Object {
-            "team": <strong />,
+            "channel": <strong>
+              testing
+            </strong>,
+            "team": <strong>
+              Operations
+            </strong>,
+            "users": <FormattedList
+              value={Array []}
+            />,
           }
         }
       />
@@ -469,7 +493,7 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
     show={false}
     title={
       <Memo(MemoizedFormattedMessage)
-        defaultMessage="Add people to the team and channel?"
+        defaultMessage="Add people to the channel and team?"
         id="channel_invite.add_to_team_and_channel.confirm.title"
       />
     }
@@ -606,7 +630,7 @@ exports[`components/channel_invite_modal should match snapshot with exclude and 
     confirmButtonClass="btn btn-primary"
     confirmButtonText={
       <Memo(MemoizedFormattedMessage)
-        defaultMessage="Add to team and channel"
+        defaultMessage="Add to channel and team"
         id="channel_invite.add_to_team_and_channel.confirm.confirmButton"
       />
     }
@@ -614,11 +638,19 @@ exports[`components/channel_invite_modal should match snapshot with exclude and 
     isStacked={true}
     message={
       <Memo(MemoizedFormattedMessage)
-        defaultMessage="This will add the selected people to the {team} team so they can also be added to this channel. Team members may gain access to other public channels and team-level resources based on their permissions."
+        defaultMessage="{users} will be added to the {channel} channel. They will also get access to the {team} team and any public channels in the team."
         id="channel_invite.add_to_team_and_channel.confirm.message"
         values={
           Object {
-            "team": <strong />,
+            "channel": <strong>
+              testing
+            </strong>,
+            "team": <strong>
+              Operations
+            </strong>,
+            "users": <FormattedList
+              value={Array []}
+            />,
           }
         }
       />
@@ -628,7 +660,7 @@ exports[`components/channel_invite_modal should match snapshot with exclude and 
     show={false}
     title={
       <Memo(MemoizedFormattedMessage)
-        defaultMessage="Add people to the team and channel?"
+        defaultMessage="Add people to the channel and team?"
         id="channel_invite.add_to_team_and_channel.confirm.title"
       />
     }

@@ -139,6 +139,7 @@ describe('components/channel_invite_modal/team_warning_banner', () => {
         );
 
         expect(screen.getByRole('button', {name: 'Add to team and channel'})).toBeInTheDocument();
+        expect(screen.queryByText('Only eligible full members will be added. Guests still need a team invite.')).not.toBeInTheDocument();
     });
 
     test('should invoke add to team and channel action', async () => {

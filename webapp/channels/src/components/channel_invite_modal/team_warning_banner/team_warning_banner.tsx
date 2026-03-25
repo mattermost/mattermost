@@ -24,7 +24,6 @@ export type Props = {
     canAddUsersToTeamAndChannel?: boolean;
     isAddingUsersToTeamAndChannel?: boolean;
     onAddUsersToTeamAndChannel?: () => void;
-    actionButtonId?: string;
 }
 
 const TeamWarningBanner = (props: Props) => {
@@ -35,7 +34,6 @@ const TeamWarningBanner = (props: Props) => {
         canAddUsersToTeamAndChannel,
         isAddingUsersToTeamAndChannel,
         onAddUsersToTeamAndChannel,
-        actionButtonId,
     } = props;
 
     const {formatMessage} = useIntl();
@@ -191,7 +189,6 @@ const TeamWarningBanner = (props: Props) => {
 
     const actionButton = canAddUsersToTeamAndChannel && users.length > 0 && onAddUsersToTeamAndChannel ? (
         <button
-            id={actionButtonId}
             type='button'
             className='btn btn-tertiary btn-sm'
             onClick={onAddUsersToTeamAndChannel}
@@ -204,31 +201,9 @@ const TeamWarningBanner = (props: Props) => {
         </button>
     ) : null;
 
-    const actionFooterMessage = canAddUsersToTeamAndChannel && users.length > 0 ? (
-        <FormattedMessage
-            id='channel_invite.invite_team_members.add_to_team_and_channel.help'
-            defaultMessage='Only eligible full members will be added. Guests still need a team invite.'
-        />
-    ) : null;
-
     let footerMessage;
-    if (guests.length > 0 && actionFooterMessage) {
-        footerMessage = (
-            <>
-                {getGuestMessage()}
-                <div className='channel-invite__team-warning-help'>
-                    {actionFooterMessage}
-                </div>
-            </>
-        );
-    } else if (guests.length > 0) {
+    if (guests.length > 0) {
         footerMessage = getGuestMessage();
-    } else if (actionFooterMessage) {
-        footerMessage = (
-            <div className='channel-invite__team-warning-help'>
-                {actionFooterMessage}
-            </div>
-        );
     }
 
     return (

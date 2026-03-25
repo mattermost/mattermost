@@ -112,6 +112,7 @@ describe('components/channel_invite_modal', () => {
         groups: [],
         userStatuses: {},
         teammateNameDisplaySetting: General.TEAMMATE_NAME_DISPLAY.SHOW_USERNAME,
+        teamDisplayName: 'Operations',
         isGroupsEnabled: true,
         actions: {
             addUsersToChannel: jest.fn().mockImplementation(() => {
@@ -473,7 +474,12 @@ describe('components/channel_invite_modal', () => {
         const button = await screen.findByRole('button', {name: 'Add to team and channel'});
         await userEvent.click(button);
         const confirmModal = await screen.findByTestId('channelInviteAddToTeamConfirmModal');
-        await userEvent.click(within(confirmModal).getByRole('button', {name: 'Add to team and channel'}));
+        expect(screen.getByRole('heading', {name: 'Add people to the channel and team?'})).toBeInTheDocument();
+        expect(within(confirmModal).getByText(/user-1/)).toBeInTheDocument();
+        expect(within(confirmModal).getByText(/testing/)).toBeInTheDocument();
+        expect(within(confirmModal).getByText(/Operations/)).toBeInTheDocument();
+        expect(within(confirmModal).getByRole('button', {name: 'Add to channel and team'})).toBeInTheDocument();
+        await userEvent.click(within(confirmModal).getByRole('button', {name: 'Add to channel and team'}));
 
         await waitFor(() => {
             expect(addUsersToTeamMock).toHaveBeenCalledWith(channel.team_id, ['user-1']);
@@ -539,7 +545,10 @@ describe('components/channel_invite_modal', () => {
         const button = await screen.findByRole('button', {name: 'Add to team and channel'});
         await userEvent.click(button);
         const confirmModal = await screen.findByTestId('channelInviteAddToTeamConfirmModal');
-        await userEvent.click(within(confirmModal).getByRole('button', {name: 'Add to team and channel'}));
+        expect(within(confirmModal).getByText(/user-1/)).toBeInTheDocument();
+        expect(within(confirmModal).getByText(/testing/)).toBeInTheDocument();
+        expect(within(confirmModal).getByText(/Operations/)).toBeInTheDocument();
+        await userEvent.click(within(confirmModal).getByRole('button', {name: 'Add to channel and team'}));
 
         await waitFor(() => {
             expect(addUsersToTeamMock).toHaveBeenCalledWith(channel.team_id, [outsider.id]);
