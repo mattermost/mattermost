@@ -6260,7 +6260,9 @@ func TestBurnPost(t *testing.T) {
 func TestUpdateCardPostByNonOwner(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+	}).InitBasic(t)
 	client := th.Client
 	channel := th.BasicChannel
 
@@ -6285,7 +6287,9 @@ func TestUpdateCardPostByNonOwner(t *testing.T) {
 func TestDeleteCardPostByNonOwner(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+	}).InitBasic(t)
 	client := th.Client
 	channel := th.BasicChannel
 
@@ -6312,7 +6316,9 @@ func TestDeleteCardPostByNonOwner(t *testing.T) {
 func TestPatchCardPostByNonOwner(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+	}).InitBasic(t)
 	client := th.Client
 	channel := th.BasicChannel
 
