@@ -5,6 +5,7 @@ package properties
 
 import (
 	"errors"
+	"fmt"
 	"sync"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -62,7 +63,7 @@ func (ps *PropertyService) SetPropertyAccessService(pas *PropertyAccessService) 
 func (ps *PropertyService) requiresAccessControl(groupID string) (bool, error) {
 	group, err := ps.Group(model.CustomProfileAttributesPropertyGroupName)
 	if err != nil {
-		return false, nil
+		return false, fmt.Errorf("failed to check access control for group %q: %w", groupID, err)
 	}
 	return groupID == group.ID, nil
 }

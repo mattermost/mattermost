@@ -11,8 +11,68 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCountActivePropertyFieldsForGroup(t *testing.T) {
+func TestRequiresAccessControlFailsClosed(t *testing.T) {
 	th := Setup(t)
+	rctx := th.Context
+
+	// Use an unregistered group — this means any call to
+	// requiresAccessControl will fail to look up the group.
+	// The service must return an error rather than silently bypassing
+	// access control.
+	unregisteredGroupID := model.NewId()
+
+	t.Run("CreatePropertyField returns error when group lookup fails", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    unregisteredGroupID,
+			Name:       "test-field",
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "user",
+		}
+		_, err := th.service.CreatePropertyField(rctx, field)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to check access control")
+	})
+
+	t.Run("GetPropertyField returns error when group lookup fails", func(t *testing.T) {
+		_, err := th.service.GetPropertyField(rctx, unregisteredGroupID, model.NewId())
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to check access control")
+	})
+
+	t.Run("GetPropertyFields returns error when group lookup fails", func(t *testing.T) {
+		_, err := th.service.GetPropertyFields(rctx, unregisteredGroupID, []string{model.NewId()})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to check access control")
+	})
+
+	t.Run("UpdatePropertyField returns error when group lookup fails", func(t *testing.T) {
+		field := &model.PropertyField{
+			ID:         model.NewId(),
+			GroupID:    unregisteredGroupID,
+			Name:       "test-field",
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "user",
+		}
+		_, err := th.service.UpdatePropertyField(rctx, unregisteredGroupID, field)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to check access control")
+	})
+
+	t.Run("DeletePropertyField returns error when group lookup fails", func(t *testing.T) {
+		err := th.service.DeletePropertyField(rctx, unregisteredGroupID, model.NewId())
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to check access control")
+	})
+
+	t.Run("SearchPropertyFields returns error when group lookup fails", func(t *testing.T) {
+		_, err := th.service.SearchPropertyFields(rctx, unregisteredGroupID, model.PropertyFieldSearchOpts{})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to check access control")
+	})
+}
+
+func TestCountActivePropertyFieldsForGroup(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
 	rctx := th.Context
 
 	t.Run("should return count of active property fields for a group", func(t *testing.T) {
@@ -73,7 +133,7 @@ func TestCountActivePropertyFieldsForGroup(t *testing.T) {
 }
 
 func TestCountAllPropertyFieldsForGroup(t *testing.T) {
-	th := Setup(t)
+	th := Setup(t).RegisterCPAPropertyGroup(t)
 	rctx := th.Context
 
 	t.Run("should return count of all property fields including deleted", func(t *testing.T) {

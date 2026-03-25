@@ -14,9 +14,10 @@ import (
 )
 
 type TestHelper struct {
-	service *PropertyService
-	dbStore store.Store
-	Context *request.Context
+	service    *PropertyService
+	dbStore    store.Store
+	Context    *request.Context
+	CPAGroupID string
 }
 
 func Setup(tb testing.TB) *TestHelper {
@@ -67,11 +68,13 @@ func RequestContextWithCallerID(rctx request.CTX, callerID string) request.CTX {
 	return rctx.WithContext(ctx)
 }
 
-// SetupCPAGroup registers the CPA group and returns the group ID.
-func (th *TestHelper) SetupCPAGroup(tb testing.TB) string {
-	group, err := th.service.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
-	require.NoError(tb, err)
-	return group.ID
+func (th *TestHelper) RegisterCPAPropertyGroup(tb testing.TB) *TestHelper {
+	// Register the CPA group so requiresAccessControl can always look it up
+	group, groupErr := th.service.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
+	require.NoError(tb, groupErr)
+	th.CPAGroupID = group.ID
+
+	return th
 }
 
 // CreateTeam creates a team for testing hierarchy
