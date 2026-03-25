@@ -9006,7 +9006,7 @@
   },
   {
     "id": "ent.elasticsearch.healthcheck.unreachable.app_error",
-    "translation": "{{.Backend}} health check failed: server unreachable."
+    "translation": "{{.Backend}} health check failed: could not complete check."
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",

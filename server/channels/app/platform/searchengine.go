@@ -270,12 +270,12 @@ func (ps *PlatformService) runSearchEngineWatcher(ctx context.Context, done chan
 		// ── INACTIVE: retry Start() ──
 		if !engine.IsActive() {
 			if err := engine.Start(); err != nil {
-				backoff = min(backoff*2, searchEngineRetryMax)
 				ps.Log().Warn("Search engine watcher: Start() failed, will retry",
 					mlog.Err(err),
 					mlog.Duration("next_backoff", backoff),
 					mlog.String("engine", engine.GetName()))
 				timer.Reset(backoff)
+				backoff = min(backoff*2, searchEngineRetryMax)
 				continue
 			}
 
@@ -286,11 +286,11 @@ func (ps *PlatformService) runSearchEngineWatcher(ctx context.Context, done chan
 
 			// Start() returned nil but engine may not be active (e.g. no license).
 			if !engine.IsActive() {
-				backoff = min(backoff*2, searchEngineRetryMax)
 				ps.Log().Warn("Search engine watcher: Start() returned no error but engine is not active, will retry",
-					mlog.Duration("next_backoff", backoff),
+					mlog.Duration("next_backoff", backoff*2),
 					mlog.String("engine", engine.GetName()))
 				timer.Reset(backoff)
+				backoff = min(backoff*2, searchEngineRetryMax)
 				continue
 			}
 
