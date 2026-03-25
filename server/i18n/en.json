@@ -7635,6 +7635,10 @@
     "translation": "Unable to get property field for deletion."
   },
   {
+    "id": "app.property_field.delete.not_found.app_error",
+    "translation": "Property field not found."
+  },
+  {
     "id": "app.property_field.delete.protected.app_error",
     "translation": "Cannot delete a protected property field."
   },
@@ -7681,6 +7685,10 @@
   {
     "id": "app.property_group.register.app_error",
     "translation": "Unable to register property group."
+  },
+  {
+    "id": "app.property_value.resolve_broadcast_params.unknown_object_type.app_error",
+    "translation": "Unrecognized object type \"{{.ObjectType}}\" for property value broadcast."
   },
   {
     "id": "app.property_value.search.app_error",

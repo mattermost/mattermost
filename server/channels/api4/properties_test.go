@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -174,6 +175,43 @@ func TestCreatePropertyField(t *testing.T) {
 		require.Equal(t, "post", createdField.ObjectType)
 		require.Equal(t, group.ID, createdField.GroupID)
 		require.Equal(t, th.BasicUser.Id, createdField.CreatedBy)
+	})
+
+	t.Run("websocket event should be fired on field creation", func(t *testing.T) {
+		th.LoginBasic(t)
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
+
+		field := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "channel",
+			TargetID:   th.BasicChannel.Id,
+		}
+
+		createdField, resp, err := th.Client.CreatePropertyField(context.Background(), group.Name, "post", field)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		var receivedField model.PropertyField
+		require.Eventually(t, func() bool {
+			select {
+			case event := <-webSocketClient.EventChannel:
+				if event.EventType() == model.WebsocketEventPropertyFieldCreated {
+					fieldData, ok := event.GetData()["property_field"].(string)
+					require.True(t, ok)
+					require.NoError(t, json.Unmarshal([]byte(fieldData), &receivedField))
+					require.Equal(t, "post", event.GetData()["object_type"])
+					require.Equal(t, th.BasicChannel.Id, event.GetBroadcast().ChannelId)
+					return true
+				}
+			default:
+				return false
+			}
+			return false
+		}, 5*time.Second, 100*time.Millisecond)
+
+		require.Equal(t, createdField.ID, receivedField.ID)
+		require.Equal(t, createdField.Name, receivedField.Name)
 	})
 
 	t.Run("group_id in body should be overridden by group_name from URL", func(t *testing.T) {
@@ -361,7 +399,7 @@ func TestGetPropertyFields(t *testing.T) {
 		PermissionValues:  &memberLevel,
 		PermissionOptions: &memberLevel,
 	}
-	createdField, appErr := th.App.CreatePropertyField(field, false)
+	createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 	require.Nil(t, appErr)
 	require.NotNil(t, createdField)
 
@@ -376,7 +414,7 @@ func TestGetPropertyFields(t *testing.T) {
 		PermissionValues:  &memberLevel,
 		PermissionOptions: &memberLevel,
 	}
-	createdOtherField, appErr := th.App.CreatePropertyField(otherField, false)
+	createdOtherField, appErr := th.App.CreatePropertyField(th.Context, otherField, false, "")
 	require.Nil(t, appErr)
 	require.NotNil(t, createdOtherField)
 
@@ -429,7 +467,7 @@ func TestGetPropertyFields(t *testing.T) {
 				PermissionValues:  &memberLevel,
 				PermissionOptions: &memberLevel,
 			}
-			_, appErr := th.App.CreatePropertyField(f, false)
+			_, appErr := th.App.CreatePropertyField(th.Context, f, false, "")
 			require.Nil(t, appErr)
 		}
 
@@ -626,7 +664,7 @@ func TestGetPropertyFieldsFiltering(t *testing.T) {
 		PermissionValues:  &memberLevel,
 		PermissionOptions: &memberLevel,
 	}
-	createdSystemField, appErr := th.App.CreatePropertyField(systemField, false)
+	createdSystemField, appErr := th.App.CreatePropertyField(th.Context, systemField, false, "")
 	require.Nil(t, appErr)
 
 	channelField := &model.PropertyField{
@@ -640,7 +678,7 @@ func TestGetPropertyFieldsFiltering(t *testing.T) {
 		PermissionValues:  &memberLevel,
 		PermissionOptions: &memberLevel,
 	}
-	createdChannelField, appErr := th.App.CreatePropertyField(channelField, false)
+	createdChannelField, appErr := th.App.CreatePropertyField(th.Context, channelField, false, "")
 	require.Nil(t, appErr)
 
 	otherChannelField := &model.PropertyField{
@@ -654,7 +692,7 @@ func TestGetPropertyFieldsFiltering(t *testing.T) {
 		PermissionValues:  &memberLevel,
 		PermissionOptions: &memberLevel,
 	}
-	createdOtherChannelField, appErr := th.App.CreatePropertyField(otherChannelField, false)
+	createdOtherChannelField, appErr := th.App.CreatePropertyField(th.Context, otherChannelField, false, "")
 	require.Nil(t, appErr)
 
 	baseURL := "/properties/groups/" + group.Name + "/post/fields"
@@ -772,7 +810,7 @@ func TestPatchPropertyField(t *testing.T) {
 			PermissionValues:  &memberLevel,
 			PermissionOptions: &memberLevel,
 		}
-		createdProtectedField, appErr := th.App.CreatePropertyField(protectedField, true)
+		createdProtectedField, appErr := th.App.CreatePropertyField(th.Context, protectedField, true, "")
 		require.Nil(t, appErr)
 		require.NotNil(t, createdProtectedField)
 
@@ -795,7 +833,7 @@ func TestPatchPropertyField(t *testing.T) {
 			PermissionValues:  &memberLevel,
 			PermissionOptions: &memberLevel,
 		}
-		createdField, appErr := th.App.CreatePropertyField(field, false)
+		createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
 
 		newName := model.NewId()
@@ -818,7 +856,7 @@ func TestPatchPropertyField(t *testing.T) {
 			PermissionValues:  &memberLevel,
 			PermissionOptions: &memberLevel,
 		}
-		createdField, appErr := th.App.CreatePropertyField(field, false)
+		createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
 
 		newName := model.NewId()
@@ -847,7 +885,7 @@ func TestPatchPropertyField(t *testing.T) {
 			PermissionValues:  &memberLevel,
 			PermissionOptions: &sysadminLevel, // Only admin can manage options
 		}
-		createdField, appErr := th.App.CreatePropertyField(field, false)
+		createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
 		require.NotNil(t, createdField)
 
@@ -883,7 +921,7 @@ func TestPatchPropertyField(t *testing.T) {
 			PermissionValues:  &memberLevel,
 			PermissionOptions: &memberLevel, // Member can manage options
 		}
-		createdField, appErr := th.App.CreatePropertyField(field, false)
+		createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
 		require.NotNil(t, createdField)
 
@@ -923,7 +961,7 @@ func TestPatchPropertyField(t *testing.T) {
 			PermissionValues:  &memberLevel,
 			PermissionOptions: &memberLevel, // Member can manage options
 		}
-		createdField, appErr := th.App.CreatePropertyField(field, false)
+		createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
 
 		th.LoginBasic(t)
@@ -957,7 +995,7 @@ func TestPatchPropertyField(t *testing.T) {
 			PermissionValues:  &memberLevel,
 			PermissionOptions: &memberLevel, // Member can manage options
 		}
-		createdField, appErr := th.App.CreatePropertyField(field, false)
+		createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
 
 		th.LoginBasic(t)
@@ -991,7 +1029,7 @@ func TestPatchPropertyField(t *testing.T) {
 			PermissionValues:  &memberLevel,
 			PermissionOptions: &noneLevel, // Nobody can manage options via permission
 		}
-		createdField, appErr := th.App.CreatePropertyField(field, false)
+		createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
 
 		patch := &model.PropertyFieldPatch{
@@ -1030,7 +1068,7 @@ func TestPatchPropertyField(t *testing.T) {
 			PermissionValues:  &memberLevel,
 			PermissionOptions: &memberLevel, // Member can manage options
 		}
-		createdField, appErr := th.App.CreatePropertyField(field, false)
+		createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
 
 		newName := model.NewId()
@@ -1067,7 +1105,7 @@ func TestPatchPropertyField(t *testing.T) {
 			PermissionValues:  &memberLevel,
 			PermissionOptions: &memberLevel,
 		}
-		createdField, appErr := th.App.CreatePropertyField(field, false)
+		createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
 		require.NotNil(t, createdField)
 
@@ -1097,7 +1135,7 @@ func TestPatchPropertyField(t *testing.T) {
 			PermissionValues:  &memberLevel,
 			PermissionOptions: &memberLevel,
 		}
-		createdField, appErr := th.App.CreatePropertyField(field, false)
+		createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
 
 		th.LoginBasic(t)
@@ -1112,6 +1150,54 @@ func TestPatchPropertyField(t *testing.T) {
 		require.Equal(t, th.BasicUser.Id, updatedField.UpdatedBy)
 	})
 
+	t.Run("websocket event should be fired on field update", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           group.ID,
+			ObjectType:        "post",
+			TargetType:        "system",
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+		}
+		createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+
+		th.LoginBasic(t)
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
+
+		newName := model.NewId()
+		patch := &model.PropertyFieldPatch{Name: &newName}
+
+		updatedField, resp, err := th.Client.PatchPropertyField(context.Background(), group.Name, "post", createdField.ID, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		var receivedField model.PropertyField
+		require.Eventually(t, func() bool {
+			select {
+			case event := <-webSocketClient.EventChannel:
+				if event.EventType() == model.WebsocketEventPropertyFieldUpdated {
+					fieldData, ok := event.GetData()["property_field"].(string)
+					require.True(t, ok)
+					require.NoError(t, json.Unmarshal([]byte(fieldData), &receivedField))
+					require.Equal(t, "post", event.GetData()["object_type"])
+					// system-scoped field: no team or channel in broadcast
+					require.Empty(t, event.GetBroadcast().TeamId)
+					require.Empty(t, event.GetBroadcast().ChannelId)
+					return true
+				}
+			default:
+				return false
+			}
+			return false
+		}, 5*time.Second, 100*time.Millisecond)
+
+		require.Equal(t, updatedField.ID, receivedField.ID)
+		require.Equal(t, newName, receivedField.Name)
+	})
+
 	t.Run("target_id in patch should be silently ignored", func(t *testing.T) {
 		field := &model.PropertyField{
 			Name:              model.NewId(),
@@ -1123,7 +1209,7 @@ func TestPatchPropertyField(t *testing.T) {
 			PermissionValues:  &memberLevel,
 			PermissionOptions: &memberLevel,
 		}
-		createdField, appErr := th.App.CreatePropertyField(field, false)
+		createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
 
 		th.LoginSystemAdmin(t)
@@ -1153,7 +1239,7 @@ func TestPatchPropertyField(t *testing.T) {
 			PermissionValues:  &memberLevel,
 			PermissionOptions: &memberLevel,
 		}
-		createdField, appErr := th.App.CreatePropertyField(field, false)
+		createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
 
 		th.LoginSystemAdmin(t)
@@ -1189,7 +1275,7 @@ func TestPatchPropertyField(t *testing.T) {
 			PermissionValues:  &memberLevel,
 			PermissionOptions: &memberLevel,
 		}
-		createdField, appErr := th.App.CreatePropertyField(field, false)
+		createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
 
 		th.LoginBasic(t)
@@ -1222,7 +1308,7 @@ func TestPatchPropertyField(t *testing.T) {
 			TargetType: "system",
 			TargetID:   model.NewId(),
 		}
-		createdV1Field, appErr := th.App.CreatePropertyField(v1Field, true)
+		createdV1Field, appErr := th.App.CreatePropertyField(th.Context, v1Field, true, "")
 		require.Nil(t, appErr)
 
 		th.LoginBasic(t)
@@ -1274,7 +1360,7 @@ func TestDeletePropertyField(t *testing.T) {
 			PermissionValues:  &memberLevel,
 			PermissionOptions: &memberLevel,
 		}
-		createdProtectedField, appErr := th.App.CreatePropertyField(protectedField, true)
+		createdProtectedField, appErr := th.App.CreatePropertyField(th.Context, protectedField, true, "")
 		require.Nil(t, appErr)
 
 		resp, err := th.SystemAdminClient.DeletePropertyField(context.Background(), group.Name, "post", createdProtectedField.ID)
@@ -1293,7 +1379,7 @@ func TestDeletePropertyField(t *testing.T) {
 			PermissionValues:  &memberLevel,
 			PermissionOptions: &memberLevel,
 		}
-		createdField, appErr := th.App.CreatePropertyField(field, false)
+		createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
 
 		// Try to delete with wrong object_type in URL
@@ -1313,7 +1399,7 @@ func TestDeletePropertyField(t *testing.T) {
 			PermissionValues:  &memberLevel,
 			PermissionOptions: &memberLevel,
 		}
-		createdField, appErr := th.App.CreatePropertyField(field, false)
+		createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
 
 		// Try to delete using the other group's name — field belongs to `group`, not `otherGroup`
@@ -1335,7 +1421,7 @@ func TestDeletePropertyField(t *testing.T) {
 			PermissionValues:  &memberLevel,
 			PermissionOptions: &memberLevel,
 		}
-		createdField, appErr := th.App.CreatePropertyField(field, false)
+		createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
 
 		th.LoginBasic(t)
@@ -1355,13 +1441,52 @@ func TestDeletePropertyField(t *testing.T) {
 			PermissionValues:  &memberLevel,
 			PermissionOptions: &memberLevel,
 		}
-		createdField, appErr := th.App.CreatePropertyField(field, false)
+		createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
 
 		th.LoginBasic(t)
 		resp, err := th.Client.DeletePropertyField(context.Background(), group.Name, "post", createdField.ID)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
+	})
+
+	t.Run("websocket event should be fired on field deletion", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           group.ID,
+			ObjectType:        "post",
+			TargetType:        "system",
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+		}
+		createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+
+		th.LoginBasic(t)
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
+
+		resp, err := th.Client.DeletePropertyField(context.Background(), group.Name, "post", createdField.ID)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		require.Eventually(t, func() bool {
+			select {
+			case event := <-webSocketClient.EventChannel:
+				if event.EventType() == model.WebsocketEventPropertyFieldDeleted {
+					require.Equal(t, createdField.ID, event.GetData()["field_id"])
+					require.Equal(t, "post", event.GetData()["object_type"])
+					// system-scoped field: no team or channel in broadcast
+					require.Empty(t, event.GetBroadcast().TeamId)
+					require.Empty(t, event.GetBroadcast().ChannelId)
+					return true
+				}
+			default:
+				return false
+			}
+			return false
+		}, 5*time.Second, 100*time.Millisecond)
 	})
 }
 
@@ -1440,7 +1565,7 @@ func TestGetPropertyValues(t *testing.T) {
 		PermissionValues:  &memberLevel,
 		PermissionOptions: &memberLevel,
 	}
-	createdField, appErr := th.App.CreatePropertyField(field, false)
+	createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 	require.Nil(t, appErr)
 
 	// Use a real post as the target so target access checks pass
@@ -1456,7 +1581,7 @@ func TestGetPropertyValues(t *testing.T) {
 		CreatedBy:  th.BasicUser.Id,
 		UpdatedBy:  th.BasicUser.Id,
 	}
-	_, appErr2 := th.App.UpsertPropertyValues([]*model.PropertyValue{value})
+	_, appErr2 := th.App.UpsertPropertyValues(th.Context, []*model.PropertyValue{value}, "", "", "")
 	require.Nil(t, appErr2)
 
 	t.Run("unauthenticated request should fail", func(t *testing.T) {
@@ -1530,10 +1655,10 @@ func TestGetPropertyValues(t *testing.T) {
 				PermissionValues:  &memberLevel,
 				PermissionOptions: &memberLevel,
 			}
-			cf, appErr := th.App.CreatePropertyField(f, false)
+			cf, appErr := th.App.CreatePropertyField(th.Context, f, false, "")
 			require.Nil(t, appErr)
 
-			_, appErr2 := th.App.UpsertPropertyValues([]*model.PropertyValue{{
+			_, appErr2 := th.App.UpsertPropertyValues(th.Context, []*model.PropertyValue{{
 				TargetID:   paginationTarget,
 				TargetType: "post",
 				GroupID:    group.ID,
@@ -1541,7 +1666,7 @@ func TestGetPropertyValues(t *testing.T) {
 				Value:      json.RawMessage(`"val"`),
 				CreatedBy:  th.BasicUser.Id,
 				UpdatedBy:  th.BasicUser.Id,
-			}})
+			}}, "", "", "")
 			require.Nil(t, appErr2)
 		}
 
@@ -1597,7 +1722,7 @@ func TestPatchPropertyValues(t *testing.T) {
 		PermissionValues:  &memberLevel,
 		PermissionOptions: &memberLevel,
 	}
-	createdMemberField, appErr := th.App.CreatePropertyField(memberField, false)
+	createdMemberField, appErr := th.App.CreatePropertyField(th.Context, memberField, false, "")
 	require.Nil(t, appErr)
 
 	adminField := &model.PropertyField{
@@ -1610,7 +1735,7 @@ func TestPatchPropertyValues(t *testing.T) {
 		PermissionValues:  &sysadminLevel,
 		PermissionOptions: &sysadminLevel,
 	}
-	createdAdminField, appErr := th.App.CreatePropertyField(adminField, false)
+	createdAdminField, appErr := th.App.CreatePropertyField(th.Context, adminField, false, "")
 	require.Nil(t, appErr)
 
 	noneField := &model.PropertyField{
@@ -1623,7 +1748,7 @@ func TestPatchPropertyValues(t *testing.T) {
 		PermissionValues:  &noneLevel,
 		PermissionOptions: &memberLevel,
 	}
-	createdNoneField, appErr := th.App.CreatePropertyField(noneField, false)
+	createdNoneField, appErr := th.App.CreatePropertyField(th.Context, noneField, false, "")
 	require.Nil(t, appErr)
 
 	// Use a real post as the target so target access checks pass
@@ -1652,6 +1777,41 @@ func TestPatchPropertyValues(t *testing.T) {
 		require.Len(t, values, 1)
 		require.Equal(t, createdMemberField.ID, values[0].FieldID)
 		require.Equal(t, json.RawMessage(`"hello"`), values[0].Value)
+	})
+
+	t.Run("websocket event should be fired on values update", func(t *testing.T) {
+		th.LoginBasic(t)
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: createdMemberField.ID, Value: json.RawMessage(`"ws-test"`)},
+		}
+		_, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "post", targetID, items)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		require.Eventually(t, func() bool {
+			select {
+			case event := <-webSocketClient.EventChannel:
+				if event.EventType() == model.WebsocketEventPropertyValuesUpdated {
+					require.Equal(t, "post", event.GetData()["object_type"])
+					require.Equal(t, targetID, event.GetData()["target_id"])
+					// Post target: broadcast should be to the post's channel
+					require.Equal(t, th.BasicPost.ChannelId, event.GetBroadcast().ChannelId)
+					// values should be a JSON string
+					valuesStr, ok := event.GetData()["values"].(string)
+					require.True(t, ok)
+					var values []*model.PropertyValue
+					require.NoError(t, json.Unmarshal([]byte(valuesStr), &values))
+					require.Len(t, values, 1)
+					require.Equal(t, createdMemberField.ID, values[0].FieldID)
+					return true
+				}
+			default:
+				return false
+			}
+			return false
+		}, 5*time.Second, 100*time.Millisecond)
 	})
 
 	t.Run("non-admin cannot set values on field with values permission sysadmin", func(t *testing.T) {
@@ -1737,7 +1897,7 @@ func TestPatchPropertyValues(t *testing.T) {
 			PermissionValues:  &memberLevel,
 			PermissionOptions: &memberLevel,
 		}
-		createdOtherField, appErr := th.App.CreatePropertyField(otherField, false)
+		createdOtherField, appErr := th.App.CreatePropertyField(th.Context, otherField, false, "")
 		require.Nil(t, appErr)
 
 		items := []model.PropertyValuePatchItem{
@@ -1774,7 +1934,7 @@ func TestPatchPropertyValues(t *testing.T) {
 			PermissionValues:  &memberLevel,
 			PermissionOptions: &memberLevel,
 		}
-		createdChannelField, appErr := th.App.CreatePropertyField(channelField, false)
+		createdChannelField, appErr := th.App.CreatePropertyField(th.Context, channelField, false, "")
 		require.Nil(t, appErr)
 
 		items := []model.PropertyValuePatchItem{
@@ -1809,7 +1969,7 @@ func TestPatchPropertyValues(t *testing.T) {
 			PermissionValues:  &memberLevel,
 			PermissionOptions: &memberLevel,
 		}
-		createdChannelField, fieldErr := th.App.CreatePropertyField(channelField, false)
+		createdChannelField, fieldErr := th.App.CreatePropertyField(th.Context, channelField, false, "")
 		require.Nil(t, fieldErr)
 
 		th.LoginBasic(t)
@@ -1958,11 +2118,11 @@ func TestGetPropertyValuesUserTargetAccess(t *testing.T) {
 		PermissionValues:  &memberLevel,
 		PermissionOptions: &memberLevel,
 	}
-	createdField, appErr := th.App.CreatePropertyField(field, false)
+	createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 	require.Nil(t, appErr)
 
 	// Create a value for BasicUser
-	_, appErr = th.App.UpsertPropertyValues([]*model.PropertyValue{{
+	_, appErr = th.App.UpsertPropertyValues(th.Context, []*model.PropertyValue{{
 		TargetID:   th.BasicUser.Id,
 		TargetType: "user",
 		GroupID:    group.ID,
@@ -1970,7 +2130,7 @@ func TestGetPropertyValuesUserTargetAccess(t *testing.T) {
 		Value:      json.RawMessage(`"my-value"`),
 		CreatedBy:  th.BasicUser.Id,
 		UpdatedBy:  th.BasicUser.Id,
-	}})
+	}}, "", "", "")
 	require.Nil(t, appErr)
 
 	t.Run("user can get their own property values", func(t *testing.T) {
@@ -2023,7 +2183,7 @@ func TestPatchPropertyValuesUserTargetAccess(t *testing.T) {
 		PermissionValues:  &memberLevel,
 		PermissionOptions: &memberLevel,
 	}
-	createdField, appErr := th.App.CreatePropertyField(field, false)
+	createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 	require.Nil(t, appErr)
 
 	t.Run("user can set their own property values", func(t *testing.T) {
@@ -2087,10 +2247,10 @@ func TestGetPropertyValuesChannelTargetAccess(t *testing.T) {
 			PermissionValues:  &memberLevel,
 			PermissionOptions: &memberLevel,
 		}
-		createdField, appErr := th.App.CreatePropertyField(field, false)
+		createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
 
-		_, appErr = th.App.UpsertPropertyValues([]*model.PropertyValue{{
+		_, appErr = th.App.UpsertPropertyValues(th.Context, []*model.PropertyValue{{
 			TargetID:   channelID,
 			TargetType: "channel",
 			GroupID:    group.ID,
@@ -2098,7 +2258,7 @@ func TestGetPropertyValuesChannelTargetAccess(t *testing.T) {
 			Value:      json.RawMessage(`"val"`),
 			CreatedBy:  th.BasicUser.Id,
 			UpdatedBy:  th.BasicUser.Id,
-		}})
+		}}, "", "", "")
 		require.Nil(t, appErr)
 	}
 
@@ -2206,7 +2366,7 @@ func TestPatchPropertyValuesChannelTargetAccess(t *testing.T) {
 			PermissionValues:  &memberLevel,
 			PermissionOptions: &memberLevel,
 		}
-		createdField, appErr := th.App.CreatePropertyField(field, false)
+		createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
 		return createdField
 	}
@@ -2317,5 +2477,322 @@ func TestPatchPropertyValuesChannelTargetAccess(t *testing.T) {
 		_, resp, err := nonMemberClient.PatchPropertyValues(context.Background(), group.Name, "channel", gmChannel.Id, items)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+	})
+}
+
+func TestCreatePropertyFieldTeamScopedBroadcast(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+	}).InitBasic(t)
+
+	group, err := th.App.RegisterPropertyGroup("test_team_broadcast")
+	require.Nil(t, err)
+
+	t.Run("team-scoped field broadcast has TeamId set and ChannelId empty", func(t *testing.T) {
+		// Connect websocket as BasicUser (who is a member of BasicTeam)
+		th.LoginBasic(t)
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
+
+		// Create the field as SystemAdmin (has ManageTeam permission)
+		field := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "team",
+			TargetID:   th.BasicTeam.Id,
+		}
+
+		createdField, resp, createErr := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "post", field)
+		require.NoError(t, createErr)
+		CheckCreatedStatus(t, resp)
+
+		var receivedField model.PropertyField
+		require.Eventually(t, func() bool {
+			select {
+			case event := <-webSocketClient.EventChannel:
+				if event.EventType() == model.WebsocketEventPropertyFieldCreated {
+					fieldData, ok := event.GetData()["property_field"].(string)
+					require.True(t, ok)
+					require.NoError(t, json.Unmarshal([]byte(fieldData), &receivedField))
+					require.Equal(t, "post", event.GetData()["object_type"])
+					// Team-scoped: TeamId should be set, ChannelId should be empty
+					require.Equal(t, th.BasicTeam.Id, event.GetBroadcast().TeamId)
+					require.Empty(t, event.GetBroadcast().ChannelId)
+					return true
+				}
+			default:
+				return false
+			}
+			return false
+		}, 5*time.Second, 100*time.Millisecond)
+
+		require.Equal(t, createdField.ID, receivedField.ID)
+		require.Equal(t, createdField.Name, receivedField.Name)
+	})
+}
+
+func TestPatchPropertyValuesChannelObjectTypeBroadcast(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+	}).InitBasic(t)
+
+	group, err := th.App.RegisterPropertyGroup("test_channel_val_broadcast")
+	require.Nil(t, err)
+
+	memberLevel := model.PermissionLevelMember
+
+	field := &model.PropertyField{
+		Name:              model.NewId(),
+		Type:              model.PropertyFieldTypeText,
+		GroupID:           group.ID,
+		ObjectType:        "channel",
+		TargetType:        "system",
+		PermissionField:   &memberLevel,
+		PermissionValues:  &memberLevel,
+		PermissionOptions: &memberLevel,
+	}
+	createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+	require.Nil(t, appErr)
+
+	t.Run("channel objectType broadcasts to channel members", func(t *testing.T) {
+		th.LoginBasic(t)
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: createdField.ID, Value: json.RawMessage(`"chan-val"`)},
+		}
+		_, resp, patchErr := th.Client.PatchPropertyValues(context.Background(), group.Name, "channel", th.BasicChannel.Id, items)
+		require.NoError(t, patchErr)
+		CheckOKStatus(t, resp)
+
+		require.Eventually(t, func() bool {
+			select {
+			case event := <-webSocketClient.EventChannel:
+				if event.EventType() == model.WebsocketEventPropertyValuesUpdated {
+					require.Equal(t, "channel", event.GetData()["object_type"])
+					require.Equal(t, th.BasicChannel.Id, event.GetData()["target_id"])
+					// Channel target: broadcast should be to that channel
+					require.Equal(t, th.BasicChannel.Id, event.GetBroadcast().ChannelId)
+					require.Empty(t, event.GetBroadcast().TeamId)
+					return true
+				}
+			default:
+				return false
+			}
+			return false
+		}, 5*time.Second, 100*time.Millisecond)
+	})
+}
+
+func TestPatchPropertyValuesUserObjectTypeBroadcast(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+	}).InitBasic(t)
+
+	group, err := th.App.RegisterPropertyGroup("test_user_val_broadcast")
+	require.Nil(t, err)
+
+	memberLevel := model.PermissionLevelMember
+
+	field := &model.PropertyField{
+		Name:              model.NewId(),
+		Type:              model.PropertyFieldTypeText,
+		GroupID:           group.ID,
+		ObjectType:        "user",
+		TargetType:        "system",
+		PermissionField:   &memberLevel,
+		PermissionValues:  &memberLevel,
+		PermissionOptions: &memberLevel,
+	}
+	createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+	require.Nil(t, appErr)
+
+	t.Run("user objectType broadcasts system-wide", func(t *testing.T) {
+		th.LoginBasic(t)
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: createdField.ID, Value: json.RawMessage(`"user-val"`)},
+		}
+		_, resp, patchErr := th.Client.PatchPropertyValues(context.Background(), group.Name, "user", th.BasicUser.Id, items)
+		require.NoError(t, patchErr)
+		CheckOKStatus(t, resp)
+
+		require.Eventually(t, func() bool {
+			select {
+			case event := <-webSocketClient.EventChannel:
+				if event.EventType() == model.WebsocketEventPropertyValuesUpdated {
+					require.Equal(t, "user", event.GetData()["object_type"])
+					require.Equal(t, th.BasicUser.Id, event.GetData()["target_id"])
+					// User target: broadcast should be system-wide (empty team/channel)
+					require.Empty(t, event.GetBroadcast().TeamId)
+					require.Empty(t, event.GetBroadcast().ChannelId)
+					return true
+				}
+			default:
+				return false
+			}
+			return false
+		}, 5*time.Second, 100*time.Millisecond)
+	})
+}
+
+func TestUpsertPropertyValuesPSAv1OptOut(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+	}).InitBasic(t)
+
+	group, err := th.App.RegisterPropertyGroup("test_psav1_optout")
+	require.Nil(t, err)
+
+	memberLevel := model.PermissionLevelMember
+
+	// Create a PSAv1-style field: no ObjectType, meaning it predates
+	// the websocket broadcast machinery added in PSAv2.
+	psav1Field := &model.PropertyField{
+		Name:              model.NewId(),
+		Type:              model.PropertyFieldTypeText,
+		GroupID:           group.ID,
+		TargetType:        "system",
+		PermissionField:   &memberLevel,
+		PermissionValues:  &memberLevel,
+		PermissionOptions: &memberLevel,
+	}
+	createdField, appErr := th.App.CreatePropertyField(th.Context, psav1Field, false, "")
+	require.Nil(t, appErr)
+	require.Empty(t, createdField.ObjectType, "PSAv1 field should have no ObjectType")
+
+	t.Run("upserting values for a PSAv1 field should not publish websocket event", func(t *testing.T) {
+		th.LoginBasic(t)
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
+
+		// We call the app layer directly because the PSAv2 API endpoints
+		// would reject a request without objectType. This mimics what a
+		// PSAv1 custom endpoint would do: call UpsertPropertyValues with
+		// empty objectType/targetID, skipping websocket broadcasting.
+		values := []*model.PropertyValue{
+			{
+				TargetID:   th.BasicPost.Id,
+				TargetType: "post",
+				GroupID:    group.ID,
+				FieldID:    createdField.ID,
+				Value:      json.RawMessage(`"psav1-value"`),
+				CreatedBy:  th.BasicUser.Id,
+				UpdatedBy:  th.BasicUser.Id,
+			},
+		}
+		result, upsertErr := th.App.UpsertPropertyValues(th.Context, values, "", "", "")
+		require.Nil(t, upsertErr)
+		require.Len(t, result, 1)
+
+		// Trigger a known marker event so we can detect when we've
+		// drained the websocket channel. If a property_values_updated
+		// event arrives before the marker, the test fails.
+		markerField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           group.ID,
+			ObjectType:        "post",
+			TargetType:        "channel",
+			TargetID:          th.BasicChannel.Id,
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+		}
+		_, markerErr := th.App.CreatePropertyField(th.Context, markerField, false, "")
+		require.Nil(t, markerErr)
+
+		require.Eventually(t, func() bool {
+			select {
+			case event := <-webSocketClient.EventChannel:
+				require.NotEqual(t, model.WebsocketEventPropertyValuesUpdated, event.EventType(),
+					"PSAv1 opt-out should not produce a property_values_updated event")
+				if event.EventType() == model.WebsocketEventPropertyFieldCreated {
+					// Marker arrived, no values event was seen
+					return true
+				}
+			default:
+				return false
+			}
+			return false
+		}, 5*time.Second, 100*time.Millisecond)
+	})
+}
+
+func TestPatchPropertyValuesMultiValuePayload(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+	}).InitBasic(t)
+
+	group, err := th.App.RegisterPropertyGroup("test_multi_val_payload")
+	require.Nil(t, err)
+
+	memberLevel := model.PermissionLevelMember
+
+	// Create three fields
+	var createdFields []*model.PropertyField
+	for i := range 3 {
+		f := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           group.ID,
+			ObjectType:        "post",
+			TargetType:        "system",
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+		}
+		cf, fieldErr := th.App.CreatePropertyField(th.Context, f, false, "")
+		require.Nil(t, fieldErr, "failed to create field %d", i)
+		createdFields = append(createdFields, cf)
+	}
+
+	t.Run("multi-value patch includes all values in websocket event", func(t *testing.T) {
+		th.LoginBasic(t)
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: createdFields[0].ID, Value: json.RawMessage(`"val-0"`)},
+			{FieldID: createdFields[1].ID, Value: json.RawMessage(`"val-1"`)},
+			{FieldID: createdFields[2].ID, Value: json.RawMessage(`"val-2"`)},
+		}
+
+		targetID := th.BasicPost.Id
+		_, resp, patchErr := th.Client.PatchPropertyValues(context.Background(), group.Name, "post", targetID, items)
+		require.NoError(t, patchErr)
+		CheckOKStatus(t, resp)
+
+		require.Eventually(t, func() bool {
+			select {
+			case event := <-webSocketClient.EventChannel:
+				if event.EventType() == model.WebsocketEventPropertyValuesUpdated {
+					require.Equal(t, "post", event.GetData()["object_type"])
+					require.Equal(t, targetID, event.GetData()["target_id"])
+
+					valuesStr, ok := event.GetData()["values"].(string)
+					require.True(t, ok)
+					var values []*model.PropertyValue
+					require.NoError(t, json.Unmarshal([]byte(valuesStr), &values))
+					require.Len(t, values, 3, "websocket event should contain all 3 values")
+
+					// Verify all field IDs are present
+					fieldIDs := map[string]bool{}
+					for _, v := range values {
+						fieldIDs[v.FieldID] = true
+					}
+					for _, f := range createdFields {
+						require.True(t, fieldIDs[f.ID], "field %s should be in the websocket event values", f.ID)
+					}
+					return true
+				}
+			default:
+				return false
+			}
+			return false
+		}, 5*time.Second, 100*time.Millisecond)
 	})
 }
