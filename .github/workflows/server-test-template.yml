@@ -106,8 +106,8 @@ jobs:
       # When shard-total > 1, we split tests across N parallel runners.
       #
       # Two-tier splitting strategy:
-      #   - "Light" packages (< 2 min): assigned whole to a shard
-      #   - "Heavy" packages (≥ 2 min, e.g. api4, app): individual tests
+      #   - "Light" packages (< 5 min): assigned whole to a shard
+      #   - "Heavy" packages (≥ 5 min, e.g. api4, app): individual tests
       #     are distributed across shards using -run regex filters
       #
       # See server/scripts/shard-split.js for the full algorithm.

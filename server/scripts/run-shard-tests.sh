@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -uo pipefail
 
 # run-shard-tests.sh — Multi-run test wrapper for sharded CI
 #
@@ -28,13 +28,10 @@ GOBIN="$(pwd)/bin"
 make setup-go-work gotestsum golang-versions
 
 GOFLAGS_BASE="-buildvcs=false -timeout=90m"
-COVERAGE_FLAG=""
-if [[ "${ENABLE_COVERAGE:-false}" == "true" ]]; then
-  COVERAGE_FLAG="-coverprofile=cover-\$RUN_IDX.out -covermode=atomic"
-fi
 RACE_FLAG="${RACE_MODE:-}"
 
 RUN_IDX=0
+FAILURES=0
 
 # run_gotestsum PACKAGES [RUN_REGEX]
 #   $1 = space-separated package list
@@ -44,16 +41,18 @@ run_gotestsum() {
   local jsonfile="gotestsum-${RUN_IDX}.json"
   local run_flag=""
   if [[ -n "${2:-}" ]]; then run_flag="-run $2"; fi
-  RUN_IDX=$((RUN_IDX + 1))
 
   local coverage_flag=""
   if [[ "${ENABLE_COVERAGE:-false}" == "true" ]]; then
     coverage_flag="-coverprofile=cover-${RUN_IDX}.out -covermode=atomic"
   fi
 
+  RUN_IDX=$((RUN_IDX + 1))
+
   GOTESTSUM_JUNITFILE="$junitfile" GOTESTSUM_JSONFILE="$jsonfile" \
     "$GOBIN/gotestsum" --rerun-fails=3 --packages="$1" \
-    -- $GOFLAGS_BASE $RACE_FLAG $coverage_flag $run_flag
+    -- $GOFLAGS_BASE $RACE_FLAG $coverage_flag $run_flag \
+    || FAILURES=$((FAILURES + 1))
 }
 
 # ── Read shard assignments ──
@@ -109,4 +108,9 @@ fi
 
 cat gotestsum-*.json > gotestsum.json 2>/dev/null || true
 
-echo "Shard complete: $RUN_IDX gotestsum runs"
+if [[ $FAILURES -gt 0 ]]; then
+  echo "Shard complete: $RUN_IDX gotestsum runs, $FAILURES failed"
+  exit 1
+fi
+
+echo "Shard complete: $RUN_IDX gotestsum runs, all passed"
