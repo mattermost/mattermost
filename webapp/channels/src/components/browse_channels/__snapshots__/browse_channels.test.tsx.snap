@@ -237,6 +237,12 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
                         <div
                           class="more-modal__actions"
                         >
+                          <div
+                            aria-hidden="true"
+                            class="more-modal__actions-spacer"
+                          >
+                            Join
+                          </div>
                           <button
                             aria-label="Join"
                             class="btn btn-sm btn-primary primaryButton"
@@ -323,6 +329,12 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
                         <div
                           class="more-modal__actions"
                         >
+                          <div
+                            aria-hidden="true"
+                            class="more-modal__actions-spacer"
+                          >
+                            Join
+                          </div>
                           <button
                             aria-label="Join"
                             class="btn btn-sm btn-primary primaryButton"

@@ -1,7 +1,15 @@
 #browseChannelsModal {
     .modal-dialog {
         @media screen and (max-width: 640px) {
+            width: 100%;
+            max-width: 100%;
             margin-top: 0 !important;
+        }
+    }
+
+    @media screen and (max-width: 640px) {
+        .modal-content {
+            overflow: hidden;
         }
     }
 
@@ -130,6 +138,8 @@
             border-bottom: none;
 
             .more-modal__details {
+                overflow: hidden;
+                min-width: 0;
                 padding-left: 0;
                 color: rgba(var(--center-channel-color-rgb), 0.75);
 
@@ -149,9 +159,10 @@
 
                 #channelPurposeContainer {
                     display: flex;
+                    min-width: 0;
+                    max-width: 560px;
                     align-items: center;
                     justify-content: flex-start;
-                    max-width: 920px;
 
                     .dot {
                         width: 3px;
@@ -162,8 +173,11 @@
                     }
 
                     .more-modal__description {
+                        overflow: hidden;
                         margin-left: 4px;
                         font-weight: 400;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
                     }
 
                     #membershipIndicatorContainer {
