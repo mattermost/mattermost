@@ -4,6 +4,7 @@
 package app
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -40,6 +41,10 @@ func (a *App) CreatePropertyField(rctx request.CTX, field *model.PropertyField) 
 
 	createdField, err := a.Srv().propertyService.CreatePropertyField(rctx, field)
 	if err != nil {
+		var appErr *model.AppError
+		if errors.As(err, &appErr) {
+			return nil, appErr
+		}
 		return nil, model.NewAppError("CreatePropertyField", "app.property.create_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return createdField, nil
