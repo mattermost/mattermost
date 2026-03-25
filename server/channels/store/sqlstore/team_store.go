@@ -841,7 +841,7 @@ func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersP
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	chunks := chunkSlice(members, len(teamMemberSliceColumns()))
+	chunks := chunkSlice(members, len(teamMemberSliceColumns()), s.SqlStore.getMaxInsertParams())
 	for _, chunk := range chunks {
 		query := s.getQueryBuilder().Insert("TeamMembers").Columns(teamMemberSliceColumns()...)
 		for _, member := range chunk {

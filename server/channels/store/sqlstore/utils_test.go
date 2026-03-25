@@ -18,39 +18,39 @@ func TestChunkSlice(t *testing.T) {
 	}
 
 	t.Run("empty slice returns nil", func(t *testing.T) {
-		result := chunkSlice([]int{}, 5)
+		result := chunkSlice([]int{}, 5, defaultMaxInsertParams)
 		require.Nil(t, result)
 	})
 
 	t.Run("under limit returns single chunk", func(t *testing.T) {
 		items := []int{1, 2, 3}
-		result := chunkSlice(items, 15) // 3*15=45 params, well under 50k
+		result := chunkSlice(items, 15, defaultMaxInsertParams) // 3*15=45 params, well under 50k
 		require.Len(t, result, 1)
 		require.Equal(t, items, result[0])
 	})
 
 	t.Run("exact boundary returns single chunk", func(t *testing.T) {
-		n := maxInsertParams / 10 // exactly at limit with 10 cols
+		n := defaultMaxInsertParams / 10 // exactly at limit with 10 cols
 		items := make([]int, n)
-		result := chunkSlice(items, 10)
+		result := chunkSlice(items, 10, defaultMaxInsertParams)
 		require.Len(t, result, 1)
 		require.Len(t, result[0], n)
 	})
 
 	t.Run("over limit splits into chunks", func(t *testing.T) {
-		n := maxInsertParams/10 + 1 // one over
+		n := defaultMaxInsertParams/10 + 1 // one over
 		items := make([]int, n)
-		result := chunkSlice(items, 10)
+		result := chunkSlice(items, 10, defaultMaxInsertParams)
 		require.Len(t, result, 2)
-		require.Len(t, result[0], maxInsertParams/10)
+		require.Len(t, result[0], defaultMaxInsertParams/10)
 		require.Len(t, result[1], 1)
 	})
 
 	t.Run("remainder is handled correctly", func(t *testing.T) {
-		chunkSize := maxInsertParams / 15 // 3333
-		n := chunkSize*2 + 100            // two full chunks + 100 remainder
+		chunkSize := defaultMaxInsertParams / 15 // 3333
+		n := chunkSize*2 + 100                   // two full chunks + 100 remainder
 		items := make([]int, n)
-		result := chunkSlice(items, 15)
+		result := chunkSlice(items, 15, defaultMaxInsertParams)
 		require.Len(t, result, 3)
 		require.Len(t, result[0], chunkSize)
 		require.Len(t, result[1], chunkSize)
@@ -58,9 +58,9 @@ func TestChunkSlice(t *testing.T) {
 	})
 
 	t.Run("very high columns per row", func(t *testing.T) {
-		// columnsPerRow > maxInsertParams → chunkSize would be 0, forced to 1
+		// columnsPerRow > maxParams → chunkSize would be 0, forced to 1
 		items := []int{1, 2, 3}
-		result := chunkSlice(items, maxInsertParams+1)
+		result := chunkSlice(items, defaultMaxInsertParams+1, defaultMaxInsertParams)
 		require.Len(t, result, 3)
 		for _, chunk := range result {
 			require.Len(t, chunk, 1)

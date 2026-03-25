@@ -250,7 +250,7 @@ func (s *SqlGroupStore) insertGroupUsers(txn *sqlxTxWrapper, groupId string, use
 	}
 	// 4 columns: GroupId, UserId, CreateAt, DeleteAt
 	createAt := model.GetMillis()
-	chunks := chunkSlice(userIds, 4)
+	chunks := chunkSlice(userIds, 4, s.SqlStore.getMaxInsertParams())
 	for _, chunk := range chunks {
 		builder := s.getQueryBuilder().
 			Insert("GroupMembers").
@@ -1935,7 +1935,7 @@ func (s *SqlGroupStore) UpsertMembers(groupID string, userIDs []string) (_ []*mo
 	defer finalizeTransactionX(transaction, &err)
 
 	// 4 columns: GroupId, UserId, CreateAt, DeleteAt
-	chunks := chunkSlice(members, 4)
+	chunks := chunkSlice(members, 4, s.SqlStore.getMaxInsertParams())
 	for _, chunk := range chunks {
 		builder := s.getQueryBuilder().
 			Insert("GroupMembers").

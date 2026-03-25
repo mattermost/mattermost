@@ -1087,7 +1087,7 @@ func (s *SqlThreadStore) SaveMultipleMemberships(memberships []*model.ThreadMemb
 	}
 	defer finalizeTransactionX(tx, &err)
 
-	chunks := chunkSlice(memberships, len(threadMembershipSliceColumns()))
+	chunks := chunkSlice(memberships, len(threadMembershipSliceColumns()), s.SqlStore.getMaxInsertParams())
 	for _, chunk := range chunks {
 		query := s.getQueryBuilder().
 			Insert("ThreadMemberships").

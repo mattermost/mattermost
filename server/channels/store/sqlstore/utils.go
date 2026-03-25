@@ -20,20 +20,20 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
-// maxInsertParams is a conservative threshold (76% of PostgreSQL's 65,535
-// parameter limit) used to chunk bulk INSERT statements so they never overflow
-// the wire-protocol's 16-bit parameter counter.
-var maxInsertParams = 50_000
+// defaultMaxInsertParams is a conservative threshold (76% of PostgreSQL's
+// 65,535 parameter limit) used to chunk bulk INSERT statements so they never
+// overflow the wire-protocol's 16-bit parameter counter.
+const defaultMaxInsertParams = 50_000
 
 // chunkSlice splits items into sub-slices sized so that each chunk uses at most
-// maxInsertParams query parameters (columnsPerRow params per item). When the
-// input already fits in one chunk the original slice is returned with zero
-// allocation overhead.
-func chunkSlice[T any](items []T, columnsPerRow int) [][]T {
+// maxParams query parameters (columnsPerRow params per item). When the input
+// already fits in one chunk the original slice is returned with zero allocation
+// overhead.
+func chunkSlice[T any](items []T, columnsPerRow int, maxParams int) [][]T {
 	if len(items) == 0 {
 		return nil
 	}
-	chunkSize := maxInsertParams / columnsPerRow
+	chunkSize := maxParams / columnsPerRow
 	if chunkSize == 0 {
 		chunkSize = 1
 	}

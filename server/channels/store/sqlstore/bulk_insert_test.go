@@ -18,13 +18,20 @@ func TestBulkInsertChunking(t *testing.T) {
 	StoreTest(t, testBulkInsertChunking)
 }
 
+// setMaxInsertParams overrides the max-insert-params threshold on the
+// underlying SqlStore and returns a cleanup function that restores the default.
+func setMaxInsertParams(t *testing.T, ss store.Store, maxParams int) {
+	t.Helper()
+	sqlStore := ss.(*SqlStore)
+	sqlStore.maxInsertParams = maxParams
+	t.Cleanup(func() { sqlStore.maxInsertParams = 0 })
+}
+
 func testBulkInsertChunking(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("ChannelMembers across multiple chunks", func(t *testing.T) {
 		// 15 columns/row. With maxInsertParams=30, chunkSize=2,
 		// so 5 members split into 3 chunks (2+2+1).
-		orig := maxInsertParams
-		maxInsertParams = 30
-		defer func() { maxInsertParams = orig }()
+		setMaxInsertParams(t, ss, 30)
 
 		team := &model.Team{
 			DisplayName: "ChunkTest",
@@ -72,9 +79,7 @@ func testBulkInsertChunking(t *testing.T, rctx request.CTX, ss store.Store) {
 		// With chunkSize=2, inserting [A, B, B] produces chunks [A,B] and [B].
 		// Chunk 1 succeeds; chunk 2 hits a unique constraint. The transaction
 		// must roll back all chunks, leaving zero rows.
-		orig := maxInsertParams
-		maxInsertParams = 30
-		defer func() { maxInsertParams = orig }()
+		setMaxInsertParams(t, ss, 30)
 
 		team := &model.Team{
 			DisplayName: "AtomicTest",
@@ -119,9 +124,7 @@ func testBulkInsertChunking(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("TeamMembers across multiple chunks", func(t *testing.T) {
 		// 8 columns/row. With maxInsertParams=16, chunkSize=2,
 		// so 5 members split into 3 chunks (2+2+1).
-		orig := maxInsertParams
-		maxInsertParams = 16
-		defer func() { maxInsertParams = orig }()
+		setMaxInsertParams(t, ss, 16)
 
 		teamID := model.NewId()
 		const n = 5
@@ -144,9 +147,7 @@ func testBulkInsertChunking(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("TeamMembers atomicity on conflict", func(t *testing.T) {
-		orig := maxInsertParams
-		maxInsertParams = 16
-		defer func() { maxInsertParams = orig }()
+		setMaxInsertParams(t, ss, 16)
 
 		teamID := model.NewId()
 		users := make([]*model.User, 3)
@@ -172,9 +173,7 @@ func testBulkInsertChunking(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("ThreadMemberships across multiple chunks", func(t *testing.T) {
 		// 6 columns/row. With maxInsertParams=12, chunkSize=2,
 		// so 5 memberships split into 3 chunks (2+2+1).
-		orig := maxInsertParams
-		maxInsertParams = 12
-		defer func() { maxInsertParams = orig }()
+		setMaxInsertParams(t, ss, 12)
 
 		const n = 5
 		memberships := make([]*model.ThreadMembership, n)
@@ -201,9 +200,7 @@ func testBulkInsertChunking(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("Posts across multiple chunks", func(t *testing.T) {
 		// 18 columns/row. With maxInsertParams=36, chunkSize=2,
 		// so 5 posts split into 3 chunks (2+2+1).
-		orig := maxInsertParams
-		maxInsertParams = 36
-		defer func() { maxInsertParams = orig }()
+		setMaxInsertParams(t, ss, 36)
 
 		channel := &model.Channel{
 			DisplayName: "PostChunkTest",
@@ -242,9 +239,7 @@ func testBulkInsertChunking(t *testing.T, rctx request.CTX, ss store.Store) {
 		// Use remote posts to allow pre-set IDs. With chunkSize=2,
 		// posts [A, B, A-dup] produce chunks [A,B] and [A-dup].
 		// Chunk 2 hits PK violation; transaction must roll back all.
-		orig := maxInsertParams
-		maxInsertParams = 36
-		defer func() { maxInsertParams = orig }()
+		setMaxInsertParams(t, ss, 36)
 
 		channel := &model.Channel{
 			DisplayName: "PostAtomicTest",
@@ -279,9 +274,7 @@ func testBulkInsertChunking(t *testing.T, rctx request.CTX, ss store.Store) {
 		// With chunkSize=2, userIds [A, B, B] produce chunks [A,B] and [B].
 		// Chunk 2 hits unique constraint; transaction must roll back all
 		// (including the group row itself).
-		orig := maxInsertParams
-		maxInsertParams = 8
-		defer func() { maxInsertParams = orig }()
+		setMaxInsertParams(t, ss, 8)
 
 		users := make([]*model.User, 2)
 		for i := range users {
@@ -306,9 +299,7 @@ func testBulkInsertChunking(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("Status upserts across multiple chunks", func(t *testing.T) {
 		// 6 columns/row. With maxInsertParams=12, chunkSize=2,
 		// so 5 statuses split into 3 chunks (2+2+1).
-		orig := maxInsertParams
-		maxInsertParams = 12
-		defer func() { maxInsertParams = orig }()
+		setMaxInsertParams(t, ss, 12)
 
 		const n = 5
 		statuses := make(map[string]*model.Status, n)
@@ -337,9 +328,7 @@ func testBulkInsertChunking(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("GroupMembers via CreateWithUserIds across chunks", func(t *testing.T) {
 		// 4 columns/row. With maxInsertParams=8, chunkSize=2,
 		// so 5 members split into 3 chunks (2+2+1).
-		orig := maxInsertParams
-		maxInsertParams = 8
-		defer func() { maxInsertParams = orig }()
+		setMaxInsertParams(t, ss, 8)
 
 		const n = 5
 		userIDs := make([]string, n)
@@ -370,9 +359,7 @@ func testBulkInsertChunking(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("GroupMembers via UpsertMembers across chunks", func(t *testing.T) {
 		// 4 columns/row. With maxInsertParams=8, chunkSize=2,
 		// so 5 members split into 3 chunks (2+2+1).
-		orig := maxInsertParams
-		maxInsertParams = 8
-		defer func() { maxInsertParams = orig }()
+		setMaxInsertParams(t, ss, 8)
 
 		// Create a group first (with no members).
 		group := &model.GroupWithUserIds{

@@ -251,7 +251,7 @@ func (s *SqlPostStore) SaveMultiple(rctx request.CTX, posts []*model.Post) ([]*m
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	chunks := chunkSlice(posts, len(postSliceColumns()))
+	chunks := chunkSlice(posts, len(postSliceColumns()), s.SqlStore.getMaxInsertParams())
 	for _, chunk := range chunks {
 		builder := s.getQueryBuilder().Insert("Posts").Columns(postSliceColumns()...)
 		for _, post := range chunk {

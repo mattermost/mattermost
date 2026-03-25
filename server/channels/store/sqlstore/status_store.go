@@ -79,7 +79,7 @@ func (s SqlStatusStore) SaveOrUpdateMany(statuses map[string]*model.Status) (ret
 	defer finalizeTransactionX(transaction, &retErr)
 
 	// 6 columns: UserId, Status, Manual, LastActivityAt, DNDEndTime, PrevStatus
-	chunks := chunkSlice(statusList, 6)
+	chunks := chunkSlice(statusList, 6, s.SqlStore.getMaxInsertParams())
 	for _, chunk := range chunks {
 		query := s.getQueryBuilder().
 			Insert("Status").

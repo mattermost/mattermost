@@ -1783,7 +1783,7 @@ func (s SqlChannelStore) saveMultipleMembers(members []*model.ChannelMember) (_ 
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	chunks := chunkSlice(members, len(channelMemberSliceColumns()))
+	chunks := chunkSlice(members, len(channelMemberSliceColumns()), s.SqlStore.getMaxInsertParams())
 	for _, chunk := range chunks {
 		query := s.getQueryBuilder().Insert("ChannelMembers").Columns(channelMemberSliceColumns()...)
 		for _, member := range chunk {
