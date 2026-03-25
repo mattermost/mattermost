@@ -142,7 +142,7 @@ describe('MM-23102 - Channel Moderation - Channel Mentions', () => {
 
         visitChannel(regularUser, testChannel, testTeam);
 
-        cy.findByTestId('post_textbox').clear().type('@');
+        cy.get('#post_textbox').clear().type('@');
 
         // * Ensure that @here, @all, and @channel do not show up in the autocomplete list
         cy.findAllByTestId('mentionSuggestion_here').should('not.exist');

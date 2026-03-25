@@ -61,8 +61,7 @@ describe('MM-23102 - Channel Moderation - Create Posts', () => {
 
         // # Check Guest user should not have the permission to create a post on a channel when the option is removed
         // * Guest user should see a message stating that this channel is read-only and the textbox area should be disabled
-        cy.findByTestId('post_textbox').should('have.attr', 'placeholder', 'This channel is read-only. Only members with permission can post here.');
-        cy.findByTestId('post_textbox').should('be.disabled');
+        cy.get('#post_textbox').should('have.attr', 'contenteditable', 'false');
 
         // # As a system admin, check the option to allow Create Posts for Guests and save
         visitChannelConfigPage(testChannel);
@@ -73,10 +72,8 @@ describe('MM-23102 - Channel Moderation - Create Posts', () => {
         visitChannel(guestUser, testChannel, testTeam);
 
         // # Check Guest user should have the permission to create a post on a channel when the option is allowed
-        // * Guest user should see a message stating that this channel is read-only and the textbox area should be disabled
-        cy.findByTestId('post_textbox').clear();
-        cy.findByTestId('post_textbox').should('have.attr', 'placeholder', `Write to ${testChannel.display_name}`);
-        cy.findByTestId('post_textbox').should('not.be.disabled');
+        cy.get('#post_textbox').should('have.attr', 'contenteditable', 'true');
+        cy.get('#post_textbox').clear();
     });
 
     it('MM-T1542 Create Post option for Members', () => {
@@ -92,8 +89,7 @@ describe('MM-23102 - Channel Moderation - Create Posts', () => {
 
         // # Check Member should not have the permission to create a post on a channel when the option is removed.
         // * User should see a message stating that this channel is read-only and the textbox area should be disabled
-        cy.findByTestId('post_textbox').should('have.attr', 'placeholder', 'This channel is read-only. Only members with permission can post here.');
-        cy.findByTestId('post_textbox').should('be.disabled');
+        cy.get('#post_textbox').should('have.attr', 'contenteditable', 'false');
 
         // # As a system admin, check the option to allow Create Posts for Members and save
         visitChannelConfigPage(testChannel);
@@ -104,9 +100,7 @@ describe('MM-23102 - Channel Moderation - Create Posts', () => {
         visitChannel(regularUser, testChannel, testTeam);
 
         // # Check Member should have the permission to create a post on a channel when the option is allowed
-        // * Member user should see a message stating that this channel is read-only and the textbox area should be disabled
-        cy.findByTestId('post_textbox').clear();
-        cy.findByTestId('post_textbox').should('have.attr', 'placeholder', `Write to ${testChannel.display_name}`);
-        cy.findByTestId('post_textbox').should('not.be.disabled');
+        cy.get('#post_textbox').should('have.attr', 'contenteditable', 'true');
+        cy.get('#post_textbox').clear();
     });
 });

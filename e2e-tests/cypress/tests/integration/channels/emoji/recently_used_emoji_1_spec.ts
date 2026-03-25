@@ -107,7 +107,8 @@ describe('Recent Emoji', () => {
         // # Post a custom emoji
         // We let autocomplete emoji to be shown as this is a custom emoji, properties are loaded then we press enter twice, first one to auto complete add, next for post enter
         cy.uiGetPostTextBox().clear().type(`${MESSAGES.TINY}-recent ${customEmojiWithColons.slice(0, -1)}`).wait(TIMEOUTS.TWO_SEC);
-        cy.uiGetPostTextBox().type('{enter} {enter}').wait(TIMEOUTS.TWO_SEC);
+        cy.uiGetPostTextBox().type('{enter}').wait(TIMEOUTS.HALF_SEC);
+        cy.uiGetPostTextBox().type('{enter}').wait(TIMEOUTS.TWO_SEC);
 
         // # Hover over the last post by opening dot menu on it
         cy.getLastPostId().then((postId) => {

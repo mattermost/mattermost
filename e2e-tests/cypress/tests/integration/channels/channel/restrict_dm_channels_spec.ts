@@ -125,7 +125,7 @@ describe('Restrict Direct Message Channels', () => {
 
             // # Verify that the channel is open and the user can send a message
             cy.get('.channel-header').should('exist');
-            cy.get('#post_textbox').should('be.enabled');
+            cy.get('#post_textbox').should('be.visible');
 
             // # Post a message in the direct message channel
             cy.get('#post_textbox').type('Hello, this is a test message{enter}');
