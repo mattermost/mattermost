@@ -5715,3 +5715,104 @@ func TestPostChannelMentionsWithPrivateChannels(t *testing.T) {
 	// Should include public channel (user has team access)
 	assert.Contains(t, mentionsMap, publicChannel.Name)
 }
+
+func TestGetPostsForView(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("returns posts for channel", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		// Create a few posts
+		post1, _, err := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "post 1",
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, err)
+
+		post2, _, err := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "post 2",
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, err)
+
+		options := model.GetPostsOptions{
+			ChannelId: th.BasicChannel.Id,
+			Page:      0,
+			PerPage:   10,
+			UserId:    th.BasicUser.Id,
+		}
+
+		postList, appErr := th.App.GetPostsForView(th.Context, options)
+		require.Nil(t, appErr)
+		require.NotNil(t, postList)
+		assert.Contains(t, postList.Posts, post1.Id)
+		assert.Contains(t, postList.Posts, post2.Id)
+	})
+
+	t.Run("returns empty list for channel with no posts", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		channel := th.CreateChannel(t, th.BasicTeam)
+
+		options := model.GetPostsOptions{
+			ChannelId: channel.Id,
+			Page:      0,
+			PerPage:   10,
+			UserId:    th.BasicUser.Id,
+		}
+
+		postList, appErr := th.App.GetPostsForView(th.Context, options)
+		require.Nil(t, appErr)
+		require.NotNil(t, postList)
+		assert.Empty(t, postList.Posts)
+	})
+
+	t.Run("respects pagination", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		channel := th.CreateChannel(t, th.BasicTeam)
+
+		for i := 0; i < 5; i++ {
+			_, _, err := th.App.CreatePost(th.Context, &model.Post{
+				ChannelId: channel.Id,
+				UserId:    th.BasicUser.Id,
+				Message:   fmt.Sprintf("post %d", i),
+			}, channel, model.CreatePostFlags{})
+			require.Nil(t, err)
+		}
+
+		options := model.GetPostsOptions{
+			ChannelId: channel.Id,
+			Page:      0,
+			PerPage:   2,
+			UserId:    th.BasicUser.Id,
+		}
+
+		postList, appErr := th.App.GetPostsForView(th.Context, options)
+		require.Nil(t, appErr)
+		require.NotNil(t, postList)
+		assert.Len(t, postList.Posts, 2)
+	})
+
+	t.Run("invalid channel id returns error", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		options := model.GetPostsOptions{
+			ChannelId: model.NewId(),
+			Page:      0,
+			PerPage:   10,
+			UserId:    th.BasicUser.Id,
+		}
+
+		postList, appErr := th.App.GetPostsForView(th.Context, options)
+		require.Nil(t, appErr)
+		require.NotNil(t, postList)
+		assert.Empty(t, postList.Posts)
+	})
+}
