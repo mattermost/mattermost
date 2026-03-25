@@ -380,7 +380,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
             return (<></>);
         }
 
-        const handleRequestAction = (success: () => void, error: (error: {message: string}) => void) => {
+        const handleRequestAction = (success: () => void, error: (error: {message: string; detailed_error?: string}) => void) => {
             if (!setting.skipSaveNeeded && this.state.saveNeeded !== false) {
                 error({
                     message: this.props.intl.formatMessage({id: 'admin_settings.save_unsaved_changes', defaultMessage: 'Please save unsaved changes first'}),
@@ -455,7 +455,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
         } else if (setting.multiple) {
             value = this.state[setting.key] ? this.state[setting.key].join(',') : '';
         } else {
-            value = this.state[setting.key] ?? (setting.default || '');
+            value = this.state[setting.key] ?? (typeof setting.default === 'function' ? setting.default(value, this.props.config, this.state) : setting.default || '');
         }
 
         let footer = null;
@@ -1178,6 +1178,10 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                 serverErrorId: error.id,
             });
         } else {
+            this.setState({
+                serverError: null,
+                serverErrirId: null,
+            });
             this.setState(getStateFromConfig(config, this.props.schema));
         }
 

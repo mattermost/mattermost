@@ -40,6 +40,8 @@ export default keyMirror({
     POST_DELETED: null,
     POST_REMOVED: null,
 
+    POST_TRANSLATION_UPDATED: null,
+
     POST_PINNED_CHANGED: null,
 
     RECEIVED_FOCUSED_POST: null,
@@ -62,4 +64,6 @@ export default keyMirror({
     MOVE_POST_FAILURE: null,
 
     REVEAL_BURN_ON_READ_SUCCESS: null,
+    POST_RECIPIENTS_UPDATED: null,
+    BURN_ON_READ_ALL_REVEALED: null,
 });

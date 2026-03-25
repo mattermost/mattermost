@@ -20,6 +20,7 @@ import ToastWrapper from 'components/toast_wrapper';
 import Pluggable from 'plugins/pluggable';
 import Constants, {PostListRowListIds, EventTypes, PostRequestTypes} from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
+import {isChannelPopoutWindow} from 'utils/popouts/popout_windows';
 import {getPreviousPostId, getLatestPostId} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
@@ -28,7 +29,7 @@ import LatestPostReader from './latest_post_reader';
 const OVERSCAN_COUNT_BACKWARD = 80;
 const OVERSCAN_COUNT_FORWARD = 80;
 const HEIGHT_TRIGGER_FOR_MORE_POSTS = 1000;
-const BUFFER_TO_BE_CONSIDERED_BOTTOM = 10;
+const BUFFER_TO_BE_CONSIDERED_BOTTOM = 100;
 
 const MAXIMUM_POSTS_FOR_SLICING = {
     channel: 50,
@@ -92,6 +93,8 @@ type Props = {
     focusedPostId?: string;
 
     shouldStartFromBottomWhenUnread: boolean;
+
+    isChannelAutotranslated: boolean;
 
     actions: {
 
@@ -233,6 +236,24 @@ export default class PostList extends React.PureComponent<Props, State> {
             this.scrollStopAction = new DelayedAction(this.handleScrollStop);
         }
 
+        if (this.props.focusedPostId) {
+            const postListIds = this.state.postListIds;
+            const index = postListIds.indexOf(this.props.focusedPostId);
+
+            if (index !== -1) {
+                const focusedPostChanged = this.props.focusedPostId !== prevProps.focusedPostId;
+                const postJustLoaded = (prevProps.postListIds || []).indexOf(this.props.focusedPostId) === -1;
+
+                if (focusedPostChanged || postJustLoaded) {
+                    // Scroll to the focused post if it has changed or just been loaded.
+                    // This is necessary for inline permalink navigation where the channel remains the same
+                    // but the focused post changes, as DynamicVirtualizedList doesn't automatically handle
+                    // scrolling on prop updates after the initial mount.
+                    this.listRef.current?.scrollToItem(index, 'center');
+                }
+            }
+        }
+
         if (!this.postListRef.current) {
             return;
         }
@@ -354,9 +375,13 @@ export default class PostList extends React.PureComponent<Props, State> {
         // Since the first in the list is the latest message
         const isLastPost = itemId === this.state.postListIds[0];
 
+        const isLoader = itemId === PostListRowListIds.OLDER_MESSAGES_LOADER || itemId === PostListRowListIds.NEWER_MESSAGES_LOADER;
+        const shouldHideLoader = isLoader && !this.props.loadingOlderPosts && !this.props.loadingNewerPosts;
+        const rowStyle = shouldHideLoader ? {...style, display: 'none'} : style;
+
         return (
             <div
-                style={style}
+                style={rowStyle}
                 className={className}
             >
                 <PostListRow
@@ -370,6 +395,7 @@ export default class PostList extends React.PureComponent<Props, State> {
                     loadingNewerPosts={this.props.loadingNewerPosts}
                     loadingOlderPosts={this.props.loadingOlderPosts}
                     channelId={this.props.channelId}
+                    isChannelAutotranslated={this.props.isChannelAutotranslated}
                 />
             </div>
         );
@@ -448,7 +474,7 @@ export default class PostList extends React.PureComponent<Props, State> {
             });
         }
 
-        if (!this.props.isMobileView && !this.state.isSearchHintDismissed) {
+        if (!this.props.isMobileView && !this.state.isSearchHintDismissed && !isChannelPopoutWindow()) {
             this.setState({
                 showSearchHint: offsetFromBottom > this.showSearchHintThreshold,
             });
@@ -700,7 +726,10 @@ export default class PostList extends React.PureComponent<Props, State> {
                             id='postListContent'
                             className='post-list__content'
                         >
-                            <LatestPostReader postIds={this.props.postListIds}/>
+                            <LatestPostReader
+                                postIds={this.props.postListIds}
+                                autotranslated={this.props.isChannelAutotranslated}
+                            />
                             <AutoSizer>
                                 {({height, width}) => (
                                     <>

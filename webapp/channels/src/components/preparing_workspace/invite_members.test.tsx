@@ -5,7 +5,7 @@ import React from 'react';
 import type {ComponentProps} from 'react';
 
 import {withIntl} from 'tests/helpers/intl-test-helper';
-import {fireEvent, render, screen} from 'tests/react_testing_utils';
+import {render, screen, userEvent} from 'tests/react_testing_utils';
 
 import InviteMembers from './invite_members';
 
@@ -78,11 +78,11 @@ describe('InviteMembers component', () => {
         expect(button).toBeDisabled();
     });
 
-    it('invokes next prop on button click', () => {
+    it('invokes next prop on button click', async () => {
         const component = withIntl(<InviteMembers {...defaultProps}/>);
         render(component);
         const button = screen.getByRole('button', {name: 'Finish setup'});
-        fireEvent.click(button);
+        await userEvent.click(button);
         expect(defaultProps.next).toHaveBeenCalled();
     });
 

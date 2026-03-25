@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/blang/semver/v4"
+	"github.com/Masterminds/semver/v3"
 )
 
 type MetricType string
@@ -43,6 +43,9 @@ const (
 
 	DesktopClientCPUUsage    MetricType = "desktop_cpu"
 	DesktopClientMemoryUsage MetricType = "desktop_memory"
+
+	// PluginWebappPerf is the metric type for plugin webapp performance metrics
+	PluginWebappPerf MetricType = "plugin_webapp_perf"
 
 	performanceReportTTLMilliseconds = 300 * 1000 // 300 seconds/5 minutes
 )
@@ -109,12 +112,12 @@ func (r *PerformanceReport) IsValid() error {
 		return fmt.Errorf("the report is nil")
 	}
 
-	reportVersion, err := semver.ParseTolerant(r.Version)
+	reportVersion, err := semver.NewVersion(r.Version)
 	if err != nil {
 		return fmt.Errorf("could not parse semver version: %s, %w", r.Version, err)
 	}
 
-	if reportVersion.Major != performanceReportVersion.Major || reportVersion.Minor > performanceReportVersion.Minor {
+	if reportVersion.Major() != performanceReportVersion.Major() || reportVersion.Minor() > performanceReportVersion.Minor() {
 		return fmt.Errorf("report version is not supported: server version: %s, report version: %s", performanceReportVersion.String(), r.Version)
 	}
 

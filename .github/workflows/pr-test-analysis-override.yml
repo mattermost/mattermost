@@ -1,0 +1,117 @@
+---
+name: "PR Test Analysis Override"
+
+on:
+  issue_comment:
+    types: [created]
+
+concurrency:
+  group: test-analyzer-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+permissions:
+  statuses: write
+
+env:
+  VERIFIED_PREFIX: "(override)"
+  STATUS_CONTEXT: "Tests/analysis"
+  REPORT_WEBHOOK_URL: ${{ secrets.WEBHOOK_URL_TEST_PR_ANALYSIS_HUB }}
+
+jobs:
+  # When /test-analysis-override <reason> is posted on a PR, post success status
+  # overriding the previous analysis and send a webhook notification.
+  verify:
+    if: >-
+      github.repository == 'mattermost/mattermost' &&
+      github.event.issue.pull_request &&
+      startsWith(github.event.comment.body, '/test-analysis-override') &&
+      contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
+    runs-on: ubuntu-24.04
+    steps:
+      - name: ci/extract-reason
+        id: extract
+        env:
+          COMMENT_BODY: ${{ github.event.comment.body }}
+        run: |
+          # Extract reason after the slash command
+          REASON=$(echo "$COMMENT_BODY" | sed 's|^/test-analysis-override\s*||' | head -1 | xargs)
+          if [ -z "$REASON" ]; then
+            echo "No reason provided — a reason is required"
+            echo "Usage: /test-analysis-override <reason>"
+            exit 1
+          fi
+          echo "reason=${REASON}" >> $GITHUB_OUTPUT
+
+      - name: ci/resolve-pr-info
+        id: pr-info
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          PR_JSON=$(gh pr view "$PR_NUMBER" --repo "${{ github.repository }}" --json headRefOid --jq '.headRefOid')
+          echo "commit_sha=${PR_JSON}" >> $GITHUB_OUTPUT
+          echo "pr_number=${PR_NUMBER}" >> $GITHUB_OUTPUT
+
+      - name: ci/post-override-status
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMMIT_SHA: ${{ steps.pr-info.outputs.commit_sha }}
+        run: |
+          # Read current commit status to preserve description
+          STATUS_JSON=$(gh api repos/${{ github.repository }}/commits/${COMMIT_SHA}/statuses \
+            --jq "[.[] | select(.context == \"${STATUS_CONTEXT}\")] | first // empty")
+
+          CURRENT_DESC=""
+          CURRENT_URL=""
+          if [ -n "$STATUS_JSON" ]; then
+            CURRENT_DESC=$(echo "$STATUS_JSON" | jq -r '.description // ""')
+            CURRENT_URL=$(echo "$STATUS_JSON" | jq -r '.target_url // ""')
+          fi
+
+          # Strip any existing prefix to avoid stacking on repeated runs
+          ESCAPED_PREFIX=$(echo "$VERIFIED_PREFIX" | sed 's/[()]/\\&/g')
+          CLEAN_DESC=$(echo "$CURRENT_DESC" | sed "s/^${ESCAPED_PREFIX} *//")
+          if [ -n "$CLEAN_DESC" ]; then
+            NEW_DESC="${VERIFIED_PREFIX} ${CLEAN_DESC}"
+          else
+            NEW_DESC="${VERIFIED_PREFIX}"
+          fi
+
+          gh api repos/${{ github.repository }}/statuses/${COMMIT_SHA} \
+            -f state=success \
+            -f context="${STATUS_CONTEXT}" \
+            -f description="${NEW_DESC:0:140}" \
+            -f target_url="${CURRENT_URL:-${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}}"
+
+          echo "Verified: ${NEW_DESC}"
+
+      - name: ci/post-ack-reaction
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMMENT_ID: ${{ github.event.comment.id }}
+        run: |
+          gh api repos/${{ github.repository }}/issues/comments/${COMMENT_ID}/reactions \
+            -f content='+1' 2>/dev/null || true
+
+      - name: ci/send-webhook
+        if: env.REPORT_WEBHOOK_URL != ''
+        env:
+          PR_NUMBER: ${{ steps.pr-info.outputs.pr_number }}
+          PR_URL: ${{ github.server_url }}/${{ github.repository }}/pull/${{ github.event.issue.number }}
+          COMMIT_SHA: ${{ steps.pr-info.outputs.commit_sha }}
+          SENDER: ${{ github.event.comment.user.login }}
+          REASON: ${{ steps.extract.outputs.reason }}
+        run: |
+          PAYLOAD=$(jq -n \
+            --arg sender "$SENDER" \
+            --arg reason "$REASON" \
+            --arg pr_num "$PR_NUMBER" \
+            --arg pr_url "$PR_URL" \
+            --arg commit "${COMMIT_SHA:0:7}" \
+            '{
+              username: "Test Check",
+              icon_url: "https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png",
+              text: "**Tests override via command**\n\nBy: `@\($sender)`\nReason: \($reason)\n[mattermost-pr-\($pr_num)](\($pr_url)), commit: `\($commit)`"
+            }')
+
+          curl -sS --max-time 30 -X POST -H "Content-Type: application/json" -d "$PAYLOAD" "$REPORT_WEBHOOK_URL"

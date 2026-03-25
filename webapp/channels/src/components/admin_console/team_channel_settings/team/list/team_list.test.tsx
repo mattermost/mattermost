@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import {PAGE_SIZE} from 'components/admin_console/team_channel_settings/abstract_list';
 
-import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import TeamList from './team_list';

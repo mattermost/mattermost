@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import cloneDeep from 'lodash/cloneDeep';
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
@@ -96,6 +96,21 @@ function PolicyDetails({
 
     const abacActions = useChannelAccessControlActions();
 
+    // Memoize the custom no options message to avoid recreating it on every render
+    const customNoPrivateChannelsMessage = useMemo(() => (
+        <div
+            key='no-private-channels'
+            className='no-channel-message'
+        >
+            <p className='primary-message'>
+                <FormattedMessage
+                    id='admin.access_control.policy.edit_policy.no_private_channels'
+                    defaultMessage='There are no private channels available to add to this policy.'
+                />
+            </p>
+        </div>
+    ), []);
+
     // Check if there are any usable attributes for ABAC
     const noUsableAttributes = attributesLoaded && !hasUsableAttributes(autocompleteResult, accessControlSettings.EnableUserManagedAttributes);
 
@@ -187,7 +202,11 @@ function PolicyDetails({
                 version: 'v0.2',
             }).then((result) => {
                 if (result.error) {
-                    setServerError(result.error.message);
+                    if (result.error.server_error_id === 'app.pap.save_policy.name_exists.app_error') {
+                        setServerError(formatMessage({id: 'admin.access_control.edit_policy.name_exists', defaultMessage: 'A policy with this name already exists. Please choose a different name.'}));
+                    } else {
+                        setServerError(result.error.message);
+                    }
                     setShowConfirmationModal(false);
                     success = false;
                     return;
@@ -482,7 +501,8 @@ function PolicyDetails({
                                             }
                                             const isSynced = attr.attrs?.ldap || attr.attrs?.saml;
                                             const isAdminManaged = attr.attrs?.managed === 'admin';
-                                            return isSynced || isAdminManaged;
+                                            const isProtected = attr.attrs?.protected;
+                                            return isSynced || isAdminManaged || isProtected;
                                         }).
                                         map((attr) => ({
                                             attribute: attr.name,
@@ -602,6 +622,8 @@ function PolicyDetails({
                     groupID={''}
                     alreadySelected={Object.values(channelChanges.added).map((channel) => channel.id)}
                     excludeTypes={['O', 'D', 'G']}
+                    customNoOptionsMessage={customNoPrivateChannelsMessage}
+                    excludeGroupConstrained={true}
                 />
             )}
 

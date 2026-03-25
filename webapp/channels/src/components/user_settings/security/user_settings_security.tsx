@@ -498,6 +498,13 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                     defaultMessage='Login done through Entra ID'
                 />
             );
+        } else if (this.props.user.auth_service === Constants.MAGIC_LINK_SERVICE) {
+            describe = (
+                <FormattedMessage
+                    id='user.settings.security.loginMagicLink'
+                    defaultMessage='Login done through Magic Link'
+                />
+            );
         }
 
         return (
@@ -672,7 +679,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                         </div>
                     );
                 }
-            } else if (this.props.allowedToSwitchToEmail) {
+            } else if (this.props.allowedToSwitchToEmail && user.auth_service !== Constants.MAGIC_LINK_SERVICE) {
                 let link;
                 if (user.auth_service === Constants.LDAP_SERVICE) {
                     link =
@@ -715,7 +722,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                 </div>,
             );
 
-            const extraInfo = (
+            let extraInfo = (
                 <span>
                     <FormattedMessage
                         id='user.settings.security.oneSignin'
@@ -723,6 +730,25 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                     />
                 </span>
             );
+            const ssoNote = user.auth_service === Constants.GOOGLE_SERVICE ? (
+                <div className='pt-2'>
+                    <FormattedMessage
+                        id='user.settings.security.ssoUsernameSyncNote'
+                        defaultMessage='Note: When using Google SSO, changes to your Google username or email do not automatically sync to Mattermost. To update your username, switch temporarily to email/password login, update your username, and then switch back to Google SSO.'
+                    />
+                </div>
+            ) : null;
+
+            if (user.auth_service === Constants.MAGIC_LINK_SERVICE) {
+                extraInfo = (
+                    <span>
+                        <FormattedMessage
+                            id='user.settings.security.magicLinkInfo'
+                            defaultMessage='Magic Link is the only sign-in method available for this account.'
+                        />
+                    </span>
+                );
+            }
 
             max = (
                 <SettingItemMax
@@ -730,7 +756,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                         id: 'user.settings.security.method',
                         defaultMessage: 'Sign-in Method',
                     })}
-                    extraInfo={extraInfo}
+                    extraInfo={<>{extraInfo}{ssoNote}</>}
                     inputs={inputs}
                     serverError={this.state.serverError}
                     updateSection={this.handleUpdateSection}
@@ -788,6 +814,13 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                 <FormattedMessage
                     id='user.settings.security.saml'
                     defaultMessage='SAML'
+                />
+            );
+        } else if (this.props.user.auth_service === Constants.MAGIC_LINK_SERVICE) {
+            describe = (
+                <FormattedMessage
+                    id='user.settings.security.magicLink'
+                    defaultMessage='Magic Link'
                 />
             );
         }

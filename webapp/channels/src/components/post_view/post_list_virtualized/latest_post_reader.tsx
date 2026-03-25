@@ -14,14 +14,15 @@ import type {GlobalState} from 'types/store';
 
 interface Props {
     postIds?: string[];
+    autotranslated: boolean;
 }
 
 const LatestPostReader = (props: Props): JSX.Element => {
-    const {postIds} = props;
+    const {postIds, autotranslated} = props;
     const latestPostId = useMemo(() => getLatestPostId(postIds || []), [postIds]);
     const latestPost = useSelector<GlobalState, Post>((state) => getPost(state, latestPostId));
 
-    const ariaLabel = usePostAriaLabel(latestPost);
+    const ariaLabel = usePostAriaLabel(latestPost, autotranslated);
 
     return (
         <span

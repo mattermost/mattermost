@@ -1,12 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import FilePreviewModalFooter from './file_preview_modal_footer';
+
+jest.mock('../file_preview_modal_info/file_preview_modal_info', () => () => <div>{'FilePreviewModalInfo'}</div>);
+jest.mock('../file_preview_modal_main_actions/file_preview_modal_main_actions', () => () => (
+    <div>{'FilePreviewModalMainActions'}</div>
+));
 
 describe('components/file_preview_modal/file_preview_modal_footer/FilePreviewModalFooter', () => {
     const defaultProps = {
@@ -32,8 +37,8 @@ describe('components/file_preview_modal/file_preview_modal_footer/FilePreviewMod
             ...defaultProps,
         };
 
-        const wrapper = shallow(<FilePreviewModalFooter {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<FilePreviewModalFooter {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot the mobile view', () => {
@@ -42,7 +47,7 @@ describe('components/file_preview_modal/file_preview_modal_footer/FilePreviewMod
             isMobile: true,
         };
 
-        const wrapper = shallow(<FilePreviewModalFooter {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<FilePreviewModalFooter {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 });

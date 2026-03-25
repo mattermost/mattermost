@@ -5,6 +5,8 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
+import type {PreferencesType} from '@mattermost/types/preferences';
+
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Preferences} from 'mattermost-redux/constants';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
@@ -13,8 +15,13 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import type {GlobalState} from 'types/store';
 
-import type {OwnProps} from './join_leave_section';
 import JoinLeaveSection from './join_leave_section';
+
+export type OwnProps = {
+    adminMode?: boolean;
+    userId: string;
+    userPreferences?: PreferencesType;
+}
 
 export function mapStateToProps(state: GlobalState, props: OwnProps) {
     const config = getConfig(state);

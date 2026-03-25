@@ -54,19 +54,9 @@ const actImmediate = (wrapper: ReactWrapper) =>
     );
 
 describe('components/RenewalLink', () => {
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
-    const props = {
-        actions: {
-            openModal: jest.fn,
-        },
-    };
-
     test('should show Contact sales button', async () => {
         const store = mockStore(initialState);
-        const wrapper = mountWithIntl(<Provider store={store}><RenewalLink {...props}/></Provider>);
+        const wrapper = mountWithIntl(<Provider store={store}><RenewalLink/></Provider>);
 
         // wait for the promise to resolve and component to update
         await actImmediate(wrapper);

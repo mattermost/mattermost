@@ -126,7 +126,7 @@ describe('components/AboutBuildModal', () => {
         );
 
         expect(screen.getByText('Mattermost Cloud')).toBeInTheDocument();
-        expect(screen.getByText('High trust messaging for the enterprise')).toBeInTheDocument();
+        expect(screen.getByText('High-trust messaging for the enterprise')).toBeInTheDocument();
         expect(screen.getByTestId('aboutModalVersion')).toHaveTextContent('Mattermost Version: 3.6.0');
         expect(screen.getByText('0123456789abcdef', {exact: false})).toBeInTheDocument();
         expect(screen.getByRole('link', {name: 'server'})).toHaveAttribute('href', 'https://github.com/mattermost/mattermost-server/blob/master/NOTICE.txt');
@@ -268,6 +268,40 @@ describe('components/AboutBuildModal', () => {
         // The error should be logged but not cause the component to crash
         expect(console.error).toHaveBeenCalled();
         expect(screen.getByTestId('aboutModalVersionInfo')).not.toHaveTextContent('Load Metric:');
+    });
+
+    test('should show FIPS indicator when IsFipsEnabled is true', () => {
+        const fipsConfig = {
+            ...config,
+            IsFipsEnabled: 'true',
+        };
+
+        renderAboutBuildModal({config: fipsConfig});
+
+        expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Server Version: 3.6.0 (FIPS)');
+    });
+
+    test('should not show FIPS indicator when IsFipsEnabled is false', () => {
+        const nonFipsConfig = {
+            ...config,
+            IsFipsEnabled: 'false',
+        };
+
+        renderAboutBuildModal({config: nonFipsConfig});
+
+        expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Server Version: 3.6.0');
+        expect(screen.getByTestId('aboutModalVersionInfo')).not.toHaveTextContent('(FIPS)');
+    });
+
+    test('should not show FIPS indicator when IsFipsEnabled is not set', () => {
+        const nonFipsConfig = {
+            ...config,
+        };
+
+        renderAboutBuildModal({config: nonFipsConfig});
+
+        expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Server Version: 3.6.0');
+        expect(screen.getByTestId('aboutModalVersionInfo')).not.toHaveTextContent('(FIPS)');
     });
 
     function renderAboutBuildModal(props = {}) {

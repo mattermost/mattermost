@@ -97,25 +97,28 @@ exports[`components/post_view/MessageAttachment should call actions.doPostAction
             >
               <Component />
             </Connect(Component)>
-            <span>
-              footer
-            </span>
-          </div>
-          <div
-            className="attachment-actions"
-          >
-            <Connect(Component)
-              action={
-                Object {
-                  "cookie": "cookie-contents",
-                  "id": "action_id_1",
-                  "name": "action_name_1",
-                }
-              }
-              actionExecuting={false}
-              handleAction={[Function]}
-              key="action_id_1"
+            <Connect(Markdown)
+              message="footer"
+              postId="post_id"
             />
+          </div>
+          <div>
+            <div
+              className="attachment-actions"
+            >
+              <Connect(Component)
+                action={
+                  Object {
+                    "cookie": "cookie-contents",
+                    "id": "action_id_1",
+                    "name": "action_name_1",
+                  }
+                }
+                actionExecuting={false}
+                handleAction={[Function]}
+                key="action_id_1"
+              />
+            </div>
           </div>
         </div>
         <div
@@ -243,9 +246,10 @@ exports[`components/post_view/MessageAttachment should match snapshot 1`] = `
             >
               <Component />
             </Connect(Component)>
-            <span>
-              footer
-            </span>
+            <Connect(Markdown)
+              message="footer"
+              postId="post_id"
+            />
           </div>
         </div>
         <div
@@ -576,9 +580,10 @@ exports[`components/post_view/MessageAttachment should match snapshot when the f
           <div
             className="attachment__footer-container"
           >
-            <span>
-              aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa…
-            </span>
+            <Connect(Markdown)
+              message="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa…"
+              postId="post_id"
+            />
           </div>
         </div>
         <div
@@ -684,40 +689,42 @@ exports[`components/post_view/MessageAttachment should match value on getFieldsT
 exports[`components/post_view/MessageAttachment should match value on renderPostActions 1`] = `""`;
 
 exports[`components/post_view/MessageAttachment should match value on renderPostActions 2`] = `
-<div
-  className="attachment-actions"
->
-  <Memo(Connect(Component))
-    action={
-      Object {
-        "id": "action_id_1",
-        "name": "action_name_1",
+<div>
+  <div
+    className="attachment-actions"
+  >
+    <Memo(Connect(Component))
+      action={
+        Object {
+          "id": "action_id_1",
+          "name": "action_name_1",
+        }
       }
-    }
-    actionExecuting={false}
-    handleAction={[Function]}
-  />
-  <Memo(Connect(Component))
-    action={
-      Object {
-        "id": "action_id_2",
-        "name": "action_name_2",
+      actionExecuting={false}
+      handleAction={[Function]}
+    />
+    <Memo(Connect(Component))
+      action={
+        Object {
+          "id": "action_id_2",
+          "name": "action_name_2",
+        }
       }
-    }
-    actionExecuting={false}
-    handleAction={[Function]}
-  />
-  <Memo(Connect(ActionMenu))
-    action={
-      Object {
-        "data_source": "users",
-        "id": "action_id_3",
-        "name": "action_name_3",
-        "type": "select",
+      actionExecuting={false}
+      handleAction={[Function]}
+    />
+    <Memo(Connect(ActionMenu))
+      action={
+        Object {
+          "data_source": "users",
+          "id": "action_id_3",
+          "name": "action_name_3",
+          "type": "select",
+        }
       }
-    }
-    postId="post_id"
-  />
+      postId="post_id"
+    />
+  </div>
 </div>
 `;
 

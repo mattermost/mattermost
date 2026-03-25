@@ -1,15 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, waitFor} from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
@@ -56,7 +54,7 @@ describe('components/FlagPostModal', () => {
             baseState,
         );
 
-        await userEvent.click(screen.getByText('Select a reason for flagging'));
+        await userEvent.click(screen.getByText('Select a reason'));
 
         expect(screen.getByText('Reason 1')).toBeVisible();
         expect(screen.getByText('Reason 2')).toBeVisible();
@@ -107,7 +105,7 @@ describe('components/FlagPostModal', () => {
         );
 
         // Select a reason
-        await userEvent.click(screen.getByText('Select a reason for flagging'));
+        await userEvent.click(screen.getByText('Select a reason'));
         await userEvent.click(screen.getByText('Reason 1'));
 
         // Add a comment

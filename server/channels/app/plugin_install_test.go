@@ -11,7 +11,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -60,12 +59,6 @@ func makeInMemoryGzipTarFile(t *testing.T, files []testFile) *bytes.Reader {
 
 	return bytes.NewReader(buf.Bytes())
 }
-
-type byBundleInfoID []*model.BundleInfo
-
-func (b byBundleInfoID) Len() int           { return len(b) }
-func (b byBundleInfoID) Swap(i, j int)      { b[i], b[j] = b[j], b[i] }
-func (b byBundleInfoID) Less(i, j int) bool { return b[i].Manifest.Id < b[j].Manifest.Id }
 
 func TestInstallPluginLocally(t *testing.T) {
 	mainHelper.Parallel(t)
@@ -142,14 +135,12 @@ func TestInstallPluginLocally(t *testing.T) {
 		bundleInfos, err := pluginsEnvironment.Available()
 		require.NoError(t, err)
 
-		sort.Sort(byBundleInfoID(bundleInfos))
-
 		actualManifests := make([]*model.Manifest, 0, len(bundleInfos))
 		for _, bundleInfo := range bundleInfos {
 			actualManifests = append(actualManifests, bundleInfo.Manifest)
 		}
 
-		require.Equal(t, manifests, actualManifests)
+		require.ElementsMatch(t, manifests, actualManifests)
 	}
 
 	t.Run("no plugins already installed", func(t *testing.T) {
