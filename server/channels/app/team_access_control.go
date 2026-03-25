@@ -5,21 +5,11 @@ package app
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 )
-
-// policyLastTeamCache bridges the unassign → delete calls that happen
-// milliseconds apart. Entries auto-expire after 5 seconds.
-var policyLastTeamCache = cache.NewLRU(&cache.CacheOptions{
-	Size:          256,
-	DefaultExpiry: 5 * time.Second,
-	Name:          "PolicyLastTeam",
-})
 
 const (
 	teamPoliciesDefaultPerPage = 10
@@ -84,46 +74,13 @@ func (a *App) SearchTeamAccessPolicies(rctx request.CTX, teamID, requesterID str
 	return filtered[startIdx:endIdx], total, nil
 }
 
-// StampLastTeamOnChannellessPolicy checks if a policy has no remaining children
-// and, if so, records the team in an in-memory cache. The subsequent delete call
-// (milliseconds later) reads this to verify team ownership.
-func (a *App) StampLastTeamOnChannellessPolicy(rctx request.CTX, policyID, teamID string) *model.AppError {
-	children, _, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
-		ParentID: policyID,
-		Type:     model.AccessControlPolicyTypeChannel,
-		Limit:    1,
-	})
-	if err != nil {
-		return model.NewAppError("StampLastTeamOnChannellessPolicy",
-			"app.team.access_policies.stamp_team.app_error",
-			nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if len(children) > 0 {
-		return nil
-	}
-
-	if err := policyLastTeamCache.SetWithDefaultExpiry(policyID, teamID); err != nil {
-		return model.NewAppError("StampLastTeamOnChannellessPolicy",
-			"app.team.access_policies.stamp_team.app_error",
-			nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return nil
-}
-
-// GetAndClearPolicyLastTeam reads and removes the cached team for a policy.
-func GetAndClearPolicyLastTeam(policyID string) (string, bool) {
-	var teamID string
-	if err := policyLastTeamCache.Get(policyID, &teamID); err != nil {
-		return "", false
-	}
-	_ = policyLastTeamCache.Remove(policyID)
-	return teamID, true
-}
-
 // ValidateTeamAdminPolicyOwnership checks whether a policy is scoped to a given team.
 // Returns (true, nil) if the policy belongs to the team, (false, nil) if it does not,
 // or (false, err) if an internal error occurred during the check.
+//
+// The SearchPolicies TeamID filter matches via two mechanisms in a single query:
+//  1. Explicit scope: Data->>'scope' = 'team' AND Data->>'scope_id' = teamID
+//  2. Channel inference: all assigned channels belong to this team (pre-scope policies)
 func (a *App) ValidateTeamAdminPolicyOwnership(rctx request.CTX, teamID, policyID string) (bool, *model.AppError) {
 	policies, _, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
 		IDs:    []string{policyID},
@@ -138,6 +95,88 @@ func (a *App) ValidateTeamAdminPolicyOwnership(rctx request.CTX, teamID, policyI
 	}
 
 	return len(policies) > 0, nil
+}
+
+// ReconcilePolicyTeamScope evaluates a parent policy's assigned channels and
+// sets or clears the team scope accordingly:
+//   - All channels belong to a single team → scope = "team", scope_id = that team
+//   - Channels span multiple teams → scope cleared
+//   - No channels remaining → scope unchanged (preserves the team set at creation)
+//
+// This runs after every assign/unassign regardless of the caller's role, so that
+// system admins adding cross-team channels correctly clears the team scope.
+func (a *App) ReconcilePolicyTeamScope(rctx request.CTX, policyID string) *model.AppError {
+	// Find all child channel policies for this parent
+	children, _, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+		ParentID: policyID,
+		Type:     model.AccessControlPolicyTypeChannel,
+		Limit:    1000,
+	})
+	if err != nil {
+		return model.NewAppError("ReconcilePolicyTeamScope",
+			"app.team.access_policies.reconcile_scope.app_error",
+			nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// No channels — keep existing scope unchanged
+	if len(children) == 0 {
+		return nil
+	}
+
+	// Collect channel IDs (child policy ID = channel ID)
+	channelIDs := make([]string, len(children))
+	for i, child := range children {
+		channelIDs[i] = child.ID
+	}
+
+	// Resolve channels to determine their teams
+	channels, appErr := a.GetChannels(rctx, channelIDs)
+	if appErr != nil {
+		return appErr
+	}
+
+	// Check if all channels belong to a single team
+	teamIDs := make(map[string]struct{})
+	for _, ch := range channels {
+		teamIDs[ch.TeamId] = struct{}{}
+	}
+
+	// Fetch the parent policy directly from the store (not the enterprise layer)
+	// to avoid unnecessary CEL expression normalization — we only need scope fields.
+	policy, storeErr := a.Srv().Store().AccessControlPolicy().Get(rctx, policyID)
+	if storeErr != nil {
+		return model.NewAppError("ReconcilePolicyTeamScope",
+			"app.team.access_policies.reconcile_scope.app_error",
+			nil, "", http.StatusInternalServerError).Wrap(storeErr)
+	}
+
+	var newScope, newScopeID string
+	if len(teamIDs) == 1 {
+		// All channels belong to one team — set scope
+		for tid := range teamIDs {
+			newScope = model.AccessControlPolicyScopeTeam
+			newScopeID = tid
+		}
+	}
+	// len(teamIDs) > 1: multiple teams — clear scope (newScope/newScopeID stay "")
+
+	// Skip save if nothing changed
+	if policy.Scope == newScope && policy.ScopeID == newScopeID {
+		return nil
+	}
+
+	policy.Scope = newScope
+	policy.ScopeID = newScopeID
+
+	// Save directly via the store — scope is metadata that doesn't require
+	// enterprise-layer CEL normalization. This avoids re-processing expressions
+	// and works consistently regardless of the enterprise layer state.
+	if _, err := a.Srv().Store().AccessControlPolicy().Save(rctx, policy); err != nil {
+		return model.NewAppError("ReconcilePolicyTeamScope",
+			"app.team.access_policies.reconcile_scope.app_error",
+			nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return nil
 }
 
 // ValidateTeamScopePolicyChannelAssignment validates that all channels are eligible

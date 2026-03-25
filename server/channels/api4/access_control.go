@@ -73,6 +73,9 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 					return
 				}
 			}
+			// Persist team scope so ownership survives even when all channels are removed
+			policy.Scope = model.AccessControlPolicyScopeTeam
+			policy.ScopeID = teamID
 		}
 	case model.AccessControlPolicyTypeChannel:
 		// Check if user has system admin permission first
@@ -206,21 +209,8 @@ func deleteAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 				return
 			}
 			if !owned {
-				// Allow delete only if cache confirms this team just unassigned AND policy is still channelless.
-				cachedTeamID, ok := app.GetAndClearPolicyLastTeam(policyID)
-				if !ok || cachedTeamID != teamID {
-					c.SetPermissionError(model.PermissionManageTeamAccessRules)
-					return
-				}
-				childCount, _, searchErr := c.App.Srv().Store().AccessControlPolicy().SearchPolicies(c.AppContext, model.AccessControlPolicySearch{
-					ParentID: policyID,
-					Type:     model.AccessControlPolicyTypeChannel,
-					Limit:    1,
-				})
-				if searchErr != nil || len(childCount) > 0 {
-					c.SetPermissionError(model.PermissionManageTeamAccessRules)
-					return
-				}
+				c.SetPermissionError(model.PermissionManageTeamAccessRules)
+				return
 			}
 		}
 	}
@@ -637,40 +627,8 @@ func assignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if !owned {
-			// Allow assign if: (a) cache confirms this team just unassigned, or
-			// (b) policy is a channelless parent with no cache entry (newly created).
-			cachedTeamID, cached := app.GetAndClearPolicyLastTeam(policyID)
-			if cached {
-				if cachedTeamID != assignments.TeamID {
-					c.SetPermissionError(model.PermissionManageTeamAccessRules)
-					return
-				}
-				// Verify policy is still channelless (channels could have been re-attached)
-				childCount, _, searchErr := c.App.Srv().Store().AccessControlPolicy().SearchPolicies(c.AppContext, model.AccessControlPolicySearch{
-					ParentID: policyID,
-					Type:     model.AccessControlPolicyTypeChannel,
-					Limit:    1,
-				})
-				if searchErr != nil || len(childCount) > 0 {
-					c.SetPermissionError(model.PermissionManageTeamAccessRules)
-					return
-				}
-			} else {
-				policy, getErr := c.App.GetAccessControlPolicy(c.AppContext, policyID)
-				if getErr != nil || policy == nil || policy.Type != model.AccessControlPolicyTypeParent {
-					c.SetPermissionError(model.PermissionManageTeamAccessRules)
-					return
-				}
-				childCount, _, searchErr := c.App.Srv().Store().AccessControlPolicy().SearchPolicies(c.AppContext, model.AccessControlPolicySearch{
-					ParentID: policyID,
-					Type:     model.AccessControlPolicyTypeChannel,
-					Limit:    1,
-				})
-				if searchErr != nil || len(childCount) > 0 {
-					c.SetPermissionError(model.PermissionManageTeamAccessRules)
-					return
-				}
-			}
+			c.SetPermissionError(model.PermissionManageTeamAccessRules)
+			return
 		}
 		if appErr := c.App.ValidateTeamScopePolicyChannelAssignment(c.AppContext, assignments.TeamID, assignments.ChannelIds); appErr != nil {
 			c.Err = appErr
@@ -689,6 +647,12 @@ func assignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = appErr
 			return
 		}
+	}
+
+	// Reconcile team scope: if all channels now belong to one team, set scope;
+	// if channels span multiple teams (e.g. system admin added cross-team), clear scope.
+	if appErr := c.App.ReconcilePolicyTeamScope(c.AppContext, policyID); appErr != nil {
+		c.Logger.Warn("Failed to reconcile policy team scope after assign", mlog.String("policy_id", policyID), mlog.Err(appErr))
 	}
 
 	auditRec.Success()
@@ -738,6 +702,15 @@ func unassignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "id", policyID)
 	model.AddEventParameterToAuditRec(auditRec, "channel_ids", assignments.ChannelIds)
 
+	// Pre-flight: ensure scope is set before removing channels. This handles
+	// pre-scope policies (created before the scope field existed) by capturing
+	// the team from current channels before they are removed. Without this,
+	// unassigning all channels would leave the policy with no scope and no
+	// channels, making it unmanageable by team admins.
+	if appErr := c.App.ReconcilePolicyTeamScope(c.AppContext, policyID); appErr != nil {
+		c.Logger.Warn("Failed to reconcile policy team scope before unassign", mlog.String("policy_id", policyID), mlog.Err(appErr))
+	}
+
 	if len(assignments.ChannelIds) != 0 {
 		appErr := c.App.UnassignPoliciesFromChannels(c.AppContext, policyID, assignments.ChannelIds)
 		if appErr != nil {
@@ -746,13 +719,11 @@ func unassignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// If a team admin unassigned all channels, stamp the team ID on the policy
-	// so only admins from this team can delete the now-channelless policy.
-	if !hasSystemPermission && assignments.TeamID != "" {
-		if appErr := c.App.StampLastTeamOnChannellessPolicy(c.AppContext, policyID, assignments.TeamID); appErr != nil {
-			c.Err = appErr
-			return
-		}
+	// Post-unassign reconcile: update scope based on remaining channels.
+	// If channels remain in one team → scope set. Multiple teams → scope cleared.
+	// No channels remain → no-op (scope preserved from pre-flight or creation).
+	if appErr := c.App.ReconcilePolicyTeamScope(c.AppContext, policyID); appErr != nil {
+		c.Logger.Warn("Failed to reconcile policy team scope after unassign", mlog.String("policy_id", policyID), mlog.Err(appErr))
 	}
 
 	auditRec.Success()

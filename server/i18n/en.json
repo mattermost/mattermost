@@ -7929,20 +7929,16 @@
     "translation": "At least one channel is required."
   },
   {
+    "id": "app.team.access_policies.reconcile_scope.app_error",
+    "translation": "Failed to reconcile team scope on policy."
+  },
+  {
     "id": "app.team.access_policies.ownership_check.app_error",
     "translation": "Unable to verify policy ownership for this team."
   },
   {
-    "id": "app.team.access_policies.policy_not_in_team.app_error",
-    "translation": "The requested policy does not belong to this team."
-  },
-  {
     "id": "app.team.access_policies.self_exclusion.app_error",
     "translation": "You cannot create a policy that would exclude yourself."
-  },
-  {
-    "id": "app.team.access_policies.stamp_team.app_error",
-    "translation": "Failed to stamp team ownership on policy."
   },
   {
     "id": "app.team.access_policies.validation_error.app_error",

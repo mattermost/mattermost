@@ -19,6 +19,8 @@ const (
 
 	AccessControlPolicyVersionV0_1 = "v0.1"
 	AccessControlPolicyVersionV0_2 = "v0.2"
+
+	AccessControlPolicyScopeTeam = "team"
 )
 
 // AccessControlAttribute represents a user attribute with its name and possible values
@@ -72,6 +74,9 @@ type AccessControlPolicy struct {
 
 	Imports []string                  `json:"imports"`
 	Rules   []AccessControlPolicyRule `json:"rules"`
+
+	Scope   string `json:"scope,omitempty"`    // "" (system) or "team"
+	ScopeID string `json:"scope_id,omitempty"` // team ID when scope="team"
 
 	Props map[string]any `json:"props"` // add auto-sync property here, also maybe the attributes being used in the expression
 }

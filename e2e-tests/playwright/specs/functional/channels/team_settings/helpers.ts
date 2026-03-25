@@ -55,6 +55,50 @@ export async function assignChannelsToPolicy(client: Client4, policyId: string, 
     }
 }
 
+export async function unassignChannelsFromPolicy(
+    client: Client4,
+    policyId: string,
+    channelIds: string[],
+    teamId?: string,
+) {
+    const url = `${client.getBaseRoute()}/access_control_policies/${policyId}/unassign`;
+    const response = await fetch(url, {
+        method: 'DELETE',
+        headers: {'Content-Type': 'application/json', Authorization: `Bearer ${client.getToken()}`},
+        body: JSON.stringify({channel_ids: channelIds, ...(teamId && {team_id: teamId})}),
+    });
+    if (!response.ok) {
+        throw new Error(`unassignChannelsFromPolicy failed: ${response.status}`);
+    }
+}
+
+export async function deletePolicy(client: Client4, policyId: string, teamId?: string) {
+    const teamParam = teamId ? `?team_id=${encodeURIComponent(teamId)}` : '';
+    const url = `${client.getBaseRoute()}/access_control_policies/${policyId}${teamParam}`;
+    const response = await fetch(url, {
+        method: 'DELETE',
+        headers: {'Content-Type': 'application/json', Authorization: `Bearer ${client.getToken()}`},
+    });
+    if (!response.ok) {
+        throw new Error(`deletePolicy failed: ${response.status}`);
+    }
+}
+
+export async function searchPolicies(client: Client4, teamId: string): Promise<any[]> {
+    const result: any = await (client as any).doFetch(`${client.getBaseRoute()}/access_control_policies/search`, {
+        method: 'post',
+        body: JSON.stringify({
+            term: '',
+            type: 'parent',
+            cursor: {id: ''},
+            limit: 100,
+            include_children: true,
+            team_id: teamId,
+        }),
+    });
+    return result.policies || [];
+}
+
 export async function setUserAttribute(adminClient: Client4, userId: string, fieldName: string, value: string) {
     // Get all fields to find the field ID
     const fields: any[] = await (adminClient as any).doFetch(
