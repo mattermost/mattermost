@@ -1,6 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+const {dependencies} = require('./package.json');
+const corejsVersion = dependencies['core-js'];
+
 const config = {
     presets: [
         ['@babel/preset-env', {
@@ -10,7 +13,7 @@ const config = {
                 edge: 110,
                 safari: 16.2,
             },
-            corejs: 3,
+            corejs: corejsVersion,
             useBuiltIns: 'usage',
             shippedProposals: true,
         }],
