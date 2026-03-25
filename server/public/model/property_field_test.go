@@ -500,7 +500,7 @@ func TestPropertyField_IsValid(t *testing.T) {
 		require.NoError(t, pf.IsValid())
 	})
 
-	t.Run("template object type skips TargetType validation", func(t *testing.T) {
+	t.Run("template object type requires TargetType", func(t *testing.T) {
 		pf := &PropertyField{
 			ID:         NewId(),
 			GroupID:    NewId(),
@@ -511,16 +511,17 @@ func TestPropertyField_IsValid(t *testing.T) {
 			CreateAt:   GetMillis(),
 			UpdateAt:   GetMillis(),
 		}
-		require.NoError(t, pf.IsValid())
+		require.Error(t, pf.IsValid())
 	})
 
-	t.Run("template object type is a valid PSAv2 ObjectType", func(t *testing.T) {
+	t.Run("template object type with valid TargetType", func(t *testing.T) {
 		pf := &PropertyField{
 			ID:         NewId(),
 			GroupID:    NewId(),
 			Name:       "template field",
 			Type:       PropertyFieldTypeSelect,
 			ObjectType: PropertyFieldObjectTypeTemplate,
+			TargetType: string(PropertyFieldTargetLevelSystem),
 			CreateAt:   GetMillis(),
 			UpdateAt:   GetMillis(),
 		}
@@ -609,6 +610,7 @@ func TestPropertyField_IsValid(t *testing.T) {
 			Name:          "template field",
 			Type:          PropertyFieldTypeSelect,
 			ObjectType:    PropertyFieldObjectTypeTemplate,
+			TargetType:    string(PropertyFieldTargetLevelSystem),
 			LinkedFieldID: &linkedID,
 			CreateAt:      GetMillis(),
 			UpdateAt:      GetMillis(),

@@ -871,12 +871,13 @@ func TestLinkedPropertyFields(t *testing.T) {
 	th := Setup(t)
 	groupID := model.NewId()
 
-	// Helper to create a source field with select options
+	// Helper to create a source template field with select options
 	createSourceField := func(t *testing.T, name string) *model.PropertyField {
 		t.Helper()
 		return th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			GroupID:    groupID,
 			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Type:       model.PropertyFieldTypeSelect,
 			Name:       name,
 			Attrs: model.StringInterface{
@@ -924,6 +925,34 @@ func TestLinkedPropertyFields(t *testing.T) {
 		require.Error(t, err)
 	})
 
+	t.Run("create linked field rejects non-template source", func(t *testing.T) {
+		// Create a regular (non-template) field
+		regular := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    groupID,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "RegularSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+		})
+
+		// Try to link to the non-template field — should be rejected
+		_, err := th.service.CreatePropertyField(&model.PropertyField{
+			GroupID:       groupID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "LinkToRegular-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &regular.ID,
+		})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "template")
+	})
+
 	t.Run("create linked field rejects chaining", func(t *testing.T) {
 		source := createSourceField(t, "ChainSource-"+model.NewId())
 
@@ -936,7 +965,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 			LinkedFieldID: &source.ID,
 		})
 
-		// Try to link to the linked field (chain)
+		// Try to link to the linked field (chain) — rejected because it's not a template
 		_, err := th.service.CreatePropertyField(&model.PropertyField{
 			GroupID:       groupID,
 			ObjectType:    model.PropertyFieldObjectTypeChannel,
@@ -946,7 +975,23 @@ func TestLinkedPropertyFields(t *testing.T) {
 			LinkedFieldID: &linked.ID,
 		})
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "no chains")
+		assert.Contains(t, err.Error(), "template")
+	})
+
+	t.Run("create linked field rejects target type mismatch", func(t *testing.T) {
+		source := createSourceField(t, "TTMismatchSource-"+model.NewId())
+
+		// Source has TargetType=system, try to link with TargetType=channel
+		_, err := th.service.CreatePropertyField(&model.PropertyField{
+			GroupID:       groupID,
+			ObjectType:    model.PropertyFieldObjectTypeChannel,
+			TargetType:    string(model.PropertyFieldTargetLevelChannel),
+			Name:          "TTMismatch-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "target_type")
 	})
 
 	t.Run("update linked field blocks type change", func(t *testing.T) {

@@ -60,79 +60,59 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Template fields have special handling: sysadmin required, no target_type needed
-	isTemplate := field.ObjectType == model.PropertyFieldObjectTypeTemplate
-
-	if isTemplate {
+	// Check scope access for creation based on target_type
+	switch field.TargetType {
+	case "channel":
+		if field.TargetID == "" {
+			c.Err = model.NewAppError("createPropertyField", "api.property_field.create.target_id_required.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+		hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), field.TargetID, model.PermissionCreatePost)
+		if !hasPermission {
+			c.SetPermissionError(model.PermissionCreatePost)
+			return
+		}
+	case "team":
+		if field.TargetID == "" {
+			c.Err = model.NewAppError("createPropertyField", "api.property_field.create.target_id_required.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), field.TargetID, model.PermissionManageTeam) {
+			c.SetPermissionError(model.PermissionManageTeam)
+			return
+		}
+	case "system":
 		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 			c.SetPermissionError(model.PermissionManageSystem)
 			return
 		}
-	} else {
-		// Check scope access for creation
-		switch field.TargetType {
-		case "channel":
-			if field.TargetID == "" {
-				c.Err = model.NewAppError("createPropertyField", "api.property_field.create.target_id_required.app_error", nil, "", http.StatusBadRequest)
-				return
-			}
-			hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), field.TargetID, model.PermissionCreatePost)
-			if !hasPermission {
-				c.SetPermissionError(model.PermissionCreatePost)
-				return
-			}
-		case "team":
-			if field.TargetID == "" {
-				c.Err = model.NewAppError("createPropertyField", "api.property_field.create.target_id_required.app_error", nil, "", http.StatusBadRequest)
-				return
-			}
-			if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), field.TargetID, model.PermissionManageTeam) {
-				c.SetPermissionError(model.PermissionManageTeam)
-				return
-			}
-		case "system":
-			if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-				c.SetPermissionError(model.PermissionManageSystem)
-				return
-			}
-		default:
-			c.Err = model.NewAppError("createPropertyField", "api.property_field.create.invalid_target_type.app_error", nil, "", http.StatusBadRequest)
-			return
-		}
+	default:
+		c.Err = model.NewAppError("createPropertyField", "api.property_field.create.invalid_target_type.app_error", nil, "", http.StatusBadRequest)
+		return
 	}
 
 	// Trim whitespace from name
 	field.Name = strings.TrimSpace(field.Name)
 
-	// Check if user is admin
+	// Set permissions based on admin status.
+	// Permissions are not accepted from the request body; they're set by the server.
 	isAdmin := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
-
-	if isTemplate {
-		// Template fields have hard-coded sysadmin permissions
-		sysadminLevel := model.PermissionLevelSysadmin
-		field.PermissionField = &sysadminLevel
-		field.PermissionValues = &sysadminLevel
-		field.PermissionOptions = &sysadminLevel
+	memberLevel := model.PermissionLevelMember
+	if !isAdmin {
+		// Non-admin: force all permissions to member level
+		field.PermissionField = &memberLevel
+		field.PermissionValues = &memberLevel
+		field.PermissionOptions = &memberLevel
 	} else {
-		// Set permissions based on admin status.
-		// Permissions are not accepted from the request body; they're set by the server.
-		memberLevel := model.PermissionLevelMember
-		if !isAdmin {
-			// Non-admin: force all permissions to member level
+		// Admin with nil fields: set defaults to member level
+		if field.PermissionField == nil {
 			field.PermissionField = &memberLevel
+		}
+		if field.PermissionValues == nil {
 			field.PermissionValues = &memberLevel
+		}
+		if field.PermissionOptions == nil {
 			field.PermissionOptions = &memberLevel
-		} else {
-			// Admin with nil fields: set defaults to member level
-			if field.PermissionField == nil {
-				field.PermissionField = &memberLevel
-			}
-			if field.PermissionValues == nil {
-				field.PermissionValues = &memberLevel
-			}
-			if field.PermissionOptions == nil {
-				field.PermissionOptions = &memberLevel
-			}
 		}
 	}
 
@@ -195,16 +175,11 @@ func getPropertyFields(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Template fields skip target_type requirement since they have no target scope
-	isTemplate := c.Params.ObjectType == model.PropertyFieldObjectTypeTemplate
-
-	if !isTemplate {
-		// Required target_type filter for non-template fields
-		opts.TargetType = query.Get("target_type")
-		if !model.IsValidPSAv2PropertyFieldTargetType(opts.TargetType) {
-			c.Err = model.NewAppError("getPropertyFields", "api.property_field.get.invalid_target_type.app_error", nil, "", http.StatusBadRequest)
-			return
-		}
+	// Required target_type filter
+	opts.TargetType = query.Get("target_type")
+	if !model.IsValidPSAv2PropertyFieldTargetType(opts.TargetType) {
+		c.Err = model.NewAppError("getPropertyFields", "api.property_field.get.invalid_target_type.app_error", nil, "", http.StatusBadRequest)
+		return
 	}
 
 	// Optional target_id filter
@@ -217,33 +192,29 @@ func getPropertyFields(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "group_name", c.Params.GroupName)
 	model.AddEventParameterToAuditRec(auditRec, "object_type", c.Params.ObjectType)
 
-	if isTemplate {
-		// Template fields are visible to all authenticated users
-	} else {
-		// Resource-scoped target types require a target_id for access checks
-		switch opts.TargetType {
-		case "channel":
-			if len(opts.TargetIDs) == 0 {
-				c.Err = model.NewAppError("getPropertyFields", "api.property_field.get.target_id_required.app_error", nil, "", http.StatusBadRequest)
-				return
-			}
-			hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), opts.TargetIDs[0], model.PermissionReadChannel)
-			if !hasPermission {
-				c.SetPermissionError(model.PermissionReadChannel)
-				return
-			}
-		case "team":
-			if len(opts.TargetIDs) == 0 {
-				c.Err = model.NewAppError("getPropertyFields", "api.property_field.get.target_id_required.app_error", nil, "", http.StatusBadRequest)
-				return
-			}
-			if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), opts.TargetIDs[0], model.PermissionViewTeam) {
-				c.SetPermissionError(model.PermissionViewTeam)
-				return
-			}
-		case "system":
-			// System-level fields are visible to all authenticated users
+	// Resource-scoped target types require a target_id for access checks
+	switch opts.TargetType {
+	case "channel":
+		if len(opts.TargetIDs) == 0 {
+			c.Err = model.NewAppError("getPropertyFields", "api.property_field.get.target_id_required.app_error", nil, "", http.StatusBadRequest)
+			return
 		}
+		hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), opts.TargetIDs[0], model.PermissionReadChannel)
+		if !hasPermission {
+			c.SetPermissionError(model.PermissionReadChannel)
+			return
+		}
+	case "team":
+		if len(opts.TargetIDs) == 0 {
+			c.Err = model.NewAppError("getPropertyFields", "api.property_field.get.target_id_required.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), opts.TargetIDs[0], model.PermissionViewTeam) {
+			c.SetPermissionError(model.PermissionViewTeam)
+			return
+		}
+	case "system":
+		// System-level fields are visible to all authenticated users
 	}
 
 	fields, err := c.App.SearchPropertyFields(c.AppContext, group.ID, opts)
