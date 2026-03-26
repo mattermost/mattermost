@@ -11,6 +11,25 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
+// cleanupCPAFields deletes all existing CPA fields to ensure a clean state
+func cleanupCPAFields(t *testing.T, th *TestHelper) {
+	t.Helper()
+
+	cpaID, err := th.App.CpaGroupID()
+	require.Nil(t, err)
+
+	fields, searchErr := th.App.Srv().Store().PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+		GroupID: cpaID,
+		PerPage: 100,
+	})
+	require.NoError(t, searchErr)
+
+	for _, field := range fields {
+		deleteErr := th.App.Srv().Store().PropertyField().Delete(cpaID, field.ID)
+		require.NoError(t, deleteErr)
+	}
+}
+
 func TestPluginProperties(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
@@ -436,8 +455,10 @@ func TestPluginProperties(t *testing.T) {
 	})
 
 	t.Run("test plugin-created CPA field gets source_plugin_id", func(t *testing.T) {
+		cleanupCPAFields(t, th)
+
 		cpaID, err := th.App.CpaGroupID()
-		require.NoError(t, err)
+		require.Nil(t, err)
 
 		tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
 			package main
@@ -498,8 +519,10 @@ func TestPluginProperties(t *testing.T) {
 	})
 
 	t.Run("test plugin can update its own protected field", func(t *testing.T) {
+		cleanupCPAFields(t, th)
+
 		cpaID, err := th.App.CpaGroupID()
-		require.NoError(t, err)
+		require.Nil(t, err)
 
 		tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
 			package main
@@ -560,8 +583,10 @@ func TestPluginProperties(t *testing.T) {
 	})
 
 	t.Run("test plugin cannot update another plugin's protected field", func(t *testing.T) {
+		cleanupCPAFields(t, th)
+
 		cpaID, err := th.App.CpaGroupID()
-		require.NoError(t, err)
+		require.Nil(t, err)
 
 		// Both plugins in same environment
 		tearDown, _, activationErrors := SetAppEnvironmentWithPlugins(t, []string{
@@ -658,8 +683,10 @@ func TestPluginProperties(t *testing.T) {
 	})
 
 	t.Run("test plugin can delete its own protected field", func(t *testing.T) {
+		cleanupCPAFields(t, th)
+
 		cpaID, err := th.App.CpaGroupID()
-		require.NoError(t, err)
+		require.Nil(t, err)
 
 		tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
 			package main
@@ -715,8 +742,10 @@ func TestPluginProperties(t *testing.T) {
 	})
 
 	t.Run("test plugin cannot delete another plugin's protected field", func(t *testing.T) {
+		cleanupCPAFields(t, th)
+
 		cpaID, err := th.App.CpaGroupID()
-		require.NoError(t, err)
+		require.Nil(t, err)
 
 		// Both plugins in same environment
 		tearDown, _, activationErrors := SetAppEnvironmentWithPlugins(t, []string{
@@ -811,8 +840,10 @@ func TestPluginProperties(t *testing.T) {
 	})
 
 	t.Run("test plugin can update values for its own protected field", func(t *testing.T) {
+		cleanupCPAFields(t, th)
+
 		cpaID, err := th.App.CpaGroupID()
-		require.NoError(t, err)
+		require.Nil(t, err)
 
 		tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
 			package main
@@ -888,8 +919,10 @@ func TestPluginProperties(t *testing.T) {
 	})
 
 	t.Run("test plugin cannot update values for another plugin's protected field", func(t *testing.T) {
+		cleanupCPAFields(t, th)
+
 		cpaID, err := th.App.CpaGroupID()
-		require.NoError(t, err)
+		require.Nil(t, err)
 
 		testTargetID := model.NewId()
 
@@ -1008,8 +1041,10 @@ func TestPluginProperties(t *testing.T) {
 	})
 
 	t.Run("test plugin can modify non-protected CPA fields from other plugins", func(t *testing.T) {
+		cleanupCPAFields(t, th)
+
 		cpaID, err := th.App.CpaGroupID()
-		require.NoError(t, err)
+		require.Nil(t, err)
 
 		// Both plugins in same environment
 		tearDown, _, activationErrors := SetAppEnvironmentWithPlugins(t, []string{
@@ -1101,7 +1136,8 @@ func TestPluginProperties(t *testing.T) {
 		require.NoError(t, activationErrors[1])
 
 		// Verify the field was actually updated
-		updatedFields, appErr := th.App.ListCPAFields("")
+		rctx := th.emptyContextWithCallerID(anonymousCallerId)
+		updatedFields, appErr := th.App.ListCPAFields(rctx)
 		require.Nil(t, appErr)
 		var fieldWasUpdated bool
 		for _, field := range updatedFields {
