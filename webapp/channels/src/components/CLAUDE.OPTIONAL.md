@@ -80,6 +80,9 @@ const intl = useIntl();
 - Avoid snapshots; assert visible behavior instead.
 - **Import Rule**: Never import directly from `@testing-library/react` or `react-dom/test-utils`. All testing utilities (`act`, `screen`, `fireEvent`, `waitFor`, `waitForElementToBeRemoved`, `userEvent`, `renderWithContext`, etc.) must be imported from `tests/react_testing_utils`, which re-exports everything from `@testing-library/react` alongside project-specific helpers.
 
+## Icons
+- **Menu items and components should use Compass icon components** from `@mattermost/compass-icons/components` (e.g., `<DockWindowIcon size={18}/>`), not raw `<i className="icon icon-..."/>` elements.
+
 ## Useful Examples
 - `channel_view/channel_view.tsx` – full-page component structure with co-located SCSS.
 - `post_view/post_list_virtualized/post_list_virtualized.tsx` – virtualization + hooks pattern.
