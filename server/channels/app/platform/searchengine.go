@@ -338,6 +338,9 @@ func (ps *PlatformService) runSearchEngineWatcher(ctx context.Context, done chan
 			consecutiveFailures = 0
 		}
 
+		// Both success and below-threshold failure re-check at the normal
+		// interval. The critical-failure path (>= threshold) uses a different
+		// timer value and continues before reaching this point.
 		timer.Reset(searchEngineHealthInterval)
 	}
 }
