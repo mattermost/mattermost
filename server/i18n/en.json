@@ -7679,6 +7679,10 @@
     "translation": "Unable to get property fields."
   },
   {
+    "id": "app.property_field.get_many.fields_not_found.app_error",
+    "translation": "One or more property field IDs were not found in the specified group."
+  },
+  {
     "id": "app.property_field.invalid_input.app_error",
     "translation": "Invalid input provided."
   },

@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 func propertyFieldBroadcastParams(rctx request.CTX, field *model.PropertyField) (teamID, channelID string, ok bool) {
@@ -93,6 +94,10 @@ func (a *App) GetPropertyField(rctx request.CTX, groupID, fieldID string) (*mode
 func (a *App) GetPropertyFields(rctx request.CTX, groupID string, ids []string) ([]*model.PropertyField, *model.AppError) {
 	fields, err := a.Srv().propertyService.GetPropertyFields(rctx, groupID, ids)
 	if err != nil {
+		var resultsMismatchErr *store.ErrResultsMismatch
+		if errors.As(err, &resultsMismatchErr) {
+			return nil, model.NewAppError("GetPropertyFields", "app.property_field.get_many.fields_not_found.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
 		return nil, model.NewAppError("GetPropertyFields", "app.property_field.get_many.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return fields, nil
