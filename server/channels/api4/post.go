@@ -1751,7 +1751,7 @@ func revealPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get(model.HeaderAuth) == "" {
 		if r.Header.Get(model.HeaderRequestedWith) != model.HeaderRequestedWithXML {
 			c.Err = model.NewAppError("revealPost", "api.post.reveal_post.invalid_request.app_error",
-				nil, "missing required X-Requested-With header", http.StatusForbidden)
+				nil, "missing or invalid X-Requested-With header", http.StatusForbidden)
 			return
 		}
 	}
