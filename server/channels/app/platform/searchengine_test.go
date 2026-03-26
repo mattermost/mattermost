@@ -73,7 +73,7 @@ func TestRunSearchEngineWatcher(t *testing.T) {
 
 		// Start() fails twice, then succeeds on the third call.
 		var startCalls int32
-		engineMock.On("Start").Return(func() *model.AppError {
+		engineMock.On("Start", mock.Anything).Return(func(context.Context) *model.AppError {
 			n := atomic.AddInt32(&startCalls, 1)
 			if n <= 2 {
 				return model.NewAppError("test", "start_failed", nil, "", 500)
@@ -114,7 +114,7 @@ func TestRunSearchEngineWatcher(t *testing.T) {
 			startTimes   []time.Time
 			startTimesMu sync.Mutex
 		)
-		engineMock.On("Start").Return(func() *model.AppError {
+		engineMock.On("Start", mock.Anything).Return(func(context.Context) *model.AppError {
 			startTimesMu.Lock()
 			startTimes = append(startTimes, time.Now())
 			startTimesMu.Unlock()
@@ -151,7 +151,7 @@ func TestRunSearchEngineWatcher(t *testing.T) {
 		engineMock.On("IsEnabled").Return(func() bool {
 			return atomic.LoadInt32(&startCalls) == 0
 		})
-		engineMock.On("Start").Return(func() *model.AppError {
+		engineMock.On("Start", mock.Anything).Return(func(context.Context) *model.AppError {
 			atomic.AddInt32(&startCalls, 1)
 			return model.NewAppError("test", "start_failed", nil, "", 500)
 		}).Maybe()
@@ -192,7 +192,7 @@ func TestRunSearchEngineWatcher(t *testing.T) {
 		engineMock.On("IsActive").Return(false).Maybe()
 
 		var started int32
-		engineMock.On("Start").Return(func() *model.AppError {
+		engineMock.On("Start", mock.Anything).Return(func(context.Context) *model.AppError {
 			atomic.StoreInt32(&started, 1)
 			return model.NewAppError("test", "start_failed", nil, "", 500)
 		}).Maybe()
@@ -273,7 +273,7 @@ func TestWatcherHealthPhase(t *testing.T) {
 
 		// After transitioning to retry phase, Start() succeeds.
 		var started int32
-		engineMock.On("Start").Return(func() *model.AppError {
+		engineMock.On("Start", mock.Anything).Return(func(context.Context) *model.AppError {
 			atomic.StoreInt32(&started, 1)
 			return nil
 		}).Maybe()
@@ -299,7 +299,7 @@ func TestStopSearchEngineWatcher(t *testing.T) {
 		// Make retries slow so the watcher is sitting in a timer wait.
 		searchEngineRetryInitial = 10 * time.Second
 
-		engineMock.On("Start").Return(
+		engineMock.On("Start", mock.Anything).Return(
 			model.NewAppError("test", "start_failed", nil, "", 500),
 		).Maybe()
 
@@ -322,7 +322,7 @@ func TestStopSearchEngineWatcher(t *testing.T) {
 		require.NotPanics(t, ps.stopSearchEngineWatcher)
 		require.NotPanics(t, ps.stopSearchEngineWatcher)
 
-		engineMock.On("Start").Return(
+		engineMock.On("Start", mock.Anything).Return(
 			model.NewAppError("test", "start_failed", nil, "", 500),
 		).Maybe()
 
@@ -344,7 +344,7 @@ func TestStopSearchEngineWatcher(t *testing.T) {
 		// enteredStart signals that the watcher is inside Start().
 		blocked := make(chan struct{})
 		enteredStart := make(chan struct{})
-		engineMock.On("Start").Return(func() *model.AppError {
+		engineMock.On("Start", mock.Anything).Return(func(context.Context) *model.AppError {
 			close(enteredStart)
 			<-blocked
 			return nil
@@ -379,7 +379,7 @@ func TestStopSearchEngineWatcher(t *testing.T) {
 		blocked := make(chan struct{})
 		enteredStart := make(chan struct{}, 1)
 		var startCalls int32
-		engineMock.On("Start").Return(func() *model.AppError {
+		engineMock.On("Start", mock.Anything).Return(func(context.Context) *model.AppError {
 			n := atomic.AddInt32(&startCalls, 1)
 			if n == 1 {
 				enteredStart <- struct{}{}
@@ -428,7 +428,7 @@ func TestNotifySearchEngineWatcher(t *testing.T) {
 		searchEngineRetryInitial = 10 * time.Second
 
 		var startCalls int32
-		engineMock.On("Start").Return(func() *model.AppError {
+		engineMock.On("Start", mock.Anything).Return(func(context.Context) *model.AppError {
 			atomic.AddInt32(&startCalls, 1)
 			return model.NewAppError("test", "start_failed", nil, "", 500)
 		})

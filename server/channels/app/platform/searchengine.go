@@ -259,7 +259,7 @@ func (ps *PlatformService) runSearchEngineWatcher(ctx context.Context, done chan
 
 		// ── INACTIVE: retry Start() ──
 		if !engine.IsActive() {
-			if err := engine.Start(); err != nil {
+			if err := engine.Start(ctx); err != nil {
 				consecutiveFailures++
 				ps.Log().Warn("Search engine watcher: Start() failed, will retry",
 					mlog.Err(err),
