@@ -19,9 +19,9 @@ import (
 
 	"golang.org/x/text/language"
 
+	"github.com/mattermost/mattermost/server/public/password/hashers"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
-	"github.com/mattermost/mattermost/server/v8/channels/app/password/hashers"
 )
 
 const (

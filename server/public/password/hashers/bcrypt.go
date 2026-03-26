@@ -6,7 +6,7 @@ package hashers
 import (
 	"errors"
 
-	"github.com/mattermost/mattermost/server/v8/channels/app/password/phcparser"
+	"github.com/mattermost/mattermost/server/public/password/phcparser"
 	"golang.org/x/crypto/bcrypt"
 )
 
