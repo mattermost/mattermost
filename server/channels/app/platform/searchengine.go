@@ -5,6 +5,7 @@ package platform
 
 import (
 	"context"
+	"sync/atomic"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -51,17 +52,14 @@ func (ps *PlatformService) StartSearchEngine() (string, string) {
 		startingBackfill := !model.SafeDereference(oldESCfg.EnableSearchPublicChannelsWithoutMembership) &&
 			model.SafeDereference(newESCfg.EnableSearchPublicChannelsWithoutMembership)
 
-		if startingES {
-			// Engine wasn't running — just let the watcher start it.
+		if connectionChanged {
+			// Signal the watcher to tear down the stale client before
+			// re-evaluating. The watcher will call Stop() + Start()
+			// with the new settings on its next tick.
+			ps.requestSearchEngineRestart()
+		}
+		if connectionChanged || startingES || stoppingES {
 			ps.notifySearchEngineWatcher()
-		} else if connectionChanged || stoppingES {
-			// Engine may be running — stop it first, then let watcher re-evaluate.
-			ps.Go(func() {
-				if err := ps.SearchEngine.ElasticsearchEngine.Stop(); err != nil {
-					ps.Log().Warn(err.Error())
-				}
-				ps.notifySearchEngineWatcher()
-			})
 		}
 
 		// Backfill was enabled but ES was already running (not starting fresh).
@@ -85,16 +83,12 @@ func (ps *PlatformService) StartSearchEngine() (string, string) {
 			// License added — watcher will try Start() on next evaluation.
 			ps.notifySearchEngineWatcher()
 		} else if oldLicense != nil && newLicense == nil {
-			// License removed — stop engine. The watcher will retry Start()
-			// which returns nil without a license, so it backs off gracefully.
-			// When the license is re-added, the watcher picks it up.
+			// License removed — tell the watcher to stop the engine.
+			// The watcher will then retry Start() which returns nil
+			// without a license, so it backs off gracefully.
 			if ps.SearchEngine.ElasticsearchEngine != nil {
-				ps.Go(func() {
-					if err := ps.SearchEngine.ElasticsearchEngine.Stop(); err != nil {
-						ps.Log().Warn(err.Error())
-					}
-					ps.notifySearchEngineWatcher()
-				})
+				ps.requestSearchEngineRestart()
+				ps.notifySearchEngineWatcher()
 			}
 		}
 	})
@@ -167,6 +161,14 @@ func (ps *PlatformService) stopSearchEngineWatcher() {
 		ps.Log().Warn("Search engine watcher did not stop in time; abandoning goroutine",
 			mlog.Duration("timeout", searchEngineStopTimeout))
 	}
+}
+
+// requestSearchEngineRestart sets a flag that tells the watcher to Stop() the
+// engine before its next evaluation. This is used when the engine's connection
+// settings change or the license is removed — cases where the existing client
+// is stale and must be torn down before a fresh Start().
+func (ps *PlatformService) requestSearchEngineRestart() {
+	atomic.StoreInt32(&ps.searchEngineWatcherForceRestart, 1)
 }
 
 // notifySearchEngineWatcher sends a non-blocking signal to the watcher to
@@ -244,6 +246,19 @@ func (ps *PlatformService) runSearchEngineWatcher(ctx context.Context, done chan
 		// (random when both are ready), exit now.
 		if ctx.Err() != nil {
 			return
+		}
+
+		// ── FORCE RESTART: tear down stale client (connection/license change) ──
+		if atomic.CompareAndSwapInt32(&ps.searchEngineWatcherForceRestart, 1, 0) {
+			if engine.IsActive() {
+				ps.Log().Info("Search engine watcher: force-restart requested, stopping engine",
+					mlog.String("engine", engine.GetName()))
+				if err := engine.Stop(); err != nil {
+					ps.Log().Warn("Search engine watcher: Stop() failed during force-restart",
+						mlog.Err(err),
+						mlog.String("engine", engine.GetName()))
+				}
+			}
 		}
 
 		// ── DISABLED: park until notified or cancelled ──
