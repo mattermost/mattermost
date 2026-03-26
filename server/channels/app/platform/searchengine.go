@@ -253,12 +253,7 @@ func (ps *PlatformService) runSearchEngineWatcher(ctx context.Context, done chan
 				}
 			}
 			ps.Log().Info("Search engine watcher: engine disabled, parking")
-			select {
-			case <-ctx.Done():
-				return
-			case <-notify:
-				timer.Reset(0)
-			}
+			timer.Stop()
 			continue
 		}
 
