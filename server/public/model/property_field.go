@@ -182,12 +182,6 @@ func (pf *PropertyField) IsValid() error {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "target_type", "Reason": "value exceeds maximum length"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
-	// PSAv2 properties (with ObjectType) must have TargetType as system, team, or channel (cannot be empty)
-	// PSAv1 properties (without ObjectType) can have any string as TargetType
-	if pf.IsPSAv2() && !IsValidPSAv2PropertyFieldTargetType(pf.TargetType) {
-		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "target_type", "Reason": "unknown value"}, "id="+pf.ID, http.StatusBadRequest)
-	}
-
 	if utf8.RuneCountInString(pf.TargetID) > PropertyFieldTargetIDMaxRunes {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "target_id", "Reason": "value exceeds maximum length"}, "id="+pf.ID, http.StatusBadRequest)
 	}
@@ -196,9 +190,26 @@ func (pf *PropertyField) IsValid() error {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "object_type", "Reason": "value exceeds maximum length"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
-	// PSAv2 properties must have a valid ObjectType
-	if !pf.IsPSAv1() && !IsValidPropertyFieldObjectType(pf.ObjectType) {
-		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "object_type", "Reason": "unknown value"}, "id="+pf.ID, http.StatusBadRequest)
+	// PSAv2-specific validations: ObjectType, TargetType, and TargetType/TargetID consistency
+	if pf.IsPSAv2() {
+		if !IsValidPropertyFieldObjectType(pf.ObjectType) {
+			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "object_type", "Reason": "unknown value"}, "id="+pf.ID, http.StatusBadRequest)
+		}
+
+		if !IsValidPSAv2PropertyFieldTargetType(pf.TargetType) {
+			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "target_type", "Reason": "unknown value"}, "id="+pf.ID, http.StatusBadRequest)
+		}
+
+		switch pf.TargetType {
+		case string(PropertyFieldTargetLevelSystem):
+			if pf.TargetID != "" {
+				return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "target_id", "Reason": "must be empty for system target type"}, "id="+pf.ID, http.StatusBadRequest)
+			}
+		case string(PropertyFieldTargetLevelTeam), string(PropertyFieldTargetLevelChannel):
+			if !IsValidId(pf.TargetID) {
+				return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "target_id", "Reason": "must be a valid ID for team or channel target type"}, "id="+pf.ID, http.StatusBadRequest)
+			}
+		}
 	}
 
 	if pf.Type != PropertyFieldTypeText &&
