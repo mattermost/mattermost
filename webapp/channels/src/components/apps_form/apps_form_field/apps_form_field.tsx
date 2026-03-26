@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {AppField, AppFormValue, AppSelectOption} from '@mattermost/types/apps';
+import {isAppSelectOption, type AppField, type AppFormValue, type AppSelectOption} from '@mattermost/types/apps';
 import type {UserAutocomplete} from '@mattermost/types/autocomplete';
 import type {Channel} from '@mattermost/types/channels';
 
@@ -178,7 +178,7 @@ export default class AppsFormField extends React.PureComponent<Props> {
         case AppFieldTypes.RADIO: {
             // Radio values may be stored as AppSelectOption objects (from initial default)
             // or plain strings (after user interaction via RadioSetting.onChange)
-            const radioValue = (value && typeof value === 'object' && 'value' in value) ? (value as AppSelectOption).value : (value as string) ?? '';
+            const radioValue = isAppSelectOption(value) ? value.value : (value as string) ?? '';
             return (
                 <RadioSetting
                     id={name}

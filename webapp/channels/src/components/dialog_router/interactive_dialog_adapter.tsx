@@ -168,26 +168,13 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
      * Common logic for processing form values - used by both submit and refresh
      */
     private processFormValues = (currentValues: Record<string, any>): void => {
-        // Normalize current values to extract primitive values from select objects
-        const normalizedCurrentValues = extractPrimitiveValues(currentValues);
-
-        // Accumulate values: merge current with existing accumulated values
+        // Normalize current values to extract primitive values from select objects.
+        // clearEmptyFields=true ensures cleared fields emit '' or [] so they
+        // overwrite any previously accumulated value for that key.
         this.accumulatedValues = {
-            ...this.accumulatedValues, // Previous steps' values (including other pages)
-            ...normalizedCurrentValues, // Current form normalized values
+            ...this.accumulatedValues,
+            ...extractPrimitiveValues(currentValues, true),
         };
-
-        // Explicitly clear accumulated values for fields that were cleared (null/undefined)
-        // Without this, cleared select fields retain their previous value in accumulatedValues
-        // because extractPrimitiveValues skips null values and the spread merge above
-        // never overwrites the old key.
-        Object.entries(currentValues).forEach(([key, value]) => {
-            if (value === null || value === undefined) {
-                this.accumulatedValues[key] = '';
-            } else if (Array.isArray(value) && value.length === 0) {
-                this.accumulatedValues[key] = [];
-            }
-        });
     };
 
     /**

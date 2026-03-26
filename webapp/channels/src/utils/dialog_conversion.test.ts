@@ -8,6 +8,7 @@ import {
     convertDialogToAppForm,
     convertAppFormValuesToDialogSubmission,
     DialogElementTypes,
+    extractPrimitiveValues,
     getDefaultValue,
     getFieldType,
     getOptions,
@@ -1776,6 +1777,156 @@ describe('dialog_conversion', () => {
                 expect(errors).toHaveLength(0);
                 expect(submission).toEqual({
                     meeting_time: '2025-01-15T14:30:00Z',
+                });
+            });
+        });
+    });
+
+    describe('extractPrimitiveValues', () => {
+        it('should extract value from a single select option', () => {
+            const result = extractPrimitiveValues({
+                color: {label: 'Red', value: 'red'},
+            });
+            expect(result).toEqual({color: 'red'});
+        });
+
+        it('should extract values from a multiselect array', () => {
+            const result = extractPrimitiveValues({
+                colors: [
+                    {label: 'Red', value: 'red'},
+                    {label: 'Blue', value: 'blue'},
+                ],
+            });
+            expect(result).toEqual({colors: ['red', 'blue']});
+        });
+
+        it('should pass through primitive strings', () => {
+            const result = extractPrimitiveValues({
+                name: 'hello',
+            });
+            expect(result).toEqual({name: 'hello'});
+        });
+
+        it('should pass through booleans', () => {
+            const result = extractPrimitiveValues({
+                enabled: true,
+                disabled: false,
+            });
+            expect(result).toEqual({enabled: true, disabled: false});
+        });
+
+        it('should skip null, undefined, empty string, and <nil> values', () => {
+            const result = extractPrimitiveValues({
+                a: null,
+                b: undefined,
+                c: '',
+                d: '<nil>',
+                e: 'keep',
+            });
+            expect(result).toEqual({e: 'keep'});
+        });
+
+        it('should skip select option with empty value', () => {
+            const result = extractPrimitiveValues({
+                color: {label: '', value: ''},
+            });
+            expect(result).toEqual({});
+        });
+
+        it('should skip select option with <nil> value', () => {
+            const result = extractPrimitiveValues({
+                color: {label: 'None', value: '<nil>'},
+            });
+            expect(result).toEqual({});
+        });
+
+        it('should skip empty multiselect arrays', () => {
+            const result = extractPrimitiveValues({
+                colors: [],
+            });
+            expect(result).toEqual({});
+        });
+
+        it('should pass through primitive string arrays', () => {
+            const result = extractPrimitiveValues({
+                dates: ['2026-01-01', '2026-01-15'],
+            });
+            expect(result).toEqual({dates: ['2026-01-01', '2026-01-15']});
+        });
+
+        it('should handle mixed arrays of select options and primitives', () => {
+            const result = extractPrimitiveValues({
+                items: [
+                    {label: 'Red', value: 'red'},
+                    'already-extracted',
+                ],
+            });
+            expect(result).toEqual({items: ['red', 'already-extracted']});
+        });
+
+        it('should filter out meaningless values from multiselect arrays', () => {
+            const result = extractPrimitiveValues({
+                colors: [
+                    {label: 'Red', value: 'red'},
+                    {label: 'Empty', value: ''},
+                    {label: 'Blue', value: 'blue'},
+                ],
+            });
+            expect(result).toEqual({colors: ['red', 'blue']});
+        });
+
+        describe('with clearEmptyFields=true', () => {
+            it('should emit empty string for null values', () => {
+                const result = extractPrimitiveValues({a: null}, true);
+                expect(result).toEqual({a: ''});
+            });
+
+            it('should emit empty string for undefined values', () => {
+                const result = extractPrimitiveValues({a: undefined}, true);
+                expect(result).toEqual({a: ''});
+            });
+
+            it('should emit empty string for empty string values', () => {
+                const result = extractPrimitiveValues({a: ''}, true);
+                expect(result).toEqual({a: ''});
+            });
+
+            it('should emit empty string for <nil> values', () => {
+                const result = extractPrimitiveValues({a: '<nil>'}, true);
+                expect(result).toEqual({a: ''});
+            });
+
+            it('should emit empty array for empty multiselect arrays', () => {
+                const result = extractPrimitiveValues({colors: []}, true);
+                expect(result).toEqual({colors: []});
+            });
+
+            it('should emit empty string for select option with empty value', () => {
+                const result = extractPrimitiveValues({
+                    color: {label: '', value: ''},
+                }, true);
+                expect(result).toEqual({color: ''});
+            });
+
+            it('should emit empty string for select option with <nil> value', () => {
+                const result = extractPrimitiveValues({
+                    color: {label: 'None', value: '<nil>'},
+                }, true);
+                expect(result).toEqual({color: ''});
+            });
+
+            it('should still extract meaningful values normally', () => {
+                const result = extractPrimitiveValues({
+                    name: 'hello',
+                    color: {label: 'Red', value: 'red'},
+                    cleared: null,
+                    emptied: [],
+                }, true);
+                expect(result).toEqual({
+                    name: 'hello',
+                    color: 'red',
+                    cleared: '',
+                    emptied: [],
                 });
             });
         });
