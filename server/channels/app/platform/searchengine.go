@@ -51,18 +51,13 @@ func (ps *PlatformService) StartSearchEngine() (string, string) {
 		startingBackfill := !model.SafeDereference(oldESCfg.EnableSearchPublicChannelsWithoutMembership) &&
 			model.SafeDereference(newESCfg.EnableSearchPublicChannelsWithoutMembership)
 
-		if connectionChanged && model.SafeDereference(oldESCfg.EnableIndexing) {
-			// Force reconnect: stop engine in ps.Go (so we don't block the
-			// synchronous config listener), then notify the watcher to restart.
+		if connectionChanged || startingES || stoppingES {
 			ps.Go(func() {
 				if err := ps.SearchEngine.ElasticsearchEngine.Stop(); err != nil {
 					ps.Log().Warn(err.Error())
 				}
 				ps.notifySearchEngineWatcher()
 			})
-		} else if startingES || stoppingES {
-			// Watcher will detect the IsEnabled() change on its next evaluation.
-			ps.notifySearchEngineWatcher()
 		}
 
 		// Backfill was enabled but ES was already running (not starting fresh).
