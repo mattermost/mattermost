@@ -4947,6 +4947,14 @@
     "translation": "Cannot get a view from a deleted channel."
   },
   {
+    "id": "api.view.get_posts.channel_mismatch.app_error",
+    "translation": "View does not belong to the specified channel."
+  },
+  {
+    "id": "api.view.get_posts.deleted_channel.app_error",
+    "translation": "Cannot get posts for a view from a deleted channel."
+  },
+  {
     "id": "api.view.list.deleted_channel.app_error",
     "translation": "Cannot list views for a deleted channel."
   },
@@ -7457,6 +7465,10 @@
   {
     "id": "app.post.get_posts_for_reporting.license_error",
     "translation": "Your license does not support reporting on posts."
+  },
+  {
+    "id": "app.post.get_posts_for_view.app_error",
+    "translation": "Unable to get the posts for the view."
   },
   {
     "id": "app.post.get_posts_since.app_error",

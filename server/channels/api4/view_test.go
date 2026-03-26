@@ -5,6 +5,7 @@ package api4
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -594,6 +595,129 @@ func TestUpdateViewSortOrder(t *testing.T) {
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
+}
+
+func TestGetPostsForView(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupViewTest(t)
+
+	t.Run("returns all post types", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+		view := makeTestViewForAPI()
+		created, _, err := th.Client.CreateView(context.Background(), channel.Id, view)
+		require.NoError(t, err)
+
+		normalPost, _, err := th.Client.CreatePost(context.Background(), &model.Post{ChannelId: channel.Id, Message: "normal post"})
+		require.NoError(t, err)
+
+		cardPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: channel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "card post",
+			Type:      model.PostTypeCard,
+		}, channel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		postList, resp, err := th.Client.GetPostsForView(context.Background(), channel.Id, created.Id, 0, 60)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Contains(t, postList.Order, normalPost.Id)
+		require.Contains(t, postList.Order, cardPost.Id)
+	})
+
+	t.Run("wrong channel for view returns 404", func(t *testing.T) {
+		view := makeTestViewForAPI()
+		created, _, err := th.Client.CreateView(context.Background(), th.BasicChannel.Id, view)
+		require.NoError(t, err)
+
+		otherChannel := th.CreatePublicChannel(t)
+		_, resp, err := th.Client.GetPostsForView(context.Background(), otherChannel.Id, created.Id, 0, 60)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("non-existent view returns 404", func(t *testing.T) {
+		_, resp, err := th.Client.GetPostsForView(context.Background(), th.BasicChannel.Id, model.NewId(), 0, 60)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("no channel read permission returns 403", func(t *testing.T) {
+		channel := th.CreatePrivateChannel(t)
+		view := makeTestViewForAPI()
+		created, _, err := th.SystemAdminClient.CreateView(context.Background(), channel.Id, view)
+		require.NoError(t, err)
+
+		user2Client := th.CreateClient()
+		th.LoginBasic2WithClient(t, user2Client)
+
+		_, resp, err := user2Client.GetPostsForView(context.Background(), channel.Id, created.Id, 0, 60)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("unauthenticated returns 401", func(t *testing.T) {
+		client := th.CreateClient()
+		_, resp, err := client.GetPostsForView(context.Background(), th.BasicChannel.Id, model.NewId(), 0, 60)
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+	})
+
+	t.Run("deleted channel returns 404", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+		view := makeTestViewForAPI()
+		created, _, err := th.Client.CreateView(context.Background(), channel.Id, view)
+		require.NoError(t, err)
+
+		appErr := th.App.DeleteChannel(th.Context, channel, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		_, resp, err := th.Client.GetPostsForView(context.Background(), channel.Id, created.Id, 0, 60)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("pagination works", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+		view := makeTestViewForAPI()
+		created, _, err := th.Client.CreateView(context.Background(), channel.Id, view)
+		require.NoError(t, err)
+
+		// Channel already has a system join post, so we create 5 more for 6 total
+		for i := range 5 {
+			_, _, err = th.Client.CreatePost(context.Background(), &model.Post{
+				ChannelId: channel.Id,
+				Message:   fmt.Sprintf("post %d", i),
+			})
+			require.NoError(t, err)
+		}
+
+		page1, resp, err := th.Client.GetPostsForView(context.Background(), channel.Id, created.Id, 0, 3)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, page1.Order, 3)
+
+		page2, resp, err := th.Client.GetPostsForView(context.Background(), channel.Id, created.Id, 1, 3)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, page2.Order, 3)
+
+		// No overlap between pages
+		for _, id := range page2.Order {
+			require.NotContains(t, page1.Order, id)
+		}
+	})
+}
+
+func TestGetPostsForViewFeatureFlagOff(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = false
+	}).InitBasic(t)
+
+	_, resp, err := th.Client.GetPostsForView(context.Background(), th.BasicChannel.Id, model.NewId(), 0, 60)
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
 }
 
 func TestViewFeatureFlagOff(t *testing.T) {

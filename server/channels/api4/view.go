@@ -19,6 +19,7 @@ func (api *API) InitView() {
 		api.BaseRoutes.ChannelView.Handle("", api.APISessionRequired(updateView)).Methods(http.MethodPatch)
 		api.BaseRoutes.ChannelView.Handle("", api.APISessionRequired(deleteView)).Methods(http.MethodDelete)
 		api.BaseRoutes.ChannelView.Handle("/sort_order", api.APISessionRequired(updateViewSortOrder)).Methods(http.MethodPost)
+		api.BaseRoutes.ChannelViewPosts.Handle("", api.APISessionRequired(getPostsForView)).Methods(http.MethodGet)
 	}
 }
 
@@ -368,4 +369,78 @@ func checkViewWritePermission(c *Context, channel *model.Channel) bool {
 		return false
 	}
 	return true
+}
+
+func getPostsForView(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId().RequireViewId()
+	if c.Err != nil {
+		return
+	}
+
+	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if channel.DeleteAt != 0 {
+		c.Err = model.NewAppError("getPostsForView", "api.view.get_posts.deleted_channel.app_error", nil, "channel has been deleted", http.StatusNotFound)
+		return
+	}
+
+	hasPermission, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
+	if !hasPermission {
+		c.SetPermissionError(model.PermissionReadChannelContent)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventGetPostsForView, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
+	model.AddEventParameterToAuditRec(auditRec, "view_id", c.Params.ViewId)
+	if !isMember {
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
+	}
+
+	view, appErr := c.App.GetView(c.AppContext, c.Params.ViewId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if view.ChannelId != c.Params.ChannelId {
+		c.Err = model.NewAppError("getPostsForView", "api.view.get_posts.channel_mismatch.app_error", nil, "", http.StatusNotFound)
+		return
+	}
+
+	// TODO: In the future, this will filter posts based on the view's configuration
+	// (e.g., property values, sort order). For now, it returns all posts in the channel.
+	options := model.GetPostsOptions{
+		ChannelId: c.Params.ChannelId,
+		Page:      c.Params.Page,
+		PerPage:   c.Params.PerPage,
+		UserId:    c.AppContext.Session().UserId,
+	}
+
+	list, appErr := c.App.GetPostsForView(c.AppContext, options)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	clientPostList := c.App.PreparePostListForClient(c.AppContext, list)
+	clientPostList, isMemberForAllPreviews, appErr := c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if !isMemberForAllPreviews {
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access_on_previews", true)
+	}
+	auditRec.Success()
+
+	if err := clientPostList.EncodeJSON(w); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }

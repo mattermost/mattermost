@@ -275,6 +275,66 @@
         "500":
           $ref: "#/components/responses/InternalServerError"
 
+  /api/v4/channels/{channel_id}/views/{view_id}/posts:
+    get:
+      tags:
+        - views
+      summary: Get posts for a view
+      description: |
+        Get a paginated list of posts that belong to a specific view.
+
+        __Minimum server version__: 11.6
+
+        ##### Permissions
+        Must have `read_channel_content` permission for the channel.
+      operationId: GetPostsForView
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+        - name: view_id
+          in: path
+          description: View GUID
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: The 0-based page number for pagination (default 0)
+          required: false
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+        - name: per_page
+          in: query
+          description: The number of posts per page (default 60, max 200)
+          required: false
+          schema:
+            type: integer
+            default: 60
+            maximum: 200
+      responses:
+        "200":
+          description: Post list retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostList"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
   /api/v4/channels/{channel_id}/views/{view_id}/sort_order:
     post:
       tags:

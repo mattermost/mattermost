@@ -7769,6 +7769,20 @@ func (c *Client4) viewQueryValues(opts ...ViewQueryOpts) url.Values {
 	return query
 }
 
+// GetPostsForView gets a page of posts for a specific view (board) in a channel.
+// TODO: Pagination will change once we support filtering/sorting by property values.
+func (c *Client4) GetPostsForView(ctx context.Context, channelId, viewId string, page, perPage int) (*PostList, *Response, error) {
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.doAPIGetWithQuery(ctx, c.viewRoute(channelId, viewId).Join("posts"), values, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*PostList](r)
+}
+
 // UpdateView patches a view.
 func (c *Client4) UpdateView(ctx context.Context, channelId, viewId string, patch *ViewPatch) (*View, *Response, error) {
 	r, err := c.doAPIPatchJSON(ctx, c.viewRoute(channelId, viewId), patch)
