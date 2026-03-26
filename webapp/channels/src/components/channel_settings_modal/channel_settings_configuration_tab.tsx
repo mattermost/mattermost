@@ -163,9 +163,23 @@ function ChannelSettingsConfigurationTab({
     // on reset and on save
     const [shareChannelKey, setShareChannelKey] = useState(Date.now());
 
-    const initialRemoteIds = (initialRemotes || []).map((r) => r.remote_id || r.name).sort().join(',');
+    // Track the toggle state to detect when sharing is explicitly disabled on a channel
+    // that has channel.shared=true but no remotes loaded (e.g. after page reload).
+    // Both are frozen at mount time so they don't drift apart due to async channel hydration.
+    const [initialSharingEnabled] = useState(channel.shared || false);
+    const [sharingEnabled, setSharingEnabled] = useState(channel.shared || false);
+
+    // Freeze initialRemoteIds in state and update it atomically with workspaceRemotes (in
+    // useDidUpdate below) so that the two never diverge in the same render. If we computed
+    // initialRemoteIds live from the Redux selector, a fetchChannelRemotes response could
+    // update initialRemotes one render before useDidUpdate syncs workspaceRemotes, causing a
+    // spurious hasWorkspaceChanges=true that triggers the "discard changes" dialog on close.
+    const [frozenInitialRemoteIds, setFrozenInitialRemoteIds] = useState(
+        () => (initialRemotes || []).map((r) => r.remote_id || r.name).sort().join(','),
+    );
     const currentRemoteIds = workspaceRemotes.map((r) => r.remote_id || r.name).sort().join(',');
-    const hasWorkspaceChanges = initialRemoteIds !== currentRemoteIds;
+    const hasWorkspaceChanges = frozenInitialRemoteIds !== currentRemoteIds ||
+        sharingEnabled !== initialSharingEnabled;
 
     const confirmModalMessages = useMemo(() => {
         const workspaceRemoteIdSet = new Set(workspaceRemotes.map((r) => r.remote_id || r.name));
@@ -217,6 +231,10 @@ function ChannelSettingsConfigurationTab({
 
     useDidUpdate(() => {
         if (initialRemotes && canManageSharedChannels) {
+            // Update both frozen baseline and working copy atomically so they never diverge.
+            setFrozenInitialRemoteIds(
+                initialRemotes.map((r) => r.remote_id || r.name).sort().join(','),
+            );
             setWorkspaceRemotes(initialRemotes.map((r) => ({...r})));
         }
     }, [canManageSharedChannels, initialRemotes]);
@@ -434,6 +452,8 @@ function ChannelSettingsConfigurationTab({
                         remotes={workspaceRemotes}
                         initialRemotes={initialRemotes}
                         onRemotesChange={setWorkspaceRemotes}
+                        initialEnabled={channel.shared}
+                        onToggle={setSharingEnabled}
                     />
                 </>
             )}
