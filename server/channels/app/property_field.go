@@ -229,12 +229,14 @@ func (a *App) DeletePropertyField(rctx request.CTX, groupID, id string, bypassPr
 		return model.NewAppError("DeletePropertyField", "app.property_field.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	teamID, channelID, ok := propertyFieldBroadcastParams(rctx, existing)
-	if ok && existing.IsPSAv2() {
-		message := model.NewWebSocketEvent(model.WebsocketEventPropertyFieldDeleted, teamID, channelID, "", nil, connectionID)
-		message.Add("field_id", existing.ID)
-		message.Add("object_type", existing.ObjectType)
-		a.Publish(message)
+	if existing.IsPSAv2() {
+		teamID, channelID, ok := propertyFieldBroadcastParams(rctx, existing)
+		if ok {
+			message := model.NewWebSocketEvent(model.WebsocketEventPropertyFieldDeleted, teamID, channelID, "", nil, connectionID)
+			message.Add("field_id", existing.ID)
+			message.Add("object_type", existing.ObjectType)
+			a.Publish(message)
+		}
 	}
 
 	return nil

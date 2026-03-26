@@ -394,6 +394,25 @@ func TestDeletePropertyField(t *testing.T) {
 		require.Nil(t, appErr)
 		assert.NotZero(t, deleted.DeleteAt)
 	})
+
+	t.Run("should delete a user-targeted field without triggering broadcast", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "User Targeted Field",
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "user",
+		}
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+
+		appErr = th.App.DeletePropertyField(th.Context, groupID, created.ID, false, "")
+		require.Nil(t, appErr)
+
+		// Verify soft deletion (DeleteAt > 0)
+		deleted, appErr := th.App.GetPropertyField(th.Context, groupID, created.ID)
+		require.Nil(t, appErr)
+		assert.NotZero(t, deleted.DeleteAt)
+	})
 }
 
 func TestPropertyFieldBroadcastParams(t *testing.T) {
