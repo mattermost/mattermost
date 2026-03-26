@@ -6,7 +6,7 @@ package app
 import (
 	"net/http"
 
-	"github.com/blang/semver/v4"
+	"github.com/Masterminds/semver/v3"
 
 	agentclient "github.com/mattermost/mattermost-plugin-ai/public/bridgeclient"
 	"github.com/mattermost/mattermost/server/public/model"
@@ -45,7 +45,7 @@ func (a *App) GetAIPluginBridgeStatus(rctx request.CTX) (bool, string) {
 	plugins := pluginsEnvironment.Active()
 	for _, plugin := range plugins {
 		if plugin.Manifest != nil && plugin.Manifest.Id == aiPluginID {
-			pluginVersion, err := semver.Parse(plugin.Manifest.Version)
+			pluginVersion, err := semver.StrictNewVersion(plugin.Manifest.Version)
 			if err != nil {
 				rctx.Logger().Debug("AI plugin bridge not available - failed to parse plugin version",
 					mlog.String("plugin_id", aiPluginID),
@@ -55,12 +55,12 @@ func (a *App) GetAIPluginBridgeStatus(rctx request.CTX) (bool, string) {
 				return false, "app.agents.bridge.not_available.plugin_version_parse_failed"
 			}
 
-			minVersion, err := semver.Parse(minAIPluginVersionForBridge)
+			minVersion, err := semver.StrictNewVersion(minAIPluginVersionForBridge)
 			if err != nil {
 				return false, "app.agents.bridge.not_available.min_version_parse_failed"
 			}
 
-			if pluginVersion.LT(minVersion) {
+			if pluginVersion.LessThan(minVersion) {
 				rctx.Logger().Debug("AI plugin bridge not available - plugin version is too old",
 					mlog.String("plugin_id", aiPluginID),
 					mlog.String("current_version", plugin.Manifest.Version),
