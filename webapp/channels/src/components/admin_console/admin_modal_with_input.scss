@@ -58,10 +58,10 @@
 .ResetPasswordModal {
     &__mode-toggle {
         display: flex;
-        gap: 0;
+        overflow: hidden;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
         border-radius: 4px;
-        overflow: hidden;
+        gap: 0;
     }
 
     &__mode-option {
@@ -70,9 +70,9 @@
         border: none;
         background: transparent;
         color: rgba(var(--center-channel-color-rgb), 0.64);
+        cursor: pointer;
         font-size: 13px;
         font-weight: 600;
-        cursor: pointer;
         transition: background-color 0.15s ease, color 0.15s ease;
 
         &:hover {
@@ -95,8 +95,8 @@
     }
 
     &__email-description {
-        margin: 0;
         padding: 4px 0;
+        margin: 0;
         color: rgba(var(--center-channel-color-rgb), 0.72);
         font-size: 14px;
         line-height: 20px;
