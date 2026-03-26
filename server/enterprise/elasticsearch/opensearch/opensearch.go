@@ -276,7 +276,7 @@ func (os *OpensearchInterfaceImpl) Stop() *model.AppError {
 	defer os.mutex.Unlock()
 
 	if atomic.LoadInt32(&os.ready) == 0 {
-		return model.NewAppError("Opensearch.start", "ent.elasticsearch.stop.already_stopped.app_error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
+		return nil
 	}
 
 	// Flushing any pending requests

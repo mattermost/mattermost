@@ -283,7 +283,7 @@ func (es *ElasticsearchInterfaceImpl) Stop() *model.AppError {
 	defer es.mutex.Unlock()
 
 	if atomic.LoadInt32(&es.ready) == 0 {
-		return model.NewAppError("Elasticsearch.start", "ent.elasticsearch.stop.already_stopped.app_error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
+		return nil
 	}
 
 	es.client = nil
