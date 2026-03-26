@@ -107,7 +107,7 @@ describe('components/ModalController', () => {
             },
         };
 
-        renderWithContext(
+        const {store} = renderWithContext(
             <ModalController/>,
             state,
             {useMockedStore: true},

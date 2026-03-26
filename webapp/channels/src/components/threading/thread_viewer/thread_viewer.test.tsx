@@ -119,10 +119,17 @@ describe('components/threading/ThreadViewer', () => {
         reset();
     });
 
-    test('should make api call to get thread posts on socket reconnect', () => {
+    test('should make api call to get thread posts on socket reconnect', async () => {
         const {rerender} = render(
             <ThreadViewer {...baseProps}/>,
         );
+
+        // ThreadViewer calls getPostThread(rootId, !reconnected, lastUpdateAt) from onInit(reconnected).
+        // Initial mount: onInit(false) → fetchThreads true. After reconnect: onInit(true) → fetchThreads false.
+        await waitFor(() => {
+            expect(actions.getPostThread).toHaveBeenCalledWith(post.id, true, 1234);
+        });
+        actions.getPostThread.mockClear();
 
         rerender(
             <ThreadViewer
@@ -137,7 +144,10 @@ describe('components/threading/ThreadViewer', () => {
             />,
         );
 
-        return expect(actions.getPostThread).toHaveBeenCalledWith(post.id, true, 1234);
+        await waitFor(() => {
+            expect(actions.getPostThread).toHaveBeenCalledTimes(1);
+            expect(actions.getPostThread).toHaveBeenCalledWith(post.id, false, 1234);
+        });
     });
 
     test('should not break if root post is a fake post', () => {
