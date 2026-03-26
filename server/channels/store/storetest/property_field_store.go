@@ -1079,11 +1079,13 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 		ObjectType: "user",
 	}
 
+	groupID2 := model.NewId()
+	targetID3 := model.NewId()
 	field3 := &model.PropertyField{
-		GroupID:    model.NewId(),
+		GroupID:    groupID2,
 		Name:       "Field 3",
 		Type:       model.PropertyFieldTypeText,
-		TargetID:   model.NewId(),
+		TargetID:   targetID3,
 		TargetType: string(model.PropertyFieldTargetLevelChannel),
 		ObjectType: "post",
 	}
@@ -1239,14 +1241,16 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 		{
 			name: "filter by ObjectType post",
 			opts: model.PropertyFieldSearchOpts{
+				GroupID:    groupID,
 				ObjectType: "post",
 				PerPage:    10,
 			},
-			expectedIDs: []string{field1.ID, field3.ID},
+			expectedIDs: []string{field1.ID},
 		},
 		{
 			name: "filter by ObjectType user",
 			opts: model.PropertyFieldSearchOpts{
+				GroupID:    groupID,
 				ObjectType: "user",
 				PerPage:    10,
 			},
@@ -1255,24 +1259,26 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 		{
 			name: "filter by ObjectType with group filter",
 			opts: model.PropertyFieldSearchOpts{
+				GroupID:    groupID2,
+				ObjectType: "post",
+				PerPage:    10,
+			},
+			expectedIDs: []string{field3.ID},
+		},
+		{
+			name: "filter by ObjectType with target_type filter",
+			opts: model.PropertyFieldSearchOpts{
 				GroupID:    groupID,
 				ObjectType: "post",
+				TargetType: string(model.PropertyFieldTargetLevelChannel),
 				PerPage:    10,
 			},
 			expectedIDs: []string{field1.ID},
 		},
 		{
-			name: "filter by ObjectType with target_type filter",
-			opts: model.PropertyFieldSearchOpts{
-				ObjectType: "post",
-				TargetType: string(model.PropertyFieldTargetLevelChannel),
-				PerPage:    10,
-			},
-			expectedIDs: []string{field1.ID, field3.ID},
-		},
-		{
 			name: "filter by ObjectType with target_ids filter",
 			opts: model.PropertyFieldSearchOpts{
+				GroupID:    groupID,
 				ObjectType: "post",
 				TargetIDs:  []string{targetID},
 				PerPage:    10,
