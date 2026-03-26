@@ -5,7 +5,6 @@ CREATE TABLE IF NOT EXISTS Views (
     CreatorId   VARCHAR(26)  NOT NULL,
     Title       VARCHAR(256) NOT NULL,
     Description TEXT,
-    Icon        VARCHAR(256),
     SortOrder   INTEGER      NOT NULL DEFAULT 0,
     Props       jsonb,
     CreateAt    BIGINT       NOT NULL,
