@@ -36,7 +36,7 @@ describe('Login page with close server', () => {
         // Restore backed up settings
         cy.apiAdminLogin().apiUpdateConfig(oldSettings);
     });
-    it('MM-47222 Should verify access problem page can be reached', () => {
+    it('MM-47222 Should verify signup link not visible', () => {
         cy.findByText('Don\'t have an account?').should('not.exist');
     });
 });
