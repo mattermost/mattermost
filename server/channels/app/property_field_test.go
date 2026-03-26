@@ -415,6 +415,14 @@ func TestPropertyFieldBroadcastParams(t *testing.T) {
 		assert.Equal(t, "chan123", channelID)
 	})
 
+	t.Run("user target type returns empty strings", func(t *testing.T) {
+		field := &model.PropertyField{TargetType: "user", TargetID: "user123"}
+		teamID, channelID, ok := propertyFieldBroadcastParams(rctx, field)
+		assert.True(t, ok)
+		assert.Empty(t, teamID)
+		assert.Empty(t, channelID)
+	})
+
 	t.Run("system target type returns empty strings", func(t *testing.T) {
 		field := &model.PropertyField{TargetType: "system"}
 		teamID, channelID, ok := propertyFieldBroadcastParams(rctx, field)

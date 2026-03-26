@@ -20,7 +20,7 @@ func propertyFieldBroadcastParams(rctx request.CTX, field *model.PropertyField) 
 		return field.TargetID, "", true
 	case "channel":
 		return "", field.TargetID, true
-	case "system":
+	case "user", "system":
 		return "", "", true
 	default:
 		rctx.Logger().Warn(
