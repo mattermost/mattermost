@@ -68,11 +68,10 @@ func (ps *PropertyService) requiresAccessControl(groupID string) (bool, error) {
 	return groupID == group.ID, nil
 }
 
-// SetPluginCheckerForTests sets the plugin checker on the underlying PropertyAccessService.
-// This is exported to allow tests to configure plugin checking without direct PAS access.
-func (ps *PropertyService) SetPluginCheckerForTests(pluginChecker PluginChecker) {
+// setPluginCheckerForTests sets the plugin checker on the underlying PropertyAccessService.
+func (ps *PropertyService) setPluginCheckerForTests(pluginChecker PluginChecker) {
 	if ps.propertyAccess != nil {
-		ps.propertyAccess.SetPluginCheckerForTests(pluginChecker)
+		ps.propertyAccess.setPluginCheckerForTests(pluginChecker)
 	}
 }
 

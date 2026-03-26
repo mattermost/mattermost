@@ -16,7 +16,7 @@ import (
 func TestCreatePropertyValue_WriteAccessControl(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
 
-	th.service.SetPluginCheckerForTests(func(pluginID string) bool {
+	th.service.setPluginCheckerForTests(func(pluginID string) bool {
 		return pluginID == "plugin-1" || pluginID == "plugin-2"
 	})
 
@@ -129,7 +129,7 @@ func TestCreatePropertyValue_WriteAccessControl(t *testing.T) {
 func TestDeletePropertyValue_WriteAccessControl(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
 
-	th.service.SetPluginCheckerForTests(func(pluginID string) bool {
+	th.service.setPluginCheckerForTests(func(pluginID string) bool {
 		return pluginID == "plugin-1" || pluginID == "plugin-2"
 	})
 
@@ -187,7 +187,7 @@ func TestDeletePropertyValue_WriteAccessControl(t *testing.T) {
 func TestDeletePropertyValuesForTarget_WriteAccessControl(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
 
-	th.service.SetPluginCheckerForTests(func(pluginID string) bool {
+	th.service.setPluginCheckerForTests(func(pluginID string) bool {
 		return pluginID == "plugin-1" || pluginID == "plugin-2"
 	})
 
@@ -260,7 +260,7 @@ func TestDeletePropertyValuesForTarget_WriteAccessControl(t *testing.T) {
 
 func TestGetPropertyValueReadAccess(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
-	th.service.SetPluginCheckerForTests(func(pluginID string) bool {
+	th.service.setPluginCheckerForTests(func(pluginID string) bool {
 		return pluginID == "plugin-1" || pluginID == "test-plugin"
 	})
 
@@ -644,7 +644,7 @@ func TestGetPropertyValueReadAccess(t *testing.T) {
 
 func TestGetPropertyValuesReadAccess(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
-	th.service.SetPluginCheckerForTests(func(pluginID string) bool {
+	th.service.setPluginCheckerForTests(func(pluginID string) bool {
 		return pluginID == "plugin-1" || pluginID == "test-plugin"
 	})
 
@@ -731,7 +731,7 @@ func TestGetPropertyValuesReadAccess(t *testing.T) {
 
 func TestSearchPropertyValuesReadAccess(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
-	th.service.SetPluginCheckerForTests(func(pluginID string) bool {
+	th.service.setPluginCheckerForTests(func(pluginID string) bool {
 		return pluginID == "plugin-1" || pluginID == "test-plugin"
 	})
 
@@ -879,7 +879,7 @@ func TestSearchPropertyValuesReadAccess(t *testing.T) {
 // TestCreatePropertyValues_WriteAccessControl tests write access control for bulk value creation
 func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
-	th.service.SetPluginCheckerForTests(func(pluginID string) bool {
+	th.service.setPluginCheckerForTests(func(pluginID string) bool {
 		return pluginID == "plugin-1" || pluginID == "test-plugin"
 	})
 
@@ -1288,7 +1288,7 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 
 func TestUpdatePropertyValue_WriteAccessControl(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
-	th.service.SetPluginCheckerForTests(func(pluginID string) bool { return pluginID == "plugin-1" })
+	th.service.setPluginCheckerForTests(func(pluginID string) bool { return pluginID == "plugin-1" })
 
 	rctxPlugin1 := RequestContextWithCallerID(th.Context, "plugin-1")
 	rctxPlugin2 := RequestContextWithCallerID(th.Context, "plugin-2")
@@ -1393,7 +1393,7 @@ func TestUpdatePropertyValue_WriteAccessControl(t *testing.T) {
 
 func TestUpdatePropertyValues_WriteAccessControl(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
-	th.service.SetPluginCheckerForTests(func(pluginID string) bool {
+	th.service.setPluginCheckerForTests(func(pluginID string) bool {
 		return pluginID == "plugin-1" || pluginID == "plugin-2"
 	})
 
@@ -1675,7 +1675,7 @@ func TestUpdatePropertyValues_WriteAccessControl(t *testing.T) {
 
 func TestUpsertPropertyValue_WriteAccessControl(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
-	th.service.SetPluginCheckerForTests(func(pluginID string) bool { return pluginID == "plugin-1" })
+	th.service.setPluginCheckerForTests(func(pluginID string) bool { return pluginID == "plugin-1" })
 
 	rctxPlugin1 := RequestContextWithCallerID(th.Context, "plugin-1")
 	rctxPlugin2 := RequestContextWithCallerID(th.Context, "plugin-2")
@@ -1745,7 +1745,7 @@ func TestUpsertPropertyValue_WriteAccessControl(t *testing.T) {
 
 func TestUpsertPropertyValues_WriteAccessControl(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
-	th.service.SetPluginCheckerForTests(func(pluginID string) bool {
+	th.service.setPluginCheckerForTests(func(pluginID string) bool {
 		return pluginID == "plugin-1" || pluginID == "plugin-2"
 	})
 
@@ -2023,7 +2023,7 @@ func TestUpsertPropertyValues_WriteAccessControl(t *testing.T) {
 
 func TestDeletePropertyValuesForField_WriteAccessControl(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
-	th.service.SetPluginCheckerForTests(func(pluginID string) bool { return pluginID == "plugin-1" })
+	th.service.setPluginCheckerForTests(func(pluginID string) bool { return pluginID == "plugin-1" })
 
 	rctxPlugin1 := RequestContextWithCallerID(th.Context, "plugin-1")
 	rctxPlugin2 := RequestContextWithCallerID(th.Context, "plugin-2")

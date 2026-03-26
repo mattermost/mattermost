@@ -15,7 +15,7 @@ import (
 func TestGetPropertyFieldReadAccess(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
 	// only "plugin-1" and "test-plugin" will be checked as installed
-	th.service.SetPluginCheckerForTests(func(pluginID string) bool {
+	th.service.setPluginCheckerForTests(func(pluginID string) bool {
 		return pluginID == "plugin-1" || pluginID == "test-plugin"
 	})
 
@@ -364,7 +364,7 @@ func TestGetPropertyFieldReadAccess(t *testing.T) {
 
 func TestGetPropertyFieldsReadAccess(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
-	th.service.SetPluginCheckerForTests(func(pluginID string) bool {
+	th.service.setPluginCheckerForTests(func(pluginID string) bool {
 		return pluginID == "plugin-1" || pluginID == "test-plugin"
 	})
 
@@ -468,7 +468,7 @@ func TestGetPropertyFieldsReadAccess(t *testing.T) {
 
 func TestSearchPropertyFieldsReadAccess(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
-	th.service.SetPluginCheckerForTests(func(pluginID string) bool {
+	th.service.setPluginCheckerForTests(func(pluginID string) bool {
 		return pluginID == "plugin-1" || pluginID == "test-plugin"
 	})
 
@@ -576,7 +576,7 @@ func TestSearchPropertyFieldsReadAccess(t *testing.T) {
 
 func TestGetPropertyFieldByNameReadAccess(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
-	th.service.SetPluginCheckerForTests(func(pluginID string) bool {
+	th.service.setPluginCheckerForTests(func(pluginID string) bool {
 		return pluginID == "plugin-1"
 	})
 
@@ -620,7 +620,7 @@ func TestGetPropertyFieldByNameReadAccess(t *testing.T) {
 // TestCreatePropertyField_AccessControl tests access control for field creation based on caller type
 func TestCreatePropertyField_AccessControl(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
-	th.service.SetPluginCheckerForTests(func(pluginID string) bool {
+	th.service.setPluginCheckerForTests(func(pluginID string) bool {
 		return pluginID == "plugin-1" || pluginID == "security-plugin"
 	})
 
@@ -800,7 +800,7 @@ func TestCreatePropertyField_AccessControl(t *testing.T) {
 func TestUpdatePropertyField_WriteAccessControl(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
 
-	th.service.SetPluginCheckerForTests(func(pluginID string) bool {
+	th.service.setPluginCheckerForTests(func(pluginID string) bool {
 		return pluginID == "plugin-1" || pluginID == "plugin-2"
 	})
 
@@ -980,7 +980,7 @@ func TestUpdatePropertyField_WriteAccessControl(t *testing.T) {
 func TestUpdatePropertyFields_BulkWriteAccessControl(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
 
-	th.service.SetPluginCheckerForTests(func(pluginID string) bool {
+	th.service.setPluginCheckerForTests(func(pluginID string) bool {
 		return pluginID == "plugin-1" || pluginID == "plugin-2"
 	})
 
@@ -1077,7 +1077,7 @@ func TestUpdatePropertyFields_BulkWriteAccessControl(t *testing.T) {
 // TestDeletePropertyField_WriteAccessControl tests write access control for field deletion
 func TestDeletePropertyField_WriteAccessControl(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
-	th.service.SetPluginCheckerForTests(func(pluginID string) bool { return pluginID == "plugin-1" })
+	th.service.setPluginCheckerForTests(func(pluginID string) bool { return pluginID == "plugin-1" })
 
 	rctxPlugin1 := RequestContextWithCallerID(th.Context, "plugin-1")
 	rctxPlugin2 := RequestContextWithCallerID(th.Context, "plugin-2")
@@ -1108,7 +1108,7 @@ func TestDeletePropertyField_WriteAccessControl(t *testing.T) {
 	})
 
 	t.Run("denies non-source plugin deleting protected field", func(t *testing.T) {
-		th.service.SetPluginCheckerForTests(func(pluginID string) bool {
+		th.service.setPluginCheckerForTests(func(pluginID string) bool {
 			return pluginID == "plugin-1"
 		})
 
@@ -1153,11 +1153,11 @@ func TestDeletePropertyField_WriteAccessControl(t *testing.T) {
 
 func TestDeletePropertyField_OrphanedFieldDeletion(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
-	th.service.SetPluginCheckerForTests(func(pluginID string) bool { return pluginID == "plugin-1" })
+	th.service.setPluginCheckerForTests(func(pluginID string) bool { return pluginID == "plugin-1" })
 
 	t.Run("allows deletion of orphaned protected field when plugin is uninstalled", func(t *testing.T) {
 		// Create the field while the plugin is still installed
-		th.service.SetPluginCheckerForTests(func(pluginID string) bool {
+		th.service.setPluginCheckerForTests(func(pluginID string) bool {
 			return pluginID == "removed-plugin"
 		})
 
@@ -1173,7 +1173,7 @@ func TestDeletePropertyField_OrphanedFieldDeletion(t *testing.T) {
 		require.NoError(t, err)
 
 		// Simulate plugin uninstall
-		th.service.SetPluginCheckerForTests(func(pluginID string) bool {
+		th.service.setPluginCheckerForTests(func(pluginID string) bool {
 			return false
 		})
 
@@ -1182,7 +1182,7 @@ func TestDeletePropertyField_OrphanedFieldDeletion(t *testing.T) {
 	})
 
 	t.Run("blocks deletion of protected field when plugin is still installed", func(t *testing.T) {
-		th.service.SetPluginCheckerForTests(func(pluginID string) bool {
+		th.service.setPluginCheckerForTests(func(pluginID string) bool {
 			return pluginID == "installed-plugin"
 		})
 
@@ -1208,7 +1208,7 @@ func TestDeletePropertyField_OrphanedFieldDeletion(t *testing.T) {
 
 	t.Run("blocks update of orphaned protected field even when plugin is uninstalled", func(t *testing.T) {
 		// Create the field while the plugin is still installed
-		th.service.SetPluginCheckerForTests(func(pluginID string) bool {
+		th.service.setPluginCheckerForTests(func(pluginID string) bool {
 			return pluginID == "removed-plugin"
 		})
 
@@ -1224,7 +1224,7 @@ func TestDeletePropertyField_OrphanedFieldDeletion(t *testing.T) {
 		require.NoError(t, err)
 
 		// Simulate plugin uninstall
-		th.service.SetPluginCheckerForTests(func(pluginID string) bool {
+		th.service.setPluginCheckerForTests(func(pluginID string) bool {
 			return false
 		})
 

@@ -56,7 +56,7 @@ func NewPropertyAccessService(ps *PropertyService, pluginChecker PluginChecker) 
 	}
 }
 
-func (pas *PropertyAccessService) SetPluginCheckerForTests(pluginChecker PluginChecker) {
+func (pas *PropertyAccessService) setPluginCheckerForTests(pluginChecker PluginChecker) {
 	pas.pluginChecker = pluginChecker
 }
 
