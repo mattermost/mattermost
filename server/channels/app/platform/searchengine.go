@@ -51,7 +51,11 @@ func (ps *PlatformService) StartSearchEngine() (string, string) {
 		startingBackfill := !model.SafeDereference(oldESCfg.EnableSearchPublicChannelsWithoutMembership) &&
 			model.SafeDereference(newESCfg.EnableSearchPublicChannelsWithoutMembership)
 
-		if connectionChanged || startingES || stoppingES {
+		if startingES {
+			// Engine wasn't running — just let the watcher start it.
+			ps.notifySearchEngineWatcher()
+		} else if connectionChanged || stoppingES {
+			// Engine may be running — stop it first, then let watcher re-evaluate.
 			ps.Go(func() {
 				if err := ps.SearchEngine.ElasticsearchEngine.Stop(); err != nil {
 					ps.Log().Warn(err.Error())
