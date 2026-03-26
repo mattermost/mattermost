@@ -8,8 +8,8 @@ import "regexp"
 var validPropertyGroupNameRegex = regexp.MustCompile(`^[a-z][a-z0-9_]*$`)
 
 type PropertyGroup struct {
-	ID   string
-	Name string
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }
 
 func (pg *PropertyGroup) PreSave() {

@@ -724,8 +724,16 @@
     "translation": "Command with a trigger of '{{.Trigger}}' not found. To send a message beginning with \"/\", try adding an empty space at the beginning of the message."
   },
   {
+    "id": "api.command.execute_command.provided_site_url_different.app_error",
+    "translation": "Request hostname differs from configured SiteURL. The configured SiteURL will be used for the slash command response URL."
+  },
+  {
     "id": "api.command.execute_command.restricted_dm.error",
     "translation": "Cannot post in a restricted DM"
+  },
+  {
+    "id": "api.command.execute_command.site_url_required.app_error",
+    "translation": "SiteURL must be configured to use slash commands"
   },
   {
     "id": "api.command.execute_command.start.app_error",
@@ -5171,6 +5179,10 @@
     "translation": "Unable to add the user as a member of the channel."
   },
   {
+    "id": "app.channel.add_user.to.channel.rejected_by_plugin",
+    "translation": "Adding channel member rejected by plugin: {{.Reason}}"
+  },
+  {
     "id": "app.channel.analytics_type_count.app_error",
     "translation": "Unable to get channel type counts."
   },
@@ -5241,6 +5253,10 @@
   {
     "id": "app.channel.delete.app_error",
     "translation": "Unable to delete the channel."
+  },
+  {
+    "id": "app.channel.delete_channel.rejected_by_plugin",
+    "translation": "Channel archive rejected by plugin: {{.Reason}}"
   },
   {
     "id": "app.channel.get.app_error",
@@ -7159,6 +7175,10 @@
     "translation": "Unable to save access control policy."
   },
   {
+    "id": "app.pap.save_policy.name_exists.app_error",
+    "translation": "A policy with this name already exists. Please choose a different name."
+  },
+  {
     "id": "app.pap.search_access_control_policies.app_error",
     "translation": "Could not search access control policies."
   },
@@ -7647,6 +7667,10 @@
     "translation": "Unable to get property field for deletion."
   },
   {
+    "id": "app.property_field.delete.not_found.app_error",
+    "translation": "Property field not found."
+  },
+  {
     "id": "app.property_field.delete.protected.app_error",
     "translation": "Cannot delete a protected property field."
   },
@@ -7693,6 +7717,10 @@
   {
     "id": "app.property_group.register.app_error",
     "translation": "Unable to register property group."
+  },
+  {
+    "id": "app.property_value.resolve_broadcast_params.unknown_object_type.app_error",
+    "translation": "Unrecognized object type \"{{.ObjectType}}\" for property value broadcast."
   },
   {
     "id": "app.property_value.search.app_error",
@@ -8243,6 +8271,10 @@
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
     "translation": "This team has reached the maximum number of allowed accounts. Contact your System Administrator to set a higher limit."
+  },
+  {
+    "id": "app.team.join_user_to_team.rejected_by_plugin",
+    "translation": "Adding team member rejected by plugin: {{.Reason}}"
   },
   {
     "id": "app.team.join_user_to_team.save_member.app_error",

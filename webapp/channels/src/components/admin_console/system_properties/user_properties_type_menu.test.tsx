@@ -20,6 +20,9 @@ describe('UserPropertyTypeMenu', () => {
         update_at: 0,
         created_by: '',
         updated_by: '',
+        target_id: '',
+        target_type: '',
+        object_type: '',
         attrs: {
             sort_order: 0,
             visibility: 'when_set' as const,

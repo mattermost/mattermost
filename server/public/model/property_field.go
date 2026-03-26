@@ -181,7 +181,7 @@ func (pf *PropertyField) IsValid() error {
 
 	// PSAv2 properties (with ObjectType) must have TargetType as system, team, or channel (cannot be empty)
 	// PSAv1 properties (without ObjectType) can have any string as TargetType
-	if !pf.IsPSAv1() && !IsValidPSAv2PropertyFieldTargetType(pf.TargetType) {
+	if pf.IsPSAv2() && !IsValidPSAv2PropertyFieldTargetType(pf.TargetType) {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "target_type", "Reason": "unknown value"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
@@ -325,6 +325,13 @@ func (pf *PropertyField) Patch(patch *PropertyFieldPatch, mergeAttrs bool) {
 // the hierarchical uniqueness model used by PSAv2 (ObjectType-based) properties.
 func (pf *PropertyField) IsPSAv1() bool {
 	return pf.ObjectType == ""
+}
+
+// IsPSAv2 returns true if this property field uses the PSAv2 schema.
+// PSAv2 properties have a non-empty ObjectType and use hierarchical
+// uniqueness based on ObjectType, TargetType, and TargetID.
+func (pf *PropertyField) IsPSAv2() bool {
+	return pf.ObjectType != ""
 }
 
 // IsValidPSAv2PropertyFieldTargetType checks if the given TargetType string is a valid

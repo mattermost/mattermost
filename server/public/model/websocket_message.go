@@ -106,6 +106,10 @@ const (
 	WebsocketEventViewUpdated                         WebsocketEventType = "view_updated"
 	WebsocketEventViewDeleted                         WebsocketEventType = "view_deleted"
 	WebsocketEventViewSorted                          WebsocketEventType = "view_sorted"
+	WebsocketEventPropertyFieldCreated                WebsocketEventType = "property_field_created"
+	WebsocketEventPropertyFieldUpdated                WebsocketEventType = "property_field_updated"
+	WebsocketEventPropertyFieldDeleted                WebsocketEventType = "property_field_deleted"
+	WebsocketEventPropertyValuesUpdated               WebsocketEventType = "property_values_updated"
 	WebsocketEventFileDownloadRejected                WebsocketEventType = "file_download_rejected"
 	WebsocketEventShowToast                           WebsocketEventType = "show_toast"
 

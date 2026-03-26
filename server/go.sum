@@ -407,8 +407,6 @@ github.com/mattermost/ldap v0.0.0-20231116144001-0f480c025956 h1:Y1Tu/swM31pVwwb
 github.com/mattermost/ldap v0.0.0-20231116144001-0f480c025956/go.mod h1:SRl30Lb7/QoYyohYeVBuqYvvmXSZJxZgiV3Zf6VbxjI=
 github.com/mattermost/logr/v2 v2.0.22 h1:npFkXlkAWR9J8payh8ftPcCZvLbHSI125mAM5/r/lP4=
 github.com/mattermost/logr/v2 v2.0.22/go.mod h1:0sUKpO+XNMZApeumaid7PYaUZPBIydfuWZ0dqixXo+s=
-github.com/mattermost/mattermost-plugin-ai v1.8.1 h1:qymxDayy3vJPhm59XA8q0oLR8uobPgx0SOB7IMG9ZMM=
-github.com/mattermost/mattermost-plugin-ai v1.8.1/go.mod h1:Uco4K7ypsrZWcD256ezvgZDqolJfHYiExN2lYiHmVDo=
 github.com/mattermost/mattermost-plugin-ai v1.12.0 h1:cwRE2jjlqN5W42O9Xp0ncyHk7HL/ayMeypuINPX0WJ0=
 github.com/mattermost/mattermost-plugin-ai v1.12.0/go.mod h1:L/I/IpdWNGbxRfUduCstCYbhyX59OEftxcpDHtCT4EI=
 github.com/mattermost/mattermost/server/public v0.1.22-0.20251105210629-8bf4a00724e2 h1:RJtCnj9nF/wb0Fb+O0qAPgUoWP5CTTDnHzHD5ciGlJ8=

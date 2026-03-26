@@ -124,7 +124,9 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	model.AddEventParameterAuditableToAuditRec(auditRec, "property_field", field)
 
-	createdField, err := c.App.CreatePropertyField(field, false)
+	connectionID := r.Header.Get(model.ConnectionId)
+
+	createdField, err := c.App.CreatePropertyField(c.AppContext, field, false, connectionID)
 	if err != nil {
 		c.Err = err
 		return
@@ -325,7 +327,9 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	existingField.Patch(patch, true)
 	existingField.UpdatedBy = c.AppContext.Session().UserId
 
-	updatedField, err := c.App.UpdatePropertyField(groupID, existingField, false)
+	connectionID := r.Header.Get(model.ConnectionId)
+
+	updatedField, err := c.App.UpdatePropertyField(c.AppContext, groupID, existingField, false, connectionID)
 	if err != nil {
 		c.Err = err
 		return
@@ -384,7 +388,9 @@ func deletePropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.DeletePropertyField(groupID, c.Params.FieldId, false); err != nil {
+	connectionID := r.Header.Get(model.ConnectionId)
+
+	if err := c.App.DeletePropertyField(c.AppContext, groupID, c.Params.FieldId, false, connectionID); err != nil {
 		c.Err = err
 		return
 	}
@@ -554,7 +560,9 @@ func patchPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	upserted, err := c.App.UpsertPropertyValues(values)
+	connectionID := r.Header.Get(model.ConnectionId)
+
+	upserted, err := c.App.UpsertPropertyValues(c.AppContext, values, c.Params.ObjectType, c.Params.TargetId, connectionID)
 	if err != nil {
 		c.Err = err
 		return

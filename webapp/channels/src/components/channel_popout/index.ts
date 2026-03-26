@@ -1,8 +1,4 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-.ThreadMenu {
-    .MenuItem__help-text {
-        margin: 0;
-    }
-}
+export {default} from './channel_popout';
