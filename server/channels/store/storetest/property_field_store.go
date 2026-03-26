@@ -2346,6 +2346,7 @@ func testCountLinkedFields(t *testing.T, _ request.CTX, ss store.Store) {
 		Name:       "Source Template Field",
 		Type:       model.PropertyFieldTypeSelect,
 		ObjectType: model.PropertyFieldObjectTypeTemplate,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
 		Attrs: map[string]any{
 			"options": []any{
 				map[string]any{"name": "Option A"},
@@ -2449,6 +2450,7 @@ func testUpdateAndPropagate(t *testing.T, _ request.CTX, ss store.Store) {
 		Name:       "Propagation Source",
 		Type:       model.PropertyFieldTypeSelect,
 		ObjectType: model.PropertyFieldObjectTypeTemplate,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
 		Attrs: map[string]any{
 			"options": []any{optA, optB},
 		},
@@ -2517,6 +2519,73 @@ func testUpdateAndPropagate(t *testing.T, _ request.CTX, ss store.Store) {
 		options2 := retrievedLinked2.Attrs["options"].([]any)
 		require.Len(t, options2, 3)
 	})
+
+	t.Run("should propagate option removal to all linked fields", func(t *testing.T) {
+		// Remove option B, keep only A and the previously-added C
+		optC := map[string]any{"id": model.NewId(), "name": "C"} // re-create to have a fresh ID
+		reducedOptions := []any{optA, optC}
+
+		sourceField.Attrs = map[string]any{
+			"options": reducedOptions,
+		}
+
+		result, uErr := ss.PropertyField().UpdateAndPropagate("", []*model.PropertyField{sourceField}, []store.PropagationRequest{
+			{
+				SourceFieldID: sourceField.ID,
+				FieldType:     model.PropertyFieldTypeSelect,
+				Options:       reducedOptions,
+			},
+		})
+		require.NoError(t, uErr)
+		require.Len(t, result, 3) // source + 2 linked
+
+		// Verify linked fields have exactly 2 options
+		retrievedLinked1, gErr := ss.PropertyField().Get("", linked1.ID)
+		require.NoError(t, gErr)
+		options1 := retrievedLinked1.Attrs["options"].([]any)
+		require.Len(t, options1, 2)
+
+		retrievedLinked2, gErr := ss.PropertyField().Get("", linked2.ID)
+		require.NoError(t, gErr)
+		options2 := retrievedLinked2.Attrs["options"].([]any)
+		require.Len(t, options2, 2)
+	})
+
+	t.Run("should propagate option content (names) to linked fields", func(t *testing.T) {
+		// Update option A's name
+		optAUpdated := map[string]any{"id": optA["id"], "name": "A-Renamed"}
+		updatedOptions := []any{optAUpdated}
+
+		sourceField.Attrs = map[string]any{
+			"options": updatedOptions,
+		}
+
+		_, uErr := ss.PropertyField().UpdateAndPropagate("", []*model.PropertyField{sourceField}, []store.PropagationRequest{
+			{
+				SourceFieldID: sourceField.ID,
+				FieldType:     model.PropertyFieldTypeSelect,
+				Options:       updatedOptions,
+			},
+		})
+		require.NoError(t, uErr)
+
+		// Verify linked fields have the renamed option
+		retrievedLinked1, gErr := ss.PropertyField().Get("", linked1.ID)
+		require.NoError(t, gErr)
+		options1 := retrievedLinked1.Attrs["options"].([]any)
+		require.Len(t, options1, 1)
+		firstOpt := options1[0].(map[string]any)
+		require.Equal(t, "A-Renamed", firstOpt["name"])
+	})
+
+	t.Run("empty propagations behaves like regular update", func(t *testing.T) {
+		// Update source field name only, no propagation
+		sourceField.Name = "Updated Name"
+		result, uErr := ss.PropertyField().UpdateAndPropagate("", []*model.PropertyField{sourceField}, nil)
+		require.NoError(t, uErr)
+		require.Len(t, result, 1) // only source, no linked fields
+		require.Equal(t, "Updated Name", result[0].Name)
+	})
 }
 
 func testSearchByLinkedFieldID(t *testing.T, _ request.CTX, ss store.Store) {
@@ -2528,6 +2597,7 @@ func testSearchByLinkedFieldID(t *testing.T, _ request.CTX, ss store.Store) {
 		Name:       "Search Source Field",
 		Type:       model.PropertyFieldTypeSelect,
 		ObjectType: model.PropertyFieldObjectTypeTemplate,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
 		Attrs: map[string]any{
 			"options": []any{
 				map[string]any{"name": "X"},

@@ -2808,7 +2808,7 @@ func TestLinkedProperties(t *testing.T) {
 		field := &model.PropertyField{
 			Name:       model.NewId(),
 			Type:       model.PropertyFieldTypeSelect,
-			TargetType: "",
+			TargetType: "system",
 		}
 
 		createdField, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "template", field)
@@ -2829,7 +2829,7 @@ func TestLinkedProperties(t *testing.T) {
 		field := &model.PropertyField{
 			Name:       model.NewId(),
 			Type:       model.PropertyFieldTypeSelect,
-			TargetType: "",
+			TargetType: "system",
 		}
 
 		_, resp, err := th.Client.CreatePropertyField(context.Background(), group.Name, "template", field)
@@ -2844,7 +2844,7 @@ func TestLinkedProperties(t *testing.T) {
 			Type:       model.PropertyFieldTypeSelect,
 			GroupID:    group.ID,
 			ObjectType: model.PropertyFieldObjectTypeTemplate,
-			TargetType: "",
+			TargetType: "system",
 			Attrs: model.StringInterface{
 				"options": []map[string]any{
 					{"id": model.NewId(), "name": "Option A"},
@@ -2882,7 +2882,7 @@ func TestLinkedProperties(t *testing.T) {
 			Type:              model.PropertyFieldTypeSelect,
 			GroupID:           group.ID,
 			ObjectType:        model.PropertyFieldObjectTypeTemplate,
-			TargetType:        "",
+			TargetType:        "system",
 			PermissionField:   &sysadminLevel,
 			PermissionValues:  &sysadminLevel,
 			PermissionOptions: &sysadminLevel,
@@ -2919,7 +2919,7 @@ func TestLinkedProperties(t *testing.T) {
 			Type:              model.PropertyFieldTypeSelect,
 			GroupID:           group.ID,
 			ObjectType:        model.PropertyFieldObjectTypeTemplate,
-			TargetType:        "",
+			TargetType:        "system",
 			PermissionField:   &sysadminLevel,
 			PermissionValues:  &sysadminLevel,
 			PermissionOptions: &sysadminLevel,
@@ -2961,7 +2961,7 @@ func TestLinkedProperties(t *testing.T) {
 			Type:              model.PropertyFieldTypeSelect,
 			GroupID:           group.ID,
 			ObjectType:        model.PropertyFieldObjectTypeTemplate,
-			TargetType:        "",
+			TargetType:        "system",
 			PermissionField:   &sysadminLevel,
 			PermissionValues:  &sysadminLevel,
 			PermissionOptions: &sysadminLevel,
@@ -2999,7 +2999,7 @@ func TestLinkedProperties(t *testing.T) {
 			Type:              model.PropertyFieldTypeSelect,
 			GroupID:           group.ID,
 			ObjectType:        model.PropertyFieldObjectTypeTemplate,
-			TargetType:        "",
+			TargetType:        "system",
 			PermissionField:   &sysadminLevel,
 			PermissionValues:  &sysadminLevel,
 			PermissionOptions: &sysadminLevel,
@@ -3060,7 +3060,7 @@ func TestLinkedProperties(t *testing.T) {
 			Type:              model.PropertyFieldTypeSelect,
 			GroupID:           group.ID,
 			ObjectType:        model.PropertyFieldObjectTypeTemplate,
-			TargetType:        "",
+			TargetType:        "system",
 			PermissionField:   &sysadminLevel,
 			PermissionValues:  &sysadminLevel,
 			PermissionOptions: &sysadminLevel,

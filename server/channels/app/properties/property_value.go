@@ -82,6 +82,9 @@ func (ps *PropertyService) updatePropertyValue(groupID string, value *model.Prop
 }
 
 func (ps *PropertyService) updatePropertyValues(groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	if err := ps.rejectTemplateValues(values); err != nil {
+		return nil, err
+	}
 	return ps.valueStore.Update(groupID, values)
 }
 

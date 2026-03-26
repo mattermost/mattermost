@@ -1178,6 +1178,12 @@ func TestLinkedPropertyFields(t *testing.T) {
 		require.NoError(t, err)
 		assert.Nil(t, result.LinkedFieldID)
 		assert.Equal(t, source.Type, result.Type)
+
+		// Verify options are preserved after unlinking
+		sourceOpts := extractOptionIDs(source.Attrs[model.PropertyFieldAttributeOptions])
+		resultOpts := extractOptionIDs(result.Attrs[model.PropertyFieldAttributeOptions])
+		require.NotEmpty(t, sourceOpts, "source should have options")
+		assert.Equal(t, sourceOpts, resultOpts, "options should be preserved after unlinking")
 	})
 
 	t.Run("template field value creation is rejected at service layer", func(t *testing.T) {
@@ -1292,5 +1298,117 @@ func TestLinkedPropertyFields(t *testing.T) {
 		// Deleting the linked field should succeed
 		err := th.service.DeletePropertyField(groupID, linked.ID)
 		require.NoError(t, err)
+	})
+
+	t.Run("update source field propagates option removal to linked fields", func(t *testing.T) {
+		optAID := model.NewId()
+		optBID := model.NewId()
+		optCID := model.NewId()
+
+		source := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    groupID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "RemovalSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": optAID, "name": "Option A", "color": "red"},
+					map[string]any{"id": optBID, "name": "Option B", "color": "blue"},
+					map[string]any{"id": optCID, "name": "Option C", "color": "green"},
+				},
+			},
+		})
+
+		linked := th.CreatePropertyField(t, &model.PropertyField{
+			GroupID:       groupID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "RemovalLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+
+		// Remove option B, keep A and C
+		source.Attrs[model.PropertyFieldAttributeOptions] = []any{
+			map[string]any{"id": optAID, "name": "Option A", "color": "red"},
+			map[string]any{"id": optCID, "name": "Option C", "color": "green"},
+		}
+
+		result, err := th.service.UpdatePropertyFields(groupID, []*model.PropertyField{source})
+		require.NoError(t, err)
+		require.Len(t, result, 2) // source + 1 linked field
+
+		// Verify the linked field has the updated options (B removed)
+		updatedLinked, err := th.service.GetPropertyField(groupID, linked.ID)
+		require.NoError(t, err)
+
+		linkedOptIDs := extractOptionIDs(updatedLinked.Attrs[model.PropertyFieldAttributeOptions])
+		assert.Equal(t, []string{optAID, optCID}, linkedOptIDs, "option B should be removed from linked field")
+
+		// Verify option content (names, colors) was propagated correctly
+		linkedOpts := asOptionSlice(updatedLinked.Attrs)
+		require.Len(t, linkedOpts, 2)
+		assert.Equal(t, "Option A", linkedOpts[0]["name"])
+		assert.Equal(t, "red", linkedOpts[0]["color"])
+		assert.Equal(t, "Option C", linkedOpts[1]["name"])
+		assert.Equal(t, "green", linkedOpts[1]["color"])
+	})
+
+	t.Run("cross-group linking is supported", func(t *testing.T) {
+		groupA := model.NewId()
+		groupB := model.NewId()
+
+		// Create a template in group A
+		source := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    groupA,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "CrossGroupSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "X"},
+					map[string]any{"id": model.NewId(), "name": "Y"},
+				},
+			},
+		})
+
+		// Create a linked field in group B pointing to the template in group A
+		linked, err := th.service.CreatePropertyField(&model.PropertyField{
+			GroupID:       groupB,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "CrossGroupLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, linked.LinkedFieldID)
+		assert.Equal(t, source.ID, *linked.LinkedFieldID)
+		assert.Equal(t, source.Type, linked.Type)
+
+		// Verify options were copied across groups
+		sourceOpts := extractOptionIDs(source.Attrs[model.PropertyFieldAttributeOptions])
+		linkedOpts := extractOptionIDs(linked.Attrs[model.PropertyFieldAttributeOptions])
+		assert.Equal(t, sourceOpts, linkedOpts)
+	})
+
+	t.Run("update template value is rejected at service layer", func(t *testing.T) {
+		source := createSourceField(t, "TemplateUpdateReject-"+model.NewId())
+
+		// First create a value on a non-template field, then try to update
+		// using template field ID via UpdatePropertyValues
+		value := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "user",
+			GroupID:    groupID,
+			FieldID:    source.ID,
+			Value:      json.RawMessage(`"some value"`),
+		}
+
+		_, err := th.service.UpdatePropertyValues(groupID, []*model.PropertyValue{value})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "template")
 	})
 }

@@ -6,6 +6,7 @@ package properties
 import (
 	"fmt"
 	"net/http"
+	"reflect"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -566,7 +567,7 @@ func (ps *PropertyService) cleanupOrphanedValues(cleanups []orphanCleanup) {
 					mlog.String("source_field_id", cleanup.sourceFieldID),
 					mlog.Err(searchErr),
 				)
-				continue
+				break
 			}
 			for _, f := range page {
 				fieldIDs = append(fieldIDs, f.ID)
@@ -616,7 +617,8 @@ func asOptionSlice(attrs model.StringInterface) []map[string]any {
 }
 
 // optionsChanged compares the options in two attrs maps and returns true if they differ.
-// Compares by building a map keyed on option ID and checking that all fields match.
+// Compares by building a map keyed on option ID and using reflect.DeepEqual for
+// value comparison, which correctly handles nested structures (maps, slices).
 func optionsChanged(oldAttrs, newAttrs model.StringInterface) bool {
 	oldOpts := asOptionSlice(oldAttrs)
 	newOpts := asOptionSlice(newAttrs)
@@ -644,13 +646,8 @@ func optionsChanged(oldAttrs, newAttrs model.StringInterface) bool {
 		if !exists {
 			return true
 		}
-		if len(oldOpt) != len(newOpt) {
+		if !reflect.DeepEqual(oldOpt, newOpt) {
 			return true
-		}
-		for k, v := range oldOpt {
-			if newOpt[k] != v {
-				return true
-			}
 		}
 	}
 
