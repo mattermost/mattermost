@@ -280,7 +280,7 @@ func (ps *PlatformService) runSearchEngineWatcher(ctx context.Context, done chan
 				consecutiveFailures++
 				ps.Log().Warn("Search engine watcher: Start() returned no error but engine is not active, will retry",
 					mlog.Int("consecutive_failures", consecutiveFailures),
-					mlog.Duration("next_backoff", backoff*2),
+					mlog.Duration("next_backoff", backoff),
 					mlog.String("engine", engine.GetName()))
 				timer.Reset(backoff)
 				backoff = min(backoff*2, searchEngineRetryMax)
