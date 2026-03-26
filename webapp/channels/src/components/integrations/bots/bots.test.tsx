@@ -40,12 +40,13 @@ describe('components/integrations/bots/Bots', () => {
     }
 
     // BackstageList passes filterLowered as a DOM prop which triggers a React warning
+    let consoleErrorSpy: jest.SpyInstance;
     beforeEach(() => {
-        jest.spyOn(console, 'error').mockImplementation(() => {});
+        consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     });
 
     afterEach(() => {
-        jest.restoreAllMocks();
+        consoleErrorSpy.mockRestore();
     });
 
     it('bots', async () => {
