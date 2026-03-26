@@ -408,7 +408,7 @@ describe('components/login/Login', () => {
         expect(history.push).toHaveBeenCalledWith(redirectPath);
     });
 
-    it('should not show dont have an account when open server id disabled', () => {
+    it('should not show dont have an account when open server is disabled', () => {
         const state = mergeObjects(baseState, {
             entities: {
                 general: {
