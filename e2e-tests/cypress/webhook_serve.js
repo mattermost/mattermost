@@ -422,7 +422,7 @@ function onDialogSubmit(req, res) {
 
     // Regular dialog submission
     // Format submission data for the channel message
-    const submissionData = Object.entries(body.submission)
+    const submissionData = Object.entries(body.submission || {})
         .map(([key, value]) => `**${key}**: ${value}`)
         .join('\n');
 

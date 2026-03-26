@@ -556,7 +556,7 @@ func (a *App) SubmitInteractiveDialog(rctx request.CTX, request model.SubmitDial
 		return &response, nil
 	}
 
-	rctx.Logger().Info("SubmitDialogResponse body", mlog.String("body", string(body)))
+	rctx.Logger().Debug("SubmitDialogResponse body", mlog.String("body", string(body)))
 	err = json.Unmarshal(body, &response)
 	if err != nil {
 		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.decode_json_error", nil, "", http.StatusInternalServerError).Wrap(err)

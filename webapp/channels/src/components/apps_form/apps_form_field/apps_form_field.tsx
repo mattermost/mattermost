@@ -25,7 +25,7 @@ import AppsFormSelectField from './apps_form_select_field';
 import AppsFormDateField from '../apps_form_date_field';
 import AppsFormDateTimeField from '../apps_form_datetime_field';
 
-const DialogFileUpload = React.lazy(() => import('components/interactive_dialog/dialog_file_upload'));
+const AppsFormFileUpload = React.lazy(() => import('components/apps_form/apps_form_file_upload'));
 
 const TEXT_DEFAULT_MAX_LENGTH = 150;
 const TEXTAREA_DEFAULT_MAX_LENGTH = 3000;
@@ -51,6 +51,10 @@ export interface Props {
 export default class AppsFormField extends React.PureComponent<Props> {
     static defaultProps = {
         listComponent: ModalSuggestionList,
+    };
+
+    handleFileSelected = (fileIds: string[]) => {
+        this.props.onChange(this.props.name, fileIds.join(','));
     };
 
     handleSelected = (selected: AppSelectOption | AppSelectOption[]) => {
@@ -120,16 +124,12 @@ export default class AppsFormField extends React.PureComponent<Props> {
         case AppFieldTypes.FILE: {
             return (
                 <React.Suspense fallback={<LoadingSpinner/>}>
-                    <DialogFileUpload
+                    <AppsFormFileUpload
                         id={name}
                         label={displayNameContent}
                         helpText={helpTextContent}
                         placeholder={placeholder}
-                        onFileSelected={(fileIds: string[]) => {
-                            // For now, handle multiple files by joining them
-                            // In the future, this should be updated to support arrays natively
-                            onChange(name, fileIds.join(','));
-                        }}
+                        onFileSelected={this.handleFileSelected}
                         disabled={field.readonly}
                         error={errorText as string}
                         value={value ? (value as string).split(',').filter(Boolean) : []}
