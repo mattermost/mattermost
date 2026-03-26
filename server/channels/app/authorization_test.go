@@ -1155,7 +1155,7 @@ func TestHasPermissionToEditPropertyField(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	groupID, err := th.App.CpaGroupID()
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	testCases := []struct {
 		name     string
@@ -1293,7 +1293,7 @@ func TestHasPermissionToSetPropertyFieldValues(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	groupID, err := th.App.CpaGroupID()
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	// Create a user that is not a member of any channel for the non-member test case
 	nonMember := th.CreateUser(t)
@@ -1516,7 +1516,7 @@ func TestHasPermissionToManagePropertyFieldOptions(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	groupID, err := th.App.CpaGroupID()
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	testCases := []struct {
 		name     string
@@ -1654,7 +1654,7 @@ func TestSessionHasPermissionToEditPropertyField(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	groupID, err := th.App.CpaGroupID()
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	testCases := []struct {
 		name     string
@@ -1806,7 +1806,7 @@ func TestSessionHasPermissionToSetPropertyFieldValues(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	groupID, err := th.App.CpaGroupID()
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	// Create a user that is not a member of any channel for the non-member test case
 	nonMember := th.CreateUser(t)
@@ -2028,7 +2028,7 @@ func TestSessionHasPermissionToManagePropertyFieldOptions(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	groupID, err := th.App.CpaGroupID()
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	testCases := []struct {
 		name     string

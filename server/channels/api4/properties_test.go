@@ -22,7 +22,7 @@ func TestCreatePropertyField(t *testing.T) {
 	}).InitBasic(t)
 
 	// Register a property group for testing
-	group, err := th.App.RegisterPropertyGroup("test_properties")
+	group, err := th.App.RegisterPropertyGroup(th.Context, "test_properties")
 	require.Nil(t, err)
 	require.NotNil(t, group)
 
@@ -378,11 +378,11 @@ func TestGetPropertyFields(t *testing.T) {
 	}).InitBasic(t)
 
 	// Register property groups for testing
-	group, err := th.App.RegisterPropertyGroup("test_properties_get")
+	group, err := th.App.RegisterPropertyGroup(th.Context, "test_properties_get")
 	require.Nil(t, err)
 	require.NotNil(t, group)
 
-	otherGroup, err := th.App.RegisterPropertyGroup("test_properties_get_other")
+	otherGroup, err := th.App.RegisterPropertyGroup(th.Context, "test_properties_get_other")
 	require.Nil(t, err)
 	require.NotNil(t, otherGroup)
 
@@ -537,7 +537,7 @@ func TestGetPropertyFieldsScopeAccess(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup("test_properties_scope")
+	group, err := th.App.RegisterPropertyGroup(th.Context, "test_properties_scope")
 	require.Nil(t, err)
 	require.NotNil(t, group)
 
@@ -647,7 +647,7 @@ func TestGetPropertyFieldsFiltering(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup("test_properties_filter")
+	group, err := th.App.RegisterPropertyGroup(th.Context, "test_properties_filter")
 	require.Nil(t, err)
 	require.NotNil(t, group)
 
@@ -775,11 +775,11 @@ func TestPatchPropertyField(t *testing.T) {
 	}).InitBasic(t)
 
 	// Register property groups for testing
-	group, err := th.App.RegisterPropertyGroup("test_properties_patch")
+	group, err := th.App.RegisterPropertyGroup(th.Context, "test_properties_patch")
 	require.Nil(t, err)
 	require.NotNil(t, group)
 
-	otherGroup, err := th.App.RegisterPropertyGroup("test_properties_patch_other")
+	otherGroup, err := th.App.RegisterPropertyGroup(th.Context, "test_properties_patch_other")
 	require.Nil(t, err)
 	require.NotNil(t, otherGroup)
 
@@ -1328,11 +1328,11 @@ func TestDeletePropertyField(t *testing.T) {
 	}).InitBasic(t)
 
 	// Register property groups for testing
-	group, err := th.App.RegisterPropertyGroup("test_properties_delete")
+	group, err := th.App.RegisterPropertyGroup(th.Context, "test_properties_delete")
 	require.Nil(t, err)
 	require.NotNil(t, group)
 
-	otherGroup, err := th.App.RegisterPropertyGroup("test_properties_delete_other")
+	otherGroup, err := th.App.RegisterPropertyGroup(th.Context, "test_properties_delete_other")
 	require.Nil(t, err)
 	require.NotNil(t, otherGroup)
 
@@ -1549,7 +1549,7 @@ func TestGetPropertyValues(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup("test_values_get")
+	group, err := th.App.RegisterPropertyGroup(th.Context, "test_values_get")
 	require.Nil(t, err)
 
 	memberLevel := model.PermissionLevelMember
@@ -1704,7 +1704,7 @@ func TestPatchPropertyValues(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup("test_values_patch")
+	group, err := th.App.RegisterPropertyGroup(th.Context, "test_values_patch")
 	require.Nil(t, err)
 
 	memberLevel := model.PermissionLevelMember
@@ -1884,7 +1884,7 @@ func TestPatchPropertyValues(t *testing.T) {
 	t.Run("field from different group should fail", func(t *testing.T) {
 		th.LoginBasic(t)
 
-		otherGroup, err := th.App.RegisterPropertyGroup("test_values_patch_other")
+		otherGroup, err := th.App.RegisterPropertyGroup(th.Context, "test_values_patch_other")
 		require.Nil(t, err)
 
 		otherField := &model.PropertyField{
@@ -2102,7 +2102,7 @@ func TestGetPropertyValuesUserTargetAccess(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup("test_user_get_access")
+	group, err := th.App.RegisterPropertyGroup(th.Context, "test_user_get_access")
 	require.Nil(t, err)
 
 	memberLevel := model.PermissionLevelMember
@@ -2167,7 +2167,7 @@ func TestPatchPropertyValuesUserTargetAccess(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup("test_user_patch_access")
+	group, err := th.App.RegisterPropertyGroup(th.Context, "test_user_patch_access")
 	require.Nil(t, err)
 
 	memberLevel := model.PermissionLevelMember
@@ -2230,7 +2230,7 @@ func TestGetPropertyValuesChannelTargetAccess(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, appErr := th.App.RegisterPropertyGroup("test_chan_get_access")
+	group, appErr := th.App.RegisterPropertyGroup(th.Context, "test_chan_get_access")
 	require.Nil(t, appErr)
 
 	memberLevel := model.PermissionLevelMember
@@ -2349,7 +2349,7 @@ func TestPatchPropertyValuesChannelTargetAccess(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, appErr := th.App.RegisterPropertyGroup("test_chan_patch_access")
+	group, appErr := th.App.RegisterPropertyGroup(th.Context, "test_chan_patch_access")
 	require.Nil(t, appErr)
 
 	memberLevel := model.PermissionLevelMember
@@ -2486,7 +2486,7 @@ func TestCreatePropertyFieldTeamScopedBroadcast(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup("test_team_broadcast")
+	group, err := th.App.RegisterPropertyGroup(th.Context, "test_team_broadcast")
 	require.Nil(t, err)
 
 	t.Run("team-scoped field broadcast has TeamId set and ChannelId empty", func(t *testing.T) {
@@ -2537,7 +2537,7 @@ func TestPatchPropertyValuesChannelObjectTypeBroadcast(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup("test_channel_val_broadcast")
+	group, err := th.App.RegisterPropertyGroup(th.Context, "test_channel_val_broadcast")
 	require.Nil(t, err)
 
 	memberLevel := model.PermissionLevelMember
@@ -2591,7 +2591,7 @@ func TestPatchPropertyValuesUserObjectTypeBroadcast(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup("test_user_val_broadcast")
+	group, err := th.App.RegisterPropertyGroup(th.Context, "test_user_val_broadcast")
 	require.Nil(t, err)
 
 	memberLevel := model.PermissionLevelMember
@@ -2645,7 +2645,7 @@ func TestUpsertPropertyValuesPSAv1OptOut(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup("test_psav1_optout")
+	group, err := th.App.RegisterPropertyGroup(th.Context, "test_psav1_optout")
 	require.Nil(t, err)
 
 	memberLevel := model.PermissionLevelMember
@@ -2728,7 +2728,7 @@ func TestPatchPropertyValuesMultiValuePayload(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup("test_multi_val_payload")
+	group, err := th.App.RegisterPropertyGroup(th.Context, "test_multi_val_payload")
 	require.Nil(t, err)
 
 	memberLevel := model.PermissionLevelMember

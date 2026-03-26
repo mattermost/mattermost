@@ -35,7 +35,7 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Resolve group_name to internal group ID
-	group, appErr := c.App.GetPropertyGroup(c.Params.GroupName)
+	group, appErr := c.App.GetPropertyGroup(c.AppContext, c.Params.GroupName)
 	if appErr != nil {
 		c.Err = model.NewAppError("createPropertyField", "api.property_field.invalid_group_name.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
 		return
@@ -149,7 +149,7 @@ func getPropertyFields(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Resolve group_name to internal group ID
-	group, appErr := c.App.GetPropertyGroup(c.Params.GroupName)
+	group, appErr := c.App.GetPropertyGroup(c.AppContext, c.Params.GroupName)
 	if appErr != nil {
 		c.Err = model.NewAppError("getPropertyFields", "api.property_field.invalid_group_name.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
 		return
@@ -219,7 +219,7 @@ func getPropertyFields(c *Context, w http.ResponseWriter, r *http.Request) {
 		// System-level fields are visible to all authenticated users
 	}
 
-	fields, err := c.App.SearchPropertyFields(group.ID, opts)
+	fields, err := c.App.SearchPropertyFields(c.AppContext, group.ID, opts)
 	if err != nil {
 		c.Err = err
 		return
@@ -239,7 +239,7 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Resolve group_name to internal group ID
-	group, appErr := c.App.GetPropertyGroup(c.Params.GroupName)
+	group, appErr := c.App.GetPropertyGroup(c.AppContext, c.Params.GroupName)
 	if appErr != nil {
 		c.Err = model.NewAppError("patchPropertyField", "api.property_field.invalid_group_name.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
 		return
@@ -272,7 +272,7 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get existing field
-	existingField, err := c.App.GetPropertyField(groupID, c.Params.FieldId)
+	existingField, err := c.App.GetPropertyField(c.AppContext, groupID, c.Params.FieldId)
 	if err != nil {
 		c.Err = err
 		return
@@ -351,7 +351,7 @@ func deletePropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Resolve group_name to internal group ID
-	group, appErr := c.App.GetPropertyGroup(c.Params.GroupName)
+	group, appErr := c.App.GetPropertyGroup(c.AppContext, c.Params.GroupName)
 	if appErr != nil {
 		c.Err = model.NewAppError("deletePropertyField", "api.property_field.invalid_group_name.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
 		return
@@ -359,7 +359,7 @@ func deletePropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	groupID := group.ID
 
 	// Get existing field
-	existingField, err := c.App.GetPropertyField(groupID, c.Params.FieldId)
+	existingField, err := c.App.GetPropertyField(c.AppContext, groupID, c.Params.FieldId)
 	if err != nil {
 		c.Err = err
 		return
@@ -409,7 +409,7 @@ func getPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Resolve group_name to internal group ID
-	group, appErr := c.App.GetPropertyGroup(c.Params.GroupName)
+	group, appErr := c.App.GetPropertyGroup(c.AppContext, c.Params.GroupName)
 	if appErr != nil {
 		c.Err = model.NewAppError("getPropertyValues", "api.property_value.invalid_group_name.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
 		return
@@ -447,7 +447,7 @@ func getPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	values, err := c.App.SearchPropertyValues(group.ID, opts)
+	values, err := c.App.SearchPropertyValues(c.AppContext, group.ID, opts)
 	if err != nil {
 		c.Err = err
 		return
@@ -472,7 +472,7 @@ func patchPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Resolve group_name to internal group ID
-	group, appErr := c.App.GetPropertyGroup(c.Params.GroupName)
+	group, appErr := c.App.GetPropertyGroup(c.AppContext, c.Params.GroupName)
 	if appErr != nil {
 		c.Err = model.NewAppError("patchPropertyValues", "api.property_value.invalid_group_name.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
 		return
@@ -516,7 +516,7 @@ func patchPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Load all fields and verify they belong to this group.
 	// GetPropertyFields scopes the lookup by groupID, so fields from
 	// a different group won't be found, causing a mismatch error.
-	fields, err := c.App.GetPropertyFields(groupID, fieldIDs)
+	fields, err := c.App.GetPropertyFields(c.AppContext, groupID, fieldIDs)
 	if err != nil {
 		c.Err = err
 		return
