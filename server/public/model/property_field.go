@@ -210,6 +210,23 @@ func (pf *PropertyField) IsValid() error {
 				return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "target_id", "Reason": "must be a valid ID for team or channel target type"}, "id="+pf.ID, http.StatusBadRequest)
 			}
 		}
+	} else {
+		// PSAv1 properties cannot have permissions or be protected
+		if pf.Protected {
+			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "protected", "Reason": "PSAv1 properties cannot be protected"}, "id="+pf.ID, http.StatusBadRequest)
+		}
+
+		if pf.PermissionField != nil {
+			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permission_field", "Reason": "PSAv1 properties cannot have permissions"}, "id="+pf.ID, http.StatusBadRequest)
+		}
+
+		if pf.PermissionValues != nil {
+			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permission_values", "Reason": "PSAv1 properties cannot have permissions"}, "id="+pf.ID, http.StatusBadRequest)
+		}
+
+		if pf.PermissionOptions != nil {
+			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permission_options", "Reason": "PSAv1 properties cannot have permissions"}, "id="+pf.ID, http.StatusBadRequest)
+		}
 	}
 
 	if pf.Type != PropertyFieldTypeText &&

@@ -500,15 +500,69 @@ func TestPropertyField_IsValid(t *testing.T) {
 		require.NoError(t, pf.IsValid())
 	})
 
+	t.Run("PSAv1 cannot have protected set", func(t *testing.T) {
+		pf := &PropertyField{
+			ID:        NewId(),
+			GroupID:   NewId(),
+			Name:      "test field",
+			Type:      PropertyFieldTypeText,
+			Protected: true,
+			CreateAt:  GetMillis(),
+			UpdateAt:  GetMillis(),
+		}
+		require.Error(t, pf.IsValid())
+	})
+
+	t.Run("PSAv1 cannot have permission_field set", func(t *testing.T) {
+		pf := &PropertyField{
+			ID:              NewId(),
+			GroupID:         NewId(),
+			Name:            "test field",
+			Type:            PropertyFieldTypeText,
+			PermissionField: NewPointer(PermissionLevelMember),
+			CreateAt:        GetMillis(),
+			UpdateAt:        GetMillis(),
+		}
+		require.Error(t, pf.IsValid())
+	})
+
+	t.Run("PSAv1 cannot have permission_values set", func(t *testing.T) {
+		pf := &PropertyField{
+			ID:               NewId(),
+			GroupID:          NewId(),
+			Name:             "test field",
+			Type:             PropertyFieldTypeText,
+			PermissionValues: NewPointer(PermissionLevelMember),
+			CreateAt:         GetMillis(),
+			UpdateAt:         GetMillis(),
+		}
+		require.Error(t, pf.IsValid())
+	})
+
+	t.Run("PSAv1 cannot have permission_options set", func(t *testing.T) {
+		pf := &PropertyField{
+			ID:                NewId(),
+			GroupID:           NewId(),
+			Name:              "test field",
+			Type:              PropertyFieldTypeText,
+			PermissionOptions: NewPointer(PermissionLevelMember),
+			CreateAt:          GetMillis(),
+			UpdateAt:          GetMillis(),
+		}
+		require.Error(t, pf.IsValid())
+	})
+
 	t.Run("protected field validation", func(t *testing.T) {
 		baseField := func() *PropertyField {
 			return &PropertyField{
-				ID:       NewId(),
-				GroupID:  NewId(),
-				Name:     "test field",
-				Type:     PropertyFieldTypeText,
-				CreateAt: GetMillis(),
-				UpdateAt: GetMillis(),
+				ID:         NewId(),
+				GroupID:    NewId(),
+				Name:       "test field",
+				Type:       PropertyFieldTypeText,
+				TargetType: string(PropertyFieldTargetLevelSystem),
+				ObjectType: "post",
+				CreateAt:   GetMillis(),
+				UpdateAt:   GetMillis(),
 			}
 		}
 
