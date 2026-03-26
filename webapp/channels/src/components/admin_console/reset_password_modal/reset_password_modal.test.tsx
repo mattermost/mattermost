@@ -29,6 +29,7 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
     const user: UserProfile = TestHelper.getUserMock({
         id: 'user_id_1',
         auth_service: '',
+        email: 'testuser@example.com',
         notify_props: notifyProps,
         first_name: 'Test',
         last_name: 'User',
@@ -36,10 +37,14 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
     });
 
     const baseProps = {
-        actions: {updateUserPassword: jest.fn(() => Promise.resolve({data: ''}))},
+        actions: {
+            updateUserPassword: jest.fn(() => Promise.resolve({data: ''})),
+            sendPasswordResetEmail: jest.fn(() => Promise.resolve({data: ''})),
+        },
         currentUserId: user.id,
         user,
         onExited: jest.fn(),
+        canSendPasswordResetEmail: false,
         passwordConfig: {
             minimumLength: 10,
             requireLowercase: true,
@@ -90,7 +95,7 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
 
     test('should call updateUserPassword with both passwords when resetting own password', async () => {
         const updateUserPassword = jest.fn(() => Promise.resolve({data: ''}));
-        const props = {...baseProps, actions: {updateUserPassword}};
+        const props = {...baseProps, actions: {...baseProps.actions, updateUserPassword}};
         renderWithContext(<ResetPasswordModal {...props}/>);
 
         const currentPasswordInput = screen.getByPlaceholderText(/Current password/i);
@@ -112,7 +117,7 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
 
     test('should not call updateUserPassword when the current password is not provided', async () => {
         const updateUserPassword = jest.fn(() => Promise.resolve({data: ''}));
-        const props = {...baseProps, actions: {updateUserPassword}};
+        const props = {...baseProps, actions: {...baseProps.actions, updateUserPassword}};
         renderWithContext(<ResetPasswordModal {...props}/>);
 
         const newPasswordInput = screen.getByPlaceholderText(/New password/i);
@@ -127,7 +132,7 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
 
     test('should call updateUserPassword without current password when resetting another user', async () => {
         const updateUserPassword = jest.fn(() => Promise.resolve({data: ''}));
-        const props = {...baseProps, currentUserId: 'different_user_id', actions: {updateUserPassword}};
+        const props = {...baseProps, currentUserId: 'different_user_id', actions: {...baseProps.actions, updateUserPassword}};
         renderWithContext(<ResetPasswordModal {...props}/>);
 
         const newPasswordInput = screen.getByPlaceholderText(/New password/i);
@@ -146,7 +151,7 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
 
     test('should show error when password does not meet requirements', async () => {
         const updateUserPassword = jest.fn(() => Promise.resolve({data: ''}));
-        const props = {...baseProps, currentUserId: 'different_user_id', actions: {updateUserPassword}};
+        const props = {...baseProps, currentUserId: 'different_user_id', actions: {...baseProps.actions, updateUserPassword}};
         renderWithContext(<ResetPasswordModal {...props}/>);
 
         const newPasswordInput = screen.getByPlaceholderText(/New password/i);
@@ -158,6 +163,91 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
         // Password validation error should appear
         await waitFor(() => {
             expect(screen.getByText(/Must be 10-72 characters long/i)).toBeInTheDocument();
+        });
+    });
+
+    describe('password reset email mode', () => {
+        const otherUserProps = {
+            ...baseProps,
+            currentUserId: 'different_user_id',
+            canSendPasswordResetEmail: true,
+        };
+
+        test('should show mode toggle when resetting another user with email enabled', () => {
+            renderWithContext(<ResetPasswordModal {...otherUserProps}/>);
+
+            expect(screen.getByText(/Send reset email/i)).toBeInTheDocument();
+            expect(screen.getByText(/Set new password/i)).toBeInTheDocument();
+        });
+
+        test('should not show mode toggle when resetting own password', () => {
+            const props = {...baseProps, canSendPasswordResetEmail: true};
+            renderWithContext(<ResetPasswordModal {...props}/>);
+
+            expect(screen.queryByText(/Send reset email/i)).not.toBeInTheDocument();
+            expect(screen.queryByText(/Set new password/i)).not.toBeInTheDocument();
+        });
+
+        test('should not show mode toggle for auth_service users', () => {
+            const authUser = TestHelper.getUserMock({...user, auth_service: 'ldap'});
+            const props = {...otherUserProps, user: authUser};
+            renderWithContext(<ResetPasswordModal {...props}/>);
+
+            expect(screen.queryByText(/Send reset email/i)).not.toBeInTheDocument();
+        });
+
+        test('should not show mode toggle when email notifications are disabled', () => {
+            const props = {...otherUserProps, canSendPasswordResetEmail: false};
+            renderWithContext(<ResetPasswordModal {...props}/>);
+
+            expect(screen.queryByText(/Send reset email/i)).not.toBeInTheDocument();
+        });
+
+        test('should default to email mode and show description', () => {
+            renderWithContext(<ResetPasswordModal {...otherUserProps}/>);
+
+            expect(screen.getByText(/A password reset email will be sent to/i)).toBeInTheDocument();
+            expect(screen.queryByPlaceholderText(/New password/i)).not.toBeInTheDocument();
+        });
+
+        test('should show Send email button in email mode', () => {
+            renderWithContext(<ResetPasswordModal {...otherUserProps}/>);
+
+            expect(screen.getByRole('button', {name: /Send email/i})).toBeInTheDocument();
+        });
+
+        test('should switch to manual mode when clicking Set new password', async () => {
+            renderWithContext(<ResetPasswordModal {...otherUserProps}/>);
+
+            await userEvent.click(screen.getByText(/Set new password/i));
+
+            expect(screen.getByPlaceholderText(/New password/i)).toBeInTheDocument();
+            expect(screen.queryByText(/A password reset email will be sent to/i)).not.toBeInTheDocument();
+        });
+
+        test('should call sendPasswordResetEmail in email mode', async () => {
+            const sendPasswordResetEmail = jest.fn(() => Promise.resolve({data: ''}));
+            const props = {...otherUserProps, actions: {...otherUserProps.actions, sendPasswordResetEmail}};
+            renderWithContext(<ResetPasswordModal {...props}/>);
+
+            await userEvent.click(screen.getByRole('button', {name: /Send email/i}));
+
+            await waitFor(() => {
+                expect(sendPasswordResetEmail).toHaveBeenCalledTimes(1);
+                expect(sendPasswordResetEmail).toHaveBeenCalledWith('testuser@example.com');
+            });
+        });
+
+        test('should show error when sendPasswordResetEmail fails', async () => {
+            const sendPasswordResetEmail = jest.fn(() => Promise.resolve({error: {message: 'SMTP not configured'}}));
+            const props = {...otherUserProps, actions: {...otherUserProps.actions, sendPasswordResetEmail}};
+            renderWithContext(<ResetPasswordModal {...props}/>);
+
+            await userEvent.click(screen.getByRole('button', {name: /Send email/i}));
+
+            await waitFor(() => {
+                expect(screen.getByText(/SMTP not configured/i)).toBeInTheDocument();
+            });
         });
     });
 });

@@ -55,3 +55,51 @@
     }
 }
 
+.ResetPasswordModal {
+    &__mode-toggle {
+        display: flex;
+        gap: 0;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    &__mode-option {
+        flex: 1;
+        padding: 8px 16px;
+        border: none;
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.15s ease, color 0.15s ease;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.04);
+        }
+
+        &--active {
+            background: var(--button-bg);
+            color: var(--button-color);
+
+            &:hover {
+                background: var(--button-bg);
+                color: var(--button-color);
+            }
+        }
+
+        & + & {
+            border-left: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        }
+    }
+
+    &__email-description {
+        margin: 0;
+        padding: 4px 0;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 14px;
+        line-height: 20px;
+    }
+}
+

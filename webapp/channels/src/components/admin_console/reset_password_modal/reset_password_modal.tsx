@@ -16,6 +16,8 @@ import {getFullName} from 'utils/utils';
 
 import '../admin_modal_with_input.scss';
 
+type ResetMode = 'manual' | 'email';
+
 interface PasswordConfig {
     minimumLength: number;
     requireLowercase: boolean;
@@ -30,8 +32,10 @@ export type Props = {
     onSuccess?: () => void;
     onExited: () => void;
     passwordConfig: PasswordConfig;
+    canSendPasswordResetEmail: boolean;
     actions: {
         updateUserPassword: (userId: string, currentPassword: string, password: string) => Promise<ActionResult>;
+        sendPasswordResetEmail: (email: string) => Promise<ActionResult>;
     };
 }
 
@@ -41,6 +45,7 @@ export default function ResetPasswordModal({
     onSuccess,
     onExited,
     passwordConfig,
+    canSendPasswordResetEmail,
     actions,
 }: Props) {
     const {formatMessage} = useIntl();
@@ -51,10 +56,15 @@ export default function ResetPasswordModal({
     const [errorNewPass, setErrorNewPass] = useState<React.ReactNode>(null);
     const [errorCurrentPass, setErrorCurrentPass] = useState<React.ReactNode>(null);
 
+    const isResettingOwnPassword = user?.id === currentUserId;
+    const isAuthUser = Boolean(user?.auth_service);
+
+    const showModeToggle = !isResettingOwnPassword && !isAuthUser && canSendPasswordResetEmail;
+
+    const [resetMode, setResetMode] = useState<ResetMode>(showModeToggle ? 'email' : 'manual');
+
     const currentPasswordRef = useRef<HTMLInputElement>(null);
     const newPasswordRef = useRef<HTMLInputElement>(null);
-
-    const isResettingOwnPassword = user?.id === currentUserId;
 
     const handleCancel = useCallback(() => {
         setShow(false);
@@ -68,6 +78,17 @@ export default function ResetPasswordModal({
         // Clear previous errors
         setErrorNewPass(null);
         setErrorCurrentPass(null);
+
+        if (resetMode === 'email') {
+            const result = await actions.sendPasswordResetEmail(user.email);
+            if ('error' in result) {
+                setErrorCurrentPass(result.error.message);
+                return;
+            }
+            onSuccess?.();
+            setShow(false);
+            return;
+        }
 
         // Validate current password if resetting own password
         if (isResettingOwnPassword && currentPassword === '') {
@@ -98,14 +119,13 @@ export default function ResetPasswordModal({
 
         onSuccess?.();
         setShow(false);
-    }, [user, isResettingOwnPassword, currentPassword, newPassword, passwordConfig, actions, onSuccess, formatMessage]);
+    }, [user, resetMode, isResettingOwnPassword, currentPassword, newPassword, passwordConfig, actions, onSuccess, formatMessage]);
 
     if (!user) {
         return null;
     }
 
     const displayName = getFullName(user) || user.username;
-    const isAuthUser = Boolean(user.auth_service);
 
     const title = isAuthUser ?
         formatMessage({
@@ -116,6 +136,16 @@ export default function ResetPasswordModal({
             id: 'admin.reset_password.titleResetFor',
             defaultMessage: 'Reset password for {name}',
         }, {name: displayName});
+
+    const confirmButtonText = resetMode === 'email' ?
+        formatMessage({
+            id: 'admin.reset_password.sendEmail',
+            defaultMessage: 'Send email',
+        }) :
+        formatMessage({
+            id: 'admin.reset_password.reset',
+            defaultMessage: 'Reset',
+        });
 
     return (
         <GenericModal
@@ -128,52 +158,84 @@ export default function ResetPasswordModal({
             handleCancel={handleCancel}
             handleConfirm={handleConfirm}
             handleEnterKeyPress={handleConfirm}
-            confirmButtonText={formatMessage({
-                id: 'admin.reset_password.reset',
-                defaultMessage: 'Reset',
-            })}
+            confirmButtonText={confirmButtonText}
             compassDesign={true}
             autoCloseOnConfirmButton={false}
             errorText={errorCurrentPass ? <span className='error'>{errorCurrentPass}</span> : undefined}
         >
             <div className='ResetPasswordModal__body'>
-                {isResettingOwnPassword && (
-                    <Input
-                        ref={currentPasswordRef as React.Ref<HTMLInputElement>}
-                        type='password'
-                        name='currentPassword'
-                        autoComplete='current-password'
-                        label={formatMessage({
-                            id: 'admin.reset_password.currentPassword',
-                            defaultMessage: 'Current password',
-                        })}
-                        placeholder={formatMessage({
-                            id: 'admin.reset_password.enterCurrentPassword',
-                            defaultMessage: 'Enter current password',
-                        })}
-                        value={currentPassword}
-                        onChange={(e) => setCurrentPassword(e.target.value)}
-                        autoFocus={true}
-                    />
+                {showModeToggle && (
+                    <div className='ResetPasswordModal__mode-toggle'>
+                        <button
+                            className={`ResetPasswordModal__mode-option${resetMode === 'email' ? ' ResetPasswordModal__mode-option--active' : ''}`}
+                            onClick={() => setResetMode('email')}
+                            type='button'
+                        >
+                            {formatMessage({
+                                id: 'admin.reset_password.sendResetEmail',
+                                defaultMessage: 'Send reset email',
+                            })}
+                        </button>
+                        <button
+                            className={`ResetPasswordModal__mode-option${resetMode === 'manual' ? ' ResetPasswordModal__mode-option--active' : ''}`}
+                            onClick={() => setResetMode('manual')}
+                            type='button'
+                        >
+                            {formatMessage({
+                                id: 'admin.reset_password.setManually',
+                                defaultMessage: 'Set new password',
+                            })}
+                        </button>
+                    </div>
                 )}
-                <Input
-                    ref={newPasswordRef as React.Ref<HTMLInputElement>}
-                    type='password'
-                    name='newPassword'
-                    autoComplete='new-password'
-                    label={formatMessage({
-                        id: 'admin.reset_password.newPassword',
-                        defaultMessage: 'New password',
-                    })}
-                    placeholder={formatMessage({
-                        id: 'admin.reset_password.enterNewPassword',
-                        defaultMessage: 'Enter new password',
-                    })}
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    autoFocus={!isResettingOwnPassword}
-                    customMessage={errorNewPass ? {type: 'error', value: errorNewPass} : undefined}
-                />
+                {resetMode === 'email' && showModeToggle ? (
+                    <p className='ResetPasswordModal__email-description'>
+                        {formatMessage({
+                            id: 'admin.reset_password.emailDescription',
+                            defaultMessage: 'A password reset email will be sent to {email}. The user can then choose their own new password.',
+                        }, {email: user.email})}
+                    </p>
+                ) : (
+                    <>
+                        {isResettingOwnPassword && (
+                            <Input
+                                ref={currentPasswordRef as React.Ref<HTMLInputElement>}
+                                type='password'
+                                name='currentPassword'
+                                autoComplete='current-password'
+                                label={formatMessage({
+                                    id: 'admin.reset_password.currentPassword',
+                                    defaultMessage: 'Current password',
+                                })}
+                                placeholder={formatMessage({
+                                    id: 'admin.reset_password.enterCurrentPassword',
+                                    defaultMessage: 'Enter current password',
+                                })}
+                                value={currentPassword}
+                                onChange={(e) => setCurrentPassword(e.target.value)}
+                                autoFocus={true}
+                            />
+                        )}
+                        <Input
+                            ref={newPasswordRef as React.Ref<HTMLInputElement>}
+                            type='password'
+                            name='newPassword'
+                            autoComplete='new-password'
+                            label={formatMessage({
+                                id: 'admin.reset_password.newPassword',
+                                defaultMessage: 'New password',
+                            })}
+                            placeholder={formatMessage({
+                                id: 'admin.reset_password.enterNewPassword',
+                                defaultMessage: 'Enter new password',
+                            })}
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            autoFocus={!isResettingOwnPassword}
+                            customMessage={errorNewPass ? {type: 'error', value: errorNewPass} : undefined}
+                        />
+                    </>
+                )}
             </div>
         </GenericModal>
     );
