@@ -315,3 +315,5 @@ channels/db/migrations/postgres/000158_add_roles_schemeid_index.down.sql
 channels/db/migrations/postgres/000158_add_roles_schemeid_index.up.sql
 channels/db/migrations/postgres/000159_deduplicate_policy_names.down.sql
 channels/db/migrations/postgres/000159_deduplicate_policy_names.up.sql
+channels/db/migrations/postgres/000160_add_users_username_not_null.down.sql
+channels/db/migrations/postgres/000160_add_users_username_not_null.up.sql
