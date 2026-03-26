@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useCallback, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 
@@ -15,8 +16,6 @@ import {isValidPassword} from 'utils/password';
 import {getFullName} from 'utils/utils';
 
 import '../admin_modal_with_input.scss';
-
-type ResetMode = 'manual' | 'email';
 
 interface PasswordConfig {
     minimumLength: number;
@@ -59,12 +58,14 @@ export default function ResetPasswordModal({
     const isResettingOwnPassword = user?.id === currentUserId;
     const isAuthUser = Boolean(user?.auth_service);
 
-    const showModeToggle = !isResettingOwnPassword && !isAuthUser && canSendPasswordResetEmail;
+    const offerEmailReset = !isResettingOwnPassword && !isAuthUser && canSendPasswordResetEmail;
 
-    const [resetMode, setResetMode] = useState<ResetMode>(showModeToggle ? 'email' : 'manual');
+    const [useManualEntry, setUseManualEntry] = useState(false);
 
     const currentPasswordRef = useRef<HTMLInputElement>(null);
     const newPasswordRef = useRef<HTMLInputElement>(null);
+
+    const isEmailFlow = offerEmailReset && !useManualEntry;
 
     const handleCancel = useCallback(() => {
         setShow(false);
@@ -75,11 +76,10 @@ export default function ResetPasswordModal({
             return;
         }
 
-        // Clear previous errors
         setErrorNewPass(null);
         setErrorCurrentPass(null);
 
-        if (resetMode === 'email') {
+        if (isEmailFlow) {
             const result = await actions.sendPasswordResetEmail(user.email);
             if ('error' in result) {
                 setErrorCurrentPass(result.error.message);
@@ -90,7 +90,6 @@ export default function ResetPasswordModal({
             return;
         }
 
-        // Validate current password if resetting own password
         if (isResettingOwnPassword && currentPassword === '') {
             setErrorCurrentPass(formatMessage({
                 id: 'admin.reset_password.missing_current',
@@ -99,7 +98,6 @@ export default function ResetPasswordModal({
             return;
         }
 
-        // Validate new password
         const {valid, error} = isValidPassword(newPassword, passwordConfig);
         if (!valid && error) {
             setErrorNewPass(error);
@@ -119,7 +117,7 @@ export default function ResetPasswordModal({
 
         onSuccess?.();
         setShow(false);
-    }, [user, resetMode, isResettingOwnPassword, currentPassword, newPassword, passwordConfig, actions, onSuccess, formatMessage]);
+    }, [user, isEmailFlow, isResettingOwnPassword, currentPassword, newPassword, passwordConfig, actions, onSuccess, formatMessage]);
 
     if (!user) {
         return null;
@@ -137,15 +135,30 @@ export default function ResetPasswordModal({
             defaultMessage: 'Reset password for {name}',
         }, {name: displayName});
 
-    const confirmButtonText = resetMode === 'email' ?
+    const confirmButtonText = isEmailFlow ?
         formatMessage({
-            id: 'admin.reset_password.sendEmail',
-            defaultMessage: 'Send email',
+            id: 'admin.reset_password.sendResetLink',
+            defaultMessage: 'Send reset link',
         }) :
         formatMessage({
             id: 'admin.reset_password.reset',
             defaultMessage: 'Reset',
         });
+
+    const methodPrompt = formatMessage({
+        id: 'admin.reset_password.methodPrompt',
+        defaultMessage: 'How should this user set a new password?',
+    });
+
+    const emailTabLabel = formatMessage({
+        id: 'admin.reset_password.emailTab',
+        defaultMessage: 'Email link',
+    });
+
+    const manualTabLabel = formatMessage({
+        id: 'admin.reset_password.manualTab',
+        defaultMessage: 'Enter new password',
+    });
 
     return (
         <GenericModal
@@ -164,51 +177,55 @@ export default function ResetPasswordModal({
             errorText={errorCurrentPass ? <span className='error'>{errorCurrentPass}</span> : undefined}
         >
             <div className='ResetPasswordModal__body'>
-                {showModeToggle && (
-                    <fieldset className='ResetPasswordModal__mode-selector'>
-                        <legend className='ResetPasswordModal__mode-legend'>
-                            {formatMessage({
-                                id: 'admin.reset_password.resetMethod',
-                                defaultMessage: 'Reset method',
-                            })}
-                        </legend>
-                        <label className='ResetPasswordModal__mode-label'>
-                            <input
-                                type='radio'
-                                name='resetMode'
-                                value='email'
-                                checked={resetMode === 'email'}
-                                onChange={() => setResetMode('email')}
-                            />
-                            <span>
-                                {formatMessage({
-                                    id: 'admin.reset_password.sendResetEmail',
-                                    defaultMessage: 'Send password reset email',
+                {offerEmailReset && (
+                    <>
+                        <p
+                            id='resetPasswordModal-method-prompt'
+                            className='ResetPasswordModal__method-prompt'
+                        >
+                            {methodPrompt}
+                        </p>
+                        <div
+                            className='ResetPasswordModal__method-tabs'
+                            role='tablist'
+                            aria-labelledby='resetPasswordModal-method-prompt'
+                        >
+                            <button
+                                type='button'
+                                role='tab'
+                                id='resetPasswordModal-tab-email'
+                                aria-selected={!useManualEntry}
+                                className={classNames('ResetPasswordModal__method-tab', {
+                                    'ResetPasswordModal__method-tab--active': !useManualEntry,
                                 })}
-                            </span>
-                        </label>
-                        <label className='ResetPasswordModal__mode-label'>
-                            <input
-                                type='radio'
-                                name='resetMode'
-                                value='manual'
-                                checked={resetMode === 'manual'}
-                                onChange={() => setResetMode('manual')}
-                            />
-                            <span>
-                                {formatMessage({
-                                    id: 'admin.reset_password.setManually',
-                                    defaultMessage: 'Set a new password manually',
+                                onClick={() => setUseManualEntry(false)}
+                            >
+                                {emailTabLabel}
+                            </button>
+                            <button
+                                type='button'
+                                role='tab'
+                                id='resetPasswordModal-tab-manual'
+                                aria-selected={useManualEntry}
+                                className={classNames('ResetPasswordModal__method-tab', {
+                                    'ResetPasswordModal__method-tab--active': useManualEntry,
                                 })}
-                            </span>
-                        </label>
-                    </fieldset>
+                                onClick={() => setUseManualEntry(true)}
+                            >
+                                {manualTabLabel}
+                            </button>
+                        </div>
+                    </>
                 )}
-                {resetMode === 'email' && showModeToggle ? (
-                    <p className='ResetPasswordModal__email-description'>
+                {isEmailFlow ? (
+                    <p
+                        className='ResetPasswordModal__email-instruction'
+                        role='tabpanel'
+                        aria-labelledby='resetPasswordModal-tab-email'
+                    >
                         {formatMessage({
-                            id: 'admin.reset_password.emailDescription',
-                            defaultMessage: 'A password reset email will be sent to {email}. The user can then choose their own new password.',
+                            id: 'admin.reset_password.emailInstruction',
+                            defaultMessage: 'We will email {email} a secure link. The user chooses their own password on that page.',
                         }, {email: user.email})}
                     </p>
                 ) : (
