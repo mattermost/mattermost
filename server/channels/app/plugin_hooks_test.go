@@ -2306,3 +2306,429 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		}
 	})
 }
+
+func TestHookChannelMemberWillBeAdded(t *testing.T) {
+	mainHelper.Parallel(t)
+	t.Run("rejected", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) ChannelMemberWillBeAdded(c *plugin.Context, channelMember *model.ChannelMember) (*model.ChannelMember, string) {
+				return nil, "not allowed"
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		user := th.CreateUser(t)
+		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, user.Id, "")
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.AddChannelMember(th.Context, user.Id, th.BasicChannel, ChannelMemberOpts{})
+		require.NotNil(t, appErr)
+		assert.Contains(t, appErr.Id, "rejected_by_plugin")
+	})
+
+	t.Run("modified", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) ChannelMemberWillBeAdded(c *plugin.Context, channelMember *model.ChannelMember) (*model.ChannelMember, string) {
+				channelMember.NotifyProps = model.GetDefaultChannelNotifyProps()
+				channelMember.NotifyProps[model.DesktopNotifyProp] = model.ChannelNotifyAll
+				return channelMember, ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		user := th.CreateUser(t)
+		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, user.Id, "")
+		require.Nil(t, appErr)
+
+		member, appErr := th.App.AddChannelMember(th.Context, user.Id, th.BasicChannel, ChannelMemberOpts{})
+		require.Nil(t, appErr)
+		assert.Equal(t, model.ChannelNotifyAll, member.NotifyProps[model.DesktopNotifyProp])
+	})
+
+	t.Run("allowed", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) ChannelMemberWillBeAdded(c *plugin.Context, channelMember *model.ChannelMember) (*model.ChannelMember, string) {
+				return nil, ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		user := th.CreateUser(t)
+		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, user.Id, "")
+		require.Nil(t, appErr)
+
+		member, appErr := th.App.AddChannelMember(th.Context, user.Id, th.BasicChannel, ChannelMemberOpts{})
+		require.Nil(t, appErr)
+		assert.Equal(t, th.BasicChannel.Id, member.ChannelId)
+		assert.Equal(t, user.Id, member.UserId)
+	})
+}
+
+func TestHookTeamMemberWillBeAdded(t *testing.T) {
+	mainHelper.Parallel(t)
+	t.Run("rejected", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) TeamMemberWillBeAdded(c *plugin.Context, teamMember *model.TeamMember) (*model.TeamMember, string) {
+				return nil, "not allowed"
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		user := th.CreateUser(t)
+		team := th.CreateTeam(t)
+
+		_, appErr := th.App.JoinUserToTeam(th.Context, team, user, "")
+		require.NotNil(t, appErr)
+		assert.Contains(t, appErr.Id, "rejected_by_plugin")
+	})
+
+	t.Run("modified", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) TeamMemberWillBeAdded(c *plugin.Context, teamMember *model.TeamMember) (*model.TeamMember, string) {
+				teamMember.SchemeAdmin = true
+				return teamMember, ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		user := th.CreateUser(t)
+		team := th.CreateTeam(t)
+
+		member, appErr := th.App.JoinUserToTeam(th.Context, team, user, "")
+		require.Nil(t, appErr)
+		assert.True(t, member.SchemeAdmin)
+	})
+
+	t.Run("allowed", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) TeamMemberWillBeAdded(c *plugin.Context, teamMember *model.TeamMember) (*model.TeamMember, string) {
+				return nil, ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		user := th.CreateUser(t)
+		team := th.CreateTeam(t)
+
+		member, appErr := th.App.JoinUserToTeam(th.Context, team, user, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, team.Id, member.TeamId)
+		assert.Equal(t, user.Id, member.UserId)
+	})
+
+	t.Run("already active member skips hook", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) TeamMemberWillBeAdded(c *plugin.Context, teamMember *model.TeamMember) (*model.TeamMember, string) {
+				return nil, "should not fire for existing member"
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		// BasicUser is already a member of BasicTeam via InitBasic
+		member, appErr := th.App.JoinUserToTeam(th.Context, th.BasicTeam, th.BasicUser, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, th.BasicTeam.Id, member.TeamId)
+	})
+
+	t.Run("re-join after leaving applies hook", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) TeamMemberWillBeAdded(c *plugin.Context, teamMember *model.TeamMember) (*model.TeamMember, string) {
+				teamMember.SchemeAdmin = true
+				return teamMember, ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		user := th.CreateUser(t)
+		team := th.CreateTeam(t)
+
+		// First join
+		_, appErr := th.App.JoinUserToTeam(th.Context, team, user, "")
+		require.Nil(t, appErr)
+
+		// Leave
+		err := th.App.LeaveTeam(th.Context, team, user, "")
+		require.Nil(t, err)
+
+		// Re-join — hook should fire on the re-add path
+		member, appErr := th.App.JoinUserToTeam(th.Context, team, user, "")
+		require.Nil(t, appErr)
+		assert.True(t, member.SchemeAdmin)
+	})
+
+	t.Run("CreateTeamWithUser rejected by hook", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) TeamMemberWillBeAdded(c *plugin.Context, teamMember *model.TeamMember) (*model.TeamMember, string) {
+				return nil, "team join blocked"
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		team := &model.Team{
+			DisplayName: "Test Team",
+			Name:        "test-team-" + model.NewId()[:8],
+			Type:        model.TeamOpen,
+		}
+		_, appErr := th.App.CreateTeamWithUser(th.Context, team, th.BasicUser.Id)
+		require.NotNil(t, appErr)
+		assert.Contains(t, appErr.Id, "rejected_by_plugin")
+	})
+}
+
+func TestHookChannelWillBeArchived(t *testing.T) {
+	mainHelper.Parallel(t)
+	t.Run("rejected", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) ChannelWillBeArchived(c *plugin.Context, channel *model.Channel) string {
+				return "archive not permitted"
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		appErr := th.App.DeleteChannel(th.Context, th.BasicChannel, th.BasicUser.Id)
+		require.NotNil(t, appErr)
+		assert.Contains(t, appErr.Id, "rejected_by_plugin")
+
+		// Verify channel was NOT archived
+		ch, err := th.App.GetChannel(th.Context, th.BasicChannel.Id)
+		require.Nil(t, err)
+		assert.Equal(t, int64(0), ch.DeleteAt)
+	})
+
+	t.Run("allowed", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) ChannelWillBeArchived(c *plugin.Context, channel *model.Channel) string {
+				return ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		appErr := th.App.DeleteChannel(th.Context, th.BasicChannel, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		// Verify channel was archived
+		ch, err := th.App.GetChannel(th.Context, th.BasicChannel.Id)
+		require.Nil(t, err)
+		assert.NotEqual(t, int64(0), ch.DeleteAt)
+	})
+}
