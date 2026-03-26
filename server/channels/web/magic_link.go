@@ -39,7 +39,7 @@ func loginWithMagicLinkToken(c *Context, w http.ResponseWriter, r *http.Request)
 	// Rate limit by IP to prevent brute force attacks on tokens
 	if c.App.Srv().RateLimiter != nil {
 		rateLimitKey := c.App.Srv().RateLimiter.GenerateKey(r)
-		if c.App.Srv().RateLimiter.RateLimitWriter(rateLimitKey, w) {
+		if c.App.Srv().RateLimiter.RateLimitWriter(r.Context(), rateLimitKey, w) {
 			return
 		}
 	}

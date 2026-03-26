@@ -79,7 +79,7 @@ import Client4 from '../platform/client/src/client4.ts';
 
 - **Functional Components**: Prefer functional React components with hooks; memoize expensive logic.
 - **Data Access**: Client4/WebSocket access happens via Redux actions only—never directly from components.
-- **Internationalization**: All UI strings must be translatable via React Intl. Use `FormattedMessage` unless a raw string is required.
+- **Internationalization**: All UI strings must be translatable via React Intl. Use `FormattedMessage` unless a raw string is required. When adding or modifying a new translatable string, add or modify ONLY the English main file `en.json`. DO NOT update the other languages.
 - **Styling**: Uses SCSS + CSS variables with BEM naming; avoid `!important` unless migrating legacy code.
 - **Testing**: RTL + `userEvent` for tests; no snapshots. Use helpers under `channels/src/tests/`.
 - **Accessibility**: Follow guidance in `STYLE_GUIDE.md` (semantic elements, keyboard support, focus management).

@@ -87,11 +87,6 @@ const RecapsList = ({recaps}: Props) => {
                     onToggle={() => toggleRecap(recap.id)}
                 />
             ))}
-
-            <div className='recap-all-caught-up'>
-                <i className='icon icon-check-circle'/>
-                <span>{formatMessage({id: 'recaps.allCaughtUp', defaultMessage: "You're all caught up"})}</span>
-            </div>
         </div>
     );
 };

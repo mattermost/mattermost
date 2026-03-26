@@ -301,8 +301,8 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		return nil, false, err
 	}
 
-	// Temporary fix so old plugins don't clobber new fields in SlackAttachment struct, see MM-13088
-	if attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment); ok {
+	// Temporary fix so old plugins don't clobber new fields in MessageAttachment struct, see MM-13088
+	if attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment); ok {
 		jsonAttachments, err := json.Marshal(attachments)
 		if err == nil {
 			attachmentsInterface := []any{}
@@ -429,12 +429,13 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 			_, translateErr := a.AutoTranslation().Translate(rctx.Context(), model.TranslationObjectTypePost, rpost.Id, rpost.ChannelId, rpost.UserId, rpost)
 			if translateErr != nil {
 				var notAvailErr *model.ErrAutoTranslationNotAvailable
-				if errors.As(translateErr, &notAvailErr) {
+				switch {
+				case errors.As(translateErr, &notAvailErr):
 					// Feature not available - log at debug level and continue
 					rctx.Logger().Debug("Auto-translation feature not available", mlog.String("post_id", rpost.Id), mlog.Err(translateErr))
-				} else if translateErr.Id == "ent.autotranslation.no_translatable_content" {
+				case translateErr.Id == "ent.autotranslation.no_translatable_content":
 					// No translatable content (only URLs/mentions) - this is expected, don't log
-				} else {
+				default:
 					// Unexpected error - log at warn level but don't fail post creation
 					rctx.Logger().Warn("Failed to translate post", mlog.String("post_id", rpost.Id), mlog.Err(translateErr))
 				}
@@ -942,12 +943,13 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 			_, translateErr := a.AutoTranslation().Translate(rctx.Context(), model.TranslationObjectTypePost, rpost.Id, rpost.ChannelId, rpost.UserId, rpost)
 			if translateErr != nil {
 				var notAvailErr *model.ErrAutoTranslationNotAvailable
-				if errors.As(translateErr, &notAvailErr) {
+				switch {
+				case errors.As(translateErr, &notAvailErr):
 					// Feature not available - log at debug level and continue
 					rctx.Logger().Debug("Auto-translation feature not available for edited post", mlog.String("post_id", rpost.Id), mlog.Err(translateErr))
-				} else if translateErr.Id == "ent.autotranslation.no_translatable_content" {
+				case translateErr.Id == "ent.autotranslation.no_translatable_content":
 					// No translatable content (only URLs/mentions) - this is expected, don't log
-				} else {
+				default:
 					// Unexpected error - log at warn level but don't fail post update
 					rctx.Logger().Warn("Failed to translate edited post", mlog.String("post_id", rpost.Id), mlog.Err(translateErr))
 				}
@@ -3230,6 +3232,9 @@ func (a *App) RewriteMessage(
 			{Role: "system", Message: systemPrompt},
 			{Role: "user", Message: userPrompt},
 		},
+		UserID:           rctx.Session().UserId,
+		Operation:        "message_rewrite",
+		OperationSubType: normalizeRewriteAction(action),
 	}
 
 	completion, err := client.AgentCompletion(agentID, completionRequest)
@@ -3343,6 +3348,23 @@ func (a *App) buildThreadContextForRewrite(rctx request.CTX, rootID string) (str
 	}
 
 	return contextBuilder.String(), nil
+}
+
+// normalizeRewriteAction maps a RewriteAction to a known subtype string for
+// operation tracking. Unknown actions are mapped to "unknown".
+func normalizeRewriteAction(action model.RewriteAction) string {
+	switch action {
+	case model.RewriteActionCustom,
+		model.RewriteActionShorten,
+		model.RewriteActionElaborate,
+		model.RewriteActionImproveWriting,
+		model.RewriteActionFixSpelling,
+		model.RewriteActionSimplify,
+		model.RewriteActionSummarize:
+		return string(action)
+	default:
+		return "unknown"
+	}
 }
 
 // getRewritePromptForAction returns the appropriate prompt and system prompt for the given rewrite action

@@ -156,6 +156,7 @@ import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
 import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
 import {getIntl} from 'utils/i18n';
+import {isChannelPopoutWindow} from 'utils/popouts/popout_windows';
 import {getSiteURL} from 'utils/url';
 
 import type {ActionFunc, ThunkActionFunc} from 'types/store';
@@ -754,7 +755,15 @@ export function handleChannelUpdatedEvent(msg: WebSocketMessages.ChannelUpdated)
         if (channel.id === getCurrentChannelId(state)) {
             // using channel's team_id to ensure we always redirect to current channel even if channel's team changes.
             const teamId = channel.team_id || getCurrentTeamId(state);
-            getHistory().replace(`${getRelativeTeamUrl(state, teamId)}/channels/${channel.name}`);
+            const teamUrl = getRelativeTeamUrl(state, teamId);
+            let channelPath = `${teamUrl}/channels/${channel.name}`;
+
+            // For the popout we make an exception and redirect to the popout path instead of the channel path.
+            // DM/GM names never change, so we only need to handle regular channels here.
+            if (isChannelPopoutWindow() && channel.type !== General.DM_CHANNEL && channel.type !== General.GM_CHANNEL) {
+                channelPath = `/_popout/channel${teamUrl}/channels/${channel.name}`;
+            }
+            getHistory().replace(channelPath);
         }
     };
 }
@@ -1093,6 +1102,9 @@ function handleDeleteTeamEvent(msg: WebSocketMessages.Team) {
             } else {
                 getHistory().push('/');
             }
+            if (isChannelPopoutWindow()) {
+                window.close();
+            }
         }
     }
 }
@@ -1206,7 +1218,10 @@ export function handleUserRemovedEvent(msg: WebSocketMessages.UserRemovedFromCha
         });
 
         if (currentChannel && msg.data.channel_id === currentChannel.id) {
-            redirectUserToDefaultTeam();
+            const redirect = redirectUserToDefaultTeam();
+            if (isChannelPopoutWindow()) {
+                redirect.then(() => window.close());
+            }
         }
 
         if (isGuest(currentUser.roles)) {
@@ -1767,7 +1782,7 @@ function handleFirstAdminVisitMarketplaceStatusReceivedEvent(msg: WebSocketMessa
 
 function handleThreadReadChanged(msg: WebSocketMessages.ThreadReadChanged): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
-        if (msg.data.thread_id && msg.data.channel_id && msg.data.unread_mentions && msg.data.unread_replies) {
+        if ('thread_id' in msg.data && msg.data.thread_id) {
             const state = doGetState();
             const thread = getThreads(state)?.[msg.data.thread_id];
 

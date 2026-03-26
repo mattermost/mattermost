@@ -125,20 +125,15 @@ func (a *App) CreateUserWithToken(rctx request.CTX, user *model.User, token *mod
 // This function handles the passwordless "guest magic link" flow where clicking an email link logs the user in.
 // Follows the same pattern as SAML/OAuth SSO by creating the user then calling AddUserToTeamByToken.
 func (a *App) AuthenticateUserForGuestMagicLink(rctx request.CTX, tokenString string) (*model.User, *model.AppError) {
-	// Get and validate token type and expiry
-	token, err := a.Srv().Store().Token().GetByToken(tokenString)
+	// Atomically consume the token to prevent race conditions where concurrent
+	// requests could reuse the same single-use token to create multiple sessions.
+	// Try both valid token types for guest magic links.
+	token, err := a.ConsumeTokenOnce(model.TokenTypeGuestMagicLinkInvitation, tokenString)
 	if err != nil {
-		return nil, model.NewAppError("AuthenticateUserForGuestMagicLink", "api.user.guest_magic_link.invalid_token.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-	}
-
-	if token.Type != model.TokenTypeGuestMagicLinkInvitation && token.Type != model.TokenTypeGuestMagicLink {
-		return nil, model.NewAppError("AuthenticateUserForGuestMagicLink", "api.user.guest_magic_link.invalid_token_type.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	// We have the token we were looking for, so remove it from the database ASAP
-	err = a.Srv().Store().Token().Delete(tokenString)
-	if err != nil {
-		rctx.Logger().Warn("Error while deleting token", mlog.Err(err))
+		token, err = a.ConsumeTokenOnce(model.TokenTypeGuestMagicLink, tokenString)
+		if err != nil {
+			return nil, model.NewAppError("AuthenticateUserForGuestMagicLink", "api.user.guest_magic_link.invalid_token.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
 	}
 
 	if token.IsExpired() {
@@ -1031,6 +1026,12 @@ func (a *App) AdjustImage(rctx request.CTX, file io.ReadSeeker) (*bytes.Buffer, 
 		return nil, model.NewAppError("SetProfileImage", "api.user.upload_profile_user.decode.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
+	// Decode() reads the file to EOF; seek back to beginning so GetImageOrientation
+	// can read the EXIF data to determine the correct orientation.
+	if _, seekErr := file.Seek(0, io.SeekStart); seekErr != nil {
+		rctx.Logger().Warn("Failed to seek image file for orientation check", mlog.Err(seekErr))
+	}
+
 	orientation, err := imaging.GetImageOrientation(file, format)
 	if err != nil {
 		rctx.Logger().Warn("Failed to get image orientation", mlog.Err(err))
@@ -1501,6 +1502,13 @@ func (a *App) UpdateUser(rctx request.CTX, user *model.User, sendNotifications b
 		default:
 			return nil, model.NewAppError("UpdateUser", "app.user.update.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+	}
+
+	if userUpdate == nil {
+		return nil, model.NewAppError("UpdateUser", "app.user.update.find.app_error", nil, "received nil update result from store for userId="+user.Id, http.StatusInternalServerError)
+	}
+	if userUpdate.New == nil {
+		return nil, model.NewAppError("UpdateUser", "app.user.update.find.app_error", nil, "received update result with nil New user from store for userId="+user.Id, http.StatusInternalServerError)
 	}
 
 	newUser := userUpdate.New
