@@ -118,7 +118,6 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 	th, service := setupTestEnvironment(t)
 
 	t.Run("Post Priority Metadata Self-Referential Sync", func(t *testing.T) {
-		t.Skip("MM-64687")
 		var syncedPosts []*model.Post
 
 		// Create test HTTP server using self-referential approach
@@ -244,7 +243,6 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 	})
 
 	t.Run("Acknowledgement Count Sync Back to Sender", func(t *testing.T) {
-		t.Skip("MM-64687")
 		EnsureCleanState(t, th, th.App.Srv().Store())
 		var syncedPosts []*model.Post
 		var postIdToSync string
@@ -348,7 +346,6 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 	})
 
 	t.Run("Persistent Notifications Self-Referential Sync", func(t *testing.T) {
-		t.Skip("MM-64687")
 		EnsureCleanState(t, th, th.App.Srv().Store())
 		var syncedPosts []*model.Post
 
@@ -401,7 +398,6 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 	})
 
 	t.Run("Cross-Cluster Acknowledgement End-to-End Flow", func(t *testing.T) {
-		t.Skip("MM-64687")
 		EnsureCleanState(t, th, th.App.Srv().Store())
 		var syncedPostsServerA []*model.Post
 		var syncedPostsServerB []*model.Post
