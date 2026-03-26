@@ -113,8 +113,8 @@ func (ps *PlatformService) StopSearchEngine() {
 // already running. The watcher monitors engine health and retries Start() with
 // exponential backoff when the engine is not active.
 //
-// It uses a raw goroutine (not ps.Go()) because it is long-lived and manages
-// its own lifecycle via context cancellation (stopSearchEngineWatcher).
+// It uses a raw goroutine (not ps.Go()) to manage its own lifecycle via context
+// cancellation, which is eventually called from stopSearchEngineWatcher
 //
 // Idempotent: no-op if a watcher is already running.
 func (ps *PlatformService) startSearchEngineWatcher() {
