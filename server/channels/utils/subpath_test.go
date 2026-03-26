@@ -37,6 +37,8 @@ func TestUpdateAssetsSubpathFromConfig(t *testing.T) {
 	})
 
 	t.Run("no config", func(t *testing.T) {
+		// Explicitly clear IS_CI so UpdateAssetsSubpathFromConfig doesn't return early.
+		// IS_CI is "true" in GitHub Actions runners and persists from the sibling subtest.
 		t.Setenv("IS_CI", "")
 		tempDir := t.TempDir()
 		t.Chdir(tempDir)
