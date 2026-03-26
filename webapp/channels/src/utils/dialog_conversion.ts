@@ -596,7 +596,7 @@ export function extractPrimitiveValues(values: Record<string, any>, clearEmptyFi
     return Object.entries(values).reduce<Record<string, any>>((acc, [key, value]) => {
         if (Array.isArray(value)) {
             const extracted = value.
-                map((item) => isAppSelectOption(item) ? item.value : item).
+                map((item) => (isAppSelectOption(item) ? item.value : item)).
                 filter(isMeaningful);
 
             if (extracted.length > 0 || clearEmptyFields) {
