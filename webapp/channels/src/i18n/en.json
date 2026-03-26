@@ -4325,6 +4325,7 @@
   "device_icons.apple": "Apple Icon",
   "device_icons.linux": "Linux Icon",
   "device_icons.windows": "Windows Icon",
+  "dialog_file_upload.upload_failed": "Upload failed",
   "discard_changes_modal.leave": "Yes, Discard",
   "discard_changes_modal.message": "You have unsaved changes, are you sure you want to discard them?",
   "discard_changes_modal.title": "Discard Changes?",
