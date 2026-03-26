@@ -1517,7 +1517,7 @@ func TestExecuteCommandReadOnly(t *testing.T) {
 
 func TestExecuteCommandResponseURLUsesSiteURL(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 	client := th.Client
 	channel := th.BasicChannel
 
@@ -1585,7 +1585,7 @@ func TestExecuteCommandResponseURLUsesSiteURL(t *testing.T) {
 
 func TestExecuteCustomCommandRequiresSiteURL(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 	client := th.Client
 	channel := th.BasicChannel
 
