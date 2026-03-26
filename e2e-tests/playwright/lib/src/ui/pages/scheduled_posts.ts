@@ -76,8 +76,8 @@ export default class ScheduledPostsPage {
     }
 
     async rescheduleMessage(post: ScheduledPost, dayFromToday: number = 0, timeOptionIndex: number = 0) {
-        await this.openRescheduleMessageModal(post);
-        return await this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex);
+        const scheduleMessageModal = await this.openRescheduleMessageModal(post);
+        return await scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex);
     }
 
     async goto(teamName: string) {

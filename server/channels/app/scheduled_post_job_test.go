@@ -125,6 +125,61 @@ func TestProcessScheduledPosts(t *testing.T) {
 		assert.Greater(t, updated.ScheduledAt, model.GetMillis())
 	})
 
+	t.Run("marks overdue one-shot posts even when overdue weekly posts move pagination backward", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
+
+		now := model.GetMillis()
+		weeklyScheduledAt := now - (48 * 60 * 60 * 1000)
+		oneShotScheduledAt := now - (36 * 60 * 60 * 1000)
+
+		weeklyScheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  now,
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "overdue weekly recurring scheduled post",
+			},
+			ScheduledAt:    weeklyScheduledAt,
+			RepeatType:     model.ScheduledPostRepeatTypeWeekly,
+			RepeatTimezone: "UTC",
+		}
+		weeklyCreated, err := th.Server.Store().ScheduledPost().CreateScheduledPost(weeklyScheduledPost)
+		assert.NoError(t, err)
+		require.NotNil(t, weeklyCreated)
+
+		oneShotScheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  now,
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "overdue one-shot scheduled post",
+			},
+			ScheduledAt: oneShotScheduledAt,
+		}
+		oneShotCreated, err := th.Server.Store().ScheduledPost().CreateScheduledPost(oneShotScheduledPost)
+		assert.NoError(t, err)
+		require.NotNil(t, oneShotCreated)
+
+		th.App.ProcessScheduledPosts(th.Context)
+
+		weeklyUpdated, err := th.Server.Store().ScheduledPost().Get(weeklyCreated.Id)
+		assert.NoError(t, err)
+		require.NotNil(t, weeklyUpdated)
+		assert.Equal(t, model.ScheduledPostRepeatTypeWeekly, weeklyUpdated.RepeatType)
+		assert.Equal(t, "UTC", weeklyUpdated.RepeatTimezone)
+		assert.Empty(t, weeklyUpdated.ErrorCode)
+		assert.Zero(t, weeklyUpdated.ProcessedAt)
+		assert.Greater(t, weeklyUpdated.ScheduledAt, model.GetMillis())
+
+		oneShotUpdated, err := th.Server.Store().ScheduledPost().Get(oneShotCreated.Id)
+		assert.NoError(t, err)
+		require.NotNil(t, oneShotUpdated)
+		assert.Equal(t, model.ScheduledPostErrorUnableToSend, oneShotUpdated.ErrorCode)
+		assert.Greater(t, oneShotUpdated.ProcessedAt, int64(0))
+	})
+
 	t.Run("sets error code for archived channel", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 

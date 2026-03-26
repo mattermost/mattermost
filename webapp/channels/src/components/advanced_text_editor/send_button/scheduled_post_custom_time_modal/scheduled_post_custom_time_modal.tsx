@@ -45,11 +45,11 @@ export default function ScheduledPostCustomTimeModal({
     const {formatMessage} = useIntl();
     const [errorMessage, setErrorMessage] = useState<string>();
     const currentUserTimezone = useSelector(getCurrentTimezone);
-    const effectiveTimezone = initialRepeatWeekly && initialRepeatTimezone ? initialRepeatTimezone : currentUserTimezone;
+    const [repeatWeekly, setRepeatWeekly] = useState(initialRepeatWeekly);
+    const effectiveTimezone = repeatWeekly && initialRepeatTimezone ? initialRepeatTimezone : currentUserTimezone;
     const now = moment().tz(effectiveTimezone);
     const currentUserId = useSelector(getCurrentUserId);
     const dispatch = useDispatch();
-    const [repeatWeekly, setRepeatWeekly] = useState(initialRepeatWeekly);
     const [selectedDateTime, setSelectedDateTime] = useState<Moment>(() => {
         if (initialTime) {
             return initialTime;

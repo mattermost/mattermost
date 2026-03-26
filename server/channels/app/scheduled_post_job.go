@@ -92,10 +92,10 @@ func (a *App) ProcessScheduledPosts(rctx request.CTX) {
 
 	// once all scheduled posts are processed, we need to update and close the old ones
 	// as we don't process pending scheduled posts more than 24 hours old.
-	if err := a.Srv().Store().ScheduledPost().UpdateOldScheduledPosts(beforeTime); err != nil {
+	if err := a.Srv().Store().ScheduledPost().UpdateOldScheduledPosts(afterTime); err != nil {
 		rctx.Logger().Error(
 			"App.ProcessScheduledPosts: failed to update old scheduled posts",
-			mlog.Int("before_time", beforeTime),
+			mlog.Int("before_time", afterTime),
 			mlog.Err(err),
 		)
 	}
@@ -331,6 +331,7 @@ func (a *App) canPostScheduledPost(rctx request.CTX, scheduledPost *model.Schedu
 
 func (a *App) handleSuccessfulScheduledPosts(rctx request.CTX, successfulScheduledPosts []*model.ScheduledPost) error {
 	var toDelete []string
+	var deletedScheduledPosts []*model.ScheduledPost
 
 	for _, sp := range successfulScheduledPosts {
 		if sp == nil {
@@ -354,8 +355,8 @@ func (a *App) handleSuccessfulScheduledPosts(rctx request.CTX, successfulSchedul
 			continue
 		}
 
-		a.PublishScheduledPostEvent(rctx, model.WebsocketScheduledPostDeleted, sp, "")
 		toDelete = append(toDelete, sp.Id)
+		deletedScheduledPosts = append(deletedScheduledPosts, sp)
 	}
 
 	if len(toDelete) > 0 {
@@ -369,6 +370,10 @@ func (a *App) handleSuccessfulScheduledPosts(rctx request.CTX, successfulSchedul
 				mlog.Err(err),
 			)
 			return errors.Wrap(err, "App.handleSuccessfulScheduledPosts: failed to delete successfully posted scheduled posts")
+		}
+
+		for _, sp := range deletedScheduledPosts {
+			a.PublishScheduledPostEvent(rctx, model.WebsocketScheduledPostDeleted, sp, "")
 		}
 	}
 
