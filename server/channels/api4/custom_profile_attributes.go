@@ -10,6 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
 
 func (api *API) InitCustomProfileAttributes() {
@@ -31,8 +32,8 @@ func listCPAFields(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	callerUserID := c.AppContext.Session().UserId
-	fields, appErr := c.App.ListCPAFields(callerUserID)
+	rctx := app.RequestContextWithCallerID(c.AppContext, c.AppContext.Session().UserId)
+	fields, appErr := c.App.ListCPAFields(rctx)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -67,8 +68,8 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "property_field", pf)
 
-	callerUserID := c.AppContext.Session().UserId
-	createdField, appErr := c.App.CreateCPAField(callerUserID, pf)
+	rctx := app.RequestContextWithCallerID(c.AppContext, c.AppContext.Session().UserId)
+	createdField, appErr := c.App.CreateCPAField(rctx, pf)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -123,8 +124,8 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "property_field_patch", patch)
 
-	callerUserID := c.AppContext.Session().UserId
-	originalField, appErr := c.App.GetCPAField(callerUserID, c.Params.FieldId)
+	rctx := app.RequestContextWithCallerID(c.AppContext, c.AppContext.Session().UserId)
+	originalField, appErr := c.App.GetCPAField(rctx, c.Params.FieldId)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -132,7 +133,7 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.AddEventPriorState(originalField)
 
-	patchedField, appErr := c.App.PatchCPAField(callerUserID, c.Params.FieldId, patch)
+	patchedField, appErr := c.App.PatchCPAField(rctx, c.Params.FieldId, patch)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -167,15 +168,15 @@ func deleteCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "field_id", c.Params.FieldId)
 
-	callerUserID := c.AppContext.Session().UserId
-	field, appErr := c.App.GetCPAField(callerUserID, c.Params.FieldId)
+	rctx := app.RequestContextWithCallerID(c.AppContext, c.AppContext.Session().UserId)
+	field, appErr := c.App.GetCPAField(rctx, c.Params.FieldId)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 	auditRec.AddEventPriorState(field)
 
-	if appErr := c.App.DeleteCPAField(callerUserID, c.Params.FieldId); appErr != nil {
+	if appErr := c.App.DeleteCPAField(rctx, c.Params.FieldId); appErr != nil {
 		c.Err = appErr
 		return
 	}
@@ -193,9 +194,9 @@ func getCPAGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	groupID, err := c.App.CpaGroupID()
-	if err != nil {
-		c.Err = model.NewAppError("Api4.getCPAGroup", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	groupID, appErr := c.App.CpaGroupID()
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -229,8 +230,10 @@ func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 	// if the user is not an admin, we need to check that there are no
 	// admin-managed fields
 	session := *c.AppContext.Session()
+	rctx := app.RequestContextWithCallerID(c.AppContext, session.UserId)
+
 	if !c.App.SessionHasPermissionTo(session, model.PermissionManageSystem) {
-		fields, appErr := c.App.ListCPAFields(session.UserId)
+		fields, appErr := c.App.ListCPAFields(rctx)
 		if appErr != nil {
 			c.Err = appErr
 			return
@@ -247,10 +250,9 @@ func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	callerUserID := c.AppContext.Session().UserId
 	results := make(map[string]json.RawMessage, len(updates))
 	for fieldID, rawValue := range updates {
-		patchedValue, appErr := c.App.PatchCPAValue(callerUserID, userID, fieldID, rawValue, false)
+		patchedValue, appErr := c.App.PatchCPAValue(rctx, userID, fieldID, rawValue, false)
 		if appErr != nil {
 			c.Err = appErr
 			return
@@ -289,7 +291,8 @@ func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	values, appErr := c.App.ListCPAValues(callerUserID, targetUserID)
+	rctx := app.RequestContextWithCallerID(c.AppContext, callerUserID)
+	values, appErr := c.App.ListCPAValues(rctx, targetUserID)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -334,9 +337,11 @@ func patchCPAValuesForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Check for admin-managed fields
 	session := *c.AppContext.Session()
+	rctx := app.RequestContextWithCallerID(c.AppContext, session.UserId)
+
 	isAdmin := c.App.SessionHasPermissionTo(session, model.PermissionManageSystem)
 	if !isAdmin {
-		fields, appErr := c.App.ListCPAFields(session.UserId)
+		fields, appErr := c.App.ListCPAFields(rctx)
 		if appErr != nil {
 			c.Err = appErr
 			return
@@ -357,10 +362,9 @@ func patchCPAValuesForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	callerUserID := c.AppContext.Session().UserId
 	results := make(map[string]json.RawMessage, len(updates))
 	for fieldID, rawValue := range updates {
-		patchedValue, appErr := c.App.PatchCPAValue(callerUserID, userID, fieldID, rawValue, false)
+		patchedValue, appErr := c.App.PatchCPAValue(rctx, userID, fieldID, rawValue, false)
 		if appErr != nil {
 			c.Err = appErr
 			return
