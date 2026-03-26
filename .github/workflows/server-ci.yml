@@ -322,8 +322,8 @@ jobs:
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: "coverage-server-test-logs-shard-${{ matrix.shard }}"
-      # Keep false until parallel-safety fixes land (#35746 → #35749 → #35750 → #35751)
-      fullyparallel: false
+      fullyparallel: true
+      allow-failure: true  # Coverage failures are advisory until parallel-safety fixes land (#35746 → #35751)
       enablecoverage: true
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: false
