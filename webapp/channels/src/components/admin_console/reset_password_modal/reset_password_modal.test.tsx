@@ -176,7 +176,7 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
         };
         renderWithContext(<ResetPasswordModal {...props}/>);
 
-        await userEvent.click(screen.getByLabelText(/Set password manually/i));
+        await userEvent.click(screen.getByRole('radio', {name: /Set password manually/i}));
 
         const newPasswordInput = await screen.findByRole('textbox', {name: /New password/i});
         await userEvent.clear(newPasswordInput);
@@ -205,7 +205,7 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
         };
         renderWithContext(<ResetPasswordModal {...props}/>);
 
-        await userEvent.click(screen.getByLabelText(/Set password manually/i));
+        await userEvent.click(screen.getByRole('radio', {name: /Set password manually/i}));
 
         const newPasswordInput = await screen.findByRole('textbox', {name: /New password/i});
         await userEvent.clear(newPasswordInput);
@@ -224,7 +224,7 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
         const props = {...baseProps, currentUserId: 'different_user_id'};
         renderWithContext(<ResetPasswordModal {...props}/>);
 
-        await userEvent.click(screen.getByLabelText(/Set password manually/i));
+        await userEvent.click(screen.getByRole('radio', {name: /Set password manually/i}));
 
         const newPasswordInput = await screen.findByPlaceholderText(/New password/i);
         expect((newPasswordInput as HTMLInputElement).value).not.toEqual('');

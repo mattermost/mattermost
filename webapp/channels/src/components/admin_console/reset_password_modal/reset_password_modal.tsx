@@ -341,7 +341,20 @@ export default function ResetPasswordModal({
                         </p>
                         <fieldset className='ResetPasswordModal__choices'>
                             <legend className='sr-only'>{resetMethodLegend}</legend>
-                            <div className={`ResetPasswordModal__choice${resetMethod === 'email' ? ' ResetPasswordModal__choice--selected' : ''}`}>
+                            <div
+                                className={`ResetPasswordModal__choice${resetMethod === 'email' ? ' ResetPasswordModal__choice--selected' : ''}`}
+                                onClick={() => handleResetMethodChange('email')}
+                                onKeyDown={(e) => {
+                                    if (e.key === ' ' || e.key === 'Enter') {
+                                        e.preventDefault();
+                                        handleResetMethodChange('email');
+                                    }
+                                }}
+                                role='radio'
+                                aria-checked={resetMethod === 'email'}
+                                aria-describedby='resetPasswordModalSendLinkDescription'
+                                tabIndex={0}
+                            >
                                 <input
                                     id='resetPasswordModalSendLink'
                                     className='ResetPasswordModal__choice-input'
@@ -357,12 +370,9 @@ export default function ResetPasswordModal({
                                     aria-hidden='true'
                                 />
                                 <div className='ResetPasswordModal__choice-content'>
-                                    <label
-                                        htmlFor='resetPasswordModalSendLink'
-                                        className='ResetPasswordModal__choice-title'
-                                    >
+                                    <span className='ResetPasswordModal__choice-title'>
                                         {emailOptionTitle}
-                                    </label>
+                                    </span>
                                     <span
                                         id='resetPasswordModalSendLinkDescription'
                                         className='ResetPasswordModal__choice-description'
@@ -371,7 +381,20 @@ export default function ResetPasswordModal({
                                     </span>
                                 </div>
                             </div>
-                            <div className={`ResetPasswordModal__choice${resetMethod === 'manual' ? ' ResetPasswordModal__choice--selected' : ''}`}>
+                            <div
+                                className={`ResetPasswordModal__choice${resetMethod === 'manual' ? ' ResetPasswordModal__choice--selected' : ''}`}
+                                onClick={() => handleResetMethodChange('manual')}
+                                onKeyDown={(e) => {
+                                    if (e.key === ' ' || e.key === 'Enter') {
+                                        e.preventDefault();
+                                        handleResetMethodChange('manual');
+                                    }
+                                }}
+                                role='radio'
+                                aria-checked={resetMethod === 'manual'}
+                                aria-describedby='resetPasswordModalManualDescription'
+                                tabIndex={0}
+                            >
                                 <input
                                     id='resetPasswordModalManual'
                                     className='ResetPasswordModal__choice-input'
@@ -387,12 +410,9 @@ export default function ResetPasswordModal({
                                     aria-hidden='true'
                                 />
                                 <div className='ResetPasswordModal__choice-content'>
-                                    <label
-                                        htmlFor='resetPasswordModalManual'
-                                        className='ResetPasswordModal__choice-title'
-                                    >
+                                    <span className='ResetPasswordModal__choice-title'>
                                         {manualOptionTitle}
-                                    </label>
+                                    </span>
                                     <span
                                         id='resetPasswordModalManualDescription'
                                         className='ResetPasswordModal__choice-description'
