@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
@@ -15,8 +15,6 @@ import {isValidPassword} from 'utils/password';
 import {getFullName} from 'utils/utils';
 
 import '../admin_modal_with_input.scss';
-
-type ResetMode = 'manual' | 'email';
 
 interface PasswordConfig {
     minimumLength: number;
@@ -59,12 +57,17 @@ export default function ResetPasswordModal({
     const isResettingOwnPassword = user?.id === currentUserId;
     const isAuthUser = Boolean(user?.auth_service);
 
-    const showModeToggle = !isResettingOwnPassword && !isAuthUser && canSendPasswordResetEmail;
-
-    const [resetMode, setResetMode] = useState<ResetMode>(showModeToggle ? 'email' : 'manual');
+    const canUseEmailReset = !isResettingOwnPassword && !isAuthUser && canSendPasswordResetEmail;
+    const [showManualReset, setShowManualReset] = useState(!canUseEmailReset);
+    const isEmailReset = canUseEmailReset && !showManualReset;
 
     const currentPasswordRef = useRef<HTMLInputElement>(null);
     const newPasswordRef = useRef<HTMLInputElement>(null);
+
+    const emailResetDescription = useMemo(() => formatMessage({
+        id: 'admin.reset_password.emailDescription',
+        defaultMessage: 'Send a password reset link to {email}. The user will choose a new password securely.',
+    }, {email: user?.email ?? ''}), [formatMessage, user?.email]);
 
     const handleCancel = useCallback(() => {
         setShow(false);
@@ -79,7 +82,7 @@ export default function ResetPasswordModal({
         setErrorNewPass(null);
         setErrorCurrentPass(null);
 
-        if (resetMode === 'email') {
+        if (isEmailReset) {
             const result = await actions.sendPasswordResetEmail(user.email);
             if ('error' in result) {
                 setErrorCurrentPass(result.error.message);
@@ -119,7 +122,7 @@ export default function ResetPasswordModal({
 
         onSuccess?.();
         setShow(false);
-    }, [user, resetMode, isResettingOwnPassword, currentPassword, newPassword, passwordConfig, actions, onSuccess, formatMessage]);
+    }, [user, isEmailReset, isResettingOwnPassword, currentPassword, newPassword, passwordConfig, actions, onSuccess, formatMessage]);
 
     if (!user) {
         return null;
@@ -137,7 +140,7 @@ export default function ResetPasswordModal({
             defaultMessage: 'Reset password for {name}',
         }, {name: displayName});
 
-    const confirmButtonText = resetMode === 'email' ?
+    const confirmButtonText = isEmailReset ?
         formatMessage({
             id: 'admin.reset_password.sendEmail',
             defaultMessage: 'Send email',
@@ -164,55 +167,44 @@ export default function ResetPasswordModal({
             errorText={errorCurrentPass ? <span className='error'>{errorCurrentPass}</span> : undefined}
         >
             <div className='ResetPasswordModal__body'>
-                {showModeToggle && (
-                    <fieldset className='ResetPasswordModal__mode-selector'>
-                        <legend className='ResetPasswordModal__mode-legend'>
+                {isEmailReset ? (
+                    <div className='ResetPasswordModal__email-panel'>
+                        <p className='ResetPasswordModal__email-description'>
+                            {emailResetDescription}
+                        </p>
+                        <button
+                            type='button'
+                            className='style--none color--link ResetPasswordModal__manual-trigger'
+                            onClick={() => setShowManualReset(true)}
+                        >
                             {formatMessage({
-                                id: 'admin.reset_password.resetMethod',
-                                defaultMessage: 'Reset method',
+                                id: 'admin.reset_password.setManually',
+                                defaultMessage: 'Set a new password manually',
                             })}
-                        </legend>
-                        <label className='ResetPasswordModal__mode-label'>
-                            <input
-                                type='radio'
-                                name='resetMode'
-                                value='email'
-                                checked={resetMode === 'email'}
-                                onChange={() => setResetMode('email')}
-                            />
-                            <span>
-                                {formatMessage({
-                                    id: 'admin.reset_password.sendResetEmail',
-                                    defaultMessage: 'Send password reset email',
-                                })}
-                            </span>
-                        </label>
-                        <label className='ResetPasswordModal__mode-label'>
-                            <input
-                                type='radio'
-                                name='resetMode'
-                                value='manual'
-                                checked={resetMode === 'manual'}
-                                onChange={() => setResetMode('manual')}
-                            />
-                            <span>
-                                {formatMessage({
-                                    id: 'admin.reset_password.setManually',
-                                    defaultMessage: 'Set a new password manually',
-                                })}
-                            </span>
-                        </label>
-                    </fieldset>
-                )}
-                {resetMode === 'email' && showModeToggle ? (
-                    <p className='ResetPasswordModal__email-description'>
-                        {formatMessage({
-                            id: 'admin.reset_password.emailDescription',
-                            defaultMessage: 'A password reset email will be sent to {email}. The user can then choose their own new password.',
-                        }, {email: user.email})}
-                    </p>
+                        </button>
+                    </div>
                 ) : (
                     <>
+                        {canUseEmailReset && (
+                            <p className='ResetPasswordModal__email-description'>
+                                {formatMessage({
+                                    id: 'admin.reset_password.manualDescription',
+                                    defaultMessage: 'Prefer not to choose a password for this user yourself? Send them a reset email instead.',
+                                })}
+                            </p>
+                        )}
+                        {canUseEmailReset && (
+                            <button
+                                type='button'
+                                className='style--none color--link ResetPasswordModal__manual-trigger'
+                                onClick={() => setShowManualReset(false)}
+                            >
+                                {formatMessage({
+                                    id: 'admin.reset_password.sendResetEmail',
+                                    defaultMessage: 'Send password reset email instead',
+                                })}
+                            </button>
+                        )}
                         {isResettingOwnPassword && (
                             <Input
                                 ref={currentPasswordRef as React.Ref<HTMLInputElement>}

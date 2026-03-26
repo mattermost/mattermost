@@ -172,40 +172,40 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
             canSendPasswordResetEmail: true,
         };
 
-        test('should show radio options when resetting another user with email enabled', () => {
+        test('should show email-first content when resetting another user with email enabled', () => {
             renderWithContext(<ResetPasswordModal {...otherUserProps}/>);
 
-            expect(screen.getByText(/Send password reset email/i)).toBeInTheDocument();
-            expect(screen.getByText(/Set a new password manually/i)).toBeInTheDocument();
-            expect(screen.getAllByRole('radio')).toHaveLength(2);
-        });
-
-        test('should not show radio options when resetting own password', () => {
-            const props = {...baseProps, canSendPasswordResetEmail: true};
-            renderWithContext(<ResetPasswordModal {...props}/>);
-
+            expect(screen.getByText(/send a password reset link to/i)).toBeInTheDocument();
+            expect(screen.getByRole('button', {name: /Set a new password manually/i})).toBeInTheDocument();
             expect(screen.queryByRole('radio')).not.toBeInTheDocument();
         });
 
-        test('should not show radio options for auth_service users', () => {
+        test('should not show email-first content when resetting own password', () => {
+            const props = {...baseProps, canSendPasswordResetEmail: true};
+            renderWithContext(<ResetPasswordModal {...props}/>);
+
+            expect(screen.queryByText(/send a password reset link to/i)).not.toBeInTheDocument();
+        });
+
+        test('should not show email-first content for auth_service users', () => {
             const authUser = TestHelper.getUserMock({...user, auth_service: 'ldap'});
             const props = {...otherUserProps, user: authUser};
             renderWithContext(<ResetPasswordModal {...props}/>);
 
-            expect(screen.queryByRole('radio')).not.toBeInTheDocument();
+            expect(screen.queryByText(/send a password reset link to/i)).not.toBeInTheDocument();
         });
 
-        test('should not show radio options when email notifications are disabled', () => {
+        test('should not show email-first content when email notifications are disabled', () => {
             const props = {...otherUserProps, canSendPasswordResetEmail: false};
             renderWithContext(<ResetPasswordModal {...props}/>);
 
-            expect(screen.queryByRole('radio')).not.toBeInTheDocument();
+            expect(screen.queryByText(/send a password reset link to/i)).not.toBeInTheDocument();
         });
 
         test('should default to email mode and show description', () => {
             renderWithContext(<ResetPasswordModal {...otherUserProps}/>);
 
-            expect(screen.getByText(/A password reset email will be sent to/i)).toBeInTheDocument();
+            expect(screen.getByText(/send a password reset link to/i)).toBeInTheDocument();
             expect(screen.queryByPlaceholderText(/New password/i)).not.toBeInTheDocument();
         });
 
@@ -215,13 +215,24 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
             expect(screen.getByRole('button', {name: /Send email/i})).toBeInTheDocument();
         });
 
-        test('should switch to manual mode when selecting manual radio option', async () => {
+        test('should switch to manual mode when selecting the manual fallback action', async () => {
             renderWithContext(<ResetPasswordModal {...otherUserProps}/>);
 
-            await userEvent.click(screen.getByText(/Set a new password manually/i));
+            await userEvent.click(screen.getByRole('button', {name: /Set a new password manually/i}));
 
             expect(screen.getByPlaceholderText(/New password/i)).toBeInTheDocument();
-            expect(screen.queryByText(/A password reset email will be sent to/i)).not.toBeInTheDocument();
+            expect(screen.queryByText(/send a password reset link to/i)).not.toBeInTheDocument();
+            expect(screen.getByRole('button', {name: /Send password reset email instead/i})).toBeInTheDocument();
+        });
+
+        test('should switch back to email mode after entering manual mode', async () => {
+            renderWithContext(<ResetPasswordModal {...otherUserProps}/>);
+
+            await userEvent.click(screen.getByRole('button', {name: /Set a new password manually/i}));
+            await userEvent.click(screen.getByRole('button', {name: /Send password reset email instead/i}));
+
+            expect(screen.getByText(/send a password reset link to/i)).toBeInTheDocument();
+            expect(screen.queryByPlaceholderText(/New password/i)).not.toBeInTheDocument();
         });
 
         test('should call sendPasswordResetEmail in email mode', async () => {
