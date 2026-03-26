@@ -226,6 +226,10 @@ func (a *App) DeletePropertyField(rctx request.CTX, groupID, id string, bypassPr
 	}
 
 	if err := a.Srv().propertyService.DeletePropertyField(rctx, groupID, id); err != nil {
+		var appErr *model.AppError
+		if errors.As(err, &appErr) {
+			return appErr
+		}
 		return model.NewAppError("DeletePropertyField", "app.property_field.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
