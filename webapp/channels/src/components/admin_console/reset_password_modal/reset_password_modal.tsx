@@ -165,28 +165,44 @@ export default function ResetPasswordModal({
         >
             <div className='ResetPasswordModal__body'>
                 {showModeToggle && (
-                    <div className='ResetPasswordModal__mode-toggle'>
-                        <button
-                            className={`ResetPasswordModal__mode-option${resetMode === 'email' ? ' ResetPasswordModal__mode-option--active' : ''}`}
-                            onClick={() => setResetMode('email')}
-                            type='button'
-                        >
+                    <fieldset className='ResetPasswordModal__mode-selector'>
+                        <legend className='ResetPasswordModal__mode-legend'>
                             {formatMessage({
-                                id: 'admin.reset_password.sendResetEmail',
-                                defaultMessage: 'Send reset email',
+                                id: 'admin.reset_password.resetMethod',
+                                defaultMessage: 'Reset method',
                             })}
-                        </button>
-                        <button
-                            className={`ResetPasswordModal__mode-option${resetMode === 'manual' ? ' ResetPasswordModal__mode-option--active' : ''}`}
-                            onClick={() => setResetMode('manual')}
-                            type='button'
-                        >
-                            {formatMessage({
-                                id: 'admin.reset_password.setManually',
-                                defaultMessage: 'Set new password',
-                            })}
-                        </button>
-                    </div>
+                        </legend>
+                        <label className='ResetPasswordModal__mode-label'>
+                            <input
+                                type='radio'
+                                name='resetMode'
+                                value='email'
+                                checked={resetMode === 'email'}
+                                onChange={() => setResetMode('email')}
+                            />
+                            <span>
+                                {formatMessage({
+                                    id: 'admin.reset_password.sendResetEmail',
+                                    defaultMessage: 'Send password reset email',
+                                })}
+                            </span>
+                        </label>
+                        <label className='ResetPasswordModal__mode-label'>
+                            <input
+                                type='radio'
+                                name='resetMode'
+                                value='manual'
+                                checked={resetMode === 'manual'}
+                                onChange={() => setResetMode('manual')}
+                            />
+                            <span>
+                                {formatMessage({
+                                    id: 'admin.reset_password.setManually',
+                                    defaultMessage: 'Set a new password manually',
+                                })}
+                            </span>
+                        </label>
+                    </fieldset>
                 )}
                 {resetMode === 'email' && showModeToggle ? (
                     <p className='ResetPasswordModal__email-description'>

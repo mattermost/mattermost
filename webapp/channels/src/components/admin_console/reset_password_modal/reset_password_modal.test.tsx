@@ -173,34 +173,34 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
             canSendPasswordResetEmail: true,
         };
 
-        test('should show mode toggle when resetting another user with email enabled', () => {
+        test('should show radio options when resetting another user with email enabled', () => {
             renderWithContext(<ResetPasswordModal {...otherUserProps}/>);
 
-            expect(screen.getByText(/Send reset email/i)).toBeInTheDocument();
-            expect(screen.getByText(/Set new password/i)).toBeInTheDocument();
+            expect(screen.getByText(/Send password reset email/i)).toBeInTheDocument();
+            expect(screen.getByText(/Set a new password manually/i)).toBeInTheDocument();
+            expect(screen.getAllByRole('radio')).toHaveLength(2);
         });
 
-        test('should not show mode toggle when resetting own password', () => {
+        test('should not show radio options when resetting own password', () => {
             const props = {...baseProps, canSendPasswordResetEmail: true};
             renderWithContext(<ResetPasswordModal {...props}/>);
 
-            expect(screen.queryByText(/Send reset email/i)).not.toBeInTheDocument();
-            expect(screen.queryByText(/Set new password/i)).not.toBeInTheDocument();
+            expect(screen.queryByRole('radio')).not.toBeInTheDocument();
         });
 
-        test('should not show mode toggle for auth_service users', () => {
+        test('should not show radio options for auth_service users', () => {
             const authUser = TestHelper.getUserMock({...user, auth_service: 'ldap'});
             const props = {...otherUserProps, user: authUser};
             renderWithContext(<ResetPasswordModal {...props}/>);
 
-            expect(screen.queryByText(/Send reset email/i)).not.toBeInTheDocument();
+            expect(screen.queryByRole('radio')).not.toBeInTheDocument();
         });
 
-        test('should not show mode toggle when email notifications are disabled', () => {
+        test('should not show radio options when email notifications are disabled', () => {
             const props = {...otherUserProps, canSendPasswordResetEmail: false};
             renderWithContext(<ResetPasswordModal {...props}/>);
 
-            expect(screen.queryByText(/Send reset email/i)).not.toBeInTheDocument();
+            expect(screen.queryByRole('radio')).not.toBeInTheDocument();
         });
 
         test('should default to email mode and show description', () => {
@@ -216,10 +216,10 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
             expect(screen.getByRole('button', {name: /Send email/i})).toBeInTheDocument();
         });
 
-        test('should switch to manual mode when clicking Set new password', async () => {
+        test('should switch to manual mode when selecting manual radio option', async () => {
             renderWithContext(<ResetPasswordModal {...otherUserProps}/>);
 
-            await userEvent.click(screen.getByText(/Set new password/i));
+            await userEvent.click(screen.getByText(/Set a new password manually/i));
 
             expect(screen.getByPlaceholderText(/New password/i)).toBeInTheDocument();
             expect(screen.queryByText(/A password reset email will be sent to/i)).not.toBeInTheDocument();
