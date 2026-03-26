@@ -7,8 +7,7 @@ import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
-import type {SchedulingInfo} from '@mattermost/types/schedule_post';
-import type {ScheduledPost} from '@mattermost/types/schedule_post';
+import type {ScheduledPost, SchedulingInfo} from '@mattermost/types/schedule_post';
 
 import {fetchMissingChannels} from 'mattermost-redux/actions/channels';
 import {isDeactivatedDirectChannel} from 'mattermost-redux/selectors/entities/channels';

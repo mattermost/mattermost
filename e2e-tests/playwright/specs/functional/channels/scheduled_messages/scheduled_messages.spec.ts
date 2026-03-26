@@ -90,7 +90,12 @@ test(
         const {selectedDate, selectedTime} = await channelsPage.scheduleMessage(draftMessage, 1, 0, true);
 
         // * Verify scheduled post indicator shows recurring weekly details
-        await verifyScheduledPostIndicator(channelsPage.centerView.scheduledPostIndicator, selectedDate, selectedTime, true);
+        await verifyScheduledPostIndicator(
+            channelsPage.centerView.scheduledPostIndicator,
+            selectedDate,
+            selectedTime,
+            true,
+        );
 
         // # Navigate to scheduled posts page via indicator link
         await channelsPage.centerView.scheduledPostIndicator.seeAllLink.click();
@@ -263,7 +268,8 @@ test(
         await expect(scheduleMessageModal.repeatWeeklyCheckbox).toBeChecked();
 
         // # Reschedule the recurring message to a different future date
-        const {selectedDate: newSelectedDate, selectedTime: newSelectedTime} = await scheduleMessageModal.scheduleMessage(2);
+        const {selectedDate: newSelectedDate, selectedTime: newSelectedTime} =
+            await scheduleMessageModal.scheduleMessage(2);
 
         // * Verify the rescheduled post still appears as a weekly recurring message
         scheduledPost = await verifyScheduledPost(scheduledPostsPage, {
