@@ -28,21 +28,29 @@ describe('Selectors.Users', () => {
     const group2 = TestHelper.fakeGroupWithId('');
 
     const user1 = TestHelper.fakeUserWithId('');
+    user1.username = 'user1';
     user1.position = 'Software Engineer at Mattermost';
     user1.notify_props = {mention_keys: 'testkey1,testkey2'} as UserProfile['notify_props'];
     user1.roles = 'system_admin system_user';
     const user2 = TestHelper.fakeUserWithId();
+    user2.username = 'user2';
     user2.delete_at = 1;
     const user3 = TestHelper.fakeUserWithId();
+    user3.username = 'user3';
     const user4 = TestHelper.fakeUserWithId();
+    user4.username = 'user4';
     const user5 = TestHelper.fakeUserWithId();
+    user5.username = 'user5';
     const user6 = TestHelper.fakeUserWithId();
+    user6.username = 'user6';
     user6.roles = 'system_admin system_user';
     const user7 = TestHelper.fakeUserWithId();
+    user7.username = 'user7';
     user7.delete_at = 1;
     user7.roles = 'system_admin system_user';
     const user8 = TestHelper.fakeUserWithId();
-    user8.nickname = 'vertex_to_edge';
+    user8.username = 'user8';
+    user8.nickname = 'some.body';
     const profiles: Record<string, UserProfile> = {};
     profiles[user1.id] = user1;
     profiles[user2.id] = user2;
@@ -472,7 +480,7 @@ describe('Selectors.Users', () => {
         expect(Selectors.searchProfilesInCurrentChannel(testState, user1.username)).toEqual([user1]);
         expect(Selectors.searchProfilesInCurrentChannel(testState, 'engineer at mattermost')).toEqual([user1]);
         expect(Selectors.searchProfilesInCurrentChannel(testState, user1.username, true)).toEqual([]);
-        expect(Selectors.searchProfilesInCurrentChannel(testState, 'to_edge', true)).toEqual([user8]);
+        expect(Selectors.searchProfilesInCurrentChannel(testState, 'body', true)).toEqual([user8]);
     });
 
     it('searchProfilesNotInCurrentChannel', () => {

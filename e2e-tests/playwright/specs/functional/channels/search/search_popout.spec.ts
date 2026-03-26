@@ -34,7 +34,7 @@ test('MM-65630-1 Search results should show popout button that opens results in 
     await expect(page.locator('#searchContainer')).toBeVisible();
     await expect(page.locator('#searchContainer').getByText(uniqueText)).toBeVisible();
 
-    const popoutButton = page.locator('.PopoutButton');
+    const popoutButton = page.locator('#searchContainer .PopoutButton');
     await expect(popoutButton).toBeVisible();
 
     const [popoutPage] = await Promise.all([page.waitForEvent('popup'), popoutButton.click()]);
@@ -82,7 +82,7 @@ test('MM-65630-2 Recent mentions popout should open with the right results', asy
     await expect(page.locator('#searchContainer').getByRole('heading', {name: 'Recent Mentions'})).toBeVisible();
     await expect(page.locator('#searchContainer').getByText(mentionText)).toBeVisible();
 
-    const popoutButton = page.locator('.PopoutButton');
+    const popoutButton = page.locator('#searchContainer .PopoutButton');
     await expect(popoutButton).toBeVisible();
 
     const [popoutPage] = await Promise.all([page.waitForEvent('popup'), popoutButton.click()]);
@@ -138,7 +138,7 @@ test('MM-65630-3 Saved messages popout should open with the right results', asyn
     await expect(page.locator('#searchContainer').getByRole('heading', {name: 'Saved messages'})).toBeVisible();
     await expect(page.locator('#searchContainer').getByText(savedText)).toBeVisible();
 
-    const popoutButton = page.locator('.PopoutButton');
+    const popoutButton = page.locator('#searchContainer .PopoutButton');
     await expect(popoutButton).toBeVisible();
 
     const [popoutPage] = await Promise.all([page.waitForEvent('popup'), popoutButton.click()]);
@@ -185,7 +185,10 @@ test('MM-65630-4 Search popout should not show popout button in the popout windo
 
     await expect(page.locator('#searchContainer')).toBeVisible();
 
-    const [popoutPage] = await Promise.all([page.waitForEvent('popup'), page.locator('.PopoutButton').click()]);
+    const [popoutPage] = await Promise.all([
+        page.waitForEvent('popup'),
+        page.locator('#searchContainer .PopoutButton').click(),
+    ]);
 
     await popoutPage.waitForLoadState('domcontentloaded');
     await expect(popoutPage.locator('#searchContainer')).toBeVisible({timeout: 10000});
@@ -224,7 +227,7 @@ test('MM-65630-5 Search popout should preserve search type (files) in the URL', 
     const filesTab = page.locator('#searchContainer').getByRole('tab', {name: /Files/});
     await filesTab.click();
 
-    const popoutButton = page.locator('.PopoutButton');
+    const popoutButton = page.locator('#searchContainer .PopoutButton');
     await expect(popoutButton).toBeVisible();
 
     const [popoutPage] = await Promise.all([page.waitForEvent('popup'), popoutButton.click()]);

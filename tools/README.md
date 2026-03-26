@@ -5,6 +5,7 @@ This directory aims to provide a set of tools that simplify and enhance various 
 ## Included tools
 
 * **mmgotool**: is a CLI to help with i18n related checks for the mattermost/server development.
+* **sharedchannel-test**: integration test tool that validates shared channel synchronization (posts, reactions, membership) between two real Mattermost server instances.
 
 ## Installation & Usage
 
@@ -20,3 +21,24 @@ Make sure you have the necessary prerequisites such as [Go](https://go.dev/) com
 * `check-empty-src`: Check for empty translation source strings
 * `clean-empty`: Clean empty translations
 * `extract`: Extract translations
+
+### sharedchannel-test
+
+Stands up two Mattermost Enterprise instances, creates a remote cluster connection, and runs integration tests for shared channel synchronization (membership, posts, reactions).
+
+**Prerequisites:**
+- `make start-docker` (Postgres and friends running)
+- Enterprise repo present at `../../enterprise`
+- An enterprise license file
+
+**Usage:**
+
+```bash
+# Managed mode (builds server, starts/stops both instances automatically)
+cd tools/sharedchannel-test
+go run . --license /path/to/license.mattermost-license --server-dir ../../server
+
+# External mode (connect to already-running instances)
+go run . --license /path/to/license.mattermost-license --manage=false \
+  --server-a http://localhost:9065 --server-b http://localhost:9066
+```
