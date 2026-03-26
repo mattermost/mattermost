@@ -239,9 +239,14 @@ func (a *App) persistentNotificationsAuxiliaryData(channelsMap map[string]*model
 	channelKeywords := make(map[string]MentionKeywords, len(channelsMap))
 	channelNotifyProps := make(map[string]map[string]model.StringMap, len(channelsMap))
 	for _, c := range channelsMap {
+		team := teamsMap[c.TeamId]
+		if team == nil && !c.IsGroupOrDirect() {
+			continue
+		}
+
 		// In DM, notifications can't be send to any 3rd person.
 		if c.Type != model.ChannelTypeDirect {
-			groups, err := a.getGroupsAllowedForReferenceInChannel(c, teamsMap[c.TeamId])
+			groups, err := a.getGroupsAllowedForReferenceInChannel(c, team)
 			if err != nil {
 				return nil, nil, nil, nil, errors.Wrapf(err, "failed to get profiles for channel %s", c.Id)
 			}
