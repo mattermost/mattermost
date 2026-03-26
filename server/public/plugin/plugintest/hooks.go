@@ -27,6 +27,54 @@ func (_m *Hooks) ChannelHasBeenCreated(c *plugin.Context, channel *model.Channel
 	_m.Called(c, channel)
 }
 
+// ChannelMemberWillBeAdded provides a mock function with given fields: c, channelMember
+func (_m *Hooks) ChannelMemberWillBeAdded(c *plugin.Context, channelMember *model.ChannelMember) (*model.ChannelMember, string) {
+	ret := _m.Called(c, channelMember)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ChannelMemberWillBeAdded")
+	}
+
+	var r0 *model.ChannelMember
+	var r1 string
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.ChannelMember) (*model.ChannelMember, string)); ok {
+		return rf(c, channelMember)
+	}
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.ChannelMember) *model.ChannelMember); ok {
+		r0 = rf(c, channelMember)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ChannelMember)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*plugin.Context, *model.ChannelMember) string); ok {
+		r1 = rf(c, channelMember)
+	} else {
+		r1 = ret.Get(1).(string)
+	}
+
+	return r0, r1
+}
+
+// ChannelWillBeArchived provides a mock function with given fields: c, channel
+func (_m *Hooks) ChannelWillBeArchived(c *plugin.Context, channel *model.Channel) string {
+	ret := _m.Called(c, channel)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ChannelWillBeArchived")
+	}
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.Channel) string); ok {
+		r0 = rf(c, channel)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
 // ConfigurationWillBeSaved provides a mock function with given fields: newCfg
 func (_m *Hooks) ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error) {
 	ret := _m.Called(newCfg)
@@ -600,6 +648,36 @@ func (_m *Hooks) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 // ServeMetrics provides a mock function with given fields: c, w, r
 func (_m *Hooks) ServeMetrics(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
 	_m.Called(c, w, r)
+}
+
+// TeamMemberWillBeAdded provides a mock function with given fields: c, teamMember
+func (_m *Hooks) TeamMemberWillBeAdded(c *plugin.Context, teamMember *model.TeamMember) (*model.TeamMember, string) {
+	ret := _m.Called(c, teamMember)
+
+	if len(ret) == 0 {
+		panic("no return value specified for TeamMemberWillBeAdded")
+	}
+
+	var r0 *model.TeamMember
+	var r1 string
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.TeamMember) (*model.TeamMember, string)); ok {
+		return rf(c, teamMember)
+	}
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.TeamMember) *model.TeamMember); ok {
+		r0 = rf(c, teamMember)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.TeamMember)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*plugin.Context, *model.TeamMember) string); ok {
+		r1 = rf(c, teamMember)
+	} else {
+		r1 = ret.Get(1).(string)
+	}
+
+	return r0, r1
 }
 
 // UserHasBeenCreated provides a mock function with given fields: c, user
