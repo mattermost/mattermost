@@ -24,6 +24,8 @@ interface PasswordConfig {
     requireUppercase: boolean;
 }
 
+type ResetStep = 'choice' | 'manual';
+
 export type Props = {
     user?: UserProfile;
     currentUserId: string;
@@ -58,8 +60,9 @@ export default function ResetPasswordModal({
     const isAuthUser = Boolean(user?.auth_service);
 
     const canUseEmailReset = !isResettingOwnPassword && !isAuthUser && canSendPasswordResetEmail;
-    const [showManualReset, setShowManualReset] = useState(!canUseEmailReset);
-    const isEmailReset = canUseEmailReset && !showManualReset;
+    const [step, setStep] = useState<ResetStep>(canUseEmailReset ? 'choice' : 'manual');
+    const isChoiceStep = canUseEmailReset && step === 'choice';
+    const isManualStep = !canUseEmailReset || step === 'manual';
 
     const currentPasswordRef = useRef<HTMLInputElement>(null);
     const newPasswordRef = useRef<HTMLInputElement>(null);
@@ -73,7 +76,23 @@ export default function ResetPasswordModal({
         setShow(false);
     }, []);
 
-    const handleConfirm = useCallback(async () => {
+    const handleSendEmail = useCallback(async () => {
+        if (!user) {
+            return;
+        }
+
+        setErrorNewPass(null);
+        setErrorCurrentPass(null);
+        const result = await actions.sendPasswordResetEmail(user.email);
+        if ('error' in result) {
+            setErrorCurrentPass(result.error.message);
+            return;
+        }
+        onSuccess?.();
+        setShow(false);
+    }, [user, actions, onSuccess]);
+
+    const handleSetPassword = useCallback(async () => {
         if (!user) {
             return;
         }
@@ -81,17 +100,6 @@ export default function ResetPasswordModal({
         // Clear previous errors
         setErrorNewPass(null);
         setErrorCurrentPass(null);
-
-        if (isEmailReset) {
-            const result = await actions.sendPasswordResetEmail(user.email);
-            if ('error' in result) {
-                setErrorCurrentPass(result.error.message);
-                return;
-            }
-            onSuccess?.();
-            setShow(false);
-            return;
-        }
 
         // Validate current password if resetting own password
         if (isResettingOwnPassword && currentPassword === '') {
@@ -122,7 +130,7 @@ export default function ResetPasswordModal({
 
         onSuccess?.();
         setShow(false);
-    }, [user, isEmailReset, isResettingOwnPassword, currentPassword, newPassword, passwordConfig, actions, onSuccess, formatMessage]);
+    }, [user, isResettingOwnPassword, currentPassword, newPassword, passwordConfig, actions, onSuccess, formatMessage]);
 
     if (!user) {
         return null;
@@ -140,16 +148,6 @@ export default function ResetPasswordModal({
             defaultMessage: 'Reset password for {name}',
         }, {name: displayName});
 
-    const confirmButtonText = isEmailReset ?
-        formatMessage({
-            id: 'admin.reset_password.sendEmail',
-            defaultMessage: 'Send email',
-        }) :
-        formatMessage({
-            id: 'admin.reset_password.reset',
-            defaultMessage: 'Reset',
-        });
-
     return (
         <GenericModal
             id='resetPasswordModal'
@@ -159,29 +157,45 @@ export default function ResetPasswordModal({
             onExited={onExited}
             onHide={handleCancel}
             handleCancel={handleCancel}
-            handleConfirm={handleConfirm}
-            handleEnterKeyPress={handleConfirm}
-            confirmButtonText={confirmButtonText}
+            handleConfirm={isManualStep ? handleSetPassword : undefined}
+            handleEnterKeyPress={isManualStep ? handleSetPassword : undefined}
+            confirmButtonText={isManualStep ? formatMessage({
+                id: 'admin.reset_password.reset',
+                defaultMessage: 'Reset',
+            }) : undefined}
             compassDesign={true}
             autoCloseOnConfirmButton={false}
             errorText={errorCurrentPass ? <span className='error'>{errorCurrentPass}</span> : undefined}
+            footerDivider={false}
         >
             <div className='ResetPasswordModal__body'>
-                {isEmailReset ? (
+                {isChoiceStep ? (
                     <div className='ResetPasswordModal__email-panel'>
                         <p className='ResetPasswordModal__email-description'>
                             {emailResetDescription}
                         </p>
-                        <button
-                            type='button'
-                            className='style--none color--link ResetPasswordModal__manual-trigger'
-                            onClick={() => setShowManualReset(true)}
-                        >
-                            {formatMessage({
-                                id: 'admin.reset_password.setManually',
-                                defaultMessage: 'Set a new password manually',
-                            })}
-                        </button>
+                        <div className='ResetPasswordModal__choice-actions'>
+                            <button
+                                type='button'
+                                className='GenericModal__button btn btn-outline-tertiary'
+                                onClick={() => setStep('manual')}
+                            >
+                                {formatMessage({
+                                    id: 'admin.reset_password.setPassword',
+                                    defaultMessage: 'Set password',
+                                })}
+                            </button>
+                            <button
+                                type='button'
+                                className='GenericModal__button btn btn-primary'
+                                onClick={handleSendEmail}
+                            >
+                                {formatMessage({
+                                    id: 'admin.reset_password.sendEmail',
+                                    defaultMessage: 'Send email',
+                                })}
+                            </button>
+                        </div>
                     </div>
                 ) : (
                     <>
@@ -197,7 +211,7 @@ export default function ResetPasswordModal({
                             <button
                                 type='button'
                                 className='style--none color--link ResetPasswordModal__manual-trigger'
-                                onClick={() => setShowManualReset(false)}
+                                onClick={() => setStep('choice')}
                             >
                                 {formatMessage({
                                     id: 'admin.reset_password.sendResetEmail',

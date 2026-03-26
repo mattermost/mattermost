@@ -172,12 +172,14 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
             canSendPasswordResetEmail: true,
         };
 
-        test('should show email-first content when resetting another user with email enabled', () => {
+        test('should show two footer actions when resetting another user with email enabled', () => {
             renderWithContext(<ResetPasswordModal {...otherUserProps}/>);
 
             expect(screen.getByText(/send a password reset link to/i)).toBeInTheDocument();
-            expect(screen.getByRole('button', {name: /Set a new password manually/i})).toBeInTheDocument();
+            expect(screen.getByRole('button', {name: /Send email/i})).toBeInTheDocument();
+            expect(screen.getByRole('button', {name: /Set password/i})).toBeInTheDocument();
             expect(screen.queryByRole('radio')).not.toBeInTheDocument();
+            expect(screen.queryByPlaceholderText(/New password/i)).not.toBeInTheDocument();
         });
 
         test('should not show email-first content when resetting own password', () => {
@@ -215,20 +217,21 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
             expect(screen.getByRole('button', {name: /Send email/i})).toBeInTheDocument();
         });
 
-        test('should switch to manual mode when selecting the manual fallback action', async () => {
+        test('should switch to manual step when clicking Set password', async () => {
             renderWithContext(<ResetPasswordModal {...otherUserProps}/>);
 
-            await userEvent.click(screen.getByRole('button', {name: /Set a new password manually/i}));
+            await userEvent.click(screen.getByRole('button', {name: /Set password/i}));
 
             expect(screen.getByPlaceholderText(/New password/i)).toBeInTheDocument();
             expect(screen.queryByText(/send a password reset link to/i)).not.toBeInTheDocument();
             expect(screen.getByRole('button', {name: /Send password reset email instead/i})).toBeInTheDocument();
+            expect(screen.getByRole('button', {name: /^Reset$/i})).toBeInTheDocument();
         });
 
         test('should switch back to email mode after entering manual mode', async () => {
             renderWithContext(<ResetPasswordModal {...otherUserProps}/>);
 
-            await userEvent.click(screen.getByRole('button', {name: /Set a new password manually/i}));
+            await userEvent.click(screen.getByRole('button', {name: /Set password/i}));
             await userEvent.click(screen.getByRole('button', {name: /Send password reset email instead/i}));
 
             expect(screen.getByText(/send a password reset link to/i)).toBeInTheDocument();
