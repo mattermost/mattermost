@@ -78,10 +78,10 @@ function getPasswordStrength(password: string, passwordConfig: PasswordConfig) {
 
     const minimumLength = passwordConfig.minimumLength || 10;
     const characterVariety = [
-        /[a-z]/.test(password),
-        /[A-Z]/.test(password),
-        /[0-9]/.test(password),
-        /[ !"\\#$%&'()*+,-./:;<=>?@[\]^_`|~]/.test(password),
+        (/[a-z]/).test(password),
+        (/[A-Z]/).test(password),
+        (/[0-9]/).test(password),
+        (/[ !"\\#$%&'()*+,-./:;<=>?@[\]^_`|~]/).test(password),
     ].filter(Boolean).length;
 
     let strength = 0;
@@ -261,6 +261,26 @@ export default function ResetPasswordModal({
         id: 'admin.reset_password.subtitle',
         defaultMessage: 'Resetting password for {email}',
     }, {email: user.email});
+    const resetMethodLegend = formatMessage({
+        id: 'admin.reset_password.method',
+        defaultMessage: 'Reset password method',
+    });
+    const emailOptionTitle = formatMessage({
+        id: 'admin.reset_password.option.email.title',
+        defaultMessage: 'Send password reset link',
+    });
+    const emailOptionDescription = formatMessage({
+        id: 'admin.reset_password.option.email.description',
+        defaultMessage: 'The user will receive an email with a link to choose their own password.',
+    });
+    const manualOptionTitle = formatMessage({
+        id: 'admin.reset_password.option.manual.title',
+        defaultMessage: 'Set password manually',
+    });
+    const manualOptionDescription = formatMessage({
+        id: 'admin.reset_password.option.manual.description',
+        defaultMessage: 'Enter a new password for this user directly.',
+    });
     const strengthLabels = [
         '',
         formatMessage({
@@ -320,72 +340,67 @@ export default function ResetPasswordModal({
                             })}
                         </p>
                         <fieldset className='ResetPasswordModal__choices'>
-                            <legend className='sr-only'>
-                                {formatMessage({
-                                    id: 'admin.reset_password.method',
-                                    defaultMessage: 'Reset password method',
-                                })}
-                            </legend>
-                            <label
-                                className={`ResetPasswordModal__choice${resetMethod === 'email' ? ' ResetPasswordModal__choice--selected' : ''}`}
-                            >
+                            <legend className='sr-only'>{resetMethodLegend}</legend>
+                            <div className={`ResetPasswordModal__choice${resetMethod === 'email' ? ' ResetPasswordModal__choice--selected' : ''}`}>
                                 <input
+                                    id='resetPasswordModalSendLink'
                                     className='ResetPasswordModal__choice-input'
                                     type='radio'
                                     name='resetMethod'
                                     value='email'
                                     checked={resetMethod === 'email'}
                                     onChange={() => handleResetMethodChange('email')}
+                                    aria-describedby='resetPasswordModalSendLinkDescription'
                                 />
                                 <span
                                     className='ResetPasswordModal__choice-control'
                                     aria-hidden='true'
                                 />
-                                <span className='ResetPasswordModal__choice-content'>
-                                    <span className='ResetPasswordModal__choice-title'>
-                                        {formatMessage({
-                                            id: 'admin.reset_password.option.email.title',
-                                            defaultMessage: 'Send password reset link',
-                                        })}
+                                <div className='ResetPasswordModal__choice-content'>
+                                    <label
+                                        htmlFor='resetPasswordModalSendLink'
+                                        className='ResetPasswordModal__choice-title'
+                                    >
+                                        {emailOptionTitle}
+                                    </label>
+                                    <span
+                                        id='resetPasswordModalSendLinkDescription'
+                                        className='ResetPasswordModal__choice-description'
+                                    >
+                                        {emailOptionDescription}
                                     </span>
-                                    <span className='ResetPasswordModal__choice-description'>
-                                        {formatMessage({
-                                            id: 'admin.reset_password.option.email.description',
-                                            defaultMessage: 'The user will receive an email with a link to choose their own password.',
-                                        })}
-                                    </span>
-                                </span>
-                            </label>
-                            <label
-                                className={`ResetPasswordModal__choice${resetMethod === 'manual' ? ' ResetPasswordModal__choice--selected' : ''}`}
-                            >
+                                </div>
+                            </div>
+                            <div className={`ResetPasswordModal__choice${resetMethod === 'manual' ? ' ResetPasswordModal__choice--selected' : ''}`}>
                                 <input
+                                    id='resetPasswordModalManual'
                                     className='ResetPasswordModal__choice-input'
                                     type='radio'
                                     name='resetMethod'
                                     value='manual'
                                     checked={resetMethod === 'manual'}
                                     onChange={() => handleResetMethodChange('manual')}
+                                    aria-describedby='resetPasswordModalManualDescription'
                                 />
                                 <span
                                     className='ResetPasswordModal__choice-control'
                                     aria-hidden='true'
                                 />
-                                <span className='ResetPasswordModal__choice-content'>
-                                    <span className='ResetPasswordModal__choice-title'>
-                                        {formatMessage({
-                                            id: 'admin.reset_password.option.manual.title',
-                                            defaultMessage: 'Set password manually',
-                                        })}
+                                <div className='ResetPasswordModal__choice-content'>
+                                    <label
+                                        htmlFor='resetPasswordModalManual'
+                                        className='ResetPasswordModal__choice-title'
+                                    >
+                                        {manualOptionTitle}
+                                    </label>
+                                    <span
+                                        id='resetPasswordModalManualDescription'
+                                        className='ResetPasswordModal__choice-description'
+                                    >
+                                        {manualOptionDescription}
                                     </span>
-                                    <span className='ResetPasswordModal__choice-description'>
-                                        {formatMessage({
-                                            id: 'admin.reset_password.option.manual.description',
-                                            defaultMessage: 'Enter a new password for this user directly.',
-                                        })}
-                                    </span>
-                                </span>
-                            </label>
+                                </div>
+                            </div>
                         </fieldset>
                     </>
                 )}
