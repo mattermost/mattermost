@@ -108,7 +108,11 @@ fi
 
 cat gotestsum-*.json > gotestsum.json 2>/dev/null || true
 
-# ── Merge coverage profiles (if coverage is enabled) ──
+# ── Merge coverage profiles within this shard (if coverage is enabled) ──
+# A single shard may run multiple gotestsum invocations (light packages +
+# heavy package splits), each producing its own cover-N.out. This merges
+# them into one cover.out per shard. The cross-shard merge (combining all
+# shards into a single report) is handled by Codecov's after_n_builds.
 if [[ "${ENABLE_COVERAGE:-false}" == "true" ]] && ls cover-*.out 1>/dev/null 2>&1; then
   echo "Merging coverage profiles..."
   {

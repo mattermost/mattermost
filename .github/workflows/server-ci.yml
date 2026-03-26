@@ -307,10 +307,6 @@ jobs:
       logsartifact: postgres-server-test-logs
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: true
-  # -- Test coverage: sharded into 4 parallel runners to avoid OOM --
-  # Previously disabled due to running out of memory when all tests ran
-  # with coverage instrumentation in a single process. Sharding splits the
-  # memory load across 4 runners (~4× reduction per shard).
   test-coverage:
     name: "Coverage (shard ${{ matrix.shard }})"
     if: ${{ github.event_name != 'pull_request' || !startsWith(github.event.pull_request.base.ref, 'release-') }}
@@ -326,72 +322,12 @@ jobs:
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: "coverage-server-test-logs-shard-${{ matrix.shard }}"
-      fullyparallel: false
+      fullyparallel: true
       enablecoverage: true
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: false
       shard-index: ${{ matrix.shard }}
       shard-total: 4
-  # -- Merge coverage profiles from all shards and upload to Codecov --
-  merge-coverage:
-    name: Merge Coverage
-    needs: test-coverage
-    if: always()
-    runs-on: ubuntu-22.04
-    continue-on-error: true # Coverage should never block PRs
-    steps:
-      - name: Checkout mattermost project
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-      - name: Download all coverage shard artifacts
-        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
-        with:
-          pattern: coverage-server-test-logs-shard-*
-          path: shards
-
-      - name: Merge coverage profiles
-        run: |
-          echo "Merging coverage profiles from all shards..."
-          # Each shard produces a cover.out file in Go coverage profile format.
-          # Merge them by keeping one "mode:" header and concatenating data lines.
-          COVER_FILES=$(find shards -name 'cover.out' -size +0c | sort)
-          if [[ -z "$COVER_FILES" ]]; then
-            echo "WARNING: No coverage files found in any shard"
-            exit 0
-          fi
-
-          FIRST_FILE=$(echo "$COVER_FILES" | head -1)
-          {
-            head -1 "$FIRST_FILE"  # "mode: atomic" header
-            for f in $COVER_FILES; do
-              tail -n +2 "$f"  # data lines (skip mode header)
-            done
-          } > cover.out
-
-          SHARD_COUNT=$(echo "$COVER_FILES" | wc -l)
-          LINE_COUNT=$(wc -l < cover.out)
-          echo "Merged $SHARD_COUNT shard coverage files into cover.out ($LINE_COUNT lines)"
-
-      - name: Upload merged coverage to Codecov
-        if: hashFiles('cover.out') != ''
-        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          disable_search: true
-          files: cover.out
-          flags: server
-
-      # Retain the merged profile for offline analysis and historical comparison.
-      # 30-day retention keeps storage minimal (~3.5MB/run × ~20 runs/day = ~2.1GB).
-      # 90 days was considered (~6.3GB) but deferred to keep costs low — extend if
-      # historical analysis beyond a month proves necessary.
-      - name: Upload merged coverage artifact
-        if: hashFiles('cover.out') != ''
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-        with:
-          name: server-coverage-merged
-          path: cover.out
-          retention-days: 30
   test-mmctl:
     name: Run mmctl tests
     needs: go
