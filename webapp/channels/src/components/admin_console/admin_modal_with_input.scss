@@ -12,6 +12,195 @@
         gap: 20px;
     }
 
+    &__description {
+        margin: 0;
+        color: var(--center-channel-color-rgb);
+        font-size: 18px;
+        line-height: 28px;
+    }
+
+    &__choices {
+        display: flex;
+        flex-direction: column;
+        margin: 0;
+        border: 0;
+        gap: 16px;
+        padding: 0;
+    }
+
+    &__choice {
+        display: flex;
+        align-items: flex-start;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 12px;
+        cursor: pointer;
+        gap: 16px;
+        padding: 20px 24px;
+        transition: border-color 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+
+        &:hover {
+            border-color: rgba(var(--button-bg-rgb), 0.48);
+        }
+
+        &--selected {
+            border-color: var(--button-bg);
+            background: rgba(var(--button-bg-rgb), 0.08);
+            box-shadow: 0 0 0 1px var(--button-bg);
+        }
+    }
+
+    &__choice-input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    &__choice-control {
+        position: relative;
+        flex: 0 0 auto;
+        width: 28px;
+        height: 28px;
+        border: 3px solid rgba(var(--center-channel-color-rgb), 0.32);
+        border-radius: 50%;
+        margin-top: 2px;
+    }
+
+    &__choice--selected &__choice-control {
+        border-color: var(--button-bg);
+
+        &::after {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 12px;
+            height: 12px;
+            background: var(--button-bg);
+            border-radius: 50%;
+            content: '';
+            transform: translate(-50%, -50%);
+        }
+    }
+
+    &__choice-content {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    &__choice-title {
+        color: var(--center-channel-color);
+        font-size: 18px;
+        font-weight: 600;
+        line-height: 28px;
+    }
+
+    &__choice-description {
+        color: rgba(var(--center-channel-color-rgb), 0.8);
+        font-size: 16px;
+        line-height: 24px;
+    }
+
+    &__manual-section {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    &__manual-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+    &__manual-label {
+        color: var(--center-channel-color);
+        font-size: 18px;
+        font-weight: 600;
+        line-height: 28px;
+    }
+
+    &__generate,
+    &__password-copy {
+        display: inline-flex;
+        align-items: center;
+        border: 0;
+        background: transparent;
+        color: var(--button-bg);
+        cursor: pointer;
+        gap: 8px;
+        padding: 0;
+    }
+
+    &__generate {
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 24px;
+    }
+
+    &__password-copy {
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 4px;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+        }
+    }
+
+    &__strength {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    &__strength-bars {
+        display: grid;
+        flex: 1 1 auto;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    &__strength-bar {
+        height: 6px;
+        border-radius: 999px;
+        background: rgba(var(--center-channel-color-rgb), 0.12);
+
+        &--active {
+            background: var(--online-indicator);
+        }
+    }
+
+    &__strength-label {
+        color: var(--online-indicator);
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 24px;
+        white-space: nowrap;
+    }
+
+    &__notice {
+        display: flex;
+        align-items: flex-start;
+        border-radius: 12px;
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+        color: rgba(var(--center-channel-color-rgb), 0.8);
+        gap: 12px;
+        padding: 16px 20px;
+
+        svg {
+            flex: 0 0 auto;
+            margin-top: 2px;
+            color: var(--button-bg);
+        }
+
+        span {
+            font-size: 16px;
+            line-height: 24px;
+        }
+    }
+
     // Override Input component styles to work properly in admin console modal
     // The Input component uses a fieldset for the border, so we need to remove
     // the default form-control border styling that GenericModal applies

@@ -1,14 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 
+import {
+    CheckIcon,
+    ContentCopyIcon,
+    InformationOutlineIcon,
+    RefreshIcon,
+} from '@mattermost/compass-icons/components';
 import {GenericModal} from '@mattermost/components';
 import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import useCopyText from 'components/common/hooks/useCopyText';
 import Input from 'components/widgets/inputs/input/input';
 
 import {isValidPassword} from 'utils/password';
@@ -24,6 +31,80 @@ interface PasswordConfig {
     requireUppercase: boolean;
 }
 
+type ResetMethod = 'email' | 'manual';
+
+const LOWERCASE = 'abcdefghijkmnopqrstuvwxyz';
+const UPPERCASE = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+const NUMBERS = '23456789';
+const SYMBOLS = '!@#$%^&*()-_=+[]{};:,.?';
+const PASSWORD_SEGMENTS = 4;
+
+function getRandomIndex(length: number) {
+    return globalThis.crypto.getRandomValues(new Uint32Array(1))[0] % length;
+}
+
+function pickRandomCharacter(characters: string) {
+    return characters[getRandomIndex(characters.length)];
+}
+
+function shuffleString(value: string) {
+    const chars = value.split('');
+
+    for (let i = chars.length - 1; i > 0; i--) {
+        const j = getRandomIndex(i + 1);
+        [chars[i], chars[j]] = [chars[j], chars[i]];
+    }
+
+    return chars.join('');
+}
+
+function generatePassword(passwordConfig: PasswordConfig) {
+    const targetLength = Math.max(passwordConfig.minimumLength || 10, 16);
+    const characterSets = [LOWERCASE, UPPERCASE, NUMBERS, SYMBOLS];
+    const passwordCharacters = characterSets.map((characters) => pickRandomCharacter(characters));
+    const allCharacters = characterSets.join('');
+
+    while (passwordCharacters.length < targetLength) {
+        passwordCharacters.push(pickRandomCharacter(allCharacters));
+    }
+
+    return shuffleString(passwordCharacters.join(''));
+}
+
+function getPasswordStrength(password: string, passwordConfig: PasswordConfig) {
+    if (!password) {
+        return 0;
+    }
+
+    const minimumLength = passwordConfig.minimumLength || 10;
+    const characterVariety = [
+        /[a-z]/.test(password),
+        /[A-Z]/.test(password),
+        /[0-9]/.test(password),
+        /[ !"\\#$%&'()*+,-./:;<=>?@[\]^_`|~]/.test(password),
+    ].filter(Boolean).length;
+
+    let strength = 0;
+
+    if (password.length >= minimumLength) {
+        strength++;
+    }
+
+    if (password.length >= Math.max(minimumLength + 2, 12)) {
+        strength++;
+    }
+
+    if (characterVariety >= 3) {
+        strength++;
+    }
+
+    if (characterVariety === 4 && password.length >= Math.max(minimumLength + 6, 16)) {
+        strength++;
+    }
+
+    return Math.min(strength, PASSWORD_SEGMENTS);
+}
+
 export type Props = {
     user?: UserProfile;
     currentUserId: string;
@@ -31,6 +112,7 @@ export type Props = {
     onExited: () => void;
     passwordConfig: PasswordConfig;
     actions: {
+        sendPasswordResetEmail: (email: string) => Promise<ActionResult>;
         updateUserPassword: (userId: string, currentPassword: string, password: string) => Promise<ActionResult>;
     };
 }
@@ -46,18 +128,54 @@ export default function ResetPasswordModal({
     const {formatMessage} = useIntl();
 
     const [show, setShow] = useState(true);
+    const [resetMethod, setResetMethod] = useState<ResetMethod>('email');
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [errorNewPass, setErrorNewPass] = useState<React.ReactNode>(null);
-    const [errorCurrentPass, setErrorCurrentPass] = useState<React.ReactNode>(null);
+    const [modalError, setModalError] = useState<React.ReactNode>(null);
 
     const currentPasswordRef = useRef<HTMLInputElement>(null);
     const newPasswordRef = useRef<HTMLInputElement>(null);
 
     const isResettingOwnPassword = user?.id === currentUserId;
+    const isAuthUser = Boolean(user?.auth_service);
+    const shouldShowResetChoices = Boolean(user && !isResettingOwnPassword && !isAuthUser);
+    const passwordStrength = useMemo(() => {
+        if (!shouldShowResetChoices || resetMethod !== 'manual') {
+            return 0;
+        }
+
+        return getPasswordStrength(newPassword, passwordConfig);
+    }, [newPassword, passwordConfig, resetMethod, shouldShowResetChoices]);
+    const {
+        copiedRecently,
+        onClick: handleCopyPassword,
+    } = useCopyText({text: newPassword});
 
     const handleCancel = useCallback(() => {
         setShow(false);
+    }, []);
+
+    const ensureGeneratedPassword = useCallback(() => {
+        setNewPassword((currentValue) => currentValue || generatePassword(passwordConfig));
+    }, [passwordConfig]);
+
+    useEffect(() => {
+        if (shouldShowResetChoices && resetMethod === 'manual') {
+            ensureGeneratedPassword();
+            newPasswordRef.current?.focus();
+        }
+    }, [ensureGeneratedPassword, resetMethod, shouldShowResetChoices]);
+
+    const handleGeneratePassword = useCallback(() => {
+        setNewPassword(generatePassword(passwordConfig));
+        setErrorNewPass(null);
+    }, [passwordConfig]);
+
+    const handleResetMethodChange = useCallback((nextMethod: ResetMethod) => {
+        setResetMethod(nextMethod);
+        setModalError(null);
+        setErrorNewPass(null);
     }, []);
 
     const handleConfirm = useCallback(async () => {
@@ -65,20 +183,30 @@ export default function ResetPasswordModal({
             return;
         }
 
-        // Clear previous errors
         setErrorNewPass(null);
-        setErrorCurrentPass(null);
+        setModalError(null);
 
-        // Validate current password if resetting own password
+        if (shouldShowResetChoices && resetMethod === 'email') {
+            const result = await actions.sendPasswordResetEmail(user.email);
+
+            if ('error' in result) {
+                setModalError(result.error.message);
+                return;
+            }
+
+            onSuccess?.();
+            setShow(false);
+            return;
+        }
+
         if (isResettingOwnPassword && currentPassword === '') {
-            setErrorCurrentPass(formatMessage({
+            setModalError(formatMessage({
                 id: 'admin.reset_password.missing_current',
                 defaultMessage: 'Please enter your current password.',
             }));
             return;
         }
 
-        // Validate new password
         const {valid, error} = isValidPassword(newPassword, passwordConfig);
         if (!valid && error) {
             setErrorNewPass(error);
@@ -92,21 +220,30 @@ export default function ResetPasswordModal({
         );
 
         if ('error' in result) {
-            setErrorCurrentPass(result.error.message);
+            setModalError(result.error.message);
             return;
         }
 
         onSuccess?.();
         setShow(false);
-    }, [user, isResettingOwnPassword, currentPassword, newPassword, passwordConfig, actions, onSuccess, formatMessage]);
+    }, [
+        actions,
+        currentPassword,
+        formatMessage,
+        isResettingOwnPassword,
+        newPassword,
+        onSuccess,
+        passwordConfig,
+        resetMethod,
+        shouldShowResetChoices,
+        user,
+    ]);
 
     if (!user) {
         return null;
     }
 
     const displayName = getFullName(user) || user.username;
-    const isAuthUser = Boolean(user.auth_service);
-
     const title = isAuthUser ?
         formatMessage({
             id: 'admin.reset_password.titleSwitchFor',
@@ -116,27 +253,142 @@ export default function ResetPasswordModal({
             id: 'admin.reset_password.titleResetFor',
             defaultMessage: 'Reset password for {name}',
         }, {name: displayName});
+    const adminResetTitle = formatMessage({
+        id: 'admin.reset_password.title',
+        defaultMessage: 'Reset password',
+    });
+    const adminResetSubtitle = formatMessage({
+        id: 'admin.reset_password.subtitle',
+        defaultMessage: 'Resetting password for {email}',
+    }, {email: user.email});
+    const strengthLabels = [
+        '',
+        formatMessage({
+            id: 'admin.reset_password.strength.weak',
+            defaultMessage: 'Weak',
+        }),
+        formatMessage({
+            id: 'admin.reset_password.strength.fair',
+            defaultMessage: 'Fair',
+        }),
+        formatMessage({
+            id: 'admin.reset_password.strength.strong',
+            defaultMessage: 'Strong',
+        }),
+        formatMessage({
+            id: 'admin.reset_password.strength.veryStrong',
+            defaultMessage: 'Very strong',
+        }),
+    ];
+    const confirmButtonText = shouldShowResetChoices ?
+        formatMessage(resetMethod === 'manual' ? {
+            id: 'admin.reset_password.resetPassword',
+            defaultMessage: 'Reset password',
+        } : {
+            id: 'admin.reset_password.sendLink',
+            defaultMessage: 'Send reset link',
+        }) :
+        formatMessage({
+            id: 'admin.reset_password.reset',
+            defaultMessage: 'Reset',
+        });
 
     return (
         <GenericModal
             id='resetPasswordModal'
             className='ResetPasswordModal'
-            modalHeaderText={title}
+            modalHeaderText={shouldShowResetChoices ? adminResetTitle : title}
+            modalSubheaderText={shouldShowResetChoices ? adminResetSubtitle : undefined}
             show={show}
             onExited={onExited}
             onHide={handleCancel}
             handleCancel={handleCancel}
             handleConfirm={handleConfirm}
             handleEnterKeyPress={handleConfirm}
-            confirmButtonText={formatMessage({
-                id: 'admin.reset_password.reset',
-                defaultMessage: 'Reset',
-            })}
+            confirmButtonText={confirmButtonText}
             compassDesign={true}
             autoCloseOnConfirmButton={false}
-            errorText={errorCurrentPass ? <span className='error'>{errorCurrentPass}</span> : undefined}
+            errorText={modalError ? <span className='error'>{modalError}</span> : undefined}
         >
             <div className='ResetPasswordModal__body'>
+                {shouldShowResetChoices && (
+                    <>
+                        <p className='ResetPasswordModal__description'>
+                            {formatMessage({
+                                id: 'admin.reset_password.description',
+                                defaultMessage: 'Choose how you\'d like to reset this user\'s password.',
+                            })}
+                        </p>
+                        <fieldset className='ResetPasswordModal__choices'>
+                            <legend className='sr-only'>
+                                {formatMessage({
+                                    id: 'admin.reset_password.method',
+                                    defaultMessage: 'Reset password method',
+                                })}
+                            </legend>
+                            <label
+                                className={`ResetPasswordModal__choice${resetMethod === 'email' ? ' ResetPasswordModal__choice--selected' : ''}`}
+                            >
+                                <input
+                                    className='ResetPasswordModal__choice-input'
+                                    type='radio'
+                                    name='resetMethod'
+                                    value='email'
+                                    checked={resetMethod === 'email'}
+                                    onChange={() => handleResetMethodChange('email')}
+                                />
+                                <span
+                                    className='ResetPasswordModal__choice-control'
+                                    aria-hidden='true'
+                                />
+                                <span className='ResetPasswordModal__choice-content'>
+                                    <span className='ResetPasswordModal__choice-title'>
+                                        {formatMessage({
+                                            id: 'admin.reset_password.option.email.title',
+                                            defaultMessage: 'Send password reset link',
+                                        })}
+                                    </span>
+                                    <span className='ResetPasswordModal__choice-description'>
+                                        {formatMessage({
+                                            id: 'admin.reset_password.option.email.description',
+                                            defaultMessage: 'The user will receive an email with a link to choose their own password.',
+                                        })}
+                                    </span>
+                                </span>
+                            </label>
+                            <label
+                                className={`ResetPasswordModal__choice${resetMethod === 'manual' ? ' ResetPasswordModal__choice--selected' : ''}`}
+                            >
+                                <input
+                                    className='ResetPasswordModal__choice-input'
+                                    type='radio'
+                                    name='resetMethod'
+                                    value='manual'
+                                    checked={resetMethod === 'manual'}
+                                    onChange={() => handleResetMethodChange('manual')}
+                                />
+                                <span
+                                    className='ResetPasswordModal__choice-control'
+                                    aria-hidden='true'
+                                />
+                                <span className='ResetPasswordModal__choice-content'>
+                                    <span className='ResetPasswordModal__choice-title'>
+                                        {formatMessage({
+                                            id: 'admin.reset_password.option.manual.title',
+                                            defaultMessage: 'Set password manually',
+                                        })}
+                                    </span>
+                                    <span className='ResetPasswordModal__choice-description'>
+                                        {formatMessage({
+                                            id: 'admin.reset_password.option.manual.description',
+                                            defaultMessage: 'Enter a new password for this user directly.',
+                                        })}
+                                    </span>
+                                </span>
+                            </label>
+                        </fieldset>
+                    </>
+                )}
                 {isResettingOwnPassword && (
                     <Input
                         ref={currentPasswordRef as React.Ref<HTMLInputElement>}
@@ -156,24 +408,93 @@ export default function ResetPasswordModal({
                         autoFocus={true}
                     />
                 )}
-                <Input
-                    ref={newPasswordRef as React.Ref<HTMLInputElement>}
-                    type='password'
-                    name='newPassword'
-                    autoComplete='new-password'
-                    label={formatMessage({
-                        id: 'admin.reset_password.newPassword',
-                        defaultMessage: 'New password',
-                    })}
-                    placeholder={formatMessage({
-                        id: 'admin.reset_password.enterNewPassword',
-                        defaultMessage: 'Enter new password',
-                    })}
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    autoFocus={!isResettingOwnPassword}
-                    customMessage={errorNewPass ? {type: 'error', value: errorNewPass} : undefined}
-                />
+                {(!shouldShowResetChoices || resetMethod === 'manual') && (
+                    <div className='ResetPasswordModal__manual-section'>
+                        {shouldShowResetChoices && (
+                            <div className='ResetPasswordModal__manual-actions'>
+                                <span className='ResetPasswordModal__manual-label'>
+                                    {formatMessage({
+                                        id: 'admin.reset_password.newPassword',
+                                        defaultMessage: 'New password',
+                                    })}
+                                </span>
+                                <button
+                                    type='button'
+                                    className='ResetPasswordModal__generate'
+                                    onClick={handleGeneratePassword}
+                                >
+                                    <RefreshIcon size={18}/>
+                                    <span>
+                                        {formatMessage({
+                                            id: 'admin.reset_password.generate',
+                                            defaultMessage: 'Generate random',
+                                        })}
+                                    </span>
+                                </button>
+                            </div>
+                        )}
+                        <Input
+                            ref={newPasswordRef as React.Ref<HTMLInputElement>}
+                            type='text'
+                            name='newPassword'
+                            autoComplete='new-password'
+                            label={formatMessage({
+                                id: 'admin.reset_password.newPassword',
+                                defaultMessage: 'New password',
+                            })}
+                            placeholder={formatMessage({
+                                id: 'admin.reset_password.enterNewPassword',
+                                defaultMessage: 'Enter new password',
+                            })}
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            autoFocus={!isResettingOwnPassword && !shouldShowResetChoices}
+                            customMessage={errorNewPass ? {type: 'error', value: errorNewPass} : undefined}
+                            inputSuffix={shouldShowResetChoices ? (
+                                <button
+                                    type='button'
+                                    className='ResetPasswordModal__password-copy'
+                                    onClick={handleCopyPassword}
+                                    aria-label={formatMessage({
+                                        id: 'admin.reset_password.copyGeneratedPassword',
+                                        defaultMessage: 'Copy generated password',
+                                    })}
+                                >
+                                    {copiedRecently ? <CheckIcon size={18}/> : <ContentCopyIcon size={18}/>}
+                                </button>
+                            ) : undefined}
+                        />
+                        {shouldShowResetChoices && Boolean(passwordStrength) && (
+                            <div className='ResetPasswordModal__strength'>
+                                <div
+                                    className='ResetPasswordModal__strength-bars'
+                                    aria-hidden='true'
+                                >
+                                    {Array.from({length: PASSWORD_SEGMENTS}).map((_, index) => (
+                                        <span
+                                            key={index}
+                                            className={`ResetPasswordModal__strength-bar${index < passwordStrength ? ' ResetPasswordModal__strength-bar--active' : ''}`}
+                                        />
+                                    ))}
+                                </div>
+                                <span className='ResetPasswordModal__strength-label'>
+                                    {strengthLabels[passwordStrength]}
+                                </span>
+                            </div>
+                        )}
+                    </div>
+                )}
+                {shouldShowResetChoices && resetMethod === 'email' && (
+                    <div className='ResetPasswordModal__notice'>
+                        <InformationOutlineIcon size={18}/>
+                        <span>
+                            {formatMessage({
+                                id: 'admin.reset_password.notice',
+                                defaultMessage: 'A password reset email will be sent to the user\'s email address. The link will expire after 24 hours.',
+                            })}
+                        </span>
+                    </div>
+                )}
             </div>
         </GenericModal>
     );

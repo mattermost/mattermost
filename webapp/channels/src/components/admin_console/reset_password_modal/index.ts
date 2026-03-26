@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import {updateUserPassword} from 'mattermost-redux/actions/users';
+import {sendPasswordResetEmail, updateUserPassword} from 'mattermost-redux/actions/users';
 import {getPasswordConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
@@ -23,6 +23,7 @@ function mapStateToProps(state: GlobalState) {
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
+            sendPasswordResetEmail,
             updateUserPassword,
         }, dispatch),
     };
