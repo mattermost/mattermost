@@ -77,7 +77,10 @@ func (ps *PlatformService) StartSearchEngine() (string, string) {
 		if ps.SearchEngine == nil {
 			return
 		}
-		if oldLicense != nil && newLicense == nil {
+		if oldLicense == nil && newLicense != nil {
+			// License added — watcher will try Start() on next evaluation.
+			ps.notifySearchEngineWatcher()
+		} else if oldLicense != nil && newLicense == nil {
 			// License removed — stop engine. The watcher will retry Start()
 			// which returns nil without a license, so it backs off gracefully.
 			// When the license is re-added, the watcher picks it up.
@@ -89,9 +92,6 @@ func (ps *PlatformService) StartSearchEngine() (string, string) {
 					ps.notifySearchEngineWatcher()
 				})
 			}
-		} else if oldLicense == nil && newLicense != nil {
-			// License added — watcher will try Start() on next evaluation.
-			ps.notifySearchEngineWatcher()
 		}
 	})
 
