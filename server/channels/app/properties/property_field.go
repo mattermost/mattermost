@@ -93,6 +93,9 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 	// Fetch existing fields to compare for changes that require conflict check
 	ids := make([]string, len(fields))
 	for i, f := range fields {
+		if f == nil {
+			return nil, fmt.Errorf("field at index %d is nil", i)
+		}
 		ids[i] = f.ID
 	}
 
