@@ -1080,7 +1080,7 @@ func testAccessControlPolicyStoreSearchByTeamIDWithScope(t *testing.T, rctx requ
 		_ = ss.Channel().PermanentDelete(rctx, chB.Id)
 	})
 
-	t.Run("scope-based: channelless policy with scope found by TeamID", func(t *testing.T) {
+	t.Run("scope-based: channelless policy found by Scope and ScopeID filter", func(t *testing.T) {
 		policy := &model.AccessControlPolicy{
 			ID:       model.NewId(),
 			Name:     "Scoped No Channels",
@@ -1098,8 +1098,9 @@ func testAccessControlPolicyStoreSearchByTeamIDWithScope(t *testing.T, rctx requ
 		t.Cleanup(func() { _ = ss.AccessControlPolicy().Delete(rctx, policy.ID) })
 
 		results, _, err := ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
-			TeamID: teamA,
-			Limit:  10,
+			Scope:   model.AccessControlPolicyScopeTeam,
+			ScopeID: teamA,
+			Limit:   10,
 		})
 		require.NoError(t, err)
 
@@ -1110,7 +1111,7 @@ func testAccessControlPolicyStoreSearchByTeamIDWithScope(t *testing.T, rctx requ
 				break
 			}
 		}
-		require.True(t, found, "channelless policy with scope should be found by TeamID search")
+		require.True(t, found, "channelless policy with scope should be found by Scope/ScopeID filter")
 	})
 
 	t.Run("scope-based: policy with wrong scope not found", func(t *testing.T) {
@@ -1131,12 +1132,13 @@ func testAccessControlPolicyStoreSearchByTeamIDWithScope(t *testing.T, rctx requ
 		t.Cleanup(func() { _ = ss.AccessControlPolicy().Delete(rctx, policy.ID) })
 
 		results, _, err := ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
-			TeamID: teamA,
-			IDs:    []string{policy.ID},
-			Limit:  10,
+			Scope:   model.AccessControlPolicyScopeTeam,
+			ScopeID: teamA,
+			IDs:     []string{policy.ID},
+			Limit:   10,
 		})
 		require.NoError(t, err)
-		require.Empty(t, results, "policy scoped to team B should not appear in team A search")
+		require.Empty(t, results, "policy scoped to team B should not appear in team A scope filter")
 	})
 
 	t.Run("channel-inference: pre-scope policy with single-team channels found", func(t *testing.T) {

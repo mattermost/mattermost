@@ -5,6 +5,7 @@ package app
 
 import (
 	"net/http"
+	"sort"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -26,16 +27,47 @@ func (a *App) SearchTeamAccessPolicies(rctx request.CTX, teamID, requesterID str
 		requestedLimit = teamPoliciesDefaultPerPage
 	}
 
-	opts.TeamID = teamID
-	opts.Type = model.AccessControlPolicyTypeParent
-	opts.IncludeChildren = true
-	opts.Cursor = model.AccessControlPolicyCursor{}
-	opts.Limit = teamPoliciesMaxFetch
+	// Fetch policies matching via channel-inference (TeamID filter)
+	channelOpts := opts
+	channelOpts.TeamID = teamID
+	channelOpts.Type = model.AccessControlPolicyTypeParent
+	channelOpts.IncludeChildren = true
+	channelOpts.Cursor = model.AccessControlPolicyCursor{}
+	channelOpts.Limit = teamPoliciesMaxFetch
 
-	policies, _, appErr := a.SearchAccessControlPolicies(rctx, opts)
+	policies, _, appErr := a.SearchAccessControlPolicies(rctx, channelOpts)
 	if appErr != nil {
 		return nil, 0, appErr
 	}
+
+	// Also fetch policies matching via explicit scope (for channelless policies)
+	scopeOpts := opts
+	scopeOpts.Type = model.AccessControlPolicyTypeParent
+	scopeOpts.Scope = model.AccessControlPolicyScopeTeam
+	scopeOpts.ScopeID = teamID
+	scopeOpts.IncludeChildren = true
+	scopeOpts.Cursor = model.AccessControlPolicyCursor{}
+	scopeOpts.Limit = teamPoliciesMaxFetch
+
+	scopePolicies, _, appErr := a.SearchAccessControlPolicies(rctx, scopeOpts)
+	if appErr != nil {
+		return nil, 0, appErr
+	}
+
+	// Merge, deduplicating by ID, then sort by ID for stable cursor-based pagination.
+	seen := make(map[string]bool, len(policies))
+	for _, p := range policies {
+		seen[p.ID] = true
+	}
+	for _, p := range scopePolicies {
+		if !seen[p.ID] {
+			policies = append(policies, p)
+			seen[p.ID] = true
+		}
+	}
+	sort.Slice(policies, func(i, j int) bool {
+		return policies[i].ID < policies[j].ID
+	})
 
 	// Filter by self-inclusion.
 	filtered := make([]*model.AccessControlPolicy, 0, len(policies))
@@ -78,11 +110,29 @@ func (a *App) SearchTeamAccessPolicies(rctx request.CTX, teamID, requesterID str
 // Returns (true, nil) if the policy belongs to the team, (false, nil) if it does not,
 // or (false, err) if an internal error occurred during the check.
 //
-// The SearchPolicies TeamID filter matches via two mechanisms in a single query:
-//  1. Explicit scope: Data->>'scope' = 'team' AND Data->>'scope_id' = teamID
+// Checks two mechanisms:
+//  1. Explicit scope: policy has scope=team and scope_id=teamID in Data JSONB
 //  2. Channel inference: all assigned channels belong to this team (pre-scope policies)
 func (a *App) ValidateTeamAdminPolicyOwnership(rctx request.CTX, teamID, policyID string) (bool, *model.AppError) {
-	policies, _, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+	// Check explicit scope first
+	scopeResults, _, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+		IDs:     []string{policyID},
+		Type:    model.AccessControlPolicyTypeParent,
+		Scope:   model.AccessControlPolicyScopeTeam,
+		ScopeID: teamID,
+		Limit:   1,
+	})
+	if err != nil {
+		return false, model.NewAppError("ValidateTeamAdminPolicyOwnership",
+			"app.team.access_policies.ownership_check.app_error",
+			nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if len(scopeResults) > 0 {
+		return true, nil
+	}
+
+	// Fall back to channel-inference for pre-scope policies
+	channelResults, _, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
 		IDs:    []string{policyID},
 		Type:   model.AccessControlPolicyTypeParent,
 		TeamID: teamID,
@@ -94,7 +144,7 @@ func (a *App) ValidateTeamAdminPolicyOwnership(rctx request.CTX, teamID, policyI
 			nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	return len(policies) > 0, nil
+	return len(channelResults) > 0, nil
 }
 
 // ReconcilePolicyTeamScope evaluates a parent policy's assigned channels and
@@ -131,10 +181,15 @@ func (a *App) ReconcilePolicyTeamScope(rctx request.CTX, policyID string) *model
 		channelIDs[i] = child.ID
 	}
 
-	// Resolve channels to determine their teams
+	// Resolve channels to determine their teams.
+	// If some channels were deleted after being assigned, GetChannels returns
+	// fewer results — skip reconciliation to avoid stamping a stale scope.
 	channels, appErr := a.GetChannels(rctx, channelIDs)
 	if appErr != nil {
 		return appErr
+	}
+	if len(channels) != len(channelIDs) {
+		return nil
 	}
 
 	// Check if all channels belong to a single team
