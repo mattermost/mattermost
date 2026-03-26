@@ -9025,10 +9025,6 @@
     "translation": "Failed to parse {{.Backend}} server version."
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "{{.Backend}} is already stopped."
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "{{.Backend}} is disabled."
   },
