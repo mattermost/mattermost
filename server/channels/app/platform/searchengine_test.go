@@ -47,9 +47,9 @@ func overrideWatcherTimings(t *testing.T) {
 }
 
 // setupWatcherTest creates a PlatformService with a mock search engine wired
-// into the broker. Only GetName is pre-configured on the mock — each test sets
-// up IsEnabled, IsActive, and other expectations explicitly.
-func setupWatcherTest(t *testing.T) (*PlatformService, *searchenginemocks.SearchEngineInterface) {
+// into the broker and a ready-to-use watcher. Only GetName is pre-configured
+// on the mock — each test sets up other expectations explicitly.
+func setupWatcherTest(t *testing.T) (*searchEngineWatcher, *searchenginemocks.SearchEngineInterface) {
 	t.Helper()
 	overrideWatcherTimings(t)
 
@@ -62,12 +62,15 @@ func setupWatcherTest(t *testing.T) (*PlatformService, *searchenginemocks.Search
 	ps.SearchEngine = searchengine.NewBroker(ps.Config())
 	ps.SearchEngine.ElasticsearchEngine = engineMock
 
-	return ps, engineMock
+	w := newSearchEngineWatcher(ps)
+	ps.esWatcher = w
+
+	return w, engineMock
 }
 
 func TestRunSearchEngineWatcher(t *testing.T) {
 	t.Run("retries Start on failure then transitions to health phase", func(t *testing.T) {
-		ps, engineMock := setupWatcherTest(t)
+		w, engineMock := setupWatcherTest(t)
 
 		engineMock.On("IsEnabled").Return(true).Maybe()
 
@@ -94,8 +97,8 @@ func TestRunSearchEngineWatcher(t *testing.T) {
 			atomic.StoreInt32(&healthChecked, 1)
 		}).Return(nil).Maybe()
 
-		ps.startSearchEngineWatcher()
-		t.Cleanup(func() { ps.stopSearchEngineWatcher() })
+		w.start()
+		t.Cleanup(w.stop)
 
 		require.Eventually(t, func() bool {
 			return atomic.LoadInt32(&healthChecked) == 1
@@ -104,7 +107,7 @@ func TestRunSearchEngineWatcher(t *testing.T) {
 	})
 
 	t.Run("exponential backoff with cap", func(t *testing.T) {
-		ps, engineMock := setupWatcherTest(t)
+		w, engineMock := setupWatcherTest(t)
 
 		engineMock.On("IsEnabled").Return(true).Maybe()
 		engineMock.On("IsActive").Return(false).Maybe()
@@ -121,7 +124,7 @@ func TestRunSearchEngineWatcher(t *testing.T) {
 			return model.NewAppError("test", "start_failed", nil, "", 500)
 		})
 
-		ps.startSearchEngineWatcher()
+		w.start()
 
 		// Wait for several retries.
 		require.Eventually(t, func() bool {
@@ -130,10 +133,10 @@ func TestRunSearchEngineWatcher(t *testing.T) {
 			return len(startTimes) >= 5
 		}, 2*time.Second, 5*time.Millisecond)
 
-		ps.stopSearchEngineWatcher()
+		w.stop()
 
-		// After stopSearchEngineWatcher returns, the watcher goroutine has
-		// exited, so startTimes is safe to read without the lock.
+		// After stop returns, the watcher goroutine has exited, so
+		// startTimes is safe to read without the lock.
 		for i := 1; i < len(startTimes); i++ {
 			gap := startTimes[i].Sub(startTimes[i-1])
 			assert.LessOrEqual(t, gap.Milliseconds(), searchEngineRetryMax.Milliseconds()+50,
@@ -142,7 +145,7 @@ func TestRunSearchEngineWatcher(t *testing.T) {
 	})
 
 	t.Run("exits when engine is disabled", func(t *testing.T) {
-		ps, engineMock := setupWatcherTest(t)
+		w, engineMock := setupWatcherTest(t)
 
 		engineMock.On("IsActive").Return(false).Maybe()
 
@@ -158,13 +161,14 @@ func TestRunSearchEngineWatcher(t *testing.T) {
 
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		stopped := make(chan struct{})
-		notify := make(chan struct{}, 1)
-		go ps.runSearchEngineWatcher(ctx, stopped, notify)
+		notifyCh := make(chan struct{}, 1)
+		done := make(chan struct{})
+		go func() {
+			defer close(done)
+			w.run(ctx, notifyCh)
+		}()
 
 		// The watcher should park because IsEnabled() returns false.
-		// Send a notify after a brief delay — the watcher should stay parked
-		// since IsEnabled() is still false.
 		time.Sleep(50 * time.Millisecond)
 
 		// Cancel context to let the watcher exit.
@@ -172,7 +176,7 @@ func TestRunSearchEngineWatcher(t *testing.T) {
 
 		require.Eventually(t, func() bool {
 			select {
-			case <-stopped:
+			case <-done:
 				return true
 			default:
 				return false
@@ -182,7 +186,7 @@ func TestRunSearchEngineWatcher(t *testing.T) {
 	})
 
 	t.Run("notify wakes watcher from park", func(t *testing.T) {
-		ps, engineMock := setupWatcherTest(t)
+		w, engineMock := setupWatcherTest(t)
 
 		// Start disabled, then enable after a notify.
 		var enabled int32
@@ -197,8 +201,8 @@ func TestRunSearchEngineWatcher(t *testing.T) {
 			return model.NewAppError("test", "start_failed", nil, "", 500)
 		}).Maybe()
 
-		ps.startSearchEngineWatcher()
-		t.Cleanup(func() { ps.stopSearchEngineWatcher() })
+		w.start()
+		t.Cleanup(w.stop)
 
 		// Watcher should be parked (engine disabled).
 		time.Sleep(50 * time.Millisecond)
@@ -206,7 +210,7 @@ func TestRunSearchEngineWatcher(t *testing.T) {
 
 		// Enable and notify.
 		atomic.StoreInt32(&enabled, 1)
-		ps.notifySearchEngineWatcher()
+		w.notify()
 
 		// Watcher should wake up and try Start().
 		require.Eventually(t, func() bool {
@@ -218,7 +222,7 @@ func TestRunSearchEngineWatcher(t *testing.T) {
 
 func TestWatcherHealthPhase(t *testing.T) {
 	t.Run("intermittent failures below threshold do not trigger Stop", func(t *testing.T) {
-		ps, engineMock := setupWatcherTest(t)
+		w, engineMock := setupWatcherTest(t)
 
 		// Engine starts active.
 		engineMock.On("IsEnabled").Return(true).Maybe()
@@ -236,8 +240,8 @@ func TestWatcherHealthPhase(t *testing.T) {
 			return nil
 		})
 
-		ps.startSearchEngineWatcher()
-		t.Cleanup(func() { ps.stopSearchEngineWatcher() })
+		w.start()
+		t.Cleanup(w.stop)
 
 		require.Eventually(t, func() bool {
 			return atomic.LoadInt32(&healthCalls) >= 4
@@ -248,7 +252,7 @@ func TestWatcherHealthPhase(t *testing.T) {
 	})
 
 	t.Run("consecutive failures trigger Stop and retry", func(t *testing.T) {
-		ps, engineMock := setupWatcherTest(t)
+		w, engineMock := setupWatcherTest(t)
 
 		engineMock.On("IsEnabled").Return(true).Maybe()
 
@@ -278,8 +282,8 @@ func TestWatcherHealthPhase(t *testing.T) {
 			return nil
 		}).Maybe()
 
-		ps.startSearchEngineWatcher()
-		t.Cleanup(func() { ps.stopSearchEngineWatcher() })
+		w.start()
+		t.Cleanup(w.stop)
 
 		// Watcher should have called Stop() then retried Start().
 		require.Eventually(t, func() bool {
@@ -291,7 +295,7 @@ func TestWatcherHealthPhase(t *testing.T) {
 
 func TestStopSearchEngineWatcher(t *testing.T) {
 	t.Run("exits immediately on stop signal during retry wait", func(t *testing.T) {
-		ps, engineMock := setupWatcherTest(t)
+		w, engineMock := setupWatcherTest(t)
 
 		engineMock.On("IsEnabled").Return(true).Maybe()
 		engineMock.On("IsActive").Return(false).Maybe()
@@ -303,37 +307,37 @@ func TestStopSearchEngineWatcher(t *testing.T) {
 			model.NewAppError("test", "start_failed", nil, "", 500),
 		).Maybe()
 
-		ps.startSearchEngineWatcher()
+		w.start()
 
 		// Should exit well before the 10s retry timer fires.
 		start := time.Now()
-		ps.stopSearchEngineWatcher()
+		w.stop()
 
 		assert.Less(t, time.Since(start), 2*time.Second)
 	})
 
 	t.Run("idempotent", func(t *testing.T) {
-		ps, engineMock := setupWatcherTest(t)
+		w, engineMock := setupWatcherTest(t)
 
 		engineMock.On("IsEnabled").Return(true).Maybe()
 		engineMock.On("IsActive").Return(false).Maybe()
 
 		// Not running — calling stop should be a no-op.
-		require.NotPanics(t, ps.stopSearchEngineWatcher)
-		require.NotPanics(t, ps.stopSearchEngineWatcher)
+		require.NotPanics(t, w.stop)
+		require.NotPanics(t, w.stop)
 
 		engineMock.On("Start", mock.Anything).Return(
 			model.NewAppError("test", "start_failed", nil, "", 500),
 		).Maybe()
 
 		// Start, then stop twice — second stop should not panic.
-		ps.startSearchEngineWatcher()
-		ps.stopSearchEngineWatcher()
-		require.NotPanics(t, ps.stopSearchEngineWatcher)
+		w.start()
+		w.stop()
+		require.NotPanics(t, w.stop)
 	})
 
 	t.Run("returns after timeout when watcher is stuck in Start", func(t *testing.T) {
-		ps, engineMock := setupWatcherTest(t)
+		w, engineMock := setupWatcherTest(t)
 
 		engineMock.On("IsEnabled").Return(true).Maybe()
 		engineMock.On("IsActive").Return(false).Maybe()
@@ -341,7 +345,6 @@ func TestStopSearchEngineWatcher(t *testing.T) {
 		searchEngineStopTimeout = 100 * time.Millisecond
 
 		// Start() blocks forever, simulating a hung connection.
-		// enteredStart signals that the watcher is inside Start().
 		blocked := make(chan struct{})
 		enteredStart := make(chan struct{})
 		engineMock.On("Start", mock.Anything).Return(func(context.Context) *model.AppError {
@@ -350,14 +353,14 @@ func TestStopSearchEngineWatcher(t *testing.T) {
 			return nil
 		})
 
-		ps.startSearchEngineWatcher()
+		w.start()
 
 		// Wait until the watcher is actually stuck inside Start().
 		<-enteredStart
 
 		// Should return after the timeout, not hang forever.
 		start := time.Now()
-		ps.stopSearchEngineWatcher()
+		w.stop()
 		elapsed := time.Since(start)
 
 		assert.GreaterOrEqual(t, elapsed, 100*time.Millisecond)
@@ -368,7 +371,7 @@ func TestStopSearchEngineWatcher(t *testing.T) {
 	})
 
 	t.Run("start after timeout creates new watcher", func(t *testing.T) {
-		ps, engineMock := setupWatcherTest(t)
+		w, engineMock := setupWatcherTest(t)
 
 		engineMock.On("IsEnabled").Return(true).Maybe()
 		engineMock.On("IsActive").Return(false).Maybe()
@@ -388,19 +391,19 @@ func TestStopSearchEngineWatcher(t *testing.T) {
 			return model.NewAppError("test", "start_failed", nil, "", 500)
 		})
 
-		ps.startSearchEngineWatcher()
+		w.start()
 		<-enteredStart
 
 		// Save the first goroutine's done channel before stop nils it.
-		ps.searchEngineWatcherMut.Lock()
-		firstDone := ps.searchEngineWatcherDone
-		ps.searchEngineWatcherMut.Unlock()
+		w.mu.Lock()
+		firstDone := w.done
+		w.mu.Unlock()
 
 		// Stop times out (watcher stuck in Start).
-		ps.stopSearchEngineWatcher()
+		w.stop()
 
 		// Start a new watcher — should work despite the abandoned goroutine.
-		ps.startSearchEngineWatcher()
+		w.start()
 
 		// New watcher should call Start() (the second call).
 		require.Eventually(t, func() bool {
@@ -413,13 +416,13 @@ func TestStopSearchEngineWatcher(t *testing.T) {
 		close(blocked)
 		<-firstDone
 
-		ps.stopSearchEngineWatcher()
+		w.stop()
 	})
 }
 
 func TestNotifySearchEngineWatcher(t *testing.T) {
 	t.Run("notify resets backoff and triggers immediate evaluation", func(t *testing.T) {
-		ps, engineMock := setupWatcherTest(t)
+		w, engineMock := setupWatcherTest(t)
 
 		engineMock.On("IsEnabled").Return(true).Maybe()
 		engineMock.On("IsActive").Return(false).Maybe()
@@ -433,8 +436,8 @@ func TestNotifySearchEngineWatcher(t *testing.T) {
 			return model.NewAppError("test", "start_failed", nil, "", 500)
 		})
 
-		ps.startSearchEngineWatcher()
-		t.Cleanup(func() { ps.stopSearchEngineWatcher() })
+		w.start()
+		t.Cleanup(w.stop)
 
 		// Wait for first Start() call.
 		require.Eventually(t, func() bool {
@@ -443,7 +446,7 @@ func TestNotifySearchEngineWatcher(t *testing.T) {
 
 		// Watcher is now in backoff (10s). Send notify to wake it.
 		before := atomic.LoadInt32(&startCalls)
-		ps.notifySearchEngineWatcher()
+		w.notify()
 
 		// Start should be called again quickly (not after 10s).
 		require.Eventually(t, func() bool {
@@ -453,11 +456,11 @@ func TestNotifySearchEngineWatcher(t *testing.T) {
 	})
 
 	t.Run("no-op when watcher is not running", func(t *testing.T) {
-		ps, _ := setupWatcherTest(t)
+		w, _ := setupWatcherTest(t)
 
 		// Should not panic or block.
 		require.NotPanics(t, func() {
-			ps.notifySearchEngineWatcher()
+			w.notify()
 		})
 	})
 }
