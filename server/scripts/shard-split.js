@@ -33,7 +33,8 @@
  *   shard-heavy-runs.txt    — heavy package runs, one per line: "pkg REGEX"
  */
 
-const fs = require("fs");
+const fs = require("node:fs");
+const { execSync } = require("node:child_process");
 
 const SHARD_INDEX = parseInt(process.env.SHARD_INDEX);
 const SHARD_TOTAL = parseInt(process.env.SHARD_TOTAL);
@@ -136,6 +137,45 @@ for (const pkg of allPkgs) {
     items.push({ ms: pkgTimes[pkg] || 1, type: "P", pkg });
   }
 }
+// ── Discover new/renamed tests in heavy packages ──
+// Tests not in the timing cache won't appear in any shard's -run regex,
+// silently skipping them. Discover current test names at runtime and
+// assign any cache-missing tests to the least-loaded shard.
+if (heavyPkgs.size > 0) {
+  console.log("::group::Discovering new tests in heavy packages");
+  for (const pkg of heavyPkgs) {
+    const cachedTests = new Set(
+      Object.keys(testTimes)
+        .filter((k) => k.startsWith(pkg + "::"))
+        .map((k) => k.split("::")[1])
+    );
+    try {
+      const out = execSync(`go test -list '.*' ${pkg} 2>/dev/null`, {
+        encoding: "utf8",
+        timeout: 60000,
+      });
+      const currentTests = out
+        .split("\n")
+        .map((l) => l.trim())
+        .filter((l) => /^Test[A-Z]/.test(l));
+      let newCount = 0;
+      for (const t of currentTests) {
+        if (!cachedTests.has(t)) {
+          // Assign a small default duration so it gets picked up
+          items.push({ ms: 1000, type: "T", pkg, test: t });
+          newCount++;
+        }
+      }
+      if (newCount > 0) {
+        console.log(`  ${pkg.split("/").pop()}: ${newCount} new test(s) not in cache`);
+      }
+    } catch (e) {
+      console.log(`  ${pkg.split("/").pop()}: go test -list failed, skipping discovery`);
+    }
+  }
+  console.log("::endgroup::");
+}
+
 // Sort descending by duration for greedy bin-packing
 items.sort((a, b) => b.ms - a.ms);
 
