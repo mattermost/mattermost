@@ -805,7 +805,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 
 vet: setup-go-work ## Run mattermost go vet specific checks
-	$(GO) install github.com/mattermost/mattermost-govet/v2@7d8db289e508999dfcac47b97c9490a0fec12d66
+	$(GO) install github.com/mattermost/mattermost-govet/v2@9ed203172642d25c67a33daf8c1c6110f0149229
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet \
 		-structuredLogging \
 		-inconsistentReceiverName \
@@ -817,6 +817,8 @@ vet: setup-go-work ## Run mattermost go vet specific checks
 		-license \
 		-inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go,utils_serial_gen.go \
 		-noSelectStar \
+		-concurrentIndex \
+		-concurrentIndex.path=./channels/db/migrations/ \
 		./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
   ifneq ($(MM_NO_ENTERPRISE_LINT),true)
