@@ -261,7 +261,12 @@ export default class ChannelsPage {
         return popover;
     }
 
-    async scheduleMessage(message: string, dayFromToday: number = 0, timeOptionIndex: number = 0) {
+    async scheduleMessage(
+        message: string,
+        dayFromToday: number = 0,
+        timeOptionIndex: number = 0,
+        repeatWeekly?: boolean,
+    ) {
         await this.centerView.postCreate.writeMessage(message);
 
         await expect(this.centerView.postCreate.scheduleMessageButton).toBeVisible();
@@ -270,10 +275,15 @@ export default class ChannelsPage {
         await this.scheduleMessageMenu.toBeVisible();
         await this.scheduleMessageMenu.selectCustomTime();
 
-        return await this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex);
+        return await this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex, repeatWeekly);
     }
 
-    async scheduleMessageFromThread(message: string, dayFromToday: number = 0, timeOptionIndex: number = 0) {
+    async scheduleMessageFromThread(
+        message: string,
+        dayFromToday: number = 0,
+        timeOptionIndex: number = 0,
+        repeatWeekly?: boolean,
+    ) {
         await this.sidebarRight.postCreate.writeMessage(message);
 
         await expect(this.sidebarRight.postCreate.scheduleMessageButton).toBeVisible();
@@ -282,6 +292,6 @@ export default class ChannelsPage {
         await this.scheduleMessageMenu.toBeVisible();
         await this.scheduleMessageMenu.selectCustomTime();
 
-        return await this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex);
+        return await this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex, repeatWeekly);
     }
 }

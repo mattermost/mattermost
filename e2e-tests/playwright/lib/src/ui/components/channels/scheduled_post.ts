@@ -8,6 +8,7 @@ export default class ScheduledPost {
 
     readonly panelHeader;
     readonly panelBody;
+    readonly repeatsWeeklyTag;
 
     readonly postBody;
     readonly postHeader;
@@ -28,6 +29,7 @@ export default class ScheduledPost {
 
         this.panelHeader = container.locator('.PanelHeader');
         this.panelBody = container.locator('.DraftPanelBody');
+        this.repeatsWeeklyTag = container.getByText('Repeats weekly', {exact: true});
 
         this.postBody = container.locator('.post__body');
         this.postHeader = container.locator('.post__header');

@@ -66,11 +66,17 @@ export default class ScheduledPostsPage {
         return new components.ScheduledPost(nthPost);
     }
 
-    async rescheduleMessage(post: ScheduledPost, dayFromToday: number = 0, timeOptionIndex: number = 0) {
+    async openRescheduleMessageModal(post: ScheduledPost) {
         await post.hover();
         await expect(post.rescheduleButton).toBeVisible();
         await post.rescheduleButton.click();
+        await this.scheduleMessageModal.toBeVisible();
 
+        return this.scheduleMessageModal;
+    }
+
+    async rescheduleMessage(post: ScheduledPost, dayFromToday: number = 0, timeOptionIndex: number = 0) {
+        await this.openRescheduleMessageModal(post);
         return await this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex);
     }
 

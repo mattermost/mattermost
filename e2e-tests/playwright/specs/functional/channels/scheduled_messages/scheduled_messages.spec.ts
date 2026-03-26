@@ -69,6 +69,47 @@ test.fixme(
 );
 
 /**
+ * @objective Verify the ability to create a weekly recurring scheduled message from a channel and show recurring-only UI state.
+ *
+ * @precondition
+ * A test server with valid license to support scheduled message features
+ */
+test(
+    'creates weekly recurring scheduled message from channel and shows recurring UI state',
+    {tag: '@scheduled_messages'},
+    async ({pw}) => {
+        const draftMessage = `Weekly Scheduled Draft ${pw.random.id()}`;
+
+        // # Initialize test user, login and navigate to a channel
+        const {user} = await pw.initSetup();
+        const {channelsPage, scheduledPostsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto();
+        await channelsPage.toBeVisible();
+
+        // # Create a weekly recurring scheduled message for tomorrow
+        const {selectedDate, selectedTime} = await channelsPage.scheduleMessage(draftMessage, 1, 0, true);
+
+        // * Verify scheduled post indicator shows recurring weekly details
+        await verifyScheduledPostIndicator(channelsPage.centerView.scheduledPostIndicator, selectedDate, selectedTime, true);
+
+        // # Navigate to scheduled posts page via indicator link
+        await channelsPage.centerView.scheduledPostIndicator.seeAllLink.click();
+
+        // * Verify scheduled post appears with recurring weekly details
+        const scheduledPost = await verifyScheduledPost(scheduledPostsPage, {
+            draftMessage,
+            selectedDate,
+            selectedTime,
+            badgeCountOnTab: 1,
+            repeatWeekly: true,
+        });
+
+        // * Verify one-time send now control is not available for recurring scheduled posts
+        await expect(scheduledPost.sendNowButton).toHaveCount(0);
+    },
+);
+
+/**
  * @objective Verify the ability to create a scheduled message in a thread.
  *
  * @precondition
@@ -178,6 +219,71 @@ test(
             channelsPage.centerView.scheduledPostIndicator,
             newSelectedDate,
             newSelectedTime,
+        );
+    },
+);
+
+/**
+ * @objective Verify rescheduling a weekly recurring scheduled message keeps its weekly recurrence.
+ *
+ * @precondition
+ * A test server with valid license to support scheduled message features
+ */
+test(
+    'reschedules weekly recurring scheduled message from scheduled posts page and keeps weekly recurrence',
+    {tag: '@scheduled_messages'},
+    async ({pw}) => {
+        const draftMessage = `Weekly Scheduled Draft ${pw.random.id()}`;
+
+        // # Initialize test user, login and navigate to a channel
+        const {user} = await pw.initSetup();
+        const {channelsPage, scheduledPostsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto();
+        await channelsPage.toBeVisible();
+
+        // # Create a weekly recurring scheduled message for tomorrow
+        const {selectedDate, selectedTime} = await channelsPage.scheduleMessage(draftMessage, 1, 0, true);
+
+        // # Navigate to scheduled posts page via indicator link
+        await channelsPage.centerView.scheduledPostIndicator.seeAllLink.click();
+
+        // * Verify scheduled post appears with recurring weekly details
+        let scheduledPost = await verifyScheduledPost(scheduledPostsPage, {
+            draftMessage,
+            selectedDate,
+            selectedTime,
+            badgeCountOnTab: 1,
+            repeatWeekly: true,
+        });
+
+        // # Open the reschedule modal for the recurring scheduled message
+        const scheduleMessageModal = await scheduledPostsPage.openRescheduleMessageModal(scheduledPost);
+
+        // * Verify the weekly recurrence option remains selected in the reschedule modal
+        await expect(scheduleMessageModal.repeatWeeklyCheckbox).toBeChecked();
+
+        // # Reschedule the recurring message to a different future date
+        const {selectedDate: newSelectedDate, selectedTime: newSelectedTime} = await scheduleMessageModal.scheduleMessage(2);
+
+        // * Verify the rescheduled post still appears as a weekly recurring message
+        scheduledPost = await verifyScheduledPost(scheduledPostsPage, {
+            draftMessage,
+            selectedDate: newSelectedDate,
+            selectedTime: newSelectedTime,
+            badgeCountOnTab: 1,
+            repeatWeekly: true,
+        });
+        await expect(scheduledPost.sendNowButton).toHaveCount(0);
+
+        // # Return to channel page
+        await channelsPage.goto();
+
+        // * Verify the channel indicator still shows weekly recurring details after rescheduling
+        await verifyScheduledPostIndicator(
+            channelsPage.centerView.scheduledPostIndicator,
+            newSelectedDate,
+            newSelectedTime,
+            true,
         );
     },
 );
@@ -539,6 +645,7 @@ async function verifyScheduledPostIndicator(
     scheduledPostIndicator: ScheduledPostIndicator,
     selectedDate: string,
     selectedTime: string | null,
+    repeatWeekly: boolean = false,
 ) {
     await scheduledPostIndicator.toBeVisible();
     await expect(scheduledPostIndicator.icon).toBeVisible();
@@ -563,6 +670,10 @@ async function verifyScheduledPostIndicator(
             `Indicator text "${messageText}" does not contain any expected date pattern: ${datePatterns.join(', ')}`,
         );
     }
+
+    if (repeatWeekly) {
+        await expect(scheduledPostIndicator.container).toContainText('repeats weekly');
+    }
 }
 
 async function verifyScheduledPostBadgeOnLeftSidebar(channelsPage: ChannelsPage, count: number) {
@@ -577,7 +688,14 @@ async function verifyScheduledPost(
         selectedDate,
         selectedTime,
         badgeCountOnTab,
-    }: {draftMessage: string; selectedDate: string; selectedTime: string | null; badgeCountOnTab: number},
+        repeatWeekly = false,
+    }: {
+        draftMessage: string;
+        selectedDate: string;
+        selectedTime: string | null;
+        badgeCountOnTab: number;
+        repeatWeekly?: boolean;
+    },
 ) {
     // * Verify scheduled posts page is visible
     await scheduledPostsPage.toBeVisible();
@@ -608,6 +726,10 @@ async function verifyScheduledPost(
         throw new Error(
             `Header "${headerText}" does not contain any expected date pattern: ${datePatterns.join(', ')}`,
         );
+    }
+
+    if (repeatWeekly) {
+        await expect(scheduledPost.repeatsWeeklyTag).toBeVisible();
     }
 
     return scheduledPost;
