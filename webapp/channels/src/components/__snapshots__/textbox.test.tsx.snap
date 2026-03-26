@@ -8,7 +8,7 @@ exports[`components/TextBox should match snapshot with additional, optional prop
     className="form-control custom-textarea textbox-preview-area"
     onBlur={[Function]}
     onKeyDown={[Function]}
-    onKeyPress={[MockFunction]}
+    onKeyPress={[Function]}
     tabIndex={0}
   >
     <Connect(PostMarkdown)
@@ -55,7 +55,7 @@ exports[`components/TextBox should match snapshot with additional, optional prop
     onComposition={[MockFunction]}
     onHeightChange={[MockFunction]}
     onKeyDown={[Function]}
-    onKeyPress={[MockFunction]}
+    onKeyPress={[Function]}
     onKeyUp={[Function]}
     onMouseUp={[Function]}
     openWhenEmpty={true}
@@ -156,7 +156,7 @@ exports[`components/TextBox should match snapshot with required props 1`] = `
     className="form-control custom-textarea textbox-preview-area"
     onBlur={[Function]}
     onKeyDown={[Function]}
-    onKeyPress={[MockFunction]}
+    onKeyPress={[Function]}
     tabIndex={0}
   >
     <Connect(PostMarkdown)
@@ -199,7 +199,7 @@ exports[`components/TextBox should match snapshot with required props 1`] = `
     onBlur={[Function]}
     onChange={[Function]}
     onKeyDown={[Function]}
-    onKeyPress={[MockFunction]}
+    onKeyPress={[Function]}
     onKeyUp={[Function]}
     onMouseUp={[Function]}
     placeholder="placeholder text"
@@ -299,7 +299,7 @@ exports[`components/TextBox should throw error when new property is too long 1`]
     className="form-control custom-textarea textbox-preview-area"
     onBlur={[Function]}
     onKeyDown={[Function]}
-    onKeyPress={[MockFunction]}
+    onKeyPress={[Function]}
     tabIndex={0}
   >
     <Connect(PostMarkdown)
@@ -342,7 +342,7 @@ exports[`components/TextBox should throw error when new property is too long 1`]
     onBlur={[Function]}
     onChange={[Function]}
     onKeyDown={[Function]}
-    onKeyPress={[MockFunction]}
+    onKeyPress={[Function]}
     onKeyUp={[Function]}
     onMouseUp={[Function]}
     placeholder="placeholder text"
@@ -442,7 +442,7 @@ exports[`components/TextBox should throw error when value is too long 1`] = `
     className="form-control custom-textarea textbox-preview-area"
     onBlur={[Function]}
     onKeyDown={[Function]}
-    onKeyPress={[MockFunction]}
+    onKeyPress={[Function]}
     tabIndex={0}
   >
     <Connect(PostMarkdown)
@@ -485,7 +485,7 @@ exports[`components/TextBox should throw error when value is too long 1`] = `
     onBlur={[Function]}
     onChange={[Function]}
     onKeyDown={[Function]}
-    onKeyPress={[MockFunction]}
+    onKeyPress={[Function]}
     onKeyUp={[Function]}
     onMouseUp={[Function]}
     placeholder="placeholder text"

@@ -75,8 +75,7 @@ const ForwardPostModal = ({onExited, post}: Props) => {
         }
     }, []);
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const onHeightChange = (width: number, height: number) => {
+    const onHeightChange = () => {
         if (bodyRef.current) {
             setBodyHeight(bodyRef.current.getBoundingClientRect().height);
         }

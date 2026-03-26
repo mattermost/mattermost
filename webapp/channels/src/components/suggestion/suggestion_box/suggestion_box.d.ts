@@ -5,6 +5,8 @@ import type React from 'react';
 
 import type Provider from 'components/suggestion/provider';
 
+export type SuggestionBoxElement = SuggestionBoxElement;
+
 /* eslint-disable react/no-unused-prop-types */
 
 export type SuggestionBoxProps = {
@@ -12,7 +14,7 @@ export type SuggestionBoxProps = {
     /**
      * The list component to render, usually SuggestionList
      */
-    listComponent: React.ComponentType<any>;
+    listComponent?: React.ComponentType<any>;
 
     /**
      * Where the list will be displayed relative to the input box, defaults to 'top'
@@ -67,18 +69,18 @@ export type SuggestionBoxProps = {
     /**
      * Function called when input box loses focus
      */
-    onBlur?: (e: React.FocusEvent) => void;
+    onBlur?: (e: React.FocusEvent<SuggestionBoxElement>) => void;
 
     /**
      * Function called when input box value changes
      */
-    onChange?: (e: {target: HTMLInputElement | HTMLTextAreaElement}) => void;
+    onChange?: (e: React.ChangeEvent<SuggestionBoxElement>) => void;
 
     /**
      * Function called when a key is pressed and the input box is in focus
      */
-    onKeyDown?: (e: React.KeyboardEvent | KeyboardEvent) => void;
-    onKeyPress?: (e: React.KeyboardEvent | KeyboardEvent) => void;
+    onKeyDown?: (e: React.KeyboardEvent<SuggestionBoxElement>) => void;
+    onKeyPress?: (e: React.KeyboardEvent<SuggestionBoxElement>) => void;
     onComposition?: () => void;
 
     onSearchTypeSelected?: (...args: unknown[]) => void;
@@ -86,7 +88,7 @@ export type SuggestionBoxProps = {
     /**
      * Function called when an item is selected
      */
-    onItemSelected?: (item: unknown) => void;
+    onItemSelected?: (item: any) => void;
 
     /**
      * The number of characters required to show the suggestion list, defaults to 1
@@ -122,7 +124,7 @@ export type SuggestionBoxProps = {
     /**
      * Allows parent to access received suggestions
      */
-    onSuggestionsReceived?: (results: unknown) => void;
+    onSuggestionsReceived?: (results: any) => void;
 
     /**
      * To show suggestions even when focus is lost
@@ -147,9 +149,9 @@ export type SuggestionBoxProps = {
     maxLength?: string;
     delayInputUpdate?: boolean;
     spellCheck?: string;
-    onMouseUp?: (e: React.MouseEvent) => void;
-    onKeyUp?: (e: React.KeyboardEvent) => void;
-    onHeightChange?: (height: number) => void;
+    onMouseUp?: (e: React.MouseEvent<SuggestionBoxElement>) => void;
+    onKeyUp?: (e: React.KeyboardEvent<SuggestionBoxElement>) => void;
+    onHeightChange?: (height: number, maxHeight: number) => void;
     onWidthChange?: (width: number) => void;
     onPaste?: (e: ClipboardEvent) => void;
     style?: React.CSSProperties;
@@ -162,7 +164,7 @@ export type SuggestionBoxProps = {
 /* eslint-enable react/no-unused-prop-types */
 
 export default class SuggestionBox extends React.PureComponent<SuggestionBoxProps> {
-    getTextbox(): HTMLInputElement | HTMLTextAreaElement | null;
+    getTextbox(): SuggestionBoxElement | null;
     focus(): void;
     blur(): void;
     handleEmitClearSuggestions(delay?: number): void;
