@@ -197,7 +197,8 @@ jobs:
             --env TEST_DATABASE_POSTGRESQL_DSN="${{ inputs.datasource }}" \
             --env ENABLE_FULLY_PARALLEL_TESTS="${{ inputs.fullyparallel }}" \
             --env ENABLE_COVERAGE="${{ inputs.enablecoverage }}" \
-            --env FIPS_ENABLED="${{ inputs.fips-enabled }}" \
+            --env FIPS_ENABLED="${{ inputs.fips-enabled }}"
+            --env RACE_MODE \
             -v $PWD:/mattermost \
             -w /mattermost/server \
             $BUILD_IMAGE \
