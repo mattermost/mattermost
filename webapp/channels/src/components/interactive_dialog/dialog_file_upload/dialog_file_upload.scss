@@ -11,8 +11,8 @@
     &__buttons {
         display: flex;
         align-items: center;
-        gap: 10px;
         margin-bottom: 10px;
+        gap: 10px;
     }
 
     &__errors {
@@ -22,8 +22,8 @@
     &__error-message {
         display: flex;
         align-items: center;
-        gap: 6px;
         padding: 2px 0;
+        gap: 6px;
         color: var(--error-text);
         font-size: 0.9em;
         line-height: 1.3;
