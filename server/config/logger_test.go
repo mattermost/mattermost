@@ -49,15 +49,16 @@ func TestMloggerConfigFromAuditConfig(t *testing.T) {
 }
 
 func TestGetLogRootPath(t *testing.T) {
-	t.Run("returns MM_LOG_PATH when set", func(t *testing.T) {
-		// Create a temp directory to use as MM_LOG_PATH
+	t.Run("returns override path when TestOverrideLogRootPath is set", func(t *testing.T) {
+		// Create a temp directory to use as override path
 		dir, err := os.MkdirTemp("", "logroot")
 		require.NoError(t, err)
 		t.Cleanup(func() {
 			os.RemoveAll(dir)
 		})
 
-		t.Setenv("MM_LOG_PATH", dir)
+		TestOverrideLogRootPath = dir
+		t.Cleanup(func() { TestOverrideLogRootPath = "" })
 
 		result := GetLogRootPath()
 		absDir, _ := filepath.Abs(dir)
@@ -69,8 +70,6 @@ func TestGetLogRootPath(t *testing.T) {
 		// which searches for a "logs" directory relative to the working directory
 		// and the binary location. Create a logs directory relative to the test
 		// binary to verify this behavior.
-		t.Setenv("MM_LOG_PATH", "")
-
 		// Get the test binary location
 		exe, err := os.Executable()
 		require.NoError(t, err)

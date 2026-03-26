@@ -10,7 +10,6 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"slices"
 	"sync"
 	"sync/atomic"
@@ -1084,9 +1083,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		var syncMessageCount int32
 
 		// Disable feature flag from the beginning to prevent any automatic sync
-		os.Setenv("MM_FEATUREFLAGS_ENABLESHAREDCHANNELMEMBERSYNC", "false")
-		rErr := th.App.ReloadConfig()
-		require.NoError(t, rErr)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableSharedChannelsMemberSync = false })
 
 		// Create test HTTP server that counts sync messages
 		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
