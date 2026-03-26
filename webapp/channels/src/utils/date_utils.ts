@@ -106,30 +106,28 @@ function resolveRelativeDateToMoment(dateStr: string, timezone?: string): Moment
         return now.subtract(1, 'day').startOf('day');
 
     default: {
-        // Handle dynamic patterns like "+5d", "+2w", "+1m", "+2H", "+30M", "+90S"
-        // Case-sensitive: d=days, w=weeks, m=months, H=hours, M=minutes, S=seconds
-        const dynamicMatch = dateStr.match(/^([+-]\d{1,3})([dwmHMS])$/);
+        // Handle dynamic patterns like "+5d", "+2w", "+1m"
+        const dynamicMatch = dateStr.match(/^([+-]\d{1,4})([dwm])$/i);
         if (dynamicMatch) {
             const [, amount, unit] = dynamicMatch;
             const value = parseInt(amount, 10);
 
-            if (Math.abs(value) > 999) {
+            if (Math.abs(value) > 9999) {
                 return null;
             }
 
-            switch (unit) {
+            let momentUnit: moment.unitOfTime.DurationConstructor;
+
+            switch (unit.toLowerCase()) {
             case 'd':
-                return now.add(value, 'day').startOf('day');
+                momentUnit = 'day';
+                return now.add(value, momentUnit).startOf('day');
             case 'w':
-                return now.add(value, 'week').startOf('day');
+                momentUnit = 'week';
+                return now.add(value, momentUnit).startOf('day');
             case 'm':
-                return now.add(value, 'month').startOf('day');
-            case 'H':
-                return now.add(value, 'hour');
-            case 'M':
-                return now.add(value, 'minute');
-            case 'S':
-                return now.add(value, 'second');
+                momentUnit = 'month';
+                return now.add(value, momentUnit).startOf('day');
             default:
                 return null;
             }

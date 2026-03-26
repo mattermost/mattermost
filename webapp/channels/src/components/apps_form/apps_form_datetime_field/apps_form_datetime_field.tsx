@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type moment from 'moment-timezone';
+import moment from 'moment-timezone';
 import React, {useCallback, useMemo} from 'react';
 import {useSelector} from 'react-redux';
 
@@ -11,8 +11,7 @@ import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
 import DateTimeInput from 'components/datetime_input/datetime_input';
 
-import {stringToMoment, momentToString} from 'utils/date_utils';
-import {getCurrentMomentForTimezone} from 'utils/timezone';
+import {stringToMoment, momentToString, resolveRelativeDate} from 'utils/date_utils';
 
 // Default time interval for DateTime fields in minutes
 const DEFAULT_TIME_INTERVAL_MINUTES = 60;
@@ -82,21 +81,17 @@ const AppsFormDateTimeField: React.FC<Props> = ({
         onChange(field.name, newValue);
     }, [field.name, onChange]);
 
-    const {minDateTime, allowPastDates} = useMemo(() => {
-        if (!field.min_date) {
-            return {minDateTime: undefined, allowPastDates: true};
-        }
-        const min = stringToMoment(field.min_date, timezone) ?? undefined;
-        const now = getCurrentMomentForTimezone(timezone);
-        return {minDateTime: min, allowPastDates: !min || min.isBefore(now, 'minute')};
-    }, [field.min_date, timezone]);
+    const allowPastDates = useMemo(() => {
+        if (field.min_date) {
+            const resolvedMinDate = resolveRelativeDate(field.min_date);
+            const minMoment = stringToMoment(resolvedMinDate, timezone);
+            const currentMoment = timezone ? moment.tz(timezone) : moment();
 
-    const maxDateTime = useMemo(() => {
-        if (!field.max_date) {
-            return undefined;
+            return !minMoment || minMoment.isBefore(currentMoment, 'day');
         }
-        return stringToMoment(field.max_date, timezone) ?? undefined;
-    }, [field.max_date, timezone]);
+
+        return true;
+    }, [field.min_date, timezone]);
 
     return (
         <div className='apps-form-datetime-input'>
@@ -114,8 +109,6 @@ const AppsFormDateTimeField: React.FC<Props> = ({
                 allowPastDates={allowPastDates}
                 allowManualTimeEntry={allowManualTimeEntry}
                 setIsInteracting={setIsInteracting}
-                minDateTime={minDateTime}
-                maxDateTime={maxDateTime}
             />
         </div>
     );

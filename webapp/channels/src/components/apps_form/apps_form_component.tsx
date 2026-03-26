@@ -164,8 +164,8 @@ const createSanitizedField = (field: AppField): AppField => {
         }
     }
 
-    // Sanitize date values for date fields only — datetime fields need the full pattern preserved
-    if (field.type === AppFieldTypes.DATE) {
+    // Sanitize date values for date/datetime fields
+    if (field.type === AppFieldTypes.DATE || field.type === AppFieldTypes.DATETIME) {
         if (field.min_date) {
             sanitized.min_date = getSafeDateValue(field.min_date);
         }
@@ -212,20 +212,9 @@ const initFormValues = (form: AppForm, timezone?: string): AppFormValues => {
 
                 // Round up to next time interval
                 const minutesMod = currentTime.minutes() % timePickerInterval;
-                let defaultMoment = minutesMod === 0 ?
+                const defaultMoment = minutesMod === 0 ?
                     currentTime.clone().seconds(0).milliseconds(0) :
                     currentTime.clone().add(timePickerInterval - minutesMod, 'minutes').seconds(0).milliseconds(0);
-
-                // Clamp default to min_date/max_date bounds
-                const minMoment = field.min_date ? stringToMoment(field.min_date, timezone) : null;
-                const maxMoment = field.max_date ? stringToMoment(field.max_date, timezone) : null;
-                if (minMoment && defaultMoment.isBefore(minMoment)) {
-                    defaultMoment = minMoment.clone();
-                }
-                if (maxMoment && defaultMoment.isAfter(maxMoment)) {
-                    defaultMoment = maxMoment.clone();
-                }
-
                 defaultValue = momentToString(defaultMoment, true);
             }
 
@@ -265,7 +254,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
         if (nextProps.form !== prevState.form) {
             const values = {
                 ...prevState.values,
-                ...initFormValues(nextProps.form, nextProps.timezone),
+                ...initFormValues(nextProps.form),
             };
 
             return {
@@ -798,8 +787,6 @@ function fieldsAsElements(fields?: AppField[]): DialogElement[] {
         type: f.type,
         subtype: f.subtype,
         optional: !f.is_required,
-        min_date: f.min_date,
-        max_date: f.max_date,
     })) as DialogElement[];
 }
 

@@ -7,7 +7,6 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {interactiveDialogAppsFormEnabled} from 'mattermost-redux/selectors/entities/interactive_dialog';
-import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
 import {submitInteractiveDialog, lookupInteractiveDialog} from 'actions/integration_actions';
 import {getEmojiMap} from 'selectors/emojis';
@@ -42,7 +41,6 @@ function mapStateToProps(state: GlobalState) {
         emojiMap,
         isAppsFormEnabled,
         hasUrl: Boolean(data.url),
-        timezone: getCurrentTimezone(state) || undefined,
     };
 }
 

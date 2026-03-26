@@ -471,11 +471,11 @@ func (a *App) OpenInteractiveDialog(rctx request.CTX, request model.OpenDialogRe
 		return appErr
 	}
 
-	request.TriggerId = clientTriggerId
-
 	if dialogErr := request.IsValid(); dialogErr != nil {
-		return model.NewAppError("OpenInteractiveDialog", "app.interactive_dialog.invalid", nil, "", http.StatusBadRequest).Wrap(dialogErr)
+		rctx.Logger().Warn("Interactive dialog is invalid", mlog.Err(dialogErr))
 	}
+
+	request.TriggerId = clientTriggerId
 
 	jsonRequest, err := json.Marshal(request)
 	if err != nil {

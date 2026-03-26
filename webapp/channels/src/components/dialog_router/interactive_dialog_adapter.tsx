@@ -46,7 +46,6 @@ interface Props extends WrappedComponentProps {
     // Enhanced functionality
     sourceUrl?: string; // Optional URL for form refresh functionality
     conversionOptions?: Partial<ConversionOptions>;
-    timezone?: string;
 
     // Required actions
     actions: {
@@ -683,7 +682,6 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             <AppsFormContainer
                 form={form}
                 appContext={context}
-                timezone={this.props.timezone}
                 onExited={this.props.onExited || (() => {})}
                 onHide={this.cancelAdapter}
                 actions={{
