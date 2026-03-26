@@ -239,7 +239,7 @@ jobs:
 
       - name: Merge JUnit reports
         run: |
-          npx junit-report-merger@7 merged-report.xml "shards/*/report.xml"
+          npx junit-report-merger@7.0.0 merged-report.xml "shards/*/report.xml"
 
       # Prepare files with expected names for the report workflow
       - name: Prepare merged artifact
@@ -259,7 +259,7 @@ jobs:
       - name: Upload merged test logs
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
-          name: postgres-server-test-logs-merged
+          name: postgres-server-test-logs
           path: merged/
 
       # Save merged timing data for future shard balancing.
