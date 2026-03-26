@@ -233,7 +233,7 @@ jobs:
               analysisBody.includes('Documentation Updates Recommended') ||
               analysisBody.includes('Documentation Updates Required')
             );
-            const label = 'docs/needed';
+            const label = 'Docs/Needed';
             const { data: labels } = await github.rest.issues.listLabelsOnIssue({
               owner: context.repo.owner,
               repo: context.repo.repo,
