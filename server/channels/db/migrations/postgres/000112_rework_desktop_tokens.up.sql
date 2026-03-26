@@ -1,3 +1,4 @@
+-- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_desktoptokens_createat;
 DROP TABLE IF EXISTS desktoptokens;
 
@@ -8,4 +9,5 @@ CREATE TABLE IF NOT EXISTS desktoptokens (
     PRIMARY KEY (token)
 );
 
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_desktoptokens_token_createat ON desktoptokens(token, createat)

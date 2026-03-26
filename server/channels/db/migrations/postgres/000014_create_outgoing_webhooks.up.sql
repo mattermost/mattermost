@@ -18,9 +18,13 @@ ALTER TABLE outgoingwebhooks ADD COLUMN IF NOT EXISTS username VARCHAR(64);
 ALTER TABLE outgoingwebhooks ADD COLUMN IF NOT EXISTS iconurl VARCHAR(1024);
 ALTER TABLE outgoingwebhooks ADD COLUMN IF NOT EXISTS description VARCHAR(500);
 
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_outgoing_webhook_team_id ON outgoingwebhooks (teamid);
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_outgoing_webhook_update_at ON outgoingwebhooks (updateat);
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_outgoing_webhook_create_at ON outgoingwebhooks (createat);
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_outgoing_webhook_delete_at ON outgoingwebhooks (deleteat);
 
 DO $$

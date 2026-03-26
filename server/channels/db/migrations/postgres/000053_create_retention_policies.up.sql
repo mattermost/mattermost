@@ -37,8 +37,12 @@ BEGIN
 END;
 $$;
 
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS IDX_RetentionPoliciesTeams_PolicyId ON retentionpoliciesteams (policyid);
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS IDX_RetentionPoliciesChannels_PolicyId ON retentionpolicieschannels (policyid);
 
+-- nolint:concurrentIndex
 DROP INDEX IF EXISTS IDX_RetentionPolicies_DisplayName_Id;
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS IDX_RetentionPolicies_DisplayName ON retentionpolicies (displayname);

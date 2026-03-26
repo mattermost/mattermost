@@ -4,6 +4,7 @@ ADD COLUMN IF NOT EXISTS state varchar(20) NOT NULL;
 
 -- Create partial index for non-terminal states (processing, unavailable)
 -- This index is only for states that need monitoring/cleanup
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_translations_state 
 ON translations(state) 
 WHERE state IN ('processing');

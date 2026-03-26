@@ -1,4 +1,5 @@
 -- Drop the state index
+-- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_translations_state;
 
 -- Remove the state column

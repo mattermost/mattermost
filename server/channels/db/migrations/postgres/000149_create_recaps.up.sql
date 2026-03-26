@@ -12,10 +12,15 @@ CREATE TABLE IF NOT EXISTS Recaps (
     BotID VARCHAR(26) DEFAULT '' NOT NULL
 );
 
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_recaps_user_id ON Recaps(UserId);
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_recaps_create_at ON Recaps(CreateAt);
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_recaps_user_id_delete_at ON Recaps(UserId, DeleteAt);
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_recaps_user_id_read_at ON Recaps(UserId, ReadAt);
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_recaps_bot_id ON Recaps(BotID);
 
 -- RecapChannels table: stores per-channel summaries
@@ -31,7 +36,9 @@ CREATE TABLE IF NOT EXISTS RecapChannels (
     FOREIGN KEY (RecapId) REFERENCES Recaps(Id) ON DELETE CASCADE
 );
 
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_recap_channels_recap_id ON RecapChannels(RecapId);
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_recap_channels_channel_id ON RecapChannels(ChannelId);
 
 

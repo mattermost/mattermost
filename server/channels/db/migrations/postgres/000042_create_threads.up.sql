@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS threads (
 
 ALTER TABLE threads ADD COLUMN IF NOT EXISTS channelid VARCHAR(26);
 
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_threads_channel_id ON threads (channelid);
 
 DO $$

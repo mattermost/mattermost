@@ -6,6 +6,8 @@ CREATE TABLE IF NOT EXISTS useraccesstokens (
 );
 
 ALTER TABLE useraccesstokens ADD COLUMN IF NOT EXISTS isactive boolean;
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_user_access_tokens_user_id ON useraccesstokens(userid);
 
+-- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_user_access_tokens_token;

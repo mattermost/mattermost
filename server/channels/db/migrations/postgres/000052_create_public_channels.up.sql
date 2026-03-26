@@ -9,11 +9,17 @@ CREATE TABLE IF NOT EXISTS publicchannels (
 	UNIQUE (name, teamid)
 );
 
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_publicchannels_team_id ON publicchannels (teamid);
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_publicchannels_name ON publicchannels (name);
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_publicchannels_delete_at ON publicchannels (deleteat);
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_publicchannels_name_lower ON publicchannels (lower(name));
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_publicchannels_displayname_lower ON publicchannels (lower(displayname));
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_publicchannels_search_txt ON publicchannels using gin (to_tsvector('english'::regconfig, (((((name)::text || ' '::text) || (displayname)::text) || ' '::text) || (purpose)::text)));
 
 DO $$
@@ -34,4 +40,5 @@ BEGIN
 END migratepc
 $$;
 
+-- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_publicchannels_name;

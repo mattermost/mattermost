@@ -1,10 +1,13 @@
 -- Drop users covering index
+-- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_users_id_locale;
 
 -- Drop channels autotranslation index
+-- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_channels_autotranslation_enabled;
 
 -- Drop channelmembers autotranslation index
+-- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_channelmembers_autotranslation_enabled;
 
 -- Drop autotranslation columns
@@ -15,6 +18,7 @@ ALTER TABLE channels
     DROP COLUMN IF EXISTS autotranslation;
 
 -- Drop translations table indexes
+-- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_translations_updateat;
 
 -- Drop translations table

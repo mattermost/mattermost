@@ -5,11 +5,13 @@ CREATE TABLE IF NOT EXISTS oauthaccessdata (
     PRIMARY KEY (token)
 );
 
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_oauthaccessdata_refresh_token ON oauthaccessdata (refreshtoken);
 
 ALTER TABLE oauthaccessdata ADD COLUMN IF NOT EXISTS clientid VARCHAR(26);
 
 ALTER TABLE oauthaccessdata ADD COLUMN IF NOT EXISTS userid VARCHAR(26);
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_oauthaccessdata_user_id ON oauthaccessdata (userid);
 
 DO $$
@@ -26,11 +28,14 @@ END $$;
 
 ALTER TABLE oauthaccessdata ADD COLUMN IF NOT EXISTS expiresat bigint;
 
+-- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_oauthaccessdata_auth_code;
 ALTER TABLE oauthaccessdata DROP COLUMN IF EXISTS authcode;
 
 ALTER TABLE oauthaccessdata ADD COLUMN IF NOT EXISTS scope VARCHAR(128);
 
+-- nolint:concurrentIndex
 DROP INDEX IF EXISTS clientid_2;
 
+-- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_oauthaccessdata_client_id;

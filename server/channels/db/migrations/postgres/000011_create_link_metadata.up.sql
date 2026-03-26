@@ -7,4 +7,5 @@ CREATE TABLE IF NOT EXISTS linkmetadata (
     PRIMARY KEY (hash)
 );
 
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_link_metadata_url_timestamp ON linkmetadata (url, "timestamp");

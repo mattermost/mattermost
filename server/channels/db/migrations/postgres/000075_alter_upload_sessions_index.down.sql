@@ -13,7 +13,9 @@ BEGIN
         and a.attnum = ANY(ix.indkey);
 
     IF COALESCE (column_name, '') = text('userid') THEN
+-- nolint:concurrentIndex
         DROP INDEX IF EXISTS idx_uploadsessions_user_id;
+-- nolint:concurrentIndex
         CREATE INDEX IF NOT EXISTS idx_uploadsessions_user_id on uploadsessions(type);
     END IF;
 END alter_index $$;

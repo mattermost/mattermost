@@ -33,6 +33,8 @@ IF alter_fileids OR alter_props THEN
 END IF;
 END migrate_root_id $$;
 
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_posts_root_id_delete_at ON posts(rootid, deleteat);
 
+-- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_posts_root_id;

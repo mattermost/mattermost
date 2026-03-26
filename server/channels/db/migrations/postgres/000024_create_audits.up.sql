@@ -8,4 +8,5 @@ CREATE TABLE IF NOT EXISTS audits (
     sessionid VARCHAR(26)
 );
 
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_audits_user_id ON audits (userid);

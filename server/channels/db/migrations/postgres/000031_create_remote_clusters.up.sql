@@ -13,4 +13,5 @@ CREATE TABLE IF NOT EXISTS remoteclusters (
     PRIMARY KEY (remoteid, name)
 );
 
+-- nolint:concurrentIndex
 CREATE UNIQUE INDEX IF NOT EXISTS remote_clusters_site_url_unique ON remoteclusters (siteurl, remoteteamid);

@@ -20,19 +20,30 @@ ALTER TABLE posts ADD COLUMN IF NOT EXISTS hasreactions boolean;
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS editat bigint;
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS ispinned boolean;
 
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_posts_update_at ON posts(updateat);
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_posts_create_at ON posts(createat);
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_posts_delete_at ON posts(deleteat);
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_posts_root_id ON posts(rootid);
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_posts_user_id ON posts(userid);
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_posts_is_pinned ON posts(ispinned);
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_posts_channel_id_update_at ON posts(channelid, updateat);
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_posts_channel_id_delete_at_create_at ON posts(channelid, deleteat, createat);
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_posts_message_txt ON posts USING gin(to_tsvector('english', message));
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_posts_hashtags_txt ON posts USING gin(to_tsvector('english', hashtags));
 
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS remoteid VARCHAR(26);
 
+-- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_posts_channel_id;
 
 DO $$

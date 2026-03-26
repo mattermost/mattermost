@@ -62,27 +62,45 @@ IF column_exist THEN
 END IF;
 END $$;
 
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_users_update_at ON users (updateat);
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_users_create_at ON users (createat);
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_users_delete_at ON users (deleteat);
 
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_users_email_lower_textpattern ON users (lower(email) text_pattern_ops);
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_users_username_lower_textpattern ON users (lower(username) text_pattern_ops);
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_users_nickname_lower_textpattern ON users (lower(nickname) text_pattern_ops);
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_users_firstname_lower_textpattern ON users (lower(firstname) text_pattern_ops);
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_users_lastname_lower_textpattern ON users (lower(lastname) text_pattern_ops);
 
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_users_all_txt ON users USING gin(to_tsvector('english', username || ' ' || firstname || ' ' || lastname || ' ' || nickname || ' ' || email));
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_users_all_no_full_name_txt ON users USING gin(to_tsvector('english', username || ' ' || nickname || ' ' || email));
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_users_names_txt ON users USING gin(to_tsvector('english', username || ' ' || firstname || ' ' || lastname || ' ' || nickname));
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_users_names_no_full_name_txt ON users USING gin(to_tsvector('english', username || ' ' || nickname));
 
+-- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_users_email_lower;
+-- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_users_username_lower;
+-- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_users_nickname_lower;
+-- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_users_firstname_lower;
+-- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_users_lastname_lower;
 
 ALTER TABLE users ADD COLUMN IF NOT EXISTS remoteid VARCHAR(26);
 
+-- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_users_email;

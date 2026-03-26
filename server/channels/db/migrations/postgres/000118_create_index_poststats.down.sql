@@ -1,1 +1,2 @@
+-- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_poststats_userid;

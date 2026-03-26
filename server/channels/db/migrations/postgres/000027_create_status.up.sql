@@ -7,9 +7,11 @@ CREATE TABLE IF NOT EXISTS status (
 
 ALTER TABLE status DROP COLUMN IF EXISTS activechannel;
 
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_status_status ON status(status);
 
 ALTER TABLE status ADD COLUMN IF NOT EXISTS dndendtime bigint;
 ALTER TABLE status ADD COLUMN IF NOT EXISTS prevstatus VARCHAR(32);
 
+-- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_status_user_id;

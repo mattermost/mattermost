@@ -1,1 +1,2 @@
+-- nolint:concurrentIndex
 DROP INDEX IF exists idx_sidebarcategories_userid_teamid;

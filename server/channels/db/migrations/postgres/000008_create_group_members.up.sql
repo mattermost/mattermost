@@ -6,4 +6,5 @@ CREATE TABLE IF NOT EXISTS groupmembers (
     PRIMARY KEY(groupid, userid)
 );
 
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_groupmembers_create_at ON groupmembers (createat);

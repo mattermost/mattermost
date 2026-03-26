@@ -21,6 +21,8 @@ BEGIN
     END IF;
 END $$;
 
+-- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_sharedchannelusers_user_id;
 
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_sharedchannelusers_remote_id ON sharedchannelusers(remoteid);

@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS PropertyFields (
 	DeleteAt bigint NOT NULL
 );
 
+-- nolint:concurrentIndex
 CREATE UNIQUE INDEX IF NOT EXISTS idx_propertyfields_unique ON PropertyFields (GroupID, TargetID, Name) WHERE DeleteAt = 0;
 
 CREATE TABLE IF NOT EXISTS PropertyValues (
@@ -51,5 +52,7 @@ CREATE TABLE IF NOT EXISTS PropertyValues (
 	DeleteAt bigint NOT NULL
 );
 
+-- nolint:concurrentIndex
 CREATE UNIQUE INDEX IF NOT EXISTS idx_propertyvalues_unique ON PropertyValues (GroupID, TargetID, FieldID) WHERE DeleteAt = 0;
+-- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_propertyvalues_targetid_groupid ON PropertyValues (TargetID, GroupID);
