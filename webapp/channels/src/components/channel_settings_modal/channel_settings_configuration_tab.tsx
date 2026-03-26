@@ -166,8 +166,8 @@ function ChannelSettingsConfigurationTab({
     // Track the toggle state to detect when sharing is explicitly disabled on a channel
     // that has channel.shared=true but no remotes loaded (e.g. after page reload).
     // Both are frozen at mount time so they don't drift apart due to async channel hydration.
-    const initialSharingEnabled = useRef(channel.shared || false);
-    const [sharingEnabled, setSharingEnabled] = useState(channel.shared || false);
+    const initialSharingEnabled = useRef(channel.shared || (initialRemotes || []).length > 0);
+    const [sharingEnabled, setSharingEnabled] = useState(channel.shared || (initialRemotes || []).length > 0);
 
     // Freeze initialRemoteIds in state and update it atomically with workspaceRemotes (in
     // useDidUpdate below) so that the two never diverge in the same render. If we computed
@@ -236,6 +236,9 @@ function ChannelSettingsConfigurationTab({
                 initialRemotes.map((r) => r.remote_id || r.name).sort().join(','),
             );
             setWorkspaceRemotes(initialRemotes.map((r) => ({...r})));
+            if (initialRemotes.length > 0) {
+                setSharingEnabled(true);
+            }
         }
     }, [canManageSharedChannels, initialRemotes]);
 
@@ -410,9 +413,12 @@ function ChannelSettingsConfigurationTab({
         setFormError('');
         setSaveChangesPanelState(undefined);
         setCharacterLimitExceeded(false);
-        if (canManageSharedChannels && initialRemotes) {
-            setWorkspaceRemotes(initialRemotes.map((r) => ({...r})));
-            setShareChannelKey(Date.now());
+        if (canManageSharedChannels) {
+            setSharingEnabled(initialSharingEnabled.current);
+            if (initialRemotes) {
+                setWorkspaceRemotes(initialRemotes.map((r) => ({...r})));
+                setShareChannelKey(Date.now());
+            }
         }
     }, [canManageSharedChannels, initialBannerInfo, initialRemotes]);
 
@@ -452,7 +458,7 @@ function ChannelSettingsConfigurationTab({
                         remotes={workspaceRemotes}
                         initialRemotes={initialRemotes}
                         onRemotesChange={setWorkspaceRemotes}
-                        initialEnabled={channel.shared}
+                        enabled={sharingEnabled}
                         onToggle={setSharingEnabled}
                     />
                 </>
