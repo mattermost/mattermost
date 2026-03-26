@@ -29,6 +29,15 @@ on:
         required: false
         default: false
         type: boolean
+      # -- Test sharding inputs (leave defaults for non-sharded callers) --
+      shard-index:
+        required: false
+        type: number
+        default: -1 # -1 = no sharding; run all tests
+      shard-total:
+        required: false
+        type: number
+        default: 1
 
 permissions:
   id-token: write
@@ -52,6 +61,21 @@ jobs:
 
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Restore test timing data
+        if: inputs.shard-total > 1
+        id: timing-cache
+        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: |
+            server/prev-report.xml
+            server/prev-gotestsum.json
+          # Always restore from master — timing is only saved on the default
+          # branch and is stable enough for shard balancing.
+          key: server-test-timing-master
+          restore-keys: |
+            server-test-timing-
+
       - name: Setup BUILD_IMAGE
         id: build
         run: |
@@ -78,6 +102,60 @@ jobs:
           docker compose --ansi never exec -T minio sh -c 'mkdir -p /data/mattermost-test';
           docker compose --ansi never ps
 
+      # ── Test-level sharding ────────────────────────────────────────────
+      # When shard-total > 1, we split tests across N parallel runners.
+      #
+      # Two-tier splitting strategy:
+      #   - "Light" packages (< 5 min): assigned whole to a shard
+      #   - "Heavy" packages (≥ 5 min, e.g. api4, app): individual tests
+      #     are distributed across shards using -run regex filters
+      #
+      # See server/scripts/shard-split.js for the full algorithm.
+      # ─────────────────────────────────────────────────────────────────────
+
+      - name: Setup Go for test discovery
+        if: inputs.shard-total > 1
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
+        with:
+          go-version: ${{ inputs.go-version }}
+
+      - name: Split tests across shards
+        if: inputs.shard-total > 1
+        id: test_split
+        working-directory: server
+        env:
+          SHARD_INDEX: ${{ inputs.shard-index }}
+          SHARD_TOTAL: ${{ inputs.shard-total }}
+        run: |
+          set -euo pipefail
+
+          # ── List all test packages ──
+          echo "::group::Listing test packages"
+          TE_PKGS=$(find ./public/ ./ -name '*_test.go' -not -path './enterprise/*' -not -path './cmd/mmctl/*' 2>/dev/null \
+            | sed 's|/[^/]*$||' | sort -u \
+            | sed 's|^\./|github.com/mattermost/mattermost/server/v8/|' \
+            | sed 's|github.com/mattermost/mattermost/server/v8/public/|github.com/mattermost/mattermost/server/public/|')
+          EE_PKGS=$(find ./enterprise/ -name '*_test.go' 2>/dev/null \
+            | sed 's|/[^/]*$||' | sort -u \
+            | sed 's|^\./|github.com/mattermost/mattermost/server/v8/|')
+          ALL_PKGS=$(printf '%s\n%s' "$TE_PKGS" "$EE_PKGS" | grep -v '^$' | sort -u)
+          TOTAL_PKGS=$(echo "$ALL_PKGS" | wc -l)
+          echo "Found $TOTAL_PKGS test packages"
+          echo "::endgroup::"
+
+          if [[ "$TOTAL_PKGS" -eq 0 ]]; then
+            echo "WARNING: No test packages found"
+            echo "has_packages=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "$ALL_PKGS" > all-packages.txt
+
+          # ── Run shard solver ──
+          node scripts/shard-split.js
+
+          echo "has_packages=true" >> "$GITHUB_OUTPUT"
+
       - name: Run Tests
         env:
           BUILD_IMAGE: ${{ steps.build.outputs.BUILD_IMAGE }}
@@ -85,6 +163,38 @@ jobs:
           if [[ ${{ github.ref_name }} == 'master' && ${{ inputs.fullyparallel }} != true ]]; then
             export RACE_MODE="-race"
           fi
+
+          MAKE_ARGS="test-server${RACE_MODE} BUILD_NUMBER=${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}"
+          DOCKER_CMD="make ${MAKE_ARGS}"
+
+          # When sharding is active, use the multi-run wrapper script
+          if [[ "${{ inputs.shard-total }}" -gt 1 && -f server/shard-te-packages.txt ]]; then
+            SHARD_TE=$(cat server/shard-te-packages.txt)
+            SHARD_EE=$(cat server/shard-ee-packages.txt)
+            HEAVY_RUNS=""
+            if [[ -f server/shard-heavy-runs.txt && -s server/shard-heavy-runs.txt ]]; then
+              HEAVY_RUNS=$(cat server/shard-heavy-runs.txt)
+            fi
+
+            if [[ -z "$HEAVY_RUNS" ]]; then
+              # No heavy packages — single run via Makefile with package filter.
+              # Read packages from files at runtime to avoid interpolating
+              # file-system-derived paths into a generated shell script.
+              cat > server/run-shard-tests.sh <<SHARD_EOF
+          #!/bin/bash
+          exec make ${MAKE_ARGS} \\
+            TE_PACKAGES="\$(cat shard-te-packages.txt)" \\
+            EE_PACKAGES="\$(cat shard-ee-packages.txt)"
+          SHARD_EOF
+            else
+              # Use the multi-run wrapper script
+              cp server/scripts/run-shard-tests.sh server/run-shard-tests.sh
+            fi
+
+            chmod +x server/run-shard-tests.sh
+            DOCKER_CMD="/mattermost/server/run-shard-tests.sh"
+          fi
+
           docker run --net ghactions_mm-test \
             --ulimit nofile=8096:8096 \
             --env-file=server/build/dotenv/test.env \
@@ -94,10 +204,11 @@ jobs:
             --env ENABLE_FULLY_PARALLEL_TESTS="${{ inputs.fullyparallel }}" \
             --env ENABLE_COVERAGE="${{ inputs.enablecoverage }}" \
             --env FIPS_ENABLED="${{ inputs.fips-enabled }}" \
+            --env RACE_MODE \
             -v $PWD:/mattermost \
             -w /mattermost/server \
             $BUILD_IMAGE \
-            make test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID
+            $DOCKER_CMD
       - name: Upload coverage to Codecov
         if: ${{ inputs.enablecoverage }}
         uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
@@ -122,3 +233,4 @@ jobs:
             server/cover.out
             server/test-name
             server/pr-number
+
