@@ -772,7 +772,6 @@ const defaultServerConfig: AdminConfig = {
         CustomProfileAttributes: true,
         AttributeBasedAccessControl: true,
         ContentFlagging: true,
-        InteractiveDialogAppsForm: true,
         EnableMattermostEntry: true,
         MobileSSOCodeExchange: true,
         AutoTranslation: false,
