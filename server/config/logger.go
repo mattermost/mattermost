@@ -105,13 +105,31 @@ func GetLogFileLocation(fileLocation string) string {
 	return filepath.Join(fileLocation, LogFilename)
 }
 
+// TestOverrideLogRootPath is a test-only hook that overrides the log root path.
+// When non-empty, GetLogRootPath returns this value instead of checking MM_LOG_PATH
+// or the default logs directory. This enables tests to control the log path without
+// modifying process-wide environment variables (which is unsafe under t.Parallel).
+//
+// Not for production use.
+var TestOverrideLogRootPath string
+
 // GetLogRootPath returns the root directory for all log files.
 // This is used for security validation to prevent arbitrary file reads via advanced logging.
 // The logging root is determined by:
-// 1. MM_LOG_PATH environment variable (if set and non-empty)
-// 2. The default "logs" directory (found relative to the binary)
+// 1. TestOverrideLogRootPath (test-only hook, if non-empty)
+// 2. MM_LOG_PATH environment variable (if set and non-empty)
+// 3. The default "logs" directory (found relative to the binary)
 func GetLogRootPath() string {
-	// Check environment variable first
+	// Check test override first
+	if TestOverrideLogRootPath != "" {
+		absPath, err := filepath.Abs(TestOverrideLogRootPath)
+		if err == nil {
+			return absPath
+		}
+		return TestOverrideLogRootPath
+	}
+
+	// Check environment variable
 	if envPath := os.Getenv("MM_LOG_PATH"); envPath != "" {
 		absPath, err := filepath.Abs(envPath)
 		if err == nil {

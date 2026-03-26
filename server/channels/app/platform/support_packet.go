@@ -21,6 +21,14 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
+// TestOverrideInstallType is a test-only hook that overrides the installation type.
+// When non-empty, getSupportPacketDiagnostics uses this value instead of reading
+// MM_INSTALL_TYPE from the environment. This enables tests to control the install
+// type without modifying process-wide environment variables.
+//
+// Not for production use.
+var TestOverrideInstallType string
+
 const (
 	envVarInstallType = "MM_INSTALL_TYPE"
 	unknownDataPoint  = "unknown"
@@ -109,7 +117,10 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	}
 	d.Server.Version = model.CurrentVersion
 	d.Server.BuildHash = model.BuildHash
-	installationType := os.Getenv(envVarInstallType)
+	installationType := TestOverrideInstallType
+	if installationType == "" {
+		installationType = os.Getenv(envVarInstallType)
+	}
 	if installationType == "" {
 		installationType = unknownDataPoint
 	}
