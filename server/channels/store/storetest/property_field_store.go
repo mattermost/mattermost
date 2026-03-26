@@ -1100,7 +1100,31 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 		ObjectType: "",
 	}
 
-	for _, field := range []*model.PropertyField{field1, field2, field3, field4} {
+	// field5 adds a second "post" field in groupID with a different
+	// TargetType and TargetID so that the ObjectType+TargetType and
+	// ObjectType+TargetIDs combined filters have something to exclude.
+	targetID5 := model.NewId()
+	field5 := &model.PropertyField{
+		GroupID:    groupID,
+		Name:       "Field 5",
+		Type:       model.PropertyFieldTypeText,
+		TargetID:   targetID5,
+		TargetType: string(model.PropertyFieldTargetLevelTeam),
+		ObjectType: "post",
+	}
+
+	// field6 adds a "user" field in groupID2 so the ObjectType filter
+	// within groupID2 actually filters something out.
+	field6 := &model.PropertyField{
+		GroupID:    groupID2,
+		Name:       "Field 6",
+		Type:       model.PropertyFieldTypeText,
+		TargetID:   targetID3,
+		TargetType: string(model.PropertyFieldTargetLevelChannel),
+		ObjectType: "user",
+	}
+
+	for _, field := range []*model.PropertyField{field1, field2, field3, field4, field5, field6} {
 		_, err := ss.PropertyField().Create(field)
 		require.NoError(t, err)
 		time.Sleep(10 * time.Millisecond)
@@ -1128,7 +1152,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 				GroupID: groupID,
 				PerPage: 10,
 			},
-			expectedIDs: []string{field1.ID, field2.ID},
+			expectedIDs: []string{field1.ID, field2.ID, field5.ID},
 		},
 		{
 			name: "filter by group_id including deleted",
@@ -1137,7 +1161,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 				PerPage:        10,
 				IncludeDeleted: true,
 			},
-			expectedIDs: []string{field1.ID, field2.ID, field4.ID},
+			expectedIDs: []string{field1.ID, field2.ID, field4.ID, field5.ID},
 		},
 		{
 			name: "filter by target_type and groupID",
@@ -1176,7 +1200,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 				PerPage:        2,
 				IncludeDeleted: true,
 			},
-			expectedIDs: []string{field4.ID},
+			expectedIDs: []string{field4.ID, field5.ID},
 		},
 		{
 			name: "filter by multiple target_ids",
@@ -1207,7 +1231,8 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 		{
 			name: "filter by SinceUpdateAt timestamp - no results before",
 			opts: model.PropertyFieldSearchOpts{
-				SinceUpdateAt: field3.UpdateAt, // After all existing fields
+				GroupID:       groupID,
+				SinceUpdateAt: field5.UpdateAt, // After last active field in groupID
 				PerPage:       10,
 			},
 			expectedIDs: []string{},
@@ -1215,28 +1240,30 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 		{
 			name: "filter by SinceUpdateAt timestamp - get fields after specific time",
 			opts: model.PropertyFieldSearchOpts{
-				SinceUpdateAt: field1.UpdateAt, // After field1, should get field2 and field3
+				GroupID:       groupID,
+				SinceUpdateAt: field1.UpdateAt, // After field1, should get field2 and field5 from same group
 				PerPage:       10,
 			},
-			expectedIDs: []string{field2.ID, field3.ID},
+			expectedIDs: []string{field2.ID, field5.ID},
 		},
 		{
 			name: "filter by SinceUpdateAt timestamp with group filter",
 			opts: model.PropertyFieldSearchOpts{
-				GroupID:       groupID,
-				SinceUpdateAt: field1.UpdateAt, // After field1, should only get field2 from same group
+				GroupID:       groupID2,
+				SinceUpdateAt: field3.UpdateAt, // After field3, should get field6 from groupID2
 				PerPage:       10,
 			},
-			expectedIDs: []string{field2.ID},
+			expectedIDs: []string{field6.ID},
 		},
 		{
 			name: "filter by SinceUpdateAt timestamp including deleted",
 			opts: model.PropertyFieldSearchOpts{
-				SinceUpdateAt:  field3.UpdateAt, // After field3, should get field4 (deleted)
+				GroupID:        groupID,
+				SinceUpdateAt:  field2.UpdateAt, // After field2, should get field4 (deleted) and field5
 				IncludeDeleted: true,
 				PerPage:        10,
 			},
-			expectedIDs: []string{field4.ID},
+			expectedIDs: []string{field4.ID, field5.ID},
 		},
 		{
 			name: "filter by ObjectType post",
@@ -1245,7 +1272,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 				ObjectType: "post",
 				PerPage:    10,
 			},
-			expectedIDs: []string{field1.ID},
+			expectedIDs: []string{field1.ID, field5.ID},
 		},
 		{
 			name: "filter by ObjectType user",
