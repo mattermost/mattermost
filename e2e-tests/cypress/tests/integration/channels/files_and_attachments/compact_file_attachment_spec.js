@@ -61,6 +61,10 @@ describe('MM-66620 Compact view: file attachment alignment', () => {
         // # Set display mode to standard
         cy.apiSaveMessageDisplayPreference('clean');
 
+        // # Reload to apply standard display preference
+        cy.reload();
+        cy.uiGetPostTextBox().should('be.visible');
+
         // # Upload a non-image file so it renders as a file attachment bar
         interceptFileUpload();
         cy.get('#advancedTextEditorCell').find('#fileUploadInput').attachFile(filename);
@@ -73,8 +77,8 @@ describe('MM-66620 Compact view: file attachment alignment', () => {
         cy.getLastPostId().then((postId) => {
             cy.get(`#${postId}_message`).within(() => {
                 cy.get('.post-image__name').should('be.visible').then(($el) => {
-                    // * Verify the element does not use flex layout (standard uses block)
-                    expect($el).to.not.have.css('display', 'flex');
+                    // * Verify the element uses block layout in standard display
+                    expect($el).to.have.css('display', 'block');
                 });
 
                 // * Verify the filename text is present
