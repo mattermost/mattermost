@@ -395,7 +395,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                 getFirstTeamMemberError(addUsersToTeamResult.data)?.message ||
                 intl.formatMessage({
                     id: 'channel_invite.add_to_team_and_channel.partial_failure',
-                    defaultMessage: 'Some people could not be added to the team.',
+                    defaultMessage: 'Some people could not be added to the team and channel.',
                 }),
             );
             return;
@@ -417,7 +417,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                 getFirstTeamMemberError(addUsersToTeamResult.data)?.message ||
                 intl.formatMessage({
                     id: 'channel_invite.add_to_team_and_channel.partial_failure',
-                    defaultMessage: 'Some people could not be added to the team.',
+                    defaultMessage: 'Some people could not be added to the team and channel.',
                 }),
             );
             return;
@@ -438,8 +438,9 @@ const ChannelInviteModalComponent = (props: Props) => {
 
     const confirmAddUsersToTeamAndChannel = useCallback(() => {
         setShowAddToTeamConfirmModal(false);
-        handleAddUsersToTeamAndChannel().catch(() => {
-            // Errors are handled inside handleAddUsersToTeamAndChannel.
+        handleAddUsersToTeamAndChannel().catch((err) => {
+            setSaving(false);
+            console.error('confirmAddUsersToTeamAndChannel: unexpected error', err); // eslint-disable-line no-console
         });
     }, [handleAddUsersToTeamAndChannel]);
 
@@ -737,7 +738,20 @@ const ChannelInviteModalComponent = (props: Props) => {
     );
 
     const {channel} = props;
-    const teamDisplayName = props.teamDisplayName || channel.team_id;
+    const teamDisplayName = props.teamDisplayName ? (
+        <FormattedMessage
+            id='channel_invite.team_display_name'
+            defaultMessage='the {teamName} team'
+            values={{
+                teamName: <strong>{props.teamDisplayName}</strong>,
+            }}
+        />
+    ) : (
+        <FormattedMessage
+            id='channel_invite.team_fallback'
+            defaultMessage='this team'
+        />
+    );
     const confirmationUsers = formatUsersForConfirmation(usersNotInTeam);
 
     return (
@@ -816,24 +830,24 @@ const ChannelInviteModalComponent = (props: Props) => {
                 title={(
                     <FormattedMessage
                         id='channel_invite.add_to_team_and_channel.confirm.title'
-                        defaultMessage='Add people to the channel and team?'
+                        defaultMessage='Add people to the team and channel?'
                     />
                 )}
                 message={(
                     <FormattedMessage
                         id='channel_invite.add_to_team_and_channel.confirm.message'
-                        defaultMessage='{users} will be added to the {channel} channel. They will also get access to the {team} team and any public channels in the team.'
+                        defaultMessage='{users} will get access to {team} and be added to the {channel} channel. They will also get access to any public channels in that team.'
                         values={{
                             users: <FormattedList value={confirmationUsers}/>,
                             channel: <strong>{channel.display_name}</strong>,
-                            team: <strong>{teamDisplayName}</strong>,
+                            team: teamDisplayName,
                         }}
                     />
                 )}
                 confirmButtonText={(
                     <FormattedMessage
                         id='channel_invite.add_to_team_and_channel.confirm.confirmButton'
-                        defaultMessage='Add to channel and team'
+                        defaultMessage='Add to team and channel'
                     />
                 )}
                 confirmButtonClass='btn btn-primary'
