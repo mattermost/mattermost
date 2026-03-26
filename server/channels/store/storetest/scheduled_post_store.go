@@ -85,6 +85,35 @@ func testCreateScheduledPost(t *testing.T, rctx request.CTX, ss store.Store, s S
 			_ = ss.ScheduledPost().PermanentlyDeleteScheduledPosts([]string{scheduledPost.Id})
 		}()
 	})
+
+	t.Run("weekly recurrence fields persist", func(t *testing.T) {
+		userId := model.NewId()
+		scheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    userId,
+				ChannelId: createdChannel.Id,
+				Message:   "this is a weekly scheduled post",
+			},
+			ScheduledAt:    model.GetMillis() + 100000,
+			RepeatType:     model.ScheduledPostRepeatTypeWeekly,
+			RepeatTimezone: "America/New_York",
+		}
+
+		createdScheduledPost, err := ss.ScheduledPost().CreateScheduledPost(scheduledPost)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, createdScheduledPost.Id)
+
+		defer func() {
+			_ = ss.ScheduledPost().PermanentlyDeleteScheduledPosts([]string{createdScheduledPost.Id})
+		}()
+
+		scheduledPostsFromDatabase, err := ss.ScheduledPost().GetScheduledPostsForUser(userId, "team_id_1")
+		assert.NoError(t, err)
+		require.Len(t, scheduledPostsFromDatabase, 1)
+		assert.Equal(t, model.ScheduledPostRepeatTypeWeekly, scheduledPostsFromDatabase[0].RepeatType)
+		assert.Equal(t, "America/New_York", scheduledPostsFromDatabase[0].RepeatTimezone)
+	})
 }
 
 func testGetScheduledPosts(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
@@ -169,6 +198,35 @@ func testGetScheduledPosts(t *testing.T, rctx request.CTX, ss store.Store, s Sql
 		scheduledPosts, err = ss.ScheduledPost().GetPendingScheduledPosts(model.GetMillisForTime(jan2100Midnight), model.GetMillisForTime(afterTime), "", 10)
 		assert.NoError(t, err)
 		assert.Equal(t, 0, len(scheduledPosts))
+	})
+
+	t.Run("should include overdue recurring scheduled posts older than the one-shot window", func(t *testing.T) {
+		recurringScheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    model.NewId(),
+				ChannelId: model.NewId(),
+				Message:   "this is a recurring scheduled post",
+			},
+			ScheduledAt:    model.GetMillisForTime(time.Date(2100, time.January, 1, 1, 0, 0, 0, time.UTC)),
+			RepeatType:     model.ScheduledPostRepeatTypeWeekly,
+			RepeatTimezone: "UTC",
+		}
+
+		createdRecurringScheduledPost, err := ss.ScheduledPost().CreateScheduledPost(recurringScheduledPost)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, createdRecurringScheduledPost.Id)
+
+		defer func() {
+			_ = ss.ScheduledPost().PermanentlyDeleteScheduledPosts([]string{createdRecurringScheduledPost.Id})
+		}()
+
+		beforeTime := model.GetMillisForTime(time.Date(2100, time.March, 1, 1, 0, 0, 0, time.UTC))
+		afterTime := model.GetMillisForTime(time.Date(2100, time.February, 1, 1, 0, 0, 0, time.UTC))
+		scheduledPosts, err := ss.ScheduledPost().GetPendingScheduledPosts(beforeTime, afterTime, "", 10)
+		assert.NoError(t, err)
+		require.Len(t, scheduledPosts, 1)
+		assert.Equal(t, createdRecurringScheduledPost.Id, scheduledPosts[0].Id)
 	})
 }
 
@@ -293,6 +351,7 @@ func testUpdatedScheduledPost(t *testing.T, rctx request.CTX, ss store.Store, s 
 		updateSchedulePost := &model.ScheduledPost{
 			Id:          createdScheduledPost.Id,
 			ScheduledAt: newScheduledAt,
+			ProcessedAt: 0,
 			ErrorCode:   "test_error_code",
 			Draft: model.Draft{
 				CreateAt:  model.GetMillis(),
@@ -320,6 +379,7 @@ func testUpdatedScheduledPost(t *testing.T, rctx request.CTX, ss store.Store, s 
 		// fields that should have changed
 		assert.Equal(t, newScheduledAt, userScheduledPosts[0].ScheduledAt)
 		assert.Equal(t, "test_error_code", userScheduledPosts[0].ErrorCode)
+		assert.Zero(t, userScheduledPosts[0].ProcessedAt)
 		assert.Equal(t, "updated message", userScheduledPosts[0].Message)
 		assert.Equal(t, 2, len(userScheduledPosts[0].FileIds))
 		assert.Equal(t, "urgent", userScheduledPosts[0].Priority["priority"])
@@ -351,6 +411,7 @@ func testUpdatedScheduledPost(t *testing.T, rctx request.CTX, ss store.Store, s 
 		// now we'll update the scheduled post
 		now := model.GetMillis()
 		scheduledPost.ErrorCode = model.ScheduledPostErrorUnknownError
+		scheduledPost.ProcessedAt = now
 
 		err = ss.ScheduledPost().UpdatedScheduledPost(scheduledPost)
 		assert.NoError(t, err)
@@ -468,6 +529,48 @@ func testUpdateOldScheduledPosts(t *testing.T, rctx request.CTX, ss store.Store,
 		assert.Equal(t, model.ScheduledPostErrorUnableToSend, scheduledPosts[1].ErrorCode)
 		assert.Equal(t, "", scheduledPosts[2].ErrorCode)
 		assert.Equal(t, "", scheduledPosts[3].ErrorCode)
+	})
+
+	t.Run("should not update overdue recurring scheduled posts", func(t *testing.T) {
+		channel := &model.Channel{
+			TeamId:      model.NewId(),
+			Type:        model.ChannelTypeOpen,
+			Name:        "recurring_channel",
+			DisplayName: "Recurring Channel",
+		}
+
+		createdChannel, err := ss.Channel().Save(rctx, channel, 1000)
+		assert.NoError(t, err)
+
+		recurringScheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    model.NewId(),
+				ChannelId: createdChannel.Id,
+				Message:   "this is an overdue recurring scheduled post",
+			},
+			ScheduledAt:    model.GetMillis() - (7 * 24 * 60 * 60 * 1000),
+			RepeatType:     model.ScheduledPostRepeatTypeWeekly,
+			RepeatTimezone: "UTC",
+		}
+
+		createdRecurringScheduledPost, err := ss.ScheduledPost().CreateScheduledPost(recurringScheduledPost)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, createdRecurringScheduledPost.Id)
+
+		defer func() {
+			_ = ss.ScheduledPost().PermanentlyDeleteScheduledPosts([]string{createdRecurringScheduledPost.Id})
+			_ = ss.Channel().PermanentDelete(rctx, createdChannel.Id)
+		}()
+
+		err = ss.ScheduledPost().UpdateOldScheduledPosts(model.GetMillis())
+		assert.NoError(t, err)
+
+		storedRecurringScheduledPost, err := ss.ScheduledPost().Get(createdRecurringScheduledPost.Id)
+		assert.NoError(t, err)
+		require.NotNil(t, storedRecurringScheduledPost)
+		assert.Empty(t, storedRecurringScheduledPost.ErrorCode)
+		assert.Zero(t, storedRecurringScheduledPost.ProcessedAt)
 	})
 }
 

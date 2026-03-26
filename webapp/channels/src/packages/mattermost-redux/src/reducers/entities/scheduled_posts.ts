@@ -8,6 +8,8 @@ import type {ScheduledPost, ScheduledPostsState} from '@mattermost/types/schedul
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {ScheduledPostTypes, UserTypes} from 'mattermost-redux/action_types';
 
+const emptyList: string[] = [];
+
 function byId(state: ScheduledPostsState['byId'] = {}, action: MMReduxAction) {
     switch (action.type) {
     case ScheduledPostTypes.SCHEDULED_POSTS_RECEIVED: {
@@ -68,21 +70,12 @@ function byTeamId(state: ScheduledPostsState['byTeamId'] = {}, action: MMReduxAc
     case ScheduledPostTypes.SINGLE_SCHEDULED_POST_RECEIVED: {
         const scheduledPost = action.data.scheduledPost as ScheduledPost;
         const teamId = action.data.teamId || 'directChannels';
+        const existingScheduledPostIds = state[teamId] || emptyList;
 
-        const newState = {...state};
-
-        const existingIndex = newState[teamId].findIndex((existingScheduledPostId) => existingScheduledPostId === scheduledPost.id);
-        if (existingIndex >= 0) {
-            newState[teamId].splice(existingIndex, 1);
-        }
-
-        if (newState[teamId]) {
-            newState[teamId] = [...newState[teamId], scheduledPost.id];
-        } else {
-            newState[teamId] = [scheduledPost.id];
-        }
-
-        return newState;
+        return {
+            ...state,
+            [teamId]: [...existingScheduledPostIds.filter((existingScheduledPostId) => existingScheduledPostId !== scheduledPost.id), scheduledPost.id],
+        };
     }
     case ScheduledPostTypes.SCHEDULED_POST_DELETED: {
         const scheduledPost = action.data.scheduledPost as ScheduledPost;
@@ -127,19 +120,52 @@ function errorsByTeamId(state: ScheduledPostsState['errorsByTeamId'] = {}, actio
         return newState;
     }
     case ScheduledPostTypes.SINGLE_SCHEDULED_POST_RECEIVED: {
-        let changed = false;
-
         const teamId = action.data.teamId || 'directChannels';
-        const newState = {...state};
-        if (!newState[teamId]) {
-            newState[teamId] = [];
-        }
-
+        const existingScheduledPostIds = state[teamId] || emptyList;
         const scheduledPost = action.data.scheduledPost as ScheduledPost;
         if (scheduledPost.error_code) {
-            const alreadyExists = newState[teamId].find((scheduledPostId) => scheduledPostId === scheduledPost.id);
-            if (!alreadyExists) {
-                newState[teamId] = [...newState[teamId], scheduledPost.id];
+            if (!existingScheduledPostIds.includes(scheduledPost.id)) {
+                return {
+                    ...state,
+                    [teamId]: [...existingScheduledPostIds, scheduledPost.id],
+                };
+            }
+
+            return state;
+        }
+
+        if (!existingScheduledPostIds.includes(scheduledPost.id)) {
+            return state;
+        }
+
+        return {
+            ...state,
+            [teamId]: existingScheduledPostIds.filter((scheduledPostId) => scheduledPostId !== scheduledPost.id),
+        };
+    }
+    case ScheduledPostTypes.SCHEDULED_POST_UPDATED: {
+        const scheduledPost = action.data.scheduledPost as ScheduledPost;
+        const teamId = action.data.teamId as string | undefined;
+        const newState = {...state};
+        const teamIds = new Set<string>(Object.keys(state));
+        if (teamId) {
+            teamIds.add(teamId);
+        }
+
+        let changed = false;
+        for (const currentTeamId of teamIds) {
+            const existingScheduledPostIds = state[currentTeamId] || emptyList;
+            const hasScheduledPost = existingScheduledPostIds.includes(scheduledPost.id);
+            const shouldHaveScheduledPost = Boolean(scheduledPost.error_code) && (teamId ? currentTeamId === teamId : hasScheduledPost);
+
+            if (shouldHaveScheduledPost && !hasScheduledPost) {
+                newState[currentTeamId] = [...existingScheduledPostIds, scheduledPost.id];
+                changed = true;
+                continue;
+            }
+
+            if (!shouldHaveScheduledPost && hasScheduledPost) {
+                newState[currentTeamId] = existingScheduledPostIds.filter((scheduledPostId) => scheduledPostId !== scheduledPost.id);
                 changed = true;
             }
         }
@@ -201,23 +227,17 @@ function byChannelOrThreadId(state: ScheduledPostsState['byChannelOrThreadId'] =
     }
     case ScheduledPostTypes.SINGLE_SCHEDULED_POST_RECEIVED: {
         const scheduledPost = action.data.scheduledPost;
-        const newState = {...state};
         const id = scheduledPost.root_id || scheduledPost.channel_id;
+        const existingScheduledPostIds = state[id] || emptyList;
 
-        if (!newState[id]) {
-            newState[id] = [scheduledPost.id];
-            return newState;
+        if (existingScheduledPostIds.includes(scheduledPost.id)) {
+            return state;
         }
 
-        let changed = false;
-        const existingIndex = newState[id].findIndex((scheduledPostId) => scheduledPostId === scheduledPost.id);
-
-        if (existingIndex) {
-            newState[id] = [...newState[id], scheduledPost.id];
-            changed = true;
-        }
-
-        return changed ? newState : state;
+        return {
+            ...state,
+            [id]: [...existingScheduledPostIds, scheduledPost.id],
+        };
     }
     case ScheduledPostTypes.SCHEDULED_POST_DELETED: {
         const scheduledPost = action.data.scheduledPost;
@@ -229,6 +249,9 @@ function byChannelOrThreadId(state: ScheduledPostsState['byChannelOrThreadId'] =
 
         const newState = {...state};
         const index = newState[id].findIndex((scheduledPostId) => scheduledPostId === scheduledPost.id);
+        if (index < 0) {
+            return state;
+        }
         newState[id] = [...newState[id]];
         newState[id].splice(index, 1);
 

@@ -1,0 +1,16 @@
+.scheduled_post_custom_time_modal {
+    .ScheduledPostCustomTimeModal__repeat {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        margin-bottom: 12px;
+
+        input[type='checkbox'] {
+            margin-top: 4px;
+        }
+
+        label {
+            cursor: pointer;
+        }
+    }
+}

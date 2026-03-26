@@ -54,13 +54,13 @@ func baseColumns(prefix string) []string {
 func (s *SqlScheduledPostStore) columnsForWrite(prefix string) []string {
 	prefix = normalizePrefix(prefix)
 	columns := baseColumns(prefix)
-	return append(columns, prefix+"Type")
+	return append(columns, prefix+"Type", prefix+"RepeatType", prefix+"RepeatTimezone")
 }
 
 func (s *SqlScheduledPostStore) columnsForRead(prefix string) []string {
 	prefix = normalizePrefix(prefix)
 	columns := baseColumns(prefix)
-	return append(columns, "COALESCE("+prefix+"Type, '') AS Type")
+	return append(columns, "COALESCE("+prefix+"Type, '') AS Type", prefix+"RepeatType", prefix+"RepeatTimezone")
 }
 
 func (s *SqlScheduledPostStore) scheduledPostToSlice(scheduledPost *model.ScheduledPost) []any {
@@ -79,6 +79,8 @@ func (s *SqlScheduledPostStore) scheduledPostToSlice(scheduledPost *model.Schedu
 		scheduledPost.ProcessedAt,
 		scheduledPost.ErrorCode,
 		scheduledPost.Type,
+		scheduledPost.RepeatType,
+		scheduledPost.RepeatTimezone,
 	}
 }
 
@@ -152,32 +154,34 @@ func (s *SqlScheduledPostStore) GetMaxMessageSize() int {
 }
 
 func (s *SqlScheduledPostStore) GetPendingScheduledPosts(beforeTime, afterTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
+	var pendingCursor sq.Sqlizer = sq.LtOrEq{"ScheduledAt": beforeTime}
+	if lastScheduledPostId != "" {
+		pendingCursor = sq.Or{
+			sq.Lt{"ScheduledAt": beforeTime},
+			sq.And{
+				sq.Eq{"ScheduledAt": beforeTime},
+				sq.Gt{"Id": lastScheduledPostId},
+			},
+		}
+	}
+
 	query := s.getQueryBuilder().
 		Select(s.columnsForRead("")...).
 		From("ScheduledPosts").
 		Where(sq.Eq{"ErrorCode": ""}).
+		Where(sq.Or{
+			sq.And{
+				pendingCursor,
+				sq.Eq{"RepeatType": model.ScheduledPostRepeatTypeWeekly},
+			},
+			sq.And{
+				pendingCursor,
+				sq.NotEq{"RepeatType": model.ScheduledPostRepeatTypeWeekly},
+				sq.GtOrEq{"ScheduledAt": afterTime},
+			},
+		}).
 		OrderBy("ScheduledAt DESC", "Id").
 		Limit(perPage)
-
-	if lastScheduledPostId == "" {
-		query = query.Where(sq.And{
-			sq.LtOrEq{"ScheduledAt": beforeTime},
-			sq.GtOrEq{"ScheduledAt": afterTime},
-		})
-	}
-	if lastScheduledPostId != "" {
-		query = query.
-			Where(sq.Or{
-				sq.And{
-					sq.LtOrEq{"ScheduledAt": beforeTime},
-					sq.GtOrEq{"ScheduledAt": afterTime},
-				},
-				sq.And{
-					sq.Eq{"ScheduledAt": beforeTime},
-					sq.Gt{"Id": lastScheduledPostId},
-				},
-			})
-	}
 
 	var scheduledPosts []*model.ScheduledPost
 	if err := s.GetReplica().SelectBuilder(&scheduledPosts, query); err != nil {
@@ -247,17 +251,18 @@ func (s *SqlScheduledPostStore) UpdatedScheduledPost(scheduledPost *model.Schedu
 }
 
 func (s *SqlScheduledPostStore) toUpdateMap(scheduledPost *model.ScheduledPost) map[string]any {
-	now := model.GetMillis()
 	return map[string]any{
-		"UpdateAt":    now,
-		"Message":     scheduledPost.Message,
-		"Props":       model.StringInterfaceToJSON(scheduledPost.GetProps()),
-		"FileIds":     model.ArrayToJSON(scheduledPost.FileIds),
-		"Priority":    model.StringInterfaceToJSON(scheduledPost.Priority),
-		"ScheduledAt": scheduledPost.ScheduledAt,
-		"ProcessedAt": now,
-		"ErrorCode":   scheduledPost.ErrorCode,
-		"Type":        scheduledPost.Type,
+		"UpdateAt":       model.GetMillis(),
+		"Message":        scheduledPost.Message,
+		"Props":          model.StringInterfaceToJSON(scheduledPost.GetProps()),
+		"FileIds":        model.ArrayToJSON(scheduledPost.FileIds),
+		"Priority":       model.StringInterfaceToJSON(scheduledPost.Priority),
+		"ScheduledAt":    scheduledPost.ScheduledAt,
+		"ProcessedAt":    scheduledPost.ProcessedAt,
+		"ErrorCode":      scheduledPost.ErrorCode,
+		"Type":           scheduledPost.Type,
+		"RepeatType":     scheduledPost.RepeatType,
+		"RepeatTimezone": scheduledPost.RepeatTimezone,
 	}
 }
 
@@ -287,6 +292,7 @@ func (s *SqlScheduledPostStore) UpdateOldScheduledPosts(beforeTime int64) error 
 		Set("ProcessedAt", model.GetMillis()).
 		Where(sq.And{
 			sq.Eq{"ErrorCode": ""},
+			sq.NotEq{"RepeatType": model.ScheduledPostRepeatTypeWeekly},
 			sq.Lt{"ScheduledAt": beforeTime},
 		})
 

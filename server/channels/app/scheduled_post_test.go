@@ -625,7 +625,9 @@ func TestUpdateScheduledPost(t *testing.T) {
 		require.NotEqual(t, newChannelId, updatedScheduledPost.ChannelId)
 		require.NotEqual(t, newCreateAt, updatedScheduledPost.CreateAt)
 		require.Equal(t, 2, len(updatedScheduledPost.FileIds))
-		require.Equal(t, model.ScheduledPostErrorUnknownError, createdScheduledPost.ErrorCode)
+		require.Empty(t, createdScheduledPost.ErrorCode)
+		require.Empty(t, updatedScheduledPost.ErrorCode)
+		require.Zero(t, updatedScheduledPost.ProcessedAt)
 	})
 
 	t.Run("should be able to update scheduled posts for channels user does not belong to", func(t *testing.T) {

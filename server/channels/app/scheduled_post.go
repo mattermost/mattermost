@@ -85,6 +85,8 @@ func (a *App) UpdateScheduledPost(rctx request.CTX, userId string, scheduledPost
 	// This step is not required for update but is useful as we want to return the
 	// updated scheduled post. It's better to do this before calling update than after.
 	scheduledPost.RestoreNonUpdatableFields(existingScheduledPost)
+	scheduledPost.ErrorCode = ""
+	scheduledPost.ProcessedAt = 0
 
 	if err := a.Srv().Store().ScheduledPost().UpdatedScheduledPost(scheduledPost); err != nil {
 		return nil, model.NewAppError("app.UpdateScheduledPost", "app.update_scheduled_post.update.error", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPost.Id}, "", http.StatusInternalServerError).Wrap(err)

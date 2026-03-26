@@ -53,6 +53,39 @@ func TestUpdateScheduledPost(t *testing.T) {
 		require.Equal(t, originalMessage, fetchedPost.Message)
 		require.Equal(t, originalScheduledAt, fetchedPost.ScheduledAt)
 	})
+
+	t.Run("should clear error state when rescheduling an existing scheduled post", func(t *testing.T) {
+		scheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "weekly recurring scheduled post",
+			},
+			ScheduledAt:    model.GetMillis() + 100000,
+			RepeatType:     model.ScheduledPostRepeatTypeWeekly,
+			RepeatTimezone: "UTC",
+		}
+		createdScheduledPost, _, err := th.Client.CreateScheduledPost(context.Background(), scheduledPost)
+		require.NoError(t, err)
+		require.NotNil(t, createdScheduledPost)
+
+		createdScheduledPost.ErrorCode = model.ScheduledPostErrorUnableToSend
+		createdScheduledPost.ProcessedAt = model.GetMillis()
+		require.NoError(t, th.App.Srv().Store().ScheduledPost().UpdatedScheduledPost(createdScheduledPost))
+
+		createdScheduledPost.ScheduledAt = model.GetMillis() + 300000
+		createdScheduledPost.RepeatType = model.ScheduledPostRepeatTypeWeekly
+		createdScheduledPost.RepeatTimezone = "America/New_York"
+
+		updatedScheduledPost, _, err := th.Client.UpdateScheduledPost(context.Background(), createdScheduledPost)
+		require.NoError(t, err)
+		require.NotNil(t, updatedScheduledPost)
+		require.Empty(t, updatedScheduledPost.ErrorCode)
+		require.Zero(t, updatedScheduledPost.ProcessedAt)
+		require.Equal(t, model.ScheduledPostRepeatTypeWeekly, updatedScheduledPost.RepeatType)
+		require.Equal(t, "America/New_York", updatedScheduledPost.RepeatTimezone)
+	})
 }
 
 func TestDeleteScheduledPost(t *testing.T) {
@@ -151,5 +184,24 @@ func TestCreateScheduledPost(t *testing.T) {
 		require.Error(t, httpErr)
 		require.Contains(t, httpErr.Error(), "You do not have the appropriate permissions.")
 		require.Nil(t, createdScheduledPost)
+	})
+
+	t.Run("weekly recurring persists repeat fields", func(t *testing.T) {
+		scheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "weekly message",
+			},
+			ScheduledAt:    model.GetMillis() + 100000,
+			RepeatType:     model.ScheduledPostRepeatTypeWeekly,
+			RepeatTimezone: "America/New_York",
+		}
+		created, _, err := client.CreateScheduledPost(context.Background(), scheduledPost)
+		require.NoError(t, err)
+		require.NotNil(t, created)
+		require.Equal(t, model.ScheduledPostRepeatTypeWeekly, created.RepeatType)
+		require.Equal(t, "America/New_York", created.RepeatTimezone)
 	})
 }

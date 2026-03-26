@@ -104,7 +104,7 @@ func (a *App) ProcessScheduledPosts(rctx request.CTX) {
 // processScheduledPostBatch processes one batch
 func (a *App) processScheduledPostBatch(rctx request.CTX, scheduledPosts []*model.ScheduledPost) error {
 	var failedScheduledPosts []*model.ScheduledPost
-	var successfulScheduledPostIDs []string
+	var successfulScheduledPosts []*model.ScheduledPost
 
 	for i := range scheduledPosts {
 		scheduledPost, err := a.postScheduledPost(rctx, scheduledPosts[i])
@@ -114,10 +114,10 @@ func (a *App) processScheduledPostBatch(rctx request.CTX, scheduledPosts []*mode
 			continue
 		}
 
-		successfulScheduledPostIDs = append(successfulScheduledPostIDs, scheduledPost.Id)
+		successfulScheduledPosts = append(successfulScheduledPosts, scheduledPost)
 	}
 
-	if err := a.handleSuccessfulScheduledPosts(rctx, successfulScheduledPostIDs); err != nil {
+	if err := a.handleSuccessfulScheduledPosts(rctx, successfulScheduledPosts); err != nil {
 		return errors.Wrap(err, "App.processScheduledPostBatch: failed to handle successfully posted scheduled posts")
 	}
 
@@ -207,8 +207,7 @@ func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 		return scheduledPost, appErr
 	}
 
-	// send the WS event to delete the just posted scheduledPost from list
-	a.PublishScheduledPostEvent(rctx, model.WebsocketScheduledPostDeleted, scheduledPost, "")
+	// WebSocket delete vs recurring update is handled in handleSuccessfulScheduledPosts
 
 	return scheduledPost, nil
 }
@@ -330,15 +329,43 @@ func (a *App) canPostScheduledPost(rctx request.CTX, scheduledPost *model.Schedu
 	return "", nil
 }
 
-func (a *App) handleSuccessfulScheduledPosts(rctx request.CTX, successfulScheduledPostIDs []string) error {
-	if len(successfulScheduledPostIDs) > 0 {
-		// Successfully posted scheduled posts can be safely permanently deleted as no data is lost.
+func (a *App) handleSuccessfulScheduledPosts(rctx request.CTX, successfulScheduledPosts []*model.ScheduledPost) error {
+	var toDelete []string
+
+	for _, sp := range successfulScheduledPosts {
+		if sp == nil {
+			continue
+		}
+		if sp.RepeatType == model.ScheduledPostRepeatTypeWeekly && sp.RepeatTimezone != "" {
+			now := model.GetMillis()
+			nextAt := model.AdvanceWeeklyScheduledNextOccurrence(sp.ScheduledAt, sp.RepeatTimezone, now)
+			sp.ScheduledAt = nextAt
+			sp.ErrorCode = ""
+			sp.ProcessedAt = 0
+			if err := a.Srv().Store().ScheduledPost().UpdatedScheduledPost(sp); err != nil {
+				rctx.Logger().Error(
+					"App.handleSuccessfulScheduledPosts: failed to advance recurring scheduled post",
+					mlog.String("scheduled_post_id", sp.Id),
+					mlog.Err(err),
+				)
+				return errors.Wrap(err, "App.handleSuccessfulScheduledPosts: failed to advance recurring scheduled post")
+			}
+			a.PublishScheduledPostEvent(rctx, model.WebsocketScheduledPostUpdated, sp, "")
+			continue
+		}
+
+		a.PublishScheduledPostEvent(rctx, model.WebsocketScheduledPostDeleted, sp, "")
+		toDelete = append(toDelete, sp.Id)
+	}
+
+	if len(toDelete) > 0 {
+		// Successfully posted one-shot scheduled posts can be safely permanently deleted as no data is lost.
 		// The data is moved into the posts table.
-		err := a.Srv().Store().ScheduledPost().PermanentlyDeleteScheduledPosts(successfulScheduledPostIDs)
+		err := a.Srv().Store().ScheduledPost().PermanentlyDeleteScheduledPosts(toDelete)
 		if err != nil {
 			rctx.Logger().Error(
 				"App.handleSuccessfulScheduledPosts: failed to delete successfully posted scheduled posts",
-				mlog.Int("successfully_posted_count", len(successfulScheduledPostIDs)),
+				mlog.Int("successfully_posted_count", len(toDelete)),
 				mlog.Err(err),
 			)
 			return errors.Wrap(err, "App.handleSuccessfulScheduledPosts: failed to delete successfully posted scheduled posts")
@@ -350,6 +377,11 @@ func (a *App) handleSuccessfulScheduledPosts(rctx request.CTX, successfulSchedul
 
 func (a *App) handleFailedScheduledPosts(rctx request.CTX, failedScheduledPosts []*model.ScheduledPost) {
 	for _, failedScheduledPost := range failedScheduledPosts {
+		if failedScheduledPost == nil {
+			continue
+		}
+
+		failedScheduledPost.ProcessedAt = model.GetMillis()
 		err := a.Srv().Store().ScheduledPost().UpdatedScheduledPost(failedScheduledPost)
 		if err != nil {
 			// we intentionally don't stop on error as its possible to continue updating other scheduled posts

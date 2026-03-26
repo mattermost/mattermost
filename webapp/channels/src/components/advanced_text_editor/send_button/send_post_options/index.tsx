@@ -41,11 +41,7 @@ export function SendPostOptions({disabled, onSelect, channelId}: Props) {
         onSelect(schedulingInfo);
     }, [onSelect]);
 
-    const handleSelectCustomTime = useCallback((scheduledAt: number) => {
-        const schedulingInfo: SchedulingInfo = {
-            scheduled_at: scheduledAt,
-        };
-
+    const handleSelectCustomTime = useCallback((schedulingInfo: SchedulingInfo) => {
         onSelect(schedulingInfo);
         return Promise.resolve({});
     }, [onSelect]);

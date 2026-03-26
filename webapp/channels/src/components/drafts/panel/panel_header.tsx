@@ -36,6 +36,7 @@ type Props = {
     remote: boolean;
     title: React.ReactNode;
     error?: string;
+    repeatsWeekly?: boolean;
 };
 
 function PanelHeader({
@@ -45,6 +46,7 @@ function PanelHeader({
     remote,
     title,
     error,
+    repeatsWeekly,
 }: Props) {
     const timestampDateObject = useMemo(() => new Date(timestamp), [timestamp]);
 
@@ -101,6 +103,18 @@ function PanelHeader({
                         }
                     </div>
 
+                    {kind === 'scheduledPost' && repeatsWeekly && !error && (
+                        <Tag
+                            variant={'info'}
+                            uppercase={false}
+                            text={(
+                                <FormattedMessage
+                                    id='scheduled_post.panel.header.repeats_weekly'
+                                    defaultMessage='Repeats weekly'
+                                />
+                            )}
+                        />
+                    )}
                     {kind === 'draft' && !error && (
                         <Tag
                             variant={'danger'}

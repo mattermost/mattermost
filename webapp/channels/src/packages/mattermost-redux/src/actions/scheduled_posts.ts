@@ -55,14 +55,16 @@ export function fetchTeamScheduledPosts(teamId: string, includeDirectChannels: b
 }
 
 export function updateScheduledPost(scheduledPost: ScheduledPost, connectionId: string) {
-    return async (dispatch: DispatchFunc) => {
+    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         try {
             const updatedScheduledPost = await Client4.updateScheduledPost(scheduledPost, connectionId);
+            const teamId = getState().entities.channels.channels[updatedScheduledPost.data.channel_id]?.team_id || 'directChannels';
 
             dispatch({
                 type: ScheduledPostTypes.SCHEDULED_POST_UPDATED,
                 data: {
                     scheduledPost: updatedScheduledPost.data,
+                    teamId,
                 },
             });
 

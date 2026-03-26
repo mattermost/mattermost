@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestProcessScheduledPosts(t *testing.T) {
@@ -52,6 +53,76 @@ func TestProcessScheduledPosts(t *testing.T) {
 		scheduledPosts, err := th.App.Srv().Store().ScheduledPost().GetScheduledPostsForUser(th.BasicUser.Id, th.BasicChannel.TeamId)
 		assert.NoError(t, err)
 		assert.Len(t, scheduledPosts, 0)
+	})
+
+	t.Run("advances weekly recurring scheduled post instead of deleting", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
+
+		scheduledAt := model.GetMillis() + 1000
+		scheduledPost1 := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "weekly recurring scheduled post",
+			},
+			ScheduledAt:    scheduledAt,
+			RepeatType:     model.ScheduledPostRepeatTypeWeekly,
+			RepeatTimezone: "UTC",
+		}
+		created, err := th.Server.Store().ScheduledPost().CreateScheduledPost(scheduledPost1)
+		assert.NoError(t, err)
+		require.NotNil(t, created)
+
+		time.Sleep(1 * time.Second)
+
+		th.App.ProcessScheduledPosts(th.Context)
+
+		updated, err := th.Server.Store().ScheduledPost().Get(created.Id)
+		assert.NoError(t, err)
+		require.NotNil(t, updated)
+		assert.Equal(t, model.ScheduledPostRepeatTypeWeekly, updated.RepeatType)
+		assert.Equal(t, "UTC", updated.RepeatTimezone)
+		assert.Equal(t, "", updated.ErrorCode)
+		assert.Zero(t, updated.ProcessedAt)
+
+		const weekMs = int64(7 * 24 * 60 * 60 * 1000)
+		assert.InDelta(t, scheduledAt+weekMs, updated.ScheduledAt, float64(60*1000))
+	})
+
+	t.Run("advances overdue weekly recurring scheduled post older than one day", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
+
+		scheduledAt := model.GetMillis() - (48 * 60 * 60 * 1000)
+		scheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "overdue weekly recurring scheduled post",
+			},
+			ScheduledAt:    scheduledAt,
+			RepeatType:     model.ScheduledPostRepeatTypeWeekly,
+			RepeatTimezone: "UTC",
+		}
+		created, err := th.Server.Store().ScheduledPost().CreateScheduledPost(scheduledPost)
+		assert.NoError(t, err)
+		require.NotNil(t, created)
+
+		th.App.ProcessScheduledPosts(th.Context)
+
+		updated, err := th.Server.Store().ScheduledPost().Get(created.Id)
+		assert.NoError(t, err)
+		require.NotNil(t, updated)
+		assert.Equal(t, model.ScheduledPostRepeatTypeWeekly, updated.RepeatType)
+		assert.Equal(t, "UTC", updated.RepeatTimezone)
+		assert.Empty(t, updated.ErrorCode)
+		assert.Zero(t, updated.ProcessedAt)
+		assert.Greater(t, updated.ScheduledAt, model.GetMillis())
 	})
 
 	t.Run("sets error code for archived channel", func(t *testing.T) {

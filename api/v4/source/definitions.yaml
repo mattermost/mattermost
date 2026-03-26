@@ -4280,6 +4280,14 @@ components:
         error_code:
           type: string
           description: Explains the error behind why a scheduled post could not have been sent
+        repeat_type:
+          type: string
+          description: >
+            Empty for a one-time schedule, or `weekly` for a recurring weekly schedule in `repeat_timezone`.
+        repeat_timezone:
+          type: string
+          description: >
+            IANA timezone name (for example `America/New_York`) used to interpret weekly recurrence; required when `repeat_type` is `weekly`.
         metadata:
           $ref: "#/components/schemas/PostMetadata"
     AccessControlFieldsAutocompleteResponse:

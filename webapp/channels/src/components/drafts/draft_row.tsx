@@ -9,7 +9,7 @@ import {useHistory} from 'react-router-dom';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {FileInfo} from '@mattermost/types/files';
-import type {ScheduledPost} from '@mattermost/types/schedule_post';
+import type {SchedulingInfo, ScheduledPost} from '@mattermost/types/schedule_post';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
 import {getPost as getPostAction} from 'mattermost-redux/actions/posts';
@@ -76,6 +76,7 @@ function DraftRow({
     const [isEditing, setIsEditing] = useState(false);
 
     const isScheduledPost = 'scheduled_at' in item;
+    const isWeeklyRecurringScheduledPost = isScheduledPost && (item as ScheduledPost).repeat_type === 'weekly';
     const intl = useIntl();
 
     const rootId = ('rootId' in item) ? item.rootId : item.root_id;
@@ -189,11 +190,13 @@ function DraftRow({
 
         // if scheduled posts was being sent, delete the scheduled post after it's been sent
         if (isScheduledPostBeingSent.current && response.created && !response.error) {
-            const scheduledPost = item as ScheduledPost;
-            dispatch(deleteScheduledPost(scheduledPost.user_id, scheduledPost.id, connectionId));
+            if (!isWeeklyRecurringScheduledPost) {
+                const scheduledPost = item as ScheduledPost;
+                dispatch(deleteScheduledPost(scheduledPost.user_id, scheduledPost.id, connectionId));
+            }
             isScheduledPostBeingSent.current = false;
         }
-    }, [connectionId, dispatch, handleOnDelete, item]);
+    }, [connectionId, dispatch, handleOnDelete, isWeeklyRecurringScheduledPost, item]);
 
     // TODO LOL verify the types and handled it better
     const {onSubmitCheck: prioritySubmitCheck} = usePriority(item as any, noop, noop, false);
@@ -214,9 +217,9 @@ function DraftRow({
         true,
     );
 
-    const onScheduleDraft = useCallback(async (scheduledAt: number): Promise<{error?: string}> => {
+    const onScheduleDraft = useCallback(async (schedulingInfo: SchedulingInfo): Promise<{error?: string}> => {
         isBeingScheduled.current = true;
-        await handleOnSend(item as PostDraft, {scheduled_at: scheduledAt});
+        await handleOnSend(item as PostDraft, schedulingInfo);
         return Promise.resolve({});
     }, [item, handleOnSend]);
 
@@ -254,12 +257,14 @@ function DraftRow({
         setIsEditing(false);
     }, []);
 
-    const handleSchedulePostOnReschedule = useCallback(async (updatedScheduledAtTime: number) => {
+    const handleSchedulePostOnReschedule = useCallback(async (schedulingInfo: SchedulingInfo) => {
         handleCancelEdit();
 
         const updatedScheduledPost: ScheduledPost = {
             ...(item as ScheduledPost),
-            scheduled_at: updatedScheduledAtTime,
+            scheduled_at: schedulingInfo.scheduled_at,
+            repeat_type: schedulingInfo.repeat_type,
+            repeat_timezone: schedulingInfo.repeat_timezone,
         };
 
         const result = await dispatch(updateScheduledPost(updatedScheduledPost, connectionId));
@@ -287,13 +292,17 @@ function DraftRow({
     }, [item]);
 
     const handleScheduledPostOnSend = useCallback(() => {
+        if (isWeeklyRecurringScheduledPost) {
+            return Promise.resolve({});
+        }
+
         handleCancelEdit();
 
         isScheduledPostBeingSent.current = true;
         const postDraft = scheduledPostToPostDraft(item as ScheduledPost);
         handleOnSend(postDraft, undefined, {keepDraft: true, ignorePostError: true});
         return Promise.resolve({});
-    }, [handleOnSend, item, handleCancelEdit]);
+    }, [handleOnSend, handleCancelEdit, isWeeklyRecurringScheduledPost, item]);
 
     const scheduledPostActions = useMemo(() => {
         return (
@@ -397,6 +406,7 @@ function DraftRow({
                 timestamp={timestamp}
                 remote={isRemote || false}
                 error={postError || serverError?.message}
+                repeatsWeekly={isScheduledPost && (item as ScheduledPost).repeat_type === 'weekly'}
             />
             {isEditing && (
                 <EditScheduledPost

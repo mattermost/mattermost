@@ -7,6 +7,7 @@ import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
+import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 
 import {fetchMissingChannels} from 'mattermost-redux/actions/channels';
@@ -67,7 +68,7 @@ const copyTextTooltipText = (
 type Props = {
     scheduledPost: ScheduledPost;
     channel?: Channel;
-    onReschedule: (timestamp: number) => Promise<{error?: string}>;
+    onReschedule: (schedulingInfo: SchedulingInfo) => Promise<{error?: string}>;
     onDelete: (scheduledPostId: string) => Promise<{error?: string}>;
     onSend: (scheduledPostId: string) => void;
     onEdit: () => void;
@@ -79,6 +80,7 @@ function ScheduledPostActions({scheduledPost, channel, onReschedule, onDelete, o
     const userTimezone = useSelector(getCurrentTimezone);
     const myChannelsMemberships = useSelector((state: GlobalState) => getMyChannelMemberships(state));
     const isAdmin = useSelector((state: GlobalState) => isCurrentUserSystemAdmin(state));
+    const isWeeklyRecurringScheduledPost = scheduledPost.repeat_type === 'weekly';
 
     useEffect(() => {
         // this ensures the DM is loaded in redux store and is available
@@ -92,7 +94,8 @@ function ScheduledPostActions({scheduledPost, channel, onReschedule, onDelete, o
     }, [channel, dispatch]);
 
     const handleReschedulePost = useCallback(() => {
-        const initialTime = moment.tz(scheduledPost.scheduled_at, userTimezone);
+        const recurrenceTimezone = isWeeklyRecurringScheduledPost && scheduledPost.repeat_timezone ? scheduledPost.repeat_timezone : userTimezone;
+        const initialTime = moment.tz(scheduledPost.scheduled_at, recurrenceTimezone);
 
         dispatch(openModal({
             modalId: ModalIdentifiers.SCHEDULED_POST_CUSTOM_TIME_MODAL,
@@ -101,9 +104,11 @@ function ScheduledPostActions({scheduledPost, channel, onReschedule, onDelete, o
                 channelId: scheduledPost.channel_id,
                 onConfirm: onReschedule,
                 initialTime,
+                initialRepeatWeekly: scheduledPost.repeat_type === 'weekly',
+                initialRepeatTimezone: scheduledPost.repeat_timezone,
             },
         }));
-    }, [dispatch, onReschedule, scheduledPost.channel_id, scheduledPost.scheduled_at, userTimezone]);
+    }, [dispatch, isWeeklyRecurringScheduledPost, onReschedule, scheduledPost.channel_id, scheduledPost.repeat_timezone, scheduledPost.repeat_type, scheduledPost.scheduled_at, userTimezone]);
 
     const handleDelete = useCallback(() => {
         dispatch(openModal({
@@ -136,8 +141,9 @@ function ScheduledPostActions({scheduledPost, channel, onReschedule, onDelete, o
 
     const showEditOption = !scheduledPost.error_code && userChannelMember && !isChannelArchived;
     const isDeactivatedDM = useSelector((state: GlobalState) => isDeactivatedDirectChannel(state, scheduledPost.channel_id));
-    const showSendNowOption = (!scheduledPost.error_code || scheduledPost.error_code === 'unknown' || scheduledPost.error_code === 'unable_to_send') && channel && !isChannelArchived && !isDeactivatedDM && userChannelMember;
+    const showSendNowOption = !isWeeklyRecurringScheduledPost && (!scheduledPost.error_code || scheduledPost.error_code === 'unknown' || scheduledPost.error_code === 'unable_to_send') && channel && !isChannelArchived && !isDeactivatedDM && userChannelMember;
     const showRescheduleOption = (!scheduledPost.error_code || scheduledPost.error_code === 'unknown' || scheduledPost.error_code === 'unable_to_send') && userChannelMember && !isChannelArchived;
+    const allowSendNowOption = !isWeeklyRecurringScheduledPost && (isAdmin || showSendNowOption);
 
     return (
         <div className='ScheduledPostActions'>
@@ -181,7 +187,7 @@ function ScheduledPostActions({scheduledPost, channel, onReschedule, onDelete, o
             }
 
             {
-                (isAdmin || showSendNowOption) &&
+                allowSendNowOption &&
                 <Action
                     icon='icon-send-outline'
                     id='sendNow'

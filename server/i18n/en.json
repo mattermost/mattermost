@@ -11321,6 +11321,18 @@
     "translation": "Invalid scheduled at time."
   },
   {
+    "id": "model.scheduled_post.is_valid.repeat_type.app_error",
+    "translation": "Invalid repeat type for scheduled post."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone.app_error",
+    "translation": "Repeat weekly scheduled posts require a valid timezone."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone_invalid.app_error",
+    "translation": "Invalid timezone for recurring scheduled post."
+  },
+  {
     "id": "model.scheme.is_valid.app_error",
     "translation": "Invalid scheme."
   },
