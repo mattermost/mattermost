@@ -18,7 +18,7 @@ func TestCreatePropertyField(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	groupID, err := th.App.CpaGroupID()
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	t.Run("should create a non-protected field without bypass", func(t *testing.T) {
 		field := &model.PropertyField{
@@ -108,7 +108,7 @@ func TestUpdatePropertyField(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	groupID, err := th.App.CpaGroupID()
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	t.Run("should update a non-protected field without bypass", func(t *testing.T) {
 		field := &model.PropertyField{
@@ -187,7 +187,7 @@ func TestUpdatePropertyFields(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	groupID, err := th.App.CpaGroupID()
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	t.Run("should update multiple non-protected fields without bypass", func(t *testing.T) {
 		field1 := &model.PropertyField{
@@ -245,11 +245,11 @@ func TestUpdatePropertyFields(t *testing.T) {
 		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
 
 		// Verify neither field was updated
-		fetchedNonProtected, appErr := th.App.GetPropertyField(groupID, createdNonProtected.ID)
+		fetchedNonProtected, appErr := th.App.GetPropertyField(th.Context, groupID, createdNonProtected.ID)
 		require.Nil(t, appErr)
 		assert.Equal(t, "Non-Protected in Batch", fetchedNonProtected.Name)
 
-		fetchedProtected, appErr := th.App.GetPropertyField(groupID, createdProtected.ID)
+		fetchedProtected, appErr := th.App.GetPropertyField(th.Context, groupID, createdProtected.ID)
 		require.Nil(t, appErr)
 		assert.Equal(t, "Protected in Batch", fetchedProtected.Name)
 	})
@@ -285,7 +285,7 @@ func TestUpdatePropertyFields(t *testing.T) {
 
 	t.Run("should fail to update if any field comes from a different property group", func(t *testing.T) {
 		// Create a field in a different group
-		otherGroup, appErr := th.App.RegisterPropertyGroup("test-other-group")
+		otherGroup, appErr := th.App.RegisterPropertyGroup(th.Context, "test-other-group")
 		require.Nil(t, appErr)
 
 		fieldInOtherGroup := &model.PropertyField{
@@ -313,11 +313,11 @@ func TestUpdatePropertyFields(t *testing.T) {
 		require.NotNil(t, appErr)
 
 		// Verify neither field was updated
-		fetchedMain, appErr := th.App.GetPropertyField(groupID, createdMain.ID)
+		fetchedMain, appErr := th.App.GetPropertyField(th.Context, groupID, createdMain.ID)
 		require.Nil(t, appErr)
 		assert.Equal(t, "Field in Main Group", fetchedMain.Name)
 
-		fetchedOther, appErr := th.App.GetPropertyField(otherGroup.ID, createdOther.ID)
+		fetchedOther, appErr := th.App.GetPropertyField(th.Context, otherGroup.ID, createdOther.ID)
 		require.Nil(t, appErr)
 		assert.Equal(t, "Field in Other Group", fetchedOther.Name)
 	})
@@ -328,7 +328,7 @@ func TestDeletePropertyField(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	groupID, err := th.App.CpaGroupID()
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	t.Run("should delete a non-protected field without bypass", func(t *testing.T) {
 		field := &model.PropertyField{
@@ -343,7 +343,7 @@ func TestDeletePropertyField(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify soft deletion (DeleteAt > 0)
-		deleted, appErr := th.App.GetPropertyField(groupID, created.ID)
+		deleted, appErr := th.App.GetPropertyField(th.Context, groupID, created.ID)
 		require.Nil(t, appErr)
 		assert.NotZero(t, deleted.DeleteAt)
 	})
@@ -367,7 +367,7 @@ func TestDeletePropertyField(t *testing.T) {
 		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
 
 		// Verify field still exists
-		existing, appErr := th.App.GetPropertyField(groupID, created.ID)
+		existing, appErr := th.App.GetPropertyField(th.Context, groupID, created.ID)
 		require.Nil(t, appErr)
 		assert.NotNil(t, existing)
 		assert.Zero(t, existing.DeleteAt)
@@ -390,7 +390,7 @@ func TestDeletePropertyField(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify soft deletion (DeleteAt > 0)
-		deleted, appErr := th.App.GetPropertyField(groupID, created.ID)
+		deleted, appErr := th.App.GetPropertyField(th.Context, groupID, created.ID)
 		require.Nil(t, appErr)
 		assert.NotZero(t, deleted.DeleteAt)
 	})
@@ -441,7 +441,7 @@ func TestGetPropertyField(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	groupID, err := th.App.CpaGroupID()
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	t.Run("should get an existing field", func(t *testing.T) {
 		field := &model.PropertyField{
@@ -452,14 +452,14 @@ func TestGetPropertyField(t *testing.T) {
 		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
 
-		fetched, appErr := th.App.GetPropertyField(groupID, created.ID)
+		fetched, appErr := th.App.GetPropertyField(th.Context, groupID, created.ID)
 		require.Nil(t, appErr)
 		assert.Equal(t, created.ID, fetched.ID)
 		assert.Equal(t, "Field to Get", fetched.Name)
 	})
 
 	t.Run("should return error for non-existent field", func(t *testing.T) {
-		_, appErr := th.App.GetPropertyField(groupID, model.NewId())
+		_, appErr := th.App.GetPropertyField(th.Context, groupID, model.NewId())
 		require.NotNil(t, appErr)
 	})
 }
@@ -469,7 +469,7 @@ func TestGetPropertyFields(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	groupID, err := th.App.CpaGroupID()
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	t.Run("should get multiple fields", func(t *testing.T) {
 		field1 := &model.PropertyField{
@@ -488,7 +488,7 @@ func TestGetPropertyFields(t *testing.T) {
 		created2, appErr := th.App.CreatePropertyField(th.Context, field2, false, "")
 		require.Nil(t, appErr)
 
-		fetched, appErr := th.App.GetPropertyFields(groupID, []string{created1.ID, created2.ID})
+		fetched, appErr := th.App.GetPropertyFields(th.Context, groupID, []string{created1.ID, created2.ID})
 		require.Nil(t, appErr)
 		assert.Len(t, fetched, 2)
 	})
@@ -499,7 +499,7 @@ func TestSearchPropertyFields(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	groupID, err := th.App.CpaGroupID()
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	t.Run("should search for fields", func(t *testing.T) {
 		field := &model.PropertyField{
@@ -514,7 +514,7 @@ func TestSearchPropertyFields(t *testing.T) {
 			GroupID: groupID,
 			PerPage: 100,
 		}
-		results, appErr := th.App.SearchPropertyFields(groupID, opts)
+		results, appErr := th.App.SearchPropertyFields(th.Context, groupID, opts)
 		require.Nil(t, appErr)
 		assert.NotEmpty(t, results)
 	})

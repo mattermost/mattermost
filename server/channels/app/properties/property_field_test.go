@@ -12,8 +12,69 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCountActivePropertyFieldsForGroup(t *testing.T) {
+func TestRequiresAccessControlFailsClosed(t *testing.T) {
 	th := Setup(t)
+	rctx := th.Context
+
+	// Use an unregistered group — this means any call to
+	// requiresAccessControl will fail to look up the group.
+	// The service must return an error rather than silently bypassing
+	// access control.
+	unregisteredGroupID := model.NewId()
+
+	t.Run("CreatePropertyField returns error when group lookup fails", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    unregisteredGroupID,
+			Name:       "test-field",
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "user",
+		}
+		_, err := th.service.CreatePropertyField(rctx, field)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to check access control")
+	})
+
+	t.Run("GetPropertyField returns error when group lookup fails", func(t *testing.T) {
+		_, err := th.service.GetPropertyField(rctx, unregisteredGroupID, model.NewId())
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to check access control")
+	})
+
+	t.Run("GetPropertyFields returns error when group lookup fails", func(t *testing.T) {
+		_, err := th.service.GetPropertyFields(rctx, unregisteredGroupID, []string{model.NewId()})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to check access control")
+	})
+
+	t.Run("UpdatePropertyField returns error when group lookup fails", func(t *testing.T) {
+		field := &model.PropertyField{
+			ID:         model.NewId(),
+			GroupID:    unregisteredGroupID,
+			Name:       "test-field",
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "user",
+		}
+		_, err := th.service.UpdatePropertyField(rctx, unregisteredGroupID, field)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to check access control")
+	})
+
+	t.Run("DeletePropertyField returns error when group lookup fails", func(t *testing.T) {
+		err := th.service.DeletePropertyField(rctx, unregisteredGroupID, model.NewId())
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to check access control")
+	})
+
+	t.Run("SearchPropertyFields returns error when group lookup fails", func(t *testing.T) {
+		_, err := th.service.SearchPropertyFields(rctx, unregisteredGroupID, model.PropertyFieldSearchOpts{})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to check access control")
+	})
+}
+
+func TestCountActivePropertyFieldsForGroup(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	rctx := th.Context
 
 	t.Run("should return count of active property fields for a group", func(t *testing.T) {
 		groupID := model.NewId()
@@ -29,7 +90,7 @@ func TestCountActivePropertyFieldsForGroup(t *testing.T) {
 			})
 		}
 
-		count, err := th.service.CountActivePropertyFieldsForGroup(groupID)
+		count, err := th.service.CountActivePropertyFieldsForGroup(rctx, groupID)
 		require.NoError(t, err)
 		assert.Equal(t, int64(5), count)
 	})
@@ -37,7 +98,7 @@ func TestCountActivePropertyFieldsForGroup(t *testing.T) {
 	t.Run("should return 0 for empty group", func(t *testing.T) {
 		groupID := model.NewId()
 
-		count, err := th.service.CountActivePropertyFieldsForGroup(groupID)
+		count, err := th.service.CountActivePropertyFieldsForGroup(rctx, groupID)
 		require.NoError(t, err)
 		assert.Equal(t, int64(0), count)
 	})
@@ -69,14 +130,15 @@ func TestCountActivePropertyFieldsForGroup(t *testing.T) {
 			require.NoError(t, err)
 		}
 
-		count, err := th.service.CountActivePropertyFieldsForGroup(groupID)
+		count, err := th.service.CountActivePropertyFieldsForGroup(rctx, groupID)
 		require.NoError(t, err)
 		assert.Equal(t, int64(3), count)
 	})
 }
 
 func TestCountAllPropertyFieldsForGroup(t *testing.T) {
-	th := Setup(t)
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	rctx := th.Context
 
 	t.Run("should return count of all property fields including deleted", func(t *testing.T) {
 		groupID := model.NewId()
@@ -105,7 +167,7 @@ func TestCountAllPropertyFieldsForGroup(t *testing.T) {
 			require.NoError(t, err)
 		}
 
-		count, err := th.service.CountAllPropertyFieldsForGroup(groupID)
+		count, err := th.service.CountAllPropertyFieldsForGroup(rctx, groupID)
 		require.NoError(t, err)
 		assert.Equal(t, int64(8), count)
 	})
@@ -113,7 +175,7 @@ func TestCountAllPropertyFieldsForGroup(t *testing.T) {
 	t.Run("should return 0 for empty group", func(t *testing.T) {
 		groupID := model.NewId()
 
-		count, err := th.service.CountAllPropertyFieldsForGroup(groupID)
+		count, err := th.service.CountAllPropertyFieldsForGroup(rctx, groupID)
 		require.NoError(t, err)
 		assert.Equal(t, int64(0), count)
 	})
@@ -145,10 +207,10 @@ func TestCountAllPropertyFieldsForGroup(t *testing.T) {
 			require.NoError(t, err)
 		}
 
-		activeCount, err := th.service.CountActivePropertyFieldsForGroup(groupID)
+		activeCount, err := th.service.CountActivePropertyFieldsForGroup(rctx, groupID)
 		require.NoError(t, err)
 
-		allCount, err := th.service.CountAllPropertyFieldsForGroup(groupID)
+		allCount, err := th.service.CountAllPropertyFieldsForGroup(rctx, groupID)
 		require.NoError(t, err)
 
 		assert.Equal(t, int64(5), activeCount)
@@ -158,7 +220,8 @@ func TestCountAllPropertyFieldsForGroup(t *testing.T) {
 }
 
 func TestCreatePropertyField(t *testing.T) {
-	th := Setup(t)
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	rctx := th.Context
 
 	t.Run("legacy property with empty ObjectType should skip conflict check", func(t *testing.T) {
 		field := &model.PropertyField{
@@ -168,7 +231,7 @@ func TestCreatePropertyField(t *testing.T) {
 			Type:       model.PropertyFieldTypeText,
 			Name:       "Legacy Property",
 		}
-		result, err := th.service.CreatePropertyField(field)
+		result, err := th.service.CreatePropertyField(rctx, field)
 		require.NoError(t, err)
 		assert.NotEmpty(t, result.ID)
 		assert.Equal(t, "Legacy Property", result.Name)
@@ -183,7 +246,7 @@ func TestCreatePropertyField(t *testing.T) {
 			Type:       model.PropertyFieldTypeText,
 			Name:       "System Property",
 		}
-		result, err := th.service.CreatePropertyField(field)
+		result, err := th.service.CreatePropertyField(rctx, field)
 		require.NoError(t, err)
 		assert.NotEmpty(t, result.ID)
 		assert.Equal(t, "System Property", result.Name)
@@ -211,7 +274,7 @@ func TestCreatePropertyField(t *testing.T) {
 			Type:       model.PropertyFieldTypeText,
 			Name:       "Status",
 		}
-		result, err := th.service.CreatePropertyField(field)
+		result, err := th.service.CreatePropertyField(rctx, field)
 		require.Error(t, err)
 		assert.Nil(t, result)
 		appErr, ok := err.(*model.AppError)
@@ -243,7 +306,7 @@ func TestCreatePropertyField(t *testing.T) {
 			Type:       model.PropertyFieldTypeText,
 			Name:       "Priority",
 		}
-		result, err := th.service.CreatePropertyField(field)
+		result, err := th.service.CreatePropertyField(rctx, field)
 		require.Error(t, err)
 		assert.Nil(t, result)
 		appErr, ok := err.(*model.AppError)
@@ -264,7 +327,7 @@ func TestCreatePropertyField(t *testing.T) {
 			Type:       model.PropertyFieldTypeText,
 			Name:       "Team Property",
 		}
-		result, err := th.service.CreatePropertyField(field)
+		result, err := th.service.CreatePropertyField(rctx, field)
 		require.NoError(t, err)
 		assert.NotEmpty(t, result.ID)
 		assert.Equal(t, "Team Property", result.Name)
@@ -292,7 +355,7 @@ func TestCreatePropertyField(t *testing.T) {
 			Type:       model.PropertyFieldTypeText,
 			Name:       "SystemField",
 		}
-		result, err := th.service.CreatePropertyField(field)
+		result, err := th.service.CreatePropertyField(rctx, field)
 		require.Error(t, err)
 		assert.Nil(t, result)
 		appErr, ok := err.(*model.AppError)
@@ -325,7 +388,7 @@ func TestCreatePropertyField(t *testing.T) {
 			Type:       model.PropertyFieldTypeText,
 			Name:       "ChannelProp",
 		}
-		result, err := th.service.CreatePropertyField(field)
+		result, err := th.service.CreatePropertyField(rctx, field)
 		require.Error(t, err)
 		assert.Nil(t, result)
 		appErr, ok := err.(*model.AppError)
@@ -347,7 +410,7 @@ func TestCreatePropertyField(t *testing.T) {
 			Type:       model.PropertyFieldTypeText,
 			Name:       "Channel Property",
 		}
-		result, err := th.service.CreatePropertyField(field)
+		result, err := th.service.CreatePropertyField(rctx, field)
 		require.NoError(t, err)
 		assert.NotEmpty(t, result.ID)
 		assert.Equal(t, "Channel Property", result.Name)
@@ -376,7 +439,7 @@ func TestCreatePropertyField(t *testing.T) {
 			Type:       model.PropertyFieldTypeText,
 			Name:       "GlobalProp",
 		}
-		result, err := th.service.CreatePropertyField(field)
+		result, err := th.service.CreatePropertyField(rctx, field)
 		require.Error(t, err)
 		assert.Nil(t, result)
 		appErr, ok := err.(*model.AppError)
@@ -409,7 +472,7 @@ func TestCreatePropertyField(t *testing.T) {
 			Type:       model.PropertyFieldTypeText,
 			Name:       "TeamProp",
 		}
-		result, err := th.service.CreatePropertyField(field)
+		result, err := th.service.CreatePropertyField(rctx, field)
 		require.Error(t, err)
 		assert.Nil(t, result)
 		appErr, ok := err.(*model.AppError)
@@ -443,7 +506,7 @@ func TestCreatePropertyField(t *testing.T) {
 			Type:       model.PropertyFieldTypeText,
 			Name:       "TeamOnlyProp",
 		}
-		result, err := th.service.CreatePropertyField(field)
+		result, err := th.service.CreatePropertyField(rctx, field)
 		require.NoError(t, err)
 		assert.NotEmpty(t, result.ID)
 	})
@@ -473,7 +536,7 @@ func TestCreatePropertyField(t *testing.T) {
 			Type:       model.PropertyFieldTypeText,
 			Name:       "Team1Prop",
 		}
-		result, err := th.service.CreatePropertyField(field)
+		result, err := th.service.CreatePropertyField(rctx, field)
 		require.NoError(t, err)
 		assert.NotEmpty(t, result.ID)
 	})
@@ -499,7 +562,7 @@ func TestCreatePropertyField(t *testing.T) {
 			Type:       model.PropertyFieldTypeText,
 			Name:       "SharedName",
 		}
-		result, err := th.service.CreatePropertyField(field)
+		result, err := th.service.CreatePropertyField(rctx, field)
 		require.NoError(t, err)
 		assert.NotEmpty(t, result.ID)
 	})
@@ -526,14 +589,15 @@ func TestCreatePropertyField(t *testing.T) {
 			Type:       model.PropertyFieldTypeText,
 			Name:       "DeletedProp",
 		}
-		result, err := th.service.CreatePropertyField(field)
+		result, err := th.service.CreatePropertyField(rctx, field)
 		require.NoError(t, err)
 		assert.NotEmpty(t, result.ID)
 	})
 }
 
 func TestUpdatePropertyField(t *testing.T) {
-	th := Setup(t)
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	rctx := th.Context
 
 	t.Run("updating non-name fields should not trigger conflict check", func(t *testing.T) {
 		groupID := model.NewId()
@@ -559,7 +623,7 @@ func TestUpdatePropertyField(t *testing.T) {
 			},
 		}
 
-		result, err := th.service.UpdatePropertyField(groupID, field)
+		result, err := th.service.UpdatePropertyField(rctx, groupID, field)
 		require.NoError(t, err)
 		assert.Equal(t, model.PropertyFieldTypeSelect, result.Type)
 	})
@@ -578,7 +642,7 @@ func TestUpdatePropertyField(t *testing.T) {
 
 		// Update name to non-conflicting value
 		field.Name = "NewUniqueName"
-		result, err := th.service.UpdatePropertyField(groupID, field)
+		result, err := th.service.UpdatePropertyField(rctx, groupID, field)
 		require.NoError(t, err)
 		assert.Equal(t, "NewUniqueName", result.Name)
 	})
@@ -608,7 +672,7 @@ func TestUpdatePropertyField(t *testing.T) {
 
 		// Try to update system-level to name that conflicts with team-level
 		systemField.Name = "ExistingTeamProp"
-		result, err := th.service.UpdatePropertyField(groupID, systemField)
+		result, err := th.service.UpdatePropertyField(rctx, groupID, systemField)
 		require.Error(t, err)
 		assert.Nil(t, result)
 		appErr, ok := err.(*model.AppError)
@@ -646,7 +710,7 @@ func TestUpdatePropertyField(t *testing.T) {
 		// Update DM property to same name as regular channel property - should succeed
 		// because DM channels have no team, so they don't conflict with team channels
 		dmField.Name = "ChannelProp"
-		result, err := th.service.UpdatePropertyField(groupID, dmField)
+		result, err := th.service.UpdatePropertyField(rctx, groupID, dmField)
 		require.NoError(t, err)
 		assert.Equal(t, "ChannelProp", result.Name)
 	})
@@ -676,7 +740,7 @@ func TestUpdatePropertyField(t *testing.T) {
 
 		// Try to update team-level to name that conflicts with system-level
 		teamField.Name = "ExistingSystemProp"
-		result, err := th.service.UpdatePropertyField(groupID, teamField)
+		result, err := th.service.UpdatePropertyField(rctx, groupID, teamField)
 		require.Error(t, err)
 		assert.Nil(t, result)
 		appErr, ok := err.(*model.AppError)
@@ -715,7 +779,7 @@ func TestUpdatePropertyField(t *testing.T) {
 		channel2Field.TargetType = string(model.PropertyFieldTargetLevelSystem)
 		channel2Field.TargetID = ""
 
-		result, err := th.service.UpdatePropertyField(groupID, channel2Field)
+		result, err := th.service.UpdatePropertyField(rctx, groupID, channel2Field)
 		require.Error(t, err)
 		assert.Nil(t, result)
 		appErr, ok := err.(*model.AppError)
@@ -757,7 +821,7 @@ func TestUpdatePropertyField(t *testing.T) {
 		// We only verify an error occurs without checking the specific error type.
 		channel2Field.TargetID = channel1.Id
 
-		result, err := th.service.UpdatePropertyField(groupID, channel2Field)
+		result, err := th.service.UpdatePropertyField(rctx, groupID, channel2Field)
 		require.Error(t, err)
 		assert.Nil(t, result)
 	})
@@ -776,7 +840,7 @@ func TestUpdatePropertyField(t *testing.T) {
 
 		// Update name should succeed without conflict check
 		field.Name = "UpdatedLegacyProp"
-		result, err := th.service.UpdatePropertyField(groupID, field)
+		result, err := th.service.UpdatePropertyField(rctx, groupID, field)
 		require.NoError(t, err)
 		assert.Equal(t, "UpdatedLegacyProp", result.Name)
 	})
@@ -795,7 +859,7 @@ func TestUpdatePropertyField(t *testing.T) {
 
 		// Update with same name should succeed (no actual change to name)
 		field.Type = model.PropertyFieldTypeSelect // Change something else
-		result, err := th.service.UpdatePropertyField(groupID, field)
+		result, err := th.service.UpdatePropertyField(rctx, groupID, field)
 		require.NoError(t, err)
 		assert.Equal(t, "SameName", result.Name)
 	})

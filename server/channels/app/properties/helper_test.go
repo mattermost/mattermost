@@ -14,9 +14,10 @@ import (
 )
 
 type TestHelper struct {
-	service *PropertyService
-	dbStore store.Store
-	Context *request.Context
+	service    *PropertyService
+	dbStore    store.Store
+	Context    *request.Context
+	CPAGroupID string
 }
 
 func Setup(tb testing.TB) *TestHelper {
@@ -36,8 +37,19 @@ func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
 		PropertyGroupStore: s.PropertyGroup(),
 		PropertyFieldStore: s.PropertyField(),
 		PropertyValueStore: s.PropertyValue(),
+		CallerIDExtractor: func(rctx request.CTX) string {
+			if rctx == nil {
+				return ""
+			}
+			callerID, _ := model.CallerIDFromContext(rctx.Context())
+			return callerID
+		},
 	})
 	require.NoError(tb, err)
+
+	// Create and wire the PropertyAccessService
+	pas := NewPropertyAccessService(service, nil)
+	service.SetPropertyAccessService(pas)
 
 	tb.Cleanup(func() {
 		s.Close()
@@ -48,6 +60,21 @@ func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
 		dbStore: s,
 		Context: request.EmptyContext(mlog.CreateConsoleTestLogger(tb)),
 	}
+}
+
+// RequestContextWithCallerID adds the caller ID to a request.CTX for access control purposes.
+func RequestContextWithCallerID(rctx request.CTX, callerID string) request.CTX {
+	ctx := model.WithCallerID(rctx.Context(), callerID)
+	return rctx.WithContext(ctx)
+}
+
+func (th *TestHelper) RegisterCPAPropertyGroup(tb testing.TB) *TestHelper {
+	// Register the CPA group so requiresAccessControl can always look it up
+	group, groupErr := th.service.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
+	require.NoError(tb, groupErr)
+	th.CPAGroupID = group.ID
+
+	return th
 }
 
 // CreateTeam creates a team for testing hierarchy
@@ -101,16 +128,23 @@ func (th *TestHelper) CreateUser(tb testing.TB) *model.User {
 	return user
 }
 
-// CreatePropertyField creates a property field using the service
-func (th *TestHelper) CreatePropertyField(tb testing.TB, field *model.PropertyField) *model.PropertyField {
-	result, err := th.service.CreatePropertyField(field)
+// CreatePropertyField creates a property field using the service (with access control routing)
+func (th *TestHelper) CreatePropertyField(tb testing.TB, rctx request.CTX, field *model.PropertyField) *model.PropertyField {
+	result, err := th.service.CreatePropertyField(rctx, field)
 	require.NoError(tb, err)
 	return result
 }
 
-// CreatePropertyFieldDirect creates a property field directly via store (bypasses conflict check)
+// CreatePropertyFieldDirect creates a property field directly via store (bypasses conflict check and access control)
 func (th *TestHelper) CreatePropertyFieldDirect(tb testing.TB, field *model.PropertyField) *model.PropertyField {
 	result, err := th.dbStore.PropertyField().Create(field)
+	require.NoError(tb, err)
+	return result
+}
+
+// CreatePropertyValue creates a property value using the service (with access control routing)
+func (th *TestHelper) CreatePropertyValue(tb testing.TB, rctx request.CTX, value *model.PropertyValue) *model.PropertyValue {
+	result, err := th.service.CreatePropertyValue(rctx, value)
 	require.NoError(tb, err)
 	return result
 }

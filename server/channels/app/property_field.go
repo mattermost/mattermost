@@ -11,7 +11,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 func propertyFieldBroadcastParams(rctx request.CTX, field *model.PropertyField) (teamID, channelID string, ok bool) {
@@ -51,7 +50,12 @@ func (a *App) publishPropertyFieldEvent(rctx request.CTX, eventType model.Websoc
 	a.Publish(message)
 }
 
+// CreatePropertyField creates a new property field.
 func (a *App) CreatePropertyField(rctx request.CTX, field *model.PropertyField, bypassProtectedCheck bool, connectionID string) (*model.PropertyField, *model.AppError) {
+	if field == nil {
+		return nil, model.NewAppError("CreatePropertyField", "app.property_field.invalid_input.app_error", nil, "property field is required", http.StatusBadRequest)
+	}
+
 	if !bypassProtectedCheck && field.Protected {
 		return nil, model.NewAppError(
 			"CreatePropertyField",
@@ -62,84 +66,89 @@ func (a *App) CreatePropertyField(rctx request.CTX, field *model.PropertyField, 
 		)
 	}
 
-	created, err := a.Srv().propertyAccessService.propertyService.CreatePropertyField(field)
+	createdField, err := a.Srv().propertyService.CreatePropertyField(rctx, field)
 	if err != nil {
+		var appErr *model.AppError
+		if errors.As(err, &appErr) {
+			return nil, appErr
+		}
 		return nil, model.NewAppError("CreatePropertyField", "app.property_field.create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	a.publishPropertyFieldEvent(rctx, model.WebsocketEventPropertyFieldCreated, created, connectionID)
+	a.publishPropertyFieldEvent(rctx, model.WebsocketEventPropertyFieldCreated, createdField, connectionID)
 
-	return created, nil
+	return createdField, nil
 }
 
-func (a *App) GetPropertyField(groupID, id string) (*model.PropertyField, *model.AppError) {
-	field, err := a.Srv().propertyAccessService.propertyService.GetPropertyField(groupID, id)
+// GetPropertyField retrieves a property field by group ID and field ID.
+func (a *App) GetPropertyField(rctx request.CTX, groupID, fieldID string) (*model.PropertyField, *model.AppError) {
+	field, err := a.Srv().propertyService.GetPropertyField(rctx, groupID, fieldID)
 	if err != nil {
 		return nil, model.NewAppError("GetPropertyField", "app.property_field.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return field, nil
 }
 
-func (a *App) GetPropertyFields(groupID string, ids []string) ([]*model.PropertyField, *model.AppError) {
-	fields, err := a.Srv().propertyAccessService.propertyService.GetPropertyFields(groupID, ids)
+// GetPropertyFields retrieves multiple property fields by their IDs.
+func (a *App) GetPropertyFields(rctx request.CTX, groupID string, ids []string) ([]*model.PropertyField, *model.AppError) {
+	fields, err := a.Srv().propertyService.GetPropertyFields(rctx, groupID, ids)
 	if err != nil {
-		var mismatchErr *store.ErrResultsMismatch
-		if errors.As(err, &mismatchErr) {
-			return nil, model.NewAppError("GetPropertyFields", "app.property_field.get_many.results_mismatch.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		}
 		return nil, model.NewAppError("GetPropertyFields", "app.property_field.get_many.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return fields, nil
 }
 
-func (a *App) GetPropertyFieldByName(groupID, targetID, name string) (*model.PropertyField, *model.AppError) {
-	field, err := a.Srv().propertyAccessService.propertyService.GetPropertyFieldByName(groupID, targetID, name)
+// GetPropertyFieldByName retrieves a property field by name within a group and target.
+func (a *App) GetPropertyFieldByName(rctx request.CTX, groupID, targetID, name string) (*model.PropertyField, *model.AppError) {
+	field, err := a.Srv().propertyService.GetPropertyFieldByName(rctx, groupID, targetID, name)
 	if err != nil {
 		return nil, model.NewAppError("GetPropertyFieldByName", "app.property_field.get_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return field, nil
 }
 
-func (a *App) CountActivePropertyFieldsForGroup(groupID string) (int64, *model.AppError) {
-	count, err := a.Srv().propertyAccessService.propertyService.CountActivePropertyFieldsForGroup(groupID)
-	if err != nil {
-		return 0, model.NewAppError("CountActivePropertyFieldsForGroup", "app.property_field.count_active_for_group.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return count, nil
-}
-
-func (a *App) CountAllPropertyFieldsForGroup(groupID string) (int64, *model.AppError) {
-	count, err := a.Srv().propertyAccessService.propertyService.CountAllPropertyFieldsForGroup(groupID)
-	if err != nil {
-		return 0, model.NewAppError("CountAllPropertyFieldsForGroup", "app.property_field.count_all_for_group.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return count, nil
-}
-
-func (a *App) CountActivePropertyFieldsForTarget(groupID, targetType, targetID string) (int64, *model.AppError) {
-	count, err := a.Srv().propertyAccessService.propertyService.CountActivePropertyFieldsForTarget(groupID, targetType, targetID)
-	if err != nil {
-		return 0, model.NewAppError("CountActivePropertyFieldsForTarget", "app.property_field.count_active_for_target.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return count, nil
-}
-
-func (a *App) CountAllPropertyFieldsForTarget(groupID, targetType, targetID string) (int64, *model.AppError) {
-	count, err := a.Srv().propertyAccessService.propertyService.CountAllPropertyFieldsForTarget(groupID, targetType, targetID)
-	if err != nil {
-		return 0, model.NewAppError("CountAllPropertyFieldsForTarget", "app.property_field.count_all_for_target.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return count, nil
-}
-
-func (a *App) SearchPropertyFields(groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, *model.AppError) {
-	fields, err := a.Srv().propertyAccessService.propertyService.SearchPropertyFields(groupID, opts)
+// SearchPropertyFields searches for property fields matching the given options.
+func (a *App) SearchPropertyFields(rctx request.CTX, groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, *model.AppError) {
+	fields, err := a.Srv().propertyService.SearchPropertyFields(rctx, groupID, opts)
 	if err != nil {
 		return nil, model.NewAppError("SearchPropertyFields", "app.property_field.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return fields, nil
 }
 
+// CountPropertyFieldsForGroup counts property fields for a group.
+func (a *App) CountPropertyFieldsForGroup(rctx request.CTX, groupID string, includeDeleted bool) (int64, *model.AppError) {
+	var count int64
+	var err error
+	if includeDeleted {
+		count, err = a.Srv().propertyService.CountAllPropertyFieldsForGroup(rctx, groupID)
+	} else {
+		count, err = a.Srv().propertyService.CountActivePropertyFieldsForGroup(rctx, groupID)
+	}
+
+	if err != nil {
+		return 0, model.NewAppError("CountPropertyFieldsForGroup", "app.property_field.count_for_group.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return count, nil
+}
+
+// CountPropertyFieldsForTarget counts property fields for a specific target.
+func (a *App) CountPropertyFieldsForTarget(rctx request.CTX, groupID, targetType, targetID string, includeDeleted bool) (int64, *model.AppError) {
+	var count int64
+	var err error
+	if includeDeleted {
+		count, err = a.Srv().propertyService.CountAllPropertyFieldsForTarget(rctx, groupID, targetType, targetID)
+	} else {
+		count, err = a.Srv().propertyService.CountActivePropertyFieldsForTarget(rctx, groupID, targetType, targetID)
+	}
+
+	if err != nil {
+		return 0, model.NewAppError("CountPropertyFieldsForTarget", "app.property_field.count_for_target.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return count, nil
+}
+
+// UpdatePropertyField updates an existing property field.
 func (a *App) UpdatePropertyField(rctx request.CTX, groupID string, field *model.PropertyField, bypassProtectedCheck bool, connectionID string) (*model.PropertyField, *model.AppError) {
 	fields, err := a.UpdatePropertyFields(rctx, groupID, []*model.PropertyField{field}, bypassProtectedCheck, connectionID)
 	if err != nil {
@@ -149,14 +158,19 @@ func (a *App) UpdatePropertyField(rctx request.CTX, groupID string, field *model
 	return fields[0], nil
 }
 
+// UpdatePropertyFields updates multiple property fields.
 func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField, bypassProtectedCheck bool, connectionID string) ([]*model.PropertyField, *model.AppError) {
-	if !bypassProtectedCheck && len(fields) > 0 {
+	if len(fields) == 0 {
+		return nil, model.NewAppError("UpdatePropertyFields", "app.property_field.invalid_input.app_error", nil, "property fields are required", http.StatusBadRequest)
+	}
+
+	if !bypassProtectedCheck {
 		ids := make([]string, len(fields))
 		for i, f := range fields {
 			ids[i] = f.ID
 		}
 
-		existingFields, err := a.Srv().propertyAccessService.propertyService.GetPropertyFields(groupID, ids)
+		existingFields, err := a.Srv().propertyService.GetPropertyFields(rctx, groupID, ids)
 		if err != nil {
 			return nil, model.NewAppError("UpdatePropertyFields", "app.property_field.update.get_existing.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -174,7 +188,7 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 		}
 	}
 
-	updated, err := a.Srv().propertyAccessService.propertyService.UpdatePropertyFields(groupID, fields)
+	updated, err := a.Srv().propertyService.UpdatePropertyFields(rctx, groupID, fields)
 	if err != nil {
 		return nil, model.NewAppError("UpdatePropertyFields", "app.property_field.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -186,8 +200,9 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 	return updated, nil
 }
 
+// DeletePropertyField deletes a property field.
 func (a *App) DeletePropertyField(rctx request.CTX, groupID, id string, bypassProtectedCheck bool, connectionID string) *model.AppError {
-	existing, err := a.Srv().propertyAccessService.propertyService.GetPropertyField(groupID, id)
+	existing, err := a.Srv().propertyService.GetPropertyField(rctx, groupID, id)
 	if err != nil {
 		return model.NewAppError("DeletePropertyField", "app.property_field.delete.get_existing.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -205,7 +220,7 @@ func (a *App) DeletePropertyField(rctx request.CTX, groupID, id string, bypassPr
 		)
 	}
 
-	if err := a.Srv().propertyAccessService.propertyService.DeletePropertyField(groupID, id); err != nil {
+	if err := a.Srv().propertyService.DeletePropertyField(rctx, groupID, id); err != nil {
 		return model.NewAppError("DeletePropertyField", "app.property_field.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 

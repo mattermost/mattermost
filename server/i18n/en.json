@@ -5683,16 +5683,16 @@
     "translation": "Unable to retrieve the custom profile attributes property group."
   },
   {
-    "id": "app.custom_profile_attributes.create_property_field.app_error",
-    "translation": "Unable to create Custom Profile Attribute field"
-  },
-  {
     "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
     "translation": "Unable to delete Custom Profile Attribute Values for user"
   },
   {
     "id": "app.custom_profile_attributes.get_property_field.app_error",
     "translation": "Unable to get Custom Profile Attribute field"
+  },
+  {
+    "id": "app.custom_profile_attributes.get_property_value.app_error",
+    "translation": "Unable to get Custom Profile Attribute value"
   },
   {
     "id": "app.custom_profile_attributes.limit_reached.app_error",
@@ -7631,19 +7631,11 @@
     "translation": "Prepackged plugin version could not be parsed."
   },
   {
-    "id": "app.property_field.count_active_for_group.app_error",
-    "translation": "Unable to count active property fields for group."
-  },
-  {
-    "id": "app.property_field.count_active_for_target.app_error",
-    "translation": "Unable to count active property fields for target."
-  },
-  {
-    "id": "app.property_field.count_all_for_group.app_error",
+    "id": "app.property_field.count_for_group.app_error",
     "translation": "Unable to count property fields for group."
   },
   {
-    "id": "app.property_field.count_all_for_target.app_error",
+    "id": "app.property_field.count_for_target.app_error",
     "translation": "Unable to count property fields for target."
   },
   {
@@ -7687,8 +7679,8 @@
     "translation": "Unable to get property fields."
   },
   {
-    "id": "app.property_field.get_many.results_mismatch.app_error",
-    "translation": "Some requested property fields were not found in the specified group."
+    "id": "app.property_field.invalid_input.app_error",
+    "translation": "Invalid input provided."
   },
   {
     "id": "app.property_field.search.app_error",
@@ -7719,6 +7711,38 @@
     "translation": "Unable to register property group."
   },
   {
+    "id": "app.property_value.create.app_error",
+    "translation": "Unable to create property value."
+  },
+  {
+    "id": "app.property_value.create_many.app_error",
+    "translation": "Unable to create property values."
+  },
+  {
+    "id": "app.property_value.delete.app_error",
+    "translation": "Unable to delete property value."
+  },
+  {
+    "id": "app.property_value.delete_for_field.app_error",
+    "translation": "Unable to delete property values for field."
+  },
+  {
+    "id": "app.property_value.delete_for_target.app_error",
+    "translation": "Unable to delete property values for target."
+  },
+  {
+    "id": "app.property_value.get.app_error",
+    "translation": "Unable to get property value."
+  },
+  {
+    "id": "app.property_value.get_many.app_error",
+    "translation": "Unable to get property values."
+  },
+  {
+    "id": "app.property_value.invalid_input.app_error",
+    "translation": "Invalid input provided."
+  },
+  {
     "id": "app.property_value.resolve_broadcast_params.unknown_object_type.app_error",
     "translation": "Unrecognized object type \"{{.ObjectType}}\" for property value broadcast."
   },
@@ -7727,7 +7751,19 @@
     "translation": "Unable to search property values."
   },
   {
+    "id": "app.property_value.update.app_error",
+    "translation": "Unable to update property value."
+  },
+  {
+    "id": "app.property_value.update_many.app_error",
+    "translation": "Unable to update property values."
+  },
+  {
     "id": "app.property_value.upsert.app_error",
+    "translation": "Unable to upsert property values."
+  },
+  {
+    "id": "app.property_value.upsert_many.app_error",
     "translation": "Unable to upsert property values."
   },
   {
