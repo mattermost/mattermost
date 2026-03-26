@@ -20,7 +20,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/blang/semver/v4"
+	"github.com/Masterminds/semver/v3"
 	"github.com/mattermost/ldap"
 	"github.com/pkg/errors"
 
@@ -3093,6 +3093,19 @@ func (s *NativeAppSettings) SetDefaults() {
 	}
 }
 
+func (s *NativeAppSettings) AreDownloadLinksValid() *AppError {
+	for _, link := range []*string{s.AppDownloadLink, s.AndroidAppDownloadLink, s.IosAppDownloadLink} {
+		if link == nil || *link == "" {
+			continue
+		}
+		u, err := url.ParseRequestURI(*link)
+		if err != nil || u.Scheme == "" || u.Hostname() == "" {
+			return NewAppError("NativeAppSettings.AreDownloadLinksValid", "model.config.is_valid.native_app_settings.download_link.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+	return nil
+}
+
 type ElasticsearchSettings struct {
 	ConnectionURL                               *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	Backend                                     *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
@@ -4164,6 +4177,10 @@ func (o *Config) IsValid() *AppError {
 		return appErr
 	}
 
+	if appErr := o.NativeAppSettings.AreDownloadLinksValid(); appErr != nil {
+		return appErr
+	}
+
 	// Cross-reference validation: IntuneSettings requires either Office365 or SAML to be enabled
 	if o.IntuneSettings.Enable != nil && *o.IntuneSettings.Enable {
 		if o.IntuneSettings.AuthService != nil && *o.IntuneSettings.AuthService != "" {
@@ -4647,7 +4664,7 @@ func (s *ServiceSettings) isValid() *AppError {
 	}
 
 	if *s.MinimumDesktopAppVersion != "" {
-		if _, err := semver.Parse(*s.MinimumDesktopAppVersion); err != nil {
+		if _, err := semver.StrictNewVersion(*s.MinimumDesktopAppVersion); err != nil {
 			return NewAppError("Config.IsValid", "model.config.is_valid.minimum_desktop_app_version.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 	}

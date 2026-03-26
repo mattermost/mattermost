@@ -407,8 +407,6 @@ github.com/mattermost/ldap v0.0.0-20231116144001-0f480c025956 h1:Y1Tu/swM31pVwwb
 github.com/mattermost/ldap v0.0.0-20231116144001-0f480c025956/go.mod h1:SRl30Lb7/QoYyohYeVBuqYvvmXSZJxZgiV3Zf6VbxjI=
 github.com/mattermost/logr/v2 v2.0.22 h1:npFkXlkAWR9J8payh8ftPcCZvLbHSI125mAM5/r/lP4=
 github.com/mattermost/logr/v2 v2.0.22/go.mod h1:0sUKpO+XNMZApeumaid7PYaUZPBIydfuWZ0dqixXo+s=
-github.com/mattermost/mattermost-plugin-ai v1.8.1 h1:qymxDayy3vJPhm59XA8q0oLR8uobPgx0SOB7IMG9ZMM=
-github.com/mattermost/mattermost-plugin-ai v1.8.1/go.mod h1:Uco4K7ypsrZWcD256ezvgZDqolJfHYiExN2lYiHmVDo=
 github.com/mattermost/mattermost-plugin-ai v1.12.0 h1:cwRE2jjlqN5W42O9Xp0ncyHk7HL/ayMeypuINPX0WJ0=
 github.com/mattermost/mattermost-plugin-ai v1.12.0/go.mod h1:L/I/IpdWNGbxRfUduCstCYbhyX59OEftxcpDHtCT4EI=
 github.com/mattermost/mattermost/server/public v0.1.22-0.20251105210629-8bf4a00724e2 h1:RJtCnj9nF/wb0Fb+O0qAPgUoWP5CTTDnHzHD5ciGlJ8=
@@ -644,8 +642,8 @@ github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD
 github.com/subosito/gotenv v1.6.0 h1:9NlTDc1FTs4qu0DDq7AEtTPNw6SVm7uBMsUCUjABIf8=
 github.com/subosito/gotenv v1.6.0/go.mod h1:Dk4QP5c2W3ibzajGcXpNraDfq2IrhjMIvMSWPKKo0FU=
 github.com/tarm/serial v0.0.0-20180830185346-98f6abe2eb07/go.mod h1:kDXzergiv9cbyO7IOYJZWg1U88JhDg3PB6klq9Hg2pA=
-github.com/throttled/throttled v2.2.5+incompatible h1:65UB52X0qNTYiT0Sohp8qLYVFwZQPDw85uSa65OljjQ=
-github.com/throttled/throttled v2.2.5+incompatible/go.mod h1:0BjlrEGQmvxps+HuXLsyRdqpSRvJpq0PNIsOtqP9Nos=
+github.com/throttled/throttled/v2 v2.15.0 h1:7XLCECtmEx+Yz/e5opBNff9cPGpH0ia0xEj5kyDPotI=
+github.com/throttled/throttled/v2 v2.15.0/go.mod h1:JlfSSSYoM/bjFoW2sCATGxJJXggjO67DFQu9xduGAWE=
 github.com/tidwall/gjson v1.18.0 h1:FIDeeyB800efLX89e5a8Y0BNH+LOngJyGrIWxG2FKQY=
 github.com/tidwall/gjson v1.18.0/go.mod h1:/wbyibRr2FHMks5tjHJ5F8dMZh3AcwJEMf5vlfC0lxk=
 github.com/tidwall/match v1.2.0 h1:0pt8FlkOwjN2fPt4bIl4BoNxb98gGHN2ObFEDkrfZnM=
