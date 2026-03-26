@@ -42,7 +42,7 @@ describe('components/integrations/AbstractIncomingWebhook', () => {
         channel_id: 'current_channel_id',
         description: 'testing',
         id: 'test_id',
-        team_id: 'test_team_id',
+        team_id: 'team_id',
         create_at: 0,
         update_at: 0,
         delete_at: 0,
@@ -107,6 +107,35 @@ describe('components/integrations/AbstractIncomingWebhook', () => {
         },
     };
 
+    /** Two open team channels the user belongs to; used to assert channel select updates real state. */
+    const stateWithTwoTeamChannels: DeepPartial<GlobalState> = {
+        ...initialState,
+        entities: {
+            ...initialState.entities,
+            channels: {
+                ...initialState.entities?.channels,
+                channels: {
+                    ...initialState.entities?.channels?.channels,
+                    other_channel_id: TestHelper.getChannelMock({
+                        id: 'other_channel_id',
+                        team_id: 'team_id',
+                        type: 'O' as ChannelType,
+                        name: 'other_channel',
+                        display_name: 'Other Channel',
+                    }),
+                },
+                myMembers: {
+                    ...initialState.entities?.channels?.myMembers,
+                    other_channel_id: TestHelper.getChannelMembershipMock({channel_id: 'other_channel_id'}),
+                },
+                channelsInTeam: {
+                    team_id: new Set(['current_channel_id', 'other_channel_id']),
+                },
+            },
+            teams: initialState.entities?.teams,
+        },
+    };
+
     beforeEach(() => {
         action.mockClear();
     });
@@ -164,12 +193,24 @@ describe('components/integrations/AbstractIncomingWebhook', () => {
     });
 
     test('should update state.channelId when on channel change', async () => {
-        const newChannelId = 'current_channel_id';
-        renderWithContext(<AbstractIncomingWebhook {...requiredProps}/>, initialState as GlobalState);
+        const propsWithInitialOtherChannel = {
+            ...requiredProps,
+            initialHook: {
+                ...initialHook,
+                channel_id: 'other_channel_id',
+            },
+        };
+        renderWithContext(
+            <AbstractIncomingWebhook {...propsWithInitialOtherChannel}/>,
+            stateWithTwoTeamChannels as GlobalState,
+        );
 
-        await userEvent.selectOptions(screen.getByRole('combobox'), [newChannelId]);
+        const channelSelect = screen.getByRole<HTMLSelectElement>('combobox');
+        expect(channelSelect.value).toBe('other_channel_id');
 
-        expect(screen.getByRole<HTMLSelectElement>('combobox').value).toBe(newChannelId);
+        await userEvent.selectOptions(channelSelect, 'current_channel_id');
+
+        expect(channelSelect.value).toBe('current_channel_id');
     });
 
     test('should update state.description when on description change', async () => {

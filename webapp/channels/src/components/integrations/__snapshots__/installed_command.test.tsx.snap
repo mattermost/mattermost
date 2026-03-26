@@ -75,7 +75,7 @@ exports[`components/integrations/InstalledCommand should call onDelete function 
         <span
           class="item-details__creation"
         >
-          Created by username on Tuesday, July 11, 2017
+          Created by username on Monday, July 10, 2017
         </span>
       </div>
     </div>
@@ -158,7 +158,7 @@ exports[`components/integrations/InstalledCommand should call onRegenToken funct
         <span
           class="item-details__creation"
         >
-          Created by username on Tuesday, July 11, 2017
+          Created by username on Monday, July 10, 2017
         </span>
       </div>
     </div>
@@ -222,7 +222,7 @@ exports[`components/integrations/InstalledCommand should match snapshot 1`] = `
         <span
           class="item-details__creation"
         >
-          Created by username on Tuesday, July 11, 2017
+          Created by username on Monday, July 10, 2017
         </span>
       </div>
     </div>
@@ -286,7 +286,7 @@ exports[`components/integrations/InstalledCommand should match snapshot, not aut
         <span
           class="item-details__creation"
         >
-          Created by username on Tuesday, July 11, 2017
+          Created by username on Monday, July 10, 2017
         </span>
       </div>
     </div>

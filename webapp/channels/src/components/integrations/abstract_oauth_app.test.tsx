@@ -38,6 +38,10 @@ describe('components/integrations/AbstractOAuthApp', () => {
 
     const team = TestHelper.getTeamMock({name: 'test', id: initialApp.id});
 
+    beforeEach(() => {
+        action.mockClear();
+    });
+
     const baseProps = {
         team,
         header,
@@ -69,7 +73,7 @@ describe('components/integrations/AbstractOAuthApp', () => {
         const submitButton = screen.getByRole('button', {name: 'Footer'});
         await userEvent.click(submitButton);
 
-        expect(action).not.toHaveBeenCalled();
+        expect(props.action).not.toHaveBeenCalled();
         expect(container).toMatchSnapshot();
     });
 
@@ -223,7 +227,7 @@ describe('components/integrations/AbstractOAuthApp', () => {
         await userEvent.click(submitButton);
 
         await waitFor(() => {
-            expect(action).toHaveBeenCalled();
+            expect(action).toHaveBeenCalledTimes(1);
         });
     });
 

@@ -186,7 +186,7 @@ exports[`components/integrations/InstalledOAuthApps should match snapshot 1`] = 
             <span
               class="item-details__creation"
             >
-              Created by  on Sunday, July 30, 2017
+              Created by  on Saturday, July 29, 2017
             </span>
           </div>
         </div>
@@ -306,7 +306,7 @@ exports[`components/integrations/InstalledOAuthApps should match snapshot 1`] = 
             <span
               class="item-details__creation"
             >
-              Created by  on Sunday, July 30, 2017
+              Created by  on Saturday, July 29, 2017
             </span>
           </div>
         </div>
@@ -531,7 +531,7 @@ exports[`components/integrations/InstalledOAuthApps should match snapshot for Ap
             <span
               class="item-details__creation"
             >
-              Created by  on Sunday, July 30, 2017
+              Created by  on Saturday, July 29, 2017
             </span>
           </div>
         </div>

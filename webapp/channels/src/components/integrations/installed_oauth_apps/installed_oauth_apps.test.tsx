@@ -13,7 +13,7 @@ jest.mock('components/integrations/delete_integration_link', () => {
     const React = require('react'); // eslint-disable-line @typescript-eslint/no-var-requires, global-require
     return {
         __esModule: true,
-        default: (props) => React.createElement('button', {onClick: props.onDelete}, 'Delete'),
+        default: (props: {onDelete: () => void}) => React.createElement('button', {onClick: props.onDelete}, 'Delete'),
     };
 });
 

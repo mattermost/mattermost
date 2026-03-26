@@ -119,7 +119,7 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot 1`] = `
         <span
           class="item-details__creation"
         >
-          Created by somename on Sunday, July 30, 2017
+          Created by somename on Saturday, July 29, 2017
         </span>
       </div>
     </div>
@@ -292,7 +292,7 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot, on err
         <span
           class="item-details__creation"
         >
-          Created by somename on Sunday, July 30, 2017
+          Created by somename on Saturday, July 29, 2017
         </span>
       </div>
     </div>
@@ -417,7 +417,7 @@ exports[`components/integrations/InstalledOAuthApp should match snapshot, when o
         <span
           class="item-details__creation"
         >
-          Created by somename on Sunday, July 30, 2017
+          Created by somename on Saturday, July 29, 2017
         </span>
       </div>
     </div>

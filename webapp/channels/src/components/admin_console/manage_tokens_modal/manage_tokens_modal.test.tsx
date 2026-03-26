@@ -31,7 +31,15 @@ describe('components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx',
     });
 
     test('should replace loading screen on update', () => {
-        const {baseElement} = renderWithContext(
+        const {baseElement, rerender} = renderWithContext(
+            <ManageTokensModal {...baseProps}/>,
+        );
+
+        expect(screen.queryByText('No personal access tokens.')).not.toBeInTheDocument();
+        expect(baseElement.querySelector('.loading-screen')).toBeInTheDocument();
+        expect(baseElement.querySelector('.manage-row__empty')).not.toBeInTheDocument();
+
+        rerender(
             <ManageTokensModal
                 {...baseProps}
                 userAccessTokens={{}}
@@ -39,6 +47,8 @@ describe('components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx',
         );
 
         expect(baseElement.querySelector('.manage-teams__teams')).toBeInTheDocument();
+        expect(baseElement.querySelector('.loading-screen')).not.toBeInTheDocument();
+        expect(baseElement.querySelector('.manage-row__empty')).toBeInTheDocument();
         expect(screen.getByText('No personal access tokens.')).toBeInTheDocument();
         expect(baseElement).toMatchSnapshot();
     });

@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import type {Bot} from '@mattermost/types/bots';
+
 import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
@@ -23,25 +25,31 @@ describe('components/integrations/bots/Bots', () => {
         fetchAppsBotIDs: jest.fn(),
     };
 
+    function createBotsAndUsers(count: number) {
+        const bots: Record<string, Bot> = {};
+        const users: Record<string, ReturnType<typeof TestHelper.getUserMock>> = {};
+        const botList: Bot[] = [];
+        for (let i = 1; i <= count; i++) {
+            const bot = TestHelper.getBotMock({user_id: String(i), username: `bot${i}`, display_name: `Bot ${i}`, delete_at: 0});
+            bots[bot.user_id] = bot;
+            users[bot.user_id] = TestHelper.getUserMock({id: bot.user_id});
+            botList.push(bot);
+        }
+        const loadBots = jest.fn().mockReturnValue(Promise.resolve({data: botList}));
+        return {bots, users, loadBots};
+    }
+
+    // BackstageList passes filterLowered as a DOM prop which triggers a React warning
+    beforeEach(() => {
+        jest.spyOn(console, 'error').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     it('bots', async () => {
-        const bot1 = TestHelper.getBotMock({user_id: '1', username: 'bot1', display_name: 'Bot 1', delete_at: 0});
-        const bot2 = TestHelper.getBotMock({user_id: '2', username: 'bot2', display_name: 'Bot 2', delete_at: 0});
-        const bot3 = TestHelper.getBotMock({user_id: '3', username: 'bot3', display_name: 'Bot 3', delete_at: 0});
-        const bots = {
-            [bot1.user_id]: bot1,
-            [bot2.user_id]: bot2,
-            [bot3.user_id]: bot3,
-        };
-        const users = {
-            [bot1.user_id]: TestHelper.getUserMock({id: bot1.user_id}),
-            [bot2.user_id]: TestHelper.getUserMock({id: bot2.user_id}),
-            [bot3.user_id]: TestHelper.getUserMock({id: bot3.user_id}),
-        };
-
-        const loadBots = jest.fn().mockReturnValue(Promise.resolve({data: Object.values(bots)}));
-
-        // BackstageList passes filterLowered as a DOM prop which triggers a React warning
-        const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        const {bots, users, loadBots} = createBotsAndUsers(3);
 
         const {container} = renderWithContext(
             <Bots
@@ -68,28 +76,10 @@ describe('components/integrations/bots/Bots', () => {
         managedByDivs.forEach((div) => {
             expect(div.textContent).toContain('plugin');
         });
-
-        spy.mockRestore();
     });
 
     it('bots with bots from apps', async () => {
-        const bot1 = TestHelper.getBotMock({user_id: '1', username: 'bot1', display_name: 'Bot 1', delete_at: 0});
-        const bot2 = TestHelper.getBotMock({user_id: '2', username: 'bot2', display_name: 'Bot 2', delete_at: 0});
-        const bot3 = TestHelper.getBotMock({user_id: '3', username: 'bot3', display_name: 'Bot 3', delete_at: 0});
-        const bots = {
-            [bot1.user_id]: bot1,
-            [bot2.user_id]: bot2,
-            [bot3.user_id]: bot3,
-        };
-        const users = {
-            [bot1.user_id]: TestHelper.getUserMock({id: bot1.user_id}),
-            [bot2.user_id]: TestHelper.getUserMock({id: bot2.user_id}),
-            [bot3.user_id]: TestHelper.getUserMock({id: bot3.user_id}),
-        };
-
-        const loadBots = jest.fn().mockReturnValue(Promise.resolve({data: Object.values(bots)}));
-
-        const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        const {bots, users, loadBots} = createBotsAndUsers(3);
 
         const {container} = renderWithContext(
             <Bots
@@ -100,7 +90,7 @@ describe('components/integrations/bots/Bots', () => {
                 users={users}
                 actions={{...actions, loadBots}}
                 appsEnabled={true}
-                appsBotIDs={[bot3.user_id]}
+                appsBotIDs={['3']}
             />,
         );
 
@@ -117,8 +107,6 @@ describe('components/integrations/bots/Bots', () => {
         const managedByTexts = Array.from(managedByDivs).map((div) => div.textContent);
         expect(managedByTexts.filter((t) => t?.includes('Apps Framework')).length).toBe(1);
         expect(managedByTexts.filter((t) => t?.includes('plugin')).length).toBe(2);
-
-        spy.mockRestore();
     });
 
     it('bot owner tokens', async () => {
@@ -128,7 +116,6 @@ describe('components/integrations/bots/Bots', () => {
         };
 
         const owner = TestHelper.getUserMock({id: bot1.owner_id, username: 'owner1'});
-
         const user = TestHelper.getUserMock({id: bot1.user_id});
 
         const passedTokens = {
@@ -148,8 +135,6 @@ describe('components/integrations/bots/Bots', () => {
         };
 
         const loadBots = jest.fn().mockReturnValue(Promise.resolve({data: Object.values(bots)}));
-
-        const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
         const {container} = renderWithContext(
             <Bots
@@ -172,7 +157,5 @@ describe('components/integrations/bots/Bots', () => {
         const managedByDiv = container.querySelector('.light.small');
         expect(managedByDiv).toBeInTheDocument();
         expect(managedByDiv!.textContent).toContain('owner1');
-
-        spy.mockRestore();
     });
 });

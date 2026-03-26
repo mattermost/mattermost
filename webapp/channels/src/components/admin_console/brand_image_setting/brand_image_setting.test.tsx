@@ -9,18 +9,22 @@ import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing
 
 import BrandImageSetting from './brand_image_setting';
 
+// Real implementations are async (await dispatch(...)); mocks must return Promises so handleSave can await them.
 jest.mock('actions/admin_actions.jsx', () => ({
     ...jest.requireActual('actions/admin_actions.jsx'),
-    uploadBrandImage: jest.fn(),
-    deleteBrandImage: jest.fn(),
+    uploadBrandImage: jest.fn(async () => {}),
+    deleteBrandImage: jest.fn(async () => {}),
 }));
 
-// Mock fetch for the brand image URL check in componentDidMount
-global.fetch = jest.fn(() =>
-    Promise.resolve({status: 404} as Response),
-);
-
 describe('components/admin_console/brand_image_setting', () => {
+    beforeEach(() => {
+        jest.spyOn(global, 'fetch').mockResolvedValue({status: 404} as Response);
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     const baseProps = {
         disabled: false,
         setSaveNeeded: jest.fn(),
@@ -34,7 +38,7 @@ describe('components/admin_console/brand_image_setting', () => {
             saveAction = fn;
         });
 
-        const {container} = renderWithContext(
+        const {container, unmount} = renderWithContext(
             <BrandImageSetting
                 {...baseProps}
                 registerSaveAction={registerSaveAction}
@@ -49,19 +53,19 @@ describe('components/admin_console/brand_image_setting', () => {
 
         // Simulate selecting a file via the file input to set brandImage
         const file = new File(['brand_image_file'], 'brand.png', {type: 'image/png'});
-        const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
-        await userEvent.upload(fileInput, file);
+        const fileInput = container.querySelector('input[type="file"]');
+        expect(fileInput).toBeInTheDocument();
+        await userEvent.upload(fileInput as HTMLInputElement, file);
 
         // Now call save - should call uploadBrandImage
         await saveAction!();
         expect(deleteBrandImage).toHaveBeenCalledTimes(0);
         expect(uploadBrandImage).toHaveBeenCalledTimes(1);
 
-        // To test deleteBrandImage path, we re-mount with fetch returning 200
+        // To test deleteBrandImage path, unmount then re-mount with fetch returning 200
+        unmount();
         jest.clearAllMocks();
-        (global.fetch as jest.Mock).mockImplementationOnce(() =>
-            Promise.resolve({status: 200} as Response),
-        );
+        (global.fetch as jest.Mock).mockResolvedValueOnce({status: 200} as Response);
 
         let saveAction2: (() => Promise<unknown>) | undefined;
         const registerSaveAction2 = jest.fn((fn: () => Promise<unknown>) => {
