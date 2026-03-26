@@ -47,6 +47,9 @@ const (
 	PropertyFieldObjectTypeUser    = "user"
 )
 
+// validPermissionLevels contains all valid PermissionLevel values.
+var validPermissionLevels = []PermissionLevel{PermissionLevelNone, PermissionLevelSysadmin, PermissionLevelMember}
+
 // validPSAv2TargetTypes contains all valid TargetType values for PSAv2 properties.
 var validPSAv2TargetTypes = []string{
 	string(PropertyFieldTargetLevelSystem),
@@ -213,6 +216,18 @@ func (pf *PropertyField) IsValid() error {
 
 	if pf.UpdateAt == 0 {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "update_at", "Reason": "value cannot be zero"}, "id="+pf.ID, http.StatusBadRequest)
+	}
+
+	if pf.PermissionField != nil && !slices.Contains(validPermissionLevels, *pf.PermissionField) {
+		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permission_field", "Reason": "invalid permission level"}, "id="+pf.ID, http.StatusBadRequest)
+	}
+
+	if pf.PermissionValues != nil && !slices.Contains(validPermissionLevels, *pf.PermissionValues) {
+		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permission_values", "Reason": "invalid permission level"}, "id="+pf.ID, http.StatusBadRequest)
+	}
+
+	if pf.PermissionOptions != nil && !slices.Contains(validPermissionLevels, *pf.PermissionOptions) {
+		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permission_options", "Reason": "invalid permission level"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
 	// Cross-validation: protected fields must have field permission set to "none"

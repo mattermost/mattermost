@@ -480,6 +480,27 @@ func TestPropertyField_IsValid(t *testing.T) {
 			pf.PermissionOptions = NewPointer(PermissionLevelMember)
 			require.Error(t, pf.IsValid())
 		})
+
+		t.Run("invalid permission_field value is rejected", func(t *testing.T) {
+			pf := baseField()
+			pf.PermissionField = NewPointer(PermissionLevel("bogus"))
+			require.Error(t, pf.IsValid())
+		})
+
+		t.Run("invalid permission_values value is rejected", func(t *testing.T) {
+			pf := baseField()
+			pf.PermissionField = NewPointer(PermissionLevelMember)
+			pf.PermissionValues = NewPointer(PermissionLevel("bogus"))
+			require.Error(t, pf.IsValid())
+		})
+
+		t.Run("invalid permission_options value is rejected", func(t *testing.T) {
+			pf := baseField()
+			pf.PermissionField = NewPointer(PermissionLevelMember)
+			pf.PermissionValues = NewPointer(PermissionLevelMember)
+			pf.PermissionOptions = NewPointer(PermissionLevel("bogus"))
+			require.Error(t, pf.IsValid())
+		})
 	})
 }
 
