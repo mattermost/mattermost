@@ -1546,12 +1546,12 @@ func (api *PluginAPI) DeleteGroupConstrainedMemberships() *model.AppError {
 	return nil
 }
 
-func (api *PluginAPI) pluginContext() request.CTX {
+func (api *PluginAPI) psaPluginContext() request.CTX {
 	return RequestContextWithCallerID(api.ctx, api.manifest.Id)
 }
 
 func (api *PluginAPI) CreatePropertyField(field *model.PropertyField) (*model.PropertyField, error) {
-	createdField, appErr := api.app.CreatePropertyField(api.pluginContext(), field)
+	createdField, appErr := api.app.CreatePropertyField(api.psaPluginContext(), field)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1559,7 +1559,7 @@ func (api *PluginAPI) CreatePropertyField(field *model.PropertyField) (*model.Pr
 }
 
 func (api *PluginAPI) GetPropertyField(groupID, fieldID string) (*model.PropertyField, error) {
-	field, appErr := api.app.GetPropertyField(api.pluginContext(), groupID, fieldID)
+	field, appErr := api.app.GetPropertyField(api.psaPluginContext(), groupID, fieldID)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1567,7 +1567,7 @@ func (api *PluginAPI) GetPropertyField(groupID, fieldID string) (*model.Property
 }
 
 func (api *PluginAPI) GetPropertyFields(groupID string, ids []string) ([]*model.PropertyField, error) {
-	fields, appErr := api.app.GetPropertyFields(api.pluginContext(), groupID, ids)
+	fields, appErr := api.app.GetPropertyFields(api.psaPluginContext(), groupID, ids)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1575,7 +1575,7 @@ func (api *PluginAPI) GetPropertyFields(groupID string, ids []string) ([]*model.
 }
 
 func (api *PluginAPI) UpdatePropertyField(groupID string, field *model.PropertyField) (*model.PropertyField, error) {
-	updatedField, appErr := api.app.UpdatePropertyField(api.pluginContext(), groupID, field)
+	updatedField, appErr := api.app.UpdatePropertyField(api.psaPluginContext(), groupID, field)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1583,14 +1583,14 @@ func (api *PluginAPI) UpdatePropertyField(groupID string, field *model.PropertyF
 }
 
 func (api *PluginAPI) DeletePropertyField(groupID, fieldID string) error {
-	if appErr := api.app.DeletePropertyField(api.pluginContext(), groupID, fieldID); appErr != nil {
+	if appErr := api.app.DeletePropertyField(api.psaPluginContext(), groupID, fieldID); appErr != nil {
 		return appErr
 	}
 	return nil
 }
 
 func (api *PluginAPI) SearchPropertyFields(groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
-	fields, appErr := api.app.SearchPropertyFields(api.pluginContext(), groupID, opts)
+	fields, appErr := api.app.SearchPropertyFields(api.psaPluginContext(), groupID, opts)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1598,7 +1598,7 @@ func (api *PluginAPI) SearchPropertyFields(groupID string, opts model.PropertyFi
 }
 
 func (api *PluginAPI) CountPropertyFields(groupID string, includeDeleted bool) (int64, error) {
-	count, appErr := api.app.CountPropertyFieldsForGroup(api.pluginContext(), groupID, includeDeleted)
+	count, appErr := api.app.CountPropertyFieldsForGroup(api.psaPluginContext(), groupID, includeDeleted)
 	if appErr != nil {
 		return 0, appErr
 	}
@@ -1606,7 +1606,7 @@ func (api *PluginAPI) CountPropertyFields(groupID string, includeDeleted bool) (
 }
 
 func (api *PluginAPI) CountPropertyFieldsForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error) {
-	count, appErr := api.app.CountPropertyFieldsForTarget(api.pluginContext(), groupID, targetType, targetID, includeDeleted)
+	count, appErr := api.app.CountPropertyFieldsForTarget(api.psaPluginContext(), groupID, targetType, targetID, includeDeleted)
 	if appErr != nil {
 		return 0, appErr
 	}
@@ -1614,7 +1614,7 @@ func (api *PluginAPI) CountPropertyFieldsForTarget(groupID, targetType, targetID
 }
 
 func (api *PluginAPI) CreatePropertyValue(value *model.PropertyValue) (*model.PropertyValue, error) {
-	createdValue, appErr := api.app.CreatePropertyValue(api.pluginContext(), value)
+	createdValue, appErr := api.app.CreatePropertyValue(api.psaPluginContext(), value)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1622,7 +1622,7 @@ func (api *PluginAPI) CreatePropertyValue(value *model.PropertyValue) (*model.Pr
 }
 
 func (api *PluginAPI) GetPropertyValue(groupID, valueID string) (*model.PropertyValue, error) {
-	value, appErr := api.app.GetPropertyValue(api.pluginContext(), groupID, valueID)
+	value, appErr := api.app.GetPropertyValue(api.psaPluginContext(), groupID, valueID)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1630,7 +1630,7 @@ func (api *PluginAPI) GetPropertyValue(groupID, valueID string) (*model.Property
 }
 
 func (api *PluginAPI) GetPropertyValues(groupID string, ids []string) ([]*model.PropertyValue, error) {
-	values, appErr := api.app.GetPropertyValues(api.pluginContext(), groupID, ids)
+	values, appErr := api.app.GetPropertyValues(api.psaPluginContext(), groupID, ids)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1638,7 +1638,7 @@ func (api *PluginAPI) GetPropertyValues(groupID string, ids []string) ([]*model.
 }
 
 func (api *PluginAPI) UpdatePropertyValue(groupID string, value *model.PropertyValue) (*model.PropertyValue, error) {
-	updatedValue, appErr := api.app.UpdatePropertyValue(api.pluginContext(), groupID, value)
+	updatedValue, appErr := api.app.UpdatePropertyValue(api.psaPluginContext(), groupID, value)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1646,7 +1646,7 @@ func (api *PluginAPI) UpdatePropertyValue(groupID string, value *model.PropertyV
 }
 
 func (api *PluginAPI) UpsertPropertyValue(value *model.PropertyValue) (*model.PropertyValue, error) {
-	upsertedValue, appErr := api.app.UpsertPropertyValue(api.pluginContext(), value)
+	upsertedValue, appErr := api.app.UpsertPropertyValue(api.psaPluginContext(), value)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1654,14 +1654,14 @@ func (api *PluginAPI) UpsertPropertyValue(value *model.PropertyValue) (*model.Pr
 }
 
 func (api *PluginAPI) DeletePropertyValue(groupID, valueID string) error {
-	if appErr := api.app.DeletePropertyValue(api.pluginContext(), groupID, valueID); appErr != nil {
+	if appErr := api.app.DeletePropertyValue(api.psaPluginContext(), groupID, valueID); appErr != nil {
 		return appErr
 	}
 	return nil
 }
 
 func (api *PluginAPI) SearchPropertyValues(groupID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
-	values, appErr := api.app.SearchPropertyValues(api.pluginContext(), groupID, opts)
+	values, appErr := api.app.SearchPropertyValues(api.psaPluginContext(), groupID, opts)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1669,7 +1669,7 @@ func (api *PluginAPI) SearchPropertyValues(groupID string, opts model.PropertyVa
 }
 
 func (api *PluginAPI) RegisterPropertyGroup(name string) (*model.PropertyGroup, error) {
-	group, appErr := api.app.RegisterPropertyGroup(api.pluginContext(), name)
+	group, appErr := api.app.RegisterPropertyGroup(api.psaPluginContext(), name)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1677,7 +1677,7 @@ func (api *PluginAPI) RegisterPropertyGroup(name string) (*model.PropertyGroup, 
 }
 
 func (api *PluginAPI) GetPropertyGroup(name string) (*model.PropertyGroup, error) {
-	group, appErr := api.app.GetPropertyGroup(api.pluginContext(), name)
+	group, appErr := api.app.GetPropertyGroup(api.psaPluginContext(), name)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1685,7 +1685,7 @@ func (api *PluginAPI) GetPropertyGroup(name string) (*model.PropertyGroup, error
 }
 
 func (api *PluginAPI) GetPropertyFieldByName(groupID, targetID, name string) (*model.PropertyField, error) {
-	field, appErr := api.app.GetPropertyFieldByName(api.pluginContext(), groupID, targetID, name)
+	field, appErr := api.app.GetPropertyFieldByName(api.psaPluginContext(), groupID, targetID, name)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1693,7 +1693,7 @@ func (api *PluginAPI) GetPropertyFieldByName(groupID, targetID, name string) (*m
 }
 
 func (api *PluginAPI) UpdatePropertyFields(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
-	updatedFields, appErr := api.app.UpdatePropertyFields(api.pluginContext(), groupID, fields)
+	updatedFields, appErr := api.app.UpdatePropertyFields(api.psaPluginContext(), groupID, fields)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1701,7 +1701,7 @@ func (api *PluginAPI) UpdatePropertyFields(groupID string, fields []*model.Prope
 }
 
 func (api *PluginAPI) UpdatePropertyValues(groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
-	updatedValues, appErr := api.app.UpdatePropertyValues(api.pluginContext(), groupID, values)
+	updatedValues, appErr := api.app.UpdatePropertyValues(api.psaPluginContext(), groupID, values)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1709,7 +1709,7 @@ func (api *PluginAPI) UpdatePropertyValues(groupID string, values []*model.Prope
 }
 
 func (api *PluginAPI) UpsertPropertyValues(values []*model.PropertyValue) ([]*model.PropertyValue, error) {
-	upsertedValues, appErr := api.app.UpsertPropertyValues(api.pluginContext(), values)
+	upsertedValues, appErr := api.app.UpsertPropertyValues(api.psaPluginContext(), values)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1717,14 +1717,14 @@ func (api *PluginAPI) UpsertPropertyValues(values []*model.PropertyValue) ([]*mo
 }
 
 func (api *PluginAPI) DeletePropertyValuesForTarget(groupID, targetType, targetID string) error {
-	if appErr := api.app.DeletePropertyValuesForTarget(api.pluginContext(), groupID, targetType, targetID); appErr != nil {
+	if appErr := api.app.DeletePropertyValuesForTarget(api.psaPluginContext(), groupID, targetType, targetID); appErr != nil {
 		return appErr
 	}
 	return nil
 }
 
 func (api *PluginAPI) DeletePropertyValuesForField(groupID, fieldID string) error {
-	if appErr := api.app.DeletePropertyValuesForField(api.pluginContext(), groupID, fieldID); appErr != nil {
+	if appErr := api.app.DeletePropertyValuesForField(api.psaPluginContext(), groupID, fieldID); appErr != nil {
 		return appErr
 	}
 	return nil
