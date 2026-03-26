@@ -7023,6 +7023,10 @@
     "translation": "Unable to save access control policy."
   },
   {
+    "id": "app.pap.save_policy.name_exists.app_error",
+    "translation": ""
+  },
+  {
     "id": "app.pap.search_access_control_policies.app_error",
     "translation": "Could not search access control policies."
   },
@@ -11317,20 +11321,20 @@
     "translation": "Invalid processed at time."
   },
   {
-    "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
-    "translation": "Invalid scheduled at time."
-  },
-  {
-    "id": "model.scheduled_post.is_valid.repeat_type.app_error",
-    "translation": "Invalid repeat type for scheduled post."
-  },
-  {
     "id": "model.scheduled_post.is_valid.repeat_timezone.app_error",
     "translation": "Repeat weekly scheduled posts require a valid timezone."
   },
   {
     "id": "model.scheduled_post.is_valid.repeat_timezone_invalid.app_error",
     "translation": "Invalid timezone for recurring scheduled post."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_type.app_error",
+    "translation": "Invalid repeat type for scheduled post."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
+    "translation": "Invalid scheduled at time."
   },
   {
     "id": "model.scheme.is_valid.app_error",
