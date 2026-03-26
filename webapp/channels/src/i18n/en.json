@@ -3839,6 +3839,7 @@
   "channel_invite.add_to_team_and_channel.confirm.message": "{users} will get access to {team} and be added to the {channel} channel. They will also get access to any public channels in that team.",
   "channel_invite.add_to_team_and_channel.confirm.title": "Add people to the team and channel?",
   "channel_invite.add_to_team_and_channel.partial_failure": "Some people could not be added to the team and channel.",
+  "channel_invite.add_to_team_and_channel.unexpected_error": "Something went wrong while adding people to the team and channel. Please try again.",
   "channel_invite.addNewMembers": "Add people to {channel}",
   "channel_invite.invite_guest": "Invite as a Guest",
   "channel_invite.invite_team_members.add_to_team_and_channel": "Add to team and channel",

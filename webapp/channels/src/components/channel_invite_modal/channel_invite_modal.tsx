@@ -121,6 +121,7 @@ const ChannelInviteModalComponent = (props: Props) => {
     const [selectedUsers, setSelectedUsers] = useState<UserProfileValue[]>([]);
     const [usersNotInTeam, setUsersNotInTeam] = useState<UserProfileValue[]>([]);
     const [guestsNotInTeam, setGuestsNotInTeam] = useState<UserProfileValue[]>([]);
+    const [locallyHiddenUserIds, setLocallyHiddenUserIds] = useState<string[]>([]);
     const [term, setTerm] = useState('');
     const [show, setShow] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -192,6 +193,7 @@ const ChannelInviteModalComponent = (props: Props) => {
         }
         return new Set(props.profilesNotInCurrentTeam.map((user) => user.id));
     }, [props.excludeUsers, props.profilesNotInCurrentTeam]);
+    const hiddenUserIds = useMemo(() => new Set(locallyHiddenUserIds), [locallyHiddenUserIds]);
 
     // Filter out deleted and excluded users
     const filterOutDeletedAndExcludedAndNotInTeamUsers = useCallback((users: UserProfile[], excludeUserIds: Set<string>): UserProfileValue[] => {
@@ -200,9 +202,36 @@ const ChannelInviteModalComponent = (props: Props) => {
         }) as UserProfileValue[];
     }, []);
 
+    const hideUsersFromPicker = useCallback((users: Array<UserProfileValue | UserProfile>) => {
+        if (users.length === 0) {
+            return;
+        }
+
+        setLocallyHiddenUserIds((prevState) => {
+            return Array.from(new Set([
+                ...prevState,
+                ...users.map((user) => user.id),
+            ]));
+        });
+    }, []);
+
+    const removeUsersFromSelection = useCallback((userIds: string[]) => {
+        if (userIds.length === 0) {
+            return;
+        }
+
+        const removedUserIds = new Set(userIds);
+        setSelectedUsers((prevState) => {
+            return prevState.filter((user) => !removedUserIds.has(user.id));
+        });
+    }, []);
+
     // Get options for the multiselect
     const getOptions = useCallback(() => {
-        const excludedAndNotInTeamUserIds = excludedUsers;
+        const excludedAndNotInTeamUserIds = new Set([
+            ...excludedUsers,
+            ...hiddenUserIds,
+        ]);
 
         // Only include DM users if ABAC is not enabled
         let dmUsers: UserProfileValue[] = [];
@@ -223,7 +252,10 @@ const ChannelInviteModalComponent = (props: Props) => {
 
             // Only include explicitly added users if ABAC is not enabled
             if (props.includeUsers) {
-                users = [...users, ...Object.values(props.includeUsers)];
+                users = [
+                    ...users,
+                    ...Object.values(props.includeUsers).filter((user) => !excludedAndNotInTeamUserIds.has(user.id)),
+                ];
             }
         }
 
@@ -249,6 +281,7 @@ const ChannelInviteModalComponent = (props: Props) => {
         props.groups,
         props.channel.policy_enforced,
         excludedUsers,
+        hiddenUserIds,
         filterOutDeletedAndExcludedAndNotInTeamUsers,
         abacFilteredUsers,
     ]);
@@ -387,6 +420,7 @@ const ChannelInviteModalComponent = (props: Props) => {
             ...selectedUsers.map((user) => user.id),
             ...usersAddedToTeam.map((user) => user.id),
         ]));
+        const channelUsersToReconcile = mergeUniqueUsers(selectedUsers, usersAddedToTeam);
 
         if (userIdsToAddToChannel.length === 0) {
             setSaving(false);
@@ -403,6 +437,7 @@ const ChannelInviteModalComponent = (props: Props) => {
 
         const addUsersToChannelResult = await actions.addUsersToChannel(channel.id, userIdsToAddToChannel);
         if (addUsersToChannelResult.error) {
+            hideUsersFromPicker(usersAddedToTeam);
             setSelectedUsers((prevState) => mergeUniqueUsers(prevState, usersAddedToTeam));
             setUsersNotInTeam(usersStillMissingFromTeam);
             handleInviteError(addUsersToChannelResult.error);
@@ -411,7 +446,8 @@ const ChannelInviteModalComponent = (props: Props) => {
 
         if (usersStillMissingFromTeam.length > 0) {
             setSaving(false);
-            setSelectedUsers([]);
+            hideUsersFromPicker(channelUsersToReconcile);
+            removeUsersFromSelection(userIdsToAddToChannel);
             setUsersNotInTeam(usersStillMissingFromTeam);
             setInviteError(
                 getFirstTeamMemberError(addUsersToTeamResult.data)?.message ||
@@ -423,10 +459,13 @@ const ChannelInviteModalComponent = (props: Props) => {
             return;
         }
 
+        hideUsersFromPicker(channelUsersToReconcile);
+        removeUsersFromSelection(userIdsToAddToChannel);
+        setUsersNotInTeam(usersStillMissingFromTeam);
         setSaving(false);
         setInviteError(undefined);
         onHide();
-    }, [props, selectedUsers, usersNotInTeam, handleInviteError, onHide]);
+    }, [props, selectedUsers, usersNotInTeam, handleInviteError, hideUsersFromPicker, onHide, removeUsersFromSelection]);
 
     const openAddUsersToTeamConfirmModal = useCallback(() => {
         setShowAddToTeamConfirmModal(true);
@@ -439,10 +478,15 @@ const ChannelInviteModalComponent = (props: Props) => {
     const confirmAddUsersToTeamAndChannel = useCallback(() => {
         setShowAddToTeamConfirmModal(false);
         handleAddUsersToTeamAndChannel().catch((err) => {
+            setShowAddToTeamConfirmModal(true);
             setSaving(false);
+            setInviteError(props.intl.formatMessage({
+                id: 'channel_invite.add_to_team_and_channel.unexpected_error',
+                defaultMessage: 'Something went wrong while adding people to the team and channel. Please try again.',
+            }));
             console.error('confirmAddUsersToTeamAndChannel: unexpected error', err); // eslint-disable-line no-console
         });
-    }, [handleAddUsersToTeamAndChannel]);
+    }, [handleAddUsersToTeamAndChannel, props.intl]);
 
     // Handle search
     const search = useCallback((searchTerm: string) => {
