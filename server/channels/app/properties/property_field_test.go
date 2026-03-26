@@ -751,54 +751,39 @@ func TestUpdatePropertyField(t *testing.T) {
 		assert.Contains(t, appErr.DetailedError, "system-level")
 	})
 
-	t.Run("updating TargetType that creates conflict should fail", func(t *testing.T) {
+	t.Run("updating TargetType is rejected by immutability guard", func(t *testing.T) {
 		groupID := model.NewId()
 		team := th.CreateTeam(t)
-		channel1 := th.CreateChannel(t, team.Id)
-		channel2 := th.CreateChannel(t, team.Id)
+		channel := th.CreateChannel(t, team.Id)
 
-		// Create two channel-level properties with the same name in different channels
-		// (no conflict since channel-level properties in different channels don't conflict)
-		th.CreatePropertyFieldDirect(t, &model.PropertyField{
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			ObjectType: "channel",
 			GroupID:    groupID,
 			TargetType: string(model.PropertyFieldTargetLevelChannel),
-			TargetID:   channel1.Id,
+			TargetID:   channel.Id,
 			Type:       model.PropertyFieldTypeText,
 			Name:       "SharedName",
 		})
 
-		channel2Field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			ObjectType: "channel",
-			GroupID:    groupID,
-			TargetType: string(model.PropertyFieldTargetLevelChannel),
-			TargetID:   channel2.Id,
-			Type:       model.PropertyFieldTypeText,
-			Name:       "SharedName",
-		})
+		// Attempting to change TargetType is blocked before conflict checks
+		field.TargetType = string(model.PropertyFieldTargetLevelSystem)
 
-		// Try to update channel2's property to system-level - should conflict with channel1's property
-		channel2Field.TargetType = string(model.PropertyFieldTargetLevelSystem)
-		channel2Field.TargetID = ""
-
-		result, err := th.service.UpdatePropertyField(rctx, groupID, channel2Field)
+		result, err := th.service.UpdatePropertyField(rctx, groupID, field)
 		require.Error(t, err)
 		assert.Nil(t, result)
 		appErr, ok := err.(*model.AppError)
 		require.True(t, ok)
-		assert.Equal(t, http.StatusConflict, appErr.StatusCode)
-		assert.Contains(t, appErr.DetailedError, "channel-level")
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Equal(t, "app.property_field.update.immutable_target_type.app_error", appErr.Id)
 	})
 
-	t.Run("updating TargetID that creates conflict should fail", func(t *testing.T) {
+	t.Run("updating TargetID is rejected by immutability guard", func(t *testing.T) {
 		groupID := model.NewId()
 		team := th.CreateTeam(t)
 		channel1 := th.CreateChannel(t, team.Id)
 		channel2 := th.CreateChannel(t, team.Id)
 
-		// Create two channel-level properties with the same name in different channels
-		// (no conflict since channel-level properties in different channels don't conflict)
-		th.CreatePropertyFieldDirect(t, &model.PropertyField{
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			ObjectType: "channel",
 			GroupID:    groupID,
 			TargetType: string(model.PropertyFieldTargetLevelChannel),
@@ -807,25 +792,16 @@ func TestUpdatePropertyField(t *testing.T) {
 			Name:       "SharedName",
 		})
 
-		channel2Field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			ObjectType: "channel",
-			GroupID:    groupID,
-			TargetType: string(model.PropertyFieldTargetLevelChannel),
-			TargetID:   channel2.Id,
-			Type:       model.PropertyFieldTypeText,
-			Name:       "SharedName",
-		})
+		// Attempting to change TargetID is blocked before conflict checks
+		field.TargetID = channel2.Id
 
-		// Update channel2's property TargetID to channel1 - should conflict
-		// because channel1 already has a property with the same name.
-		// Note: This conflict is caught by the database unique constraint, not the
-		// hierarchical conflict check (which only checks cross-level conflicts).
-		// We only verify an error occurs without checking the specific error type.
-		channel2Field.TargetID = channel1.Id
-
-		result, err := th.service.UpdatePropertyField(rctx, groupID, channel2Field)
+		result, err := th.service.UpdatePropertyField(rctx, groupID, field)
 		require.Error(t, err)
 		assert.Nil(t, result)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Equal(t, "app.property_field.update.immutable_target_id.app_error", appErr.Id)
 	})
 
 	t.Run("legacy property updates should skip conflict check", func(t *testing.T) {
@@ -1410,5 +1386,97 @@ func TestLinkedPropertyFields(t *testing.T) {
 		_, err := th.service.UpdatePropertyValues(groupID, []*model.PropertyValue{value})
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "template")
+	})
+}
+
+func TestUpdatePropertyField_ImmutableIdentityFields(t *testing.T) {
+	th := Setup(t)
+
+	createField := func(t *testing.T, groupID string) *model.PropertyField {
+		t.Helper()
+		return th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			ObjectType: "channel",
+			GroupID:    groupID,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeText,
+			Name:       "Field " + model.NewId(),
+		})
+	}
+
+	t.Run("changing TargetType should be rejected", func(t *testing.T) {
+		groupID := model.NewId()
+		field := createField(t, groupID)
+
+		field.TargetType = "channel"
+		result, err := th.service.UpdatePropertyField(groupID, field)
+		require.Error(t, err)
+		assert.Nil(t, result)
+
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, "app.property_field.update.immutable_target_type.app_error", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("changing TargetID should be rejected", func(t *testing.T) {
+		groupID := model.NewId()
+		field := createField(t, groupID)
+
+		field.TargetID = model.NewId()
+		result, err := th.service.UpdatePropertyField(groupID, field)
+		require.Error(t, err)
+		assert.Nil(t, result)
+
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, "app.property_field.update.immutable_target_id.app_error", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("changing ObjectType should be rejected", func(t *testing.T) {
+		groupID := model.NewId()
+		field := createField(t, groupID)
+
+		field.ObjectType = "template"
+		result, err := th.service.UpdatePropertyField(groupID, field)
+		require.Error(t, err)
+		assert.Nil(t, result)
+
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, "app.property_field.update.immutable_object_type.app_error", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("updating name with same identity fields should succeed", func(t *testing.T) {
+		groupID := model.NewId()
+		field := createField(t, groupID)
+
+		field.Name = "Updated Name " + model.NewId()
+		result, err := th.service.UpdatePropertyField(groupID, field)
+		require.NoError(t, err)
+		assert.Equal(t, field.Name, result.Name)
+		// Identity fields are preserved
+		assert.Equal(t, "system", result.TargetType)
+		assert.Equal(t, "channel", result.ObjectType)
+	})
+
+	t.Run("PSAv1 legacy fields skip immutability check", func(t *testing.T) {
+		groupID := model.NewId()
+
+		// Create a legacy field (empty ObjectType = PSAv1)
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			ObjectType: "",
+			GroupID:    groupID,
+			TargetType: "",
+			Type:       model.PropertyFieldTypeText,
+			Name:       "Legacy " + model.NewId(),
+		})
+
+		// Should be allowed to change TargetType on legacy fields
+		field.TargetType = "system"
+		result, err := th.service.UpdatePropertyField(groupID, field)
+		require.NoError(t, err)
+		assert.Equal(t, "system", result.TargetType)
 	})
 }
