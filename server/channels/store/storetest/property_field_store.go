@@ -1075,7 +1075,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 		Name:       "Field 2",
 		Type:       model.PropertyFieldTypeSelect,
 		TargetID:   targetID,
-		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		TargetType: string(model.PropertyFieldTargetLevelTeam),
 		ObjectType: "user",
 	}
 
@@ -1083,6 +1083,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 		GroupID:    model.NewId(),
 		Name:       "Field 3",
 		Type:       model.PropertyFieldTypeText,
+		TargetID:   model.NewId(),
 		TargetType: string(model.PropertyFieldTargetLevelChannel),
 		ObjectType: "post",
 	}

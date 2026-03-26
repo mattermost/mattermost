@@ -2648,18 +2648,13 @@ func TestUpsertPropertyValuesPSAv1OptOut(t *testing.T) {
 	group, err := th.App.RegisterPropertyGroup(th.Context, "test_psav1_optout")
 	require.Nil(t, err)
 
-	memberLevel := model.PermissionLevelMember
-
 	// Create a PSAv1-style field: no ObjectType, meaning it predates
 	// the websocket broadcast machinery added in PSAv2.
 	psav1Field := &model.PropertyField{
-		Name:              model.NewId(),
-		Type:              model.PropertyFieldTypeText,
-		GroupID:           group.ID,
-		TargetType:        "system",
-		PermissionField:   &memberLevel,
-		PermissionValues:  &memberLevel,
-		PermissionOptions: &memberLevel,
+		Name:       model.NewId(),
+		Type:       model.PropertyFieldTypeText,
+		GroupID:    group.ID,
+		TargetType: "system",
 	}
 	createdField, appErr := th.App.CreatePropertyField(th.Context, psav1Field, false, "")
 	require.Nil(t, appErr)
@@ -2691,6 +2686,7 @@ func TestUpsertPropertyValuesPSAv1OptOut(t *testing.T) {
 		// Trigger a known marker event so we can detect when we've
 		// drained the websocket channel. If a property_values_updated
 		// event arrives before the marker, the test fails.
+		memberLevel := model.PermissionLevelMember
 		markerField := &model.PropertyField{
 			Name:              model.NewId(),
 			Type:              model.PropertyFieldTypeText,
