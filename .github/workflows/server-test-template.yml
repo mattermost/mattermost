@@ -113,6 +113,12 @@ jobs:
       # See server/scripts/shard-split.js for the full algorithm.
       # ─────────────────────────────────────────────────────────────────────
 
+      - name: Setup Go for test discovery
+        if: inputs.shard-total > 1
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
+        with:
+          go-version: ${{ inputs.go-version }}
+
       - name: Split tests across shards
         if: inputs.shard-total > 1
         id: test_split
