@@ -47,6 +47,7 @@ import {getArchiveIconComponent} from 'utils/channel_utils';
 import Constants, {A11yCustomEventTypes, AppEvents, Locations, PostTypes, ModalIdentifiers} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
+import {isChannelPopoutWindow, isPopoutWindow} from 'utils/popouts/popout_windows';
 import * as PostUtils from 'utils/post_utils';
 import {makeIsEligibleForClick} from 'utils/utils';
 
@@ -109,6 +110,7 @@ export type Props = {
         savePreferences: (userId: string, preferences: Array<{category: string; user_id: string; name: string; value: string}>) => void;
         openModal: <P>(modalData: ModalData<P>) => void;
         closeModal: (modalId: string) => void;
+        highlightPostInChannelPopout: (postId: string) => void;
     };
     timestampProps?: Partial<TimestampProps>;
     shouldHighlight?: boolean;
@@ -406,27 +408,39 @@ function PostComponent(props: Props) {
         }
 
         props.actions.setRhsExpanded(false);
+
+        if (isChannelPopoutWindow() && props.isPinnedPosts) {
+            props.actions.highlightPostInChannelPopout(post.id);
+            return;
+        }
+
         getHistory().push(`/${props.teamName}/pl/${post.id}`);
-    }, [props.isMobileView, props.actions, props.teamName, post?.id]);
+    }, [props.isMobileView, props.actions, props.teamName, props.isPinnedPosts, post]);
 
     const {selectPostFromRightHandSideSearch} = props.actions;
 
+    const isSearchPopoutWindow = useMemo(() => isPopoutWindow() && isSearchResultItem, [isSearchResultItem]);
     const handleCommentClick = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
 
         if (!post) {
             return;
         }
+        if (isSearchPopoutWindow) {
+            const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
+            getHistory().replace(`/_popout/thread/${props.teamName}/${post.root_id || post.id}?returnTo=${returnTo}`);
+            return;
+        }
         selectPostFromRightHandSideSearch(post);
-    }, [post, selectPostFromRightHandSideSearch]);
+    }, [post, props.teamName, selectPostFromRightHandSideSearch, isSearchPopoutWindow]);
 
     const handleThreadClick = useCallback((e: React.MouseEvent) => {
-        if (props.currentTeam?.id === teamId) {
+        if (isSearchPopoutWindow || props.currentTeam?.id === teamId) {
             handleCommentClick(e);
         } else {
             handleJumpClick(e);
         }
-    }, [handleCommentClick, handleJumpClick, props.currentTeam?.id, teamId]);
+    }, [handleCommentClick, handleJumpClick, props.currentTeam?.id, teamId, isSearchPopoutWindow]);
 
     const translation = PostUtils.getPostTranslation(post, locale);
 

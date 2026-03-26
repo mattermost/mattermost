@@ -836,7 +836,7 @@ func (o *Post) GenerateActionIds() {
 	if o.GetProp(PostPropsAttachments) != nil {
 		o.AddProp(PostPropsAttachments, o.Attachments())
 	}
-	if attachments, ok := o.GetProp(PostPropsAttachments).([]*SlackAttachment); ok {
+	if attachments, ok := o.GetProp(PostPropsAttachments).([]*MessageAttachment); ok {
 		for _, attachment := range attachments {
 			for _, action := range attachment.Actions {
 				if action != nil && action.Id == "" {

@@ -536,9 +536,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
         const bodyClass = loading ? 'apps-form-modal-body-loading' : 'apps-form-modal-body-loaded';
         const bodyClassNames = 'apps-form-modal-body-common ' + bodyClass;
 
-        // Apply modal-overflow only when date/time picker is open to allow calendar to escape modal bounds
-        // while preserving scroll containment when picker is closed
-        const dialogClassName = this.state.isInteracting ? 'a11y__modal about-modal modal-overflow' : 'a11y__modal about-modal';
+        const dialogClassName = 'a11y__modal about-modal';
         const hasDateTimeFields = this.hasDateTimeFields();
 
         return (

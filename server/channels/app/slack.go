@@ -39,6 +39,14 @@ func (a *App) SlackImport(rctx request.CTX, fileData multipart.File, fileSize in
 		GeneratePreviewImage:   a.generatePreviewImage,
 		InvalidateAllCaches:    func() *model.AppError { return a.ch.srv.platform.InvalidateAllCaches() },
 		MaxPostSize:            func() int { return a.ch.srv.platform.MaxPostSize() },
+		SendPasswordReset: func(email string) (bool, *model.AppError) {
+			sent, err := a.SendPasswordReset(rctx, email, a.GetSiteURL())
+			if err != nil {
+				return false, err
+			}
+
+			return sent, nil
+		},
 		PrepareImage: func(fileData []byte) (image.Image, string, func(), error) {
 			img, imgType, release, err := prepareImage(rctx, a.ch.imgDecoder, bytes.NewReader(fileData))
 			if err != nil {
@@ -78,10 +86,11 @@ func (a *App) ProcessSlackText(rctx request.CTX, text string) string {
 
 // Expand announcements in incoming webhooks from Slack. Those announcements
 // can be found in the text attribute, or in the pretext, text, title and value
-// attributes of the attachment structure. The Slack attachment structure is
-// documented here: https://api.slack.com/docs/attachments
-func (a *App) ProcessSlackAttachments(rctx request.CTX, attachments []*model.SlackAttachment) []*model.SlackAttachment {
-	var nonNilAttachments = model.StringifySlackFieldValue(attachments)
+// attributes of the attachment structure. The message attachment structure is
+// documented here: https://developers.mattermost.com/integrate/reference/message-attachments/.
+// It's based on the spec from slack: https://api.slack.com/docs/attachments.
+func (a *App) ProcessMessageAttachments(rctx request.CTX, attachments []*model.MessageAttachment) []*model.MessageAttachment {
+	var nonNilAttachments = model.StringifyMessageAttachmentFieldValue(attachments)
 	for _, attachment := range attachments {
 		attachment.Pretext = a.ProcessSlackText(rctx, attachment.Pretext)
 		attachment.Text = a.ProcessSlackText(rctx, attachment.Text)

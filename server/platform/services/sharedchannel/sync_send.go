@@ -29,6 +29,9 @@ type syncTask struct {
 	retryCount  int
 	retryMsg    *model.SyncMsg
 	schedule    time.Time
+	// originRemoteID is the remote that initiated this change; it will be
+	// skipped when syncing to prevent echo-back.
+	originRemoteID string
 }
 
 func newSyncTask(channelID, userID string, remoteID string, existingMsg, retryMsg *model.SyncMsg) syncTask {
@@ -250,6 +253,17 @@ func (scs *Service) addTask(task syncTask) {
 		// if the task was already scheduled, we only update the
 		// existingMsg in case there is new information
 		originalTask.existingMsg = task.existingMsg
+
+		// originRemoteID identifies which remote initiated a change so processTask
+		// can skip sending back to that remote. When multiple events merge within
+		// the NotifyMinimumDelay window we can only safely skip a remote if every
+		// merged event came from that same remote. If the origins differ (e.g.
+		// remote-A join + remote-B join, or remote join + local join) we must clear
+		// originRemoteID so the sync fans out to all remotes. The receiver is
+		// idempotent, so the worst case is a redundant sync to the originating remote.
+		if task.originRemoteID != originalTask.originRemoteID {
+			originalTask.originRemoteID = ""
+		}
 		scs.tasks[task.id] = originalTask
 	} else {
 		scs.tasks[task.id] = task
@@ -375,16 +389,6 @@ func (scs *Service) removeOldestTask() (syncTask, bool, time.Duration) {
 
 // processTask updates one or more remote clusters with any new channel content.
 func (scs *Service) processTask(task syncTask) error {
-	// Check if this is a membership change task
-	if task.existingMsg != nil && len(task.existingMsg.MembershipChanges) > 0 {
-		// Check if feature flag is enabled
-		if !scs.server.Config().FeatureFlags.EnableSharedChannelsMemberSync {
-			return nil
-		}
-		scs.processMembershipChange(task.existingMsg)
-		return nil
-	}
-
 	// map is used to ensure remotes don't get sync'd twice, such as when
 	// they have the autoinvited flag and have explicitly subscribed to a channel.
 	remotesMap := make(map[string]*model.RemoteCluster)
@@ -399,6 +403,10 @@ func (scs *Service) processTask(task syncTask) error {
 			return err
 		}
 		for _, r := range remotes {
+			// Skip the remote that originated this membership change
+			if task.originRemoteID != "" && r.RemoteId == task.originRemoteID {
+				continue
+			}
 			remotesMap[r.RemoteId] = r
 		}
 
@@ -412,6 +420,10 @@ func (scs *Service) processTask(task syncTask) error {
 			return err
 		}
 		for _, r := range remotesAutoInvited {
+			// Skip the remote that originated this membership change
+			if task.originRemoteID != "" && r.RemoteId == task.originRemoteID {
+				continue
+			}
 			remotesMap[r.RemoteId] = r
 		}
 	} else {

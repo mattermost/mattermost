@@ -8,199 +8,205 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
-// mockPropertyFieldStore is a mock implementation of PropertyFieldStore interface
-type mockPropertyFieldStore struct {
-	mock.Mock
+func TestRequiresAccessControlFailsClosed(t *testing.T) {
+	th := Setup(t)
+	rctx := th.Context
+
+	// Use an unregistered group — this means any call to
+	// requiresAccessControl will fail to look up the group.
+	// The service must return an error rather than silently bypassing
+	// access control.
+	unregisteredGroupID := model.NewId()
+
+	t.Run("CreatePropertyField returns error when group lookup fails", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    unregisteredGroupID,
+			Name:       "test-field",
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "user",
+		}
+		_, err := th.service.CreatePropertyField(rctx, field)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to check access control")
+	})
+
+	t.Run("GetPropertyField returns error when group lookup fails", func(t *testing.T) {
+		_, err := th.service.GetPropertyField(rctx, unregisteredGroupID, model.NewId())
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to check access control")
+	})
+
+	t.Run("GetPropertyFields returns error when group lookup fails", func(t *testing.T) {
+		_, err := th.service.GetPropertyFields(rctx, unregisteredGroupID, []string{model.NewId()})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to check access control")
+	})
+
+	t.Run("UpdatePropertyField returns error when group lookup fails", func(t *testing.T) {
+		field := &model.PropertyField{
+			ID:         model.NewId(),
+			GroupID:    unregisteredGroupID,
+			Name:       "test-field",
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "user",
+		}
+		_, err := th.service.UpdatePropertyField(rctx, unregisteredGroupID, field)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to check access control")
+	})
+
+	t.Run("DeletePropertyField returns error when group lookup fails", func(t *testing.T) {
+		err := th.service.DeletePropertyField(rctx, unregisteredGroupID, model.NewId())
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to check access control")
+	})
+
+	t.Run("SearchPropertyFields returns error when group lookup fails", func(t *testing.T) {
+		_, err := th.service.SearchPropertyFields(rctx, unregisteredGroupID, model.PropertyFieldSearchOpts{})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to check access control")
+	})
 }
 
-func (m *mockPropertyFieldStore) Create(field *model.PropertyField) (*model.PropertyField, error) {
-	args := m.Called(field)
-	return args.Get(0).(*model.PropertyField), args.Error(1)
-}
+func TestCountActivePropertyFieldsForGroup(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	rctx := th.Context
 
-func (m *mockPropertyFieldStore) Get(groupID, id string) (*model.PropertyField, error) {
-	args := m.Called(groupID, id)
-	return args.Get(0).(*model.PropertyField), args.Error(1)
-}
-
-func (m *mockPropertyFieldStore) GetMany(groupID string, ids []string) ([]*model.PropertyField, error) {
-	args := m.Called(groupID, ids)
-	return args.Get(0).([]*model.PropertyField), args.Error(1)
-}
-
-func (m *mockPropertyFieldStore) GetFieldByName(groupID, targetID, name string) (*model.PropertyField, error) {
-	args := m.Called(groupID, targetID, name)
-	return args.Get(0).(*model.PropertyField), args.Error(1)
-}
-
-func (m *mockPropertyFieldStore) CountForGroup(groupID string, includeDeleted bool) (int64, error) {
-	args := m.Called(groupID, includeDeleted)
-	return args.Get(0).(int64), args.Error(1)
-}
-
-func (m *mockPropertyFieldStore) CountForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error) {
-	args := m.Called(groupID, targetType, targetID, includeDeleted)
-	return args.Get(0).(int64), args.Error(1)
-}
-
-func (m *mockPropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
-	args := m.Called(opts)
-	return args.Get(0).([]*model.PropertyField), args.Error(1)
-}
-
-func (m *mockPropertyFieldStore) Update(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
-	args := m.Called(groupID, fields)
-	return args.Get(0).([]*model.PropertyField), args.Error(1)
-}
-
-func (m *mockPropertyFieldStore) Delete(groupID string, id string) error {
-	args := m.Called(groupID, id)
-	return args.Error(0)
-}
-
-func TestPropertyService_CountActivePropertyFieldsForGroup(t *testing.T) {
 	t.Run("should return count of active property fields for a group", func(t *testing.T) {
-		// Create a mock store
-		mockStore := &mockPropertyFieldStore{}
-		mockStore.On("CountForGroup", "group1", false).Return(int64(5), nil)
+		groupID := model.NewId()
 
-		// Create the service
-		service := &PropertyService{
-			fieldStore: mockStore,
+		// Create some property fields
+		for range 5 {
+			th.CreatePropertyFieldDirect(t, &model.PropertyField{
+				GroupID:    groupID,
+				TargetType: "user",
+				Type:       model.PropertyFieldTypeText,
+				Name:       "Property " + model.NewId(),
+			})
 		}
 
-		// Call the method
-		count, err := service.CountActivePropertyFieldsForGroup("group1")
-
-		// Verify the results
+		count, err := th.service.CountActivePropertyFieldsForGroup(rctx, groupID)
 		require.NoError(t, err)
 		assert.Equal(t, int64(5), count)
-		mockStore.AssertExpectations(t)
-	})
-
-	t.Run("should return error when store fails", func(t *testing.T) {
-		// Create a mock store
-		mockStore := &mockPropertyFieldStore{}
-		mockStore.On("CountForGroup", "group1", false).Return(int64(0), model.NewAppError("test", "test.error", nil, "", 500))
-
-		// Create the service
-		service := &PropertyService{
-			fieldStore: mockStore,
-		}
-
-		// Call the method
-		count, err := service.CountActivePropertyFieldsForGroup("group1")
-
-		// Verify the results
-		require.Error(t, err)
-		assert.Equal(t, int64(0), count)
-		mockStore.AssertExpectations(t)
 	})
 
 	t.Run("should return 0 for empty group", func(t *testing.T) {
-		// Create a mock store
-		mockStore := &mockPropertyFieldStore{}
-		mockStore.On("CountForGroup", "empty-group", false).Return(int64(0), nil)
+		groupID := model.NewId()
 
-		// Create the service
-		service := &PropertyService{
-			fieldStore: mockStore,
-		}
-
-		// Call the method
-		count, err := service.CountActivePropertyFieldsForGroup("empty-group")
-
-		// Verify the results
+		count, err := th.service.CountActivePropertyFieldsForGroup(rctx, groupID)
 		require.NoError(t, err)
 		assert.Equal(t, int64(0), count)
-		mockStore.AssertExpectations(t)
+	})
+
+	t.Run("should not count deleted fields", func(t *testing.T) {
+		groupID := model.NewId()
+
+		// Create 3 fields
+		for range 3 {
+			th.CreatePropertyFieldDirect(t, &model.PropertyField{
+				GroupID:    groupID,
+				TargetType: "user",
+				Type:       model.PropertyFieldTypeText,
+				Name:       "Active " + model.NewId(),
+			})
+		}
+
+		// Create and delete 2 fields
+		for range 2 {
+			field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+				GroupID:    groupID,
+				TargetType: "user",
+				Type:       model.PropertyFieldTypeText,
+				Name:       "Deleted " + model.NewId(),
+			})
+			err := th.dbStore.PropertyField().Delete(groupID, field.ID)
+			require.NoError(t, err)
+		}
+
+		count, err := th.service.CountActivePropertyFieldsForGroup(rctx, groupID)
+		require.NoError(t, err)
+		assert.Equal(t, int64(3), count)
 	})
 }
 
-func TestPropertyService_CountAllPropertyFieldsForGroup(t *testing.T) {
-	t.Run("should return count of all property fields including deleted for a group", func(t *testing.T) {
-		// Create a mock store
-		mockStore := &mockPropertyFieldStore{}
-		mockStore.On("CountForGroup", "group1", true).Return(int64(8), nil)
+func TestCountAllPropertyFieldsForGroup(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	rctx := th.Context
 
-		// Create the service
-		service := &PropertyService{
-			fieldStore: mockStore,
+	t.Run("should return count of all property fields including deleted", func(t *testing.T) {
+		groupID := model.NewId()
+
+		// Create 5 active fields
+		for range 5 {
+			th.CreatePropertyFieldDirect(t, &model.PropertyField{
+				GroupID:    groupID,
+				TargetType: "user",
+				Type:       model.PropertyFieldTypeText,
+				Name:       "Active " + model.NewId(),
+			})
 		}
 
-		// Call the method
-		count, err := service.CountAllPropertyFieldsForGroup("group1")
+		// Create and delete 3 fields
+		for range 3 {
+			field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+				GroupID:    groupID,
+				TargetType: "user",
+				Type:       model.PropertyFieldTypeText,
+				Name:       "Deleted " + model.NewId(),
+			})
+			err := th.dbStore.PropertyField().Delete(groupID, field.ID)
+			require.NoError(t, err)
+		}
 
-		// Verify the results
+		count, err := th.service.CountAllPropertyFieldsForGroup(rctx, groupID)
 		require.NoError(t, err)
 		assert.Equal(t, int64(8), count)
-		mockStore.AssertExpectations(t)
-	})
-
-	t.Run("should return error when store fails", func(t *testing.T) {
-		// Create a mock store
-		mockStore := &mockPropertyFieldStore{}
-		mockStore.On("CountForGroup", "group1", true).Return(int64(0), model.NewAppError("test", "test.error", nil, "", 500))
-
-		// Create the service
-		service := &PropertyService{
-			fieldStore: mockStore,
-		}
-
-		// Call the method
-		count, err := service.CountAllPropertyFieldsForGroup("group1")
-
-		// Verify the results
-		require.Error(t, err)
-		assert.Equal(t, int64(0), count)
-		mockStore.AssertExpectations(t)
 	})
 
 	t.Run("should return 0 for empty group", func(t *testing.T) {
-		// Create a mock store
-		mockStore := &mockPropertyFieldStore{}
-		mockStore.On("CountForGroup", "empty-group", true).Return(int64(0), nil)
+		groupID := model.NewId()
 
-		// Create the service
-		service := &PropertyService{
-			fieldStore: mockStore,
-		}
-
-		// Call the method
-		count, err := service.CountAllPropertyFieldsForGroup("empty-group")
-
-		// Verify the results
+		count, err := th.service.CountAllPropertyFieldsForGroup(rctx, groupID)
 		require.NoError(t, err)
 		assert.Equal(t, int64(0), count)
-		mockStore.AssertExpectations(t)
 	})
 
 	t.Run("should return higher count than active fields when there are deleted fields", func(t *testing.T) {
-		// Create a mock store
-		mockStore := &mockPropertyFieldStore{}
-		mockStore.On("CountForGroup", "group1", false).Return(int64(5), nil)
-		mockStore.On("CountForGroup", "group1", true).Return(int64(8), nil)
+		groupID := model.NewId()
 
-		// Create the service
-		service := &PropertyService{
-			fieldStore: mockStore,
+		// Create 5 active fields
+		for range 5 {
+			th.CreatePropertyFieldDirect(t, &model.PropertyField{
+				GroupID:    groupID,
+				TargetType: "user",
+				Type:       model.PropertyFieldTypeText,
+				Name:       "Active " + model.NewId(),
+			})
 		}
 
-		// Call both methods
-		activeCount, err := service.CountActivePropertyFieldsForGroup("group1")
+		// Create and delete 3 fields
+		for range 3 {
+			field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+				GroupID:    groupID,
+				TargetType: "user",
+				Type:       model.PropertyFieldTypeText,
+				Name:       "Deleted " + model.NewId(),
+			})
+			err := th.dbStore.PropertyField().Delete(groupID, field.ID)
+			require.NoError(t, err)
+		}
+
+		activeCount, err := th.service.CountActivePropertyFieldsForGroup(rctx, groupID)
 		require.NoError(t, err)
 
-		allCount, err := service.CountAllPropertyFieldsForGroup("group1")
+		allCount, err := th.service.CountAllPropertyFieldsForGroup(rctx, groupID)
 		require.NoError(t, err)
 
-		// Verify that all count is higher than active count
 		assert.Equal(t, int64(5), activeCount)
 		assert.Equal(t, int64(8), allCount)
 		assert.True(t, allCount > activeCount)
-		mockStore.AssertExpectations(t)
 	})
 }

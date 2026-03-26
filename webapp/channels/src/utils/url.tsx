@@ -8,7 +8,6 @@ import type {IntlShape, MessageDescriptor} from 'react-intl';
 import {getModule} from 'module_registry';
 import Constants from 'utils/constants';
 import {latinise} from 'utils/latinise';
-import * as TextFormatting from 'utils/text_formatting';
 
 import {unescapeHtmlEntities} from './markdown/renderer';
 
@@ -264,7 +263,7 @@ export function shouldOpenInNewTab(url: string, siteURL?: string, managedResourc
     // Paths managed by another service shouldn't be handled by the web app either
     if (managedResourcePaths) {
         for (const managedPath of managedResourcePaths) {
-            unhandledPaths.push(TextFormatting.escapeRegex(managedPath));
+            unhandledPaths.push(RegExp.escape(managedPath));
         }
     }
 

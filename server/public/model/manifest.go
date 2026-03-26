@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/blang/semver/v4"
+	"github.com/Masterminds/semver/v3"
 	"github.com/goccy/go-yaml"
 	"github.com/pkg/errors"
 )
@@ -299,12 +299,12 @@ func (m *Manifest) HasWebapp() bool {
 }
 
 func (m *Manifest) MeetMinServerVersion(serverVersion string) (bool, error) {
-	minServerVersion, err := semver.Parse(m.MinServerVersion)
+	minServerVersion, err := semver.StrictNewVersion(m.MinServerVersion)
 	if err != nil {
 		return false, errors.New("failed to parse MinServerVersion")
 	}
 	sv := semver.MustParse(serverVersion)
-	if sv.LT(minServerVersion) {
+	if sv.LessThan(minServerVersion) {
 		return false, nil
 	}
 	return true, nil
@@ -332,14 +332,14 @@ func (m *Manifest) IsValid() error {
 	}
 
 	if m.Version != "" {
-		_, err := semver.Parse(m.Version)
+		_, err := semver.StrictNewVersion(m.Version)
 		if err != nil {
 			return errors.Wrap(err, "failed to parse Version")
 		}
 	}
 
 	if m.MinServerVersion != "" {
-		_, err := semver.Parse(m.MinServerVersion)
+		_, err := semver.StrictNewVersion(m.MinServerVersion)
 		if err != nil {
 			return errors.Wrap(err, "failed to parse MinServerVersion")
 		}
