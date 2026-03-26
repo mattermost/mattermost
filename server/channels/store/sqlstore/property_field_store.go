@@ -287,8 +287,6 @@ func (s *SqlPropertyFieldStore) CheckPropertyNameConflict(field *model.PropertyF
 		return s.checkTeamLevelConflict(field, excludeID)
 	case string(model.PropertyFieldTargetLevelChannel):
 		return s.checkChannelLevelConflict(field, excludeID)
-	case "":
-		return s.checkEmptyTargetTypeConflict(field, excludeID)
 	default:
 		// Unknown target type - let DB constraint handle
 		return "", nil
@@ -402,45 +400,6 @@ func (s *SqlPropertyFieldStore) checkChannelLevelConflict(field *model.PropertyF
 	return conflictLevel, nil
 }
 
-// checkEmptyTargetTypeConflict checks if a field with empty TargetType (e.g., template fields)
-// would conflict with another field with the same name, ObjectType, and GroupID that also
-// has an empty TargetType.
-//
-// The subquery returns the literal string 'template' as a sentinel value when a
-// conflict is found. This is not a real PropertyFieldTargetLevel — it's a non-empty
-// truthy indicator that the caller's `conflictLevel != ""` check uses to detect a
-// conflict. The specific value helps with debugging; it has no semantic meaning
-// beyond indicating the conflict originated from the empty-TargetType namespace.
-func (s *SqlPropertyFieldStore) checkEmptyTargetTypeConflict(field *model.PropertyField, excludeID string) (model.PropertyFieldTargetLevel, error) {
-	subquery := sq.StatementBuilder.PlaceholderFormat(sq.Question).
-		Select("'template'").
-		From("PropertyFields").
-		Where(sq.Eq{"ObjectType": field.ObjectType}).
-		Where(sq.Eq{"GroupID": field.GroupID}).
-		Where(sq.Eq{"TargetType": ""}).
-		Where(sq.Eq{"Name": field.Name}).
-		Where(sq.Eq{"DeleteAt": 0}).
-		Limit(1)
-
-	if excludeID != "" {
-		subquery = subquery.Where(sq.NotEq{"ID": excludeID})
-	}
-
-	subSQL, subArgs, err := subquery.ToSql()
-	if err != nil {
-		return "", errors.Wrap(err, "property_field_check_conflict_empty_target_type_sql")
-	}
-
-	query := fmt.Sprintf("SELECT COALESCE((%s), '')", subSQL)
-
-	var conflictLevel model.PropertyFieldTargetLevel
-	if err := s.GetReplica().DB.Get(&conflictLevel, s.GetReplica().DB.Rebind(query), subArgs...); err != nil {
-		return "", errors.Wrap(err, "property_field_check_conflict_empty_target_type")
-	}
-
-	return conflictLevel, nil
-}
-
 func (s *SqlPropertyFieldStore) CountLinkedFields(fieldID string) (int64, error) {
 	var count int64
 	builder := s.getQueryBuilder().
@@ -548,8 +507,8 @@ func (s *SqlPropertyFieldStore) UpdateAndPropagate(groupID string, fields []*mod
 		}
 
 		// Type is included for defense-in-depth. Since type changes are blocked
-		// on source fields with dependents (Design Decision #2), this value is
-		// always the same as the existing value on linked fields.
+		// on source fields with dependents, this value is always the same as
+		// the existing value on linked fields.
 		propagateBuilder := s.getQueryBuilder().
 			Update("PropertyFields").
 			Set("Type", sq.Expr("?::property_field_type", prop.FieldType)).
