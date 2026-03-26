@@ -5,7 +5,6 @@ package app
 
 import (
 	"net/http"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -28,7 +27,8 @@ func TestCWSLogin(t *testing.T) {
 			require.Nil(t, appErr)
 		}()
 
-		os.Setenv("CWS_CLOUD_TOKEN", token.Token)
+		// t.Setenv prevents t.Parallel — env var has no config equivalent
+		t.Setenv("CWS_CLOUD_TOKEN", token.Token)
 		user, appErr := th.App.AuthenticateUserForLogin(th.Context, "", th.BasicUser.Username, "", "", token.Token, false)
 		require.Nil(t, appErr)
 		require.NotNil(t, user)
@@ -41,7 +41,8 @@ func TestCWSLogin(t *testing.T) {
 
 	t.Run("Should not authenticate the user when CWS token was used", func(t *testing.T) {
 		token := model.NewToken(model.TokenTypeCWSAccess, "")
-		os.Setenv("CWS_CLOUD_TOKEN", token.Token)
+		// t.Setenv prevents t.Parallel — env var has no config equivalent
+		t.Setenv("CWS_CLOUD_TOKEN", token.Token)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 		defer func() {
 			appErr := th.App.DeleteToken(token)
