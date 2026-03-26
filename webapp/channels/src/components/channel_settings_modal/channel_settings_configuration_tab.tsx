@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -166,7 +166,7 @@ function ChannelSettingsConfigurationTab({
     // Track the toggle state to detect when sharing is explicitly disabled on a channel
     // that has channel.shared=true but no remotes loaded (e.g. after page reload).
     // Both are frozen at mount time so they don't drift apart due to async channel hydration.
-    const [initialSharingEnabled] = useState(channel.shared || false);
+    const initialSharingEnabled = useRef(channel.shared || false);
     const [sharingEnabled, setSharingEnabled] = useState(channel.shared || false);
 
     // Freeze initialRemoteIds in state and update it atomically with workspaceRemotes (in
@@ -179,7 +179,7 @@ function ChannelSettingsConfigurationTab({
     );
     const currentRemoteIds = workspaceRemotes.map((r) => r.remote_id || r.name).sort().join(',');
     const hasWorkspaceChanges = frozenInitialRemoteIds !== currentRemoteIds ||
-        sharingEnabled !== initialSharingEnabled;
+        sharingEnabled !== initialSharingEnabled.current;
 
     const confirmModalMessages = useMemo(() => {
         const workspaceRemoteIdSet = new Set(workspaceRemotes.map((r) => r.remote_id || r.name));
