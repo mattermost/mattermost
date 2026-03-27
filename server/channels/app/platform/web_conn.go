@@ -407,11 +407,9 @@ func (wc *WebConn) SetSession(v *model.Session) {
 // is ready to send/receive messages.
 func (wc *WebConn) Pump() {
 	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		wc.writePump()
-	}()
+	})
 
 	wg.Add(1)
 	go wc.pluginPostedConsumer(&wg)
