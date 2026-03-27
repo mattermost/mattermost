@@ -58,6 +58,7 @@ func setupWatcherTest(t *testing.T) (*searchEngineWatcher, *searchenginemocks.Se
 
 	engineMock := &searchenginemocks.SearchEngineInterface{}
 	engineMock.On("GetName").Return("test-engine").Maybe()
+	engineMock.On("SetHealthy", mock.Anything).Maybe()
 
 	ps.SearchEngine = searchengine.NewBroker(ps.Config())
 	ps.SearchEngine.ElasticsearchEngine = engineMock
@@ -576,4 +577,94 @@ func TestNotifySearchEngineWatcher(t *testing.T) {
 			w.reevaluate()
 		})
 	})
+}
+
+func TestWatcherHealthFlag(t *testing.T) {
+	t.Run("first health check failure sets engine unhealthy", func(t *testing.T) {
+		w, engineMock := setupWatcherTest(t)
+
+		engineMock.On("IsEnabled").Return(true).Maybe()
+		engineMock.On("IsActive").Return(true).Maybe()
+
+		// Track SetHealthy calls.
+		var healthyValue int32 = 1 // assume healthy at start
+		engineMock.ExpectedCalls = removeSetHealthyExpectation(engineMock.ExpectedCalls)
+		engineMock.On("SetHealthy", mock.Anything).Run(func(args mock.Arguments) {
+			if args.Bool(0) {
+				atomic.StoreInt32(&healthyValue, 1)
+			} else {
+				atomic.StoreInt32(&healthyValue, 0)
+			}
+		}).Maybe()
+
+		// HealthCheck fails on the first call.
+		var healthCalls int32
+		engineMock.On("HealthCheck", mock.Anything).Return(func(_ request.CTX) *model.AppError {
+			atomic.AddInt32(&healthCalls, 1)
+			return model.NewAppError("test", "hc_fail", nil, "", 502)
+		})
+		engineMock.On("Stop").Return(nil).Maybe()
+		engineMock.On("Start", mock.Anything).Return(nil).Maybe()
+
+		w.start()
+		t.Cleanup(w.stop)
+
+		// Wait for the first health check call.
+		require.Eventually(t, func() bool {
+			return atomic.LoadInt32(&healthCalls) >= 1
+		}, 2*time.Second, 5*time.Millisecond)
+
+		assert.Equal(t, int32(0), atomic.LoadInt32(&healthyValue),
+			"engine should be marked unhealthy after first health check failure")
+	})
+
+	t.Run("successful health check restores healthy flag", func(t *testing.T) {
+		w, engineMock := setupWatcherTest(t)
+
+		engineMock.On("IsEnabled").Return(true).Maybe()
+		engineMock.On("IsActive").Return(true).Maybe()
+
+		// Track SetHealthy calls.
+		var healthyValue int32
+		engineMock.ExpectedCalls = removeSetHealthyExpectation(engineMock.ExpectedCalls)
+		engineMock.On("SetHealthy", mock.Anything).Run(func(args mock.Arguments) {
+			if args.Bool(0) {
+				atomic.StoreInt32(&healthyValue, 1)
+			} else {
+				atomic.StoreInt32(&healthyValue, 0)
+			}
+		}).Maybe()
+
+		// First health check fails, second succeeds.
+		var healthCalls int32
+		engineMock.On("HealthCheck", mock.Anything).Return(func(_ request.CTX) *model.AppError {
+			n := atomic.AddInt32(&healthCalls, 1)
+			if n == 1 {
+				return model.NewAppError("test", "hc_fail", nil, "", 502)
+			}
+			return nil
+		})
+
+		w.start()
+		t.Cleanup(w.stop)
+
+		// Wait for SetHealthy(true) — called by the watcher after the
+		// second (successful) HealthCheck returns.
+		require.Eventually(t, func() bool {
+			return atomic.LoadInt32(&healthyValue) == 1
+		}, 2*time.Second, 5*time.Millisecond,
+			"engine should be marked healthy after successful health check")
+	})
+}
+
+// removeSetHealthyExpectation removes the default SetHealthy expectation from
+// setupWatcherTest so the test can install its own with tracking.
+func removeSetHealthyExpectation(calls []*mock.Call) []*mock.Call {
+	filtered := make([]*mock.Call, 0, len(calls))
+	for _, c := range calls {
+		if c.Method != "SetHealthy" {
+			filtered = append(filtered, c)
+		}
+	}
+	return filtered
 }

@@ -23,6 +23,13 @@ type SearchEngineInterface interface {
 	// IsEnabled returns a boolean indicating whether the engine is enabled in the settings
 	IsEnabled() bool
 	IsActive() bool
+	// IsHealthy reports whether the engine is reachable. The watcher sets this
+	// to false on the first health-check failure and back to true on success,
+	// allowing the broker to skip unhealthy engines immediately instead of
+	// waiting for full stop/restart.
+	IsHealthy() bool
+	// SetHealthy is called by the watcher to update the engine's health status.
+	SetHealthy(healthy bool)
 	IsIndexingEnabled() bool
 	IsSearchEnabled() bool
 	IsAutocompletionEnabled() bool

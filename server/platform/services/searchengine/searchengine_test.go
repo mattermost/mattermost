@@ -19,6 +19,7 @@ func TestActiveEngine(t *testing.T) {
 
 	esMock := &mocks.SearchEngineInterface{}
 	esMock.On("IsActive").Return(true)
+	esMock.On("IsHealthy").Return(true)
 	esMock.On("GetName").Return("elasticsearch")
 
 	assert.Equal(t, "database", b.ActiveEngine())
