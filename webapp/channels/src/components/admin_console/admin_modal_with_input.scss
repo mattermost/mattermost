@@ -22,20 +22,20 @@
     &__choices {
         display: flex;
         flex-direction: column;
-        margin: 0;
-        border: 0;
-        gap: 16px;
         padding: 0;
+        border: 0;
+        margin: 0;
+        gap: 16px;
     }
 
     &__choice {
         display: flex;
         align-items: flex-start;
+        padding: 20px 24px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
         border-radius: 12px;
         cursor: pointer;
         gap: 16px;
-        padding: 20px 24px;
         transition: border-color 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
 
         &:hover {
@@ -57,9 +57,9 @@
 
     &__choice-control {
         position: relative;
-        flex: 0 0 auto;
         width: 28px;
         height: 28px;
+        flex: 0 0 auto;
         border: 3px solid rgba(var(--center-channel-color-rgb), 0.32);
         border-radius: 50%;
         margin-top: 2px;
@@ -74,8 +74,8 @@
             left: 50%;
             width: 12px;
             height: 12px;
-            background: var(--button-bg);
             border-radius: 50%;
+            background: var(--button-bg);
             content: '';
             transform: translate(-50%, -50%);
         }
@@ -124,12 +124,12 @@
     &__password-copy {
         display: inline-flex;
         align-items: center;
+        padding: 0;
         border: 0;
         background: transparent;
         color: var(--button-bg);
         cursor: pointer;
         gap: 8px;
-        padding: 0;
     }
 
     &__generate {
@@ -139,9 +139,9 @@
     }
 
     &__password-copy {
-        justify-content: center;
         width: 32px;
         height: 32px;
+        justify-content: center;
         border-radius: 4px;
 
         &:hover {
@@ -158,8 +158,8 @@
     &__strength-bars {
         display: grid;
         flex: 1 1 auto;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 8px;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 
     &__strength-bar {
@@ -183,11 +183,11 @@
     &__notice {
         display: flex;
         align-items: flex-start;
+        padding: 16px 20px;
         border-radius: 12px;
         background: rgba(var(--center-channel-color-rgb), 0.04);
         color: rgba(var(--center-channel-color-rgb), 0.8);
         gap: 12px;
-        padding: 16px 20px;
 
         svg {
             flex: 0 0 auto;
