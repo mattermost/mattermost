@@ -15,6 +15,7 @@ import (
 
 func TestCreateUser_DuplicateEmail(t *testing.T) {
 	mainHelper.Parallel(t)
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	// Create a user with unique email
@@ -41,6 +42,7 @@ func TestCreateUser_DuplicateEmail(t *testing.T) {
 
 func TestCreateUser_DuplicateUsername(t *testing.T) {
 	mainHelper.Parallel(t)
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	// Create a user with unique username
@@ -66,6 +68,7 @@ func TestCreateUser_DuplicateUsername(t *testing.T) {
 }
 
 func TestCreateUser_RestrictedDomain(t *testing.T) {
+	mainHelper.Parallel(t)
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -98,6 +101,7 @@ func TestCreateUser_RestrictedDomain(t *testing.T) {
 
 func TestCreateUser_AtUserLimit(t *testing.T) {
 	mainHelper.Parallel(t)
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	// Set a very low user limit
@@ -119,6 +123,7 @@ func TestCreateUser_AtUserLimit(t *testing.T) {
 
 func TestGetUser_NotFound(t *testing.T) {
 	mainHelper.Parallel(t)
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	// Try to get non-existent user
@@ -129,6 +134,7 @@ func TestGetUser_NotFound(t *testing.T) {
 }
 
 func TestGetUserByUsername_NotFound(t *testing.T) {
+	mainHelper.Parallel(t)
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -141,6 +147,7 @@ func TestGetUserByUsername_NotFound(t *testing.T) {
 
 func TestGetUserByEmail_NotFound(t *testing.T) {
 	mainHelper.Parallel(t)
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	// Try to get user by non-existent email
@@ -151,6 +158,7 @@ func TestGetUserByEmail_NotFound(t *testing.T) {
 }
 
 func TestUpdatePassword_InvalidUser(t *testing.T) {
+	mainHelper.Parallel(t)
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -163,13 +171,14 @@ func TestUpdatePassword_InvalidUser(t *testing.T) {
 
 func TestUpdatePassword_OAuthUser(t *testing.T) {
 	mainHelper.Parallel(t)
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	// Create OAuth user
 	user := th.CreateUser(t)
 	authData := model.NewId()
 	th.App.Srv().Store().User().UpdateAuthData(user.Id, model.ServiceGitlab, &authData, "", false)
-	
+
 	// Get updated user
 	oauthUser, _ := th.App.GetUser(user.Id)
 
@@ -182,6 +191,7 @@ func TestUpdatePassword_OAuthUser(t *testing.T) {
 
 func TestUpdatePassword_IncorrectCurrentPassword(t *testing.T) {
 	mainHelper.Parallel(t)
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	// Try to update with wrong current password
@@ -192,6 +202,7 @@ func TestUpdatePassword_IncorrectCurrentPassword(t *testing.T) {
 }
 
 func TestUpdateUser_EmailChangeRestriction(t *testing.T) {
+	mainHelper.Parallel(t)
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -217,6 +228,7 @@ func TestUpdateUser_EmailChangeRestriction(t *testing.T) {
 
 func TestPatchUser_InvalidPatch(t *testing.T) {
 	mainHelper.Parallel(t)
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	// Try to patch non-existent user
@@ -240,6 +252,7 @@ func TestPatchUser_InvalidPatch(t *testing.T) {
 
 func TestDeactivateUser_NotFound(t *testing.T) {
 	mainHelper.Parallel(t)
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	// Try to deactivate non-existent user
@@ -250,6 +263,7 @@ func TestDeactivateUser_NotFound(t *testing.T) {
 }
 
 func TestUpdateActive_AtUserLimitReactivation(t *testing.T) {
+	mainHelper.Parallel(t)
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -272,6 +286,7 @@ func TestUpdateActive_AtUserLimitReactivation(t *testing.T) {
 
 func TestResetPasswordFromCode_InvalidCode(t *testing.T) {
 	mainHelper.Parallel(t)
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	// Try to reset password with invalid token
@@ -282,6 +297,7 @@ func TestResetPasswordFromCode_InvalidCode(t *testing.T) {
 }
 
 func TestCreateUserWithInviteId_RestrictedDomain(t *testing.T) {
+	mainHelper.Parallel(t)
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -307,6 +323,7 @@ func TestCreateUserWithInviteId_RestrictedDomain(t *testing.T) {
 
 func TestUpdateUser_UsernameConflictWithGroup(t *testing.T) {
 	mainHelper.Parallel(t)
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	// Create a group
@@ -330,6 +347,7 @@ func TestUpdateUser_UsernameConflictWithGroup(t *testing.T) {
 }
 
 func TestPermanentDeleteUser_FailStoreDelete(t *testing.T) {
+	mainHelper.Parallel(t)
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -363,6 +381,7 @@ func TestPermanentDeleteUser_FailStoreDelete(t *testing.T) {
 
 func TestCreateUserFromSignup_NotOpenServer(t *testing.T) {
 	mainHelper.Parallel(t)
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	// Disable open server
@@ -388,6 +407,7 @@ func TestCreateUserFromSignup_NotOpenServer(t *testing.T) {
 
 func TestGetUserByAuth_MissingAuthData(t *testing.T) {
 	mainHelper.Parallel(t)
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	// Try to get user by auth data that doesn't exist
@@ -398,6 +418,7 @@ func TestGetUserByAuth_MissingAuthData(t *testing.T) {
 }
 
 func TestUpdatePasswordSendEmail_WeakPassword(t *testing.T) {
+	mainHelper.Parallel(t)
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 

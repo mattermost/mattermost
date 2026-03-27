@@ -11,11 +11,13 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestUploadFileX_ErrorPaths(t *testing.T) {
+	mainHelper.Parallel(t)
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	t.Run("driver not configured", func(t *testing.T) {
@@ -110,6 +112,7 @@ func TestUploadFileX_ErrorPaths(t *testing.T) {
 }
 
 func TestGetFileInfo_ErrorPaths(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	t.Run("file not found", func(t *testing.T) {
@@ -128,6 +131,7 @@ func TestGetFileInfo_ErrorPaths(t *testing.T) {
 }
 
 func TestGetFileInfos_ErrorPaths(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	t.Run("invalid page parameters", func(t *testing.T) {
@@ -146,6 +150,7 @@ func TestGetFileInfos_ErrorPaths(t *testing.T) {
 }
 
 func TestGetFile_ErrorPaths(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	t.Run("file info not found", func(t *testing.T) {
@@ -180,6 +185,7 @@ func TestGetFile_ErrorPaths(t *testing.T) {
 }
 
 func TestFileReader_ErrorPaths(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	t.Run("file not exists", func(t *testing.T) {
@@ -197,6 +203,7 @@ func TestFileReader_ErrorPaths(t *testing.T) {
 }
 
 func TestWriteFile_ErrorPaths(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	t.Run("write to invalid path", func(t *testing.T) {
@@ -210,6 +217,7 @@ func TestWriteFile_ErrorPaths(t *testing.T) {
 }
 
 func TestCopyFileInfos_ErrorPaths(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	t.Run("copy non-existent file", func(t *testing.T) {
@@ -228,6 +236,7 @@ func TestCopyFileInfos_ErrorPaths(t *testing.T) {
 }
 
 func TestFileExists_ErrorPaths(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	t.Run("check empty path", func(t *testing.T) {
@@ -240,6 +249,7 @@ func TestFileExists_ErrorPaths(t *testing.T) {
 }
 
 func TestFileSize_ErrorPaths(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	t.Run("get size of non-existent file", func(t *testing.T) {
@@ -252,6 +262,7 @@ func TestFileSize_ErrorPaths(t *testing.T) {
 }
 
 func TestRemoveFile_ErrorPaths(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	t.Run("remove non-existent file", func(t *testing.T) {
@@ -269,6 +280,7 @@ func TestRemoveFile_ErrorPaths(t *testing.T) {
 }
 
 func TestMoveFile_ErrorPaths(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	t.Run("move non-existent file", func(t *testing.T) {
@@ -294,6 +306,7 @@ func TestMoveFile_ErrorPaths(t *testing.T) {
 }
 
 func TestAppendFile_ErrorPaths(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	t.Run("append to non-existent file", func(t *testing.T) {
@@ -307,6 +320,7 @@ func TestAppendFile_ErrorPaths(t *testing.T) {
 }
 
 func TestListDirectory_ErrorPaths(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	t.Run("list non-existent directory", func(t *testing.T) {
@@ -319,6 +333,7 @@ func TestListDirectory_ErrorPaths(t *testing.T) {
 }
 
 func TestRemoveDirectory_ErrorPaths(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	t.Run("remove non-existent directory", func(t *testing.T) {
@@ -330,6 +345,7 @@ func TestRemoveDirectory_ErrorPaths(t *testing.T) {
 }
 
 func TestSetFileSearchableContent_ErrorPaths(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	t.Run("set content for non-existent file", func(t *testing.T) {
@@ -341,21 +357,22 @@ func TestSetFileSearchableContent_ErrorPaths(t *testing.T) {
 }
 
 func TestCheckMandatoryS3Fields_ErrorPaths(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	t.Run("missing S3 bucket", func(t *testing.T) {
 		settings := &model.FileSettings{
-			DriverName:                    model.NewPointer(model.ImageDriverS3),
-			AmazonS3AccessKeyId:          model.NewPointer("test-key"),
-			AmazonS3SecretAccessKey:      model.NewPointer("test-secret"),
-			AmazonS3Bucket:               model.NewPointer(""),
-			AmazonS3PathPrefix:           model.NewPointer(""),
-			AmazonS3Region:               model.NewPointer("us-east-1"),
-			AmazonS3Endpoint:             model.NewPointer(""),
-			AmazonS3SSL:                  model.NewPointer(true),
-			AmazonS3SignV2:               model.NewPointer(false),
-			AmazonS3SSE:                  model.NewPointer(false),
-			AmazonS3Trace:                model.NewPointer(false),
+			DriverName:                         model.NewPointer(model.ImageDriverS3),
+			AmazonS3AccessKeyId:                model.NewPointer("test-key"),
+			AmazonS3SecretAccessKey:            model.NewPointer("test-secret"),
+			AmazonS3Bucket:                     model.NewPointer(""),
+			AmazonS3PathPrefix:                 model.NewPointer(""),
+			AmazonS3Region:                     model.NewPointer("us-east-1"),
+			AmazonS3Endpoint:                   model.NewPointer(""),
+			AmazonS3SSL:                        model.NewPointer(true),
+			AmazonS3SignV2:                     model.NewPointer(false),
+			AmazonS3SSE:                        model.NewPointer(false),
+			AmazonS3Trace:                      model.NewPointer(false),
 			AmazonS3RequestTimeoutMilliseconds: model.NewPointer(int64(5000)),
 		}
 
@@ -367,21 +384,22 @@ func TestCheckMandatoryS3Fields_ErrorPaths(t *testing.T) {
 }
 
 func TestTestFileStoreConnectionWithConfig_ErrorPaths(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	t.Run("invalid S3 credentials", func(t *testing.T) {
 		settings := &model.FileSettings{
-			DriverName:                    model.NewPointer(model.ImageDriverS3),
-			AmazonS3AccessKeyId:          model.NewPointer("invalid-key"),
-			AmazonS3SecretAccessKey:      model.NewPointer("invalid-secret"),
-			AmazonS3Bucket:               model.NewPointer("test-bucket"),
-			AmazonS3PathPrefix:           model.NewPointer(""),
-			AmazonS3Region:               model.NewPointer("us-east-1"),
-			AmazonS3Endpoint:             model.NewPointer("s3.amazonaws.com"),
-			AmazonS3SSL:                  model.NewPointer(true),
-			AmazonS3SignV2:               model.NewPointer(false),
-			AmazonS3SSE:                  model.NewPointer(false),
-			AmazonS3Trace:                model.NewPointer(false),
+			DriverName:                         model.NewPointer(model.ImageDriverS3),
+			AmazonS3AccessKeyId:                model.NewPointer("invalid-key"),
+			AmazonS3SecretAccessKey:            model.NewPointer("invalid-secret"),
+			AmazonS3Bucket:                     model.NewPointer("test-bucket"),
+			AmazonS3PathPrefix:                 model.NewPointer(""),
+			AmazonS3Region:                     model.NewPointer("us-east-1"),
+			AmazonS3Endpoint:                   model.NewPointer("s3.amazonaws.com"),
+			AmazonS3SSL:                        model.NewPointer(true),
+			AmazonS3SignV2:                     model.NewPointer(false),
+			AmazonS3SSE:                        model.NewPointer(false),
+			AmazonS3Trace:                      model.NewPointer(false),
 			AmazonS3RequestTimeoutMilliseconds: model.NewPointer(int64(5000)),
 		}
 
@@ -394,6 +412,7 @@ func TestTestFileStoreConnectionWithConfig_ErrorPaths(t *testing.T) {
 }
 
 func TestPermanentDeleteFilesByPost_ErrorPaths(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	t.Run("delete files for non-existent post", func(t *testing.T) {
@@ -428,6 +447,7 @@ func TestPermanentDeleteFilesByPost_ErrorPaths(t *testing.T) {
 }
 
 func TestUploadFileX_ImageProcessingErrors(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	t.Run("corrupted image data", func(t *testing.T) {
@@ -469,6 +489,7 @@ func TestUploadFileX_ImageProcessingErrors(t *testing.T) {
 }
 
 func TestWriteZipFile_ErrorPaths(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	t.Run("write to failing writer", func(t *testing.T) {
@@ -489,8 +510,8 @@ func TestWriteZipFile_ErrorPaths(t *testing.T) {
 
 // failingWriter is a writer that fails after writing a certain number of bytes
 type failingWriter struct {
-	written    int
-	failAfter  int
+	written   int
+	failAfter int
 }
 
 func (w *failingWriter) Write(p []byte) (n int, err error) {
@@ -502,6 +523,7 @@ func (w *failingWriter) Write(p []byte) (n int, err error) {
 }
 
 func TestFilterFilesByChannelPermissions_EdgeCases(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	t.Run("empty file list", func(t *testing.T) {
@@ -556,6 +578,7 @@ func TestFilterFilesByChannelPermissions_EdgeCases(t *testing.T) {
 }
 
 func TestFileModTime_ErrorPaths(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	t.Run("get mod time of non-existent file", func(t *testing.T) {
@@ -568,6 +591,7 @@ func TestFileModTime_ErrorPaths(t *testing.T) {
 }
 
 func TestZipReader_ErrorPaths(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	t.Run("zip reader for non-existent file", func(t *testing.T) {
@@ -579,6 +603,7 @@ func TestZipReader_ErrorPaths(t *testing.T) {
 }
 
 func TestExtractContentFromFileInfo_EdgeCases(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	t.Run("extract from image file", func(t *testing.T) {

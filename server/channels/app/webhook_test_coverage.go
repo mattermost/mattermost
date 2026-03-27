@@ -17,36 +17,38 @@ import (
 
 func TestDeleteIncomingWebhook_Error(t *testing.T) {
 	mainHelper.Parallel(t)
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	// Test when webhooks are disabled
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = false })
-	
+
 	err := th.App.DeleteIncomingWebhook("nonexistent")
 	require.NotNil(t, err)
 	assert.Equal(t, "api.incoming_webhook.disabled.app_error", err.Id)
 
 	// Test deletion of non-existent webhook
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
-	
+
 	err = th.App.DeleteIncomingWebhook(model.NewId())
 	require.Nil(t, err) // Delete is idempotent, no error for non-existent
 }
 
 func TestGetIncomingWebhook_Errors(t *testing.T) {
 	mainHelper.Parallel(t)
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	// Test when webhooks are disabled
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = false })
-	
+
 	_, err := th.App.GetIncomingWebhook("test")
 	require.NotNil(t, err)
 	assert.Equal(t, "api.incoming_webhook.disabled.app_error", err.Id)
 
 	// Test getting non-existent webhook
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
-	
+
 	_, err = th.App.GetIncomingWebhook(model.NewId())
 	require.NotNil(t, err)
 	assert.Equal(t, http.StatusNotFound, err.StatusCode)
@@ -54,11 +56,12 @@ func TestGetIncomingWebhook_Errors(t *testing.T) {
 
 func TestGetIncomingWebhooksPageByUser_DisabledError(t *testing.T) {
 	mainHelper.Parallel(t)
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	// Test when webhooks are disabled
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = false })
-	
+
 	_, err := th.App.GetIncomingWebhooksPageByUser(th.BasicUser.Id, 0, 10)
 	require.NotNil(t, err)
 	assert.Equal(t, "api.incoming_webhook.disabled.app_error", err.Id)
@@ -66,11 +69,12 @@ func TestGetIncomingWebhooksPageByUser_DisabledError(t *testing.T) {
 
 func TestGetIncomingWebhooksCount_DisabledError(t *testing.T) {
 	mainHelper.Parallel(t)
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	// Test when webhooks are disabled
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = false })
-	
+
 	count, err := th.App.GetIncomingWebhooksCount(th.BasicTeam.Id, th.BasicUser.Id)
 	require.NotNil(t, err)
 	assert.Equal(t, "api.incoming_webhook.disabled.app_error", err.Id)
@@ -79,25 +83,26 @@ func TestGetIncomingWebhooksCount_DisabledError(t *testing.T) {
 
 func TestCreateOutgoingWebhook_Errors(t *testing.T) {
 	mainHelper.Parallel(t)
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	// Test when webhooks are disabled
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = false })
-	
+
 	hook := &model.OutgoingWebhook{
 		ChannelId:    th.BasicChannel.Id,
 		TeamId:       th.BasicTeam.Id,
 		CallbackURLs: []string{"http://example.com"},
 		CreatorId:    th.BasicUser.Id,
 	}
-	
+
 	_, err := th.App.CreateOutgoingWebhook(hook)
 	require.NotNil(t, err)
 	assert.Equal(t, "api.outgoing_webhook.disabled.app_error", err.Id)
 
 	// Test with non-existent channel
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
-	
+
 	hook.ChannelId = model.NewId()
 	_, err = th.App.CreateOutgoingWebhook(hook)
 	require.NotNil(t, err)
@@ -120,11 +125,12 @@ func TestCreateOutgoingWebhook_Errors(t *testing.T) {
 
 func TestUpdateOutgoingWebhook_Errors(t *testing.T) {
 	mainHelper.Parallel(t)
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	// Create a webhook to update
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
-	
+
 	oldHook := &model.OutgoingWebhook{
 		ChannelId:    th.BasicChannel.Id,
 		TeamId:       th.BasicTeam.Id,
@@ -137,7 +143,7 @@ func TestUpdateOutgoingWebhook_Errors(t *testing.T) {
 
 	// Test when webhooks are disabled
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = false })
-	
+
 	updatedHook := *createdHook
 	updatedHook.DisplayName = "Updated"
 	_, err = th.App.UpdateOutgoingWebhook(th.Context, createdHook, &updatedHook)
@@ -146,7 +152,7 @@ func TestUpdateOutgoingWebhook_Errors(t *testing.T) {
 
 	// Test updating to private channel
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
-	
+
 	privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
 	updatedHook.ChannelId = privateChannel.Id
 	_, err = th.App.UpdateOutgoingWebhook(th.Context, createdHook, &updatedHook)
@@ -171,36 +177,38 @@ func TestUpdateOutgoingWebhook_Errors(t *testing.T) {
 
 func TestDeleteOutgoingWebhook_Error(t *testing.T) {
 	mainHelper.Parallel(t)
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	// Test when webhooks are disabled
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = false })
-	
+
 	err := th.App.DeleteOutgoingWebhook("test")
 	require.NotNil(t, err)
 	assert.Equal(t, "api.outgoing_webhook.disabled.app_error", err.Id)
 
 	// Test deletion of non-existent webhook
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
-	
+
 	err = th.App.DeleteOutgoingWebhook(model.NewId())
 	require.Nil(t, err) // Delete is idempotent
 }
 
 func TestGetOutgoingWebhook_Errors(t *testing.T) {
 	mainHelper.Parallel(t)
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	// Test when webhooks are disabled
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = false })
-	
+
 	_, err := th.App.GetOutgoingWebhook("test")
 	require.NotNil(t, err)
 	assert.Equal(t, "api.outgoing_webhook.disabled.app_error", err.Id)
 
 	// Test getting non-existent webhook
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
-	
+
 	_, err = th.App.GetOutgoingWebhook(model.NewId())
 	require.NotNil(t, err)
 	assert.Equal(t, http.StatusNotFound, err.StatusCode)
@@ -208,11 +216,12 @@ func TestGetOutgoingWebhook_Errors(t *testing.T) {
 
 func TestGetOutgoingWebhooksPageByUser_DisabledError(t *testing.T) {
 	mainHelper.Parallel(t)
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	// Test when webhooks are disabled
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = false })
-	
+
 	_, err := th.App.GetOutgoingWebhooksPageByUser(th.BasicUser.Id, 0, 10)
 	require.NotNil(t, err)
 	assert.Equal(t, "api.outgoing_webhook.disabled.app_error", err.Id)
@@ -220,11 +229,12 @@ func TestGetOutgoingWebhooksPageByUser_DisabledError(t *testing.T) {
 
 func TestRegenOutgoingWebhookToken_Error(t *testing.T) {
 	mainHelper.Parallel(t)
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	// Test when webhooks are disabled
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = false })
-	
+
 	hook := &model.OutgoingWebhook{Id: model.NewId()}
 	_, err := th.App.RegenOutgoingWebhookToken(hook)
 	require.NotNil(t, err)
@@ -233,18 +243,19 @@ func TestRegenOutgoingWebhookToken_Error(t *testing.T) {
 
 func TestHandleIncomingWebhook_Errors(t *testing.T) {
 	mainHelper.Parallel(t)
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	// Test when webhooks are disabled
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = false })
-	
+
 	err := th.App.HandleIncomingWebhook(th.Context, "test", &model.IncomingWebhookRequest{Text: "test"})
 	require.NotNil(t, err)
 	assert.Equal(t, "web.incoming_webhook.disabled.app_error", err.Id)
 
 	// Test with nil request
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
-	
+
 	err = th.App.HandleIncomingWebhook(th.Context, "test", nil)
 	require.NotNil(t, err)
 	assert.Equal(t, "web.incoming_webhook.parse.app_error", err.Id)
@@ -297,6 +308,7 @@ func TestHandleIncomingWebhook_Errors(t *testing.T) {
 
 func TestCreateCommandWebhook_Error(t *testing.T) {
 	mainHelper.Parallel(t)
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	args := &model.CommandArgs{
@@ -317,6 +329,7 @@ func TestCreateCommandWebhook_Error(t *testing.T) {
 }
 
 func TestHandleCommandWebhook_Errors(t *testing.T) {
+	mainHelper.Parallel(t)
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -352,7 +365,7 @@ func TestHandleCommandWebhook_Errors(t *testing.T) {
 		TeamId:    th.BasicTeam.Id,
 		RootId:    "",
 	}
-	
+
 	hook, appErr := th.App.CreateCommandWebhook(cmd.Id, args)
 	require.Nil(t, appErr)
 
@@ -361,7 +374,7 @@ func TestHandleCommandWebhook_Errors(t *testing.T) {
 		err = th.App.HandleCommandWebhook(th.Context, hook.Id, response)
 		require.Nil(t, err)
 	}
-	
+
 	// 6th call should fail
 	err = th.App.HandleCommandWebhook(th.Context, hook.Id, response)
 	require.NotNil(t, err)
@@ -369,6 +382,7 @@ func TestHandleCommandWebhook_Errors(t *testing.T) {
 }
 
 func TestTriggerWebhook_ErrorPaths(t *testing.T) {
+	mainHelper.Parallel(t)
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -407,7 +421,7 @@ func TestTriggerWebhook_ErrorPaths(t *testing.T) {
 
 	// This should complete without panic even though the webhook fails
 	th.App.TriggerWebhook(th.Context, payload, hook, th.BasicPost, th.BasicChannel)
-	
+
 	// Wait a bit to ensure the goroutine has time to fail
 	time.Sleep(100 * time.Millisecond)
 
@@ -419,7 +433,7 @@ func TestTriggerWebhook_ErrorPaths(t *testing.T) {
 
 	hook.CallbackURLs = []string{slowServer.URL}
 	th.App.TriggerWebhook(th.Context, payload, hook, th.BasicPost, th.BasicChannel)
-	
+
 	// Wait for timeout
 	time.Sleep(1500 * time.Millisecond)
 
@@ -435,12 +449,12 @@ func TestTriggerWebhook_ErrorPaths(t *testing.T) {
 
 	hook.CallbackURLs = []string{invalidJSONServer.URL}
 	th.App.TriggerWebhook(th.Context, payload, hook, th.BasicPost, th.BasicChannel)
-	
+
 	time.Sleep(100 * time.Millisecond)
 
 	// Test JSON encoding error with bad content type
 	hook.ContentType = "unknown"
 	th.App.TriggerWebhook(th.Context, payload, hook, th.BasicPost, th.BasicChannel)
-	
+
 	time.Sleep(100 * time.Millisecond)
 }

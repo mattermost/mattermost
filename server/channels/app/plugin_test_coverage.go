@@ -21,6 +21,7 @@ func TestEnablePlugin_ErrorPaths(t *testing.T) {
 	mainHelper.Parallel(t)
 	mainHelper.Parallel(t)
 	t.Run("plugins disabled", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -34,6 +35,7 @@ func TestEnablePlugin_ErrorPaths(t *testing.T) {
 	})
 
 	t.Run("plugin not found", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -47,6 +49,7 @@ func TestEnablePlugin_ErrorPaths(t *testing.T) {
 	})
 
 	t.Run("already enabled plugin", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -66,6 +69,7 @@ func TestDisablePlugin_ErrorPaths(t *testing.T) {
 	mainHelper.Parallel(t)
 	mainHelper.Parallel(t)
 	t.Run("plugins disabled", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -79,6 +83,7 @@ func TestDisablePlugin_ErrorPaths(t *testing.T) {
 	})
 
 	t.Run("plugin not found", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -92,6 +97,7 @@ func TestDisablePlugin_ErrorPaths(t *testing.T) {
 	})
 
 	t.Run("already disabled plugin", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -110,6 +116,7 @@ func TestDisablePlugin_ErrorPaths(t *testing.T) {
 func TestInstallPlugin_ErrorPaths(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("plugins disabled", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -124,6 +131,7 @@ func TestInstallPlugin_ErrorPaths(t *testing.T) {
 	})
 
 	t.Run("invalid plugin file", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -137,6 +145,7 @@ func TestInstallPlugin_ErrorPaths(t *testing.T) {
 	})
 
 	t.Run("nil reader", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -154,6 +163,7 @@ func TestInstallPlugin_ErrorPaths(t *testing.T) {
 func TestRemovePlugin_ErrorPaths(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("plugins disabled", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -167,6 +177,7 @@ func TestRemovePlugin_ErrorPaths(t *testing.T) {
 	})
 
 	t.Run("plugin not found", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -180,6 +191,7 @@ func TestRemovePlugin_ErrorPaths(t *testing.T) {
 	})
 
 	t.Run("cannot remove prepackaged plugin", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -211,6 +223,7 @@ func TestRemovePlugin_ErrorPaths(t *testing.T) {
 func TestGetPlugins_ErrorPaths(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("plugins disabled", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -225,6 +238,7 @@ func TestGetPlugins_ErrorPaths(t *testing.T) {
 	})
 
 	t.Run("empty plugin list", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -243,6 +257,7 @@ func TestGetPlugins_ErrorPaths(t *testing.T) {
 func TestGetPluginStatuses_ErrorPaths(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("plugins disabled", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -257,6 +272,7 @@ func TestGetPluginStatuses_ErrorPaths(t *testing.T) {
 	})
 
 	t.Run("empty status list", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -274,6 +290,7 @@ func TestGetPluginStatuses_ErrorPaths(t *testing.T) {
 func TestGetPluginStatus_SinglePlugin(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("plugins disabled", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -288,6 +305,7 @@ func TestGetPluginStatus_SinglePlugin(t *testing.T) {
 	})
 
 	t.Run("plugin not found", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -306,6 +324,7 @@ func TestGetPluginStatus_SinglePlugin(t *testing.T) {
 func TestPluginStateManagement_EdgeCases(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("enable then disable quickly", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -316,17 +335,18 @@ func TestPluginStateManagement_EdgeCases(t *testing.T) {
 		// First we need a plugin to work with
 		// This is a basic test to ensure state changes work properly
 		// In a real scenario, we'd have an actual plugin installed
-		
+
 		err := th.App.EnablePlugin("non-existent")
 		require.NotNil(t, err)
 		assert.Equal(t, "app.plugin.not_installed.app_error", err.Id)
-		
+
 		err = th.App.DisablePlugin("non-existent")
 		require.NotNil(t, err)
 		assert.Equal(t, "app.plugin.not_installed.app_error", err.Id)
 	})
 
 	t.Run("config save failure", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -344,6 +364,7 @@ func TestPluginStateManagement_EdgeCases(t *testing.T) {
 func TestSyncPlugins_ErrorPaths(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("plugins disabled", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -357,6 +378,7 @@ func TestSyncPlugins_ErrorPaths(t *testing.T) {
 	})
 
 	t.Run("no plugins to sync", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -373,6 +395,7 @@ func TestSyncPlugins_ErrorPaths(t *testing.T) {
 func TestPluginEnvironmentNil(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("get plugins environment when disabled", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {

@@ -14,6 +14,7 @@ import (
 
 func TestCanSendPushNotifications_ErrorPaths(t *testing.T) {
 	t.Run("disabled by config", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -25,6 +26,7 @@ func TestCanSendPushNotifications_ErrorPaths(t *testing.T) {
 	})
 
 	t.Run("MHPNS without license", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		th.App.Srv().SetLicense(nil)
@@ -51,6 +53,7 @@ func TestCanSendPushNotifications_ErrorPaths(t *testing.T) {
 	})
 
 	t.Run("MHPNS with license but feature disabled", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		mhpnsFeature := false
@@ -73,21 +76,22 @@ func TestCanSendPushNotifications_ErrorPaths(t *testing.T) {
 
 func TestUserAllowsEmail_EdgeCases(t *testing.T) {
 	t.Run("system message with comments notify", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		user := &model.User{
 			Id: model.NewId(),
 			NotifyProps: model.StringMap{
-				model.EmailNotifyProp:         model.UserNotifyNone,
-				model.CommentsNotifyProp:      model.CommentsNotifyRoot,
-				model.PushStatusNotifyProp:    model.StatusAway,
-				model.DesktopSoundNotifyProp:  "true",
+				model.EmailNotifyProp:           model.UserNotifyNone,
+				model.CommentsNotifyProp:        model.CommentsNotifyRoot,
+				model.PushStatusNotifyProp:      model.StatusAway,
+				model.DesktopSoundNotifyProp:    "true",
 				model.ChannelMentionsNotifyProp: "true",
 			},
 		}
 
 		systemPost := &model.Post{
-			Type: model.PostTypeSystemGeneric,
+			Type:    model.PostTypeSystemGeneric,
 			Message: "system message",
 		}
 
@@ -100,6 +104,7 @@ func TestUserAllowsEmail_EdgeCases(t *testing.T) {
 	})
 
 	t.Run("urgent post overrides notify props", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		user := &model.User{
@@ -127,6 +132,7 @@ func TestUserAllowsEmail_EdgeCases(t *testing.T) {
 	})
 
 	t.Run("channel notify all overrides user setting", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		user := &model.User{
@@ -150,6 +156,7 @@ func TestUserAllowsEmail_EdgeCases(t *testing.T) {
 }
 
 func TestSendNoUsersNotifiedByGroupInChannel(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	groupName := "testgroup"
@@ -171,6 +178,7 @@ func TestSendNoUsersNotifiedByGroupInChannel(t *testing.T) {
 
 func TestFilterUsersByVisible_ErrorPaths(t *testing.T) {
 	t.Run("nil viewer", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		otherUsers := []*model.User{th.BasicUser2}
@@ -181,6 +189,7 @@ func TestFilterUsersByVisible_ErrorPaths(t *testing.T) {
 	})
 
 	t.Run("empty user list", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		filtered, err := th.App.FilterUsersByVisible(th.Context, th.BasicUser, []*model.User{})
@@ -189,6 +198,7 @@ func TestFilterUsersByVisible_ErrorPaths(t *testing.T) {
 	})
 
 	t.Run("filters deactivated users", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		deactivatedUser := th.CreateUser(t)
@@ -206,6 +216,7 @@ func TestFilterUsersByVisible_ErrorPaths(t *testing.T) {
 
 func TestGetGroupsAllowedForReferenceInChannel_ErrorCases(t *testing.T) {
 	t.Run("direct channel returns empty", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		dm, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
@@ -217,6 +228,7 @@ func TestGetGroupsAllowedForReferenceInChannel_ErrorCases(t *testing.T) {
 	})
 
 	t.Run("group message channel returns empty", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		gm := &model.Channel{
@@ -231,6 +243,7 @@ func TestGetGroupsAllowedForReferenceInChannel_ErrorCases(t *testing.T) {
 
 func TestInsertGroupMentions_ErrorPaths(t *testing.T) {
 	t.Run("group with no members", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
@@ -261,6 +274,7 @@ func TestInsertGroupMentions_ErrorPaths(t *testing.T) {
 	})
 
 	t.Run("group with inactive members only", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
@@ -297,6 +311,7 @@ func TestInsertGroupMentions_ErrorPaths(t *testing.T) {
 
 func TestGetMentionKeywordsInChannel_EdgeCases(t *testing.T) {
 	t.Run("with channel mentions disabled", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		profiles := map[string]*model.User{
@@ -332,6 +347,7 @@ func TestGetMentionKeywordsInChannel_EdgeCases(t *testing.T) {
 	})
 
 	t.Run("with custom mention keywords", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		profiles := map[string]*model.User{
@@ -367,6 +383,7 @@ func TestGetMentionKeywordsInChannel_EdgeCases(t *testing.T) {
 
 func TestRemoveNotifications_ErrorPaths(t *testing.T) {
 	t.Run("remove from archived channel", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		post := &model.Post{
@@ -387,6 +404,7 @@ func TestRemoveNotifications_ErrorPaths(t *testing.T) {
 
 func TestCountNotificationReason_EdgeCases(t *testing.T) {
 	t.Run("with metrics disabled", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -403,6 +421,7 @@ func TestCountNotificationReason_EdgeCases(t *testing.T) {
 	})
 
 	t.Run("with all notification types and reasons", func(t *testing.T) {
+		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
