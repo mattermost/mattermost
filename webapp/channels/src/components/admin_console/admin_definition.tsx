@@ -216,6 +216,25 @@ const SAML_SETTINGS_CANONICAL_ALGORITHM_C14N11 = 'Canonical1.1';
 //   - remove_action: An store action to remove the file.
 //   - fileType: A list of extensions separated by ",". E.g. ".jpg,.png,.gif".
 
+const reportAProblemTypeOptions = [
+    {
+        display_name: defineMessage({id: 'admin.support.problemType.defaultLink', defaultMessage: 'Default'}),
+        value: 'default',
+    },
+    {
+        display_name: defineMessage({id: 'admin.support.problemType.email', defaultMessage: 'Email address'}),
+        value: 'email',
+    },
+    {
+        display_name: defineMessage({id: 'admin.support.problemType.customLink', defaultMessage: 'Custom link'}),
+        value: 'link',
+    },
+    {
+        display_name: defineMessage({id: 'admin.support.problemType.hide', defaultMessage: 'Hide link'}),
+        value: 'hidden',
+    },
+];
+
 const adminDefinitionMessages = defineMessages({
     data_retention_title: {id: 'admin.data_retention.title', defaultMessage: 'Data Retention Policy'},
     ip_filtering_title: {id: 'admin.sidebar.ip_filtering', defaultMessage: 'IP Filtering'},
@@ -2407,51 +2426,17 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'dropdown',
                             key: 'SupportSettings.ReportAProblemType',
                             label: defineMessage({id: 'admin.support.reportAProblemTypeTitle', defaultMessage: 'Report a Problem:'}),
-                            help_text: defineMessage({id: 'admin.support.reportAProblemTypeDescription', defaultMessage: 'Select how the ‘Report a Problem’ option behaves. Choosing ‘Custom link’ or ‘Email address’ allows you to provide a URL or address in the next field. ‘Hide link’ removes the ‘Report a Problem’ option from the app.'}),
-                            options: [
-                                {
-                                    display_name: defineMessage({id: 'admin.support.problemType.defaultLink', defaultMessage: 'Default link'}),
-                                    value: 'default',
-                                },
-                                {
-                                    display_name: defineMessage({id: 'admin.support.problemType.email', defaultMessage: 'Email address'}),
-                                    value: 'email',
-                                },
-                                {
-                                    display_name: defineMessage({id: 'admin.support.problemType.customLink', defaultMessage: 'Custom link'}),
-                                    value: 'link',
-                                },
-                                {
-                                    display_name: defineMessage({id: 'admin.support.problemType.hide', defaultMessage: 'Hide link'}),
-                                    value: 'hidden',
-                                },
-                            ],
+                            help_text: defineMessage({id: 'admin.support.reportAProblemTypeDescriptionLicensed', defaultMessage: "By default, selecting 'Report a Problem' from the help menu opens a ticket with the Mattermost technical support team. You may provide a custom URL or email address for end user support by choosing 'Custom link' or 'Email address'. 'Hide link' removes the 'Report a Problem' option from the app."}),
+                            isHidden: it.not(it.licensed),
+                            options: reportAProblemTypeOptions,
                         },
                         {
-                            type: 'text',
-                            key: 'defaultLicensedReportAProblemLink',
-                            label: defineMessage({id: 'admin.support.reportAProblemDefaultLinkTitle', defaultMessage: 'Default Report a Problem Link:'}),
-                            help_text: defineMessage({id: 'admin.support.reportAProblemDefaultLinkDescription', defaultMessage: 'Users will be directed to this link when they choose ‘Report a Problem’.'}),
-                            default: 'https://mattermost.com/pl/report_a_problem_licensed',
-                            isDisabled: it.all(),
-                            isHidden: it.any(
-                                it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
-                                it.not(it.stateMatches('SupportSettings.ReportAProblemType', /default/)),
-                                it.not(it.licensed),
-                            ),
-                        },
-                        {
-                            type: 'text',
-                            key: 'defaultUnlicensedReportAProblemLink',
-                            label: defineMessage({id: 'admin.support.reportAProblemDefaultLinkTitle', defaultMessage: 'Default Report a Problem Link:'}),
-                            help_text: defineMessage({id: 'admin.support.reportAProblemDefaultLinkDescription', defaultMessage: 'Users will be directed to this link when they choose ‘Report a Problem’.'}),
-                            default: 'https://mattermost.com/pl/report_a_problem_unlicensed',
-                            isDisabled: it.all(),
-                            isHidden: it.any(
-                                it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
-                                it.not(it.stateMatches('SupportSettings.ReportAProblemType', /default/)),
-                                it.licensed,
-                            ),
+                            type: 'dropdown',
+                            key: 'SupportSettings.ReportAProblemType',
+                            label: defineMessage({id: 'admin.support.reportAProblemTypeTitle', defaultMessage: 'Report a Problem:'}),
+                            help_text: defineMessage({id: 'admin.support.reportAProblemTypeDescriptionUnlicensed', defaultMessage: "By default, selecting 'Report a Problem' from the help menu opens the Mattermost troubleshooting forums. You may provide a custom URL or email address for end user support by choosing 'Custom link' or 'Email address'. 'Hide link' removes the 'Report a Problem' option from the app."}),
+                            isHidden: it.licensed,
+                            options: reportAProblemTypeOptions,
                         },
                         {
                             type: 'text',
