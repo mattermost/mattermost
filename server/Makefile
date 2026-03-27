@@ -819,7 +819,7 @@ vet: setup-go-work ## Run mattermost go vet specific checks
 		-noSelectStar \
 		-concurrentIndex \
 		-concurrentIndex.path=./channels/db/migrations/ \
-		-concurrentIndex.minMigration=160 \
+		-concurrentIndex.minMigration=166 \
 		./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
   ifneq ($(MM_NO_ENTERPRISE_LINT),true)
