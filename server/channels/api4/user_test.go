@@ -304,14 +304,16 @@ func TestCreateUserAudit(t *testing.T) {
 	require.NoError(t, err)
 	defer os.Remove(logFile.Name())
 
-	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
-	th := SetupWithServerOptions(t, options)
+	configDefaults := &model.Config{}
+	configDefaults.SetDefaults()
+	configDefaults.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
+	configDefaults.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
 
-	// Enable audit logging to file
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
-		cfg.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
-	})
+	options := []app.Option{
+		app.WithLicense(model.NewTestLicense("advanced_logging")),
+		app.Config("", false, configDefaults),
+	}
+	th := SetupWithServerOptions(t, options)
 
 	email := th.GenerateTestEmail()
 	password := "this_is_the_password"
