@@ -13,14 +13,6 @@ import BrandImageSetting from './brand_image_setting';
 Client4.setUrl('http://localhost:8065');
 
 describe('components/admin_console/brand_image_setting', () => {
-    beforeEach(() => {
-        jest.spyOn(global, 'fetch').mockResolvedValue({status: 404} as Response);
-    });
-
-    afterEach(() => {
-        jest.restoreAllMocks();
-    });
-
     const baseProps = {
         disabled: false,
         setSaveNeeded: jest.fn(),
