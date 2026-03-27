@@ -65,7 +65,7 @@ jobs:
       - name: Restore test timing data
         if: inputs.shard-total > 1
         id: timing-cache
-        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        uses: actions/cache/restore@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
         with:
           path: |
             server/prev-report.xml
@@ -211,7 +211,7 @@ jobs:
             $DOCKER_CMD
       - name: Upload coverage to Codecov
         if: ${{ inputs.enablecoverage }}
-        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
+        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6.0.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           disable_search: true
