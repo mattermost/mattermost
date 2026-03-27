@@ -18,7 +18,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/password/hashers"
+	"github.com/mattermost/mattermost/server/v8/channels/app/password/hashers"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 

@@ -10,9 +10,9 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/password/hashers"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/password/hashers"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mfa"

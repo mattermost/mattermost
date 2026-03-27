@@ -44,7 +44,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/mattermost/mattermost/server/public/password/phcparser"
+	"github.com/mattermost/mattermost/server/v8/channels/app/password/phcparser"
 )
 
 // PasswordHasher is a password hasher compliant with the PHC string format:
