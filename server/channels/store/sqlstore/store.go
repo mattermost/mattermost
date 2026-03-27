@@ -105,6 +105,7 @@ type SqlStoreStores struct {
 	desktopTokens              store.DesktopTokensStore
 	channelBookmarks           store.ChannelBookmarkStore
 	scheduledPost              store.ScheduledPostStore
+	view                       store.ViewStore
 	propertyGroup              store.PropertyGroupStore
 	propertyField              store.PropertyFieldStore
 	propertyValue              store.PropertyValueStore
@@ -142,6 +143,7 @@ type SqlStore struct {
 	pgDefaultTextSearchConfig string
 	skipMigrations            bool
 	disableMorphLogging       bool
+	featureFlagsFn            func() *model.FeatureFlags
 
 	quitMonitor chan struct{}
 	wgMonitor   *sync.WaitGroup
@@ -159,6 +161,25 @@ func DisableMorphLogging() Option {
 		s.disableMorphLogging = true
 		return nil
 	}
+}
+
+// WithFeatureFlags provides a callback that returns the current feature flags.
+// This allows the store layer to read feature flags without depending on the full config.
+func WithFeatureFlags(fn func() *model.FeatureFlags) Option {
+	return func(s *SqlStore) error {
+		s.featureFlagsFn = fn
+		return nil
+	}
+}
+
+// getFeatureFlags returns the current feature flags, or defaults if no function was configured.
+func (ss *SqlStore) getFeatureFlags() *model.FeatureFlags {
+	if ss.featureFlagsFn != nil {
+		return ss.featureFlagsFn()
+	}
+	ff := &model.FeatureFlags{}
+	ff.SetDefaults()
+	return ff
 }
 
 func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterfaces.MetricsInterface, options ...Option) (*SqlStore, error) {
@@ -259,6 +280,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.desktopTokens = newSqlDesktopTokensStore(store, metrics)
 	store.stores.channelBookmarks = newSqlChannelBookmarkStore(store)
 	store.stores.scheduledPost = newScheduledPostStore(store)
+	store.stores.view = newSqlViewStore(store)
 	store.stores.propertyGroup = newPropertyGroupStore(store)
 	store.stores.propertyField = newPropertyFieldStore(store)
 	store.stores.propertyValue = newPropertyValueStore(store)
@@ -839,6 +861,10 @@ func (ss *SqlStore) DesktopTokens() store.DesktopTokensStore {
 
 func (ss *SqlStore) ChannelBookmark() store.ChannelBookmarkStore {
 	return ss.stores.channelBookmarks
+}
+
+func (ss *SqlStore) View() store.ViewStore {
+	return ss.stores.view
 }
 
 func (ss *SqlStore) PropertyGroup() store.PropertyGroupStore {

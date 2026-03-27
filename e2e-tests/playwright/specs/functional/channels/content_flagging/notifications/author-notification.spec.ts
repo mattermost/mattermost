@@ -48,10 +48,10 @@ test('Verify Author is notified if the post is flagged in a channel', async ({pw
 
     const message = `Post by @${user.username}, is flagged once`;
     const {post, townSquare} = await createPost(adminClient, userClient, team, user, message);
-    await adminClient.flagPost(post.id, 'Inappropriate content', 'This message is inappropriate');
+    await adminClient.flagPost(post.id, 'Classification mismatch', 'This message is inappropriate');
 
     const {channelsPage} = await pw.testBrowser.login(user);
-    const expected = `Your post having ID ${post.id} in the channel ${townSquare.display_name} has been flagged for review.`;
+    const expected = `Your post having ID ${post.id} in the channel ${townSquare.display_name} has been quarantined for review.`;
     await verifyAuthorNotification(channelsPage, team.name, expected);
 });
 
@@ -64,11 +64,11 @@ test('Verify Author is notified if flagged post is Retained in a channel', async
 
     const message = `Post by @${user.username}, is flagged once`;
     const {post, townSquare} = await createPost(adminClient, userClient, team, user, message);
-    await adminClient.flagPost(post.id, 'Inappropriate content', 'This message is inappropriate');
+    await adminClient.flagPost(post.id, 'Classification mismatch', 'This message is inappropriate');
     await adminClient.keepFlaggedPost(post.id, 'Retaining this post after review');
 
     const {channelsPage} = await pw.testBrowser.login(user);
-    const expected = `Your post having ID ${post.id} in the channel ${townSquare.display_name} which was flagged for review has been restored by a reviewer.`;
+    const expected = `Your post having ID ${post.id} in the channel ${townSquare.display_name} which was quarantined for review has been restored by a reviewer.`;
     await verifyAuthorNotification(channelsPage, team.name, expected);
 });
 
@@ -81,10 +81,10 @@ test('Verify Author is notified if flagged post is Removed from a channel', asyn
 
     const message = `Post by @${user.username}, is flagged once`;
     const {post, townSquare} = await createPost(adminClient, userClient, team, user, message);
-    await adminClient.flagPost(post.id, 'Inappropriate content', 'This message is inappropriate');
+    await adminClient.flagPost(post.id, 'Classification mismatch', 'This message is inappropriate');
     await adminClient.removeFlaggedPost(post.id, 'Removing this post after review');
 
     const {channelsPage} = await pw.testBrowser.login(user);
-    const expected = `Your post having ID ${post.id} in the channel ${townSquare.display_name} which was flagged for review has been permanently removed by a reviewer.`;
+    const expected = `Your post having ID ${post.id} in the channel ${townSquare.display_name} which was quarantined for review has been permanently removed by a reviewer.`;
     await verifyAuthorNotification(channelsPage, team.name, expected);
 });

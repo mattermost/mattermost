@@ -42,6 +42,8 @@ outputs:
     description: Pass rate percentage (e.g., "100.00")
   color:
     description: Color for webhook based on pass rate (green=100%, yellow=99%+, orange=98%+, red=<98%)
+  test_duration:
+    description: Wall-clock test duration (earliest start to latest end across all specs, formatted as "Xm Ys")
 
 runs:
   using: node24

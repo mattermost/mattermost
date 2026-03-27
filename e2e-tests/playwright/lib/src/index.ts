@@ -62,3 +62,29 @@ export {
 } from './ui/components';
 
 export {TestArgs, ScreenshotOptions} from './types';
+
+export {
+    enableAutotranslationConfig,
+    disableAutotranslationConfig,
+    enableChannelAutotranslation,
+    disableChannelAutotranslation,
+    setUserChannelAutotranslation,
+    setMockSourceLanguage,
+    hasAutotranslationLicense,
+} from './autotranslation_helpers';
+export type {EnableAutotranslationOptions} from './autotranslation_helpers';
+// ABAC (Attribute-Based Access Control) helpers
+export {
+    createUserWithAttributes,
+    enableABAC,
+    disableABAC,
+    navigateToABACPage,
+    createBasicPolicy,
+    createAdvancedPolicy,
+    editPolicy,
+    deletePolicy,
+    runSyncJob,
+    verifyUserInChannel,
+    verifyUserNotInChannel,
+    updateUserAttributes,
+} from './server';

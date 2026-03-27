@@ -1,6 +1,6 @@
 {
   "name": "@mattermost/shared",
-  "version": "11.4.0",
+  "version": "11.6.0",
   "description": "Shared components and utilities for use by the Mattermost web app and its plugins",
   "keywords": [
     "mattermost"
@@ -8,6 +8,7 @@
   "homepage": "https://github.com/mattermost/mattermost/tree/master/webapp/platform/shared#readme",
   "license": "MIT",
   "files": [
+    "build/webpack-web-app-externals.cjs",
     "dist",
     "src"
   ],
@@ -31,6 +32,10 @@
       "source": "./src/index.ts",
       "import": "./dist/module.js",
       "require": "./dist/main.js"
+    },
+    "./build/webpack-web-app-externals": {
+      "source": "./build/webpack-web-app-externals.cjs",
+      "require": "./build/webpack-web-app-externals.cjs"
     },
     "./*": {
       "types": [
@@ -78,7 +83,7 @@
     "typescript": "^5.0.0"
   },
   "peerDependencies": {
-    "@mattermost/types": "11.4.0",
+    "@mattermost/types": "11.6.0",
     "@testing-library/react": "^16",
     "react": ">=17",
     "react-intl": ">=7",

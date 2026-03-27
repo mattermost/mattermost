@@ -453,6 +453,8 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
                         </ExternalLink>
                     </div>,
                 );
+            } else {
+                inputs.push(premade);
             }
 
             let allTeamsCheckbox = null;

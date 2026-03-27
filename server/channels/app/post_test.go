@@ -652,6 +652,9 @@ func TestPostChannelMentions(t *testing.T) {
 	channel := th.BasicChannel
 	user := th.BasicUser
 
+	// Create context with session for the user to properly test sanitization
+	ctx := th.Context.WithSession(&model.Session{UserId: user.Id})
+
 	channelToMention, err := th.App.CreateChannel(th.Context, &model.Channel{
 		DisplayName: "Mention Test",
 		Name:        "mention-test",
@@ -686,7 +689,7 @@ func TestPostChannelMentions(t *testing.T) {
 		CreateAt:      0,
 	}
 
-	post, _, err = th.App.CreatePostAsUser(th.Context, post, "", true)
+	post, _, err = th.App.CreatePostAsUser(ctx, post, "", true)
 	require.Nil(t, err)
 	assert.Equal(t, map[string]any{
 		"mention-test": map[string]any{
@@ -696,7 +699,7 @@ func TestPostChannelMentions(t *testing.T) {
 	}, post.GetProp(model.PostPropsChannelMentions))
 
 	post.Message = fmt.Sprintf("goodbye, ~%v!", channelToMention2.Name)
-	result, isMemberForPreviews, err := th.App.UpdatePost(th.Context, post, nil)
+	result, isMemberForPreviews, err := th.App.UpdatePost(ctx, post, nil)
 	require.True(t, isMemberForPreviews)
 	require.Nil(t, err)
 	assert.Equal(t, map[string]any{
@@ -707,7 +710,7 @@ func TestPostChannelMentions(t *testing.T) {
 	}, result.GetProp(model.PostPropsChannelMentions))
 
 	result.Message = "no more mentions!"
-	result, isMemberForPreviews, err = th.App.UpdatePost(th.Context, result, nil)
+	result, isMemberForPreviews, err = th.App.UpdatePost(ctx, result, nil)
 	require.True(t, isMemberForPreviews)
 	require.Nil(t, err)
 	assert.Nil(t, result.GetProp(model.PostPropsChannelMentions))
@@ -1330,6 +1333,24 @@ func TestCreatePost(t *testing.T) {
 		createdPost, _, err := th.App.CreatePost(th.Context, postToCreate, th.BasicChannel, model.CreatePostFlags{ForceNotification: true})
 		require.Nil(t, err)
 		require.NotEmpty(t, createdPost.GetProp(model.PostPropsForceNotification))
+	})
+
+	t.Run("creates post with type card", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "card post",
+			Type:      model.PostTypeCard,
+		}
+
+		rpost, _, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+		require.NotNil(t, rpost)
+		assert.Equal(t, model.PostTypeCard, rpost.Type)
+		assert.Equal(t, "card post", rpost.Message)
 	})
 
 	t.Run("Should remove post file IDs for burn on read posts", func(t *testing.T) {
@@ -3243,6 +3264,8 @@ func TestFillInPostProps(t *testing.T) {
 
 		dmChannelBetweenUser1AndUser2 := th.CreateDmChannel(t, user2)
 
+		th.Context.Session().UserId = user1.Id
+
 		post, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
 			ChannelId: dmChannelBetweenUser1AndUser2.Id,
@@ -3267,6 +3290,8 @@ func TestFillInPostProps(t *testing.T) {
 		channel := th.CreateChannel(t, th.BasicTeam)
 
 		dmChannel := th.CreateDmChannel(t, user2)
+
+		th.Context.Session().UserId = user1.Id
 
 		post, _, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
@@ -5624,5 +5649,170 @@ func TestGetBurnOnReadPost(t *testing.T) {
 		require.Nil(t, resultPost)
 		assert.Equal(t, "app.post.get_post.app_error", appErr.Id)
 		assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+	})
+}
+
+func TestPostChannelMentionsWithPrivateChannels(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	channel := th.BasicChannel
+	user := th.BasicUser
+
+	// Create context with session for the user to properly test sanitization
+	ctx := th.Context.WithSession(&model.Session{UserId: user.Id})
+
+	// Create a private channel where user IS a member
+	privateChannelMember, err := th.App.CreateChannel(th.Context, &model.Channel{
+		DisplayName: "Private Member",
+		Name:        "private-member",
+		Type:        model.ChannelTypePrivate,
+		TeamId:      th.BasicTeam.Id,
+	}, false)
+	require.Nil(t, err)
+	th.AddUserToChannel(t, user, privateChannelMember)
+
+	// Create a private channel where user is NOT a member
+	privateChannelNonMember, err := th.App.CreateChannel(th.Context, &model.Channel{
+		DisplayName: "Private Non-Member",
+		Name:        "private-non-member",
+		Type:        model.ChannelTypePrivate,
+		TeamId:      th.BasicTeam.Id,
+	}, false)
+	require.Nil(t, err)
+
+	// Create a public channel where user is NOT a member
+	publicChannel, err := th.App.CreateChannel(th.Context, &model.Channel{
+		DisplayName: "Public Channel",
+		Name:        "public-channel",
+		Type:        model.ChannelTypeOpen,
+		TeamId:      th.BasicTeam.Id,
+	}, false)
+	require.Nil(t, err)
+
+	post := &model.Post{
+		Message:       fmt.Sprintf("~%v and ~%v and ~%v", privateChannelMember.Name, privateChannelNonMember.Name, publicChannel.Name),
+		ChannelId:     channel.Id,
+		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		UserId:        user.Id,
+		CreateAt:      0,
+	}
+
+	post, _, err = th.App.CreatePostAsUser(ctx, post, "", true)
+	require.Nil(t, err)
+
+	mentions := post.GetProp(model.PostPropsChannelMentions)
+	require.NotNil(t, mentions)
+	mentionsMap, ok := mentions.(map[string]any)
+	require.True(t, ok)
+
+	// Should include private channel where user IS a member
+	assert.Contains(t, mentionsMap, privateChannelMember.Name)
+
+	// Should NOT include private channel where user is NOT a member
+	assert.NotContains(t, mentionsMap, privateChannelNonMember.Name)
+
+	// Should include public channel (user has team access)
+	assert.Contains(t, mentionsMap, publicChannel.Name)
+}
+
+func TestGetPostsForView(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("returns posts for channel", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		// Create a few posts
+		post1, _, err := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "post 1",
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, err)
+
+		post2, _, err := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "post 2",
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, err)
+
+		options := model.GetPostsOptions{
+			ChannelId: th.BasicChannel.Id,
+			Page:      0,
+			PerPage:   10,
+			UserId:    th.BasicUser.Id,
+		}
+
+		postList, appErr := th.App.GetPostsForView(th.Context, options)
+		require.Nil(t, appErr)
+		require.NotNil(t, postList)
+		assert.Contains(t, postList.Posts, post1.Id)
+		assert.Contains(t, postList.Posts, post2.Id)
+	})
+
+	t.Run("returns empty list for channel with no posts", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		channel := th.CreateChannel(t, th.BasicTeam)
+
+		options := model.GetPostsOptions{
+			ChannelId: channel.Id,
+			Page:      0,
+			PerPage:   10,
+			UserId:    th.BasicUser.Id,
+		}
+
+		postList, appErr := th.App.GetPostsForView(th.Context, options)
+		require.Nil(t, appErr)
+		require.NotNil(t, postList)
+		assert.Empty(t, postList.Posts)
+	})
+
+	t.Run("respects pagination", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		channel := th.CreateChannel(t, th.BasicTeam)
+
+		for i := range 5 {
+			_, _, err := th.App.CreatePost(th.Context, &model.Post{
+				ChannelId: channel.Id,
+				UserId:    th.BasicUser.Id,
+				Message:   fmt.Sprintf("post %d", i),
+			}, channel, model.CreatePostFlags{})
+			require.Nil(t, err)
+		}
+
+		options := model.GetPostsOptions{
+			ChannelId: channel.Id,
+			Page:      0,
+			PerPage:   2,
+			UserId:    th.BasicUser.Id,
+		}
+
+		postList, appErr := th.App.GetPostsForView(th.Context, options)
+		require.Nil(t, appErr)
+		require.NotNil(t, postList)
+		assert.Len(t, postList.Posts, 2)
+	})
+
+	t.Run("invalid channel id returns error", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		options := model.GetPostsOptions{
+			ChannelId: model.NewId(),
+			Page:      0,
+			PerPage:   10,
+			UserId:    th.BasicUser.Id,
+		}
+
+		postList, appErr := th.App.GetPostsForView(th.Context, options)
+		require.Nil(t, appErr)
+		require.NotNil(t, postList)
+		assert.Empty(t, postList.Posts)
 	})
 }

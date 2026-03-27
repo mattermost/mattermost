@@ -7,7 +7,7 @@ import React from 'react';
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import * as timezoneUtils from 'utils/timezone';
 
-import DateTimeInput, {getTimeInIntervals, getRoundedTime} from './datetime_input';
+import DateTimeInput, {getTimeInIntervals, getRoundedTime, parseTimeString} from './datetime_input';
 
 // Mock timezone utilities
 jest.mock('utils/timezone', () => ({
@@ -269,6 +269,160 @@ describe('components/datetime_input/DateTimeInput', () => {
             // Not DateTime.fromJSDate().toLocaleString() which varies by browser
             // Expected format: "Jun 15, 2025" not "6/15/2025"
             expect(props.time).toBeDefined();
+        });
+    });
+
+    describe('auto-rounding behavior', () => {
+        it('should auto-round time to interval boundary on mount', () => {
+            const handleChange = jest.fn();
+            const unroundedTime = moment('2025-06-08T14:17:00Z'); // 14:17 - not on 30-min boundary
+
+            renderWithContext(
+                <DateTimeInput
+                    time={unroundedTime}
+                    handleChange={handleChange}
+                    timePickerInterval={30}
+                />,
+            );
+
+            // Should auto-round 14:17 to 14:30 and call handleChange
+            expect(handleChange).toHaveBeenCalledTimes(1);
+            const roundedTime = handleChange.mock.calls[0][0];
+            expect(roundedTime.minute()).toBe(30);
+        });
+
+        it('should not call handleChange if time is already rounded', () => {
+            const handleChange = jest.fn();
+            const roundedTime = moment('2025-06-08T14:30:00Z'); // Already on 30-min boundary
+
+            renderWithContext(
+                <DateTimeInput
+                    time={roundedTime}
+                    handleChange={handleChange}
+                    timePickerInterval={30}
+                />,
+            );
+
+            // Should not call handleChange since time is already rounded
+            expect(handleChange).not.toHaveBeenCalled();
+        });
+
+        it('should use 30-minute default interval when prop not provided', () => {
+            const handleChange = jest.fn();
+            const unroundedTime = moment('2025-06-08T14:17:00Z');
+
+            renderWithContext(
+                <DateTimeInput
+                    time={unroundedTime}
+                    handleChange={handleChange}
+
+                    // No timePickerInterval prop - should use 30-min default
+                />,
+            );
+
+            // Should round using default 30-min interval
+            expect(handleChange).toHaveBeenCalledTimes(1);
+            const roundedTime = handleChange.mock.calls[0][0];
+            expect(roundedTime.minute()).toBe(30); // 14:17 -> 14:30
+        });
+    });
+
+    describe('parseTimeString', () => {
+        it('should parse 12-hour format with AM/PM', () => {
+            expect(parseTimeString('12a')).toEqual({hours: 0, minutes: 0}); // 12 AM = 00:00
+            expect(parseTimeString('12am')).toEqual({hours: 0, minutes: 0});
+            expect(parseTimeString('1a')).toEqual({hours: 1, minutes: 0});
+            expect(parseTimeString('11pm')).toEqual({hours: 23, minutes: 0});
+            expect(parseTimeString('12p')).toEqual({hours: 12, minutes: 0}); // 12 PM = 12:00
+            expect(parseTimeString('12pm')).toEqual({hours: 12, minutes: 0});
+        });
+
+        it('should parse 12-hour format with minutes', () => {
+            expect(parseTimeString('3:30pm')).toEqual({hours: 15, minutes: 30});
+            expect(parseTimeString('3:30 PM')).toEqual({hours: 15, minutes: 30});
+            expect(parseTimeString('9:15am')).toEqual({hours: 9, minutes: 15});
+            expect(parseTimeString('12:45am')).toEqual({hours: 0, minutes: 45});
+            expect(parseTimeString('12:30pm')).toEqual({hours: 12, minutes: 30});
+        });
+
+        it('should parse 24-hour format', () => {
+            expect(parseTimeString('00:00')).toEqual({hours: 0, minutes: 0});
+            expect(parseTimeString('14:30')).toEqual({hours: 14, minutes: 30});
+            expect(parseTimeString('23:59')).toEqual({hours: 23, minutes: 59});
+            expect(parseTimeString('9:15')).toEqual({hours: 9, minutes: 15});
+        });
+
+        it('should parse time without minutes (defaults to :00)', () => {
+            expect(parseTimeString('14')).toEqual({hours: 14, minutes: 0});
+            expect(parseTimeString('9')).toEqual({hours: 9, minutes: 0});
+        });
+
+        it('should handle various spacing and case', () => {
+            expect(parseTimeString('  3:30pm  ')).toEqual({hours: 15, minutes: 30});
+            expect(parseTimeString('3:30PM')).toEqual({hours: 15, minutes: 30});
+            expect(parseTimeString('3:30 pm')).toEqual({hours: 15, minutes: 30});
+        });
+
+        it('should reject invalid hour values', () => {
+            expect(parseTimeString('25:00')).toBeNull(); // 25 hours invalid
+            expect(parseTimeString('24:00')).toBeNull(); // 24 hours invalid
+            expect(parseTimeString('13pm')).toBeNull(); // 13 PM invalid
+            expect(parseTimeString('0am')).toBeNull(); // 0 AM invalid
+        });
+
+        it('should reject invalid minute values', () => {
+            expect(parseTimeString('3:60pm')).toBeNull(); // 60 minutes invalid
+            expect(parseTimeString('14:99')).toBeNull();
+            expect(parseTimeString('3:-5pm')).toBeNull();
+        });
+
+        it('should reject invalid formats', () => {
+            expect(parseTimeString('abc')).toBeNull();
+            expect(parseTimeString('12:34:56')).toBeNull(); // Seconds not supported
+            expect(parseTimeString('pm')).toBeNull();
+            expect(parseTimeString('')).toBeNull();
+            expect(parseTimeString(null as any)).toBeNull();
+        });
+
+        it('should handle edge cases at midnight and noon', () => {
+            expect(parseTimeString('12:00am')).toEqual({hours: 0, minutes: 0}); // Midnight
+            expect(parseTimeString('12:01am')).toEqual({hours: 0, minutes: 1});
+            expect(parseTimeString('11:59pm')).toEqual({hours: 23, minutes: 59});
+            expect(parseTimeString('12:00pm')).toEqual({hours: 12, minutes: 0}); // Noon
+            expect(parseTimeString('12:59pm')).toEqual({hours: 12, minutes: 59});
+        });
+    });
+
+    describe('timezone handling', () => {
+        it('should preserve timezone when generating time intervals', () => {
+            const londonTime = moment.tz('2025-06-08T14:00:00', 'Europe/London');
+            const intervals = getTimeInIntervals(londonTime, 60);
+
+            // All intervals should preserve London timezone
+            expect(intervals.length).toBeGreaterThan(0);
+            intervals.forEach((interval) => {
+                expect(interval.tz()).toBe('Europe/London');
+            });
+        });
+
+        it('should generate intervals starting at midnight in specified timezone', () => {
+            const londonMidnight = moment.tz('2025-06-08', 'Europe/London').startOf('day');
+            const intervals = getTimeInIntervals(londonMidnight, 60);
+
+            // First interval should be midnight in London
+            expect(intervals[0].format('HH:mm')).toBe('00:00');
+            expect(intervals[0].tz()).toBe('Europe/London');
+        });
+
+        it('should handle timezone conversion in parseTimeString and moment creation', () => {
+            // This tests the pattern used in TimeInputManual
+            const parsed = parseTimeString('3:45pm');
+            expect(parsed).toEqual({hours: 15, minutes: 45});
+
+            // Create moment in specific timezone
+            const londonTime = moment.tz([2025, 5, 8, parsed!.hours, parsed!.minutes, 0, 0], 'Europe/London');
+            expect(londonTime.tz()).toBe('Europe/London');
+            expect(londonTime.format('HH:mm')).toBe('15:45');
         });
     });
 });

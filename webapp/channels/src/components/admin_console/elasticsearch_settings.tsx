@@ -36,6 +36,7 @@ interface State extends BaseState {
     enableIndexing: boolean;
     enableSearching: boolean;
     enableAutocomplete: boolean;
+    enableSearchPublicChannelsWithoutMembership: boolean;
     configTested: boolean;
     canSave: boolean;
     canPurgeAndIndex: boolean;
@@ -114,6 +115,7 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
         config.ElasticsearchSettings.EnableSearching = this.state.enableSearching;
         config.ElasticsearchSettings.EnableAutocomplete = this.state.enableAutocomplete;
         config.ElasticsearchSettings.IgnoredPurgeIndexes = this.state.ignoredPurgeIndexes;
+        config.ElasticsearchSettings.EnableSearchPublicChannelsWithoutMembership = this.state.enableSearchPublicChannelsWithoutMembership;
 
         return config;
     };
@@ -132,6 +134,7 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
             enableIndexing: config.ElasticsearchSettings.EnableIndexing,
             enableSearching: config.ElasticsearchSettings.EnableSearching,
             enableAutocomplete: config.ElasticsearchSettings.EnableAutocomplete,
+            enableSearchPublicChannelsWithoutMembership: config.ElasticsearchSettings.EnableSearchPublicChannelsWithoutMembership,
             configTested: true,
             canSave: true,
             canPurgeAndIndex: config.ElasticsearchSettings.EnableIndexing,
@@ -145,6 +148,7 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
                 this.setState({
                     enableSearching: false,
                     enableAutocomplete: false,
+                    enableSearchPublicChannelsWithoutMembership: false,
                 });
             } else {
                 this.setState({
@@ -161,7 +165,7 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
             });
         }
 
-        if (id !== 'enableSearching' && id !== 'enableAutocomplete') {
+        if (id !== 'enableSearching' && id !== 'enableAutocomplete' && id !== 'enableSearchPublicChannelsWithoutMembership') {
             this.setState({
                 canPurgeAndIndex: false,
             });
@@ -527,6 +531,25 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
                     disabled={this.props.isDisabled || !this.state.enableIndexing || !this.state.configTested}
                     onChange={this.handleSettingChanged}
                     setByEnv={this.isSetByEnv('ElasticsearchSettings.EnableAutocomplete')}
+                />
+                <BooleanSetting
+                    id='enableSearchPublicChannelsWithoutMembership'
+                    label={
+                        <FormattedMessage
+                            id='admin.elasticsearch.enableSearchPublicChannelsWithoutMembershipTitle'
+                            defaultMessage='Allow searching public channels without membership:'
+                        />
+                    }
+                    helpText={
+                        <FormattedMessage
+                            id='admin.elasticsearch.enableSearchPublicChannelsWithoutMembershipDescription'
+                            defaultMessage='When enabled, users can find messages in public channels they have not joined. When enabled for the first time, existing posts will be updated in the background. This process is throttled to avoid impacting search performance. This setting has no effect when Compliance Mode is enabled.'
+                        />
+                    }
+                    value={this.state.enableSearchPublicChannelsWithoutMembership}
+                    disabled={this.props.isDisabled || !this.state.enableIndexing || !this.state.configTested}
+                    onChange={this.handleSettingChanged}
+                    setByEnv={this.isSetByEnv('ElasticsearchSettings.EnableSearchPublicChannelsWithoutMembership')}
                 />
             </SettingsGroup>
         );

@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {WebSocketMessages} from '@mattermost/client';
 import type {
     OpenGraphMetadata,
     Post,
@@ -434,20 +433,27 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
     }
 
     case PostTypes.POST_TRANSLATION_UPDATED: {
-        const data: WebSocketMessages.PostTranslationUpdated['data'] = action.data;
+        const data: {
+            object_id: string;
+            language: string;
+            state: 'ready' | 'skipped' | 'processing' | 'unavailable';
+            translation?: string;
+            src_lang?: string;
+        } = action.data;
         if (!state[data.object_id]) {
             return state;
         }
 
-        const translations = state[data.object_id].metadata?.translations || {};
+        const existingTranslations = state[data.object_id].metadata?.translations || {};
         const newTranslations = {
-            ...translations,
+            ...existingTranslations,
             [data.language]: {
-                lang: data.language,
                 object: data.translation ? JSON.parse(data.translation) : undefined,
                 state: data.state,
                 source_lang: data.src_lang,
-            }};
+            },
+        };
+
         return {
             ...state,
             [data.object_id]: {
