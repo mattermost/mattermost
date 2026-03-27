@@ -2947,6 +2947,10 @@
     "translation": "Burn-on-read feature is not enabled or requires an Enterprise Advanced license."
   },
   {
+    "id": "api.post.reveal_post.invalid_request.app_error",
+    "translation": "Invalid request: missing or invalid X-Requested-With header."
+  },
+  {
     "id": "api.post.reveal_post.user_not_in_channel.app_error",
     "translation": "You do not have permission to reveal this post. You must be a member of the channel."
   },
