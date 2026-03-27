@@ -114,6 +114,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		installationType = unknownDataPoint
 	}
 	d.Server.InstallationType = installationType
+	d.Server.ProcessID = os.Getpid()
 
 	/* Config */
 	d.Config.Source = ps.DescribeConfig()
