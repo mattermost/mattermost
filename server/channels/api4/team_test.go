@@ -153,6 +153,47 @@ func TestCreateTeam(t *testing.T) {
 		}
 	})
 
+	t.Run("should override team name with server-generated ID when UseAnonymousURLs is enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = true })
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		th.LoginBasic(t)
+
+		originalName := "originalname"
+		team := &model.Team{Name: originalName, DisplayName: "Anonymous URL Team", Type: model.TeamOpen}
+		createdTeam, resp, err := th.Client.CreateTeam(context.Background(), team)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		require.NotEqual(t, originalName, createdTeam.Name, "team name should be overridden by server")
+		require.True(t, model.IsValidId(createdTeam.Name))
+		require.Equal(t, "Anonymous URL Team", createdTeam.DisplayName, "display name should remain unchanged")
+
+		// setting UseAnonymousURLs to false should preserve team name
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = false })
+		team = &model.Team{Name: originalName, DisplayName: "Regular URL Team", Type: model.TeamOpen}
+		createdTeam, resp, err = th.Client.CreateTeam(context.Background(), team)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.Equal(t, originalName, createdTeam.Name)
+
+		// setting license to something other than Enterprise Advanced should preserve team name
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = true })
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+		originalName = "original-name-2"
+		team = &model.Team{Name: originalName, DisplayName: "Regular URL Team", Type: model.TeamOpen}
+		createdTeam, resp, err = th.Client.CreateTeam(context.Background(), team)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.Equal(t, originalName, createdTeam.Name)
+	})
+
 	t.Run("cloud limit reached returns 400", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 

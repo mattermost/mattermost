@@ -5647,7 +5647,6 @@
   "recaps.actionItems": "操作项：",
   "recaps.addRecap": "添加回顾",
   "recaps.addRecap.disabled": "Agents Bridge 未启用",
-  "recaps.allCaughtUp": "你已全部处理完毕",
   "recaps.channelMenu.ariaLabel": "{channelName} 的选项",
   "recaps.defaultAgent": "Copilot",
   "recaps.delete.confirm.button": "删除",

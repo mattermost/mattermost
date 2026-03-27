@@ -21,7 +21,7 @@ import {
 } from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {getRemoteNamesForChannel} from 'mattermost-redux/selectors/entities/shared_channels';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {
     displayLastActiveLabel,
     getCurrentUser,
@@ -86,7 +86,7 @@ function makeMapStateToProps() {
         }
 
         return {
-            teamId: getCurrentTeamId(state),
+            team: getCurrentTeam(state),
             channel,
             channelMember: getMyCurrentChannelMembership(state),
             memberCount: stats?.member_count || 0,
