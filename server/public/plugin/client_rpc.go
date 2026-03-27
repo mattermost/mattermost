@@ -1371,3 +1371,79 @@ func (s *hooksRPCServer) ServeMetrics(args *Z_ServeMetricsArgs, returns *struct{
 
 	return nil
 }
+
+// ChannelMemberWillBeAdded is hand-written to preserve the original ChannelMember as the default
+// return value, avoiding unintentional field removal by older plugins.
+func init() {
+	hookNameToId["ChannelMemberWillBeAdded"] = ChannelMemberWillBeAddedID
+}
+
+type Z_ChannelMemberWillBeAddedArgs struct {
+	A *Context
+	B *model.ChannelMember
+}
+
+type Z_ChannelMemberWillBeAddedReturns struct {
+	A *model.ChannelMember
+	B string
+}
+
+func (g *hooksRPCClient) ChannelMemberWillBeAdded(c *Context, channelMember *model.ChannelMember) (*model.ChannelMember, string) {
+	_args := &Z_ChannelMemberWillBeAddedArgs{c, channelMember}
+	_returns := &Z_ChannelMemberWillBeAddedReturns{A: _args.B}
+	if g.implemented[ChannelMemberWillBeAddedID] {
+		if err := g.client.Call("Plugin.ChannelMemberWillBeAdded", _args, _returns); err != nil {
+			g.log.Error("RPC call ChannelMemberWillBeAdded to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *hooksRPCServer) ChannelMemberWillBeAdded(args *Z_ChannelMemberWillBeAddedArgs, returns *Z_ChannelMemberWillBeAddedReturns) error {
+	if hook, ok := s.impl.(interface {
+		ChannelMemberWillBeAdded(c *Context, channelMember *model.ChannelMember) (*model.ChannelMember, string)
+	}); ok {
+		returns.A, returns.B = hook.ChannelMemberWillBeAdded(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("hook ChannelMemberWillBeAdded called but not implemented"))
+	}
+	return nil
+}
+
+// TeamMemberWillBeAdded is hand-written to preserve the original TeamMember as the default
+// return value, avoiding unintentional field removal by older plugins.
+func init() {
+	hookNameToId["TeamMemberWillBeAdded"] = TeamMemberWillBeAddedID
+}
+
+type Z_TeamMemberWillBeAddedArgs struct {
+	A *Context
+	B *model.TeamMember
+}
+
+type Z_TeamMemberWillBeAddedReturns struct {
+	A *model.TeamMember
+	B string
+}
+
+func (g *hooksRPCClient) TeamMemberWillBeAdded(c *Context, teamMember *model.TeamMember) (*model.TeamMember, string) {
+	_args := &Z_TeamMemberWillBeAddedArgs{c, teamMember}
+	_returns := &Z_TeamMemberWillBeAddedReturns{A: _args.B}
+	if g.implemented[TeamMemberWillBeAddedID] {
+		if err := g.client.Call("Plugin.TeamMemberWillBeAdded", _args, _returns); err != nil {
+			g.log.Error("RPC call TeamMemberWillBeAdded to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *hooksRPCServer) TeamMemberWillBeAdded(args *Z_TeamMemberWillBeAddedArgs, returns *Z_TeamMemberWillBeAddedReturns) error {
+	if hook, ok := s.impl.(interface {
+		TeamMemberWillBeAdded(c *Context, teamMember *model.TeamMember) (*model.TeamMember, string)
+	}); ok {
+		returns.A, returns.B = hook.TeamMemberWillBeAdded(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("hook TeamMemberWillBeAdded called but not implemented"))
+	}
+	return nil
+}

@@ -271,6 +271,30 @@ func TestSearchTeamAccessPolicies(t *testing.T) {
 			assert.NotEqual(t, crossTeamPolicy.ID, p.ID, "cross-team policy should be filtered out")
 		}
 	})
+
+	t.Run("includes channelless policy found via scope query", func(t *testing.T) {
+		// Policy with no channels but with scope=team — found only via the second
+		// (scope-based) query in SearchTeamAccessPolicies, not via channel inference.
+		policy, mockACS := createTestPolicyHierarchy(t, th, []*model.Channel{})
+		policy.Scope = model.AccessControlPolicyScopeTeam
+		policy.ScopeID = th.BasicTeam.Id
+		_, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+		require.NoError(t, err)
+
+		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), "true", mock.Anything).
+			Return([]*model.User{th.BasicUser}, int64(1), nil)
+
+		policies, _, appErr := th.App.SearchTeamAccessPolicies(th.Context, th.BasicTeam.Id, th.BasicUser.Id, model.AccessControlPolicySearch{})
+		require.Nil(t, appErr)
+		found := false
+		for _, p := range policies {
+			if p.ID == policy.ID {
+				found = true
+				break
+			}
+		}
+		assert.True(t, found, "channelless policy with team scope should appear in search results")
+	})
 }
 
 // TestSearchTeamAccessPolicies_SelfExclusionFiltering verifies that policies
@@ -488,6 +512,31 @@ func TestReconcilePolicyTeamScope(t *testing.T) {
 		// Verify scope unchanged
 		scope, scopeID := getScope(t, policy.ID)
 		assert.Equal(t, model.AccessControlPolicyScopeTeam, scope)
+		assert.Equal(t, th.BasicTeam.Id, scopeID)
+	})
+
+	t.Run("stale channel reference skips reconciliation", func(t *testing.T) {
+		// Simulate a channel being deleted after it was assigned to a policy.
+		// GetChannels returns fewer channels than channelIDs, so reconciliation
+		// must be skipped to avoid stamping an incorrect scope.
+		ch1 := th.CreatePrivateChannel(t, th.BasicTeam)
+		policy, _ := createTestPolicyHierarchy(t, th, []*model.Channel{ch1})
+
+		// Pre-set a scope so we can verify it is preserved after the no-op.
+		policy.Scope = model.AccessControlPolicyScopeTeam
+		policy.ScopeID = th.BasicTeam.Id
+		_, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+		require.NoError(t, err)
+
+		// Delete the channel from the DB to make the reference stale.
+		err = th.App.Srv().Store().Channel().PermanentDelete(th.Context, ch1.Id)
+		require.NoError(t, err)
+
+		appErr := th.App.ReconcilePolicyTeamScope(th.Context, policy.ID)
+		require.Nil(t, appErr)
+
+		scope, scopeID := getScope(t, policy.ID)
+		assert.Equal(t, model.AccessControlPolicyScopeTeam, scope, "scope should be preserved when channel is stale")
 		assert.Equal(t, th.BasicTeam.Id, scopeID)
 	})
 

@@ -658,9 +658,22 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 		count = count.Where(condition)
 	}
 
-	// TeamID scopes queries to a specific team. Channel policies use a direct
-	// join (ID == channel ID). Parent policies match via child-channel aggregation
-	// (all channels in one team) or an explicit scope field in Data JSONB.
+	// Scope/ScopeID filter policies by their persisted scope in the Data JSONB.
+	// Both must be provided together — a partial match is not meaningful.
+	if opts.Scope != "" && opts.ScopeID != "" {
+		scopeCondition := sq.And{
+			sq.Expr("Data->>'scope' = ?", opts.Scope),
+			sq.Expr("Data->>'scope_id' = ?", opts.ScopeID),
+		}
+		query = query.Where(scopeCondition)
+		count = count.Where(scopeCondition)
+	}
+
+	// TeamID filters to parent policies whose assigned channels ALL belong to the
+	// specified team. Policies with channels spanning multiple teams will NOT match
+	// even if one channel is in the requested team (COUNT(DISTINCT TeamId) = 1
+	// enforces single-team scope). This only applies to parent policies; the type
+	// is forced to 'parent' when TeamID is set.
 	if opts.TeamID != "" {
 		if opts.Type == model.AccessControlPolicyTypeChannel {
 			condition := sq.Expr(`Id IN (SELECT Id FROM Channels WHERE TeamId = ?)`, opts.TeamID)
@@ -673,19 +686,15 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 				count = count.Where(parentCondition)
 			}
 
-			condition := sq.Expr(`(
-				Id IN (
-					SELECT parent_id FROM (
-						SELECT ch.TeamId, jsonb_array_elements_text(cp.Data -> 'imports') AS parent_id
-						FROM AccessControlPolicies cp
-						JOIN Channels ch ON ch.Id = cp.Id
-						WHERE cp.Type = 'channel'
-					) team_children
-					GROUP BY parent_id
-					HAVING COUNT(DISTINCT TeamId) = 1 AND MIN(TeamId) = ?
-				)
-				OR (Data->>'scope' = 'team' AND Data->>'scope_id' = ?)
-			)`, opts.TeamID, opts.TeamID)
+			condition := sq.Expr(`Id IN (
+			SELECT parent_id FROM (
+				SELECT ch.TeamId, jsonb_array_elements_text(cp.Data -> 'imports') AS parent_id
+				FROM AccessControlPolicies cp
+				JOIN Channels ch ON ch.Id = cp.Id
+				WHERE cp.Type = 'channel'
+			) team_children
+			GROUP BY parent_id
+			HAVING COUNT(DISTINCT TeamId) = 1 AND MIN(TeamId) = ?)`, opts.TeamID)
 			query = query.Where(condition)
 			count = count.Where(condition)
 		}

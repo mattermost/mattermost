@@ -51,6 +51,8 @@ type AccessControlPolicySearch struct {
 	IncludeChildren bool                      `json:"include_children"`
 	Active          bool                      `json:"active"`
 	TeamID          string                    `json:"team_id"`
+	Scope           string                    `json:"scope,omitempty"`
+	ScopeID         string                    `json:"scope_id,omitempty"`
 }
 
 type AccessControlPolicyCursor struct {
