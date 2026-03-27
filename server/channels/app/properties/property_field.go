@@ -278,13 +278,18 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 			)
 		}
 
-		// Block type changes on source fields with active linked dependents
-		if field.Type != existing.Type {
+		// Check if this field has linked dependents (needed for type change
+		// blocking and options propagation). Only query once.
+		typeChanged := field.Type != existing.Type
+		optsChanged := optionsChanged(existing.Attrs, field.Attrs)
+
+		if typeChanged || optsChanged {
 			count, cErr := ps.fieldStore.CountLinkedFields(field.ID)
 			if cErr != nil {
 				return nil, fmt.Errorf("failed to count linked fields: %w", cErr)
 			}
-			if count > 0 {
+
+			if typeChanged && count > 0 {
 				return nil, model.NewAppError(
 					"UpdatePropertyFields",
 					"app.property_field.update.type_change_with_dependents.app_error",
@@ -293,15 +298,8 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 					http.StatusConflict,
 				)
 			}
-		}
 
-		// Build propagation requests for fields whose options changed
-		if optionsChanged(existing.Attrs, field.Attrs) {
-			count, cErr := ps.fieldStore.CountLinkedFields(field.ID)
-			if cErr != nil {
-				return nil, fmt.Errorf("failed to count linked fields for propagation: %w", cErr)
-			}
-			if count > 0 {
+			if optsChanged && count > 0 {
 				var opts any
 				if field.Attrs != nil {
 					opts = field.Attrs[model.PropertyFieldAttributeOptions]
@@ -314,12 +312,9 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 			}
 		}
 
-		// Check if name, TargetType, or TargetID changed - these affect uniqueness
-		nameChanged := existing.Name != field.Name
-		targetTypeChanged := existing.TargetType != field.TargetType
-		targetIDChanged := existing.TargetID != field.TargetID
-
-		if nameChanged || targetTypeChanged || targetIDChanged {
+		// TargetType and TargetID are immutable (enforced above), so only
+		// a name change can introduce a uniqueness conflict.
+		if existing.Name != field.Name {
 			conflictLevel, cErr := ps.fieldStore.CheckPropertyNameConflict(field, field.ID)
 			if cErr != nil {
 				return nil, fmt.Errorf("failed to check property name conflict: %w", cErr)

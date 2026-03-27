@@ -252,10 +252,15 @@ func (s *SqlPropertyFieldStore) buildConflictSubquery(level string, objectType, 
 }
 
 // CheckPropertyNameConflict checks if a property field would conflict with
-// existing properties in the hierarchy. It should be called before creating
-// or updating a property field to enforce hierarchical uniqueness.
+// existing properties at the same level or in the hierarchy. It should be called
+// before creating or updating a property field to enforce uniqueness.
 //
-// The hierarchy works as follows:
+// Same-level uniqueness: two properties at the same TargetType (and same TargetID
+// for team/channel) with the same Name, ObjectType, and GroupID conflict. This
+// prevents duplicate names within the same scope (e.g., two templates named
+// "Classification" at system level in the same group).
+//
+// The hierarchy additionally works as follows:
 //   - System-level properties (TargetType="system") conflict with any team or channel
 //     property with the same name in the same ObjectType and GroupID
 //   - Team-level properties (TargetType="team") conflict with system properties and
@@ -294,8 +299,16 @@ func (s *SqlPropertyFieldStore) CheckPropertyNameConflict(field *model.PropertyF
 }
 
 // checkSystemLevelConflict checks if a system-level property would conflict with
-// any team or channel property with the same name in the same ObjectType and GroupID.
+// another system-level property with the same name, or any team or channel property
+// with the same name, in the same ObjectType and GroupID.
 func (s *SqlPropertyFieldStore) checkSystemLevelConflict(field *model.PropertyField, excludeID string) (model.PropertyFieldTargetLevel, error) {
+	// Build same-level (system) subquery — catches duplicate names at the same scope
+	systemSubquery := s.buildConflictSubquery("system", field.ObjectType, field.GroupID, field.Name, excludeID)
+	systemSQL, systemArgs, err := systemSubquery.ToSql()
+	if err != nil {
+		return "", errors.Wrap(err, "property_field_check_conflict_system_system_sql")
+	}
+
 	// Build team subquery
 	teamSubquery := s.buildConflictSubquery("team", field.ObjectType, field.GroupID, field.Name, excludeID)
 	teamSQL, teamArgs, err := teamSubquery.ToSql()
@@ -311,8 +324,9 @@ func (s *SqlPropertyFieldStore) checkSystemLevelConflict(field *model.PropertyFi
 	}
 
 	// Combine with COALESCE, use Rebind to convert ? placeholders to $1, $2, etc.
-	query := fmt.Sprintf("SELECT COALESCE((%s), (%s), '')", teamSQL, channelSQL)
-	args := append(teamArgs, channelArgs...)
+	query := fmt.Sprintf("SELECT COALESCE((%s), (%s), (%s), '')", systemSQL, teamSQL, channelSQL)
+	args := append(systemArgs, teamArgs...)
+	args = append(args, channelArgs...)
 
 	var conflictLevel model.PropertyFieldTargetLevel
 	if err := s.GetMaster().DB.Get(&conflictLevel, s.GetMaster().DB.Rebind(query), args...); err != nil {
@@ -323,8 +337,17 @@ func (s *SqlPropertyFieldStore) checkSystemLevelConflict(field *model.PropertyFi
 }
 
 // checkTeamLevelConflict checks if a team-level property would conflict with
-// system properties or channel properties within that team.
+// another team-level property with the same name and target, system properties,
+// or channel properties within that team.
 func (s *SqlPropertyFieldStore) checkTeamLevelConflict(field *model.PropertyField, excludeID string) (model.PropertyFieldTargetLevel, error) {
+	// Build same-level (team) subquery — same name within the same team target
+	teamSubquery := s.buildConflictSubquery("team", field.ObjectType, field.GroupID, field.Name, excludeID).
+		Where(sq.Eq{"TargetID": field.TargetID})
+	teamSQL, teamArgs, err := teamSubquery.ToSql()
+	if err != nil {
+		return "", errors.Wrap(err, "property_field_check_conflict_team_team_sql")
+	}
+
 	// Build system subquery
 	systemSubquery := s.buildConflictSubquery("system", field.ObjectType, field.GroupID, field.Name, excludeID)
 	systemSQL, systemArgs, err := systemSubquery.ToSql()
@@ -355,8 +378,9 @@ func (s *SqlPropertyFieldStore) checkTeamLevelConflict(field *model.PropertyFiel
 	}
 
 	// Combine with COALESCE, use Rebind to convert ? placeholders to $1, $2, etc.
-	query := fmt.Sprintf("SELECT COALESCE((%s), (%s), '')", systemSQL, channelSQL)
-	args := append(systemArgs, channelArgs...)
+	query := fmt.Sprintf("SELECT COALESCE((%s), (%s), (%s), '')", teamSQL, systemSQL, channelSQL)
+	args := append(teamArgs, systemArgs...)
+	args = append(args, channelArgs...)
 
 	var conflictLevel model.PropertyFieldTargetLevel
 	if err := s.GetMaster().DB.Get(&conflictLevel, s.GetMaster().DB.Rebind(query), args...); err != nil {
@@ -367,10 +391,19 @@ func (s *SqlPropertyFieldStore) checkTeamLevelConflict(field *model.PropertyFiel
 }
 
 // checkChannelLevelConflict checks if a channel-level property would conflict with
-// system properties or the team property of the channel's team.
+// another channel-level property with the same name and target, system properties,
+// or the team property of the channel's team.
 // Uses a subquery to get TeamId from Channels table - handles DM channels naturally
 // (DM channels have empty TeamId, so TargetID will be empty and won't match any team-level property).
 func (s *SqlPropertyFieldStore) checkChannelLevelConflict(field *model.PropertyField, excludeID string) (model.PropertyFieldTargetLevel, error) {
+	// Build same-level (channel) subquery — same name within the same channel target
+	channelSubquery := s.buildConflictSubquery("channel", field.ObjectType, field.GroupID, field.Name, excludeID).
+		Where(sq.Eq{"TargetID": field.TargetID})
+	channelSQL, channelArgs, err := channelSubquery.ToSql()
+	if err != nil {
+		return "", errors.Wrap(err, "property_field_check_conflict_channel_channel_sql")
+	}
+
 	// Build system subquery
 	systemSubquery := s.buildConflictSubquery("system", field.ObjectType, field.GroupID, field.Name, excludeID)
 	systemSQL, systemArgs, err := systemSubquery.ToSql()
@@ -389,8 +422,9 @@ func (s *SqlPropertyFieldStore) checkChannelLevelConflict(field *model.PropertyF
 	}
 
 	// Combine with COALESCE, use Rebind to convert ? placeholders to $1, $2, etc.
-	query := fmt.Sprintf("SELECT COALESCE((%s), (%s), '')", systemSQL, teamSQL)
-	args := append(systemArgs, teamArgs...)
+	query := fmt.Sprintf("SELECT COALESCE((%s), (%s), (%s), '')", channelSQL, systemSQL, teamSQL)
+	args := append(channelArgs, systemArgs...)
+	args = append(args, teamArgs...)
 
 	var conflictLevel model.PropertyFieldTargetLevel
 	if err := s.GetMaster().DB.Get(&conflictLevel, s.GetMaster().DB.Rebind(query), args...); err != nil {

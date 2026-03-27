@@ -2335,6 +2335,162 @@ func testCheckPropertyNameConflict(t *testing.T, _ request.CTX, ss store.Store) 
 			require.Equal(t, model.PropertyFieldTargetLevelChannel, conflict, "should still conflict with non-excluded property")
 		})
 	})
+
+	t.Run("same-level conflicts", func(t *testing.T) {
+		t.Run("system-level should conflict with existing system-level same name", func(t *testing.T) {
+			sameLevelName := "same-level-system-" + model.NewId()
+			existing, cErr := ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				TargetID:   "",
+				Type:       model.PropertyFieldTypeText,
+				Name:       sameLevelName,
+			})
+			require.NoError(t, cErr)
+
+			// Another system-level field with the same name should conflict
+			conflict, err := ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				TargetID:   "",
+				Name:       sameLevelName,
+			}, "")
+			require.NoError(t, err)
+			require.Equal(t, model.PropertyFieldTargetLevelSystem, conflict)
+
+			// Excluding itself should not conflict
+			conflict, err = ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				TargetID:   "",
+				Name:       sameLevelName,
+			}, existing.ID)
+			require.NoError(t, err)
+			require.Empty(t, conflict, "should not conflict with itself via excludeID")
+		})
+
+		t.Run("team-level should conflict with existing team-level same name and target", func(t *testing.T) {
+			sameLevelName := "same-level-team-" + model.NewId()
+			_, cErr := ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelTeam),
+				TargetID:   team.Id,
+				Type:       model.PropertyFieldTypeText,
+				Name:       sameLevelName,
+			})
+			require.NoError(t, cErr)
+
+			// Another team-level field with the same name and same TargetID should conflict
+			conflict, err := ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelTeam),
+				TargetID:   team.Id,
+				Name:       sameLevelName,
+			}, "")
+			require.NoError(t, err)
+			require.Equal(t, model.PropertyFieldTargetLevelTeam, conflict)
+
+			// Same name but different team should NOT conflict
+			conflict, err = ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelTeam),
+				TargetID:   team2.Id,
+				Name:       sameLevelName,
+			}, "")
+			require.NoError(t, err)
+			require.Empty(t, conflict, "different teams should not conflict at same level")
+		})
+
+		t.Run("channel-level should conflict with existing channel-level same name and target", func(t *testing.T) {
+			sameLevelName := "same-level-channel-" + model.NewId()
+			_, cErr := ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelChannel),
+				TargetID:   channel.Id,
+				Type:       model.PropertyFieldTypeText,
+				Name:       sameLevelName,
+			})
+			require.NoError(t, cErr)
+
+			// Another channel-level field with the same name and same TargetID should conflict
+			conflict, err := ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelChannel),
+				TargetID:   channel.Id,
+				Name:       sameLevelName,
+			}, "")
+			require.NoError(t, err)
+			require.Equal(t, model.PropertyFieldTargetLevelChannel, conflict)
+
+			// Same name but different channel should NOT conflict
+			conflict, err = ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelChannel),
+				TargetID:   channel2.Id,
+				Name:       sameLevelName,
+			}, "")
+			require.NoError(t, err)
+			require.Empty(t, conflict, "different channels should not conflict at same level")
+		})
+
+		t.Run("template fields should conflict with existing template same name and target type", func(t *testing.T) {
+			templateName := "same-level-template-" + model.NewId()
+			templateGroupID := model.NewId()
+
+			_, cErr := ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: model.PropertyFieldObjectTypeTemplate,
+				GroupID:    templateGroupID,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				TargetID:   "",
+				Type:       model.PropertyFieldTypeSelect,
+				Name:       templateName,
+			})
+			require.NoError(t, cErr)
+
+			// Another template with the same name, group, and target_type should conflict
+			conflict, err := ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: model.PropertyFieldObjectTypeTemplate,
+				GroupID:    templateGroupID,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				TargetID:   "",
+				Name:       templateName,
+			}, "")
+			require.NoError(t, err)
+			require.Equal(t, model.PropertyFieldTargetLevelSystem, conflict)
+
+			// Template with same name but different group should NOT conflict
+			conflict, err = ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: model.PropertyFieldObjectTypeTemplate,
+				GroupID:    model.NewId(),
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				TargetID:   "",
+				Name:       templateName,
+			}, "")
+			require.NoError(t, err)
+			require.Empty(t, conflict, "different groups should not conflict")
+
+			// Non-template field with the same name should NOT conflict
+			// (different ObjectType)
+			conflict, err = ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    templateGroupID,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				TargetID:   "",
+				Name:       templateName,
+			}, "")
+			require.NoError(t, err)
+			require.Empty(t, conflict, "different object types should not conflict")
+		})
+	})
 }
 
 func testCountLinkedFields(t *testing.T, _ request.CTX, ss store.Store) {
