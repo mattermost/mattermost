@@ -1084,6 +1084,9 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		// Disable feature flag from the beginning to prevent any automatic sync
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableSharedChannelsMemberSync = false })
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableSharedChannelsMemberSync = true })
+		})
 
 		// Create test HTTP server that counts sync messages
 		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
