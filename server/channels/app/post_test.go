@@ -1370,6 +1370,7 @@ func TestCreatePost(t *testing.T) {
 
 		_, _, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
 		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 		assert.Equal(t, "api.post.create_post.integrated_boards_card_disabled.app_error", appErr.Id)
 	})
 

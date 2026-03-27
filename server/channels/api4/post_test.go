@@ -249,6 +249,7 @@ func TestCreatePost(t *testing.T) {
 		})
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.post.create_post.integrated_boards_card_disabled.app_error")
 		assert.Nil(t, cardPost)
 	})
 
