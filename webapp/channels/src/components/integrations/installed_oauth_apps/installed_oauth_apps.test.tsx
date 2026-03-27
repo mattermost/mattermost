@@ -1,13 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
+import {screen} from '@testing-library/react';
 import React from 'react';
 
-import BackstageList from 'components/backstage/components/backstage_list';
 import InstalledOAuthApps from 'components/integrations/installed_oauth_apps/installed_oauth_apps';
 
+import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
+
+jest.mock('components/integrations/delete_integration_link', () => {
+    const React = require('react'); // eslint-disable-line @typescript-eslint/no-var-requires, global-require
+    return {
+        __esModule: true,
+        default: (props: {onDelete: () => void}) => React.createElement('button', {onClick: props.onDelete}, 'Delete'),
+    };
+});
 
 describe('components/integrations/InstalledOAuthApps', () => {
     const oauthApps = {
@@ -39,6 +47,18 @@ describe('components/integrations/InstalledOAuthApps', () => {
         },
     };
 
+    const initialState = {
+        entities: {
+            general: {
+                config: {},
+            },
+            users: {
+                currentUserId: 'currentUserId',
+                profiles: {},
+            },
+        },
+    };
+
     const baseProps = {
         team: TestHelper.getTeamMock({
             name: 'test',
@@ -46,68 +66,105 @@ describe('components/integrations/InstalledOAuthApps', () => {
         oauthApps,
         canManageOauth: true,
         actions: {
-            loadOAuthAppsAndProfiles: jest.fn(),
+            loadOAuthAppsAndProfiles: jest.fn().mockResolvedValue({}),
             regenOAuthAppSecret: jest.fn(),
             deleteOAuthApp: jest.fn(),
         },
         enableOAuthServiceProvider: true,
-        appsOAuthAppIDs: [],
+        appsOAuthAppIDs: [] as string[],
     };
 
-    test('should match snapshot', () => {
-        const newGetOAuthApps = jest.fn().mockImplementation(
-            () => {
-                return new Promise((resolve) => {
-                    process.nextTick(() => resolve({}));
-                });
-            },
+    test('should match snapshot', async () => {
+        const {container} = renderWithContext(
+            <InstalledOAuthApps {...baseProps}/>,
+            initialState,
         );
 
-        const props = {...baseProps};
-        props.actions.loadOAuthAppsAndProfiles = newGetOAuthApps;
-        const wrapper = shallow<InstalledOAuthApps>(<InstalledOAuthApps {...props}/>);
+        // Wait for loading to complete
+        await screen.findByText('firstApp');
 
-        expect(wrapper).toMatchSnapshot();
-        expect(shallow(<div>{wrapper.instance().oauthApps('first')}</div>)).toMatchSnapshot(); // successful filter
-        expect(shallow(<div>{wrapper.instance().oauthApps('ZZZ')}</div>)).toMatchSnapshot(); // unsuccessful filter
-        expect(shallow(<div>{wrapper.instance().oauthApps()}</div>).find('Connect(InstalledOAuthApp)').length).toBe(2); // no filter, should return all
-        expect(wrapper.find(BackstageList).props().addLink).toEqual('/test/integrations/oauth2-apps/add');
-        expect(wrapper.find(BackstageList).props().addText).toEqual('Add OAuth 2.0 Application');
+        expect(container).toMatchSnapshot();
 
-        wrapper.setProps({canManageOauth: false});
-        expect(wrapper.find(BackstageList).props().addLink).toBeFalsy();
-        expect(wrapper.find(BackstageList).props().addText).toBeFalsy();
+        // Both apps should be rendered
+        expect(screen.getByText('firstApp')).toBeInTheDocument();
+        expect(screen.getByText('secondApp')).toBeInTheDocument();
+
+        // Should have add link and add text when canManageOauth is true
+        expect(screen.getByText('Add OAuth 2.0 Application')).toBeInTheDocument();
+
+        // Filter by typing in search input
+        const searchInput = screen.getByPlaceholderText('Search OAuth 2.0 Applications');
+        await userEvent.type(searchInput, 'first');
+        expect(screen.getByText('firstApp')).toBeInTheDocument();
+        expect(screen.queryByText('secondApp')).not.toBeInTheDocument();
+
+        // Clear and type non-matching filter
+        await userEvent.clear(searchInput);
+        await userEvent.type(searchInput, 'ZZZ');
+        expect(screen.queryByText('firstApp')).not.toBeInTheDocument();
+        expect(screen.queryByText('secondApp')).not.toBeInTheDocument();
+
+        // Clear filter to show all apps again
+        await userEvent.clear(searchInput);
+        expect(screen.getByText('firstApp')).toBeInTheDocument();
+        expect(screen.getByText('secondApp')).toBeInTheDocument();
+
+        // Re-render with canManageOauth=false, add link should not be present
+        const {container: container2} = renderWithContext(
+            <InstalledOAuthApps
+                {...baseProps}
+                canManageOauth={false}
+            />,
+            initialState,
+        );
+
+        await screen.findAllByText('firstApp');
+        expect(container2.querySelector('#addOauthApp')).not.toBeInTheDocument();
     });
 
-    test('should match snapshot for Apps', () => {
-        const newGetOAuthApps = jest.fn().mockImplementation(
-            () => {
-                return new Promise((resolve) => {
-                    process.nextTick(() => resolve({}));
-                });
-            },
-        );
-
+    test('should match snapshot for Apps', async () => {
         const props = {
             ...baseProps,
             appsOAuthAppIDs: ['fzcxd9wpzpbpfp8pad78xj75pr'],
         };
 
-        props.actions.loadOAuthAppsAndProfiles = newGetOAuthApps;
-        const wrapper = shallow<InstalledOAuthApps>(<InstalledOAuthApps {...props}/>);
-        expect(shallow(<div>{wrapper.instance().oauthApps('second')}</div>)).toMatchSnapshot(); // successful filter
-    });
-
-    test('should props.deleteOAuthApp on deleteOAuthApp', () => {
-        const newDeleteOAuthApp = jest.fn();
-        const props = {...baseProps};
-        props.actions.deleteOAuthApp = newDeleteOAuthApp;
-        const wrapper = shallow<InstalledOAuthApps>(
+        const {container} = renderWithContext(
             <InstalledOAuthApps {...props}/>,
+            initialState,
         );
 
-        wrapper.instance().deleteOAuthApp(oauthApps.facxd9wpzpbpfp8pad78xj75pr);
-        expect(newDeleteOAuthApp).toHaveBeenCalled();
-        expect(newDeleteOAuthApp).toHaveBeenCalledWith(oauthApps.facxd9wpzpbpfp8pad78xj75pr.id);
+        // Wait for loading to complete
+        await screen.findByText('firstApp');
+
+        expect(container).toMatchSnapshot();
+
+        // The app managed by Apps Framework should show managed text
+        expect(screen.getByText('Managed by Apps Framework')).toBeInTheDocument();
+    });
+
+    test('should props.deleteOAuthApp on deleteOAuthApp', async () => {
+        const deleteOAuthApp = jest.fn();
+        const props = {
+            ...baseProps,
+            actions: {
+                ...baseProps.actions,
+                deleteOAuthApp,
+            },
+        };
+
+        renderWithContext(
+            <InstalledOAuthApps {...props}/>,
+            initialState,
+        );
+
+        // Wait for loading to complete
+        await screen.findByText('firstApp');
+
+        // Click the first Delete button (mocked DeleteIntegrationLink)
+        const deleteButtons = screen.getAllByRole('button', {name: 'Delete'});
+        await userEvent.click(deleteButtons[0]);
+
+        expect(deleteOAuthApp).toHaveBeenCalled();
+        expect(deleteOAuthApp).toHaveBeenCalledWith(oauthApps.facxd9wpzpbpfp8pad78xj75pr.id);
     });
 });
