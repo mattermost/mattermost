@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+//
 // gen-bulk-insert-test-data.go generates a Mattermost bulk-import zip,
 // imports it via mmctl, waits for the job to complete, and validates the
 // results. Designed to verify that bulk INSERT chunking (MM-68076) works
@@ -27,9 +30,9 @@
 //
 // Prerequisites:
 //
-//	- Mattermost server running with local mode enabled
-//	- mmctl binary available at the specified path
-//	- MaxUsersPerTeam setting high enough for the number of users
+//   - Mattermost server running with local mode enabled
+//   - mmctl binary available at the specified path
+//   - MaxUsersPerTeam setting high enough for the number of users
 package main
 
 import (
