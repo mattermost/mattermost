@@ -6099,6 +6099,11 @@ func TestRevealPost(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.FeatureFlags.BurnOnRead = false
 		})
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.FeatureFlags.BurnOnRead = true
+			})
+		})
 
 		revealedPost, resp, err := th.Client.RevealPost(context.Background(), post.Id)
 		require.NoError(t, err)
