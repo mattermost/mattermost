@@ -2781,6 +2781,10 @@
     "translation": "Can not post to deleted channel."
   },
   {
+    "id": "api.post.create_post.card_type_disabled.app_error",
+    "translation": "Card posts are not enabled on this server."
+  },
+  {
     "id": "api.post.create_post.channel_root_id.app_error",
     "translation": "Invalid ChannelId for RootId parameter."
   },

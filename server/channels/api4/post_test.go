@@ -222,19 +222,6 @@ func TestCreatePost(t *testing.T) {
 		assert.Nil(t, rpost)
 	})
 
-	t.Run("with type card", func(t *testing.T) {
-		cardPost, resp, err := client.CreatePost(context.Background(), &model.Post{
-			ChannelId: th.BasicChannel.Id,
-			Message:   "card post",
-			Type:      model.PostTypeCard,
-		})
-		require.NoError(t, err)
-		CheckCreatedStatus(t, resp)
-		require.NotNil(t, cardPost)
-		assert.Equal(t, model.PostTypeCard, cardPost.Type)
-		assert.Equal(t, "card post", cardPost.Message)
-	})
-
 	t.Run("invalid post type", func(t *testing.T) {
 		post := basicPost()
 		post.Type = model.PostTypeSystemGeneric
@@ -6399,5 +6386,59 @@ func TestPatchCardPostByNonOwner(t *testing.T) {
 		_, resp, err := cli.PatchPost(context.Background(), cardPost.Id, patch)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+	})
+}
+
+func TestCreateCardPostWithFeatureFlagDisabled(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("card post rejected when IntegratedBoards flag is disabled", func(t *testing.T) {
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.IntegratedBoards = false
+		}).InitBasic(t)
+		client := th.Client
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "this is a card",
+			Type:      model.PostTypeCard,
+		}
+		_, resp, err := client.CreatePost(context.Background(), post)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("card post allowed when IntegratedBoards flag is enabled", func(t *testing.T) {
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.IntegratedBoards = true
+		}).InitBasic(t)
+		client := th.Client
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "card post",
+			Type:      model.PostTypeCard,
+		}
+		rpost, resp, err := client.CreatePost(context.Background(), post)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, rpost)
+		assert.Equal(t, model.PostTypeCard, rpost.Type)
+		assert.Equal(t, "card post", rpost.Message)
+	})
+
+	t.Run("non-card post allowed when IntegratedBoards flag is disabled", func(t *testing.T) {
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.IntegratedBoards = false
+		}).InitBasic(t)
+		client := th.Client
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "this is a regular post",
+		}
+		rpost, _, err := client.CreatePost(context.Background(), post)
+		require.NoError(t, err)
+		assert.Equal(t, "", rpost.Type)
 	})
 }
