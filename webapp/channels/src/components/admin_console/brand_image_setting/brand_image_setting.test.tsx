@@ -6,8 +6,6 @@ import React from 'react';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {screen, renderWithContext, userEvent, waitFor} from 'tests/react_testing_utils';
-
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import BrandImageSetting from './brand_image_setting';
