@@ -239,9 +239,7 @@ export default class RecapsPage {
 
     async expectEmptyState() {
         await expect(this.page.getByRole('heading', {name: "You're all caught up"})).toBeVisible();
-        await expect(
-            this.page.getByText("You don't have any recaps yet. Create one to get started."),
-        ).toBeVisible();
+        await expect(this.page.getByText("You don't have any recaps yet. Create one to get started.")).toBeVisible();
     }
 
     async expectAddRecapDisabled(reason: string) {
