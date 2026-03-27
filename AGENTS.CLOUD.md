@@ -131,5 +131,5 @@ Supported service types: `openai`, `openaicompatible`, `azure`, `anthropic`, `as
 
 ### Versions
 
-- Node.js: see `.nvmrc` (currently `24.11`); `nvm use` from workspace root.
-- Go: see `server/go.mod` (currently `1.24.13`).
+- Node.js: see `.nvmrc`; `nvm use` from workspace root.
+- Go: see `server/go.mod`.
