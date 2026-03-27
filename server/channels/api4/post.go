@@ -1747,6 +1747,15 @@ func rewriteMessage(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func revealPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	// Enforce X-Requested-With header for cookie-authenticated requests.
+	if r.Header.Get(model.HeaderAuth) == "" {
+		if r.Header.Get(model.HeaderRequestedWith) != model.HeaderRequestedWithXML {
+			c.Err = model.NewAppError("revealPost", "api.post.reveal_post.invalid_request.app_error",
+				nil, "missing or invalid X-Requested-With header", http.StatusForbidden)
+			return
+		}
+	}
+
 	c.RequirePostId()
 	if c.Err != nil {
 		return
