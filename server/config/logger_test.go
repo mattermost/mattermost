@@ -57,8 +57,8 @@ func TestGetLogRootPath(t *testing.T) {
 			os.RemoveAll(dir)
 		})
 
-		TestOverrideLogRootPath = dir
-		t.Cleanup(func() { TestOverrideLogRootPath = "" })
+		SetTestOverrideLogRootPath(dir)
+		t.Cleanup(func() { SetTestOverrideLogRootPath("") })
 
 		result := GetLogRootPath()
 		absDir, _ := filepath.Abs(dir)

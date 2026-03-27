@@ -38,8 +38,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 	})
 
 	// Override log root path to allow log file reads from our temp directory
-	config.TestOverrideLogRootPath = dir
-	t.Cleanup(func() { config.TestOverrideLogRootPath = "" })
+	config.SetTestOverrideLogRootPath(dir)
+	t.Cleanup(func() { config.SetTestOverrideLogRootPath("") })
 
 	th.Service.UpdateConfig(func(cfg *model.Config) {
 		*cfg.LogSettings.FileLocation = dir
