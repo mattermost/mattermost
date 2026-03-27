@@ -1,73 +1,135 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`admin_console/team_channel_settings/group/GroupList should match snapshot while visible 1`] = `
-<Modal
-  animation={true}
-  aria-labelledby="groupMemberModalLabel"
-  autoFocus={true}
-  backdrop={true}
-  bsClass="modal"
-  dialogClassName="a11y__modal settings-modal"
-  dialogComponentClass={[Function]}
-  enforceFocus={true}
-  id="groupMembersModal"
-  keyboard={true}
-  manager={
-    ModalManager {
-      "add": [Function],
-      "containers": Array [],
-      "data": Array [],
-      "handleContainerOverflow": true,
-      "hideSiblingNodes": true,
-      "isTopModal": [Function],
-      "modals": Array [],
-      "remove": [Function],
-    }
-  }
-  onExited={[Function]}
-  onHide={[Function]}
-  renderBackdrop={[Function]}
-  restoreFocus={true}
-  role="none"
-  show={true}
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
 >
-  <ModalHeader
-    bsClass="modal-header"
-    closeButton={true}
-    closeLabel="Close"
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
   >
-    <ModalTitle
-      bsClass="modal-title"
-      componentClass="h1"
-      id="groupMemberModalLabel"
-    >
-      group_display_name
-    </ModalTitle>
-  </ModalHeader>
-  <ModalBody
-    bsClass="modal-body"
-    componentClass="div"
-  >
-    <Connect(MemberListGroup)
-      groupID="group_id"
+    <div
+      class="fade modal-backdrop in"
     />
-  </ModalBody>
-  <ModalFooter
-    bsClass="modal-footer"
-    componentClass="div"
-  >
-    <button
-      autoFocus={true}
-      className="btn btn-primary"
-      id="closeModalButton"
-      onClick={[Function]}
-      type="button"
+    <div
+      aria-labelledby="groupMemberModalLabel"
+      class="fade in modal"
+      id="groupMembersModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="Close"
-        id="admin.team_channel_settings.groupMembers.close"
-      />
-    </button>
-  </ModalFooter>
-</Modal>
+      <div
+        class="a11y__modal settings-modal modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="modal-header"
+          >
+            <button
+              aria-label="Close"
+              class="close"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+              >
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Close
+              </span>
+            </button>
+            <h1
+              class="modal-title"
+              id="groupMemberModalLabel"
+            >
+              group_display_name
+            </h1>
+          </div>
+          <div
+            class="modal-body"
+          >
+            <div
+              class="MemberListGroup"
+            >
+              <div
+                class="DataGrid"
+              >
+                <div
+                  class="DataGrid_search"
+                >
+                  <div
+                    class="DataGrid_searchBar"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="DataGrid_searchIcon"
+                    >
+                      <i
+                        class="fa fa-search"
+                        title="Search Icon"
+                      />
+                    </span>
+                    <input
+                      data-testid="searchInput"
+                      placeholder="Search"
+                      type="text"
+                      value=""
+                    />
+                    <i
+                      class="DataGrid_clearButton fa fa-times-circle hidden"
+                      data-testid="clear-search"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="DataGrid_header"
+                />
+                <div
+                  class="DataGrid_rows"
+                >
+                  <div
+                    class="DataGrid_loading"
+                  >
+                    <span
+                      class="LoadingSpinner"
+                      data-testid="loadingSpinner"
+                      id="loadingSpinner"
+                    >
+                      <span
+                        class="fa fa-spinner fa-fw fa-pulse spinner"
+                        title="Loading Icon"
+                      />
+                    </span>
+                    Loading
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="modal-footer"
+          >
+            <button
+              class="btn btn-primary"
+              id="closeModalButton"
+              type="button"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
 `;

@@ -1,17 +1,54 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {PostAction} from '@mattermost/types/integration_actions';
 import type {MessageAttachment as MessageAttachmentType} from '@mattermost/types/message_attachments';
 import type {PostImage} from '@mattermost/types/posts';
 
-import ExternalImage from 'components/external_image';
 import MessageAttachment from 'components/post_view/message_attachments/message_attachment/message_attachment';
 
+import {act, renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
 import {Constants} from 'utils/constants';
+
+jest.mock('components/external_image', () => {
+    return jest.fn((props: any) => <>{props.children(props.src)}</>);
+});
+
+jest.mock('components/markdown', () => {
+    return jest.fn((props: any) => <div data-testid='markdown-mock'>{props.message}</div>);
+});
+
+jest.mock('components/size_aware_image', () => {
+    return jest.fn((props: any) => (
+        <img
+            data-testid='size-aware-image-mock'
+            className={props.className}
+            src={props.src}
+            onClick={(e: React.MouseEvent<HTMLImageElement>) => props.onClick?.(e, props.src)}
+        />
+    ));
+});
+
+jest.mock('../action_button', () => {
+    return jest.fn((props: any) => (
+        <button
+            data-testid='action-button-mock'
+            data-action-id={props.action.id}
+            data-action-cookie={props.action.cookie}
+            onClick={(e: React.MouseEvent) => props.handleAction(e, props.action.options)}
+        >
+            {props.action.name}
+        </button>
+    ));
+});
+
+jest.mock('../action_menu', () => {
+    return jest.fn((props: any) => (
+        <div data-testid='action-menu-mock'>{props.action.name}</div>
+    ));
+});
 
 describe('components/post_view/MessageAttachment', () => {
     const attachment = {
@@ -50,26 +87,52 @@ describe('components/post_view/MessageAttachment', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(<MessageAttachment {...baseProps}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<MessageAttachment {...baseProps}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should change checkOverflow state on handleHeightReceived change', () => {
-        const wrapper = shallow<MessageAttachment>(<MessageAttachment {...baseProps}/>);
-        const instance = wrapper.instance();
+        // Mock Markdown to capture imageProps
+        const MarkdownMock = jest.requireMock('components/markdown');
+        MarkdownMock.mockClear();
 
-        wrapper.setState({checkOverflow: 0});
-        instance.handleHeightReceived(1);
-        expect(wrapper.state('checkOverflow')).toEqual(1);
+        renderWithContext(<MessageAttachment {...baseProps}/>);
 
-        instance.handleHeightReceived(0);
-        expect(wrapper.state('checkOverflow')).toEqual(1);
+        // Find the Markdown call that has imageProps (the attachment text one)
+        const callWithImageProps = MarkdownMock.mock.calls.find(
+            (call: any) => call[0].imageProps,
+        );
+        expect(callWithImageProps).toBeDefined();
+
+        const imageProps = callWithImageProps[0].imageProps;
+        const callCountBefore = MarkdownMock.mock.calls.length;
+
+        // Call onImageLoaded with height > 0 (triggers checkPostOverflow)
+        act(() => {
+            imageProps.onImageLoaded(1);
+        });
+
+        // Component should re-render
+        expect(MarkdownMock.mock.calls.length).toBeGreaterThan(callCountBefore);
+
+        // Call onImageLoaded with height 0 (should NOT trigger checkPostOverflow)
+        const callCountAfter = MarkdownMock.mock.calls.length;
+        act(() => {
+            imageProps.onImageLoaded(0);
+        });
+
+        // No additional re-render
+        expect(MarkdownMock.mock.calls.length).toEqual(callCountAfter);
     });
 
     test('should match value on renderPostActions', () => {
-        let wrapper = shallow<MessageAttachment>(<MessageAttachment {...baseProps}/>);
-        expect(wrapper.instance().renderPostActions()).toMatchSnapshot();
+        // Without actions - no action buttons should render
+        const {container, unmount} = renderWithContext(<MessageAttachment {...baseProps}/>);
+        expect(container.querySelector('.attachment-actions')).not.toBeInTheDocument();
 
+        unmount();
+
+        // With actions
         const newAttachment = {
             ...attachment,
             actions: [
@@ -80,12 +143,16 @@ describe('components/post_view/MessageAttachment', () => {
         };
 
         const props = {...baseProps, attachment: newAttachment};
+        const {container: container2} = renderWithContext(<MessageAttachment {...props}/>);
 
-        wrapper = shallow(<MessageAttachment {...props}/>);
-        expect(wrapper.instance().renderPostActions()).toMatchSnapshot();
+        // Should render action buttons and action menu
+        expect(container2.querySelector('.attachment-actions')).toBeInTheDocument();
+        expect(screen.getAllByTestId('action-button-mock')).toHaveLength(2);
+        expect(screen.getByTestId('action-menu-mock')).toBeInTheDocument();
+        expect(container2.querySelector('.attachment-actions')).toMatchSnapshot();
     });
 
-    test('should call actions.doPostActionWithCookie on handleAction', () => {
+    test('should call actions.doPostActionWithCookie on handleAction', async () => {
         const promise = Promise.resolve({data: 123});
         const doPostActionWithCookie = jest.fn(() => promise);
         const openModal = jest.fn();
@@ -95,33 +162,48 @@ describe('components/post_view/MessageAttachment', () => {
             actions: [{id: actionId, name: 'action_name_1', cookie: 'cookie-contents'}] as PostAction[],
         };
         const props = {...baseProps, actions: {doPostActionWithCookie, openModal}, attachment: newAttachment};
-        const wrapper = shallow<MessageAttachment>(<MessageAttachment {...props}/>);
-        expect(wrapper).toMatchSnapshot();
-        wrapper.instance().handleAction({
-            preventDefault: () => {}, // eslint-disable-line no-empty-function
-            currentTarget: {getAttribute: () => {
-                return 'attr_some_value';
-            }} as any,
-        } as React.MouseEvent, []);
+        const {container} = renderWithContext(<MessageAttachment {...props}/>);
+        expect(container).toMatchSnapshot();
+
+        const {userEvent} = await import('tests/react_testing_utils');
+        await userEvent.click(screen.getByTestId('action-button-mock'));
 
         expect(doPostActionWithCookie).toHaveBeenCalledTimes(1);
-        expect(doPostActionWithCookie).toHaveBeenCalledWith(props.postId, 'attr_some_value', 'attr_some_value');
+        expect(doPostActionWithCookie).toHaveBeenCalledWith(props.postId, actionId, 'cookie-contents');
     });
 
-    test('should call openModal when showModal is called', () => {
-        const props = {...baseProps, src: 'https://example.com/image.png'};
-        const wrapper = shallow<MessageAttachment>(
-            <MessageAttachment {...props}/>,
-        );
+    test('should call openModal when showModal is called', async () => {
+        const props = {
+            ...baseProps,
+            attachment: {
+                ...attachment,
+                image_url: 'https://example.com/image.png',
+            } as MessageAttachmentType,
+            imagesMetadata: {
+                ...baseProps.imagesMetadata,
+                'https://example.com/image.png': {height: 200, width: 200} as PostImage,
+            },
+        };
+        renderWithContext(<MessageAttachment {...props}/>);
 
-        wrapper.instance().showModal({preventDefault: () => {}} as unknown as React.KeyboardEvent<HTMLImageElement> | React.MouseEvent<HTMLElement, MouseEvent>, 'https://example.com/image.png');
+        // Click on the image to trigger showModal
+        const {userEvent} = await import('tests/react_testing_utils');
+        const images = screen.getAllByTestId('size-aware-image-mock');
+        const attachmentImage = images.find((img) => img.getAttribute('src') === 'https://example.com/image.png');
+        expect(attachmentImage).toBeDefined();
+        await userEvent.click(attachmentImage!);
+
         expect(props.actions.openModal).toHaveBeenCalledTimes(1);
     });
 
     test('should match value on getFieldsTable', () => {
-        let wrapper = shallow<MessageAttachment>(<MessageAttachment {...baseProps}/>);
-        expect(wrapper.instance().getFieldsTable()).toMatchSnapshot();
+        // Without fields - no field table should render
+        const {container, unmount} = renderWithContext(<MessageAttachment {...baseProps}/>);
+        expect(container.querySelector('.attachment-fields')).not.toBeInTheDocument();
 
+        unmount();
+
+        // With fields
         const newAttachment = {
             ...attachment,
             fields: [
@@ -131,12 +213,17 @@ describe('components/post_view/MessageAttachment', () => {
         };
 
         const props = {...baseProps, attachment: newAttachment};
+        const {container: container2} = renderWithContext(<MessageAttachment {...props}/>);
 
-        wrapper = shallow(<MessageAttachment {...props}/>);
-        expect(wrapper.instance().getFieldsTable()).toMatchSnapshot();
+        const fieldTables = container2.querySelectorAll('.attachment-fields');
+        expect(fieldTables.length).toBeGreaterThan(0);
+        expect(container2.querySelector('.attachment-fields')!.parentElement).toMatchSnapshot();
     });
 
     test('should use ExternalImage for images', () => {
+        const ExternalImageMock = jest.requireMock('components/external_image');
+        ExternalImageMock.mockClear();
+
         const props = {
             ...baseProps,
             attachment: {
@@ -150,13 +237,16 @@ describe('components/post_view/MessageAttachment', () => {
             } as MessageAttachmentType,
         };
 
-        const wrapper = shallow(<MessageAttachment {...props}/>);
+        renderWithContext(<MessageAttachment {...props}/>);
 
-        expect(wrapper.find(ExternalImage)).toHaveLength(4);
-        expect(wrapper.find(ExternalImage).find({src: props.attachment.author_icon}).exists()).toBe(true);
-        expect(wrapper.find(ExternalImage).find({src: props.attachment.image_url}).exists()).toBe(true);
-        expect(wrapper.find(ExternalImage).find({src: props.attachment.footer_icon}).exists()).toBe(true);
-        expect(wrapper.find(ExternalImage).find({src: props.attachment.thumb_url}).exists()).toBe(true);
+        // ExternalImage should have been called 4 times
+        expect(ExternalImageMock).toHaveBeenCalledTimes(4);
+
+        const srcValues = ExternalImageMock.mock.calls.map((call: any) => call[0].src);
+        expect(srcValues).toContain(props.attachment.author_icon);
+        expect(srcValues).toContain(props.attachment.image_url);
+        expect(srcValues).toContain(props.attachment.footer_icon);
+        expect(srcValues).toContain(props.attachment.thumb_url);
     });
 
     test('should match snapshot when the attachment has an emoji in the title', () => {
@@ -167,9 +257,9 @@ describe('components/post_view/MessageAttachment', () => {
             } as MessageAttachmentType,
         };
 
-        const wrapper = shallow(<MessageAttachment {...props}/>);
+        const {container} = renderWithContext(<MessageAttachment {...props}/>);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when the attachment hasn\'t any emojis in the title', () => {
@@ -180,9 +270,9 @@ describe('components/post_view/MessageAttachment', () => {
             } as MessageAttachmentType,
         };
 
-        const wrapper = shallow(<MessageAttachment {...props}/>);
+        const {container} = renderWithContext(<MessageAttachment {...props}/>);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when the attachment has a link in the title', () => {
@@ -193,9 +283,9 @@ describe('components/post_view/MessageAttachment', () => {
             } as MessageAttachmentType,
         };
 
-        const wrapper = shallow(<MessageAttachment {...props}/>);
+        const {container} = renderWithContext(<MessageAttachment {...props}/>);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when no footer is provided (even if footer_icon is provided)', () => {
@@ -207,9 +297,9 @@ describe('components/post_view/MessageAttachment', () => {
             } as MessageAttachmentType,
         };
 
-        const wrapper = shallow(<MessageAttachment {...props}/>);
+        const {container} = renderWithContext(<MessageAttachment {...props}/>);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when the footer is truncated', () => {
@@ -221,9 +311,9 @@ describe('components/post_view/MessageAttachment', () => {
             } as MessageAttachmentType,
         };
 
-        const wrapper = shallow(<MessageAttachment {...props}/>);
+        const {container} = renderWithContext(<MessageAttachment {...props}/>);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot and render a field with a number value', () => {
@@ -240,9 +330,9 @@ describe('components/post_view/MessageAttachment', () => {
             } as MessageAttachmentType,
         };
 
-        const wrapper = shallow(<MessageAttachment {...props}/>);
+        const {container} = renderWithContext(<MessageAttachment {...props}/>);
 
-        expect(wrapper.find('.attachment-field')).toMatchSnapshot();
+        expect(container.querySelector('.attachment-field')).toMatchSnapshot();
     });
 
     test('should not render content box if there is no content', () => {
@@ -253,11 +343,11 @@ describe('components/post_view/MessageAttachment', () => {
             } as MessageAttachmentType,
         };
 
-        const wrapper = shallow(<MessageAttachment {...props}/>);
-        expect(wrapper.find('.attachment')).toMatchSnapshot();
+        const {container} = renderWithContext(<MessageAttachment {...props}/>);
+        expect(container.querySelector('.attachment')).toMatchSnapshot();
     });
 
-    test('should handle action errors and display error message', (done) => {
+    test('should handle action errors and display error message', async () => {
         const errorMessage = 'Action failed to execute';
         const doPostActionWithCookie = jest.fn().mockResolvedValue({
             error: {message: errorMessage},
@@ -268,31 +358,23 @@ describe('components/post_view/MessageAttachment', () => {
             actions: [{id: actionId, name: 'action_name_1', cookie: 'cookie-contents'}] as PostAction[],
         };
         const props = {...baseProps, actions: {doPostActionWithCookie, openModal: jest.fn()}, attachment: newAttachment};
-        const wrapper = shallow<MessageAttachment>(<MessageAttachment {...props}/>);
+        const {container} = renderWithContext(<MessageAttachment {...props}/>);
 
         // Initially no error should be shown
-        expect(wrapper.find('.has-error')).toHaveLength(0);
+        expect(container.querySelector('.has-error')).not.toBeInTheDocument();
 
-        // Trigger action
-        wrapper.instance().handleAction({
-            preventDefault: () => {},
-            currentTarget: {getAttribute: () => 'attr_value'} as any,
-        } as React.MouseEvent, []);
+        // Trigger action by clicking the button
+        const {userEvent} = await import('tests/react_testing_utils');
+        await userEvent.click(screen.getByTestId('action-button-mock'));
 
-        // Wait for promise to resolve
-        process.nextTick(() => {
-            // Update wrapper to get latest state
-            wrapper.update();
-
-            // Error should now be displayed
-            expect(wrapper.state('actionError')).toBe(errorMessage);
-            expect(wrapper.find('.has-error')).toHaveLength(1);
-            expect(wrapper.find('.control-label').text()).toBe(errorMessage);
-            done();
+        // Error should now be displayed
+        await waitFor(() => {
+            expect(container.querySelector('.has-error')).toBeInTheDocument();
         });
+        expect(container.querySelector('.control-label')?.textContent).toBe(errorMessage);
     });
 
-    test('should handle promise rejection errors', (done) => {
+    test('should handle promise rejection errors', async () => {
         const errorMessage = 'Network error occurred';
         const doPostActionWithCookie = jest.fn().mockRejectedValue(new Error(errorMessage));
         const actionId = 'action_id_1';
@@ -301,59 +383,53 @@ describe('components/post_view/MessageAttachment', () => {
             actions: [{id: actionId, name: 'action_name_1', cookie: 'cookie-contents'}] as PostAction[],
         };
         const props = {...baseProps, actions: {doPostActionWithCookie, openModal: jest.fn()}, attachment: newAttachment};
-        const wrapper = shallow<MessageAttachment>(<MessageAttachment {...props}/>);
+        const {container} = renderWithContext(<MessageAttachment {...props}/>);
 
         // Initially no error should be shown
-        expect(wrapper.find('.has-error')).toHaveLength(0);
+        expect(container.querySelector('.has-error')).not.toBeInTheDocument();
 
         // Trigger action
-        wrapper.instance().handleAction({
-            preventDefault: () => {},
-            currentTarget: {getAttribute: () => 'attr_value'} as any,
-        } as React.MouseEvent, []);
+        const {userEvent} = await import('tests/react_testing_utils');
+        await userEvent.click(screen.getByTestId('action-button-mock'));
 
-        // Wait for promise to reject and catch to execute
-        process.nextTick(() => {
-            // Update wrapper to get latest state
-            wrapper.update();
-
-            // Error should now be displayed
-            expect(wrapper.state('actionError')).toBe(errorMessage);
-            expect(wrapper.find('.has-error')).toHaveLength(1);
-            expect(wrapper.find('.control-label').text()).toBe(errorMessage);
-            done();
+        // Error should now be displayed
+        await waitFor(() => {
+            expect(container.querySelector('.has-error')).toBeInTheDocument();
         });
+        expect(container.querySelector('.control-label')?.textContent).toBe(errorMessage);
     });
 
-    test('should clear previous errors when new action is triggered', (done) => {
-        const doPostActionWithCookie = jest.fn().mockResolvedValue({data: 'success'});
+    test('should clear previous errors when new action is triggered', async () => {
+        const doPostActionWithCookie = jest.fn().
+            mockResolvedValueOnce({error: {message: 'Previous error'}}).
+            mockResolvedValueOnce({data: 'success'});
         const actionId = 'action_id_1';
         const newAttachment = {
             ...attachment,
             actions: [{id: actionId, name: 'action_name_1', cookie: 'cookie-contents'}] as PostAction[],
         };
         const props = {...baseProps, actions: {doPostActionWithCookie, openModal: jest.fn()}, attachment: newAttachment};
-        const wrapper = shallow<MessageAttachment>(<MessageAttachment {...props}/>);
+        const {container} = renderWithContext(<MessageAttachment {...props}/>);
 
-        // Set initial error state
-        wrapper.setState({actionError: 'Previous error'});
-        expect(wrapper.state('actionError')).toBe('Previous error');
+        // Trigger first action that causes an error
+        const {userEvent} = await import('tests/react_testing_utils');
+        await userEvent.click(screen.getByTestId('action-button-mock'));
 
-        // Trigger new action
-        wrapper.instance().handleAction({
-            preventDefault: () => {},
-            currentTarget: {getAttribute: () => 'attr_value'} as any,
-        } as React.MouseEvent, []);
+        // Wait for error to appear
+        await waitFor(() => {
+            expect(container.querySelector('.has-error')).toBeInTheDocument();
+        });
 
-        // Wait for promise to resolve
-        process.nextTick(() => {
-            // Error should be cleared on successful action
-            expect(wrapper.state('actionError')).toBeNull();
-            done();
+        // Trigger new action that succeeds
+        await userEvent.click(screen.getByTestId('action-button-mock'));
+
+        // Error should be cleared on successful action
+        await waitFor(() => {
+            expect(container.querySelector('.has-error')).not.toBeInTheDocument();
         });
     });
 
-    test('should render error message with default text when no error message provided', (done) => {
+    test('should render error message with default text when no error message provided', async () => {
         const doPostActionWithCookie = jest.fn().mockResolvedValue({
             error: {}, // Error object without message
         });
@@ -363,30 +439,15 @@ describe('components/post_view/MessageAttachment', () => {
             actions: [{id: actionId, name: 'action_name_1', cookie: 'cookie-contents'}] as PostAction[],
         };
         const props = {...baseProps, actions: {doPostActionWithCookie, openModal: jest.fn()}, attachment: newAttachment};
-        const wrapper = shallow<MessageAttachment>(<MessageAttachment {...props}/>);
+        renderWithContext(<MessageAttachment {...props}/>);
 
         // Trigger action
-        wrapper.instance().handleAction({
-            preventDefault: () => {},
-            currentTarget: {getAttribute: () => 'attr_value'} as any,
-        } as React.MouseEvent, []);
+        const {userEvent} = await import('tests/react_testing_utils');
+        await userEvent.click(screen.getByTestId('action-button-mock'));
 
-        // Wait for promise to resolve
-        process.nextTick(() => {
-            // Update wrapper to get latest state
-            wrapper.update();
-
-            // Should show default error message as FormattedMessage component
-            const actionError = wrapper.state('actionError');
-            expect(actionError).not.toBeNull();
-            expect(React.isValidElement(actionError)).toBe(true);
-
-            // Verify FormattedMessage props
-            if (React.isValidElement(actionError)) {
-                expect(actionError.props.id).toBe('post.message_attachment.action_failed');
-                expect(actionError.props.defaultMessage).toBe('Action failed to execute');
-            }
-            done();
+        // Should show default error message
+        await waitFor(() => {
+            expect(screen.getByText('Action failed to execute')).toBeInTheDocument();
         });
     });
 });
