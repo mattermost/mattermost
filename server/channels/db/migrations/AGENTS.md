@@ -12,23 +12,6 @@ and live in `db/migrations/{driver_name}/`. After creating migration files, run
 `make migrations-extract` to update `db/migrations/migrations.list`. Merge
 upstream before submitting a PR to avoid sequence number collisions.
 
-## Index Creation and Deletion
-
-Always use `CONCURRENTLY` for index operations. Without it, the operation
-acquires a lock that blocks concurrent DML for the duration of index creation,
-which can be minutes on large tables.
-
-```sql
--- Wrong: blocks concurrent DML
-CREATE INDEX IF NOT EXISTS idx_foo_bar ON foo (bar);
-
--- Correct: non-blocking
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_foo_bar ON foo (bar);
-
--- Same for drops
-DROP INDEX CONCURRENTLY IF EXISTS idx_foo_bar;
-```
-
 ## Adding Unique Constraints
 
 Do not add a unique constraint directly. Create the index concurrently first,
