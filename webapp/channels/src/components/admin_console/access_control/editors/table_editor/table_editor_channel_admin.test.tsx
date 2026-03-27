@@ -19,6 +19,11 @@ describe('TableEditor - User Self-Exclusion', () => {
             create_at: 1736541716295,
             update_at: 1736541716295,
             delete_at: 0,
+            created_by: '',
+            updated_by: '',
+            target_id: '',
+            target_type: '',
+            object_type: '',
             attrs: {
                 sort_order: 0,
                 visibility: 'when_set',
