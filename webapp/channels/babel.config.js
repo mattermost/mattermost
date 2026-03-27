@@ -26,7 +26,6 @@ const config = {
         }],
     ],
     plugins: [
-        'babel-plugin-typescript-to-proptypes',
         [
             'babel-plugin-styled-components',
             {
@@ -36,17 +35,6 @@ const config = {
         ],
     ],
     sourceType: 'unambiguous',
-};
-
-config.env = {
-    test: {
-        presets: config.presets,
-        plugins: config.plugins,
-    },
-    production: {
-        presets: config.presets,
-        plugins: config.plugins.filter((plugin) => plugin !== 'babel-plugin-typescript-to-proptypes'),
-    },
 };
 
 module.exports = config;
