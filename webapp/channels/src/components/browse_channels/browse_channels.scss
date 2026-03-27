@@ -1,4 +1,8 @@
 #browseChannelsModal {
+    .modal-content {
+        width: 100%;
+    }
+
     .modal-dialog {
         @media screen and (max-width: 640px) {
             width: 100%;
@@ -159,8 +163,6 @@
 
                 #channelPurposeContainer {
                     display: flex;
-                    min-width: 0;
-                    max-width: 560px;
                     align-items: center;
                     justify-content: flex-start;
 
