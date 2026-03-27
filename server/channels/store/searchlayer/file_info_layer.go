@@ -204,9 +204,16 @@ func (s SearchFileInfoStore) Search(rctx request.CTX, paramsList []*model.Search
 				if nErr != nil {
 					return nil, nErr
 				}
+				filesMap := make(map[string]*model.FileInfo, len(files))
 				for _, f := range files {
-					filesList.AddFileInfo(f)
-					filesList.AddOrder(f.Id)
+					filesMap[f.Id] = f
+				}
+				// Iterate over fileIds to preserve the search engine's ranking order.
+				for _, id := range fileIds {
+					if f, ok := filesMap[id]; ok {
+						filesList.AddFileInfo(f)
+						filesList.AddOrder(f.Id)
+					}
 				}
 			}
 			return filesList, nil

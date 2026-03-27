@@ -180,8 +180,14 @@ func (s SearchPostStore) searchPostsForUserByEngine(engine searchengine.SearchEn
 		if err != nil {
 			return nil, err
 		}
+		postsMap := make(map[string]*model.Post, len(posts))
 		for _, p := range posts {
-			if p.DeleteAt == 0 {
+			postsMap[p.Id] = p
+		}
+		// Iterate over postIds to preserve the search engine's ranking order.
+		for _, id := range postIds {
+			p, ok := postsMap[id]
+			if ok && p.DeleteAt == 0 {
 				postList.AddPost(p)
 				postList.AddOrder(p.Id)
 			}
