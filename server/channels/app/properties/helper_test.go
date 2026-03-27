@@ -104,6 +104,7 @@ func (th *TestHelper) CreateChannel(tb testing.TB, teamID string) *model.Channel
 
 // CreateDMChannel creates a DM channel (no team association)
 func (th *TestHelper) CreateDMChannel(tb testing.TB) *model.Channel {
+	// Create two users for the DM
 	user1 := th.CreateUser(tb)
 	user2 := th.CreateUser(tb)
 
