@@ -2955,8 +2955,6 @@
   "admin.support.problemType.defaultLink": "Default",
   "admin.support.problemType.email": "Email address",
   "admin.support.problemType.hide": "Hide link",
-  "admin.support.reportAProblemDefaultLinkDescription": "Users will be directed to this link when they choose ‘Report a Problem’.",
-  "admin.support.reportAProblemDefaultLinkTitle": "Default Report a Problem Link:",
   "admin.support.reportAProblemEmailDescription": "Enter the email address that users will be prompted to send a message to when they choose ‘Report a Problem’.",
   "admin.support.reportAProblemEmailError": "Email is required",
   "admin.support.reportAProblemEmailTitle": "Report a Problem Email Address:",
