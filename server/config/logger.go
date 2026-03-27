@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -105,28 +106,40 @@ func GetLogFileLocation(fileLocation string) string {
 	return filepath.Join(fileLocation, LogFilename)
 }
 
-// TestOverrideLogRootPath is a test-only hook that overrides the log root path.
-// When non-empty, GetLogRootPath returns this value instead of checking MM_LOG_PATH
-// or the default logs directory. This enables tests to control the log path without
-// modifying process-wide environment variables (which is unsafe under t.Parallel).
-//
-// Not for production use.
-var TestOverrideLogRootPath string
+var (
+	testOverrideLogRootMu   sync.Mutex
+	testOverrideLogRootPath string
+)
+
+// SetTestOverrideLogRootPath sets the test-only log root path override.
+// Call with empty string to clear. Thread-safe for use with t.Parallel().
+func SetTestOverrideLogRootPath(path string) {
+	testOverrideLogRootMu.Lock()
+	defer testOverrideLogRootMu.Unlock()
+	testOverrideLogRootPath = path
+}
+
+// getTestOverrideLogRootPath returns the current test override, or empty string.
+func getTestOverrideLogRootPath() string {
+	testOverrideLogRootMu.Lock()
+	defer testOverrideLogRootMu.Unlock()
+	return testOverrideLogRootPath
+}
 
 // GetLogRootPath returns the root directory for all log files.
 // This is used for security validation to prevent arbitrary file reads via advanced logging.
 // The logging root is determined by:
-// 1. TestOverrideLogRootPath (test-only hook, if non-empty)
+// 1. Test override (if non-empty, set via SetTestOverrideLogRootPath)
 // 2. MM_LOG_PATH environment variable (if set and non-empty)
 // 3. The default "logs" directory (found relative to the binary)
 func GetLogRootPath() string {
 	// Check test override first
-	if TestOverrideLogRootPath != "" {
-		absPath, err := filepath.Abs(TestOverrideLogRootPath)
+	if override := getTestOverrideLogRootPath(); override != "" {
+		absPath, err := filepath.Abs(override)
 		if err == nil {
 			return absPath
 		}
-		return TestOverrideLogRootPath
+		return override
 	}
 
 	// Check environment variable
