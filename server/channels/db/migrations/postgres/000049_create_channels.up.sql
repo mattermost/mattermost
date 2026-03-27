@@ -16,25 +16,15 @@ CREATE TABLE IF NOT EXISTS channels (
     UNIQUE(name, teamid)
 );
 
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_channels_displayname ON channels (displayname);
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_channels_txt ON channels (name, displayname);
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_channels_displayname_lower ON channels (lower(displayname));
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_channels_name_lower ON channels (lower(name));
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_channels_name ON channels (name);
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_channels_update_at ON channels (updateat);
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_channels_team_id ON channels (teamid);
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_channels_delete_at ON channels (deleteat);
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_channels_create_at ON channels (createat);
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_channel_search_txt ON channels using gin (to_tsvector('english'::regconfig, (((((name)::text || ' '::text) || (displayname)::text) || ' '::text) || (purpose)::text)));
 
 DO $$
@@ -55,12 +45,10 @@ BEGIN
     END IF;
 END modify_column_type_if_type_is_different $$;
 
--- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_channels_displayname;
 
 ALTER TABLE channels ADD COLUMN IF NOT EXISTS schemeid varchar(26);
 
--- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_channels_txt;
 
 ALTER TABLE channels ADD COLUMN IF NOT EXISTS groupconstrained boolean;
@@ -82,11 +70,9 @@ BEGIN
     END IF;
 END modify_column_type_if_type_is_different $$;
 
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_channels_scheme_id ON channels (schemeid);
 
 ALTER TABLE channels ADD COLUMN IF NOT EXISTS shared boolean;
 
--- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_channels_name;
 

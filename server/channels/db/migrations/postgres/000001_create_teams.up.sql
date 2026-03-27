@@ -15,15 +15,10 @@ CREATE TABLE IF NOT EXISTS teams (
     UNIQUE(name)
 );
 
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_teams_invite_id ON teams (inviteid);
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_teams_update_at ON teams (updateat);
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_teams_create_at ON teams (createat);
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_teams_delete_at ON teams (deleteat);
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_teams_scheme_id ON teams (schemeid);
 
 ALTER TABLE teams ADD COLUMN IF NOT EXISTS allowopeninvite boolean;
@@ -31,7 +26,6 @@ ALTER TABLE teams ADD COLUMN IF NOT EXISTS lastteamiconupdate bigint;
 ALTER TABLE teams ADD COLUMN IF NOT EXISTS description VARCHAR(255);
 ALTER TABLE teams ADD COLUMN IF NOT EXISTS groupconstrained boolean;
 
--- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_teams_name;
 
 DO $$

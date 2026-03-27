@@ -1,8 +1,5 @@
--- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_channelbookmarks_channelid;
--- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_channelbookmarks_update_at;
--- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_channelbookmarks_delete_at;
 
 DROP TABLE IF EXISTS channelbookmarks;

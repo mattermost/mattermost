@@ -10,5 +10,4 @@ FROM (
 WHERE p.ID = dupes.ID
   AND dupes.rn > 1;
 
--- nolint:concurrentIndex
 CREATE UNIQUE INDEX IF NOT EXISTS idx_accesscontrolpolicies_name_type ON AccessControlPolicies (Name, Type) WHERE Type = 'parent';

@@ -10,5 +10,4 @@ CREATE TABLE IF NOT EXISTS jobs (
     data VARCHAR(1024)
 );
 
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_jobs_type ON jobs (type);

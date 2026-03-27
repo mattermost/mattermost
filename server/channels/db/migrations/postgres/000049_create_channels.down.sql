@@ -1,9 +1,7 @@
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_channels_name ON channels (name);
 
 ALTER TABLE channels DROP COLUMN IF EXISTS shared;
 
--- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_channels_scheme_id;
 
 DO $$
@@ -25,12 +23,10 @@ END modify_column_type_if_type_is_different $$;
 
 ALTER TABLE channels DROP COLUMN IF EXISTS groupconstrained;
 
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_channels_txt ON channels (name,displayname);
 
 ALTER TABLE channels DROP COLUMN IF EXISTS schemeid;
 
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_channels_displayname ON channels (displayname);
 
 DO $$
@@ -51,25 +47,15 @@ BEGIN
     END IF;
 END modify_column_type_if_type_is_different $$;
 
--- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_channels_displayname;
--- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_channels_txt;
--- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_channels_displayname_lower;
--- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_channels_name_lower;
--- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_channels_name;
--- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_channels_update_at;
--- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_channels_team_id;
--- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_channels_delete_at;
--- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_channels_create_at;
--- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_channel_search_txt;
 
 DROP TABLE IF EXISTS channels;

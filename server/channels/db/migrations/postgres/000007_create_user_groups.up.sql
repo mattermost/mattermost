@@ -14,7 +14,5 @@ CREATE TABLE IF NOT EXISTS usergroups (
 );
 
 ALTER TABLE usergroups ADD COLUMN IF NOT EXISTS allowreference bool;
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_usergroups_remote_id ON usergroups (remoteid);
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_usergroups_delete_at ON usergroups (deleteat);

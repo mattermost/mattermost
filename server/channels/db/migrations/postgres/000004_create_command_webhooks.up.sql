@@ -9,5 +9,4 @@ CREATE TABLE IF NOT EXISTS commandwebhooks (
     usecount integer
 );
 
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_command_webhook_create_at ON commandwebhooks (createat);

@@ -10,7 +10,6 @@ CREATE TABLE IF NOT EXISTS channelmembers (
     PRIMARY KEY (channelid, userid)
 );
 
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_channelmembers_user_id ON channelmembers(userid);
 
 ALTER TABLE channelmembers ADD COLUMN IF NOT EXISTS schemeuser boolean;
@@ -18,5 +17,4 @@ ALTER TABLE channelmembers ADD COLUMN IF NOT EXISTS schemeadmin boolean;
 
 ALTER TABLE channelmembers ADD COLUMN IF NOT EXISTS schemeguest boolean;
 
--- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_channelmembers_channel_id;

@@ -11,7 +11,5 @@ CREATE TABLE IF NOT EXISTS groupchannels (
 
 ALTER TABLE groupchannels ADD COLUMN IF NOT EXISTS schemeadmin boolean;
 
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_groupteams_schemeadmin ON groupchannels (schemeadmin);
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_groupchannels_channelid ON groupchannels (channelid);

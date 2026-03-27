@@ -5,5 +5,4 @@ CREATE TABLE IF NOT EXISTS postreminders (
     PRIMARY KEY (postid, userid)
 );
 
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_postreminders_targettime ON postreminders(targettime);

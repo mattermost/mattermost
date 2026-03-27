@@ -29,9 +29,6 @@ CREATE TABLE IF NOT EXISTS channelbookmarks (
     parentid varchar(26) DEFAULT NULL
 );
 
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_channelbookmarks_channelid ON channelbookmarks (channelid);
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_channelbookmarks_update_at ON channelbookmarks (updateat);
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_channelbookmarks_delete_at ON channelbookmarks (deleteat);

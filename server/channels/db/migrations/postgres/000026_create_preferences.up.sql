@@ -6,9 +6,7 @@ CREATE TABLE IF NOT EXISTS preferences (
     PRIMARY KEY (userid, category, name)
 );
 
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_preferences_category ON preferences(category);
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_preferences_name ON preferences(name);
 
 DO $$
@@ -52,5 +50,4 @@ BEGIN
     END LOOP;
 END rename_solarized_theme $$;
 
--- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_preferences_user_id;

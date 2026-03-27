@@ -4,5 +4,4 @@ CREATE TABLE IF NOT EXISTS retentionidsfordeletion (
     ids varchar(26)[]
 );
 
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_retentionidsfordeletion_tablename ON retentionidsfordeletion (tablename);

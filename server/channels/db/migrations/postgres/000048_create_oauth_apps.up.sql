@@ -10,7 +10,6 @@ CREATE TABLE IF NOT EXISTS oauthapps (
     homepage VARCHAR(256)
 );
 
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_oauthapps_creator_id ON oauthapps (creatorid);
 
 ALTER TABLE oauthapps ADD COLUMN IF NOT EXISTS istrusted boolean;

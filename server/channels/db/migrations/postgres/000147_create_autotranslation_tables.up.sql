@@ -13,7 +13,6 @@ CREATE TABLE IF NOT EXISTS translations (
 );
 
 -- Index for recency and lookup performance
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_translations_updateat
     ON translations (updateAt DESC);
 
@@ -27,19 +26,16 @@ ALTER TABLE channelmembers
 
 -- Hot path index: Members opted in for a channel
 -- Partial index only includes rows where autotranslation is enabled for performance
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_channelmembers_autotranslation_enabled
     ON channelmembers (channelid)
     WHERE autotranslation = true;
 
 -- Index for efficient channel autotranslation lookups
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_channels_autotranslation_enabled
     ON channels (id)
     WHERE autotranslation = true;
 
 -- Covering index for GetActiveDestinationLanguages query
 -- Allows index-only scans when fetching user locales (avoids heap access)
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_users_id_locale
     ON users (id, locale);

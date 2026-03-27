@@ -11,7 +11,5 @@ CREATE TABLE IF NOT EXISTS groupteams (
 
 ALTER TABLE groupteams ADD COLUMN IF NOT EXISTS schemeadmin boolean default false;
 
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_groupteams_schemeadmin ON groupteams (schemeadmin);
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_groupteams_teamid ON groupteams (teamid);

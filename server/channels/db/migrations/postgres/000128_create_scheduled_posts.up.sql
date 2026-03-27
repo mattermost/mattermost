@@ -14,5 +14,4 @@ CREATE TABLE IF NOT EXISTS scheduledposts (
 	errorcode VARCHAR(200)
 );
 
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_scheduledposts_userid_channel_id_scheduled_at ON ScheduledPosts (UserId, ChannelId, ScheduledAt);

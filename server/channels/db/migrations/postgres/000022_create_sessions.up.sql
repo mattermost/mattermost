@@ -13,15 +13,10 @@ CREATE TABLE IF NOT EXISTS sessions (
 
 ALTER TABLE sessions ADD COLUMN IF NOT EXISTS expirednotify boolean;
 
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions (userid);
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions (token);
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions (expiresat);
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_sessions_create_at ON sessions (createat);
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_sessions_last_activity_at ON sessions (lastactivityat);
 
 DO $$

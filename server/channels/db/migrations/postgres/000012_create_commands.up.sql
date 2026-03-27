@@ -18,13 +18,9 @@ CREATE TABLE IF NOT EXISTS commands (
     url VARCHAR(1024)
 );
 
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_command_team_id ON commands (teamid);
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_command_update_at ON commands (updateat);
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_command_create_at ON commands (createat);
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_command_delete_at ON commands (deleteat);
 
 ALTER TABLE commands ADD COLUMN IF NOT EXISTS pluginid VARCHAR(190);

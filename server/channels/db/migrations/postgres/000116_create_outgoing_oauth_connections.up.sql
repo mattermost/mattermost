@@ -15,5 +15,4 @@ CREATE TABLE IF NOT EXISTS outgoingoauthconnections (
     audiences VARCHAR(1024)
 );
 
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_outgoingoauthconnections_name ON outgoingoauthconnections (name);

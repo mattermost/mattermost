@@ -10,15 +10,10 @@ CREATE TABLE IF NOT EXISTS incomingwebhooks (
     description VARCHAR(128)
 );
 
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_incoming_webhook_user_id ON incomingwebhooks (userid);
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_incoming_webhook_team_id ON incomingwebhooks (teamid);
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_incoming_webhook_update_at ON incomingwebhooks (updateat);
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_incoming_webhook_create_at ON incomingwebhooks (createat);
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_incoming_webhook_delete_at ON incomingwebhooks (deleteat);
 
 ALTER TABLE incomingwebhooks ADD COLUMN IF NOT EXISTS username VARCHAR(255);

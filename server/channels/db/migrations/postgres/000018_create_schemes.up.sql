@@ -20,9 +20,6 @@ ALTER TABLE schemes ADD COLUMN IF NOT EXISTS defaultchannelguestrole VARCHAR(64)
 ALTER TABLE schemes ALTER COLUMN defaultteamguestrole TYPE VARCHAR(64);
 ALTER TABLE schemes ALTER COLUMN defaultchannelguestrole TYPE VARCHAR(64);
 
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_schemes_channel_guest_role ON schemes (defaultchannelguestrole);
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_schemes_channel_user_role ON schemes (defaultchanneluserrole);
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_schemes_channel_admin_role ON schemes (defaultchanneladminrole);

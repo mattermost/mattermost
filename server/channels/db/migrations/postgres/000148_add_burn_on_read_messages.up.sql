@@ -5,9 +5,7 @@ CREATE TABLE IF NOT EXISTS ReadReceipts (
     PRIMARY KEY (PostId, UserId)
 );
 
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_read_receipts_post_id ON ReadReceipts(PostId);
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_read_receipts_user_id_post_id_expire_at ON ReadReceipts(UserId, PostId, ExpireAt);
 
 CREATE TABLE IF NOT EXISTS TemporaryPosts (
@@ -18,7 +16,6 @@ CREATE TABLE IF NOT EXISTS TemporaryPosts (
     FileIds VARCHAR(300)
 );
 
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_temporary_posts_expire_at ON TemporaryPosts(expireat);
 
 ALTER TABLE drafts ADD COLUMN IF NOT EXISTS Type text;

@@ -35,5 +35,4 @@ BEGIN
     END IF;
 END modify_column_type_if_type_is_different $$;
 
--- nolint:concurrentIndex
 DROP INDEX IF EXISTS idx_oauthauthdata_client_id;

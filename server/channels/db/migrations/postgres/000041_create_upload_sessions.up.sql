@@ -10,11 +10,8 @@ CREATE TABLE IF NOT EXISTS uploadsessions (
     fileoffset bigint
 );
 
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_uploadsessions_user_id ON uploadsessions(userid);
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_uploadsessions_create_at ON uploadsessions(createat);
--- nolint:concurrentIndex
 CREATE INDEX IF NOT EXISTS idx_uploadsessions_type ON uploadsessions(type);
 
 ALTER TABLE uploadsessions ADD COLUMN IF NOT EXISTS remoteid VARCHAR(26);
