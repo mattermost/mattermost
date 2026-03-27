@@ -25,14 +25,16 @@ type SupportPacketDiagnostics struct {
 	} `yaml:"license"`
 
 	Server struct {
-		OS               string `yaml:"os"`
-		Architecture     string `yaml:"architecture"`
-		CPUCores         int    `yaml:"cpu_cores"`
-		TotalMemoryMB    uint64 `yaml:"total_memory_mb"`
-		Hostname         string `yaml:"hostname"`
-		Version          string `yaml:"version"`
-		BuildHash        string `yaml:"build_hash"`
-		InstallationType string `yaml:"installation_type"`
+		OS                  string `yaml:"os"`
+		Architecture        string `yaml:"architecture"`
+		CPUCores            int    `yaml:"cpu_cores"`
+		TotalMemoryMB       uint64 `yaml:"total_memory_mb"`
+		Hostname            string `yaml:"hostname"`
+		Version             string `yaml:"version"`
+		BuildHash           string `yaml:"build_hash"`
+		InstallationType    string `yaml:"installation_type"`
+		OpenFileDescriptors int64 `yaml:"open_file_descriptors"`
+		MaxFileDescriptors  int64 `yaml:"max_file_descriptors"`
 	} `yaml:"server"`
 
 	Config struct {
