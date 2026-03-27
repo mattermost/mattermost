@@ -269,7 +269,12 @@ func (a *App) getDynamicListArgument(c request.CTX, commandArgs *model.CommandAr
 	params.Add("team_id", commandArgs.TeamId)
 	params.Add("root_id", commandArgs.RootId)
 	params.Add("user_id", commandArgs.UserId)
-	params.Add("site_url", commandArgs.SiteURL)
+
+	// Use configured SiteURL to prevent SSRF via Host header spoofing (MM-67142)
+	siteURL := *a.Config().ServiceSettings.SiteURL
+	if siteURL != "" {
+		params.Add("site_url", siteURL)
+	}
 
 	resp, err := a.doPluginRequest(c, "GET", dynamicArg.FetchURL, params, nil)
 
