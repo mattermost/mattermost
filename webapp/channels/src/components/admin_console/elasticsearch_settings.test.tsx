@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {AdminConfig} from '@mattermost/types/config';
 
 import ElasticSearchSettings from 'components/admin_console/elasticsearch_settings';
-import SaveButton from 'components/save_button';
+
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 jest.mock('actions/admin_actions.jsx', () => {
     return {
@@ -22,6 +22,7 @@ describe('components/ElasticSearchSettings', () => {
         const config = {
             ElasticsearchSettings: {
                 ConnectionURL: 'test',
+                Backend: '',
                 SkipTLSVerification: false,
                 CA: 'test.ca',
                 ClientCert: 'test.crt',
@@ -32,20 +33,24 @@ describe('components/ElasticSearchSettings', () => {
                 EnableIndexing: false,
                 EnableSearching: false,
                 EnableAutocomplete: false,
+                EnableSearchPublicChannelsWithoutMembership: false,
+                IgnoredPurgeIndexes: '',
             },
         };
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <ElasticSearchSettings
                 config={config as AdminConfig}
+                isDisabled={false}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, enabled', () => {
         const config = {
             ElasticsearchSettings: {
                 ConnectionURL: 'test',
+                Backend: '',
                 SkipTLSVerification: false,
                 CA: 'test.ca',
                 ClientCert: 'test.crt',
@@ -56,43 +61,60 @@ describe('components/ElasticSearchSettings', () => {
                 EnableIndexing: true,
                 EnableSearching: false,
                 EnableAutocomplete: false,
+                EnableSearchPublicChannelsWithoutMembership: false,
+                IgnoredPurgeIndexes: '',
             },
         };
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <ElasticSearchSettings
                 config={config as AdminConfig}
+                isDisabled={false}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
-    test('should maintain save disable until is tested', () => {
+    test('should maintain save disable until is tested', async () => {
         const config = {
             ElasticsearchSettings: {
                 ConnectionURL: 'test',
+                Backend: '',
                 SkipTLSVerification: false,
+                CA: '',
+                ClientCert: '',
+                ClientKey: '',
                 Username: 'test',
                 Password: 'test',
                 Sniff: false,
                 EnableIndexing: false,
                 EnableSearching: false,
                 EnableAutocomplete: false,
+                EnableSearchPublicChannelsWithoutMembership: false,
+                IgnoredPurgeIndexes: '',
             },
         };
-        const wrapper = shallow(
+        renderWithContext(
             <ElasticSearchSettings
                 config={config as AdminConfig}
+                isDisabled={false}
             />,
         );
-        const instance = wrapper.instance() as any;
-        expect(wrapper.find(SaveButton).prop('disabled')).toBe(true);
-        instance.handleSettingChanged('enableIndexing', true);
-        expect(wrapper.find(SaveButton).prop('disabled')).toBe(true);
-        const success = jest.fn();
-        const error = jest.fn();
-        instance.doTestConfig(success, error);
-        expect(success).toHaveBeenCalled();
-        expect(error).not.toHaveBeenCalled();
-        expect(wrapper.find(SaveButton).prop('disabled')).toBe(false);
+
+        // Save button should be disabled initially (no changes)
+        expect(screen.getByTestId('saveSetting')).toBeDisabled();
+
+        // Enable indexing by clicking the true radio for enableIndexing
+        const enableIndexingTrue = screen.getByTestId('enableIndexingtrue');
+        await userEvent.click(enableIndexingTrue);
+
+        // Save button should still be disabled because config hasn't been tested
+        expect(screen.getByTestId('saveSetting')).toBeDisabled();
+
+        // Click Test Connection button to test config
+        const testButton = screen.getByText('Test Connection');
+        await userEvent.click(testButton);
+
+        // After successful test, save button should be enabled
+        expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
     });
 });

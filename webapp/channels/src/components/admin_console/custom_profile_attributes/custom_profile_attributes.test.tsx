@@ -27,6 +27,11 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
         create_at: 1736541716295,
         delete_at: 0,
         update_at: 0,
+        created_by: '',
+        updated_by: '',
+        target_id: '',
+        target_type: '',
+        object_type: '',
     };
 
     const createAttribute = (id: string, name: string, attrs: Record<string, string>): UserPropertyField => ({

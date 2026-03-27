@@ -60,6 +60,7 @@ const (
 	PostCustomTypePrefix          = "custom_"
 	PostTypeReminder              = "reminder"
 	PostTypeBurnOnRead            = "burn_on_read"
+	PostTypeCard                  = "card"
 
 	PostFileidsMaxRunes   = 300
 	PostFilenamesMaxRunes = 4000
@@ -414,8 +415,9 @@ type GetPostsSinceForSyncOptions struct {
 	ChannelId                         string
 	ExcludeRemoteId                   string
 	IncludeDeleted                    bool
-	SinceCreateAt                     bool // determines whether the cursor will be based on CreateAt or UpdateAt
-	ExcludeChannelMetadataSystemPosts bool // if true, exclude channel metadata system posts (header, display name, purpose changes)
+	SinceCreateAt                     bool     // determines whether the cursor will be based on CreateAt or UpdateAt
+	ExcludeChannelMetadataSystemPosts bool     // if true, exclude channel metadata system posts (header, display name, purpose changes)
+	ExcludedPostTypes                 []string // post types to exclude from sync
 }
 
 type GetPostsOptions struct {
@@ -527,7 +529,8 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypeWrangler,
 		PostTypeGMConvertedToChannel,
 		PostTypeAutotranslationChange,
-		PostTypeBurnOnRead:
+		PostTypeBurnOnRead,
+		PostTypeCard:
 	default:
 		if !strings.HasPrefix(o.Type, PostCustomTypePrefix) {
 			return NewAppError("Post.IsValid", "model.post.is_valid.type.app_error", nil, "id="+o.Type, http.StatusBadRequest)
