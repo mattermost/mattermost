@@ -209,6 +209,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Equal(t, "docker", d.Server.InstallationType)
 		assert.Positive(t, d.Server.CPUCores)
 		assert.Positive(t, d.Server.TotalMemoryMB)
+		assert.False(t, d.Server.StartedAt.IsZero())
 
 		/* Config */
 		assert.Equal(t, "memory://", d.Config.Source)

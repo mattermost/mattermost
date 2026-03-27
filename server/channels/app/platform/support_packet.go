@@ -114,6 +114,10 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		installationType = unknownDataPoint
 	}
 	d.Server.InstallationType = installationType
+	d.Server.StartedAt = ps.startTime.UTC()
+	if hostUptimeSeconds, hostUptimeErr := getHostUptimeSeconds(); hostUptimeErr == nil {
+		d.Server.HostStartedAt = time.Now().Add(-time.Duration(hostUptimeSeconds) * time.Second).UTC()
+	}
 
 	/* Config */
 	d.Config.Source = ps.DescribeConfig()
