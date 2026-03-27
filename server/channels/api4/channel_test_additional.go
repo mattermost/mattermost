@@ -139,7 +139,7 @@ func TestUpdateChannelErrorPaths(t *testing.T) {
 	})
 
 	t.Run("update channel without permission", func(t *testing.T) {
-		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+		privateChannel := th.CreatePrivateChannel(t)
 		th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, "", privateChannel)
 		
 		privateChannel.DisplayName = "Updated Name"
@@ -199,7 +199,7 @@ func TestPatchChannelErrorPaths(t *testing.T) {
 	})
 
 	t.Run("patch channel without permission", func(t *testing.T) {
-		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+		privateChannel := th.CreatePrivateChannel(t)
 		th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, "", privateChannel)
 		
 		patch := &model.ChannelPatch{
@@ -245,7 +245,7 @@ func TestDeleteChannelErrorPaths(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	t.Run("delete channel without permission", func(t *testing.T) {
-		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+		privateChannel := th.CreatePrivateChannel(t)
 		th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, "", privateChannel)
 		
 		resp, err := th.Client.DeleteChannel(context.Background(), privateChannel.Id)
@@ -267,7 +267,7 @@ func TestDeleteChannelErrorPaths(t *testing.T) {
 
 	t.Run("unauthorized - not logged in", func(t *testing.T) {
 		th.Client.Logout(context.Background())
-		channel := th.CreateChannel(t, th.BasicTeam)
+		channel := th.CreatePublicChannel(t)
 		resp, err := th.Client.DeleteChannel(context.Background(), channel.Id)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
@@ -280,29 +280,29 @@ func TestGetChannelErrorPaths(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	t.Run("invalid channel id", func(t *testing.T) {
-		_, resp, err := th.Client.GetChannel(context.Background(), "invalid", "")
+		_, resp, err := th.Client.GetChannel(context.Background(), "invalid")
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
 
 	t.Run("non-existent channel", func(t *testing.T) {
-		_, resp, err := th.Client.GetChannel(context.Background(), model.NewId(), "")
+		_, resp, err := th.Client.GetChannel(context.Background(), model.NewId())
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
 
 	t.Run("get channel without membership", func(t *testing.T) {
-		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+		privateChannel := th.CreatePrivateChannel(t)
 		th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, "", privateChannel)
 		
-		_, resp, err := th.Client.GetChannel(context.Background(), privateChannel.Id, "")
+		_, resp, err := th.Client.GetChannel(context.Background(), privateChannel.Id)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("unauthorized - not logged in", func(t *testing.T) {
 		th.Client.Logout(context.Background())
-		_, resp, err := th.Client.GetChannel(context.Background(), th.BasicChannel.Id, "")
+		_, resp, err := th.Client.GetChannel(context.Background(), th.BasicChannel.Id)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
@@ -333,7 +333,7 @@ func TestGetChannelByNameErrorPaths(t *testing.T) {
 
 	t.Run("get channel from team user is not member of", func(t *testing.T) {
 		otherTeam := th.CreateTeam(t)
-		otherChannel := th.CreateChannelWithClient(t, th.SystemAdminClient, model.ChannelTypeOpen, otherTeam.Id)
+		otherChannel := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypeOpen, otherTeam.Id)
 		
 		_, resp, err := th.Client.GetChannelByName(context.Background(), otherChannel.Name, otherTeam.Id, "")
 		require.Error(t, err)
@@ -373,7 +373,7 @@ func TestGetChannelByNameForTeamNameErrorPaths(t *testing.T) {
 
 	t.Run("get channel from team user is not member of", func(t *testing.T) {
 		otherTeam := th.CreateTeam(t)
-		otherChannel := th.CreateChannelWithClient(t, th.SystemAdminClient, model.ChannelTypeOpen, otherTeam.Id)
+		otherChannel := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypeOpen, otherTeam.Id)
 		
 		_, resp, err := th.Client.GetChannelByNameForTeamName(context.Background(), otherChannel.Name, otherTeam.Name, "")
 		require.Error(t, err)
@@ -400,7 +400,7 @@ func TestGetChannelMembersErrorPaths(t *testing.T) {
 	})
 
 	t.Run("get members from channel user is not member of", func(t *testing.T) {
-		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+		privateChannel := th.CreatePrivateChannel(t)
 		th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, "", privateChannel)
 		
 		_, resp, err := th.Client.GetChannelMembers(context.Background(), privateChannel.Id, 0, 10, "")
@@ -446,7 +446,7 @@ func TestGetChannelMembersByIdsErrorPaths(t *testing.T) {
 	})
 
 	t.Run("get members from channel user is not member of", func(t *testing.T) {
-		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+		privateChannel := th.CreatePrivateChannel(t)
 		th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, "", privateChannel)
 		
 		_, resp, err := th.Client.GetChannelMembersByIds(context.Background(), privateChannel.Id, []string{th.SystemAdminUser.Id})
@@ -468,29 +468,29 @@ func TestGetChannelStatsErrorPaths(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	t.Run("invalid channel id", func(t *testing.T) {
-		_, resp, err := th.Client.GetChannelStats(context.Background(), "invalid", "")
+		_, resp, err := th.Client.GetChannelStats(context.Background(), "invalid", "", false)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
 
 	t.Run("get stats from channel user is not member of", func(t *testing.T) {
-		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+		privateChannel := th.CreatePrivateChannel(t)
 		th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, "", privateChannel)
 		
-		_, resp, err := th.Client.GetChannelStats(context.Background(), privateChannel.Id, "")
+		_, resp, err := th.Client.GetChannelStats(context.Background(), privateChannel.Id, "", false)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("non-existent channel", func(t *testing.T) {
-		_, resp, err := th.Client.GetChannelStats(context.Background(), model.NewId(), "")
+		_, resp, err := th.Client.GetChannelStats(context.Background(), model.NewId(), "", false)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("unauthorized - not logged in", func(t *testing.T) {
 		th.Client.Logout(context.Background())
-		_, resp, err := th.Client.GetChannelStats(context.Background(), th.BasicChannel.Id, "")
+		_, resp, err := th.Client.GetChannelStats(context.Background(), th.BasicChannel.Id, "", false)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
@@ -604,27 +604,27 @@ func TestGetChannelsForUserErrorPaths(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	t.Run("invalid user id", func(t *testing.T) {
-		_, resp, err := th.Client.GetChannelsForUserWithLastDeleteAt(context.Background(), "invalid", th.BasicTeam.Id, 0)
+		_, resp, err := th.Client.GetChannelsForUserWithLastDeleteAt(context.Background(), "invalid", 0)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
 
 	t.Run("invalid team id", func(t *testing.T) {
-		_, resp, err := th.Client.GetChannelsForUserWithLastDeleteAt(context.Background(), th.BasicUser.Id, "invalid", 0)
+		_, resp, err := th.Client.GetChannelsForUserWithLastDeleteAt(context.Background(), th.BasicUser.Id, 0)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
 
 	t.Run("get channels for other user without permission", func(t *testing.T) {
 		otherUser := th.CreateUser(t)
-		_, resp, err := th.Client.GetChannelsForUserWithLastDeleteAt(context.Background(), otherUser.Id, th.BasicTeam.Id, 0)
+		_, resp, err := th.Client.GetChannelsForUserWithLastDeleteAt(context.Background(), otherUser.Id, 0)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("unauthorized - not logged in", func(t *testing.T) {
 		th.Client.Logout(context.Background())
-		_, resp, err := th.Client.GetChannelsForUserWithLastDeleteAt(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, 0)
+		_, resp, err := th.Client.GetChannelsForUserWithLastDeleteAt(context.Background(), th.BasicUser.Id, 0)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
@@ -716,7 +716,7 @@ func TestGetChannelUnreadErrorPaths(t *testing.T) {
 	})
 
 	t.Run("get unread from channel user is not member of", func(t *testing.T) {
-		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+		privateChannel := th.CreatePrivateChannel(t)
 		th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, "", privateChannel)
 		
 		_, resp, err := th.Client.GetChannelUnread(context.Background(), privateChannel.Id, th.BasicUser.Id)
@@ -786,7 +786,7 @@ func TestRestoreChannelErrorPaths(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	t.Run("restore channel without permission", func(t *testing.T) {
-		channel := th.CreateChannel(t, th.BasicTeam)
+		channel := th.CreatePublicChannel(t)
 		th.SystemAdminClient.DeleteChannel(context.Background(), channel.Id)
 		
 		_, resp, err := th.Client.RestoreChannel(context.Background(), channel.Id)
@@ -816,7 +816,7 @@ func TestRestoreChannelErrorPaths(t *testing.T) {
 
 	t.Run("unauthorized - not logged in", func(t *testing.T) {
 		th.Client.Logout(context.Background())
-		channel := th.CreateChannel(t, th.BasicTeam)
+		channel := th.CreatePublicChannel(t)
 		_, resp, err := th.Client.RestoreChannel(context.Background(), channel.Id)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
@@ -835,7 +835,7 @@ func TestGetPinnedPostsErrorPaths(t *testing.T) {
 	})
 
 	t.Run("get pinned posts from channel user is not member of", func(t *testing.T) {
-		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+		privateChannel := th.CreatePrivateChannel(t)
 		th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, "", privateChannel)
 		
 		_, resp, err := th.Client.GetPinnedPosts(context.Background(), privateChannel.Id, "")

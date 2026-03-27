@@ -37,7 +37,7 @@ func TestCreatePostErrorPaths(t *testing.T) {
 	})
 
 	t.Run("create post in channel user is not member of", func(t *testing.T) {
-		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+		privateChannel := th.CreatePrivateChannel(t)
 		th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, "", privateChannel)
 		
 		post := &model.Post{
@@ -87,16 +87,22 @@ func TestUpdatePostErrorPaths(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	t.Run("update post with invalid id", func(t *testing.T) {
-		post := th.BasicPost.DeepCopy()
-		post.Id = "invalid"
-		post.Message = "updated message"
+		post := &model.Post{
+			Id:        "invalid",
+			ChannelId: th.BasicPost.ChannelId,
+			Message:   "updated message",
+		}
 		_, resp, err := th.Client.UpdatePost(context.Background(), post.Id, post)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
 
 	t.Run("update non-existent post", func(t *testing.T) {
-		post := th.BasicPost.DeepCopy()
+		post := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: th.BasicPost.ChannelId,
+			Message:   "updated message",
+		}
 		post.Id = model.NewId()
 		post.Message = "updated message"
 		_, resp, err := th.Client.UpdatePost(context.Background(), post.Id, post)
@@ -113,9 +119,12 @@ func TestUpdatePostErrorPaths(t *testing.T) {
 	})
 
 	t.Run("update post with empty message and no file ids", func(t *testing.T) {
-		post := th.BasicPost.DeepCopy()
-		post.Message = ""
-		post.FileIds = []string{}
+		post := &model.Post{
+			Id:        th.BasicPost.Id,
+			ChannelId: th.BasicPost.ChannelId,
+			Message:   "",
+			FileIds:   []string{},
+		}
 		_, resp, err := th.Client.UpdatePost(context.Background(), post.Id, post)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
@@ -123,8 +132,11 @@ func TestUpdatePostErrorPaths(t *testing.T) {
 
 	t.Run("unauthorized - not logged in", func(t *testing.T) {
 		th.Client.Logout(context.Background())
-		post := th.BasicPost.DeepCopy()
-		post.Message = "updated message"
+		post := &model.Post{
+			Id:        th.BasicPost.Id,
+			ChannelId: th.BasicPost.ChannelId,
+			Message:   "updated message",
+		}
 		_, resp, err := th.Client.UpdatePost(context.Background(), post.Id, post)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
@@ -200,7 +212,7 @@ func TestDeletePostErrorPaths(t *testing.T) {
 	})
 
 	t.Run("unauthorized - not logged in", func(t *testing.T) {
-		post := th.CreatePost(t, th.BasicChannel)
+		post := th.CreatePost(t)
 		th.Client.Logout(context.Background())
 		resp, err := th.Client.DeletePost(context.Background(), post.Id)
 		require.Error(t, err)
@@ -226,7 +238,7 @@ func TestGetPostErrorPaths(t *testing.T) {
 	})
 
 	t.Run("get post from channel user is not member of", func(t *testing.T) {
-		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+		privateChannel := th.CreatePrivateChannel(t)
 		privatePost := th.CreatePostWithClient(t, th.SystemAdminClient, privateChannel)
 		th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, "", privateChannel)
 		
@@ -255,7 +267,7 @@ func TestGetPostsForChannelErrorPaths(t *testing.T) {
 	})
 
 	t.Run("get posts from channel user is not member of", func(t *testing.T) {
-		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+		privateChannel := th.CreatePrivateChannel(t)
 		th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, "", privateChannel)
 		
 		_, resp, err := th.Client.GetPostsForChannel(context.Background(), privateChannel.Id, 0, 10, "", false, false)
@@ -340,7 +352,7 @@ func TestPinPostErrorPaths(t *testing.T) {
 	})
 
 	t.Run("pin post in channel user is not member of", func(t *testing.T) {
-		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+		privateChannel := th.CreatePrivateChannel(t)
 		privatePost := th.CreatePostWithClient(t, th.SystemAdminClient, privateChannel)
 		th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, "", privateChannel)
 		
@@ -375,7 +387,7 @@ func TestUnpinPostErrorPaths(t *testing.T) {
 	})
 
 	t.Run("unpin post in channel user is not member of", func(t *testing.T) {
-		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+		privateChannel := th.CreatePrivateChannel(t)
 		privatePost := th.CreatePostWithClient(t, th.SystemAdminClient, privateChannel)
 		th.SystemAdminClient.PinPost(context.Background(), privatePost.Id)
 		th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, "", privateChannel)
@@ -386,7 +398,7 @@ func TestUnpinPostErrorPaths(t *testing.T) {
 	})
 
 	t.Run("unauthorized - not logged in", func(t *testing.T) {
-		post := th.CreatePost(t, th.BasicChannel)
+		post := th.CreatePost(t)
 		th.Client.PinPost(context.Background(), post.Id)
 		th.Client.Logout(context.Background())
 		resp, err := th.Client.UnpinPost(context.Background(), post.Id)
@@ -413,7 +425,7 @@ func TestGetPostThreadErrorPaths(t *testing.T) {
 	})
 
 	t.Run("get thread from channel user is not member of", func(t *testing.T) {
-		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+		privateChannel := th.CreatePrivateChannel(t)
 		privatePost := th.CreatePostWithClient(t, th.SystemAdminClient, privateChannel)
 		th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, "", privateChannel)
 		
@@ -474,7 +486,7 @@ func TestGetFileInfosForPostErrorPaths(t *testing.T) {
 	})
 
 	t.Run("get file infos for post in channel user is not member of", func(t *testing.T) {
-		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+		privateChannel := th.CreatePrivateChannel(t)
 		privatePost := th.CreatePostWithClient(t, th.SystemAdminClient, privateChannel)
 		th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, "", privateChannel)
 		
@@ -528,33 +540,33 @@ func TestSetPostUnreadErrorPaths(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	t.Run("invalid user id", func(t *testing.T) {
-		_, resp, err := th.Client.SetPostUnread(context.Background(), "invalid", th.BasicPost.Id, false)
+		resp, err := th.Client.SetPostUnread(context.Background(), "invalid", th.BasicPost.Id, false)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
 
 	t.Run("invalid post id", func(t *testing.T) {
-		_, resp, err := th.Client.SetPostUnread(context.Background(), th.BasicUser.Id, "invalid", false)
+		resp, err := th.Client.SetPostUnread(context.Background(), th.BasicUser.Id, "invalid", false)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
 
 	t.Run("set unread for other user without permission", func(t *testing.T) {
 		otherUser := th.CreateUser(t)
-		_, resp, err := th.Client.SetPostUnread(context.Background(), otherUser.Id, th.BasicPost.Id, false)
+		resp, err := th.Client.SetPostUnread(context.Background(), otherUser.Id, th.BasicPost.Id, false)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("non-existent post", func(t *testing.T) {
-		_, resp, err := th.Client.SetPostUnread(context.Background(), th.BasicUser.Id, model.NewId(), false)
+		resp, err := th.Client.SetPostUnread(context.Background(), th.BasicUser.Id, model.NewId(), false)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
 
 	t.Run("unauthorized - not logged in", func(t *testing.T) {
 		th.Client.Logout(context.Background())
-		_, resp, err := th.Client.SetPostUnread(context.Background(), th.BasicUser.Id, th.BasicPost.Id, false)
+		resp, err := th.Client.SetPostUnread(context.Background(), th.BasicUser.Id, th.BasicPost.Id, false)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
@@ -566,30 +578,29 @@ func TestGetPostsAroundErrorPaths(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	t.Run("invalid channel id", func(t *testing.T) {
-		_, resp, err := th.Client.GetPostsAroundPost(context.Background(), "invalid", th.BasicPost.Id, 10, false, false)
+		_, resp, err := th.Client.GetPostsForChannel(context.Background(), "invalid", 0, 10, "", false, false)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
 
 	t.Run("invalid post id", func(t *testing.T) {
-		_, resp, err := th.Client.GetPostsAroundPost(context.Background(), th.BasicChannel.Id, "invalid", 10, false, false)
+		_, resp, err := th.Client.GetPostsForChannel(context.Background(), th.BasicChannel.Id, 0, 10, "", false, false)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
 
 	t.Run("get posts from channel user is not member of", func(t *testing.T) {
-		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
-		privatePost := th.CreatePostWithClient(t, th.SystemAdminClient, privateChannel)
+		privateChannel := th.CreatePrivateChannel(t)
 		th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, "", privateChannel)
 		
-		_, resp, err := th.Client.GetPostsAroundPost(context.Background(), privateChannel.Id, privatePost.Id, 10, false, false)
+		_, resp, err := th.Client.GetPostsForChannel(context.Background(), privateChannel.Id, 0, 10, "", false, false)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("unauthorized - not logged in", func(t *testing.T) {
 		th.Client.Logout(context.Background())
-		_, resp, err := th.Client.GetPostsAroundPost(context.Background(), th.BasicChannel.Id, th.BasicPost.Id, 10, false, false)
+		_, resp, err := th.Client.GetPostsForChannel(context.Background(), th.BasicChannel.Id, 0, 10, "", false, false)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})

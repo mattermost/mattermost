@@ -171,8 +171,12 @@ func TestUpdateTeamErrorPaths(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	t.Run("update team with invalid name", func(t *testing.T) {
-		team := th.BasicTeam.DeepCopy()
-		team.Name = "invalid name"
+		team := &model.Team{
+			Id:          th.BasicTeam.Id,
+			Name:        "invalid name",
+			DisplayName: th.BasicTeam.DisplayName,
+			Type:        th.BasicTeam.Type,
+		}
 		_, resp, err := th.Client.UpdateTeam(context.Background(), team)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
@@ -187,16 +191,24 @@ func TestUpdateTeamErrorPaths(t *testing.T) {
 	})
 
 	t.Run("update with invalid team id", func(t *testing.T) {
-		team := th.BasicTeam.DeepCopy()
-		team.Id = "invalid"
+		team := &model.Team{
+			Id:          "invalid",
+			Name:        th.BasicTeam.Name,
+			DisplayName: th.BasicTeam.DisplayName,
+			Type:        th.BasicTeam.Type,
+		}
 		_, resp, err := th.Client.UpdateTeam(context.Background(), team)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
 
 	t.Run("update non-existent team", func(t *testing.T) {
-		team := th.BasicTeam.DeepCopy()
-		team.Id = model.NewId()
+		team := &model.Team{
+			Id:          model.NewId(),
+			Name:        th.BasicTeam.Name,
+			DisplayName: th.BasicTeam.DisplayName,
+			Type:        th.BasicTeam.Type,
+		}
 		_, resp, err := th.SystemAdminClient.UpdateTeam(context.Background(), team)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
@@ -204,8 +216,12 @@ func TestUpdateTeamErrorPaths(t *testing.T) {
 
 	t.Run("unauthorized - not logged in", func(t *testing.T) {
 		th.Client.Logout(context.Background())
-		team := th.BasicTeam.DeepCopy()
-		team.DisplayName = "New Name"
+		team := &model.Team{
+			Id:          th.BasicTeam.Id,
+			Name:        th.BasicTeam.Name,
+			DisplayName: "New Name",
+			Type:        th.BasicTeam.Type,
+		}
 		_, resp, err := th.Client.UpdateTeam(context.Background(), team)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
@@ -219,7 +235,7 @@ func TestPatchTeamErrorPaths(t *testing.T) {
 
 	t.Run("patch with invalid name", func(t *testing.T) {
 		patch := &model.TeamPatch{
-			Name: model.NewPointer("invalid name"),
+			DisplayName: model.NewPointer("invalid name"),
 		}
 		_, resp, err := th.Client.PatchTeam(context.Background(), th.BasicTeam.Id, patch)
 		require.Error(t, err)
@@ -549,32 +565,32 @@ func TestUpdateTeamMemberRolesErrorPaths(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	t.Run("regular user cannot update member roles", func(t *testing.T) {
-		_, resp, err := th.Client.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, th.BasicUser2.Id, model.TeamUserRoleId)
+		resp, err := th.Client.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, th.BasicUser2.Id, model.TeamUserRoleId)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		t.Run("invalid team id", func(t *testing.T) {
-			_, resp, err := client.UpdateTeamMemberRoles(context.Background(), "invalid", th.BasicUser.Id, model.TeamUserRoleId)
+			resp, err := client.UpdateTeamMemberRoles(context.Background(), "invalid", th.BasicUser.Id, model.TeamUserRoleId)
 			require.Error(t, err)
 			CheckBadRequestStatus(t, resp)
 		})
 
 		t.Run("invalid user id", func(t *testing.T) {
-			_, resp, err := client.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, "invalid", model.TeamUserRoleId)
+			resp, err := client.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, "invalid", model.TeamUserRoleId)
 			require.Error(t, err)
 			CheckBadRequestStatus(t, resp)
 		})
 
 		t.Run("invalid roles string", func(t *testing.T) {
-			_, resp, err := client.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, "invalid_role")
+			resp, err := client.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, "invalid_role")
 			require.Error(t, err)
 			CheckBadRequestStatus(t, resp)
 		})
 
 		t.Run("non-existent team member", func(t *testing.T) {
-			_, resp, err := client.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, model.NewId(), model.TeamUserRoleId)
+			resp, err := client.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, model.NewId(), model.TeamUserRoleId)
 			require.Error(t, err)
 			CheckNotFoundStatus(t, resp)
 		})
@@ -582,7 +598,7 @@ func TestUpdateTeamMemberRolesErrorPaths(t *testing.T) {
 
 	t.Run("unauthorized - not logged in", func(t *testing.T) {
 		th.Client.Logout(context.Background())
-		_, resp, err := th.Client.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, model.TeamUserRoleId)
+		resp, err := th.Client.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, model.TeamUserRoleId)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
@@ -683,27 +699,27 @@ func TestGetTeamsUnreadForUserErrorPaths(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	t.Run("invalid user id", func(t *testing.T) {
-		_, resp, err := th.Client.GetTeamsUnreadForUser(context.Background(), "invalid", "")
+		_, resp, err := th.Client.GetTeamsUnreadForUser(context.Background(), "invalid", "", false)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
 
 	t.Run("get unread for other user without permission", func(t *testing.T) {
 		otherUser := th.CreateUser(t)
-		_, resp, err := th.Client.GetTeamsUnreadForUser(context.Background(), otherUser.Id, "")
+		_, resp, err := th.Client.GetTeamsUnreadForUser(context.Background(), otherUser.Id, "", false)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("non-existent user", func(t *testing.T) {
-		_, resp, err := th.SystemAdminClient.GetTeamsUnreadForUser(context.Background(), model.NewId(), "")
+		_, resp, err := th.SystemAdminClient.GetTeamsUnreadForUser(context.Background(), model.NewId(), "", false)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
 
 	t.Run("unauthorized - not logged in", func(t *testing.T) {
 		th.Client.Logout(context.Background())
-		_, resp, err := th.Client.GetTeamsUnreadForUser(context.Background(), th.BasicUser.Id, "")
+		_, resp, err := th.Client.GetTeamsUnreadForUser(context.Background(), th.BasicUser.Id, "", false)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 	})
