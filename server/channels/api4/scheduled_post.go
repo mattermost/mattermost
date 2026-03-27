@@ -44,7 +44,7 @@ func scheduledPostChecks(where string, c *Context, scheduledPost *model.Schedule
 		return
 	}
 
-	integratedBoardsCardCheckWithContext(where, c, scheduledPost.Type)
+	postCardTypeCheckWithContext(where, c, scheduledPost.Type)
 	if c.Err != nil {
 		return
 	}

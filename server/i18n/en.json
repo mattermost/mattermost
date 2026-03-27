@@ -2777,12 +2777,12 @@
     "translation": "Cannot post to restricted direct message channel."
   },
   {
-    "id": "api.post.create_post.integrated_boards_card_disabled.app_error",
-    "translation": "Creating board cards is not available while Integrated Boards is disabled."
-  },
-  {
     "id": "api.post.create_post.can_not_post_to_deleted.error",
     "translation": "Can not post to deleted channel."
+  },
+  {
+    "id": "api.post.create_post.card_type_disabled.app_error",
+    "translation": "Card posts are not enabled on this server."
   },
   {
     "id": "api.post.create_post.channel_root_id.app_error",

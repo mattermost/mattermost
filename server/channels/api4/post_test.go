@@ -249,7 +249,7 @@ func TestCreatePost(t *testing.T) {
 		})
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
-		CheckErrorID(t, err, "api.post.create_post.integrated_boards_card_disabled.app_error")
+		CheckErrorID(t, err, "api.post.create_post.card_type_disabled.app_error")
 		assert.Nil(t, cardPost)
 	})
 
@@ -1656,6 +1656,94 @@ func TestUpdatePost(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
+	t.Run("change file ids but not message, post too old", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = 1
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = -1
+		})
+
+		fileResp, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		newFileId := fileResp.FileInfos[0].Id
+
+		oldPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: channel.Id,
+			Message:   "original message",
+			UserId:    th.BasicUser.Id,
+			CreateAt:  model.GetMillis() - 2000,
+		}, channel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		up := &model.Post{
+			Id:        oldPost.Id,
+			ChannelId: channel.Id,
+			Message:   oldPost.Message,
+			FileIds:   model.StringArray{newFileId},
+		}
+		_, resp, err := client.UpdatePost(context.Background(), oldPost.Id, up)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		require.Equal(t, "api.post.update_post.permissions_time_limit.app_error", err.(*model.AppError).Id)
+	})
+
+	t.Run("change props but not message, post too old", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = 1
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = -1
+		})
+
+		oldPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: channel.Id,
+			Message:   "original message",
+			UserId:    th.BasicUser.Id,
+			CreateAt:  model.GetMillis() - 2000,
+		}, channel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		up := &model.Post{
+			Id:        oldPost.Id,
+			ChannelId: channel.Id,
+			Message:   oldPost.Message,
+			Props:     model.StringInterface{"channel_header": "injected"},
+		}
+		_, resp, err := client.UpdatePost(context.Background(), oldPost.Id, up)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		require.Equal(t, "api.post.update_post.permissions_time_limit.app_error", err.(*model.AppError).Id)
+	})
+
+	t.Run("change is_pinned but not message, post too old", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = 1
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = -1
+		})
+
+		oldPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: channel.Id,
+			Message:   "original message",
+			UserId:    th.BasicUser.Id,
+			CreateAt:  model.GetMillis() - 2000,
+		}, channel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		up := &model.Post{
+			Id:        oldPost.Id,
+			ChannelId: channel.Id,
+			Message:   oldPost.Message,
+			IsPinned:  true,
+		}
+		_, resp, err := client.UpdatePost(context.Background(), oldPost.Id, up)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		require.Equal(t, "api.post.update_post.permissions_time_limit.app_error", err.(*model.AppError).Id)
+	})
+
 	t.Run("err with integrations-reserved props", func(t *testing.T) {
 		originalHardenedModeSetting := *th.App.Config().ServiceSettings.ExperimentalEnableHardenedMode
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -2185,6 +2273,110 @@ func TestPatchPost(t *testing.T) {
 		require.Equal(t, "api.post.update_post.permissions_time_limit.app_error", err.(*model.AppError).Id, "should be time limit error")
 	})
 
+	t.Run("patch file ids only, time limit expired", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = 1
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = -1
+		})
+
+		fileResp, _, err := th.SystemAdminClient.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		newFileId := fileResp.FileInfos[0].Id
+
+		oldPost := &model.Post{
+			ChannelId: channel.Id,
+			Message:   "original message",
+			CreateAt:  model.GetMillis() - 2000,
+		}
+		oldPost, _, err = th.SystemAdminClient.CreatePost(context.Background(), oldPost)
+		require.NoError(t, err)
+
+		patch := &model.PostPatch{
+			FileIds: &model.StringArray{newFileId},
+		}
+		_, resp, err := th.SystemAdminClient.PatchPost(context.Background(), oldPost.Id, patch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		require.Equal(t, "api.post.update_post.permissions_time_limit.app_error", err.(*model.AppError).Id)
+	})
+
+	t.Run("patch props only, time limit expired", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = 1
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = -1
+		})
+
+		oldPost := &model.Post{
+			ChannelId: channel.Id,
+			Message:   "original message",
+			CreateAt:  model.GetMillis() - 2000,
+		}
+		oldPost, _, err := th.SystemAdminClient.CreatePost(context.Background(), oldPost)
+		require.NoError(t, err)
+
+		patch := &model.PostPatch{
+			Props: &model.StringInterface{"channel_header": "injected"},
+		}
+		_, resp, err := th.SystemAdminClient.PatchPost(context.Background(), oldPost.Id, patch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		require.Equal(t, "api.post.update_post.permissions_time_limit.app_error", err.(*model.AppError).Id)
+	})
+
+	t.Run("patch is_pinned only, time limit expired", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = 1
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = -1
+		})
+
+		oldPost := &model.Post{
+			ChannelId: channel.Id,
+			Message:   "original message",
+			CreateAt:  model.GetMillis() - 2000,
+		}
+		oldPost, _, err := th.SystemAdminClient.CreatePost(context.Background(), oldPost)
+		require.NoError(t, err)
+
+		patch := &model.PostPatch{
+			IsPinned: model.NewPointer(true),
+		}
+		_, resp, err := th.SystemAdminClient.PatchPost(context.Background(), oldPost.Id, patch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		require.Equal(t, "api.post.update_post.permissions_time_limit.app_error", err.(*model.AppError).Id)
+	})
+
+	t.Run("patch has_reactions only, time limit expired", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = 1
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = -1
+		})
+
+		oldPost := &model.Post{
+			ChannelId: channel.Id,
+			Message:   "original message",
+			CreateAt:  model.GetMillis() - 2000,
+		}
+		oldPost, _, err := th.SystemAdminClient.CreatePost(context.Background(), oldPost)
+		require.NoError(t, err)
+
+		patch := &model.PostPatch{
+			HasReactions: model.NewPointer(true),
+		}
+		_, resp, err := th.SystemAdminClient.PatchPost(context.Background(), oldPost.Id, patch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		require.Equal(t, "api.post.update_post.permissions_time_limit.app_error", err.(*model.AppError).Id)
+	})
+
 	t.Run("err with integrations-reserved props", func(t *testing.T) {
 		originalHardenedModeSetting := *th.App.Config().ServiceSettings.ExperimentalEnableHardenedMode
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -2347,6 +2539,61 @@ func TestPinPost(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	client := th.Client
 
+	t.Run("pin post after time limit", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = 1
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = -1
+		})
+
+		oldPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "original message",
+			UserId:    th.BasicUser.Id,
+			CreateAt:  model.GetMillis() - 2000,
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		resp, err := client.PinPost(context.Background(), oldPost.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("idempotent pin/unpin after time limit", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = 1
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = -1
+		})
+
+		pinnedPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "original message",
+			UserId:    th.BasicUser.Id,
+			IsPinned:  true,
+			CreateAt:  model.GetMillis() - 2000,
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		unpinnedPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "original message",
+			UserId:    th.BasicUser.Id,
+			IsPinned:  false,
+			CreateAt:  model.GetMillis() - 2000,
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		// Both are no-ops and must succeed regardless of age.
+		_, err := client.PinPost(context.Background(), pinnedPost.Id)
+		require.NoError(t, err)
+
+		_, err = client.UnpinPost(context.Background(), unpinnedPost.Id)
+		require.NoError(t, err)
+	})
+
 	post := th.BasicPost
 	_, err := client.PinPost(context.Background(), post.Id)
 	require.NoError(t, err)
@@ -2378,6 +2625,28 @@ func TestUnpinPost(t *testing.T) {
 
 	th := Setup(t).InitBasic(t)
 	client := th.Client
+
+	t.Run("unpin post after time limit", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = 1
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = -1
+		})
+
+		oldPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "original message",
+			UserId:    th.BasicUser.Id,
+			IsPinned:  true,
+			CreateAt:  model.GetMillis() - 2000,
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		resp, err := client.UnpinPost(context.Background(), oldPost.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 
 	pinnedPost := th.CreatePinnedPost(t)
 	_, err := client.UnpinPost(context.Background(), pinnedPost.Id)
@@ -5728,6 +5997,87 @@ func TestRestorePostVersion(t *testing.T) {
 		CheckForbiddenStatus(t, response)
 		require.Nil(t, restoredPost)
 	})
+
+	t.Run("restore post version blocked when time limit expired", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = 1
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = -1
+		})
+
+		// Create post in the past via app layer (bypasses API time limit)
+		oldPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "original message",
+			UserId:    th.BasicUser.Id,
+			CreateAt:  model.GetMillis() - 2000,
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		// Patch via app layer to create edit history (bypasses API time limit check)
+		_, _, appErr = th.App.PatchPost(th.Context, oldPost.Id, &model.PostPatch{
+			Message: model.NewPointer("edited message"),
+		}, &model.UpdatePostOptions{})
+		require.Nil(t, appErr)
+
+		// Get edit history
+		editHistory, response, err := client.GetEditHistoryForPost(context.Background(), oldPost.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.Equal(t, 1, len(editHistory))
+
+		// Restore should be blocked by time limit
+		_, resp, err := client.RestorePostVersion(context.Background(), oldPost.Id, editHistory[0].Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		require.Equal(t, "api.post.update_post.permissions_time_limit.app_error", err.(*model.AppError).Id)
+	})
+
+	t.Run("restore post version with file change blocked when time limit expired", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = 1
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostEditTimeLimit = -1
+		})
+
+		// Upload a file for the original post
+		fileResp, _, err := client.UploadFile(context.Background(), []byte("data"), th.BasicChannel.Id, "test")
+		require.NoError(t, err)
+		fileId := fileResp.FileInfos[0].Id
+
+		// Create post in the past with file attached
+		oldPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "original message",
+			UserId:    th.BasicUser.Id,
+			FileIds:   model.StringArray{fileId},
+			CreateAt:  model.GetMillis() - 2000,
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		// Remove file via app layer to create history entry that has the file
+		emptyFiles := model.StringArray{}
+		_, _, appErr = th.App.PatchPost(th.Context, oldPost.Id, &model.PostPatch{
+			Message: model.NewPointer("edited message"),
+			FileIds: &emptyFiles,
+		}, &model.UpdatePostOptions{})
+		require.Nil(t, appErr)
+
+		// Get edit history (should have the entry with the original file)
+		editHistory, response, err := client.GetEditHistoryForPost(context.Background(), oldPost.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		require.Equal(t, 1, len(editHistory))
+		require.Equal(t, 1, len(editHistory[0].FileIds))
+
+		// Restore (which would re-attach the file) should be blocked by time limit
+		_, resp, err := client.RestorePostVersion(context.Background(), oldPost.Id, editHistory[0].Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		require.Equal(t, "api.post.update_post.permissions_time_limit.app_error", err.(*model.AppError).Id)
+	})
 }
 
 func TestRevealPost(t *testing.T) {
@@ -6417,5 +6767,59 @@ func TestPatchCardPostByNonOwner(t *testing.T) {
 		_, resp, err := cli.PatchPost(context.Background(), cardPost.Id, patch)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+	})
+}
+
+func TestCreateCardPostWithFeatureFlagDisabled(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("card post rejected when IntegratedBoards flag is disabled", func(t *testing.T) {
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.IntegratedBoards = false
+		}).InitBasic(t)
+		client := th.Client
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "this is a card",
+			Type:      model.PostTypeCard,
+		}
+		_, resp, err := client.CreatePost(context.Background(), post)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("card post allowed when IntegratedBoards flag is enabled", func(t *testing.T) {
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.IntegratedBoards = true
+		}).InitBasic(t)
+		client := th.Client
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "card post",
+			Type:      model.PostTypeCard,
+		}
+		rpost, resp, err := client.CreatePost(context.Background(), post)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, rpost)
+		assert.Equal(t, model.PostTypeCard, rpost.Type)
+		assert.Equal(t, "card post", rpost.Message)
+	})
+
+	t.Run("non-card post allowed when IntegratedBoards flag is disabled", func(t *testing.T) {
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.IntegratedBoards = false
+		}).InitBasic(t)
+		client := th.Client
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "this is a regular post",
+		}
+		rpost, _, err := client.CreatePost(context.Background(), post)
+		require.NoError(t, err)
+		assert.Equal(t, "", rpost.Type)
 	})
 }

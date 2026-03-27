@@ -165,7 +165,7 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		return nil, false, model.NewAppError("CreatePost", "app.post.create_post.shared_dm_or_gm.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	err = PostIntegratedBoardsCardCheckWithApp("App.CreatePost", a, post.Type)
+	err = PostCardTypeCheckWithApp("App.CreatePost", a, post.Type)
 	if err != nil {
 		return nil, false, err
 	}

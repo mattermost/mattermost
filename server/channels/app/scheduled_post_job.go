@@ -314,9 +314,9 @@ func (a *App) canPostScheduledPost(rctx request.CTX, scheduledPost *model.Schedu
 		return model.ScheduledPostErrorInvalidPost, nil
 	}
 
-	if appErr := PostIntegratedBoardsCardCheckWithApp("ScheduledPostJob.postChecks", a, scheduledPost.Type); appErr != nil {
+	if appErr := PostCardTypeCheckWithApp("ScheduledPostJob.postChecks", a, scheduledPost.Type); appErr != nil {
 		rctx.Logger().Debug(
-			"canPostScheduledPost integrated boards card check failed",
+			"canPostScheduledPost card type disabled",
 			mlog.String("scheduled_post_id", scheduledPost.Id),
 			mlog.String("user_id", scheduledPost.UserId),
 			mlog.String("channel_id", scheduledPost.ChannelId),

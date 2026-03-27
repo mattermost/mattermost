@@ -115,13 +115,11 @@ func userCreatePostPermissionCheckWithApp(rctx request.CTX, a *App, userId, chan
 	return nil
 }
 
-// PostIntegratedBoardsCardCheckWithApp rejects card posts when the Integrated Boards feature flag is off.
-func PostIntegratedBoardsCardCheckWithApp(where string, a *App, postType string) *model.AppError {
-	if postType != model.PostTypeCard {
-		return nil
-	}
-	if !a.Config().FeatureFlags.IntegratedBoards {
-		return model.NewAppError(where, "api.post.create_post.integrated_boards_card_disabled.app_error", nil, "", http.StatusBadRequest)
+// PostCardTypeCheckWithApp validates whether a card post can be created
+// based on the IntegratedBoards feature flag.
+func PostCardTypeCheckWithApp(where string, a *App, postType string) *model.AppError {
+	if postType == model.PostTypeCard && !a.Config().FeatureFlags.IntegratedBoards {
+		return model.NewAppError(where, "api.post.create_post.card_type_disabled.app_error", nil, "", http.StatusBadRequest)
 	}
 	return nil
 }

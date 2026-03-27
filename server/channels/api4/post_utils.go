@@ -42,9 +42,8 @@ func postPriorityCheckWithContext(where string, c *Context, priority *model.Post
 	}
 }
 
-func integratedBoardsCardCheckWithContext(where string, c *Context, postType string) {
-	appErr := app.PostIntegratedBoardsCardCheckWithApp(where, c.App, postType)
-	if appErr != nil {
+func postCardTypeCheckWithContext(where string, c *Context, postType string) {
+	if appErr := app.PostCardTypeCheckWithApp(where, c.App, postType); appErr != nil {
 		appErr.Where = where
 		c.Err = appErr
 	}

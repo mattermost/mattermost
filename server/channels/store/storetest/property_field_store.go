@@ -9,15 +9,17 @@ import (
 	"testing"
 	"time"
 
+	sq "github.com/mattermost/squirrel"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/stretchr/testify/require"
 )
 
 func TestPropertyFieldStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("CreatePropertyField", func(t *testing.T) { testCreatePropertyField(t, rctx, ss) })
-	t.Run("GetPropertyField", func(t *testing.T) { testGetPropertyField(t, rctx, ss) })
+	t.Run("GetPropertyField", func(t *testing.T) { testGetPropertyField(t, rctx, ss, s) })
 	t.Run("GetManyPropertyFields", func(t *testing.T) { testGetManyPropertyFields(t, rctx, ss) })
 	t.Run("GetFieldByName", func(t *testing.T) { testGetFieldByName(t, rctx, ss) })
 	t.Run("UpdatePropertyField", func(t *testing.T) { testUpdatePropertyField(t, rctx, ss) })
@@ -188,7 +190,32 @@ func testCreatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 	})
 }
 
-func testGetPropertyField(t *testing.T, _ request.CTX, ss store.Store) {
+// insertPropertyFieldWithNullColumns inserts a property field row that
+// simulates a record created before the migrations that added Protected,
+// Permission*, CreatedBy, and UpdatedBy columns. Those columns are left
+// NULL so that the store's COALESCE and pointer-scanning logic is exercised.
+func insertPropertyFieldWithNullColumns(t *testing.T, ss store.Store, s SqlStore) (string, string) {
+	t.Helper()
+
+	fieldID := model.NewId()
+	groupID := model.NewId()
+	db := ss.GetInternalMasterDB()
+
+	builder := sq.StatementBuilder.PlaceholderFormat(s.GetQueryPlaceholder()).
+		Insert("PropertyFields").
+		Columns("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "ObjectType", "CreateAt", "UpdateAt", "DeleteAt").
+		Values(fieldID, groupID, "null-columns-field", "text", "{}", "", "", "", model.GetMillis(), model.GetMillis(), 0)
+
+	query, args, err := builder.ToSql()
+	require.NoError(t, err)
+
+	_, err = db.Exec(query, args...)
+	require.NoError(t, err)
+
+	return groupID, fieldID
+}
+
+func testGetPropertyField(t *testing.T, _ request.CTX, ss store.Store, s SqlStore) {
 	t.Run("should fail on nonexisting field", func(t *testing.T) {
 		field, err := ss.PropertyField().Get("", model.NewId())
 		require.Zero(t, field)
@@ -228,6 +255,20 @@ func testGetPropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		field, err := ss.PropertyField().Get(model.NewId(), newField.ID)
 		require.Zero(t, field)
 		require.ErrorIs(t, err, sql.ErrNoRows)
+	})
+
+	t.Run("null columns, before createdBy, updatedBy, protected and permissions migrations", func(t *testing.T) {
+		groupID, fieldID := insertPropertyFieldWithNullColumns(t, ss, s)
+
+		field, err := ss.PropertyField().Get(groupID, fieldID)
+		require.NoError(t, err)
+		require.Equal(t, fieldID, field.ID)
+		require.Empty(t, field.CreatedBy)
+		require.Empty(t, field.UpdatedBy)
+		require.False(t, field.Protected)
+		require.Nil(t, field.PermissionField)
+		require.Nil(t, field.PermissionValues)
+		require.Nil(t, field.PermissionOptions)
 	})
 }
 
