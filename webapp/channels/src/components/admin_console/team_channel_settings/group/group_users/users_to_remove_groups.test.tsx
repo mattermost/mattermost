@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import UsersToRemoveGroups from './users_to_remove_groups';
@@ -25,29 +25,32 @@ describe('components/admin_console/team_channel_settings/group/UsersToRemoveGrou
     const group3 = TestHelper.getGroupMock({id: 'group3', display_name: 'group3'});
 
     test('should match snapshot with 0 groups', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <UsersToRemoveGroups
                 user={userWithGroups(user, [])}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with 1 group', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <UsersToRemoveGroups
                 user={userWithGroups(user, [group1])}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with 3 groups', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <UsersToRemoveGroups
                 user={userWithGroups(user, [group1, group2, group3])}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+
+        expect(container).toMatchSnapshot();
     });
 });
