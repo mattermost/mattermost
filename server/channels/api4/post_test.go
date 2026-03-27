@@ -5907,6 +5907,52 @@ func TestRevealPost(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 		require.Nil(t, revealedPost)
 	}, "user without channel access")
+
+	t.Run("cookie auth without X-Requested-With header should be rejected", func(t *testing.T) {
+		enableBurnOnReadFeature(th)
+
+		_, client2 := createSecondUser(th.BasicChannel)
+		post := createBurnOnReadPost(client2, th.BasicChannel)
+
+		// Build a raw HTTP request using cookie-based auth (no Authorization header)
+		// and without the X-Requested-With header — simulating a passive resource load
+		revealURL := th.Client.APIURL + "/posts/" + post.Id + "/reveal"
+		req, err := http.NewRequest("GET", revealURL, nil)
+		require.NoError(t, err)
+
+		req.AddCookie(&http.Cookie{
+			Name:  model.SessionCookieToken,
+			Value: th.Client.AuthToken,
+		})
+
+		resp, err := th.Client.HTTPClient.Do(req)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
+	t.Run("cookie auth with X-Requested-With header should be accepted", func(t *testing.T) {
+		enableBurnOnReadFeature(th)
+
+		_, client2 := createSecondUser(th.BasicChannel)
+		post := createBurnOnReadPost(client2, th.BasicChannel)
+
+		// Build a raw HTTP request using cookie-based auth with the X-Requested-With header
+		revealURL := th.Client.APIURL + "/posts/" + post.Id + "/reveal"
+		req, err := http.NewRequest("GET", revealURL, nil)
+		require.NoError(t, err)
+
+		req.AddCookie(&http.Cookie{
+			Name:  model.SessionCookieToken,
+			Value: th.Client.AuthToken,
+		})
+		req.Header.Set(model.HeaderRequestedWith, model.HeaderRequestedWithXML)
+
+		resp, err := th.Client.HTTPClient.Do(req)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+	})
 }
 
 func TestCreateBurnOnReadPost(t *testing.T) {
