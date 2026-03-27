@@ -11,10 +11,10 @@ import "testing"
 // alternative. This should only be set via SetTestHasher and only in test code.
 var testHasher PasswordHasher
 
-// getLatestHasher returns the hasher to use for password operations.
+// GetLatestHasher returns the hasher to use for password operations.
 // In non-production builds, if a test hasher has been set via SetTestHasher,
 // it will be returned instead of the production latestHasher.
-func getLatestHasher() PasswordHasher {
+func GetLatestHasher() PasswordHasher {
 	if testHasher != nil {
 		return testHasher
 	}

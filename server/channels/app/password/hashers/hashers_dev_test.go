@@ -66,7 +66,7 @@ func TestGetLatestHasher(t *testing.T) {
 	SetTestHasher(nil)
 
 	// Without test hasher, should return latestHasher
-	require.Equal(t, latestHasher, getLatestHasher())
+	require.Equal(t, latestHasher, GetLatestHasher())
 
 	// Set a fast test hasher
 	fastHasher := FastTestHasher()
@@ -74,8 +74,8 @@ func TestGetLatestHasher(t *testing.T) {
 	defer SetTestHasher(nil)
 
 	// With test hasher set, should return the test hasher
-	require.Equal(t, fastHasher, getLatestHasher())
-	require.NotEqual(t, latestHasher, getLatestHasher())
+	require.Equal(t, fastHasher, GetLatestHasher())
+	require.NotEqual(t, latestHasher, GetLatestHasher())
 }
 
 func BenchmarkFastTestHasher(b *testing.B) {
