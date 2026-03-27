@@ -7921,7 +7921,15 @@ func (c *Client4) GetChannelsForAccessControlPolicy(ctx context.Context, policyI
 }
 
 func (c *Client4) SearchChannelsForAccessControlPolicy(ctx context.Context, policyID string, options ChannelSearch) (*ChannelsWithCount, *Response, error) {
-	r, err := c.doAPIPostJSON(ctx, c.accessControlPolicyRoute(policyID).Join("resources", "channels", "search"), options)
+	return c.SearchChannelsForAccessControlPolicyForTeam(ctx, policyID, "", options)
+}
+
+func (c *Client4) SearchChannelsForAccessControlPolicyForTeam(ctx context.Context, policyID, teamID string, options ChannelSearch) (*ChannelsWithCount, *Response, error) {
+	var query url.Values
+	if teamID != "" {
+		query = url.Values{"team_id": []string{teamID}}
+	}
+	r, err := c.doAPIPostJSONWithQuery(ctx, c.accessControlPolicyRoute(policyID).Join("resources", "channels", "search"), query, options)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
