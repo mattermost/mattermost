@@ -94,7 +94,10 @@ class RecapChannelCard {
     ) {
         this.channelButton = container.locator('.recap-channel-name-tag');
         this.collapseButton = container.locator('.recap-channel-collapse-button');
-        this.menuButton = container.getByRole('button', {name: /Options for /});
+        // Scope to header actions so we do not match the parent .recap-channel-header (role="button").
+        this.menuButton = container
+            .locator('.recap-channel-header-actions')
+            .getByRole('button', {name: /Options for /});
     }
 
     async toBeVisible() {
@@ -235,8 +238,15 @@ export default class RecapsPage {
     }
 
     async expectEmptyState() {
-        await expect(this.page.getByText("You're all caught up")).toBeVisible();
-        await expect(this.page.getByText("You don't have any recaps yet. Create one to get started.")).toBeVisible();
+        // When there are zero recaps, Recaps renders the placeholder (recaps.tsx), not RecapsList's
+        // "caught up" empty state (recaps_list.tsx).
+        await expect(this.page.getByRole('heading', {name: 'Set up your recap'})).toBeVisible();
+        await expect(
+            this.page.getByText(
+                'Recaps help you get caught up quickly on discussions that are most important to you with a summarized report.',
+            ),
+        ).toBeVisible();
+        await expect(this.page.getByRole('button', {name: 'Create a recap'})).toBeVisible();
     }
 
     async expectAddRecapDisabled(reason: string) {
