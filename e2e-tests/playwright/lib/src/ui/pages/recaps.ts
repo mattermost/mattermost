@@ -238,15 +238,10 @@ export default class RecapsPage {
     }
 
     async expectEmptyState() {
-        // When there are zero recaps, Recaps renders the placeholder (recaps.tsx), not RecapsList's
-        // "caught up" empty state (recaps_list.tsx).
-        await expect(this.page.getByRole('heading', {name: 'Set up your recap'})).toBeVisible();
+        await expect(this.page.getByRole('heading', {name: "You're all caught up"})).toBeVisible();
         await expect(
-            this.page.getByText(
-                'Recaps help you get caught up quickly on discussions that are most important to you with a summarized report.',
-            ),
+            this.page.getByText("You don't have any recaps yet. Create one to get started."),
         ).toBeVisible();
-        await expect(this.page.getByRole('button', {name: 'Create a recap'})).toBeVisible();
     }
 
     async expectAddRecapDisabled(reason: string) {
