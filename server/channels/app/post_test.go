@@ -168,9 +168,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 
 		// Launch a goroutine to make the first CreatePost call that will get delayed
 		// by the plugin above.
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			var appErr *model.AppError
 			post, _, appErr = th.App.CreatePostAsUser(th.Context.WithSession(session), &model.Post{
 				UserId:        th.BasicUser.Id,
@@ -180,7 +178,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 			}, session.Id, true)
 			require.Nil(t, appErr)
 			require.Equal(t, post.Message, "plugin delayed")
-		}()
+		})
 
 		// Give the goroutine above a chance to start and get delayed by the plugin.
 		time.Sleep(2 * time.Second)
@@ -3574,12 +3572,10 @@ func TestCollapsedThreadFetch(t *testing.T) {
 
 		// we introduce a race to trigger an unexpected error from the db side.
 		var wg sync.WaitGroup
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			err := th.Server.Store().Post().PermanentDeleteByUser(th.Context, user1.Id)
 			require.NoError(t, err)
-		}()
+		})
 
 		require.NotPanics(t, func() {
 			// We're only testing that this doesn't panic, not checking the error
