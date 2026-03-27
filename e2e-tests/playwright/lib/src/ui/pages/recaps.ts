@@ -237,7 +237,17 @@ export default class RecapsPage {
         await expect(this.readTab).toHaveClass(/active/);
     }
 
-    async expectEmptyState() {
+    async expectSetupPlaceholder() {
+        await expect(this.page.getByRole('heading', {name: 'Set up your recap'})).toBeVisible();
+        await expect(
+            this.page.getByText(
+                'Recaps help you get caught up quickly on discussions that are most important to you with a summarized report.',
+            ),
+        ).toBeVisible();
+        await expect(this.page.getByRole('button', {name: 'Create a recap'})).toBeVisible();
+    }
+
+    async expectCaughtUpEmptyState() {
         await expect(this.page.getByRole('heading', {name: "You're all caught up"})).toBeVisible();
         await expect(this.page.getByText("You don't have any recaps yet. Create one to get started.")).toBeVisible();
     }

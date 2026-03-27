@@ -181,8 +181,8 @@ test('disables recap creation when the bridge is unavailable', {tag: '@ai_recaps
     await recapsPage.goto(team.name);
     await recapsPage.toBeVisible();
 
-    // * Verify the page shows the empty state and disables the Add a recap button with the expected reason.
-    await recapsPage.expectEmptyState();
+    // * Verify the page shows the caught-up empty state and disables the Add a recap button with the expected reason.
+    await recapsPage.expectCaughtUpEmptyState();
     await recapsPage.expectAddRecapDisabled('Agents Bridge is not enabled');
 });
 
@@ -283,9 +283,9 @@ test('deletes a recap from the recaps page', {tag: '@ai_recaps'}, async ({pw}) =
     await recap.clickDelete();
     await recapsPage.confirmDelete();
 
-    // * Verify the recap disappears from the list and the page returns to the empty state.
+    // * Verify the recap disappears from the list and the page returns to the setup placeholder.
     await recapsPage.expectRecapNotVisible(recapTitle);
-    await recapsPage.expectEmptyState();
+    await recapsPage.expectSetupPlaceholder();
 });
 
 /**
