@@ -35,7 +35,7 @@ import {
     getMyChannelMemberships,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
-import {getTeammateNameDisplaySetting, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getBool, getTeammateNameDisplaySetting, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {
     getTeamByName,
@@ -356,7 +356,8 @@ export function toRgbValues(hexStr: string): string {
 }
 
 export function applyTheme(theme: Theme) {
-    DesktopApp.updateTheme({...theme, isUsingSystemTheme: false});
+    const isUsingSystemTheme = getBool(store.getState(), Preferences.CATEGORY_DISPLAY_SETTINGS, 'theme_auto_switch');
+    DesktopApp.updateTheme({...theme, isUsingSystemTheme});
 
     if (theme.centerChannelColor) {
         changeCss('.app__body .markdown__table tbody tr:nth-child(2n)', 'background:' + changeOpacity(theme.centerChannelColor, 0.07));

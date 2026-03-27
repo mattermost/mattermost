@@ -85,7 +85,7 @@ export function applySystemThemeIfNeeded(): boolean {
     }
 
     // Check system preference
-    const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const isDarkMode = isSystemInDarkMode();
 
     // Get the appropriate theme
     let theme: Theme;
@@ -117,9 +117,10 @@ export function applySystemThemeIfNeeded(): boolean {
         // Use regular theme for light mode
         theme = getTheme(state);
     }
-
     // Apply the theme
-    applyTheme(theme);
+    if (theme) {
+        applyTheme(theme);
+    }
 
     return true;
 }
@@ -128,5 +129,5 @@ export function applySystemThemeIfNeeded(): boolean {
  * Returns whether the system is currently in dark mode
  */
 export function isSystemInDarkMode(): boolean {
-    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
 }

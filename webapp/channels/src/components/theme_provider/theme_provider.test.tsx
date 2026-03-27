@@ -331,4 +331,20 @@ describe('ThemeProvider', () => {
         lastCall = applyTheme.mock.calls[applyTheme.mock.calls.length - 1][0];
         expect(lastCall).toEqual(setThemeDefaults(darkThemeForTeam2));
     });
+
+    test('does not call applyTheme when theme is falsy', () => {
+        const state = makeState();
+
+        renderWithContext(
+            <ThemeProvider>
+                <div>{'child'}</div>
+            </ThemeProvider>,
+            state,
+        );
+
+        // applyTheme should be called with the denim default, never with undefined
+        for (const call of applyTheme.mock.calls) {
+            expect(call[0]).toBeTruthy();
+        }
+    });
 });

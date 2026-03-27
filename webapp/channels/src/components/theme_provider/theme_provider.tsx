@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {useSelector} from 'react-redux';
 
 import {Preferences} from 'mattermost-redux/constants';
-import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
+import {get, getBool, getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {setThemeDefaults} from 'mattermost-redux/utils/theme_utils';
 
@@ -14,6 +14,8 @@ import {applyTheme} from 'utils/utils';
 import type {GlobalState} from 'types/store';
 
 import {ThemeContext} from './theme_context';
+
+const CATEGORY_THEME_DARK = 'theme_dark';
 
 function useSystemDarkMode(): boolean {
     const [isDark, setIsDark] = useState(() => {
@@ -48,38 +50,37 @@ export default function ThemeProvider({children}: {children: React.ReactNode}) {
     const [usingUserTheme, setUsingUserTheme] = useState(0);
     const systemDarkMode = useSystemDarkMode();
 
-    const theme = useSelector(useCallback((state: GlobalState) => {
+    const teamId = useSelector((state: GlobalState) => state.entities.teams.currentTeamId);
+    const autoSwitchEnabled = useSelector((state: GlobalState) => getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, 'theme_auto_switch'));
+    const teamDarkThemeRaw = useSelector((state: GlobalState) => get(state, CATEGORY_THEME_DARK, teamId));
+    const defaultDarkThemeRaw = useSelector((state: GlobalState) => get(state, CATEGORY_THEME_DARK, ''));
+    const reduxTheme = useSelector(getTheme);
+
+    const theme = useMemo(() => {
         if (usingUserTheme <= 0) {
             return Preferences.THEMES.denim;
         }
 
-        // Check if auto-switch is enabled and system is in dark mode
-        if (systemDarkMode) {
-            const prefs = state.entities.preferences.myPreferences;
-            const autoSwitchPref = prefs['display_settings--theme_auto_switch'];
+        if (systemDarkMode && autoSwitchEnabled) {
+            const rawValue = teamDarkThemeRaw || defaultDarkThemeRaw;
 
-            if (autoSwitchPref?.value === 'true') {
-                const teamId = state.entities.teams.currentTeamId;
-                const teamDarkPref = prefs[`theme_dark--${teamId}`];
-                const defaultDarkPref = prefs['theme_dark--'];
-                const rawValue = teamDarkPref?.value ?? defaultDarkPref?.value;
-
-                if (rawValue) {
-                    try {
-                        const parsed: Theme = typeof rawValue === 'string' ? JSON.parse(rawValue) : rawValue;
-                        return setThemeDefaults(parsed);
-                    } catch {
-                        // Fall through to getTheme if parsing fails
-                    }
+            if (rawValue) {
+                try {
+                    const parsed: Theme = typeof rawValue === 'string' ? JSON.parse(rawValue) : rawValue;
+                    return setThemeDefaults(parsed);
+                } catch {
+                    // Fall through to reduxTheme if parsing fails
                 }
             }
         }
 
-        return getTheme(state);
-    }, [usingUserTheme, systemDarkMode]));
+        return reduxTheme;
+    }, [usingUserTheme, systemDarkMode, autoSwitchEnabled, teamDarkThemeRaw, defaultDarkThemeRaw, reduxTheme]);
 
     useEffect(() => {
-        applyTheme(theme);
+        if (theme) {
+            applyTheme(theme);
+        }
     }, [theme]);
 
     const context = useMemo(() => ({
