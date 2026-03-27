@@ -239,9 +239,9 @@ func getContentFlaggingFields(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	groupId, appErr := c.App.ContentFlaggingGroupId()
-	if appErr != nil {
-		c.Err = appErr
+	groupId, err := c.App.ContentFlaggingGroupId()
+	if err != nil {
+		c.Err = model.NewAppError("getContentFlaggingGroupId", "app.data_spillage.get_group.error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 

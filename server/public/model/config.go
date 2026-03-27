@@ -20,7 +20,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/blang/semver/v4"
+	"github.com/Masterminds/semver/v3"
 	"github.com/mattermost/ldap"
 	"github.com/pkg/errors"
 
@@ -2204,6 +2204,7 @@ func (s *RateLimitSettings) SetDefaults() {
 type PrivacySettings struct {
 	ShowEmailAddress *bool `access:"site_users_and_teams"`
 	ShowFullName     *bool `access:"site_users_and_teams"`
+	UseAnonymousURLs *bool `access:"site_users_and_teams"`
 }
 
 func (s *PrivacySettings) setDefaults() {
@@ -2213,6 +2214,10 @@ func (s *PrivacySettings) setDefaults() {
 
 	if s.ShowFullName == nil {
 		s.ShowFullName = NewPointer(true)
+	}
+
+	if s.UseAnonymousURLs == nil {
+		s.UseAnonymousURLs = NewPointer(false)
 	}
 }
 
@@ -3086,6 +3091,19 @@ func (s *NativeAppSettings) SetDefaults() {
 	if s.EnableIntuneMAM == nil {
 		s.EnableIntuneMAM = NewPointer(false)
 	}
+}
+
+func (s *NativeAppSettings) AreDownloadLinksValid() *AppError {
+	for _, link := range []*string{s.AppDownloadLink, s.AndroidAppDownloadLink, s.IosAppDownloadLink} {
+		if link == nil || *link == "" {
+			continue
+		}
+		u, err := url.ParseRequestURI(*link)
+		if err != nil || u.Scheme == "" || u.Hostname() == "" {
+			return NewAppError("NativeAppSettings.AreDownloadLinksValid", "model.config.is_valid.native_app_settings.download_link.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+	return nil
 }
 
 type ElasticsearchSettings struct {
@@ -4159,6 +4177,10 @@ func (o *Config) IsValid() *AppError {
 		return appErr
 	}
 
+	if appErr := o.NativeAppSettings.AreDownloadLinksValid(); appErr != nil {
+		return appErr
+	}
+
 	// Cross-reference validation: IntuneSettings requires either Office365 or SAML to be enabled
 	if o.IntuneSettings.Enable != nil && *o.IntuneSettings.Enable {
 		if o.IntuneSettings.AuthService != nil && *o.IntuneSettings.AuthService != "" {
@@ -4642,7 +4664,7 @@ func (s *ServiceSettings) isValid() *AppError {
 	}
 
 	if *s.MinimumDesktopAppVersion != "" {
-		if _, err := semver.Parse(*s.MinimumDesktopAppVersion); err != nil {
+		if _, err := semver.StrictNewVersion(*s.MinimumDesktopAppVersion); err != nil {
 			return NewAppError("Config.IsValid", "model.config.is_valid.minimum_desktop_app_version.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 	}
@@ -5006,6 +5028,10 @@ func (o *Config) Sanitize(pluginManifests []*Manifest, opts *SanitizeOptions) {
 		*o.FileSettings.AmazonS3SecretAccessKey = FakeSetting
 	}
 
+	if o.FileSettings.ExportAmazonS3SecretAccessKey != nil && *o.FileSettings.ExportAmazonS3SecretAccessKey != "" {
+		*o.FileSettings.ExportAmazonS3SecretAccessKey = FakeSetting
+	}
+
 	if o.EmailSettings.SMTPPassword != nil && *o.EmailSettings.SMTPPassword != "" {
 		*o.EmailSettings.SMTPPassword = FakeSetting
 	}
@@ -5038,6 +5064,10 @@ func (o *Config) Sanitize(pluginManifests []*Manifest, opts *SanitizeOptions) {
 		*o.ElasticsearchSettings.Password = FakeSetting
 	}
 
+	if o.ElasticsearchSettings.ClientKey != nil && *o.ElasticsearchSettings.ClientKey != "" {
+		*o.ElasticsearchSettings.ClientKey = FakeSetting
+	}
+
 	for i := range o.SqlSettings.DataSourceReplicas {
 		o.SqlSettings.DataSourceReplicas[i] = sanitizeDataSourceField(o.SqlSettings.DataSourceReplicas[i], "SqlSettings.DataSourceReplicas")
 	}
@@ -5061,6 +5091,14 @@ func (o *Config) Sanitize(pluginManifests []*Manifest, opts *SanitizeOptions) {
 
 	if o.ServiceSettings.SplitKey != nil {
 		*o.ServiceSettings.SplitKey = FakeSetting
+	}
+
+	if o.ServiceSettings.GoogleDeveloperKey != nil && *o.ServiceSettings.GoogleDeveloperKey != "" {
+		*o.ServiceSettings.GoogleDeveloperKey = FakeSetting
+	}
+
+	if o.ServiceSettings.GiphySdkKey != nil && *o.ServiceSettings.GiphySdkKey != "" {
+		*o.ServiceSettings.GiphySdkKey = FakeSetting
 	}
 
 	if o.CacheSettings.RedisPassword != nil {

@@ -1,127 +1,146 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`admin_console/team_channel_settings/AbstractList should match snapshot, no headers 1`] = `
-<div
-  className="groups-list groups-list-no-padding"
->
+<div>
   <div
-    className="groups-list--body"
-    id="groups-list--body"
+    class="groups-list groups-list-no-padding"
   >
     <div
-      className="groups-list-empty"
+      class="groups-list--body"
+      id="groups-list--body"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="test"
-        id="test"
-      />
+      <div
+        class="groups-list-empty"
+      >
+        test
+      </div>
     </div>
   </div>
 </div>
 `;
 
 exports[`admin_console/team_channel_settings/AbstractList should match snapshot, with data 1`] = `
-<div
-  className="groups-list groups-list-no-padding"
->
+<div>
   <div
-    className="groups-list--header"
+    class="groups-list groups-list-no-padding"
   >
     <div
-      className="group-name adjusted"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Name"
-        id="admin.channel_settings.channel_list.nameHeader"
-      />
-    </div>
-    <div
-      className="group-content"
+      class="groups-list--header"
     >
       <div
-        className="group-description"
+        class="group-name adjusted"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Team"
-          id="admin.channel_settings.channel_list.teamHeader"
-        />
+        Name
       </div>
       <div
-        className="group-description adjusted"
+        class="group-content"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Management"
-          id="admin.channel_settings.channel_list.managementHeader"
+        <div
+          class="group-description"
+        >
+          Team
+        </div>
+        <div
+          class="group-description adjusted"
+        >
+          Management
+        </div>
+        <div
+          class="group-actions"
         />
       </div>
-      <div
-        className="group-actions"
-      />
     </div>
-  </div>
-  <div
-    className="groups-list--body"
-    id="groups-list--body"
-  >
-    <GroupRow
-      group={
-        Object {
-          "allow_open_invite": false,
-          "allowed_domains": "",
-          "company_name": "",
-          "create_at": 0,
-          "delete_at": 0,
-          "description": "",
-          "display_name": "DN",
-          "email": "",
-          "group_constrained": false,
-          "id": "123",
-          "invite_id": "",
-          "name": "DN",
-          "scheme_id": "id",
-          "type": "O",
-          "update_at": 0,
-        }
-      }
-      key="123"
-      removeGroup={[MockFunction]}
-      setNewGroupRole={[MockFunction]}
-      type="channel"
-    />
-  </div>
-  <div
-    className="groups-list--footer"
-  >
     <div
-      className="counter"
+      class="groups-list--body"
+      id="groups-list--body"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="{startCount, number} - {endCount, number} of {total, number}"
-        id="admin.team_channel_settings.list.paginatorCount"
-        values={
-          Object {
-            "endCount": 1,
-            "startCount": 1,
-            "total": 1,
-          }
-        }
-      />
+      <div
+        class="group"
+        id="group"
+      >
+        <div
+          class="group-row"
+          id="group-row"
+        >
+          <span
+            class="group-name row-content"
+          >
+            DN
+          </span>
+          <span
+            class="group-description row-content"
+          >
+            <button
+              class="style--none color--link"
+              id="DNMembersToggle"
+            >
+              NaN members
+            </button>
+          </span>
+          <div
+            class="group-description row-content roles"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <div>
+                <a
+                  data-testid="current-role"
+                >
+                  <span>
+                    Member
+                  </span>
+                  <span
+                    class="caret"
+                  />
+                </a>
+              </div>
+            </div>
+          </div>
+          <span
+            class="group-actions"
+            id="group-actions"
+          >
+            <a
+              class=""
+              href="#"
+            >
+              Remove
+            </a>
+          </span>
+        </div>
+      </div>
     </div>
-    <button
-      className="btn btn-tertiary prev disabled"
-      disabled={true}
-      type="button"
+    <div
+      class="groups-list--footer"
     >
-      <Memo(PreviousIcon) />
-    </button>
-    <button
-      className="btn btn-tertiary next disabled"
-      data-testid="page-link-next"
-      disabled={true}
-      type="button"
-    >
-      <Memo(NextIcon) />
-    </button>
+      <div
+        class="counter"
+      >
+        1 - 1 of 1
+      </div>
+      <button
+        class="btn btn-tertiary prev disabled"
+        disabled=""
+        type="button"
+      >
+        <i
+          class="icon icon-chevron-left"
+          title="Previous Icon"
+        />
+      </button>
+      <button
+        class="btn btn-tertiary next disabled"
+        data-testid="page-link-next"
+        disabled=""
+        type="button"
+      >
+        <i
+          class="icon icon-chevron-right"
+          title="Next Icon"
+        />
+      </button>
+    </div>
   </div>
 </div>
 `;

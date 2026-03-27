@@ -1484,10 +1484,6 @@
     "translation": "Błąd podczas uruchamiania serwera, err:%v"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Użytkownik Integracji / Slack Bot z adresem e-mail {{.Email}} i hasłem {{.Password}} został zaimportowany.\r\n"
-  },
-  {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "Nie udało się zaimportować użytkownika Integracji/Slack Bot {{.Username}}.\r\n"
   },
@@ -1510,10 +1506,6 @@
   {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\r\nUtworzeni użytkownicy:\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Użytkownik Slacka z adresem e-mail {{.Email}} i hasłem {{.Password}} został zaimportowany.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
@@ -11718,5 +11710,57 @@
   {
     "id": "model.config.is_valid.dcr_redirect_uri_allowlist.app_error",
     "translation": "Lista dozwolonych URI przekierowania DCR zawiera nieprawidłowy wzorzec. Wzorce muszą zaczynać się od http:// lub https:// i nie mogą być puste ani zawierać białych znaków."
+  },
+  {
+    "id": "api.data_spillage.error.comment_required",
+    "translation": "Dodaj komentarz wyjaśniający, dlaczego oznaczasz tę wiadomość flagą."
+  },
+  {
+    "id": "api.data_spillage.error.comment_too_long",
+    "translation": "Powód kwarantanny wiadomości nie może być dłuższy niż {{.MaxLength}} znaków."
+  },
+  {
+    "id": "api.data_spillage.error.disabled",
+    "translation": "Funkcja obsługi wycieków danych jest wyłączona."
+  },
+  {
+    "id": "api.data_spillage.error.invalid_post_type",
+    "translation": "Poddawanie kwarantannie postów typu '{{.PostType}}' jest niedozwolone."
+  },
+  {
+    "id": "api.data_spillage.error.license",
+    "translation": "Twoja licencja nie wspiera obsługi wycieków danych."
+  },
+  {
+    "id": "api.data_spillage.error.not_available_on_team",
+    "translation": "Funkcja obsługi wycieków danych nie jest włączona w tym zespole."
+  },
+  {
+    "id": "api.data_spillage.error.post_not_in_progress",
+    "translation": "Post objęty kwarantanną musi mieć status oczekujący lub przypisany, aby mógł zostać zachowany lub usunięty."
+  },
+  {
+    "id": "api.data_spillage.error.reason_invalid",
+    "translation": "Podano nieznany powód poddania wiadomości kwarantannie."
+  },
+  {
+    "id": "api.data_spillage.error.reason_required",
+    "translation": "Wybierz powód poddania tej wiadomości kwarantannie."
+  },
+  {
+    "id": "api.data_spillage.error.user_not_reviewer",
+    "translation": "Użytkownik nie jest recenzentem treści."
+  },
+  {
+    "id": "api.plugin.install.check_directory.app_error",
+    "translation": "Wystąpił błąd podczas sprawdzania konfiguracji katalogu Wtyczek."
+  },
+  {
+    "id": "api.plugin.install.directory_conflict.app_error",
+    "translation": "Nie można zainstalować Wtyczki: PluginSettings.Directory jest w konflikcie z ImportSettings.Directory."
+  },
+  {
+    "id": "api.slackimport.slack_add_bot_user.email",
+    "translation": "Użytkownik Integration/Slack Bot z adresem e-mail {{.Email}} został zaimportowany.\n"
   }
 ]

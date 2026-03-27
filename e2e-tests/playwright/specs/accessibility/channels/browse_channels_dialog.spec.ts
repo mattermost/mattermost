@@ -40,32 +40,22 @@ test(
         await channelsPage.goto(team.name, 'town-square');
         await channelsPage.toBeVisible();
 
-        // # Click on Browse or Create Channel button and then Browse Channels
-        await channelsPage.sidebarLeft.browseOrCreateChannelButton.click();
-        const browseChannelsMenuItem = page.locator('#browseChannelsMenuItem');
-        await browseChannelsMenuItem.click();
-
-        // * Verify the Browse Channels dialog is visible
-        const dialog = page.getByRole('dialog', {name: 'Browse Channels'});
-        await expect(dialog).toBeVisible();
-
-        // * Verify the heading
-        await expect(dialog.getByRole('heading', {name: 'Browse Channels'})).toBeVisible();
+        // # Open the Browse Channels modal
+        const dialog = await channelsPage.openBrowseChannelsModal();
 
         // * Verify the search input exists
-        const searchInput = dialog.getByPlaceholder('Search channels');
+        const searchInput = dialog.searchInput;
         await expect(searchInput).toBeVisible();
 
         // # Wait for channel list to load
-        const channelList = dialog.locator('#moreChannelsList');
-        await expect(channelList).toBeVisible();
+        await dialog.toBeDoneLoading();
 
         // # Hide already joined channels
-        const hideJoinedCheckbox = dialog.getByText('Hide Joined');
+        const hideJoinedCheckbox = dialog.hideJoinedCheckbox;
         await hideJoinedCheckbox.click();
 
         // # Focus on Create Channel button and tab through elements
-        const createChannelButton = dialog.locator('#createNewChannelButton');
+        const createChannelButton = dialog.createNewChannelButton;
         await createChannelButton.focus();
         await page.keyboard.press('Tab');
         await page.keyboard.press('Tab');
@@ -74,8 +64,9 @@ test(
         await page.keyboard.press('Tab');
 
         // * Verify channel name is highlighted and has proper aria-label
+        await dialog.toHaveChannelAsNthResult(channel1.name, 0);
         const channel1AriaLabel = `${channel1.display_name.toLowerCase()}, ${channel1.purpose.toLowerCase()}`;
-        const channel1Item = dialog.getByLabel(channel1AriaLabel);
+        const channel1Item = dialog.container.getByLabel(channel1AriaLabel);
         await expect(channel1Item).toBeVisible();
         await expect(channel1Item).toBeFocused();
 
@@ -83,8 +74,9 @@ test(
         await page.keyboard.press('Tab');
 
         // * Verify focus moved to next channel
+        await dialog.toHaveChannelAsNthResult(channel2.name, 1);
         const channel2AriaLabel = `${channel2.display_name.toLowerCase()}, ${channel2.purpose.toLowerCase()}`;
-        const channel2Item = dialog.getByLabel(channel2AriaLabel);
+        const channel2Item = dialog.container.getByLabel(channel2AriaLabel);
         await expect(channel2Item).toBeFocused();
     },
 );
@@ -109,18 +101,11 @@ test(
         await channelsPage.goto(team.name, 'town-square');
         await channelsPage.toBeVisible();
 
-        // # Click on Browse or Create Channel button and then Browse Channels
-        await channelsPage.sidebarLeft.browseOrCreateChannelButton.click();
-        const browseChannelsMenuItem = page.locator('#browseChannelsMenuItem');
-        await browseChannelsMenuItem.click();
-
-        // * Verify the Browse Channels dialog is visible
-        const dialog = page.getByRole('dialog', {name: 'Browse Channels'});
-        await expect(dialog).toBeVisible();
-        await pw.wait(pw.duration.one_sec);
+        // # Open the Browse Channels modal
+        const dialog = await channelsPage.openBrowseChannelsModal();
 
         // * Verify aria snapshot of Browse Channels dialog
-        await expect(dialog).toMatchAriaSnapshot(`
+        await expect(dialog.container).toMatchAriaSnapshot(`
             - dialog "Browse Channels":
               - document:
                 - heading "Browse Channels" [level=1]
