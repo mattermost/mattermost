@@ -16,7 +16,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/blang/semver/v4"
+	"github.com/Masterminds/semver/v3"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 
@@ -2330,7 +2330,7 @@ func getLoginType(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if canSendMagicLinkEmail(user) {
-		eErr := c.App.Srv().EmailService.SendMagicLinkEmailSelfService(user.Email, c.App.GetSiteURL())
+		eErr := c.App.Srv().EmailService.SendMagicLinkEmailSelfService(c.AppContext, user.Email, c.App.GetSiteURL())
 		if eErr != nil {
 			switch {
 			case errors.Is(eErr, email.NoRateLimiterError):
@@ -2538,7 +2538,7 @@ func handleDeviceProps(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	mobileVersion := receivedProps[model.SessionPropMobileVersion]
 	if mobileVersion != "" {
-		if _, err := semver.Parse(mobileVersion); err != nil {
+		if _, err := semver.StrictNewVersion(mobileVersion); err != nil {
 			c.SetInvalidParam(model.SessionPropMobileVersion)
 			return
 		}

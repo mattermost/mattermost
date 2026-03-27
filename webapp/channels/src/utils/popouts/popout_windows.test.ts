@@ -5,7 +5,7 @@ import DesktopApp from 'utils/desktop_api';
 import {getBasePath} from 'utils/url';
 import {isDesktopApp} from 'utils/user_agent';
 
-import {FOCUS_REPLY_POST, popoutRhsPlugin, popoutRhsSearch, popoutThread} from './popout_windows';
+import {FOCUS_REPLY_POST, popoutChannel, popoutRhsPlugin, popoutRhsSearch, popoutThread} from './popout_windows';
 
 jest.mock('utils/desktop_api', () => ({
     __esModule: true,
@@ -173,6 +173,49 @@ describe('popout_windows', () => {
 
             expect(getMockSetupBrowserPopout()).toHaveBeenCalledWith(
                 '/company/mattermost/_popout/rhs/test-team/plugin/test-plugin-id?channel=test-channel',
+            );
+        });
+    });
+
+    describe('popoutChannel', () => {
+        it('should include the path segment in the URL for regular channels', async () => {
+            setupBrowser();
+
+            await popoutChannel('Title', 'test-team', 'channels', 'town-square');
+
+            expect(getMockSetupBrowserPopout()).toHaveBeenCalledWith(
+                '/_popout/channel/test-team/channels/town-square',
+            );
+        });
+
+        it('should include the messages path for DM/GM channels', async () => {
+            setupBrowser();
+
+            await popoutChannel('Title', 'test-team', 'messages', '@otheruser');
+
+            expect(getMockSetupBrowserPopout()).toHaveBeenCalledWith(
+                '/_popout/channel/test-team/messages/@otheruser',
+            );
+        });
+
+        it('should include subpath in popout URL when basename is set', async () => {
+            setupBrowser('/company/mattermost');
+
+            await popoutChannel('Title', 'test-team', 'channels', 'town-square');
+
+            expect(getMockSetupBrowserPopout()).toHaveBeenCalledWith(
+                '/company/mattermost/_popout/channel/test-team/channels/town-square',
+            );
+        });
+
+        it('should call desktop popout with correct path for desktop app', async () => {
+            setupDesktop();
+
+            await popoutChannel('Channel Title', 'test-team', 'channels', 'town-square');
+
+            expect(mockDesktopApp.setupDesktopPopout).toHaveBeenCalledWith(
+                '/_popout/channel/test-team/channels/town-square',
+                {titleTemplate: 'Channel Title'},
             );
         });
     });

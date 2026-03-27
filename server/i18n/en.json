@@ -724,8 +724,16 @@
     "translation": "Command with a trigger of '{{.Trigger}}' not found. To send a message beginning with \"/\", try adding an empty space at the beginning of the message."
   },
   {
+    "id": "api.command.execute_command.provided_site_url_different.app_error",
+    "translation": "Request hostname differs from configured SiteURL. The configured SiteURL will be used for the slash command response URL."
+  },
+  {
     "id": "api.command.execute_command.restricted_dm.error",
     "translation": "Cannot post in a restricted DM"
+  },
+  {
+    "id": "api.command.execute_command.site_url_required.app_error",
+    "translation": "SiteURL must be configured to use slash commands"
   },
   {
     "id": "api.command.execute_command.start.app_error",
@@ -2597,6 +2605,10 @@
     "translation": "invalid_request: Bad request."
   },
   {
+    "id": "api.oauth.get_access_token.client_id_mismatch.app_error",
+    "translation": "invalid_grant: Token grant was not issued to this client."
+  },
+  {
     "id": "api.oauth.get_access_token.credentials.app_error",
     "translation": "invalid_client: Invalid client credentials."
   },
@@ -2769,6 +2781,10 @@
     "translation": "Can not post to deleted channel."
   },
   {
+    "id": "api.post.create_post.card_type_disabled.app_error",
+    "translation": "Card posts are not enabled on this server."
+  },
+  {
     "id": "api.post.create_post.channel_root_id.app_error",
     "translation": "Invalid ChannelId for RootId parameter."
   },
@@ -2935,6 +2951,10 @@
     "translation": "Burn-on-read feature is not enabled or requires an Enterprise Advanced license."
   },
   {
+    "id": "api.post.reveal_post.invalid_request.app_error",
+    "translation": "Invalid request: missing or invalid X-Requested-With header."
+  },
+  {
     "id": "api.post.reveal_post.user_not_in_channel.app_error",
     "translation": "You do not have permission to reveal this post. You must be a member of the channel."
   },
@@ -3033,6 +3053,94 @@
   {
     "id": "api.preference.update_preferences.update_sidebar.app_error",
     "translation": "Unable to update sidebar to match updated preferences"
+  },
+  {
+    "id": "api.property_field.create.invalid_target_type.app_error",
+    "translation": "The provided target type is not valid."
+  },
+  {
+    "id": "api.property_field.create.protected_via_api.app_error",
+    "translation": "Cannot create a protected property field via API."
+  },
+  {
+    "id": "api.property_field.create.target_id_required.app_error",
+    "translation": "A target_id is required when creating a channel or team scoped property field."
+  },
+  {
+    "id": "api.property_field.delete.no_permission.app_error",
+    "translation": "You do not have permission to delete this property field."
+  },
+  {
+    "id": "api.property_field.delete.protected_via_api.app_error",
+    "translation": "Cannot delete a protected property field via API."
+  },
+  {
+    "id": "api.property_field.get.invalid_target_type.app_error",
+    "translation": "A valid target_type (system, team, or channel) is required."
+  },
+  {
+    "id": "api.property_field.get.target_id_required.app_error",
+    "translation": "A target_id is required when querying by channel or team target_type."
+  },
+  {
+    "id": "api.property_field.invalid_group_name.app_error",
+    "translation": "The specified property group was not found."
+  },
+  {
+    "id": "api.property_field.invalid_patch.app_error",
+    "translation": "Invalid property field patch."
+  },
+  {
+    "id": "api.property_field.object_type_mismatch.app_error",
+    "translation": "Property field object type does not match URL."
+  },
+  {
+    "id": "api.property_field.patch.legacy_field.app_error",
+    "translation": "Cannot patch a v1 property field via this API."
+  },
+  {
+    "id": "api.property_field.update.no_field_permission.app_error",
+    "translation": "You do not have permission to edit this property field."
+  },
+  {
+    "id": "api.property_field.update.no_options_permission.app_error",
+    "translation": "You do not have permission to manage options for this property field."
+  },
+  {
+    "id": "api.property_field.update.protected_via_api.app_error",
+    "translation": "Cannot update a protected property field via API."
+  },
+  {
+    "id": "api.property_value.invalid_group_name.app_error",
+    "translation": "The provided group name is not valid or does not exist."
+  },
+  {
+    "id": "api.property_value.invalid_object_type.app_error",
+    "translation": "The provided object type is not valid."
+  },
+  {
+    "id": "api.property_value.patch.duplicate_field_id.app_error",
+    "translation": "The request contains duplicate field IDs."
+  },
+  {
+    "id": "api.property_value.patch.empty_body.app_error",
+    "translation": "Request body must contain at least one property value update."
+  },
+  {
+    "id": "api.property_value.patch.invalid_field_id.app_error",
+    "translation": "One or more field IDs in the request are invalid."
+  },
+  {
+    "id": "api.property_value.patch.no_values_permission.app_error",
+    "translation": "You do not have permission to set values on one or more fields."
+  },
+  {
+    "id": "api.property_value.patch.too_many_items.request_error",
+    "translation": "Unable to update that many property values. Only {{.Max}} property values can be updated at once."
+  },
+  {
+    "id": "api.property_value.target_user.forbidden.app_error",
+    "translation": "You do not have permission to access property values for another user."
   },
   {
     "id": "api.push_notification.disabled.app_error",
@@ -4827,6 +4935,50 @@
     "translation": "Failed to parse token data from email verification"
   },
   {
+    "id": "api.view.create.deleted_channel.app_error",
+    "translation": "Cannot create a view in a deleted channel."
+  },
+  {
+    "id": "api.view.delete.channel_mismatch.app_error",
+    "translation": "View does not belong to the specified channel."
+  },
+  {
+    "id": "api.view.delete.deleted_channel.app_error",
+    "translation": "Cannot delete a view in a deleted channel."
+  },
+  {
+    "id": "api.view.get.channel_mismatch.app_error",
+    "translation": "View does not belong to the specified channel."
+  },
+  {
+    "id": "api.view.get.deleted_channel.app_error",
+    "translation": "Cannot get a view from a deleted channel."
+  },
+  {
+    "id": "api.view.get_posts.channel_mismatch.app_error",
+    "translation": "View does not belong to the specified channel."
+  },
+  {
+    "id": "api.view.get_posts.deleted_channel.app_error",
+    "translation": "Cannot get posts for a view from a deleted channel."
+  },
+  {
+    "id": "api.view.list.deleted_channel.app_error",
+    "translation": "Cannot list views for a deleted channel."
+  },
+  {
+    "id": "api.view.update.channel_mismatch.app_error",
+    "translation": "View does not belong to the specified channel."
+  },
+  {
+    "id": "api.view.update.deleted_channel.app_error",
+    "translation": "Cannot update a view in a deleted channel."
+  },
+  {
+    "id": "api.view.update_sort_order.deleted_channel.app_error",
+    "translation": "Cannot update view sort order in a deleted channel."
+  },
+  {
     "id": "api.web_socket.connect.upgrade.app_error",
     "translation": "URL Blocked because of CORS. Url: {{.BlockedOrigin}}"
   },
@@ -5035,6 +5187,10 @@
     "translation": "Unable to add the user as a member of the channel."
   },
   {
+    "id": "app.channel.add_user.to.channel.rejected_by_plugin",
+    "translation": "Adding channel member rejected by plugin: {{.Reason}}"
+  },
+  {
     "id": "app.channel.analytics_type_count.app_error",
     "translation": "Unable to get channel type counts."
   },
@@ -5105,6 +5261,10 @@
   {
     "id": "app.channel.delete.app_error",
     "translation": "Unable to delete the channel."
+  },
+  {
+    "id": "app.channel.delete_channel.rejected_by_plugin",
+    "translation": "Channel archive rejected by plugin: {{.Reason}}"
   },
   {
     "id": "app.channel.get.app_error",
@@ -5531,16 +5691,16 @@
     "translation": "Unable to retrieve the custom profile attributes property group."
   },
   {
-    "id": "app.custom_profile_attributes.create_property_field.app_error",
-    "translation": "Unable to create Custom Profile Attribute field"
-  },
-  {
     "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
     "translation": "Unable to delete Custom Profile Attribute Values for user"
   },
   {
     "id": "app.custom_profile_attributes.get_property_field.app_error",
     "translation": "Unable to get Custom Profile Attribute field"
+  },
+  {
+    "id": "app.custom_profile_attributes.get_property_value.app_error",
+    "translation": "Unable to get Custom Profile Attribute value"
   },
   {
     "id": "app.custom_profile_attributes.limit_reached.app_error",
@@ -7023,6 +7183,10 @@
     "translation": "Unable to save access control policy."
   },
   {
+    "id": "app.pap.save_policy.name_exists.app_error",
+    "translation": "A policy with this name already exists. Please choose a different name."
+  },
+  {
     "id": "app.pap.search_access_control_policies.app_error",
     "translation": "Could not search access control policies."
   },
@@ -7311,6 +7475,10 @@
     "translation": "Your license does not support reporting on posts."
   },
   {
+    "id": "app.post.get_posts_for_view.app_error",
+    "translation": "Unable to get the posts for the view."
+  },
+  {
     "id": "app.post.get_posts_since.app_error",
     "translation": "Unable to get the posts for the channel."
   },
@@ -7469,6 +7637,146 @@
   {
     "id": "app.prepackged-plugin.invalid_version.app_error",
     "translation": "Prepackged plugin version could not be parsed."
+  },
+  {
+    "id": "app.property_field.count_for_group.app_error",
+    "translation": "Unable to count property fields for group."
+  },
+  {
+    "id": "app.property_field.count_for_target.app_error",
+    "translation": "Unable to count property fields for target."
+  },
+  {
+    "id": "app.property_field.create.app_error",
+    "translation": "Unable to create property field."
+  },
+  {
+    "id": "app.property_field.create.name_conflict.app_error",
+    "translation": "Cannot create property \"{{.Name}}\": a property with this name already exists at the {{.ConflictLevel}} level."
+  },
+  {
+    "id": "app.property_field.create.protected.app_error",
+    "translation": "Cannot create a protected property field."
+  },
+  {
+    "id": "app.property_field.delete.app_error",
+    "translation": "Unable to delete property field."
+  },
+  {
+    "id": "app.property_field.delete.get_existing.app_error",
+    "translation": "Unable to get property field for deletion."
+  },
+  {
+    "id": "app.property_field.delete.not_found.app_error",
+    "translation": "Property field not found."
+  },
+  {
+    "id": "app.property_field.delete.protected.app_error",
+    "translation": "Cannot delete a protected property field."
+  },
+  {
+    "id": "app.property_field.get.app_error",
+    "translation": "Unable to get property field."
+  },
+  {
+    "id": "app.property_field.get_by_name.app_error",
+    "translation": "Unable to get property field by name."
+  },
+  {
+    "id": "app.property_field.get_many.app_error",
+    "translation": "Unable to get property fields."
+  },
+  {
+    "id": "app.property_field.get_many.fields_not_found.app_error",
+    "translation": "One or more property field IDs were not found in the specified group."
+  },
+  {
+    "id": "app.property_field.invalid_input.app_error",
+    "translation": "Invalid input provided."
+  },
+  {
+    "id": "app.property_field.search.app_error",
+    "translation": "Unable to search property fields."
+  },
+  {
+    "id": "app.property_field.update.app_error",
+    "translation": "Unable to update property fields."
+  },
+  {
+    "id": "app.property_field.update.get_existing.app_error",
+    "translation": "Unable to get property fields for update."
+  },
+  {
+    "id": "app.property_field.update.name_conflict.app_error",
+    "translation": "Cannot update property to \"{{.Name}}\": a property with this name already exists at the {{.ConflictLevel}} level."
+  },
+  {
+    "id": "app.property_field.update.protected.app_error",
+    "translation": "Cannot update a protected property field."
+  },
+  {
+    "id": "app.property_group.get.app_error",
+    "translation": "Unable to get property group."
+  },
+  {
+    "id": "app.property_group.register.app_error",
+    "translation": "Unable to register property group."
+  },
+  {
+    "id": "app.property_value.create.app_error",
+    "translation": "Unable to create property value."
+  },
+  {
+    "id": "app.property_value.create_many.app_error",
+    "translation": "Unable to create property values."
+  },
+  {
+    "id": "app.property_value.delete.app_error",
+    "translation": "Unable to delete property value."
+  },
+  {
+    "id": "app.property_value.delete_for_field.app_error",
+    "translation": "Unable to delete property values for field."
+  },
+  {
+    "id": "app.property_value.delete_for_target.app_error",
+    "translation": "Unable to delete property values for target."
+  },
+  {
+    "id": "app.property_value.get.app_error",
+    "translation": "Unable to get property value."
+  },
+  {
+    "id": "app.property_value.get_many.app_error",
+    "translation": "Unable to get property values."
+  },
+  {
+    "id": "app.property_value.invalid_input.app_error",
+    "translation": "Invalid input provided."
+  },
+  {
+    "id": "app.property_value.resolve_broadcast_params.unknown_object_type.app_error",
+    "translation": "Unrecognized object type \"{{.ObjectType}}\" for property value broadcast."
+  },
+  {
+    "id": "app.property_value.search.app_error",
+    "translation": "Unable to search property values."
+  },
+  {
+    "id": "app.property_value.update.app_error",
+    "translation": "Unable to update property value."
+  },
+  {
+    "id": "app.property_value.update_many.app_error",
+    "translation": "Unable to update property values."
+  },
+  {
+    "id": "app.property_value.upsert.app_error",
+    "translation": "Unable to upsert property values."
+  },
+  {
+    "id": "app.property_value.upsert_many.app_error",
+    "translation": "Unable to upsert property values."
   },
   {
     "id": "app.reaction.bulk_get_for_post_ids.app_error",
@@ -8013,6 +8321,10 @@
     "translation": "This team has reached the maximum number of allowed accounts. Contact your System Administrator to set a higher limit."
   },
   {
+    "id": "app.team.join_user_to_team.rejected_by_plugin",
+    "translation": "Adding team member rejected by plugin: {{.Reason}}"
+  },
+  {
     "id": "app.team.join_user_to_team.save_member.app_error",
     "translation": "Unable to create the new team membership"
   },
@@ -8487,6 +8799,78 @@
   {
     "id": "app.valid_password_generic.app_error",
     "translation": "Password is not valid"
+  },
+  {
+    "id": "app.view.count_for_channel.app_error",
+    "translation": "Failed to count views for channel."
+  },
+  {
+    "id": "app.view.create.app_error",
+    "translation": "Unable to create the view."
+  },
+  {
+    "id": "app.view.create.count.app_error",
+    "translation": "Failed to count views for channel."
+  },
+  {
+    "id": "app.view.create.limit.app_error",
+    "translation": "This channel has reached the maximum number of views."
+  },
+  {
+    "id": "app.view.create.nil_view.app_error",
+    "translation": "View is required."
+  },
+  {
+    "id": "app.view.delete.app_error",
+    "translation": "Unable to delete the view."
+  },
+  {
+    "id": "app.view.delete.nil_view.app_error",
+    "translation": "View is required."
+  },
+  {
+    "id": "app.view.delete.not_found.app_error",
+    "translation": "View not found."
+  },
+  {
+    "id": "app.view.get.app_error",
+    "translation": "Unable to get the view."
+  },
+  {
+    "id": "app.view.get.not_found.app_error",
+    "translation": "View not found."
+  },
+  {
+    "id": "app.view.get_for_channel.app_error",
+    "translation": "Unable to get views for this channel."
+  },
+  {
+    "id": "app.view.get_for_channel.invalid_input.app_error",
+    "translation": "Invalid input when getting views for channel."
+  },
+  {
+    "id": "app.view.update.app_error",
+    "translation": "Unable to update the view."
+  },
+  {
+    "id": "app.view.update.nil_view.app_error",
+    "translation": "View is required."
+  },
+  {
+    "id": "app.view.update.not_found.app_error",
+    "translation": "View not found."
+  },
+  {
+    "id": "app.view.update_sort_order.app_error",
+    "translation": "Unable to update the view sort order."
+  },
+  {
+    "id": "app.view.update_sort_order.invalid_input.app_error",
+    "translation": "Invalid input for view sort order update."
+  },
+  {
+    "id": "app.view.update_sort_order.not_found.app_error",
+    "translation": "View not found."
   },
   {
     "id": "app.webhooks.analytics_incoming_count.app_error",
@@ -11679,6 +12063,38 @@
   {
     "id": "model.utils.decode_json.app_error",
     "translation": "could not decode."
+  },
+  {
+    "id": "model.view.is_valid.channel_id.app_error",
+    "translation": "Invalid view channel ID."
+  },
+  {
+    "id": "model.view.is_valid.create_at.app_error",
+    "translation": "Invalid view create time."
+  },
+  {
+    "id": "model.view.is_valid.creator_id.app_error",
+    "translation": "Invalid view creator ID."
+  },
+  {
+    "id": "model.view.is_valid.description.app_error",
+    "translation": "View description is too long."
+  },
+  {
+    "id": "model.view.is_valid.id.app_error",
+    "translation": "Invalid view ID."
+  },
+  {
+    "id": "model.view.is_valid.title.app_error",
+    "translation": "View title is required and must be less than 256 characters."
+  },
+  {
+    "id": "model.view.is_valid.type.app_error",
+    "translation": "Invalid view type."
+  },
+  {
+    "id": "model.view.is_valid.update_at.app_error",
+    "translation": "Invalid view update time."
   },
   {
     "id": "model.websocket_client.connect_fail.app_error",
