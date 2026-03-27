@@ -14,10 +14,7 @@ import (
 )
 
 func TestCreateAccessControlPolicy(t *testing.T) {
-	th := Setup(t).InitBasic(t)
-
-	// Enable AttributeBasedAccessControl feature flag
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true })
+	th := SetupConfig(t, func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true }).InitBasic(t)
 
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       th.BasicChannel.Id,
@@ -271,10 +268,7 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 }
 
 func TestGetAccessControlPolicy(t *testing.T) {
-	th := Setup(t).InitBasic(t)
-
-	// Enable AttributeBasedAccessControl feature flag
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true })
+	th := SetupConfig(t, func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true }).InitBasic(t)
 
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       model.NewId(),
@@ -333,10 +327,7 @@ func TestGetAccessControlPolicy(t *testing.T) {
 }
 
 func TestDeleteAccessControlPolicy(t *testing.T) {
-	th := Setup(t).InitBasic(t)
-
-	// Enable AttributeBasedAccessControl feature flag
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true })
+	th := SetupConfig(t, func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true }).InitBasic(t)
 
 	samplePolicyID := model.NewId()
 
@@ -396,10 +387,7 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 }
 
 func TestCheckExpression(t *testing.T) {
-	th := Setup(t).InitBasic(t)
-
-	// Enable AttributeBasedAccessControl feature flag
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true })
+	th := SetupConfig(t, func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true }).InitBasic(t)
 
 	t.Run("CheckExpression without license", func(t *testing.T) {
 		_, resp, err := th.SystemAdminClient.CheckExpression(context.Background(), "true")
@@ -499,10 +487,7 @@ func TestCheckExpression(t *testing.T) {
 }
 
 func TestTestExpression(t *testing.T) {
-	th := Setup(t).InitBasic(t)
-
-	// Enable AttributeBasedAccessControl feature flag
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true })
+	th := SetupConfig(t, func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true }).InitBasic(t)
 
 	t.Run("TestExpression without license", func(t *testing.T) {
 		_, resp, err := th.SystemAdminClient.TestExpression(context.Background(), model.QueryExpressionParams{})
@@ -549,10 +534,7 @@ func TestTestExpression(t *testing.T) {
 }
 
 func TestSearchAccessControlPolicies(t *testing.T) {
-	th := Setup(t).InitBasic(t)
-
-	// Enable AttributeBasedAccessControl feature flag
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true })
+	th := SetupConfig(t, func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true }).InitBasic(t)
 
 	t.Run("SearchAccessControlPolicies without license", func(t *testing.T) {
 		_, resp, err := th.SystemAdminClient.SearchAccessControlPolicies(context.Background(), model.AccessControlPolicySearch{})
@@ -601,10 +583,7 @@ func TestSearchAccessControlPolicies(t *testing.T) {
 }
 
 func TestAssignAccessPolicy(t *testing.T) {
-	th := Setup(t).InitBasic(t)
-
-	// Enable AttributeBasedAccessControl feature flag
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true })
+	th := SetupConfig(t, func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true }).InitBasic(t)
 
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       model.NewId(),
@@ -673,10 +652,7 @@ func TestAssignAccessPolicy(t *testing.T) {
 }
 
 func TestUnassignAccessPolicy(t *testing.T) {
-	th := Setup(t).InitBasic(t)
-
-	// Enable AttributeBasedAccessControl feature flag
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true })
+	th := SetupConfig(t, func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true }).InitBasic(t)
 
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       model.NewId(),
@@ -749,10 +725,7 @@ func TestUnassignAccessPolicy(t *testing.T) {
 }
 
 func TestGetChannelsForAccessControlPolicy(t *testing.T) {
-	th := Setup(t).InitBasic(t)
-
-	// Enable AttributeBasedAccessControl feature flag
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true })
+	th := SetupConfig(t, func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true }).InitBasic(t)
 
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       model.NewId(),
@@ -810,10 +783,7 @@ func TestGetChannelsForAccessControlPolicy(t *testing.T) {
 }
 
 func TestSearchChannelsForAccessControlPolicy(t *testing.T) {
-	th := Setup(t).InitBasic(t)
-
-	// Enable AttributeBasedAccessControl feature flag
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true })
+	th := SetupConfig(t, func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true }).InitBasic(t)
 
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       model.NewId(),
