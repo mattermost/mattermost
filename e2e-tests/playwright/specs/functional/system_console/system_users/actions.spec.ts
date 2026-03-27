@@ -102,13 +102,15 @@ test('MM-T5520-4 should reset the users password', async ({pw}) => {
     const {systemConsolePage} = await setupAndGetRandomUser(pw);
 
     const userRow = systemConsolePage.users.usersTable.getRowByIndex(0);
+    const newPassword = `Aa1!${await pw.random.id()}`;
 
     // # Open menu and click Reset Password
     const actionMenu = await userRow.openActionMenu();
     await actionMenu.clickResetPassword();
 
-    // # Enter a random password and click Reset
-    await systemConsolePage.users.resetPasswordModal.fillPassword(await pw.random.id());
+    // # Choose manual reset, enter a password, and click Reset
+    await systemConsolePage.users.resetPasswordModal.selectManualPassword();
+    await systemConsolePage.users.resetPasswordModal.fillPassword(newPassword);
     await systemConsolePage.users.resetPasswordModal.reset();
 });
 

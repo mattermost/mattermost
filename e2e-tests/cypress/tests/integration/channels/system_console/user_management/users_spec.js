@@ -76,9 +76,10 @@ describe('System Console > User Management > Users', () => {
         // # Click the Reset Password menu option.
         cy.findByText('Reset password').click();
 
-        // # Type new password and submit.
-        cy.get('input[type=password]').type('new' + testUser.password);
-        cy.get('button.btn-primary.confirm').should('contain', 'Reset').click().wait(TIMEOUTS.HALF_SEC);
+        // # Switch to manual password reset, then type new password and submit.
+        cy.findByRole('radio', {name: 'Set password manually'}).click();
+        cy.findByRole('textbox', {name: 'New password'}).clear().type('new' + testUser.password);
+        cy.get('button.btn-primary.confirm').should('contain', 'Reset password').click().wait(TIMEOUTS.HALF_SEC);
 
         // # Log out.
         cy.apiLogout();

@@ -27,17 +27,31 @@ export class ManageRolesModal extends BaseModal {
  */
 export class ResetPasswordModal extends BaseModal {
     readonly resetButton: Locator;
+    readonly sendResetLinkButton: Locator;
+    readonly manualOption: Locator;
     readonly passwordInput: Locator;
 
     constructor(container: Locator) {
         super(container);
-        this.resetButton = container.getByRole('button', {name: 'Reset'});
-        this.passwordInput = container.locator('input[type="password"]');
+        this.resetButton = container.getByRole('button', {name: 'Reset password'});
+        this.sendResetLinkButton = container.getByRole('button', {name: 'Send reset link'});
+        this.manualOption = container.getByRole('radio', {name: 'Set password manually'});
+        this.passwordInput = container.getByRole('textbox', {name: 'New password'});
     }
 
     async reset() {
         await this.resetButton.click();
         await expect(this.container).not.toBeVisible();
+    }
+
+    async sendResetLink() {
+        await this.sendResetLinkButton.click();
+        await expect(this.container).not.toBeVisible();
+    }
+
+    async selectManualPassword() {
+        await this.manualOption.click();
+        await expect(this.passwordInput).toBeVisible();
     }
 
     async fillPassword(password: string) {
