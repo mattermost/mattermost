@@ -796,12 +796,13 @@ func searchChannelsForAccessControlPolicy(c *Context, w http.ResponseWriter, r *
 		return
 	}
 
+	var authorizedTeamID string
 	hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 	if !hasSystemPermission {
-		teamID := r.URL.Query().Get("team_id")
-		if teamID != "" && model.IsValidId(teamID) &&
-			c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageTeamAccessRules) {
-			owned, appErr := c.App.ValidateTeamAdminPolicyOwnership(c.AppContext, teamID, c.Params.PolicyId)
+		authorizedTeamID = r.URL.Query().Get("team_id")
+		if authorizedTeamID != "" && model.IsValidId(authorizedTeamID) &&
+			c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), authorizedTeamID, model.PermissionManageTeamAccessRules) {
+			owned, appErr := c.App.ValidateTeamAdminPolicyOwnership(c.AppContext, authorizedTeamID, c.Params.PolicyId)
 			if appErr != nil {
 				c.Err = appErr
 				return
@@ -825,12 +826,18 @@ func searchChannelsForAccessControlPolicy(c *Context, w http.ResponseWriter, r *
 
 	policyID := c.Params.PolicyId
 
+	// For non-system-admins, force the search to only the authorized team
+	teamIds := props.TeamIds
+	if !hasSystemPermission && authorizedTeamID != "" {
+		teamIds = []string{authorizedTeamID}
+	}
+
 	opts := model.ChannelSearchOpts{
 		Deleted:                     props.Deleted,
 		IncludeDeleted:              props.IncludeDeleted,
 		Private:                     true,
 		ExcludeGroupConstrained:     true,
-		TeamIds:                     props.TeamIds,
+		TeamIds:                     teamIds,
 		ParentAccessControlPolicyId: policyID,
 	}
 
