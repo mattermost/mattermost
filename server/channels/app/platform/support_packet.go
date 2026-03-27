@@ -5,7 +5,10 @@ package platform
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"net/http"
+	"net/url"
 	"os"
 	"runtime"
 	rpprof "runtime/pprof"
@@ -19,6 +22,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
 )
 
 const (
@@ -201,6 +205,63 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		}
 		d.ElasticSearch.ServerVersion = se.GetFullVersion()
 		d.ElasticSearch.ServerPlugins = se.GetPlugins()
+	}
+
+	/* Email Notifications */
+	if model.SafeDereference(ps.Config().EmailSettings.SendEmailNotifications) {
+		emailSettings := ps.Config().EmailSettings
+		siteURL := model.SafeDereference(ps.Config().ServiceSettings.SiteURL)
+		hostname := siteURL
+		if u, parseErr := url.Parse(siteURL); parseErr == nil {
+			hostname = u.Hostname()
+		}
+		mailCfg := &mail.SMTPConfig{
+			Hostname:                          hostname,
+			ConnectionSecurity:                model.SafeDereference(emailSettings.ConnectionSecurity),
+			SkipServerCertificateVerification: model.SafeDereference(emailSettings.SkipServerCertificateVerification),
+			ServerName:                        model.SafeDereference(emailSettings.SMTPServer),
+			Server:                            model.SafeDereference(emailSettings.SMTPServer),
+			Port:                              model.SafeDereference(emailSettings.SMTPPort),
+			ServerTimeout:                     model.SafeDereference(emailSettings.SMTPServerTimeout),
+			Username:                          model.SafeDereference(emailSettings.SMTPUsername),
+			Password:                          model.SafeDereference(emailSettings.SMTPPassword),
+			EnableSMTPAuth:                    model.SafeDereference(emailSettings.EnableSMTPAuth),
+			SendEmailNotifications:            true,
+			FeedbackName:                      model.SafeDereference(emailSettings.FeedbackName),
+			FeedbackEmail:                     model.SafeDereference(emailSettings.FeedbackEmail),
+			ReplyToAddress:                    model.SafeDereference(emailSettings.ReplyToAddress),
+		}
+		if smtpErr := mail.TestConnection(mailCfg); smtpErr != nil {
+			d.Notifications.Email.Status = model.StatusFail
+			d.Notifications.Email.Error = smtpErr.Error()
+		} else {
+			d.Notifications.Email.Status = model.StatusOk
+		}
+	} else {
+		d.Notifications.Email.Status = "disabled"
+	}
+
+	/* Push Notifications */
+	if model.SafeDereference(ps.Config().EmailSettings.SendPushNotifications) {
+		pushServerURL := model.SafeDereference(ps.Config().EmailSettings.PushNotificationServer)
+		pushCtx, pushCancel := context.WithTimeout(rctx.Context(), 10*time.Second)
+		defer pushCancel()
+		req, reqErr := http.NewRequestWithContext(pushCtx, http.MethodGet, pushServerURL, nil)
+		if reqErr != nil {
+			d.Notifications.Push.Status = model.StatusFail
+			d.Notifications.Push.Error = reqErr.Error()
+		} else {
+			resp, httpErr := http.DefaultClient.Do(req)
+			if httpErr != nil {
+				d.Notifications.Push.Status = model.StatusFail
+				d.Notifications.Push.Error = httpErr.Error()
+			} else {
+				resp.Body.Close()
+				d.Notifications.Push.Status = model.StatusOk
+			}
+		}
+	} else {
+		d.Notifications.Push.Status = "disabled"
 	}
 
 	b, err := yaml.Marshal(&d)

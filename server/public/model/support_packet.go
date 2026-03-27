@@ -63,6 +63,17 @@ type SupportPacketDiagnostics struct {
 		NumberOfNodes int    `yaml:"number_of_nodes"`
 	} `yaml:"cluster"`
 
+	Notifications struct {
+		Email struct {
+			Status string `yaml:"status"`
+			Error  string `yaml:"error,omitempty"`
+		} `yaml:"email,omitempty"`
+		Push struct {
+			Status string `yaml:"status"`
+			Error  string `yaml:"error,omitempty"`
+		} `yaml:"push,omitempty"`
+	} `yaml:"notifications,omitempty"`
+
 	LDAP struct {
 		Status        string `yaml:"status,omitempty"`
 		Error         string `yaml:"error,omitempty"`

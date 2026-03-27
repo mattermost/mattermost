@@ -4,11 +4,16 @@
 package platform
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"errors"
+	"net"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path"
+	"strings"
 	"testing"
 
 	"github.com/goccy/go-yaml"
@@ -485,6 +490,160 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Equal(t, "7.10.0", packet.ElasticSearch.ServerVersion)
 		assert.Equal(t, []string{"plugin1", "plugin2"}, packet.ElasticSearch.ServerPlugins)
 		assert.Equal(t, "TestConfig: ent.elasticsearch.test_config.connection_failed, connection refused", packet.ElasticSearch.Error)
+	})
+
+	t.Run("push notifications disabled", func(t *testing.T) {
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.EmailSettings.SendPushNotifications = model.NewPointer(false)
+		})
+		t.Cleanup(func() {
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
+			})
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, "disabled", packet.Notifications.Push.Status)
+		assert.Empty(t, packet.Notifications.Push.Error)
+	})
+
+	t.Run("push notifications reachable", func(t *testing.T) {
+		pushServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer pushServer.Close()
+
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
+			cfg.EmailSettings.PushNotificationServer = model.NewPointer(pushServer.URL)
+		})
+		t.Cleanup(func() {
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
+				cfg.EmailSettings.PushNotificationServer = model.NewPointer(model.GenericNotificationServer)
+			})
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.StatusOk, packet.Notifications.Push.Status)
+		assert.Empty(t, packet.Notifications.Push.Error)
+	})
+
+	t.Run("push notifications unreachable", func(t *testing.T) {
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
+			cfg.EmailSettings.PushNotificationServer = model.NewPointer("http://localhost:1")
+		})
+		t.Cleanup(func() {
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
+				cfg.EmailSettings.PushNotificationServer = model.NewPointer(model.GenericNotificationServer)
+			})
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.StatusFail, packet.Notifications.Push.Status)
+		assert.NotEmpty(t, packet.Notifications.Push.Error)
+	})
+
+	t.Run("email notifications disabled", func(t *testing.T) {
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.EmailSettings.SendEmailNotifications = model.NewPointer(false)
+		})
+		t.Cleanup(func() {
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.EmailSettings.SendEmailNotifications = model.NewPointer(true)
+			})
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, "disabled", packet.Notifications.Email.Status)
+		assert.Empty(t, packet.Notifications.Email.Error)
+	})
+
+	t.Run("email notifications reachable", func(t *testing.T) {
+		l, listenErr := net.Listen("tcp", "localhost:0")
+		require.NoError(t, listenErr)
+		defer l.Close()
+
+		go func() {
+			for {
+				conn, err := l.Accept()
+				if err != nil {
+					return
+				}
+				go func(c net.Conn) {
+					defer c.Close()
+					rw := bufio.NewReadWriter(bufio.NewReader(c), bufio.NewWriter(c))
+					rw.WriteString("220 localhost ESMTP Test\r\n")
+					rw.Flush()
+					for {
+						line, err := rw.ReadString('\n')
+						if err != nil {
+							return
+						}
+						if strings.HasPrefix(strings.ToUpper(strings.TrimSpace(line)), "QUIT") {
+							rw.WriteString("221 Bye\r\n")
+							rw.Flush()
+							return
+						}
+						rw.WriteString("250 OK\r\n")
+						rw.Flush()
+					}
+				}(conn)
+			}
+		}()
+
+		addr := l.Addr().String()
+		colonIdx := strings.LastIndex(addr, ":")
+		smtpHost := addr[:colonIdx]
+		smtpPort := addr[colonIdx+1:]
+
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.EmailSettings.SendEmailNotifications = model.NewPointer(true)
+			cfg.EmailSettings.SMTPServer = model.NewPointer(smtpHost)
+			cfg.EmailSettings.SMTPPort = model.NewPointer(smtpPort)
+			cfg.EmailSettings.EnableSMTPAuth = model.NewPointer(false)
+			cfg.EmailSettings.ConnectionSecurity = model.NewPointer("")
+		})
+		t.Cleanup(func() {
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.EmailSettings.SendEmailNotifications = model.NewPointer(true)
+				cfg.EmailSettings.SMTPServer = model.NewPointer(model.EmailSMTPDefaultServer)
+				cfg.EmailSettings.SMTPPort = model.NewPointer(model.EmailSMTPDefaultPort)
+			})
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.StatusOk, packet.Notifications.Email.Status)
+		assert.Empty(t, packet.Notifications.Email.Error)
+	})
+
+	t.Run("email notifications unreachable", func(t *testing.T) {
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.EmailSettings.SendEmailNotifications = model.NewPointer(true)
+			cfg.EmailSettings.SMTPServer = model.NewPointer("localhost")
+			cfg.EmailSettings.SMTPPort = model.NewPointer("1")
+			cfg.EmailSettings.SMTPServerTimeout = model.NewPointer(1)
+		})
+		t.Cleanup(func() {
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.EmailSettings.SendEmailNotifications = model.NewPointer(true)
+				cfg.EmailSettings.SMTPServer = model.NewPointer(model.EmailSMTPDefaultServer)
+				cfg.EmailSettings.SMTPPort = model.NewPointer(model.EmailSMTPDefaultPort)
+				cfg.EmailSettings.SMTPServerTimeout = model.NewPointer(10)
+			})
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.StatusFail, packet.Notifications.Email.Status)
+		assert.NotEmpty(t, packet.Notifications.Email.Error)
 	})
 }
 
