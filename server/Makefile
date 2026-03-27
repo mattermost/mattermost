@@ -442,7 +442,7 @@ endif
 check-style: plugin-checker vet golangci-lint ## Runs style/lint checks
 
 gotestsum:
-	$(GO) install gotest.tools/gotestsum@v1.11.0
+	$(GO) install gotest.tools/gotestsum@v1.13.0
 
 test-compile: setup-go-work gotestsum ## Compile tests.
 	@echo COMPILE TESTS
