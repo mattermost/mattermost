@@ -1337,7 +1337,9 @@ func TestCreatePost(t *testing.T) {
 
 	t.Run("creates post with type card", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic(t)
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.IntegratedBoards = true
+		}).InitBasic(t)
 
 		post := &model.Post{
 			ChannelId: th.BasicChannel.Id,
@@ -1351,6 +1353,24 @@ func TestCreatePost(t *testing.T) {
 		require.NotNil(t, rpost)
 		assert.Equal(t, model.PostTypeCard, rpost.Type)
 		assert.Equal(t, "card post", rpost.Message)
+	})
+
+	t.Run("rejects card post when integrated boards disabled", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.IntegratedBoards = false
+		}).InitBasic(t)
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "card post",
+			Type:      model.PostTypeCard,
+		}
+
+		_, _, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		require.NotNil(t, appErr)
+		assert.Equal(t, "api.post.create_post.integrated_boards_card_disabled.app_error", appErr.Id)
 	})
 
 	t.Run("Should remove post file IDs for burn on read posts", func(t *testing.T) {

@@ -223,8 +223,11 @@ func TestCreatePost(t *testing.T) {
 	})
 
 	t.Run("with type card", func(t *testing.T) {
-		cardPost, resp, err := client.CreatePost(context.Background(), &model.Post{
-			ChannelId: th.BasicChannel.Id,
+		thCard := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.IntegratedBoards = true
+		}).InitBasic(t)
+		cardPost, resp, err := thCard.Client.CreatePost(context.Background(), &model.Post{
+			ChannelId: thCard.BasicChannel.Id,
 			Message:   "card post",
 			Type:      model.PostTypeCard,
 		})
@@ -233,6 +236,20 @@ func TestCreatePost(t *testing.T) {
 		require.NotNil(t, cardPost)
 		assert.Equal(t, model.PostTypeCard, cardPost.Type)
 		assert.Equal(t, "card post", cardPost.Message)
+	})
+
+	t.Run("with type card rejects when integrated boards disabled", func(t *testing.T) {
+		thCard := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.IntegratedBoards = false
+		}).InitBasic(t)
+		cardPost, resp, err := thCard.Client.CreatePost(context.Background(), &model.Post{
+			ChannelId: thCard.BasicChannel.Id,
+			Message:   "card post",
+			Type:      model.PostTypeCard,
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		assert.Nil(t, cardPost)
 	})
 
 	t.Run("invalid post type", func(t *testing.T) {

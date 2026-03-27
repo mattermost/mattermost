@@ -85,6 +85,11 @@ func createPostChecks(where string, c *Context, post *model.Post) {
 		return
 	}
 
+	integratedBoardsCardCheckWithContext(where, c, post.Type)
+	if c.Err != nil {
+		return
+	}
+
 	postBurnOnReadCheckWithContext(where, c, post, nil)
 }
 

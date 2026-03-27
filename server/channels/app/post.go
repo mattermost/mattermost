@@ -171,6 +171,11 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		return nil, false, err
 	}
 
+	err = PostIntegratedBoardsCardCheckWithApp("App.CreatePost", a, post.Type)
+	if err != nil {
+		return nil, false, err
+	}
+
 	foundPost, err := a.deduplicateCreatePost(rctx, post)
 	if err != nil {
 		return nil, false, err

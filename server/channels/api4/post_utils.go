@@ -42,6 +42,14 @@ func postPriorityCheckWithContext(where string, c *Context, priority *model.Post
 	}
 }
 
+func integratedBoardsCardCheckWithContext(where string, c *Context, postType string) {
+	appErr := app.PostIntegratedBoardsCardCheckWithApp(where, c.App, postType)
+	if appErr != nil {
+		appErr.Where = where
+		c.Err = appErr
+	}
+}
+
 func postBurnOnReadCheckWithContext(where string, c *Context, post *model.Post, channel *model.Channel) {
 	appErr := app.PostBurnOnReadCheckWithApp(where, c.App, c.AppContext, post.UserId, post.ChannelId, post.Type, channel)
 	if appErr != nil {
