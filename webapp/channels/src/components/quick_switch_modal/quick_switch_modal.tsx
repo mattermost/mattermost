@@ -235,7 +235,6 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
                         providers={providers}
                         completeOnTab={false}
                         spellCheck='false'
-                        delayInputUpdate={true}
                         openWhenEmpty={true}
                         onSuggestionsReceived={this.handleSuggestionsReceived}
                         forceSuggestionsWhenBlur={true}
