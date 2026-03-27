@@ -103,7 +103,7 @@ jobs:
           echo "GO_VERSION=${GO_VERSION}" >> "${GITHUB_OUTPUT}"
 
       - name: buildenv/push
-        if: github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
+        if: github.ref == 'refs/heads/master'
         uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
         with:
           provenance: false
