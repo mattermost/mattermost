@@ -844,7 +844,8 @@ func TestUpdatePropertyField(t *testing.T) {
 }
 
 func TestLinkedPropertyFields(t *testing.T) {
-	th := Setup(t)
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	rctx := th.Context
 	groupID := model.NewId()
 
 	// Helper to create a source template field with select options
@@ -868,7 +869,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 	t.Run("create linked field copies source type and options", func(t *testing.T) {
 		source := createSourceField(t, "Source-"+model.NewId())
 
-		linked, err := th.service.CreatePropertyField(&model.PropertyField{
+		linked, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
 			GroupID:       groupID,
 			ObjectType:    model.PropertyFieldObjectTypeUser,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
@@ -890,7 +891,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 
 	t.Run("create linked field rejects non-existent source", func(t *testing.T) {
 		fakeID := model.NewId()
-		_, err := th.service.CreatePropertyField(&model.PropertyField{
+		_, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
 			GroupID:       groupID,
 			ObjectType:    model.PropertyFieldObjectTypeUser,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
@@ -917,7 +918,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		})
 
 		// Try to link to the non-template field — should be rejected
-		_, err := th.service.CreatePropertyField(&model.PropertyField{
+		_, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
 			GroupID:       groupID,
 			ObjectType:    model.PropertyFieldObjectTypeUser,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
@@ -932,7 +933,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 	t.Run("create linked field rejects chaining", func(t *testing.T) {
 		source := createSourceField(t, "ChainSource-"+model.NewId())
 
-		linked := th.CreatePropertyField(t, &model.PropertyField{
+		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
 			GroupID:       groupID,
 			ObjectType:    model.PropertyFieldObjectTypeUser,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
@@ -942,7 +943,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		})
 
 		// Try to link to the linked field (chain) — rejected because it's not a template
-		_, err := th.service.CreatePropertyField(&model.PropertyField{
+		_, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
 			GroupID:       groupID,
 			ObjectType:    model.PropertyFieldObjectTypeChannel,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
@@ -958,7 +959,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		source := createSourceField(t, "TTMismatchSource-"+model.NewId())
 
 		// Source has TargetType=system, try to link with TargetType=channel
-		_, err := th.service.CreatePropertyField(&model.PropertyField{
+		_, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
 			GroupID:       groupID,
 			ObjectType:    model.PropertyFieldObjectTypeChannel,
 			TargetType:    string(model.PropertyFieldTargetLevelChannel),
@@ -973,7 +974,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 	t.Run("update linked field blocks type change", func(t *testing.T) {
 		source := createSourceField(t, "TypeBlockSource-"+model.NewId())
 
-		linked := th.CreatePropertyField(t, &model.PropertyField{
+		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
 			GroupID:       groupID,
 			ObjectType:    model.PropertyFieldObjectTypeUser,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
@@ -983,7 +984,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		})
 
 		linked.Type = model.PropertyFieldTypeText
-		_, err := th.service.UpdatePropertyField(groupID, linked)
+		_, err := th.service.UpdatePropertyField(rctx, groupID, linked)
 		require.Error(t, err)
 		appErr, ok := err.(*model.AppError)
 		require.True(t, ok)
@@ -993,7 +994,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 	t.Run("update linked field blocks options change", func(t *testing.T) {
 		source := createSourceField(t, "OptsBlockSource-"+model.NewId())
 
-		linked := th.CreatePropertyField(t, &model.PropertyField{
+		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
 			GroupID:       groupID,
 			ObjectType:    model.PropertyFieldObjectTypeUser,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
@@ -1005,7 +1006,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		linked.Attrs[model.PropertyFieldAttributeOptions] = []any{
 			map[string]any{"id": model.NewId(), "name": "Different"},
 		}
-		_, err := th.service.UpdatePropertyField(groupID, linked)
+		_, err := th.service.UpdatePropertyField(rctx, groupID, linked)
 		require.Error(t, err)
 		appErr, ok := err.(*model.AppError)
 		require.True(t, ok)
@@ -1015,7 +1016,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 	t.Run("update linked field allows name change", func(t *testing.T) {
 		source := createSourceField(t, "NameChangeSource-"+model.NewId())
 
-		linked := th.CreatePropertyField(t, &model.PropertyField{
+		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
 			GroupID:       groupID,
 			ObjectType:    model.PropertyFieldObjectTypeUser,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
@@ -1025,7 +1026,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		})
 
 		linked.Name = "NewName-" + model.NewId()
-		result, err := th.service.UpdatePropertyField(groupID, linked)
+		result, err := th.service.UpdatePropertyField(rctx, groupID, linked)
 		require.NoError(t, err)
 		assert.Equal(t, linked.Name, result.Name)
 	})
@@ -1033,7 +1034,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 	t.Run("update source field propagates options to linked fields", func(t *testing.T) {
 		source := createSourceField(t, "PropagateSource-"+model.NewId())
 
-		linked1 := th.CreatePropertyField(t, &model.PropertyField{
+		linked1 := th.CreatePropertyField(t, rctx, &model.PropertyField{
 			GroupID:       groupID,
 			ObjectType:    model.PropertyFieldObjectTypeUser,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
@@ -1042,7 +1043,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 			LinkedFieldID: &source.ID,
 		})
 
-		linked2 := th.CreatePropertyField(t, &model.PropertyField{
+		linked2 := th.CreatePropertyField(t, rctx, &model.PropertyField{
 			GroupID:       groupID,
 			ObjectType:    model.PropertyFieldObjectTypeChannel,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
@@ -1059,14 +1060,14 @@ func TestLinkedPropertyFields(t *testing.T) {
 		}
 		source.Attrs[model.PropertyFieldAttributeOptions] = newOptions
 
-		result, err := th.service.UpdatePropertyFields(groupID, []*model.PropertyField{source})
+		result, err := th.service.UpdatePropertyFields(rctx, groupID, []*model.PropertyField{source})
 		require.NoError(t, err)
 		require.Len(t, result, 3) // source + 2 linked fields
 
 		// Verify linked fields got the new options
-		updatedLinked1, err := th.service.GetPropertyField(groupID, linked1.ID)
+		updatedLinked1, err := th.service.GetPropertyField(rctx, groupID, linked1.ID)
 		require.NoError(t, err)
-		updatedLinked2, err := th.service.GetPropertyField(groupID, linked2.ID)
+		updatedLinked2, err := th.service.GetPropertyField(rctx, groupID, linked2.ID)
 		require.NoError(t, err)
 
 		for _, linked := range []*model.PropertyField{updatedLinked1, updatedLinked2} {
@@ -1079,7 +1080,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 	t.Run("update source field blocks type change when dependents exist", func(t *testing.T) {
 		source := createSourceField(t, "TypeBlockDeps-"+model.NewId())
 
-		th.CreatePropertyField(t, &model.PropertyField{
+		th.CreatePropertyField(t, rctx, &model.PropertyField{
 			GroupID:       groupID,
 			ObjectType:    model.PropertyFieldObjectTypeUser,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
@@ -1089,7 +1090,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		})
 
 		source.Type = model.PropertyFieldTypeMultiselect
-		_, err := th.service.UpdatePropertyField(groupID, source)
+		_, err := th.service.UpdatePropertyField(rctx, groupID, source)
 		require.Error(t, err)
 		appErr, ok := err.(*model.AppError)
 		require.True(t, ok)
@@ -1099,7 +1100,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 	t.Run("delete source field blocked when linked dependents exist", func(t *testing.T) {
 		source := createSourceField(t, "DeleteBlock-"+model.NewId())
 
-		th.CreatePropertyField(t, &model.PropertyField{
+		th.CreatePropertyField(t, rctx, &model.PropertyField{
 			GroupID:       groupID,
 			ObjectType:    model.PropertyFieldObjectTypeUser,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
@@ -1108,7 +1109,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 			LinkedFieldID: &source.ID,
 		})
 
-		err := th.service.DeletePropertyField(groupID, source.ID)
+		err := th.service.DeletePropertyField(rctx, groupID, source.ID)
 		require.Error(t, err)
 		appErr, ok := err.(*model.AppError)
 		require.True(t, ok)
@@ -1118,7 +1119,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 	t.Run("delete source field succeeds after dependents are deleted", func(t *testing.T) {
 		source := createSourceField(t, "DeleteOK-"+model.NewId())
 
-		linked := th.CreatePropertyField(t, &model.PropertyField{
+		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
 			GroupID:       groupID,
 			ObjectType:    model.PropertyFieldObjectTypeUser,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
@@ -1128,18 +1129,18 @@ func TestLinkedPropertyFields(t *testing.T) {
 		})
 
 		// Delete the linked dependent first
-		err := th.service.DeletePropertyField(groupID, linked.ID)
+		err := th.service.DeletePropertyField(rctx, groupID, linked.ID)
 		require.NoError(t, err)
 
 		// Now delete the source
-		err = th.service.DeletePropertyField(groupID, source.ID)
+		err = th.service.DeletePropertyField(rctx, groupID, source.ID)
 		require.NoError(t, err)
 	})
 
 	t.Run("unlink field preserves type and options", func(t *testing.T) {
 		source := createSourceField(t, "UnlinkSource-"+model.NewId())
 
-		linked := th.CreatePropertyField(t, &model.PropertyField{
+		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
 			GroupID:       groupID,
 			ObjectType:    model.PropertyFieldObjectTypeUser,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
@@ -1150,7 +1151,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 
 		// Unlink by clearing LinkedFieldID
 		linked.LinkedFieldID = nil
-		result, err := th.service.UpdatePropertyField(groupID, linked)
+		result, err := th.service.UpdatePropertyField(rctx, groupID, linked)
 		require.NoError(t, err)
 		assert.Nil(t, result.LinkedFieldID)
 		assert.Equal(t, source.Type, result.Type)
@@ -1173,7 +1174,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 			Value:      json.RawMessage(`"some value"`),
 		}
 
-		_, err := th.service.CreatePropertyValue(value)
+		_, err := th.service.CreatePropertyValue(rctx, value)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "template")
 	})
@@ -1189,14 +1190,14 @@ func TestLinkedPropertyFields(t *testing.T) {
 			Value:      json.RawMessage(`"some value"`),
 		}
 
-		_, err := th.service.UpsertPropertyValue(value)
+		_, err := th.service.UpsertPropertyValue(rctx, value)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "template")
 	})
 
 	t.Run("update blocks setting LinkedFieldID on non-linked field", func(t *testing.T) {
 		// Create a regular (non-linked) field
-		regular := th.CreatePropertyField(t, &model.PropertyField{
+		regular := th.CreatePropertyField(t, rctx, &model.PropertyField{
 			GroupID:    groupID,
 			ObjectType: model.PropertyFieldObjectTypeUser,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
@@ -1209,7 +1210,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		// Attempt to set LinkedFieldID on update — should be rejected
 		source := createSourceField(t, "LinkAttemptSource-"+model.NewId())
 		regular.LinkedFieldID = &source.ID
-		_, err := th.service.UpdatePropertyField(groupID, regular)
+		_, err := th.service.UpdatePropertyField(rctx, groupID, regular)
 		require.Error(t, err)
 		appErr, ok := err.(*model.AppError)
 		require.True(t, ok)
@@ -1221,7 +1222,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		source1 := createSourceField(t, "ChangeSource1-"+model.NewId())
 		source2 := createSourceField(t, "ChangeSource2-"+model.NewId())
 
-		linked := th.CreatePropertyField(t, &model.PropertyField{
+		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
 			GroupID:       groupID,
 			ObjectType:    model.PropertyFieldObjectTypeUser,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
@@ -1232,7 +1233,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 
 		// Attempt to change the link target — should be rejected
 		linked.LinkedFieldID = &source2.ID
-		_, err := th.service.UpdatePropertyField(groupID, linked)
+		_, err := th.service.UpdatePropertyField(rctx, groupID, linked)
 		require.Error(t, err)
 		appErr, ok := err.(*model.AppError)
 		require.True(t, ok)
@@ -1244,7 +1245,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		source := createSourceField(t, "CPASource-"+model.NewId())
 
 		// Create a CPA-style linked field (user object type)
-		linked := th.CreatePropertyField(t, &model.PropertyField{
+		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
 			GroupID:       groupID,
 			ObjectType:    model.PropertyFieldObjectTypeUser,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
@@ -1262,7 +1263,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 	t.Run("CPA linked field delete succeeds", func(t *testing.T) {
 		source := createSourceField(t, "CPADelSource-"+model.NewId())
 
-		linked := th.CreatePropertyField(t, &model.PropertyField{
+		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
 			GroupID:       groupID,
 			ObjectType:    model.PropertyFieldObjectTypeUser,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
@@ -1272,7 +1273,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		})
 
 		// Deleting the linked field should succeed
-		err := th.service.DeletePropertyField(groupID, linked.ID)
+		err := th.service.DeletePropertyField(rctx, groupID, linked.ID)
 		require.NoError(t, err)
 	})
 
@@ -1296,7 +1297,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 			},
 		})
 
-		linked := th.CreatePropertyField(t, &model.PropertyField{
+		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
 			GroupID:       groupID,
 			ObjectType:    model.PropertyFieldObjectTypeUser,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
@@ -1311,12 +1312,12 @@ func TestLinkedPropertyFields(t *testing.T) {
 			map[string]any{"id": optCID, "name": "Option C", "color": "green"},
 		}
 
-		result, err := th.service.UpdatePropertyFields(groupID, []*model.PropertyField{source})
+		result, err := th.service.UpdatePropertyFields(rctx, groupID, []*model.PropertyField{source})
 		require.NoError(t, err)
 		require.Len(t, result, 2) // source + 1 linked field
 
 		// Verify the linked field has the updated options (B removed)
-		updatedLinked, err := th.service.GetPropertyField(groupID, linked.ID)
+		updatedLinked, err := th.service.GetPropertyField(rctx, groupID, linked.ID)
 		require.NoError(t, err)
 
 		linkedOptIDs := extractOptionIDs(updatedLinked.Attrs[model.PropertyFieldAttributeOptions])
@@ -1351,7 +1352,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		})
 
 		// Create a linked field in group B pointing to the template in group A
-		linked, err := th.service.CreatePropertyField(&model.PropertyField{
+		linked, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
 			GroupID:       groupB,
 			ObjectType:    model.PropertyFieldObjectTypeUser,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
@@ -1383,14 +1384,15 @@ func TestLinkedPropertyFields(t *testing.T) {
 			Value:      json.RawMessage(`"some value"`),
 		}
 
-		_, err := th.service.UpdatePropertyValues(groupID, []*model.PropertyValue{value})
+		_, err := th.service.UpdatePropertyValues(rctx, groupID, []*model.PropertyValue{value})
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "template")
 	})
 }
 
 func TestUpdatePropertyField_ImmutableIdentityFields(t *testing.T) {
-	th := Setup(t)
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	rctx := th.Context
 
 	createField := func(t *testing.T, groupID string) *model.PropertyField {
 		t.Helper()
@@ -1408,7 +1410,7 @@ func TestUpdatePropertyField_ImmutableIdentityFields(t *testing.T) {
 		field := createField(t, groupID)
 
 		field.TargetType = "channel"
-		result, err := th.service.UpdatePropertyField(groupID, field)
+		result, err := th.service.UpdatePropertyField(rctx, groupID, field)
 		require.Error(t, err)
 		assert.Nil(t, result)
 
@@ -1423,7 +1425,7 @@ func TestUpdatePropertyField_ImmutableIdentityFields(t *testing.T) {
 		field := createField(t, groupID)
 
 		field.TargetID = model.NewId()
-		result, err := th.service.UpdatePropertyField(groupID, field)
+		result, err := th.service.UpdatePropertyField(rctx, groupID, field)
 		require.Error(t, err)
 		assert.Nil(t, result)
 
@@ -1438,7 +1440,7 @@ func TestUpdatePropertyField_ImmutableIdentityFields(t *testing.T) {
 		field := createField(t, groupID)
 
 		field.ObjectType = "template"
-		result, err := th.service.UpdatePropertyField(groupID, field)
+		result, err := th.service.UpdatePropertyField(rctx, groupID, field)
 		require.Error(t, err)
 		assert.Nil(t, result)
 
@@ -1453,7 +1455,7 @@ func TestUpdatePropertyField_ImmutableIdentityFields(t *testing.T) {
 		field := createField(t, groupID)
 
 		field.Name = "Updated Name " + model.NewId()
-		result, err := th.service.UpdatePropertyField(groupID, field)
+		result, err := th.service.UpdatePropertyField(rctx, groupID, field)
 		require.NoError(t, err)
 		assert.Equal(t, field.Name, result.Name)
 		// Identity fields are preserved
@@ -1475,7 +1477,7 @@ func TestUpdatePropertyField_ImmutableIdentityFields(t *testing.T) {
 
 		// Should be allowed to change TargetType on legacy fields
 		field.TargetType = "system"
-		result, err := th.service.UpdatePropertyField(groupID, field)
+		result, err := th.service.UpdatePropertyField(rctx, groupID, field)
 		require.NoError(t, err)
 		assert.Equal(t, "system", result.TargetType)
 	})
