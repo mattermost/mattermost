@@ -4894,6 +4894,7 @@
   "suggestion.emoji": "Emoji",
   "suggestion.group.members": "{member_count} {member_count, plural, one {medlem} other {medlemmer}}",
   "suggestion.group_channel": "Gruppekanal",
+  "suggestion.mention.agents": "Agenter",
   "suggestion.mention.all": "Varsler alle i denne kanalen",
   "suggestion.mention.channel": "Varsler alle i denne kanalen",
   "suggestion.mention.channels": "Mine kanaler",
