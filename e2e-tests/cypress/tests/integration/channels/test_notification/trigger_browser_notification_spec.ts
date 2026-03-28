@@ -95,7 +95,7 @@ describe('Verify users can receive notification on browser', () => {
         cy.verifySystemBotMessageRecieved(notificationMessage);
     });
 
-    it('should still recieve a test notification when user has set Global and Channel Notification preference to Nothing', () => {
+    it('should still receive a test notification when user has set Global and Channel Notification preference to Nothing', () => {
         cy.visit(offTopic);
         cy.stubNotificationPermission('default');
 

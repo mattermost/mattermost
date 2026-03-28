@@ -300,7 +300,7 @@ describe('channel view actions', () => {
             ]);
         });
 
-        test('should disptach PREFETCH_POSTS_FOR_CHANNEL status when called with prefetch argument and loadUnreads sucess', async () => {
+        test('should dispatch PREFETCH_POSTS_FOR_CHANNEL status when called with prefetch argument and loadUnreads success', async () => {
             const posts = {posts: {}, order: [], next_post_id: '', prev_post_id: ''};
 
             PostActions.getPostsUnread.mockReturnValue(() => ({data: posts}));
@@ -649,7 +649,7 @@ describe('channel view actions', () => {
             expect(markThreadAsRead).toHaveBeenCalledWith('post_id');
         });
 
-        test('should match actions for PREFETCH_POSTS_FOR_CHANNEL when prefetch argument and getPostsSince sucess', async () => {
+        test('should match actions for PREFETCH_POSTS_FOR_CHANNEL when prefetch argument and getPostsSince success', async () => {
             const channelId = 'channel1';
             PostActions.getPostsSince.mockReturnValue(() => ({data: []}));
 

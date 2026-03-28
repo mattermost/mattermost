@@ -964,7 +964,7 @@ export default class PluginRegistry {
      * Note that this is a low-level interface primarily meant for internal use, and is not subject
      * to semver guarantees. It may change in the future.
      * Accepts the following:
-     * - func - A function that recieve the admin console config definitions and return a new
+     * - func - A function that receives the admin console config definitions and return a new
      *          version of it, which is used for build the admin console.
      * Each plugin can register at most one admin console plugin function, with newer registrations
      * replacing older ones.
