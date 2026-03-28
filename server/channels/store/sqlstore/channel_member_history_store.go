@@ -295,6 +295,40 @@ func (s SqlChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit 
 	return rowsAffected, nil
 }
 
+// GetMembershipChanges returns all membership events (joins and leaves) for a channel since the given timestamp.
+// Uses inclusive comparison (>=) so events at the cursor timestamp are re-fetched rather than lost at batch
+// boundaries. This may cause redundant re-sends when consecutive batches share a boundary timestamp, but the
+// receiver is idempotent so duplicates are harmless. A composite cursor (timestamp + ID) like posts use would
+// eliminate duplicates, but would require a schema change to SharedChannelRemotes; the current trade-off avoids that.
+func (s SqlChannelMemberHistoryStore) GetMembershipChanges(channelID string, since int64, limit int) ([]*model.ChannelMemberHistory, error) {
+	query, args, err := s.getQueryBuilder().
+		Select("ChannelId", "UserId", "JoinTime", "LeaveTime").
+		From("ChannelMemberHistory").
+		Where(sq.And{
+			sq.Eq{"ChannelId": channelID},
+			sq.Or{
+				sq.GtOrEq{"JoinTime": since},
+				sq.And{
+					sq.NotEq{"LeaveTime": nil},
+					sq.GtOrEq{"LeaveTime": since},
+				},
+			},
+		}).
+		OrderBy("GREATEST(JoinTime, COALESCE(LeaveTime, 0)) ASC", "UserId ASC").
+		Limit(uint64(limit)).
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "channel_member_history_to_sql")
+	}
+
+	histories := []*model.ChannelMemberHistory{}
+	if err := s.GetReplica().Select(&histories, query, args...); err != nil {
+		return nil, errors.Wrapf(err, "GetMembershipChanges channelId=%s since=%d limit=%d", channelID, since, limit)
+	}
+
+	return histories, nil
+}
+
 // GetChannelsLeftSince returns list of channels that the user has left after a given time,
 // but has not rejoined again.
 func (s SqlChannelMemberHistoryStore) GetChannelsLeftSince(userID string, since int64) ([]string, error) {
