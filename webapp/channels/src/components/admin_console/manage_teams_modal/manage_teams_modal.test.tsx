@@ -7,7 +7,7 @@ import {General} from 'mattermost-redux/constants';
 
 import ManageTeamsModal from 'components/admin_console/manage_teams_modal/manage_teams_modal';
 
-import {renderWithContext, runPostRenderAct, screen} from 'tests/react_testing_utils';
+import {renderWithContext, runPostRenderAct, screen, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 /**
@@ -37,12 +37,23 @@ describe('ManageTeamsModal', () => {
         },
     };
 
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
     test('should match snapshot init', async () => {
         const {baseElement} = renderWithContext(
             <ManageTeamsModal {...baseProps}/>,
         );
 
         await runPostRenderAct(MANAGE_TEAMS_MODAL_ASYNC_ROUNDS);
+
+        expect(baseProps.actions.getTeamMembersForUser).toHaveBeenCalledTimes(1);
+        expect(baseProps.actions.getTeamsForUser).toHaveBeenCalledTimes(1);
+
+        expect(screen.getByText('Manage Teams')).toBeInTheDocument();
+        expect(screen.getByText('@currentUsername')).toBeInTheDocument();
+        expect(screen.getByText('currentUser@test.com')).toBeInTheDocument();
 
         expect(baseElement).toMatchSnapshot();
     });
@@ -83,9 +94,9 @@ describe('ManageTeamsModal', () => {
             <ManageTeamsModal {...props}/>,
         );
 
-        await runPostRenderAct(MANAGE_TEAMS_MODAL_ASYNC_ROUNDS);
-
-        expect(screen.getByText(mockTeamData.display_name)).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByText(mockTeamData.display_name)).toBeInTheDocument();
+        });
 
         // Non-system-admin users get ManageTeamsDropdown; default role label for plain membership.
         expect(screen.getByText('Team Member')).toBeInTheDocument();

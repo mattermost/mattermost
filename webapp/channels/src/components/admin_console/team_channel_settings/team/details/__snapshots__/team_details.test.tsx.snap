@@ -1,187 +1,243 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`admin_console/team_channel_settings/team/TeamDetails should match snapshot 1`] = `
-<div
-  className="wrapper--fixed"
->
-  <AdminHeader
-    withBackButton={true}
-  >
-    <div>
-      <Connect(Component)
-        className="fa fa-angle-left back"
-        to="/admin_console/user_management/teams"
-      />
-      <MemoizedFormattedMessage
-        defaultMessage="Team Configuration"
-        id="admin.team_settings.team_detail.group_configuration"
-      />
-    </div>
-  </AdminHeader>
+<div>
   <div
-    className="admin-console__wrapper"
+    class="wrapper--fixed"
   >
     <div
-      className="admin-console__content"
+      class="admin-console__header with-back"
     >
-      <TeamProfile
-        isArchived={false}
-        onToggleArchive={[Function]}
-        saveNeeded={false}
-        team={
-          Object {
-            "allow_open_invite": false,
-            "allowed_domains": "",
-            "company_name": "",
-            "create_at": 0,
-            "delete_at": 0,
-            "description": "",
-            "display_name": "team",
-            "email": "",
-            "group_constrained": false,
-            "id": "123",
-            "invite_id": "",
-            "name": "DN",
-            "scheme_id": "id",
-            "type": "O",
-            "update_at": 0,
-          }
-        }
-      />
-      <Memo(ConfirmModal)
-        confirmButtonText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Archive"
-            id="admin.team_settings.team_detail.archive_confirm.button"
-          />
-        }
-        message={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Archiving will remove the team from the user interface but it's contents remain in the database and may still be accessible with the API. Are you sure you wish to save and archive this team?"
-            id="admin.team_settings.team_detail.archive_confirm.message"
-          />
-        }
-        onCancel={[Function]}
-        onConfirm={[Function]}
-        show={false}
-        title={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Save and Archive Team"
-            id="admin.team_settings.team_detail.archive_confirm.title"
-          />
-        }
-      />
-      <RemoveConfirmModal
-        amount={0}
-        inChannel={false}
-        onCancel={[Function]}
-        onConfirm={[Function]}
-        show={false}
-      />
-      <TeamModes
-        allAllowedChecked={false}
-        allowedDomains=""
-        allowedDomainsChecked={false}
-        onToggle={[Function]}
-        syncChecked={false}
-      />
-      <Connect(TeamMembers)
-        onAddCallback={[Function]}
-        onRemoveCallback={[Function]}
-        teamId="123"
-        updateRole={[Function]}
-        usersToAdd={Object {}}
-        usersToRemove={Object {}}
+      <div>
+        <a
+          class="fa fa-angle-left back"
+          href="/admin_console/user_management/teams"
+        />
+        Team Configuration
+      </div>
+    </div>
+    <div
+      class="admin-console__wrapper"
+    >
+      <div
+        class="admin-console__content"
+      >
+        <div>
+          TeamProfile
+        </div>
+        <div
+          class="AdminPanel clearfix "
+          id="team_manage"
+        >
+          <div
+            class="header"
+          >
+            <div>
+              <h3>
+                Team Management
+              </h3>
+              <div
+                class="mt-2"
+              >
+                Choose between inviting members manually or syncing members automatically from groups.
+              </div>
+            </div>
+          </div>
+          <div
+            class="group-teams-and-channels"
+          >
+            <div
+              class="group-teams-and-channels--body"
+            >
+              <div>
+                <div
+                  class="line-switch d-flex flex-sm-column flex-md-row align-items-sm-start align-items-center"
+                >
+                  <label
+                    class="line-switch__label"
+                  >
+                    Anyone can join this team
+                  </label>
+                  <div
+                    class="line-switch__toggle"
+                    data-testid="allowAllToggleSwitch"
+                  >
+                    <button
+                      aria-pressed="false"
+                      class="btn btn-lg btn-toggle"
+                      data-testid="allowAllToggleSwitch-button"
+                      id="allowAllToggleSwitch"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <div
+                        class="handle"
+                      />
+                    </button>
+                  </div>
+                </div>
+                <div
+                  class="row"
+                >
+                  <div
+                    class="col-sm-10"
+                  >
+                    <div
+                      class="help-text-small help-text-no-padding help-text-single-line"
+                    >
+                      This team can be discovered allowing anyone with an account to join this team.
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="section-separator"
+                >
+                  <hr
+                    class="separator__hr"
+                  />
+                </div>
+              </div>
+              <div>
+                <div
+                  class="line-switch d-flex flex-sm-column flex-md-row align-items-sm-start align-items-center"
+                >
+                  <label
+                    class="line-switch__label"
+                  >
+                    Only specific email domains can join this team
+                  </label>
+                  <div
+                    class="line-switch__toggle"
+                    data-testid="allowedDomainsToggleSwitch"
+                  >
+                    <button
+                      aria-pressed="false"
+                      class="btn btn-lg btn-toggle"
+                      data-testid="allowedDomainsToggleSwitch-button"
+                      id="allowedDomainsToggleSwitch"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <div
+                        class="handle"
+                      />
+                    </button>
+                  </div>
+                </div>
+                <div
+                  class="row"
+                >
+                  <div
+                    class="col-sm-10"
+                  >
+                    <div
+                      class="help-text-small help-text-no-padding help-text-single-line"
+                    >
+                      Users can only join the team if their email matches one of the specified domains
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="help-text csvDomains"
+                >
+                  Comma Separated Email Domain List
+                </div>
+                <input
+                  class="form-control"
+                  placeholder="mattermost.com"
+                  type="text"
+                  value=""
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          TeamMembers
+        </div>
+      </div>
+    </div>
+    <div
+      class="admin-console-save"
+    >
+      <button
+        class="btn btn-primary"
+        data-testid="saveSetting"
+        disabled=""
+        id="saveSetting"
+        type="submit"
+      >
+        <span>
+          Save
+        </span>
+      </button>
+      <a
+        class="btn btn-quaternary"
+        href="/admin_console/user_management/teams"
+        id="cancelButtonSettings"
+      >
+        Cancel
+      </a>
+      <div
+        class="error-message"
       />
     </div>
   </div>
-  <SaveChangesPanel
-    cancelLink="/admin_console/user_management/teams"
-    onClick={[Function]}
-    saveNeeded={false}
-    saving={false}
-  />
 </div>
 `;
 
 exports[`admin_console/team_channel_settings/team/TeamDetails should match snapshot with isLocalArchived true 1`] = `
-<div
-  className="wrapper--fixed"
->
-  <AdminHeader
-    withBackButton={true}
-  >
-    <div>
-      <Connect(Component)
-        className="fa fa-angle-left back"
-        to="/admin_console/user_management/teams"
-      />
-      <MemoizedFormattedMessage
-        defaultMessage="Team Configuration"
-        id="admin.team_settings.team_detail.group_configuration"
-      />
-    </div>
-  </AdminHeader>
+<div>
   <div
-    className="admin-console__wrapper"
+    class="wrapper--fixed"
   >
     <div
-      className="admin-console__content"
+      class="admin-console__header with-back"
     >
-      <TeamProfile
-        isArchived={true}
-        onToggleArchive={[Function]}
-        saveNeeded={false}
-        team={
-          Object {
-            "allow_open_invite": false,
-            "allowed_domains": "",
-            "company_name": "",
-            "create_at": 0,
-            "delete_at": 16465313,
-            "description": "",
-            "display_name": "team",
-            "email": "",
-            "group_constrained": false,
-            "id": "123",
-            "invite_id": "",
-            "name": "DN",
-            "scheme_id": "id",
-            "type": "O",
-            "update_at": 0,
-          }
-        }
-      />
-      <Memo(ConfirmModal)
-        confirmButtonText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Archive"
-            id="admin.team_settings.team_detail.archive_confirm.button"
-          />
-        }
-        message={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Archiving will remove the team from the user interface but it's contents remain in the database and may still be accessible with the API. Are you sure you wish to save and archive this team?"
-            id="admin.team_settings.team_detail.archive_confirm.message"
-          />
-        }
-        onCancel={[Function]}
-        onConfirm={[Function]}
-        show={false}
-        title={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Save and Archive Team"
-            id="admin.team_settings.team_detail.archive_confirm.title"
-          />
-        }
+      <div>
+        <a
+          class="fa fa-angle-left back"
+          href="/admin_console/user_management/teams"
+        />
+        Team Configuration
+      </div>
+    </div>
+    <div
+      class="admin-console__wrapper"
+    >
+      <div
+        class="admin-console__content"
+      >
+        <div>
+          TeamProfile
+        </div>
+      </div>
+    </div>
+    <div
+      class="admin-console-save"
+    >
+      <button
+        class="btn btn-primary"
+        data-testid="saveSetting"
+        disabled=""
+        id="saveSetting"
+        type="submit"
+      >
+        <span>
+          Save
+        </span>
+      </button>
+      <a
+        class="btn btn-quaternary"
+        href="/admin_console/user_management/teams"
+        id="cancelButtonSettings"
+      >
+        Cancel
+      </a>
+      <div
+        class="error-message"
       />
     </div>
   </div>
-  <SaveChangesPanel
-    cancelLink="/admin_console/user_management/teams"
-    onClick={[Function]}
-    saveNeeded={false}
-    saving={false}
-  />
 </div>
 `;
