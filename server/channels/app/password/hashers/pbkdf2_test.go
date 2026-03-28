@@ -58,10 +58,9 @@ func TestPBKDF2CompareHashAndPassword(t *testing.T) {
 		expectedErr error
 	}{
 		{
-
-			"empty password",
-			"",
-			"",
+			"short password",
+			"a",
+			"a",
 			nil,
 		},
 		{

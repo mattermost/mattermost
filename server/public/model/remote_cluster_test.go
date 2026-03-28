@@ -133,7 +133,7 @@ func TestRemoteClusterInviteEncryption(t *testing.T) {
 		password   string
 		invite     RemoteClusterInvite
 	}{
-		{name: "empty password", badDecrypt: false, password: "", invite: makeInvite("https://example.com:8065")},
+		{name: "short password", badDecrypt: false, password: "fips-minimum-pwd", invite: makeInvite("https://example.com:8065")},
 		{name: "good password", badDecrypt: false, password: "Ultra secret password!", invite: makeInvite("https://example.com:8065")},
 		{name: "bad decrypt", badDecrypt: true, password: "correct horse battery staple", invite: makeInvite("https://example.com:8065")},
 	}
@@ -168,7 +168,7 @@ func TestRemoteClusterInviteBackwardCompatibility(t *testing.T) {
 		Version:        2, // Old version using scrypt
 	}
 
-	password := "test password"
+	password := "test password!!"
 
 	// Encrypt with old method (scrypt)
 	encrypted, err := oldInvite.Encrypt(password)

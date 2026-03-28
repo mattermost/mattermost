@@ -750,7 +750,7 @@ func TestImageProxy(t *testing.T) {
 		"atmos/camo": {
 			ProxyType:              model.ImageProxyTypeAtmosCamo,
 			ProxyURL:               "https://127.0.0.1",
-			ProxyOptions:           "foo",
+			ProxyOptions:           "7e5f3fab20b94782b43cdb022a66985ef28ba355df2c5d5da3c9a05e4b697bac",
 			ImageURL:               "http://mydomain.com/myimage",
 			ProxiedRemovedImageURL: "http://mydomain.com/myimage",
 			ProxiedImageURL:        "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage",
@@ -758,7 +758,7 @@ func TestImageProxy(t *testing.T) {
 		"atmos/camo_SameSite": {
 			ProxyType:              model.ImageProxyTypeAtmosCamo,
 			ProxyURL:               "https://127.0.0.1",
-			ProxyOptions:           "foo",
+			ProxyOptions:           "7e5f3fab20b94782b43cdb022a66985ef28ba355df2c5d5da3c9a05e4b697bac",
 			ImageURL:               "http://mymattermost.com/myimage",
 			ProxiedRemovedImageURL: "http://mymattermost.com/myimage",
 			ProxiedImageURL:        "http://mymattermost.com/myimage",
@@ -766,7 +766,7 @@ func TestImageProxy(t *testing.T) {
 		"atmos/camo_PathOnly": {
 			ProxyType:              model.ImageProxyTypeAtmosCamo,
 			ProxyURL:               "https://127.0.0.1",
-			ProxyOptions:           "foo",
+			ProxyOptions:           "7e5f3fab20b94782b43cdb022a66985ef28ba355df2c5d5da3c9a05e4b697bac",
 			ImageURL:               "/myimage",
 			ProxiedRemovedImageURL: "http://mymattermost.com/myimage",
 			ProxiedImageURL:        "http://mymattermost.com/myimage",
@@ -774,7 +774,7 @@ func TestImageProxy(t *testing.T) {
 		"atmos/camo_EmptyImageURL": {
 			ProxyType:              model.ImageProxyTypeAtmosCamo,
 			ProxyURL:               "https://127.0.0.1",
-			ProxyOptions:           "foo",
+			ProxyOptions:           "7e5f3fab20b94782b43cdb022a66985ef28ba355df2c5d5da3c9a05e4b697bac",
 			ImageURL:               "",
 			ProxiedRemovedImageURL: "",
 			ProxiedImageURL:        "",
@@ -961,7 +961,7 @@ func TestCreatePost(t *testing.T) {
 			*cfg.ImageProxySettings.Enable = true
 			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
 			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
-			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
+			*cfg.ImageProxySettings.RemoteImageProxyOptions = "7e5f3fab20b94782b43cdb022a66985ef28ba355df2c5d5da3c9a05e4b697bac"
 		})
 
 		th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server.platform, th.Server.HTTPService(), th.Server.Log())
@@ -1384,7 +1384,7 @@ func TestPatchPost(t *testing.T) {
 			*cfg.ImageProxySettings.Enable = true
 			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
 			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
-			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
+			*cfg.ImageProxySettings.RemoteImageProxyOptions = "7e5f3fab20b94782b43cdb022a66985ef28ba355df2c5d5da3c9a05e4b697bac"
 		})
 
 		th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server.platform, th.Server.HTTPService(), th.Server.Log())
@@ -1839,7 +1839,7 @@ func TestUpdatePost(t *testing.T) {
 			*cfg.ImageProxySettings.Enable = true
 			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
 			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
-			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
+			*cfg.ImageProxySettings.RemoteImageProxyOptions = "7e5f3fab20b94782b43cdb022a66985ef28ba355df2c5d5da3c9a05e4b697bac"
 		})
 
 		th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server.platform, th.Server.HTTPService(), th.Server.Log())

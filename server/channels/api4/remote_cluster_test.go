@@ -459,7 +459,7 @@ func TestRemoteClusterAcceptinvite(t *testing.T) {
 		SiteURL:  "http://localhost:8065",
 		Token:    "token",
 	}
-	password := "mysupersecret"
+	password := "mysupersecret!"
 	encrypted, err := invite.Encrypt(password)
 	require.NoError(t, err)
 	encoded := base64.URLEncoding.EncodeToString(encrypted)
@@ -530,7 +530,7 @@ func TestRemoteClusterAcceptinvite(t *testing.T) {
 
 func TestGenerateRemoteClusterInvite(t *testing.T) {
 	mainHelper.Parallel(t)
-	password := "mysupersecret"
+	password := "mysupersecret!"
 
 	newRC := &model.RemoteCluster{
 		Name:    "remotecluster",
