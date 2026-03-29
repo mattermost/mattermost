@@ -27,8 +27,8 @@ func TestCWSLogin(t *testing.T) {
 			require.Nil(t, appErr)
 		}()
 
-		// t.Setenv prevents t.Parallel — env var has no config equivalent
-		t.Setenv("CWS_CLOUD_TOKEN", token.Token)
+		th.App.Srv().SetCWSTokenOverride(token.Token)
+		t.Cleanup(func() { th.App.Srv().SetCWSTokenOverride("") })
 		user, appErr := th.App.AuthenticateUserForLogin(th.Context, "", th.BasicUser.Username, "", "", token.Token, false)
 		require.Nil(t, appErr)
 		require.NotNil(t, user)
@@ -41,8 +41,8 @@ func TestCWSLogin(t *testing.T) {
 
 	t.Run("Should not authenticate the user when CWS token was used", func(t *testing.T) {
 		token := model.NewToken(model.TokenTypeCWSAccess, "")
-		// t.Setenv prevents t.Parallel — env var has no config equivalent
-		t.Setenv("CWS_CLOUD_TOKEN", token.Token)
+		th.App.Srv().SetCWSTokenOverride(token.Token)
+		t.Cleanup(func() { th.App.Srv().SetCWSTokenOverride("") })
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 		defer func() {
 			appErr := th.App.DeleteToken(token)

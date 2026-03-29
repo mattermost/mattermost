@@ -150,6 +150,14 @@ type Server struct {
 	AutoTranslation         einterfaces.AutoTranslationInterface
 
 	ch *Channels
+
+	// cwsTokenOverride overrides CWS_CLOUD_TOKEN for CWS login authentication.
+	cwsTokenOverride string
+}
+
+// SetCWSTokenOverride sets the CWS token override for CWS login authentication.
+func (s *Server) SetCWSTokenOverride(v string) {
+	s.cwsTokenOverride = v
 }
 
 func (s *Server) Store() store.Store {
