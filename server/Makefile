@@ -442,7 +442,7 @@ endif
 check-style: plugin-checker vet golangci-lint ## Runs style/lint checks
 
 gotestsum:
-	$(GO) install gotest.tools/gotestsum@v1.11.0
+	$(GO) install gotest.tools/gotestsum@v1.13.0
 
 test-compile: setup-go-work gotestsum ## Compile tests.
 	@echo COMPILE TESTS
@@ -817,6 +817,9 @@ vet: setup-go-work ## Run mattermost go vet specific checks
 		-license \
 		-inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go,utils_serial_gen.go \
 		-noSelectStar \
+		-concurrentIndex \
+		-concurrentIndex.path=./channels/db/migrations/ \
+		-concurrentIndex.minMigration=166 \
 		./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
   ifneq ($(MM_NO_ENTERPRISE_LINT),true)
