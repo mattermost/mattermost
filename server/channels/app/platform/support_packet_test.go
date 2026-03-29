@@ -38,8 +38,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 	})
 
 	// Override log root path to allow log file reads from our temp directory
-	config.SetTestOverrideLogRootPath(dir)
-	t.Cleanup(func() { config.SetTestOverrideLogRootPath("") })
+	th.Service.logRootPathOverride = dir
 
 	th.Service.UpdateConfig(func(cfg *model.Config) {
 		*cfg.LogSettings.FileLocation = dir
@@ -166,8 +165,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 func TestGetSupportPacketDiagnostics(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
-	TestOverrideInstallType = "docker"
-	t.Cleanup(func() { TestOverrideInstallType = "" })
+	th.Service.installTypeOverride = "docker"
 
 	licenseUsers := 100
 	license := model.NewTestLicense("ldap")
