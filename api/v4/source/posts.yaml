@@ -610,6 +610,11 @@
           schema:
             type: boolean
             default: false
+        - name: type
+          in: query
+          description: Filter posts by type.
+          schema:
+            type: string
       responses:
         "200":
           description: Post list retrieval successful

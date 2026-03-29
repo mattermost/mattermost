@@ -249,6 +249,11 @@ const state: GlobalState = {
         activeEditors: {
             byPageId: {},
         },
+        properties: {
+            fields: {byObjectType: {}, byId: {}},
+            values: {byTargetId: {}, byFieldId: {}},
+            groups: {byId: {}, byName: {}},
+        },
     },
     errors: [],
     requests: {

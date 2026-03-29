@@ -20,6 +20,7 @@ import ToastWrapper from 'components/toast_wrapper';
 import Pluggable from 'plugins/pluggable';
 import Constants, {PostListRowListIds, EventTypes, PostRequestTypes} from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
+import {isChannelPopoutWindow} from 'utils/popouts/popout_windows';
 import {getPreviousPostId, getLatestPostId} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
@@ -28,7 +29,7 @@ import LatestPostReader from './latest_post_reader';
 const OVERSCAN_COUNT_BACKWARD = 80;
 const OVERSCAN_COUNT_FORWARD = 80;
 const HEIGHT_TRIGGER_FOR_MORE_POSTS = 1000;
-const BUFFER_TO_BE_CONSIDERED_BOTTOM = 10;
+const BUFFER_TO_BE_CONSIDERED_BOTTOM = 100;
 
 const MAXIMUM_POSTS_FOR_SLICING = {
     channel: 50,
@@ -473,7 +474,7 @@ export default class PostList extends React.PureComponent<Props, State> {
             });
         }
 
-        if (!this.props.isMobileView && !this.state.isSearchHintDismissed) {
+        if (!this.props.isMobileView && !this.state.isSearchHintDismissed && !isChannelPopoutWindow()) {
             this.setState({
                 showSearchHint: offsetFromBottom > this.showSearchHintThreshold,
             });

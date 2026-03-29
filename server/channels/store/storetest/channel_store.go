@@ -120,7 +120,7 @@ func TestChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	t.Run("GetMemberCountsByGroup", func(t *testing.T) { testGetMemberCountsByGroup(t, rctx, ss) })
 	t.Run("GetGuestCount", func(t *testing.T) { testGetGuestCount(t, rctx, ss) })
 	t.Run("SearchMore", func(t *testing.T) { testChannelStoreSearchMore(t, rctx, ss) })
-	t.Run("SearchInTeam", func(t *testing.T) { testChannelStoreSearchInTeam(t, rctx, ss) })
+	t.Run("SearchInTeam", func(t *testing.T) { testChannelStoreSearchInTeam(t, rctx, ss, s) })
 	t.Run("Autocomplete", func(t *testing.T) { testAutocomplete(t, rctx, ss, s) })
 	t.Run("SearchForUserInTeam", func(t *testing.T) { testChannelStoreSearchForUserInTeam(t, rctx, ss) })
 	t.Run("SearchAllChannels", func(t *testing.T) { testChannelStoreSearchAllChannels(t, rctx, ss) })
@@ -5990,7 +5990,7 @@ func testChannelStoreSearchMore(t *testing.T, rctx request.CTX, ss store.Store) 
 	})
 }
 
-func testChannelStoreSearchInTeam(t *testing.T, rctx request.CTX, ss store.Store) {
+func testChannelStoreSearchInTeam(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	teamID := model.NewId()
 	otherTeamID := model.NewId()
 
@@ -6206,6 +6206,138 @@ func testChannelStoreSearchInTeam(t *testing.T, rctx request.CTX, ss store.Store
 			require.ElementsMatch(t, testCase.ExpectedResults, channels)
 		})
 	}
+
+	t.Run("AutoCompleteInTeam/DisplayName matches are prioritized in ordering", func(t *testing.T) {
+		s.GetMaster().Exec("TRUNCATE Channels")
+
+		sortTeam := &model.Team{
+			DisplayName: "sort-team",
+			Name:        NewTestID(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		}
+		sortTeam, err := ss.Team().Save(sortTeam)
+		require.NoError(t, err)
+
+		sortUser := model.NewId()
+		_, err = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: sortTeam.Id, UserId: sortUser}, -1)
+		require.NoError(t, err)
+
+		// Channels where DisplayName matches "alpha":
+		chDisplayAlpha2 := model.Channel{TeamId: sortTeam.Id, DisplayName: "Alpha Two", Name: NewTestID(), Type: model.ChannelTypeOpen}
+		_, err = ss.Channel().Save(rctx, &chDisplayAlpha2, -1)
+		require.NoError(t, err)
+
+		chDisplayAlpha1 := model.Channel{TeamId: sortTeam.Id, DisplayName: "Alpha One", Name: NewTestID(), Type: model.ChannelTypeOpen}
+		_, err = ss.Channel().Save(rctx, &chDisplayAlpha1, -1)
+		require.NoError(t, err)
+
+		// Channels where only Purpose matches "alpha" (DisplayName does NOT contain "alpha"):
+		chPurposeOnly2 := model.Channel{TeamId: sortTeam.Id, DisplayName: "Zulu Channel", Name: NewTestID(), Purpose: "alpha related work", Type: model.ChannelTypeOpen}
+		_, err = ss.Channel().Save(rctx, &chPurposeOnly2, -1)
+		require.NoError(t, err)
+
+		chPurposeOnly1 := model.Channel{TeamId: sortTeam.Id, DisplayName: "Bravo Channel", Name: NewTestID(), Purpose: "alpha discussions", Type: model.ChannelTypeOpen}
+		_, err = ss.Channel().Save(rctx, &chPurposeOnly1, -1)
+		require.NoError(t, err)
+
+		channels, err := ss.Channel().AutocompleteInTeam(rctx, sortTeam.Id, sortUser, "alpha", false, false)
+		require.NoError(t, err)
+		require.Len(t, channels, 4)
+
+		// DisplayName matches come first, sorted alphabetically by DisplayName
+		assert.Equal(t, chDisplayAlpha1.Id, channels[0].Id, "first should be Alpha One (DisplayName match, alphabetically first)")
+		assert.Equal(t, chDisplayAlpha2.Id, channels[1].Id, "second should be Alpha Two (DisplayName match, alphabetically second)")
+
+		// Non-DisplayName matches come second, also sorted alphabetically by DisplayName
+		assert.Equal(t, chPurposeOnly1.Id, channels[2].Id, "third should be Bravo Channel (no DisplayName match, alphabetically first)")
+		assert.Equal(t, chPurposeOnly2.Id, channels[3].Id, "fourth should be Zulu Channel (no DisplayName match, alphabetically second)")
+	})
+
+	t.Run("AutoCompleteInTeam/no DisplayName matches still returns results sorted by DisplayName", func(t *testing.T) {
+		s.GetMaster().Exec("TRUNCATE Channels")
+
+		sortTeam := &model.Team{
+			DisplayName: "sort-team",
+			Name:        NewTestID(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		}
+		sortTeam, err := ss.Team().Save(sortTeam)
+		require.NoError(t, err)
+
+		sortUser := model.NewId()
+		_, err = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: sortTeam.Id, UserId: sortUser}, -1)
+		require.NoError(t, err)
+
+		// All channels match on Purpose only, not DisplayName
+		ch1 := model.Channel{TeamId: sortTeam.Id, DisplayName: "Zulu Display", Name: NewTestID(), Purpose: "searchterm stuff", Type: model.ChannelTypeOpen}
+		_, err = ss.Channel().Save(rctx, &ch1, -1)
+		require.NoError(t, err)
+
+		ch2 := model.Channel{TeamId: sortTeam.Id, DisplayName: "Alpha Display", Name: NewTestID(), Purpose: "searchterm things", Type: model.ChannelTypeOpen}
+		_, err = ss.Channel().Save(rctx, &ch2, -1)
+		require.NoError(t, err)
+
+		ch3 := model.Channel{TeamId: sortTeam.Id, DisplayName: "Mike Display", Name: NewTestID(), Purpose: "searchterm items", Type: model.ChannelTypeOpen}
+		_, err = ss.Channel().Save(rctx, &ch3, -1)
+		require.NoError(t, err)
+
+		channels, err := ss.Channel().AutocompleteInTeam(rctx, sortTeam.Id, sortUser, "searchterm", false, false)
+		require.NoError(t, err)
+		require.Len(t, channels, 3)
+
+		// All in the same priority bucket (no DisplayName match), sorted by DisplayName
+		assert.Equal(t, ch2.Id, channels[0].Id, "Alpha Display should be first")
+		assert.Equal(t, ch3.Id, channels[1].Id, "Mike Display should be second")
+		assert.Equal(t, ch1.Id, channels[2].Id, "Zulu Display should be third")
+	})
+
+	t.Run("AutoCompleteInTeam/DisplayName match is not cut off by limit", func(t *testing.T) {
+		s.GetMaster().Exec("TRUNCATE Channels")
+
+		sortTeam := &model.Team{
+			DisplayName: "sort-team",
+			Name:        NewTestID(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		}
+		sortTeam, err := ss.Team().Save(sortTeam)
+		require.NoError(t, err)
+
+		sortUser := model.NewId()
+		_, err = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: sortTeam.Id, UserId: sortUser}, -1)
+		require.NoError(t, err)
+
+		// Create 50 channels that match only on Purpose (not DisplayName).
+		for i := range model.ChannelSearchDefaultLimit {
+			_, err = ss.Channel().Save(rctx, &model.Channel{
+				TeamId:      sortTeam.Id,
+				DisplayName: fmt.Sprintf("AAA Channel %03d", i),
+				Name:        NewTestID(),
+				Purpose:     "findme in purpose",
+				Type:        model.ChannelTypeOpen,
+			}, -1)
+			require.NoError(t, err)
+		}
+
+		// Create 1 channel whose DisplayName matches the term but sorts last alphabetically.
+		chDisplayMatch := model.Channel{
+			TeamId:      sortTeam.Id,
+			DisplayName: "ZZZ findme channel",
+			Name:        NewTestID(),
+			Type:        model.ChannelTypeOpen,
+		}
+		_, err = ss.Channel().Save(rctx, &chDisplayMatch, -1)
+		require.NoError(t, err)
+
+		channels, err := ss.Channel().AutocompleteInTeam(rctx, sortTeam.Id, sortUser, "findme", false, false)
+		require.NoError(t, err)
+		require.Len(t, channels, model.ChannelSearchDefaultLimit)
+
+		// The DisplayName-matching channel must be first despite sorting last alphabetically.
+		assert.Equal(t, chDisplayMatch.Id, channels[0].Id, "DisplayName match should be returned first, not cut off by limit")
+	})
 }
 
 func testAutocomplete(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
@@ -6417,6 +6549,101 @@ func testAutocomplete(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 				require.NotEqual(t, o5.Id, ch.Id, "includeDeleted=%v: channel from left team should not be returned", includeDeleted)
 			}
 		}
+	})
+
+	t.Run("channels with a matching DisplayName are sorted before those matching other fields", func(t *testing.T) {
+		// Clean slate for ordering tests
+		s.GetMaster().Exec("TRUNCATE Channels")
+
+		sortTeam := &model.Team{
+			DisplayName: "sort-team",
+			Name:        NewTestID(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		}
+		sortTeam, err2 := ss.Team().Save(sortTeam)
+		require.NoError(t, err2)
+
+		sortUser := model.NewId()
+		_, err2 = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: sortTeam.Id, UserId: sortUser}, -1)
+		require.NoError(t, err2)
+
+		// Channels where DisplayName matches "alpha":
+		chDisplayAlpha2 := model.Channel{TeamId: sortTeam.Id, DisplayName: "Alpha Two", Name: NewTestID(), Type: model.ChannelTypeOpen}
+		_, err2 = ss.Channel().Save(rctx, &chDisplayAlpha2, -1)
+		require.NoError(t, err2)
+
+		chDisplayAlpha1 := model.Channel{TeamId: sortTeam.Id, DisplayName: "Alpha One", Name: NewTestID(), Type: model.ChannelTypeOpen}
+		_, err2 = ss.Channel().Save(rctx, &chDisplayAlpha1, -1)
+		require.NoError(t, err2)
+
+		// Channels where only Purpose matches "alpha" (DisplayName does NOT contain "alpha"):
+		chPurposeOnly2 := model.Channel{TeamId: sortTeam.Id, DisplayName: "Zulu Channel", Name: NewTestID(), Purpose: "alpha related work", Type: model.ChannelTypeOpen}
+		_, err2 = ss.Channel().Save(rctx, &chPurposeOnly2, -1)
+		require.NoError(t, err2)
+
+		chPurposeOnly1 := model.Channel{TeamId: sortTeam.Id, DisplayName: "Bravo Channel", Name: NewTestID(), Purpose: "alpha discussions", Type: model.ChannelTypeOpen}
+		_, err2 = ss.Channel().Save(rctx, &chPurposeOnly1, -1)
+		require.NoError(t, err2)
+
+		channels, err2 := ss.Channel().Autocomplete(rctx, sortUser, "alpha", false, false)
+		require.NoError(t, err2)
+		require.Len(t, channels, 4)
+
+		// DisplayName matches come first, sorted alphabetically by DisplayName
+		assert.Equal(t, chDisplayAlpha1.Id, channels[0].Id, "first should be Alpha One (DisplayName match, alphabetically first)")
+		assert.Equal(t, chDisplayAlpha2.Id, channels[1].Id, "second should be Alpha Two (DisplayName match, alphabetically second)")
+
+		// Non-DisplayName matches come second, also sorted alphabetically by DisplayName
+		assert.Equal(t, chPurposeOnly1.Id, channels[2].Id, "third should be Bravo Channel (no DisplayName match, alphabetically first)")
+		assert.Equal(t, chPurposeOnly2.Id, channels[3].Id, "fourth should be Zulu Channel (no DisplayName match, alphabetically second)")
+	})
+
+	t.Run("channels with a matching DisplayName are sorted before those matching other fields, even when the results are cut off", func(t *testing.T) {
+		s.GetMaster().Exec("TRUNCATE Channels")
+
+		sortTeam := &model.Team{
+			DisplayName: "sort-team",
+			Name:        NewTestID(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		}
+		sortTeam, err2 := ss.Team().Save(sortTeam)
+		require.NoError(t, err2)
+
+		sortUser := model.NewId()
+		_, err2 = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: sortTeam.Id, UserId: sortUser}, -1)
+		require.NoError(t, err2)
+
+		// Create 50 channels that match only on Purpose (not DisplayName).
+		// Give them DisplayNames that sort before the DisplayName-matching channel.
+		for i := range model.ChannelSearchDefaultLimit {
+			_, err2 = ss.Channel().Save(rctx, &model.Channel{
+				TeamId:      sortTeam.Id,
+				DisplayName: fmt.Sprintf("AAA Channel %03d", i),
+				Name:        NewTestID(),
+				Purpose:     "findme in purpose",
+				Type:        model.ChannelTypeOpen,
+			}, -1)
+			require.NoError(t, err2)
+		}
+
+		// Create 1 channel whose DisplayName matches the term but sorts last alphabetically.
+		chDisplayMatch := model.Channel{
+			TeamId:      sortTeam.Id,
+			DisplayName: "ZZZ findme channel",
+			Name:        NewTestID(),
+			Type:        model.ChannelTypeOpen,
+		}
+		_, err2 = ss.Channel().Save(rctx, &chDisplayMatch, -1)
+		require.NoError(t, err2)
+
+		channels, err2 := ss.Channel().Autocomplete(rctx, sortUser, "findme", false, false)
+		require.NoError(t, err2)
+		require.Len(t, channels, model.ChannelSearchDefaultLimit)
+
+		// The DisplayName-matching channel must be first despite sorting last alphabetically.
+		assert.Equal(t, chDisplayMatch.Id, channels[0].Id, "DisplayName match should be returned first, not cut off by limit")
 	})
 
 	t.Run("Limit", func(t *testing.T) {

@@ -724,8 +724,16 @@
     "translation": "Command with a trigger of '{{.Trigger}}' not found. To send a message beginning with \"/\", try adding an empty space at the beginning of the message."
   },
   {
+    "id": "api.command.execute_command.provided_site_url_different.app_error",
+    "translation": "Request hostname differs from configured SiteURL. The configured SiteURL will be used for the slash command response URL."
+  },
+  {
     "id": "api.command.execute_command.restricted_dm.error",
     "translation": "Cannot post in a restricted DM"
+  },
+  {
+    "id": "api.command.execute_command.site_url_required.app_error",
+    "translation": "SiteURL must be configured to use slash commands"
   },
   {
     "id": "api.command.execute_command.start.app_error",
@@ -1786,46 +1794,6 @@
     "translation": "Failed to update server translations."
   },
   {
-    "id": "api.content_flagging.error.comment_required",
-    "translation": "Please add a comment explaining why you’re flagging this message."
-  },
-  {
-    "id": "api.content_flagging.error.comment_too_long",
-    "translation": "Message flagging reason cannot be longer than {{.MaxLength}} characters."
-  },
-  {
-    "id": "api.content_flagging.error.disabled",
-    "translation": "Content flagging feature is disabled."
-  },
-  {
-    "id": "api.content_flagging.error.invalid_post_type",
-    "translation": "Flagging a post of type '{{.PostType}}' is not allowed."
-  },
-  {
-    "id": "api.content_flagging.error.license",
-    "translation": "Your license does not support content flagging."
-  },
-  {
-    "id": "api.content_flagging.error.not_available_on_team",
-    "translation": "Content flagging feature is not enabled on this team."
-  },
-  {
-    "id": "api.content_flagging.error.post_not_in_progress",
-    "translation": "The flagged post must be in pending or assigned status to be kept or removed."
-  },
-  {
-    "id": "api.content_flagging.error.reason_invalid",
-    "translation": "Unknown reason specified for flagging message."
-  },
-  {
-    "id": "api.content_flagging.error.reason_required",
-    "translation": "Please select a reason for flagging this message."
-  },
-  {
-    "id": "api.content_flagging.error.user_not_reviewer",
-    "translation": "The user is not a content reviewer."
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "Sorry, we could not find the page."
   },
@@ -2012,6 +1980,46 @@
   {
     "id": "api.custom_status.set_custom_statuses.update.app_error",
     "translation": "Failed to update the custom status. Please add either emoji or custom text status or both."
+  },
+  {
+    "id": "api.data_spillage.error.comment_required",
+    "translation": "Please add a comment explaining why you’re flagging this message."
+  },
+  {
+    "id": "api.data_spillage.error.comment_too_long",
+    "translation": "Message quarantine reason cannot be longer than {{.MaxLength}} characters."
+  },
+  {
+    "id": "api.data_spillage.error.disabled",
+    "translation": "Data Spillage Handling feature is disabled."
+  },
+  {
+    "id": "api.data_spillage.error.invalid_post_type",
+    "translation": "Quarantining a post of type ‘{{.PostType}}’ is not allowed."
+  },
+  {
+    "id": "api.data_spillage.error.license",
+    "translation": "Your license does not support Data Spillage Handling."
+  },
+  {
+    "id": "api.data_spillage.error.not_available_on_team",
+    "translation": "Data Spillage Handling feature is not enabled on this team."
+  },
+  {
+    "id": "api.data_spillage.error.post_not_in_progress",
+    "translation": "The quarantined post must be in pending or assigned status to be kept or removed."
+  },
+  {
+    "id": "api.data_spillage.error.reason_invalid",
+    "translation": "Unknown reason specified for quarantining message."
+  },
+  {
+    "id": "api.data_spillage.error.reason_required",
+    "translation": "Please select a reason for quarantining this message."
+  },
+  {
+    "id": "api.data_spillage.error.user_not_reviewer",
+    "translation": "The user is not a content reviewer."
   },
   {
     "id": "api.draft.create.invalid_parent.app_error",
@@ -2605,6 +2613,10 @@
     "translation": "invalid_request: Bad request."
   },
   {
+    "id": "api.oauth.get_access_token.client_id_mismatch.app_error",
+    "translation": "invalid_grant: Token grant was not issued to this client."
+  },
+  {
     "id": "api.oauth.get_access_token.credentials.app_error",
     "translation": "invalid_client: Invalid client credentials."
   },
@@ -2745,6 +2757,14 @@
     "translation": "No wiki found."
   },
   {
+    "id": "api.plugin.install.check_directory.app_error",
+    "translation": "An error occurred while checking the plugin directory configuration."
+  },
+  {
+    "id": "api.plugin.install.directory_conflict.app_error",
+    "translation": "Cannot install plugin: PluginSettings.Directory conflicts with ImportSettings.Directory."
+  },
+  {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "An error occurred while downloading the plugin."
   },
@@ -2815,6 +2835,10 @@
   {
     "id": "api.post.create_post.can_not_post_to_deleted.error",
     "translation": "Can not post to deleted channel."
+  },
+  {
+    "id": "api.post.create_post.card_type_disabled.app_error",
+    "translation": "Card posts are not enabled on this server."
   },
   {
     "id": "api.post.create_post.channel_root_id.app_error",
@@ -2983,6 +3007,10 @@
     "translation": "Burn-on-read feature is not enabled or requires an Enterprise Advanced license."
   },
   {
+    "id": "api.post.reveal_post.invalid_request.app_error",
+    "translation": "Invalid request: missing or invalid X-Requested-With header."
+  },
+  {
     "id": "api.post.reveal_post.user_not_in_channel.app_error",
     "translation": "You do not have permission to reveal this post. You must be a member of the channel."
   },
@@ -3081,6 +3109,94 @@
   {
     "id": "api.preference.update_preferences.update_sidebar.app_error",
     "translation": "Unable to update sidebar to match updated preferences"
+  },
+  {
+    "id": "api.property_field.create.invalid_target_type.app_error",
+    "translation": "The provided target type is not valid."
+  },
+  {
+    "id": "api.property_field.create.protected_via_api.app_error",
+    "translation": "Cannot create a protected property field via API."
+  },
+  {
+    "id": "api.property_field.create.target_id_required.app_error",
+    "translation": "A target_id is required when creating a channel or team scoped property field."
+  },
+  {
+    "id": "api.property_field.delete.no_permission.app_error",
+    "translation": "You do not have permission to delete this property field."
+  },
+  {
+    "id": "api.property_field.delete.protected_via_api.app_error",
+    "translation": "Cannot delete a protected property field via API."
+  },
+  {
+    "id": "api.property_field.get.invalid_target_type.app_error",
+    "translation": "A valid target_type (system, team, or channel) is required."
+  },
+  {
+    "id": "api.property_field.get.target_id_required.app_error",
+    "translation": "A target_id is required when querying by channel or team target_type."
+  },
+  {
+    "id": "api.property_field.invalid_group_name.app_error",
+    "translation": "The specified property group was not found."
+  },
+  {
+    "id": "api.property_field.invalid_patch.app_error",
+    "translation": "Invalid property field patch."
+  },
+  {
+    "id": "api.property_field.object_type_mismatch.app_error",
+    "translation": "Property field object type does not match URL."
+  },
+  {
+    "id": "api.property_field.patch.legacy_field.app_error",
+    "translation": "Cannot patch a v1 property field via this API."
+  },
+  {
+    "id": "api.property_field.update.no_field_permission.app_error",
+    "translation": "You do not have permission to edit this property field."
+  },
+  {
+    "id": "api.property_field.update.no_options_permission.app_error",
+    "translation": "You do not have permission to manage options for this property field."
+  },
+  {
+    "id": "api.property_field.update.protected_via_api.app_error",
+    "translation": "Cannot update a protected property field via API."
+  },
+  {
+    "id": "api.property_value.invalid_group_name.app_error",
+    "translation": "The provided group name is not valid or does not exist."
+  },
+  {
+    "id": "api.property_value.invalid_object_type.app_error",
+    "translation": "The provided object type is not valid."
+  },
+  {
+    "id": "api.property_value.patch.duplicate_field_id.app_error",
+    "translation": "The request contains duplicate field IDs."
+  },
+  {
+    "id": "api.property_value.patch.empty_body.app_error",
+    "translation": "Request body must contain at least one property value update."
+  },
+  {
+    "id": "api.property_value.patch.invalid_field_id.app_error",
+    "translation": "One or more field IDs in the request are invalid."
+  },
+  {
+    "id": "api.property_value.patch.no_values_permission.app_error",
+    "translation": "You do not have permission to set values on one or more fields."
+  },
+  {
+    "id": "api.property_value.patch.too_many_items.request_error",
+    "translation": "Unable to update that many property values. Only {{.Max}} property values can be updated at once."
+  },
+  {
+    "id": "api.property_value.target_user.forbidden.app_error",
+    "translation": "You do not have permission to access property values for another user."
   },
   {
     "id": "api.push_notification.disabled.app_error",
@@ -3327,8 +3443,8 @@
     "translation": "Could not uninvite remote to channel"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "The Integration/Slack Bot user with email {{.Email}} and password {{.Password}} has been imported.\r\n"
+    "id": "api.slackimport.slack_add_bot_user.email",
+    "translation": "The Integration/Slack Bot user with email {{.Email}} has been imported.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
@@ -3355,8 +3471,8 @@
     "translation": "\r\nUsers created:\r\n"
   },
   {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Slack user with email {{.Email}} and password {{.Password}} has been imported.\r\n"
+    "id": "api.slackimport.slack_add_users.email",
+    "translation": "Slack user with email {{.Email}} has been imported.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
@@ -3369,6 +3485,10 @@
   {
     "id": "api.slackimport.slack_add_users.missing_email_address",
     "translation": "User {{.Username}} does not have an email address in the Slack export. Used {{.Email}} as a placeholder. The user should update their email address once logged in to the system.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.send_reset_email_failed",
+    "translation": "Unable to send password reset email to {{.Username}} at {{.Email}}.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
@@ -4223,6 +4343,14 @@
     "translation": "Mattermost was unable to upgrade to Enterprise Edition. The digital signature of the downloaded binary file could not be verified."
   },
   {
+    "id": "api.upload.create.check_directory.app_error",
+    "translation": "An error occurred while checking the import directory configuration."
+  },
+  {
+    "id": "api.upload.create.directory_conflict.app_error",
+    "translation": "Cannot create import upload: ImportSettings.Directory conflicts with PluginSettings.Directory."
+  },
+  {
     "id": "api.upload.create.upload_channel_not_shared_with_remote.app_error",
     "translation": "Failed to upload file. Upload channel is not shared with remote."
   },
@@ -4485,10 +4613,6 @@
   {
     "id": "api.user.guest_magic_link.invalid_token.app_error",
     "translation": "Invalid invitation link."
-  },
-  {
-    "id": "api.user.guest_magic_link.invalid_token_type.app_error",
-    "translation": "Invalid invitation link type."
   },
   {
     "id": "api.user.guest_magic_link.missing_token.app_error",
@@ -4867,6 +4991,50 @@
     "translation": "Failed to parse token data from email verification"
   },
   {
+    "id": "api.view.create.deleted_channel.app_error",
+    "translation": "Cannot create a view in a deleted channel."
+  },
+  {
+    "id": "api.view.delete.channel_mismatch.app_error",
+    "translation": "View does not belong to the specified channel."
+  },
+  {
+    "id": "api.view.delete.deleted_channel.app_error",
+    "translation": "Cannot delete a view in a deleted channel."
+  },
+  {
+    "id": "api.view.get.channel_mismatch.app_error",
+    "translation": "View does not belong to the specified channel."
+  },
+  {
+    "id": "api.view.get.deleted_channel.app_error",
+    "translation": "Cannot get a view from a deleted channel."
+  },
+  {
+    "id": "api.view.get_posts.channel_mismatch.app_error",
+    "translation": "View does not belong to the specified channel."
+  },
+  {
+    "id": "api.view.get_posts.deleted_channel.app_error",
+    "translation": "Cannot get posts for a view from a deleted channel."
+  },
+  {
+    "id": "api.view.list.deleted_channel.app_error",
+    "translation": "Cannot list views for a deleted channel."
+  },
+  {
+    "id": "api.view.update.channel_mismatch.app_error",
+    "translation": "View does not belong to the specified channel."
+  },
+  {
+    "id": "api.view.update.deleted_channel.app_error",
+    "translation": "Cannot update a view in a deleted channel."
+  },
+  {
+    "id": "api.view.update_sort_order.deleted_channel.app_error",
+    "translation": "Cannot update view sort order in a deleted channel."
+  },
+  {
     "id": "api.web_socket.connect.upgrade.app_error",
     "translation": "URL Blocked because of CORS. Url: {{.BlockedOrigin}}"
   },
@@ -5195,6 +5363,10 @@
     "translation": "Unable to add the user as a member of the channel."
   },
   {
+    "id": "app.channel.add_user.to.channel.rejected_by_plugin",
+    "translation": "Adding channel member rejected by plugin: {{.Reason}}"
+  },
+  {
     "id": "app.channel.analytics_type_count.app_error",
     "translation": "Unable to get channel type counts."
   },
@@ -5277,6 +5449,10 @@
   {
     "id": "app.channel.delete.app_error",
     "translation": "Unable to delete the channel."
+  },
+  {
+    "id": "app.channel.delete_channel.rejected_by_plugin",
+    "translation": "Channel archive rejected by plugin: {{.Reason}}"
   },
   {
     "id": "app.channel.get.app_error",
@@ -5631,6 +5807,10 @@
     "translation": "Unable to update the command."
   },
   {
+    "id": "app.command.validatecommandtriggeruniqueness.internal_error",
+    "translation": "The specified trigger keyword already exists."
+  },
+  {
     "id": "app.command_webhook.create_command_webhook.existing",
     "translation": "You cannot update an existing CommandWebhook."
   },
@@ -5675,158 +5855,6 @@
     "translation": "We encountered an error saving the compliance report."
   },
   {
-    "id": "app.content_flagging.assign_reviewer.no_reviewer_field.app_error",
-    "translation": "No Reviewer ID property field found."
-  },
-  {
-    "id": "app.content_flagging.assign_reviewer.update_status_property_value.app_error",
-    "translation": "Failed to update Status property value on setting reviewer."
-  },
-  {
-    "id": "app.content_flagging.assign_reviewer.upsert_property_value.app_error",
-    "translation": "Failed to set flagged post reviewer."
-  },
-  {
-    "id": "app.content_flagging.can_flag_post.in_progress",
-    "translation": "Cannot flag this post as it is already flagged."
-  },
-  {
-    "id": "app.content_flagging.can_flag_post.removed",
-    "translation": "Cannot flag this post it was removed in a previous flagging request."
-  },
-  {
-    "id": "app.content_flagging.can_flag_post.retained",
-    "translation": "Cannot flag this post as it was retained in a previous flagging request."
-  },
-  {
-    "id": "app.content_flagging.can_flag_post.unknown",
-    "translation": "Cannot flag this post as it is in unknown status."
-  },
-  {
-    "id": "app.content_flagging.create_property_values.app_error",
-    "translation": "Unable to save property values for the flagged post."
-  },
-  {
-    "id": "app.content_flagging.flag_post.marshal_comment.app_error",
-    "translation": "Failed to marshal flagging user's comment"
-  },
-  {
-    "id": "app.content_flagging.flag_post.marshal_reason.app_error",
-    "translation": "Failed to marshal flagging user's reason"
-  },
-  {
-    "id": "app.content_flagging.flag_post_confirmation.message",
-    "translation": "The message from @{{.username}} has been flagged for review. You will be notified once it is reviewed by a Content Reviewer. "
-  },
-  {
-    "id": "app.content_flagging.get_group.error",
-    "translation": "Failed to get Content Flagging bot."
-  },
-  {
-    "id": "app.content_flagging.get_reviewer_settings.app_error",
-    "translation": "Failed to fetch content reviewer settings from the database"
-  },
-  {
-    "id": "app.content_flagging.get_status_property.app_error",
-    "translation": "Failed to get Status property field."
-  },
-  {
-    "id": "app.content_flagging.get_thread_replies.app_error",
-    "translation": "Failed to fetch thread replies for the flagged post."
-  },
-  {
-    "id": "app.content_flagging.get_users_in_team.app_error",
-    "translation": "Failed to search reviewers in team."
-  },
-  {
-    "id": "app.content_flagging.keep_flag_post.marshal_comment.app_error",
-    "translation": "Failed to marshal reviewer comment"
-  },
-  {
-    "id": "app.content_flagging.keep_post.status_update.app_error",
-    "translation": "Failed to update flagged post status when undeleting flagged post "
-  },
-  {
-    "id": "app.content_flagging.keep_post.undelete.app_error",
-    "translation": "Failed to update post in database when attempting to undelete the flagged post and associated data."
-  },
-  {
-    "id": "app.content_flagging.marshal_property_values.app_error",
-    "translation": "Failed to marshal Content Flagging property values to send in WebSocket event."
-  },
-  {
-    "id": "app.content_flagging.missing_flagged_post_id_field.app_error",
-    "translation": "Unable to find Flagged Post ID property field."
-  },
-  {
-    "id": "app.content_flagging.missing_manage_by_field.app_error",
-    "translation": "Failed to find Manage By property field."
-  },
-  {
-    "id": "app.content_flagging.missing_reporting_user_id_field.app_error",
-    "translation": "Unable to find reporting user field."
-  },
-  {
-    "id": "app.content_flagging.missing_reporting_user_id_property_value.app_error",
-    "translation": "Unable to find value for reporting user field."
-  },
-  {
-    "id": "app.content_flagging.missing_status_field.app_error",
-    "translation": "Failed to find Status property field."
-  },
-  {
-    "id": "app.content_flagging.no_status_property.app_error",
-    "translation": "Cannot fetch flagged post as the post is not flagged."
-  },
-  {
-    "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",
-    "translation": "Failed to marshal reviewer comment"
-  },
-  {
-    "id": "app.content_flagging.permanently_delete.update_property_value.app_error",
-    "translation": "Failed to update flagged post status when permanently deleting flagged post."
-  },
-  {
-    "id": "app.content_flagging.save_reviewer_settings.app_error",
-    "translation": "Failed to save content reviewer settings to the database."
-  },
-  {
-    "id": "app.content_flagging.search_common_reviewers.app_error",
-    "translation": "Failed to search the term in Common Reviewers."
-  },
-  {
-    "id": "app.content_flagging.search_property_fields.app_error",
-    "translation": "Failed to search Content Flagging property fields."
-  },
-  {
-    "id": "app.content_flagging.search_property_values.app_error",
-    "translation": "Failed to fetch post's content flagging property values from the database."
-  },
-  {
-    "id": "app.content_flagging.search_reviewer_posts.app_error",
-    "translation": "Failed to search reviewer posts for the flagged post."
-  },
-  {
-    "id": "app.content_flagging.search_status_property.app_error",
-    "translation": "Failed to search Property Values for the flagged post."
-  },
-  {
-    "id": "app.content_flagging.search_sysadmin_reviewers.app_error",
-    "translation": "Failed to search the search term in System Admin Reviewers."
-  },
-  {
-    "id": "app.content_flagging.search_team_admin_reviewers.app_error",
-    "translation": "Failed to search the search term in Team Admin Reviewers."
-  },
-  {
-    "id": "app.content_flagging.search_team_reviewers.app_error",
-    "translation": "Failed to search the search term in Team Reviewers."
-  },
-  {
-    "id": "app.content_flagging.set_thread_replies_properties.app_error",
-    "translation": "Failed to set property values on thread replies for the flagged post."
-  },
-  {
     "id": "app.create_basic_user.save_member.app_error",
     "translation": "Unable to create default team memberships"
   },
@@ -5848,11 +5876,7 @@
   },
   {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
-    "translation": "Cannot register Custom Profile Attributes property group"
-  },
-  {
-    "id": "app.custom_profile_attributes.create_property_field.app_error",
-    "translation": "Unable to create Custom Profile Attribute field"
+    "translation": "Unable to retrieve the custom profile attributes property group."
   },
   {
     "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
@@ -5861,6 +5885,10 @@
   {
     "id": "app.custom_profile_attributes.get_property_field.app_error",
     "translation": "Unable to get Custom Profile Attribute field"
+  },
+  {
+    "id": "app.custom_profile_attributes.get_property_value.app_error",
+    "translation": "Unable to get Custom Profile Attribute value"
   },
   {
     "id": "app.custom_profile_attributes.limit_reached.app_error",
@@ -5913,6 +5941,158 @@
   {
     "id": "app.custom_profile_attributes.validate_value.app_error",
     "translation": "Failed to validate property value"
+  },
+  {
+    "id": "app.data_spillage.assign_reviewer.no_reviewer_field.app_error",
+    "translation": "No Reviewer ID property field found."
+  },
+  {
+    "id": "app.data_spillage.assign_reviewer.update_status_property_value.app_error",
+    "translation": "Failed to update Status property value on setting reviewer."
+  },
+  {
+    "id": "app.data_spillage.assign_reviewer.upsert_property_value.app_error",
+    "translation": "Failed to set flagged post reviewer."
+  },
+  {
+    "id": "app.data_spillage.can_flag_post.in_progress",
+    "translation": "Cannot quarantine this post as it is already quarantined for review."
+  },
+  {
+    "id": "app.data_spillage.can_flag_post.removed",
+    "translation": "Cannot quarantine this post as it was removed in a previous review."
+  },
+  {
+    "id": "app.data_spillage.can_flag_post.retained",
+    "translation": "Cannot quarantine this post as it was retained in a previous review."
+  },
+  {
+    "id": "app.data_spillage.can_flag_post.unknown",
+    "translation": "Cannot quarantine this post as it is in unknown status."
+  },
+  {
+    "id": "app.data_spillage.create_property_values.app_error",
+    "translation": "Unable to save property values for the flagged post."
+  },
+  {
+    "id": "app.data_spillage.flag_post.marshal_comment.app_error",
+    "translation": "Failed to marshal flagging user's comment"
+  },
+  {
+    "id": "app.data_spillage.flag_post.marshal_reason.app_error",
+    "translation": "Failed to marshal flagging user's reason"
+  },
+  {
+    "id": "app.data_spillage.flag_post_confirmation.message",
+    "translation": "The message from @{{.username}} has been quarantined for review. You will be notified once it is reviewed by a Reviewer."
+  },
+  {
+    "id": "app.data_spillage.get_group.error",
+    "translation": "Unable to retrieve the content flagging property group."
+  },
+  {
+    "id": "app.data_spillage.get_reviewer_settings.app_error",
+    "translation": "Failed to fetch content reviewer settings from the database"
+  },
+  {
+    "id": "app.data_spillage.get_status_property.app_error",
+    "translation": "Failed to get Status property field."
+  },
+  {
+    "id": "app.data_spillage.get_thread_replies.app_error",
+    "translation": "Failed to fetch thread replies for the flagged post."
+  },
+  {
+    "id": "app.data_spillage.get_users_in_team.app_error",
+    "translation": "Failed to search reviewers in team."
+  },
+  {
+    "id": "app.data_spillage.keep_flag_post.marshal_comment.app_error",
+    "translation": "Failed to marshal reviewer comment"
+  },
+  {
+    "id": "app.data_spillage.keep_post.status_update.app_error",
+    "translation": "Failed to update flagged post status when undeleting flagged post "
+  },
+  {
+    "id": "app.data_spillage.keep_post.undelete.app_error",
+    "translation": "Failed to update post in database when attempting to undelete the flagged post and associated data."
+  },
+  {
+    "id": "app.data_spillage.marshal_property_values.app_error",
+    "translation": "Failed to marshal Content Flagging property values to send in WebSocket event."
+  },
+  {
+    "id": "app.data_spillage.missing_flagged_post_id_field.app_error",
+    "translation": "Unable to find Flagged Post ID property field."
+  },
+  {
+    "id": "app.data_spillage.missing_manage_by_field.app_error",
+    "translation": "Failed to find Manage By property field."
+  },
+  {
+    "id": "app.data_spillage.missing_reporting_user_id_field.app_error",
+    "translation": "Unable to find reporting user field."
+  },
+  {
+    "id": "app.data_spillage.missing_reporting_user_id_property_value.app_error",
+    "translation": "Unable to find value for reporting user field."
+  },
+  {
+    "id": "app.data_spillage.missing_status_field.app_error",
+    "translation": "Failed to find Status property field."
+  },
+  {
+    "id": "app.data_spillage.no_status_property.app_error",
+    "translation": "Cannot fetch flagged post as the post is not flagged."
+  },
+  {
+    "id": "app.data_spillage.permanently_delete.marshal_comment.app_error",
+    "translation": "Failed to marshal reviewer comment"
+  },
+  {
+    "id": "app.data_spillage.permanently_delete.update_property_value.app_error",
+    "translation": "Failed to update flagged post status when permanently deleting flagged post."
+  },
+  {
+    "id": "app.data_spillage.save_reviewer_settings.app_error",
+    "translation": "Failed to save content reviewer settings to the database."
+  },
+  {
+    "id": "app.data_spillage.search_common_reviewers.app_error",
+    "translation": "Failed to search the term in Common Reviewers."
+  },
+  {
+    "id": "app.data_spillage.search_property_fields.app_error",
+    "translation": "Failed to search Content Flagging property fields."
+  },
+  {
+    "id": "app.data_spillage.search_property_values.app_error",
+    "translation": "Failed to fetch post's content flagging property values from the database."
+  },
+  {
+    "id": "app.data_spillage.search_reviewer_posts.app_error",
+    "translation": "Failed to search reviewer posts for the flagged post."
+  },
+  {
+    "id": "app.data_spillage.search_status_property.app_error",
+    "translation": "Failed to search Property Values for the flagged post."
+  },
+  {
+    "id": "app.data_spillage.search_sysadmin_reviewers.app_error",
+    "translation": "Failed to search the search term in System Admin Reviewers."
+  },
+  {
+    "id": "app.data_spillage.search_team_admin_reviewers.app_error",
+    "translation": "Failed to search the search term in Team Admin Reviewers."
+  },
+  {
+    "id": "app.data_spillage.search_team_reviewers.app_error",
+    "translation": "Failed to search the search term in Team Reviewers."
+  },
+  {
+    "id": "app.data_spillage.set_thread_replies_properties.app_error",
+    "translation": "Failed to set property values on thread replies for the flagged post."
   },
   {
     "id": "app.delete_scheduled_post.delete_error",
@@ -7231,6 +7411,10 @@
     "translation": "Error fetching last accessible post"
   },
   {
+    "id": "app.limits.get_app_limits.single_channel_guest_count.store_error",
+    "translation": "Failed to get single-channel guest count."
+  },
+  {
     "id": "app.limits.get_app_limits.user_count.store_error",
     "translation": "Failed to get user count"
   },
@@ -7867,6 +8051,10 @@
     "translation": "Could not get channel members to remove."
   },
   {
+    "id": "app.pap.get_policies_for_field_ids.app_error",
+    "translation": "Could not get policies for the given field IDs."
+  },
+  {
     "id": "app.pap.get_policy.app_error",
     "translation": "Unable to retrieve the access control policy."
   },
@@ -7897,6 +8085,10 @@
   {
     "id": "app.pap.save_policy.app_error",
     "translation": "Unable to save access control policy."
+  },
+  {
+    "id": "app.pap.save_policy.name_exists.app_error",
+    "translation": "A policy with this name already exists. Please choose a different name."
   },
   {
     "id": "app.pap.search_access_control_policies.app_error",
@@ -8191,6 +8383,10 @@
     "translation": "Your license does not support reporting on posts."
   },
   {
+    "id": "app.post.get_posts_for_view.app_error",
+    "translation": "Unable to get the posts for the view."
+  },
+  {
     "id": "app.post.get_posts_since.app_error",
     "translation": "Unable to get the posts for the channel."
   },
@@ -8349,6 +8545,146 @@
   {
     "id": "app.prepackged-plugin.invalid_version.app_error",
     "translation": "Prepackged plugin version could not be parsed."
+  },
+  {
+    "id": "app.property_field.count_for_group.app_error",
+    "translation": "Unable to count property fields for group."
+  },
+  {
+    "id": "app.property_field.count_for_target.app_error",
+    "translation": "Unable to count property fields for target."
+  },
+  {
+    "id": "app.property_field.create.app_error",
+    "translation": "Unable to create property field."
+  },
+  {
+    "id": "app.property_field.create.name_conflict.app_error",
+    "translation": "Cannot create property \"{{.Name}}\": a property with this name already exists at the {{.ConflictLevel}} level."
+  },
+  {
+    "id": "app.property_field.create.protected.app_error",
+    "translation": "Cannot create a protected property field."
+  },
+  {
+    "id": "app.property_field.delete.app_error",
+    "translation": "Unable to delete property field."
+  },
+  {
+    "id": "app.property_field.delete.get_existing.app_error",
+    "translation": "Unable to get property field for deletion."
+  },
+  {
+    "id": "app.property_field.delete.not_found.app_error",
+    "translation": "Property field not found."
+  },
+  {
+    "id": "app.property_field.delete.protected.app_error",
+    "translation": "Cannot delete a protected property field."
+  },
+  {
+    "id": "app.property_field.get.app_error",
+    "translation": "Unable to get property field."
+  },
+  {
+    "id": "app.property_field.get_by_name.app_error",
+    "translation": "Unable to get property field by name."
+  },
+  {
+    "id": "app.property_field.get_many.app_error",
+    "translation": "Unable to get property fields."
+  },
+  {
+    "id": "app.property_field.get_many.fields_not_found.app_error",
+    "translation": "One or more property field IDs were not found in the specified group."
+  },
+  {
+    "id": "app.property_field.invalid_input.app_error",
+    "translation": "Invalid input provided."
+  },
+  {
+    "id": "app.property_field.search.app_error",
+    "translation": "Unable to search property fields."
+  },
+  {
+    "id": "app.property_field.update.app_error",
+    "translation": "Unable to update property fields."
+  },
+  {
+    "id": "app.property_field.update.get_existing.app_error",
+    "translation": "Unable to get property fields for update."
+  },
+  {
+    "id": "app.property_field.update.name_conflict.app_error",
+    "translation": "Cannot update property to \"{{.Name}}\": a property with this name already exists at the {{.ConflictLevel}} level."
+  },
+  {
+    "id": "app.property_field.update.protected.app_error",
+    "translation": "Cannot update a protected property field."
+  },
+  {
+    "id": "app.property_group.get.app_error",
+    "translation": "Unable to get property group."
+  },
+  {
+    "id": "app.property_group.register.app_error",
+    "translation": "Unable to register property group."
+  },
+  {
+    "id": "app.property_value.create.app_error",
+    "translation": "Unable to create property value."
+  },
+  {
+    "id": "app.property_value.create_many.app_error",
+    "translation": "Unable to create property values."
+  },
+  {
+    "id": "app.property_value.delete.app_error",
+    "translation": "Unable to delete property value."
+  },
+  {
+    "id": "app.property_value.delete_for_field.app_error",
+    "translation": "Unable to delete property values for field."
+  },
+  {
+    "id": "app.property_value.delete_for_target.app_error",
+    "translation": "Unable to delete property values for target."
+  },
+  {
+    "id": "app.property_value.get.app_error",
+    "translation": "Unable to get property value."
+  },
+  {
+    "id": "app.property_value.get_many.app_error",
+    "translation": "Unable to get property values."
+  },
+  {
+    "id": "app.property_value.invalid_input.app_error",
+    "translation": "Invalid input provided."
+  },
+  {
+    "id": "app.property_value.resolve_broadcast_params.unknown_object_type.app_error",
+    "translation": "Unrecognized object type \"{{.ObjectType}}\" for property value broadcast."
+  },
+  {
+    "id": "app.property_value.search.app_error",
+    "translation": "Unable to search property values."
+  },
+  {
+    "id": "app.property_value.update.app_error",
+    "translation": "Unable to update property value."
+  },
+  {
+    "id": "app.property_value.update_many.app_error",
+    "translation": "Unable to update property values."
+  },
+  {
+    "id": "app.property_value.upsert.app_error",
+    "translation": "Unable to upsert property values."
+  },
+  {
+    "id": "app.property_value.upsert_many.app_error",
+    "translation": "Unable to upsert property values."
   },
   {
     "id": "app.reaction.bulk_get_for_post_ids.app_error",
@@ -8553,6 +8889,14 @@
   {
     "id": "app.role.save.invalid_role.app_error",
     "translation": "The role was not valid."
+  },
+  {
+    "id": "app.role.send_updated_role_event.app_error",
+    "translation": "An error occurred while broadcasting the role update."
+  },
+  {
+    "id": "app.role.send_updated_role_event.unknown_scope",
+    "translation": "An error occurred while broadcasting the role update: unknown scheme scope."
   },
   {
     "id": "app.save_config.app_error",
@@ -8761,8 +9105,8 @@
     "translation": "Onboarding can only be completed by a System Administrator."
   },
   {
-    "id": "app.system.content_review_bot.bot_displayname",
-    "translation": "Content Review"
+    "id": "app.system.data_spillage_bot.bot_displayname",
+    "translation": "Data Spillage Bot"
   },
   {
     "id": "app.system.get_by_name.app_error",
@@ -8883,6 +9227,10 @@
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
     "translation": "This team has reached the maximum number of allowed accounts. Contact your System Administrator to set a higher limit."
+  },
+  {
+    "id": "app.team.join_user_to_team.rejected_by_plugin",
+    "translation": "Adding team member rejected by plugin: {{.Reason}}"
   },
   {
     "id": "app.team.join_user_to_team.save_member.app_error",
@@ -9091,6 +9439,10 @@
   {
     "id": "app.user.analytics_get_inactive_users_count.app_error",
     "translation": "We could not count the inactive users."
+  },
+  {
+    "id": "app.user.analytics_get_single_channel_guest_count.app_error",
+    "translation": "Failed to get single-channel guest count for analytics."
   },
   {
     "id": "app.user.check_user_password.failed_migration",
@@ -9355,6 +9707,78 @@
   {
     "id": "app.valid_password_generic.app_error",
     "translation": "Password is not valid"
+  },
+  {
+    "id": "app.view.count_for_channel.app_error",
+    "translation": "Failed to count views for channel."
+  },
+  {
+    "id": "app.view.create.app_error",
+    "translation": "Unable to create the view."
+  },
+  {
+    "id": "app.view.create.count.app_error",
+    "translation": "Failed to count views for channel."
+  },
+  {
+    "id": "app.view.create.limit.app_error",
+    "translation": "This channel has reached the maximum number of views."
+  },
+  {
+    "id": "app.view.create.nil_view.app_error",
+    "translation": "View is required."
+  },
+  {
+    "id": "app.view.delete.app_error",
+    "translation": "Unable to delete the view."
+  },
+  {
+    "id": "app.view.delete.nil_view.app_error",
+    "translation": "View is required."
+  },
+  {
+    "id": "app.view.delete.not_found.app_error",
+    "translation": "View not found."
+  },
+  {
+    "id": "app.view.get.app_error",
+    "translation": "Unable to get the view."
+  },
+  {
+    "id": "app.view.get.not_found.app_error",
+    "translation": "View not found."
+  },
+  {
+    "id": "app.view.get_for_channel.app_error",
+    "translation": "Unable to get views for this channel."
+  },
+  {
+    "id": "app.view.get_for_channel.invalid_input.app_error",
+    "translation": "Invalid input when getting views for channel."
+  },
+  {
+    "id": "app.view.update.app_error",
+    "translation": "Unable to update the view."
+  },
+  {
+    "id": "app.view.update.nil_view.app_error",
+    "translation": "View is required."
+  },
+  {
+    "id": "app.view.update.not_found.app_error",
+    "translation": "View not found."
+  },
+  {
+    "id": "app.view.update_sort_order.app_error",
+    "translation": "Unable to update the view sort order."
+  },
+  {
+    "id": "app.view.update_sort_order.invalid_input.app_error",
+    "translation": "Invalid input for view sort order update."
+  },
+  {
+    "id": "app.view.update_sort_order.not_found.app_error",
+    "translation": "View not found."
   },
   {
     "id": "app.webhooks.analytics_incoming_count.app_error",
@@ -9801,6 +10225,10 @@
     "translation": "{{.Backend}} aggregator worker failed due to the indexing job failing"
   },
   {
+    "id": "ent.elasticsearch.backfill_posts_channel_type.error",
+    "translation": "{{.Backend}} failed to backfill channel type on posts"
+  },
+  {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
     "translation": "Could not open the CA file for {{.Backend}}"
   },
@@ -10031,6 +10459,10 @@
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
     "translation": "The Search Server URL or Username has changed. Please re-enter the password to test connection."
+  },
+  {
+    "id": "ent.elasticsearch.update_posts_channel_type.error",
+    "translation": "{{.Backend}} failed to update channel type on posts"
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
@@ -11078,7 +11510,7 @@
   },
   {
     "id": "model.config.is_valid.autotranslation.workers.app_error",
-    "translation": "Workers must be between 1 and 32."
+    "translation": "Workers must be between 1 and 64."
   },
   {
     "id": "model.config.is_valid.cache_type.app_error",
@@ -11239,22 +11671,6 @@
   {
     "id": "model.config.is_valid.encrypt_sql.app_error",
     "translation": "Invalid at rest encrypt key for SQL settings. Must be 32 chars or more."
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_age_invalid",
-    "translation": "Max File Age of audit logs config must not be negative."
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid",
-    "translation": "Maximum File Backups of audit logs config must not be negative."
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid",
-    "translation": "Maximum File Queue of audit logs config must be greater than zero."
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_size_invalid",
-    "translation": "Maximum File Size of audit logs config must be greater than zero."
   },
   {
     "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",
@@ -11493,8 +11909,16 @@
     "translation": "Number of elements in ClientSideUserIds {{.CurrentLength}} is higher than maximum limit of {{.MaxLength}}."
   },
   {
+    "id": "model.config.is_valid.minimum_desktop_app_version.app_error",
+    "translation": "Invalid version number. Must be a valid semantic version (e.g. 5.0.0)."
+  },
+  {
     "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
     "translation": "Invalid domain for move thread settings"
+  },
+  {
+    "id": "model.config.is_valid.native_app_settings.download_link.app_error",
+    "translation": "One or more app download links are not valid URLs."
   },
   {
     "id": "model.config.is_valid.notification_settings.invalid_event",
@@ -12761,12 +13185,48 @@
     "translation": "Invalid user id."
   },
   {
+    "id": "model.user_report_options.is_valid.invalid_guest_filter",
+    "translation": "Provided guest filter is not valid."
+  },
+  {
     "id": "model.user_report_options.is_valid.invalid_sort_column",
     "translation": "Provided sort column is not valid."
   },
   {
     "id": "model.utils.decode_json.app_error",
     "translation": "could not decode."
+  },
+  {
+    "id": "model.view.is_valid.channel_id.app_error",
+    "translation": "Invalid view channel ID."
+  },
+  {
+    "id": "model.view.is_valid.create_at.app_error",
+    "translation": "Invalid view create time."
+  },
+  {
+    "id": "model.view.is_valid.creator_id.app_error",
+    "translation": "Invalid view creator ID."
+  },
+  {
+    "id": "model.view.is_valid.description.app_error",
+    "translation": "View description is too long."
+  },
+  {
+    "id": "model.view.is_valid.id.app_error",
+    "translation": "Invalid view ID."
+  },
+  {
+    "id": "model.view.is_valid.title.app_error",
+    "translation": "View title is required and must be less than 256 characters."
+  },
+  {
+    "id": "model.view.is_valid.type.app_error",
+    "translation": "Invalid view type."
+  },
+  {
+    "id": "model.view.is_valid.update_at.app_error",
+    "translation": "Invalid view update time."
   },
   {
     "id": "model.websocket_client.connect_fail.app_error",
@@ -13051,6 +13511,38 @@
   {
     "id": "web.error.unsupported_browser.system_browser_or",
     "translation": "or"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.assistance",
+    "translation": "Contact your system administrator if you need further assistance."
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.download_button",
+    "translation": "Download Updated App"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_about",
+    "translation": "About"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_help",
+    "translation": "Help"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_privacy",
+    "translation": "Privacy Policy"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_terms",
+    "translation": "Terms"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.message",
+    "translation": "Your {{.SiteName}} Desktop App version ({{.CurrentVersion}}) is below the minimum required version ({{.MinimumVersion}}). Please update your app or open {{.SiteName}} in a web browser to continue."
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.title",
+    "translation": "Update Required"
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",

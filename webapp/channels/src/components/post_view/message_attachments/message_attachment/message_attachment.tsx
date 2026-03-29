@@ -277,7 +277,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
         let rowPos = 0;
         let lastWasLong = false;
         let nrTables = 0;
-        const markdown = {markdown: false, mentionHighlight: false, atMentions: false};
+        const markdown = {...this.props.options, markdown: false, mentionHighlight: false, atMentions: false};
 
         fields.forEach((field, i) => {
             if (rowPos === 2 || !(field.short === true) || lastWasLong) {
@@ -324,6 +324,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                 >
                     <Markdown
                         message={String(field.value)}
+                        options={this.props.options}
                         postId={this.props.postId}
                     />
                 </td>,
@@ -396,6 +397,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                 <div className='attachment__thumb-pretext'>
                     <Markdown
                         message={attachment.pretext}
+                        options={options}
                         postId={this.props.postId}
                     />
                 </div>
@@ -466,6 +468,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                         <Markdown
                             message={attachment.title}
                             options={{
+                                ...options,
                                 atMentions: false,
                                 mentionHighlight: false,
                                 renderer: new LinkOnlyRenderer(),
@@ -547,7 +550,11 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
             footer = (
                 <div className='attachment__footer-container'>
                     {footerIcon}
-                    <span>{truncate(attachment.footer, {length: Constants.MAX_ATTACHMENT_FOOTER_LENGTH, omission: '…'})}</span>
+                    <Markdown
+                        message={truncate(attachment.footer, {length: Constants.MAX_ATTACHMENT_FOOTER_LENGTH, omission: '…'})}
+                        options={options}
+                        postId={this.props.postId}
+                    />
                 </div>
             );
         }

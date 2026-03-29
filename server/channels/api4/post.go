@@ -90,6 +90,11 @@ func createPostChecks(where string, c *Context, post *model.Post) {
 		return
 	}
 
+	postCardTypeCheckWithContext(where, c, post.Type)
+	if c.Err != nil {
+		return
+	}
+
 	postBurnOnReadCheckWithContext(where, c, post, nil)
 }
 
@@ -695,7 +700,10 @@ func getEditHistoryForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionEditPost)
 			return
 		}
-		if c.AppContext.Session().UserId != originalPost.UserId {
+
+		if originalPost.Type == model.PostTypeCard && c.App.Config().FeatureFlags.IntegratedBoards {
+			// Cards: collaborative model — any channel member with edit_post can view edit history
+		} else if c.AppContext.Session().UserId != originalPost.UserId {
 			c.SetPermissionError(model.PermissionEditPost)
 			return
 		}
@@ -753,12 +761,19 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 	auditRec.AddEventPriorState(post)
 	auditRec.AddEventObjectType("post")
 
-	if c.AppContext.Session().UserId == post.UserId {
+	switch {
+	case c.AppContext.Session().UserId == post.UserId:
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionDeletePost); !ok {
 			c.SetPermissionError(model.PermissionDeletePost)
 			return
 		}
-	} else {
+	case post.Type == model.PostTypeCard && c.App.Config().FeatureFlags.IntegratedBoards:
+		// Cards: collaborative model — any user with delete_post can delete any card
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionDeletePost); !ok {
+			c.SetPermissionError(model.PermissionDeletePost)
+			return
+		}
+	default:
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionDeleteOthersPosts); !ok {
 			c.SetPermissionError(model.PermissionDeleteOthersPosts)
 			return
@@ -1025,6 +1040,14 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request, teamId stri
 	}
 }
 
+func postEditTimeLimitExpired(cfg *model.Config, post *model.Post) bool {
+	limit := *cfg.ServiceSettings.PostEditTimeLimit
+	if limit == -1 {
+		return false
+	}
+	return model.GetMillis() > post.CreateAt+int64(limit)*1000
+}
+
 func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePostId()
 	if c.Err != nil {
@@ -1079,6 +1102,12 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Users who can't create posts in a channel shouldn't be able to edit them either.
+	userCreatePostPermissionCheckWithContext(c, originalPost.ChannelId)
+	if c.Err != nil {
+		return
+	}
+
 	auditRec.AddEventPriorState(originalPost)
 	auditRec.AddEventObjectType("post")
 
@@ -1088,13 +1117,31 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		post.FileIds = originalPost.FileIds
 	}
 
+	// passing nil props should not have any effect on a post's props
+	// so, we restore the original props in this case
+	if post.Props == nil {
+		post.Props = originalPost.Props
+	}
+
+	if postEditTimeLimitExpired(c.App.Config(), originalPost) &&
+		(post.Message != originalPost.Message ||
+			!slices.Equal(post.FileIds, originalPost.FileIds) ||
+			model.StringInterfaceToJSON(post.GetProps()) != model.StringInterfaceToJSON(originalPost.GetProps()) ||
+			post.IsPinned != originalPost.IsPinned) {
+		c.Err = model.NewAppError("UpdatePost", "api.post.update_post.permissions_time_limit.app_error", map[string]any{"timeLimit": *c.App.Config().ServiceSettings.PostEditTimeLimit}, "", http.StatusBadRequest)
+		return
+	}
+
 	// Check upload_file permission only if update is adding NEW files (not just keeping existing ones)
 	checkUploadFilePermissionForNewFiles(c, post.FileIds, originalPost)
 	if c.Err != nil {
 		return
 	}
 
-	if c.AppContext.Session().UserId != originalPost.UserId {
+	if originalPost.Type == model.PostTypeCard && c.App.Config().FeatureFlags.IntegratedBoards {
+		// Cards: collaborative model — skip ownership check
+		// PermissionEditPost already checked above
+	} else if c.AppContext.Session().UserId != originalPost.UserId {
 		// We don't need to check the member here, since we already checked it above
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditOthersPosts); !ok {
 			c.SetPermissionError(model.PermissionEditOthersPosts)
@@ -1103,11 +1150,6 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	post.Id = c.Params.PostId
-
-	if *c.App.Config().ServiceSettings.PostEditTimeLimit != -1 && model.GetMillis() > originalPost.CreateAt+int64(*c.App.Config().ServiceSettings.PostEditTimeLimit*1000) && post.Message != originalPost.Message {
-		c.Err = model.NewAppError("UpdatePost", "api.post.update_post.permissions_time_limit.app_error", map[string]any{"timeLimit": *c.App.Config().ServiceSettings.PostEditTimeLimit}, "", http.StatusBadRequest)
-		return
-	}
 
 	rpost, isMemberForPreviews, err := c.App.UpdatePost(c.AppContext, c.App.PostWithProxyRemovedFromImageURLs(&post), &model.UpdatePostOptions{SafeUpdate: false})
 	if err != nil {
@@ -1162,7 +1204,7 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	isMember := postPatchChecks(c, auditRec, post.Message)
+	isMember := postPatchChecks(c, auditRec, &post)
 	if c.Err != nil {
 		return
 	}
@@ -1198,7 +1240,7 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func postPatchChecks(c *Context, auditRec *model.AuditRecord, message *string) bool {
+func postPatchChecks(c *Context, auditRec *model.AuditRecord, patch *model.PostPatch) bool {
 	originalPost, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
 	if err != nil {
 		c.SetPermissionError(model.PermissionEditPost)
@@ -1217,10 +1259,13 @@ func postPatchChecks(c *Context, auditRec *model.AuditRecord, message *string) b
 		isMember = true
 	} else {
 		var permission *model.Permission
-
-		if c.AppContext.Session().UserId == originalPost.UserId {
+		switch {
+		case c.AppContext.Session().UserId == originalPost.UserId:
 			permission = model.PermissionEditPost
-		} else {
+		case originalPost.Type == model.PostTypeCard && c.App.Config().FeatureFlags.IntegratedBoards:
+			// Cards: collaborative model — any member can edit any card
+			permission = model.PermissionEditPost
+		default:
 			permission = model.PermissionEditOthersPosts
 		}
 
@@ -1232,7 +1277,13 @@ func postPatchChecks(c *Context, auditRec *model.AuditRecord, message *string) b
 		}
 	}
 
-	if *c.App.Config().ServiceSettings.PostEditTimeLimit != -1 && model.GetMillis() > originalPost.CreateAt+int64(*c.App.Config().ServiceSettings.PostEditTimeLimit*1000) && message != nil {
+	// Users who can't create posts in a channel shouldn't be able to edit them either.
+	userCreatePostPermissionCheckWithContext(c, originalPost.ChannelId)
+	if c.Err != nil {
+		return false
+	}
+
+	if postEditTimeLimitExpired(c.App.Config(), originalPost) && !patch.IsEmpty() {
 		c.Err = model.NewAppError("patchPost", "api.post.update_post.permissions_time_limit.app_error", map[string]any{"timeLimit": *c.App.Config().ServiceSettings.PostEditTimeLimit}, "", http.StatusBadRequest)
 		return isMember
 	}
@@ -1324,6 +1375,18 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 	ok, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
 	if !ok {
 		c.SetPermissionError(model.PermissionReadChannelContent)
+		return
+	}
+
+	// Allow no-op requests (e.g. pinning an already-pinned post) regardless of age.
+	if post.IsPinned == isPinned {
+		auditRec.Success()
+		ReturnStatusOK(w)
+		return
+	}
+
+	if postEditTimeLimitExpired(c.App.Config(), post) {
+		c.Err = model.NewAppError("saveIsPinnedPost", "api.post.update_post.permissions_time_limit.app_error", map[string]any{"timeLimit": *c.App.Config().ServiceSettings.PostEditTimeLimit}, "", http.StatusBadRequest)
 		return
 	}
 
@@ -1704,7 +1767,7 @@ func restorePostVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	isMember := postPatchChecks(c, auditRec, &toRestorePost.Message)
+	isMember := postPatchChecks(c, auditRec, &model.PostPatch{Message: &toRestorePost.Message, FileIds: &toRestorePost.FileIds})
 	if c.Err != nil {
 		return
 	}
@@ -1855,6 +1918,15 @@ func rewriteMessage(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func revealPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	// Enforce X-Requested-With header for cookie-authenticated requests.
+	if r.Header.Get(model.HeaderAuth) == "" {
+		if r.Header.Get(model.HeaderRequestedWith) != model.HeaderRequestedWithXML {
+			c.Err = model.NewAppError("revealPost", "api.post.reveal_post.invalid_request.app_error",
+				nil, "missing or invalid X-Requested-With header", http.StatusForbidden)
+			return
+		}
+	}
+
 	c.RequirePostId()
 	if c.Err != nil {
 		return

@@ -329,21 +329,21 @@ func (a *App) GetOrCreateDirectChannel(rctx request.CTX, userID, otherUserID str
 		if err != nil {
 			return nil, err
 		}
-		var isPluginOwnedBot bool
+		var isBotExempt bool
 		for _, user := range users {
 			if user.IsBot {
-				isOwnedByCurrentUserOrPlugin, err := a.IsBotOwnedByCurrentUserOrPlugin(rctx, user.Id)
+				exempt, err := a.IsBotExemptFromDMRestrictions(rctx, user.Id)
 				if err != nil {
 					return nil, err
 				}
-				if isOwnedByCurrentUserOrPlugin {
-					isPluginOwnedBot = true
+				if exempt {
+					isBotExempt = true
 					break
 				}
 			}
 		}
-		// if one of the users is a bot, don't restrict to team members
-		if !isPluginOwnedBot {
+		// if one of the users is an exempt bot, don't restrict to team members
+		if !isBotExempt {
 			commonTeamIDs, err := a.GetCommonTeamIDsForTwoUsers(userID, otherUserID)
 			if err != nil {
 				return nil, err
@@ -1604,6 +1604,18 @@ func (a *App) DeleteChannel(rctx request.CTX, channel *model.Channel, userID str
 		return err
 	}
 
+	var archiveRejectionReason string
+	pluginContext := pluginContext(rctx)
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+		archiveRejectionReason = hooks.ChannelWillBeArchived(pluginContext, channel)
+		return archiveRejectionReason == ""
+	}, plugin.ChannelWillBeArchivedID)
+
+	if archiveRejectionReason != "" {
+		return model.NewAppError("DeleteChannel", "app.channel.delete_channel.rejected_by_plugin",
+			map[string]any{"Reason": archiveRejectionReason}, "", http.StatusBadRequest)
+	}
+
 	if user != nil {
 		T := i18n.GetUserTranslations(user.Locale)
 
@@ -1731,10 +1743,10 @@ func (a *App) addUserToChannel(rctx request.CTX, user *model.User, channel *mode
 						fmt.Sprintf("failed to get group: %v, user_id: %s, channel_id: %s", err, user.Id, channel.Id), http.StatusInternalServerError)
 				}
 
-				s, err := a.Srv().Store().Attributes().GetSubject(rctx, user.Id, groupID)
-				if err != nil {
+				s, getSubjectErr := a.Srv().Store().Attributes().GetSubject(rctx, user.Id, groupID)
+				if getSubjectErr != nil {
 					return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil,
-						fmt.Sprintf("failed to get subject: %v, user_id: %s, channel_id: %s", err, user.Id, channel.Id), http.StatusForbidden)
+						fmt.Sprintf("failed to get subject: %v, user_id: %s, channel_id: %s", getSubjectErr, user.Id, channel.Id), http.StatusForbidden)
 				}
 
 				decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
@@ -1756,6 +1768,25 @@ func (a *App) addUserToChannel(rctx request.CTX, user *model.User, channel *mode
 		}
 	}
 
+	var rejectionReason string
+	pluginContext := pluginContext(rctx)
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+		updatedMember, reason := hooks.ChannelMemberWillBeAdded(pluginContext, newMember)
+		if reason != "" {
+			rejectionReason = reason
+			return false
+		}
+		if updatedMember != nil {
+			newMember = updatedMember
+		}
+		return true
+	}, plugin.ChannelMemberWillBeAddedID)
+
+	if rejectionReason != "" {
+		return nil, model.NewAppError("AddUserToChannel", "app.channel.add_user.to.channel.rejected_by_plugin",
+			map[string]any{"Reason": rejectionReason}, "", http.StatusBadRequest)
+	}
+
 	newMember, nErr = a.Srv().Store().Channel().SaveMember(rctx, newMember)
 	if nErr != nil {
 		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil,
@@ -1772,7 +1803,7 @@ func (a *App) addUserToChannel(rctx request.CTX, user *model.User, channel *mode
 	// Synchronize membership change for shared channels
 	if channel.IsShared() {
 		if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
-			scs.HandleMembershipChange(channel.Id, user.Id, true, user.GetRemoteID())
+			scs.NotifyMembershipChanged(channel.Id, user.GetRemoteID())
 		}
 	}
 
@@ -2844,9 +2875,8 @@ func (a *App) removeUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 
 	// Synchronize membership change for shared channels
 	if channel.IsShared() {
-		// isAdd=false, empty remoteId means locally initiated
 		if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
-			scs.HandleMembershipChange(channel.Id, userIDToRemove, false, "")
+			scs.NotifyMembershipChanged(channel.Id, "")
 		}
 	}
 
@@ -3815,11 +3845,11 @@ func (a *App) getDirectOrGroupMessageMembersCommonTeams(rctx request.CTX, reques
 	userIDs := make([]string, 0, len(users))
 	for _, user := range users {
 		if user.IsBot {
-			isOwnedByCurrentUserOrPlugin, err := a.IsBotOwnedByCurrentUserOrPlugin(rctx, user.Id)
+			exempt, err := a.IsBotExemptFromDMRestrictions(rctx, user.Id)
 			if err != nil {
 				return nil, err
 			}
-			if isOwnedByCurrentUserOrPlugin {
+			if exempt {
 				continue
 			}
 		}

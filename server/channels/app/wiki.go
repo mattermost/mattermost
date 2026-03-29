@@ -241,7 +241,7 @@ func (a *App) AddPageToWiki(rctx request.CTX, pageId, wikiId string, page *model
 		return model.NewAppError("AddPageToWiki", "app.wiki.get_group.app_error", nil, "", http.StatusInternalServerError).Wrap(grpErr)
 	}
 
-	wikiField, fldErr := a.Srv().propertyAccessService.GetPropertyFieldByName(anonymousCallerId, group.ID, "", "wiki")
+	wikiField, fldErr := a.Srv().PropertyService().PropertyAccessService().GetPropertyFieldByName(anonymousCallerID, group.ID, "", "wiki")
 	if fldErr != nil {
 		return model.NewAppError("AddPageToWiki", "app.wiki.get_wiki_field.app_error", nil, "", http.StatusInternalServerError).Wrap(fldErr)
 	}
@@ -439,7 +439,7 @@ func (a *App) getWikiIdFromPropertyValues(rctx request.CTX, pageId string) (stri
 		return "", grpErr
 	}
 
-	wikiField, fldErr := a.Srv().propertyAccessService.GetPropertyFieldByName(anonymousCallerId, group.ID, "", "wiki")
+	wikiField, fldErr := a.Srv().PropertyService().PropertyAccessService().GetPropertyFieldByName(anonymousCallerID, group.ID, "", "wiki")
 	if fldErr != nil {
 		return "", fldErr
 	}
@@ -450,7 +450,7 @@ func (a *App) getWikiIdFromPropertyValues(rctx request.CTX, pageId string) (stri
 		PerPage:   1,
 	}
 
-	values, err := a.Srv().propertyAccessService.SearchPropertyValues(anonymousCallerId, group.ID, searchOpts)
+	values, err := a.Srv().PropertyService().PropertyAccessService().SearchPropertyValues(anonymousCallerID, group.ID, searchOpts)
 	if err != nil {
 		return "", err
 	}

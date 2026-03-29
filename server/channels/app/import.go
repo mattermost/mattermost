@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imports"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 type ReactionImportData = imports.ReactionImportData // part of the app interface
@@ -66,7 +67,8 @@ func processAttachmentPaths(rctx request.CTX, files *[]imports.AttachmentImportD
 			}
 
 			if len(filesMap) > 0 {
-				if (*files)[i].Data, ok = filesMap[*f.Path]; !ok {
+				normalizedPath := utils.NormalizeFilename(*f.Path)
+				if (*files)[i].Data, ok = filesMap[normalizedPath]; !ok {
 					errs = append(errs, fmt.Errorf("attachment %q not found in map", originalPath))
 					continue
 				}
@@ -111,7 +113,8 @@ func processAttachments(rctx request.CTX, line *imports.LineImportData, basePath
 
 			*line.User.ProfileImage = path
 			if len(filesMap) > 0 {
-				if line.User.ProfileImageData, ok = filesMap[path]; !ok {
+				normalizedPath := utils.NormalizeFilename(path)
+				if line.User.ProfileImageData, ok = filesMap[normalizedPath]; !ok {
 					return fmt.Errorf("attachment %q not found in map", path)
 				}
 			}
@@ -125,7 +128,8 @@ func processAttachments(rctx request.CTX, line *imports.LineImportData, basePath
 
 			*line.Bot.ProfileImage = path
 			if len(filesMap) > 0 {
-				if line.Bot.ProfileImageData, ok = filesMap[path]; !ok {
+				normalizedPath := utils.NormalizeFilename(path)
+				if line.Bot.ProfileImageData, ok = filesMap[normalizedPath]; !ok {
 					return fmt.Errorf("attachment %q not found in map", path)
 				}
 			}
@@ -139,7 +143,8 @@ func processAttachments(rctx request.CTX, line *imports.LineImportData, basePath
 
 			*line.Emoji.Image = path
 			if len(filesMap) > 0 {
-				if line.Emoji.Data, ok = filesMap[path]; !ok {
+				normalizedPath := utils.NormalizeFilename(path)
+				if line.Emoji.Data, ok = filesMap[normalizedPath]; !ok {
 					return fmt.Errorf("attachment %q not found in map", path)
 				}
 			}
@@ -246,7 +251,7 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 	if attachmentsReader != nil {
 		attachedFiles = make(map[string]*zip.File, len(attachmentsReader.File))
 		for _, fi := range attachmentsReader.File {
-			attachedFiles[fi.Name] = fi
+			attachedFiles[utils.NormalizeFilename(fi.Name)] = fi
 		}
 	}
 

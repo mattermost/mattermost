@@ -1,9 +1,9 @@
 module github.com/mattermost/mattermost/server/public
 
-go 1.24.13
+go 1.25.8
 
 require (
-	github.com/blang/semver/v4 v4.0.0
+	github.com/Masterminds/semver/v3 v3.4.0
 	github.com/dyatlov/go-opengraph/opengraph v0.0.0-20220524092352-606d7b1e5f8a
 	github.com/francoispqt/gojay v1.2.13
 	github.com/goccy/go-yaml v1.18.0

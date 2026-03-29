@@ -22,6 +22,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
@@ -538,7 +539,7 @@ func TestGetOrCreateDirectChannel(t *testing.T) {
 			cfg.TeamSettings.RestrictDirectMessage = &setting
 		})
 
-		// Create a session for the bot owner so IsBotOwnedByCurrentUserOrPlugin can work
+		// Create a session for the bot owner so IsBotExemptFromDMRestrictions can work
 		session, err := th.App.CreateSession(th.Context, &model.Session{
 			UserId: th.BasicUser.Id,
 			Roles:  th.BasicUser.GetRawRoles(),
@@ -555,6 +556,35 @@ func TestGetOrCreateDirectChannel(t *testing.T) {
 		channel, appErr = th.App.GetOrCreateDirectChannel(rctx, user1.Id, bot1.UserId)
 		require.NotNil(t, channel, "channel should be non-nil")
 		require.Nil(t, appErr)
+	})
+
+	t.Run("System bot can DM any user with RestrictDirectMessage=team (MM-67314)", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			setting := model.DirectMessageTeam
+			cfg.TeamSettings.RestrictDirectMessage = &setting
+		})
+
+		systemBot, appErr := th.App.GetSystemBot(th.Context)
+		require.Nil(t, appErr)
+
+		// Simulate a background job (e.g. CheckPostReminders) that uses an empty session.
+		// The system bot is on no teams, so without the fix this would return an error.
+		emptyCtx := request.EmptyContext(th.App.Log())
+		channel, appErr := th.App.GetOrCreateDirectChannel(emptyCtx, user1.Id, systemBot.UserId)
+		require.Nil(t, appErr)
+		require.NotNil(t, channel)
+
+		// Simulate a regular user triggering SendTestMessage from a non-admin session.
+		session, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: user1.Id,
+			Roles:  user1.GetRawRoles(),
+		})
+		require.Nil(t, err)
+		rctx := th.Context.WithSession(session)
+
+		channel, appErr = th.App.GetOrCreateDirectChannel(rctx, user1.Id, systemBot.UserId)
+		require.Nil(t, appErr)
+		require.NotNil(t, channel)
 	})
 
 	t.Run("User from other team cannot create with restriction", func(t *testing.T) {

@@ -20,7 +20,7 @@ import type {JobsState} from './jobs';
 import type {LimitsState} from './limits';
 import type {PostsState} from './posts';
 import type {PreferenceType} from './preferences';
-import type {SelectPropertyField} from './properties';
+import type {SelectPropertyField, PropertiesState} from './properties';
 import type {Recap} from './recaps';
 import type {
     AdminRequestsStatuses, ChannelsRequestsStatuses,
@@ -121,6 +121,7 @@ export type GlobalState = {
                 lastActivity: number;
             }>>;
         };
+        properties: PropertiesState;
     };
     errors: any[];
     requests: {

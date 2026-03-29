@@ -229,7 +229,6 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, actions, o
     return (
         <div
             className={postContainerClass}
-            onClick={togglePost}
         >
             <PostAriaLabelDiv
                 className={'a11y__section post'}
@@ -239,6 +238,7 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, actions, o
             >
                 <div
                     className='edit-post-history__title__container'
+                    onClick={togglePost}
                 >
                     <div className='edit-post-history__date__badge__container'>
                         <button

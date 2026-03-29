@@ -667,6 +667,39 @@ func (c *Context) RequireFieldId() *Context {
 	return c
 }
 
+func (c *Context) RequireGroupName() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidPropertyGroupName(c.Params.GroupName) {
+		c.SetInvalidURLParam("group_name")
+	}
+	return c
+}
+
+func (c *Context) RequireObjectType() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidPropertyFieldObjectType(c.Params.ObjectType) {
+		c.SetInvalidURLParam("object_type")
+	}
+	return c
+}
+
+func (c *Context) RequireTargetId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.TargetId) {
+		c.SetInvalidURLParam("target_id")
+	}
+	return c
+}
+
 func (c *Context) RequireSchemeId() *Context {
 	if c.Err != nil {
 		return c
@@ -790,6 +823,17 @@ func (c *Context) RequireWikiId() *Context {
 	return c
 }
 
+func (c *Context) RequireViewId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.ViewId) {
+		c.SetInvalidURLParam("view_id")
+	}
+	return c
+}
+
 func (c *Context) RequirePageId() *Context {
 	if c.Err != nil {
 		return c
@@ -797,6 +841,17 @@ func (c *Context) RequirePageId() *Context {
 
 	if !model.IsValidId(c.Params.PageId) {
 		c.SetInvalidURLParam("page_id")
+	}
+	return c
+}
+
+func (c *Context) RequirePermissionToManageSecureConnections() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSecureConnections) {
+		c.SetPermissionError(model.PermissionManageSecureConnections)
 	}
 	return c
 }
@@ -939,6 +994,31 @@ func (c *Context) ValidatePageBelongsToWiki() (*model.Post, bool) {
 	}
 
 	return page, true
+}
+
+func (c *Context) RequirePermissionToManageSharedChannels() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSharedChannels) {
+		c.SetPermissionError(model.PermissionManageSharedChannels)
+	}
+	return c
+}
+
+func (c *Context) RequirePermissionToManageSecureConnectionsOrSharedChannels() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), []*model.Permission{
+		model.PermissionManageSecureConnections,
+		model.PermissionManageSharedChannels,
+	}) {
+		c.SetPermissionError(model.PermissionManageSecureConnections, model.PermissionManageSharedChannels)
+	}
+	return c
 }
 
 func (c *Context) GetRemoteID(r *http.Request) string {

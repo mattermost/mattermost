@@ -360,6 +360,41 @@ func (s *hooksRPCServer) ChannelHasBeenCreated(args *Z_ChannelHasBeenCreatedArgs
 }
 
 func init() {
+	hookNameToId["ChannelWillBeArchived"] = ChannelWillBeArchivedID
+}
+
+type Z_ChannelWillBeArchivedArgs struct {
+	A *Context
+	B *model.Channel
+}
+
+type Z_ChannelWillBeArchivedReturns struct {
+	A string
+}
+
+func (g *hooksRPCClient) ChannelWillBeArchived(c *Context, channel *model.Channel) string {
+	_args := &Z_ChannelWillBeArchivedArgs{c, channel}
+	_returns := &Z_ChannelWillBeArchivedReturns{}
+	if g.implemented[ChannelWillBeArchivedID] {
+		if err := g.client.Call("Plugin.ChannelWillBeArchived", _args, _returns); err != nil {
+			g.log.Error("RPC call ChannelWillBeArchived to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A
+}
+
+func (s *hooksRPCServer) ChannelWillBeArchived(args *Z_ChannelWillBeArchivedArgs, returns *Z_ChannelWillBeArchivedReturns) error {
+	if hook, ok := s.impl.(interface {
+		ChannelWillBeArchived(c *Context, channel *model.Channel) string
+	}); ok {
+		returns.A = hook.ChannelWillBeArchived(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook ChannelWillBeArchived called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
 	hookNameToId["UserHasJoinedChannel"] = UserHasJoinedChannelID
 }
 

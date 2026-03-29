@@ -1633,6 +1633,10 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 		}})
 	}
 
+	if len(options.ExcludedPostTypes) > 0 {
+		query = query.Where(sq.NotEq{"Posts.Type": options.ExcludedPostTypes})
+	}
+
 	posts := []*model.Post{}
 	if err := s.GetReplica().SelectBuilder(&posts, query); err != nil {
 		return nil, cursor, errors.Wrapf(err, "error getting Posts with channelId=%s", options.ChannelId)
@@ -2273,8 +2277,10 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	).From("Posts q2").
 		Where("q2.DeleteAt = 0").
 		Where(fmt.Sprintf("q2.Type NOT LIKE '%s%%'", model.PostSystemMessagePrefix)).
-		Where(sq.NotEq{"q2.Type": PageSystemPostTypes()})
-	baseQuery = baseQuery.OrderByClause("q2.CreateAt DESC").
+		Where(sq.NotEq{"q2.Type": PageSystemPostTypes()}).
+		// FIXME(IntegratedBoardMVP): Temporarily excluded
+		Where(sq.NotEq{"q2.Type": model.PostTypeCard}).
+		OrderByClause("q2.CreateAt DESC").
 		Limit(100)
 
 	var err error
@@ -2754,7 +2760,7 @@ func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, startPostID str
 
 	postColumnsPosts := strings.Join(postSliceColumnsWithName("Posts"), ", ")
 	query := `SELECT
-				` + postColumnsPosts + `, Channels.TeamId
+				` + postColumnsPosts + `, Channels.TeamId, Channels.Type AS ChannelType
 			FROM Posts
 			LEFT JOIN
 				Channels

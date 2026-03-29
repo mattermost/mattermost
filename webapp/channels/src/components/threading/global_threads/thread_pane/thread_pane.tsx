@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {memo, useCallback} from 'react';
 import type {ReactNode} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {DotsVerticalIcon} from '@mattermost/compass-icons/components';
 import type {UserThread, UserThreadSynthetic} from '@mattermost/types/threads';
 
 import {setThreadFollow} from 'mattermost-redux/actions/threads';
@@ -17,7 +17,6 @@ import {focusPost} from 'components/permalink_view/actions';
 import PopoutButton from 'components/popout_button';
 import {getThreadPopoutTitle} from 'components/thread_popout/thread_popout';
 import Header from 'components/widgets/header';
-import WithTooltip from 'components/with_tooltip';
 
 import {popoutThread} from 'utils/popouts/popout_windows';
 
@@ -37,11 +36,13 @@ const getPostsForThread = makeGetPostsForThread();
 type Props = {
     thread: UserThread | UserThreadSynthetic;
     children?: ReactNode;
+    backAction?: () => void;
 };
 
 const ThreadPane = ({
     thread,
     children,
+    backAction,
 }: Props) => {
     const intl = useIntl();
     const {formatMessage} = intl;
@@ -67,7 +68,13 @@ const ThreadPane = ({
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
     const post = useSelector((state: GlobalState) => getPost(state, thread.id));
     const postsInThread = useSelector((state: GlobalState) => getPostsForThread(state, post.id));
-    const selectHandler = useCallback(() => select(), []);
+    const selectHandler = useCallback(() => {
+        if (backAction) {
+            backAction();
+            return;
+        }
+        select();
+    }, [select, backAction]);
     let unreadTimestamp = post.edit_at || post.create_at;
 
     const pagePost = usePagePostForInlineComment(post);
@@ -106,7 +113,7 @@ const ThreadPane = ({
                 heading={(
                     <>
                         <Button
-                            className='Button___icon Button___large back'
+                            className={classNames('Button___icon Button___large back', {hasBackAction: backAction})}
                             onClick={selectHandler}
                         >
                             <i className='icon icon-arrow-back-ios'/>
@@ -130,22 +137,12 @@ const ThreadPane = ({
                         />
                         <PopoutButton onClick={popout}/>
                         <ThreadMenu
+                            idPrefix='thread-menu'
                             threadId={threadId}
                             isFollowing={isFollowing}
                             hasUnreads={isFollowing && Boolean((thread as UserThread).unread_replies || (thread as UserThread).unread_mentions)}
                             unreadTimestamp={unreadTimestamp}
-                        >
-                            <WithTooltip
-                                title={formatMessage({
-                                    id: 'threading.threadHeader.menu',
-                                    defaultMessage: 'More Actions',
-                                })}
-                            >
-                                <Button className='Button___icon Button___large'>
-                                    <DotsVerticalIcon size={18}/>
-                                </Button>
-                            </WithTooltip>
-                        </ThreadMenu>
+                        />
                     </>
                 )}
             />
