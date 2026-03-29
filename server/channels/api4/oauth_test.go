@@ -927,18 +927,13 @@ func TestRegisterOAuthClientAudit(t *testing.T) {
 	require.NoError(t, err)
 	defer os.Remove(logFile.Name())
 
-	configDefaults := &model.Config{}
-	configDefaults.SetDefaults()
-	configDefaults.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
-	configDefaults.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
-	*configDefaults.ServiceSettings.EnableOAuthServiceProvider = true
-	configDefaults.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(true)
-
-	options := []app.Option{
-		app.WithLicense(model.NewTestLicense("advanced_logging")),
-		app.Config("", false, configDefaults),
-	}
-	th := SetupWithServerOptions(t, options)
+	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
+	th := SetupWithServerOptionsAndConfig(t, options, func(cfg *model.Config) {
+		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
+		cfg.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
+		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
+		cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(true)
+	})
 
 	t.Run("Successful DCR registration is audited", func(t *testing.T) {
 		clientName := "Test Audit Client"

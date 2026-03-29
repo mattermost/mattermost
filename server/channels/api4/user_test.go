@@ -304,16 +304,11 @@ func TestCreateUserAudit(t *testing.T) {
 	require.NoError(t, err)
 	defer os.Remove(logFile.Name())
 
-	configDefaults := &model.Config{}
-	configDefaults.SetDefaults()
-	configDefaults.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
-	configDefaults.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
-
-	options := []app.Option{
-		app.WithLicense(model.NewTestLicense("advanced_logging")),
-		app.Config("", false, configDefaults),
-	}
-	th := SetupWithServerOptions(t, options)
+	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
+	th := SetupWithServerOptionsAndConfig(t, options, func(cfg *model.Config) {
+		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
+		cfg.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
+	})
 
 	email := th.GenerateTestEmail()
 	password := "this_is_the_password"
@@ -345,16 +340,11 @@ func TestUserLoginAudit(t *testing.T) {
 	require.NoError(t, err)
 	defer os.Remove(logFile.Name())
 
-	configDefaults := &model.Config{}
-	configDefaults.SetDefaults()
-	configDefaults.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
-	configDefaults.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
-
-	options := []app.Option{
-		app.WithLicense(model.NewTestLicense("advanced_logging")),
-		app.Config("", false, configDefaults),
-	}
-	th := SetupWithServerOptions(t, options)
+	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
+	th := SetupWithServerOptionsAndConfig(t, options, func(cfg *model.Config) {
+		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
+		cfg.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
+	})
 
 	_, err = th.Client.Logout(context.Background())
 	require.NoError(t, err)
@@ -393,16 +383,11 @@ func TestLogoutAuditAuthStatus(t *testing.T) {
 	require.NoError(t, err)
 	defer os.Remove(logFile.Name())
 
-	configDefaults := &model.Config{}
-	configDefaults.SetDefaults()
-	configDefaults.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
-	configDefaults.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
-
-	options := []app.Option{
-		app.WithLicense(model.NewTestLicense("advanced_logging")),
-		app.Config("", false, configDefaults),
-	}
-	th := SetupWithServerOptions(t, options)
+	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
+	th := SetupWithServerOptionsAndConfig(t, options, func(cfg *model.Config) {
+		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
+		cfg.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
+	})
 
 	t.Run("authenticated logout has auth_status=authenticated and user_id", func(t *testing.T) {
 		require.NoError(t, logFile.Truncate(0))
@@ -6898,16 +6883,11 @@ func TestUpdatePasswordAudit(t *testing.T) {
 	require.NoError(t, err)
 	defer os.Remove(logFile.Name())
 
-	configDefaults := &model.Config{}
-	configDefaults.SetDefaults()
-	configDefaults.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
-	configDefaults.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
-
-	options := []app.Option{
-		app.WithLicense(model.NewTestLicense("advanced_logging")),
-		app.Config("", false, configDefaults),
-	}
-	th := SetupWithServerOptions(t, options)
+	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
+	th := SetupWithServerOptionsAndConfig(t, options, func(cfg *model.Config) {
+		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
+		cfg.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
+	})
 
 	password := "this_is_the_password"
 	th.LoginBasic(t)
