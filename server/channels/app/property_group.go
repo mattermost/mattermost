@@ -11,10 +11,11 @@ import (
 )
 
 // RegisterPropertyGroup registers a new property group with the given name.
+// If the group already exists, it returns the existing group.
 func (a *App) RegisterPropertyGroup(rctx request.CTX, name string) (*model.PropertyGroup, *model.AppError) {
 	group, err := a.Srv().propertyService.RegisterPropertyGroup(name)
 	if err != nil {
-		return nil, model.NewAppError("RegisterPropertyGroup", "app.property.register_group.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("RegisterPropertyGroup", "app.property_group.register.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return group, nil
 }
@@ -23,7 +24,7 @@ func (a *App) RegisterPropertyGroup(rctx request.CTX, name string) (*model.Prope
 func (a *App) GetPropertyGroup(rctx request.CTX, name string) (*model.PropertyGroup, *model.AppError) {
 	group, err := a.Srv().propertyService.GetPropertyGroup(name)
 	if err != nil {
-		return nil, model.NewAppError("GetPropertyGroup", "app.property.get_group.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("GetPropertyGroup", "app.property_group.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return group, nil
 }

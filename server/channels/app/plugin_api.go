@@ -1551,7 +1551,7 @@ func (api *PluginAPI) psaPluginContext() request.CTX {
 }
 
 func (api *PluginAPI) CreatePropertyField(field *model.PropertyField) (*model.PropertyField, error) {
-	createdField, appErr := api.app.CreatePropertyField(api.psaPluginContext(), field)
+	createdField, appErr := api.app.CreatePropertyField(api.psaPluginContext(), field, false, "")
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1575,7 +1575,7 @@ func (api *PluginAPI) GetPropertyFields(groupID string, ids []string) ([]*model.
 }
 
 func (api *PluginAPI) UpdatePropertyField(groupID string, field *model.PropertyField) (*model.PropertyField, error) {
-	updatedField, appErr := api.app.UpdatePropertyField(api.psaPluginContext(), groupID, field)
+	updatedField, appErr := api.app.UpdatePropertyField(api.psaPluginContext(), groupID, field, false, "")
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1583,7 +1583,7 @@ func (api *PluginAPI) UpdatePropertyField(groupID string, field *model.PropertyF
 }
 
 func (api *PluginAPI) DeletePropertyField(groupID, fieldID string) error {
-	if appErr := api.app.DeletePropertyField(api.psaPluginContext(), groupID, fieldID); appErr != nil {
+	if appErr := api.app.DeletePropertyField(api.psaPluginContext(), groupID, fieldID, false, ""); appErr != nil {
 		return appErr
 	}
 	return nil
@@ -1693,7 +1693,7 @@ func (api *PluginAPI) GetPropertyFieldByName(groupID, targetID, name string) (*m
 }
 
 func (api *PluginAPI) UpdatePropertyFields(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
-	updatedFields, appErr := api.app.UpdatePropertyFields(api.psaPluginContext(), groupID, fields)
+	updatedFields, appErr := api.app.UpdatePropertyFields(api.psaPluginContext(), groupID, fields, false, "")
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1709,7 +1709,7 @@ func (api *PluginAPI) UpdatePropertyValues(groupID string, values []*model.Prope
 }
 
 func (api *PluginAPI) UpsertPropertyValues(values []*model.PropertyValue) ([]*model.PropertyValue, error) {
-	upsertedValues, appErr := api.app.UpsertPropertyValues(api.psaPluginContext(), values)
+	upsertedValues, appErr := api.app.UpsertPropertyValues(api.psaPluginContext(), values, "", "", "")
 	if appErr != nil {
 		return nil, appErr
 	}

@@ -63,6 +63,7 @@ func TestPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetPostsSinceUpdateForSync", func(t *testing.T) { testGetPostsSinceUpdateForSync(t, rctx, ss, s) })
 	t.Run("GetPostsSinceCreateForSync", func(t *testing.T) { testGetPostsSinceCreateForSync(t, rctx, ss, s) })
 	t.Run("GetPostsSinceForSyncExcludeMetadata", func(t *testing.T) { testGetPostsSinceForSyncExcludeMetadata(t, rctx, ss, s) })
+	t.Run("GetPostsSinceForSyncExcludedPostTypes", func(t *testing.T) { testGetPostsSinceForSyncExcludedPostTypes(t, rctx, ss, s) })
 	t.Run("GetPostsForReporting", func(t *testing.T) { testGetPostsForReporting(t, rctx, ss, s) })
 	t.Run("SetPostReminder", func(t *testing.T) { testSetPostReminder(t, rctx, ss, s) })
 	t.Run("GetPostReminders", func(t *testing.T) { testGetPostReminders(t, rctx, ss, s) })
@@ -245,6 +246,19 @@ func testPostStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		assert.Greater(t, rchannel3.LastPostAt, rchannel2.LastPostAt)
 		assert.Equal(t, int64(3), rchannel3.TotalMsgCount)
+	})
+
+	t.Run("Save post with type card", func(t *testing.T) {
+		o1 := model.Post{}
+		o1.ChannelId = model.NewId()
+		o1.UserId = model.NewId()
+		o1.Message = NewTestID()
+		o1.Type = model.PostTypeCard
+
+		p, err := ss.Post().Save(rctx, &o1)
+		require.NoError(t, err, "couldn't save item")
+		assert.Equal(t, model.PostTypeCard, p.Type)
+		assert.Equal(t, o1.Message, p.Message)
 	})
 
 	t.Run("Save post with priority metadata set", func(t *testing.T) {
@@ -5725,6 +5739,66 @@ func testGetPostsSinceForSyncExcludeMetadata(t *testing.T, rctx request.CTX, ss 
 		require.Equal(t, 1, postTypeCount[model.PostTypeHeaderChange], "should have 1 header change post")
 		require.Equal(t, 1, postTypeCount[model.PostTypeDisplaynameChange], "should have 1 display name change post")
 		require.Equal(t, 1, postTypeCount[model.PostTypePurposeChange], "should have 1 purpose change post")
+	})
+}
+
+func testGetPostsSinceForSyncExcludedPostTypes(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	channelID := model.NewId()
+	first := model.GetMillis()
+
+	data := []*model.Post{
+		{Id: model.NewId(), ChannelId: channelID, UserId: model.NewId(), Message: "regular post", Type: model.PostTypeDefault},
+		{Id: model.NewId(), ChannelId: channelID, UserId: model.NewId(), Message: "card post", Type: model.PostTypeCard},
+		{Id: model.NewId(), ChannelId: channelID, UserId: model.NewId(), Message: "another regular", Type: model.PostTypeDefault},
+		{Id: model.NewId(), ChannelId: channelID, UserId: model.NewId(), Message: "join post", Type: model.PostTypeJoinChannel},
+	}
+
+	for i, p := range data {
+		p.UpdateAt = first + (int64(i) * 300000)
+		p.CreateAt = first + (int64(i) * 300000)
+		p.RemoteId = model.NewPointer(model.NewId())
+		_, err := ss.Post().Save(rctx, p)
+		require.NoError(t, err, "couldn't save post")
+	}
+
+	t.Run("ExcludedPostTypes filters out specified types", func(t *testing.T) {
+		opt := model.GetPostsSinceForSyncOptions{
+			ChannelId:         channelID,
+			ExcludedPostTypes: []string{model.PostTypeCard},
+		}
+		cursor := model.GetPostsSinceForSyncCursor{}
+		posts, _, err := ss.Post().GetPostsSinceForSync(opt, cursor, 100)
+		require.NoError(t, err)
+		require.Len(t, posts, 3, "should exclude the card post")
+
+		for _, post := range posts {
+			require.NotEqual(t, model.PostTypeCard, post.Type)
+		}
+	})
+
+	t.Run("ExcludedPostTypes with multiple types", func(t *testing.T) {
+		opt := model.GetPostsSinceForSyncOptions{
+			ChannelId:         channelID,
+			ExcludedPostTypes: []string{model.PostTypeCard, model.PostTypeJoinChannel},
+		}
+		cursor := model.GetPostsSinceForSyncCursor{}
+		posts, _, err := ss.Post().GetPostsSinceForSync(opt, cursor, 100)
+		require.NoError(t, err)
+		require.Len(t, posts, 2, "should exclude card and join posts")
+
+		for _, post := range posts {
+			require.Equal(t, model.PostTypeDefault, post.Type)
+		}
+	})
+
+	t.Run("empty ExcludedPostTypes returns all posts", func(t *testing.T) {
+		opt := model.GetPostsSinceForSyncOptions{
+			ChannelId: channelID,
+		}
+		cursor := model.GetPostsSinceForSyncCursor{}
+		posts, _, err := ss.Post().GetPostsSinceForSync(opt, cursor, 100)
+		require.NoError(t, err)
+		require.Len(t, posts, 4, "should return all posts when no exclusions")
 	})
 }
 
