@@ -260,7 +260,7 @@
       operationId: DeleteAIBridgeTestHelper
       responses:
         "200":
-          description: AI bridge test helper reset successfully
+          description: AI bridge test helper was reset successfully
           content:
             application/json:
               schema:
