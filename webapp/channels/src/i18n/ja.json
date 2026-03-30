@@ -5810,7 +5810,6 @@
   "threading.numReplies": "{totalReplies, plural, =0 {返信} =1 {# 返信} other {# 返信}}",
   "threading.threadHeader.menu": "その他のアクション",
   "threading.threadItem.ariaLabel": "{author} によるスレッド",
-  "threading.threadItem.menu": "アクション",
   "threading.threadItem.timestamp": "最後の返信 ",
   "threading.threadList.markRead": "全スレッドを既読としてマークする",
   "threading.threadList.tabsLabel": "表示スレッドのフィルター",

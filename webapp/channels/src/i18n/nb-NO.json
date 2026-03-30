@@ -4988,7 +4988,6 @@
   "threading.numReplies": "{totalReplies, plural, =0 {Svar} =1 {# svar} other {# svar}}",
   "threading.threadHeader.menu": "Flere handlinger",
   "threading.threadItem.ariaLabel": "Tråd av {author}",
-  "threading.threadItem.menu": "Handlinger",
   "threading.threadItem.timestamp": "Siste svar ",
   "threading.threadList.markRead": "Merk alle tråder som lest",
   "threading.threadList.tabsLabel": "Filtrer synlige tråder",

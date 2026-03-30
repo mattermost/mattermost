@@ -5159,7 +5159,6 @@
   "threading.numNewReplies": "{newReplies, plural, =1 {# новый ответ}=2 {# новых ответа}=3 {# новых ответа}=4 {# новых ответа} other {# новых ответов}}",
   "threading.numReplies": "{totalReplies, plural, =0 {Ответов} =1 {# ответ}=2 {# ответа}=3 {# ответа}=4 {# ответа} other {# ответов}}",
   "threading.threadHeader.menu": "Другие действия",
-  "threading.threadItem.menu": "Действия",
   "threading.threadList.markRead": "Пометить всё как прочитанное",
   "threading.threadMenu.copy": "Ссылка",
   "threading.threadMenu.follow": "Отслеживать обсуждение",
