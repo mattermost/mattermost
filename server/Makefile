@@ -332,7 +332,7 @@ golang-versions: ## Install Golang versions used for compatibility testing (e.g.
 	export GO_COMPATIBILITY_TEST_VERSIONS="${GO_COMPATIBILITY_TEST_VERSIONS}"
 
 golangci-lint: setup-go-work ## Run golangci-lint on codebase
-	$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.6.0
+	$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.11.4
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	$(GOBIN)/golangci-lint run ./... ./public/... $(BUILD_ENTERPRISE_DIR)/...
 else
@@ -442,7 +442,7 @@ endif
 check-style: plugin-checker vet golangci-lint ## Runs style/lint checks
 
 gotestsum:
-	$(GO) install gotest.tools/gotestsum@v1.11.0
+	$(GO) install gotest.tools/gotestsum@v1.13.0
 
 test-compile: setup-go-work gotestsum ## Compile tests.
 	@echo COMPILE TESTS
@@ -805,7 +805,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 
 vet: setup-go-work ## Run mattermost go vet specific checks
-	$(GO) install github.com/mattermost/mattermost-govet/v2@7d8db289e508999dfcac47b97c9490a0fec12d66
+	$(GO) install github.com/mattermost/mattermost-govet/v2@b9756c1328ecab43db9b0a892eaa6d4d0a7227b1
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet \
 		-structuredLogging \
 		-inconsistentReceiverName \
@@ -817,6 +817,9 @@ vet: setup-go-work ## Run mattermost go vet specific checks
 		-license \
 		-inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go,utils_serial_gen.go \
 		-noSelectStar \
+		-concurrentIndex \
+		-concurrentIndex.path=./channels/db/migrations/ \
+		-concurrentIndex.minMigration=166 \
 		./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
   ifneq ($(MM_NO_ENTERPRISE_LINT),true)
