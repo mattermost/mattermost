@@ -155,14 +155,12 @@ export async function addAttributeRule(container: Locator, page: Page, value: st
     const addAttrBtn = container.getByRole('button', {name: /Add attribute/});
     await expect(addAttrBtn).toBeEnabled({timeout: 10000});
     await addAttrBtn.click();
-    // TODO: replace waitForTimeout with explicit wait for menu animation
     await page.waitForTimeout(500);
 
     // The attribute selector menu auto-opens — dismiss by clicking the selected attribute
     const attributeOption = page.locator('[id^="attribute-selector-menu"] li').first();
     if (await attributeOption.isVisible({timeout: 2000})) {
         await attributeOption.click({force: true});
-        // TODO: replace waitForTimeout with explicit wait for menu animation
         await page.waitForTimeout(500);
     }
 
