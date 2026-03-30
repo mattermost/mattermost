@@ -43,11 +43,5 @@ jobs:
         uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
         with:
           go-version-file: tools/mattermost-govet/go.mod
-      - name: Setup Node
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
-        with:
-          node-version-file: .nvmrc
-      - name: Build OpenAPI spec
-        run: make -C ../../api build
       - name: Run tests
         run: make test

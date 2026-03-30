@@ -11,6 +11,6 @@ import (
 
 func Test(t *testing.T) {
 	testdata := analysistest.TestData()
-	specFile = "../../api/v4/html/static/mattermost-openapi-v4.yaml"
+	specFile = analysistest.TestData() + "/spec.yaml"
 	analysistest.Run(t, testdata, Analyzer, "api")
 }
