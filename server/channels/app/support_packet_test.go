@@ -368,6 +368,7 @@ func TestGetSupportPacketStats(t *testing.T) {
 		assert.Equal(t, int64(0), sp.MonthlyActiveUsers)
 		assert.Equal(t, int64(0), sp.DeactivatedUsers)
 		assert.Equal(t, int64(0), sp.Guests)
+		assert.Equal(t, int64(0), sp.SingleChannelGuests)
 		assert.Equal(t, int64(0), sp.BotAccounts)
 		assert.Equal(t, int64(0), sp.Posts)
 		assert.Equal(t, int64(0), sp.Channels)
@@ -437,6 +438,7 @@ func TestGetSupportPacketStats(t *testing.T) {
 		assert.Equal(t, int64(0), sp.MonthlyActiveUsers)
 		assert.Equal(t, int64(3), sp.DeactivatedUsers)
 		assert.Equal(t, int64(2), sp.Guests)
+		assert.Equal(t, int64(0), sp.SingleChannelGuests)
 		assert.Equal(t, int64(1), sp.BotAccounts)
 		assert.Equal(t, int64(4), sp.Posts)    // 1 from the bot creation and 3 created directly
 		assert.Equal(t, int64(3), sp.Channels) // 2 from the team creation and 1 created directly
@@ -444,6 +446,18 @@ func TestGetSupportPacketStats(t *testing.T) {
 		assert.Equal(t, int64(1), sp.SlashCommands)
 		assert.Equal(t, int64(1), sp.IncomingWebhooks)
 		assert.Equal(t, int64(1), sp.OutgoingWebhooks)
+	})
+
+	t.Run("single channel guests are counted when a guest is in exactly one channel", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		channel := th.CreateChannel(t, th.BasicTeam)
+
+		guest := th.CreateGuest(t)
+		th.LinkUserToTeam(t, guest, th.BasicTeam)
+		th.AddUserToChannel(t, guest, channel)
+
+		sp := generateStats(t, th.Context, th.App)
+		assert.Equal(t, int64(1), sp.SingleChannelGuests)
 	})
 
 	t.Run("post count should be present if number of users extends AnalyticsSettings.MaxUsersForStatistics", func(t *testing.T) {

@@ -20,10 +20,11 @@ import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
 
 import * as Menu from 'components/menu';
 import {focusPost} from 'components/permalink_view/actions';
+import PopoutMenuItem from 'components/popout_menu_item';
 import {getThreadPopoutTitle} from 'components/thread_popout/thread_popout';
 
 import {useReadout} from 'hooks/useReadout';
-import {canPopout, popoutThread} from 'utils/popouts/popout_windows';
+import {isThreadPopoutWindow, popoutThread} from 'utils/popouts/popout_windows';
 import {getSiteURL} from 'utils/url';
 import {copyToClipboard} from 'utils/utils';
 
@@ -121,18 +122,7 @@ function ThreadMenu({
                 id: `${idPrefix}-dropdown-${threadId}`,
             }}
         >
-            {canPopout() && (
-                <Menu.Item
-                    labels={
-                        <FormattedMessage
-                            id='threading.threadMenu.openInNewWindow'
-                            defaultMessage='Open in new window'
-                        />
-                    }
-                    onClick={popout}
-                    leadingElement={<i className='icon icon-dock-window'/>}
-                />
-            )}
+            {!isThreadPopoutWindow(team, threadId) && <PopoutMenuItem onClick={popout}/>}
             <Menu.Item
                 labels={isFollowing ? (
                     <>

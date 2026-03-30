@@ -1554,6 +1554,10 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 		}})
 	}
 
+	if len(options.ExcludedPostTypes) > 0 {
+		query = query.Where(sq.NotEq{"Posts.Type": options.ExcludedPostTypes})
+	}
+
 	posts := []*model.Post{}
 	if err := s.GetReplica().SelectBuilder(&posts, query); err != nil {
 		return nil, cursor, errors.Wrapf(err, "error getting Posts with channelId=%s", options.ChannelId)
@@ -2169,6 +2173,8 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	).From("Posts q2").
 		Where("q2.DeleteAt = 0").
 		Where(fmt.Sprintf("q2.Type NOT LIKE '%s%%'", model.PostSystemMessagePrefix)).
+		// FIXME(IntegratedBoardMVP): Temporarily excluded
+		Where(sq.NotEq{"q2.Type": model.PostTypeCard}).
 		OrderByClause("q2.CreateAt DESC").
 		Limit(100)
 
