@@ -5,6 +5,7 @@ package app
 
 import (
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -719,10 +720,7 @@ func TestTruncateToTokenLimit(t *testing.T) {
 	t.Run("truncates to token limit", func(t *testing.T) {
 		// Create posts with known token counts
 		// 400 chars = ~100 tokens each
-		longMessage := ""
-		for range 400 {
-			longMessage += "x"
-		}
+		longMessage := strings.Repeat("x", 400)
 
 		postsByChannel := map[string][]*model.Post{
 			"ch1": {
@@ -746,10 +744,7 @@ func TestTruncateToTokenLimit(t *testing.T) {
 
 	t.Run("removes from largest channel first", func(t *testing.T) {
 		// 80 chars = ~20 tokens
-		msg80 := ""
-		for range 80 {
-			msg80 += "x"
-		}
+		msg80 := strings.Repeat("x", 80)
 
 		postsByChannel := map[string][]*model.Post{
 			"small": {

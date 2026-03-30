@@ -34,13 +34,13 @@ CREATE TABLE IF NOT EXISTS ScheduledRecaps (
 );
 
 -- Index for user queries (list user's scheduled recaps)
-CREATE INDEX IF NOT EXISTS idx_scheduled_recaps_user_id ON ScheduledRecaps(UserId);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_scheduled_recaps_user_id ON ScheduledRecaps(UserId);
 
 -- Index for scheduler polling (find due recaps)
-CREATE INDEX IF NOT EXISTS idx_scheduled_recaps_next_run_at ON ScheduledRecaps(NextRunAt);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_scheduled_recaps_next_run_at ON ScheduledRecaps(NextRunAt);
 
 -- Composite index for efficient scheduler query (enabled, not deleted, due before timestamp)
-CREATE INDEX IF NOT EXISTS idx_scheduled_recaps_enabled_next_run ON ScheduledRecaps(Enabled, DeleteAt, NextRunAt);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_scheduled_recaps_enabled_next_run ON ScheduledRecaps(Enabled, DeleteAt, NextRunAt);
 
 -- Index for user + soft delete queries
-CREATE INDEX IF NOT EXISTS idx_scheduled_recaps_user_delete ON ScheduledRecaps(UserId, DeleteAt);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_scheduled_recaps_user_delete ON ScheduledRecaps(UserId, DeleteAt);

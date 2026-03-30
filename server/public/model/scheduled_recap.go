@@ -41,10 +41,10 @@ const (
 
 // Validation constants
 const (
-	ScheduledRecapTitleMaxLength = 255
+	ScheduledRecapTitleMaxLength              = 255
 	ScheduledRecapCustomInstructionsMaxLength = 500
-	ScheduledRecapMinDaysOfWeek  = 1
-	ScheduledRecapMaxDaysOfWeek  = 127
+	ScheduledRecapMinDaysOfWeek               = 1
+	ScheduledRecapMaxDaysOfWeek               = 127
 )
 
 // timeOfDayRegex validates HH:MM format (00:00 to 23:59)
