@@ -25,7 +25,7 @@ import {isChannelNamesMap} from 'utils/text_formatting';
 import {ChannelHeaderTextPopover} from './channel_header_text_popover';
 
 interface Props {
-    teamId: Team['id'];
+    teamId?: Team['id'];
     channel: Channel;
     dmUser?: UserProfile;
 }
