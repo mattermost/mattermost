@@ -42,6 +42,7 @@ const (
 // Validation constants
 const (
 	ScheduledRecapTitleMaxLength = 255
+	ScheduledRecapCustomInstructionsMaxLength = 500
 	ScheduledRecapMinDaysOfWeek  = 1
 	ScheduledRecapMaxDaysOfWeek  = 127
 )
@@ -82,6 +83,25 @@ type ScheduledRecap struct {
 	CreateAt int64 `json:"create_at"`
 	UpdateAt int64 `json:"update_at"`
 	DeleteAt int64 `json:"delete_at"` // Soft delete
+}
+
+func deduplicateChannelIDs(channelIDs []string) []string {
+	if len(channelIDs) < 2 {
+		return channelIDs
+	}
+
+	seen := make(map[string]struct{}, len(channelIDs))
+	deduplicated := make([]string, 0, len(channelIDs))
+	for _, channelID := range channelIDs {
+		if _, ok := seen[channelID]; ok {
+			continue
+		}
+
+		seen[channelID] = struct{}{}
+		deduplicated = append(deduplicated, channelID)
+	}
+
+	return deduplicated
 }
 
 // ComputeNextRunAt calculates the next scheduled execution time in UTC milliseconds.
@@ -157,6 +177,10 @@ func (sr *ScheduledRecap) IsValid() *AppError {
 		return NewAppError("ScheduledRecap.IsValid", "model.scheduled_recap.is_valid.title_length.app_error", nil, "title_length="+strconv.Itoa(len(sr.Title)), http.StatusBadRequest)
 	}
 
+	if len(sr.CustomInstructions) > ScheduledRecapCustomInstructionsMaxLength {
+		return NewAppError("ScheduledRecap.IsValid", "model.scheduled_recap.is_valid.custom_instructions_length.app_error", nil, "custom_instructions_length="+strconv.Itoa(len(sr.CustomInstructions)), http.StatusBadRequest)
+	}
+
 	if sr.DaysOfWeek < ScheduledRecapMinDaysOfWeek || sr.DaysOfWeek > ScheduledRecapMaxDaysOfWeek {
 		return NewAppError("ScheduledRecap.IsValid", "model.scheduled_recap.is_valid.days_of_week.app_error", nil, "days_of_week="+strconv.Itoa(sr.DaysOfWeek), http.StatusBadRequest)
 	}
@@ -199,6 +223,8 @@ func (sr *ScheduledRecap) IsValid() *AppError {
 
 // PreSave prepares the scheduled recap for initial save
 func (sr *ScheduledRecap) PreSave() {
+	sr.ChannelIds = deduplicateChannelIDs(sr.ChannelIds)
+
 	if sr.Id == "" {
 		sr.Id = NewId()
 	}
@@ -214,6 +240,7 @@ func (sr *ScheduledRecap) PreSave() {
 
 // PreUpdate prepares the scheduled recap for update
 func (sr *ScheduledRecap) PreUpdate() {
+	sr.ChannelIds = deduplicateChannelIDs(sr.ChannelIds)
 	sr.UpdateAt = GetMillis()
 }
 

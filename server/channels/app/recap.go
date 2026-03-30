@@ -4,12 +4,14 @@
 package app
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 // CreateRecap creates a new recap job for the specified channels
@@ -28,6 +30,10 @@ func (a *App) CreateRecap(rctx request.CTX, title string, channelIDs []string, a
 	limits, err := a.GetEffectiveLimits(userID)
 	if err != nil {
 		return nil, err
+	}
+
+	if model.IsLimitEnabled(limits.MaxChannelsPerRecap) && len(channelIDs) > limits.MaxChannelsPerRecap {
+		return nil, recapMaxChannelsExceededError("CreateRecap", limits.MaxChannelsPerRecap, len(channelIDs))
 	}
 
 	if model.IsLimitEnabled(limits.CooldownMinutes) && limits.CooldownMinutes > 0 {
@@ -73,9 +79,29 @@ func (a *App) CreateRecap(rctx request.CTX, title string, channelIDs []string, a
 		BotID:             agentID,
 	}
 
-	savedRecap, storeErr := a.Srv().Store().Recap().SaveRecap(recap)
-	if storeErr != nil {
-		return nil, model.NewAppError("CreateRecap", "app.recap.save.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
+	var (
+		savedRecap *model.Recap
+		storeErr   error
+	)
+	if model.IsLimitEnabled(limits.MaxRecapsPerDay) {
+		startOfDayMillis, dayErr := a.getStartOfUserDayMillis(userID)
+		if dayErr != nil {
+			return nil, dayErr
+		}
+
+		savedRecap, storeErr = a.Srv().Store().Recap().SaveRecapIfUnderDailyLimit(recap, startOfDayMillis, limits.MaxRecapsPerDay)
+		if storeErr != nil {
+			var limitErr *store.ErrLimitExceeded
+			if errors.As(storeErr, &limitErr) {
+				return nil, recapMaxRecapsReachedError("CreateRecap", limits.MaxRecapsPerDay)
+			}
+			return nil, model.NewAppError("CreateRecap", "app.recap.save.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
+		}
+	} else {
+		savedRecap, storeErr = a.Srv().Store().Recap().SaveRecap(recap)
+		if storeErr != nil {
+			return nil, model.NewAppError("CreateRecap", "app.recap.save.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
+		}
 	}
 
 	// Create background job
@@ -164,6 +190,30 @@ func (a *App) RegenerateRecap(rctx request.CTX, userID string, recap *model.Reca
 		channelIDs[i] = channel.ChannelId
 	}
 
+	limits, limitsErr := a.GetEffectiveLimits(userID)
+	if limitsErr != nil {
+		return nil, limitsErr
+	}
+
+	if model.IsLimitEnabled(limits.MaxChannelsPerRecap) && len(channelIDs) > limits.MaxChannelsPerRecap {
+		return nil, recapMaxChannelsExceededError("RegenerateRecap", limits.MaxChannelsPerRecap, len(channelIDs))
+	}
+
+	if model.IsLimitEnabled(limits.MaxRecapsPerDay) {
+		startOfDayMillis, dayErr := a.getStartOfUserDayMillis(userID)
+		if dayErr != nil {
+			return nil, dayErr
+		}
+
+		count, countErr := a.Srv().Store().Recap().CountForUserSince(userID, startOfDayMillis)
+		if countErr != nil {
+			return nil, model.NewAppError("RegenerateRecap", "app.recap.get_daily_count.app_error", nil, "", http.StatusInternalServerError).Wrap(countErr)
+		}
+		if count >= int64(limits.MaxRecapsPerDay) {
+			return nil, recapMaxRecapsReachedError("RegenerateRecap", limits.MaxRecapsPerDay)
+		}
+	}
+
 	// Delete existing recap channels
 	if deleteErr := a.Srv().Store().Recap().DeleteRecapChannels(recapID); deleteErr != nil {
 		return nil, model.NewAppError("RegenerateRecap", "app.recap.delete_channels.app_error", nil, "", http.StatusInternalServerError).Wrap(deleteErr)
@@ -241,8 +291,13 @@ func (a *App) ProcessRecapChannel(rctx request.CTX, recapID, channelID, userID, 
 		return result, postsErr
 	}
 
+	sourcePostIDs := extractPostIDs(posts)
+
 	// No posts to summarize - return success with 0 messages
 	if len(posts) == 0 {
+		if appErr := a.saveRecapChannelRecord(recapID, channel.Id, channel.DisplayName, nil, nil, sourcePostIDs); appErr != nil {
+			return result, appErr
+		}
 		result.Success = true
 		return result, nil
 	}
@@ -256,28 +311,38 @@ func (a *App) ProcessRecapChannel(rctx request.CTX, recapID, channelID, userID, 
 	// Summarize posts
 	summary, err := a.SummarizePosts(rctx, userID, posts, channel.DisplayName, team.Name, agentID)
 	if err != nil {
+		if saveErr := a.saveRecapChannelRecord(recapID, channel.Id, channel.DisplayName, nil, nil, sourcePostIDs); saveErr != nil {
+			return result, saveErr
+		}
 		return result, err
 	}
 
-	// Save recap channel
-	recapChannel := &model.RecapChannel{
-		Id:            model.NewId(),
-		RecapId:       recapID,
-		ChannelId:     channelID,
-		ChannelName:   channel.DisplayName,
-		Highlights:    summary.Highlights,
-		ActionItems:   summary.ActionItems,
-		SourcePostIds: extractPostIDs(posts),
-		CreateAt:      model.GetMillis(),
-	}
-
-	if err := a.Srv().Store().Recap().SaveRecapChannel(recapChannel); err != nil {
-		return result, model.NewAppError("ProcessRecapChannel", "app.recap.save_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	if appErr := a.saveRecapChannelRecord(recapID, channelID, channel.DisplayName, summary.Highlights, summary.ActionItems, sourcePostIDs); appErr != nil {
+		return result, appErr
 	}
 
 	result.MessageCount = len(posts)
 	result.Success = true
 	return result, nil
+}
+
+func (a *App) saveRecapChannelRecord(recapID, channelID, channelName string, highlights, actionItems, sourcePostIDs []string) *model.AppError {
+	recapChannel := &model.RecapChannel{
+		Id:            model.NewId(),
+		RecapId:       recapID,
+		ChannelId:     channelID,
+		ChannelName:   channelName,
+		Highlights:    highlights,
+		ActionItems:   actionItems,
+		SourcePostIds: sourcePostIDs,
+		CreateAt:      model.GetMillis(),
+	}
+
+	if err := a.Srv().Store().Recap().SaveRecapChannel(recapChannel); err != nil {
+		return model.NewAppError("ProcessRecapChannel", "app.recap.save_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return nil
 }
 
 // fetchPostsForRecap fetches posts for a channel after the given timestamp and enriches them with user information
@@ -333,6 +398,23 @@ func extractPostIDs(posts []*model.Post) []string {
 		ids[i] = post.Id
 	}
 	return ids
+}
+
+func recapMaxChannelsExceededError(where string, limit int, requested int) *model.AppError {
+	return model.NewAppError(where,
+		"app.recap.max_channels_exceeded.app_error",
+		map[string]any{
+			"Limit":     limit,
+			"Requested": requested,
+		},
+		"", http.StatusBadRequest)
+}
+
+func recapMaxRecapsReachedError(where string, limit int) *model.AppError {
+	return model.NewAppError(where,
+		"app.recap.max_recaps_reached.app_error",
+		map[string]any{"Limit": limit},
+		"", http.StatusBadRequest)
 }
 
 // truncatePostsProportionally distributes maxPosts across channels proportionally.

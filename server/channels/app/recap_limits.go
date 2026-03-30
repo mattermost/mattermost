@@ -9,6 +9,27 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
+func (a *App) getStartOfUserDay(userID string) (time.Time, *model.AppError) {
+	user, appErr := a.GetUser(userID)
+	if appErr != nil {
+		return time.Time{}, appErr
+	}
+
+	loc := user.GetTimezoneLocation()
+	now := time.Now().In(loc)
+	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc)
+	return startOfDay, nil
+}
+
+func (a *App) getStartOfUserDayMillis(userID string) (int64, *model.AppError) {
+	startOfDay, appErr := a.getStartOfUserDay(userID)
+	if appErr != nil {
+		return 0, appErr
+	}
+
+	return startOfDay.UnixMilli(), nil
+}
+
 // GetRecapLimitStatus returns the current user's limit status for UI display
 func (a *App) GetRecapLimitStatus(userID string) (*model.RecapLimitStatus, error) {
 	// Get effective limits
@@ -17,14 +38,11 @@ func (a *App) GetRecapLimitStatus(userID string) (*model.RecapLimitStatus, error
 		return nil, appErr
 	}
 
-	// Get user timezone for daily reset calculation
-	user, appErr := a.GetUser(userID)
+	startOfDay, appErr := a.getStartOfUserDay(userID)
 	if appErr != nil {
 		return nil, appErr
 	}
-	loc := user.GetTimezoneLocation()
-	now := time.Now().In(loc)
-	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc)
+	now := time.Now().In(startOfDay.Location())
 	startOfNextDay := startOfDay.AddDate(0, 0, 1)
 
 	// Count daily usage (excluding skipped)

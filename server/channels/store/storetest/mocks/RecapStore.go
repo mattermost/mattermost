@@ -264,6 +264,36 @@ func (_m *RecapStore) SaveRecapChannel(recapChannel *model.RecapChannel) error {
 	return r0
 }
 
+// SaveRecapIfUnderDailyLimit provides a mock function with given fields: recap, since, limit
+func (_m *RecapStore) SaveRecapIfUnderDailyLimit(recap *model.Recap, since int64, limit int) (*model.Recap, error) {
+	ret := _m.Called(recap, since, limit)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SaveRecapIfUnderDailyLimit")
+	}
+
+	var r0 *model.Recap
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.Recap, int64, int) (*model.Recap, error)); ok {
+		return rf(recap, since, limit)
+	}
+	if rf, ok := ret.Get(0).(func(*model.Recap, int64, int) *model.Recap); ok {
+		r0 = rf(recap, since, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Recap)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.Recap, int64, int) error); ok {
+		r1 = rf(recap, since, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // UpdateRecap provides a mock function with given fields: recap
 func (_m *RecapStore) UpdateRecap(recap *model.Recap) (*model.Recap, error) {
 	ret := _m.Called(recap)

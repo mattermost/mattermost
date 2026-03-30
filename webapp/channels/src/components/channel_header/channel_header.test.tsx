@@ -27,7 +27,7 @@ describe('components/ChannelHeader', () => {
             showChannelMembers: jest.fn(),
             fetchChannelRemotes: jest.fn(),
         },
-        teamId: 'team_id',
+        team: TestHelper.getTeamMock({id: 'team_id'}),
         channel: TestHelper.getChannelMock({}),
         channelMember: TestHelper.getChannelMembershipMock({}),
         currentUser: TestHelper.getUserMock({}),

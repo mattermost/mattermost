@@ -120,15 +120,53 @@ func (s *SqlScheduledRecapStore) fromDB(dbSR *dbScheduledRecap) (*model.Schedule
 
 // Save inserts a new ScheduledRecap into the database.
 func (s *SqlScheduledRecapStore) Save(scheduledRecap *model.ScheduledRecap) (*model.ScheduledRecap, error) {
+	if err := s.saveWithExecutor(s.GetMaster(), scheduledRecap); err != nil {
+		return nil, err
+	}
+
+	return scheduledRecap, nil
+}
+
+func (s *SqlScheduledRecapStore) SaveIfUnderLimit(scheduledRecap *model.ScheduledRecap, limit int) (*model.ScheduledRecap, error) {
+	tx, err := s.GetMaster().Beginx()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to begin transaction for SaveIfUnderLimit")
+	}
+	defer finalizeTransactionX(tx, &err)
+
+	if err = lockUserRowForUpdate(tx, scheduledRecap.UserId); err != nil {
+		return nil, errors.Wrapf(err, "failed to lock user %s for scheduled recap save", scheduledRecap.UserId)
+	}
+
+	count, err := s.countForUserWithExecutor(tx, scheduledRecap.UserId)
+	if err != nil {
+		return nil, err
+	}
+	if count >= int64(limit) {
+		return nil, store.NewErrLimitExceeded("scheduled_recaps_per_user", int(count), "userId="+scheduledRecap.UserId)
+	}
+
+	if err = s.saveWithExecutor(tx, scheduledRecap); err != nil {
+		return nil, err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, errors.Wrap(err, "failed to commit transaction for SaveIfUnderLimit")
+	}
+
+	return scheduledRecap, nil
+}
+
+func (s *SqlScheduledRecapStore) saveWithExecutor(executor sqlxExecutor, scheduledRecap *model.ScheduledRecap) error {
 	query := s.getQueryBuilder().
 		Insert("ScheduledRecaps").
 		SetMap(s.toMap(scheduledRecap))
 
-	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
-		return nil, errors.Wrap(err, "failed to save ScheduledRecap")
+	if _, err := executor.ExecBuilder(query); err != nil {
+		return errors.Wrap(err, "failed to save ScheduledRecap")
 	}
 
-	return scheduledRecap, nil
+	return nil
 }
 
 // Get retrieves a ScheduledRecap by ID.
@@ -301,6 +339,10 @@ func (s *SqlScheduledRecapStore) MarkExecuted(id string, lastRunAt int64, nextRu
 
 // CountForUser returns count of active (non-deleted, enabled) scheduled recaps for a user.
 func (s *SqlScheduledRecapStore) CountForUser(userId string) (int64, error) {
+	return s.countForUserWithExecutor(s.GetReplica(), userId)
+}
+
+func (s *SqlScheduledRecapStore) countForUserWithExecutor(executor sqlxExecutor, userId string) (int64, error) {
 	query := s.getQueryBuilder().
 		Select("COUNT(*)").
 		From("ScheduledRecaps").
@@ -309,7 +351,7 @@ func (s *SqlScheduledRecapStore) CountForUser(userId string) (int64, error) {
 		Where(sq.Eq{"Enabled": true})
 
 	var count int64
-	err := s.GetReplica().GetBuilder(&count, query)
+	err := executor.GetBuilder(&count, query)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to count scheduled recaps for user")
 	}

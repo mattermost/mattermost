@@ -198,6 +198,36 @@ func (_m *ScheduledRecapStore) Save(scheduledRecap *model.ScheduledRecap) (*mode
 	return r0, r1
 }
 
+// SaveIfUnderLimit provides a mock function with given fields: scheduledRecap, limit
+func (_m *ScheduledRecapStore) SaveIfUnderLimit(scheduledRecap *model.ScheduledRecap, limit int) (*model.ScheduledRecap, error) {
+	ret := _m.Called(scheduledRecap, limit)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SaveIfUnderLimit")
+	}
+
+	var r0 *model.ScheduledRecap
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.ScheduledRecap, int) (*model.ScheduledRecap, error)); ok {
+		return rf(scheduledRecap, limit)
+	}
+	if rf, ok := ret.Get(0).(func(*model.ScheduledRecap, int) *model.ScheduledRecap); ok {
+		r0 = rf(scheduledRecap, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ScheduledRecap)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.ScheduledRecap, int) error); ok {
+		r1 = rf(scheduledRecap, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // SetEnabled provides a mock function with given fields: id, enabled
 func (_m *ScheduledRecapStore) SetEnabled(id string, enabled bool) error {
 	ret := _m.Called(id, enabled)

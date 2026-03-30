@@ -95,22 +95,7 @@ func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, app AppIfa
 			}
 
 			if count >= int64(limits.MaxRecapsPerDay) {
-				// Create skipped recap record (per CONTEXT.md: visible in unreads tab)
-				skippedRecap := &model.Recap{
-					Id:               model.NewId(),
-					UserId:           sr.UserId,
-					Title:            sr.Title,
-					Status:           model.RecapStatusSkipped,
-					SkipReason:       model.SkipReasonDailyLimit,
-					ScheduledRecapId: sr.Id,
-					CreateAt:         model.GetMillis(),
-					UpdateAt:         model.GetMillis(),
-				}
-
-				if _, saveErr := storeInstance.Recap().SaveRecap(skippedRecap); saveErr != nil {
-					logger.Error("Failed to save skipped recap", mlog.Err(saveErr))
-				}
-
+				saveSkippedRecap(logger, storeInstance, sr)
 				logger.Info("Scheduled recap skipped due to daily limit",
 					mlog.String("scheduled_recap_id", scheduledRecapID),
 					mlog.String("user_id", sr.UserId),
@@ -126,6 +111,11 @@ func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, app AppIfa
 		rctx := request.EmptyContext(logger)
 		_, appErr := app.CreateRecapFromSchedule(rctx, sr)
 		if appErr != nil {
+			if appErr.Id == "app.recap.max_recaps_reached.app_error" {
+				saveSkippedRecap(logger, storeInstance, sr)
+				advanceSchedule(logger, sr)
+				return nil
+			}
 			return fmt.Errorf("failed to create recap from schedule: %w", appErr)
 		}
 
@@ -145,4 +135,21 @@ func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, app AppIfa
 	}
 
 	return jobs.NewSimpleWorker(workerName, jobServer, execute, isEnabled)
+}
+
+func saveSkippedRecap(logger mlog.LoggerIFace, storeInstance store.Store, sr *model.ScheduledRecap) {
+	skippedRecap := &model.Recap{
+		Id:               model.NewId(),
+		UserId:           sr.UserId,
+		Title:            sr.Title,
+		Status:           model.RecapStatusSkipped,
+		SkipReason:       model.SkipReasonDailyLimit,
+		ScheduledRecapId: sr.Id,
+		CreateAt:         model.GetMillis(),
+		UpdateAt:         model.GetMillis(),
+	}
+
+	if _, saveErr := storeInstance.Recap().SaveRecap(skippedRecap); saveErr != nil {
+		logger.Error("Failed to save skipped recap", mlog.Err(saveErr))
+	}
 }

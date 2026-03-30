@@ -357,6 +357,72 @@ components:
           $ref: "#/components/schemas/ChannelBookmarkWithFileInfo"
         deleted:
           $ref: "#/components/schemas/ChannelBookmarkWithFileInfo"
+    View:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The unique identifier of the view
+        channel_id:
+          type: string
+          description: The ID of the channel this view belongs to
+        type:
+          type: string
+          enum: [kanban]
+        creator_id:
+          type: string
+          description: The ID of the user who created this view
+        title:
+          type: string
+          description: The title of the view
+        description:
+          type: string
+          description: The description of the view
+        sort_order:
+          type: integer
+          description: The display order of the view within the channel
+        props:
+          type: object
+          description: Arbitrary key-value properties for the view
+          additionalProperties: true
+        create_at:
+          description: The time in milliseconds the view was created
+          type: integer
+          format: int64
+        update_at:
+          description: The time in milliseconds the view was last updated
+          type: integer
+          format: int64
+        delete_at:
+          description: The time in milliseconds the view was deleted
+          type: integer
+          format: int64
+    ViewPatch:
+      type: object
+      description: Fields that can be updated on a view via PATCH
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        sort_order:
+          type: integer
+        props:
+          type: object
+          description: Arbitrary key-value properties for the view
+          additionalProperties: true
+    ViewsWithCount:
+      type: object
+      description: Paginated list of views with total count
+      properties:
+        views:
+          type: array
+          items:
+            $ref: "#/components/schemas/View"
+        total_count:
+          type: integer
+          format: int64
+          description: Total number of views matching the query (ignoring pagination)
     Post:
       type: object
       properties:
@@ -412,12 +478,36 @@ components:
           type: string
         type:
           type: string
+          description: The type of property
+          enum: [text, select, multiselect, date, user, multiuser]
+        object_type:
+          type: string
+          description: The type of object this property applies to
+          enum: [post, channel, user]
         attrs:
           type: object
+          description: Additional attributes
         target_id:
           type: string
+          description: The ID of the target (empty for system-level, team ID for team-level, channel ID for channel-level)
         target_type:
           type: string
+          description: The scope level (system, team, channel)
+        protected:
+          type: boolean
+          description: Whether this field is protected from API modification
+        permission_field:
+          type: string
+          description: Permission level for editing the field definition
+          enum: [none, sysadmin, member]
+        permission_values:
+          type: string
+          description: Permission level for setting values on objects
+          enum: [none, sysadmin, member]
+        permission_options:
+          type: string
+          description: Permission level for managing options on select/multiselect fields
+          enum: [none, sysadmin, member]
         create_at:
           type: integer
           format: int64
@@ -427,6 +517,12 @@ components:
         delete_at:
           type: integer
           format: int64
+        created_by:
+          type: string
+          description: User ID of the user who created this property field
+        updated_by:
+          type: string
+          description: User ID of the user who last updated this property field
     PropertyFieldPatch:
       type: object
       properties:
@@ -436,10 +532,6 @@ components:
           type: string
         attrs:
           type: object
-        target_id:
-          type: string
-        target_type:
-          type: string
     PropertyValue:
       type: object
       properties:
@@ -464,6 +556,12 @@ components:
         delete_at:
           type: integer
           format: int64
+        created_by:
+          type: string
+          description: User ID of the user who created this property value
+        updated_by:
+          type: string
+          description: User ID of the user who last updated this property value
     FileInfoList:
       type: object
       properties:
@@ -4057,6 +4155,145 @@ components:
         reason:
           type: string
           description: Reason code if not available (translation ID)
+    AIBridgeTestHelperStatus:
+      type: object
+      properties:
+        available:
+          type: boolean
+          description: Whether the mocked AI bridge should be reported as available
+        reason:
+          type: string
+          description: Optional reason code when the mocked AI bridge is unavailable
+    AIBridgeTestHelperFeatureFlags:
+      type: object
+      properties:
+        enable_ai_plugin_bridge:
+          type: boolean
+          description: Override for the EnableAIPluginBridge feature flag in test mode
+        enable_ai_recaps:
+          type: boolean
+          description: Override for the EnableAIRecaps feature flag in test mode
+    AIBridgeTestHelperCompletion:
+      type: object
+      properties:
+        completion:
+          type: string
+          description: Mocked completion payload returned for a queued bridge operation
+        error:
+          type: string
+          description: Mocked error message returned for a queued bridge operation
+        status_code:
+          type: integer
+          description: Optional HTTP-style status code associated with a mocked error
+    AIBridgeTestHelperMessage:
+      type: object
+      properties:
+        role:
+          type: string
+          description: Role associated with the message payload
+        message:
+          type: string
+          description: Message content sent through the AI bridge
+        file_ids:
+          type: array
+          description: Optional file IDs attached to the bridge message
+          items:
+            type: string
+    AIBridgeTestHelperConfig:
+      type: object
+      properties:
+        status:
+          $ref: "#/components/schemas/AIBridgeTestHelperStatus"
+        agents:
+          type: array
+          items:
+            $ref: "#/components/schemas/BridgeAgentInfo"
+          description: Mock agent list returned from the bridge
+        services:
+          type: array
+          items:
+            $ref: "#/components/schemas/BridgeServiceInfo"
+          description: Mock service list returned from the bridge
+        agent_completions:
+          type: object
+          description: Queued mocked completion responses keyed by explicit bridge operation name
+          additionalProperties:
+            type: array
+            items:
+              $ref: "#/components/schemas/AIBridgeTestHelperCompletion"
+        feature_flags:
+          $ref: "#/components/schemas/AIBridgeTestHelperFeatureFlags"
+        record_requests:
+          type: boolean
+          description: Whether bridge requests should be recorded for later inspection
+    AIBridgeTestHelperRecordedRequest:
+      type: object
+      properties:
+        operation:
+          type: string
+          description: Explicit bridge operation key such as recap_summary or rewrite
+        client_operation:
+          type: string
+          description: Client-facing operation routed through the bridge client
+        operation_sub_type:
+          type: string
+          description: Optional subtype used to disambiguate bridge requests
+        session_user_id:
+          type: string
+          description: Session user ID used when invoking the bridge
+        user_id:
+          type: string
+          description: Optional effective user ID passed through the bridge request
+        channel_id:
+          type: string
+          description: Optional channel context passed through the bridge request
+        agent_id:
+          type: string
+          description: Agent ID targeted by the bridge completion request
+        service_id:
+          type: string
+          description: Service ID targeted by the bridge completion request
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/AIBridgeTestHelperMessage"
+          description: Bridge messages sent for the recorded request
+        json_output_format:
+          type: object
+          description: Optional JSON schema requested for structured bridge output
+          additionalProperties: true
+    AIBridgeTestHelperState:
+      type: object
+      properties:
+        status:
+          $ref: "#/components/schemas/AIBridgeTestHelperStatus"
+        agents:
+          type: array
+          items:
+            $ref: "#/components/schemas/BridgeAgentInfo"
+          description: Current mocked agent list
+        services:
+          type: array
+          items:
+            $ref: "#/components/schemas/BridgeServiceInfo"
+          description: Current mocked service list
+        agent_completions:
+          type: object
+          description: Remaining queued mocked completions keyed by bridge operation
+          additionalProperties:
+            type: array
+            items:
+              $ref: "#/components/schemas/AIBridgeTestHelperCompletion"
+        feature_flags:
+          $ref: "#/components/schemas/AIBridgeTestHelperFeatureFlags"
+        record_requests:
+          type: boolean
+          description: Whether bridge request recording is currently enabled
+        recorded_requests:
+          type: array
+          description: Recorded bridge requests captured while record_requests was enabled
+          items:
+            $ref: "#/components/schemas/AIBridgeTestHelperRecordedRequest"
     PostAcknowledgement:
       type: object
       properties:

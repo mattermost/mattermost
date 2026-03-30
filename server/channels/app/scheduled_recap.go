@@ -30,26 +30,14 @@ func (a *App) CreateScheduledRecap(rctx request.CTX, recap *model.ScheduledRecap
 		return nil, err
 	}
 
+	if appErr := a.validateRecapChannelPermissions(rctx, recap.UserId, recap.ChannelIds, "CreateScheduledRecap"); appErr != nil {
+		return nil, appErr
+	}
+
 	// Limit enforcement: Check user's limits before allowing creation
 	limits, limitsErr := a.GetEffectiveLimits(recap.UserId)
 	if limitsErr != nil {
 		return nil, limitsErr
-	}
-
-	// Check max scheduled recaps limit
-	if model.IsLimitEnabled(limits.MaxScheduledRecaps) {
-		count, storeErr := a.Srv().Store().ScheduledRecap().CountForUser(recap.UserId)
-		if storeErr != nil {
-			return nil, model.NewAppError("CreateScheduledRecap",
-				"app.scheduled_recap.count_failed.app_error",
-				nil, "", http.StatusInternalServerError).Wrap(storeErr)
-		}
-		if count >= int64(limits.MaxScheduledRecaps) {
-			return nil, model.NewAppError("CreateScheduledRecap",
-				"app.scheduled_recap.max_scheduled_reached.app_error",
-				map[string]any{"Limit": limits.MaxScheduledRecaps},
-				"", http.StatusBadRequest)
-		}
 	}
 
 	// Check max channels per recap limit
@@ -73,9 +61,27 @@ func (a *App) CreateScheduledRecap(rctx request.CTX, recap *model.ScheduledRecap
 	recap.NextRunAt = nextRunAt
 
 	// Save to store
-	savedRecap, storeErr := a.Srv().Store().ScheduledRecap().Save(recap)
-	if storeErr != nil {
-		return nil, model.NewAppError("CreateScheduledRecap", "app.scheduled_recap.create.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
+	var (
+		savedRecap *model.ScheduledRecap
+		storeErr   error
+	)
+	if model.IsLimitEnabled(limits.MaxScheduledRecaps) {
+		savedRecap, storeErr = a.Srv().Store().ScheduledRecap().SaveIfUnderLimit(recap, limits.MaxScheduledRecaps)
+		if storeErr != nil {
+			var limitErr *store.ErrLimitExceeded
+			if errors.As(storeErr, &limitErr) {
+				return nil, model.NewAppError("CreateScheduledRecap",
+					"app.scheduled_recap.max_scheduled_reached.app_error",
+					map[string]any{"Limit": limits.MaxScheduledRecaps},
+					"", http.StatusBadRequest)
+			}
+			return nil, model.NewAppError("CreateScheduledRecap", "app.scheduled_recap.create.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
+		}
+	} else {
+		savedRecap, storeErr = a.Srv().Store().ScheduledRecap().Save(recap)
+		if storeErr != nil {
+			return nil, model.NewAppError("CreateScheduledRecap", "app.scheduled_recap.create.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
+		}
 	}
 
 	return savedRecap, nil
@@ -118,8 +124,11 @@ func (a *App) UpdateScheduledRecap(rctx request.CTX, recap *model.ScheduledRecap
 		return nil, err
 	}
 
-	// Check max channels per recap limit
 	sessionUserID := rctx.Session().UserId
+	if appErr := a.validateRecapChannelPermissions(rctx, sessionUserID, recap.ChannelIds, "UpdateScheduledRecap"); appErr != nil {
+		return nil, appErr
+	}
+
 	limits, limitsErr := a.GetEffectiveLimits(sessionUserID)
 	if limitsErr != nil {
 		return nil, limitsErr
@@ -188,9 +197,34 @@ func (a *App) CreateRecapFromSchedule(rctx request.CTX, sr *model.ScheduledRecap
 		ScheduledRecapId:  sr.Id,
 	}
 
-	savedRecap, err := a.Srv().Store().Recap().SaveRecap(recap)
-	if err != nil {
-		return nil, model.NewAppError("CreateRecapFromSchedule", "app.scheduled_recap.save_recap.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	limits, limitsErr := a.GetEffectiveLimits(sr.UserId)
+	if limitsErr != nil {
+		return nil, limitsErr
+	}
+
+	var (
+		savedRecap *model.Recap
+		err        error
+	)
+	if model.IsLimitEnabled(limits.MaxRecapsPerDay) {
+		startOfDayMillis, dayErr := a.getStartOfUserDayMillis(sr.UserId)
+		if dayErr != nil {
+			return nil, dayErr
+		}
+
+		savedRecap, err = a.Srv().Store().Recap().SaveRecapIfUnderDailyLimit(recap, startOfDayMillis, limits.MaxRecapsPerDay)
+		if err != nil {
+			var limitErr *store.ErrLimitExceeded
+			if errors.As(err, &limitErr) {
+				return nil, recapMaxRecapsReachedError("CreateRecapFromSchedule", limits.MaxRecapsPerDay)
+			}
+			return nil, model.NewAppError("CreateRecapFromSchedule", "app.scheduled_recap.save_recap.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	} else {
+		savedRecap, err = a.Srv().Store().Recap().SaveRecap(recap)
+		if err != nil {
+			return nil, model.NewAppError("CreateRecapFromSchedule", "app.scheduled_recap.save_recap.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
 	}
 
 	// Create recap job to trigger processing
@@ -275,4 +309,14 @@ func (a *App) ResumeScheduledRecap(rctx request.CTX, id string) (*model.Schedule
 	}
 
 	return updatedRecap, nil
+}
+
+func (a *App) validateRecapChannelPermissions(rctx request.CTX, userID string, channelIDs []string, where string) *model.AppError {
+	for _, channelID := range channelIDs {
+		if ok, _ := a.HasPermissionToChannel(rctx, userID, channelID, model.PermissionReadChannel); !ok {
+			return model.NewAppError(where, "app.recap.permission_denied", nil, "", http.StatusForbidden)
+		}
+	}
+
+	return nil
 }

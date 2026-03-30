@@ -20,6 +20,7 @@ import type {JobsState} from './jobs';
 import type {LimitsState} from './limits';
 import type {PostsState} from './posts';
 import type {PreferenceType} from './preferences';
+import type {PropertiesState} from './properties';
 import type {Recap, ScheduledRecap, RecapLimitStatus} from './recaps';
 import type {
     AdminRequestsStatuses, ChannelsRequestsStatuses,
@@ -103,6 +104,7 @@ export type GlobalState = {
             remotesByRemoteId?: Record<string, RemoteClusterInfo>;
         };
         contentFlagging: ContentFlaggingState;
+        properties: PropertiesState;
     };
     errors: any[];
     requests: {

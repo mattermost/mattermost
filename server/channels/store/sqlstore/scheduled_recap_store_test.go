@@ -104,6 +104,27 @@ func TestScheduledRecapStore(t *testing.T) {
 			assert.Len(t, recapsPage, 2)
 		})
 
+		t.Run("SaveIfUnderLimit", func(t *testing.T) {
+			user, err := ss.User().Save(rctx, &model.User{
+				Username: model.NewUsername(),
+				Email:    model.NewId() + "@example.com",
+			})
+			require.NoError(t, err)
+			userId := user.Id
+
+			firstRecap := createTestScheduledRecap(userId)
+			_, err = ss.ScheduledRecap().SaveIfUnderLimit(firstRecap, 1)
+			require.NoError(t, err)
+
+			secondRecap := createTestScheduledRecap(userId)
+			secondRecap.Id = model.NewId()
+			_, err = ss.ScheduledRecap().SaveIfUnderLimit(secondRecap, 1)
+			require.Error(t, err)
+
+			var limitErr *store.ErrLimitExceeded
+			require.ErrorAs(t, err, &limitErr)
+		})
+
 		t.Run("Update", func(t *testing.T) {
 			userId := model.NewId()
 			sr := createTestScheduledRecap(userId)

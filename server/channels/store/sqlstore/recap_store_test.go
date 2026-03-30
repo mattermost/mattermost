@@ -210,6 +210,50 @@ func TestRecapStore(t *testing.T) {
 			assert.Equal(t, int64(1), count)
 		})
 
+		t.Run("SaveRecapIfUnderDailyLimit", func(t *testing.T) {
+			since := model.GetMillis() - 1000
+
+			user, err := ss.User().Save(rctx, &model.User{
+				Username: model.NewUsername(),
+				Email:    model.NewId() + "@example.com",
+			})
+			require.NoError(t, err)
+			userId := user.Id
+
+			recap := &model.Recap{
+				Id:                model.NewId(),
+				UserId:            userId,
+				Title:             "First Recap",
+				CreateAt:          model.GetMillis(),
+				UpdateAt:          model.GetMillis(),
+				DeleteAt:          0,
+				ReadAt:            0,
+				TotalMessageCount: 10,
+				Status:            model.RecapStatusPending,
+				BotID:             "test-bot-id",
+			}
+			_, err = ss.Recap().SaveRecapIfUnderDailyLimit(recap, since, 1)
+			require.NoError(t, err)
+
+			overLimitRecap := &model.Recap{
+				Id:                model.NewId(),
+				UserId:            userId,
+				Title:             "Second Recap",
+				CreateAt:          model.GetMillis(),
+				UpdateAt:          model.GetMillis(),
+				DeleteAt:          0,
+				ReadAt:            0,
+				TotalMessageCount: 10,
+				Status:            model.RecapStatusPending,
+				BotID:             "test-bot-id",
+			}
+			_, err = ss.Recap().SaveRecapIfUnderDailyLimit(overLimitRecap, since, 1)
+			require.Error(t, err)
+
+			var limitErr *store.ErrLimitExceeded
+			require.ErrorAs(t, err, &limitErr)
+		})
+
 		t.Run("GetLastCompletedManualRecapIncludesSoftDeletedRecaps", func(t *testing.T) {
 			userId := model.NewId()
 			baseTime := model.GetMillis()
@@ -277,6 +321,12 @@ func TestRecapStore(t *testing.T) {
 			recaps, err := ss.Recap().GetRecapsForUser(recap.UserId, 0, 10)
 			require.NoError(t, err)
 			assert.Len(t, recaps, 0)
+
+			_, err = ss.Recap().GetRecap(recap.Id)
+			require.Error(t, err)
+
+			var nfErr *store.ErrNotFound
+			require.ErrorAs(t, err, &nfErr)
 		})
 	})
 }

@@ -117,6 +117,15 @@ func constructArrayArgs(ids []string) (string, []any) {
 	return "(" + placeholder.String() + ")", values
 }
 
+func lockUserRowForUpdate(executor sqlxExecutor, userID string) error {
+	var lockedUserID string
+	if err := executor.Get(&lockedUserID, "SELECT Id FROM Users WHERE Id = ? FOR UPDATE", userID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func wrapBinaryParamStringMap(ok bool, props model.StringMap) model.StringMap {
 	if props == nil {
 		props = make(model.StringMap)

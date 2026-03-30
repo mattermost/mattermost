@@ -7,7 +7,6 @@ import type {MouseEvent, KeyboardEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {DotsVerticalIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
 import {PostPriority} from '@mattermost/types/posts';
@@ -26,11 +25,9 @@ import Markdown from 'components/markdown';
 import PostHeaderTranslateIcon from 'components/post/post_header_translate_icon';
 import {makeGetMentionKeysForPost} from 'components/post_markdown';
 import PriorityBadge from 'components/post_priority/post_priority_badge';
-import Button from 'components/threading/common/button';
 import Timestamp from 'components/timestamp';
 import Tag from 'components/widgets/tag/tag';
 import Avatars from 'components/widgets/users/avatars';
-import WithTooltip from 'components/with_tooltip';
 
 import {getPostTranslatedMessage, getPostTranslation} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
@@ -130,6 +127,13 @@ function ThreadItem({
                 return;
             }
         }
+
+        // Don't select the thread when a menu is focused
+        if (e.target instanceof HTMLElement &&
+            (e.target.hasAttribute('aria-haspopup') || e.target.role === 'menuitem')) {
+            return;
+        }
+
         if (e.altKey) {
             const hasUnreads = thread ? Boolean(thread.unread_replies) : false;
             const lastViewedAt = hasUnreads ? Date.now() : unreadTimestamp;
@@ -263,31 +267,12 @@ function ThreadItem({
                 </div>
                 <div className='menu-anchor alt-visible'>
                     <ThreadMenu
+                        idPrefix='thread-list-menu'
                         threadId={threadId}
                         isFollowing={isFollowing ?? false}
                         hasUnreads={Boolean(newReplies)}
                         unreadTimestamp={unreadTimestamp ?? 0}
-                    >
-                        <WithTooltip
-                            title={(
-                                <FormattedMessage
-                                    id='threading.threadItem.menu'
-                                    defaultMessage='Actions'
-                                />
-                            )}
-                        >
-                            <Button
-                                marginTop={true}
-                                className='Button___icon'
-                                aria-label={formatMessage({
-                                    id: 'threading.threadItem.menu',
-                                    defaultMessage: 'Actions',
-                                })}
-                            >
-                                <DotsVerticalIcon size={18}/>
-                            </Button>
-                        </WithTooltip>
-                    </ThreadMenu>
+                    />
                 </div>
 
                 {/* The strange interaction here where we need a click/keydown handler messes with the ESLint rules, so we just disable it */}

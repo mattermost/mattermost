@@ -83,7 +83,13 @@ func processRecapJob(logger mlog.LoggerIFace, job *model.Job, storeInstance stor
 	}
 
 	// Update recap with final data (title is already set by user in CreateRecap)
-	recap, _ := storeInstance.Recap().GetRecap(recapID)
+	recap, err := storeInstance.Recap().GetRecap(recapID)
+	if err != nil || recap == nil {
+		logger.Warn("Recap no longer available while finalizing job",
+			mlog.String("recap_id", recapID),
+			mlog.Err(err))
+		return nil
+	}
 	recap.TotalMessageCount = totalMessages
 	recap.UpdateAt = model.GetMillis()
 

@@ -281,3 +281,89 @@ func TestScheduledRecap_CreateBlockedWhenOverLimit(t *testing.T) {
 	require.Nil(t, updateErr, "Update should succeed for over-limit user")
 	assert.Equal(t, "Updated Title", updatedRecap.Title)
 }
+
+func TestScheduledRecapChannelValidationAndDeduplication(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_ENABLEAIRECAPS")
+
+	th := Setup(t).InitBasic(t)
+	ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
+
+	t.Run("create rejects channel without read permission", func(t *testing.T) {
+		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+		_ = th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, "", privateChannel)
+		th.AddUserToChannel(t, th.BasicUser2, privateChannel)
+
+		recap := &model.ScheduledRecap{
+			Title:       "Restricted Recap",
+			DaysOfWeek:  model.EveryDay,
+			TimeOfDay:   "09:00",
+			TimePeriod:  model.TimePeriodLast24h,
+			ChannelMode: model.ChannelModeSpecific,
+			ChannelIds:  []string{privateChannel.Id},
+			AgentId:     "test-agent",
+			Timezone:    "America/New_York",
+			IsRecurring: true,
+			Enabled:     true,
+		}
+
+		createdRecap, createErr := th.App.CreateScheduledRecap(ctx, recap)
+		require.NotNil(t, createErr)
+		require.Nil(t, createdRecap)
+		assert.Equal(t, "app.recap.permission_denied", createErr.Id)
+	})
+
+	t.Run("update rejects channel without read permission", func(t *testing.T) {
+		recap := &model.ScheduledRecap{
+			Title:       "Valid Recap",
+			DaysOfWeek:  model.EveryDay,
+			TimeOfDay:   "09:00",
+			TimePeriod:  model.TimePeriodLast24h,
+			ChannelMode: model.ChannelModeSpecific,
+			ChannelIds:  []string{th.BasicChannel.Id},
+			AgentId:     "test-agent",
+			Timezone:    "America/New_York",
+			IsRecurring: true,
+			Enabled:     true,
+		}
+
+		createdRecap, createErr := th.App.CreateScheduledRecap(ctx, recap)
+		require.Nil(t, createErr)
+		require.NotNil(t, createdRecap)
+
+		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+		_ = th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, "", privateChannel)
+		th.AddUserToChannel(t, th.BasicUser2, privateChannel)
+
+		createdRecap.ChannelIds = []string{privateChannel.Id}
+		updatedRecap, updateErr := th.App.UpdateScheduledRecap(ctx, createdRecap)
+		require.NotNil(t, updateErr)
+		require.Nil(t, updatedRecap)
+		assert.Equal(t, "app.recap.permission_denied", updateErr.Id)
+	})
+
+	t.Run("create deduplicates repeated channel ids before limit checks", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AIRecapSettings.EnforceChannelsPerRecap = model.NewPointer(true)
+			cfg.AIRecapSettings.DefaultLimits.MaxChannelsPerRecap = model.NewPointer(1)
+		})
+
+		recap := &model.ScheduledRecap{
+			Title:       "Deduped Recap",
+			DaysOfWeek:  model.EveryDay,
+			TimeOfDay:   "09:00",
+			TimePeriod:  model.TimePeriodLast24h,
+			ChannelMode: model.ChannelModeSpecific,
+			ChannelIds:  []string{th.BasicChannel.Id, th.BasicChannel.Id},
+			AgentId:     "test-agent",
+			Timezone:    "America/New_York",
+			IsRecurring: true,
+			Enabled:     true,
+		}
+
+		createdRecap, createErr := th.App.CreateScheduledRecap(ctx, recap)
+		require.Nil(t, createErr)
+		require.NotNil(t, createdRecap)
+		assert.Equal(t, []string{th.BasicChannel.Id}, createdRecap.ChannelIds)
+	})
+}

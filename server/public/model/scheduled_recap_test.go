@@ -311,6 +311,12 @@ func TestScheduledRecapIsValid(t *testing.T) {
 		assert.NotNil(t, sr.IsValid())
 	})
 
+	t.Run("custom instructions too long fails", func(t *testing.T) {
+		sr := validRecap()
+		sr.CustomInstructions = string(make([]byte, ScheduledRecapCustomInstructionsMaxLength+1))
+		assert.NotNil(t, sr.IsValid())
+	})
+
 	t.Run("zero days of week fails", func(t *testing.T) {
 		sr := validRecap()
 		sr.DaysOfWeek = 0
@@ -421,6 +427,14 @@ func TestScheduledRecapPreSave(t *testing.T) {
 		sr.PreSave()
 		assert.Equal(t, existingId, sr.Id)
 	})
+
+	t.Run("deduplicates channel ids while preserving order", func(t *testing.T) {
+		channelA := NewId()
+		channelB := NewId()
+		sr := &ScheduledRecap{ChannelIds: []string{channelA, channelB, channelA, channelB}}
+		sr.PreSave()
+		assert.Equal(t, []string{channelA, channelB}, sr.ChannelIds)
+	})
 }
 
 func TestScheduledRecapPreUpdate(t *testing.T) {
@@ -430,6 +444,16 @@ func TestScheduledRecapPreUpdate(t *testing.T) {
 		}
 		sr.PreUpdate()
 		assert.Greater(t, sr.UpdateAt, int64(1000))
+	})
+
+	t.Run("deduplicates channel ids while preserving order", func(t *testing.T) {
+		channelA := NewId()
+		channelB := NewId()
+		sr := &ScheduledRecap{
+			ChannelIds: []string{channelA, channelB, channelA},
+		}
+		sr.PreUpdate()
+		assert.Equal(t, []string{channelA, channelB}, sr.ChannelIds)
 	})
 }
 

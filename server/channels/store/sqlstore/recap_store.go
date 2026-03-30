@@ -111,20 +111,58 @@ func (s *SqlRecapStore) recapChannelToMap(rc *model.RecapChannel) (map[string]an
 }
 
 func (s *SqlRecapStore) SaveRecap(recap *model.Recap) (*model.Recap, error) {
-	query := s.getQueryBuilder().
-		Insert("Recaps").
-		SetMap(s.recapToMap(recap))
-
-	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
-		return nil, errors.Wrap(err, "failed to save Recap")
+	if err := s.saveRecapWithExecutor(s.GetMaster(), recap); err != nil {
+		return nil, err
 	}
 
 	return recap, nil
 }
 
+func (s *SqlRecapStore) SaveRecapIfUnderDailyLimit(recap *model.Recap, since int64, limit int) (*model.Recap, error) {
+	tx, err := s.GetMaster().Beginx()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to begin transaction for SaveRecapIfUnderDailyLimit")
+	}
+	defer finalizeTransactionX(tx, &err)
+
+	if err = lockUserRowForUpdate(tx, recap.UserId); err != nil {
+		return nil, errors.Wrapf(err, "failed to lock user %s for recap save", recap.UserId)
+	}
+
+	count, err := s.countForUserSinceWithExecutor(tx, recap.UserId, since)
+	if err != nil {
+		return nil, err
+	}
+	if count >= int64(limit) {
+		return nil, store.NewErrLimitExceeded("recaps_per_day", int(count), fmt.Sprintf("userId=%s limit=%d", recap.UserId, limit))
+	}
+
+	if err = s.saveRecapWithExecutor(tx, recap); err != nil {
+		return nil, err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, errors.Wrap(err, "failed to commit transaction for SaveRecapIfUnderDailyLimit")
+	}
+
+	return recap, nil
+}
+
+func (s *SqlRecapStore) saveRecapWithExecutor(executor sqlxExecutor, recap *model.Recap) error {
+	query := s.getQueryBuilder().
+		Insert("Recaps").
+		SetMap(s.recapToMap(recap))
+
+	if _, err := executor.ExecBuilder(query); err != nil {
+		return errors.Wrap(err, "failed to save Recap")
+	}
+
+	return nil
+}
+
 func (s *SqlRecapStore) GetRecap(id string) (*model.Recap, error) {
 	var recap model.Recap
-	query := s.recapSelectQuery.Where(sq.Eq{"Id": id})
+	query := s.recapSelectQuery.Where(sq.Eq{"Id": id, "DeleteAt": 0})
 
 	if err := s.GetReplica().GetBuilder(&recap, query); err != nil {
 		if err == sql.ErrNoRows {
@@ -306,6 +344,10 @@ func (s *SqlRecapStore) GetRecapChannelsByRecapId(recapId string) ([]*model.Reca
 // Excludes skipped recaps from the count, but still counts soft-deleted recaps
 // because they already consumed AI usage.
 func (s *SqlRecapStore) CountForUserSince(userId string, since int64) (int64, error) {
+	return s.countForUserSinceWithExecutor(s.GetReplica(), userId, since)
+}
+
+func (s *SqlRecapStore) countForUserSinceWithExecutor(executor sqlxExecutor, userId string, since int64) (int64, error) {
 	query := s.getQueryBuilder().
 		Select("COUNT(*)").
 		From("Recaps").
@@ -314,7 +356,7 @@ func (s *SqlRecapStore) CountForUserSince(userId string, since int64) (int64, er
 		Where(sq.NotEq{"Status": model.RecapStatusSkipped}) // Don't count skipped recaps
 
 	var count int64
-	err := s.GetReplica().GetBuilder(&count, query)
+	err := executor.GetBuilder(&count, query)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to count recaps for user since timestamp")
 	}

@@ -47,6 +47,17 @@ const (
 	AuditEventListChannelBookmarksForChannel = "listChannelBookmarksForChannel" // list bookmarks for channel
 )
 
+// Views
+const (
+	AuditEventCreateView          = "createView"          // create view in channel
+	AuditEventGetView             = "getView"             // get view by ID
+	AuditEventUpdateView          = "updateView"          // update view
+	AuditEventDeleteView          = "deleteView"          // delete view
+	AuditEventListViewsForChannel = "listViewsForChannel" // list views for channel
+	AuditEventUpdateViewSortOrder = "updateViewSortOrder" // update view sort order
+	AuditEventGetPostsForView     = "getPostsForView"     // get posts for view
+)
+
 // Channel Categories
 const (
 	AuditEventCreateCategoryForTeamForUser      = "createCategoryForTeamForUser"      // create channel category for user
@@ -125,6 +136,20 @@ const (
 	AuditEventDeleteCPAField = "deleteCPAField" // delete custom profile attribute
 	AuditEventPatchCPAField  = "patchCPAField"  // update custom profile attribute field
 	AuditEventPatchCPAValues = "patchCPAValues" // update custom profile attribute values
+)
+
+// Property Fields
+const (
+	AuditEventCreatePropertyField = "createPropertyField" // create property field
+	AuditEventDeletePropertyField = "deletePropertyField" // delete property field
+	AuditEventGetPropertyFields   = "getPropertyFields"   // list property fields
+	AuditEventPatchPropertyField  = "patchPropertyField"  // update property field
+)
+
+// Property Values
+const (
+	AuditEventGetPropertyValues   = "getPropertyValues"   // get property values for target
+	AuditEventPatchPropertyValues = "patchPropertyValues" // update property values for target
 )
 
 // Data Retention Policies

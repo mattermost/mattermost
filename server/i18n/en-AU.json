@@ -6784,10 +6784,6 @@
     "translation": "Slack user merged with an existing Mattermost user with matching email {{.Email}} and username {{.Username}}.\n"
   },
   {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Slack user with email {{.Email}} and password {{.Password}} has been imported.\n"
-  },
-  {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\nUsers created:\n"
   },
@@ -6810,10 +6806,6 @@
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "Unable to import the Integration/Slack Bot user {{.Username}}.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "The Integration/Slack Bot user with email {{.Email}} and password {{.Password}} has been imported.\n"
   },
   {
     "id": "api.server.start_server.starting.critical",

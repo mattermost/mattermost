@@ -64,6 +64,7 @@ go.work.sum
 .npminstall
 .yarninstall
 /prepackaged_plugins
+tools/sharedchannel-test/sharedchannel-test
 
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o
@@ -168,3 +169,6 @@ AGENTS.md
 # Planning files (local only)
 .planning
 .cursor/
+server/prev-report.xml
+server/prev-gotestsum.json
+server/shard-*.txt
