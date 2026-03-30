@@ -209,7 +209,7 @@ describe('Authentication', () => {
         // # Go to front page
         cy.visit('/login');
 
-        // * Assert that create account button is visible
+        // * Assert that create account button is not visible
         cy.findByText('Don\'t have an account?', {timeout: TIMEOUTS.ONE_MIN}).should('not.exist');
 
         // # Go to sign up with email page
