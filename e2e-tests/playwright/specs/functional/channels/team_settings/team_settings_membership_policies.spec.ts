@@ -28,7 +28,7 @@ test.describe('Team Settings Modal - Membership Policies Tab', () => {
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto();
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
 
@@ -45,7 +45,7 @@ test.describe('Team Settings Modal - Membership Policies Tab', () => {
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto();
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
 
@@ -65,7 +65,7 @@ test.describe('Team Settings Modal - Membership Policies Tab', () => {
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto();
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
@@ -90,7 +90,7 @@ test.describe('Team Settings Modal - Membership Policies Tab', () => {
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
@@ -123,7 +123,7 @@ test.describe('Team Settings Modal - Membership Policies Tab', () => {
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
@@ -149,7 +149,7 @@ test.describe('Team Settings Modal - Membership Policies Tab', () => {
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
 
@@ -190,7 +190,7 @@ test.describe('Team Settings Modal - Membership Policies Tab', () => {
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();

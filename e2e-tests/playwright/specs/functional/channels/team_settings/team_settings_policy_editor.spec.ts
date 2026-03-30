@@ -33,7 +33,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
@@ -63,7 +63,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
@@ -87,7 +87,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         // # Confirm in PolicyConfirmationModal
         await page.locator('.TeamPolicyConfirmationModal').waitFor();
         await page.getByRole('button', {name: /Apply policy/}).click();
-        await page.waitForLoadState('networkidle');
+
 
         // * Auto-navigated back to list, policy name visible
         await expect(teamSettings.container.getByText(policyName)).toBeVisible();
@@ -110,14 +110,14 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
 
         // # Click policy row
         await teamSettings.container.getByText(policy.name).click();
-        await page.waitForLoadState('networkidle');
+
 
         // * Editor shown with pre-populated name
         await expect(teamSettings.container.locator('#input_policyName')).toHaveValue(policy.name);
@@ -129,7 +129,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
 
         // # Save via SaveChangesPanel (name-only change skips confirmation modal)
         await teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
-        await page.waitForLoadState('networkidle');
+
 
         // * Auto-navigated back to list, updated name visible
         await expect(teamSettings.container.getByText(newName)).toBeVisible();
@@ -152,7 +152,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
@@ -161,7 +161,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const menuButton = teamSettings.container.locator(`button[id="policy-menu-${policy.id}"]`);
         await menuButton.click();
         await page.getByRole('menuitem', {name: 'Edit'}).click();
-        await page.waitForLoadState('networkidle');
+
 
         // * Editor shown with pre-populated name
         await expect(teamSettings.container.locator('#input_policyName')).toHaveValue(policy.name);
@@ -184,14 +184,14 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
 
         // # Open editor and modify name
         await teamSettings.container.getByText(policy.name).click();
-        await page.waitForLoadState('networkidle');
+
         await teamSettings.container.locator('#input_policyName').clear();
         await teamSettings.container.locator('#input_policyName').fill('Changed Name');
 
@@ -215,7 +215,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
@@ -243,14 +243,14 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
 
         // # Open editor
         await teamSettings.container.getByText(policy.name).click();
-        await page.waitForLoadState('networkidle');
+
 
         // # Remove the channel to enable delete (click Remove link in channel list)
         await teamSettings.container.getByText('Remove').first().click();
@@ -264,7 +264,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         // # Confirm in delete confirmation modal
         await page.locator('.TeamPolicyEditor__delete-modal').waitFor();
         await page.locator('.TeamPolicyEditor__delete-modal').getByRole('button', {name: 'Delete'}).click();
-        await page.waitForLoadState('networkidle');
+
 
         // * Back to list, policy removed
         await expect(teamSettings.container.getByText(policy.name)).not.toBeVisible();
@@ -287,7 +287,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
@@ -317,7 +317,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
@@ -351,14 +351,14 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
 
         // # Open editor
         await teamSettings.container.getByText(policy.name).click();
-        await page.waitForLoadState('networkidle');
+
 
         // * Delete button is disabled (policy has channels)
         const deleteBtn = teamSettings.container
@@ -384,20 +384,20 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
 
         // # Edit policy name (name-only change — no confirmation modal)
         await teamSettings.container.getByText(policy.name).click();
-        await page.waitForLoadState('networkidle');
+
         await teamSettings.container.locator('#input_policyName').clear();
         await teamSettings.container.locator('#input_policyName').fill(`Updated ${Date.now()}`);
 
         // # Save
         await teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
-        await page.waitForLoadState('networkidle');
+
 
         // * Success message visible on list view
         await expect(teamSettings.container.locator('.SaveChangesPanel.saved')).toBeVisible();
@@ -419,7 +419,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
@@ -442,7 +442,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         // # Confirm in PolicyConfirmationModal
         await page.locator('.TeamPolicyConfirmationModal').waitFor();
         await page.getByRole('button', {name: /Apply policy/}).click();
-        await page.waitForLoadState('networkidle');
+
 
         // * Auto-navigated back to list, policy appears
         await expect(teamSettings.container.getByText(policyName)).toBeVisible();
@@ -473,18 +473,18 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
-        await page.waitForLoadState('networkidle');
+
 
         // * Policy is visible
         await expect(teamSettings.container.getByText(policyName)).toBeVisible({timeout: 10000});
 
         // # Open editor by clicking policy row
         await teamSettings.container.getByText(policyName).click();
-        await page.waitForLoadState('networkidle');
+
 
         // # Remove the channel to enable delete
         const removeLink = teamSettings.container.getByText('Remove').first();
@@ -502,7 +502,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const deleteModal = page.locator('.TeamPolicyEditor__delete-modal');
         await expect(deleteModal).toBeVisible({timeout: 10000});
         await deleteModal.getByRole('button', {name: 'Delete'}).click();
-        await page.waitForLoadState('networkidle');
+
 
         // * Back to list, policy is removed
         await expect(teamSettings.container.getByText(policyName)).not.toBeVisible();
@@ -544,12 +544,12 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         // # Step 1: Team admin can see the policy (all channels in their team)
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
-        await page.waitForLoadState('networkidle');
+
         await expect(teamSettings.container.getByText(policyName)).toBeVisible({timeout: 10000});
         await teamSettings.close();
 
@@ -559,7 +559,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         // # Team admin reopens team settings — policy should NOT be visible (cross-team)
         const teamSettings2 = await channelsPage.openTeamSettings();
         await teamSettings2.openAccessPoliciesTab();
-        await page.waitForLoadState('networkidle');
+
         await expect(teamSettings2.container.getByText(policyName)).not.toBeVisible({timeout: 10000});
         await teamSettings2.close();
 
@@ -569,7 +569,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         // # Team admin reopens team settings — policy should be visible again
         const teamSettings3 = await channelsPage.openTeamSettings();
         await teamSettings3.openAccessPoliciesTab();
-        await page.waitForLoadState('networkidle');
+
         await expect(teamSettings3.container.getByText(policyName)).toBeVisible({timeout: 10000});
 
         await teamSettings3.close();
