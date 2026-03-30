@@ -7,7 +7,6 @@
  */
 
 import {getAsset} from '@/asset';
-
 import {ChannelsPage, expect, test} from '@mattermost/playwright-lib';
 
 test.describe('Team Settings Modal - Info Tab', () => {

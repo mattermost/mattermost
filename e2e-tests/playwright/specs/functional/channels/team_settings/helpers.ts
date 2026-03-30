@@ -3,7 +3,6 @@
 
 import type {Locator, Page} from '@playwright/test';
 import {expect} from '@playwright/test';
-
 import type {Client4} from '@mattermost/client';
 
 export async function enableABACConfig(client: Client4) {
