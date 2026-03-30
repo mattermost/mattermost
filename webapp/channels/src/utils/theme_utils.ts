@@ -117,6 +117,7 @@ export function applySystemThemeIfNeeded(): boolean {
         // Use regular theme for light mode
         theme = getTheme(state);
     }
+
     // Apply the theme
     if (theme) {
         applyTheme(theme);
