@@ -89,6 +89,17 @@ func (ps *PropertyService) createPropertyField(field *model.PropertyField) (*mod
 				field.Attrs[model.PropertyFieldAttributeOptions] = opts
 			}
 		}
+
+		// Inherit permission levels from source template
+		if source.PermissionField != nil {
+			field.PermissionField = source.PermissionField
+		}
+		if source.PermissionValues != nil {
+			field.PermissionValues = source.PermissionValues
+		}
+		if source.PermissionOptions != nil {
+			field.PermissionOptions = source.PermissionOptions
+		}
 	}
 
 	// Check for hierarchical name conflicts
@@ -395,6 +406,29 @@ func (ps *PropertyService) CreatePropertyField(rctx request.CTX, field *model.Pr
 	requiresAC, err := ps.requiresAccessControl(field.GroupID)
 	if err != nil {
 		return nil, fmt.Errorf("CreatePropertyField: %w", err)
+	}
+
+	// If the field links to a source whose group requires access control,
+	// route through the access control service even if the field's own group
+	// does not — the linked field inherits the source's security posture.
+	if !requiresAC && field.LinkedFieldID != nil && *field.LinkedFieldID != "" {
+		source, sErr := ps.fieldStore.Get("", *field.LinkedFieldID)
+		if sErr != nil {
+			return nil, model.NewAppError(
+				"CreatePropertyField",
+				"app.property_field.create.linked_source_not_found.app_error",
+				nil,
+				fmt.Sprintf("linked source field %q not found", *field.LinkedFieldID),
+				http.StatusBadRequest,
+			)
+		}
+		sourceRequiresAC, acErr := ps.requiresAccessControl(source.GroupID)
+		if acErr != nil {
+			return nil, fmt.Errorf("CreatePropertyField: %w", acErr)
+		}
+		if sourceRequiresAC {
+			requiresAC = true
+		}
 	}
 
 	if requiresAC {

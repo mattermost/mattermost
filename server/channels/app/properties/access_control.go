@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
@@ -72,6 +73,8 @@ func (pas *PropertyAccessService) isCallerPlugin(callerID string) bool {
 // to the callerID and the protected attribute is allowed.
 // When the caller is not a plugin, source_plugin_id and protected are rejected
 // to prevent unauthorized field ownership claims.
+// When linking to a source template, security attributes are validated and
+// inherited from the source.
 func (pas *PropertyAccessService) CreatePropertyField(callerID string, field *model.PropertyField) (*model.PropertyField, error) {
 	if pas.isCallerPlugin(callerID) {
 		// Caller is a plugin — auto-set source_plugin_id
@@ -89,7 +92,14 @@ func (pas *PropertyAccessService) CreatePropertyField(callerID string, field *mo
 		}
 	}
 
-	// Validate access mode
+	// If linking to a source, validate and inherit security attributes
+	if field.LinkedFieldID != nil && *field.LinkedFieldID != "" {
+		if err := pas.validateAndInheritLinkedFieldSecurity(callerID, field); err != nil {
+			return nil, fmt.Errorf("CreatePropertyField: %w", err)
+		}
+	}
+
+	// Validate access mode (after inheritance so protected flag is correct)
 	if err := model.ValidatePropertyFieldAccessMode(field); err != nil {
 		return nil, fmt.Errorf("CreatePropertyField: %w", err)
 	}
@@ -99,6 +109,70 @@ func (pas *PropertyAccessService) CreatePropertyField(callerID string, field *mo
 		return nil, fmt.Errorf("CreatePropertyField: %w", err)
 	}
 	return result, nil
+}
+
+// validateAndInheritLinkedFieldSecurity enforces that linked fields inherit the
+// source template's security posture. If the source is protected, only the
+// source plugin may create linked fields. The linked field's access_mode must
+// match the source's — divergence is rejected to avoid a false sense of
+// security (callers can always inspect the template directly).
+// Inherits: Protected, Attrs[protected], Attrs[source_plugin_id], Attrs[access_mode].
+// Permission levels are inherited separately in createPropertyField.
+func (pas *PropertyAccessService) validateAndInheritLinkedFieldSecurity(callerID string, field *model.PropertyField) error {
+	source, err := pas.propertyService.getPropertyField("", *field.LinkedFieldID)
+	if err != nil {
+		// Source validation (existence, deleted, template, etc.) is handled
+		// by createPropertyField — skip security checks here.
+		return nil
+	}
+
+	// If source is protected, only the source plugin can create linked fields
+	if model.IsPropertyFieldProtected(source) {
+		sourcePluginID := pas.getSourcePluginID(source)
+		if sourcePluginID == "" || callerID != sourcePluginID {
+			return model.NewAppError(
+				"CreatePropertyField",
+				"app.property_field.create.linked_source_protected.app_error",
+				nil,
+				"only the source plugin can create linked fields from a protected template",
+				http.StatusForbidden,
+			)
+		}
+	}
+
+	// Reject if caller set a different access_mode than the source
+	sourceAccessMode := pas.getAccessMode(source)
+	if field.Attrs != nil {
+		if callerAccessMode, ok := field.Attrs[model.PropertyAttrsAccessMode].(string); ok && callerAccessMode != sourceAccessMode {
+			return model.NewAppError(
+				"CreatePropertyField",
+				"app.property_field.create.linked_access_mode_mismatch.app_error",
+				nil,
+				fmt.Sprintf("linked field access_mode %q must match source template access_mode %q", callerAccessMode, sourceAccessMode),
+				http.StatusBadRequest,
+			)
+		}
+	}
+
+	// Inherit access-control attributes from source template.
+	// Note: field.Protected (struct bool) is NOT inherited here — it has
+	// different semantics (enforces PermissionField=none) and is managed
+	// by the App/API layer, not the access control service.
+	if field.Attrs == nil {
+		field.Attrs = make(model.StringInterface)
+	}
+	if source.Attrs != nil {
+		if v, ok := source.Attrs[model.PropertyAttrsProtected]; ok {
+			field.Attrs[model.PropertyAttrsProtected] = v
+		}
+		if v, ok := source.Attrs[model.PropertyAttrsSourcePluginID]; ok {
+			field.Attrs[model.PropertyAttrsSourcePluginID] = v
+		}
+		if v, ok := source.Attrs[model.PropertyAttrsAccessMode]; ok {
+			field.Attrs[model.PropertyAttrsAccessMode] = v
+		}
+	}
+	return nil
 }
 
 // GetPropertyField retrieves a property field by group and field ID.
