@@ -1,0 +1,127 @@
+name: Daily CI Health Check
+
+on:
+  schedule:
+    - cron: "0 8 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  check-ci-health:
+    runs-on: ubuntu-latest
+    outputs:
+      has_failures: ${{ steps.check.outputs.has_failures }}
+      report: ${{ steps.check.outputs.report }}
+    steps:
+      - uses: mattermost/github-app-installation-token-action@4d4c8c09a49df5b54e1eafd372d1a1e44fdcab13
+        id: installationToken
+        with:
+          appId: "${{ vars.UNIFIED_CI_APP_ID }}"
+          installationId: "${{ vars.UNIFIED_CI_INSTALLATION_ID }}"
+          privateKey: ${{ secrets.UNIFIED_CI_PRIVATE_KEY }}
+
+      - name: check/verify-last-two-ci-runs
+        id: check
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # 8.0.0
+        with:
+          github-token: ${{ steps.installationToken.outputs.token }}
+          script: |
+            const workflows = [
+              { owner: 'mattermost', repo: 'mattermost', id: 'server-ci.yml', name: 'Server CI' },
+              { owner: 'mattermost', repo: 'mattermost', id: 'webapp-ci.yml', name: 'Web App CI' },
+              { owner: 'mattermost', repo: 'mattermost', id: 'e2e-tests-on-merge.yml', name: 'E2E Tests (master/release)' },
+              { owner: 'mattermost', repo: 'enterprise', id: 'ci.yml', name: 'Enterprise CI' },
+            ];
+            const branch = 'master';
+            let hasFailures = false;
+            const report = [];
+
+            for (const wf of workflows) {
+              try {
+                const runs = await github.rest.actions.listWorkflowRuns({
+                  owner: wf.owner,
+                  repo: wf.repo,
+                  workflow_id: wf.id,
+                  branch,
+                  per_page: 2,
+                  status: 'completed',
+                });
+
+                const lastTwo = runs.data.workflow_runs.slice(0, 2);
+                if (lastTwo.length < 2) {
+                  core.warning(`${wf.name}: fewer than 2 completed runs found on ${branch}`);
+                  report.push({ workflow: wf.name, status: 'insufficient_data', runs: [] });
+                  continue;
+                }
+
+                const bothFailed = lastTwo.every(r => r.conclusion !== 'success');
+                report.push({
+                  workflow: wf.name,
+                  both_failed: bothFailed,
+                  runs: lastTwo.map(r => ({
+                    conclusion: r.conclusion,
+                    url: r.html_url,
+                    sha: r.head_sha.substring(0, 7),
+                    created_at: r.created_at,
+                  })),
+                });
+
+                if (bothFailed) {
+                  hasFailures = true;
+                  core.warning(`${wf.name}: last 2 runs on ${branch} both failed`);
+                } else {
+                  core.info(`${wf.name}: at least one of last 2 runs succeeded`);
+                }
+              } catch (error) {
+                core.warning(`Failed to fetch runs for ${wf.name}: ${error.message}`);
+                report.push({ workflow: wf.name, status: 'error', error: error.message, runs: [] });
+              }
+            }
+
+            core.setOutput('has_failures', String(hasFailures));
+            core.setOutput('report', JSON.stringify(report));
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: check-ci-health
+    if: needs.check-ci-health.outputs.has_failures == 'true'
+    steps:
+      - name: notify/build-report
+        id: build-report
+        env:
+          REPORT_JSON: ${{ needs.check-ci-health.outputs.report }}
+        run: |
+          FAILED_DETAILS=""
+
+          for row in $(echo "$REPORT_JSON" | jq -c '.[] | select(.both_failed == true)'); do
+            WF_NAME=$(echo "$row" | jq -r '.workflow')
+            RUN1_URL=$(echo "$row" | jq -r '.runs[0].url')
+            RUN1_CONCLUSION=$(echo "$row" | jq -r '.runs[0].conclusion')
+            RUN1_SHA=$(echo "$row" | jq -r '.runs[0].sha')
+            RUN2_URL=$(echo "$row" | jq -r '.runs[1].url')
+            RUN2_CONCLUSION=$(echo "$row" | jq -r '.runs[1].conclusion')
+            RUN2_SHA=$(echo "$row" | jq -r '.runs[1].sha')
+
+            FAILED_DETAILS="${FAILED_DETAILS}
+            - **${WF_NAME}**
+              - Run 1 (\`${RUN1_SHA}\`): ${RUN1_CONCLUSION} — [View Run](${RUN1_URL})
+              - Run 2 (\`${RUN2_SHA}\`): ${RUN2_CONCLUSION} — [View Run](${RUN2_URL})"
+          done
+
+          echo "FAILED_DETAILS<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$FAILED_DETAILS" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: notify/send-mattermost-alert
+        uses: mattermost/action-mattermost-notify@b7d118e440bf2749cd18a4a8c88e7092e696257a
+        with:
+          MATTERMOST_WEBHOOK_URL: ${{ secrets.MM_CI_HEALTH_WEBHOOK_URL }}
+          MATTERMOST_CHANNEL: ci-health-alerts
+          MATTERMOST_USERNAME: CI Health Bot
+          MATTERMOST_ICON_URL: https://avatars.githubusercontent.com/in/276366?s=120&u=b2ac433ba55fc41babb3c6079477f5ead172c543&v=4
+          TEXT: |
+            :red_circle: **Daily CI Health Check — Consecutive Failures on `master`**
+
+            The last 2 CI runs have failed for the following workflows:
+            ${{ steps.build-report.outputs.FAILED_DETAILS }}
+
+            :link: [View all workflow runs](https://github.com/mattermost/mattermost/actions)
