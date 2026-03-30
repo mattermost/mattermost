@@ -93,6 +93,8 @@ jobs:
           echo "${{ github.event.pull_request.number }}" > server/pr-number
 
       - name: Run docker compose
+        env:
+          POSTGRES_PASSWORD: ${{ inputs.fips-enabled && 'mostest-fips-test' || 'mostest' }}
         run: |
           cd server/build
           docker compose --ansi never run --rm start_dependencies
