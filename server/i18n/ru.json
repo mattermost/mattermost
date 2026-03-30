@@ -9776,10 +9776,6 @@
     "translation": "Невозможно зарегистрировать группу свойств \"Атрибуты пользовательского профиля\""
   },
   {
-    "id": "app.custom_profile_attributes.create_property_field.app_error",
-    "translation": "Невозможно создать поле \"Атрибут пользовательского профиля\""
-  },
-  {
     "id": "app.custom_profile_attributes.get_property_field.app_error",
     "translation": "Невозможно получить поле \"Атрибут пользовательского профиля\""
   },

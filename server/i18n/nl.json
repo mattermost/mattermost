@@ -10036,10 +10036,6 @@
     "translation": "Kan de eigenschappengroep Aangepaste profielattributen niet ophalen."
   },
   {
-    "id": "app.custom_profile_attributes.create_property_field.app_error",
-    "translation": "Kan geen aangepast profielattribuutveld maken"
-  },
-  {
     "id": "app.custom_profile_attributes.get_property_field.app_error",
     "translation": "Kan geen aangepast profielattribuutveld krijgen"
   },

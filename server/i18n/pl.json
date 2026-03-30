@@ -10024,10 +10024,6 @@
     "translation": "Nie można utworzyć katalogu dla niestandardowych obrazów emoji"
   },
   {
-    "id": "app.custom_profile_attributes.create_property_field.app_error",
-    "translation": "Nie można utworzyć pola atrybutu profilu niestandardowego"
-  },
-  {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
     "translation": "Nie można pobrać grupy właściwości Atrybuty profilu niestandardowego."
   },

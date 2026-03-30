@@ -10024,10 +10024,6 @@
     "translation": "Die Eigenschaftsgruppe der benutzerdefinierten Profilattribute kann nicht abgerufen werden."
   },
   {
-    "id": "app.custom_profile_attributes.create_property_field.app_error",
-    "translation": "Benutzerdefiniertes Profilattributfeld kann nicht erstellt werden"
-  },
-  {
     "id": "app.custom_profile_attributes.get_property_field.app_error",
     "translation": "Benutzerdefiniertes Profilattributfeld kann nicht abgerufen werden"
   },
