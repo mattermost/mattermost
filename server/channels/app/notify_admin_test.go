@@ -166,8 +166,8 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
-		// t.Setenv prevents t.Parallel — env var has no config equivalent
-		t.Setenv("MM_NOTIFY_ADMIN_COOL_OFF_DAYS", "0.00003472222222") // set to 3 seconds
+		th.App.Srv().SetNotifyAdminCoolOffDaysOverride("0.00003472222222") // set to 3 seconds
+		t.Cleanup(func() { th.App.Srv().SetNotifyAdminCoolOffDaysOverride("") })
 
 		// some notifications
 		_, appErr := th.App.SaveAdminNotifyData(&model.NotifyAdminData{

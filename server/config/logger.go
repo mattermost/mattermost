@@ -9,7 +9,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -106,42 +105,12 @@ func GetLogFileLocation(fileLocation string) string {
 	return filepath.Join(fileLocation, LogFilename)
 }
 
-var (
-	testOverrideLogRootMu   sync.Mutex
-	testOverrideLogRootPath string
-)
-
-// SetTestOverrideLogRootPath sets the test-only log root path override.
-// Call with empty string to clear. Thread-safe for use with t.Parallel().
-func SetTestOverrideLogRootPath(path string) {
-	testOverrideLogRootMu.Lock()
-	defer testOverrideLogRootMu.Unlock()
-	testOverrideLogRootPath = path
-}
-
-// getTestOverrideLogRootPath returns the current test override, or empty string.
-func getTestOverrideLogRootPath() string {
-	testOverrideLogRootMu.Lock()
-	defer testOverrideLogRootMu.Unlock()
-	return testOverrideLogRootPath
-}
-
 // GetLogRootPath returns the root directory for all log files.
 // This is used for security validation to prevent arbitrary file reads via advanced logging.
 // The logging root is determined by:
-// 1. Test override (if non-empty, set via SetTestOverrideLogRootPath)
-// 2. MM_LOG_PATH environment variable (if set and non-empty)
-// 3. The default "logs" directory (found relative to the binary)
+// 1. MM_LOG_PATH environment variable (if set and non-empty)
+// 2. The default "logs" directory (found relative to the binary)
 func GetLogRootPath() string {
-	// Check test override first
-	if override := getTestOverrideLogRootPath(); override != "" {
-		absPath, err := filepath.Abs(override)
-		if err == nil {
-			return absPath
-		}
-		return override
-	}
-
 	// Check environment variable
 	if envPath := os.Getenv("MM_LOG_PATH"); envPath != "" {
 		absPath, err := filepath.Abs(envPath)

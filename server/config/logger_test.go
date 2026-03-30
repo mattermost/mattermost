@@ -48,57 +48,6 @@ func TestMloggerConfigFromAuditConfig(t *testing.T) {
 	})
 }
 
-func TestGetLogRootPath(t *testing.T) {
-	t.Run("returns override path when TestOverrideLogRootPath is set", func(t *testing.T) {
-		// Create a temp directory to use as override path
-		dir, err := os.MkdirTemp("", "logroot")
-		require.NoError(t, err)
-		t.Cleanup(func() {
-			os.RemoveAll(dir)
-		})
-
-		SetTestOverrideLogRootPath(dir)
-		t.Cleanup(func() { SetTestOverrideLogRootPath("") })
-
-		result := GetLogRootPath()
-		absDir, _ := filepath.Abs(dir)
-		assert.Equal(t, absDir, result)
-	})
-
-	t.Run("finds logs directory relative to binary when MM_LOG_PATH not set", func(t *testing.T) {
-		// When MM_LOG_PATH is not set, GetLogRootPath falls back to FindDir("logs"),
-		// which searches for a "logs" directory relative to the working directory
-		// and the binary location. Create a logs directory relative to the test
-		// binary to verify this behavior.
-		// Get the test binary location
-		exe, err := os.Executable()
-		require.NoError(t, err)
-		exe, err = filepath.EvalSymlinks(exe)
-		require.NoError(t, err)
-		binaryDir := filepath.Dir(exe)
-
-		// Create a "logs" directory next to the binary
-		logsDir := filepath.Join(binaryDir, "logs")
-		err = os.MkdirAll(logsDir, 0755)
-		require.NoError(t, err)
-		t.Cleanup(func() {
-			os.RemoveAll(logsDir)
-		})
-
-		result := GetLogRootPath()
-
-		// Result should be an absolute path
-		assert.True(t, filepath.IsAbs(result), "GetLogRootPath should return an absolute path, got: %s", result)
-
-		// FindDir searches working directory first, then binary directory.
-		// The result should be either the logs directory we created or another
-		// logs directory found earlier in the search path. Either way, it should
-		// be a valid directory path ending in "logs".
-		assert.True(t, filepath.Base(result) == "logs" || result == "./",
-			"GetLogRootPath should return a logs directory path, got: %s", result)
-	})
-}
-
 func TestValidateLogFilePath(t *testing.T) {
 	t.Run("valid path within root", func(t *testing.T) {
 		root, err := os.MkdirTemp("", "logroot")

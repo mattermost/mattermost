@@ -117,6 +117,22 @@ type PlatformService struct {
 	forceEnableRedis bool
 
 	pdpService einterfaces.PolicyDecisionPointInterface
+
+	// installTypeOverride overrides MM_INSTALL_TYPE in support packet diagnostics.
+	installTypeOverride string
+
+	// logRootPathOverride overrides MM_LOG_PATH for log root path validation.
+	logRootPathOverride string
+}
+
+// SetInstallTypeOverride sets the install type override for support packet diagnostics.
+func (ps *PlatformService) SetInstallTypeOverride(v string) {
+	ps.installTypeOverride = v
+}
+
+// SetLogRootPathOverride sets the log root path override for log file validation.
+func (ps *PlatformService) SetLogRootPathOverride(v string) {
+	ps.logRootPathOverride = v
 }
 
 type HookRunner interface {

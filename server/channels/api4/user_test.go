@@ -304,16 +304,11 @@ func TestCreateUserAudit(t *testing.T) {
 	require.NoError(t, err)
 	defer os.Remove(logFile.Name())
 
-	configDefaults := &model.Config{}
-	configDefaults.SetDefaults()
-	configDefaults.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
-	configDefaults.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
-
-	options := []app.Option{
-		app.WithLicense(model.NewTestLicense("advanced_logging")),
-		app.Config("", false, configDefaults),
-	}
-	th := SetupWithServerOptions(t, options)
+	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
+	th := SetupWithServerOptionsAndConfig(t, options, func(cfg *model.Config) {
+		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
+		cfg.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
+	})
 
 	email := th.GenerateTestEmail()
 	password := "this_is_the_password"
@@ -346,10 +341,7 @@ func TestUserLoginAudit(t *testing.T) {
 	defer os.Remove(logFile.Name())
 
 	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
-	th := SetupWithServerOptions(t, options)
-
-	// Enable audit logging to file
-	th.App.UpdateConfig(func(cfg *model.Config) {
+	th := SetupWithServerOptionsAndConfig(t, options, func(cfg *model.Config) {
 		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
 		cfg.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
 	})
@@ -392,10 +384,7 @@ func TestLogoutAuditAuthStatus(t *testing.T) {
 	defer os.Remove(logFile.Name())
 
 	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
-	th := SetupWithServerOptions(t, options)
-
-	// Enable audit logging to file
-	th.App.UpdateConfig(func(cfg *model.Config) {
+	th := SetupWithServerOptionsAndConfig(t, options, func(cfg *model.Config) {
 		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
 		cfg.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
 	})
@@ -4562,14 +4551,14 @@ func TestLoginCookies(t *testing.T) {
 
 	t.Run("should return cookie with MMCLOUDURL for cloud installations when doing cws login", func(t *testing.T) {
 		token := model.NewRandomString(64)
-		// t.Setenv prevents t.Parallel — env var has no config equivalent
-		t.Setenv("CWS_CLOUD_TOKEN", token)
 
 		updateConfig := func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "https://testchips.cloud.mattermost.com"
 		}
 		th := SetupAndApplyConfigBeforeLogin(t, updateConfig).InitBasic(t)
 
+		th.App.Srv().SetCWSTokenOverride(token)
+		t.Cleanup(func() { th.App.Srv().SetCWSTokenOverride("") })
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
 		form := url.Values{}
@@ -6895,10 +6884,7 @@ func TestUpdatePasswordAudit(t *testing.T) {
 	defer os.Remove(logFile.Name())
 
 	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
-	th := SetupWithServerOptions(t, options)
-
-	// Enable audit logging to file
-	th.App.UpdateConfig(func(cfg *model.Config) {
+	th := SetupWithServerOptionsAndConfig(t, options, func(cfg *model.Config) {
 		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
 		cfg.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
 	})
