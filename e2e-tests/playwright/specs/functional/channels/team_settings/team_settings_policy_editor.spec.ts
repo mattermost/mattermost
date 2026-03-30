@@ -418,8 +418,11 @@ test.describe('Team Settings Modal - Policy Editor', () => {
 
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
+        // # Navigate and wait for all API calls to settle (custom profile attributes
+        // must be fetched before the self-inclusion check can validate the admin's Department)
         await channelsPage.goto(team.name);
         await channelsPage.toBeVisible();
+        await page.waitForLoadState('networkidle');
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
@@ -442,7 +445,6 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         // # Confirm in PolicyConfirmationModal
         await page.locator('.TeamPolicyConfirmationModal').waitFor();
         await page.getByRole('button', {name: /Apply policy/}).click();
-
 
         // * Auto-navigated back to list, policy appears
         await expect(teamSettings.container.getByText(policyName)).toBeVisible();
