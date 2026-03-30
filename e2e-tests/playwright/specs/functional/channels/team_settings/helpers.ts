@@ -1,6 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Locator, Page} from '@playwright/test';
+import {expect} from '@playwright/test';
+
 import type {Client4} from '@mattermost/client';
 
 export async function enableABACConfig(client: Client4) {
@@ -143,4 +146,41 @@ export async function createTeamAdmin(adminClient: Client4, teamId: string) {
     });
 
     return user;
+}
+
+/**
+ * Adds an attribute rule row in the policy editor and fills in a value.
+ * Handles the auto-opening attribute selector menu.
+ */
+export async function addAttributeRule(container: Locator, page: Page, value: string) {
+    const addAttrBtn = container.getByRole('button', {name: /Add attribute/});
+    await expect(addAttrBtn).toBeEnabled({timeout: 10000});
+    await addAttrBtn.click();
+    // TODO: replace waitForTimeout with explicit wait for menu animation
+    await page.waitForTimeout(500);
+
+    // The attribute selector menu auto-opens — dismiss by clicking the selected attribute
+    const attributeOption = page.locator('[id^="attribute-selector-menu"] li').first();
+    if (await attributeOption.isVisible({timeout: 2000})) {
+        await attributeOption.click({force: true});
+        // TODO: replace waitForTimeout with explicit wait for menu animation
+        await page.waitForTimeout(500);
+    }
+
+    // Fill value in the simple input (text-type attribute renders direct input)
+    const valueInput = container.locator('.values-editor__simple-input').first();
+    await valueInput.waitFor({state: 'visible', timeout: 10000});
+    await valueInput.fill(value);
+}
+
+/**
+ * Adds a channel to the policy via the channel selector modal.
+ */
+export async function addChannelToPolicy(container: Locator, page: Page, channelDisplayName: string) {
+    await container.getByRole('button', {name: /Add channels/}).click();
+    const channelModal = page.locator('.channel-selector-modal');
+    await channelModal.waitFor();
+    await expect(channelModal.locator('.more-modal__row').first()).toBeVisible({timeout: 10000});
+    await channelModal.locator('.more-modal__row').filter({hasText: channelDisplayName}).click();
+    await channelModal.getByRole('button', {name: 'Add'}).click();
 }

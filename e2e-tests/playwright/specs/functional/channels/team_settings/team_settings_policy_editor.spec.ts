@@ -17,6 +17,8 @@ import {
     createPrivateChannel,
     createTeamAdmin,
     setUserAttribute,
+    addAttributeRule,
+    addChannelToPolicy,
 } from './helpers';
 
 test.describe('Team Settings Modal - Policy Editor', () => {
@@ -74,31 +76,10 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await teamSettings.container.locator('#input_policyName').fill(policyName);
 
         // # Add a rule row and fill in a value
-        // Add a rule: click Add attribute, dismiss the auto-opened menu, fill value
-        const addAttrBtn = teamSettings.container.getByRole('button', {name: /Add attribute/});
-        await expect(addAttrBtn).toBeEnabled({timeout: 10000});
-        await addAttrBtn.click();
-        await page.waitForTimeout(500);
-
-        // The attribute selector menu auto-opens — dismiss by clicking the selected attribute
-        const attributeOption = page.locator('[id^="attribute-selector-menu"] li').first();
-        if (await attributeOption.isVisible({timeout: 2000})) {
-            await attributeOption.click({force: true});
-            await page.waitForTimeout(500);
-        }
-
-        // Fill value in the simple input (text-type attribute renders direct input)
-        const valueInput = teamSettings.container.locator('.values-editor__simple-input').first();
-        await valueInput.waitFor({state: 'visible', timeout: 10000});
-        await valueInput.fill('Engineering');
+        await addAttributeRule(teamSettings.container, page, 'Engineering');
 
         // # Add channel via channel selector
-        await teamSettings.container.getByRole('button', {name: /Add channels/}).click();
-        const channelModal = page.locator('.channel-selector-modal');
-        await channelModal.waitFor();
-        await expect(channelModal.locator('.more-modal__row').first()).toBeVisible({timeout: 10000});
-        await channelModal.locator('.more-modal__row').filter({hasText: channel.display_name}).click();
-        await channelModal.getByRole('button', {name: 'Add'}).click();
+        await addChannelToPolicy(teamSettings.container, page, channel.display_name);
 
         // # Save via SaveChangesPanel
         await teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
@@ -313,29 +294,8 @@ test.describe('Team Settings Modal - Policy Editor', () => {
 
         // # Open create editor, add rule + channel but leave name empty
         await teamSettings.container.getByRole('button', {name: 'Add policy'}).click();
-        // Add a rule: click Add attribute, dismiss the auto-opened menu, fill value
-        const addAttrBtn = teamSettings.container.getByRole('button', {name: /Add attribute/});
-        await expect(addAttrBtn).toBeEnabled({timeout: 10000});
-        await addAttrBtn.click();
-        await page.waitForTimeout(500);
-
-        // The attribute selector menu auto-opens — dismiss by clicking the selected attribute
-        const attributeOption = page.locator('[id^="attribute-selector-menu"] li').first();
-        if (await attributeOption.isVisible({timeout: 2000})) {
-            await attributeOption.click({force: true});
-            await page.waitForTimeout(500);
-        }
-
-        // Fill value in the simple input (text-type attribute renders direct input)
-        const valueInput = teamSettings.container.locator('.values-editor__simple-input').first();
-        await valueInput.waitFor({state: 'visible', timeout: 10000});
-        await valueInput.fill('Engineering');
-        await teamSettings.container.getByRole('button', {name: /Add channels/}).click();
-        const channelModal = page.locator('.channel-selector-modal');
-        await channelModal.waitFor();
-        await expect(channelModal.locator('.more-modal__row').first()).toBeVisible({timeout: 10000});
-        await channelModal.locator('.more-modal__row').filter({hasText: channel.display_name}).click();
-        await channelModal.getByRole('button', {name: 'Add'}).click();
+        await addAttributeRule(teamSettings.container, page, 'Engineering');
+        await addChannelToPolicy(teamSettings.container, page, channel.display_name);
 
         // # Click Save
         await teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
@@ -365,23 +325,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         // # Open create editor, add name + rule but no channels
         await teamSettings.container.getByRole('button', {name: 'Add policy'}).click();
         await teamSettings.container.locator('#input_policyName').fill(`No Channels ${Date.now()}`);
-        // Add a rule: click Add attribute, dismiss the auto-opened menu, fill value
-        const addAttrBtn = teamSettings.container.getByRole('button', {name: /Add attribute/});
-        await expect(addAttrBtn).toBeEnabled({timeout: 10000});
-        await addAttrBtn.click();
-        await page.waitForTimeout(500);
-
-        // The attribute selector menu auto-opens — dismiss by clicking the selected attribute
-        const attributeOption = page.locator('[id^="attribute-selector-menu"] li').first();
-        if (await attributeOption.isVisible({timeout: 2000})) {
-            await attributeOption.click({force: true});
-            await page.waitForTimeout(500);
-        }
-
-        // Fill value in the simple input (text-type attribute renders direct input)
-        const valueInput = teamSettings.container.locator('.values-editor__simple-input').first();
-        await valueInput.waitFor({state: 'visible', timeout: 10000});
-        await valueInput.fill('Engineering');
+        await addAttributeRule(teamSettings.container, page, 'Engineering');
 
         // # Click Save
         await teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
@@ -487,31 +431,10 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await teamSettings.container.locator('#input_policyName').fill(policyName);
 
         // # Add a rule row and fill in a value
-        // Add a rule: click Add attribute, dismiss the auto-opened menu, fill value
-        const addAttrBtn = teamSettings.container.getByRole('button', {name: /Add attribute/});
-        await expect(addAttrBtn).toBeEnabled({timeout: 10000});
-        await addAttrBtn.click();
-        await page.waitForTimeout(500);
-
-        // The attribute selector menu auto-opens — dismiss by clicking the selected attribute
-        const attributeOption = page.locator('[id^="attribute-selector-menu"] li').first();
-        if (await attributeOption.isVisible({timeout: 2000})) {
-            await attributeOption.click({force: true});
-            await page.waitForTimeout(500);
-        }
-
-        // Fill value in the simple input (text-type attribute renders direct input)
-        const valueInput = teamSettings.container.locator('.values-editor__simple-input').first();
-        await valueInput.waitFor({state: 'visible', timeout: 10000});
-        await valueInput.fill('Engineering');
+        await addAttributeRule(teamSettings.container, page, 'Engineering');
 
         // # Add channel via channel selector
-        await teamSettings.container.getByRole('button', {name: /Add channels/}).click();
-        const channelModal = page.locator('.channel-selector-modal');
-        await channelModal.waitFor();
-        await expect(channelModal.locator('.more-modal__row').first()).toBeVisible({timeout: 10000});
-        await channelModal.locator('.more-modal__row').filter({hasText: channel.display_name}).click();
-        await channelModal.getByRole('button', {name: 'Add'}).click();
+        await addChannelToPolicy(teamSettings.container, page, channel.display_name);
 
         // # Save via SaveChangesPanel
         await teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
