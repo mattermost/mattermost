@@ -1293,6 +1293,18 @@ func (a *App) getRestoreManageOAuthPermissionMigration() (permissionsMap, error)
 	}, nil
 }
 
+func (a *App) getFileAttachmentPermissionsMigration() (permissionsMap, error) {
+	return permissionsMap{
+		permissionTransformation{
+			On: permissionOr(
+				isExactRole(model.ChannelUserRoleId),
+				isExactRole(model.ChannelGuestRoleId),
+			),
+			Add: []string{model.PermissionUploadFileAttachment.Id, model.PermissionDownloadFileAttachment.Id},
+		},
+	}, nil
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
 	return a.Srv().doPermissionsMigrations()
@@ -1353,6 +1365,7 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationKeyAddSharedChannelManagerPermissions, Migration: a.getAddSharedChannelManagerPermissionsMigration},
 		{Key: model.MigrationKeyAddSecureConnectionManagerPermissions, Migration: a.getAddSecureConnectionManagerPermissionsMigration},
 		{Key: model.MigrationKeyRestoreManageOAuthPermission, Migration: a.getRestoreManageOAuthPermissionMigration},
+		{Key: model.MigrationKeyFileAttachmentPermissions, Migration: a.getFileAttachmentPermissionsMigration},
 	}
 
 	roles, err := s.Store().Role().GetAll()

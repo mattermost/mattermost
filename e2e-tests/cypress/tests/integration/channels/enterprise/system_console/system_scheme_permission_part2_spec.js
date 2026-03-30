@@ -59,7 +59,7 @@ describe('System Scheme', () => {
         cy.get('#confirmModalButton').click().wait(TIMEOUTS.TWO_SEC);
 
         // # Make a few changes to the scheme
-        cy.findByTestId('guests-guest_create_private_channel-checkbox').should('not.have.class', 'checked').click();
+        cy.findByTestId('guests-guest_private_channel-guest_create_private_channel-checkbox').should('not.have.class', 'checked').click();
         cy.findByTestId('all_users-public_channel-create_public_channel-checkbox').should('have.class', 'checked').click();
         cy.findByTestId('all_users-private_channel-create_private_channel-checkbox').should('have.class', 'checked').click();
 
@@ -73,7 +73,7 @@ describe('System Scheme', () => {
         cy.findByTestId('systemScheme-link').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
 
         // * Verify previous scheme changes have been saved
-        cy.findByTestId('guests-guest_create_private_channel-checkbox').should('have.class', 'checked');
+        cy.findByTestId('guests-guest_private_channel-guest_create_private_channel-checkbox').should('have.class', 'checked');
         cy.findByTestId('all_users-public_channel-create_public_channel-checkbox').should('not.have.class', 'checked');
         cy.findByTestId('all_users-private_channel-create_private_channel-checkbox').should('not.have.class', 'checked');
 
@@ -90,7 +90,7 @@ describe('System Scheme', () => {
         cy.reload();
 
         // * Verify scheme settings have been reset to defaults
-        cy.findByTestId('guests-guest_create_private_channel-checkbox').should('not.have.class', 'checked');
+        cy.findByTestId('guests-guest_private_channel-guest_create_private_channel-checkbox').should('not.have.class', 'checked');
         cy.findByTestId('all_users-public_channel-create_public_channel-checkbox').should('have.class', 'checked');
         cy.findByTestId('all_users-private_channel-create_private_channel-checkbox').should('have.class', 'checked');
     });

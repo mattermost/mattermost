@@ -485,14 +485,24 @@ export const permissionRolesStrings: Record<string, Record<string, MessageDescri
             defaultMessage: 'Revoke user access token',
         },
     }),
-    upload_file: defineMessages({
+    upload_file_attachment: defineMessages({
         name: {
-            id: 'admin.permissions.permission.upload_file.name',
-            defaultMessage: 'Upload file',
+            id: 'admin.permissions.permission.upload_file_attachment.name',
+            defaultMessage: 'Upload Files',
         },
         description: {
-            id: 'admin.permissions.permission.upload_file.description',
-            defaultMessage: 'Upload file',
+            id: 'admin.permissions.permission.upload_file_attachment.description',
+            defaultMessage: 'Allow users to upload files and attach them to posts in this channel.',
+        },
+    }),
+    download_file_attachment: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.download_file_attachment.name',
+            defaultMessage: 'Download Files',
+        },
+        description: {
+            id: 'admin.permissions.permission.download_file_attachment.description',
+            defaultMessage: 'Allow users to download and open file attachments in this channel.',
         },
     }),
     use_channel_mentions: defineMessages({

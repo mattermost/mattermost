@@ -16,7 +16,7 @@ import {
     isNonEnterpriseLicense,
 } from 'utils/license_utils';
 
-import type {AdditionalValues, Group} from './types';
+import type {AdditionalValues, Group, Permission as PermissionNode} from './types';
 
 import EditPostTimeLimitButton from '../edit_post_time_limit_button';
 import EditPostTimeLimitModal from '../edit_post_time_limit_modal';
@@ -179,6 +179,13 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
                 ],
             },
             {
+                id: 'file_attachments',
+                permissions: [
+                    Permissions.UPLOAD_FILE_ATTACHMENT,
+                    Permissions.DOWNLOAD_FILE_ATTACHMENT,
+                ],
+            },
+            {
                 id: 'integrations',
                 permissions: [
                 ],
@@ -209,9 +216,9 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
         const publicChannelsGroup = this.groups[1];
         const privateChannelsGroup = this.groups[2];
         const postsGroup = this.groups[7];
-        const integrationsGroup = this.groups[8];
-        const sharedChannelsGroup = this.groups[9];
-        const customGroupsGroup = this.groups[10];
+        const integrationsGroup = this.groups[9];
+        const sharedChannelsGroup = this.groups[10];
+        const customGroupsGroup = this.groups[11];
 
         if (config.EnableIncomingWebhooks === 'true') {
             const incomingWebhookGroup = {
@@ -275,14 +282,12 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
         if (license?.IsLicensed === 'true' && (license?.LDAPGroups === 'true' || config.EnableCustomGroups === 'true') && !postsGroup.permissions.includes(Permissions.USE_GROUP_MENTIONS)) {
             postsGroup.permissions.push(Permissions.USE_GROUP_MENTIONS);
         }
-        postsGroup.permissions.push({
-            id: Permissions.CREATE_POST,
-            combined: true,
-            permissions: [
-                Permissions.CREATE_POST,
-                Permissions.UPLOAD_FILE,
-            ],
-        });
+        const hasCreatePostRow = postsGroup.permissions.some((p) => (
+            typeof p === 'string' ? p === Permissions.CREATE_POST : (p as PermissionNode).id === Permissions.CREATE_POST
+        ));
+        if (!hasCreatePostRow) {
+            postsGroup.permissions.push(Permissions.CREATE_POST);
+        }
         if (config.ExperimentalSharedChannels === 'true') {
             sharedChannelsGroup.permissions.push(Permissions.MANAGE_SHARED_CHANNELS);
             sharedChannelsGroup.permissions.push(Permissions.MANAGE_SECURE_CONNECTIONS);

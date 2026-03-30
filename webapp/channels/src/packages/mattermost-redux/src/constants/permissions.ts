@@ -46,6 +46,8 @@ const values = {
     REMOVE_OTHERS_REACTIONS: 'remove_others_reactions',
     PERMANENT_DELETE_USER: 'permanent_delete_user',
     UPLOAD_FILE: 'upload_file',
+    UPLOAD_FILE_ATTACHMENT: 'upload_file_attachment',
+    DOWNLOAD_FILE_ATTACHMENT: 'download_file_attachment',
     GET_PUBLIC_LINK: 'get_public_link',
     MANAGE_WEBHOOKS: 'manage_webhooks',
     MANAGE_OTHERS_WEBHOOKS: 'manage_others_webhooks',

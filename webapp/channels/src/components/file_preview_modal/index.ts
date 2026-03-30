@@ -6,8 +6,11 @@ import {connect} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
 
+import Permissions from 'mattermost-redux/constants/permissions';
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import {getIsMobileView} from 'selectors/views/browser';
 
@@ -28,13 +31,16 @@ type OwnProps = {
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const config = getConfig(state);
+    const post = ownProps.post || getPost(state, ownProps.postId || '');
+    const channel = post.channel_id ? getChannel(state, post.channel_id) : undefined;
+    const hasDownloadPermission = channel ? haveIChannelPermission(state, channel.team_id, channel.id, Permissions.DOWNLOAD_FILE_ATTACHMENT) : true;
 
     return {
-        canDownloadFiles: canDownloadFiles(config),
+        canDownloadFiles: canDownloadFiles(config) && hasDownloadPermission,
         enablePublicLink: config.EnablePublicLink === 'true',
         isMobileView: getIsMobileView(state),
         pluginFilePreviewComponents: state.plugins.components.FilePreview,
-        post: ownProps.post || getPost(state, ownProps.postId || ''),
+        post,
     };
 }
 

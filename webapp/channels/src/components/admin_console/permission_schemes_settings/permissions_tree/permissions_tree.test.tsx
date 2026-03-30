@@ -170,9 +170,10 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
         const groups = PermissionGroup.mock.calls[0][0].permissions as Array<Group | Permission>;
         expect(groups[0].id).toStrictEqual('teams');
         expect(groups[6].id).toStrictEqual('posts');
-        expect(groups[7].id).toStrictEqual('integrations');
-        expect(groups[8].id).toStrictEqual('manage_shared_channels');
-        expect(groups[9].id).toStrictEqual('custom_groups');
+        expect(groups[7].id).toStrictEqual('file_attachments');
+        expect(groups[8].id).toStrictEqual('integrations');
+        expect(groups[9].id).toStrictEqual('manage_shared_channels');
+        expect(groups[10].id).toStrictEqual('custom_groups');
     });
 
     describe('should show playbook permissions', () => {

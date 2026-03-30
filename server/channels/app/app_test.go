@@ -133,6 +133,8 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PermissionEditBookmarkPrivateChannel.Id,
 			model.PermissionDeleteBookmarkPrivateChannel.Id,
 			model.PermissionOrderBookmarkPrivateChannel.Id,
+			model.PermissionDownloadFileAttachment.Id,
+			model.PermissionUploadFileAttachment.Id,
 		},
 		"channel_admin": {
 			model.PermissionManageChannelRoles.Id,

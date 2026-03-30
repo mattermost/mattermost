@@ -65,28 +65,45 @@ describe('components/admin_console/permission_schemes_settings/guest_permissions
         const verifyDefaultPermissions = (permissions: Array<Permission | string>, includeGroupMentions: boolean) => {
             const permissionIds = permissions.map((p) => (typeof p === 'string' ? p : p.id));
 
-            expect(permissionIds).toContain('guest_create_private_channel');
-            expect(permissionIds).toContain('guest_edit_post');
-            expect(permissionIds).toContain('guest_delete_post');
-            expect(permissionIds).toContain('guest_create_post');
-            expect(permissionIds).toContain('guest_reactions');
-            expect(permissionIds).toContain('guest_use_channel_mentions');
+            expect(permissionIds).toEqual([
+                'guest_posts',
+                'guest_file_attachments',
+                'guest_private_channel',
+            ]);
 
-            if (includeGroupMentions) {
-                expect(permissionIds).toContain('guest_use_group_mentions');
-            } else {
-                expect(permissionIds).not.toContain('guest_use_group_mentions');
-            }
+            const guestPostsGroup = permissions.find((p) => typeof p === 'object' && p.id === 'guest_posts') as Permission | undefined;
+            expect(guestPostsGroup).toBeDefined();
+            const nestedIds = guestPostsGroup!.permissions.map((p) => (typeof p === 'string' ? p : p.id));
+            expect(nestedIds).toEqual([
+                'guest_edit_post',
+                'guest_delete_post',
+                'guest_reactions',
+                'guest_use_channel_mentions',
+                ...(includeGroupMentions ? ['guest_use_group_mentions'] : []),
+                'guest_create_post',
+            ]);
 
-            const createPostPermission = permissions.find((p) => typeof p === 'object' && p.id === 'guest_create_post') as Permission;
-            expect(createPostPermission).toBeDefined();
-            expect(createPostPermission.combined).toBe(true);
-            expect(createPostPermission.permissions).toEqual(['create_post', 'upload_file']);
+            const createPostPermission = guestPostsGroup!.permissions.find((p) => typeof p === 'object' && p.id === 'guest_create_post') as Permission | undefined;
+            expect(createPostPermission).toEqual(expect.objectContaining({
+                combined: true,
+                permissions: ['create_post'],
+            }));
 
-            const reactionsPermission = permissions.find((p) => typeof p === 'object' && p.id === 'guest_reactions') as Permission;
-            expect(reactionsPermission).toBeDefined();
-            expect(reactionsPermission.combined).toBe(true);
-            expect(reactionsPermission.permissions).toEqual(['add_reaction', 'remove_reaction']);
+            const fileAttachmentsGroup = permissions.find((p) => typeof p === 'object' && p.id === 'guest_file_attachments') as Permission;
+            expect(fileAttachmentsGroup).toBeDefined();
+            expect(fileAttachmentsGroup.permissions).toEqual(['upload_file_attachment', 'download_file_attachment']);
+
+            const guestPrivateChannelGroup = permissions.find((p) => typeof p === 'object' && p.id === 'guest_private_channel') as Permission | undefined;
+            expect(guestPrivateChannelGroup).toBeDefined();
+            expect(guestPrivateChannelGroup!.permissions.map((p) => (typeof p === 'string' ? p : p.id))).toEqual([
+                'guest_create_private_channel',
+            ]);
+
+            const reactionsPermission = guestPostsGroup!.permissions.find((p) => typeof p === 'object' && p.id === 'guest_reactions') as Permission | undefined;
+            expect(reactionsPermission).toEqual(expect.objectContaining({
+                combined: true,
+                permissions: ['add_reaction', 'remove_reaction'],
+            }));
         };
 
         [LicenseSkus.Professional, LicenseSkus.Enterprise, LicenseSkus.EnterpriseAdvanced, LicenseSkus.Entry].forEach((sku) => {

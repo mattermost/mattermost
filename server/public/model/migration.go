@@ -61,4 +61,5 @@ const (
 	MigrationKeyAddSharedChannelManagerPermissions     = "shared_channel_manager_permissions"
 	MigrationKeyAddSecureConnectionManagerPermissions  = "secure_connection_manager_permissions"
 	MigrationKeyRestoreManageOAuthPermission           = "restore_manage_oauth_permission"
+	MigrationKeyFileAttachmentPermissions              = "file_attachment_permissions"
 )

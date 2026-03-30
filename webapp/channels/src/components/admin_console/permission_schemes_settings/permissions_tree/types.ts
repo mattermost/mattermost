@@ -8,7 +8,7 @@ export type Permissions = Array<string | Group | Permission>;
 export type Permission = {
     id: string;
     combined?: boolean;
-    permissions: string[];
+    permissions: Array<string | Permission>;
 }
 export type Group = {
     id: string;

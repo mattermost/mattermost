@@ -1162,6 +1162,8 @@ export const PermissionsScope = {
     [Permissions.REMOVE_OTHERS_REACTIONS]: 'channel_scope',
     [Permissions.PERMANENT_DELETE_USER]: 'system_scope',
     [Permissions.UPLOAD_FILE]: 'channel_scope',
+    [Permissions.UPLOAD_FILE_ATTACHMENT]: 'channel_scope',
+    [Permissions.DOWNLOAD_FILE_ATTACHMENT]: 'channel_scope',
     [Permissions.GET_PUBLIC_LINK]: 'system_scope',
     [Permissions.MANAGE_INCOMING_WEBHOOKS]: 'team_scope',
     [Permissions.MANAGE_OWN_INCOMING_WEBHOOKS]: 'team_scope',
@@ -1255,7 +1257,8 @@ export const DefaultRolePermissions = {
         Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS,
         Permissions.READ_PUBLIC_CHANNEL_GROUPS,
         Permissions.READ_PRIVATE_CHANNEL_GROUPS,
-        Permissions.UPLOAD_FILE,
+        Permissions.UPLOAD_FILE_ATTACHMENT,
+        Permissions.DOWNLOAD_FILE_ATTACHMENT,
         Permissions.GET_PUBLIC_LINK,
         Permissions.CREATE_POST,
         Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS,
@@ -1359,7 +1362,8 @@ export const DefaultRolePermissions = {
         Permissions.REMOVE_REACTION,
         Permissions.USE_CHANNEL_MENTIONS,
         Permissions.READ_CHANNEL,
-        Permissions.UPLOAD_FILE,
+        Permissions.UPLOAD_FILE_ATTACHMENT,
+        Permissions.DOWNLOAD_FILE_ATTACHMENT,
         Permissions.CREATE_POST,
     ],
 };
@@ -1368,7 +1372,8 @@ export const DefaultRolePermissions = {
 // on a per channel basis. These permissions are on by default for team/channel admins.
 export const ModeratedPermissions = [
     Permissions.CREATE_POST,
-    Permissions.UPLOAD_FILE,
+    Permissions.UPLOAD_FILE_ATTACHMENT,
+    Permissions.DOWNLOAD_FILE_ATTACHMENT,
     Permissions.ADD_REACTION,
     Permissions.REMOVE_REACTION,
     Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS,

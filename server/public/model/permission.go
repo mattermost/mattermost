@@ -178,6 +178,9 @@ var PermissionManagePublicChannelBanner *Permission
 var PermissionManagePrivateChannelBanner *Permission
 var PermissionManageChannelAccessRules *Permission
 
+var PermissionDownloadFileAttachment *Permission
+var PermissionUploadFileAttachment *Permission
+
 var PermissionSysconsoleReadAbout *Permission
 var PermissionSysconsoleWriteAbout *Permission
 
@@ -1351,6 +1354,19 @@ func initializePermissions() {
 
 	PermissionManageChannelAccessRules = &Permission{
 		"manage_channel_access_rules",
+		"",
+		"",
+		PermissionScopeChannel,
+	}
+
+	PermissionDownloadFileAttachment = &Permission{
+		"download_file_attachment",
+		"",
+		"",
+		PermissionScopeChannel,
+	}
+	PermissionUploadFileAttachment = &Permission{
+		"upload_file_attachment",
 		"",
 		"",
 		PermissionScopeChannel,
@@ -2597,6 +2613,8 @@ func initializePermissions() {
 		PermissionManagePublicChannelBanner,
 		PermissionManagePrivateChannelBanner,
 		PermissionManageChannelAccessRules,
+		PermissionUploadFileAttachment,
+		PermissionDownloadFileAttachment,
 	}
 
 	GroupScopedPermissions := []*Permission{

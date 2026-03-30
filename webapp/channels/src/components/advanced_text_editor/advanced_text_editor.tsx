@@ -171,7 +171,16 @@ const AdvancedTextEditor = ({
     const draftFromStore = useSelector((state: GlobalState) => getDraftSelector(state, channelId, rootId, storageKey));
     const badConnection = useSelector((state: GlobalState) => connectionErrorCount(state) > 1);
     const maxPostSize = useSelector((state: GlobalState) => parseInt(getConfig(state).MaxPostSize || '', 10) || Constants.DEFAULT_CHARACTER_LIMIT);
-    const canUploadFiles = useSelector((state: GlobalState) => canUploadFilesAccordingToConfig(getConfig(state)));
+    const channelForUpload = useSelector((state: GlobalState) => getChannel(state, channelId));
+    const canUploadFiles = useSelector((state: GlobalState) => {
+        if (!canUploadFilesAccordingToConfig(getConfig(state))) {
+            return false;
+        }
+        if (!channelForUpload) {
+            return false;
+        }
+        return haveIChannelPermission(state, channelForUpload.team_id, channelForUpload.id, Permissions.UPLOAD_FILE_ATTACHMENT);
+    });
     const fullWidthTextBox = useSelector((state: GlobalState) => get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN);
     const isFormattingBarHidden = useSelector((state: GlobalState) => {
         const preferenceName = getFormattingBarPreferenceName();

@@ -35,6 +35,16 @@ export const groupRolesStrings: Record<string, Record<string, MessageDescriptor>
             defaultMessage: 'Write, edit and delete posts.',
         },
     }),
+    file_attachments: defineMessages({
+        name: {
+            id: 'admin.permissions.group.file_attachments.name',
+            defaultMessage: 'File Attachments',
+        },
+        description: {
+            id: 'admin.permissions.group.file_attachments.description',
+            defaultMessage: 'Control who can add images, documents, and other files to posts.',
+        },
+    }),
     create_post: defineMessages({
         name: {
             id: 'admin.permissions.permission.create_post.name',
@@ -165,6 +175,26 @@ export const groupRolesStrings: Record<string, Record<string, MessageDescriptor>
             defaultMessage: 'Add and delete reactions on posts.',
         },
     }),
+    guest_posts: defineMessages({
+        name: {
+            id: 'admin.permissions.group.guest_posts.name',
+            defaultMessage: 'Manage Posts',
+        },
+        description: {
+            id: 'admin.permissions.group.guest_posts.description',
+            defaultMessage: 'Write, edit and delete posts.',
+        },
+    }),
+    guest_private_channel: defineMessages({
+        name: {
+            id: 'admin.permissions.group.private_channel.name',
+            defaultMessage: 'Manage Private Channels',
+        },
+        description: {
+            id: 'admin.permissions.group.private_channel.description',
+            defaultMessage: 'Create and archive channels, manage settings and members.',
+        },
+    }),
     guest_create_post: defineMessages({
         name: {
             id: 'admin.permissions.group.guest_create_post.name',
@@ -173,6 +203,16 @@ export const groupRolesStrings: Record<string, Record<string, MessageDescriptor>
         description: {
             id: 'admin.permissions.group.guest_create_post.description',
             defaultMessage: 'Allow users to create posts.',
+        },
+    }),
+    guest_file_attachments: defineMessages({
+        name: {
+            id: 'admin.permissions.group.guest_file_attachments.name',
+            defaultMessage: 'File Attachments',
+        },
+        description: {
+            id: 'admin.permissions.group.guest_file_attachments.description',
+            defaultMessage: 'Control who can add images, documents, and other files to posts.',
         },
     }),
     guest_create_private_channel: defineMessages({

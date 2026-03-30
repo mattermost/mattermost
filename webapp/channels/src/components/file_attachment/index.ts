@@ -8,9 +8,11 @@ import type {Dispatch} from 'redux';
 
 import type {FileInfo} from '@mattermost/types/files';
 
-import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
+import Permissions from 'mattermost-redux/constants/permissions';
+import {getChannel, getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {isFileRejected} from 'mattermost-redux/selectors/entities/files';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import {openModal} from 'actions/views/modals';
 import {getFilesDropdownPluginMenuItems} from 'selectors/plugins';
@@ -28,9 +30,11 @@ export type OwnProps = {
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const config = getConfig(state);
+    const channel = getChannel(state, ownProps.fileInfo.channel_id);
+    const hasDownloadPermission = channel ? haveIChannelPermission(state, channel.team_id, channel.id, Permissions.DOWNLOAD_FILE_ATTACHMENT) : true;
 
     return {
-        canDownloadFiles: !ownProps.preventDownload && canDownloadFiles(config),
+        canDownloadFiles: !ownProps.preventDownload && canDownloadFiles(config) && hasDownloadPermission,
         enableSVGs: config.EnableSVGs === 'true',
         enablePublicLink: config.EnablePublicLink === 'true',
         pluginMenuItems: getFilesDropdownPluginMenuItems(state),

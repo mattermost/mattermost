@@ -14,7 +14,7 @@ import {isMinimumProfessionalLicense} from 'utils/license_utils';
 import EditPostTimeLimitButton from '../edit_post_time_limit_button';
 import EditPostTimeLimitModal from '../edit_post_time_limit_modal';
 import PermissionGroup from '../permission_group';
-import type {Permissions as PermissionsType} from '../permissions_tree/types';
+import type {Permission, Permissions as PermissionsType} from '../permissions_tree/types';
 
 type Props = {
     license: ClientLicense;
@@ -29,16 +29,19 @@ type Props = {
 
 const GuestPermissionsTree = ({license, onToggle, readOnly, scope, selectRow, parentRole, selected, role = {permissions: []}}: Props) => {
     const setPermissions = () => {
-        const defaultPermissions = [
-            Permissions.CREATE_PRIVATE_CHANNEL,
-            Permissions.EDIT_POST,
-            Permissions.DELETE_POST,
+        const guestPostsPermissions: Permission[] = [
             {
-                id: 'guest_' + Permissions.CREATE_POST,
+                id: 'guest_edit_post',
                 combined: true,
                 permissions: [
-                    Permissions.CREATE_POST,
-                    Permissions.UPLOAD_FILE,
+                    Permissions.EDIT_POST,
+                ],
+            },
+            {
+                id: 'guest_delete_post',
+                combined: true,
+                permissions: [
+                    Permissions.DELETE_POST,
                 ],
             },
             {
@@ -49,13 +52,58 @@ const GuestPermissionsTree = ({license, onToggle, readOnly, scope, selectRow, pa
                     Permissions.REMOVE_REACTION,
                 ],
             },
-            Permissions.USE_CHANNEL_MENTIONS,
+            {
+                id: 'guest_use_channel_mentions',
+                combined: true,
+                permissions: [
+                    Permissions.USE_CHANNEL_MENTIONS,
+                ],
+            },
         ];
         if (isMinimumProfessionalLicense(license)) {
-            defaultPermissions.push(Permissions.USE_GROUP_MENTIONS);
+            guestPostsPermissions.push({
+                id: 'guest_use_group_mentions',
+                combined: true,
+                permissions: [
+                    Permissions.USE_GROUP_MENTIONS,
+                ],
+            });
         }
+        guestPostsPermissions.push({
+            id: 'guest_' + Permissions.CREATE_POST,
+            combined: true,
+            permissions: [
+                Permissions.CREATE_POST,
+            ],
+        });
+
+        const defaultPermissions: Array<string | Permission> = [
+            {
+                id: 'guest_posts',
+                permissions: guestPostsPermissions,
+            },
+            {
+                id: 'guest_file_attachments',
+                permissions: [
+                    Permissions.UPLOAD_FILE_ATTACHMENT,
+                    Permissions.DOWNLOAD_FILE_ATTACHMENT,
+                ],
+            },
+            {
+                id: 'guest_private_channel',
+                permissions: [
+                    {
+                        id: 'guest_create_private_channel',
+                        combined: true,
+                        permissions: [
+                            Permissions.CREATE_PRIVATE_CHANNEL,
+                        ],
+                    },
+                ],
+            },
+        ];
         return defaultPermissions.map((permission) => {
-            if (typeof (permission) === 'string') {
+            if (typeof permission === 'string') {
                 return {
                     id: `guest_${permission}`,
                     combined: true,

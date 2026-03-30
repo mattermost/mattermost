@@ -146,7 +146,7 @@ const resetPermissionsToDefault = () => {
 };
 
 const checkChannelPermission = (permissionName, hasChannelPermissionCheckFunc, notHasChannelPermissionCheckFunc, testUser, testTeam, testChannel) => {
-    const guestsTestId = `guests-guest_${permissionName}-checkbox`;
+    const guestsTestId = `guests-guest_posts-guest_${permissionName}-checkbox`;
     const usersTestId = `all_users-posts-${permissionName}-checkbox`;
     const channelTestId = `channel_admin-posts-${permissionName}-checkbox`;
     const teamTestId = `team_admin-posts-${permissionName}-checkbox`;
