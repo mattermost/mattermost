@@ -6,7 +6,7 @@ import type {GlobalState} from '@mattermost/types/store';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getBrowserInfo, getDesktopVersion, getPlatformInfo, isDesktopApp} from 'mattermost-redux/utils/browser_info';
 
-import {getConfig, getLicense} from './general';
+import {getConfig, isFreeEdition} from './general';
 import {getCurrentTeamId} from './teams';
 import {getCurrentUserId} from './users';
 
@@ -25,8 +25,7 @@ export function getReportAProblemLink(state: GlobalState): string {
 
         // falls through
     case 'default': {
-        const isLicensed = getLicense(state).IsLicensed === 'true';
-        if (isLicensed) {
+        if (!isFreeEdition(state)) {
             return getDefaultReportAProblemMailtoLink(state);
         }
         return 'https://mattermost.com/pl/report_a_problem_unlicensed';

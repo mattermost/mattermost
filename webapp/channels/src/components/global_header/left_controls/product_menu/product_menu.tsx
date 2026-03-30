@@ -10,7 +10,7 @@ import {
     ProductsIcon,
 } from '@mattermost/compass-icons/components';
 
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {isFreeEdition as isFreeEditionSelector} from 'mattermost-redux/selectors/entities/general';
 
 import {setProductMenuSwitcherOpen} from 'actions/views/product_menu';
 import {isSwitcherOpen} from 'selectors/views/product_menu';
@@ -24,7 +24,6 @@ import {
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
-import {LicenseSkus} from 'utils/constants';
 import {useCurrentProductId, useProducts, isChannels} from 'utils/products';
 
 import ProductBranding from './product_branding';
@@ -77,7 +76,7 @@ const ProductMenu = (): JSX.Element => {
     const switcherOpen = useSelector(isSwitcherOpen);
     const menuRef = useRef<HTMLDivElement>(null);
     const currentProductID = useCurrentProductId();
-    const license = useSelector(getLicense);
+    const isFreeEdition = useSelector(isFreeEditionSelector);
 
     const handleClick = () => dispatch(setProductMenuSwitcherOpen(!switcherOpen));
 
@@ -113,8 +112,6 @@ const ProductMenu = (): JSX.Element => {
             />
         );
     });
-
-    const isFreeEdition = license.IsLicensed === 'false' || license.SkuShortName === LicenseSkus.Entry;
 
     return (
         <div ref={menuRef}>

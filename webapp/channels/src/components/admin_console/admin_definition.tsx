@@ -2427,7 +2427,7 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'SupportSettings.ReportAProblemType',
                             label: defineMessage({id: 'admin.support.reportAProblemTypeTitle', defaultMessage: 'Report a Problem:'}),
                             help_text: defineMessage({id: 'admin.support.reportAProblemTypeDescriptionLicensed', defaultMessage: 'By default, selecting ‘Report a Problem’ from the help menu opens a ticket with the Mattermost technical support team. You may provide a custom URL or email address for end user support by choosing ‘Custom link’ or ‘Email address’. ‘Hide link’ removes the ‘Report a Problem’ option from the app.'}),
-                            isHidden: it.not(it.licensed),
+                            isHidden: it.isFreeEdition,
                             options: reportAProblemTypeOptions,
                         },
                         {
@@ -2435,7 +2435,7 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'SupportSettings.ReportAProblemType',
                             label: defineMessage({id: 'admin.support.reportAProblemTypeTitle', defaultMessage: 'Report a Problem:'}),
                             help_text: defineMessage({id: 'admin.support.reportAProblemTypeDescriptionUnlicensed', defaultMessage: 'By default, selecting ‘Report a Problem’ from the help menu opens the Mattermost troubleshooting forums. You may provide a custom URL or email address for end user support by choosing ‘Custom link’ or ‘Email address’. ‘Hide link’ removes the ‘Report a Problem’ option from the app.'}),
-                            isHidden: it.licensed,
+                            isHidden: it.not(it.isFreeEdition),
                             options: reportAProblemTypeOptions,
                         },
                         {

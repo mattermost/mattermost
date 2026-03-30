@@ -80,7 +80,7 @@ describe('getReportAProblemLink', () => {
         expect(link).toContain(encodeURIComponent('- Platform: macOS'));
     });
 
-    it('should return a mailto link to reportaproblem@mattermost.com if licensed', () => {
+    it('should return a mailto link to reportaproblem@mattermost.com if licensed with a paid SKU', () => {
         const state = {
             entities: {
                 users: {
@@ -99,6 +99,7 @@ describe('getReportAProblemLink', () => {
                     },
                     license: {
                         IsLicensed: 'true',
+                        SkuShortName: 'professional',
                     },
                 },
             },
@@ -124,6 +125,26 @@ describe('getReportAProblemLink', () => {
                     },
                     license: {
                         IsLicensed: 'false',
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        expect(getReportAProblemLink(state)).toContain('https://mattermost.com/pl/report_a_problem_unlicensed');
+    });
+
+    it('should return the default unlicensed URL if licensed with entry SKU', () => {
+        const state = {
+            entities: {
+                general: {
+                    config: {
+                        ReportAProblemType: 'default',
+                        ReportAProblemLink: 'https://example.com/report',
+                        ReportAProblemMail: 'test@example.com',
+                    },
+                    license: {
+                        IsLicensed: 'true',
+                        SkuShortName: 'entry',
                     },
                 },
             },
