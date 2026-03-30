@@ -13,7 +13,7 @@ import SettingItemMin from 'components/setting_item_min';
 import type SettingItemMinComponent from 'components/setting_item_min';
 
 import {Constants} from 'utils/constants';
-import {initializeSystemThemeDetection, isSystemInDarkMode} from 'utils/theme_utils';
+import {isSystemInDarkMode} from 'utils/theme_utils';
 import {applyTheme} from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
@@ -34,9 +34,7 @@ type Props = {
     showAllTeamsCheckbox: boolean;
     applyToAllTeams: boolean;
     actions: {
-        saveTheme: (teamId: string, theme: Theme) => void;
-        saveDarkTheme: (teamId: string, theme: Theme) => void;
-        saveThemeAutoSwitch: (value: boolean) => void;
+        saveThemePreferences: (teamId: string, theme: Theme, themeAutoSwitch: boolean, darkTheme?: Theme) => void;
         deleteTeamSpecificThemes: () => void;
         openModal: <P>(modalData: ModalData<P>) => void;
     };
@@ -86,7 +84,8 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
 
     componentWillUnmount() {
         if (this.props.selected) {
-            applyTheme(this.props.theme);
+            const useDark = this.props.themeAutoSwitch && isSystemInDarkMode();
+            applyTheme(useDark ? this.props.darkTheme : this.props.theme);
         }
     }
 
@@ -123,11 +122,12 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
 
         this.setState({isSaving: true});
 
-        await this.props.actions.saveTheme(teamId, this.state.theme);
-        await this.props.actions.saveThemeAutoSwitch(this.state.themeAutoSwitch);
-        if (this.state.themeAutoSwitch) {
-            await this.props.actions.saveDarkTheme(teamId, this.state.darkTheme);
-        }
+        await this.props.actions.saveThemePreferences(
+            teamId,
+            this.state.theme,
+            this.state.themeAutoSwitch,
+            this.state.themeAutoSwitch ? this.state.darkTheme : undefined,
+        );
 
         // Apply the appropriate theme based on system preference when auto-switch is enabled
         if (isSystemInDarkMode() && this.state.themeAutoSwitch) {
@@ -148,18 +148,29 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
         this.setState({isSaving: false});
     };
 
-    updateTheme = (theme: Theme): void => {
-        let themeChanged = false;
+    hasUnsavedChanges = (
+        theme = this.state.theme,
+        darkTheme = this.state.darkTheme,
+        themeAutoSwitch = this.state.themeAutoSwitch,
+    ): boolean => {
+        if (this.originalThemeAutoSwitch !== themeAutoSwitch) {
+            return true;
+        }
         for (const field in theme) {
-            if (Object.hasOwn(theme, field)) {
-                if (this.state.theme[field] !== theme[field]) {
-                    themeChanged = true;
-                    break;
-                }
+            if (Object.hasOwn(theme, field) && this.originalTheme[field] !== theme[field]) {
+                return true;
             }
         }
+        for (const field in darkTheme) {
+            if (Object.hasOwn(darkTheme, field) && this.originalDarkTheme[field] !== darkTheme[field]) {
+                return true;
+            }
+        }
+        return false;
+    };
 
-        this.props.setRequireConfirm?.(themeChanged);
+    updateTheme = (theme: Theme): void => {
+        this.props.setRequireConfirm?.(this.hasUnsavedChanges(theme));
 
         this.setState({theme});
 
@@ -170,17 +181,7 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
     };
 
     updateDarkTheme = (darkTheme: Theme): void => {
-        let themeChanged = false;
-        for (const field in darkTheme) {
-            if (Object.hasOwn(darkTheme, field)) {
-                if (this.state.darkTheme[field] !== darkTheme[field]) {
-                    themeChanged = true;
-                    break;
-                }
-            }
-        }
-
-        this.props.setRequireConfirm?.(themeChanged);
+        this.props.setRequireConfirm?.(this.hasUnsavedChanges(undefined, darkTheme));
 
         this.setState({darkTheme});
 
@@ -197,14 +198,10 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
     toggleThemeAutoSwitch = (): void => {
         const themeAutoSwitch = !this.state.themeAutoSwitch;
         this.setState({themeAutoSwitch});
-        this.props.setRequireConfirm?.(this.originalThemeAutoSwitch !== themeAutoSwitch);
+        this.props.setRequireConfirm?.(this.hasUnsavedChanges(undefined, undefined, themeAutoSwitch));
 
-        // If auto-switch is being enabled, initialize the system theme detection
-        // and apply the appropriate theme based on the system preference
+        // Apply the appropriate theme immediately based on the current system preference
         if (themeAutoSwitch) {
-            initializeSystemThemeDetection();
-
-            // Apply the appropriate theme immediately based on the current system preference
             if (isSystemInDarkMode() && this.state.darkTheme) {
                 applyTheme(this.state.darkTheme);
             } else {
@@ -221,7 +218,7 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
         state.serverError = '';
         this.setState(state);
 
-        applyTheme(isSystemInDarkMode() ? state.darkTheme : state.theme);
+        applyTheme((state.themeAutoSwitch && isSystemInDarkMode()) ? state.darkTheme : state.theme);
 
         this.props.setRequireConfirm?.(false);
     };

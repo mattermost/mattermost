@@ -5,8 +5,10 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch, AnyAction} from 'redux';
 
-import {deleteTeamSpecificThemes, savePreferences, saveTheme} from 'mattermost-redux/actions/preferences';
+import {deleteTeamSpecificThemes, savePreferences} from 'mattermost-redux/actions/preferences';
+import {Preferences as ReduxPreferences} from 'mattermost-redux/constants';
 import {getTheme, getThemePreferences} from 'mattermost-redux/selectors/entities/preferences';
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId, getMyTeamsCount} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
@@ -60,30 +62,37 @@ function mapStateToProps(state: GlobalState) {
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
-            saveTheme,
-            saveDarkTheme: (teamId: string, theme: any) => {
-                const key = teamId || '';
+            saveThemePreferences: (teamId: string, theme: Theme, themeAutoSwitch: boolean, darkTheme?: Theme) => {
                 return (dispatch: Dispatch, getState: () => GlobalState) => {
                     const state = getState();
                     const currentUserId = getCurrentUserId(state);
-                    return dispatch(savePreferences(currentUserId, [{
-                        user_id: currentUserId,
-                        category: 'theme_dark',
-                        name: key,
-                        value: JSON.stringify(theme),
-                    }]) as unknown as AnyAction);
-                };
-            },
-            saveThemeAutoSwitch: (value: boolean) => {
-                return (dispatch: Dispatch, getState: () => GlobalState) => {
-                    const state = getState();
-                    const currentUserId = getCurrentUserId(state);
-                    return dispatch(savePreferences(currentUserId, [{
-                        user_id: currentUserId,
-                        category: Preferences.CATEGORY_DISPLAY_SETTINGS,
-                        name: 'theme_auto_switch',
-                        value: value.toString(),
-                    }]) as unknown as AnyAction);
+                    const key = teamId || '';
+
+                    const preferences = [
+                        {
+                            user_id: currentUserId,
+                            category: ReduxPreferences.CATEGORY_THEME,
+                            name: key,
+                            value: JSON.stringify(theme),
+                        },
+                        {
+                            user_id: currentUserId,
+                            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+                            name: 'theme_auto_switch',
+                            value: themeAutoSwitch.toString(),
+                        },
+                    ];
+
+                    if (darkTheme) {
+                        preferences.push({
+                            user_id: currentUserId,
+                            category: 'theme_dark',
+                            name: key,
+                            value: JSON.stringify(darkTheme),
+                        });
+                    }
+
+                    return dispatch(savePreferences(currentUserId, preferences) as unknown as AnyAction);
                 };
             },
             deleteTeamSpecificThemes,

@@ -157,7 +157,7 @@ func (o *Preference) IsValid() *AppError {
 		}
 	}
 
-	if o.Name == PreferenceNameThemeAutoSwitch {
+	if o.Category == PreferenceCategoryDisplaySettings && o.Name == PreferenceNameThemeAutoSwitch {
 		if o.Value != "true" && o.Value != "false" {
 			return NewAppError("Preference.IsValid", "model.preference.is_valid.theme_auto_switch.app_error", nil, "value="+o.Value, http.StatusBadRequest)
 		}
