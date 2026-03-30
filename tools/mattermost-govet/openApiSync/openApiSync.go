@@ -38,7 +38,7 @@ func init() {
 }
 
 // formatNode converts AST node to string
-func formatNode(fset *token.FileSet, node interface{}) string {
+func formatNode(fset *token.FileSet, node any) string {
 	var typeNameBuf bytes.Buffer
 	_ = printer.Fprint(&typeNameBuf, fset, node)
 	return typeNameBuf.String()
@@ -217,7 +217,7 @@ func validateComments(pass *analysis.Pass) ([]string, map[string]string) {
 	return initFunctions, routerPrefixes
 }
 
-func run(pass *analysis.Pass) (interface{}, error) {
+func run(pass *analysis.Pass) (any, error) {
 	if specFile == "" {
 		return nil, errors.New("Please supply a path to OpenAPI spec yaml file via -openApiSync.spec")
 	}
