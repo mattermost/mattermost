@@ -15,7 +15,7 @@ This repository contains mattermost-specific go-vet rules that are used to maint
 1. **emptyStrCmp** - check for idiomatic empty string comparisons
 1. **pointerToSlice** - check for usage of pointer to slice in function definitions
 1. **mutexLock** - check for cases where a mutex is left locked before returning
-1. **wrapError** - check for original errors being passed as details rather then wrapped
+1. **wrapError** - check for original errors being passed as details rather than wrapped
 1. **noSelectStar** - check for SQL queries using SELECT * which breaks forwards compatibility
 1. **requestCtxNaming** - check that request.CTX parameters are consistently named 'rctx'
 
@@ -25,7 +25,7 @@ Mattermost Go Vet is designed to run against the `mattermost/mattermost` repo. I
 
 The following can be used to test locally:
 
-```
+```bash
 # ENV vars
 MM_ROOT=</path/to/mattermost/>
 MM_GOVET=</path/to/mattermost-govet>
