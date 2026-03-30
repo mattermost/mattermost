@@ -42,13 +42,19 @@ func SetTestHasher(h PasswordHasher) {
 	testHasher = h
 }
 
+// fastTestHasherWorkFactor is the minimum iteration count that the OpenSSL 3.x
+// FIPS provider accepts for PBKDF2 (NIST SP 800-132 floor). Using anything
+// lower causes PKCS5_PBKDF2_HMAC to fail with "invalid iteration count" in
+// FIPS mode. This is still ~600x faster than the production default (600000).
+const fastTestHasherWorkFactor = 1000
+
 // FastTestHasher returns a PBKDF2 hasher configured with minimal work factor
 // for use in tests while still producing valid password hashes that can be
 // verified.
 //
 // This function is only available in non-production builds.
 func FastTestHasher() PasswordHasher {
-	h, err := NewPBKDF2(1, defaultKeyLength)
+	h, err := NewPBKDF2(fastTestHasherWorkFactor, defaultKeyLength)
 	if err != nil {
 		panic("failed to create fast test hasher: " + err.Error())
 	}
