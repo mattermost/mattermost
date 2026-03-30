@@ -3,6 +3,7 @@
 
 import {parseISO, isValid, format} from 'date-fns';
 import type {Moment} from 'moment-timezone';
+import moment from 'moment-timezone';
 
 import {getCurrentMomentForTimezone, parseDateInTimezone} from './timezone';
 
@@ -185,5 +186,29 @@ export function dateToString(date: Date | null): string | null {
         return null;
     }
     return format(date, DATE_FORMAT);
+}
+
+/**
+ * Convert a Moment to a local Date for react-day-picker
+ * Preserves year/month/day without UTC shift
+ */
+export function momentToLocalDate(m: Moment | null | undefined): Date | undefined {
+    if (!m) {
+        return undefined;
+    }
+    return new Date(m.year(), m.month(), m.date());
+}
+
+/**
+ * Round a moment time UP to the next interval boundary.
+ * e.g. with a 30-minute interval, 3:17 PM → 3:30 PM, 3:00 PM → 3:00 PM
+ */
+export function getRoundedTime(value: Moment, roundedTo = 30): Moment {
+    const diff = value.minute() % roundedTo;
+    if (diff === 0) {
+        return moment(value).seconds(0).milliseconds(0);
+    }
+    const remainder = roundedTo - diff;
+    return moment(value).add(remainder, 'm').seconds(0).milliseconds(0);
 }
 

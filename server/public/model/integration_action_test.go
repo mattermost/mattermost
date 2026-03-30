@@ -1366,7 +1366,8 @@ func TestValidateDateTimeFormat(t *testing.T) {
 		{"invalid date part", "2025-13-01T10:30:00Z", true},
 		{"invalid time part", "2025-01-15T25:30:00Z", true},
 		{"invalid timezone format", "2025-01-15T10:30:00GMT", true},
-		{"date only format", "2025-01-15", true},
+		// backward compat: date-only strings are accepted, treated as start-of-day
+		{"date only format", "2025-01-15", false},
 		{"empty string", "", false}, // Empty string is valid (no error)
 		{"invalid format with space", "2025-01-15 10:30:00", true},
 	}
@@ -1437,6 +1438,68 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 		}
 		err := element.IsValid()
 		assert.NoError(t, err)
+	})
+
+	t.Run("should validate DateTimeConfig fields", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Test DateTime",
+			Name:        "test_datetime",
+			Type:        "datetime",
+			DateTimeConfig: &DialogDateTimeConfig{
+				TimeInterval: 30,
+				MinDate:      "2025-01-01T00:00:00Z",
+				MaxDate:      "+7d",
+			},
+			Optional: false,
+		}
+		err := element.IsValid()
+		assert.NoError(t, err)
+	})
+
+	t.Run("should reject invalid DateTimeConfig.TimeInterval", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Test DateTime",
+			Name:        "test_datetime",
+			Type:        "datetime",
+			DateTimeConfig: &DialogDateTimeConfig{
+				TimeInterval: 7, // not a divisor of 1440
+			},
+			Optional: false,
+		}
+		err := element.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "time_interval must be a divisor of 1440")
+	})
+
+	t.Run("should reject invalid DateTimeConfig.MinDate", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Test DateTime",
+			Name:        "test_datetime",
+			Type:        "datetime",
+			DateTimeConfig: &DialogDateTimeConfig{
+				MinDate: "not-a-date",
+			},
+			Optional: false,
+		}
+		err := element.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid datetime format")
+	})
+
+	t.Run("should prefer DateTimeConfig.TimeInterval over top-level", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:  "Test DateTime",
+			Name:         "test_datetime",
+			Type:         "datetime",
+			TimeInterval: 30, // valid top-level
+			DateTimeConfig: &DialogDateTimeConfig{
+				TimeInterval: 7, // invalid nested — should be used for validation
+			},
+			Optional: false,
+		}
+		err := element.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "time_interval must be a divisor of 1440")
 	})
 
 	t.Run("should reject DialogElement with invalid min_date", func(t *testing.T) {

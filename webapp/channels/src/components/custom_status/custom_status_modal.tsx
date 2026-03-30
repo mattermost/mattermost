@@ -26,13 +26,14 @@ import {makeGetCustomStatus, getRecentCustomStatuses, showStatusDropdownPulsatin
 
 import CustomStatusSuggestion from 'components/custom_status/custom_status_suggestion';
 import ExpiryMenu from 'components/custom_status/expiry_menu';
-import DateTimeInput, {getRoundedTime} from 'components/datetime_input/datetime_input';
+import DateTimeInput from 'components/datetime_input/datetime_input';
 import RenderEmoji from 'components/emoji/render_emoji';
 import useEmojiPicker from 'components/emoji_picker/use_emoji_picker';
 import QuickInput, {MaxLengthInput} from 'components/quick_input';
 import EmojiIcon from 'components/widgets/icons/emoji_icon';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';
+import {getRoundedTime} from 'utils/date_utils';
 import {isKeyPressed} from 'utils/keyboard';
 import {getCurrentMomentForTimezone} from 'utils/timezone';
 

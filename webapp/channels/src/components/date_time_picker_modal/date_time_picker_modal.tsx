@@ -10,9 +10,10 @@ import {GenericModal} from '@mattermost/components';
 
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
-import DateTimeInput, {getRoundedTime} from 'components/datetime_input/datetime_input';
+import DateTimeInput from 'components/datetime_input/datetime_input';
 
 import Constants from 'utils/constants';
+import {getRoundedTime} from 'utils/date_utils';
 import {isKeyPressed} from 'utils/keyboard';
 import {getCurrentMomentForTimezone} from 'utils/timezone';
 
@@ -35,6 +36,8 @@ type Props = {
     className?: string;
     errorText?: string | React.ReactNode;
     timePickerInterval?: number;
+    minDateTime?: Moment;
+    maxDateTime?: Moment;
 };
 
 export default function DateTimePickerModal({
@@ -54,6 +57,8 @@ export default function DateTimePickerModal({
     className,
     errorText,
     timePickerInterval,
+    minDateTime,
+    maxDateTime,
 }: Props) {
     const userTimezone = useSelector(getCurrentTimezone);
     const currentTime = getCurrentMomentForTimezone(userTimezone);
@@ -124,6 +129,8 @@ export default function DateTimePickerModal({
                 setIsInteracting={setIsInteracting}
                 relativeDate={relativeDate}
                 timePickerInterval={timePickerInterval}
+                minDateTime={minDateTime}
+                maxDateTime={maxDateTime}
             />
 
             {bodySuffix}

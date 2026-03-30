@@ -83,7 +83,15 @@ func processRecapJob(logger mlog.LoggerIFace, job *model.Job, storeInstance stor
 	}
 
 	// Update recap with final data (title is already set by user in CreateRecap)
-	recap, _ := storeInstance.Recap().GetRecap(recapID)
+	recap, err := storeInstance.Recap().GetRecap(recapID)
+	if err != nil {
+		logger.Error("Failed to fetch recap for final update",
+			mlog.String("recap_id", recapID),
+			mlog.Err(err))
+		_ = storeInstance.Recap().UpdateRecapStatus(recapID, model.RecapStatusFailed)
+		publishRecapUpdate(appInstance, recapID, userID)
+		return fmt.Errorf("failed to fetch recap: %w", err)
+	}
 	recap.TotalMessageCount = totalMessages
 	recap.UpdateAt = model.GetMillis()
 
