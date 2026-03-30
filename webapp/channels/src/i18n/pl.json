@@ -6142,6 +6142,7 @@
   "suggestion.emoji": "Emoji",
   "suggestion.group.members": "{member_count} {member_count, plural, one {członek} other {członków}}",
   "suggestion.group_channel": "Kanał grupowy",
+  "suggestion.mention.agents": "Agenci",
   "suggestion.mention.all": "Powiadamia wszystkich na tym kanale",
   "suggestion.mention.channel": "Powiadamia wszystkich na tym kanale",
   "suggestion.mention.channels": "Moje kanały",
