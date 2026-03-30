@@ -4155,6 +4155,145 @@ components:
         reason:
           type: string
           description: Reason code if not available (translation ID)
+    AIBridgeTestHelperStatus:
+      type: object
+      properties:
+        available:
+          type: boolean
+          description: Whether the mocked AI bridge should be reported as available
+        reason:
+          type: string
+          description: Optional reason code when the mocked AI bridge is unavailable
+    AIBridgeTestHelperFeatureFlags:
+      type: object
+      properties:
+        enable_ai_plugin_bridge:
+          type: boolean
+          description: Override for the EnableAIPluginBridge feature flag in test mode
+        enable_ai_recaps:
+          type: boolean
+          description: Override for the EnableAIRecaps feature flag in test mode
+    AIBridgeTestHelperCompletion:
+      type: object
+      properties:
+        completion:
+          type: string
+          description: Mocked completion payload returned for a queued bridge operation
+        error:
+          type: string
+          description: Mocked error message returned for a queued bridge operation
+        status_code:
+          type: integer
+          description: Optional HTTP-style status code associated with a mocked error
+    AIBridgeTestHelperMessage:
+      type: object
+      properties:
+        role:
+          type: string
+          description: Role associated with the message payload
+        message:
+          type: string
+          description: Message content sent through the AI bridge
+        file_ids:
+          type: array
+          description: Optional file IDs attached to the bridge message
+          items:
+            type: string
+    AIBridgeTestHelperConfig:
+      type: object
+      properties:
+        status:
+          $ref: "#/components/schemas/AIBridgeTestHelperStatus"
+        agents:
+          type: array
+          items:
+            $ref: "#/components/schemas/BridgeAgentInfo"
+          description: Mock agent list returned from the bridge
+        services:
+          type: array
+          items:
+            $ref: "#/components/schemas/BridgeServiceInfo"
+          description: Mock service list returned from the bridge
+        agent_completions:
+          type: object
+          description: Queued mocked completion responses keyed by explicit bridge operation name
+          additionalProperties:
+            type: array
+            items:
+              $ref: "#/components/schemas/AIBridgeTestHelperCompletion"
+        feature_flags:
+          $ref: "#/components/schemas/AIBridgeTestHelperFeatureFlags"
+        record_requests:
+          type: boolean
+          description: Whether bridge requests should be recorded for later inspection
+    AIBridgeTestHelperRecordedRequest:
+      type: object
+      properties:
+        operation:
+          type: string
+          description: Explicit bridge operation key such as recap_summary or rewrite
+        client_operation:
+          type: string
+          description: Client-facing operation routed through the bridge client
+        operation_sub_type:
+          type: string
+          description: Optional subtype used to disambiguate bridge requests
+        session_user_id:
+          type: string
+          description: Session user ID used when invoking the bridge
+        user_id:
+          type: string
+          description: Optional effective user ID passed through the bridge request
+        channel_id:
+          type: string
+          description: Optional channel context passed through the bridge request
+        agent_id:
+          type: string
+          description: Agent ID targeted by the bridge completion request
+        service_id:
+          type: string
+          description: Service ID targeted by the bridge completion request
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/AIBridgeTestHelperMessage"
+          description: Bridge messages sent for the recorded request
+        json_output_format:
+          type: object
+          description: Optional JSON schema requested for structured bridge output
+          additionalProperties: true
+    AIBridgeTestHelperState:
+      type: object
+      properties:
+        status:
+          $ref: "#/components/schemas/AIBridgeTestHelperStatus"
+        agents:
+          type: array
+          items:
+            $ref: "#/components/schemas/BridgeAgentInfo"
+          description: Current mocked agent list
+        services:
+          type: array
+          items:
+            $ref: "#/components/schemas/BridgeServiceInfo"
+          description: Current mocked service list
+        agent_completions:
+          type: object
+          description: Remaining queued mocked completions keyed by bridge operation
+          additionalProperties:
+            type: array
+            items:
+              $ref: "#/components/schemas/AIBridgeTestHelperCompletion"
+        feature_flags:
+          $ref: "#/components/schemas/AIBridgeTestHelperFeatureFlags"
+        record_requests:
+          type: boolean
+          description: Whether bridge request recording is currently enabled
+        recorded_requests:
+          type: array
+          description: Recorded bridge requests captured while record_requests was enabled
+          items:
+            $ref: "#/components/schemas/AIBridgeTestHelperRecordedRequest"
     PostAcknowledgement:
       type: object
       properties:
