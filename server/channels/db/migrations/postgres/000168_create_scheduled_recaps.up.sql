@@ -1,3 +1,4 @@
+-- morph:nontransactional
 -- ScheduledRecaps table: stores scheduled recap configuration
 CREATE TABLE IF NOT EXISTS ScheduledRecaps (
     Id VARCHAR(26) PRIMARY KEY,
