@@ -90,6 +90,7 @@ type Store interface {
 	DesktopTokens() DesktopTokensStore
 	ChannelBookmark() ChannelBookmarkStore
 	ScheduledPost() ScheduledPostStore
+	View() ViewStore
 	PropertyGroup() PropertyGroupStore
 	PropertyField() PropertyFieldStore
 	PropertyValue() PropertyValueStore
@@ -1101,6 +1102,16 @@ type ChannelBookmarkStore interface {
 	GetBookmarksForChannelSince(channelID string, since int64) ([]*model.ChannelBookmarkWithFileInfo, error)
 }
 
+type ViewStore interface {
+	Save(view *model.View) (*model.View, error)
+	Get(id string) (*model.View, error)
+	GetForChannel(channelID string, opts model.ViewQueryOpts) ([]*model.View, error)
+	CountForChannel(channelID string, opts model.ViewQueryOpts) (int64, error)
+	Update(view *model.View) (*model.View, error)
+	Delete(viewID string, deleteAt int64) error
+	UpdateSortOrder(viewID, channelID string, newIndex int64) ([]*model.View, error)
+}
+
 type ScheduledPostStore interface {
 	GetMaxMessageSize() int
 	CreateScheduledPost(scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error)
@@ -1128,6 +1139,7 @@ type PropertyFieldStore interface {
 	SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
 	Update(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error)
 	Delete(groupID string, id string) error
+	CheckPropertyNameConflict(field *model.PropertyField, excludeID string) (model.PropertyFieldTargetLevel, error)
 }
 
 type PropertyValueStore interface {
