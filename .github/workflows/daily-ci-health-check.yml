@@ -114,8 +114,8 @@ jobs:
       - name: notify/send-mattermost-alert
         uses: mattermost/action-mattermost-notify@b7d118e440bf2749cd18a4a8c88e7092e696257a
         with:
-          MATTERMOST_WEBHOOK_URL: ${{ secrets.MM_CI_HEALTH_WEBHOOK_URL }}
-          MATTERMOST_CHANNEL: ci-health-alerts
+          MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_TEST_DELIVERY_WEBHOOK }}
+          MATTERMOST_CHANNEL: core-developers
           MATTERMOST_USERNAME: CI Health Bot
           MATTERMOST_ICON_URL: https://avatars.githubusercontent.com/in/276366?s=120&u=b2ac433ba55fc41babb3c6079477f5ead172c543&v=4
           TEXT: |
