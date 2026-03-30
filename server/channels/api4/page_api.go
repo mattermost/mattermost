@@ -92,7 +92,6 @@ func getWikiPage(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("getWikiPage", "api.wiki.page_wiki_mismatch.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
-
 	if err := json.NewEncoder(w).Encode(page); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}

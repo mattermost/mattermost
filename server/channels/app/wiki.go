@@ -422,7 +422,7 @@ func (a *App) GetWikiIdForPost(rctx request.CTX, post *model.Post) (string, *mod
 	}
 
 	// Fallback: query PropertyValues (source of truth)
-	wikiId, propErr := a.getWikiIdFromPropertyValues(rctx, post.Id)
+	wikiId, propErr := a.getWikiIdFromPropertyValues(post.Id)
 	if propErr != nil {
 		rctx.Logger().Debug("GetWikiIdForPost: PropertyValues lookup failed",
 			mlog.String("page_id", post.Id),
@@ -433,7 +433,7 @@ func (a *App) GetWikiIdForPost(rctx request.CTX, post *model.Post) (string, *mod
 	return wikiId, nil
 }
 
-func (a *App) getWikiIdFromPropertyValues(rctx request.CTX, pageId string) (string, error) {
+func (a *App) getWikiIdFromPropertyValues(pageId string) (string, error) {
 	group, grpErr := a.GetPagePropertyGroup()
 	if grpErr != nil {
 		return "", grpErr

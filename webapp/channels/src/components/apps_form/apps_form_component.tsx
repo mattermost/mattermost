@@ -226,7 +226,6 @@ const initFormValues = (form: AppForm, timezone?: string): AppFormValues => {
                     defaultMoment = maxMoment.clone();
                 }
 
-
                 defaultValue = momentToString(defaultMoment, true);
             }
 

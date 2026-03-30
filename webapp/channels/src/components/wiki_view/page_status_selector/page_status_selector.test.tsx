@@ -28,6 +28,11 @@ describe('components/wiki_view/page_status_selector/PageStatusSelector', () => {
         create_at: 1000,
         update_at: 1000,
         delete_at: 0,
+        target_id: '',
+        target_type: '',
+        object_type: '',
+        created_by: '',
+        updated_by: '',
         options: [
             {id: 'in-progress', value: 'In progress', color: '#1E90FF'},
             {id: 'review', value: 'Review', color: '#FFD700'},

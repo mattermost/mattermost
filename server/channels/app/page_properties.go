@@ -345,11 +345,5 @@ func (a *App) EnrichPagesWithProperties(rctx request.CTX, postList *model.PostLi
 		page.SetProps(props)
 	}
 
-	rctx.Logger().Debug("EnrichPagesWithProperties: completed",
-		mlog.Int("pages_processed", len(pageIds)),
-		mlog.Int("statuses_found", len(statusMap)),
-		mlog.Int("wiki_ids_found", len(wikiMap)),
-		mlog.Bool("used_master", shouldUseMaster))
-
 	return nil
 }

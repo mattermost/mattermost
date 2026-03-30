@@ -10,7 +10,3 @@ CREATE TABLE IF NOT EXISTS Wikis (
     DeleteAt BIGINT NOT NULL DEFAULT 0,
     SortOrder BIGINT NOT NULL DEFAULT 0
 );
-
-CREATE INDEX idx_wikis_channel_id ON Wikis(ChannelId);
-CREATE INDEX idx_wikis_channel_id_delete_at ON Wikis(ChannelId) WHERE DeleteAt = 0;
-CREATE INDEX idx_wikis_props ON Wikis USING GIN (Props);

@@ -432,7 +432,6 @@ function PostComponent(props: Props) {
 
     const isSearchPopoutWindow = useMemo(() => isPopoutWindow() && isSearchResultItem, [isSearchResultItem]);
     const handleCommentClick = useCallback((e: React.MouseEvent, pagePost?: Post | null) => {
-
         e.preventDefault();
 
         if (!post) {
@@ -451,7 +450,6 @@ function PostComponent(props: Props) {
         }
         selectPostFromRightHandSideSearch(post);
     }, [post, props.teamName, selectPostFromRightHandSideSearch, isSearchPopoutWindow]);
-
 
     const handleThreadClick = useCallback((e: React.MouseEvent) => {
         if (isSearchPopoutWindow || props.currentTeam?.id === teamId) {
