@@ -116,62 +116,44 @@ func (pas *PropertyAccessService) CreatePropertyField(callerID string, field *mo
 // source plugin may create linked fields. The linked field's access_mode must
 // match the source's — divergence is rejected to avoid a false sense of
 // security (callers can always inspect the template directly).
-// Inherits: Protected, Attrs[protected], Attrs[source_plugin_id], Attrs[access_mode].
-// Permission levels are inherited separately in createPropertyField.
+// Inherits: Attrs[protected], Attrs[source_plugin_id], Attrs[access_mode].
 func (pas *PropertyAccessService) validateAndInheritLinkedFieldSecurity(callerID string, field *model.PropertyField) error {
 	source, err := pas.propertyService.getPropertyField("", *field.LinkedFieldID)
 	if err != nil {
-		// Source validation (existence, deleted, template, etc.) is handled
-		// by createPropertyField — skip security checks here.
+		return model.NewAppError(
+			"CreatePropertyField",
+			"app.property_field.create.linked_source_not_found.app_error",
+			nil,
+			fmt.Sprintf("linked source field %q not found", *field.LinkedFieldID),
+			http.StatusBadRequest,
+		)
+	}
+
+	if source.Attrs == nil || !model.IsPropertyFieldProtected(source) {
 		return nil
 	}
 
-	// If source is protected, only the source plugin can create linked fields
-	if model.IsPropertyFieldProtected(source) {
-		sourcePluginID := pas.getSourcePluginID(source)
-		if sourcePluginID == "" || callerID != sourcePluginID {
-			return model.NewAppError(
-				"CreatePropertyField",
-				"app.property_field.create.linked_source_protected.app_error",
-				nil,
-				"only the source plugin can create linked fields from a protected template",
-				http.StatusForbidden,
-			)
-		}
+	sourcePluginID := pas.getSourcePluginID(source)
+	if sourcePluginID == "" || callerID != sourcePluginID {
+		return model.NewAppError(
+			"CreatePropertyField",
+			"app.property_field.create.linked_source_protected.app_error",
+			nil,
+			"only the source plugin can create linked fields from a protected template",
+			http.StatusForbidden,
+		)
 	}
 
-	// Reject if caller set a different access_mode than the source
-	sourceAccessMode := pas.getAccessMode(source)
-	if field.Attrs != nil {
-		if callerAccessMode, ok := field.Attrs[model.PropertyAttrsAccessMode].(string); ok && callerAccessMode != sourceAccessMode {
-			return model.NewAppError(
-				"CreatePropertyField",
-				"app.property_field.create.linked_access_mode_mismatch.app_error",
-				nil,
-				fmt.Sprintf("linked field access_mode %q must match source template access_mode %q", callerAccessMode, sourceAccessMode),
-				http.StatusBadRequest,
-			)
-		}
-	}
-
-	// Inherit access-control attributes from source template.
-	// Note: field.Protected (struct bool) is NOT inherited here — it has
-	// different semantics (enforces PermissionField=none) and is managed
-	// by the App/API layer, not the access control service.
 	if field.Attrs == nil {
 		field.Attrs = make(model.StringInterface)
 	}
-	if source.Attrs != nil {
-		if v, ok := source.Attrs[model.PropertyAttrsProtected]; ok {
-			field.Attrs[model.PropertyAttrsProtected] = v
-		}
-		if v, ok := source.Attrs[model.PropertyAttrsSourcePluginID]; ok {
-			field.Attrs[model.PropertyAttrsSourcePluginID] = v
-		}
-		if v, ok := source.Attrs[model.PropertyAttrsAccessMode]; ok {
-			field.Attrs[model.PropertyAttrsAccessMode] = v
-		}
+
+	field.Attrs[model.PropertyAttrsProtected] = true
+	field.Attrs[model.PropertyAttrsSourcePluginID] = sourcePluginID
+	if v, ok := source.Attrs[model.PropertyAttrsAccessMode]; ok {
+		field.Attrs[model.PropertyAttrsAccessMode] = v
 	}
+
 	return nil
 }
 
