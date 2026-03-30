@@ -112,13 +112,16 @@ type CPAField struct {
 }
 
 type CPAAttrs struct {
-	Visibility string                                                `json:"visibility"`
-	SortOrder  float64                                               `json:"sort_order"`
-	Options    PropertyOptions[*CustomProfileAttributesSelectOption] `json:"options"`
-	ValueType  string                                                `json:"value_type"`
-	LDAP       string                                                `json:"ldap"`
-	SAML       string                                                `json:"saml"`
-	Managed    string                                                `json:"managed"`
+	Visibility     string                                                `json:"visibility"`
+	SortOrder      float64                                               `json:"sort_order"`
+	Options        PropertyOptions[*CustomProfileAttributesSelectOption] `json:"options"`
+	ValueType      string                                                `json:"value_type"`
+	LDAP           string                                                `json:"ldap"`
+	SAML           string                                                `json:"saml"`
+	Managed        string                                                `json:"managed"`
+	Protected      bool                                                  `json:"protected"`
+	SourcePluginID string                                                `json:"source_plugin_id"`
+	AccessMode     string                                                `json:"access_mode"`
 }
 
 func (c *CPAField) IsSynced() bool {
@@ -148,7 +151,7 @@ func (c *CPAField) Patch(patch *PropertyFieldPatch) error {
 	pf := c.ToPropertyField()
 
 	// Apply the patch using PropertyField's patch logic
-	pf.Patch(patch)
+	pf.Patch(patch, false)
 
 	// Convert back to CPAField
 	patched, err := NewCPAFieldFromPropertyField(pf)
@@ -173,6 +176,9 @@ func (c *CPAField) ToPropertyField() *PropertyField {
 		CustomProfileAttributesPropertyAttrsLDAP:       c.Attrs.LDAP,
 		CustomProfileAttributesPropertyAttrsSAML:       c.Attrs.SAML,
 		CustomProfileAttributesPropertyAttrsManaged:    c.Attrs.Managed,
+		PropertyAttrsProtected:                         c.Attrs.Protected,
+		PropertyAttrsSourcePluginID:                    c.Attrs.SourcePluginID,
+		PropertyAttrsAccessMode:                        c.Attrs.AccessMode,
 	}
 
 	return &pf

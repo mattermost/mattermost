@@ -53,7 +53,7 @@ type Params = {
     connection_id: 'create' | RemoteCluster['remote_id'];
 };
 
-type Props = Params & {
+type Props = {
     disabled: boolean;
 }
 

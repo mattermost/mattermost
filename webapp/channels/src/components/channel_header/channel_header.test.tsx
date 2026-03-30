@@ -27,7 +27,7 @@ describe('components/ChannelHeader', () => {
             showChannelMembers: jest.fn(),
             fetchChannelRemotes: jest.fn(),
         },
-        teamId: 'team_id',
+        team: TestHelper.getTeamMock({id: 'team_id'}),
         channel: TestHelper.getChannelMock({}),
         channelMember: TestHelper.getChannelMembershipMock({}),
         currentUser: TestHelper.getUserMock({}),
@@ -55,6 +55,7 @@ describe('components/ChannelHeader', () => {
         intl: {
             formatMessage: jest.fn(({id, defaultMessage}) => defaultMessage || id),
         } as MockIntl,
+        isChannelAutotranslated: false,
     };
 
     const populatedProps = {

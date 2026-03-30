@@ -113,7 +113,14 @@ type IndexingProgress struct {
 func (ip *IndexingProgress) CurrentProgress() int64 {
 	current := ip.DonePostsCount + ip.DoneChannelsCount + ip.DoneUsersCount + ip.DoneFilesCount
 	total := ip.TotalPostsCount + ip.TotalChannelsCount + ip.TotalFilesCount + ip.TotalUsersCount
-	return current * 100 / total
+	if total == 0 {
+		return 100
+	}
+	progress := current * 100 / total
+	if progress > 100 {
+		return 100
+	}
+	return progress
 }
 
 func (ip *IndexingProgress) IsDone(job *model.Job) bool {
@@ -292,6 +299,11 @@ func (worker *IndexerWorker) DoJob(job *model.Job) {
 			job.Data["done_users_count"] = strconv.FormatInt(progress.DoneUsersCount, 10)
 			job.Data["done_files_count"] = strconv.FormatInt(progress.DoneFilesCount, 10)
 
+			job.Data["total_posts_count"] = strconv.FormatInt(progress.TotalPostsCount, 10)
+			job.Data["total_channels_count"] = strconv.FormatInt(progress.TotalChannelsCount, 10)
+			job.Data["total_users_count"] = strconv.FormatInt(progress.TotalUsersCount, 10)
+			job.Data["total_files_count"] = strconv.FormatInt(progress.TotalFilesCount, 10)
+
 			job.Data["start_time"] = strconv.FormatInt(progress.LastEntityTime, 10)
 			job.Data["start_post_id"] = progress.LastPostID
 			job.Data["start_channel_id"] = progress.LastChannelID
@@ -404,6 +416,10 @@ func (worker *IndexerWorker) BulkIndexPosts(posts []*model.PostForIndexing, prog
 			*worker.jobServer.Config().ElasticsearchSettings.IndexPrefix+IndexBasePosts_MONTH, progress.Now, post.CreateAt)
 
 		if post.Type == model.PostTypeBurnOnRead {
+			continue
+		}
+		// FIXME(IntegratedBoardMVP): Temporarily excluded
+		if post.Type == model.PostTypeCard {
 			continue
 		}
 
@@ -793,25 +809,45 @@ func setStartEntityIDs(progress IndexingProgress, job *model.Job) IndexingProgre
 	return progress
 }
 
+// entityCountFallback returns the best available fallback for a total entity count when the
+// analytics query fails. It prefers a previously stored value from job.Data, then the hardcoded
+// estimate, and finally ensures the result is never less than what has already been processed.
+func entityCountFallback(job *model.Job, dataKey string, estimate, doneCount int64) int64 {
+	fallback := estimate
+	if stored, ok := job.Data[dataKey]; ok {
+		if v, err := strconv.ParseInt(stored, 10, 64); err == nil && v > 0 {
+			fallback = v
+		}
+	}
+	if doneCount > fallback {
+		fallback = doneCount
+	}
+	return fallback
+}
+
 func setEntityCount(logger mlog.LoggerIFace, jobServer *jobs.JobServer, progress IndexingProgress, job *model.Job) IndexingProgress {
 	if job.Data["index_posts"] == "true" {
 		// Counting all posts may fail or timeout when the posts table is large. If this happens, log a warning, but carry
 		// on with the indexing job anyway. The only issue is that the progress % reporting will be inaccurate.
 		if count, err := jobServer.Store.Post().AnalyticsPostCount(&model.PostCountOptions{}); err != nil {
-			logger.Warn("Worker: Failed to fetch total post count for job. An estimated value will be used for progress reporting.", mlog.Int("estimatedPostCount", estimatedPostCount), mlog.Err(err))
-			progress.TotalPostsCount = estimatedPostCount
+			fallback := entityCountFallback(job, "total_posts_count", estimatedPostCount, progress.DonePostsCount)
+			logger.Warn("Worker: Failed to fetch total post count for job. A fallback value will be used for progress reporting.", mlog.Int("fallbackPostCount", fallback), mlog.Err(err))
+			progress.TotalPostsCount = fallback
 		} else {
 			progress.TotalPostsCount = count
+			job.Data["total_posts_count"] = strconv.FormatInt(count, 10)
 		}
 	}
 
 	if job.Data["index_channels"] == "true" {
 		// Same possible fail as above can happen when counting channels
 		if count, err := jobServer.Store.Channel().AnalyticsTypeCount("", ""); err != nil {
-			logger.Warn("Worker: Failed to fetch total channel count for job. An estimated value will be used for progress reporting.", mlog.Int("estimatedChannelCount", estimatedChannelCount), mlog.Err(err))
-			progress.TotalChannelsCount = estimatedChannelCount
+			fallback := entityCountFallback(job, "total_channels_count", estimatedChannelCount, progress.DoneChannelsCount)
+			logger.Warn("Worker: Failed to fetch total channel count for job. A fallback value will be used for progress reporting.", mlog.Int("fallbackChannelCount", fallback), mlog.Err(err))
+			progress.TotalChannelsCount = fallback
 		} else {
 			progress.TotalChannelsCount = count
+			job.Data["total_channels_count"] = strconv.FormatInt(count, 10)
 		}
 	}
 
@@ -821,20 +857,24 @@ func setEntityCount(logger mlog.LoggerIFace, jobServer *jobs.JobServer, progress
 			IncludeBotAccounts: true, // This actually doesn't join with the bots table
 			// since ExcludeRegularUsers is set to false
 		}); err != nil {
-			logger.Warn("Worker: Failed to fetch total user count for job. An estimated value will be used for progress reporting.", mlog.Int("estimatedUserCount", estimatedUserCount), mlog.Err(err))
-			progress.TotalUsersCount = estimatedUserCount
+			fallback := entityCountFallback(job, "total_users_count", estimatedUserCount, progress.DoneUsersCount)
+			logger.Warn("Worker: Failed to fetch total user count for job. A fallback value will be used for progress reporting.", mlog.Int("fallbackUserCount", fallback), mlog.Err(err))
+			progress.TotalUsersCount = fallback
 		} else {
 			progress.TotalUsersCount = count
+			job.Data["total_users_count"] = strconv.FormatInt(count, 10)
 		}
 	}
 
 	if job.Data["index_files"] == "true" {
 		// Same possible fail as above can happen when counting files
 		if count, err := jobServer.Store.FileInfo().CountAll(); err != nil {
-			logger.Warn("Worker: Failed to fetch total files count for job. An estimated value will be used for progress reporting.", mlog.Int("estimatedFilesCount", estimatedFilesCount), mlog.Err(err))
-			progress.TotalFilesCount = estimatedFilesCount
+			fallback := entityCountFallback(job, "total_files_count", estimatedFilesCount, progress.DoneFilesCount)
+			logger.Warn("Worker: Failed to fetch total files count for job. A fallback value will be used for progress reporting.", mlog.Int("fallbackFilesCount", fallback), mlog.Err(err))
+			progress.TotalFilesCount = fallback
 		} else {
 			progress.TotalFilesCount = count
+			job.Data["total_files_count"] = strconv.FormatInt(count, 10)
 		}
 	}
 

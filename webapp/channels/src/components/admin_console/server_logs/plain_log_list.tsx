@@ -138,7 +138,7 @@ class PlainLogList extends React.PureComponent<Props, State> {
             );
         }
         return (
-            <div>
+            <div className='plain-log-list'>
                 <div
                     tabIndex={-1}
                     ref={this.logPanel}

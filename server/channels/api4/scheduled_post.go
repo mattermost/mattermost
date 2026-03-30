@@ -40,6 +40,22 @@ func scheduledPostChecks(where string, c *Context, scheduledPost *model.Schedule
 	}
 
 	postPriorityCheckWithContext(where, c, scheduledPost.GetPriority(), scheduledPost.RootId)
+	if c.Err != nil {
+		return
+	}
+
+	postCardTypeCheckWithContext(where, c, scheduledPost.Type)
+	if c.Err != nil {
+		return
+	}
+
+	// Validate burn-on-read restrictions for scheduled post
+	post := &model.Post{
+		ChannelId: scheduledPost.ChannelId,
+		UserId:    scheduledPost.UserId,
+		Type:      scheduledPost.Type,
+	}
+	postBurnOnReadCheckWithContext(where, c, post, nil)
 }
 
 func requireScheduledPostsEnabled(c *Context) {
@@ -75,7 +91,7 @@ func createSchedulePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterAuditableToAuditRec(auditRec, "scheduledPost", &scheduledPost)
 
 	if len(scheduledPost.FileIds) > 0 {
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), scheduledPost.ChannelId, model.PermissionUploadFile) {
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), scheduledPost.ChannelId, model.PermissionUploadFile); !ok {
 			c.SetPermissionError(model.PermissionUploadFile)
 			return
 		}

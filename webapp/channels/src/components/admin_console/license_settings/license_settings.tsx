@@ -128,6 +128,7 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
         }
         this.props.actions.getLicenseConfig();
         this.props.actions.getFilteredUsersStats({include_bots: false, include_deleted: false});
+        this.props.actions.getServerLimits();
     }
 
     componentDidUpdate(prevProps: Props, prevState: State) {

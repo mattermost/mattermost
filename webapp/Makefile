@@ -97,8 +97,7 @@ endif
 clean: ## Clears cached; deletes node_modules and dist directories
 	@echo Cleaning Web App
 
-	npm run clean --workspaces --if-present
-	rm -rf node_modules
+	npm run clean
 
 .PHONY: package
 package: node_modules dist ## Generates ./mattermost-webapp.tar.gz for use by someone customizing the web app

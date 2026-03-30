@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+
+import {render, screen, userEvent} from 'tests/react_testing_utils';
 
 import UnreadChannelIndicator from './unread_channel_indicator';
 
@@ -18,19 +19,19 @@ describe('UnreadChannelIndicator', () => {
             show: false,
         };
 
-        const wrapper = shallow(
+        const {container} = render(
             <UnreadChannelIndicator {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when show is set', () => {
-        const wrapper = shallow(
+        const {container} = render(
             <UnreadChannelIndicator {...baseProps}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when content is text', () => {
@@ -39,11 +40,11 @@ describe('UnreadChannelIndicator', () => {
             content: 'foo',
         };
 
-        const wrapper = shallow(
+        const {container} = render(
             <UnreadChannelIndicator {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when content is an element', () => {
@@ -52,25 +53,26 @@ describe('UnreadChannelIndicator', () => {
             content: <div>{'foo'}</div>,
         };
 
-        const wrapper = shallow(
+        const {container} = render(
             <UnreadChannelIndicator {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
-    test('should have called onClick', () => {
+    test('should have called onClick', async () => {
         const props = {
             ...baseProps,
             content: <div>{'foo'}</div>,
             name: 'name',
         };
 
-        const wrapper = shallow(
+        render(
             <UnreadChannelIndicator {...props}/>,
         );
 
-        wrapper.simulate('click');
+        const user = userEvent.setup();
+        await user.click(screen.getByText('foo'));
         expect(props.onClick).toHaveBeenCalledTimes(1);
     });
 });

@@ -24,6 +24,12 @@ export enum ReportDuration {
     Last6Months = 'last_6_months',
 }
 
+export enum GuestFilter {
+    All = 'all',
+    SingleChannel = 'single_channel',
+    MultipleChannel = 'multi_channel',
+}
+
 export enum CursorPaginationDirection {
     'prev' = 'prev',
     'next' = 'next',
@@ -36,6 +42,7 @@ export type UserReportFilter = {
     hide_active?: boolean;
     hide_inactive?: boolean;
     search_term?: string;
+    guest_filter?: string;
 }
 
 export type UserReportOptions = UserReportFilter & {
@@ -76,9 +83,10 @@ export type UserReportOptions = UserReportFilter & {
 };
 
 export type UserReport = UserProfile & {
-    last_login_at: number;
+    last_login: number;
     last_status_at?: number;
     last_post_date?: number;
     days_active?: number;
     total_posts?: number;
+    channel_count?: number;
 }

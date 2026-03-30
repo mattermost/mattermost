@@ -21,7 +21,6 @@ import {
     type ConversionOptions,
     type ValidationError,
 } from 'utils/dialog_conversion';
-import type EmojiMap from 'utils/emoji_map';
 
 import type {DoAppCallResult} from 'types/apps';
 
@@ -46,8 +45,8 @@ interface Props extends WrappedComponentProps {
 
     // Enhanced functionality
     sourceUrl?: string; // Optional URL for form refresh functionality
-    emojiMap?: EmojiMap;
     conversionOptions?: Partial<ConversionOptions>;
+    timezone?: string;
 
     // Required actions
     actions: {
@@ -678,6 +677,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             <AppsFormContainer
                 form={form}
                 appContext={context}
+                timezone={this.props.timezone}
                 onExited={this.props.onExited || (() => {})}
                 onHide={this.cancelAdapter}
                 actions={{

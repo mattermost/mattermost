@@ -49,10 +49,6 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
         },
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should render modal with user name in title', () => {
         renderWithContext(<ResetPasswordModal {...baseProps}/>);
 

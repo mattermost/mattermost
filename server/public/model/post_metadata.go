@@ -4,6 +4,7 @@
 package model
 
 import (
+	"encoding/json"
 	"maps"
 )
 
@@ -33,8 +34,20 @@ type PostMetadata struct {
 	// Acknowledgements holds acknowledgements made by users to the post
 	Acknowledgements []*PostAcknowledgement `json:"acknowledgements,omitempty"`
 
+	// Translations holds translation data for configured target languages, keyed by language code
+	Translations map[string]*PostTranslation `json:"translations,omitempty"`
+
 	ExpireAt   int64    `json:"expire_at,omitempty"`
 	Recipients []string `json:"recipients,omitempty"`
+}
+
+// PostTranslation represents a translation of a post in a specific language
+type PostTranslation struct {
+	Text       string          `json:"text,omitempty"`   // Used when Type is "string"
+	Object     json.RawMessage `json:"object,omitempty"` // Used when Type is "object"
+	Type       string          `json:"type"`
+	State      string          `json:"state"`
+	SourceLang string          `json:"source_lang,omitempty"` // Original language of the post
 }
 
 func (p *PostMetadata) Auditable() map[string]any {
@@ -54,6 +67,7 @@ func (p *PostMetadata) Auditable() map[string]any {
 		"reactions":        p.Reactions,
 		"priority":         p.Priority,
 		"acknowledgements": p.Acknowledgements,
+		"translations":     p.Translations,
 	}
 }
 
@@ -88,6 +102,9 @@ func (p *PostMetadata) Copy() *PostMetadata {
 	acknowledgementsCopy := make([]*PostAcknowledgement, len(p.Acknowledgements))
 	copy(acknowledgementsCopy, p.Acknowledgements)
 
+	translationsCopy := map[string]*PostTranslation{}
+	maps.Copy(translationsCopy, p.Translations)
+
 	var postPriorityCopy *PostPriority
 	if p.Priority != nil {
 		postPriorityCopy = &PostPriority{
@@ -107,5 +124,6 @@ func (p *PostMetadata) Copy() *PostMetadata {
 		Reactions:        reactionsCopy,
 		Priority:         postPriorityCopy,
 		Acknowledgements: acknowledgementsCopy,
+		Translations:     translationsCopy,
 	}
 }

@@ -9,15 +9,17 @@ import (
 	"testing"
 	"time"
 
+	sq "github.com/mattermost/squirrel"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/stretchr/testify/require"
 )
 
 func TestPropertyFieldStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("CreatePropertyField", func(t *testing.T) { testCreatePropertyField(t, rctx, ss) })
-	t.Run("GetPropertyField", func(t *testing.T) { testGetPropertyField(t, rctx, ss) })
+	t.Run("GetPropertyField", func(t *testing.T) { testGetPropertyField(t, rctx, ss, s) })
 	t.Run("GetManyPropertyFields", func(t *testing.T) { testGetManyPropertyFields(t, rctx, ss) })
 	t.Run("GetFieldByName", func(t *testing.T) { testGetFieldByName(t, rctx, ss) })
 	t.Run("UpdatePropertyField", func(t *testing.T) { testUpdatePropertyField(t, rctx, ss) })
@@ -25,6 +27,7 @@ func TestPropertyFieldStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("SearchPropertyFields", func(t *testing.T) { testSearchPropertyFields(t, rctx, ss) })
 	t.Run("SearchPropertyFieldsSince", func(t *testing.T) { testSearchPropertyFieldsSince(t, rctx, ss) })
 	t.Run("CountForGroup", func(t *testing.T) { testCountForGroup(t, rctx, ss) })
+	t.Run("CheckPropertyNameConflict", func(t *testing.T) { testCheckPropertyNameConflict(t, rctx, ss) })
 }
 
 func testCreatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
@@ -48,10 +51,14 @@ func testCreatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.ErrorContains(t, err, "model.property_field.is_valid.app_error")
 	})
 
+	creatorUserID := model.NewId()
+
 	newField := &model.PropertyField{
-		GroupID: model.NewId(),
-		Name:    "My new property field",
-		Type:    model.PropertyFieldTypeText,
+		GroupID:   model.NewId(),
+		Name:      "My new property field",
+		Type:      model.PropertyFieldTypeText,
+		CreatedBy: creatorUserID,
+		UpdatedBy: creatorUserID,
 		Attrs: map[string]any{
 			"locked":  true,
 			"special": "value",
@@ -65,6 +72,8 @@ func testCreatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NotZero(t, field.CreateAt)
 		require.NotZero(t, field.UpdateAt)
 		require.Zero(t, field.DeleteAt)
+		require.Equal(t, creatorUserID, field.CreatedBy)
+		require.Equal(t, creatorUserID, field.UpdatedBy)
 	})
 
 	t.Run("should enforce the field's uniqueness", func(t *testing.T) {
@@ -73,9 +82,140 @@ func testCreatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.Error(t, err)
 		require.Empty(t, field)
 	})
+
+	t.Run("should allow empty CreatedBy and UpdatedBy", func(t *testing.T) {
+		fieldWithoutTracking := &model.PropertyField{
+			GroupID: model.NewId(),
+			Name:    "Field without user tracking",
+			Type:    model.PropertyFieldTypeText,
+		}
+		field, err := ss.PropertyField().Create(fieldWithoutTracking)
+		require.NoError(t, err)
+		require.Empty(t, field.CreatedBy)
+		require.Empty(t, field.UpdatedBy)
+	})
+
+	t.Run("should be able to create a property field with ObjectType", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    model.NewId(),
+			Name:       "Field with ObjectType",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+			TargetID:   model.NewId(),
+			TargetType: string(model.PropertyFieldTargetLevelChannel),
+		}
+		created, err := ss.PropertyField().Create(field)
+		require.NoError(t, err)
+		require.NotZero(t, created.ID)
+		require.Equal(t, model.PropertyFieldObjectTypeChannel, created.ObjectType)
+
+		// Verify it can be retrieved with ObjectType intact
+		retrieved, err := ss.PropertyField().Get("", created.ID)
+		require.NoError(t, err)
+		require.Equal(t, model.PropertyFieldObjectTypeChannel, retrieved.ObjectType)
+	})
+
+	t.Run("should be able to create a property field without ObjectType for backwards compatibility", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    model.NewId(),
+			Name:       "Field without ObjectType",
+			Type:       model.PropertyFieldTypeText,
+			TargetID:   model.NewId(),
+			TargetType: string(model.PropertyFieldTargetLevelChannel),
+		}
+		created, err := ss.PropertyField().Create(field)
+		require.NoError(t, err)
+		require.NotZero(t, created.ID)
+		require.Empty(t, created.ObjectType)
+
+		// Verify it can be retrieved
+		retrieved, err := ss.PropertyField().Get("", created.ID)
+		require.NoError(t, err)
+		require.Empty(t, retrieved.ObjectType)
+	})
+
+	t.Run("should generate option IDs for multiselect fields without IDs", func(t *testing.T) {
+		multiselectField := &model.PropertyField{
+			GroupID: model.NewId(),
+			Name:    "Test Multiselect",
+			Type:    model.PropertyFieldTypeMultiselect,
+			Attrs: map[string]any{
+				"options": []any{
+					map[string]any{"name": "Option 1"},
+					map[string]any{"name": "Option 2"},
+					map[string]any{"name": "Option 3"},
+				},
+			},
+		}
+
+		field, err := ss.PropertyField().Create(multiselectField)
+		require.NoError(t, err)
+		require.NotZero(t, field.ID)
+
+		// Verify options have IDs generated
+		options := field.Attrs["options"].([]any)
+		require.Len(t, options, 3)
+
+		for i, opt := range options {
+			optMap := opt.(map[string]any)
+			require.NotEmpty(t, optMap["id"], "Option %d should have an ID", i)
+			require.Len(t, optMap["id"].(string), 26, "Option %d ID should be 26 characters", i)
+		}
+	})
+
+	t.Run("should preserve existing option IDs for multiselect fields", func(t *testing.T) {
+		existingID1 := model.NewId()
+		existingID2 := model.NewId()
+
+		multiselectField := &model.PropertyField{
+			GroupID: model.NewId(),
+			Name:    "Test Multiselect with IDs",
+			Type:    model.PropertyFieldTypeMultiselect,
+			Attrs: map[string]any{
+				"options": []any{
+					map[string]any{"id": existingID1, "name": "Option 1"},
+					map[string]any{"id": existingID2, "name": "Option 2"},
+				},
+			},
+		}
+
+		field, err := ss.PropertyField().Create(multiselectField)
+		require.NoError(t, err)
+
+		// Verify existing IDs are preserved
+		options := field.Attrs["options"].([]any)
+		require.Len(t, options, 2)
+		require.Equal(t, existingID1, options[0].(map[string]any)["id"])
+		require.Equal(t, existingID2, options[1].(map[string]any)["id"])
+	})
 }
 
-func testGetPropertyField(t *testing.T, _ request.CTX, ss store.Store) {
+// insertPropertyFieldWithNullColumns inserts a property field row that
+// simulates a record created before the migrations that added Protected,
+// Permission*, CreatedBy, and UpdatedBy columns. Those columns are left
+// NULL so that the store's COALESCE and pointer-scanning logic is exercised.
+func insertPropertyFieldWithNullColumns(t *testing.T, ss store.Store, s SqlStore) (string, string) {
+	t.Helper()
+
+	fieldID := model.NewId()
+	groupID := model.NewId()
+	db := ss.GetInternalMasterDB()
+
+	builder := sq.StatementBuilder.PlaceholderFormat(s.GetQueryPlaceholder()).
+		Insert("PropertyFields").
+		Columns("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "ObjectType", "CreateAt", "UpdateAt", "DeleteAt").
+		Values(fieldID, groupID, "null-columns-field", "text", "{}", "", "", "", model.GetMillis(), model.GetMillis(), 0)
+
+	query, args, err := builder.ToSql()
+	require.NoError(t, err)
+
+	_, err = db.Exec(query, args...)
+	require.NoError(t, err)
+
+	return groupID, fieldID
+}
+
+func testGetPropertyField(t *testing.T, _ request.CTX, ss store.Store, s SqlStore) {
 	t.Run("should fail on nonexisting field", func(t *testing.T) {
 		field, err := ss.PropertyField().Get("", model.NewId())
 		require.Zero(t, field)
@@ -116,13 +256,28 @@ func testGetPropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.Zero(t, field)
 		require.ErrorIs(t, err, sql.ErrNoRows)
 	})
+
+	t.Run("null columns, before createdBy, updatedBy, protected and permissions migrations", func(t *testing.T) {
+		groupID, fieldID := insertPropertyFieldWithNullColumns(t, ss, s)
+
+		field, err := ss.PropertyField().Get(groupID, fieldID)
+		require.NoError(t, err)
+		require.Equal(t, fieldID, field.ID)
+		require.Empty(t, field.CreatedBy)
+		require.Empty(t, field.UpdatedBy)
+		require.False(t, field.Protected)
+		require.Nil(t, field.PermissionField)
+		require.Nil(t, field.PermissionValues)
+		require.Nil(t, field.PermissionOptions)
+	})
 }
 
 func testGetManyPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 	t.Run("should fail on nonexisting fields", func(t *testing.T) {
 		fields, err := ss.PropertyField().GetMany("", []string{model.NewId(), model.NewId()})
 		require.Empty(t, fields)
-		require.ErrorContains(t, err, "missmatch results")
+		var target *store.ErrResultsMismatch
+		require.ErrorAs(t, err, &target)
 	})
 
 	groupID := model.NewId()
@@ -152,7 +307,8 @@ func testGetManyPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 	t.Run("should fail if at least one of the ids is nonexistent", func(t *testing.T) {
 		fields, err := ss.PropertyField().GetMany(groupID, []string{newFields[0].ID, newFields[1].ID, model.NewId()})
 		require.Empty(t, fields)
-		require.ErrorContains(t, err, "missmatch results")
+		var target *store.ErrResultsMismatch
+		require.ErrorAs(t, err, &target)
 	})
 
 	t.Run("should be able to retrieve existing property fields", func(t *testing.T) {
@@ -165,7 +321,8 @@ func testGetManyPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 	t.Run("should fail if asked for valid IDs but outside the group", func(t *testing.T) {
 		fields, err := ss.PropertyField().GetMany(groupID, []string{newFields[0].ID, newFieldOutsideGroup.ID})
 		require.Empty(t, fields)
-		require.ErrorContains(t, err, "missmatch results")
+		var target *store.ErrResultsMismatch
+		require.ErrorAs(t, err, &target)
 	})
 
 	t.Run("should be able to retrieve existing property fields from multiple groups", func(t *testing.T) {
@@ -227,7 +384,11 @@ func testGetFieldByName(t *testing.T, _ request.CTX, ss store.Store) {
 		Name:     "unique-field-name", // Same name as the first field
 		Type:     model.PropertyFieldTypeSelect,
 		Attrs: map[string]any{
-			"options": []string{"a", "b", "c"},
+			"options": []any{
+				map[string]any{"name": "a"},
+				map[string]any{"name": "b"},
+				map[string]any{"name": "c"},
+			},
 		},
 	}
 	_, cErr = ss.PropertyField().Create(duplicateNameField)
@@ -383,7 +544,10 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 			Name:    "Second field",
 			Type:    model.PropertyFieldTypeSelect,
 			Attrs: map[string]any{
-				"options": []string{"a", "b"},
+				"options": []any{
+					map[string]any{"name": "a"},
+					map[string]any{"name": "b"},
+				},
 			},
 		}
 
@@ -403,7 +567,11 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 
 		field2.Name = "Updated second"
 		field2.Attrs = map[string]any{
-			"options": []string{"x", "y", "z"},
+			"options": []any{
+				map[string]any{"name": "x"},
+				map[string]any{"name": "y"},
+				map[string]any{"name": "z"},
+			},
 		}
 
 		_, err := ss.PropertyField().Update("", []*model.PropertyField{field1, field2})
@@ -424,8 +592,97 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "Updated second", updated2.Name)
 		require.Equal(t, model.PropertyFieldTypeSelect, updated2.Type)
-		require.ElementsMatch(t, []string{"x", "y", "z"}, updated2.Attrs["options"])
+		options := updated2.Attrs["options"].([]any)
+		require.Len(t, options, 3)
+		optionNames := []string{}
+		for _, opt := range options {
+			optMap := opt.(map[string]any)
+			require.NotEmpty(t, optMap["id"], "Option should have an ID")
+			optionNames = append(optionNames, optMap["name"].(string))
+		}
+		require.ElementsMatch(t, []string{"x", "y", "z"}, optionNames)
 		require.Greater(t, updated2.UpdateAt, updated2.CreateAt)
+	})
+
+	t.Run("should generate option IDs for multiselect fields on update", func(t *testing.T) {
+		// Create a multiselect field
+		multiselectField := &model.PropertyField{
+			GroupID: model.NewId(),
+			Name:    "Test Multiselect Update",
+			Type:    model.PropertyFieldTypeMultiselect,
+			Attrs: map[string]any{
+				"options": []any{
+					map[string]any{"name": "Original 1"},
+					map[string]any{"name": "Original 2"},
+				},
+			},
+		}
+
+		_, err := ss.PropertyField().Create(multiselectField)
+		require.NoError(t, err)
+		require.NotZero(t, multiselectField.ID)
+
+		// Update with new options without IDs
+		multiselectField.Attrs = map[string]any{
+			"options": []any{
+				map[string]any{"name": "Updated 1"},
+				map[string]any{"name": "Updated 2"},
+				map[string]any{"name": "Updated 3"},
+			},
+		}
+
+		updatedFields, err := ss.PropertyField().Update("", []*model.PropertyField{multiselectField})
+		require.NoError(t, err)
+		require.Len(t, updatedFields, 1)
+
+		// Verify options have IDs generated
+		options := updatedFields[0].Attrs["options"].([]any)
+		require.Len(t, options, 3)
+
+		for i, opt := range options {
+			optMap := opt.(map[string]any)
+			require.NotEmpty(t, optMap["id"], "Updated option %d should have an ID", i)
+			require.Len(t, optMap["id"].(string), 26, "Updated option %d ID should be 26 characters", i)
+		}
+	})
+
+	t.Run("should preserve existing option IDs on update", func(t *testing.T) {
+		existingID1 := model.NewId()
+		existingID2 := model.NewId()
+
+		// Create a multiselect field with IDs
+		multiselectField := &model.PropertyField{
+			GroupID: model.NewId(),
+			Name:    "Test Multiselect Preserve IDs",
+			Type:    model.PropertyFieldTypeMultiselect,
+			Attrs: map[string]any{
+				"options": []any{
+					map[string]any{"id": existingID1, "name": "Option 1"},
+					map[string]any{"id": existingID2, "name": "Option 2"},
+				},
+			},
+		}
+
+		_, err := ss.PropertyField().Create(multiselectField)
+		require.NoError(t, err)
+
+		// Update with same IDs
+		multiselectField.Attrs = map[string]any{
+			"options": []any{
+				map[string]any{"id": existingID1, "name": "Option 1 Updated"},
+				map[string]any{"id": existingID2, "name": "Option 2 Updated"},
+			},
+		}
+
+		updatedFields, err := ss.PropertyField().Update("", []*model.PropertyField{multiselectField})
+		require.NoError(t, err)
+		require.Len(t, updatedFields, 1)
+
+		// Verify existing IDs are preserved
+		options := updatedFields[0].Attrs["options"].([]any)
+		require.Len(t, options, 2)
+		require.Equal(t, existingID1, options[0].(map[string]any)["id"])
+		require.Equal(t, existingID2, options[1].(map[string]any)["id"])
 	})
 
 	t.Run("should not update any fields if one update is invalid", func(t *testing.T) {
@@ -591,6 +848,83 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		updated2, err := ss.PropertyField().Get("", field2.ID)
 		require.NoError(t, err)
 		require.Equal(t, originalName2, updated2.Name)
+	})
+
+	t.Run("should update UpdatedBy but not CreatedBy on update", func(t *testing.T) {
+		creatorUserID := model.NewId()
+		updaterUserID := model.NewId()
+
+		field := &model.PropertyField{
+			GroupID:   model.NewId(),
+			Name:      "Original Name",
+			Type:      model.PropertyFieldTypeText,
+			CreatedBy: creatorUserID,
+			UpdatedBy: creatorUserID,
+		}
+
+		_, err := ss.PropertyField().Create(field)
+		require.NoError(t, err)
+
+		// Update the field with a different user
+		field.Name = "Updated Name"
+		field.UpdatedBy = updaterUserID
+
+		_, err = ss.PropertyField().Update("", []*model.PropertyField{field})
+		require.NoError(t, err)
+
+		// Verify CreatedBy stays the same but UpdatedBy changes
+		fetched, err := ss.PropertyField().Get("", field.ID)
+		require.NoError(t, err)
+		require.Equal(t, creatorUserID, fetched.CreatedBy, "CreatedBy should not change on update")
+		require.Equal(t, updaterUserID, fetched.UpdatedBy, "UpdatedBy should change on update")
+		require.Equal(t, "Updated Name", fetched.Name)
+	})
+
+	t.Run("should handle bulk updates with different UpdatedBy values", func(t *testing.T) {
+		creatorUserID := model.NewId()
+		user1 := model.NewId()
+		user2 := model.NewId()
+		groupID := model.NewId()
+
+		field1 := &model.PropertyField{
+			GroupID:   groupID,
+			Name:      "Field 1",
+			Type:      model.PropertyFieldTypeText,
+			CreatedBy: creatorUserID,
+			UpdatedBy: creatorUserID,
+		}
+		field2 := &model.PropertyField{
+			GroupID:   groupID,
+			Name:      "Field 2",
+			Type:      model.PropertyFieldTypeText,
+			CreatedBy: creatorUserID,
+			UpdatedBy: creatorUserID,
+		}
+
+		_, err := ss.PropertyField().Create(field1)
+		require.NoError(t, err)
+		_, err = ss.PropertyField().Create(field2)
+		require.NoError(t, err)
+
+		// Update with different users
+		field1.Name = "Field 1 Updated"
+		field1.UpdatedBy = user1
+		field2.Name = "Field 2 Updated"
+		field2.UpdatedBy = user2
+
+		_, err = ss.PropertyField().Update("", []*model.PropertyField{field1, field2})
+		require.NoError(t, err)
+
+		// Verify both fields have correct UpdatedBy
+		fetched1, err := ss.PropertyField().Get("", field1.ID)
+		require.NoError(t, err)
+		require.Equal(t, user1, fetched1.UpdatedBy)
+		require.Equal(t, creatorUserID, fetched1.CreatedBy)
+
+		fetched2, err := ss.PropertyField().Get("", field2.ID)
+		require.NoError(t, err)
+		require.Equal(t, user2, fetched2.UpdatedBy)
+		require.Equal(t, creatorUserID, fetched2.CreatedBy)
 	})
 }
 
@@ -773,7 +1107,8 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 		Name:       "Field 1",
 		Type:       model.PropertyFieldTypeText,
 		TargetID:   targetID,
-		TargetType: "test_type",
+		TargetType: string(model.PropertyFieldTargetLevelChannel),
+		ObjectType: "post",
 	}
 
 	field2 := &model.PropertyField{
@@ -781,14 +1116,19 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 		Name:       "Field 2",
 		Type:       model.PropertyFieldTypeSelect,
 		TargetID:   targetID,
-		TargetType: "other_type",
+		TargetType: string(model.PropertyFieldTargetLevelTeam),
+		ObjectType: "user",
 	}
 
+	groupID2 := model.NewId()
+	targetID3 := model.NewId()
 	field3 := &model.PropertyField{
-		GroupID:    model.NewId(),
+		GroupID:    groupID2,
 		Name:       "Field 3",
 		Type:       model.PropertyFieldTypeText,
-		TargetType: "test_type",
+		TargetID:   targetID3,
+		TargetType: string(model.PropertyFieldTargetLevelChannel),
+		ObjectType: "post",
 	}
 
 	targetID2 := model.NewId()
@@ -798,9 +1138,34 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 		Type:       model.PropertyFieldTypeText,
 		TargetID:   targetID2,
 		TargetType: "test_type",
+		ObjectType: "",
 	}
 
-	for _, field := range []*model.PropertyField{field1, field2, field3, field4} {
+	// field5 adds a second "post" field in groupID with a different
+	// TargetType and TargetID so that the ObjectType+TargetType and
+	// ObjectType+TargetIDs combined filters have something to exclude.
+	targetID5 := model.NewId()
+	field5 := &model.PropertyField{
+		GroupID:    groupID,
+		Name:       "Field 5",
+		Type:       model.PropertyFieldTypeText,
+		TargetID:   targetID5,
+		TargetType: string(model.PropertyFieldTargetLevelTeam),
+		ObjectType: "post",
+	}
+
+	// field6 adds a "user" field in groupID2 so the ObjectType filter
+	// within groupID2 actually filters something out.
+	field6 := &model.PropertyField{
+		GroupID:    groupID2,
+		Name:       "Field 6",
+		Type:       model.PropertyFieldTypeText,
+		TargetID:   targetID3,
+		TargetType: string(model.PropertyFieldTargetLevelChannel),
+		ObjectType: "user",
+	}
+
+	for _, field := range []*model.PropertyField{field1, field2, field3, field4, field5, field6} {
 		_, err := ss.PropertyField().Create(field)
 		require.NoError(t, err)
 		time.Sleep(10 * time.Millisecond)
@@ -828,7 +1193,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 				GroupID: groupID,
 				PerPage: 10,
 			},
-			expectedIDs: []string{field1.ID, field2.ID},
+			expectedIDs: []string{field1.ID, field2.ID, field5.ID},
 		},
 		{
 			name: "filter by group_id including deleted",
@@ -837,15 +1202,16 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 				PerPage:        10,
 				IncludeDeleted: true,
 			},
-			expectedIDs: []string{field1.ID, field2.ID, field4.ID},
+			expectedIDs: []string{field1.ID, field2.ID, field4.ID, field5.ID},
 		},
 		{
-			name: "filter by target_type",
+			name: "filter by target_type and groupID",
 			opts: model.PropertyFieldSearchOpts{
-				TargetType: "test_type",
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelChannel),
 				PerPage:    10,
 			},
-			expectedIDs: []string{field1.ID, field3.ID},
+			expectedIDs: []string{field1.ID},
 		},
 		{
 			name: "filter by target_id",
@@ -875,7 +1241,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 				PerPage:        2,
 				IncludeDeleted: true,
 			},
-			expectedIDs: []string{field4.ID},
+			expectedIDs: []string{field4.ID, field5.ID},
 		},
 		{
 			name: "filter by multiple target_ids",
@@ -906,7 +1272,8 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 		{
 			name: "filter by SinceUpdateAt timestamp - no results before",
 			opts: model.PropertyFieldSearchOpts{
-				SinceUpdateAt: field3.UpdateAt, // After all existing fields
+				GroupID:       groupID,
+				SinceUpdateAt: field5.UpdateAt, // After last active field in groupID
 				PerPage:       10,
 			},
 			expectedIDs: []string{},
@@ -914,28 +1281,77 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 		{
 			name: "filter by SinceUpdateAt timestamp - get fields after specific time",
 			opts: model.PropertyFieldSearchOpts{
-				SinceUpdateAt: field1.UpdateAt, // After field1, should get field2 and field3
+				GroupID:       groupID,
+				SinceUpdateAt: field1.UpdateAt, // After field1, should get field2 and field5 from same group
 				PerPage:       10,
 			},
-			expectedIDs: []string{field2.ID, field3.ID},
+			expectedIDs: []string{field2.ID, field5.ID},
 		},
 		{
 			name: "filter by SinceUpdateAt timestamp with group filter",
 			opts: model.PropertyFieldSearchOpts{
-				GroupID:       groupID,
-				SinceUpdateAt: field1.UpdateAt, // After field1, should only get field2 from same group
+				GroupID:       groupID2,
+				SinceUpdateAt: field3.UpdateAt, // After field3, should get field6 from groupID2
 				PerPage:       10,
 			},
-			expectedIDs: []string{field2.ID},
+			expectedIDs: []string{field6.ID},
 		},
 		{
 			name: "filter by SinceUpdateAt timestamp including deleted",
 			opts: model.PropertyFieldSearchOpts{
-				SinceUpdateAt:  field3.UpdateAt, // After field3, should get field4 (deleted)
+				GroupID:        groupID,
+				SinceUpdateAt:  field2.UpdateAt, // After field2, should get field4 (deleted) and field5
 				IncludeDeleted: true,
 				PerPage:        10,
 			},
-			expectedIDs: []string{field4.ID},
+			expectedIDs: []string{field4.ID, field5.ID},
+		},
+		{
+			name: "filter by ObjectType post",
+			opts: model.PropertyFieldSearchOpts{
+				GroupID:    groupID,
+				ObjectType: "post",
+				PerPage:    10,
+			},
+			expectedIDs: []string{field1.ID, field5.ID},
+		},
+		{
+			name: "filter by ObjectType user",
+			opts: model.PropertyFieldSearchOpts{
+				GroupID:    groupID,
+				ObjectType: "user",
+				PerPage:    10,
+			},
+			expectedIDs: []string{field2.ID},
+		},
+		{
+			name: "filter by ObjectType with group filter",
+			opts: model.PropertyFieldSearchOpts{
+				GroupID:    groupID2,
+				ObjectType: "post",
+				PerPage:    10,
+			},
+			expectedIDs: []string{field3.ID},
+		},
+		{
+			name: "filter by ObjectType with target_type filter",
+			opts: model.PropertyFieldSearchOpts{
+				GroupID:    groupID,
+				ObjectType: "post",
+				TargetType: string(model.PropertyFieldTargetLevelChannel),
+				PerPage:    10,
+			},
+			expectedIDs: []string{field1.ID},
+		},
+		{
+			name: "filter by ObjectType with target_ids filter",
+			opts: model.PropertyFieldSearchOpts{
+				GroupID:    groupID,
+				ObjectType: "post",
+				TargetIDs:  []string{targetID},
+				PerPage:    10,
+			},
+			expectedIDs: []string{field1.ID},
 		},
 	}
 
@@ -1059,5 +1475,861 @@ func testSearchPropertyFieldsSince(t *testing.T, _ request.CTX, ss store.Store) 
 		})
 		require.NoError(t, err)
 		require.Len(t, results, 0)
+	})
+}
+
+func testCheckPropertyNameConflict(t *testing.T, _ request.CTX, ss store.Store) {
+	// Create a team for testing
+	team, err := ss.Team().Save(&model.Team{
+		DisplayName: "Test Team",
+		Name:        "test-team-" + model.NewId(),
+		Type:        model.TeamOpen,
+	})
+	require.NoError(t, err)
+
+	// Create another team for isolation tests
+	team2, err := ss.Team().Save(&model.Team{
+		DisplayName: "Test Team 2",
+		Name:        "test-team2-" + model.NewId(),
+		Type:        model.TeamOpen,
+	})
+	require.NoError(t, err)
+
+	// Create a channel in team for testing
+	channel, err := ss.Channel().Save(nil, &model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "Test Channel",
+		Name:        "test-channel-" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, 1000)
+	require.NoError(t, err)
+
+	// Create another channel in team for same-team conflict tests
+	channel2, err := ss.Channel().Save(nil, &model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "Test Channel 2",
+		Name:        "test-channel2-" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, 1000)
+	require.NoError(t, err)
+
+	// Create a channel in team2 for isolation tests
+	channelInTeam2, err := ss.Channel().Save(nil, &model.Channel{
+		TeamId:      team2.Id,
+		DisplayName: "Test Channel in Team 2",
+		Name:        "test-channel-team2-" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, 1000)
+	require.NoError(t, err)
+
+	groupID := model.NewId()
+	objectType := "post"
+	propertyName := "test-property-" + model.NewId()
+
+	t.Run("legacy properties with empty ObjectType should skip conflict check", func(t *testing.T) {
+		// Create a system-level legacy property
+		_, cErr := ss.PropertyField().Create(&model.PropertyField{
+			ObjectType: "", // Legacy property
+			GroupID:    groupID,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			TargetID:   "",
+			Type:       model.PropertyFieldTypeText,
+			Name:       "legacy-property",
+		})
+		require.NoError(t, cErr)
+
+		// Check conflict for legacy property should always return empty (skip check)
+		conflict, err := ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+			ObjectType: "",
+			GroupID:    groupID,
+			TargetType: string(model.PropertyFieldTargetLevelTeam),
+			TargetID:   team.Id,
+			Name:       "legacy-property",
+		}, "")
+		require.NoError(t, err)
+		require.Empty(t, conflict, "legacy properties should skip conflict check")
+	})
+
+	t.Run("unknown target type should return empty string", func(t *testing.T) {
+		conflict, err := ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+			ObjectType: objectType,
+			GroupID:    groupID,
+			TargetType: "unknown",
+			TargetID:   model.NewId(),
+			Name:       propertyName,
+		}, "")
+		require.NoError(t, err)
+		require.Empty(t, conflict, "unknown target type should return empty string")
+	})
+
+	t.Run("system-level property creation", func(t *testing.T) {
+		systemPropertyName := "system-property-" + model.NewId()
+
+		t.Run("should return empty when no conflict exists", func(t *testing.T) {
+			conflict, err := ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				TargetID:   "",
+				Name:       systemPropertyName,
+			}, "")
+			require.NoError(t, err)
+			require.Empty(t, conflict)
+		})
+
+		t.Run("should detect conflict with existing team-level property", func(t *testing.T) {
+			// Create a team-level property
+			teamPropName := "team-prop-" + model.NewId()
+			_, cErr := ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelTeam),
+				TargetID:   team.Id,
+				Type:       model.PropertyFieldTypeText,
+				Name:       teamPropName,
+			})
+			require.NoError(t, cErr)
+
+			// Try to create system-level with same name and objectType
+			conflict, err := ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				TargetID:   "",
+				Name:       teamPropName,
+			}, "")
+			require.NoError(t, err)
+			require.Equal(t, model.PropertyFieldTargetLevelTeam, conflict)
+		})
+
+		t.Run("should detect conflict with existing channel-level property", func(t *testing.T) {
+			// Create a channel-level property
+			channelPropName := "channel-prop-" + model.NewId()
+			_, cErr := ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelChannel),
+				TargetID:   channel.Id,
+				Type:       model.PropertyFieldTypeText,
+				Name:       channelPropName,
+			})
+			require.NoError(t, cErr)
+
+			// Try to create system-level with same name and objectType
+			conflict, err := ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				TargetID:   "",
+				Name:       channelPropName,
+			}, "")
+			require.NoError(t, err)
+			require.Equal(t, model.PropertyFieldTargetLevelChannel, conflict)
+		})
+
+		t.Run("should prioritize team over channel conflict (COALESCE order)", func(t *testing.T) {
+			// Create both team and channel properties with same name
+			bothPropName := "both-prop-" + model.NewId()
+			_, cErr := ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelTeam),
+				TargetID:   team.Id,
+				Type:       model.PropertyFieldTypeText,
+				Name:       bothPropName,
+			})
+			require.NoError(t, cErr)
+
+			_, cErr = ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelChannel),
+				TargetID:   channelInTeam2.Id,
+				Type:       model.PropertyFieldTypeText,
+				Name:       bothPropName,
+			})
+			require.NoError(t, cErr)
+
+			// System-level should detect team first
+			conflict, err := ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				TargetID:   "",
+				Name:       bothPropName,
+			}, "")
+			require.NoError(t, err)
+			require.Equal(t, model.PropertyFieldTargetLevelTeam, conflict)
+		})
+
+		t.Run("should not conflict with different ObjectType", func(t *testing.T) {
+			differentObjectTypeProp := "diff-obj-type-" + model.NewId()
+			_, cErr := ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: "user", // Different object type
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelTeam),
+				TargetID:   team.Id,
+				Type:       model.PropertyFieldTypeText,
+				Name:       differentObjectTypeProp,
+			})
+			require.NoError(t, cErr)
+
+			// Should not conflict with "post" objectType
+			conflict, err := ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				TargetID:   "",
+				Name:       differentObjectTypeProp,
+			}, "")
+			require.NoError(t, err)
+			require.Empty(t, conflict)
+		})
+
+		t.Run("should not conflict with deleted property", func(t *testing.T) {
+			deletedPropName := "deleted-prop-" + model.NewId()
+			deletedProp, cErr := ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelTeam),
+				TargetID:   team.Id,
+				Type:       model.PropertyFieldTypeText,
+				Name:       deletedPropName,
+			})
+			require.NoError(t, cErr)
+
+			// Delete the property
+			require.NoError(t, ss.PropertyField().Delete("", deletedProp.ID))
+
+			// Should not conflict with deleted property
+			conflict, err := ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				TargetID:   "",
+				Name:       deletedPropName,
+			}, "")
+			require.NoError(t, err)
+			require.Empty(t, conflict)
+		})
+	})
+
+	t.Run("team-level property creation", func(t *testing.T) {
+		t.Run("should return empty when no conflict exists", func(t *testing.T) {
+			teamPropName := "new-team-prop-" + model.NewId()
+			conflict, err := ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelTeam),
+				TargetID:   team.Id,
+				Name:       teamPropName,
+			}, "")
+			require.NoError(t, err)
+			require.Empty(t, conflict)
+		})
+
+		t.Run("should detect conflict with existing system-level property", func(t *testing.T) {
+			// Create a system-level property
+			systemPropName := "system-prop-for-team-" + model.NewId()
+			_, cErr := ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				TargetID:   "",
+				Type:       model.PropertyFieldTypeText,
+				Name:       systemPropName,
+			})
+			require.NoError(t, cErr)
+
+			// Try to create team-level with same name and objectType
+			conflict, err := ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelTeam),
+				TargetID:   team.Id,
+				Name:       systemPropName,
+			}, "")
+			require.NoError(t, err)
+			require.Equal(t, model.PropertyFieldTargetLevelSystem, conflict)
+		})
+
+		t.Run("should detect conflict with channel-level property in the same team", func(t *testing.T) {
+			// Create a channel-level property in the team
+			channelInTeamPropName := "channel-in-team-prop-" + model.NewId()
+			_, cErr := ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelChannel),
+				TargetID:   channel.Id,
+				Type:       model.PropertyFieldTypeText,
+				Name:       channelInTeamPropName,
+			})
+			require.NoError(t, cErr)
+
+			// Try to create team-level with same name in the same team
+			conflict, err := ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelTeam),
+				TargetID:   team.Id,
+				Name:       channelInTeamPropName,
+			}, "")
+			require.NoError(t, err)
+			require.Equal(t, model.PropertyFieldTargetLevelChannel, conflict)
+		})
+
+		t.Run("should NOT conflict with channel-level property in different team", func(t *testing.T) {
+			// Create a channel-level property in team2
+			channelInOtherTeamPropName := "channel-other-team-prop-" + model.NewId()
+			_, cErr := ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelChannel),
+				TargetID:   channelInTeam2.Id,
+				Type:       model.PropertyFieldTypeText,
+				Name:       channelInOtherTeamPropName,
+			})
+			require.NoError(t, cErr)
+
+			// Try to create team-level in team (not team2) - should NOT conflict
+			conflict, err := ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelTeam),
+				TargetID:   team.Id,
+				Name:       channelInOtherTeamPropName,
+			}, "")
+			require.NoError(t, err)
+			require.Empty(t, conflict)
+		})
+
+		t.Run("should NOT conflict with team-level property in different team", func(t *testing.T) {
+			// Create a team-level property in team2
+			teamPropInOtherTeam := "team-prop-other-team-" + model.NewId()
+			_, cErr := ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelTeam),
+				TargetID:   team2.Id,
+				Type:       model.PropertyFieldTypeText,
+				Name:       teamPropInOtherTeam,
+			})
+			require.NoError(t, cErr)
+
+			// Try to create team-level in team (not team2) - should NOT conflict
+			conflict, err := ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelTeam),
+				TargetID:   team.Id,
+				Name:       teamPropInOtherTeam,
+			}, "")
+			require.NoError(t, err)
+			require.Empty(t, conflict, "team-level properties in different teams should not conflict")
+		})
+
+		t.Run("should prioritize system over channel conflict (COALESCE order)", func(t *testing.T) {
+			// Create both system and channel properties with same name, should
+			// never happen outside of testing
+			bothPropName := "both-sys-chan-" + model.NewId()
+			_, cErr := ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				TargetID:   "",
+				Type:       model.PropertyFieldTypeText,
+				Name:       bothPropName,
+			})
+			require.NoError(t, cErr)
+
+			_, cErr = ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelChannel),
+				TargetID:   channel.Id,
+				Type:       model.PropertyFieldTypeText,
+				Name:       bothPropName,
+			})
+			require.NoError(t, cErr)
+
+			// Team-level should detect system first
+			conflict, err := ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelTeam),
+				TargetID:   team.Id,
+				Name:       bothPropName,
+			}, "")
+			require.NoError(t, err)
+			require.Equal(t, model.PropertyFieldTargetLevelSystem, conflict)
+		})
+	})
+
+	t.Run("channel-level property creation", func(t *testing.T) {
+		t.Run("should return empty when no conflict exists", func(t *testing.T) {
+			channelPropName := "new-channel-prop-" + model.NewId()
+			conflict, err := ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelChannel),
+				TargetID:   channel.Id,
+				Name:       channelPropName,
+			}, "")
+			require.NoError(t, err)
+			require.Empty(t, conflict)
+		})
+
+		t.Run("should detect conflict with existing system-level property", func(t *testing.T) {
+			// Create a system-level property
+			systemPropName := "system-prop-for-channel-" + model.NewId()
+			_, cErr := ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				TargetID:   "",
+				Type:       model.PropertyFieldTypeText,
+				Name:       systemPropName,
+			})
+			require.NoError(t, cErr)
+
+			// Try to create channel-level with same name and objectType
+			conflict, err := ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelChannel),
+				TargetID:   channel.Id,
+				Name:       systemPropName,
+			}, "")
+			require.NoError(t, err)
+			require.Equal(t, model.PropertyFieldTargetLevelSystem, conflict)
+		})
+
+		t.Run("should detect conflict with team-level property of the same team", func(t *testing.T) {
+			// Create a team-level property in the channel's team
+			teamPropName := "team-prop-for-channel-" + model.NewId()
+			_, cErr := ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelTeam),
+				TargetID:   team.Id,
+				Type:       model.PropertyFieldTypeText,
+				Name:       teamPropName,
+			})
+			require.NoError(t, cErr)
+
+			// Try to create channel-level with same name in a channel of the same team
+			conflict, err := ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelChannel),
+				TargetID:   channel.Id,
+				Name:       teamPropName,
+			}, "")
+			require.NoError(t, err)
+			require.Equal(t, model.PropertyFieldTargetLevelTeam, conflict)
+		})
+
+		t.Run("should NOT conflict with team-level property of different team", func(t *testing.T) {
+			// Create a team-level property in team2
+			teamPropInOtherTeam := "team-prop-other-" + model.NewId()
+			_, cErr := ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelTeam),
+				TargetID:   team2.Id,
+				Type:       model.PropertyFieldTypeText,
+				Name:       teamPropInOtherTeam,
+			})
+			require.NoError(t, cErr)
+
+			// Try to create channel-level in team (not team2) - should NOT conflict
+			conflict, err := ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelChannel),
+				TargetID:   channel.Id,
+				Name:       teamPropInOtherTeam,
+			}, "")
+			require.NoError(t, err)
+			require.Empty(t, conflict)
+		})
+
+		t.Run("should NOT conflict with channel-level property of different team", func(t *testing.T) {
+			// Create a channel-level property in team2's channel
+			channelPropInOtherTeam := "channel-prop-other-team-" + model.NewId()
+			_, cErr := ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelChannel),
+				TargetID:   channelInTeam2.Id,
+				Type:       model.PropertyFieldTypeText,
+				Name:       channelPropInOtherTeam,
+			})
+			require.NoError(t, cErr)
+
+			// Try to create channel-level in team's channel - should NOT conflict
+			conflict, err := ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelChannel),
+				TargetID:   channel.Id,
+				Name:       channelPropInOtherTeam,
+			}, "")
+			require.NoError(t, err)
+			require.Empty(t, conflict, "channel-level properties in different teams should not conflict")
+		})
+
+		t.Run("should NOT conflict with channel-level property in different channel of same team", func(t *testing.T) {
+			// Create a channel-level property in channel (belongs to team)
+			channelPropSameTeam := "channel-prop-same-team-" + model.NewId()
+			_, cErr := ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelChannel),
+				TargetID:   channel.Id,
+				Type:       model.PropertyFieldTypeText,
+				Name:       channelPropSameTeam,
+			})
+			require.NoError(t, cErr)
+
+			// Try to create channel-level in channel2 (also belongs to team) - should NOT conflict
+			// Channel-level properties are independent, only system and team levels block them
+			conflict, err := ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelChannel),
+				TargetID:   channel2.Id,
+				Name:       channelPropSameTeam,
+			}, "")
+			require.NoError(t, err)
+			require.Empty(t, conflict, "channel-level properties in different channels should not conflict")
+		})
+
+		t.Run("should prioritize system over team conflict (COALESCE order)", func(t *testing.T) {
+			// Create both system and team properties with same name
+			bothPropName := "both-sys-team-" + model.NewId()
+			_, cErr := ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				TargetID:   "",
+				Type:       model.PropertyFieldTypeText,
+				Name:       bothPropName,
+			})
+			require.NoError(t, cErr)
+
+			_, cErr = ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelTeam),
+				TargetID:   team.Id,
+				Type:       model.PropertyFieldTypeText,
+				Name:       bothPropName,
+			})
+			require.NoError(t, cErr)
+
+			// Channel-level should detect system first
+			conflict, err := ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelChannel),
+				TargetID:   channel.Id,
+				Name:       bothPropName,
+			}, "")
+			require.NoError(t, err)
+			require.Equal(t, model.PropertyFieldTargetLevelSystem, conflict)
+		})
+
+		t.Run("non-existent channel should only check system-level (simulates DM behavior)", func(t *testing.T) {
+			// Create a team-level property
+			teamOnlyPropName := "team-only-prop-" + model.NewId()
+			_, cErr := ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelTeam),
+				TargetID:   team.Id,
+				Type:       model.PropertyFieldTypeText,
+				Name:       teamOnlyPropName,
+			})
+			require.NoError(t, cErr)
+
+			// Non-existent channel (subquery returns NULL) should NOT conflict with team-level property
+			// This simulates DM channel behavior where the TeamId lookup returns nothing
+			fakeChannelID := model.NewId()
+			conflict, err := ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelChannel),
+				TargetID:   fakeChannelID,
+				Name:       teamOnlyPropName,
+			}, "")
+			require.NoError(t, err)
+			require.Empty(t, conflict, "channels without team association should not check team-level conflicts")
+		})
+
+		t.Run("non-existent channel should still detect system-level conflict (simulates DM behavior)", func(t *testing.T) {
+			// Create a system-level property
+			systemPropForDM := "system-prop-dm-" + model.NewId()
+			_, cErr := ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				TargetID:   "",
+				Type:       model.PropertyFieldTypeText,
+				Name:       systemPropForDM,
+			})
+			require.NoError(t, cErr)
+
+			// Non-existent channel should still detect system-level conflict
+			fakeChannelID := model.NewId()
+			conflict, err := ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelChannel),
+				TargetID:   fakeChannelID,
+				Name:       systemPropForDM,
+			}, "")
+			require.NoError(t, err)
+			require.Equal(t, model.PropertyFieldTargetLevelSystem, conflict)
+		})
+	})
+
+	t.Run("groupID isolation", func(t *testing.T) {
+		group1 := model.NewId()
+		group2 := model.NewId()
+		isolationPropName := "isolation-prop-" + model.NewId()
+
+		t.Run("should NOT conflict with property in different group", func(t *testing.T) {
+			// Create a system-level property in group1
+			_, cErr := ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    group1,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				TargetID:   "",
+				Type:       model.PropertyFieldTypeText,
+				Name:       isolationPropName,
+			})
+			require.NoError(t, cErr)
+
+			// Try to create system-level with same name in group2 - should NOT conflict
+			conflict, err := ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    group2,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				TargetID:   "",
+				Name:       isolationPropName,
+			}, "")
+			require.NoError(t, err)
+			require.Empty(t, conflict, "different groups should not conflict")
+
+			// But same group should conflict
+			conflict, err = ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    group1,
+				TargetType: string(model.PropertyFieldTargetLevelTeam),
+				TargetID:   team.Id,
+				Name:       isolationPropName,
+			}, "")
+			require.NoError(t, err)
+			require.Equal(t, model.PropertyFieldTargetLevelSystem, conflict, "same group should conflict")
+		})
+
+		t.Run("team-level in different groups should not conflict", func(t *testing.T) {
+			teamIsolationProp := "team-isolation-" + model.NewId()
+
+			// Create a team-level property in group1
+			_, cErr := ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    group1,
+				TargetType: string(model.PropertyFieldTargetLevelTeam),
+				TargetID:   team.Id,
+				Type:       model.PropertyFieldTypeText,
+				Name:       teamIsolationProp,
+			})
+			require.NoError(t, cErr)
+
+			// Try to create system-level with same name in group2 - should NOT conflict
+			conflict, err := ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    group2,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				TargetID:   "",
+				Name:       teamIsolationProp,
+			}, "")
+			require.NoError(t, err)
+			require.Empty(t, conflict, "different groups should not conflict")
+		})
+
+		t.Run("channel-level in different groups should not conflict", func(t *testing.T) {
+			channelIsolationProp := "channel-isolation-" + model.NewId()
+
+			// Create a channel-level property in group1
+			_, cErr := ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    group1,
+				TargetType: string(model.PropertyFieldTargetLevelChannel),
+				TargetID:   channel.Id,
+				Type:       model.PropertyFieldTypeText,
+				Name:       channelIsolationProp,
+			})
+			require.NoError(t, cErr)
+
+			// Try to create system-level with same name in group2 - should NOT conflict
+			conflict, err := ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    group2,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				TargetID:   "",
+				Name:       channelIsolationProp,
+			}, "")
+			require.NoError(t, err)
+			require.Empty(t, conflict, "different groups should not conflict")
+
+			// Try to create team-level with same name in group2 - should NOT conflict
+			conflict, err = ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    group2,
+				TargetType: string(model.PropertyFieldTargetLevelTeam),
+				TargetID:   team.Id,
+				Name:       channelIsolationProp,
+			}, "")
+			require.NoError(t, err)
+			require.Empty(t, conflict, "different groups should not conflict")
+		})
+	})
+
+	t.Run("excludeID parameter", func(t *testing.T) {
+		t.Run("should exclude specified ID from conflict check", func(t *testing.T) {
+			// Create a system-level property
+			systemProp, cErr := ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				TargetID:   "",
+				Type:       model.PropertyFieldTypeText,
+				Name:       "exclude-test-prop-" + model.NewId(),
+			})
+			require.NoError(t, cErr)
+
+			// Without excludeID, checking for same name at team level should conflict
+			conflict, err := ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelTeam),
+				TargetID:   team.Id,
+				Name:       systemProp.Name,
+			}, "")
+			require.NoError(t, err)
+			require.Equal(t, model.PropertyFieldTargetLevelSystem, conflict)
+
+			// With excludeID set to the system property's ID, conflict should still be found
+			// because we're checking from team level and the system property is NOT excluded
+			// (exclusion only works for properties at different levels if they match)
+			conflict, err = ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelTeam),
+				TargetID:   team.Id,
+				Name:       systemProp.Name,
+			}, systemProp.ID)
+			require.NoError(t, err)
+			require.Empty(t, conflict, "should not conflict when excludeID matches the conflicting property")
+		})
+
+		t.Run("property can update to itself without conflict", func(t *testing.T) {
+			// Create a team-level property
+			_, cErr := ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelTeam),
+				TargetID:   team.Id,
+				Type:       model.PropertyFieldTypeText,
+				Name:       "self-update-test-" + model.NewId(),
+			})
+			require.NoError(t, cErr)
+
+			// Create a channel property with the same name in the same team
+			channelProp, cErr := ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelChannel),
+				TargetID:   channel.Id,
+				Type:       model.PropertyFieldTypeText,
+				Name:       "self-update-channel-" + model.NewId(),
+			})
+			require.NoError(t, cErr)
+
+			// Without excludeID, checking channel property name at team level should not conflict
+			// because they have different names
+			conflict, err := ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelTeam),
+				TargetID:   team.Id,
+				Name:       channelProp.Name,
+			}, "")
+			require.NoError(t, err)
+			require.Equal(t, model.PropertyFieldTargetLevelChannel, conflict)
+
+			// Simulating an update where we're checking if the team property can
+			// be renamed to something that would conflict with a channel property,
+			// but the channel property is excluded (as if we're updating that channel property)
+			conflict, err = ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelTeam),
+				TargetID:   team.Id,
+				Name:       channelProp.Name,
+			}, channelProp.ID)
+			require.NoError(t, err)
+			require.Empty(t, conflict, "should not conflict when checking against excluded property")
+		})
+
+		t.Run("excludeID only excludes matching property", func(t *testing.T) {
+			// Create two channel properties with same name in different teams
+			name := "multi-exclude-test-" + model.NewId()
+			channelProp1, cErr := ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelChannel),
+				TargetID:   channel.Id,
+				Type:       model.PropertyFieldTypeText,
+				Name:       name,
+			})
+			require.NoError(t, cErr)
+
+			channelProp2, cErr := ss.PropertyField().Create(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelChannel),
+				TargetID:   channelInTeam2.Id,
+				Type:       model.PropertyFieldTypeText,
+				Name:       name,
+			})
+			require.NoError(t, cErr)
+
+			// Creating system-level with excludeID for channelProp1 should still
+			// conflict with channelProp2
+			conflict, err := ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				TargetID:   "",
+				Name:       name,
+			}, channelProp1.ID)
+			require.NoError(t, err)
+			require.Equal(t, model.PropertyFieldTargetLevelChannel, conflict, "should still conflict with non-excluded property")
+
+			// Excluding channelProp2 should still conflict with channelProp1
+			conflict, err = ss.PropertyField().CheckPropertyNameConflict(&model.PropertyField{
+				ObjectType: objectType,
+				GroupID:    groupID,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				TargetID:   "",
+				Name:       name,
+			}, channelProp2.ID)
+			require.NoError(t, err)
+			require.Equal(t, model.PropertyFieldTargetLevelChannel, conflict, "should still conflict with non-excluded property")
+		})
 	})
 }

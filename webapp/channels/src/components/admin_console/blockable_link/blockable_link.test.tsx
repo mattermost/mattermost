@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, render, screen} from '@testing-library/react';
 import React from 'react';
 import {MemoryRouter} from 'react-router-dom';
+
+import {render, screen, userEvent} from 'tests/react_testing_utils';
 
 import BlockableLink from './blockable_link';
 
@@ -34,18 +35,18 @@ describe('components/admin_console/blockable_link/BlockableLink', () => {
         expect(screen.getByRole('link')).toHaveAttribute('href', '/admin_console/test');
     });
 
-    test('should navigate directly when not blocked', () => {
+    test('should navigate directly when not blocked', async () => {
         render(
             <MemoryRouter>
                 <BlockableLink {...defaultProps}/>
             </MemoryRouter>,
         );
 
-        fireEvent.click(screen.getByText('Link Text'));
+        await userEvent.click(screen.getByText('Link Text'));
         expect(defaultProps.actions.deferNavigation).not.toHaveBeenCalled();
     });
 
-    test('should defer navigation when blocked', () => {
+    test('should defer navigation when blocked', async () => {
         const blockedProps = {
             ...defaultProps,
             blocked: true,
@@ -57,11 +58,11 @@ describe('components/admin_console/blockable_link/BlockableLink', () => {
             </MemoryRouter>,
         );
 
-        fireEvent.click(screen.getByText('Link Text'));
+        await userEvent.click(screen.getByText('Link Text'));
         expect(blockedProps.actions.deferNavigation).toHaveBeenCalled();
     });
 
-    test('should call custom onClick handler if provided', () => {
+    test('should call custom onClick handler if provided', async () => {
         const onClickProps = {
             ...defaultProps,
             onClick: jest.fn(),
@@ -73,7 +74,7 @@ describe('components/admin_console/blockable_link/BlockableLink', () => {
             </MemoryRouter>,
         );
 
-        fireEvent.click(screen.getByText('Link Text'));
+        await userEvent.click(screen.getByText('Link Text'));
         expect(onClickProps.onClick).toHaveBeenCalled();
     });
 

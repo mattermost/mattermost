@@ -296,10 +296,14 @@ func (s *SqlGroupStore) GetByName(name string, opts model.GroupSearchOpts) (*mod
 	return &group, nil
 }
 
-func (s *SqlGroupStore) GetByNames(names []string, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, error) {
+func (s *SqlGroupStore) GetByNames(names []string, opts model.GroupSearchOpts) ([]*model.Group, error) {
 	groups := []*model.Group{}
 	query := s.userGroupsSelectQuery.Where(sq.Eq{"Name": names})
-	query = applyViewRestrictionsFilter(query, viewRestrictions, true)
+
+	if opts.FilterAllowReference {
+		query = query.Where("AllowReference = true")
+	}
+
 	if err := s.GetReplica().SelectBuilder(&groups, query); err != nil {
 		return nil, errors.Wrap(err, "failed to find Groups by names")
 	}

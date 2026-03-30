@@ -1,78 +1,75 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/FileUploadOverlay should match snapshot when file upload is showing with no overlay type 1`] = `
-<div
-  className="file-overlay hidden"
-  id="fileUploadOverlay"
->
+<div>
   <div
-    className="overlay__indent"
+    class="file-overlay hidden"
+    id="fileUploadOverlay"
   >
     <div
-      className="overlay__circle vertical"
+      class="overlay__indent"
     >
-      <img
-        alt=""
-        className="overlay__files"
-        loading="lazy"
-        src=""
-      />
-      <MemoizedFormattedMessage
-        defaultMessage="Drop a file to upload it."
-        id="upload_overlay.info"
-      />
+      <div
+        class="overlay__circle vertical"
+      >
+        <img
+          alt=""
+          class="overlay__files"
+          loading="lazy"
+          src=""
+        />
+        Drop a file to upload it.
+      </div>
     </div>
   </div>
 </div>
 `;
 
 exports[`components/FileUploadOverlay should match snapshot when file upload is showing with overlay type of center 1`] = `
-<div
-  className="file-overlay hidden center-file-overlay"
-  id="fileUploadOverlay"
->
+<div>
   <div
-    className="overlay__indent"
+    class="file-overlay hidden center-file-overlay"
+    id="fileUploadOverlay"
   >
     <div
-      className="overlay__circle vertical"
+      class="overlay__indent"
     >
-      <img
-        alt=""
-        className="overlay__files"
-        loading="lazy"
-        src=""
-      />
-      <MemoizedFormattedMessage
-        defaultMessage="Drop a file to upload it."
-        id="upload_overlay.info"
-      />
+      <div
+        class="overlay__circle vertical"
+      >
+        <img
+          alt=""
+          class="overlay__files"
+          loading="lazy"
+          src=""
+        />
+        Drop a file to upload it.
+      </div>
     </div>
   </div>
 </div>
 `;
 
 exports[`components/FileUploadOverlay should match snapshot when file upload is showing with overlay type of right 1`] = `
-<div
-  className="file-overlay hidden right-file-overlay"
-  id="fileUploadOverlay"
->
+<div>
   <div
-    className="overlay__indent"
+    class="file-overlay hidden right-file-overlay"
+    id="fileUploadOverlay"
   >
     <div
-      className="overlay__circle vertical"
+      class="overlay__indent"
     >
-      <img
-        alt=""
-        className="overlay__files"
-        loading="lazy"
-        src=""
-      />
-      <MemoizedFormattedMessage
-        defaultMessage="Drop a file to upload it."
-        id="upload_overlay.info"
-      />
+      <div
+        class="overlay__circle vertical"
+      >
+        <img
+          alt=""
+          class="overlay__files"
+          loading="lazy"
+          src=""
+        />
+        Drop a file to upload it.
+      </div>
     </div>
   </div>
 </div>

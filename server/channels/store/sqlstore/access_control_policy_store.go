@@ -209,10 +209,27 @@ func (s *SqlAccessControlPolicyStore) Save(rctx request.CTX, policy *model.Acces
 		}
 
 		// Check if the policy has actually changed
-		// We compare data, name, and version fields, and ensure type hasn't changed
+		// We compare data and version fields. Name changes are cosmetic
+		// and should not create a new revision in history.
 		if bytes.Equal(storePolicy.Data, tmp.Data) &&
-			storePolicy.Name == tmp.Name &&
 			storePolicy.Version == tmp.Version {
+			// Update name in place if it changed, without bumping revision
+			if storePolicy.Name != tmp.Name {
+				nameUpdate := s.getQueryBuilder().
+					Update("AccessControlPolicies").
+					Set("Name", storePolicy.Name).
+					Where(sq.Eq{"ID": policy.ID})
+				if _, err = tx.ExecBuilder(nameUpdate); err != nil {
+					if IsUniqueConstraintError(err, []string{"Name", "idx_accesscontrolpolicies_name_type"}) {
+						return nil, store.NewErrConflict("AccessControlPolicy", err, "name="+policy.Name)
+					}
+					return nil, errors.Wrapf(err, "failed to update name for policy with id=%s", policy.ID)
+				}
+				existingPolicy.Name = storePolicy.Name
+				if err = tx.Commit(); err != nil {
+					return nil, errors.Wrap(err, "commit_transaction")
+				}
+			}
 			return existingPolicy, nil
 		}
 
@@ -255,6 +272,9 @@ func (s *SqlAccessControlPolicyStore) Save(rctx request.CTX, policy *model.Acces
 
 	_, err = tx.ExecBuilder(query)
 	if err != nil {
+		if IsUniqueConstraintError(err, []string{"Name", "idx_accesscontrolpolicies_name_type"}) {
+			return nil, store.NewErrConflict("AccessControlPolicy", err, "name="+policy.Name)
+		}
 		return nil, errors.Wrapf(err, "failed to save policy with id=%s", policy.ID)
 	}
 
@@ -359,12 +379,7 @@ func (s *SqlAccessControlPolicyStore) SetActiveStatus(rctx request.CTX, id strin
 
 	if existingPolicy.Type == model.AccessControlPolicyTypeParent {
 		// if the policy is a parent, we need to update the child policies
-		var expr sq.Sqlizer
-		if s.DriverName() == model.DatabaseDriverPostgres {
-			expr = sq.Expr("Data->'imports' @> ?::jsonb", fmt.Sprintf("%q", id))
-		} else {
-			expr = sq.Expr("JSON_CONTAINS(JSON_EXTRACT(Data, '$.imports'), ?)", fmt.Sprintf("%q", id))
-		}
+		expr := sq.Expr("Data->'imports' @> ?::jsonb", fmt.Sprintf("%q", id))
 		query, args, err = s.getQueryBuilder().Update("AccessControlPolicies").Set("Active", active).Where(expr).ToSql()
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to build query for policy with id=%s", id)
@@ -541,11 +556,7 @@ func (s *SqlAccessControlPolicyStore) GetAll(_ request.CTX, opts model.GetAccess
 	query := s.selectQueryBuilder
 
 	if opts.ParentID != "" {
-		if s.DriverName() == model.DatabaseDriverPostgres {
-			query = query.Where(sq.Expr("Data->'imports' @> ?", fmt.Sprintf("%q", opts.ParentID)))
-		} else {
-			query = query.Where(sq.Expr("JSON_CONTAINS(JSON_EXTRACT(Data, '$.imports'), ?)", fmt.Sprintf("%q", opts.ParentID)))
-		}
+		query = query.Where(sq.Expr("Data->'imports' @> ?", fmt.Sprintf("%q", opts.ParentID)))
 	}
 
 	if opts.Type != "" {
@@ -697,4 +708,37 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 	}
 
 	return policies, total, nil
+}
+
+// GetPoliciesByFieldID finds all policies whose CEL rule expressions reference the
+// given property field ID. It performs a text search on the serialized JSONB Data
+// column for the pattern "id_<fieldID>", which is how property fields are referenced
+// in CEL expressions (e.g., user.attributes.id_<fieldID>).
+//
+// This is a sequential scan over the policies table. At the expected scale (hundreds
+// to low thousands of admin-configured policies) this is well under 1ms.
+// If the table grows beyond ~10K rows or this query lands on a hot path, a GIN
+// trigram index on (Data::text) can accelerate it with no query changes.
+func (s *SqlAccessControlPolicyStore) GetPoliciesByFieldID(_ request.CTX, fieldID string) ([]*model.AccessControlPolicy, error) {
+	if !model.IsValidId(fieldID) {
+		return nil, store.NewErrInvalidInput("AccessControlPolicy", "fieldID", fieldID)
+	}
+
+	p := []storeAccessControlPolicy{}
+	query := s.selectQueryBuilder.Where(sq.Expr("Data::text LIKE ?", fmt.Sprintf("%%id\\_%s%%", fieldID)))
+
+	err := s.GetReplica().SelectBuilder(&p, query)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to find policies referencing field id=%s", fieldID)
+	}
+
+	policies := make([]*model.AccessControlPolicy, len(p))
+	for i := range p {
+		policies[i], err = p[i].toModel()
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to parse policy with id=%s", p[i].ID)
+		}
+	}
+
+	return policies, nil
 }

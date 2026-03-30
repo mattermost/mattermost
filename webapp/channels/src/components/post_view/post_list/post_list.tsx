@@ -118,6 +118,8 @@ export interface Props {
     shouldStartFromBottomWhenUnread: boolean;
     hasInaccessiblePosts: boolean;
 
+    isChannelAutotranslated: boolean;
+
     actions: {
 
         /*
@@ -204,9 +206,10 @@ export default class PostList extends React.PureComponent<Props, State> {
     }
 
     componentDidUpdate(prevProps: Props) {
-        if (this.props.channelId !== prevProps.channelId) {
+        if (this.props.channelId !== prevProps.channelId || this.props.focusedPostId !== prevProps.focusedPostId) {
             this.postsOnLoad(this.props.channelId);
         }
+
         if (this.props.postListIds != null && prevProps.postListIds == null) {
             markAndMeasureChannelSwitchEnd(true);
         }
@@ -386,6 +389,7 @@ export default class PostList extends React.PureComponent<Props, State> {
                             latestPostTimeStamp={this.props.latestPostTimeStamp}
                             isMobileView={this.props.isMobileView}
                             lastViewedAt={this.props.lastViewedAt}
+                            isChannelAutotranslated={this.props.isChannelAutotranslated}
                         />
                     </div>
                 </div>
