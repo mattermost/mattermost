@@ -10269,27 +10269,6 @@ func (s *RetryLayerPropertyValueStore) DeleteForTarget(groupID string, targetTyp
 
 }
 
-func (s *RetryLayerPropertyValueStore) DeleteValuesReferencingOptions(linkedFieldIDs []string, optionIDs []string, fieldType model.PropertyFieldType) error {
-
-	tries := 0
-	for {
-		err := s.PropertyValueStore.DeleteValuesReferencingOptions(linkedFieldIDs, optionIDs, fieldType)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
 func (s *RetryLayerPropertyValueStore) Get(groupID string, id string) (*model.PropertyValue, error) {
 
 	tries := 0

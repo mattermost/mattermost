@@ -9,7 +9,6 @@ import (
 	"reflect"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
@@ -349,24 +348,6 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 		return nil, err
 	}
 
-	// Async orphan cleanup: collect all propagations with removed options,
-	// then spawn a single goroutine to handle them all
-	var cleanups []orphanCleanup
-	for _, prop := range propagations {
-		existing := existingByID[prop.SourceFieldID]
-		removedIDs := computeRemovedOptionIDs(existing.Attrs, prop.Options)
-		if len(removedIDs) > 0 {
-			cleanups = append(cleanups, orphanCleanup{
-				sourceFieldID: prop.SourceFieldID,
-				removedIDs:    removedIDs,
-				fieldType:     prop.FieldType,
-			})
-		}
-	}
-	if len(cleanups) > 0 {
-		go ps.cleanupOrphanedValues(cleanups)
-	}
-
 	return result, nil
 }
 
@@ -589,69 +570,6 @@ func (ps *PropertyService) DeletePropertyField(rctx request.CTX, groupID, id str
 	return ps.deletePropertyField(groupID, id)
 }
 
-// orphanCleanup holds parameters for cleaning up orphaned values after
-// options are removed from a source field.
-type orphanCleanup struct {
-	sourceFieldID string
-	removedIDs    []string
-	fieldType     model.PropertyFieldType
-}
-
-// cleanupOrphanedValues finds all linked fields for each cleanup's source
-// and deletes values referencing removed option IDs. This runs asynchronously
-// and must not panic.
-func (ps *PropertyService) cleanupOrphanedValues(cleanups []orphanCleanup) {
-	defer func() {
-		if r := recover(); r != nil {
-			ps.logger.Error("Panic in orphan cleanup goroutine",
-				mlog.Any("panic", r),
-			)
-		}
-	}()
-
-	for _, cleanup := range cleanups {
-		// Find all linked field IDs for this source using cursor-based pagination.
-		// The source field itself is included intentionally: when an option is
-		// removed from a source, values referencing that option are orphaned on
-		// the source just as they are on its linked dependents.
-		const pageSize = 200
-		fieldIDs := []string{cleanup.sourceFieldID}
-		var cursor model.PropertyFieldSearchCursor
-		for {
-			page, searchErr := ps.fieldStore.SearchPropertyFields(model.PropertyFieldSearchOpts{
-				LinkedFieldID:  cleanup.sourceFieldID,
-				IncludeDeleted: false,
-				PerPage:        pageSize,
-				Cursor:         cursor,
-			})
-			if searchErr != nil {
-				ps.logger.Warn("Failed to search linked fields for orphan cleanup",
-					mlog.String("source_field_id", cleanup.sourceFieldID),
-					mlog.Err(searchErr),
-				)
-				break
-			}
-			for _, f := range page {
-				fieldIDs = append(fieldIDs, f.ID)
-			}
-			if len(page) < pageSize {
-				break
-			}
-			last := page[len(page)-1]
-			cursor = model.PropertyFieldSearchCursor{
-				PropertyFieldID: last.ID,
-				CreateAt:        last.CreateAt,
-			}
-		}
-		if deleteErr := ps.valueStore.DeleteValuesReferencingOptions(fieldIDs, cleanup.removedIDs, cleanup.fieldType); deleteErr != nil {
-			ps.logger.Warn("Failed to delete orphaned values after option removal",
-				mlog.String("source_field_id", cleanup.sourceFieldID),
-				mlog.Int("removed_options", len(cleanup.removedIDs)),
-				mlog.Err(deleteErr),
-			)
-		}
-	}
-}
 
 // asOptionSlice extracts the options from an attrs map as []map[string]any
 // via direct type assertion. By the time options reach the service layer,
@@ -716,29 +634,6 @@ func optionsChanged(oldAttrs, newAttrs model.StringInterface) bool {
 	return false
 }
 
-// computeRemovedOptionIDs extracts option IDs from the old attrs that are no longer
-// present in the new options. Returns the list of removed option IDs.
-func computeRemovedOptionIDs(oldAttrs model.StringInterface, newOptions any) []string {
-	oldIDs := extractOptionIDs(oldAttrs[model.PropertyFieldAttributeOptions])
-	if len(oldIDs) == 0 {
-		return nil
-	}
-
-	newIDs := extractOptionIDs(newOptions)
-
-	newIDSet := make(map[string]struct{}, len(newIDs))
-	for _, id := range newIDs {
-		newIDSet[id] = struct{}{}
-	}
-
-	var removed []string
-	for _, id := range oldIDs {
-		if _, exists := newIDSet[id]; !exists {
-			removed = append(removed, id)
-		}
-	}
-	return removed
-}
 
 // extractOptionIDs extracts the "id" field from each option in the given options value
 // using direct type assertions (no JSON marshaling).

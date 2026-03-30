@@ -8188,22 +8188,6 @@ func (s *TimerLayerPropertyValueStore) DeleteForTarget(groupID string, targetTyp
 	return err
 }
 
-func (s *TimerLayerPropertyValueStore) DeleteValuesReferencingOptions(linkedFieldIDs []string, optionIDs []string, fieldType model.PropertyFieldType) error {
-	start := time.Now()
-
-	err := s.PropertyValueStore.DeleteValuesReferencingOptions(linkedFieldIDs, optionIDs, fieldType)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PropertyValueStore.DeleteValuesReferencingOptions", success, elapsed)
-	}
-	return err
-}
-
 func (s *TimerLayerPropertyValueStore) Get(groupID string, id string) (*model.PropertyValue, error) {
 	start := time.Now()
 
