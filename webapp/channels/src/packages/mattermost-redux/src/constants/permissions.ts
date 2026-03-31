@@ -267,6 +267,7 @@ const values = {
     MANAGE_SECURE_CONNECTIONS: 'manage_secure_connections',
 
     CREATE_CUSTOM_GROUP: 'create_custom_group',
+    CREATE_AGENT: 'create_agent',
     MANAGE_CUSTOM_GROUP_MEMBERS: 'manage_custom_group_members',
     EDIT_CUSTOM_GROUP: 'edit_custom_group',
     DELETE_CUSTOM_GROUP: 'delete_custom_group',

@@ -1965,6 +1965,8 @@
   "admin.permissions.permission.convert_private_channel_to_public.name": "Convert to public",
   "admin.permissions.permission.convert_public_channel_to_private.description": "Convert public channels to private",
   "admin.permissions.permission.convert_public_channel_to_private.name": "Convert to private",
+  "admin.permissions.permission.create_agent.description": "Create new AI agents.",
+  "admin.permissions.permission.create_agent.name": "Create Agent",
   "admin.permissions.permission.create_custom_group.description": "Create custom groups.",
   "admin.permissions.permission.create_custom_group.name": "Create",
   "admin.permissions.permission.create_direct_channel.description": "Create direct channel",

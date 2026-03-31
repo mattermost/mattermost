@@ -35,6 +35,16 @@ export const permissionRolesStrings: Record<string, Record<string, MessageDescri
             defaultMessage: 'Convert private channels to public',
         },
     }),
+    create_agent: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.create_agent.name',
+            defaultMessage: 'Create Agent',
+        },
+        description: {
+            id: 'admin.permissions.permission.create_agent.description',
+            defaultMessage: 'Create new AI agents.',
+        },
+    }),
     create_direct_channel: defineMessages({
         name: {
             id: 'admin.permissions.permission.create_direct_channel.name',
