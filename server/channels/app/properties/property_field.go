@@ -23,15 +23,18 @@ func (ps *PropertyService) createPropertyField(field *model.PropertyField) (*mod
 
 	// If this field links to a source, validate the source and copy its schema
 	if field.LinkedFieldID != nil && *field.LinkedFieldID != "" {
-		source, err := ps.fieldStore.Get("", *field.LinkedFieldID)
+		source, err := ps.fieldStore.GetFromMaster("", *field.LinkedFieldID)
 		if err != nil {
-			return nil, model.NewAppError(
-				"CreatePropertyField",
-				"app.property_field.create.linked_source_not_found.app_error",
-				nil,
-				fmt.Sprintf("linked source field %q not found", *field.LinkedFieldID),
-				http.StatusBadRequest,
-			)
+			if store.IsErrNotFound(err) {
+				return nil, model.NewAppError(
+					"CreatePropertyField",
+					"app.property_field.create.linked_source_not_found.app_error",
+					nil,
+					fmt.Sprintf("linked source field %q not found", *field.LinkedFieldID),
+					http.StatusBadRequest,
+				)
+			}
+			return nil, fmt.Errorf("failed to get linked source field %q: %w", *field.LinkedFieldID, err)
 		}
 
 		// Cross-group linking is not supported
@@ -132,6 +135,10 @@ func (ps *PropertyService) createPropertyField(field *model.PropertyField) (*mod
 
 func (ps *PropertyService) getPropertyField(groupID, id string) (*model.PropertyField, error) {
 	return ps.fieldStore.Get(groupID, id)
+}
+
+func (ps *PropertyService) getPropertyFieldFromMaster(groupID, id string) (*model.PropertyField, error) {
+	return ps.fieldStore.GetFromMaster(groupID, id)
 }
 
 func (ps *PropertyService) getPropertyFields(groupID string, ids []string) ([]*model.PropertyField, error) {

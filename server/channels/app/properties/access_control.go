@@ -25,6 +25,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 const (
@@ -118,15 +119,18 @@ func (pas *PropertyAccessService) CreatePropertyField(callerID string, field *mo
 // security (callers can always inspect the template directly).
 // Inherits: Attrs[protected], Attrs[source_plugin_id], Attrs[access_mode].
 func (pas *PropertyAccessService) validateAndInheritLinkedFieldSecurity(callerID string, field *model.PropertyField) error {
-	source, err := pas.propertyService.getPropertyField("", *field.LinkedFieldID)
+	source, err := pas.propertyService.getPropertyFieldFromMaster("", *field.LinkedFieldID)
 	if err != nil {
-		return model.NewAppError(
-			"CreatePropertyField",
-			"app.property_field.create.linked_source_not_found.app_error",
-			nil,
-			fmt.Sprintf("linked source field %q not found", *field.LinkedFieldID),
-			http.StatusBadRequest,
-		)
+		if store.IsErrNotFound(err) {
+			return model.NewAppError(
+				"CreatePropertyField",
+				"app.property_field.create.linked_source_not_found.app_error",
+				nil,
+				fmt.Sprintf("linked source field %q not found", *field.LinkedFieldID),
+				http.StatusBadRequest,
+			)
+		}
+		return fmt.Errorf("failed to get linked source field %q: %w", *field.LinkedFieldID, err)
 	}
 
 	if source.Attrs == nil || !model.IsPropertyFieldProtected(source) {

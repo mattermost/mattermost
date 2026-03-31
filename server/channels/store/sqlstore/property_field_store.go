@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 
@@ -56,19 +57,35 @@ func (s *SqlPropertyFieldStore) Create(field *model.PropertyField) (*model.Prope
 	return field, nil
 }
 
-func (s *SqlPropertyFieldStore) Get(groupID, id string) (*model.PropertyField, error) {
+func (s *SqlPropertyFieldStore) get(groupID, id string, fromMaster bool) (*model.PropertyField, error) {
 	builder := s.tableSelectQuery.Where(sq.Eq{"id": id})
 
 	if groupID != "" {
 		builder = builder.Where(sq.Eq{"GroupID": groupID})
 	}
 
+	db := s.GetReplica()
+	if fromMaster {
+		db = s.GetMaster()
+	}
+
 	var field model.PropertyField
-	if err := s.GetReplica().GetBuilder(&field, builder); err != nil {
+	if err := db.GetBuilder(&field, builder); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("PropertyField", id)
+		}
 		return nil, errors.Wrap(err, "property_field_get_select")
 	}
 
 	return &field, nil
+}
+
+func (s *SqlPropertyFieldStore) Get(groupID, id string) (*model.PropertyField, error) {
+	return s.get(groupID, id, false)
+}
+
+func (s *SqlPropertyFieldStore) GetFromMaster(groupID, id string) (*model.PropertyField, error) {
+	return s.get(groupID, id, true)
 }
 
 func (s *SqlPropertyFieldStore) GetFieldByName(groupID, targetID, name string) (*model.PropertyField, error) {
