@@ -7,12 +7,19 @@ import (
 	"crypto/hmac"
 	"crypto/sha1"
 	"encoding/hex"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
+
+// minHMACKeyLength is the minimum HMAC key length in bytes required by
+// FIPS 140-3 Implementation Guidance C.M for approved use. Go 1.24+ enforces
+// this via crypto/internal/fips140/hmac — keys shorter than 112 bits (14 bytes)
+// cause a panic when FIPS mode is active.
+const minHMACKeyLength = 14
 
 type AtmosCamoBackend struct {
 	siteURL       *url.URL
@@ -21,17 +28,22 @@ type AtmosCamoBackend struct {
 	client        *http.Client
 }
 
-func makeAtmosCamoBackend(proxy *ImageProxy, proxySettings model.ImageProxySettings) *AtmosCamoBackend {
+func makeAtmosCamoBackend(proxy *ImageProxy, proxySettings model.ImageProxySettings) (*AtmosCamoBackend, error) {
 	// We deliberately ignore the error because it's from config.json.
 	// The function returns a nil pointer in case of error, and we handle it when it's used.
 	remoteURL, _ := url.Parse(*proxySettings.RemoteImageProxyURL)
 
+	key := *proxySettings.RemoteImageProxyOptions
+	if len(key) < minHMACKeyLength {
+		return nil, fmt.Errorf("imageproxy: atmos/camo RemoteImageProxyOptions is too short (%d bytes); minimum is %d bytes per FIPS 140-3 IG C.M", len(key), minHMACKeyLength)
+	}
+
 	return &AtmosCamoBackend{
 		siteURL:       proxy.siteURL,
 		remoteURL:     remoteURL,
-		remoteOptions: *proxySettings.RemoteImageProxyOptions,
+		remoteOptions: key,
 		client:        proxy.HTTPService.MakeClient(false),
-	}
+	}, nil
 }
 
 func (backend *AtmosCamoBackend) GetImage(w http.ResponseWriter, r *http.Request, imageURL string) {

@@ -74,7 +74,14 @@ func (proxy *ImageProxy) makeBackend(proxySettings model.ImageProxySettings) Ima
 	case model.ImageProxyTypeLocal:
 		return makeLocalBackend(proxy)
 	case model.ImageProxyTypeAtmosCamo:
-		return makeAtmosCamoBackend(proxy, proxySettings)
+		backend, err := makeAtmosCamoBackend(proxy, proxySettings)
+		if err != nil {
+			if proxy.Logger != nil {
+				proxy.Logger.Error("Failed to create atmos/camo image proxy backend", mlog.Err(err))
+			}
+			return nil
+		}
+		return backend
 	default:
 		return nil
 	}

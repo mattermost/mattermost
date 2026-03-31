@@ -37,6 +37,37 @@ func makeTestAtmosCamoProxy() *ImageProxy {
 	return MakeImageProxy(configService, httpservice.MakeHTTPService(configService), nil)
 }
 
+func TestMakeAtmosCamoBackend_KeyTooShort(t *testing.T) {
+	proxy := makeTestAtmosCamoProxy()
+
+	proxySettings := model.ImageProxySettings{
+		Enable:                  model.NewPointer(true),
+		ImageProxyType:          model.NewPointer(model.ImageProxyTypeAtmosCamo),
+		RemoteImageProxyURL:     model.NewPointer("http://images.example.com"),
+		RemoteImageProxyOptions: model.NewPointer("short"),
+	}
+
+	backend, err := makeAtmosCamoBackend(proxy, proxySettings)
+	require.Error(t, err)
+	assert.Nil(t, backend)
+	assert.Contains(t, err.Error(), "too short")
+}
+
+func TestMakeAtmosCamoBackend_ValidKey(t *testing.T) {
+	proxy := makeTestAtmosCamoProxy()
+
+	proxySettings := model.ImageProxySettings{
+		Enable:                  model.NewPointer(true),
+		ImageProxyType:          model.NewPointer(model.ImageProxyTypeAtmosCamo),
+		RemoteImageProxyURL:     model.NewPointer("http://images.example.com"),
+		RemoteImageProxyOptions: model.NewPointer("7e5f3fab20b94782b43cdb022a66985ef28ba355df2c5d5da3c9a05e4b697bac"),
+	}
+
+	backend, err := makeAtmosCamoBackend(proxy, proxySettings)
+	require.NoError(t, err)
+	assert.NotNil(t, backend)
+}
+
 func TestAtmosCamoBackend_GetImage(t *testing.T) {
 	imageURL := "https://www.mattermost.com/wp-content/uploads/2022/02/logoHorizontalWhite.png"
 	proxiedURL := "http://images.example.com/b569ce17f1be4550cffa8d8dd3a9e80e6d209584/68747470733a2f2f7777772e6d61747465726d6f73742e636f6d2f77702d636f6e74656e742f75706c6f6164732f323032322f30322f6c6f676f486f72697a6f6e74616c57686974652e706e67"
