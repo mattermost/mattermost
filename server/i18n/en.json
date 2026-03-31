@@ -7671,6 +7671,10 @@
     "translation": "Unable to create property field."
   },
   {
+    "id": "app.property_field.create.linked_source_cross_group.app_error",
+    "translation": "Cannot link to a field in a different group."
+  },
+  {
     "id": "app.property_field.create.linked_source_deleted.app_error",
     "translation": "The linked source field has been deleted."
   },
@@ -7685,6 +7689,10 @@
   {
     "id": "app.property_field.create.linked_source_not_template.app_error",
     "translation": "Can only link to template fields."
+  },
+  {
+    "id": "app.property_field.create.linked_source_protected.app_error",
+    "translation": "Only the source plugin can create linked fields from a protected template."
   },
   {
     "id": "app.property_field.create.linked_target_type_mismatch.app_error",
