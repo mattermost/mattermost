@@ -224,9 +224,11 @@ jobs:
               body = fs.readFileSync(analysisFile, 'utf8').trim();
             }
 
+            const overallAssessment =
+              body.match(/^\*\*Overall Assessment:\*\*\s*(.+)$/m)?.[1]?.trim();
             const needsDocs =
-              body.includes('Documentation Updates Recommended') ||
-              body.includes('Documentation Updates Required');
+              overallAssessment === 'Documentation Updates Recommended' ||
+              overallAssessment === 'Documentation Updates Required';
 
             const comments = await github.paginate(github.rest.issues.listComments, {
               owner: context.repo.owner,
