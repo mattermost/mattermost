@@ -212,6 +212,10 @@
     "translation": "Unable to upload file. File is too large."
   },
   {
+    "id": "api.ai_bridge_test_helper.disabled.app_error",
+    "translation": "Bridge test helper is disabled."
+  },
+  {
     "id": "api.back_to_app",
     "translation": "Back to {{.SiteName}}"
   },
@@ -2781,6 +2785,10 @@
     "translation": "Can not post to deleted channel."
   },
   {
+    "id": "api.post.create_post.card_type_disabled.app_error",
+    "translation": "Card posts are not enabled on this server."
+  },
+  {
     "id": "api.post.create_post.channel_root_id.app_error",
     "translation": "Invalid ChannelId for RootId parameter."
   },
@@ -5127,6 +5135,10 @@
     "translation": "Failed to parse AI summarization response."
   },
   {
+    "id": "app.ai_bridge_test_helper.invalid_config",
+    "translation": "Invalid configuration for AI bridge test helper."
+  },
+  {
     "id": "app.analytics.getanalytics.internal_error",
     "translation": "Unable to get the analytics."
   },
@@ -6865,10 +6877,6 @@
   {
     "id": "app.insert_error",
     "translation": "insert error"
-  },
-  {
-    "id": "app.interactive_dialog.invalid",
-    "translation": "Invalid interactive dialog."
   },
   {
     "id": "app.job.download_export_results_not_enabled",

@@ -344,6 +344,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitFile()
 	api.InitUpload()
 	api.InitSystem()
+	api.InitAIBridgeTestHelper()
 	api.InitLicense()
 	api.InitConfig()
 	api.InitWebhook()

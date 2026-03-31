@@ -65,12 +65,12 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		// The test ensures that sync messages are sent asynchronously after a minimum delay for both add and remove operations.
 		EnsureCleanState(t, th, ss)
 		// Track sync messages received
-		var syncMessageCount int32
+		var syncMessageCount atomic.Int32
 		var syncHandler *SelfReferentialSyncHandler
 
 		// Create a test HTTP server that acts as the "remote" cluster
 		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			atomic.AddInt32(&syncMessageCount, 1)
+			syncMessageCount.Add(1)
 			if syncHandler != nil {
 				syncHandler.HandleRequest(w, r)
 			} else {
@@ -144,7 +144,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		// Wait for async sync with more generous timeout (minimum delay is 2 seconds + async task processing)
 		require.Eventually(t, func() bool {
-			count := atomic.LoadInt32(&syncMessageCount)
+			count := syncMessageCount.Load()
 			return count > 0
 		}, 15*time.Second, 200*time.Millisecond, "Should have received at least one sync message via automatic sync")
 
@@ -161,7 +161,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		// Reset sync counter and wait for background tasks to settle
 		var initialCount int32
 		require.Eventually(t, func() bool {
-			initialCount = atomic.LoadInt32(&syncMessageCount)
+			initialCount = syncMessageCount.Load()
 			return !service.HasPendingTasksForTesting()
 		}, 5*time.Second, 100*time.Millisecond, "Background tasks should settle before removal test")
 
@@ -171,7 +171,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		// Wait for removal sync with increased timeout
 		require.Eventually(t, func() bool {
-			count := atomic.LoadInt32(&syncMessageCount)
+			count := syncMessageCount.Load()
 			return count > initialCount
 		}, 20*time.Second, 200*time.Millisecond, "Should have received sync message for user removal")
 
@@ -532,7 +532,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		// 2. No members are synced during failure mode
 		// 3. Once the server recovers, sync completes successfully
 		EnsureCleanState(t, th, ss)
-		var syncAttempts int32
+		var syncAttempts atomic.Int32
 		var failureMode atomic.Bool
 		failureMode.Store(true)
 		var successfulSyncs []string
@@ -541,7 +541,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.Path == "/api/v4/remotecluster/msg" {
-				atomic.AddInt32(&syncAttempts, 1)
+				syncAttempts.Add(1)
 
 				if failureMode.Load() {
 					w.WriteHeader(http.StatusInternalServerError)
@@ -621,11 +621,11 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		// Wait for first sync attempt with more robust checking
 		require.Eventually(t, func() bool {
-			attempts := atomic.LoadInt32(&syncAttempts)
+			attempts := syncAttempts.Load()
 			return attempts > 0
 		}, 15*time.Second, 100*time.Millisecond, "Should have attempted sync during failure mode")
 
-		initialAttempts := atomic.LoadInt32(&syncAttempts)
+		initialAttempts := syncAttempts.Load()
 		assert.Greater(t, initialAttempts, int32(0), "Should have attempted sync")
 		assert.Empty(t, successfulSyncs, "No successful syncs during failure mode")
 
@@ -641,7 +641,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		}, 15*time.Second, 100*time.Millisecond, "Should have successful sync after recovery")
 
 		// Verify recovery
-		finalAttempts := atomic.LoadInt32(&syncAttempts)
+		finalAttempts := syncAttempts.Load()
 		assert.Greater(t, finalAttempts, initialAttempts, "Should have retried after recovery")
 	})
 	t.Run("Test 5: Manual sync with cursor management", func(t *testing.T) {
@@ -651,9 +651,9 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		// 3. Verifies all operations are properly synced and cursor is updated correctly
 		// 4. Validates that the LastMembersSyncAt cursor advances after each sync operation
 		EnsureCleanState(t, th, ss)
-		var totalSyncMessages int32
-		var addOperations int32
-		var removeOperations int32
+		var totalSyncMessages atomic.Int32
+		var addOperations atomic.Int32
+		var removeOperations atomic.Int32
 		var selfCluster *model.RemoteCluster
 
 		// Create sync handler
@@ -677,9 +677,9 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 						// Count membership changes (now sent via TopicSync)
 						for _, change := range syncMsg.MembershipChanges {
 							if change.IsAdd {
-								atomic.AddInt32(&addOperations, 1)
+								addOperations.Add(1)
 							} else {
-								atomic.AddInt32(&removeOperations, 1)
+								removeOperations.Add(1)
 							}
 						}
 					}
@@ -763,10 +763,10 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		// Wait for initial sync to complete
 		require.Eventually(t, func() bool {
-			return atomic.LoadInt32(&addOperations) >= 10
+			return addOperations.Load() >= 10
 		}, 10*time.Second, 100*time.Millisecond, "Should sync all initial users")
 
-		initialAdds := atomic.LoadInt32(&addOperations)
+		initialAdds := addOperations.Load()
 		assert.GreaterOrEqual(t, initialAdds, int32(10), "Should sync all initial users")
 
 		// Verify cursor was updated after initial sync
@@ -798,14 +798,14 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		}
 
 		// Sync mixed changes
-		previousMessages := atomic.LoadInt32(&totalSyncMessages)
+		previousMessages := totalSyncMessages.Load()
 
 		service.NotifyMembershipChanged(channel.Id, "")
 
 		// Wait for mixed changes sync to complete
 		require.Eventually(t, func() bool {
-			messages := atomic.LoadInt32(&totalSyncMessages)
-			removes := atomic.LoadInt32(&removeOperations)
+			messages := totalSyncMessages.Load()
+			removes := removeOperations.Load()
 			return messages > previousMessages && removes >= 3
 		}, 10*time.Second, 100*time.Millisecond, "Should sync mixed changes")
 
@@ -825,9 +825,9 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		expectedMembers := 10 - 3 + 5 + 1 // initial - removed + added + system admin
 		assert.Equal(t, expectedMembers, len(members), "Should have correct final member count")
 
-		finalMessages := atomic.LoadInt32(&totalSyncMessages)
-		finalAdds := atomic.LoadInt32(&addOperations)
-		finalRemoves := atomic.LoadInt32(&removeOperations)
+		finalMessages := totalSyncMessages.Load()
+		finalAdds := addOperations.Load()
+		finalRemoves := removeOperations.Load()
 
 		assert.Greater(t, finalMessages, int32(0), "Should have sync messages")
 		assert.Greater(t, finalAdds, int32(0), "Should have add operations")
@@ -839,7 +839,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		// 2. Changes from one cluster propagate through our server to other clusters
 		// 3. Removals sync to all clusters
 		EnsureCleanState(t, th, ss)
-		var totalSyncMessages int32
+		var totalSyncMessages atomic.Int32
 		var syncMessagesPerCluster = make(map[string]*int32)
 
 		// Create multiple test HTTP servers to simulate different remote clusters
@@ -983,7 +983,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		// This simulates cluster-2 receiving a membership change and propagating it
 
 		// Reset counters
-		atomic.StoreInt32(&totalSyncMessages, 0)
+		totalSyncMessages.Store(0)
 		for _, countPtr := range syncMessagesPerCluster {
 			atomic.StoreInt32(countPtr, 0)
 		}
@@ -1044,7 +1044,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		// Part 3: Test removal syncing to all clusters
 
 		// Reset counters
-		atomic.StoreInt32(&totalSyncMessages, 0)
+		totalSyncMessages.Store(0)
 		for _, countPtr := range syncMessagesPerCluster {
 			atomic.StoreInt32(countPtr, 0)
 		}
@@ -1081,7 +1081,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		// 2. When the feature flag is enabled, sync messages should be sent as expected
 		// This ensures that the feature can be safely disabled in production without triggering unintended syncs
 		EnsureCleanState(t, th, ss)
-		var syncMessageCount int32
+		var syncMessageCount atomic.Int32
 
 		// Disable feature flag from the beginning to prevent any automatic sync
 		os.Setenv("MM_FEATUREFLAGS_ENABLESHAREDCHANNELMEMBERSYNC", "false")
@@ -1091,7 +1091,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		// Create test HTTP server that counts sync messages
 		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.Path == "/api/v4/remotecluster/msg" {
-				atomic.AddInt32(&syncMessageCount, 1)
+				syncMessageCount.Add(1)
 			}
 			writeOKResponse(w)
 		}))
@@ -1151,12 +1151,12 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 			require.Nil(t, appErr)
 		}
 
-		atomic.StoreInt32(&syncMessageCount, 0)
+		syncMessageCount.Store(0)
 		service.NotifyMembershipChanged(channel.Id, "")
 
 		// Verify no sync messages were sent
 		require.Never(t, func() bool {
-			return atomic.LoadInt32(&syncMessageCount) > 0
+			return syncMessageCount.Load() > 0
 		}, 2*time.Second, 100*time.Millisecond, "No sync should occur with feature flag disabled")
 
 		// Test 2: Sync with feature flag enabled
@@ -1164,12 +1164,12 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 			cfg.FeatureFlags.EnableSharedChannelsMemberSync = true
 		})
 
-		atomic.StoreInt32(&syncMessageCount, 0)
+		syncMessageCount.Store(0)
 		service.NotifyMembershipChanged(channel.Id, "")
 
 		// Verify sync messages were sent
 		require.Eventually(t, func() bool {
-			return atomic.LoadInt32(&syncMessageCount) > 0
+			return syncMessageCount.Load() > 0
 		}, 5*time.Second, 100*time.Millisecond, "Sync should occur with feature flag enabled")
 	})
 	t.Run("Test 8: Sync Task After Connection Becomes Available", func(t *testing.T) {
@@ -1287,7 +1287,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		// 5. No partial data is persisted from the failed sync
 		EnsureCleanState(t, th, ss)
 
-		var syncAttempts int32
+		var syncAttempts atomic.Int32
 		var serverOnline atomic.Bool
 		serverOnline.Store(true)
 		var syncHandler *SelfReferentialSyncHandler
@@ -1301,7 +1301,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 			}
 
 			if r.URL.Path == "/api/v4/remotecluster/msg" {
-				currentAttempt := atomic.AddInt32(&syncAttempts, 1)
+				currentAttempt := syncAttempts.Add(1)
 				// On second sync cycle, go offline (allow first full sync to complete)
 				if currentAttempt > 2 {
 					serverOnline.Store(false)
@@ -1377,7 +1377,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		// Wait for first sync with more generous timeout
 		require.Eventually(t, func() bool {
-			return atomic.LoadInt32(&syncAttempts) >= 1
+			return syncAttempts.Load() >= 1
 		}, 15*time.Second, 200*time.Millisecond, "Should complete first sync")
 
 		// Wait for cursor to be updated after first sync
@@ -1405,7 +1405,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		// Wait for second sync attempt with more generous timeout
 		require.Eventually(t, func() bool {
-			return atomic.LoadInt32(&syncAttempts) >= 2
+			return syncAttempts.Load() >= 2
 		}, 20*time.Second, 200*time.Millisecond, "Should attempt second sync")
 
 		// Wait for any cursor updates to complete and verify cursor was not updated
@@ -1435,7 +1435,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		var mu sync.Mutex
 		var syncHandler *SelfReferentialSyncHandler
 		var testServer *httptest.Server
-		var totalSyncMessages int32
+		var totalSyncMessages atomic.Int32
 
 		// Create users
 		user1 := th.CreateUser(t)
@@ -1506,7 +1506,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 								for _, change := range syncMsg.MembershipChanges {
 									if change.IsAdd {
 										syncedChannelUsers[channelId] = append(syncedChannelUsers[channelId], change.UserId)
-										atomic.AddInt32(&totalSyncMessages, 1)
+										totalSyncMessages.Add(1)
 									}
 								}
 							}
@@ -1560,7 +1560,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		// Ensure the sync handler is ready by waiting for the first message
 		require.Eventually(t, func() bool {
-			return atomic.LoadInt32(&totalSyncMessages) > 0
+			return totalSyncMessages.Load() > 0
 		}, 10*time.Second, 50*time.Millisecond, "Expected at least one sync message to be sent")
 
 		// Calculate expected number of sync messages
@@ -1572,7 +1572,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		// Wait for all sync messages to be processed with detailed debugging
 		require.Eventually(t, func() bool {
-			currentMessages := atomic.LoadInt32(&totalSyncMessages)
+			currentMessages := totalSyncMessages.Load()
 
 			mu.Lock()
 			channelCount := len(syncedChannelUsers)
@@ -1590,7 +1590,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 			return currentMessages >= expectedSyncMessages
 		}, 30*time.Second, 200*time.Millisecond,
-			fmt.Sprintf("Expected %d sync messages, but got %d", expectedSyncMessages, atomic.LoadInt32(&totalSyncMessages)))
+			fmt.Sprintf("Expected %d sync messages, but got %d", expectedSyncMessages, totalSyncMessages.Load()))
 
 		// Verify we have complete data for all channels
 		require.Eventually(t, func() bool {
@@ -1674,7 +1674,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 	// 	EnsureCleanState(t, th, ss)
 	// 	var syncMessages []model.SyncMsg
 	// 	var mu sync.Mutex
-	// 	var syncMessageCount int32
+	// 	var syncMessageCount atomic.Int32
 	// 	var selfCluster *model.RemoteCluster
 
 	// 	// Create sync handler
@@ -1683,7 +1683,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 	// 	// Create test HTTP server that tracks sync messages
 	// 	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	// 		if r.URL.Path == "/api/v4/remotecluster/msg" {
-	// 			atomic.AddInt32(&syncMessageCount, 1)
+	// 			syncMessageCount.Add(1)
 
 	// 			// Read body once
 	// 			bodyBytes, readErr := io.ReadAll(r.Body)
@@ -1783,7 +1783,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 	// 	// Wait for initial sync to complete
 	// 	require.Eventually(t, func() bool {
-	// 		count := atomic.LoadInt32(&syncMessageCount)
+	// 		count := syncMessageCount.Load()
 	// 		return count > 0
 	// 	}, 15*time.Second, 200*time.Millisecond, "Should have initial sync messages")
 
@@ -1830,7 +1830,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 	// 	// Phase 5: Conflict resolution sync
 	// 	// Reset message tracking for conflict resolution phase
-	// 	atomic.StoreInt32(&syncMessageCount, 0)
+	// 	syncMessageCount.Store(0)
 	// 	mu.Lock()
 	// 	syncMessages = []model.SyncMsg{}
 	// 	mu.Unlock()
@@ -1840,7 +1840,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 	// 	// Wait for conflict resolution sync to complete
 	// 	require.Eventually(t, func() bool {
-	// 		count := atomic.LoadInt32(&syncMessageCount)
+	// 		count := syncMessageCount.Load()
 	// 		return count > 0
 	// 	}, 20*time.Second, 200*time.Millisecond, "Should receive conflict resolution sync messages")
 
@@ -1884,7 +1884,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 	// 	require.Nil(t, appErr)
 
 	// 	// Reset and sync this new user
-	// 	atomic.StoreInt32(&syncMessageCount, 0)
+	// 	syncMessageCount.Store(0)
 	// 	mu.Lock()
 	// 	syncMessages = []model.SyncMsg{}
 	// 	mu.Unlock()
@@ -1909,7 +1909,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 	// 	}, 15*time.Second, 200*time.Millisecond, "New user should be synced correctly after conflict resolution")
 
 	// 	// Phase 9: Verify efficiency - no redundant syncs for existing members
-	// 	atomic.StoreInt32(&syncMessageCount, 0)
+	// 	syncMessageCount.Store(0)
 	// 	mu.Lock()
 	// 	syncMessages = []model.SyncMsg{}
 	// 	mu.Unlock()
@@ -1921,7 +1921,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 	// 	// Wait for sync completion and verify minimal activity
 	// 	// Give time for any sync to complete, then check the final count
 	// 	require.Eventually(t, func() bool {
-	// 		finalCount := atomic.LoadInt32(&syncMessageCount)
+	// 		finalCount := syncMessageCount.Load()
 	// 		// Should have minimal activity since all members are already synced
 	// 		return finalCount <= 1
 	// 	}, 10*time.Second, 200*time.Millisecond, "Should have minimal sync activity for already-synced members")
