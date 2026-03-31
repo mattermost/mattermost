@@ -35,7 +35,7 @@ describe('Customization', () => {
         cy.findByTestId('SupportSettings.ReportAProblemLinklabel').scrollIntoView().should('be.visible').and('have.text', 'Custom Report a Problem Link:');
 
         // * Verify Report a Problem link help text is visible and matches the text
-        cy.findByTestId('SupportSettings.ReportAProblemLinkhelp-text').find('span').should('be.visible').and('have.text', "Enter the URL that users will be directed to when they choose ‘Report a Problem’.");
+        cy.findByTestId('SupportSettings.ReportAProblemLinkhelp-text').find('span').should('be.visible').and('have.text', 'Enter the URL that users will be directed to when they choose "Report a Problem".');
 
         // # Enter a problem link
         const reportAProblemLink = 'https://mattermost.com/pl/report-a-bug';
