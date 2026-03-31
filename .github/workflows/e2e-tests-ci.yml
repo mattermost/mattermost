@@ -187,6 +187,8 @@ jobs:
       - resolve-pr
       - check-changes
     if: needs.resolve-pr.outputs.PR_NUMBER != ''
+    permissions:
+      statuses: write
     uses: ./.github/workflows/e2e-tests-cypress.yml
     with:
       commit_sha: "${{ needs.resolve-pr.outputs.COMMIT_SHA }}"
@@ -210,6 +212,8 @@ jobs:
       - resolve-pr
       - check-changes
     if: needs.resolve-pr.outputs.PR_NUMBER != ''
+    permissions:
+      statuses: write
     uses: ./.github/workflows/e2e-tests-playwright.yml
     with:
       commit_sha: "${{ needs.resolve-pr.outputs.COMMIT_SHA }}"

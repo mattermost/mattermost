@@ -145,6 +145,8 @@ jobs:
       - generate-build-variables
     if: inputs.should_run == 'false'
     runs-on: ubuntu-24.04
+    permissions:
+      statuses: write
     steps:
       - name: ci/post-skip-status
         env:
@@ -162,6 +164,7 @@ jobs:
   cypress-full:
     needs:
       - generate-build-variables
+    if: inputs.should_run != 'false'
     uses: ./.github/workflows/e2e-tests-cypress-template.yml
     with:
       test_type: full
