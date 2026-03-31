@@ -362,7 +362,25 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 		return nil, nil, uErr
 	}
 
-	return all[:len(fields)], all[len(fields):], nil
+	// Partition the returned fields into requested vs propagated by matching
+	// against the IDs we submitted. This avoids assuming anything about the
+	// ordering the store uses in its return value.
+	requestedIDs := make(map[string]struct{}, len(fields))
+	for _, f := range fields {
+		requestedIDs[f.ID] = struct{}{}
+	}
+
+	requested = make([]*model.PropertyField, 0, len(fields))
+	propagated = make([]*model.PropertyField, 0, len(all)-len(fields))
+	for _, f := range all {
+		if _, ok := requestedIDs[f.ID]; ok {
+			requested = append(requested, f)
+		} else {
+			propagated = append(propagated, f)
+		}
+	}
+
+	return requested, propagated, nil
 }
 
 func (ps *PropertyService) deletePropertyField(groupID, id string) error {
