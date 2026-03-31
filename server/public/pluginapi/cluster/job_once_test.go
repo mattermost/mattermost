@@ -357,7 +357,7 @@ func TestScheduleOnceSequential(t *testing.T) {
 				if active {
 					return false
 				}
-				if atomic.LoadInt32(v) == int32(0) {
+				if atomic.LoadInt32(v) != int32(1) {
 					return false
 				}
 			}

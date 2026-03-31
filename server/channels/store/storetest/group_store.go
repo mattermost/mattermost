@@ -3931,7 +3931,7 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 		},
 		{
 			Name:    "Get group matching display name",
-			Opts:    model.GroupSearchOpts{Q: uid + "-group-3"},
+			Opts:    model.GroupSearchOpts{Q: uid + "-GrOuP-3"},
 			Page:    0,
 			PerPage: 100,
 			Resultf: func(groups []*model.Group) bool {
@@ -3949,7 +3949,7 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 		},
 		{
 			Name:    "Get group matching multiple display names",
-			Opts:    model.GroupSearchOpts{Q: uid + "-group"},
+			Opts:    model.GroupSearchOpts{Q: uid + "-GrOuP"},
 			Page:    0,
 			PerPage: 100,
 			Resultf: func(groups []*model.Group) bool {
