@@ -107,6 +107,8 @@ func getMockStore(t *testing.T) *mocks.Store {
 	fakeChannel2 := model.Channel{Id: "channel2", Name: "channel2-name"}
 	mockChannelStore := mocks.ChannelStore{}
 	mockChannelStore.On("ClearCaches").Return()
+	mockChannelStore.On("Save", mock.IsType(&request.Context{}), &fakeChannel1, int64(0)).Return(&fakeChannel1, nil)
+	mockChannelStore.On("Update", mock.IsType(&request.Context{}), &fakeChannel1).Return(&fakeChannel1, nil)
 	mockChannelStore.On("GetMemberCount", "id", true).Return(mockCount, nil)
 	mockChannelStore.On("GetMemberCount", "id", false).Return(mockCount, nil)
 	mockChannelStore.On("GetGuestCount", "id", true).Return(mockGuestCount, nil)
