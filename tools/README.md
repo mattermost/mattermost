@@ -6,7 +6,6 @@ This directory aims to provide a set of tools that simplify and enhance various 
 
 * **mmgotool**: is a CLI to help with i18n related checks for the mattermost/server development.
 * **sharedchannel-test**: integration test tool that validates shared channel synchronization (posts, reactions, membership) between two real Mattermost server instances.
-* **bulk-insert-test**: generates a bulk-import zip sized to exceed PostgreSQL's 65,535 query parameter limit, imports it, and validates the results (MM-68076).
 
 ## Installation & Usage
 
@@ -42,28 +41,4 @@ go run . --license /path/to/license.mattermost-license --server-dir ../../server
 # External mode (connect to already-running instances)
 go run . --license /path/to/license.mattermost-license --manage=false \
   --server-a http://localhost:9065 --server-b http://localhost:9066
-```
-
-### bulk-insert-test
-
-Generates a Mattermost bulk-import zip sized to exceed PostgreSQL's 65,535 query parameter limit across all bulk INSERT paths, imports it via mmctl, waits for the job to complete, and validates the results. Safe to run multiple times — each run creates unique users and a unique channel.
-
-**Prerequisites:**
-- Mattermost server running with local mode enabled
-- `mmctl` binary available
-- `MaxUsersPerTeam` setting high enough for the number of users (default 10,000)
-
-**Usage:**
-
-```bash
-cd tools/bulk-insert-test
-
-# Default: 10,000 users + 10,000 replies (exceeds all 4 overflow thresholds)
-go run . -mmctl ../../server/bin/mmctl
-
-# Custom sizes and team name
-go run . -users 5000 -replies 3000 -team my-test-team -mmctl ../../server/bin/mmctl
-
-# Custom timeout for slow environments
-go run . -timeout 20m -mmctl ../../server/bin/mmctl
 ```
