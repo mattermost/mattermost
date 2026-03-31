@@ -15,7 +15,10 @@ import (
 
 // Private implementation methods (database access)
 
-func (ps *PropertyService) createPropertyField(field *model.PropertyField) (*model.PropertyField, error) {
+// createPropertyField creates a property field.
+// The prefetchedSource parameter is optional; if non-nil and the field is linked,
+// it is used instead of fetching the source from the store.
+func (ps *PropertyService) createPropertyField(field *model.PropertyField, prefetchedSource *model.PropertyField) (*model.PropertyField, error) {
 	// Legacy properties (PSAv1) skip conflict check
 	if field.IsPSAv1() {
 		return ps.fieldStore.Create(field)
@@ -23,16 +26,20 @@ func (ps *PropertyService) createPropertyField(field *model.PropertyField) (*mod
 
 	// If this field links to a source, validate the source and copy its schema
 	if field.LinkedFieldID != nil && *field.LinkedFieldID != "" {
-		// Fetch source field across all groups (empty groupID)
-		source, err := ps.fieldStore.Get("", *field.LinkedFieldID)
-		if err != nil {
-			return nil, model.NewAppError(
-				"CreatePropertyField",
-				"app.property_field.create.linked_source_not_found.app_error",
-				nil,
-				fmt.Sprintf("linked source field %q not found", *field.LinkedFieldID),
-				http.StatusBadRequest,
-			)
+		source := prefetchedSource
+		if source == nil {
+			// Fetch source field across all groups (empty groupID)
+			var err error
+			source, err = ps.fieldStore.Get("", *field.LinkedFieldID)
+			if err != nil {
+				return nil, model.NewAppError(
+					"CreatePropertyField",
+					"app.property_field.create.linked_source_not_found.app_error",
+					nil,
+					fmt.Sprintf("linked source field %q not found", *field.LinkedFieldID),
+					http.StatusBadRequest,
+				)
+			}
 		}
 
 		if source.DeleteAt != 0 {
@@ -399,9 +406,11 @@ func (ps *PropertyService) CreatePropertyField(rctx request.CTX, field *model.Pr
 	// If the field links to a source whose group requires access control,
 	// route through the access control service even if the field's own group
 	// does not — the linked field inherits the source's security posture.
-	if !requiresAC && field.LinkedFieldID != nil && *field.LinkedFieldID != "" {
-		source, sErr := ps.fieldStore.Get("", *field.LinkedFieldID)
-		if sErr != nil {
+	// Fetch the source once here so it can be reused by AC and impl layers.
+	var source *model.PropertyField
+	if field.LinkedFieldID != nil && *field.LinkedFieldID != "" {
+		source, err = ps.fieldStore.Get("", *field.LinkedFieldID)
+		if err != nil {
 			return nil, model.NewAppError(
 				"CreatePropertyField",
 				"app.property_field.create.linked_source_not_found.app_error",
@@ -410,32 +419,39 @@ func (ps *PropertyService) CreatePropertyField(rctx request.CTX, field *model.Pr
 				http.StatusBadRequest,
 			)
 		}
-		sourceRequiresAC, acErr := ps.requiresAccessControlForGroupID(source.GroupID)
-		if acErr != nil {
-			return nil, fmt.Errorf("CreatePropertyField: %w", acErr)
-		}
-		if sourceRequiresAC {
-			requiresAC = true
+		if !requiresAC {
+			sourceRequiresAC, acErr := ps.requiresAccessControlForGroupID(source.GroupID)
+			if acErr != nil {
+				return nil, fmt.Errorf("CreatePropertyField: %w", acErr)
+			}
+			if sourceRequiresAC {
+				requiresAC = true
+			}
 		}
 	}
 
 	if requiresAC {
 		callerID := ps.extractCallerID(rctx)
-		return ps.propertyAccess.CreatePropertyField(callerID, field)
+		return ps.propertyAccess.CreatePropertyField(callerID, field, source)
 	}
 
-	return ps.createPropertyField(field)
+	return ps.createPropertyField(field, source)
 }
 
 func (ps *PropertyService) GetPropertyField(rctx request.CTX, groupID, id string) (*model.PropertyField, error) {
-	requiresAC, err := ps.requiresAccessControlForFieldID(groupID, id)
+	result, err := ps.resolveFieldAccessControl(groupID, id)
 	if err != nil {
 		return nil, fmt.Errorf("GetPropertyField: %w", err)
 	}
 
-	if requiresAC {
+	if result.requiresAC {
 		callerID := ps.extractCallerID(rctx)
-		return ps.propertyAccess.GetPropertyField(callerID, groupID, id)
+		return ps.propertyAccess.GetPropertyField(callerID, groupID, id, result.field)
+	}
+
+	// If resolveFieldAccessControl already fetched the field, return it directly
+	if result.field != nil {
+		return result.field, nil
 	}
 
 	return ps.getPropertyField(groupID, id)
@@ -536,57 +552,51 @@ func (ps *PropertyService) SearchPropertyFields(rctx request.CTX, groupID string
 }
 
 func (ps *PropertyService) UpdatePropertyField(rctx request.CTX, groupID string, field *model.PropertyField) (*model.PropertyField, error) {
-	requiresAC, err := ps.requiresAccessControlForFieldID(groupID, field.ID)
+	result, err := ps.resolveFieldAccessControl(groupID, field.ID)
 	if err != nil {
 		return nil, fmt.Errorf("UpdatePropertyField: %w", err)
 	}
 
-	if requiresAC {
+	if result.requiresAC {
 		callerID := ps.extractCallerID(rctx)
-		return ps.propertyAccess.UpdatePropertyField(callerID, groupID, field)
+		return ps.propertyAccess.UpdatePropertyField(callerID, groupID, field, result.field)
 	}
 
 	return ps.updatePropertyField(groupID, field)
 }
 
 func (ps *PropertyService) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField) (requested []*model.PropertyField, propagated []*model.PropertyField, err error) {
-	requiresAC, err := ps.requiresAccessControlForGroupID(groupID)
+	if len(fields) == 0 {
+		return nil, nil, nil
+	}
+
+	fieldIDs := make([]string, len(fields))
+	for i, f := range fields {
+		fieldIDs[i] = f.ID
+	}
+
+	result, err := ps.resolveFieldAccessControlBatch(groupID, fieldIDs)
 	if err != nil {
 		return nil, nil, fmt.Errorf("UpdatePropertyFields: %w", err)
 	}
 
-	// If the group itself doesn't require AC, check each field — a linked
-	// field whose source lives in an AC group still needs enforcement.
-	if !requiresAC {
-		for _, f := range fields {
-			fieldAC, fErr := ps.requiresAccessControlForFieldID(groupID, f.ID)
-			if fErr != nil {
-				return nil, nil, fmt.Errorf("UpdatePropertyFields: %w", fErr)
-			}
-			if fieldAC {
-				requiresAC = true
-				break
-			}
-		}
-	}
-
-	if requiresAC {
+	if result.requiresAC {
 		callerID := ps.extractCallerID(rctx)
-		return ps.propertyAccess.UpdatePropertyFields(callerID, groupID, fields)
+		return ps.propertyAccess.UpdatePropertyFields(callerID, groupID, fields, result.fields)
 	}
 
 	return ps.updatePropertyFields(groupID, fields)
 }
 
 func (ps *PropertyService) DeletePropertyField(rctx request.CTX, groupID, id string) error {
-	requiresAC, err := ps.requiresAccessControlForFieldID(groupID, id)
+	result, err := ps.resolveFieldAccessControl(groupID, id)
 	if err != nil {
 		return fmt.Errorf("DeletePropertyField: %w", err)
 	}
 
-	if requiresAC {
+	if result.requiresAC {
 		callerID := ps.extractCallerID(rctx)
-		return ps.propertyAccess.DeletePropertyField(callerID, groupID, id)
+		return ps.propertyAccess.DeletePropertyField(callerID, groupID, id, result.field)
 	}
 
 	return ps.deletePropertyField(groupID, id)
