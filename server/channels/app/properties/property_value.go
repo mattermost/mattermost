@@ -20,6 +20,9 @@ func (ps *PropertyService) rejectTemplateValues(values []*model.PropertyValue) e
 	type fieldKey struct{ groupID, fieldID string }
 	seen := make(map[fieldKey]struct{}, len(values))
 	for _, v := range values {
+		if v == nil {
+			continue
+		}
 		seen[fieldKey{v.GroupID, v.FieldID}] = struct{}{}
 	}
 
