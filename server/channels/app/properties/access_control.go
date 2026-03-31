@@ -75,8 +75,7 @@ func (pas *PropertyAccessService) isCallerPlugin(callerID string) bool {
 // to prevent unauthorized field ownership claims.
 // When linking to a source template, security attributes are validated and
 // inherited from the source.
-// The optional source parameter is the pre-fetched linked source template;
-// if nil and the field is linked, it will be fetched.
+// The source parameter is the linked source template (nil when field is not linked).
 func (pas *PropertyAccessService) CreatePropertyField(callerID string, field *model.PropertyField, source *model.PropertyField) (*model.PropertyField, error) {
 	if pas.isCallerPlugin(callerID) {
 		// Caller is a plugin — auto-set source_plugin_id
@@ -119,22 +118,7 @@ func (pas *PropertyAccessService) CreatePropertyField(callerID string, field *mo
 // match the source's — divergence is rejected to avoid a false sense of
 // security (callers can always inspect the template directly).
 // Inherits: Attrs[protected], Attrs[source_plugin_id], Attrs[access_mode].
-// The source parameter is optional; if nil, it will be fetched.
 func (pas *PropertyAccessService) validateAndInheritLinkedFieldSecurity(callerID string, field *model.PropertyField, source *model.PropertyField) error {
-	if source == nil {
-		var err error
-		source, err = pas.propertyService.getPropertyField("", *field.LinkedFieldID)
-		if err != nil {
-			return model.NewAppError(
-				"CreatePropertyField",
-				"app.property_field.create.linked_source_not_found.app_error",
-				nil,
-				fmt.Sprintf("linked source field %q not found", *field.LinkedFieldID),
-				http.StatusBadRequest,
-			)
-		}
-	}
-
 	if source.Attrs == nil || !model.IsPropertyFieldProtected(source) {
 		return nil
 	}
@@ -165,17 +149,7 @@ func (pas *PropertyAccessService) validateAndInheritLinkedFieldSecurity(callerID
 
 // GetPropertyField retrieves a property field by group and field ID.
 // Field details are filtered based on the caller's access permissions.
-// The prefetched parameter is optional; if non-nil, it is used instead of fetching.
-func (pas *PropertyAccessService) GetPropertyField(callerID string, groupID, id string, prefetched *model.PropertyField) (*model.PropertyField, error) {
-	field := prefetched
-	if field == nil {
-		var err error
-		field, err = pas.propertyService.getPropertyField(groupID, id)
-		if err != nil {
-			return nil, fmt.Errorf("GetPropertyField: %w", err)
-		}
-	}
-
+func (pas *PropertyAccessService) GetPropertyField(callerID string, field *model.PropertyField) (*model.PropertyField, error) {
 	return pas.applyFieldReadAccessControl(field, callerID), nil
 }
 
@@ -234,24 +208,14 @@ func (pas *PropertyAccessService) SearchPropertyFields(callerID string, groupID 
 
 // UpdatePropertyField updates a property field.
 // Checks write access and ensures source_plugin_id is not changed.
-// The existing parameter is optional; if non-nil, it is used instead of fetching.
 func (pas *PropertyAccessService) UpdatePropertyField(callerID string, groupID string, field *model.PropertyField, existing *model.PropertyField) (*model.PropertyField, error) {
-	existingField := existing
-	if existingField == nil {
-		var existsErr error
-		existingField, existsErr = pas.propertyService.getPropertyField(groupID, field.ID)
-		if existsErr != nil {
-			return nil, fmt.Errorf("UpdatePropertyField: %w", existsErr)
-		}
-	}
-
 	// Check write access
-	if err := pas.checkFieldWriteAccess(existingField, callerID); err != nil {
+	if err := pas.checkFieldWriteAccess(existing, callerID); err != nil {
 		return nil, fmt.Errorf("UpdatePropertyField: %w", err)
 	}
 
 	// Ensure source_plugin_id hasn't changed
-	if err := pas.ensureSourcePluginIDUnchanged(existingField, field); err != nil {
+	if err := pas.ensureSourcePluginIDUnchanged(existing, field); err != nil {
 		return nil, fmt.Errorf("UpdatePropertyField: %w", err)
 	}
 
@@ -274,36 +238,14 @@ func (pas *PropertyAccessService) UpdatePropertyField(callerID string, groupID s
 
 // UpdatePropertyFields updates multiple property fields.
 // Checks write access for all fields atomically before updating any.
-// The existingMap parameter is optional; if non-nil, it is used instead of fetching.
 func (pas *PropertyAccessService) UpdatePropertyFields(callerID string, groupID string, fields []*model.PropertyField, existingMap map[string]*model.PropertyField) ([]*model.PropertyField, []*model.PropertyField, error) {
 	if len(fields) == 0 {
 		return fields, nil, nil
 	}
 
-	existingFieldMap := existingMap
-	if existingFieldMap == nil {
-		// Get field IDs
-		fieldIDs := make([]string, len(fields))
-		for i, field := range fields {
-			fieldIDs[i] = field.ID
-		}
-
-		// Fetch existing fields
-		existingFields, existsErr := pas.propertyService.getPropertyFields(groupID, fieldIDs)
-		if existsErr != nil {
-			return nil, nil, fmt.Errorf("UpdatePropertyFields: %w", existsErr)
-		}
-
-		// Build map for easy lookup
-		existingFieldMap = make(map[string]*model.PropertyField, len(existingFields))
-		for _, field := range existingFields {
-			existingFieldMap[field.ID] = field
-		}
-	}
-
 	// Check write access for all fields before updating any
 	for _, field := range fields {
-		existingField, exists := existingFieldMap[field.ID]
+		existingField, exists := existingMap[field.ID]
 		if !exists {
 			return nil, nil, fmt.Errorf("field %s not found", field.ID)
 		}
@@ -339,19 +281,9 @@ func (pas *PropertyAccessService) UpdatePropertyFields(callerID string, groupID 
 
 // DeletePropertyField deletes a property field and all its values.
 // Checks delete access before allowing deletion.
-// The existing parameter is optional; if non-nil, it is used instead of fetching.
 func (pas *PropertyAccessService) DeletePropertyField(callerID string, groupID, id string, existing *model.PropertyField) error {
-	existingField := existing
-	if existingField == nil {
-		var err error
-		existingField, err = pas.propertyService.getPropertyField(groupID, id)
-		if err != nil {
-			return fmt.Errorf("DeletePropertyField: %w", err)
-		}
-	}
-
 	// Check delete access
-	if err := pas.checkFieldDeleteAccess(existingField, callerID); err != nil {
+	if err := pas.checkFieldDeleteAccess(existing, callerID); err != nil {
 		return fmt.Errorf("DeletePropertyField: %w", err)
 	}
 
@@ -365,17 +297,7 @@ func (pas *PropertyAccessService) DeletePropertyField(callerID string, groupID, 
 
 // CreatePropertyValue creates a new property value.
 // Checks write access before allowing the creation.
-// The prefetchedField parameter is optional; if non-nil, it is used instead of fetching.
-func (pas *PropertyAccessService) CreatePropertyValue(callerID string, value *model.PropertyValue, prefetchedField *model.PropertyField) (*model.PropertyValue, error) {
-	field := prefetchedField
-	if field == nil {
-		var err error
-		field, err = pas.propertyService.getPropertyField(value.GroupID, value.FieldID)
-		if err != nil {
-			return nil, fmt.Errorf("CreatePropertyValue: %w", err)
-		}
-	}
-
+func (pas *PropertyAccessService) CreatePropertyValue(callerID string, value *model.PropertyValue, field *model.PropertyField) (*model.PropertyValue, error) {
 	// Check write access
 	if err := pas.checkFieldWriteAccess(field, callerID); err != nil {
 		return nil, fmt.Errorf("CreatePropertyValue: %w", err)
@@ -390,20 +312,10 @@ func (pas *PropertyAccessService) CreatePropertyValue(callerID string, value *mo
 
 // CreatePropertyValues creates multiple property values.
 // Checks write access for all fields atomically before creating any values.
-// The prefetchedFieldMap parameter is optional; if non-nil, it is used instead of fetching.
-func (pas *PropertyAccessService) CreatePropertyValues(callerID string, values []*model.PropertyValue, prefetchedFieldMap map[string]*model.PropertyField) ([]*model.PropertyValue, error) {
-	fieldMap := prefetchedFieldMap
-	if fieldMap == nil {
-		var err error
-		fieldMap, err = pas.getFieldsForValues(values)
-		if err != nil {
-			return nil, fmt.Errorf("CreatePropertyValues: %w", err)
-		}
-	}
-
+func (pas *PropertyAccessService) CreatePropertyValues(callerID string, values []*model.PropertyValue, fields map[string]*model.PropertyField) ([]*model.PropertyValue, error) {
 	// Check write access for all fields before creating any values
 	for _, value := range values {
-		field, exists := fieldMap[value.FieldID]
+		field, exists := fields[value.FieldID]
 		if !exists {
 			return nil, fmt.Errorf("CreatePropertyValues: field %s not found", value.FieldID)
 		}
@@ -414,7 +326,7 @@ func (pas *PropertyAccessService) CreatePropertyValues(callerID string, values [
 	}
 
 	// All checks passed - proceed with creation
-	result, err := pas.propertyService.createPropertyValues(values, fieldMap)
+	result, err := pas.propertyService.createPropertyValues(values, fields)
 	if err != nil {
 		return nil, fmt.Errorf("CreatePropertyValues: %w", err)
 	}
@@ -423,22 +335,8 @@ func (pas *PropertyAccessService) CreatePropertyValues(callerID string, values [
 
 // GetPropertyValue retrieves a property value by ID.
 // Returns (nil, nil) if the value exists but the caller doesn't have access.
-// The prefetchedValue and prefetchedField parameters are optional; if non-nil, they are used instead of fetching.
-func (pas *PropertyAccessService) GetPropertyValue(callerID string, groupID, id string, prefetchedValue *model.PropertyValue, prefetchedField *model.PropertyField) (*model.PropertyValue, error) {
-	value := prefetchedValue
-	if value == nil {
-		var err error
-		value, err = pas.propertyService.getPropertyValue(groupID, id)
-		if err != nil {
-			return nil, fmt.Errorf("GetPropertyValue: %w", err)
-		}
-	}
-
-	// Build field map from prefetched field if available
-	var fieldMap map[string]*model.PropertyField
-	if prefetchedField != nil {
-		fieldMap = map[string]*model.PropertyField{prefetchedField.ID: prefetchedField}
-	}
+func (pas *PropertyAccessService) GetPropertyValue(callerID string, value *model.PropertyValue, field *model.PropertyField) (*model.PropertyValue, error) {
+	fieldMap := map[string]*model.PropertyField{field.ID: field}
 
 	// Apply access control filtering
 	filtered, err := pas.applyValueReadAccessControl([]*model.PropertyValue{value}, callerID, fieldMap)
@@ -456,19 +354,9 @@ func (pas *PropertyAccessService) GetPropertyValue(callerID string, groupID, id 
 
 // GetPropertyValues retrieves multiple property values by their IDs.
 // Values the caller doesn't have access to are silently filtered out.
-// The prefetchedValues and prefetchedFieldMap parameters are optional.
-func (pas *PropertyAccessService) GetPropertyValues(callerID string, groupID string, ids []string, prefetchedValues []*model.PropertyValue, prefetchedFieldMap map[string]*model.PropertyField) ([]*model.PropertyValue, error) {
-	values := prefetchedValues
-	if values == nil {
-		var err error
-		values, err = pas.propertyService.getPropertyValues(groupID, ids)
-		if err != nil {
-			return nil, fmt.Errorf("GetPropertyValues: %w", err)
-		}
-	}
-
+func (pas *PropertyAccessService) GetPropertyValues(callerID string, values []*model.PropertyValue, fields map[string]*model.PropertyField) ([]*model.PropertyValue, error) {
 	// Apply access control filtering
-	filtered, err := pas.applyValueReadAccessControl(values, callerID, prefetchedFieldMap)
+	filtered, err := pas.applyValueReadAccessControl(values, callerID, fields)
 	if err != nil {
 		return nil, fmt.Errorf("GetPropertyValues: %w", err)
 	}
@@ -483,8 +371,14 @@ func (pas *PropertyAccessService) SearchPropertyValues(callerID string, groupID 
 		return nil, fmt.Errorf("SearchPropertyValues: %w", err)
 	}
 
+	// Fetch fields for the returned values
+	fieldMap, err := pas.getFieldsForValues(values)
+	if err != nil {
+		return nil, fmt.Errorf("SearchPropertyValues: %w", err)
+	}
+
 	// Apply access control filtering
-	filtered, err := pas.applyValueReadAccessControl(values, callerID, nil)
+	filtered, err := pas.applyValueReadAccessControl(values, callerID, fieldMap)
 	if err != nil {
 		return nil, fmt.Errorf("SearchPropertyValues: %w", err)
 	}
@@ -493,17 +387,7 @@ func (pas *PropertyAccessService) SearchPropertyValues(callerID string, groupID 
 
 // UpdatePropertyValue updates a property value.
 // Checks write access before allowing the update.
-// The prefetchedField parameter is optional; if non-nil, it is used instead of fetching.
-func (pas *PropertyAccessService) UpdatePropertyValue(callerID string, groupID string, value *model.PropertyValue, prefetchedField *model.PropertyField) (*model.PropertyValue, error) {
-	field := prefetchedField
-	if field == nil {
-		var err error
-		field, err = pas.propertyService.getPropertyField(groupID, value.FieldID)
-		if err != nil {
-			return nil, fmt.Errorf("UpdatePropertyValue: %w", err)
-		}
-	}
-
+func (pas *PropertyAccessService) UpdatePropertyValue(callerID string, groupID string, value *model.PropertyValue, field *model.PropertyField) (*model.PropertyValue, error) {
 	// Check write access
 	if err := pas.checkFieldWriteAccess(field, callerID); err != nil {
 		return nil, fmt.Errorf("UpdatePropertyValue: %w", err)
@@ -518,24 +402,14 @@ func (pas *PropertyAccessService) UpdatePropertyValue(callerID string, groupID s
 
 // UpdatePropertyValues updates multiple property values.
 // Checks write access for all fields atomically before updating any values.
-// The prefetchedFieldMap parameter is optional; if non-nil, it is used instead of fetching.
-func (pas *PropertyAccessService) UpdatePropertyValues(callerID string, groupID string, values []*model.PropertyValue, prefetchedFieldMap map[string]*model.PropertyField) ([]*model.PropertyValue, error) {
+func (pas *PropertyAccessService) UpdatePropertyValues(callerID string, groupID string, values []*model.PropertyValue, fields map[string]*model.PropertyField) ([]*model.PropertyValue, error) {
 	if len(values) == 0 {
 		return values, nil
 	}
 
-	fieldMap := prefetchedFieldMap
-	if fieldMap == nil {
-		var err error
-		fieldMap, err = pas.getFieldsForValues(values)
-		if err != nil {
-			return nil, fmt.Errorf("UpdatePropertyValues: %w", err)
-		}
-	}
-
 	// Check write access for all fields before updating any values
 	for _, value := range values {
-		field, exists := fieldMap[value.FieldID]
+		field, exists := fields[value.FieldID]
 		if !exists {
 			return nil, fmt.Errorf("UpdatePropertyValues: field %s not found", value.FieldID)
 		}
@@ -546,7 +420,7 @@ func (pas *PropertyAccessService) UpdatePropertyValues(callerID string, groupID 
 	}
 
 	// All checks passed - proceed with update
-	result, err := pas.propertyService.updatePropertyValues(groupID, values, fieldMap)
+	result, err := pas.propertyService.updatePropertyValues(groupID, values, fields)
 	if err != nil {
 		return nil, fmt.Errorf("UpdatePropertyValues: %w", err)
 	}
@@ -555,17 +429,7 @@ func (pas *PropertyAccessService) UpdatePropertyValues(callerID string, groupID 
 
 // UpsertPropertyValue creates or updates a property value.
 // Checks write access before allowing the upsert.
-// The prefetchedField parameter is optional; if non-nil, it is used instead of fetching.
-func (pas *PropertyAccessService) UpsertPropertyValue(callerID string, value *model.PropertyValue, prefetchedField *model.PropertyField) (*model.PropertyValue, error) {
-	field := prefetchedField
-	if field == nil {
-		var err error
-		field, err = pas.propertyService.getPropertyField(value.GroupID, value.FieldID)
-		if err != nil {
-			return nil, fmt.Errorf("UpsertPropertyValue: %w", err)
-		}
-	}
-
+func (pas *PropertyAccessService) UpsertPropertyValue(callerID string, value *model.PropertyValue, field *model.PropertyField) (*model.PropertyValue, error) {
 	// Check write access (works for both create and update)
 	if err := pas.checkFieldWriteAccess(field, callerID); err != nil {
 		return nil, fmt.Errorf("UpsertPropertyValue: %w", err)
@@ -580,24 +444,14 @@ func (pas *PropertyAccessService) UpsertPropertyValue(callerID string, value *mo
 
 // UpsertPropertyValues creates or updates multiple property values.
 // Checks write access for all fields atomically before upserting any values.
-// The prefetchedFieldMap parameter is optional; if non-nil, it is used instead of fetching.
-func (pas *PropertyAccessService) UpsertPropertyValues(callerID string, values []*model.PropertyValue, prefetchedFieldMap map[string]*model.PropertyField) ([]*model.PropertyValue, error) {
+func (pas *PropertyAccessService) UpsertPropertyValues(callerID string, values []*model.PropertyValue, fields map[string]*model.PropertyField) ([]*model.PropertyValue, error) {
 	if len(values) == 0 {
 		return values, nil
 	}
 
-	fieldMap := prefetchedFieldMap
-	if fieldMap == nil {
-		var err error
-		fieldMap, err = pas.getFieldsForValues(values)
-		if err != nil {
-			return nil, fmt.Errorf("UpsertPropertyValues: %w", err)
-		}
-	}
-
 	// Check write access for all fields before upserting any values
 	for _, value := range values {
-		field, exists := fieldMap[value.FieldID]
+		field, exists := fields[value.FieldID]
 		if !exists {
 			return nil, fmt.Errorf("UpsertPropertyValues: field %s not found", value.FieldID)
 		}
@@ -608,7 +462,7 @@ func (pas *PropertyAccessService) UpsertPropertyValues(callerID string, values [
 	}
 
 	// All checks passed - proceed with upsert
-	result, err := pas.propertyService.upsertPropertyValues(values, fieldMap)
+	result, err := pas.propertyService.upsertPropertyValues(values, fields)
 	if err != nil {
 		return nil, fmt.Errorf("UpsertPropertyValues: %w", err)
 	}
@@ -617,27 +471,7 @@ func (pas *PropertyAccessService) UpsertPropertyValues(callerID string, values [
 
 // DeletePropertyValue deletes a property value.
 // Checks write access before allowing deletion.
-// The prefetchedValue and prefetchedField parameters are optional; if non-nil, they are used instead of fetching.
-func (pas *PropertyAccessService) DeletePropertyValue(callerID string, groupID, id string, prefetchedValue *model.PropertyValue, prefetchedField *model.PropertyField) error {
-	value := prefetchedValue
-	if value == nil {
-		var err error
-		value, err = pas.propertyService.getPropertyValue(groupID, id)
-		if err != nil {
-			// Value doesn't exist - return nil to match original behavior
-			return nil
-		}
-	}
-
-	field := prefetchedField
-	if field == nil {
-		var err error
-		field, err = pas.propertyService.getPropertyField(groupID, value.FieldID)
-		if err != nil {
-			return fmt.Errorf("DeletePropertyValue: %w", err)
-		}
-	}
-
+func (pas *PropertyAccessService) DeletePropertyValue(callerID string, groupID, id string, value *model.PropertyValue, field *model.PropertyField) error {
 	// Check write access
 	if err := pas.checkFieldWriteAccess(field, callerID); err != nil {
 		return fmt.Errorf("DeletePropertyValue: %w", err)
@@ -729,18 +563,7 @@ func (pas *PropertyAccessService) DeletePropertyValuesForTarget(callerID string,
 
 // DeletePropertyValuesForField deletes all property values for a specific field.
 // Checks write access before allowing deletion.
-// The prefetched parameter is optional; if non-nil, it is used instead of fetching.
-func (pas *PropertyAccessService) DeletePropertyValuesForField(callerID string, groupID, fieldID string, prefetched *model.PropertyField) error {
-	field := prefetched
-	if field == nil {
-		var err error
-		field, err = pas.propertyService.getPropertyField(groupID, fieldID)
-		if err != nil {
-			// Field doesn't exist - return nil to match original behavior
-			return nil
-		}
-	}
-
+func (pas *PropertyAccessService) DeletePropertyValuesForField(callerID string, groupID, fieldID string, field *model.PropertyField) error {
 	// Check write access
 	if err := pas.checkFieldWriteAccess(field, callerID); err != nil {
 		return fmt.Errorf("DeletePropertyValuesForField: %w", err)
@@ -1217,21 +1040,12 @@ func (pas *PropertyAccessService) getFieldsForValues(values []*model.PropertyVal
 // applyValueReadAccessControl applies read access control to a list of values.
 // Returns a new list containing only the values the caller can access, with shared_only values filtered.
 // Values are silently filtered out if the caller doesn't have access.
-// The prefetchedFieldMap parameter is optional; if non-nil, it is used instead of fetching.
-func (pas *PropertyAccessService) applyValueReadAccessControl(values []*model.PropertyValue, callerID string, prefetchedFieldMap map[string]*model.PropertyField) ([]*model.PropertyValue, error) {
+func (pas *PropertyAccessService) applyValueReadAccessControl(values []*model.PropertyValue, callerID string, fields map[string]*model.PropertyField) ([]*model.PropertyValue, error) {
 	if len(values) == 0 {
 		return values, nil
 	}
 
-	// Use prefetched field map or fetch all associated fields
-	fieldMap := prefetchedFieldMap
-	if fieldMap == nil {
-		var err error
-		fieldMap, err = pas.getFieldsForValues(values)
-		if err != nil {
-			return nil, fmt.Errorf("applyValueReadAccessControl: %w", err)
-		}
-	}
+	fieldMap := fields
 
 	// Filter values based on field access
 	filtered := make([]*model.PropertyValue, 0, len(values))

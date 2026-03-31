@@ -16,9 +16,8 @@ import (
 // Private implementation methods (database access)
 
 // createPropertyField creates a property field.
-// The prefetchedSource parameter is optional; if non-nil and the field is linked,
-// it is used instead of fetching the source from the store.
-func (ps *PropertyService) createPropertyField(field *model.PropertyField, prefetchedSource *model.PropertyField) (*model.PropertyField, error) {
+// The source parameter is the linked source template (nil when field is not linked).
+func (ps *PropertyService) createPropertyField(field *model.PropertyField, source *model.PropertyField) (*model.PropertyField, error) {
 	// Legacy properties (PSAv1) skip conflict check
 	if field.IsPSAv1() {
 		return ps.fieldStore.Create(field)
@@ -26,22 +25,6 @@ func (ps *PropertyService) createPropertyField(field *model.PropertyField, prefe
 
 	// If this field links to a source, validate the source and copy its schema
 	if field.LinkedFieldID != nil && *field.LinkedFieldID != "" {
-		source := prefetchedSource
-		if source == nil {
-			// Fetch source field across all groups (empty groupID)
-			var err error
-			source, err = ps.fieldStore.Get("", *field.LinkedFieldID)
-			if err != nil {
-				return nil, model.NewAppError(
-					"CreatePropertyField",
-					"app.property_field.create.linked_source_not_found.app_error",
-					nil,
-					fmt.Sprintf("linked source field %q not found", *field.LinkedFieldID),
-					http.StatusBadRequest,
-				)
-			}
-		}
-
 		if source.DeleteAt != 0 {
 			return nil, model.NewAppError(
 				"CreatePropertyField",
@@ -464,10 +447,10 @@ func (ps *PropertyService) GetPropertyField(rctx request.CTX, groupID, id string
 
 	if result.requiresAC {
 		callerID := ps.extractCallerID(rctx)
-		return ps.propertyAccess.GetPropertyField(callerID, groupID, id, result.field)
+		return ps.propertyAccess.GetPropertyField(callerID, result.field)
 	}
 
-	// If resolveFieldAccessControl already fetched the field, return it directly
+	// resolveFieldAccessControl already fetched the field
 	if result.field != nil {
 		return result.field, nil
 	}

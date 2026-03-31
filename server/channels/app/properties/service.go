@@ -82,35 +82,33 @@ func (ps *PropertyService) requiresAccessControlForGroupID(groupID string) (bool
 }
 
 // fieldACResult holds the result of resolveFieldAccessControl, bundling
-// the access-control decision with any entities that were fetched to make
-// that decision so that callers can reuse them.
+// the access-control decision with the entities that were fetched.
 type fieldACResult struct {
 	requiresAC bool
-	field      *model.PropertyField // fetched field (nil when group-level AC was sufficient or fieldID was empty)
-	source     *model.PropertyField // linked source template (nil when field is not linked or not fetched)
+	field      *model.PropertyField // fetched field (nil only when fieldID was empty or not found)
+	source     *model.PropertyField // linked source template (nil when field is not linked)
 }
 
 // resolveFieldAccessControl determines whether a field requires access
-// control and returns the entities fetched during the check. When the
-// group itself requires AC, the field is not fetched (the AC layer
-// will handle it). When the group does not require AC, the field is
-// fetched to check whether it links to a source in an AC group.
+// control and returns the fetched field (and linked source, if any).
+// The field is always fetched when fieldID is non-empty, regardless of
+// whether the group-level check alone was sufficient to determine AC.
 func (ps *PropertyService) resolveFieldAccessControl(groupID, fieldID string) (fieldACResult, error) {
 	ac, err := ps.requiresAccessControlForGroupID(groupID)
 	if err != nil {
 		return fieldACResult{}, err
 	}
-	if ac || fieldID == "" {
+	if fieldID == "" {
 		return fieldACResult{requiresAC: ac}, nil
 	}
 
 	field, fErr := ps.fieldStore.Get("", fieldID)
 	if fErr != nil {
-		return fieldACResult{}, nil
+		return fieldACResult{requiresAC: ac}, nil
 	}
 
-	if field.LinkedFieldID == nil || *field.LinkedFieldID == "" {
-		return fieldACResult{field: field}, nil
+	if ac || field.LinkedFieldID == nil || *field.LinkedFieldID == "" {
+		return fieldACResult{requiresAC: ac, field: field}, nil
 	}
 
 	source, sErr := ps.fieldStore.Get("", *field.LinkedFieldID)
@@ -127,25 +125,29 @@ func (ps *PropertyService) resolveFieldAccessControl(groupID, fieldID string) (f
 }
 
 // valueACResult holds the result of resolveValueAccessControl, bundling
-// the access-control decision with any entities that were fetched.
+// the access-control decision with the entities that were fetched.
 type valueACResult struct {
 	requiresAC bool
-	value      *model.PropertyValue // fetched value (nil when group-level AC was sufficient)
-	field      *model.PropertyField // fetched field (nil when not needed)
+	value      *model.PropertyValue // fetched value (nil only when valueID was empty or not found)
+	field      *model.PropertyField // fetched field for the value
 }
 
 // resolveValueAccessControl determines whether a value requires access
 // control by loading the value to discover its field, then delegating
-// to resolveFieldAccessControl.
+// to resolveFieldAccessControl. Always fetches value and field when
+// valueID is non-empty.
 func (ps *PropertyService) resolveValueAccessControl(groupID, valueID string) (valueACResult, error) {
 	ac, err := ps.requiresAccessControlForGroupID(groupID)
-	if err != nil || ac || valueID == "" {
-		return valueACResult{requiresAC: ac}, err
+	if err != nil {
+		return valueACResult{}, err
+	}
+	if valueID == "" {
+		return valueACResult{requiresAC: ac}, nil
 	}
 
 	value, vErr := ps.valueStore.Get(groupID, valueID)
 	if vErr != nil {
-		return valueACResult{}, nil
+		return valueACResult{requiresAC: ac}, nil
 	}
 
 	result, fErr := ps.resolveFieldAccessControl(groupID, value.FieldID)
@@ -163,23 +165,20 @@ func (ps *PropertyService) resolveValueAccessControl(groupID, valueID string) (v
 // batchFieldACResult holds the result of resolveFieldAccessControlBatch.
 type batchFieldACResult struct {
 	requiresAC bool
-	fields     map[string]*model.PropertyField // fieldID -> field (nil when group-level AC was sufficient)
+	fields     map[string]*model.PropertyField // fieldID -> field (nil only when fieldIDs was empty)
 }
 
 // resolveFieldAccessControlBatch determines whether any of the given
-// fields require access control. It batch-fetches fields and their
-// linked sources to avoid per-item DB calls.
+// fields require access control. It always batch-fetches the fields
+// and their linked sources.
 func (ps *PropertyService) resolveFieldAccessControlBatch(groupID string, fieldIDs []string) (batchFieldACResult, error) {
+	if len(fieldIDs) == 0 {
+		return batchFieldACResult{}, nil
+	}
+
 	ac, err := ps.requiresAccessControlForGroupID(groupID)
 	if err != nil {
 		return batchFieldACResult{}, err
-	}
-	if ac {
-		return batchFieldACResult{requiresAC: true}, nil
-	}
-
-	if len(fieldIDs) == 0 {
-		return batchFieldACResult{}, nil
 	}
 
 	// Batch-fetch all fields
@@ -197,8 +196,8 @@ func (ps *PropertyService) resolveFieldAccessControlBatch(groupID string, fieldI
 		}
 	}
 
-	if len(sourceIDs) == 0 {
-		return batchFieldACResult{fields: fieldMap}, nil
+	if ac || len(sourceIDs) == 0 {
+		return batchFieldACResult{requiresAC: ac, fields: fieldMap}, nil
 	}
 
 	// Batch-fetch all linked sources

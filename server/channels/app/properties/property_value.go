@@ -15,43 +15,18 @@ import (
 // field. Template fields are definition-only and must never hold values.
 // This is enforced at the service layer to cover all entry points (API,
 // CPA endpoints, plugin API).
-// The knownFields parameter is optional; fields found in this map are used
-// instead of being fetched from the store. Missing fields are still fetched.
-func (ps *PropertyService) rejectTemplateValues(values []*model.PropertyValue, knownFields map[string]*model.PropertyField) error {
-	// Collect unique (groupID, fieldID) pairs
-	type fieldKey struct{ groupID, fieldID string }
-	seen := make(map[fieldKey]struct{}, len(values))
+func (ps *PropertyService) rejectTemplateValues(values []*model.PropertyValue, fields map[string]*model.PropertyField) error {
 	for _, v := range values {
-		seen[fieldKey{v.GroupID, v.FieldID}] = struct{}{}
-	}
-
-	for key := range seen {
-		// Check pre-fetched fields first
-		if knownFields != nil {
-			if f, ok := knownFields[key.fieldID]; ok {
-				if f.ObjectType == model.PropertyFieldObjectTypeTemplate {
-					return model.NewAppError(
-						"PropertyService",
-						"app.property_value.template_no_values.app_error",
-						nil,
-						fmt.Sprintf("template field %q cannot have values", key.fieldID),
-						http.StatusBadRequest,
-					)
-				}
-				continue
-			}
+		f, ok := fields[v.FieldID]
+		if !ok {
+			return fmt.Errorf("rejectTemplateValues: field %q not found in provided field map", v.FieldID)
 		}
-
-		field, err := ps.fieldStore.Get(key.groupID, key.fieldID)
-		if err != nil {
-			return fmt.Errorf("failed to look up field %q: %w", key.fieldID, err)
-		}
-		if field.ObjectType == model.PropertyFieldObjectTypeTemplate {
+		if f.ObjectType == model.PropertyFieldObjectTypeTemplate {
 			return model.NewAppError(
 				"PropertyService",
 				"app.property_value.template_no_values.app_error",
 				nil,
-				fmt.Sprintf("template field %q cannot have values", key.fieldID),
+				fmt.Sprintf("template field %q cannot have values", v.FieldID),
 				http.StatusBadRequest,
 			)
 		}
@@ -62,22 +37,16 @@ func (ps *PropertyService) rejectTemplateValues(values []*model.PropertyValue, k
 // Private implementation methods (database access)
 
 // createPropertyValue creates a single property value.
-// The knownField parameter is optional; if non-nil, it is used for template rejection check.
-func (ps *PropertyService) createPropertyValue(value *model.PropertyValue, knownField *model.PropertyField) (*model.PropertyValue, error) {
-	var knownFields map[string]*model.PropertyField
-	if knownField != nil {
-		knownFields = map[string]*model.PropertyField{knownField.ID: knownField}
-	}
-	if err := ps.rejectTemplateValues([]*model.PropertyValue{value}, knownFields); err != nil {
+func (ps *PropertyService) createPropertyValue(value *model.PropertyValue, field *model.PropertyField) (*model.PropertyValue, error) {
+	if err := ps.rejectTemplateValues([]*model.PropertyValue{value}, singleFieldMap(field)); err != nil {
 		return nil, err
 	}
 	return ps.valueStore.Create(value)
 }
 
 // createPropertyValues creates multiple property values.
-// The knownFields parameter is optional; if non-nil, it is used for template rejection check.
-func (ps *PropertyService) createPropertyValues(values []*model.PropertyValue, knownFields map[string]*model.PropertyField) ([]*model.PropertyValue, error) {
-	if err := ps.rejectTemplateValues(values, knownFields); err != nil {
+func (ps *PropertyService) createPropertyValues(values []*model.PropertyValue, fields map[string]*model.PropertyField) ([]*model.PropertyValue, error) {
+	if err := ps.rejectTemplateValues(values, fields); err != nil {
 		return nil, err
 	}
 	return ps.valueStore.CreateMany(values)
@@ -99,9 +68,8 @@ func (ps *PropertyService) searchPropertyValues(groupID string, opts model.Prope
 }
 
 // updatePropertyValue updates a single property value.
-// The knownField parameter is optional; if non-nil, it is used for template rejection check.
-func (ps *PropertyService) updatePropertyValue(groupID string, value *model.PropertyValue, knownField *model.PropertyField) (*model.PropertyValue, error) {
-	values, err := ps.updatePropertyValues(groupID, []*model.PropertyValue{value}, singleFieldMap(knownField))
+func (ps *PropertyService) updatePropertyValue(groupID string, value *model.PropertyValue, field *model.PropertyField) (*model.PropertyValue, error) {
+	values, err := ps.updatePropertyValues(groupID, []*model.PropertyValue{value}, singleFieldMap(field))
 	if err != nil {
 		return nil, err
 	}
@@ -110,18 +78,16 @@ func (ps *PropertyService) updatePropertyValue(groupID string, value *model.Prop
 }
 
 // updatePropertyValues updates multiple property values.
-// The knownFields parameter is optional; if non-nil, it is used for template rejection check.
-func (ps *PropertyService) updatePropertyValues(groupID string, values []*model.PropertyValue, knownFields map[string]*model.PropertyField) ([]*model.PropertyValue, error) {
-	if err := ps.rejectTemplateValues(values, knownFields); err != nil {
+func (ps *PropertyService) updatePropertyValues(groupID string, values []*model.PropertyValue, fields map[string]*model.PropertyField) ([]*model.PropertyValue, error) {
+	if err := ps.rejectTemplateValues(values, fields); err != nil {
 		return nil, err
 	}
 	return ps.valueStore.Update(groupID, values)
 }
 
 // upsertPropertyValue creates or updates a single property value.
-// The knownField parameter is optional; if non-nil, it is used for template rejection check.
-func (ps *PropertyService) upsertPropertyValue(value *model.PropertyValue, knownField *model.PropertyField) (*model.PropertyValue, error) {
-	values, err := ps.upsertPropertyValues([]*model.PropertyValue{value}, singleFieldMap(knownField))
+func (ps *PropertyService) upsertPropertyValue(value *model.PropertyValue, field *model.PropertyField) (*model.PropertyValue, error) {
+	values, err := ps.upsertPropertyValues([]*model.PropertyValue{value}, singleFieldMap(field))
 	if err != nil {
 		return nil, err
 	}
@@ -130,9 +96,8 @@ func (ps *PropertyService) upsertPropertyValue(value *model.PropertyValue, known
 }
 
 // upsertPropertyValues creates or updates multiple property values.
-// The knownFields parameter is optional; if non-nil, it is used for template rejection check.
-func (ps *PropertyService) upsertPropertyValues(values []*model.PropertyValue, knownFields map[string]*model.PropertyField) ([]*model.PropertyValue, error) {
-	if err := ps.rejectTemplateValues(values, knownFields); err != nil {
+func (ps *PropertyService) upsertPropertyValues(values []*model.PropertyValue, fields map[string]*model.PropertyField) ([]*model.PropertyValue, error) {
+	if err := ps.rejectTemplateValues(values, fields); err != nil {
 		return nil, err
 	}
 	return ps.valueStore.Upsert(values)
@@ -213,7 +178,7 @@ func (ps *PropertyService) GetPropertyValue(rctx request.CTX, groupID, id string
 
 	if result.requiresAC {
 		callerID := ps.extractCallerID(rctx)
-		return ps.propertyAccess.GetPropertyValue(callerID, groupID, id, result.value, result.field)
+		return ps.propertyAccess.GetPropertyValue(callerID, result.value, result.field)
 	}
 
 	// If resolveValueAccessControl already fetched the value, return it directly
@@ -225,17 +190,7 @@ func (ps *PropertyService) GetPropertyValue(rctx request.CTX, groupID, id string
 }
 
 func (ps *PropertyService) GetPropertyValues(rctx request.CTX, groupID string, ids []string) ([]*model.PropertyValue, error) {
-	requiresAC, err := ps.requiresAccessControlForGroupID(groupID)
-	if err != nil {
-		return nil, fmt.Errorf("GetPropertyValues: %w", err)
-	}
-
-	if requiresAC {
-		callerID := ps.extractCallerID(rctx)
-		return ps.propertyAccess.GetPropertyValues(callerID, groupID, ids, nil, nil)
-	}
-
-	// Batch-fetch all values, then check their fields
+	// Always fetch values first so they can be passed to the AC layer
 	values, err := ps.getPropertyValues(groupID, ids)
 	if err != nil {
 		return nil, fmt.Errorf("GetPropertyValues: %w", err)
@@ -249,7 +204,7 @@ func (ps *PropertyService) GetPropertyValues(rctx request.CTX, groupID string, i
 
 	if result.requiresAC {
 		callerID := ps.extractCallerID(rctx)
-		return ps.propertyAccess.GetPropertyValues(callerID, groupID, ids, values, result.fields)
+		return ps.propertyAccess.GetPropertyValues(callerID, values, result.fields)
 	}
 
 	return values, nil
