@@ -166,7 +166,7 @@ jobs:
         env:
           BUILD_IMAGE: ${{ steps.build.outputs.BUILD_IMAGE }}
         run: |
-          if [[ ${{ github.ref_name }} == 'master' && ${{ inputs.fullyparallel }} != true ]]; then
+          if [[ (${{ github.ref_name }} == 'master' && ${{ inputs.fullyparallel }} != true) || ${{ github.ref_name }} == race/* ]]; then
             export RACE_MODE="-race"
           fi
 
