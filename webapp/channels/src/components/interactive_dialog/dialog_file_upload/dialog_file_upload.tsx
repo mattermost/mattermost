@@ -68,10 +68,13 @@ const DialogFileUpload: React.FC<Props> = ({
     const onFileSelectedRef = useRef(onFileSelected);
     onFileSelectedRef.current = onFileSelected;
     const fileObjectsRef = useRef<Map<string, File>>(new Map());
+    const uploadRequestsRef = useRef<Map<string, XMLHttpRequest>>(new Map());
     const hydratedRef = useRef<Set<string>>(new Set());
     const hasInteractedRef = useRef(false);
 
     const [files, setFiles] = useState<FileState[]>([]);
+    const filesRef = useRef<FileState[]>([]);
+    filesRef.current = files;
     const [serverError, setServerError] = useState<string | undefined>(error);
 
     // Derived from files state — avoids the stale-closure bug where setIsUploading(false)
@@ -88,12 +91,35 @@ const DialogFileUpload: React.FC<Props> = ({
         setServerError(error);
     }, [error]);
 
-    // Hydrate pre-populated file IDs from value prop
+    // Reconcile files with value prop and hydrate new IDs
     useEffect(() => {
         let cancelled = false;
+        const valueSet = new Set(value ?? []);
 
-        const existingFileIds = new Set(files.map((f) => f.fileId).filter(Boolean));
+        // Remove files whose IDs are no longer in value (parent cleared/replaced them)
+        setFiles((prev) => {
+            const filtered = prev.filter((f) => {
+                if (f.status === 'hydrated' || f.status === 'uploaded') {
+                    return f.fileId ? valueSet.has(f.fileId) : true;
+                }
+                return true;
+            });
+            if (filtered.length !== prev.length) {
+                for (const f of prev) {
+                    if (f.fileId && !valueSet.has(f.fileId)) {
+                        hydratedRef.current.delete(f.fileId);
+                    }
+                }
+            }
+            return filtered.length !== prev.length ? filtered : prev;
+        });
+
+        // Hydrate new IDs not already present in state
+        const existingFileIds = new Set(
+            filesRef.current.map((f) => f.fileId).filter((fid): fid is string => Boolean(fid)),
+        );
         const newIds = (value ?? []).filter((fid) => !hydratedRef.current.has(fid) && !existingFileIds.has(fid));
+
         if (newIds.length > 0) {
             const hydrate = async () => {
                 const hydratedFiles: FileState[] = [];
@@ -111,24 +137,48 @@ const DialogFileUpload: React.FC<Props> = ({
                             fileId,
                             fileInfo,
                         });
-                    } catch {
-                        // File deleted/inaccessible — skip silently
+                    } catch (err: unknown) {
+                        // Only skip 403/404 (deleted/inaccessible); rethrow everything else
+                        const statusCode = err && typeof err === 'object' && 'status_code' in err
+                            ? (err as {status_code: number}).status_code
+                            : undefined;
+                        if (statusCode !== 403 && statusCode !== 404) {
+                            throw err;
+                        }
                     }
                 }
-                if (!cancelled && hydratedFiles.length > 0) {
-                    for (const f of hydratedFiles) {
-                        hydratedRef.current.add(f.fileId!);
-                    }
+                if (cancelled) {
+                    return;
+                }
+                for (const f of hydratedFiles) {
+                    hydratedRef.current.add(f.fileId!);
+                }
+                if (hydratedFiles.length > 0) {
                     setFiles((prev) => [...hydratedFiles, ...prev]);
                 }
+                // If some IDs were dropped (deleted/inaccessible), notify parent
+                // with the sanitized list so it stays in sync
+                if (hydratedFiles.length < newIds.length) {
+                    const survivingIds = [
+                        ...filesRef.current
+                            .filter((f) => (f.status === 'uploaded' || f.status === 'hydrated') && f.fileId)
+                            .map((f) => f.fileId!),
+                        ...hydratedFiles.map((f) => f.fileId!),
+                    ];
+                    onFileSelectedRef.current(survivingIds);
+                }
             };
-            hydrate();
+            hydrate().catch((err) => {
+                if (!cancelled) {
+                    dispatch(logError(typeof err === 'string' ? {message: err} as ServerError : err));
+                }
+            });
         }
 
         return () => {
             cancelled = true;
         };
-    }, [files, value]);
+    }, [value, dispatch]);
 
     // Notify parent dialog when files are uploading so it can block submit
     useEffect(() => {
@@ -146,7 +196,7 @@ const DialogFileUpload: React.FC<Props> = ({
             (f.stableId === stableId ? {...f, status: 'uploading', clientId} : f),
         ));
 
-        dispatch(uploadFile({
+        const xhr = dispatch(uploadFile({
             file,
             name: file.name,
             type: file.type,
@@ -173,6 +223,7 @@ const DialogFileUpload: React.FC<Props> = ({
                 }
 
                 fileObjectsRef.current.delete(stableId);
+                uploadRequestsRef.current.delete(stableId);
 
                 setFiles((prevFiles) => prevFiles.map((f) =>
                     (f.stableId === stableId ? {...f, status: 'uploaded', fileId: fileInfo.id, fileInfo} : f),
@@ -184,16 +235,18 @@ const DialogFileUpload: React.FC<Props> = ({
                 }
 
                 fileObjectsRef.current.delete(stableId);
+                uploadRequestsRef.current.delete(stableId);
 
                 dispatch(logError(typeof err === 'string' ? {message: err} as ServerError : err));
 
-                const errorMessage = typeof err === 'string' ? err : (err?.message || formatMessage({id: 'dialog_file_upload.upload_failed', defaultMessage: 'Upload failed'}));
+                const errorMessage = typeof err === 'string' ? err : (err?.message ?? formatMessage({id: 'dialog_file_upload.upload_failed', defaultMessage: 'Upload failed'}));
 
                 setFiles((prevFiles) => prevFiles.map((f) =>
                     (f.stableId === stableId ? {...f, status: 'failed', error: errorMessage} : f),
                 ));
             },
         }));
+        uploadRequestsRef.current.set(stableId, xhr);
     }, [currentChannelId, dispatch, formatMessage]);
 
     const handleFileInput = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
@@ -245,6 +298,18 @@ const DialogFileUpload: React.FC<Props> = ({
 
     const handleRemoveById = useCallback((idToRemove: string) => {
         hasInteractedRef.current = true;
+
+        // Abort any in-progress upload before updating state (side effects must stay outside updater)
+        for (const f of filesRef.current) {
+            if ((f.fileId === idToRemove || f.clientId === idToRemove) && f.status === 'uploading') {
+                const xhr = uploadRequestsRef.current.get(f.stableId);
+                if (xhr) {
+                    xhr.abort();
+                    uploadRequestsRef.current.delete(f.stableId);
+                }
+            }
+        }
+
         setFiles((prevFiles) =>
             prevFiles.filter((f) => f.fileId !== idToRemove && f.clientId !== idToRemove),
         );

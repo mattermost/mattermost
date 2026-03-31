@@ -699,9 +699,23 @@ func (e *DialogElement) IsValid() error {
 
 	case "file":
 		multiErr = multierror.Append(multiErr, checkMaxLength("Placeholder", e.Placeholder, DialogElementFileMaxLength))
-		// File elements don't use Default value, MinLength, MaxLength, Options, or DataSource
+		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementFileMaxLength))
 		if e.Default != "" {
-			multiErr = multierror.Append(multiErr, errors.New("file elements cannot have a default value"))
+			ids := strings.Split(e.Default, ",")
+			validIds := make([]string, 0, len(ids))
+			for _, id := range ids {
+				id = strings.TrimSpace(id)
+				if id == "" {
+					continue
+				}
+				if !IsValidId(id) {
+					multiErr = multierror.Append(multiErr, errors.Errorf("default file ID %q is not a valid ID", id))
+				}
+				validIds = append(validIds, id)
+			}
+			if len(validIds) > MaxDialogFileIds {
+				multiErr = multierror.Append(multiErr, errors.Errorf("default may not contain more than %d file IDs, got %d", MaxDialogFileIds, len(validIds)))
+			}
 		}
 		if len(e.Options) > 0 {
 			multiErr = multierror.Append(multiErr, errors.New("file elements cannot have options"))

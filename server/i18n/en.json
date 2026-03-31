@@ -8178,11 +8178,11 @@
   },
   {
     "id": "app.submit_interactive_dialog.file_not_owned",
-    "translation": "File {FileId} does not belong to the submitting user."
+    "translation": "File {{.FileId}} does not belong to the submitting user."
   },
   {
     "id": "app.submit_interactive_dialog.invalid_file_id",
-    "translation": "File {FileId} is invalid or inaccessible."
+    "translation": "File {{.FileId}} is invalid or inaccessible."
   },
   {
     "id": "app.submit_interactive_dialog.invalid_response",
@@ -8198,7 +8198,7 @@
   },
   {
     "id": "app.submit_interactive_dialog.too_many_file_ids",
-    "translation": "Too many file IDs submitted. Maximum allowed is {Max}."
+    "translation": "Too many file IDs submitted. Maximum allowed is {{.Max}}."
   },
   {
     "id": "app.system.complete_onboarding_request.app_error",

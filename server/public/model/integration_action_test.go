@@ -1535,3 +1535,129 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 		assert.NoError(t, err)
 	})
 }
+
+func TestDialogElementFileValidation(t *testing.T) {
+	t.Run("valid file element minimal", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Upload File",
+			Name:        "file_upload",
+			Type:        "file",
+		}
+		err := element.IsValid()
+		assert.NoError(t, err)
+	})
+
+	t.Run("valid file element with placeholder", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Upload File",
+			Name:        "file_upload",
+			Type:        "file",
+			Placeholder: "Choose a file...",
+		}
+		err := element.IsValid()
+		assert.NoError(t, err)
+	})
+
+	t.Run("valid file element with default containing valid comma-separated IDs", func(t *testing.T) {
+		id1 := NewId()
+		id2 := NewId()
+		id3 := NewId()
+		element := DialogElement{
+			DisplayName: "Upload File",
+			Name:        "file_upload",
+			Type:        "file",
+			Default:     id1 + "," + id2 + "," + id3,
+		}
+		err := element.IsValid()
+		assert.NoError(t, err)
+	})
+
+	t.Run("invalid file element with bad default ID format", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Upload File",
+			Name:        "file_upload",
+			Type:        "file",
+			Default:     "not-a-valid-id",
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "not a valid ID")
+	})
+
+	t.Run("invalid file element with too many default IDs", func(t *testing.T) {
+		ids := make([]string, MaxDialogFileIds+1)
+		for i := range ids {
+			ids[i] = NewId()
+		}
+		element := DialogElement{
+			DisplayName: "Upload File",
+			Name:        "file_upload",
+			Type:        "file",
+			Default:     strings.Join(ids, ","),
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "may not contain more than")
+	})
+
+	t.Run("invalid file element with options set", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Upload File",
+			Name:        "file_upload",
+			Type:        "file",
+			Options: []*PostActionOptions{
+				{Text: "Option 1", Value: "opt1"},
+			},
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "file elements cannot have options")
+	})
+
+	t.Run("invalid file element with data source set", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Upload File",
+			Name:        "file_upload",
+			Type:        "file",
+			DataSource:  "users",
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "file elements cannot have a data source")
+	})
+
+	t.Run("allow_multiple valid on file type", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:   "Upload File",
+			Name:          "file_upload",
+			Type:          "file",
+			AllowMultiple: true,
+		}
+		err := element.IsValid()
+		assert.NoError(t, err)
+	})
+
+	t.Run("allow_multiple invalid on text type", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:   "Text Element",
+			Name:          "text_element",
+			Type:          "text",
+			AllowMultiple: true,
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "allow_multiple can only be used with file elements")
+	})
+
+	t.Run("invalid file element with placeholder exceeding max length", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Upload File",
+			Name:        "file_upload",
+			Type:        "file",
+			Placeholder: strings.Repeat("a", DialogElementFileMaxLength+1),
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "Placeholder")
+	})
+}

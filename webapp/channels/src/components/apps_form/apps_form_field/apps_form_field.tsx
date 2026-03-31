@@ -127,11 +127,12 @@ export default class AppsFormField extends React.PureComponent<Props> {
                     <AppsFormFileUpload
                         id={name}
                         label={displayNameContent}
-                        helpText={helpTextContent}
+                        helpText={helpText ? <Markdown message={helpText}/> : undefined}
                         placeholder={placeholder}
                         onFileSelected={this.handleFileSelected}
+                        onPendingChange={this.props.setIsInteracting}
                         disabled={field.readonly}
-                        error={errorText as string}
+                        error={typeof errorText === 'string' ? errorText : undefined}
                         value={value ? (value as string).split(',').filter(Boolean) : []}
                         allowMultiple={field.allow_multiple}
                     />

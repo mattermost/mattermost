@@ -494,11 +494,11 @@ func (a *App) SubmitInteractiveDialog(rctx request.CTX, request model.SubmitDial
 	request.URL = ""
 
 	// Validate submitted file IDs exist and belong to the submitting user
+	request.FileIds = model.RemoveDuplicateStrings(request.FileIds)
 	if len(request.FileIds) > model.MaxDialogFileIds {
 		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.too_many_file_ids",
 			map[string]any{"Max": model.MaxDialogFileIds}, "", http.StatusBadRequest)
 	}
-	request.FileIds = model.RemoveDuplicateStrings(request.FileIds)
 	for _, fileID := range request.FileIds {
 		fileInfo, appErr := a.GetFileInfo(rctx, fileID)
 		if appErr != nil {
