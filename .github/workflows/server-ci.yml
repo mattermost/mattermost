@@ -391,3 +391,4 @@ jobs:
           name: server-build-artifact
           path: server/build/
           retention-days: 2
+# race trigger
