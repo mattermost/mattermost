@@ -67,9 +67,9 @@ func TestGetPing(t *testing.T) {
 		_, ok := respMap["TestFeatureFlag"]
 		assert.Equal(t, false, ok)
 
-		// Run the environment variable override code to test
-		os.Setenv("MM_FEATUREFLAGS_TESTFEATURE", "testvalueunique")
-		defer os.Unsetenv("MM_FEATUREFLAGS_TESTFEATURE")
+		// Feature flags in ping response come from env var overrides, not config.
+		// Must use real env vars + ReloadConfig to test this path.
+		t.Setenv("MM_FEATUREFLAGS_TESTFEATURE", "testvalueunique")
 		err = th.App.ReloadConfig()
 		require.NoError(t, err)
 
