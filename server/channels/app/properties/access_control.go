@@ -259,9 +259,9 @@ func (pas *PropertyAccessService) UpdatePropertyField(callerID string, groupID s
 
 // UpdatePropertyFields updates multiple property fields.
 // Checks write access for all fields atomically before updating any.
-func (pas *PropertyAccessService) UpdatePropertyFields(callerID string, groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
+func (pas *PropertyAccessService) UpdatePropertyFields(callerID string, groupID string, fields []*model.PropertyField) ([]*model.PropertyField, []*model.PropertyField, error) {
 	if len(fields) == 0 {
-		return fields, nil
+		return fields, nil, nil
 	}
 
 	// Get field IDs
@@ -273,7 +273,7 @@ func (pas *PropertyAccessService) UpdatePropertyFields(callerID string, groupID 
 	// Fetch existing fields
 	existingFields, existsErr := pas.propertyService.getPropertyFields(groupID, fieldIDs)
 	if existsErr != nil {
-		return nil, fmt.Errorf("UpdatePropertyFields: %w", existsErr)
+		return nil, nil, fmt.Errorf("UpdatePropertyFields: %w", existsErr)
 	}
 
 	// Build map for easy lookup
@@ -286,36 +286,36 @@ func (pas *PropertyAccessService) UpdatePropertyFields(callerID string, groupID 
 	for _, field := range fields {
 		existingField, exists := existingFieldMap[field.ID]
 		if !exists {
-			return nil, fmt.Errorf("field %s not found", field.ID)
+			return nil, nil, fmt.Errorf("field %s not found", field.ID)
 		}
 
 		// Check write access
 		if err := pas.checkFieldWriteAccess(existingField, callerID); err != nil {
-			return nil, fmt.Errorf("UpdatePropertyFields: field %s: %w", field.ID, err)
+			return nil, nil, fmt.Errorf("UpdatePropertyFields: field %s: %w", field.ID, err)
 		}
 
 		// Ensure source_plugin_id hasn't changed
 		if err := pas.ensureSourcePluginIDUnchanged(existingField, field); err != nil {
-			return nil, fmt.Errorf("UpdatePropertyFields: field %s: %w", field.ID, err)
+			return nil, nil, fmt.Errorf("UpdatePropertyFields: field %s: %w", field.ID, err)
 		}
 
 		// Validate protected field update
 		if err := pas.validateProtectedFieldUpdate(field, callerID); err != nil {
-			return nil, fmt.Errorf("UpdatePropertyFields: field %s: %w", field.ID, err)
+			return nil, nil, fmt.Errorf("UpdatePropertyFields: field %s: %w", field.ID, err)
 		}
 
 		// Validate access mode
 		if err := model.ValidatePropertyFieldAccessMode(field); err != nil {
-			return nil, fmt.Errorf("UpdatePropertyFields: field %s: %w", field.ID, err)
+			return nil, nil, fmt.Errorf("UpdatePropertyFields: field %s: %w", field.ID, err)
 		}
 	}
 
 	// All checks passed - proceed with update
-	result, err := pas.propertyService.updatePropertyFields(groupID, fields)
+	requested, propagated, err := pas.propertyService.updatePropertyFields(groupID, fields)
 	if err != nil {
-		return nil, fmt.Errorf("UpdatePropertyFields: %w", err)
+		return nil, nil, fmt.Errorf("UpdatePropertyFields: %w", err)
 	}
-	return result, nil
+	return requested, propagated, nil
 }
 
 // DeletePropertyField deletes a property field and all its values.

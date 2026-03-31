@@ -5,7 +5,6 @@ package properties
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"testing"
 
@@ -886,7 +885,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		sourceOpts := source.Attrs[model.PropertyFieldAttributeOptions]
 		linkedOpts := linked.Attrs[model.PropertyFieldAttributeOptions]
 		require.NotNil(t, linkedOpts)
-		assert.Equal(t, fmt.Sprintf("%v", sourceOpts), fmt.Sprintf("%v", linkedOpts))
+		assert.Equal(t, sourceOpts, linkedOpts)
 	})
 
 	t.Run("create linked field rejects non-existent source", func(t *testing.T) {
@@ -1060,9 +1059,10 @@ func TestLinkedPropertyFields(t *testing.T) {
 		}
 		source.Attrs[model.PropertyFieldAttributeOptions] = newOptions
 
-		result, err := th.service.UpdatePropertyFields(rctx, groupID, []*model.PropertyField{source})
+		result, propagated, err := th.service.UpdatePropertyFields(rctx, groupID, []*model.PropertyField{source})
 		require.NoError(t, err)
-		require.Len(t, result, 3) // source + 2 linked fields
+		require.Len(t, result, 1)     // only the requested source field
+		require.Len(t, propagated, 2) // 2 linked fields
 
 		// Verify linked fields got the new options
 		updatedLinked1, err := th.service.GetPropertyField(rctx, groupID, linked1.ID)
@@ -1312,9 +1312,10 @@ func TestLinkedPropertyFields(t *testing.T) {
 			map[string]any{"id": optCID, "name": "Option C", "color": "green"},
 		}
 
-		result, err := th.service.UpdatePropertyFields(rctx, groupID, []*model.PropertyField{source})
+		result, propagated, err := th.service.UpdatePropertyFields(rctx, groupID, []*model.PropertyField{source})
 		require.NoError(t, err)
-		require.Len(t, result, 2) // source + 1 linked field
+		require.Len(t, result, 1)     // only the requested source field
+		require.Len(t, propagated, 1) // 1 linked field
 
 		// Verify the linked field has the updated options (B removed)
 		updatedLinked, err := th.service.GetPropertyField(rctx, groupID, linked.ID)

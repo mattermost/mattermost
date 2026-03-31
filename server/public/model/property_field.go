@@ -242,7 +242,9 @@ func (pf *PropertyField) IsValid() error {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "type", "Reason": "unknown value"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
-	// LinkedFieldID validation: if set, must be a valid 26-char ID
+	// LinkedFieldID validation: if set, must be a valid 26-char ID.
+	// Empty string is allowed as a transient signal for unlinking; callers
+	// must canonicalize it to nil before persistence.
 	if pf.LinkedFieldID != nil && *pf.LinkedFieldID != "" && !IsValidId(*pf.LinkedFieldID) {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "linked_field_id", "Reason": "invalid id"}, "id="+pf.ID, http.StatusBadRequest)
 	}

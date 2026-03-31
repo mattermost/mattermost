@@ -157,7 +157,7 @@ func (ps *PropertyService) searchPropertyFields(groupID string, opts model.Prope
 }
 
 func (ps *PropertyService) updatePropertyField(groupID string, field *model.PropertyField) (*model.PropertyField, error) {
-	fields, err := ps.updatePropertyFields(groupID, []*model.PropertyField{field})
+	fields, _, err := ps.updatePropertyFields(groupID, []*model.PropertyField{field})
 	if err != nil {
 		return nil, err
 	}
@@ -165,23 +165,23 @@ func (ps *PropertyService) updatePropertyField(groupID string, field *model.Prop
 	return fields[0], nil
 }
 
-func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
+func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.PropertyField) (requested []*model.PropertyField, propagated []*model.PropertyField, err error) {
 	if len(fields) == 0 {
-		return nil, nil
+		return nil, nil, nil
 	}
 
 	// Fetch existing fields to compare for changes that require conflict check
 	ids := make([]string, len(fields))
 	for i, f := range fields {
 		if f == nil {
-			return nil, fmt.Errorf("field at index %d is nil", i)
+			return nil, nil, fmt.Errorf("field at index %d is nil", i)
 		}
 		ids[i] = f.ID
 	}
 
 	existingFields, err := ps.fieldStore.GetMany(groupID, ids)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get existing fields for update: %w", err)
+		return nil, nil, fmt.Errorf("failed to get existing fields for update: %w", err)
 	}
 
 	// Build a map of existing fields by ID for quick lookup
@@ -210,7 +210,7 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 		// or change semantics (e.g., promote to template) without going through
 		// the creation-time validation that enforces permission and linking rules.
 		if field.TargetType != existing.TargetType {
-			return nil, model.NewAppError(
+			return nil, nil, model.NewAppError(
 				"UpdatePropertyFields",
 				"app.property_field.update.immutable_target_type.app_error",
 				nil,
@@ -219,7 +219,7 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 			)
 		}
 		if field.TargetID != existing.TargetID {
-			return nil, model.NewAppError(
+			return nil, nil, model.NewAppError(
 				"UpdatePropertyFields",
 				"app.property_field.update.immutable_target_id.app_error",
 				nil,
@@ -228,7 +228,7 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 			)
 		}
 		if field.ObjectType != existing.ObjectType {
-			return nil, model.NewAppError(
+			return nil, nil, model.NewAppError(
 				"UpdatePropertyFields",
 				"app.property_field.update.immutable_object_type.app_error",
 				nil,
@@ -239,7 +239,7 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 
 		// Block type changes on linked fields
 		if existing.LinkedFieldID != nil && *existing.LinkedFieldID != "" && field.Type != existing.Type {
-			return nil, model.NewAppError(
+			return nil, nil, model.NewAppError(
 				"UpdatePropertyFields",
 				"app.property_field.update.linked_type_change.app_error",
 				nil,
@@ -250,7 +250,7 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 
 		// Block options changes on linked fields
 		if existing.LinkedFieldID != nil && *existing.LinkedFieldID != "" && optionsChanged(existing.Attrs, field.Attrs) {
-			return nil, model.NewAppError(
+			return nil, nil, model.NewAppError(
 				"UpdatePropertyFields",
 				"app.property_field.update.linked_options_change.app_error",
 				nil,
@@ -263,11 +263,18 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 		// LinkedFieldID can only be set during CreatePropertyField, which copies
 		// the source's type and options. Allowing it on update would create a
 		// link without that schema copy, causing type/options mismatches.
+		// Canonicalize empty-string LinkedFieldID to nil (unlink).
+		// Empty string is the JSON signal for "clear this field"; convert to
+		// nil before persistence to avoid a third state distinct from NULL.
+		if field.LinkedFieldID != nil && *field.LinkedFieldID == "" {
+			field.LinkedFieldID = nil
+		}
+
 		existingIsLinked := existing.LinkedFieldID != nil && *existing.LinkedFieldID != ""
-		newIsLinked := field.LinkedFieldID != nil && *field.LinkedFieldID != ""
+		newIsLinked := field.LinkedFieldID != nil
 
 		if !existingIsLinked && newIsLinked {
-			return nil, model.NewAppError(
+			return nil, nil, model.NewAppError(
 				"UpdatePropertyFields",
 				"app.property_field.update.cannot_link_existing.app_error",
 				nil,
@@ -279,7 +286,7 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 		// Block changing link target. To re-link, unlink first then create a
 		// new linked field.
 		if existingIsLinked && newIsLinked && *field.LinkedFieldID != *existing.LinkedFieldID {
-			return nil, model.NewAppError(
+			return nil, nil, model.NewAppError(
 				"UpdatePropertyFields",
 				"app.property_field.update.cannot_change_link_target.app_error",
 				nil,
@@ -296,11 +303,11 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 		if typeChanged || optsChanged {
 			count, cErr := ps.fieldStore.CountLinkedFields(field.ID)
 			if cErr != nil {
-				return nil, fmt.Errorf("failed to count linked fields: %w", cErr)
+				return nil, nil, fmt.Errorf("failed to count linked fields: %w", cErr)
 			}
 
 			if typeChanged && count > 0 {
-				return nil, model.NewAppError(
+				return nil, nil, model.NewAppError(
 					"UpdatePropertyFields",
 					"app.property_field.update.type_change_with_dependents.app_error",
 					nil,
@@ -327,11 +334,11 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 		if existing.Name != field.Name {
 			conflictLevel, cErr := ps.fieldStore.CheckPropertyNameConflict(field, field.ID)
 			if cErr != nil {
-				return nil, fmt.Errorf("failed to check property name conflict: %w", cErr)
+				return nil, nil, fmt.Errorf("failed to check property name conflict: %w", cErr)
 			}
 
 			if conflictLevel != "" {
-				return nil, model.NewAppError(
+				return nil, nil, model.NewAppError(
 					"UpdatePropertyFields",
 					"app.property_field.update.name_conflict.app_error",
 					map[string]any{"Name": field.Name, "ConflictLevel": string(conflictLevel)},
@@ -343,12 +350,12 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 	}
 
 	// Use UpdateAndPropagate to atomically update fields and cascade options
-	result, err := ps.fieldStore.UpdateAndPropagate(groupID, fields, propagations)
-	if err != nil {
-		return nil, err
+	all, uErr := ps.fieldStore.UpdateAndPropagate(groupID, fields, propagations)
+	if uErr != nil {
+		return nil, nil, uErr
 	}
 
-	return result, nil
+	return all[:len(fields)], all[len(fields):], nil
 }
 
 func (ps *PropertyService) deletePropertyField(groupID, id string) error {
@@ -384,7 +391,7 @@ func (ps *PropertyService) deletePropertyField(groupID, id string) error {
 // Public routing methods
 
 func (ps *PropertyService) CreatePropertyField(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
-	requiresAC, err := ps.requiresAccessControl(field.GroupID)
+	requiresAC, err := ps.requiresAccessControlForGroupID(field.GroupID)
 	if err != nil {
 		return nil, fmt.Errorf("CreatePropertyField: %w", err)
 	}
@@ -403,7 +410,7 @@ func (ps *PropertyService) CreatePropertyField(rctx request.CTX, field *model.Pr
 				http.StatusBadRequest,
 			)
 		}
-		sourceRequiresAC, acErr := ps.requiresAccessControl(source.GroupID)
+		sourceRequiresAC, acErr := ps.requiresAccessControlForGroupID(source.GroupID)
 		if acErr != nil {
 			return nil, fmt.Errorf("CreatePropertyField: %w", acErr)
 		}
@@ -421,7 +428,7 @@ func (ps *PropertyService) CreatePropertyField(rctx request.CTX, field *model.Pr
 }
 
 func (ps *PropertyService) GetPropertyField(rctx request.CTX, groupID, id string) (*model.PropertyField, error) {
-	requiresAC, err := ps.requiresAccessControl(groupID)
+	requiresAC, err := ps.requiresAccessControlForFieldID(groupID, id)
 	if err != nil {
 		return nil, fmt.Errorf("GetPropertyField: %w", err)
 	}
@@ -435,7 +442,7 @@ func (ps *PropertyService) GetPropertyField(rctx request.CTX, groupID, id string
 }
 
 func (ps *PropertyService) GetPropertyFields(rctx request.CTX, groupID string, ids []string) ([]*model.PropertyField, error) {
-	requiresAC, err := ps.requiresAccessControl(groupID)
+	requiresAC, err := ps.requiresAccessControlForGroupID(groupID)
 	if err != nil {
 		return nil, fmt.Errorf("GetPropertyFields: %w", err)
 	}
@@ -449,7 +456,7 @@ func (ps *PropertyService) GetPropertyFields(rctx request.CTX, groupID string, i
 }
 
 func (ps *PropertyService) GetPropertyFieldByName(rctx request.CTX, groupID, targetID, name string) (*model.PropertyField, error) {
-	requiresAC, err := ps.requiresAccessControl(groupID)
+	requiresAC, err := ps.requiresAccessControlForGroupID(groupID)
 	if err != nil {
 		return nil, fmt.Errorf("GetPropertyFieldByName: %w", err)
 	}
@@ -463,7 +470,7 @@ func (ps *PropertyService) GetPropertyFieldByName(rctx request.CTX, groupID, tar
 }
 
 func (ps *PropertyService) CountActivePropertyFieldsForGroup(rctx request.CTX, groupID string) (int64, error) {
-	requiresAC, err := ps.requiresAccessControl(groupID)
+	requiresAC, err := ps.requiresAccessControlForGroupID(groupID)
 	if err != nil {
 		return 0, fmt.Errorf("CountActivePropertyFieldsForGroup: %w", err)
 	}
@@ -476,7 +483,7 @@ func (ps *PropertyService) CountActivePropertyFieldsForGroup(rctx request.CTX, g
 }
 
 func (ps *PropertyService) CountAllPropertyFieldsForGroup(rctx request.CTX, groupID string) (int64, error) {
-	requiresAC, err := ps.requiresAccessControl(groupID)
+	requiresAC, err := ps.requiresAccessControlForGroupID(groupID)
 	if err != nil {
 		return 0, fmt.Errorf("CountAllPropertyFieldsForGroup: %w", err)
 	}
@@ -489,7 +496,7 @@ func (ps *PropertyService) CountAllPropertyFieldsForGroup(rctx request.CTX, grou
 }
 
 func (ps *PropertyService) CountActivePropertyFieldsForTarget(rctx request.CTX, groupID, targetType, targetID string) (int64, error) {
-	requiresAC, err := ps.requiresAccessControl(groupID)
+	requiresAC, err := ps.requiresAccessControlForGroupID(groupID)
 	if err != nil {
 		return 0, fmt.Errorf("CountActivePropertyFieldsForTarget: %w", err)
 	}
@@ -502,7 +509,7 @@ func (ps *PropertyService) CountActivePropertyFieldsForTarget(rctx request.CTX, 
 }
 
 func (ps *PropertyService) CountAllPropertyFieldsForTarget(rctx request.CTX, groupID, targetType, targetID string) (int64, error) {
-	requiresAC, err := ps.requiresAccessControl(groupID)
+	requiresAC, err := ps.requiresAccessControlForGroupID(groupID)
 	if err != nil {
 		return 0, fmt.Errorf("CountAllPropertyFieldsForTarget: %w", err)
 	}
@@ -515,7 +522,7 @@ func (ps *PropertyService) CountAllPropertyFieldsForTarget(rctx request.CTX, gro
 }
 
 func (ps *PropertyService) SearchPropertyFields(rctx request.CTX, groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
-	requiresAC, err := ps.requiresAccessControl(groupID)
+	requiresAC, err := ps.requiresAccessControlForGroupID(groupID)
 	if err != nil {
 		return nil, fmt.Errorf("SearchPropertyFields: %w", err)
 	}
@@ -529,7 +536,7 @@ func (ps *PropertyService) SearchPropertyFields(rctx request.CTX, groupID string
 }
 
 func (ps *PropertyService) UpdatePropertyField(rctx request.CTX, groupID string, field *model.PropertyField) (*model.PropertyField, error) {
-	requiresAC, err := ps.requiresAccessControl(groupID)
+	requiresAC, err := ps.requiresAccessControlForFieldID(groupID, field.ID)
 	if err != nil {
 		return nil, fmt.Errorf("UpdatePropertyField: %w", err)
 	}
@@ -542,10 +549,25 @@ func (ps *PropertyService) UpdatePropertyField(rctx request.CTX, groupID string,
 	return ps.updatePropertyField(groupID, field)
 }
 
-func (ps *PropertyService) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
-	requiresAC, err := ps.requiresAccessControl(groupID)
+func (ps *PropertyService) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField) (requested []*model.PropertyField, propagated []*model.PropertyField, err error) {
+	requiresAC, err := ps.requiresAccessControlForGroupID(groupID)
 	if err != nil {
-		return nil, fmt.Errorf("UpdatePropertyFields: %w", err)
+		return nil, nil, fmt.Errorf("UpdatePropertyFields: %w", err)
+	}
+
+	// If the group itself doesn't require AC, check each field — a linked
+	// field whose source lives in an AC group still needs enforcement.
+	if !requiresAC {
+		for _, f := range fields {
+			fieldAC, fErr := ps.requiresAccessControlForFieldID(groupID, f.ID)
+			if fErr != nil {
+				return nil, nil, fmt.Errorf("UpdatePropertyFields: %w", fErr)
+			}
+			if fieldAC {
+				requiresAC = true
+				break
+			}
+		}
 	}
 
 	if requiresAC {
@@ -557,7 +579,7 @@ func (ps *PropertyService) UpdatePropertyFields(rctx request.CTX, groupID string
 }
 
 func (ps *PropertyService) DeletePropertyField(rctx request.CTX, groupID, id string) error {
-	requiresAC, err := ps.requiresAccessControl(groupID)
+	requiresAC, err := ps.requiresAccessControlForFieldID(groupID, id)
 	if err != nil {
 		return fmt.Errorf("DeletePropertyField: %w", err)
 	}

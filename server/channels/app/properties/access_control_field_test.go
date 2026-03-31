@@ -1000,7 +1000,7 @@ func TestUpdatePropertyFields_BulkWriteAccessControl(t *testing.T) {
 		created1.Name = "Updated Field1"
 		created2.Name = "Updated Field2"
 
-		updated, err := th.service.UpdatePropertyFields(rctxPlugin2, th.CPAGroupID, []*model.PropertyField{created1, created2})
+		updated, _, err := th.service.UpdatePropertyFields(rctxPlugin2, th.CPAGroupID, []*model.PropertyField{created1, created2})
 		require.NoError(t, err)
 		assert.Len(t, updated, 2)
 	})
@@ -1027,7 +1027,7 @@ func TestUpdatePropertyFields_BulkWriteAccessControl(t *testing.T) {
 		created1.Name = "Updated Unprotected"
 		created2.Name = "Updated Protected"
 
-		updated, err := th.service.UpdatePropertyFields(rctxPlugin2, th.CPAGroupID, []*model.PropertyField{created1, created2})
+		updated, _, err := th.service.UpdatePropertyFields(rctxPlugin2, th.CPAGroupID, []*model.PropertyField{created1, created2})
 		require.Error(t, err)
 		assert.Nil(t, updated)
 		assert.Contains(t, err.Error(), "protected")
@@ -1058,7 +1058,7 @@ func TestUpdatePropertyFields_BulkWriteAccessControl(t *testing.T) {
 		created1.Name = "Updated Field1"
 		created2.Attrs[model.PropertyAttrsProtected] = true
 
-		updated, err := th.service.UpdatePropertyFields(rctxPlugin1, th.CPAGroupID, []*model.PropertyField{created1, created2})
+		updated, _, err := th.service.UpdatePropertyFields(rctxPlugin1, th.CPAGroupID, []*model.PropertyField{created1, created2})
 		require.Error(t, err)
 		assert.Nil(t, updated)
 		assert.Contains(t, err.Error(), "cannot set protected=true")
@@ -1388,10 +1388,10 @@ func TestLinkedPropertyField_SecurityInheritance(t *testing.T) {
 		assert.Equal(t, *source.PermissionOptions, *linked.PermissionOptions)
 	})
 
-	t.Run("reject linked field with mismatched access_mode", func(t *testing.T) {
+	t.Run("linked field inherits source access_mode even if caller supplies different value", func(t *testing.T) {
 		source := createProtectedTemplate(t, "MismatchSource-"+model.NewId(), model.PropertyAccessModeSourceOnly)
 
-		_, err := th.service.CreatePropertyField(rctxPlugin1, &model.PropertyField{
+		linked, err := th.service.CreatePropertyField(rctxPlugin1, &model.PropertyField{
 			GroupID:    th.CPAGroupID,
 			ObjectType: model.PropertyFieldObjectTypeUser,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
@@ -1402,8 +1402,9 @@ func TestLinkedPropertyField_SecurityInheritance(t *testing.T) {
 			},
 			LinkedFieldID: &source.ID,
 		})
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "access_mode")
+		require.NoError(t, err)
+		// Caller supplied shared_only but source's source_only is inherited
+		assert.Equal(t, model.PropertyAccessModeSourceOnly, linked.Attrs[model.PropertyAttrsAccessMode])
 	})
 
 	t.Run("linked field from unprotected template does not inherit protection", func(t *testing.T) {
@@ -1476,5 +1477,204 @@ func TestLinkedPropertyField_SecurityInheritance(t *testing.T) {
 		})
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "only the source plugin")
+	})
+}
+
+// TestCrossGroupLinkedField_AccessControlRouting verifies that a linked field
+// in a non-CPA group still routes through access control for Get, Update, and
+// Delete operations when its source template lives in a CPA group.
+func TestCrossGroupLinkedField_AccessControlRouting(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	th.service.setPluginCheckerForTests(func(pluginID string) bool {
+		return pluginID == "plugin-1" || pluginID == "plugin-2"
+	})
+
+	rctxPlugin1 := RequestContextWithCallerID(th.Context, "plugin-1")
+	rctxPlugin2 := RequestContextWithCallerID(th.Context, "plugin-2")
+	rctxUser := RequestContextWithCallerID(th.Context, "user-1")
+
+	sysadminLevel := model.PermissionLevelSysadmin
+
+	// Setup: protected template in CPA group owned by plugin-1
+	source := &model.PropertyField{
+		GroupID:    th.CPAGroupID,
+		ObjectType: model.PropertyFieldObjectTypeTemplate,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Type:       model.PropertyFieldTypeSelect,
+		Name:       "CrossGroupTemplate-" + model.NewId(),
+		Attrs: model.StringInterface{
+			model.PropertyAttrsProtected:  true,
+			model.PropertyAttrsAccessMode: model.PropertyAccessModeSourceOnly,
+			model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"id": "opt-a", "name": "Option A"},
+				map[string]any{"id": "opt-b", "name": "Option B"},
+			},
+		},
+		PermissionField:   &sysadminLevel,
+		PermissionValues:  &sysadminLevel,
+		PermissionOptions: &sysadminLevel,
+	}
+	source, err := th.service.CreatePropertyField(rctxPlugin1, source)
+	require.NoError(t, err)
+
+	// Linked field in a non-CPA group
+	otherGroup, err := th.service.RegisterPropertyGroup("cross-group-ac-routing-" + model.NewId())
+	require.NoError(t, err)
+
+	linked, err := th.service.CreatePropertyField(rctxPlugin1, &model.PropertyField{
+		GroupID:       otherGroup.ID,
+		ObjectType:    model.PropertyFieldObjectTypeUser,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		Name:          "CrossLinked-" + model.NewId(),
+		Type:          model.PropertyFieldTypeText,
+		LinkedFieldID: &source.ID,
+	})
+	require.NoError(t, err)
+	require.True(t, model.IsPropertyFieldProtected(linked))
+
+	// --- Get ---
+
+	t.Run("get cross-group linked field applies AC read filtering for source plugin", func(t *testing.T) {
+		field, err := th.service.GetPropertyField(rctxPlugin1, otherGroup.ID, linked.ID)
+		require.NoError(t, err)
+		// Source plugin sees full options
+		opts := field.Attrs[model.PropertyFieldAttributeOptions]
+		require.NotNil(t, opts)
+		assert.Len(t, opts.([]any), 2)
+	})
+
+	t.Run("get cross-group linked field applies AC read filtering for non-source caller", func(t *testing.T) {
+		field, err := th.service.GetPropertyField(rctxUser, otherGroup.ID, linked.ID)
+		require.NoError(t, err)
+		// Non-source caller gets filtered options (source_only → empty)
+		opts := field.Attrs[model.PropertyFieldAttributeOptions]
+		require.NotNil(t, opts)
+		assert.Empty(t, opts.([]any))
+	})
+
+	// --- Update ---
+
+	t.Run("update cross-group linked field allowed for source plugin", func(t *testing.T) {
+		toUpdate := *linked
+		toUpdate.Name = "UpdatedBySrcPlugin-" + model.NewId()
+		updated, err := th.service.UpdatePropertyField(rctxPlugin1, otherGroup.ID, &toUpdate)
+		require.NoError(t, err)
+		assert.Equal(t, toUpdate.Name, updated.Name)
+		linked = updated // keep state consistent
+	})
+
+	t.Run("update cross-group linked field denied for non-source plugin", func(t *testing.T) {
+		toUpdate := *linked
+		toUpdate.Name = "ShouldFail-" + model.NewId()
+		updated, err := th.service.UpdatePropertyField(rctxPlugin2, otherGroup.ID, &toUpdate)
+		require.Error(t, err)
+		assert.Nil(t, updated)
+		assert.Contains(t, err.Error(), "protected")
+	})
+
+	t.Run("bulk update cross-group linked field denied for non-source plugin", func(t *testing.T) {
+		toUpdate := *linked
+		toUpdate.Name = "BulkShouldFail-" + model.NewId()
+		updated, _, err := th.service.UpdatePropertyFields(rctxPlugin2, otherGroup.ID, []*model.PropertyField{&toUpdate})
+		require.Error(t, err)
+		assert.Nil(t, updated)
+		assert.Contains(t, err.Error(), "protected")
+	})
+
+	// --- Delete ---
+
+	t.Run("delete cross-group linked field denied for non-source plugin", func(t *testing.T) {
+		err := th.service.DeletePropertyField(rctxPlugin2, otherGroup.ID, linked.ID)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "protected")
+	})
+
+	t.Run("delete cross-group linked field allowed for source plugin", func(t *testing.T) {
+		// First unlink so deletion-protection (linked dependents) doesn't block us
+		toUnlink := *linked
+		empty := ""
+		toUnlink.LinkedFieldID = &empty
+		unlinked, err := th.service.UpdatePropertyField(rctxPlugin1, otherGroup.ID, &toUnlink)
+		require.NoError(t, err)
+		// After unlinking the field is still protected — inherited attrs persist
+		require.True(t, model.IsPropertyFieldProtected(unlinked))
+
+		err = th.service.DeletePropertyField(rctxPlugin1, otherGroup.ID, unlinked.ID)
+		require.NoError(t, err)
+	})
+}
+
+// TestCrossGroupLinkedField_ValueAccessControl verifies that value operations
+// on a linked field in a non-CPA group still route through access control
+// when the linked field's source template lives in a CPA group.
+func TestCrossGroupLinkedField_ValueAccessControl(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	th.service.setPluginCheckerForTests(func(pluginID string) bool {
+		return pluginID == "plugin-1"
+	})
+
+	rctxPlugin1 := RequestContextWithCallerID(th.Context, "plugin-1")
+	rctxUser := RequestContextWithCallerID(th.Context, "user-1")
+
+	sysadminLevel := model.PermissionLevelSysadmin
+
+	// Setup: protected template in CPA group owned by plugin-1
+	source, err := th.service.CreatePropertyField(rctxPlugin1, &model.PropertyField{
+		GroupID:    th.CPAGroupID,
+		ObjectType: model.PropertyFieldObjectTypeTemplate,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Type:       model.PropertyFieldTypeSelect,
+		Name:       "ValACTemplate-" + model.NewId(),
+		Attrs: model.StringInterface{
+			model.PropertyAttrsProtected:  true,
+			model.PropertyAttrsAccessMode: model.PropertyAccessModeSourceOnly,
+			model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"id": "opt-1", "name": "Opt 1"},
+			},
+		},
+		PermissionField:   &sysadminLevel,
+		PermissionValues:  &sysadminLevel,
+		PermissionOptions: &sysadminLevel,
+	})
+	require.NoError(t, err)
+
+	// Linked field in non-CPA group
+	otherGroup, err := th.service.RegisterPropertyGroup("cross-val-ac-" + model.NewId())
+	require.NoError(t, err)
+
+	linked, err := th.service.CreatePropertyField(rctxPlugin1, &model.PropertyField{
+		GroupID:       otherGroup.ID,
+		ObjectType:    model.PropertyFieldObjectTypeUser,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		Name:          "CrossValLinked-" + model.NewId(),
+		Type:          model.PropertyFieldTypeText,
+		LinkedFieldID: &source.ID,
+	})
+	require.NoError(t, err)
+
+	t.Run("search values routes through AC for non-CPA group with cross-group linked field", func(t *testing.T) {
+		// This should not panic or bypass AC — the search should route through
+		// the access control service because the group has a linked field from CPA.
+		results, err := th.service.SearchPropertyValues(rctxUser, otherGroup.ID, model.PropertyValueSearchOpts{
+			FieldID:    linked.ID,
+			TargetType: "user",
+			PerPage:    10,
+		})
+		require.NoError(t, err)
+		assert.Empty(t, results) // no values yet, but the routing should work
+	})
+
+	t.Run("create value on cross-group linked field routes through AC", func(t *testing.T) {
+		val := &model.PropertyValue{
+			GroupID:    otherGroup.ID,
+			FieldID:    linked.ID,
+			TargetType: "user",
+			TargetID:   model.NewId(),
+			Value:      json.RawMessage(`"opt-1"`),
+		}
+		// plugin-1 is the source plugin and should succeed
+		created, err := th.service.CreatePropertyValue(rctxPlugin1, val)
+		require.NoError(t, err)
+		assert.NotNil(t, created)
 	})
 }

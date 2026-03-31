@@ -3091,7 +3091,7 @@ func TestLinkedProperties(t *testing.T) {
 	t.Run("get values for template returns 400", func(t *testing.T) {
 		th.LoginBasic(t)
 
-		_, resp, err := th.Client.GetPropertyValues(context.Background(), group.Name, "template", "any_target", model.PropertyValueSearch{PerPage: 10})
+		_, resp, err := th.Client.GetPropertyValues(context.Background(), group.Name, "template", model.NewId(), model.PropertyValueSearch{PerPage: 10})
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
@@ -3102,7 +3102,7 @@ func TestLinkedProperties(t *testing.T) {
 		items := []model.PropertyValuePatchItem{
 			{FieldID: model.NewId(), Value: json.RawMessage(`"val"`)},
 		}
-		_, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "template", "any_target", items)
+		_, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "template", model.NewId(), items)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})

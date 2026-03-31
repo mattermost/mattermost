@@ -442,7 +442,7 @@ func (s *SqlPropertyFieldStore) CountLinkedFields(fieldID string) (int64, error)
 		Where(sq.Eq{"LinkedFieldID": fieldID}).
 		Where(sq.Eq{"DeleteAt": 0})
 
-	if err := s.GetReplica().GetBuilder(&count, builder); err != nil {
+	if err := s.GetMaster().GetBuilder(&count, builder); err != nil {
 		return 0, errors.Wrap(err, "property_field_count_linked_fields")
 	}
 	return count, nil
