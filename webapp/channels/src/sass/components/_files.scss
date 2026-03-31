@@ -38,11 +38,20 @@
         margin-top: -16px;
         margin-left: -16px;
     }
+
+    &.compact {
+        overflow: hidden !important;
+    }
 }
 
 .app__body {
     .file-preview__remove {
         position: absolute;
+
+        &.compact {
+            position: unset;
+        }
+
         top: 4px;
         right: 4px;
         display: flex;
@@ -536,6 +545,10 @@
             height: 36px;
             line-height: normal;
             text-overflow: ellipsis;
+
+            &.compact {
+                height: unset;
+            }
 
             .post-image__name {
                 display: block;
