@@ -276,11 +276,4 @@ jobs:
                 issue_number: prNumber,
                 labels: [label],
               });
-            } else if (!needsDocs && hasLabel) {
-              await github.rest.issues.removeLabel({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: prNumber,
-                name: label,
-              });
             }
