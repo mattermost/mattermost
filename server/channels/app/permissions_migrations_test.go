@@ -65,6 +65,62 @@ func TestRestoreManageOAuthPermissionMigration(t *testing.T) {
 	systemStore.AssertNumberOfCalls(t, "SaveOrUpdate", 1)
 }
 
+func TestAddCreateAgentPermissionMigration(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := SetupWithStoreMock(t)
+
+	migrationMap, err := th.App.getAddCreateAgentPermissionMigration()
+	require.NoError(t, err)
+
+	systemAdminRole := &model.Role{
+		Name:        model.SystemAdminRoleId,
+		Permissions: []string{model.PermissionManageSystem.Id},
+	}
+	systemUserRole := &model.Role{
+		Name:        model.SystemUserRoleId,
+		Permissions: []string{model.PermissionCreateDirectChannel.Id},
+	}
+	roles := []*model.Role{systemAdminRole, systemUserRole}
+
+	mockStore := th.App.Srv().Store().(*mocks.Store)
+	roleStore := mocks.RoleStore{}
+	systemStore := mocks.SystemStore{}
+
+	mockStore.On("Role").Return(&roleStore)
+	mockStore.On("System").Return(&systemStore)
+
+	systemStore.On("GetByName", model.MigrationKeyAddCreateAgentPermission).
+		Return(nil, model.NewAppError("test", "missing", nil, "", 404)).Once()
+	systemStore.On("GetByName", model.MigrationKeyAddCreateAgentPermission).
+		Return(&model.System{Name: model.MigrationKeyAddCreateAgentPermission, Value: "true"}, nil).Once()
+	systemStore.On("SaveOrUpdate", mock.MatchedBy(func(system *model.System) bool {
+		return system.Name == model.MigrationKeyAddCreateAgentPermission && system.Value == "true"
+	})).Return(nil).Once()
+
+	roleStore.On("Save", mock.AnythingOfType("*model.Role")).
+		Return(func(role *model.Role) *model.Role { return role }, nil).Twice()
+
+	// First migration run: should add create_agent to both roles
+	appErr := th.App.Srv().doPermissionsMigration(model.MigrationKeyAddCreateAgentPermission, migrationMap, roles)
+	require.Nil(t, appErr)
+	assert.Contains(t, systemAdminRole.Permissions, model.PermissionCreateAgent.Id,
+		"system_admin should have create_agent after migration")
+	assert.Contains(t, systemUserRole.Permissions, model.PermissionCreateAgent.Id,
+		"system_user should have create_agent after migration")
+	assert.Len(t, systemAdminRole.Permissions, 2, "system_admin should have original + create_agent")
+	assert.Len(t, systemUserRole.Permissions, 2, "system_user should have original + create_agent")
+
+	// Second migration run: idempotent (no-op because key is now in System table)
+	appErr = th.App.Srv().doPermissionsMigration(model.MigrationKeyAddCreateAgentPermission, migrationMap, roles)
+	require.Nil(t, appErr)
+	assert.Len(t, systemAdminRole.Permissions, 2, "system_admin should still have 2 permissions after idempotent run")
+	assert.Len(t, systemUserRole.Permissions, 2, "system_user should still have 2 permissions after idempotent run")
+
+	roleStore.AssertNumberOfCalls(t, "Save", 2)
+	systemStore.AssertNumberOfCalls(t, "SaveOrUpdate", 1)
+}
+
 func TestApplyPermissionsMap(t *testing.T) {
 	mainHelper.Parallel(t)
 	tt := []struct {
