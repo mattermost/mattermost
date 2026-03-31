@@ -885,10 +885,11 @@ func TestUserHasBeenDeactivated(t *testing.T) {
 	_, err = th.App.UpdateActive(th.Context, user, false)
 	require.Nil(t, err)
 
-	time.Sleep(2 * time.Second)
-	user, err = th.App.GetUser(user.Id)
-	require.Nil(t, err)
-	require.Equal(t, "plugin-callback-success", user.Nickname)
+	require.Eventually(t, func() bool {
+		user, err = th.App.GetUser(user.Id)
+		require.Nil(t, err)
+		return user.Nickname == "plugin-callback-success"
+	}, 10*time.Second, 100*time.Millisecond)
 }
 
 func TestUserHasBeenCreated(t *testing.T) {
@@ -930,10 +931,11 @@ func TestUserHasBeenCreated(t *testing.T) {
 	_, err := th.App.CreateUser(th.Context, user)
 	require.Nil(t, err)
 
-	time.Sleep(2 * time.Second)
-	user, err = th.App.GetUser(user.Id)
-	require.Nil(t, err)
-	require.Equal(t, "plugin-callback-success", user.Nickname)
+	require.Eventually(t, func() bool {
+		user, err = th.App.GetUser(user.Id)
+		require.Nil(t, err)
+		return user.Nickname == "plugin-callback-success"
+	}, 10*time.Second, 100*time.Millisecond)
 }
 
 func TestErrorString(t *testing.T) {
@@ -1117,10 +1119,11 @@ func TestActiveHooks(t *testing.T) {
 		}
 		_, appErr := th.App.CreateUser(th.Context, user1)
 		require.Nil(t, appErr)
-		time.Sleep(2 * time.Second)
-		user1, appErr = th.App.GetUser(user1.Id)
-		require.Nil(t, appErr)
-		require.Equal(t, "plugin-callback-success", user1.Nickname)
+		require.Eventually(t, func() bool {
+			user1, appErr = th.App.GetUser(user1.Id)
+			require.Nil(t, appErr)
+			return user1.Nickname == "plugin-callback-success"
+		}, 10*time.Second, 100*time.Millisecond)
 
 		// Disable plugin
 		require.True(t, th.App.GetPluginsEnvironment().Deactivate(pluginID))
@@ -1223,10 +1226,11 @@ func TestHookMetrics(t *testing.T) {
 		}
 		_, appErr := th.App.CreateUser(th.Context, user1)
 		require.Nil(t, appErr)
-		time.Sleep(2 * time.Second)
-		user1, appErr = th.App.GetUser(user1.Id)
-		require.Nil(t, appErr)
-		require.Equal(t, "plugin-callback-success", user1.Nickname)
+		require.Eventually(t, func() bool {
+			user1, appErr = th.App.GetUser(user1.Id)
+			require.Nil(t, appErr)
+			return user1.Nickname == "plugin-callback-success"
+		}, 10*time.Second, 100*time.Millisecond)
 
 		// Disable plugin
 		require.True(t, th.App.GetPluginsEnvironment().Deactivate(pluginID))
@@ -1569,10 +1573,10 @@ func TestHookNotificationWillBePushed(t *testing.T) {
 			}
 			wg.Wait()
 
-			// Hack to let the worker goroutines complete.
-			time.Sleep(2 * time.Second)
-			// Server side verification.
-			assert.Equal(t, tt.expectedNotifications, handler.numReqs())
+			// Wait for the worker goroutines to complete.
+			require.Eventually(t, func() bool {
+				return handler.numReqs() == tt.expectedNotifications
+			}, 10*time.Second, 100*time.Millisecond)
 			var numMessages int
 			for _, n := range handler.notifications() {
 				switch n.Type {
