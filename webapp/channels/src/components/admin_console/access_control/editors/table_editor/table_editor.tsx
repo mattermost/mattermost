@@ -187,7 +187,7 @@ function TableEditor({
     // Converts the internal rows state back into a CEL expression string
     // and calls the onChange and onValidate props.
     const updateExpression = useCallback((newRows: TableRow[]) => {
-        const rowsThatCanFormExpressions = newRows.filter((row) => row.attribute); // Only include rows that have an attribute selected
+        const rowsThatCanFormExpressions = newRows.filter((row) => row.attribute && row.values.length > 0);
 
         const expr = rowsThatCanFormExpressions.map((row) => {
             const attributeExpr = `user.attributes.${row.attribute}`;
@@ -282,13 +282,12 @@ function TableEditor({
             if (oldAttribute !== attribute) {
                 newRows[index].values = [];
 
-                const oldAttributeObj = userAttributes.find((attr) => attr.name === oldAttribute);
                 const newAttributeObj = userAttributes.find((attr) => attr.name === attribute);
-                const wasMultiselect = oldAttributeObj?.type === 'multiselect';
-                const isMultiselect = newAttributeObj?.type === 'multiselect';
+                newRows[index].attribute_type = newAttributeObj?.type || '';
 
-                if (wasMultiselect !== isMultiselect) {
-                    newRows[index].operator = isMultiselect ? OperatorLabel.IN : OperatorLabel.IS;
+                const isMultiselect = newAttributeObj?.type === 'multiselect';
+                if (isMultiselect && newRows[index].operator !== OperatorLabel.IN) {
+                    newRows[index].operator = OperatorLabel.IN;
                 }
             }
             updateExpression(newRows);
