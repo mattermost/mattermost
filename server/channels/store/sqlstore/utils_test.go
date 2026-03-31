@@ -12,6 +12,73 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestChunkSlice(t *testing.T) {
+	if enableFullyParallelTests {
+		t.Parallel()
+	}
+
+	t.Run("empty slice returns nil", func(t *testing.T) {
+		result := chunkSlice([]int{}, 5, defaultMaxInsertParams)
+		require.Nil(t, result)
+	})
+
+	t.Run("under limit returns single chunk", func(t *testing.T) {
+		items := []int{1, 2, 3}
+		result := chunkSlice(items, 15, defaultMaxInsertParams) // 3*15=45 params, well under 50k
+		require.Len(t, result, 1)
+		require.Equal(t, items, result[0])
+	})
+
+	t.Run("exact boundary returns single chunk", func(t *testing.T) {
+		n := defaultMaxInsertParams / 10 // exactly at limit with 10 cols
+		items := make([]int, n)
+		result := chunkSlice(items, 10, defaultMaxInsertParams)
+		require.Len(t, result, 1)
+		require.Len(t, result[0], n)
+	})
+
+	t.Run("over limit splits into chunks", func(t *testing.T) {
+		n := defaultMaxInsertParams/10 + 1 // one over
+		items := make([]int, n)
+		result := chunkSlice(items, 10, defaultMaxInsertParams)
+		require.Len(t, result, 2)
+		require.Len(t, result[0], defaultMaxInsertParams/10)
+		require.Len(t, result[1], 1)
+	})
+
+	t.Run("remainder is handled correctly", func(t *testing.T) {
+		chunkSize := defaultMaxInsertParams / 15 // 3333
+		n := chunkSize*2 + 100                   // two full chunks + 100 remainder
+		items := make([]int, n)
+		result := chunkSlice(items, 15, defaultMaxInsertParams)
+		require.Len(t, result, 3)
+		require.Len(t, result[0], chunkSize)
+		require.Len(t, result[1], chunkSize)
+		require.Len(t, result[2], 100)
+	})
+
+	t.Run("columnsPerRow > maxParams panics", func(t *testing.T) {
+		require.Panics(t, func() {
+			chunkSlice([]int{1}, defaultMaxInsertParams+1, defaultMaxInsertParams)
+		})
+	})
+
+	t.Run("columnsPerRow <= 0 panics", func(t *testing.T) {
+		require.Panics(t, func() {
+			chunkSlice([]int{1}, 0, defaultMaxInsertParams)
+		})
+		require.Panics(t, func() {
+			chunkSlice([]int{1}, -1, defaultMaxInsertParams)
+		})
+	})
+
+	t.Run("maxParams <= 0 panics", func(t *testing.T) {
+		require.Panics(t, func() {
+			chunkSlice([]int{1}, 1, 0)
+		})
+	})
+}
+
 func TestMapStringsToQueryParams(t *testing.T) {
 	if enableFullyParallelTests {
 		t.Parallel()
