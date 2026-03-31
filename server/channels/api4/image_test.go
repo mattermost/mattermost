@@ -50,7 +50,7 @@ func TestGetImage(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.ImageProxySettings.Enable = model.NewPointer(true)
 			cfg.ImageProxySettings.ImageProxyType = model.NewPointer("atmos/camo")
-			cfg.ImageProxySettings.RemoteImageProxyOptions = model.NewPointer("foo")
+			cfg.ImageProxySettings.RemoteImageProxyOptions = model.NewPointer("7e5f3fab20b94782b43cdb022a66985ef28ba355")
 			cfg.ImageProxySettings.RemoteImageProxyURL = model.NewPointer("https://proxy.foo.bar")
 		})
 

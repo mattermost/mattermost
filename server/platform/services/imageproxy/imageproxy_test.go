@@ -177,7 +177,7 @@ func TestOnConfigChange(t *testing.T) {
 
 		newConfig := proxy.ConfigService.Config().Clone()
 		newConfig.ImageProxySettings.RemoteImageProxyURL = model.NewPointer("https://new.example.com")
-		newConfig.ImageProxySettings.RemoteImageProxyOptions = model.NewPointer("some other random hash")
+		newConfig.ImageProxySettings.RemoteImageProxyOptions = model.NewPointer("aaaaaabbbbbbccccccddddddeeeeeefffff0000000")
 
 		proxy.ConfigService.(*testutils.StaticConfigService).UpdateConfig(newConfig)
 
