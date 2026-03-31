@@ -717,6 +717,7 @@ const AdvancedTextEditor = ({
                     disableControls={showPreview}
                     additionalControls={additionalControls}
                     location={location}
+                    getWysiwygEditor={wysiwygEnabled ? () => wysiwygRef.current?.getEditor() ?? null : undefined}
                 />
             )}
             slot2={null}

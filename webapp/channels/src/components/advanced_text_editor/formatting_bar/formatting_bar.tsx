@@ -12,6 +12,8 @@ import {DotsHorizontalIcon} from '@mattermost/compass-icons/components';
 
 import WithTooltip from 'components/with_tooltip';
 
+import type {Editor} from '@tiptap/react';
+
 import type {ApplyMarkdownOptions, MarkdownMode} from 'utils/markdown/apply_markdown';
 
 import FormattingIcon, {IconContainer} from './formatting_icon';
@@ -130,9 +132,52 @@ interface FormattingBarProps {
      * e.g: message priority picker
      */
     additionalControls?: React.ReactNodeArray;
+
+    /**
+     * Returns the TipTap editor instance for WYSIWYG mode.
+     * When provided, formatting commands are dispatched directly to the editor
+     * instead of going through markdown string manipulation.
+     */
+    getWysiwygEditor?: () => Editor | null;
 }
 
 const DEFAULT_MIN_MODE_X_COORD = 55;
+
+function applyWysiwygCommand(editor: Editor, mode: MarkdownMode): boolean {
+    switch (mode) {
+    case 'bold':
+        editor.chain().focus().toggleBold().run();
+        return true;
+    case 'italic':
+        editor.chain().focus().toggleItalic().run();
+        return true;
+    case 'strike':
+        editor.chain().focus().toggleStrike().run();
+        return true;
+    case 'heading':
+        editor.chain().focus().toggleHeading({level: 3}).run();
+        return true;
+    case 'code':
+        editor.chain().focus().toggleCodeBlock().run();
+        return true;
+    case 'quote':
+        editor.chain().focus().toggleBlockquote().run();
+        return true;
+    case 'ul':
+        editor.chain().focus().toggleBulletList().run();
+        return true;
+    case 'ol':
+        editor.chain().focus().toggleOrderedList().run();
+        return true;
+    case 'link':
+        if (editor.isActive('link')) {
+            editor.chain().focus().unsetLink().run();
+        }
+        return true;
+    default:
+        return false;
+    }
+}
 
 const FormattingBar = (props: FormattingBarProps): JSX.Element => {
     const {
@@ -142,6 +187,7 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
         disableControls,
         location,
         additionalControls,
+        getWysiwygEditor,
     } = props;
     const [showHiddenControls, setShowHiddenControls] = useState(false);
     const formattingBarRef = useRef<HTMLDivElement>(null);
@@ -179,12 +225,19 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
      * the FormattingIcon component. This should improve render-performance
      */
     const makeFormattingHandler = useCallback((mode: MarkdownMode) => () => {
-        // if the formatting is disabled just return without doing anything
         if (disableControls) {
             return;
         }
 
-        // get the current selection values and return early (doing nothing) when we don't get valid values
+        const wysiwygEditor = getWysiwygEditor?.();
+        if (wysiwygEditor && !wysiwygEditor.isDestroyed) {
+            applyWysiwygCommand(wysiwygEditor, mode);
+            if (showHiddenControls) {
+                setShowHiddenControls(true);
+            }
+            return;
+        }
+
         const {start, end} = getCurrentSelection();
 
         if (start === null || end === null) {
@@ -200,11 +253,10 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
             message: value,
         });
 
-        // if hidden controls are currently open close them
         if (showHiddenControls) {
             setShowHiddenControls(true);
         }
-    }, [getCurrentSelection, getCurrentMessage, applyMarkdown, showHiddenControls, disableControls]);
+    }, [getCurrentSelection, getCurrentMessage, applyMarkdown, showHiddenControls, disableControls, getWysiwygEditor]);
 
     const leftPosition = wideMode === 'min' ? (x ?? 0) + DEFAULT_MIN_MODE_X_COORD : x ?? 0;
 

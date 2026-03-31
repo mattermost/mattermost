@@ -68,7 +68,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     }, [onBlur]);
 
     const handleUpdate = useCallback(({editor}: {editor: Editor}) => {
-        const md = editor.getMarkdown();
+        const md = editor.getMarkdown().trimEnd();
         onChangeRef.current(md);
     }, []);
 
