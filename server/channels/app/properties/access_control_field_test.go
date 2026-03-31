@@ -1438,4 +1438,3 @@ func TestLinkedPropertyField_SecurityInheritance(t *testing.T) {
 		assert.False(t, model.IsPropertyFieldProtected(linked))
 	})
 }
-

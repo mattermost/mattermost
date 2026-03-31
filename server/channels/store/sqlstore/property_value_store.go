@@ -380,4 +380,3 @@ func (s *SqlPropertyValueStore) DeleteForTarget(groupID string, targetType strin
 
 	return nil
 }
-

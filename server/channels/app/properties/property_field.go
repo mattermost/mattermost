@@ -589,7 +589,6 @@ func (ps *PropertyService) DeletePropertyField(rctx request.CTX, groupID, id str
 	return ps.deletePropertyField(groupID, id)
 }
 
-
 // asOptionSlice extracts the options from an attrs map as []map[string]any
 // via direct type assertion. By the time options reach the service layer,
 // they are always []any containing map[string]any elements (from JSON
@@ -652,7 +651,6 @@ func optionsChanged(oldAttrs, newAttrs model.StringInterface) bool {
 
 	return false
 }
-
 
 // extractOptionIDs extracts the "id" field from each option in the given options value
 // using direct type assertions (no JSON marshaling).

@@ -1847,4 +1847,3 @@ func testDeleteForTarget(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NotNil(t, nonDeletedTypeValue)
 	})
 }
-
