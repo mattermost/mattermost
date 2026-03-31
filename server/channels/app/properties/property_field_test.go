@@ -1333,7 +1333,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		assert.Equal(t, "green", linkedOpts[1]["color"])
 	})
 
-	t.Run("cross-group linking is supported", func(t *testing.T) {
+	t.Run("cross-group linking is rejected", func(t *testing.T) {
 		groupA := model.NewId()
 		groupB := model.NewId()
 
@@ -1352,8 +1352,8 @@ func TestLinkedPropertyFields(t *testing.T) {
 			},
 		})
 
-		// Create a linked field in group B pointing to the template in group A
-		linked, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+		// Linking from group B to a template in group A must fail
+		_, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
 			GroupID:       groupB,
 			ObjectType:    model.PropertyFieldObjectTypeUser,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
@@ -1361,15 +1361,8 @@ func TestLinkedPropertyFields(t *testing.T) {
 			Type:          model.PropertyFieldTypeText,
 			LinkedFieldID: &source.ID,
 		})
-		require.NoError(t, err)
-		require.NotNil(t, linked.LinkedFieldID)
-		assert.Equal(t, source.ID, *linked.LinkedFieldID)
-		assert.Equal(t, source.Type, linked.Type)
-
-		// Verify options were copied across groups
-		sourceOpts := extractOptionIDs(source.Attrs[model.PropertyFieldAttributeOptions])
-		linkedOpts := extractOptionIDs(linked.Attrs[model.PropertyFieldAttributeOptions])
-		assert.Equal(t, sourceOpts, linkedOpts)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "cross_group")
 	})
 
 	t.Run("update template value is rejected at service layer", func(t *testing.T) {
