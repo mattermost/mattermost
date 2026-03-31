@@ -20,9 +20,10 @@ interface OperatorSelectorProps {
     currentOperator: string;
     disabled: boolean;
     onChange: (operator: string) => void;
+    attributeType?: string;
 }
 
-const OperatorSelectorMenu = ({currentOperator, disabled, onChange}: OperatorSelectorProps) => {
+const OperatorSelectorMenu = ({currentOperator, disabled, onChange, attributeType}: OperatorSelectorProps) => {
     const {formatMessage} = useIntl();
     const [filter, setFilter] = useState('');
 
@@ -43,10 +44,13 @@ const OperatorSelectorMenu = ({currentOperator, disabled, onChange}: OperatorSel
 
     const filteredOperators = useMemo(() => {
         return Object.values(OPERATOR_DESCRIPTORS).filter((desc) => {
+            if (attributeType === 'multiselect' && desc.id !== OperatorLabel.IN) {
+                return false;
+            }
             const label = formatMessage(desc.label);
             return label.toLowerCase().includes(filter.toLowerCase());
         });
-    }, [filter, formatMessage]);
+    }, [filter, formatMessage, attributeType]);
 
     return (
         <Menu.Container

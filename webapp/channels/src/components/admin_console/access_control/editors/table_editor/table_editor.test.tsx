@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {AccessControlVisualAST} from '@mattermost/types/access_control';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {FieldType, UserPropertyField} from '@mattermost/types/properties';
 
 import {parseExpression, findFirstAvailableAttributeFromList} from 'components/admin_console/access_control/editors/table_editor/table_editor';
 
@@ -165,12 +165,60 @@ describe('parseExpression', () => {
     });
 });
 
+describe('parseExpression with multiselect attributes', () => {
+    test('handles "in" operator with multiselect attribute type', () => {
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.attributes.skills',
+                    operator: 'in',
+                    value: ['JavaScript', 'Python'],
+                    value_type: 0,
+                    attribute_type: 'multiselect',
+                },
+            ],
+        };
+
+        expect(parseExpression(ast)).toEqual([
+            {
+                attribute: 'skills',
+                operator: 'in',
+                values: ['JavaScript', 'Python'],
+                attribute_type: 'multiselect',
+            },
+        ]);
+    });
+
+    test('handles multiselect attribute with single value', () => {
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.attributes.skills',
+                    operator: 'in',
+                    value: ['JavaScript'],
+                    value_type: 0,
+                    attribute_type: 'multiselect',
+                },
+            ],
+        };
+
+        expect(parseExpression(ast)).toEqual([
+            {
+                attribute: 'skills',
+                operator: 'in',
+                values: ['JavaScript'],
+                attribute_type: 'multiselect',
+            },
+        ]);
+    });
+});
+
 describe('findFirstAvailableAttributeFromList', () => {
-    const createMockAttribute = (name: string, attrs: Partial<UserPropertyField['attrs']> = {}): UserPropertyField => ({
+    const createMockAttribute = (name: string, attrs: Partial<UserPropertyField['attrs']> = {}, type: FieldType = 'text'): UserPropertyField => ({
         id: `id-${name}`,
         group_id: 'custom_profile_attributes',
         name,
-        type: 'text',
+        type,
         create_at: 0,
         update_at: 0,
         delete_at: 0,

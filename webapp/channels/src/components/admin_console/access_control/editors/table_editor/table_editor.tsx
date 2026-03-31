@@ -198,23 +198,18 @@ function TableEditor({
 
             if (!config) {
                 // Fallback for unknown operators, defaulting to 'in' logic
-                // This handles cases where row.operator might be an unexpected string.
-                const valuesStr = row.values.map((val: string) => `"${val}"`).join(', ');
-
-                // For multiselect, reverse the order since multiselect attributes can contain multiple values
                 if (attributeObj?.type === 'multiselect') {
-                    return `[${valuesStr}] in ${attributeExpr}`;
+                    return row.values.map((val: string) => `"${val}" in ${attributeExpr}`).join(' && ');
                 }
+                const valuesStr = row.values.map((val: string) => `"${val}"`).join(', ');
                 return `${attributeExpr} in [${valuesStr}]`;
             }
 
             if (config.type === 'list') { // Handles 'in'
-                const valuesStr = row.values.map((val: string) => `"${val}"`).join(', ');
-
-                // For multiselect, reverse the order since multiselect attributes can contain multiple values
                 if (attributeObj?.type === 'multiselect') {
-                    return `[${valuesStr}] ${config.celOp} ${attributeExpr}`;
+                    return row.values.map((val: string) => `"${val}" ${config.celOp} ${attributeExpr}`).join(' && ');
                 }
+                const valuesStr = row.values.map((val: string) => `"${val}"`).join(', ');
                 return `${attributeExpr} ${config.celOp} [${valuesStr}]`;
             }
 
@@ -258,10 +253,10 @@ function TableEditor({
 
         setRows((currentRows) => {
             const newRow = {
-                attribute: firstAvailableAttribute.name, // Default to the first available attribute
-                operator: OperatorLabel.IS, // Default operator
+                attribute: firstAvailableAttribute.name,
+                operator: firstAvailableAttribute.type === 'multiselect' ? OperatorLabel.IN : OperatorLabel.IS,
                 values: [],
-                attribute_type: userAttributes[0]?.type || '',
+                attribute_type: firstAvailableAttribute.type || '',
             };
             const newRows = [...currentRows, newRow];
             updateExpression(newRows); // Ensure expression is updated immediately
@@ -284,15 +279,22 @@ function TableEditor({
             const oldAttribute = newRows[index].attribute;
             newRows[index] = {...newRows[index], attribute};
 
-            // If attribute changes, we are resetting values.
             if (oldAttribute !== attribute) {
                 newRows[index].values = [];
-                newRows[index].operator = OperatorLabel.IS;
+
+                const oldAttributeObj = userAttributes.find((attr) => attr.name === oldAttribute);
+                const newAttributeObj = userAttributes.find((attr) => attr.name === attribute);
+                const wasMultiselect = oldAttributeObj?.type === 'multiselect';
+                const isMultiselect = newAttributeObj?.type === 'multiselect';
+
+                if (wasMultiselect !== isMultiselect) {
+                    newRows[index].operator = isMultiselect ? OperatorLabel.IN : OperatorLabel.IS;
+                }
             }
             updateExpression(newRows);
             return newRows;
         });
-    }, [updateExpression]);
+    }, [updateExpression, userAttributes]);
 
     const updateRowOperator = useCallback((index: number, newOperator: string) => {
         setRows((currentRows) => {
@@ -399,6 +401,7 @@ function TableEditor({
                                         currentOperator={row.operator}
                                         disabled={disabled}
                                         onChange={(operator) => updateRowOperator(index, operator)}
+                                        attributeType={userAttributes.find((attr) => attr.name === row.attribute)?.type}
                                     />
                                 </td>
                                 <td className='table-editor__cell'>
