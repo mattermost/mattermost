@@ -1678,7 +1678,7 @@ func (s SqlChannelStore) SaveMember(rctx request.CTX, member *model.ChannelMembe
 	return newMembers[0], nil
 }
 
-func (s SqlChannelStore) saveMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, error) {
+func (s SqlChannelStore) saveMultipleMembers(members []*model.ChannelMember) (_ []*model.ChannelMember, err error) {
 	newChannelMembers := map[string]int{}
 	users := map[string]bool{}
 	for _, member := range members {
@@ -1777,21 +1777,28 @@ func (s SqlChannelStore) saveMultipleMembers(members []*model.ChannelMember) ([]
 		defaultTeamRolesByChannel[defaultRoles.Id] = defaultRoles
 	}
 
-	query := s.getQueryBuilder().Insert("ChannelMembers").Columns(channelMemberSliceColumns()...)
-	for _, member := range members {
-		query = query.Values(channelMemberToSlice(member)...)
-	}
-
-	sql, args, err := query.ToSql()
+	transaction, err := s.GetMaster().Beginx()
 	if err != nil {
-		return nil, errors.Wrap(err, "channel_members_tosql")
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	chunks := chunkSlice(members, len(channelMemberSliceColumns()), s.SqlStore.getMaxInsertParams())
+	for _, chunk := range chunks {
+		query := s.getQueryBuilder().Insert("ChannelMembers").Columns(channelMemberSliceColumns()...)
+		for _, member := range chunk {
+			query = query.Values(channelMemberToSlice(member)...)
+		}
+		if _, execErr := transaction.ExecBuilder(query); execErr != nil {
+			if IsUniqueConstraintError(execErr, []string{"ChannelId", "channelmembers_pkey", "PRIMARY"}) {
+				return nil, store.NewErrConflict("ChannelMembers", execErr, "")
+			}
+			return nil, errors.Wrap(execErr, "channel_members_save")
+		}
 	}
 
-	if _, err := s.GetMaster().Exec(sql, args...); err != nil {
-		if IsUniqueConstraintError(err, []string{"ChannelId", "channelmembers_pkey", "PRIMARY"}) {
-			return nil, store.NewErrConflict("ChannelMembers", err, "")
-		}
-		return nil, errors.Wrap(err, "channel_members_save")
+	if err = transaction.Commit(); err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
 	}
 
 	newMembers := []*model.ChannelMember{}
