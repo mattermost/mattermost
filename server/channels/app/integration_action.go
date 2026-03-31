@@ -39,8 +39,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
-const PLUGIN_PATH_PREFIX = "plugins"
-
 func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError) {
 	// PostAction may result in the original post being updated. For the
 	// updated post, we need to unconditionally preserve the original
@@ -335,13 +333,9 @@ func (a *App) DoActionRequest(rctx request.CTX, rawURL string, body []byte) (*ht
 
 	// Allow access to plugin routes for action buttons
 	var httpClient *http.Client
-	isPluginReq, err := isPluginRequest(inURL, a.Config())
-	if err != nil {
-		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-	}
-
+	subpath, _ := utils.GetSubpathFromConfig(a.Config())
 	siteURL, _ := url.Parse(*a.Config().ServiceSettings.SiteURL)
-	if inURL.Hostname() == siteURL.Hostname() && isPluginReq {
+	if inURL.Hostname() == siteURL.Hostname() && strings.HasPrefix(path.Clean(inURL.Path), path.Join(subpath, "plugins")) {
 		req.Header.Set(model.HeaderAuth, "Bearer "+rctx.Session().Token)
 		httpClient = a.HTTPService().MakeClient(true)
 	} else {
@@ -358,17 +352,6 @@ func (a *App) DoActionRequest(rctx request.CTX, rawURL string, body []byte) (*ht
 	}
 
 	return resp, nil
-}
-
-func isPluginRequest(requestURL *url.URL, config *model.Config) (bool, error) {
-	subpath, err := utils.GetSubpathFromConfig(config)
-	if err != nil {
-		return false, err
-	}
-
-	x := strings.TrimPrefix(path.Clean(requestURL.Path), "/")
-	y := strings.TrimPrefix(path.Join(subpath, PLUGIN_PATH_PREFIX), "/")
-	return strings.HasPrefix(x, y), nil
 }
 
 type LocalResponseWriter struct {
@@ -409,12 +392,7 @@ func (ch *Channels) doPluginRequest(rctx request.CTX, method, rawURL string, val
 		return nil, model.NewAppError("doPluginRequest", "api.post.do_action.action_integration.app_error", nil, "err=Unable to find pluginId", http.StatusBadRequest)
 	}
 
-	isPluginReq, err := isPluginRequest(inURL, ch.cfgSvc.Config())
-	if err != nil {
-		return nil, model.NewAppError("doPluginRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-	}
-
-	if !isPluginReq {
+	if !strings.HasPrefix(path.Clean(inURL.Path), "plugins/") {
 		return nil, model.NewAppError("doPluginRequest", "api.post.do_action.action_integration.app_error", nil, "err=plugins not in path", http.StatusBadRequest)
 	}
 
