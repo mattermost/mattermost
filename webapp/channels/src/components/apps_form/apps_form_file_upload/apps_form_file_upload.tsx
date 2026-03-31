@@ -111,7 +111,10 @@ const AppsFormFileUpload: React.FC<Props> = ({
                     }
                 }
             }
-            return filtered.length !== prev.length ? filtered : prev;
+            if (filtered.length === prev.length) {
+                return prev;
+            }
+            return filtered;
         });
 
         // Hydrate new IDs not already present in state
@@ -139,9 +142,9 @@ const AppsFormFileUpload: React.FC<Props> = ({
                         });
                     } catch (err: unknown) {
                         // Only skip 403/404 (deleted/inaccessible); rethrow everything else
-                        const statusCode = err && typeof err === 'object' && 'status_code' in err
-                            ? (err as {status_code: number}).status_code
-                            : undefined;
+                        const statusCode = (err && typeof err === 'object' && 'status_code' in err) ?
+                            (err as {status_code: number}).status_code :
+                            undefined;
                         if (statusCode !== 403 && statusCode !== 404) {
                             throw err;
                         }
@@ -156,13 +159,14 @@ const AppsFormFileUpload: React.FC<Props> = ({
                 if (hydratedFiles.length > 0) {
                     setFiles((prev) => [...hydratedFiles, ...prev]);
                 }
+
                 // If some IDs were dropped (deleted/inaccessible), notify parent
                 // with the sanitized list so it stays in sync
                 if (hydratedFiles.length < newIds.length) {
                     const survivingIds = [
-                        ...filesRef.current
-                            .filter((f) => (f.status === 'uploaded' || f.status === 'hydrated') && f.fileId)
-                            .map((f) => f.fileId!),
+                        ...filesRef.current.
+                            filter((f) => (f.status === 'uploaded' || f.status === 'hydrated') && f.fileId).
+                            map((f) => f.fileId!),
                         ...hydratedFiles.map((f) => f.fileId!),
                     ];
                     onFileSelectedRef.current(survivingIds);
