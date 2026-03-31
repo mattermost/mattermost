@@ -14,18 +14,18 @@ import (
 )
 
 func TestService_AddTopicListener(t *testing.T) {
-	var count int32
+	var count atomic.Int32
 
 	l1 := func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp *Response) error {
-		atomic.AddInt32(&count, 1)
+		count.Add(1)
 		return nil
 	}
 	l2 := func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp *Response) error {
-		atomic.AddInt32(&count, 1)
+		count.Add(1)
 		return nil
 	}
 	l3 := func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp *Response) error {
-		atomic.AddInt32(&count, 1)
+		count.Add(1)
 		return nil
 	}
 
@@ -47,26 +47,26 @@ func TestService_AddTopicListener(t *testing.T) {
 	msg2 := model.RemoteClusterMsg{Topic: "different"}
 
 	service.ReceiveIncomingMsg(rc, msg1)
-	assert.Equal(t, int32(2), atomic.LoadInt32(&count))
+	assert.Equal(t, int32(2), count.Load())
 
 	service.ReceiveIncomingMsg(rc, msg2)
-	assert.Equal(t, int32(3), atomic.LoadInt32(&count))
+	assert.Equal(t, int32(3), count.Load())
 
 	service.RemoveTopicListener(l1id)
 	service.ReceiveIncomingMsg(rc, msg1)
-	assert.Equal(t, int32(4), atomic.LoadInt32(&count))
+	assert.Equal(t, int32(4), count.Load())
 
 	service.RemoveTopicListener(l2id)
 	service.ReceiveIncomingMsg(rc, msg1)
-	assert.Equal(t, int32(4), atomic.LoadInt32(&count))
+	assert.Equal(t, int32(4), count.Load())
 
 	service.ReceiveIncomingMsg(rc, msg2)
-	assert.Equal(t, int32(5), atomic.LoadInt32(&count))
+	assert.Equal(t, int32(5), count.Load())
 
 	service.RemoveTopicListener(l3id)
 	service.ReceiveIncomingMsg(rc, msg1)
 	service.ReceiveIncomingMsg(rc, msg2)
-	assert.Equal(t, int32(5), atomic.LoadInt32(&count))
+	assert.Equal(t, int32(5), count.Load())
 
 	listeners = service.getTopicListeners("test")
 	assert.Empty(t, listeners)
