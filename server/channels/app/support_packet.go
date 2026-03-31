@@ -173,6 +173,11 @@ func (a *App) getSupportPacketStats(rctx request.CTX) (*model.FileData, error) {
 		rErr = multierror.Append(errors.Wrap(err, "failed to get guest count"))
 	}
 
+	stats.SingleChannelGuests, err = a.Srv().Store().User().AnalyticsGetSingleChannelGuestCount()
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "failed to get single channel guest count"))
+	}
+
 	stats.BotAccounts, err = a.Srv().Store().User().Count(model.UserCountOptions{IncludeBotAccounts: true, ExcludeRegularUsers: true})
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "failed to get bot acount count"))
