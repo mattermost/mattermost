@@ -195,6 +195,18 @@ func TestMetrics(t *testing.T) {
 
 		_ = th.CreateUserOrGuest(t, false)
 
+		// Shut down the test helper before asserting mock expectations.
+		// The underlying sql.DB connection pool spawns a background
+		// connectionCleaner goroutine that periodically locks the DB's
+		// internal mutex via atomic.CompareAndSwapInt32. When testify's
+		// AssertExpectations calls reflect to diff the recorded *sql.DB
+		// call arguments, it reads those same internal fields without
+		// synchronization. Under Go 1.25's stricter race detector this
+		// is flagged as a DATA RACE. Shutting down first stops all
+		// background goroutines (store, metrics server, connection
+		// cleaner) so the reflect-based comparison runs without a
+		// concurrent writer.
+		th.Shutdown(t)
 		mockMetricsImpl.AssertExpectations(t)
 	})
 }
