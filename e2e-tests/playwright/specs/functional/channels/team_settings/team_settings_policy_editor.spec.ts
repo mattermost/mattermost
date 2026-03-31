@@ -88,7 +88,6 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await page.locator('.TeamPolicyConfirmationModal').waitFor();
         await page.getByRole('button', {name: /Apply policy/}).click();
 
-
         // * Auto-navigated back to list, policy name visible
         await expect(teamSettings.container.getByText(policyName)).toBeVisible();
 
@@ -118,7 +117,6 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         // # Click policy row
         await teamSettings.container.getByText(policy.name).click();
 
-
         // * Editor shown with pre-populated name
         await expect(teamSettings.container.locator('#input_policyName')).toHaveValue(policy.name);
 
@@ -129,7 +127,6 @@ test.describe('Team Settings Modal - Policy Editor', () => {
 
         // # Save via SaveChangesPanel (name-only change skips confirmation modal)
         await teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
-
 
         // * Auto-navigated back to list, updated name visible
         await expect(teamSettings.container.getByText(newName)).toBeVisible();
@@ -161,7 +158,6 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const menuButton = teamSettings.container.locator(`button[id="policy-menu-${policy.id}"]`);
         await menuButton.click();
         await page.getByRole('menuitem', {name: 'Edit'}).click();
-
 
         // * Editor shown with pre-populated name
         await expect(teamSettings.container.locator('#input_policyName')).toHaveValue(policy.name);
@@ -251,7 +247,6 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         // # Open editor
         await teamSettings.container.getByText(policy.name).click();
 
-
         // # Remove the channel to enable delete (click Remove link in channel list)
         await teamSettings.container.getByText('Remove').first().click();
 
@@ -264,7 +259,6 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         // # Confirm in delete confirmation modal
         await page.locator('.TeamPolicyEditor__delete-modal').waitFor();
         await page.locator('.TeamPolicyEditor__delete-modal').getByRole('button', {name: 'Delete'}).click();
-
 
         // * Back to list, policy removed
         await expect(teamSettings.container.getByText(policy.name)).not.toBeVisible();
@@ -359,7 +353,6 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         // # Open editor
         await teamSettings.container.getByText(policy.name).click();
 
-
         // * Delete button is disabled (policy has channels)
         const deleteBtn = teamSettings.container
             .locator('.TeamPolicyEditor__section--delete button')
@@ -397,7 +390,6 @@ test.describe('Team Settings Modal - Policy Editor', () => {
 
         // # Save
         await teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
-
 
         // * Success message visible on list view
         await expect(teamSettings.container.locator('.SaveChangesPanel.saved')).toBeVisible();
@@ -480,13 +472,11 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
 
-
         // * Policy is visible
         await expect(teamSettings.container.getByText(policyName)).toBeVisible({timeout: 10000});
 
         // # Open editor by clicking policy row
         await teamSettings.container.getByText(policyName).click();
-
 
         // # Remove the channel to enable delete
         const removeLink = teamSettings.container.getByText('Remove').first();
@@ -504,7 +494,6 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const deleteModal = page.locator('.TeamPolicyEditor__delete-modal');
         await expect(deleteModal).toBeVisible({timeout: 10000});
         await deleteModal.getByRole('button', {name: 'Delete'}).click();
-
 
         // * Back to list, policy is removed
         await expect(teamSettings.container.getByText(policyName)).not.toBeVisible();
