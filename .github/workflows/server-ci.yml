@@ -120,21 +120,6 @@ jobs:
         run: make setup-go-work
       - name: Run mattermost-vet-api
         run: make vet-api
-  check-migrations:
-    name: Check migration files
-    needs: go
-    runs-on: ubuntu-22.04
-    container: mattermost/mattermost-build-server:${{ needs.go.outputs.version }}
-    defaults:
-      run:
-        working-directory: server
-    steps:
-      - name: Checkout mattermost project
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Extract migrations files
-        run: make migrations-extract
-      - name: Check migration files
-        run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the migrations using make migrations-extract"; exit 1; fi
   check-email-templates:
     name: Generate email templates
     needs: go

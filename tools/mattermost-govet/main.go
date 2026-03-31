@@ -24,6 +24,7 @@ import (
 	"github.com/mattermost/mattermost/tools/mattermost-govet/requestCtxNaming"
 	"github.com/mattermost/mattermost/tools/mattermost-govet/structuredLogging"
 	"github.com/mattermost/mattermost/tools/mattermost-govet/tFatal"
+	"github.com/mattermost/mattermost/tools/mattermost-govet/uniqueMigrationNumber"
 	"github.com/mattermost/mattermost/tools/mattermost-govet/wraperrors"
 	"golang.org/x/tools/go/analysis/unitchecker"
 )
@@ -53,5 +54,6 @@ func main() {
 		noSelectStar.Analyzer,
 		requestCtxNaming.Analyzer,
 		concurrentIndex.Analyzer,
+		uniqueMigrationNumber.Analyzer,
 	)
 }
