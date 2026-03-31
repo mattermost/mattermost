@@ -356,6 +356,10 @@ func (c *Client4) systemRoute() clientRoute {
 	return newClientRoute("system")
 }
 
+func (c *Client4) aiBridgeTestHelperRoute() clientRoute {
+	return c.systemRoute().Join("e2e", "ai_bridge")
+}
+
 func (c *Client4) cloudRoute() clientRoute {
 	return newClientRoute("cloud")
 }
@@ -7575,6 +7579,33 @@ func (c *Client4) GetAppliedSchemaMigrations(ctx context.Context) ([]AppliedMigr
 	}
 	defer closeBody(r)
 	return DecodeJSONFromResponse[[]AppliedMigration](r)
+}
+
+func (c *Client4) SetAIBridgeTestHelper(ctx context.Context, config *AIBridgeTestHelperConfig) (*AIBridgeTestHelperState, *Response, error) {
+	r, err := c.doAPIPutJSON(ctx, c.aiBridgeTestHelperRoute(), config)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*AIBridgeTestHelperState](r)
+}
+
+func (c *Client4) GetAIBridgeTestHelper(ctx context.Context) (*AIBridgeTestHelperState, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.aiBridgeTestHelperRoute(), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*AIBridgeTestHelperState](r)
+}
+
+func (c *Client4) DeleteAIBridgeTestHelper(ctx context.Context) (*Response, error) {
+	r, err := c.doAPIDelete(ctx, c.aiBridgeTestHelperRoute())
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
 }
 
 // Usage Section

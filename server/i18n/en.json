@@ -212,6 +212,10 @@
     "translation": "Unable to upload file. File is too large."
   },
   {
+    "id": "api.ai_bridge_test_helper.disabled.app_error",
+    "translation": "Bridge test helper is disabled."
+  },
+  {
     "id": "api.back_to_app",
     "translation": "Back to {{.SiteName}}"
   },
@@ -5109,6 +5113,10 @@
   {
     "id": "app.ai.summarize.parse_failed",
     "translation": "Failed to parse AI summarization response."
+  },
+  {
+    "id": "app.ai_bridge_test_helper.invalid_config",
+    "translation": "Invalid configuration for AI bridge test helper."
   },
   {
     "id": "app.analytics.getanalytics.internal_error",
