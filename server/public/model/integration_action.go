@@ -702,7 +702,7 @@ func (e *DialogElement) IsValid() error {
 		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementFileMaxLength))
 		if e.Default != "" {
 			ids := strings.Split(e.Default, ",")
-			validIds := make([]string, 0, len(ids))
+			parsedIds := make([]string, 0, len(ids))
 			for _, id := range ids {
 				id = strings.TrimSpace(id)
 				if id == "" {
@@ -711,10 +711,10 @@ func (e *DialogElement) IsValid() error {
 				if !IsValidId(id) {
 					multiErr = multierror.Append(multiErr, errors.Errorf("default file ID %q is not a valid ID", id))
 				}
-				validIds = append(validIds, id)
+				parsedIds = append(parsedIds, id)
 			}
-			if len(validIds) > MaxDialogFileIds {
-				multiErr = multierror.Append(multiErr, errors.Errorf("default may not contain more than %d file IDs, got %d", MaxDialogFileIds, len(validIds)))
+			if len(parsedIds) > MaxDialogFileIds {
+				multiErr = multierror.Append(multiErr, errors.Errorf("default may not contain more than %d file IDs, got %d", MaxDialogFileIds, len(parsedIds)))
 			}
 		}
 		if len(e.Options) > 0 {

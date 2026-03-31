@@ -84,6 +84,11 @@ const DialogFileUpload: React.FC<Props> = ({
     useEffect(() => {
         return () => {
             isMountedRef.current = false;
+            for (const xhr of uploadRequestsRef.current.values()) {
+                xhr.abort();
+            }
+            uploadRequestsRef.current.clear();
+            fileObjectsRef.current.clear();
         };
     }, []);
 
@@ -163,18 +168,30 @@ const DialogFileUpload: React.FC<Props> = ({
                 // If some IDs were dropped (deleted/inaccessible), notify parent
                 // with the sanitized list so it stays in sync
                 if (hydratedFiles.length < newIds.length) {
-                    const survivingIds = [
-                        ...filesRef.current.
-                            filter((f) => (f.status === 'uploaded' || f.status === 'hydrated') && f.fileId).
+                    const hydratedIds = new Set(hydratedFiles.map((f) => f.fileId!));
+                    const existingIds = new Set(
+                        filesRef.current.
+                            filter((f) =>
+                                (f.status === 'uploaded' || f.status === 'hydrated') &&
+                                f.fileId &&
+                                valueSet.has(f.fileId),
+                            ).
                             map((f) => f.fileId!),
-                        ...hydratedFiles.map((f) => f.fileId!),
-                    ];
+                    );
+                    const survivingIds = (value ?? []).filter((fileId) =>
+                        hydratedIds.has(fileId) || existingIds.has(fileId),
+                    );
                     onFileSelectedRef.current(survivingIds);
                 }
             };
             hydrate().catch((err) => {
                 if (!cancelled) {
-                    dispatch(logError(typeof err === 'string' ? {message: err} as ServerError : err));
+                    const serverErr = typeof err === 'string' ? {message: err} as ServerError : err;
+                    dispatch(logError(serverErr));
+                    setServerError(
+                        serverErr.message ??
+                        formatMessage({id: 'dialog_file_upload.hydration_failed', defaultMessage: 'Failed to load file'}),
+                    );
                 }
             });
         }
@@ -389,7 +406,7 @@ const DialogFileUpload: React.FC<Props> = ({
                             type='file'
                             accept={fileType}
                             onChange={handleFileInput}
-                            disabled={disabled}
+                            disabled={disabled || isUploading}
                             multiple={allowMultiple}
                         />
                     </div>
