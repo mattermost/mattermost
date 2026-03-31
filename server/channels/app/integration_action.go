@@ -387,12 +387,12 @@ func (ch *Channels) doPluginRequest(rctx request.CTX, method, rawURL string, val
 	if err != nil {
 		return nil, model.NewAppError("doPluginRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
-	result := strings.Split(inURL.Path, "/")
+	result := strings.Split(path.Clean(inURL.Path), "/")
 	if len(result) < 2 {
 		return nil, model.NewAppError("doPluginRequest", "api.post.do_action.action_integration.app_error", nil, "err=Unable to find pluginId", http.StatusBadRequest)
 	}
 
-	if !strings.HasPrefix(path.Clean(inURL.Path), "plugins/") {
+	if result[0] != "plugins" {
 		return nil, model.NewAppError("doPluginRequest", "api.post.do_action.action_integration.app_error", nil, "err=plugins not in path", http.StatusBadRequest)
 	}
 
