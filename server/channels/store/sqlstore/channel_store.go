@@ -1678,7 +1678,7 @@ func (s SqlChannelStore) SaveMember(rctx request.CTX, member *model.ChannelMembe
 	return newMembers[0], nil
 }
 
-func (s SqlChannelStore) saveMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, error) {
+func (s SqlChannelStore) saveMultipleMembers(members []*model.ChannelMember) (_ []*model.ChannelMember, err error) {
 	newChannelMembers := map[string]int{}
 	users := map[string]bool{}
 	for _, member := range members {
@@ -1777,21 +1777,28 @@ func (s SqlChannelStore) saveMultipleMembers(members []*model.ChannelMember) ([]
 		defaultTeamRolesByChannel[defaultRoles.Id] = defaultRoles
 	}
 
-	query := s.getQueryBuilder().Insert("ChannelMembers").Columns(channelMemberSliceColumns()...)
-	for _, member := range members {
-		query = query.Values(channelMemberToSlice(member)...)
-	}
-
-	sql, args, err := query.ToSql()
+	transaction, err := s.GetMaster().Beginx()
 	if err != nil {
-		return nil, errors.Wrap(err, "channel_members_tosql")
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	chunks := chunkSlice(members, len(channelMemberSliceColumns()), s.SqlStore.getMaxInsertParams())
+	for _, chunk := range chunks {
+		query := s.getQueryBuilder().Insert("ChannelMembers").Columns(channelMemberSliceColumns()...)
+		for _, member := range chunk {
+			query = query.Values(channelMemberToSlice(member)...)
+		}
+		if _, execErr := transaction.ExecBuilder(query); execErr != nil {
+			if IsUniqueConstraintError(execErr, []string{"ChannelId", "channelmembers_pkey", "PRIMARY"}) {
+				return nil, store.NewErrConflict("ChannelMembers", execErr, "")
+			}
+			return nil, errors.Wrap(execErr, "channel_members_save")
+		}
 	}
 
-	if _, err := s.GetMaster().Exec(sql, args...); err != nil {
-		if IsUniqueConstraintError(err, []string{"ChannelId", "channelmembers_pkey", "PRIMARY"}) {
-			return nil, store.NewErrConflict("ChannelMembers", err, "")
-		}
-		return nil, errors.Wrap(err, "channel_members_save")
+	if err = transaction.Commit(); err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
 	}
 
 	newMembers := []*model.ChannelMember{}
@@ -3036,9 +3043,7 @@ func (s SqlChannelStore) Autocomplete(rctx request.CTX, userID, term string, inc
 			sq.Expr("c.TeamId = t.id"),
 			sq.Expr("t.id = tm.TeamId"),
 			sq.Eq{"tm.UserId": userID},
-		}).
-		OrderBy("c.DisplayName").
-		Limit(model.ChannelSearchDefaultLimit)
+		})
 
 	// Always filter out soft-deleted team memberships - users removed from
 	// a team should not see channels from that team regardless of includeDeleted
@@ -3069,6 +3074,10 @@ func (s SqlChannelStore) Autocomplete(rctx request.CTX, userID, term string, inc
 		query = query.Where(searchClause)
 	}
 
+	query = orderByDisplayNameMatch(query, term)
+
+	query = query.Limit(model.ChannelSearchDefaultLimit)
+
 	sql, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "Autocomplete_Tosql")
@@ -3086,7 +3095,6 @@ func (s SqlChannelStore) AutocompleteInTeam(rctx request.CTX, teamID, userID, te
 	query := s.getQueryBuilder().Select(channelSliceColumns(true, "c")...).
 		From("Channels c").
 		Where(sq.Eq{"c.TeamId": teamID}).
-		OrderBy("c.DisplayName").
 		Limit(model.ChannelSearchDefaultLimit)
 
 	if !includeDeleted {
@@ -3113,6 +3121,8 @@ func (s SqlChannelStore) AutocompleteInTeam(rctx request.CTX, teamID, userID, te
 	if searchClause != nil {
 		query = query.Where(searchClause)
 	}
+
+	query = orderByDisplayNameMatch(query, term)
 
 	return s.performSearch(query, term)
 }
@@ -3581,6 +3591,18 @@ func (s SqlChannelStore) searchClause(term string) sq.Sqlizer {
 		likeClause,
 		s.buildFulltextClause(term, "c.Name", "c.DisplayName", "c.Purpose"),
 	}
+}
+
+// orderByDisplayNameMatch adds an ORDER BY clause that prioritizes channels whose DisplayName matches the search term,
+// then sorts alphabetically by DisplayName.
+func orderByDisplayNameMatch(query sq.SelectBuilder, term string) sq.SelectBuilder {
+	sanitizedTerm := sanitizeSearchTerm(term, "*")
+	if sanitizedTerm == "" {
+		return query.OrderBy("c.DisplayName")
+	}
+
+	likeTerm := wildcardSearchTerm(sanitizedTerm)
+	return query.OrderByClause("CASE WHEN LOWER(c.DisplayName) LIKE LOWER(?) ESCAPE '*' THEN 0 ELSE 1 END, c.DisplayName", likeTerm)
 }
 
 func (s SqlChannelStore) searchGroupChannelsQuery(userId, term string) sq.SelectBuilder {

@@ -38,12 +38,13 @@ import {getIsMobileView} from 'selectors/views/browser';
 
 import {isArchivedChannel} from 'utils/channel_utils';
 import {Locations, Preferences, RHSStates} from 'utils/constants';
+import {isPopoutWindow} from 'utils/popouts/popout_windows';
 import {areConsecutivePostsBySameUser, canDeletePost, getPostTranslation, shouldShowActionsMenu, shouldShowDotMenu} from 'utils/post_utils';
 import {getDisplayNameByUser} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
-import {removePostCloseRHSDeleteDraft} from './actions';
+import {highlightPostInChannelPopout, removePostCloseRHSDeleteDraft} from './actions';
 import PostComponent from './post_component';
 
 type OwnProps = {
@@ -168,7 +169,8 @@ function makeMapStateToProps() {
         }
 
         const isPostBurnOnRead = isBurnOnReadPost(state, post.id);
-        const canReply = !isPostBurnOnRead && (isDMorGM || (channel.team_id === currentTeam?.id));
+        const isSearchPopout = isPopoutWindow() && ownProps.location === Locations.SEARCH;
+        const canReply = !isPostBurnOnRead && (isDMorGM || isSearchPopout || (channel.team_id === currentTeam?.id));
         const directTeammate = getDirectTeammate(state, channel.id);
 
         const previewCollapsed = get(
@@ -252,6 +254,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
         actions: bindActionCreators({
             markPostAsUnread,
             emitShortcutReactToLastPostFrom,
+            highlightPostInChannelPopout,
             selectPost,
             selectPostFromRightHandSideSearch,
             setRhsExpanded,

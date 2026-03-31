@@ -94,6 +94,10 @@ type FeatureFlags struct {
 	// FEATURE_FLAG_REMOVAL: EnableAIRecaps - Remove this when GA is released
 	EnableAIRecaps bool
 
+	// FEATURE_FLAG_REMOVAL: IntegratedBoards - Remove this when GA is released
+	// Enable the Integrated Boards feature within Mattermost channels
+	IntegratedBoards bool
+
 	// Enable LIKE-based CJK (Chinese, Japanese, Korean) search for PostgreSQL
 	CJKSearch bool
 }
@@ -139,6 +143,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableAIPluginBridge = false
 
 	f.EnableAIRecaps = false
+
+	f.IntegratedBoards = false
 
 	f.CJKSearch = false
 }
