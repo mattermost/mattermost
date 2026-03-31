@@ -837,12 +837,21 @@ func TestReplicaLagQuery(t *testing.T) {
 			err = store.migrate(migrationsDirectionUp, false, true)
 			require.NoError(t, err)
 
-			defer store.Close()
-
 			err = store.ReplicaLagAbs()
 			require.NoError(t, err)
 			err = store.ReplicaLagTime()
 			require.NoError(t, err)
+
+			// Close the store before asserting mock expectations. The sql.DB
+			// connection pool spawns a background connectionCleaner goroutine
+			// that mutates internal DB fields (e.g. the mutex in sql.DB via
+			// atomic.CompareAndSwapInt32). When testify's AssertExpectations
+			// uses reflect to diff the recorded *sql.DB call arguments, it
+			// reads those same fields without synchronization, triggering a
+			// DATA RACE under Go 1.25's stricter race detector. Closing the
+			// store first shuts down all background goroutines (including the
+			// connection cleaner), eliminating the concurrent writer.
+			store.Close()
 			mockMetrics.AssertExpectations(t)
 		})
 	}
@@ -887,10 +896,17 @@ func TestInvalidReplicaLagDataSource(t *testing.T) {
 			}
 
 			require.NoError(t, store.initConnection())
-			defer store.Close()
 
 			// Verify no replica lag handles were added despite having ReplicaLagSettings
 			assert.Equal(t, 0, len(store.replicaLagHandles))
+
+			// Close the store before the test ends. Same rationale as
+			// TestReplicaLagQuery: the sql.DB connection pool's background
+			// connectionCleaner goroutine races with testify's reflect-based
+			// argument diffing in AssertExpectations (and with the race
+			// detector's tracking of goroutine lifetimes). Explicit close
+			// ensures all background goroutines are stopped before cleanup.
+			store.Close()
 		})
 	}
 }
