@@ -217,22 +217,15 @@ jobs:
             const marker = '<!-- docs-impact-analysis -->';
             const prNumber = context.payload.pull_request.number;
             const analysisFile = `${process.env.RUNNER_TEMP}/docs-impact-result.md`;
-            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
 
             let body = '';
             if (fs.existsSync(analysisFile)) {
               body = fs.readFileSync(analysisFile, 'utf8').trim();
             }
 
-            if (!body) {
-              body = `### Documentation Impact Analysis\n\n` +
-                `**Overall Assessment:** Analysis unavailable\n\n` +
-                `The automated documentation impact analysis could not be completed. ` +
-                `Please review this PR manually for documentation impact.\n\n` +
-                `[View workflow run](${runUrl})`;
-            }
-
-            const commentBody = `${marker}\n${body}`;
+            const needsDocs =
+              body.includes('Documentation Updates Recommended') ||
+              body.includes('Documentation Updates Required');
 
             const comments = await github.paginate(github.rest.issues.listComments, {
               owner: context.repo.owner,
@@ -243,32 +236,38 @@ jobs:
               c.user.login === 'github-actions[bot]' && c.body.includes(marker)
             );
 
-            if (existing) {
-              await github.rest.issues.updateComment({
+            if (needsDocs && body) {
+              const commentBody = `${marker}\n<details>\n<summary>Documentation Impact Analysis — updates needed</summary>\n\n${body}\n</details>`;
+              if (existing) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: existing.id,
+                  body: commentBody,
+                });
+              } else {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNumber,
+                  body: commentBody,
+                });
+              }
+            } else if (existing) {
+              await github.rest.issues.deleteComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 comment_id: existing.id,
-                body: commentBody,
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: prNumber,
-                body: commentBody,
               });
             }
 
-            const needsDocs =
-              body.includes('Documentation Updates Recommended') ||
-              body.includes('Documentation Updates Required');
             const label = 'Docs/Needed';
-            const { data: labels } = await github.rest.issues.listLabelsOnIssue({
+            const { data: issueLabels } = await github.rest.issues.listLabelsOnIssue({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: prNumber,
             });
-            const hasLabel = labels.some(l => l.name === label);
+            const hasLabel = issueLabels.some(l => l.name === label);
 
             if (needsDocs && !hasLabel) {
               await github.rest.issues.addLabels({
@@ -276,5 +275,12 @@ jobs:
                 repo: context.repo.repo,
                 issue_number: prNumber,
                 labels: [label],
+              });
+            } else if (!needsDocs && hasLabel) {
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                name: label,
               });
             }
