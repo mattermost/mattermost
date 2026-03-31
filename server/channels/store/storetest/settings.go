@@ -93,8 +93,14 @@ func databaseSettings(driver, dataSource string) *model.SqlSettings {
 		MigrationsStatementTimeoutSeconds: new(int),
 	}
 	*settings.MaxIdleConns = 10
-	*settings.ConnMaxLifetimeMilliseconds = 3600000
-	*settings.ConnMaxIdleTimeMilliseconds = 300000
+	// Disable connection pool cleanup goroutines in tests. The database/sql
+	// connectionCleaner goroutine writes to internal *sql.DB fields (mutex via
+	// atomic ops) which races with testify mock's reflect-based argument
+	// diffing (fmt.Sprintf("%v", *sql.DB) in mock.Arguments.Diff). Setting
+	// both to 0 prevents the cleaner goroutine from starting at all.
+	// See: https://github.com/golang/go/blob/go1.25/src/database/sql/sql.go#L1074
+	*settings.ConnMaxLifetimeMilliseconds = 0
+	*settings.ConnMaxIdleTimeMilliseconds = 0
 	*settings.MaxOpenConns = 100
 	*settings.QueryTimeout = 60
 	*settings.MigrationsStatementTimeoutSeconds = 60
