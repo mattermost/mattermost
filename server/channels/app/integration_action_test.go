@@ -1892,7 +1892,9 @@ func TestSubmitInteractiveDialogFileValidation(t *testing.T) {
 			uniqueIds[i] = fi.Id
 		}
 		// Add a duplicate so raw count is MaxDialogFileIds+1
-		ids := append(uniqueIds, uniqueIds[0])
+		ids := make([]string, 0, len(uniqueIds)+1)
+		ids = append(ids, uniqueIds...)
+		ids = append(ids, uniqueIds[0])
 
 		submit := baseSubmit
 		submit.FileIds = ids
