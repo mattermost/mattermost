@@ -1293,6 +1293,19 @@ func (a *App) getRestoreManageOAuthPermissionMigration() (permissionsMap, error)
 	}, nil
 }
 
+func (a *App) getAddCreateAgentPermissionMigration() (permissionsMap, error) {
+	return permissionsMap{
+		permissionTransformation{
+			On:  isExactRole(model.SystemAdminRoleId),
+			Add: []string{model.PermissionCreateAgent.Id},
+		},
+		permissionTransformation{
+			On:  isExactRole(model.SystemUserRoleId),
+			Add: []string{model.PermissionCreateAgent.Id},
+		},
+	}, nil
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
 	return a.Srv().doPermissionsMigrations()
@@ -1353,6 +1366,7 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationKeyAddSharedChannelManagerPermissions, Migration: a.getAddSharedChannelManagerPermissionsMigration},
 		{Key: model.MigrationKeyAddSecureConnectionManagerPermissions, Migration: a.getAddSecureConnectionManagerPermissionsMigration},
 		{Key: model.MigrationKeyRestoreManageOAuthPermission, Migration: a.getRestoreManageOAuthPermissionMigration},
+		{Key: model.MigrationKeyAddCreateAgentPermission, Migration: a.getAddCreateAgentPermissionMigration},
 	}
 
 	roles, err := s.Store().Role().GetAll()

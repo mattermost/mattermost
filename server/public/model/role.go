@@ -1115,6 +1115,7 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionDeleteCustomGroup.Id,
 			PermissionRestoreCustomGroup.Id,
 			PermissionManageCustomGroupMembers.Id,
+			PermissionCreateAgent.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,
