@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 import type {ComponentProps} from 'react';
 import type {RouteComponentProps} from 'react-router-dom';
@@ -9,6 +8,8 @@ import type {RouteComponentProps} from 'react-router-dom';
 import type {Scheme} from '@mattermost/types/schemes';
 
 import PermissionSchemesSettings from 'components/admin_console/permission_schemes_settings/permission_schemes_settings';
+
+import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
 
 describe('components/admin_console/permission_schemes_settings/permission_schemes_settings', () => {
     const defaultProps: ComponentProps<typeof PermissionSchemesSettings> = {
@@ -20,8 +21,8 @@ describe('components/admin_console/permission_schemes_settings/permission_scheme
         jobsAreEnabled: true,
         clusterIsEnabled: false,
         actions: {
-            loadSchemes: jest.fn(() => Promise.resolve({})),
-            loadSchemeTeams: jest.fn(),
+            loadSchemes: jest.fn(() => Promise.resolve({data: [], error: {}})),
+            loadSchemeTeams: jest.fn(() => Promise.resolve({data: []})),
         },
         license: {
             CustomPermissionsSchemes: 'true',
@@ -31,56 +32,91 @@ describe('components/admin_console/permission_schemes_settings/permission_scheme
     };
 
     test('should match snapshot loading', () => {
-        const wrapper = shallow(
-            <PermissionSchemesSettings {...defaultProps}/>,
+        // loadSchemes returns a pending promise so component stays in loading state
+        const loadSchemes = jest.fn(() => new Promise<any>(() => {}));
+        const {container} = renderWithContext(
+            <PermissionSchemesSettings
+                {...defaultProps}
+                actions={{...defaultProps.actions, loadSchemes}}
+            />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot without schemes', () => {
-        const wrapper = shallow(
+    test('should match snapshot without schemes', async () => {
+        const loadSchemes = jest.fn(() => Promise.resolve({data: [], error: {}}));
+        const {container} = renderWithContext(
             <PermissionSchemesSettings
                 {...defaultProps}
                 schemes={{}}
+                actions={{...defaultProps.actions, loadSchemes}}
             />,
         );
-        wrapper.setState({loading: false, phase2MigrationIsComplete: true});
-        expect(wrapper).toMatchSnapshot();
+        await waitFor(() => {
+            expect(screen.getByText('Permission Schemes')).toBeInTheDocument();
+        });
+        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with schemes', () => {
-        const wrapper = shallow(
-            <PermissionSchemesSettings {...defaultProps}/>,
+    test('should match snapshot with schemes', async () => {
+        const loadSchemes = jest.fn(() => Promise.resolve({data: [], error: {}}));
+        const {container} = renderWithContext(
+            <PermissionSchemesSettings
+                {...defaultProps}
+                actions={{...defaultProps.actions, loadSchemes}}
+            />,
         );
-        wrapper.setState({loading: false, phase2MigrationIsComplete: true});
-        expect(wrapper).toMatchSnapshot();
+        await waitFor(() => {
+            expect(screen.getByText('Permission Schemes')).toBeInTheDocument();
+        });
+        expect(container).toMatchSnapshot();
     });
 
-    test('should show migration in-progress view', () => {
-        const wrapper = shallow(
-            <PermissionSchemesSettings {...defaultProps}/>,
+    test('should show migration in-progress view', async () => {
+        const loadSchemes = jest.fn(() =>
+            Promise.resolve({data: [], error: {status_code: 501}}),
         );
-        wrapper.setState({loading: false, phase2MigrationIsComplete: false});
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(
+            <PermissionSchemesSettings
+                {...defaultProps}
+                actions={{...defaultProps.actions, loadSchemes}}
+            />,
+        );
+        await waitFor(() => {
+            expect(screen.getByText('Permission Schemes')).toBeInTheDocument();
+        });
+        expect(container).toMatchSnapshot();
     });
 
-    test('should show migration on hold view', () => {
-        const testProps = {...defaultProps};
-        testProps.jobsAreEnabled = false;
-        const wrapper = shallow(
-            <PermissionSchemesSettings {...testProps}/>,
+    test('should show migration on hold view', async () => {
+        const loadSchemes = jest.fn(() =>
+            Promise.resolve({data: [], error: {status_code: 501}}),
         );
-        wrapper.setState({loading: false, phase2MigrationIsComplete: false});
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(
+            <PermissionSchemesSettings
+                {...defaultProps}
+                jobsAreEnabled={false}
+                actions={{...defaultProps.actions, loadSchemes}}
+            />,
+        );
+        await waitFor(() => {
+            expect(screen.getByText('Permission Schemes')).toBeInTheDocument();
+        });
+        expect(container).toMatchSnapshot();
     });
 
-    test('should show normal view (jobs disabled after migration)', () => {
-        const testProps = {...defaultProps};
-        testProps.jobsAreEnabled = false;
-        const wrapper = shallow(
-            <PermissionSchemesSettings {...testProps}/>,
+    test('should show normal view (jobs disabled after migration)', async () => {
+        const loadSchemes = jest.fn(() => Promise.resolve({data: [], error: {}}));
+        const {container} = renderWithContext(
+            <PermissionSchemesSettings
+                {...defaultProps}
+                jobsAreEnabled={false}
+                actions={{...defaultProps.actions, loadSchemes}}
+            />,
         );
-        wrapper.setState({loading: false, phase2MigrationIsComplete: true});
-        expect(wrapper).toMatchSnapshot();
+        await waitFor(() => {
+            expect(screen.getByText('Permission Schemes')).toBeInTheDocument();
+        });
+        expect(container).toMatchSnapshot();
     });
 });

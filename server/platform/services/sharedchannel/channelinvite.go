@@ -165,7 +165,6 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 		}
 
 		curTime := model.GetMillis()
-		var sharedChannelRemote *model.SharedChannelRemote
 		if existingScr != nil {
 			if existingScr.DeleteAt == 0 && existingScr.IsInviteConfirmed {
 				// the shared channel remote exists and is not
@@ -185,7 +184,6 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 				scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error confirming channel invite for %s: %v", rc.DisplayName, sErr))
 				return
 			}
-			sharedChannelRemote = existingScr
 		} else {
 			// the shared channel remote doesn't exists, so we create it
 			scr := &model.SharedChannelRemote{
@@ -202,20 +200,13 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 				scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error confirming channel invite for %s: %v", rc.DisplayName, err))
 				return
 			}
-			sharedChannelRemote = scr
 		}
 
 		scs.NotifyChannelChanged(sc.ChannelId)
 		scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("`%s` has been added to channel.", rc.DisplayName))
 
-		// Sync all channel members to the remote now that the remote entry exists
-		if syncErr := scs.SyncAllChannelMembers(sc.ChannelId, rc.RemoteId, sharedChannelRemote); syncErr != nil {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to sync channel members after invite confirmation",
-				mlog.String("channel_id", sc.ChannelId),
-				mlog.String("remote_id", rc.RemoteId),
-				mlog.Err(syncErr),
-			)
-		}
+		// Trigger membership sync via the normal sync pipeline (reads from ChannelMemberHistory)
+		scs.NotifyMembershipChanged(sc.ChannelId, "")
 	}
 
 	if rc.IsPlugin() {
@@ -356,14 +347,8 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 			return fmt.Errorf("cannot restore deleted shared channel remote (channel_id=%s): %w", invite.ChannelId, err)
 		}
 
-		// Sync local channel members to the remote after restoring the shared channel
-		if syncErr := scs.SyncAllChannelMembers(channel.Id, rc.RemoteId, existingScr); syncErr != nil {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to sync local channel members after restoring shared channel",
-				mlog.String("channel_id", channel.Id),
-				mlog.String("remote_id", rc.RemoteId),
-				mlog.Err(syncErr),
-			)
-		}
+		// Trigger membership sync via the normal sync pipeline (reads from ChannelMemberHistory)
+		scs.NotifyMembershipChanged(channel.Id, "")
 	} else {
 		creatorID := channel.CreatorId
 		if creatorID == "" {
@@ -391,14 +376,8 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 			return fmt.Errorf("cannot create shared channel remote (channel_id=%s): %w", invite.ChannelId, err)
 		}
 
-		// Sync local channel members to the remote after accepting the invitation
-		if syncErr := scs.SyncAllChannelMembers(channel.Id, rc.RemoteId, scr); syncErr != nil {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to sync local channel members after accepting invitation",
-				mlog.String("channel_id", channel.Id),
-				mlog.String("remote_id", rc.RemoteId),
-				mlog.Err(syncErr),
-			)
-		}
+		// Trigger membership sync via the normal sync pipeline (reads from ChannelMemberHistory)
+		scs.NotifyMembershipChanged(channel.Id, "")
 	}
 	return nil
 }
