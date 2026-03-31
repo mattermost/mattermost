@@ -1476,3 +1476,160 @@ func TestUpdatePropertyField_ImmutableIdentityFields(t *testing.T) {
 		assert.Equal(t, "system", result.TargetType)
 	})
 }
+
+func TestOptionsChanged(t *testing.T) {
+	// attrsFromJSON simulates what arrives over the wire: JSON bytes
+	// deserialized into model.StringInterface, where options become
+	// []interface{} of map[string]interface{}.
+	attrsFromJSON := func(t *testing.T, jsonStr string) model.StringInterface {
+		t.Helper()
+		var attrs model.StringInterface
+		require.NoError(t, json.Unmarshal([]byte(jsonStr), &attrs))
+		return attrs
+	}
+
+	optID1 := model.NewId()
+	optID2 := model.NewId()
+	optID3 := model.NewId()
+
+	t.Run("both nil attrs means no change", func(t *testing.T) {
+		assert.False(t, optionsChanged(nil, nil))
+	})
+
+	t.Run("both empty attrs means no change", func(t *testing.T) {
+		assert.False(t, optionsChanged(model.StringInterface{}, model.StringInterface{}))
+	})
+
+	t.Run("nil vs empty attrs means no change", func(t *testing.T) {
+		assert.False(t, optionsChanged(nil, model.StringInterface{}))
+		assert.False(t, optionsChanged(model.StringInterface{}, nil))
+	})
+
+	t.Run("nil vs attrs with no options key means no change", func(t *testing.T) {
+		attrs := attrsFromJSON(t, `{"other_key": "value"}`)
+		assert.False(t, optionsChanged(nil, attrs))
+		assert.False(t, optionsChanged(attrs, nil))
+	})
+
+	t.Run("identical options means no change", func(t *testing.T) {
+		raw := `{"options": [{"id": "` + optID1 + `", "name": "A"}, {"id": "` + optID2 + `", "name": "B"}]}`
+		old := attrsFromJSON(t, raw)
+		new := attrsFromJSON(t, raw)
+		assert.False(t, optionsChanged(old, new))
+	})
+
+	t.Run("different option count is a change", func(t *testing.T) {
+		old := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A"}]}`)
+		new := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A"}, {"id": "`+optID2+`", "name": "B"}]}`)
+		assert.True(t, optionsChanged(old, new))
+		assert.True(t, optionsChanged(new, old))
+	})
+
+	t.Run("option replaced with different ID (same count) is a change", func(t *testing.T) {
+		old := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A"}, {"id": "`+optID2+`", "name": "B"}]}`)
+		new := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A"}, {"id": "`+optID3+`", "name": "C"}]}`)
+		assert.True(t, optionsChanged(old, new))
+	})
+
+	t.Run("option name renamed is a change", func(t *testing.T) {
+		old := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A"}]}`)
+		new := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A-renamed"}]}`)
+		assert.True(t, optionsChanged(old, new))
+	})
+
+	t.Run("extra key added to option is a change", func(t *testing.T) {
+		old := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A"}]}`)
+		new := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A", "color": "red"}]}`)
+		assert.True(t, optionsChanged(old, new))
+	})
+
+	t.Run("extra key removed from option is a change", func(t *testing.T) {
+		old := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A", "color": "red"}]}`)
+		new := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A"}]}`)
+		assert.True(t, optionsChanged(old, new))
+	})
+
+	t.Run("reordered options with same IDs means no change", func(t *testing.T) {
+		old := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A"}, {"id": "`+optID2+`", "name": "B"}]}`)
+		new := attrsFromJSON(t, `{"options": [{"id": "`+optID2+`", "name": "B"}, {"id": "`+optID1+`", "name": "A"}]}`)
+		assert.False(t, optionsChanged(old, new))
+	})
+
+	t.Run("no options vs options present is a change", func(t *testing.T) {
+		old := model.StringInterface{}
+		new := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A"}]}`)
+		assert.True(t, optionsChanged(old, new))
+		assert.True(t, optionsChanged(new, old))
+	})
+
+	t.Run("options null in JSON vs absent means no change", func(t *testing.T) {
+		old := attrsFromJSON(t, `{"options": null}`)
+		new := model.StringInterface{}
+		assert.False(t, optionsChanged(old, new))
+		assert.False(t, optionsChanged(new, old))
+	})
+
+	t.Run("empty options array vs absent is a change", func(t *testing.T) {
+		old := attrsFromJSON(t, `{"options": []}`)
+		new := model.StringInterface{}
+		// []any{} has len 0, nil has len 0 — asOptionSlice returns empty vs nil
+		// but len check treats both as 0, so no change detected
+		assert.False(t, optionsChanged(old, new))
+	})
+
+	t.Run("non-map items in options array are skipped", func(t *testing.T) {
+		// After JSON unmarshal, options are always maps. But if somehow
+		// a non-map sneaks in, asOptionSlice drops it — which changes
+		// the effective count.
+		old := model.StringInterface{
+			model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"id": optID1, "name": "A"},
+				"not a map",
+			},
+		}
+		new := model.StringInterface{
+			model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"id": optID1, "name": "A"},
+			},
+		}
+		// old becomes 1 valid option (non-map dropped), new has 1 — same
+		assert.False(t, optionsChanged(old, new))
+	})
+
+	t.Run("options value is not a slice means no change vs absent", func(t *testing.T) {
+		old := model.StringInterface{
+			model.PropertyFieldAttributeOptions: "not a slice",
+		}
+		assert.False(t, optionsChanged(old, nil))
+	})
+
+	t.Run("options value is not a slice vs real options is a change", func(t *testing.T) {
+		old := model.StringInterface{
+			model.PropertyFieldAttributeOptions: "not a slice",
+		}
+		new := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A"}]}`)
+		assert.True(t, optionsChanged(old, new))
+	})
+
+	t.Run("other attrs keys are ignored", func(t *testing.T) {
+		old := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A"}], "color": "red"}`)
+		new := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A"}], "color": "blue"}`)
+		assert.False(t, optionsChanged(old, new))
+	})
+
+	t.Run("numeric value in option survives JSON round-trip", func(t *testing.T) {
+		// JSON numbers deserialize as float64 — verify DeepEqual handles this
+		old := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A", "sort_order": 1}]}`)
+		new := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A", "sort_order": 1}]}`)
+		assert.False(t, optionsChanged(old, new))
+
+		changed := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A", "sort_order": 2}]}`)
+		assert.True(t, optionsChanged(old, changed))
+	})
+
+	t.Run("boolean value in option survives JSON round-trip", func(t *testing.T) {
+		old := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A", "disabled": false}]}`)
+		new := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A", "disabled": true}]}`)
+		assert.True(t, optionsChanged(old, new))
+	})
+}
