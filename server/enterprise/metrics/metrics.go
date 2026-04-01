@@ -2346,12 +2346,12 @@ func extractDBCluster(driver, connectionString string) (string, error) {
 		return "", err
 	}
 
-	clusterEnd := strings.Index(host, ".")
-	if clusterEnd == -1 {
+	cluster, _, found := strings.Cut(host, ".")
+	if !found {
 		return host, nil
 	}
 
-	return host[:clusterEnd], nil
+	return cluster, nil
 }
 
 func extractHost(driver, connectionString string) (string, error) {
