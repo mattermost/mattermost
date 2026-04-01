@@ -81,6 +81,10 @@
         color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 12px;
         line-height: 16px;
+        
+        .icon {
+            font-size: 14px;
+        }
     }
 
     &__addBtn {
