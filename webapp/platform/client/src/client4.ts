@@ -114,6 +114,7 @@ import type {PreferenceType} from '@mattermost/types/preferences';
 import type {ProductNotices} from '@mattermost/types/product_notices';
 import type {
     NameMappedPropertyFields,
+    PropertyField,
     UserPropertyField,
     UserPropertyFieldPatch,
     PropertyValue,
@@ -347,6 +348,14 @@ export default class Client4 {
 
     getRemoteClusterRoute(remoteId: string) {
         return `${this.getRemoteClustersRoute()}/${remoteId}`;
+    }
+
+    getPropertyFieldsRoute(groupName: string, objectType: string) {
+        return `${this.getBaseRoute()}/properties/groups/${groupName}/${objectType}/fields`;
+    }
+
+    getPropertyFieldRoute(groupName: string, objectType: string, fieldId: string) {
+        return `${this.getPropertyFieldsRoute(groupName, objectType)}/${fieldId}`;
     }
 
     getCustomProfileAttributeFieldsRoute() {
@@ -2265,6 +2274,40 @@ export default class Client4 {
         return this.doFetch<Record<string, string | string[]>>(
             `${this.getUserRoute(userID)}/custom_profile_attributes`,
             {method: 'PATCH', body: JSON.stringify(attributeValues)},
+        );
+    };
+
+    // Generic Property Field Routes
+
+    getPropertyFields = async (groupName: string, objectType: string, targetType: string, targetId?: string) => {
+        const params = new URLSearchParams({target_type: targetType});
+        if (targetId) {
+            params.set('target_id', targetId);
+        }
+        return this.doFetch<PropertyField[]>(
+            `${this.getPropertyFieldsRoute(groupName, objectType)}?${params.toString()}`,
+            {method: 'GET'},
+        );
+    };
+
+    createPropertyField = async (groupName: string, objectType: string, field: Partial<PropertyField> & Record<string, unknown>) => {
+        return this.doFetch<PropertyField>(
+            `${this.getPropertyFieldsRoute(groupName, objectType)}`,
+            {method: 'POST', body: JSON.stringify(field)},
+        );
+    };
+
+    patchPropertyField = async (groupName: string, objectType: string, fieldId: string, patch: Partial<PropertyField> & Record<string, unknown>) => {
+        return this.doFetch<PropertyField>(
+            `${this.getPropertyFieldRoute(groupName, objectType, fieldId)}`,
+            {method: 'PATCH', body: JSON.stringify(patch)},
+        );
+    };
+
+    deletePropertyField = async (groupName: string, objectType: string, fieldId: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getPropertyFieldRoute(groupName, objectType, fieldId)}`,
+            {method: 'DELETE'},
         );
     };
 
