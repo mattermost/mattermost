@@ -105,7 +105,7 @@ func (a *App) CreateCPAField(rctx request.CTX, field *model.CPAField) (*model.CP
 		return nil, appErr
 	}
 
-	newField, appErr := a.CreatePropertyField(rctx, field.ToPropertyField())
+	newField, appErr := a.CreatePropertyField(rctx, field.ToPropertyField(), false, "")
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -146,7 +146,7 @@ func (a *App) PatchCPAField(rctx request.CTX, fieldID string, patch *model.Prope
 		return nil, model.NewAppError("PatchCPAField", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
-	patchedField, appErr := a.UpdatePropertyField(rctx, groupID, existingField.ToPropertyField())
+	patchedField, appErr := a.UpdatePropertyField(rctx, groupID, existingField.ToPropertyField(), false, "")
 	if appErr != nil {
 		switch {
 		case errors.Is(appErr, sql.ErrNoRows):
@@ -184,7 +184,7 @@ func (a *App) DeleteCPAField(rctx request.CTX, id string) *model.AppError {
 		return model.NewAppError("DeleteCPAField", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
-	if appErr := a.DeletePropertyField(rctx, groupID, id); appErr != nil {
+	if appErr := a.DeletePropertyField(rctx, groupID, id, false, ""); appErr != nil {
 		switch {
 		case errors.Is(appErr, sql.ErrNoRows):
 			return model.NewAppError("DeleteCPAField", "app.custom_profile_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
@@ -275,7 +275,7 @@ func (a *App) PatchCPAValues(rctx request.CTX, userID string, fieldValueMap map[
 		valuesToUpdate = append(valuesToUpdate, value)
 	}
 
-	updatedValues, appErr := a.UpsertPropertyValues(rctx, valuesToUpdate)
+	updatedValues, appErr := a.UpsertPropertyValues(rctx, valuesToUpdate, "", "", "")
 	if appErr != nil {
 		return nil, model.NewAppError("PatchCPAValues", "app.custom_profile_attributes.property_value_upsert.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}

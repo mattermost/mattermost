@@ -1,14 +1,29 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
+import {screen} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import type {OutgoingOAuthConnection} from '@mattermost/types/integrations';
 
-import DeleteIntegrationLink from 'components/integrations/delete_integration_link';
 import type {InstalledOutgoingOAuthConnectionProps} from 'components/integrations/outgoing_oauth_connections/installed_outgoing_oauth_connection';
 import InstalledOutgoingOAuthConnection from 'components/integrations/outgoing_oauth_connections/installed_outgoing_oauth_connection';
+
+import {renderWithContext} from 'tests/react_testing_utils';
+
+jest.mock('components/integrations/delete_integration_link', () => {
+    return function MockDeleteIntegrationLink(props: {onDelete: () => void}) {
+        return (
+            <button
+                data-testid='delete-integration-link'
+                onClick={props.onDelete}
+            >
+                {'Delete'}
+            </button>
+        );
+    };
+});
 
 describe('components/integrations/InstalledOutgoingOAuthConnection', () => {
     const team = {name: 'team_name'};
@@ -34,22 +49,23 @@ describe('components/integrations/InstalledOutgoingOAuthConnection', () => {
     };
 
     test('should match snapshot', () => {
-        const props = {...baseProps};
-        const wrapper = shallow(
-            <InstalledOutgoingOAuthConnection {...props}/>,
+        const {container} = renderWithContext(
+            <InstalledOutgoingOAuthConnection {...baseProps}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
-    test('should have called props.onDelete on handleDelete ', () => {
+    test('should have called props.onDelete on handleDelete ', async () => {
         const newOnDelete = jest.fn();
         const props = {...baseProps, team, onDelete: newOnDelete};
-        const wrapper = shallow(
+        renderWithContext(
             <InstalledOutgoingOAuthConnection {...props}/>,
         );
 
-        expect(wrapper.find(DeleteIntegrationLink).exists()).toBe(true);
-        wrapper.find(DeleteIntegrationLink).props().onDelete();
+        const deleteButton = screen.getByTestId('delete-integration-link');
+        expect(deleteButton).toBeInTheDocument();
+
+        await userEvent.click(deleteButton);
         expect(newOnDelete).toHaveBeenCalled();
         expect(newOnDelete).toHaveBeenCalledWith(outgoingOAuthConnection);
     });
