@@ -444,7 +444,80 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await teamSettings.close();
     });
 
-    test('MM-67967_1 Team admin can delete policy after removing all channels', async ({pw}) => {
+    test('MM-67967_1 Team admin can trigger sync and see updated status', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        const {adminClient, team} = await pw.initSetup();
+        await enableABACConfig(adminClient);
+        await ensureDepartmentAttribute(adminClient);
+
+        const channel = await createPrivateChannel(adminClient, team.id);
+        const policy = await createParentPolicy(adminClient, `Sync Test ${Date.now()}`);
+        await assignChannelsToPolicy(adminClient, policy.id, [channel.id]);
+
+        const teamAdmin = await createTeamAdmin(adminClient, team.id);
+
+        const {page} = await pw.testBrowser.login(teamAdmin);
+        const channelsPage = new ChannelsPage(page);
+        await channelsPage.goto(team.name);
+        await channelsPage.toBeVisible();
+
+        const teamSettings = await channelsPage.openTeamSettings();
+        await teamSettings.openAccessPoliciesTab();
+
+        // * Footer visible with "Sync now" action
+        const footer = teamSettings.container.locator('.SyncStatusFooter');
+        await expect(footer).toBeVisible({timeout: 10000});
+        await expect(teamSettings.container.getByText(/Sync now/)).toBeVisible();
+
+        // # Click Sync now
+        await teamSettings.container.getByText(/Sync now/).click();
+
+        // * Syncing state appears
+        await expect(teamSettings.container.getByText(/Syncing/)).toBeVisible({timeout: 5000});
+
+        // * Wait for sync to complete and "Sync now" to reappear
+        await expect(teamSettings.container.getByText(/Sync now/)).toBeVisible({timeout: 30000});
+
+        // * Status updates to "Last synced just now" confirming a fresh sync completed
+        await expect(teamSettings.container.getByText(/Last synced just now/)).toBeVisible();
+
+        await teamSettings.close();
+    });
+
+    test('MM-67967_2 System admin can trigger sync from team settings', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        const {adminUser, adminClient, team} = await pw.initSetup();
+        await enableABACConfig(adminClient);
+        await ensureDepartmentAttribute(adminClient);
+
+        const channel = await createPrivateChannel(adminClient, team.id);
+        const policy = await createParentPolicy(adminClient, `SysAdmin Sync ${Date.now()}`);
+        await assignChannelsToPolicy(adminClient, policy.id, [channel.id]);
+
+        const {page} = await pw.testBrowser.login(adminUser);
+        const channelsPage = new ChannelsPage(page);
+        await channelsPage.goto(team.name);
+        await channelsPage.toBeVisible();
+
+        const teamSettings = await channelsPage.openTeamSettings();
+        await teamSettings.openAccessPoliciesTab();
+
+        // * Footer visible with "Sync now" action
+        await expect(teamSettings.container.getByText(/Sync now/)).toBeVisible({timeout: 15000});
+
+        // # Click Sync now
+        await teamSettings.container.getByText(/Sync now/).click();
+
+        // * Wait for sync to complete and "Sync now" to reappear
+        await expect(teamSettings.container.getByText(/Sync now/)).toBeVisible({timeout: 30000});
+
+        // * Status updates to "Last synced just now" confirming a fresh sync completed
+        await expect(teamSettings.container.getByText(/Last synced just now/)).toBeVisible();
+
+        await teamSettings.close();
+    });
+
+    test('MM-67594_1 Team admin can delete policy after removing all channels', async ({pw}) => {
         // Scenario: Policy created via API → team admin opens editor → removes channel → deletes.
         // Validates that the scope field persists team ownership through channel removal.
         await pw.skipIfNoLicense();
@@ -501,7 +574,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await teamSettings.close();
     });
 
-    test('MM-67967_2 System admin cross-team channel changes toggle team admin visibility', async ({pw}) => {
+    test('MM-67594_2 System admin cross-team channel changes toggle team admin visibility', async ({pw}) => {
         // Scenario: System admin creates policy with team A channels → team admin A sees it →
         // system admin adds team B channel (cross-team) → team admin A no longer sees it →
         // system admin removes team B channel → team admin A sees it again.

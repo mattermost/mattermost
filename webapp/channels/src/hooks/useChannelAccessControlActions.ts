@@ -35,7 +35,7 @@ export interface ChannelAccessControlActions {
     createJob: (job: JobTypeBase & { data: any }) => Promise<ActionResult>;
     updateAccessControlPoliciesActive: (statuses: AccessControlPolicyActiveUpdate[]) => Promise<ActionResult>;
     validateExpressionAgainstRequester: (expression: string) => Promise<ActionResult<{requester_matches: boolean}>>;
-    createAccessControlSyncJob: (jobData: {policy_id: string; team_id?: string}) => Promise<ActionResult>;
+    createAccessControlSyncJob: (jobData: {policy_id?: string; team_id?: string}) => Promise<ActionResult>;
 }
 
 /**
@@ -84,7 +84,7 @@ export const useChannelAccessControlActions = (channelId?: string, teamId?: stri
             return dispatch(validateExpressionAgainstRequester(expression, channelId, teamId));
         },
 
-        createAccessControlSyncJob: (jobData: {policy_id: string; team_id?: string}) => {
+        createAccessControlSyncJob: (jobData: {policy_id?: string; team_id?: string}) => {
             return dispatch(createAccessControlSyncJob(jobData));
         },
 

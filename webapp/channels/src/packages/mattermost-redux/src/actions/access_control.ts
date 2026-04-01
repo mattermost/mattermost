@@ -170,7 +170,7 @@ export function validateExpressionAgainstRequester(expression: string, channelId
     };
 }
 
-export function createAccessControlSyncJob(jobData: {policy_id: string; team_id?: string}): ActionFuncAsync<any> {
+export function createAccessControlSyncJob(jobData: {policy_id?: string; team_id?: string}): ActionFuncAsync<any> {
     return async (dispatch, getState) => {
         let data;
         try {

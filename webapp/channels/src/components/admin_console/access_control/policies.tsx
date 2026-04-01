@@ -18,6 +18,7 @@ import './policies.scss';
 
 type Props = {
     onPolicySelected?: (policy: AccessControlPolicy) => void;
+    onPoliciesLoaded?: (count: number) => void;
     simpleMode?: boolean;
     hideHeader?: boolean;
     hideDeleteAction?: boolean;
@@ -84,6 +85,7 @@ export default function PolicyList(props: Props): JSX.Element {
                 setAfter(lastPolicyId);
                 setTotal(newTotal);
             }
+            props.onPoliciesLoaded?.(newTotal);
         } catch (error) {
             setLoading(false);
             setSearchErrored(true);
