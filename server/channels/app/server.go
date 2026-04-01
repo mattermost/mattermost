@@ -149,6 +149,8 @@ type Server struct {
 	PushProxy               einterfaces.PushProxyInterface
 	AutoTranslation         einterfaces.AutoTranslationInterface
 
+	agentsBridgeOverride AgentsBridge
+
 	ch *Channels
 
 	// cwsTokenOverride overrides CWS_CLOUD_TOKEN for CWS login authentication.
