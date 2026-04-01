@@ -261,7 +261,7 @@
   },
   {
     "id": "api.channel.board_channel.app_error",
-    "translation": ""
+    "translation": "Board channels cannot be accessed via /channels endpoints. Use the /boards API instead."
   },
   {
     "id": "api.channel.bookmark.channel_bookmark.license.error",
@@ -5260,31 +5260,31 @@
   },
   {
     "id": "app.channel.create_board_channel.boards_not_enabled.app_error",
-    "translation": ""
+    "translation": "The Integrated Boards feature is not enabled."
   },
   {
     "id": "app.channel.create_board_channel.internal_error",
-    "translation": ""
+    "translation": "Unable to create the board channel."
   },
   {
     "id": "app.channel.create_board_channel.invalid.app_error",
-    "translation": ""
+    "translation": "Invalid board channel data."
   },
   {
     "id": "app.channel.create_board_channel.invalid_type.app_error",
-    "translation": ""
+    "translation": "Channel type must be BO (open board) or BP (private board)."
   },
   {
     "id": "app.channel.create_board_channel.limit.app_error",
-    "translation": ""
+    "translation": "The maximum number of channels per team has been reached."
   },
   {
     "id": "app.channel.create_board_channel.no_team.app_error",
-    "translation": ""
+    "translation": "Board channels must belong to a team."
   },
   {
     "id": "app.channel.create_channel.board_type.app_error",
-    "translation": ""
+    "translation": "Board channels cannot be created via CreateChannel. Use the /boards API instead."
   },
   {
     "id": "app.channel.create_channel.internal_error",
