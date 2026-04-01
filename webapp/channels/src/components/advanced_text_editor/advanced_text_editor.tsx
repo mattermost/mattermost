@@ -82,6 +82,7 @@ import useBurnOnRead from './use_burn_on_read';
 import useEditorEmojiPicker from './use_editor_emoji_picker';
 import useKeyHandler from './use_key_handler';
 import useOrientationHandler from './use_orientation_handler';
+import AIActionsMenu from './ai_actions_menu';
 import usePluginItems from './use_plugin_items';
 import usePriority from './use_priority';
 import useRewrite from './use_rewrite';
@@ -313,7 +314,7 @@ const AdvancedTextEditor = ({
     const pluginItems = usePluginItems(draft, textboxRef, handleDraftChange, channelId);
     const focusTextbox = useTextboxFocus(textboxRef, channelId, isRHS, canPost);
     const {
-        additionalControl: aiRewriteAdditionalControl,
+        rewriteMenuProps,
         isProcessing: rewriteIsProcessing,
     } = useRewrite(draft, handleDraftChange, textboxRef, focusTextbox, setServerError);
     const isDisabled = Boolean(readOnlyChannel || (!enableSharedChannelsDMs && isDMOrGMRemote) || rewriteIsProcessing);
@@ -686,10 +687,37 @@ const AdvancedTextEditor = ({
 
     const additionalControls = useMemo(() => [
         !isInEditMode && priorityAdditionalControl,
-        aiRewriteEnabled && aiRewriteAdditionalControl,
         !isInEditMode && burnOnReadAdditionalControl,
         ...(pluginItems || []),
-    ].filter(Boolean), [pluginItems, priorityAdditionalControl, aiRewriteAdditionalControl, isInEditMode, aiRewriteEnabled, burnOnReadAdditionalControl]);
+    ].filter(Boolean), [pluginItems, priorityAdditionalControl, isInEditMode, burnOnReadAdditionalControl]);
+
+    const getSelectedText = useCallback(() => {
+        const input = textboxRef.current?.getInputBox();
+        return {
+            start: input?.selectionStart ?? 0,
+            end: input?.selectionEnd ?? 0,
+        };
+    }, [textboxRef]);
+
+    const updateText = useCallback((message: string) => {
+        handleDraftChange({
+            ...draft,
+            message,
+        });
+    }, [handleDraftChange, draft]);
+
+    const aiActionsMenu = useMemo(() => {
+        return (
+            <AIActionsMenu
+                draft={draft}
+                getSelectedText={getSelectedText}
+                updateText={updateText}
+                channelId={channelId}
+                rewriteMenuProps={rewriteMenuProps}
+                aiRewriteEnabled={aiRewriteEnabled}
+            />
+        );
+    }, [draft, getSelectedText, updateText, channelId, rewriteMenuProps, aiRewriteEnabled]);
 
     const formattingBar = (
         <AutoHeightSwitcher
@@ -702,6 +730,7 @@ const AdvancedTextEditor = ({
                     disableControls={showPreview}
                     additionalControls={additionalControls}
                     location={location}
+                    aiActionsMenu={aiActionsMenu}
                 />
             )}
             slot2={null}

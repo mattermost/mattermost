@@ -7,6 +7,7 @@ import {closeRightHandSide, selectPostById} from 'actions/views/rhs';
 import {getSelectedPostId, getIsRhsOpen} from 'selectors/rhs';
 
 import AdvancedTextEditor from 'components/advanced_text_editor/advanced_text_editor';
+import * as Menu from 'components/menu';
 import ChannelInviteModal from 'components/channel_invite_modal';
 import ChannelMembersModal from 'components/channel_members_modal';
 import DatePicker from 'components/date_picker/date_picker';
@@ -90,6 +91,8 @@ interface WindowWithLibraries {
         PostMessagePreview: typeof PostMessagePreview;
         AdvancedTextEditor: typeof AdvancedTextEditor;
         DatePicker: typeof DatePicker;
+        MenuItem: typeof Menu.Item;
+        MenuSeparator: typeof Menu.Separator;
     };
     ProductApi: {
         useWebSocket: typeof useWebSocket;
@@ -176,6 +179,8 @@ window.Components = {
     PostMessagePreview,
     AdvancedTextEditor,
     DatePicker,
+    MenuItem: Menu.Item,
+    MenuSeparator: Menu.Separator,
 };
 
 // This is a prototype of the Product API for use by internal plugins only while we transition to the proper architecture

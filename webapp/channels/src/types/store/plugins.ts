@@ -22,6 +22,7 @@ import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import type {NewPostMessageProps} from 'actions/new_post';
 
 import type {PluginConfiguration} from 'types/plugins/user_settings';
+import type {PostDraft} from 'types/store/draft';
 import type {GlobalState} from 'types/store';
 
 export type PluginSiteStatsHandler = () => Promise<Record<string, PluginAnalyticsRow>>;
@@ -46,6 +47,7 @@ export type PluginsState = {
         PostDropdownMenuItem: PostDropdownMenuItemComponent[];
         PostAction: PostActionComponent[];
         PostEditorAction: PostEditorActionComponent[];
+        AIActionMenuItem: AIActionMenuItemComponent[];
         CodeBlockAction: CodeBlockActionComponent[];
         NewMessagesSeparatorAction: NewMessagesSeparatorActionComponent[];
         FilePreview: FilePreviewComponent[];
@@ -433,6 +435,21 @@ export type LinkTooltipComponent = PluginComponent & {
 
 export type PostEditorActionComponent = PluginComponent & {
     component: React.ComponentType;
+};
+
+export type AIActionMenuItemProps = {
+    draft: PostDraft;
+    getSelectedText: () => {start: number; end: number};
+    updateText: (message: string) => void;
+    channelId: string;
+};
+
+export type AIActionMenuItemComponent = PluginComponent & {
+    component: React.ComponentType<AIActionMenuItemProps>;
+    icon: React.ReactNode;
+    text: string;
+    sortOrder: number;
+    subMenuHeader?: React.ComponentType<AIActionMenuItemProps>;
 };
 
 export type CodeBlockActionComponent = PluginComponent & {

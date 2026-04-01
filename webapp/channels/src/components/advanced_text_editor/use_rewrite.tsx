@@ -15,7 +15,6 @@ import type TextboxClass from 'components/textbox/textbox';
 import type {PostDraft} from 'types/store/draft';
 
 import {RewriteAction} from './rewrite_action';
-import RewriteMenu from './rewrite_menu';
 
 const useRewrite = (
     draft: PostDraft,
@@ -185,46 +184,46 @@ const useRewrite = (
         resetState();
     }, [draft.message, isProcessing, resetState]);
 
+    const rewriteMenuProps = useMemo(() => ({
+        isProcessing,
+        isMenuOpen,
+        setIsMenuOpen,
+        draftMessage: draft.message,
+        prompt,
+        setPrompt,
+        selectedAgentId,
+        setSelectedAgentId,
+        agents: agents || [],
+        originalMessage,
+        lastAction,
+        onMenuAction: handleMenuAction,
+        onCustomPromptKeyDown: handleCustomPromptKeyDown,
+        onCancelProcessing: cancelProcessing,
+        onUndoMessage: undoMessage,
+        onRegenerateMessage: regenerateMessage,
+        customPromptRef,
+    }), [
+        isProcessing,
+        isMenuOpen,
+        setIsMenuOpen,
+        draft.message,
+        prompt,
+        setPrompt,
+        selectedAgentId,
+        setSelectedAgentId,
+        agents,
+        originalMessage,
+        lastAction,
+        handleMenuAction,
+        handleCustomPromptKeyDown,
+        cancelProcessing,
+        undoMessage,
+        regenerateMessage,
+        customPromptRef,
+    ]);
+
     return {
-        additionalControl: useMemo(() => (
-            <RewriteMenu
-                isProcessing={isProcessing}
-                isMenuOpen={isMenuOpen}
-                setIsMenuOpen={setIsMenuOpen}
-                draftMessage={draft.message}
-                prompt={prompt}
-                setPrompt={setPrompt}
-                selectedAgentId={selectedAgentId}
-                setSelectedAgentId={setSelectedAgentId}
-                agents={agents || []}
-                originalMessage={originalMessage}
-                lastAction={lastAction}
-                onMenuAction={handleMenuAction}
-                onCustomPromptKeyDown={handleCustomPromptKeyDown}
-                onCancelProcessing={cancelProcessing}
-                onUndoMessage={undoMessage}
-                onRegenerateMessage={regenerateMessage}
-                customPromptRef={customPromptRef}
-            />
-        ), [
-            isProcessing,
-            isMenuOpen,
-            setIsMenuOpen,
-            draft.message,
-            prompt,
-            setPrompt,
-            selectedAgentId,
-            setSelectedAgentId,
-            agents,
-            originalMessage,
-            lastAction,
-            handleMenuAction,
-            handleCustomPromptKeyDown,
-            cancelProcessing,
-            undoMessage,
-            regenerateMessage,
-            customPromptRef,
-        ]),
+        rewriteMenuProps,
         isProcessing,
     };
 };

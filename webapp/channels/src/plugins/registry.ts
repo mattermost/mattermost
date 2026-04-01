@@ -67,6 +67,7 @@ import type {
     DesktopNotificationHook,
     PluggableText,
     SidebarBrowseOrAddChannelMenuAction,
+    AIActionMenuItemComponent,
 } from 'types/store/plugins';
 
 const defaultShouldRender = () => true;
@@ -597,6 +598,35 @@ export default class PluginRegistry {
     registerPostEditorActionComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
         return dispatchPluginComponentAction('PostEditorAction', this.id, component);
     });
+
+    /**
+     * Register an item in the AI actions menu in the text editor toolbar.
+     * Accepts the following:
+     * - icon - React element to use as the menu item's icon
+     * - text - Display text for the menu item
+     * - sortOrder - Numeric sort order for positioning in the menu
+     * - component - React component rendered as a submenu on hover
+     * - subMenuHeader - Optional React component rendered as the submenu header
+     * Returns a unique identifier.
+     */
+    registerAIActionMenuItemComponent = reArg(
+        ['icon', 'text', 'sortOrder', 'component', 'subMenuHeader'],
+        ({icon, text, sortOrder, component, subMenuHeader}: {icon: React.ReactNode; text: string; sortOrder: number; component: AIActionMenuItemComponent['component']; subMenuHeader?: AIActionMenuItemComponent['subMenuHeader']}) => {
+            const id = generateId();
+
+            dispatchPluginComponentWithData('AIActionMenuItem', {
+                id,
+                pluginId: this.id,
+                icon,
+                text,
+                sortOrder,
+                component,
+                subMenuHeader,
+            });
+
+            return id;
+        },
+    );
 
     /**
      * Register a component to the add to the code block header.
