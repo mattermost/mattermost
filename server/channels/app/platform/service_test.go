@@ -195,6 +195,7 @@ func TestMetrics(t *testing.T) {
 
 		_ = th.CreateUserOrGuest(t, false)
 
+		th.Shutdown(t)
 		mockMetricsImpl.AssertExpectations(t)
 	})
 }

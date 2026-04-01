@@ -212,6 +212,10 @@
     "translation": "Unable to upload file. File is too large."
   },
   {
+    "id": "api.ai_bridge_test_helper.disabled.app_error",
+    "translation": "Bridge test helper is disabled."
+  },
+  {
     "id": "api.back_to_app",
     "translation": "Back to {{.SiteName}}"
   },
@@ -2865,6 +2869,10 @@
     "translation": "Burn-on-read posts are not allowed when messaging yourself."
   },
   {
+    "id": "api.post.fill_in_post_props.burn_on_read.shared_channel.app_error",
+    "translation": "Burn-on-read posts are not allowed in shared channels."
+  },
+  {
     "id": "api.post.fill_in_post_props.burn_on_read.user.app_error",
     "translation": "An error occurred while validating the user for burn-on-read post."
   },
@@ -5109,6 +5117,10 @@
   {
     "id": "app.ai.summarize.parse_failed",
     "translation": "Failed to parse AI summarization response."
+  },
+  {
+    "id": "app.ai_bridge_test_helper.invalid_config",
+    "translation": "Invalid configuration for AI bridge test helper."
   },
   {
     "id": "app.analytics.getanalytics.internal_error",
