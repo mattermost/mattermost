@@ -25,7 +25,19 @@ export default class ConfigurationSettings {
         } catch {
             // No unshare confirmation modal; save proceeded directly
         }
-        await expect(saveButton).not.toBeVisible();
+
+        // Wait for save to either succeed (panel hides) or enter an error state.
+        // Do not throw on error — callers that need to handle service-unavailable cases
+        // (e.g. Remote Cluster Service not running) can inspect the result via API after save.
+        await expect
+            .poll(
+                async () => {
+                    if (!(await saveButton.isVisible())) return 'hidden';
+                    return (await saveButton.getAttribute('class')) ?? '';
+                },
+                {timeout: 10000},
+            )
+            .toMatch(/hidden|error/);
     }
 
     async enableChannelBanner() {

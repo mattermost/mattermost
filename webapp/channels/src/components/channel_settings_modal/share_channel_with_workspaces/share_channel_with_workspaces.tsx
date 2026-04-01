@@ -25,6 +25,8 @@ type Props = {
     remotes: RemoteClusterInfo[];
     initialRemotes?: RemoteClusterInfo[];
     onRemotesChange: React.Dispatch<React.SetStateAction<WorkspaceWithStatus[]>>;
+    enabled: boolean;
+    onToggle?: (enabled: boolean) => void;
 };
 
 const emptyRemotes: RemoteClusterInfo[] = [];
@@ -33,6 +35,8 @@ export default function ShareChannelWithWorkspaces({
     remotes,
     initialRemotes = emptyRemotes,
     onRemotesChange,
+    enabled,
+    onToggle,
 }: Props) {
     const {formatMessage} = useIntl();
 
@@ -59,7 +63,6 @@ export default function ShareChannelWithWorkspaces({
 
     const hasAvailableWorkspaces = availableRemoteClusters !== null && availableRemoteClusters.length > 0;
 
-    const [enabled, setEnabled] = useState(remotes.length > 0);
     const currentRemoteIds = useMemo(() => new Set(remotes.map((w) => w.remote_id || w.name)), [remotes]);
 
     useDidUpdate(() => {
@@ -68,11 +71,11 @@ export default function ShareChannelWithWorkspaces({
 
     const handleToggle = useCallback(() => {
         const next = !enabled;
-        setEnabled(next);
+        onToggle?.(next);
         if (!next) {
             onRemotesChange([]);
         }
-    }, [enabled, onRemotesChange]);
+    }, [enabled, onRemotesChange, onToggle]);
 
     const handleAdd = useCallback((toAdd: RemoteToAdd) => {
         const initialById = new Map((initialRemotes || []).map((r) => [r.remote_id || r.name, r]));
@@ -97,11 +100,11 @@ export default function ShareChannelWithWorkspaces({
         onRemotesChange((prev) => {
             const next = prev.filter((w) => (w.remote_id || w.name) !== remoteId);
             if (next.length === 0) {
-                setEnabled(false);
+                onToggle?.(false);
             }
             return next;
         });
-    }, [onRemotesChange]);
+    }, [onRemotesChange, onToggle]);
 
     const heading = formatMessage({
         id: 'channel_settings.share_channel_with_workspaces.title',

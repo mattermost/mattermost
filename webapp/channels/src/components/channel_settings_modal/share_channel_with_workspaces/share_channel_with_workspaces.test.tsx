@@ -41,11 +41,14 @@ const mockRemotes = [
 function renderShareChannelWithWorkspaces(remotes: WorkspaceWithStatus[], initialRemotes: WorkspaceWithStatus[]) {
     const Wrapper = () => {
         const [rem, setRemotes] = React.useState<WorkspaceWithStatus[]>(remotes);
+        const [enabled, setEnabled] = React.useState(remotes.length > 0);
         return (
             <ShareChannelWithWorkspaces
                 remotes={rem}
                 initialRemotes={initialRemotes}
                 onRemotesChange={setRemotes}
+                enabled={enabled}
+                onToggle={setEnabled}
             />
         );
     };
@@ -174,6 +177,7 @@ describe('ShareChannelWithWorkspaces', () => {
             <ShareChannelWithWorkspaces
                 remotes={mockRemotes}
                 onRemotesChange={onRemotesChange}
+                enabled={true}
             />,
         );
 

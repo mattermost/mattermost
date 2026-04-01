@@ -502,9 +502,11 @@ describe('ChannelSettingsConfigurationTab', () => {
             });
             await userEvent.click(screen.getByRole('menuitem', {name: 'Nebula Networks'}));
 
+            // Wait for the workspace to be added to the list after the menu close animation
             await waitFor(() => {
-                expect(screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
+                expect(screen.getByRole('button', {name: /Remove Nebula Networks/i})).toBeInTheDocument();
             });
+
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
             expect(Client4.sharedChannelRemoteInvite).toHaveBeenCalledWith('remote1', 'channel1');
@@ -651,9 +653,11 @@ describe('ChannelSettingsConfigurationTab', () => {
             });
             await userEvent.click(screen.getByRole('menuitem', {name: 'Nebula Networks'}));
 
+            // Wait for the workspace to be added to the list after the menu close animation
             await waitFor(() => {
-                expect(screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
+                expect(screen.getByRole('button', {name: /Remove Nebula Networks/i})).toBeInTheDocument();
             });
+
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
             await waitFor(() => {
@@ -683,15 +687,23 @@ describe('ChannelSettingsConfigurationTab', () => {
                 expect(screen.getByRole('menuitem', {name: 'Nebula Networks'})).toBeInTheDocument();
             });
             await userEvent.click(screen.getByRole('menuitem', {name: 'Nebula Networks'}));
+
+            // Wait for Nebula Networks to be added to the list after the menu close animation
+            await waitFor(() => {
+                expect(screen.getByRole('button', {name: /Remove Nebula Networks/i})).toBeInTheDocument();
+            });
+
             await userEvent.click(screen.getByRole('button', {name: /Add workspace/i}));
             await waitFor(() => {
                 expect(screen.getByRole('menuitem', {name: 'Cascade Collaborative'})).toBeInTheDocument();
             });
             await userEvent.click(screen.getByRole('menuitem', {name: 'Cascade Collaborative'}));
 
+            // Wait for Cascade Collaborative to be added to the list after the menu close animation
             await waitFor(() => {
-                expect(screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
+                expect(screen.getByRole('button', {name: /Remove Cascade Collaborative/i})).toBeInTheDocument();
             });
+
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
             await waitFor(() => {
