@@ -122,7 +122,7 @@ export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
         config.SqlSettings.Trace = this.state.trace;
         config.SqlSettings.DisableDatabaseSearch = this.state.disableDatabaseSearch;
         config.SqlSettings.QueryTimeout = this.parseIntNonZero(this.state.queryTimeout);
-        config.SqlSettings.AnalyticsQueryTimeout = this.parseIntNonNegative(this.state.analyticsQueryTimeout);
+        config.SqlSettings.AnalyticsQueryTimeout = this.parseIntNonZero(this.state.analyticsQueryTimeout);
         config.SqlSettings.ConnMaxLifetimeMilliseconds = this.parseIntNonNegative(this.state.connMaxLifetimeMilliseconds);
         config.SqlSettings.ConnMaxIdleTimeMilliseconds = this.parseIntNonNegative(this.state.connMaxIdleTimeMilliseconds);
         config.ServiceSettings.MinimumHashtagLength = this.parseIntNonZero(this.state.minimumHashtagLength, 3, 2);
