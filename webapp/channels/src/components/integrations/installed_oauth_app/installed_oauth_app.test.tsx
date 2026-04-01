@@ -1,13 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
-import DeleteIntegrationLink from 'components/integrations/delete_integration_link';
 import InstalledOAuthApp from 'components/integrations/installed_oauth_app/installed_oauth_app';
 
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
+
+jest.mock('components/integrations/delete_integration_link', () => {
+    return {
+        __esModule: true,
+        default: (props: {onDelete: () => void}) => (
+            <button onClick={props.onDelete}>{'Delete'}</button>
+        ),
+    };
+});
 
 describe('components/integrations/InstalledOAuthApp', () => {
     const FAKE_SECRET = '***************';
@@ -43,109 +51,130 @@ describe('components/integrations/InstalledOAuthApp', () => {
 
     test('should match snapshot', () => {
         const props = {...baseProps, team};
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <InstalledOAuthApp {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot from app', () => {
         const props = {...baseProps, team, fromApp: true};
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <InstalledOAuthApp {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, when oauthApp is without name and not trusted', () => {
-        const props = {...baseProps, team};
-        props.oauthApp.name = '';
-        props.oauthApp.is_trusted = false;
-        const wrapper = shallow(
-            <InstalledOAuthApp {...props}/>,
-        );
-        expect(wrapper).toMatchSnapshot();
-    });
-
-    test('should match snapshot, on error', () => {
-        const props = {...baseProps, team};
-        const wrapper = shallow(
-            <InstalledOAuthApp {...props}/>,
-        );
-        wrapper.setState({error: 'error'});
-        expect(wrapper).toMatchSnapshot();
-    });
-
-    test('should call onRegenerateSecret function', () => {
         const props = {
             ...baseProps,
             team,
+            oauthApp: {
+                ...oauthApp,
+                name: '',
+                is_trusted: false,
+            },
         };
-        baseProps.onRegenerateSecret.mockResolvedValue({});
-
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <InstalledOAuthApp {...props}/>,
         );
-        wrapper.find('#regenerateSecretButton').simulate('click', {preventDefault: jest.fn()});
+        expect(container).toMatchSnapshot();
+    });
 
-        expect(baseProps.onRegenerateSecret).toHaveBeenCalled();
-        expect(baseProps.onRegenerateSecret).toHaveBeenCalledWith(oauthApp.id);
+    test('should match snapshot, on error', () => {
+        const onRegenerateSecret = jest.fn().mockResolvedValue({error: {message: 'error'}});
+        const props = {...baseProps, team, onRegenerateSecret};
+        const {container} = renderWithContext(
+            <InstalledOAuthApp {...props}/>,
+        );
+
+        // Trigger error by clicking regenerate
+        screen.getByText('Regenerate Secret').click();
+
+        waitFor(() => {
+            expect(container).toMatchSnapshot();
+        });
+    });
+
+    test('should call onRegenerateSecret function', async () => {
+        const onRegenerateSecret = jest.fn().mockResolvedValue({});
+        const props = {
+            ...baseProps,
+            team,
+            onRegenerateSecret,
+        };
+
+        renderWithContext(
+            <InstalledOAuthApp {...props}/>,
+        );
+
+        await userEvent.click(screen.getByText('Regenerate Secret'));
+
+        expect(onRegenerateSecret).toHaveBeenCalled();
+        expect(onRegenerateSecret).toHaveBeenCalledWith(oauthApp.id);
     });
 
     test('should filter out OAuthApp', () => {
         const filter = 'filter';
         const props = {...baseProps, filter};
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <InstalledOAuthApp {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
-    test('should match state on button clicks, both showSecretButton and hideSecretButton', () => {
+    test('should match state on button clicks, both showSecretButton and hideSecretButton', async () => {
         const props = {...baseProps, team};
-        const wrapper = shallow(
+        renderWithContext(
             <InstalledOAuthApp {...props}/>,
         );
-        expect(wrapper.find('#showSecretButton').exists()).toBe(true);
-        expect(wrapper.find('#hideSecretButton').exists()).toBe(false);
 
-        wrapper.find('#showSecretButton').simulate('click', {preventDefault: jest.fn()});
-        expect(wrapper.state('clientSecret')).toEqual(oauthApp.client_secret);
-        expect(wrapper.find('#showSecretButton').exists()).toBe(false);
-        expect(wrapper.find('#hideSecretButton').exists()).toBe(true);
+        // Initially show secret button is visible, hide secret button is not
+        expect(screen.getByText('Show Secret')).toBeInTheDocument();
+        expect(screen.queryByText('Hide Secret')).not.toBeInTheDocument();
+        expect(screen.getByText(FAKE_SECRET)).toBeInTheDocument();
 
-        wrapper.find('#hideSecretButton').simulate('click', {preventDefault: jest.fn()});
-        expect(wrapper.state('clientSecret')).toEqual(FAKE_SECRET);
-        expect(wrapper.find('#showSecretButton').exists()).toBe(true);
-        expect(wrapper.find('#hideSecretButton').exists()).toBe(false);
+        // Click show secret
+        await userEvent.click(screen.getByText('Show Secret'));
+        expect(screen.getByText(oauthApp.client_secret)).toBeInTheDocument();
+        expect(screen.queryByText('Show Secret')).not.toBeInTheDocument();
+        expect(screen.getByText('Hide Secret')).toBeInTheDocument();
+
+        // Click hide secret
+        await userEvent.click(screen.getByText('Hide Secret'));
+        expect(screen.getByText(FAKE_SECRET)).toBeInTheDocument();
+        expect(screen.getByText('Show Secret')).toBeInTheDocument();
+        expect(screen.queryByText('Hide Secret')).not.toBeInTheDocument();
     });
 
-    test('should match on handleRegenerate', () => {
+    test('should match on handleRegenerate', async () => {
+        const onRegenerateSecret = jest.fn().mockResolvedValue({});
         const props = {
             ...baseProps,
             team,
+            onRegenerateSecret,
         };
-        baseProps.onRegenerateSecret.mockResolvedValue({});
 
-        const wrapper = shallow(
+        renderWithContext(
             <InstalledOAuthApp {...props}/>,
         );
 
-        expect(wrapper.find('#regenerateSecretButton').exists()).toBe(true);
-        wrapper.find('#regenerateSecretButton').simulate('click', {preventDefault: jest.fn()});
-        expect(baseProps.onRegenerateSecret).toHaveBeenCalled();
-        expect(baseProps.onRegenerateSecret).toHaveBeenCalledWith(oauthApp.id);
+        expect(screen.getByText('Regenerate Secret')).toBeInTheDocument();
+        await userEvent.click(screen.getByText('Regenerate Secret'));
+        expect(onRegenerateSecret).toHaveBeenCalled();
+        expect(onRegenerateSecret).toHaveBeenCalledWith(oauthApp.id);
     });
 
-    test('should have called props.onDelete on handleDelete ', () => {
+    test('should have called props.onDelete on handleDelete ', async () => {
         const newOnDelete = jest.fn();
         const props = {...baseProps, team, onDelete: newOnDelete};
-        const wrapper = shallow(
+        renderWithContext(
             <InstalledOAuthApp {...props}/>,
         );
 
-        expect(wrapper.find(DeleteIntegrationLink).exists()).toBe(true);
-        wrapper.find(DeleteIntegrationLink).props().onDelete();
+        expect(screen.getByText('Delete')).toBeInTheDocument();
+        await userEvent.click(screen.getByText('Delete'));
+
         expect(newOnDelete).toHaveBeenCalled();
         expect(newOnDelete).toHaveBeenCalledWith(oauthApp);
     });

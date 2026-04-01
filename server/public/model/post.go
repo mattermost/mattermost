@@ -60,6 +60,7 @@ const (
 	PostCustomTypePrefix          = "custom_"
 	PostTypeReminder              = "reminder"
 	PostTypeBurnOnRead            = "burn_on_read"
+	PostTypeCard                  = "card"
 
 	PostFileidsMaxRunes   = 300
 	PostFilenamesMaxRunes = 4000
@@ -190,6 +191,10 @@ type PostPatch struct {
 	Props        *StringInterface `json:"props"`
 	FileIds      *StringArray     `json:"file_ids"`
 	HasReactions *bool            `json:"has_reactions"`
+}
+
+func (o *PostPatch) IsEmpty() bool {
+	return o.IsPinned == nil && o.Message == nil && o.Props == nil && o.FileIds == nil && o.HasReactions == nil
 }
 
 type PostReminder struct {
@@ -414,8 +419,9 @@ type GetPostsSinceForSyncOptions struct {
 	ChannelId                         string
 	ExcludeRemoteId                   string
 	IncludeDeleted                    bool
-	SinceCreateAt                     bool // determines whether the cursor will be based on CreateAt or UpdateAt
-	ExcludeChannelMetadataSystemPosts bool // if true, exclude channel metadata system posts (header, display name, purpose changes)
+	SinceCreateAt                     bool     // determines whether the cursor will be based on CreateAt or UpdateAt
+	ExcludeChannelMetadataSystemPosts bool     // if true, exclude channel metadata system posts (header, display name, purpose changes)
+	ExcludedPostTypes                 []string // post types to exclude from sync
 }
 
 type GetPostsOptions struct {
@@ -527,7 +533,8 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypeWrangler,
 		PostTypeGMConvertedToChannel,
 		PostTypeAutotranslationChange,
-		PostTypeBurnOnRead:
+		PostTypeBurnOnRead,
+		PostTypeCard:
 	default:
 		if !strings.HasPrefix(o.Type, PostCustomTypePrefix) {
 			return NewAppError("Post.IsValid", "model.post.is_valid.type.app_error", nil, "id="+o.Type, http.StatusBadRequest)

@@ -1,19 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ReactWrapper} from 'enzyme';
-import {mount, shallow} from 'enzyme';
 import React from 'react';
-import {IntlProvider} from 'react-intl';
 
 import {General} from 'mattermost-redux/constants';
 
 import ManageTeamsModal from 'components/admin_console/manage_teams_modal/manage_teams_modal';
 
-import {act} from 'tests/react_testing_utils';
+import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
-
-import ManageTeamsDropdown from './manage_teams_dropdown';
 
 describe('ManageTeamsModal', () => {
     const baseProps = {
@@ -35,30 +30,33 @@ describe('ManageTeamsModal', () => {
         },
     };
 
-    test('should match snapshot init', () => {
-        const wrapper = shallow(<ManageTeamsModal {...baseProps}/>);
-        expect(wrapper).toMatchSnapshot();
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    test('should match snapshot init', async () => {
+        const {baseElement} = renderWithContext(<ManageTeamsModal {...baseProps}/>);
+
+        await waitFor(() => {
+            expect(baseProps.actions.getTeamMembersForUser).toHaveBeenCalledTimes(1);
+            expect(baseProps.actions.getTeamsForUser).toHaveBeenCalledTimes(1);
+        });
+
+        expect(screen.getByText('Manage Teams')).toBeInTheDocument();
+        expect(screen.getByText('@currentUsername')).toBeInTheDocument();
+        expect(screen.getByText('currentUser@test.com')).toBeInTheDocument();
+        expect(baseElement).toMatchSnapshot();
     });
 
     test('should call api calls on mount', async () => {
-        const intlProviderProps = {
-            defaultLocale: 'en',
-            locale: 'en',
-            messages: {testId: 'Actual value'},
-        };
+        renderWithContext(<ManageTeamsModal {...baseProps}/>);
 
-        await act(async () => {
-            mount(
-                <IntlProvider {...intlProviderProps}>
-                    <ManageTeamsModal {...baseProps}/>
-                </IntlProvider>,
-            );
+        await waitFor(() => {
+            expect(baseProps.actions.getTeamMembersForUser).toHaveBeenCalledTimes(1);
+            expect(baseProps.actions.getTeamMembersForUser).toHaveBeenCalledWith(baseProps.user.id);
+            expect(baseProps.actions.getTeamsForUser).toHaveBeenCalledTimes(1);
+            expect(baseProps.actions.getTeamsForUser).toHaveBeenCalledWith(baseProps.user.id);
         });
-
-        expect(baseProps.actions.getTeamMembersForUser).toHaveBeenCalledTimes(1);
-        expect(baseProps.actions.getTeamMembersForUser).toHaveBeenCalledWith(baseProps.user.id);
-        expect(baseProps.actions.getTeamsForUser).toHaveBeenCalledTimes(1);
-        expect(baseProps.actions.getTeamsForUser).toHaveBeenCalledWith(baseProps.user.id);
     });
 
     test('should save data in state from api calls', async () => {
@@ -80,23 +78,11 @@ describe('ManageTeamsModal', () => {
                 getTeamsForUser,
             },
         };
-        const intlProviderProps = {
-            defaultLocale: 'en',
-            locale: 'en',
-            messages: {'test.value': 'Actual value'},
-        };
 
-        let wrapper: ReactWrapper<any>;
-        await act(async () => {
-            wrapper = mount(
-                <IntlProvider {...intlProviderProps}>
-                    <ManageTeamsModal {...props}/>
-                </IntlProvider>,
-            );
+        renderWithContext(<ManageTeamsModal {...props}/>);
+
+        await waitFor(() => {
+            expect(screen.getByText(mockTeamData.display_name)).toBeInTheDocument();
         });
-        wrapper!.update();
-
-        expect(wrapper!.find('.manage-teams__team-name').text()).toEqual(mockTeamData.display_name);
-        expect(wrapper!.find(ManageTeamsDropdown).props().teamMember).toEqual({team_id: '123test'});
     });
 });
