@@ -2869,6 +2869,10 @@
     "translation": "Burn-on-read posts are not allowed when messaging yourself."
   },
   {
+    "id": "api.post.fill_in_post_props.burn_on_read.shared_channel.app_error",
+    "translation": "Burn-on-read posts are not allowed in shared channels."
+  },
+  {
     "id": "api.post.fill_in_post_props.burn_on_read.user.app_error",
     "translation": "An error occurred while validating the user for burn-on-read post."
   },
