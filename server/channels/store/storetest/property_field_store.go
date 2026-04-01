@@ -2796,9 +2796,7 @@ func testUpdateAndPropagate(t *testing.T, _ request.CTX, ss store.Store) {
 		batchField, cErr := ss.PropertyField().Create(batchField)
 		require.NoError(t, cErr)
 
-		// Get fresh state of both fields
-		freshSource, gErr := ss.PropertyField().Get("", sourceField.ID)
-		require.NoError(t, gErr)
+		// Get fresh state of batch field
 		freshBatch, gErr := ss.PropertyField().Get("", batchField.ID)
 		require.NoError(t, gErr)
 
@@ -2814,7 +2812,7 @@ func testUpdateAndPropagate(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NoError(t, uErr)
 
 		// Re-fetch the source since it wasn't modified (its UpdateAt is still valid)
-		freshSource, gErr = ss.PropertyField().Get("", sourceField.ID)
+		freshSource, gErr := ss.PropertyField().Get("", sourceField.ID)
 		require.NoError(t, gErr)
 
 		// Attempt batch update using stale UpdateAt for batchField but fresh for source
