@@ -2427,7 +2427,11 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'SupportSettings.ReportAProblemType',
                             label: defineMessage({id: 'admin.support.reportAProblemTypeTitle', defaultMessage: 'Report a Problem:'}),
                             help_text: defineMessage({id: 'admin.support.reportAProblemTypeDescriptionLicensed', defaultMessage: 'By default, selecting "Report a Problem" from the help menu opens a ticket with the Mattermost technical support team. You may provide a custom URL or email address for end user support by choosing "Custom link" or "Email address". "Hide link" removes the "Report a Problem" option from the app.'}),
-                            isHidden: it.isFreeEdition,
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                            isHidden: it.any(
+                                it.isFreeEdition,
+                                it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                            ),
                             options: reportAProblemTypeOptions,
                         },
                         {
@@ -2436,7 +2440,11 @@ const AdminDefinition: AdminDefinitionType = {
                             label: defineMessage({id: 'admin.support.reportAProblemTypeTitle', defaultMessage: 'Report a Problem:'}),
                             help_text: defineMessage({id: 'admin.support.reportAProblemTypeDescriptionUnlicensed', defaultMessage: 'By default, selecting "Report a Problem" from the help menu opens the [Mattermost troubleshooting forums](https://mattermost.com/pl/report_a_problem_unlicensed). You may provide a custom URL or email address for end user support by choosing "Custom link" or "Email address". "Hide link" removes the "Report a Problem" option from the app.'}),
                             help_text_markdown: true,
-                            isHidden: it.not(it.isFreeEdition),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                            isHidden: it.any(
+                                it.not(it.isFreeEdition),
+                                it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                            ),
                             options: reportAProblemTypeOptions,
                         },
                         {
