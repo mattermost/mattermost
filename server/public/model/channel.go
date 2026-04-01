@@ -25,10 +25,12 @@ var (
 type ChannelType string
 
 const (
-	ChannelTypeOpen    ChannelType = "O"
-	ChannelTypePrivate ChannelType = "P"
-	ChannelTypeDirect  ChannelType = "D"
-	ChannelTypeGroup   ChannelType = "G"
+	ChannelTypeOpen         ChannelType = "O"
+	ChannelTypePrivate      ChannelType = "P"
+	ChannelTypeDirect       ChannelType = "D"
+	ChannelTypeGroup        ChannelType = "G"
+	ChannelTypeOpenBoard    ChannelType = "BO"
+	ChannelTypePrivateBoard ChannelType = "BP"
 
 	ChannelGroupMaxUsers       = 8
 	ChannelGroupMinUsers       = 3
@@ -287,7 +289,7 @@ func (o *Channel) IsValid() *AppError {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.1_or_more.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if !(o.Type == ChannelTypeOpen || o.Type == ChannelTypePrivate || o.Type == ChannelTypeDirect || o.Type == ChannelTypeGroup) {
+	if !(o.Type == ChannelTypeOpen || o.Type == ChannelTypePrivate || o.Type == ChannelTypeDirect || o.Type == ChannelTypeGroup || o.Type == ChannelTypeOpenBoard || o.Type == ChannelTypePrivateBoard) {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.type.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
@@ -359,6 +361,18 @@ func (o *Channel) IsGroupOrDirect() bool {
 
 func (o *Channel) IsOpen() bool {
 	return o.Type == ChannelTypeOpen
+}
+
+func (o *Channel) IsBoard() bool {
+	return o.Type == ChannelTypeOpenBoard || o.Type == ChannelTypePrivateBoard
+}
+
+func (o *Channel) IsOpenBoard() bool {
+	return o.Type == ChannelTypeOpenBoard
+}
+
+func (o *Channel) IsPrivateBoard() bool {
+	return o.Type == ChannelTypePrivateBoard
 }
 
 func (o *Channel) Patch(patch *ChannelPatch) {

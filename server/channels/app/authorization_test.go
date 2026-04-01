@@ -724,7 +724,7 @@ func TestHasPermissionToReadChannel(t *testing.T) {
 		configComplianceEnabled bool
 		channelDeleted          bool
 		canReadChannel          bool
-		channelIsOpen           bool
+		channelType             model.ChannelType
 		canReadPublicChannel    bool
 		expected                bool
 		isAdmin                 bool
@@ -734,7 +734,7 @@ func TestHasPermissionToReadChannel(t *testing.T) {
 			configComplianceEnabled: true,
 			channelDeleted:          true,
 			canReadChannel:          true,
-			channelIsOpen:           true,
+			channelType:             model.ChannelTypeOpen,
 			canReadPublicChannel:    true,
 			expected:                true,
 		},
@@ -743,7 +743,7 @@ func TestHasPermissionToReadChannel(t *testing.T) {
 			configComplianceEnabled: true,
 			channelDeleted:          false,
 			canReadChannel:          true,
-			channelIsOpen:           false,
+			channelType:             model.ChannelTypePrivate,
 			canReadPublicChannel:    true,
 			expected:                true,
 		},
@@ -752,7 +752,7 @@ func TestHasPermissionToReadChannel(t *testing.T) {
 			configComplianceEnabled: false,
 			channelDeleted:          false,
 			canReadChannel:          false,
-			channelIsOpen:           false,
+			channelType:             model.ChannelTypePrivate,
 			canReadPublicChannel:    true,
 			expected:                false,
 		},
@@ -761,7 +761,7 @@ func TestHasPermissionToReadChannel(t *testing.T) {
 			configComplianceEnabled: true,
 			channelDeleted:          false,
 			canReadChannel:          false,
-			channelIsOpen:           true,
+			channelType:             model.ChannelTypeOpen,
 			canReadPublicChannel:    true,
 			expected:                false,
 		},
@@ -770,7 +770,7 @@ func TestHasPermissionToReadChannel(t *testing.T) {
 			configComplianceEnabled: false,
 			channelDeleted:          false,
 			canReadChannel:          false,
-			channelIsOpen:           true,
+			channelType:             model.ChannelTypeOpen,
 			canReadPublicChannel:    false,
 			expected:                false,
 		},
@@ -779,7 +779,7 @@ func TestHasPermissionToReadChannel(t *testing.T) {
 			configComplianceEnabled: false,
 			channelDeleted:          false,
 			canReadChannel:          false,
-			channelIsOpen:           true,
+			channelType:             model.ChannelTypeOpen,
 			canReadPublicChannel:    true,
 			expected:                true,
 		},
@@ -788,10 +788,37 @@ func TestHasPermissionToReadChannel(t *testing.T) {
 			configComplianceEnabled: false,
 			channelDeleted:          false,
 			canReadChannel:          false,
-			channelIsOpen:           false,
+			channelType:             model.ChannelTypePrivate,
 			canReadPublicChannel:    false,
 			expected:                true,
 			isAdmin:                 true,
+		},
+		{
+			name:                    "Can read open board if team permissions and compliance disabled",
+			configComplianceEnabled: false,
+			channelDeleted:          false,
+			canReadChannel:          false,
+			channelType:             model.ChannelTypeOpenBoard,
+			canReadPublicChannel:    true,
+			expected:                true,
+		},
+		{
+			name:                    "Cannot read open board if compliance enabled",
+			configComplianceEnabled: true,
+			channelDeleted:          false,
+			canReadChannel:          false,
+			channelType:             model.ChannelTypeOpenBoard,
+			canReadPublicChannel:    true,
+			expected:                false,
+		},
+		{
+			name:                    "Cannot read private board if not member",
+			configComplianceEnabled: false,
+			channelDeleted:          false,
+			canReadChannel:          false,
+			channelType:             model.ChannelTypePrivateBoard,
+			canReadPublicChannel:    false,
+			expected:                false,
 		},
 	}
 
@@ -813,9 +840,21 @@ func TestHasPermissionToReadChannel(t *testing.T) {
 			}
 
 			var channel *model.Channel
-			if tc.channelIsOpen {
+			switch tc.channelType {
+			case model.ChannelTypeOpenBoard, model.ChannelTypePrivateBoard:
+				view := &model.View{CreatorId: th.SystemAdminUser.Id, Type: model.ViewTypeKanban, Title: "Board"}
+				ch, _, storeErr := th.App.Srv().Store().Channel().SaveBoardChannel(th.Context, &model.Channel{
+					TeamId:      team.Id,
+					DisplayName: "Board " + model.NewId(),
+					Name:        "board-" + model.NewId(),
+					Type:        tc.channelType,
+					CreatorId:   th.SystemAdminUser.Id,
+				}, -1, view)
+				require.NoError(t, storeErr)
+				channel = ch
+			case model.ChannelTypeOpen:
 				channel = th.CreateChannel(t, team)
-			} else {
+			default:
 				channel = th.CreatePrivateChannel(t, team)
 			}
 			if tc.canReadChannel {

@@ -219,6 +219,14 @@ func (c *SearchChannelStore) SaveDirectChannel(rctx request.CTX, directchannel *
 	return channel, err
 }
 
+func (c *SearchChannelStore) SaveBoardChannel(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64, view *model.View) (*model.Channel, *model.View, error) {
+	newChannel, newView, err := c.ChannelStore.SaveBoardChannel(rctx, channel, maxChannelsPerTeam, view)
+	if err == nil {
+		c.indexChannel(rctx, newChannel)
+	}
+	return newChannel, newView, err
+}
+
 func (c *SearchChannelStore) Autocomplete(rctx request.CTX, userID, term string, includeDeleted, isGuest bool) (model.ChannelListWithTeamData, error) {
 	var channelList model.ChannelListWithTeamData
 	var err error

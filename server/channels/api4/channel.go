@@ -17,6 +17,16 @@ import (
 
 const maxListSize = 1000
 
+// rejectBoardChannel returns true and sets c.Err if the channel is a board type.
+// Board channels must use the /boards endpoints, not /channels.
+func rejectBoardChannel(c *Context, channel *model.Channel) bool {
+	if channel.IsBoard() {
+		c.Err = model.NewAppError("", "api.channel.board_channel.app_error", nil, "board channels cannot be accessed via /channels endpoints", http.StatusBadRequest)
+		return true
+	}
+	return false
+}
+
 func (api *API) InitChannel() {
 	api.BaseRoutes.Channels.Handle("", api.APISessionRequired(getAllChannels)).Methods(http.MethodGet)
 	api.BaseRoutes.Channels.Handle("", api.APISessionRequired(createChannel)).Methods(http.MethodPost)
@@ -91,6 +101,12 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParamWithErr("channel", err)
 		return
 	}
+
+	if channel.IsBoard() {
+		c.SetInvalidParamWithDetails("type", "cannot create board channels via /channels endpoint")
+		return
+	}
+
 	license := c.App.Channels().License()
 	if !channel.IsGroupOrDirect() && model.SafeDereference(c.App.Config().PrivacySettings.UseAnonymousURLs) && model.MinimumEnterpriseAdvancedLicense(license) {
 		channel.Name = model.NewId()
@@ -163,6 +179,9 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	originalOldChannel, appErr := c.App.GetChannel(c.AppContext, channel.Id)
 	if appErr != nil {
 		c.Err = appErr
+		return
+	}
+	if rejectBoardChannel(c, originalOldChannel) {
 		return
 	}
 	oldChannel := originalOldChannel.DeepCopy()
@@ -279,6 +298,9 @@ func updateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+	if rejectBoardChannel(c, channel) {
+		return
+	}
 
 	auditRec.AddEventPriorState(channel)
 
@@ -340,6 +362,9 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	originalOldChannel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
 	if appErr != nil {
 		c.Err = appErr
+		return
+	}
+	if rejectBoardChannel(c, originalOldChannel) {
 		return
 	}
 	oldChannel := originalOldChannel.DeepCopy()
@@ -466,6 +491,9 @@ func restoreChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	channel, err := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
 	if err != nil {
 		c.Err = err
+		return
+	}
+	if rejectBoardChannel(c, channel) {
 		return
 	}
 	teamId := channel.TeamId
@@ -671,6 +699,9 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+	if rejectBoardChannel(c, channel) {
+		return
+	}
 
 	isContentReviewer := false
 	asContentReviewer, _ := strconv.ParseBool(r.URL.Query().Get(model.AsContentReviewerParam))
@@ -766,6 +797,15 @@ func getChannelStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+	if rejectBoardChannel(c, channel) {
+		return
+	}
+
 	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
 		c.SetPermissionError(model.PermissionReadChannel)
 		return
@@ -854,6 +894,9 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 	channel, err := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
 	if err != nil {
 		c.Err = err
+		return
+	}
+	if rejectBoardChannel(c, channel) {
 		return
 	}
 	var hasPermission, isMember bool
@@ -1428,6 +1471,9 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+	if rejectBoardChannel(c, channel) {
+		return
+	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventDeleteChannel, model.AuditStatusFail)
 	model.AddEventParameterToAuditRec(auditRec, "id", c.Params.ChannelId)
@@ -1562,6 +1608,15 @@ func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Requ
 func getChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireChannelId()
 	if c.Err != nil {
+		return
+	}
+
+	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+	if rejectBoardChannel(c, channel) {
 		return
 	}
 
@@ -1792,6 +1847,15 @@ func updateChannelMemberRoles(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+	if rejectBoardChannel(c, channel) {
+		return
+	}
+
 	props := model.MapFromJSON(r.Body)
 
 	newRoles := props["roles"]
@@ -1823,6 +1887,15 @@ func updateChannelMemberRoles(c *Context, w http.ResponseWriter, r *http.Request
 func updateChannelMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireChannelId().RequireUserId()
 	if c.Err != nil {
+		return
+	}
+
+	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+	if rejectBoardChannel(c, channel) {
 		return
 	}
 
@@ -2002,6 +2075,9 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	channel, err := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
 	if err != nil {
 		c.Err = err
+		return
+	}
+	if rejectBoardChannel(c, channel) {
 		return
 	}
 
@@ -2187,6 +2263,9 @@ func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+	if rejectBoardChannel(c, channel) {
+		return
+	}
 
 	user, err := c.App.GetUser(c.Params.UserId)
 	if err != nil {
@@ -2235,6 +2314,17 @@ func updateChannelScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireChannelId()
 	if c.Err != nil {
 		return
+	}
+
+	{
+		ch, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+		if rejectBoardChannel(c, ch) {
+			return
+		}
 	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventUpdateChannelScheme, model.AuditStatusFail)
@@ -2445,6 +2535,9 @@ func patchChannelModerations(c *Context, w http.ResponseWriter, r *http.Request)
 		c.Err = appErr
 		return
 	}
+	if rejectBoardChannel(c, channel) {
+		return
+	}
 	model.AddEventParameterAuditableToAuditRec(auditRec, "channel", channel)
 
 	var channelModerationsPatch []*model.ChannelModerationPatch
@@ -2482,6 +2575,9 @@ func moveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	channel, err := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
 	if err != nil {
 		c.Err = err
+		return
+	}
+	if rejectBoardChannel(c, channel) {
 		return
 	}
 
@@ -2626,6 +2722,15 @@ func convertGroupMessageToChannel(c *Context, w http.ResponseWriter, r *http.Req
 	// The channel id the payload must be the same one as indicated in the URL.
 	if gmConversionRequest.ChannelID != c.Params.ChannelId {
 		c.SetInvalidParam("channel_id")
+		return
+	}
+
+	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+	if rejectBoardChannel(c, channel) {
 		return
 	}
 

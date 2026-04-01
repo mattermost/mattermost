@@ -6836,3 +6836,279 @@ func TestChannelMemberSanitization(t *testing.T) {
 		assert.Equal(t, channel.Id, returnedMember.ChannelId, "ChannelId should be preserved")
 	})
 }
+
+func TestChannelEndpointsRejectBoards(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+	ctx := context.Background()
+
+	// Insert a board channel directly via store (bypassing API since POST /boards doesn't exist yet)
+	boardChannel, _, nErr := th.App.Srv().Store().Channel().SaveBoardChannel(th.Context, &model.Channel{
+		TeamId:      th.BasicTeam.Id,
+		DisplayName: "Test Board",
+		Name:        "board-" + model.NewId(),
+		Type:        model.ChannelTypeOpenBoard,
+		CreatorId:   th.BasicUser.Id,
+	}, -1, &model.View{
+		Type:      model.ViewTypeKanban,
+		CreatorId: th.BasicUser.Id,
+		Title:     "Default View",
+	})
+	require.NoError(t, nErr)
+
+	// Add the user as a member so they can access it
+	_, nErr = th.App.Srv().Store().Channel().SaveMember(th.Context, &model.ChannelMember{
+		ChannelId:   boardChannel.Id,
+		UserId:      th.BasicUser.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		SchemeAdmin: true,
+		SchemeUser:  true,
+	})
+	require.NoError(t, nErr)
+
+	// --- WRITE operations ---
+
+	t.Run("createChannel rejects board type", func(t *testing.T) {
+		_, resp, err := client.CreateChannel(ctx, &model.Channel{
+			DisplayName: "New Board",
+			Name:        "board-new-" + model.NewId(),
+			Type:        model.ChannelTypeOpenBoard,
+			TeamId:      th.BasicTeam.Id,
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("updateChannel rejects board", func(t *testing.T) {
+		_, resp, err := client.UpdateChannel(ctx, boardChannel)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("patchChannel rejects board", func(t *testing.T) {
+		newName := "patched"
+		_, resp, err := client.PatchChannel(ctx, boardChannel.Id, &model.ChannelPatch{
+			DisplayName: &newName,
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("deleteChannel rejects board", func(t *testing.T) {
+		resp, err := client.DeleteChannel(ctx, boardChannel.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("updateChannelPrivacy rejects board", func(t *testing.T) {
+		_, resp, err := client.UpdateChannelPrivacy(ctx, boardChannel.Id, model.ChannelTypePrivate)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("restoreChannel rejects board", func(t *testing.T) {
+		// Delete the channel first so restore has something to restore
+		_, _ = th.SystemAdminClient.DeleteChannel(ctx, boardChannel.Id)
+
+		_, resp, err := client.RestoreChannel(ctx, boardChannel.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		// Re-create the board channel for subsequent tests since delete may have succeeded
+		boardChannel, _, nErr = th.App.Srv().Store().Channel().SaveBoardChannel(th.Context, &model.Channel{
+			TeamId:      th.BasicTeam.Id,
+			DisplayName: "Test Board Restored",
+			Name:        "board-" + model.NewId(),
+			Type:        model.ChannelTypeOpenBoard,
+			CreatorId:   th.BasicUser.Id,
+		}, -1, &model.View{
+			Type:      model.ViewTypeKanban,
+			CreatorId: th.BasicUser.Id,
+			Title:     "Default View",
+		})
+		require.NoError(t, nErr)
+
+		_, nErr = th.App.Srv().Store().Channel().SaveMember(th.Context, &model.ChannelMember{
+			ChannelId:   boardChannel.Id,
+			UserId:      th.BasicUser.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+			SchemeAdmin: true,
+			SchemeUser:  true,
+		})
+		require.NoError(t, nErr)
+	})
+
+	t.Run("moveChannel rejects board", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.MoveChannel(ctx, boardChannel.Id, th.BasicTeam.Id, false)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("addChannelMember rejects board", func(t *testing.T) {
+		_, resp, err := client.AddChannelMember(ctx, boardChannel.Id, th.BasicUser2.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("removeChannelMember rejects board", func(t *testing.T) {
+		resp, err := client.RemoveUserFromChannel(ctx, boardChannel.Id, th.BasicUser.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("updateChannelMemberRoles rejects board", func(t *testing.T) {
+		resp, err := client.UpdateChannelRoles(ctx, boardChannel.Id, th.BasicUser.Id, "")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("updateChannelScheme rejects board", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.UpdateChannelScheme(ctx, boardChannel.Id, model.NewId())
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	// --- READ operations that should reject boards ---
+
+	t.Run("getChannel rejects board", func(t *testing.T) {
+		_, resp, err := client.GetChannel(ctx, boardChannel.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("getChannelStats rejects board", func(t *testing.T) {
+		_, resp, err := client.GetChannelStats(ctx, boardChannel.Id, "", false)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("getChannelMembers rejects board", func(t *testing.T) {
+		_, resp, err := client.GetChannelMembers(ctx, boardChannel.Id, 0, 60, "")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("getPinnedPosts rejects board", func(t *testing.T) {
+		_, resp, err := client.GetPinnedPosts(ctx, boardChannel.Id, "")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+}
+
+func TestChannelEndpointsExcludeBoards(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+
+	// Insert board channels directly via store
+	openBoard, _, nErr := th.App.Srv().Store().Channel().SaveBoardChannel(th.Context, &model.Channel{
+		TeamId:      th.BasicTeam.Id,
+		DisplayName: "Open Board",
+		Name:        "open-board-" + model.NewId(),
+		Type:        model.ChannelTypeOpenBoard,
+		CreatorId:   th.BasicUser.Id,
+	}, -1, &model.View{
+		Type:      model.ViewTypeKanban,
+		CreatorId: th.BasicUser.Id,
+		Title:     "Default View",
+	})
+	require.NoError(t, nErr)
+
+	privateBoard, _, nErr := th.App.Srv().Store().Channel().SaveBoardChannel(th.Context, &model.Channel{
+		TeamId:      th.BasicTeam.Id,
+		DisplayName: "Private Board",
+		Name:        "private-board-" + model.NewId(),
+		Type:        model.ChannelTypePrivateBoard,
+		CreatorId:   th.BasicUser.Id,
+	}, -1, &model.View{
+		Type:      model.ViewTypeKanban,
+		CreatorId: th.BasicUser.Id,
+		Title:     "Default View",
+	})
+	require.NoError(t, nErr)
+
+	// Add user as member of both boards
+	for _, boardCh := range []*model.Channel{openBoard, privateBoard} {
+		_, nErr = th.App.Srv().Store().Channel().SaveMember(th.Context, &model.ChannelMember{
+			ChannelId:   boardCh.Id,
+			UserId:      th.BasicUser.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+			SchemeAdmin: true,
+			SchemeUser:  true,
+		})
+		require.NoError(t, nErr)
+	}
+
+	// Helper to check board IDs are not in a channel list
+	assertNoBoardsInList := func(t *testing.T, channels []*model.Channel) {
+		t.Helper()
+		for _, ch := range channels {
+			assert.False(t, ch.IsBoard(), "board channel %s (type %s) should not appear in channel list", ch.Id, ch.Type)
+		}
+	}
+
+	ctx := context.Background()
+
+	t.Run("getPublicChannelsForTeam excludes boards", func(t *testing.T) {
+		channels, _, err := client.GetPublicChannelsForTeam(ctx, th.BasicTeam.Id, 0, 100, "")
+		require.NoError(t, err)
+		assertNoBoardsInList(t, channels)
+	})
+
+	t.Run("getDeletedChannelsForTeam excludes boards", func(t *testing.T) {
+		// Soft-delete the open board so it appears in deleted list
+		nErr := th.App.Srv().Store().Channel().Delete(openBoard.Id, model.GetMillis())
+		require.NoError(t, nErr)
+
+		channels, _, err := th.SystemAdminClient.GetDeletedChannelsForTeam(ctx, th.BasicTeam.Id, 0, 100, "")
+		require.NoError(t, err)
+		assertNoBoardsInList(t, channels)
+	})
+
+	t.Run("getPrivateChannelsForTeam excludes boards", func(t *testing.T) {
+		channels, _, err := th.SystemAdminClient.GetPrivateChannelsForTeam(ctx, th.BasicTeam.Id, 0, 100, "")
+		require.NoError(t, err)
+		assertNoBoardsInList(t, channels)
+	})
+
+	t.Run("searchChannelsForTeam excludes boards", func(t *testing.T) {
+		channels, _, err := client.SearchChannels(ctx, th.BasicTeam.Id, &model.ChannelSearch{Term: "board"})
+		require.NoError(t, err)
+		assertNoBoardsInList(t, channels)
+	})
+
+	t.Run("autocompleteChannelsForTeam excludes boards", func(t *testing.T) {
+		channels, _, err := client.AutocompleteChannelsForTeam(ctx, th.BasicTeam.Id, "board")
+		require.NoError(t, err)
+		assertNoBoardsInList(t, []*model.Channel(channels))
+	})
+
+	t.Run("searchAllChannels excludes boards", func(t *testing.T) {
+		channels, _, err := th.SystemAdminClient.SearchAllChannels(ctx, &model.ChannelSearch{Term: "board"})
+		require.NoError(t, err)
+		for _, ch := range channels {
+			assert.False(t, ch.IsBoard(), "board channel %s (type %s) should not appear in searchAllChannels results", ch.Id, ch.Type)
+		}
+	})
+
+	t.Run("getAllChannels excludes boards", func(t *testing.T) {
+		channels, _, err := th.SystemAdminClient.GetAllChannels(ctx, 0, 100, "")
+		require.NoError(t, err)
+		for _, ch := range channels {
+			assert.False(t, ch.IsBoard(), "board channel %s (type %s) should not appear in getAllChannels results", ch.Id, ch.Type)
+		}
+	})
+
+	t.Run("getChannelsForTeamForUser excludes boards", func(t *testing.T) {
+		channels, _, err := client.GetChannelsForTeamForUser(ctx, th.BasicTeam.Id, th.BasicUser.Id, false, "")
+		require.NoError(t, err)
+		assertNoBoardsInList(t, channels)
+	})
+
+	t.Run("getChannelsForUser excludes boards", func(t *testing.T) {
+		channels, _, err := client.GetChannelsForUserWithLastDeleteAt(ctx, th.BasicUser.Id, 0)
+		require.NoError(t, err)
+		assertNoBoardsInList(t, channels)
+	})
+}

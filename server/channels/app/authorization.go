@@ -468,7 +468,7 @@ func (a *App) HasPermissionToReadChannel(rctx request.CTX, userID string, channe
 		return true, member
 	}
 
-	if channel.Type == model.ChannelTypeOpen && !*a.Config().ComplianceSettings.Enable {
+	if (channel.Type == model.ChannelTypeOpen || channel.Type == model.ChannelTypeOpenBoard) && !*a.Config().ComplianceSettings.Enable {
 		return a.HasPermissionToTeam(rctx, userID, channel.TeamId, model.PermissionReadPublicChannel), false
 	}
 
@@ -480,7 +480,7 @@ func (a *App) HasPermissionToChannelMemberCount(rctx request.CTX, userID string,
 		return true
 	}
 
-	if channel.Type == model.ChannelTypeOpen {
+	if channel.Type == model.ChannelTypeOpen || channel.Type == model.ChannelTypeOpenBoard {
 		return a.HasPermissionToTeam(rctx, userID, channel.TeamId, model.PermissionListTeamChannels)
 	}
 
