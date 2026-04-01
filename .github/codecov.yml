@@ -10,8 +10,10 @@ coverage:
     project:
       default:
         threshold: 1.0
-codecov:
-  notify:
-    after_n_builds: 2 # Server and webapp at this point
+flags:
+  server:
+    after_n_builds: 4 # 4 server test shards
+  webapp:
+    after_n_builds: 1 # 1 merged webapp upload
 ignore:
   - ^store/storetest.*
