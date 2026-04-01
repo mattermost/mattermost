@@ -778,7 +778,6 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                             id: channelID, // Channel-level policies use the channel ID as policy ID
                             name: accessControlPolicy?.name || `Channel Rules for ${channel.display_name}`,
                             type: 'channel',
-                            version: accessControlPolicy?.version || 'v0.2',
                             revision: accessControlPolicy ? (accessControlPolicy.revision || 1) + 1 : 1,
                             created_at: accessControlPolicy?.created_at || Date.now(),
                             active: false, // Always save as false initially, then update separately
@@ -788,7 +787,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
 
                             // Add/update channel-level rules
                             rules: [{
-                                actions: ['*'],
+                                actions: ['membership'],
                                 expression: channelRulesExpression,
                             }],
                         };
@@ -848,7 +847,6 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                                 id: accessControlPolicy?.id || channelID,
                                 name: accessControlPolicy?.name || channel.display_name,
                                 type: 'channel',
-                                version: accessControlPolicy?.version || 'v0.2',
                                 created_at: accessControlPolicy?.created_at || Date.now(),
                                 revision: (accessControlPolicy?.revision || 1) + 1,
                                 active: channelRulesAutoSync,

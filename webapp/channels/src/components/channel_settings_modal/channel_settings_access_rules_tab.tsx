@@ -400,12 +400,11 @@ function ChannelSettingsAccessRulesTab({
                 id: channel.id,
                 name: channel.display_name,
                 type: 'channel',
-                version: 'v0.2',
                 active: false, // Always save as false initially, then update separately
                 revision: 1,
                 created_at: Date.now(),
                 rules: expression.trim() ? [{
-                    actions: ['*'],
+                    actions: ['membership'],
                     expression: expression.trim(),
                 }] : [],
                 imports: systemPolicies.map((p) => p.id), // Include existing parent policies

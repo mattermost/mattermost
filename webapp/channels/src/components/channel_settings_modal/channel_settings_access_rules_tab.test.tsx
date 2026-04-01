@@ -909,12 +909,11 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 id: 'channel_id',
                 name: 'Test Channel',
                 type: 'channel',
-                version: 'v0.2',
                 active: false, // Policy starts as inactive until job completes
                 revision: 1,
                 created_at: expect.any(Number),
                 rules: [{
-                    actions: ['*'],
+                    actions: ['membership'],
                     expression: 'user.attributes.department == "Engineering"',
                 }],
                 imports: [],

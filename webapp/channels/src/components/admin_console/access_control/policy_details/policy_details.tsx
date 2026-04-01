@@ -197,9 +197,8 @@ function PolicyDetails({
             await actions.createPolicy({
                 id: currentPolicyId || '',
                 name: policyName,
-                rules: [{expression, actions: ['*']}] as AccessControlPolicyRule[],
+                rules: [{expression, actions: ['membership']}] as AccessControlPolicyRule[],
                 type: 'parent',
-                version: 'v0.2',
             }).then((result) => {
                 if (result.error) {
                     if (result.error.server_error_id === 'app.pap.save_policy.name_exists.app_error') {

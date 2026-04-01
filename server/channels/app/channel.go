@@ -1755,7 +1755,7 @@ func (a *App) addUserToChannel(rctx request.CTX, user *model.User, channel *mode
 						Type: model.AccessControlPolicyTypeChannel,
 						ID:   channel.Id,
 					},
-					Action: "join_channel",
+					Action: "membership",
 				})
 				if evalErr != nil {
 					return nil, evalErr
