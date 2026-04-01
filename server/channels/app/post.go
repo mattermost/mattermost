@@ -3229,11 +3229,9 @@ func (a *App) RewriteMessage(
 	if rootID != "" {
 		context, appErr := a.buildThreadContextForRewrite(rctx, rootID)
 		if appErr != nil {
-			// Log error but continue without context rather than failing the rewrite
-			rctx.Logger().Warn("Failed to build thread context for rewrite", mlog.String("root_id", rootID), mlog.Err(appErr))
-		} else {
-			threadContext = context
+			return nil, appErr
 		}
+		threadContext = context
 	}
 
 	userPrompt := getRewritePromptForAction(action, message, customPrompt, threadContext)
@@ -3290,8 +3288,17 @@ func (a *App) RewriteMessage(
 func (a *App) buildThreadContextForRewrite(rctx request.CTX, rootID string) (string, *model.AppError) {
 	const maxContextPosts = 10
 
-	// Get the thread posts
-	postList, appErr := a.GetPostThread(rctx, rootID, model.GetPostsOptions{}, rctx.Session().UserId)
+	anchorPost, appErr, _ := a.GetPostIfAuthorized(rctx, rootID, rctx.Session(), false)
+	if appErr != nil {
+		return "", appErr
+	}
+	threadRootID := anchorPost.RootId
+	if threadRootID == "" {
+		threadRootID = anchorPost.Id
+	}
+
+	// Get the thread posts (only after confirming the session may read the anchor post's channel)
+	postList, appErr := a.GetPostThread(rctx, anchorPost.Id, model.GetPostsOptions{}, rctx.Session().UserId)
 	if appErr != nil {
 		return "", appErr
 	}
@@ -3301,7 +3308,7 @@ func (a *App) buildThreadContextForRewrite(rctx request.CTX, rootID string) (str
 	}
 
 	// Get root post
-	rootPost, ok := postList.Posts[rootID]
+	rootPost, ok := postList.Posts[threadRootID]
 	if !ok {
 		return "", nil
 	}
@@ -3314,7 +3321,7 @@ func (a *App) buildThreadContextForRewrite(rctx request.CTX, rootID string) (str
 	// Collect reply posts, filtering out system posts and deleted posts
 	var replies []*model.Post
 	for _, postID := range postList.Order {
-		if postID == rootID {
+		if postID == threadRootID {
 			continue // Skip root post
 		}
 		post, ok := postList.Posts[postID]

@@ -41,6 +41,11 @@ on:
         type: string
         required: false
         description: "Source branch name for webhook messages (e.g., 'master' or 'release-11.4')"
+      should_run:
+        type: string
+        required: false
+        default: "true"
+        description: "Set to 'false' to skip tests and post a success status without running E2E"
     secrets:
       MM_LICENSE:
         required: false
@@ -135,9 +140,31 @@ jobs:
             *) echo "context_suffix=" >> $GITHUB_OUTPUT ;;
           esac
 
+  skip:
+    needs:
+      - generate-build-variables
+    if: inputs.should_run == 'false'
+    runs-on: ubuntu-24.04
+    permissions:
+      statuses: write
+    steps:
+      - name: ci/post-skip-status
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMMIT_SHA: ${{ inputs.commit_sha }}
+          CONTEXT_NAME: "e2e-test/cypress-full/${{ inputs.server_edition || 'enterprise' }}${{ needs.generate-build-variables.outputs.context_suffix }}"
+        run: |
+          gh api repos/${{ github.repository }}/statuses/${COMMIT_SHA} \
+            -f state=success \
+            -f context="${CONTEXT_NAME}" \
+            -f description="No E2E-relevant changes - skipped" \
+            -f target_url="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          echo "Posted success for ${CONTEXT_NAME}"
+
   cypress-full:
     needs:
       - generate-build-variables
+    if: inputs.should_run != 'false'
     uses: ./.github/workflows/e2e-tests-cypress-template.yml
     with:
       test_type: full
