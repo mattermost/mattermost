@@ -52,7 +52,7 @@ exports[`components/TextBox should match snapshot with additional, optional prop
     listPosition="top"
     onBlur={[Function]}
     onChange={[Function]}
-    onComposition={[MockFunction]}
+    onCompositionUpdate={[MockFunction]}
     onHeightChange={[MockFunction]}
     onKeyDown={[Function]}
     onKeyPress={[MockFunction]}

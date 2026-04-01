@@ -70,7 +70,7 @@ describe('components/TextBox', () => {
             createMessage: 'placeholder text',
             supportsCommands: false,
             rootId: 'root_id',
-            onComposition: jest.fn().mockReturnValue({}),
+            onCompositionUpdate: jest.fn().mockReturnValue({}),
             onHeightChange: jest.fn().mockReturnValue({}),
             onKeyDown: jest.fn().mockReturnValue({}),
             onMouseUp: jest.fn().mockReturnValue({}),
