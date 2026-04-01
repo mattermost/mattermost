@@ -168,9 +168,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 
 		// Launch a goroutine to make the first CreatePost call that will get delayed
 		// by the plugin above.
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			var appErr *model.AppError
 			post, _, appErr = th.App.CreatePostAsUser(th.Context.WithSession(session), &model.Post{
 				UserId:        th.BasicUser.Id,
@@ -180,7 +178,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 			}, session.Id, true)
 			require.Nil(t, appErr)
 			require.Equal(t, post.Message, "plugin delayed")
-		}()
+		})
 
 		// Give the goroutine above a chance to start and get delayed by the plugin.
 		time.Sleep(2 * time.Second)
@@ -1372,6 +1370,70 @@ func TestCreatePost(t *testing.T) {
 		createdPost, _, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 		require.Empty(t, createdPost.FileIds)
+	})
+
+	t.Run("should reject burn-on-read posts in shared channels", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
+		t.Cleanup(func() {
+			os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
+		})
+		th := setupSharedChannels(t).InitBasic(t)
+		enableBoRFeature(th)
+
+		channel := th.CreateChannel(t, th.BasicTeam)
+
+		sc := &model.SharedChannel{
+			ChannelId: channel.Id,
+			TeamId:    th.BasicTeam.Id,
+			Type:      channel.Type,
+			Home:      true,
+			ShareName: "shared-bor-test",
+			CreatorId: th.BasicUser.Id,
+			RemoteId:  model.NewId(),
+		}
+		_, scErr := th.Server.Store().SharedChannel().Save(sc)
+		require.NoError(t, scErr)
+
+		channel.Shared = model.NewPointer(true)
+		_, err := th.Server.Store().Channel().Update(th.Context, channel)
+		require.NoError(t, err)
+
+		post := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "burn-on-read in shared channel",
+			Type:      model.PostTypeBurnOnRead,
+		}
+
+		createdPost, _, appErr := th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{SetOnline: true})
+		require.NotNil(t, appErr)
+		require.Nil(t, createdPost)
+		require.Equal(t, "api.post.fill_in_post_props.burn_on_read.shared_channel.app_error", appErr.Id)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("should allow burn-on-read posts in non-shared channels", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
+		t.Cleanup(func() {
+			os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
+		})
+		th := Setup(t).InitBasic(t)
+		enableBoRFeature(th)
+
+		channel := th.CreateChannel(t, th.BasicTeam)
+		require.False(t, channel.IsShared())
+
+		post := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "burn-on-read in non-shared channel",
+			Type:      model.PostTypeBurnOnRead,
+		}
+
+		createdPost, _, appErr := th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+		require.NotNil(t, createdPost)
+		require.Equal(t, model.PostTypeBurnOnRead, createdPost.Type)
 	})
 }
 
@@ -3574,12 +3636,10 @@ func TestCollapsedThreadFetch(t *testing.T) {
 
 		// we introduce a race to trigger an unexpected error from the db side.
 		var wg sync.WaitGroup
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			err := th.Server.Store().Post().PermanentDeleteByUser(th.Context, user1.Id)
 			require.NoError(t, err)
-		}()
+		})
 
 		require.NotPanics(t, func() {
 			// We're only testing that this doesn't panic, not checking the error
@@ -3861,6 +3921,213 @@ func TestGetPostIfAuthorized(t *testing.T) {
 		// User is authorized to get post
 		_, err, _ = th.App.GetPostIfAuthorized(th.Context, post.Id, session1, false)
 		require.Nil(t, err)
+	})
+}
+
+// MM-68140: thread context for rewrite must not be built from posts in channels the session cannot read.
+func TestBuildThreadContextForRewriteRequiresChannelReadAccess(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	t.Run("direct message between other users", func(t *testing.T) {
+		secretToken := "MM68140_SECRET_DM_THREAD_" + model.NewId()
+		dm := th.CreateDmChannel(t, th.BasicUser2)
+		root, _, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: dm.Id,
+			Message:   secretToken,
+		}, dm, model.CreatePostFlags{})
+		require.Nil(t, err)
+
+		_, _, err = th.App.CreatePost(th.Context, &model.Post{
+			RootId:    root.Id,
+			UserId:    th.BasicUser2.Id,
+			ChannelId: dm.Id,
+			Message:   "reply only visible to DM participants",
+		}, dm, model.CreatePostFlags{})
+		require.Nil(t, err)
+
+		attacker := th.CreateUser(t)
+		session, err := th.App.CreateSession(th.Context, &model.Session{UserId: attacker.Id, Props: model.StringMap{}})
+		require.Nil(t, err)
+		ctx := th.Context.WithSession(session)
+
+		contextStr, appErr := th.App.buildThreadContextForRewrite(ctx, root.Id)
+
+		require.NotNil(t, appErr, "expected permission error when root_id is in a channel the user cannot read, got nil")
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		assert.NotContains(t, contextStr, secretToken)
+	})
+
+	t.Run("private channel the user is not a member of", func(t *testing.T) {
+		secretToken := "MM68140_SECRET_PRIVATE_THREAD_" + model.NewId()
+		privateCh := th.CreatePrivateChannel(t, th.BasicTeam)
+		root, _, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: privateCh.Id,
+			Message:   secretToken,
+		}, privateCh, model.CreatePostFlags{})
+		require.Nil(t, err)
+
+		session, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser2.Id, Props: model.StringMap{}})
+		require.Nil(t, err)
+		ctx := th.Context.WithSession(session)
+
+		contextStr, appErr := th.App.buildThreadContextForRewrite(ctx, root.Id)
+
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		assert.NotContains(t, contextStr, secretToken)
+	})
+}
+
+// MM-68140: additional edge cases for thread context authorization and anchor resolution.
+func TestBuildThreadContextForRewriteEdgeCasesMM68140(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	t.Run("reply post id as root_id resolves thread and includes root message", func(t *testing.T) {
+		_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
+		require.Nil(t, appErr)
+
+		rootSecret := "MM68140_ROOT_VIA_REPLY_ANCHOR_" + model.NewId()
+		root, _, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   rootSecret,
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, err)
+
+		reply, _, err := th.App.CreatePost(th.Context, &model.Post{
+			RootId:    root.Id,
+			UserId:    th.BasicUser2.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "reply anchor",
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, err)
+
+		session, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser2.Id, Props: model.StringMap{}})
+		require.Nil(t, err)
+		ctx := th.Context.WithSession(session)
+
+		contextStr, appErr := th.App.buildThreadContextForRewrite(ctx, reply.Id)
+		require.Nil(t, appErr)
+		assert.Contains(t, contextStr, rootSecret)
+		assert.Contains(t, contextStr, "reply anchor")
+	})
+
+	t.Run("nonexistent post id returns not found", func(t *testing.T) {
+		session, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+		require.Nil(t, err)
+		ctx := th.Context.WithSession(session)
+
+		_, appErr := th.App.buildThreadContextForRewrite(ctx, model.NewId())
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
+	})
+
+	t.Run("soft-deleted anchor post returns not found", func(t *testing.T) {
+		root, _, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "to be deleted",
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, err)
+
+		_, err = th.App.DeletePost(th.Context, root.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		session, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+		require.Nil(t, err)
+		ctx := th.Context.WithSession(session)
+
+		_, appErr := th.App.buildThreadContextForRewrite(ctx, root.Id)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
+	})
+
+	t.Run("guest on team cannot use root_id for private channel they are not in", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.GuestAccountsSettings.Enable = true
+		})
+
+		guest := th.CreateGuest(t)
+		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, guest.Id, "")
+		require.Nil(t, appErr)
+
+		privateCh := th.CreatePrivateChannel(t, th.BasicTeam)
+		secretToken := "MM68140_GUEST_PRIVATE_" + model.NewId()
+		root, _, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: privateCh.Id,
+			Message:   secretToken,
+		}, privateCh, model.CreatePostFlags{})
+		require.Nil(t, err)
+
+		session, err := th.App.CreateSession(th.Context, &model.Session{UserId: guest.Id, Props: model.StringMap{}})
+		require.Nil(t, err)
+		ctx := th.Context.WithSession(session)
+
+		contextStr, appErr := th.App.buildThreadContextForRewrite(ctx, root.Id)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		assert.NotContains(t, contextStr, secretToken)
+	})
+
+	t.Run("system admin may read thread context for DM they do not participate in", func(t *testing.T) {
+		dm := th.CreateDmChannel(t, th.BasicUser2)
+		secretToken := "MM68140_ADMIN_DM_THREAD_" + model.NewId()
+		root, _, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: dm.Id,
+			Message:   secretToken,
+		}, dm, model.CreatePostFlags{})
+		require.Nil(t, err)
+
+		_, _, err = th.App.CreatePost(th.Context, &model.Post{
+			RootId:    root.Id,
+			UserId:    th.BasicUser2.Id,
+			ChannelId: dm.Id,
+			Message:   "dm reply",
+		}, dm, model.CreatePostFlags{})
+		require.Nil(t, err)
+
+		session, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.SystemAdminUser.Id, Props: model.StringMap{}})
+		require.Nil(t, err)
+		ctx := th.Context.WithSession(session)
+
+		contextStr, appErr := th.App.buildThreadContextForRewrite(ctx, root.Id)
+		require.Nil(t, appErr)
+		assert.Contains(t, contextStr, secretToken)
+	})
+
+	t.Run("member can build context after channel is archived", func(t *testing.T) {
+		ch := th.CreateChannel(t, th.BasicTeam)
+		root, _, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: ch.Id,
+			Message:   "MM68140_ARCHIVED_ROOT",
+		}, ch, model.CreatePostFlags{})
+		require.Nil(t, err)
+
+		_, _, err = th.App.CreatePost(th.Context, &model.Post{
+			RootId:    root.Id,
+			UserId:    th.BasicUser.Id,
+			ChannelId: ch.Id,
+			Message:   "reply in archived",
+		}, ch, model.CreatePostFlags{})
+		require.Nil(t, err)
+
+		appErr := th.App.DeleteChannel(th.Context, ch, th.SystemAdminUser.Id)
+		require.Nil(t, appErr)
+
+		session, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+		require.Nil(t, err)
+		ctx := th.Context.WithSession(session)
+
+		contextStr, appErr := th.App.buildThreadContextForRewrite(ctx, root.Id)
+		require.Nil(t, appErr)
+		assert.Contains(t, contextStr, "MM68140_ARCHIVED_ROOT")
 	})
 }
 
