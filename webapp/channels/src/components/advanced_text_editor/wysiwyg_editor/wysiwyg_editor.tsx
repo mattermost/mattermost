@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {CodeBlockLowlight} from '@tiptap/extension-code-block-lowlight';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import {Table} from '@tiptap/extension-table';
@@ -12,11 +13,14 @@ import {splitListItem} from '@tiptap/pm/schema-list';
 import {EditorContent, useEditor} from '@tiptap/react';
 import type {Editor} from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import {common, createLowlight} from 'lowlight';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef} from 'react';
 
 import {MattermostListCompat} from './mattermost_list_extension';
 
 import './wysiwyg_editor.scss';
+
+const lowlight = createLowlight(common);
 
 export type WysiwygEditorHandle = {
     getEditor: () => Editor | null;
@@ -76,6 +80,10 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
         extensions: [
             StarterKit.configure({
                 heading: {levels: [1, 2, 3, 4, 5, 6]},
+                codeBlock: false,
+            }),
+            CodeBlockLowlight.configure({
+                lowlight,
             }),
             Link.configure({
                 openOnClick: false,

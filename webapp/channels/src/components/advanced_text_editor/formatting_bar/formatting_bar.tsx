@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {useFloating, offset, useClick, useDismiss, useInteractions} from '@floating-ui/react';
+import type {Editor} from '@tiptap/react';
 import classNames from 'classnames';
 import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
@@ -12,12 +13,11 @@ import {DotsHorizontalIcon} from '@mattermost/compass-icons/components';
 
 import WithTooltip from 'components/with_tooltip';
 
-import type {Editor} from '@tiptap/react';
-
 import type {ApplyMarkdownOptions, MarkdownMode} from 'utils/markdown/apply_markdown';
 
 import FormattingIcon, {IconContainer} from './formatting_icon';
 import {LayoutModes, useFormattingBarControls} from './hooks';
+import TextStyleDropdown from './text_style_dropdown';
 
 export const Separator = styled.div`
     display: block;
@@ -277,6 +277,15 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
             ref={formattingBarRef}
             data-testid='formattingBarContainer'
         >
+            {getWysiwygEditor && (
+                <>
+                    <TextStyleDropdown
+                        getWysiwygEditor={getWysiwygEditor}
+                        disabled={disableControls}
+                    />
+                    {showSeparators && <Separator/>}
+                </>
+            )}
             {controls.map((mode) => {
                 return (
                     <React.Fragment key={mode}>
