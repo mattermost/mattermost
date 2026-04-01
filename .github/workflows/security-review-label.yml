@@ -1,0 +1,35 @@
+---
+name: "Security Review"
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, labeled, unlabeled]
+
+permissions:
+  statuses: write
+
+jobs:
+  check-security-review:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: ci/check-security-review-label
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          LABELS=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} --jq '.labels[].name')
+
+          if echo "$LABELS" | grep -qF "3: Security Review"; then
+            gh api repos/${{ github.repository }}/statuses/${COMMIT_SHA} \
+              -f state=failure \
+              -f context="Security Review" \
+              -f description="PR is pending security review"
+            echo "Blocking merge: '3: Security Review' label is present"
+            exit 1
+          else
+            gh api repos/${{ github.repository }}/statuses/${COMMIT_SHA} \
+              -f state=success \
+              -f context="Security Review" \
+              -f description="Security review complete or not required"
+            echo "No '3: Security Review' label found"
+          fi
