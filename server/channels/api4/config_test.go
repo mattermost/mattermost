@@ -601,7 +601,7 @@ func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
 }
 
 func TestGetEnvironmentConfig(t *testing.T) {
-	// These MUST be os.Setenv (not UpdateConfig) because GetEnvironmentConfig
+	// These MUST be t.Setenv (not UpdateConfig) because GetEnvironmentConfig
 	// returns only config values sourced from environment variables.
 	// t.Setenv prevents t.Parallel — intentionally serial.
 	t.Setenv("MM_SERVICESETTINGS_SITEURL", "http://example.mattermost.com")
