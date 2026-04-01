@@ -21,6 +21,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/password/hashers"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
@@ -177,7 +178,7 @@ func (us SqlUserStore) Save(rctx request.CTX, user *model.User) (*model.User, er
 		return nil, store.NewErrInvalidInput("User", "id", user.Id)
 	}
 
-	if err := user.PreSave(); err != nil {
+	if err := user.PreSave(hashers.GetLatestHasher()); err != nil {
 		return nil, err
 	}
 	if err := user.IsValid(); err != nil {
