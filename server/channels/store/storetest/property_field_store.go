@@ -222,7 +222,8 @@ func testGetPropertyField(t *testing.T, _ request.CTX, ss store.Store, s SqlStor
 	t.Run("should fail on nonexisting field", func(t *testing.T) {
 		field, err := ss.PropertyField().Get("", model.NewId())
 		require.Zero(t, field)
-		require.ErrorIs(t, err, sql.ErrNoRows)
+		var notFoundErr *store.ErrNotFound
+		require.ErrorAs(t, err, &notFoundErr)
 	})
 
 	groupID := model.NewId()
@@ -257,7 +258,8 @@ func testGetPropertyField(t *testing.T, _ request.CTX, ss store.Store, s SqlStor
 	t.Run("should not be able to retrieve an existing field when specifying a different group ID", func(t *testing.T) {
 		field, err := ss.PropertyField().Get(model.NewId(), newField.ID)
 		require.Zero(t, field)
-		require.ErrorIs(t, err, sql.ErrNoRows)
+		var notFoundErr *store.ErrNotFound
+		require.ErrorAs(t, err, &notFoundErr)
 	})
 
 	t.Run("null columns, before createdBy, updatedBy, protected and permissions migrations", func(t *testing.T) {

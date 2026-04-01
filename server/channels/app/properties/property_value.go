@@ -27,7 +27,7 @@ func (ps *PropertyService) rejectTemplateValues(values []*model.PropertyValue) e
 	}
 
 	for key := range seen {
-		field, err := ps.fieldStore.GetFromMaster(key.groupID, key.fieldID)
+		field, err := ps.fieldStore.GetFromMaster("", key.fieldID)
 		if err != nil {
 			return fmt.Errorf("failed to look up field %q: %w", key.fieldID, err)
 		}
