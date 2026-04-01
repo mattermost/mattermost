@@ -147,6 +147,13 @@ func setupTestHelper(dbStore store.Store, dbSettings *model.SqlSettings, enterpr
 
 	memoryConfig := configStore.Get()
 	memoryConfig.SqlSettings = *dbSettings
+	// Disable connection pool cleanup goroutines to prevent DATA RACE with
+	// testify mock argument diffing under the race detector. The sql.DB
+	// connectionCleaner goroutine writes to internal fields while testify's
+	// mock.Called() → Arguments.Diff() → fmt.Sprintf reads them via reflect.
+	// Setting lifetime/idle to 0 prevents the cleaner from starting.
+	memoryConfig.SqlSettings.ConnMaxLifetimeMilliseconds = model.NewPointer(0)
+	memoryConfig.SqlSettings.ConnMaxIdleTimeMilliseconds = model.NewPointer(0)
 	*memoryConfig.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
 	*memoryConfig.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
 	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
