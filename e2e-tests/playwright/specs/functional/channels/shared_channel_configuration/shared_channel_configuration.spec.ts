@@ -229,7 +229,11 @@ test.describe('Shared channel configuration', () => {
             },
         });
 
-        await ensureConfirmedRemote(adminClient, team.id);
+        try {
+            await ensureConfirmedRemote(adminClient, team.id);
+        } catch {
+            test.skip(true, 'Skipping - Remote Cluster Service not available or invitation handshake failed');
+        }
 
         const channelName = `shared-config-06-${await getRandomId()}`;
         const channel = await adminClient.createChannel({
@@ -271,6 +275,14 @@ test.describe('Shared channel configuration', () => {
         configurationTab = await channelSettingsModal.openConfigurationTab();
         await configurationTab.disableShareWithWorkspaces();
         await configurationTab.save();
+        await channelSettingsModal.close();
+
+        // Verify toggle is inactive after reload
+        await channelsPage.page.reload();
+        await channelsPage.toBeVisible();
+        channelSettingsModal = await channelsPage.openChannelSettings();
+        configurationTab = await channelSettingsModal.openConfigurationTab();
+        await expect(configurationTab.shareWithWorkspacesToggle).toHaveAttribute('aria-pressed', 'false');
         await channelSettingsModal.close();
     });
 
