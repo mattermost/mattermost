@@ -169,6 +169,6 @@ func CleanupSqlSettings(settings *model.SqlSettings) {
 	}
 
 	if err := execAsRoot(settings, "DROP DATABASE "+dbName); err != nil {
-		panic("failed to drop temporary database " + dbName + ": " + err.Error())
+		mlog.Warn("failed to drop temporary database", mlog.String("database", dbName), mlog.Err(err))
 	}
 }

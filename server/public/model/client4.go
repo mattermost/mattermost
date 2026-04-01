@@ -356,6 +356,10 @@ func (c *Client4) systemRoute() clientRoute {
 	return newClientRoute("system")
 }
 
+func (c *Client4) aiBridgeTestHelperRoute() clientRoute {
+	return c.systemRoute().Join("e2e", "ai_bridge")
+}
+
 func (c *Client4) cloudRoute() clientRoute {
 	return newClientRoute("cloud")
 }
@@ -641,6 +645,14 @@ func (c *Client4) bookmarkRoute(channelId, bookmarkId string) clientRoute {
 	return c.bookmarksRoute(channelId).Join(bookmarkId)
 }
 
+func (c *Client4) viewsRoute(channelId string) clientRoute {
+	return c.channelRoute(channelId).Join("views")
+}
+
+func (c *Client4) viewRoute(channelId, viewId string) clientRoute {
+	return c.viewsRoute(channelId).Join(viewId)
+}
+
 func (c *Client4) clientPerfMetricsRoute() clientRoute {
 	return newClientRoute("client_perf")
 }
@@ -659,6 +671,18 @@ func (c *Client4) customProfileAttributeFieldRoute(fieldID string) clientRoute {
 
 func (c *Client4) customProfileAttributeValuesRoute() clientRoute {
 	return c.customProfileAttributesRoute().Join("values")
+}
+
+func (c *Client4) propertyFieldsRoute(groupName, objectType string) clientRoute {
+	return newClientRoute("properties").Join("groups", groupName, objectType, "fields")
+}
+
+func (c *Client4) propertyFieldRoute(groupName, objectType, fieldID string) clientRoute {
+	return c.propertyFieldsRoute(groupName, objectType).Join(fieldID)
+}
+
+func (c *Client4) propertyValuesRoute(groupName, objectType, targetID string) clientRoute {
+	return newClientRoute("properties").Join("groups", groupName, objectType, "values", targetID)
 }
 
 func (c *Client4) accessControlPoliciesRoute() clientRoute {
@@ -7557,6 +7581,33 @@ func (c *Client4) GetAppliedSchemaMigrations(ctx context.Context) ([]AppliedMigr
 	return DecodeJSONFromResponse[[]AppliedMigration](r)
 }
 
+func (c *Client4) SetAIBridgeTestHelper(ctx context.Context, config *AIBridgeTestHelperConfig) (*AIBridgeTestHelperState, *Response, error) {
+	r, err := c.doAPIPutJSON(ctx, c.aiBridgeTestHelperRoute(), config)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*AIBridgeTestHelperState](r)
+}
+
+func (c *Client4) GetAIBridgeTestHelper(ctx context.Context) (*AIBridgeTestHelperState, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.aiBridgeTestHelperRoute(), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*AIBridgeTestHelperState](r)
+}
+
+func (c *Client4) DeleteAIBridgeTestHelper(ctx context.Context) (*Response, error) {
+	r, err := c.doAPIDelete(ctx, c.aiBridgeTestHelperRoute())
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 // Usage Section
 
 // GetPostsUsage returns rounded off total usage of posts for the instance
@@ -7687,6 +7738,112 @@ func (c *Client4) ListChannelBookmarksForChannel(ctx context.Context, channelId 
 	return DecodeJSONFromResponse[[]*ChannelBookmarkWithFileInfo](r)
 }
 
+// CreateView creates a view for a channel.
+func (c *Client4) CreateView(ctx context.Context, channelId string, view *View) (*View, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.viewsRoute(channelId), view)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*View](r)
+}
+
+// GetView gets a single view by ID.
+func (c *Client4) GetView(ctx context.Context, channelId, viewId string) (*View, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.viewRoute(channelId, viewId), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*View](r)
+}
+
+// GetViewsForChannel lists views for a channel with page-based pagination.
+func (c *Client4) GetViewsForChannel(ctx context.Context, channelId string, opts ...ViewQueryOpts) ([]*View, *Response, error) {
+	r, err := c.doAPIGetWithQuery(ctx, c.viewsRoute(channelId), c.viewQueryValues(opts...), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*View](r)
+}
+
+// GetViewsForChannelWithCount lists views for a channel with page-based pagination and total count.
+func (c *Client4) GetViewsForChannelWithCount(ctx context.Context, channelId string, opts ...ViewQueryOpts) ([]*View, int64, *Response, error) {
+	query := c.viewQueryValues(opts...)
+	query.Set("include_total_count", c.boolString(true))
+
+	r, err := c.doAPIGetWithQuery(ctx, c.viewsRoute(channelId), query, "")
+	if err != nil {
+		return nil, 0, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	vwc, resp, err := DecodeJSONFromResponse[*ViewsWithCount](r)
+	if err != nil {
+		return nil, 0, resp, err
+	}
+	return vwc.Views, vwc.TotalCount, resp, nil
+}
+
+func (c *Client4) viewQueryValues(opts ...ViewQueryOpts) url.Values {
+	query := url.Values{}
+	if len(opts) > 0 {
+		o := opts[0]
+		if o.PerPage > 0 {
+			query.Set("per_page", strconv.Itoa(o.PerPage))
+		}
+		if o.Page > 0 {
+			query.Set("page", strconv.Itoa(o.Page))
+		}
+	}
+	return query
+}
+
+// GetPostsForView gets a page of posts for a specific view (board) in a channel.
+// TODO: Pagination will change once we support filtering/sorting by property values.
+func (c *Client4) GetPostsForView(ctx context.Context, channelId, viewId string, page, perPage int) (*PostList, *Response, error) {
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.doAPIGetWithQuery(ctx, c.viewRoute(channelId, viewId).Join("posts"), values, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*PostList](r)
+}
+
+// UpdateView patches a view.
+func (c *Client4) UpdateView(ctx context.Context, channelId, viewId string, patch *ViewPatch) (*View, *Response, error) {
+	r, err := c.doAPIPatchJSON(ctx, c.viewRoute(channelId, viewId), patch)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*View](r)
+}
+
+// DeleteView soft-deletes a view.
+func (c *Client4) DeleteView(ctx context.Context, channelId, viewId string) (*Response, error) {
+	r, err := c.doAPIDelete(ctx, c.viewRoute(channelId, viewId))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+// UpdateViewSortOrder moves a view to a new position within its channel.
+func (c *Client4) UpdateViewSortOrder(ctx context.Context, channelId, viewId string, sortOrder int64) ([]*View, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.viewRoute(channelId, viewId).Join("sort_order"), sortOrder)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*View](r)
+}
+
 func (c *Client4) SubmitClientMetrics(ctx context.Context, report *PerformanceReport) (*Response, error) {
 	res, err := c.doAPIPostJSON(ctx, c.clientPerfMetricsRoute(), report)
 	if err != nil {
@@ -7793,6 +7950,87 @@ func (c *Client4) PatchCPAValuesForUser(ctx context.Context, userID string, valu
 	}
 	defer closeBody(r)
 	return DecodeJSONFromResponse[map[string]json.RawMessage](r)
+}
+
+func (c *Client4) CreatePropertyField(ctx context.Context, groupName, objectType string, field *PropertyField) (*PropertyField, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.propertyFieldsRoute(groupName, objectType), field)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*PropertyField](r)
+}
+
+// GetPropertyFields returns property fields matching the given search parameters.
+func (c *Client4) GetPropertyFields(ctx context.Context, groupName, objectType string, search PropertyFieldSearch) ([]*PropertyField, *Response, error) {
+	values := url.Values{}
+	if search.PerPage > 0 {
+		values.Set("per_page", strconv.Itoa(search.PerPage))
+	}
+	if search.TargetType != "" {
+		values.Set("target_type", search.TargetType)
+	}
+	if search.TargetID != "" {
+		values.Set("target_id", search.TargetID)
+	}
+	if search.CursorID != "" && search.CursorCreateAt > 0 {
+		values.Set("cursor_id", search.CursorID)
+		values.Set("cursor_create_at", strconv.FormatInt(search.CursorCreateAt, 10))
+	} else if search.CursorID != "" || search.CursorCreateAt > 0 {
+		return nil, nil, errors.New("both cursor_id and cursor_create_at must be provided together")
+	}
+	r, err := c.doAPIGetWithQuery(ctx, c.propertyFieldsRoute(groupName, objectType), values, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*PropertyField](r)
+}
+
+func (c *Client4) PatchPropertyField(ctx context.Context, groupName, objectType, fieldID string, patch *PropertyFieldPatch) (*PropertyField, *Response, error) {
+	r, err := c.doAPIPatchJSON(ctx, c.propertyFieldRoute(groupName, objectType, fieldID), patch)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*PropertyField](r)
+}
+
+func (c *Client4) DeletePropertyField(ctx context.Context, groupName, objectType, fieldID string) (*Response, error) {
+	r, err := c.doAPIDelete(ctx, c.propertyFieldRoute(groupName, objectType, fieldID))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) GetPropertyValues(ctx context.Context, groupName, objectType, targetID string, search PropertyValueSearch) ([]*PropertyValue, *Response, error) {
+	values := url.Values{}
+	if search.PerPage > 0 {
+		values.Set("per_page", strconv.Itoa(search.PerPage))
+	}
+	if search.CursorID != "" && search.CursorCreateAt > 0 {
+		values.Set("cursor_id", search.CursorID)
+		values.Set("cursor_create_at", strconv.FormatInt(search.CursorCreateAt, 10))
+	} else if search.CursorID != "" || search.CursorCreateAt > 0 {
+		return nil, nil, errors.New("both cursor_id and cursor_create_at must be provided together")
+	}
+	r, err := c.doAPIGetWithQuery(ctx, c.propertyValuesRoute(groupName, objectType, targetID), values, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*PropertyValue](r)
+}
+
+func (c *Client4) PatchPropertyValues(ctx context.Context, groupName, objectType, targetID string, items []PropertyValuePatchItem) ([]*PropertyValue, *Response, error) {
+	r, err := c.doAPIPatchJSON(ctx, c.propertyValuesRoute(groupName, objectType, targetID), items)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*PropertyValue](r)
 }
 
 func (c *Client4) GetPostPropertyValues(ctx context.Context, postId string) ([]PropertyValue, *Response, error) {

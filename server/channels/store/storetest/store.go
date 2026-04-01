@@ -74,6 +74,7 @@ type Store struct {
 	RecapStore                      mocks.RecapStore
 	ReadReceiptStore                mocks.ReadReceiptStore
 	TemporaryPostStore              mocks.TemporaryPostStore
+	ViewStore                       mocks.ViewStore
 }
 
 func (s *Store) Logger() mlog.LoggerIFace                      { return s.logger }
@@ -179,6 +180,9 @@ func (s *Store) ReadReceipt() store.ReadReceiptStore {
 func (s *Store) TemporaryPost() store.TemporaryPostStore {
 	return &s.TemporaryPostStore
 }
+func (s *Store) View() store.ViewStore {
+	return &s.ViewStore
+}
 func (s *Store) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error) {
 	return &model.SupportPacketDatabaseSchema{
 		Tables: []model.DatabaseTable{},
@@ -234,5 +238,6 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.RecapStore,
 		&s.ReadReceiptStore,
 		&s.TemporaryPostStore,
+		&s.ViewStore,
 	)
 }

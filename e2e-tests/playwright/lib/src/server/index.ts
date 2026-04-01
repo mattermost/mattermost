@@ -9,6 +9,15 @@ export {createRandomPost} from './post';
 export {createNewTeam, createRandomTeam} from './team';
 export {createNewUserProfile, createRandomUser, getDefaultAdminUser, isOutsideRemoteUserHour} from './user';
 export {
+    enableAIBridgeTestMode,
+    configureAIBridgeMock,
+    getAIBridgeMock,
+    resetAIBridgeMock,
+    createMockAIAgent,
+    rewriteCompletion,
+    recapCompletion,
+} from './ai_bridge';
+export {
     createUserWithAttributes,
     enableABAC,
     disableABAC,
