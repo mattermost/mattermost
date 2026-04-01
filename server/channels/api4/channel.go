@@ -797,17 +797,17 @@ func getChannelStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
+		c.SetPermissionError(model.PermissionReadChannel)
+		return
+	}
+
 	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 	if rejectBoardChannel(c, channel) {
-		return
-	}
-
-	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
-		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
@@ -1611,17 +1611,17 @@ func getChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
+		c.SetPermissionError(model.PermissionReadChannel)
+		return
+	}
+
 	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 	if rejectBoardChannel(c, channel) {
-		return
-	}
-
-	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
-		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
