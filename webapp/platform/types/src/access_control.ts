@@ -42,6 +42,27 @@ export type AccessControlPolicyRule = {
     expression: string;
 }
 
+/**
+ * Returns the first rule with a "membership" action, falling back to rules[0]
+ * for backward compatibility with older policies.
+ */
+export function getMembershipRule(rules?: AccessControlPolicyRule[]): AccessControlPolicyRule | undefined {
+    return rules?.find((r) => r.actions?.includes('membership')) ?? rules?.[0];
+}
+
+/**
+ * Replaces or inserts the membership rule in an existing rules array while
+ * preserving all non-membership rules (e.g. file_upload, file_download).
+ * If expression is empty the membership rule is removed.
+ */
+export function buildRulesWithMembership(existingRules: AccessControlPolicyRule[], expression: string): AccessControlPolicyRule[] {
+    const otherRules = existingRules.filter((r) => !r.actions?.includes('membership'));
+    if (!expression.trim()) {
+        return otherRules;
+    }
+    return [{actions: ['membership'], expression: expression.trim()}, ...otherRules];
+}
+
 export type CELExpressionError = {
     message: string;
     line: number;
