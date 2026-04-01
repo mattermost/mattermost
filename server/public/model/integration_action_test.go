@@ -1563,10 +1563,11 @@ func TestDialogElementFileValidation(t *testing.T) {
 		id2 := NewId()
 		id3 := NewId()
 		element := DialogElement{
-			DisplayName: "Upload File",
-			Name:        "file_upload",
-			Type:        "file",
-			Default:     id1 + "," + id2 + "," + id3,
+			DisplayName:   "Upload File",
+			Name:          "file_upload",
+			Type:          "file",
+			AllowMultiple: true,
+			Default:       id1 + "," + id2 + "," + id3,
 		}
 		err := element.IsValid()
 		assert.NoError(t, err)
