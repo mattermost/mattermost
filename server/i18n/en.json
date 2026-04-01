@@ -7775,6 +7775,10 @@
     "translation": "Cannot set linked_field_id on an existing field. It can only be set at creation time."
   },
   {
+    "id": "app.property_field.update.conflict.app_error",
+    "translation": "Unable to update property field due to a conflict. Please retry."
+  },
+  {
     "id": "app.property_field.update.get_existing.app_error",
     "translation": "Unable to get property fields for update."
   },
