@@ -1371,6 +1371,70 @@ func TestCreatePost(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Empty(t, createdPost.FileIds)
 	})
+
+	t.Run("should reject burn-on-read posts in shared channels", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
+		t.Cleanup(func() {
+			os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
+		})
+		th := setupSharedChannels(t).InitBasic(t)
+		enableBoRFeature(th)
+
+		channel := th.CreateChannel(t, th.BasicTeam)
+
+		sc := &model.SharedChannel{
+			ChannelId: channel.Id,
+			TeamId:    th.BasicTeam.Id,
+			Type:      channel.Type,
+			Home:      true,
+			ShareName: "shared-bor-test",
+			CreatorId: th.BasicUser.Id,
+			RemoteId:  model.NewId(),
+		}
+		_, scErr := th.Server.Store().SharedChannel().Save(sc)
+		require.NoError(t, scErr)
+
+		channel.Shared = model.NewPointer(true)
+		_, err := th.Server.Store().Channel().Update(th.Context, channel)
+		require.NoError(t, err)
+
+		post := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "burn-on-read in shared channel",
+			Type:      model.PostTypeBurnOnRead,
+		}
+
+		createdPost, _, appErr := th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{SetOnline: true})
+		require.NotNil(t, appErr)
+		require.Nil(t, createdPost)
+		require.Equal(t, "api.post.fill_in_post_props.burn_on_read.shared_channel.app_error", appErr.Id)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("should allow burn-on-read posts in non-shared channels", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
+		t.Cleanup(func() {
+			os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
+		})
+		th := Setup(t).InitBasic(t)
+		enableBoRFeature(th)
+
+		channel := th.CreateChannel(t, th.BasicTeam)
+		require.False(t, channel.IsShared())
+
+		post := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "burn-on-read in non-shared channel",
+			Type:      model.PostTypeBurnOnRead,
+		}
+
+		createdPost, _, appErr := th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+		require.NotNil(t, createdPost)
+		require.Equal(t, model.PostTypeBurnOnRead, createdPost.Type)
+	})
 }
 
 func TestPatchPost(t *testing.T) {
