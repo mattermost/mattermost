@@ -95,10 +95,8 @@ func (pn *PushNotification) DeepCopy() *PushNotification {
 }
 
 func (pn *PushNotification) SetDeviceIdAndPlatform(deviceId string) {
-	index := strings.Index(deviceId, ":")
-
-	if index > -1 {
-		pn.Platform = deviceId[:index]
-		pn.DeviceId = deviceId[index+1:]
+	if platform, id, ok := strings.Cut(deviceId, ":"); ok {
+		pn.Platform = platform
+		pn.DeviceId = id
 	}
 }
