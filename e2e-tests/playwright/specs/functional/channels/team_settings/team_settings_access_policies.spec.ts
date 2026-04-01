@@ -73,6 +73,9 @@ test.describe('Team Settings Modal - Access Control Tab', () => {
         // * Empty state shown
         await expect(teamSettings.container.getByText('No policies found')).toBeVisible();
 
+        // * Sync footer hidden when no policies exist
+        await expect(teamSettings.container.locator('.SyncStatusFooter')).not.toBeVisible();
+
         await teamSettings.close();
     });
 

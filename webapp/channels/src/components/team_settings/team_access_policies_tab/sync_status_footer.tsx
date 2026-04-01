@@ -2,13 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useEffect, useCallback} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import type {Job, JobType} from '@mattermost/types/jobs';
 
 import {createAccessControlSyncJob} from 'mattermost-redux/actions/access_control';
 import {getJobsByType} from 'mattermost-redux/actions/jobs';
+
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import './sync_status_footer.scss';
 
@@ -132,21 +134,24 @@ export default function SyncStatusFooter({teamId, hasPolicies}: Props) {
                 {timeText}
             </span>
             {syncing ? (
-                <span className='SyncStatusFooter__syncing'>
-                    <FormattedMessage
-                        id='team_settings.sync_status.syncing'
-                        defaultMessage='Syncing...'
-                    />
-                </span>
+                <>
+                    <span className='SyncStatusFooter__syncing'>
+                        {formatMessage({
+                            id: 'team_settings.sync_status.syncing',
+                            defaultMessage: 'Syncing...',
+                        })}
+                    </span>
+                    <LoadingSpinner/>
+                </>
             ) : (
                 <button
                     className='style--none SyncStatusFooter__link'
                     onClick={handleSyncNow}
                 >
-                    <FormattedMessage
-                        id='team_settings.sync_status.sync_now'
-                        defaultMessage='Sync now'
-                    />
+                    {formatMessage({
+                        id: 'team_settings.sync_status.sync_now',
+                        defaultMessage: 'Sync now',
+                    })}
                 </button>
             )}
         </div>

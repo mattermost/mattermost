@@ -92,6 +92,9 @@ const TeamAccessPoliciesTab = ({team, accessControlSettings, setAreThereUnsavedC
         setView('create');
     }, []);
 
+    const [hasPolicies, setHasPolicies] = useState(false);
+    const handlePoliciesLoaded = useCallback((count: number) => setHasPolicies(count > 0), []);
+
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
     const handleNavigateBack = useCallback((message?: string) => {
@@ -165,10 +168,11 @@ const TeamAccessPoliciesTab = ({team, accessControlSettings, setAreThereUnsavedC
                 showRefreshButton={true}
                 actions={policyListActions}
                 onPolicySelected={handlePolicySelected}
+                onPoliciesLoaded={handlePoliciesLoaded}
             />
             <SyncStatusFooter
                 teamId={team.id}
-                hasPolicies={true}
+                hasPolicies={hasPolicies}
             />
             {successMessage && (
                 <SaveChangesPanel

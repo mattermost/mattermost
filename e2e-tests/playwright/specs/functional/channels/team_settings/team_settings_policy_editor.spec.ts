@@ -542,7 +542,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
@@ -580,11 +580,10 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
-        await page.waitForLoadState('networkidle');
 
         // * Footer visible with "Sync now" action
         await expect(teamSettings.container.getByText(/Sync now/)).toBeVisible({timeout: 15000});
