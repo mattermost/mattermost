@@ -713,6 +713,9 @@ func (e *DialogElement) IsValid() error {
 				}
 				parsedIds = append(parsedIds, id)
 			}
+			if !e.AllowMultiple && len(parsedIds) > 1 {
+				multiErr = multierror.Append(multiErr, errors.New("default may not contain more than one file ID when allow_multiple is false"))
+			}
 			if len(parsedIds) > MaxDialogFileIds {
 				multiErr = multierror.Append(multiErr, errors.Errorf("default may not contain more than %d file IDs, got %d", MaxDialogFileIds, len(parsedIds)))
 			}

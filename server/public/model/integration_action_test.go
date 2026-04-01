@@ -1649,6 +1649,30 @@ func TestDialogElementFileValidation(t *testing.T) {
 		assert.Contains(t, err.Error(), "allow_multiple can only be used with file elements")
 	})
 
+	t.Run("multiple default IDs rejected when allow_multiple is false", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Upload File",
+			Name:        "file_upload",
+			Type:        "file",
+			Default:     NewId() + "," + NewId(),
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "allow_multiple is false")
+	})
+
+	t.Run("multiple default IDs allowed when allow_multiple is true", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:   "Upload File",
+			Name:          "file_upload",
+			Type:          "file",
+			AllowMultiple: true,
+			Default:       NewId() + "," + NewId(),
+		}
+		err := element.IsValid()
+		assert.NoError(t, err)
+	})
+
 	t.Run("invalid file element with placeholder exceeding max length", func(t *testing.T) {
 		element := DialogElement{
 			DisplayName: "Upload File",
