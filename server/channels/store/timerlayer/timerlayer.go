@@ -8076,10 +8076,10 @@ func (s *TimerLayerPropertyFieldStore) Update(groupID string, fields []*model.Pr
 	return result, err
 }
 
-func (s *TimerLayerPropertyFieldStore) UpdateAndPropagate(groupID string, fields []*model.PropertyField, propagations []store.PropagationRequest) ([]*model.PropertyField, error) {
+func (s *TimerLayerPropertyFieldStore) UpdateAndPropagate(groupID string, fields []*model.PropertyField, propagations []store.PropagationRequest, expectedUpdateAts map[string]int64) ([]*model.PropertyField, error) {
 	start := time.Now()
 
-	result, err := s.PropertyFieldStore.UpdateAndPropagate(groupID, fields, propagations)
+	result, err := s.PropertyFieldStore.UpdateAndPropagate(groupID, fields, propagations, expectedUpdateAts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

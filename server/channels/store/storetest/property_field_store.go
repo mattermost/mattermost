@@ -2660,7 +2660,7 @@ func testUpdateAndPropagate(t *testing.T, _ request.CTX, ss store.Store) {
 				FieldType:     model.PropertyFieldTypeSelect,
 				Options:       newOptions,
 			},
-		})
+		}, nil)
 		require.NoError(t, uErr)
 
 		// The result should contain the source field + both linked fields (3 total)
@@ -2693,7 +2693,7 @@ func testUpdateAndPropagate(t *testing.T, _ request.CTX, ss store.Store) {
 				FieldType:     model.PropertyFieldTypeSelect,
 				Options:       reducedOptions,
 			},
-		})
+		}, nil)
 		require.NoError(t, uErr)
 		require.Len(t, result, 3) // source + 2 linked
 
@@ -2724,7 +2724,7 @@ func testUpdateAndPropagate(t *testing.T, _ request.CTX, ss store.Store) {
 				FieldType:     model.PropertyFieldTypeSelect,
 				Options:       updatedOptions,
 			},
-		})
+		}, nil)
 		require.NoError(t, uErr)
 
 		// Verify linked fields have the renamed option
@@ -2739,10 +2739,191 @@ func testUpdateAndPropagate(t *testing.T, _ request.CTX, ss store.Store) {
 	t.Run("empty propagations behaves like regular update", func(t *testing.T) {
 		// Update source field name only, no propagation
 		sourceField.Name = "Updated Name"
-		result, uErr := ss.PropertyField().UpdateAndPropagate("", []*model.PropertyField{sourceField}, nil)
+		result, uErr := ss.PropertyField().UpdateAndPropagate("", []*model.PropertyField{sourceField}, nil, nil)
 		require.NoError(t, uErr)
 		require.Len(t, result, 1) // only source, no linked fields
 		require.Equal(t, "Updated Name", result[0].Name)
+	})
+
+	t.Run("should reject update when expectedUpdateAts do not match (optimistic concurrency)", func(t *testing.T) {
+		// Read the current state of the source field
+		current, gErr := ss.PropertyField().Get("", sourceField.ID)
+		require.NoError(t, gErr)
+
+		// Simulate a concurrent update by directly modifying the field
+		current.Name = "Concurrent Update"
+		_, uErr := ss.PropertyField().UpdateAndPropagate("", []*model.PropertyField{current}, nil, nil)
+		require.NoError(t, uErr)
+
+		// Now try to update with stale expectedUpdateAts (using the old UpdateAt)
+		staleUpdateAts := map[string]int64{sourceField.ID: sourceField.UpdateAt}
+		sourceField.Name = "Stale Update"
+		_, uErr = ss.PropertyField().UpdateAndPropagate("", []*model.PropertyField{sourceField}, nil, staleUpdateAts)
+		require.Error(t, uErr)
+
+		var conflictErr *store.ErrConflict
+		require.ErrorAs(t, uErr, &conflictErr)
+
+		// Verify the field was NOT updated (concurrent update's value persists)
+		after, gErr := ss.PropertyField().Get("", sourceField.ID)
+		require.NoError(t, gErr)
+		require.Equal(t, "Concurrent Update", after.Name)
+	})
+
+	t.Run("should succeed when expectedUpdateAts match current state", func(t *testing.T) {
+		// Read the current state
+		current, gErr := ss.PropertyField().Get("", sourceField.ID)
+		require.NoError(t, gErr)
+
+		// Update with correct expectedUpdateAts
+		expectedUpdateAts := map[string]int64{current.ID: current.UpdateAt}
+		current.Name = "Valid Update"
+		result, uErr := ss.PropertyField().UpdateAndPropagate("", []*model.PropertyField{current}, nil, expectedUpdateAts)
+		require.NoError(t, uErr)
+		require.Len(t, result, 1)
+		require.Equal(t, "Valid Update", result[0].Name)
+	})
+
+	t.Run("batch update should reject entirely when one field has stale expectedUpdateAt", func(t *testing.T) {
+		// Create a second independent field for batch testing
+		batchField := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "Batch OCC Field",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: "user",
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}
+		batchField, cErr := ss.PropertyField().Create(batchField)
+		require.NoError(t, cErr)
+
+		// Get fresh state of both fields
+		freshSource, gErr := ss.PropertyField().Get("", sourceField.ID)
+		require.NoError(t, gErr)
+		freshBatch, gErr := ss.PropertyField().Get("", batchField.ID)
+		require.NoError(t, gErr)
+
+		// Save the pre-update UpdateAt before the concurrent modification
+		staleBatchUpdateAt := freshBatch.UpdateAt
+
+		// Ensure the concurrent update gets a different timestamp
+		time.Sleep(2 * time.Millisecond)
+
+		// Concurrently modify only batchField (advance its UpdateAt)
+		freshBatch.Name = "Concurrent Batch Change"
+		_, uErr := ss.PropertyField().UpdateAndPropagate("", []*model.PropertyField{freshBatch}, nil, nil)
+		require.NoError(t, uErr)
+
+		// Re-fetch the source since it wasn't modified (its UpdateAt is still valid)
+		freshSource, gErr = ss.PropertyField().Get("", sourceField.ID)
+		require.NoError(t, gErr)
+
+		// Attempt batch update using stale UpdateAt for batchField but fresh for source
+		expectedUpdateAts := map[string]int64{
+			freshSource.ID: freshSource.UpdateAt,
+			batchField.ID:  staleBatchUpdateAt, // stale — batchField was modified concurrently
+		}
+		freshSource.Name = "Should Not Stick"
+		freshBatch.Name = "Should Also Not Stick"
+		_, uErr = ss.PropertyField().UpdateAndPropagate("", []*model.PropertyField{freshSource, freshBatch}, nil, expectedUpdateAts)
+		require.Error(t, uErr)
+
+		var conflictErr *store.ErrConflict
+		require.ErrorAs(t, uErr, &conflictErr)
+
+		// Verify neither field was updated (transaction rolled back)
+		afterSource, gErr := ss.PropertyField().Get("", sourceField.ID)
+		require.NoError(t, gErr)
+		require.NotEqual(t, "Should Not Stick", afterSource.Name)
+
+		afterBatch, gErr := ss.PropertyField().Get("", batchField.ID)
+		require.NoError(t, gErr)
+		require.Equal(t, "Concurrent Batch Change", afterBatch.Name)
+	})
+
+	t.Run("should propagate and enforce optimistic concurrency together", func(t *testing.T) {
+		// Get fresh state of source field for OCC
+		freshSource, gErr := ss.PropertyField().Get("", sourceField.ID)
+		require.NoError(t, gErr)
+
+		optNew := map[string]any{"id": model.NewId(), "name": "PropagateOCC"}
+		newOptions := []any{optNew}
+		freshSource.Attrs = map[string]any{"options": newOptions}
+
+		expectedUpdateAts := map[string]int64{freshSource.ID: freshSource.UpdateAt}
+		result, uErr := ss.PropertyField().UpdateAndPropagate("", []*model.PropertyField{freshSource}, []store.PropagationRequest{
+			{
+				SourceFieldID: freshSource.ID,
+				FieldType:     model.PropertyFieldTypeSelect,
+				Options:       newOptions,
+			},
+		}, expectedUpdateAts)
+		require.NoError(t, uErr)
+		// source + 2 linked fields
+		require.Len(t, result, 3)
+
+		// Verify propagation occurred on linked fields
+		retrievedLinked1, gErr := ss.PropertyField().Get("", linked1.ID)
+		require.NoError(t, gErr)
+		opts := retrievedLinked1.Attrs["options"].([]any)
+		require.Len(t, opts, 1)
+		require.Equal(t, "PropagateOCC", opts[0].(map[string]any)["name"])
+	})
+
+	t.Run("should reject propagation when source has stale expectedUpdateAt", func(t *testing.T) {
+		freshSource, gErr := ss.PropertyField().Get("", sourceField.ID)
+		require.NoError(t, gErr)
+
+		// Save the pre-update UpdateAt
+		staleSourceUpdateAt := freshSource.UpdateAt
+
+		// Advance the source field's UpdateAt with a concurrent update
+		freshSource.Name = "Advanced Source"
+		_, uErr := ss.PropertyField().UpdateAndPropagate("", []*model.PropertyField{freshSource}, nil, nil)
+		require.NoError(t, uErr)
+
+		// Try to propagate with the stale UpdateAt
+		optStale := map[string]any{"id": model.NewId(), "name": "ShouldNotPropagate"}
+		staleOptions := []any{optStale}
+		freshSource.Attrs = map[string]any{"options": staleOptions}
+
+		staleUpdateAts := map[string]int64{freshSource.ID: staleSourceUpdateAt} // stale
+		_, uErr = ss.PropertyField().UpdateAndPropagate("", []*model.PropertyField{freshSource}, []store.PropagationRequest{
+			{
+				SourceFieldID: freshSource.ID,
+				FieldType:     model.PropertyFieldTypeSelect,
+				Options:       staleOptions,
+			},
+		}, staleUpdateAts)
+		require.Error(t, uErr)
+
+		var conflictErr *store.ErrConflict
+		require.ErrorAs(t, uErr, &conflictErr)
+
+		// Verify linked fields were NOT updated (propagation rolled back)
+		retrievedLinked1, gErr := ss.PropertyField().Get("", linked1.ID)
+		require.NoError(t, gErr)
+		opts := retrievedLinked1.Attrs["options"].([]any)
+		firstOpt := opts[0].(map[string]any)
+		require.NotEqual(t, "ShouldNotPropagate", firstOpt["name"])
+	})
+
+	t.Run("nil expectedUpdateAts should skip concurrency check (backwards compat)", func(t *testing.T) {
+		freshSource, gErr := ss.PropertyField().Get("", sourceField.ID)
+		require.NoError(t, gErr)
+
+		// Update without any concurrency check — should always succeed
+		freshSource.Name = "No OCC Check"
+		result, uErr := ss.PropertyField().UpdateAndPropagate("", []*model.PropertyField{freshSource}, nil, nil)
+		require.NoError(t, uErr)
+		require.Len(t, result, 1)
+		require.Equal(t, "No OCC Check", result[0].Name)
+
+		// Do it again immediately — still no check
+		result[0].Name = "Still No OCC Check"
+		result2, uErr := ss.PropertyField().UpdateAndPropagate("", []*model.PropertyField{result[0]}, nil, nil)
+		require.NoError(t, uErr)
+		require.Len(t, result2, 1)
+		require.Equal(t, "Still No OCC Check", result2[0].Name)
 	})
 }
 

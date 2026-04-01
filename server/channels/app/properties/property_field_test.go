@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/assert"
@@ -1631,5 +1632,152 @@ func TestOptionsChanged(t *testing.T) {
 		old := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A", "disabled": false}]}`)
 		updated := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A", "disabled": true}]}`)
 		assert.True(t, optionsChanged(old, updated))
+	})
+}
+
+func TestOptimisticConcurrency(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	rctx := th.Context
+	groupID := model.NewId()
+
+	t.Run("sequential updates through service succeed with OCC enabled", func(t *testing.T) {
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			ObjectType: "channel",
+			GroupID:    groupID,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeText,
+			Name:       "Sequential OCC Field",
+		})
+
+		// First update through service — reads fresh state, passes correct UpdateAt
+		field.Name = "Service Update 1"
+		result, err := th.service.UpdatePropertyField(rctx, groupID, field)
+		require.NoError(t, err)
+		require.Equal(t, "Service Update 1", result.Name)
+
+		// Second update using the returned field (fresh state) also succeeds
+		result.Name = "Service Update 2"
+		result2, err := th.service.UpdatePropertyField(rctx, groupID, result)
+		require.NoError(t, err)
+		require.Equal(t, "Service Update 2", result2.Name)
+
+		// Third update with batch API
+		result2.Name = "Service Update 3"
+		requested, _, err := th.service.updatePropertyFields(groupID, []*model.PropertyField{result2})
+		require.NoError(t, err)
+		require.Len(t, requested, 1)
+		require.Equal(t, "Service Update 3", requested[0].Name)
+	})
+
+	t.Run("service correctly reads fresh state after external modification", func(t *testing.T) {
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			ObjectType: "channel",
+			GroupID:    groupID,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeText,
+			Name:       "External Mod Field",
+		})
+
+		// Modify the field via the store directly (simulating another API request)
+		freshFromDB, err := th.dbStore.PropertyField().Get(groupID, field.ID)
+		require.NoError(t, err)
+		freshFromDB.Name = "External Update"
+		_, err = th.dbStore.PropertyField().Update(groupID, []*model.PropertyField{freshFromDB})
+		require.NoError(t, err)
+
+		// Service-layer update reads fresh state internally, so OCC will use
+		// the current UpdateAt. This should succeed even though the caller's
+		// copy has a stale UpdateAt.
+		field.Name = "After External"
+		result, err := th.service.UpdatePropertyField(rctx, groupID, field)
+		require.NoError(t, err)
+		require.Equal(t, "After External", result.Name)
+	})
+
+	t.Run("batch update succeeds when no concurrent modification exists", func(t *testing.T) {
+		field1 := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			ObjectType: "channel",
+			GroupID:    groupID,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeText,
+			Name:       "Batch Field A",
+		})
+		field2 := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			ObjectType: "channel",
+			GroupID:    groupID,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeText,
+			Name:       "Batch Field B",
+		})
+
+		field1.Name = "Updated A"
+		field2.Name = "Updated B"
+		requested, _, err := th.service.updatePropertyFields(groupID, []*model.PropertyField{field1, field2})
+		require.NoError(t, err)
+		require.Len(t, requested, 2)
+	})
+
+	t.Run("service passes expectedUpdateAts from fetched state to store", func(t *testing.T) {
+		// This test verifies the service builds the expectedUpdateAts map
+		// from the fields it reads internally. We verify by checking that
+		// the update succeeds (meaning the expectedUpdateAts matched the DB)
+		// and that a fresh Get shows the updated field with a new UpdateAt.
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			ObjectType: "channel",
+			GroupID:    groupID,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeText,
+			Name:       "OCC Verify Field",
+		})
+		originalUpdateAt := field.UpdateAt
+
+		// Ensure the update gets a different timestamp
+		time.Sleep(2 * time.Millisecond)
+
+		field.Name = "OCC Verified"
+		requested, _, err := th.service.updatePropertyFields(groupID, []*model.PropertyField{field})
+		require.NoError(t, err)
+		require.Len(t, requested, 1)
+		require.Equal(t, "OCC Verified", requested[0].Name)
+
+		// The UpdateAt should have advanced, proving the update went through
+		require.Greater(t, requested[0].UpdateAt, originalUpdateAt)
+	})
+
+	t.Run("linked field propagation works with OCC enabled", func(t *testing.T) {
+		// Create a source template field
+		optA := map[string]any{"id": model.NewId(), "name": "A"}
+		sourceField := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			GroupID:    groupID,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "OCC Source",
+			Attrs:      map[string]any{"options": []any{optA}},
+		})
+
+		// Create a linked field
+		linkedField := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			ObjectType:    "user",
+			GroupID:       groupID,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Type:          model.PropertyFieldTypeSelect,
+			Name:          "OCC Linked",
+			LinkedFieldID: &sourceField.ID,
+			Attrs:         map[string]any{"options": []any{optA}},
+		})
+
+		// Update source options through service — should propagate to linked field
+		optB := map[string]any{"id": model.NewId(), "name": "B"}
+		sourceField.Attrs = map[string]any{"options": []any{optA, optB}}
+		result, err := th.service.UpdatePropertyField(rctx, groupID, sourceField)
+		require.NoError(t, err)
+		require.Equal(t, "OCC Source", result.Name)
+
+		// Verify propagation occurred
+		linkedAfter, err := th.dbStore.PropertyField().Get(groupID, linkedField.ID)
+		require.NoError(t, err)
+		opts := linkedAfter.Attrs["options"].([]any)
+		require.Len(t, opts, 2)
 	})
 }

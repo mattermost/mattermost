@@ -10122,11 +10122,11 @@ func (s *RetryLayerPropertyFieldStore) Update(groupID string, fields []*model.Pr
 
 }
 
-func (s *RetryLayerPropertyFieldStore) UpdateAndPropagate(groupID string, fields []*model.PropertyField, propagations []store.PropagationRequest) ([]*model.PropertyField, error) {
+func (s *RetryLayerPropertyFieldStore) UpdateAndPropagate(groupID string, fields []*model.PropertyField, propagations []store.PropagationRequest, expectedUpdateAts map[string]int64) ([]*model.PropertyField, error) {
 
 	tries := 0
 	for {
-		result, err := s.PropertyFieldStore.UpdateAndPropagate(groupID, fields, propagations)
+		result, err := s.PropertyFieldStore.UpdateAndPropagate(groupID, fields, propagations, expectedUpdateAts)
 		if err == nil {
 			return result, nil
 		}

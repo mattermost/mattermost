@@ -1149,7 +1149,7 @@ type PropertyFieldStore interface {
 	CountLinkedFields(fieldID string) (int64, error)
 	SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
 	Update(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error)
-	UpdateAndPropagate(groupID string, fields []*model.PropertyField, propagations []PropagationRequest) ([]*model.PropertyField, error)
+	UpdateAndPropagate(groupID string, fields []*model.PropertyField, propagations []PropagationRequest, expectedUpdateAts map[string]int64) ([]*model.PropertyField, error)
 	Delete(groupID string, id string) error
 	CheckPropertyNameConflict(field *model.PropertyField, excludeID string) (model.PropertyFieldTargetLevel, error)
 }

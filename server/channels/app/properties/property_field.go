@@ -366,8 +366,16 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 		}
 	}
 
+	// Build expected UpdateAt map for optimistic concurrency control.
+	// This closes the TOCTOU window: if any field was modified between the
+	// GetMany above and the UPDATE below, the store will reject the write.
+	expectedUpdateAts := make(map[string]int64, len(existingByID))
+	for id, ef := range existingByID {
+		expectedUpdateAts[id] = ef.UpdateAt
+	}
+
 	// Use UpdateAndPropagate to atomically update fields and cascade options
-	all, uErr := ps.fieldStore.UpdateAndPropagate(groupID, fields, propagations)
+	all, uErr := ps.fieldStore.UpdateAndPropagate(groupID, fields, propagations, expectedUpdateAts)
 	if uErr != nil {
 		return nil, nil, uErr
 	}

@@ -218,7 +218,7 @@ func (s *SqlPropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSea
 }
 
 func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
-	return s.UpdateAndPropagate(groupID, fields, nil)
+	return s.UpdateAndPropagate(groupID, fields, nil, nil)
 }
 
 func (s *SqlPropertyFieldStore) Delete(groupID string, id string) error {
@@ -465,7 +465,7 @@ func (s *SqlPropertyFieldStore) CountLinkedFields(fieldID string) (int64, error)
 	return count, nil
 }
 
-func (s *SqlPropertyFieldStore) UpdateAndPropagate(groupID string, fields []*model.PropertyField, propagations []store.PropagationRequest) ([]*model.PropertyField, error) {
+func (s *SqlPropertyFieldStore) UpdateAndPropagate(groupID string, fields []*model.PropertyField, propagations []store.PropagationRequest, expectedUpdateAts map[string]int64) ([]*model.PropertyField, error) {
 	if len(fields) == 0 {
 		return nil, nil
 	}
@@ -537,6 +537,23 @@ func (s *SqlPropertyFieldStore) UpdateAndPropagate(groupID string, fields []*mod
 		builder = builder.Where(sq.Eq{"GroupID": groupID})
 	}
 
+	// Optimistic concurrency: if expectedUpdateAts is provided, only update
+	// rows whose UpdateAt still matches the value read before validation.
+	// This closes the TOCTOU window between validation and the UPDATE.
+	if len(expectedUpdateAts) > 0 {
+		updateAtCase := sq.Case("id")
+		for _, id := range ids {
+			if expected, ok := expectedUpdateAts[id]; ok {
+				updateAtCase = updateAtCase.When(sq.Expr("?", id), sq.Expr("?::bigint", expected))
+			}
+		}
+		caseSql, caseArgs, caseErr := updateAtCase.ToSql()
+		if caseErr != nil {
+			return nil, errors.Wrap(caseErr, "property_field_update_and_propagate_build_update_at_check")
+		}
+		builder = builder.Where("UpdateAt = "+caseSql, caseArgs...)
+	}
+
 	result, err := transaction.ExecBuilder(builder)
 	if err != nil {
 		return nil, errors.Wrap(err, "property_field_update_and_propagate_exec")
@@ -547,6 +564,9 @@ func (s *SqlPropertyFieldStore) UpdateAndPropagate(groupID string, fields []*mod
 		return nil, errors.Wrap(err, "property_field_update_and_propagate_rowsaffected")
 	}
 	if count != int64(len(fields)) {
+		if len(expectedUpdateAts) > 0 {
+			return nil, store.NewErrConflict("PropertyField", nil, "concurrent modification detected; retry the update")
+		}
 		return nil, errors.Errorf("failed to update, some property fields were not found, got %d of %d", count, len(fields))
 	}
 
