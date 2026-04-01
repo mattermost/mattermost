@@ -37,7 +37,7 @@ export type Props = {
     value: string;
     onChange: (e: ChangeEvent<TextboxElement>) => void;
     onKeyPress: (e: KeyboardEvent<any>) => void;
-    onComposition?: () => void;
+    onCompositionUpdate?: () => void;
     onHeightChange?: (height: number, maxHeight: number) => void;
     onWidthChange?: (width: number) => void;
     createMessage: string;
@@ -321,7 +321,7 @@ export default class Textbox extends React.PureComponent<Props> {
                     onKeyDown={this.handleKeyDown}
                     onMouseUp={this.handleMouseUp}
                     onKeyUp={this.handleKeyUp}
-                    onComposition={this.props.onComposition}
+                    onCompositionUpdate={this.props.onCompositionUpdate}
                     onBlur={this.handleBlur}
                     onFocus={this.props.onFocus}
                     onHeightChange={this.props.onHeightChange}
