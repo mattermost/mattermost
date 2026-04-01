@@ -543,6 +543,7 @@ export default function TeamPolicyEditor({
                     excludeTypes={['O', 'D', 'G']}
                     excludeGroupConstrained={true}
                     teamId={teamId}
+                    isStacked={true}
                 />
             )}
 
