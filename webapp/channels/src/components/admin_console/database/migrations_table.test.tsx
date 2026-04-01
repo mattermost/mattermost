@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {act, screen, waitFor} from '@testing-library/react';
-import {shallow} from 'enzyme';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -34,13 +33,18 @@ describe('components/MigrationsTable', () => {
         },
     };
 
-    test('should match snapshot when there are no migrations', () => {
-        const wrapper = shallow(
+    test('should match snapshot when there are no migrations', async () => {
+        const {container} = renderWithContext(
             <MigrationsTable
                 {...baseProps}
-            />);
+            />,
+        );
 
-        expect(wrapper).toMatchSnapshot();
+        await waitFor(() => {
+            expect(baseProps.actions.getAppliedSchemaMigrations).toHaveBeenCalledTimes(1);
+        });
+
+        expect(container).toMatchSnapshot();
     });
 
     test('should have called actions.getAppliedSchemaMigrations only when first rendered', async () => {
