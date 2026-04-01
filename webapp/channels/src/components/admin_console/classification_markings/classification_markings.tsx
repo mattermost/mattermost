@@ -11,6 +11,8 @@ import styled from 'styled-components';
 import {PlusIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 
+import type {ClientError} from '@mattermost/client';
+
 import {Client4} from 'mattermost-redux/client';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
@@ -41,6 +43,12 @@ type LevelRow = ClassificationLevel & {
 
 const msg = defineMessages({
     pageTitle: {id: 'admin.sidebar.classificationMarkings', defaultMessage: 'Classification Markings'},
+    enableTitle: {id: 'admin.classification_markings.enable.title', defaultMessage: 'Enable classification markings'},
+    enableDescription: {id: 'admin.classification_markings.enable.description', defaultMessage: 'Use this to enable classification markings as banners at the system and channel level. You can pre-select text and colors for your banner, as well as set a default option for consistency.'},
+    presetTitle: {id: 'admin.classification_markings.preset.title', defaultMessage: 'Classification preset'},
+    presetDescription: {id: 'admin.classification_markings.preset.description', defaultMessage: 'Select a classification preset from the dropdown menu based on your country affiliation. This will help tailor the options to your specific needs. You can also create set custom classification levels.'},
+    levelsTitle: {id: 'admin.classification_markings.levels.title', defaultMessage: 'Classification levels'},
+    levelsDescription: {id: 'admin.classification_markings.levels.description', defaultMessage: 'Select colors and text for different classification levels that will be used in classification banners'},
 });
 
 export default function ClassificationMarkings() {
@@ -49,19 +57,20 @@ export default function ClassificationMarkings() {
 
     // Remote state
     const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState<string>();
     const [saving, setSaving] = useState(false);
     const [saveError, setSaveError] = useState<string>();
     const [existingField, setExistingField] = useState<PropertyField | null>(null);
 
     // Local editable state
     const [enabled, setEnabled] = useState(false);
-    const [presetId, setPresetId] = useState<string>(presets[0].id);
+    const [presetId, setPresetId] = useState<string>(PRESET_CUSTOM);
     const [levels, setLevels] = useState<ClassificationLevel[]>([]);
 
     // Track if there are unsaved changes
     const [initialEnabled, setInitialEnabled] = useState(false);
     const [initialLevels, setInitialLevels] = useState<ClassificationLevel[]>([]);
-    const [initialPresetId, setInitialPresetId] = useState<string>(presets[0].id);
+    const [initialPresetId, setInitialPresetId] = useState<string>(PRESET_CUSTOM);
 
     // Confirm modal for preset switch
     const [confirmPresetSwitch, setConfirmPresetSwitch] = useState<string | null>(null);
@@ -114,8 +123,12 @@ export default function ClassificationMarkings() {
                     setPresetId(matchingPreset);
                     setInitialPresetId(matchingPreset);
                 }
-            } catch {
-                // Field or group doesn't exist yet - that's fine, means disabled
+            } catch (err: unknown) {
+                const isNotFound = (err as ClientError).status_code === 404;
+                if (!isNotFound) {
+                    const message = err instanceof Error ? err.message : 'Failed to load classification markings';
+                    setLoadError(message);
+                }
             } finally {
                 setLoading(false);
             }
@@ -125,15 +138,8 @@ export default function ClassificationMarkings() {
     }, []);
 
     const handleToggleEnabled = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        const newEnabled = e.target.value === 'true';
-        setEnabled(newEnabled);
-        if (newEnabled && levels.length === 0) {
-            // Default to first preset when enabling
-            const defaultPreset = presets[0];
-            setPresetId(defaultPreset.id);
-            setLevels(defaultPreset.levels.map((l) => ({...l, id: l.id || ''})));
-        }
-    }, [levels.length]);
+        setEnabled(e.target.value === 'true');
+    }, []);
 
     const handlePresetChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
         const newPresetId = e.target.value;
@@ -203,9 +209,35 @@ export default function ClassificationMarkings() {
         switchToCustom();
     }, [switchToCustom]);
 
+    const validate = useCallback((): string | null => {
+        if (!enabled) {
+            return null;
+        }
+        if (levels.length === 0) {
+            return formatMessage({id: 'admin.classification_markings.error.no_levels', defaultMessage: 'At least one classification level is required when classification markings are enabled.'});
+        }
+        const emptyName = levels.find((l) => l.name.trim() === '');
+        if (emptyName) {
+            return formatMessage({id: 'admin.classification_markings.error.empty_name', defaultMessage: 'All classification levels must have a name.'});
+        }
+        const names = levels.map((l) => l.name.trim().toLowerCase());
+        const duplicateName = names.find((name, i) => names.indexOf(name) !== i);
+        if (duplicateName) {
+            return formatMessage({id: 'admin.classification_markings.error.duplicate_name', defaultMessage: 'Classification level names must be unique. Duplicate: {name}'}, {name: duplicateName.toUpperCase()});
+        }
+        return null;
+    }, [enabled, levels, formatMessage]);
+
     const handleSave = useCallback(async () => {
-        setSaving(true);
         setSaveError(undefined);
+
+        const validationError = validate();
+        if (validationError) {
+            setSaveError(validationError);
+            return;
+        }
+
+        setSaving(true);
 
         try {
             if (enabled && !initialEnabled) {
@@ -240,8 +272,8 @@ export default function ClassificationMarkings() {
                 setInitialEnabled(false);
                 setInitialLevels([]);
                 setLevels([]);
-                setPresetId(presets[0].id);
-                setInitialPresetId(presets[0].id);
+                setPresetId(PRESET_CUSTOM);
+                setInitialPresetId(PRESET_CUSTOM);
             } else if (enabled && initialEnabled && existingField) {
                 // Patch existing field options
                 const options = levels.map((level) => ({
@@ -269,7 +301,7 @@ export default function ClassificationMarkings() {
         } finally {
             setSaving(false);
         }
-    }, [enabled, initialEnabled, existingField, levels, presetId]);
+    }, [enabled, initialEnabled, existingField, levels, presetId, validate]);
 
     const handleCancel = useCallback(() => {
         setEnabled(initialEnabled);
@@ -290,6 +322,25 @@ export default function ClassificationMarkings() {
         );
     }
 
+    if (loadError) {
+        return (
+            <div className='wrapper--fixed'>
+                <AdminHeader>
+                    <FormattedMessage {...msg.pageTitle}/>
+                </AdminHeader>
+                <AdminWrapper>
+                    <div className='alert alert-danger'>
+                        <FormattedMessage
+                            id='admin.classification_markings.load_error'
+                            defaultMessage='Failed to load classification markings: {error}'
+                            values={{error: loadError}}
+                        />
+                    </div>
+                </AdminWrapper>
+            </div>
+        );
+    }
+
     return (
         <div className='wrapper--fixed'>
             <AdminHeader>
@@ -301,13 +352,9 @@ export default function ClassificationMarkings() {
                         <hgroup>
                             <FormattedMessage
                                 tagName={SectionHeading}
-                                id='admin.classification_markings.enable.title'
-                                defaultMessage='Enable classification markings'
+                                {...msg.enableTitle}
                             />
-                            <FormattedMessage
-                                id='admin.classification_markings.enable.description'
-                                defaultMessage='Use this to enable classification markings as banners at the system and channel level. You can pre-select text and colors for your banner, as well as set a default option for consistency.'
-                            />
+                            <FormattedMessage {...msg.enableDescription}/>
                         </hgroup>
                     </SectionHeader>
                     <SectionContent $compact={true}>
@@ -349,13 +396,9 @@ export default function ClassificationMarkings() {
                                 <hgroup>
                                     <FormattedMessage
                                         tagName={SectionHeading}
-                                        id='admin.classification_markings.preset.title'
-                                        defaultMessage='Classification preset'
+                                        {...msg.presetTitle}
                                     />
-                                    <FormattedMessage
-                                        id='admin.classification_markings.preset.description'
-                                        defaultMessage='Select a classification preset from the dropdown menu based on your country affiliation. This will help tailor the options to your specific needs. You can also create set custom classification levels.'
-                                    />
+                                    <FormattedMessage {...msg.presetDescription}/>
                                 </hgroup>
                             </SectionHeader>
                             <SectionContent $compact={true}>
@@ -383,13 +426,9 @@ export default function ClassificationMarkings() {
                                 <hgroup>
                                     <FormattedMessage
                                         tagName={SectionHeading}
-                                        id='admin.classification_markings.levels.title'
-                                        defaultMessage='Classification levels'
+                                        {...msg.levelsTitle}
                                     />
-                                    <FormattedMessage
-                                        id='admin.classification_markings.levels.description'
-                                        defaultMessage='Select colors and text for different classification levels that will be used in classification banners'
-                                    />
+                                    <FormattedMessage {...msg.levelsDescription}/>
                                 </hgroup>
                             </SectionHeader>
                             <SectionContent $compact={true}>

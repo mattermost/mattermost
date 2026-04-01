@@ -45,6 +45,7 @@ const (
 	PropertyFieldObjectTypePost    = "post"
 	PropertyFieldObjectTypeChannel = "channel"
 	PropertyFieldObjectTypeUser    = "user"
+	PropertyFieldObjectTypeSystem  = "system"
 )
 
 // validPermissionLevels contains all valid PermissionLevel values.
@@ -62,6 +63,7 @@ var validPropertyFieldObjectTypes = []string{
 	PropertyFieldObjectTypePost,
 	PropertyFieldObjectTypeChannel,
 	PropertyFieldObjectTypeUser,
+	PropertyFieldObjectTypeSystem,
 }
 
 type PropertyField struct {
