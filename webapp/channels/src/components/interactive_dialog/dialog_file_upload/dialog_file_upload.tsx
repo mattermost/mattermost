@@ -85,7 +85,7 @@ const DialogFileUpload: React.FC<Props> = ({
         return () => {
             isMountedRef.current = false;
             for (const xhr of uploadRequestsRef.current.values()) {
-                xhr.abort();
+                xhr?.abort();
             }
             uploadRequestsRef.current.clear();
             fileObjectsRef.current.clear();

@@ -422,8 +422,9 @@ function onDialogSubmit(req, res) {
 
     // Regular dialog submission
     // Format submission data for the channel message
+    const sanitize = (str) => String(str).replace(/[<>&"']/g, (ch) => `&#${ch.charCodeAt(0)};`);
     const submissionData = Object.entries(body.submission || {})
-        .map(([key, value]) => `**${key}**: ${value}`)
+        .map(([key, value]) => `**${sanitize(key)}**: ${sanitize(value)}`)
         .join('\n');
 
     message = `Dialog submitted successfully!\n\n**Submission Data:**\n${submissionData}`;

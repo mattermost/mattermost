@@ -436,7 +436,9 @@ describe('components/interactive_dialog/dialog_file_upload/DialogFileUpload', ()
                 if (fileId === 'good-file') {
                     return Promise.resolve(goodFileInfo);
                 }
-                return Promise.reject(new Error('Not found'));
+                const err = new Error('Not found');
+                (err as any).status_code = 404;
+                return Promise.reject(err);
             });
 
             renderComponent({value: ['bad-file', 'good-file']});
