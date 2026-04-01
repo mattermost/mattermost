@@ -260,6 +260,10 @@
     "translation": "Can not add user to this channel type."
   },
   {
+    "id": "api.channel.board_channel.app_error",
+    "translation": ""
+  },
+  {
     "id": "api.channel.bookmark.channel_bookmark.license.error",
     "translation": "Your license does not support channel bookmarks."
   },
@@ -5255,6 +5259,34 @@
     "translation": "Unable to count urgent posts since given date."
   },
   {
+    "id": "app.channel.create_board_channel.boards_not_enabled.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.channel.create_board_channel.internal_error",
+    "translation": ""
+  },
+  {
+    "id": "app.channel.create_board_channel.invalid.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.channel.create_board_channel.invalid_type.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.channel.create_board_channel.limit.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.channel.create_board_channel.no_team.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.channel.create_channel.board_type.app_error",
+    "translation": ""
+  },
+  {
     "id": "app.channel.create_channel.internal_error",
     "translation": "Unable to save channel."
   },
@@ -5509,6 +5541,10 @@
   {
     "id": "app.channel.restore.app_error",
     "translation": "Unable to restore the channel."
+  },
+  {
+    "id": "app.channel.save_member.app_error",
+    "translation": ""
   },
   {
     "id": "app.channel.save_member.exists.app_error",
