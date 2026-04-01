@@ -54,28 +54,9 @@ jobs:
         run: |
           echo "${{ inputs.name }}" > server/test-name
           echo "${{ github.event.pull_request.number }}" > server/pr-number
-
-      # Cache Go modules and build artifacts on the host, then bind-mount them
-      # into the Docker test container. Without this, every CI run downloads all
-      # Go dependencies (~500MB) and recompiles all packages from scratch.
-      # Expected savings: 5-10 minutes per test job on cache hits.
-      # Key invalidates when Go version or go.sum changes.
-      - name: Restore Go module and build cache
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
-        with:
-          path: |
-            /home/runner/go-cache/mod
-            /home/runner/go-cache/build
-          key: go-mmctl-cache-${{ inputs.go-version }}-${{ hashFiles('server/go.sum') }}
-          restore-keys: |
-            go-mmctl-cache-${{ inputs.go-version }}-
-
-      - name: Setup needed prepackaged plugins
-        run: |
-          cd server
-          make prepackaged-plugins PLUGIN_PACKAGES=mattermost-plugin-jira-v3.2.5
-
       - name: Run docker compose
+        env:
+          POSTGRES_PASSWORD: ${{ inputs.fips-enabled && 'mostest-fips-test' || 'mostest' }}
         run: |
           cd server/build
           docker compose --ansi never run --rm start_dependencies
@@ -94,20 +75,13 @@ jobs:
           else
             export TESTFLAGS="-timeout 30m"
           fi
-          # Mount cached Go modules and build cache into the container.
-          # GOMODCACHE: avoids re-downloading dependencies (~500MB).
-          # GOCACHE: avoids recompiling unchanged packages.
-          mkdir -p /home/runner/go-cache/mod /home/runner/go-cache/build
           docker run --net ghactions_mm-test \
             --ulimit nofile=8096:8096 \
             --env-file=server/build/dotenv/test.env \
+            --env TEST_DATABASE_POSTGRESQL_DSN="${{ inputs.datasource }}" \
             --env MM_SQLSETTINGS_DATASOURCE="${{ inputs.datasource }}" \
             --env MMCTL_TESTFLAGS="$TESTFLAGS" \
             --env FIPS_ENABLED="${{ inputs.fips-enabled }}" \
-            --env GOMODCACHE=/go-cache/mod \
-            --env GOCACHE=/go-cache/build \
-            -v /home/runner/go-cache/mod:/go-cache/mod \
-            -v /home/runner/go-cache/build:/go-cache/build \
             -v $PWD:/mattermost \
             -w /mattermost/server \
             $BUILD_IMAGE \

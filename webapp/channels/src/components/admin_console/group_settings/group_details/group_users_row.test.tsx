@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import GroupUsersRow from 'components/admin_console/group_settings/group_details/group_users_row';
 
+import {renderWithContext, screen} from 'tests/react_testing_utils';
+
 describe('components/admin_console/group_settings/group_details/GroupUsersRow', () => {
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        renderWithContext(
             <GroupUsersRow
                 username='test'
                 displayName='Test display name'
@@ -17,6 +18,10 @@ describe('components/admin_console/group_settings/group_details/GroupUsersRow', 
                 lastPictureUpdate={0}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+
+        expect(screen.getByText('@test')).toBeInTheDocument();
+        expect(screen.getByText('Test display name')).toBeInTheDocument();
+        expect(screen.getByText('Email:')).toBeInTheDocument();
+        expect(screen.getByText('test@test.com')).toBeInTheDocument();
     });
 });
