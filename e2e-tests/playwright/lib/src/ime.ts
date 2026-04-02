@@ -156,7 +156,7 @@ function decomposeKorean(text: string): Array<{character: string; jama?: string[
 
     for (let i = 0; i < text.length; i++) {
         const character = text[i];
-        const code = character.charCodeAt(i);
+        const code = character.charCodeAt(0);
 
         if (code >= hangulStart && code <= hangulEnd) {
             // This is a Hangul character, so we can break it down into the individual constants and vowel
