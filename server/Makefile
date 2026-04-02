@@ -805,7 +805,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 
 vet: setup-go-work ## Run mattermost go vet specific checks
-	$(GO) install github.com/mattermost/mattermost-govet/v2@v2.0.2
+	cd ../tools/mattermost-govet && $(GO) install .
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet \
 		-structuredLogging \
 		-inconsistentReceiverName \
@@ -831,7 +831,7 @@ vet-api: export GO := $(GO)
 vet-api: export GOBIN := $(GOBIN)
 vet-api: export ROOT := $(ROOT)
 vet-api: ## Run mattermost go vet to verify api4 documentation, currently not passing
-	$(GO) install github.com/mattermost/mattermost-govet/v2@v2.0.2
+	cd ../tools/mattermost-govet && $(GO) install .
 	make -C ../api build
 	./scripts/vet-api-check.sh
 
