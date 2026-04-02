@@ -195,7 +195,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
                 class="help-text"
                 data-testid="analyticsQueryTimeouthelp-text"
               >
-                The number of seconds to wait for a response from the database after opening a connection and sending certain analytics queries. This setting only applies to longer queries which are run in the background to populate some information in the Team and Site Statistics pages.
+                The number of seconds to wait for a response from the database after opening a connection and sending certain analytics queries. This setting only applies to long queries which are run in the background to populate some information in the Team and Site Statistics pages.
               </div>
             </div>
           </div>
@@ -300,7 +300,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
             <legend
               class="control-label form-legend col-sm-4"
             >
-              SQL Statement Logging:
+              SQL Statement Logging: 
             </legend>
             <div
               class="col-sm-8"
@@ -355,7 +355,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
               <div
                 class="help-text"
               >
-                Deployments using multiple databases can switch from one master database to another without restarting the Mattermost server by updating "config.json" to the new desired configuration and using the
+                Deployments using multiple databases can switch from one master database to another without restarting the Mattermost server by updating "config.json" to the new desired configuration and using the 
                 <a
                   href="../environment/web_server"
                 >
@@ -363,7 +363,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
                     Environment &gt; Web Server &gt; Reload Configuration from Disk
                   </b>
                 </a>
-                 feature to load the new settings while the server is running. The administrator should then use
+                 feature to load the new settings while the server is running. The administrator should then use 
                 <b>
                   Recycle Database Connections
                 </b>
@@ -379,7 +379,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
             <legend
               class="control-label form-legend col-sm-4"
             >
-              Disable database search:
+              Disable database search: 
             </legend>
             <div
               class="col-sm-8"
@@ -413,7 +413,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
                 class="help-text"
                 data-testid="disableDatabaseSearchhelp-text"
               >
-                Disables the use of the database to perform searches. Should only be used when other
+                Disables the use of the database to perform searches. Should only be used when other 
                 <a
                   href="https://mattermost.com/pl/setup-elasticsearch?utm_source=mattermost&utm_medium=in-product&utm_content=database_settings&uid=&sid=&edition=team&server_version="
                   location="database_settings"
