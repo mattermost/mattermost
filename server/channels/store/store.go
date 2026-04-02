@@ -201,6 +201,7 @@ type ChannelStore interface {
 	UpdateSidebarChannelCategoryOnMove(channel *model.Channel, newTeamID string) error
 	ClearSidebarOnTeamLeave(userID, teamID string) error
 	Get(id string, allowFromCache bool) (*model.Channel, error)
+	GetBoardChannel(id string) (*model.Channel, error)
 	GetMany(ids []string, allowFromCache bool) (model.ChannelList, error)
 	InvalidateChannel(id string)
 	InvalidateChannelByName(teamID, name string)

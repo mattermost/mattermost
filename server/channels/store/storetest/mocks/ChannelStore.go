@@ -738,6 +738,36 @@ func (_m *ChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterID st
 	return r0, r1
 }
 
+// GetBoardChannel provides a mock function with given fields: id
+func (_m *ChannelStore) GetBoardChannel(id string) (*model.Channel, error) {
+	ret := _m.Called(id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetBoardChannel")
+	}
+
+	var r0 *model.Channel
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (*model.Channel, error)); ok {
+		return rf(id)
+	}
+	if rf, ok := ret.Get(0).(func(string) *model.Channel); ok {
+		r0 = rf(id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Channel)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetByName provides a mock function with given fields: teamID, name, allowFromCache
 func (_m *ChannelStore) GetByName(teamID string, name string, allowFromCache bool) (*model.Channel, error) {
 	ret := _m.Called(teamID, name, allowFromCache)

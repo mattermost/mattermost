@@ -2091,6 +2091,20 @@ func (a *App) GetChannel(rctx request.CTX, channelID string) (*model.Channel, *m
 	return a.Srv().getChannel(rctx, channelID)
 }
 
+func (a *App) GetBoardChannel(rctx request.CTX, channelID string) (*model.Channel, *model.AppError) {
+	channel, err := a.Srv().Store().Channel().GetBoardChannel(channelID)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetBoardChannel", "app.channel.get.existing.app_error", map[string]any{"channel_id": channelID}, "", http.StatusNotFound).Wrap(err)
+		default:
+			return nil, model.NewAppError("GetBoardChannel", "app.channel.get.find.app_error", map[string]any{"channel_id": channelID}, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+	return channel, nil
+}
+
 func (s *Server) getChannel(rctx request.CTX, channelID string) (*model.Channel, *model.AppError) {
 	channel, err := s.Store().Channel().Get(channelID, true)
 	if err != nil {

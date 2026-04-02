@@ -947,7 +947,10 @@ func (s SqlChannelStore) GetPinnedPosts(channelId string) (*model.PostList, erro
 //nolint:unparam
 func (s SqlChannelStore) Get(id string, allowFromCache bool) (*model.Channel, error) {
 	ch := model.Channel{}
-	query := s.tableSelectQuery.Where(sq.Eq{"Id": id})
+	query := s.tableSelectQuery.Where(sq.And{
+		sq.Eq{"Id": id},
+		sq.NotEq{"Type": []model.ChannelType{model.ChannelTypeOpenBoard, model.ChannelTypePrivateBoard}},
+	})
 
 	err := s.GetReplica().GetBuilder(&ch, query)
 	if err != nil {
@@ -955,6 +958,24 @@ func (s SqlChannelStore) Get(id string, allowFromCache bool) (*model.Channel, er
 			return nil, store.NewErrNotFound("Channel", id)
 		}
 		return nil, errors.Wrapf(err, "failed to find channel with id = %s", id)
+	}
+
+	return &ch, nil
+}
+
+func (s SqlChannelStore) GetBoardChannel(id string) (*model.Channel, error) {
+	ch := model.Channel{}
+	query := s.tableSelectQuery.Where(sq.And{
+		sq.Eq{"Id": id},
+		sq.Eq{"Type": []model.ChannelType{model.ChannelTypeOpenBoard, model.ChannelTypePrivateBoard}},
+	})
+
+	err := s.GetReplica().GetBuilder(&ch, query)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("Channel", id)
+		}
+		return nil, errors.Wrapf(err, "failed to find board channel with id = %s", id)
 	}
 
 	return &ch, nil

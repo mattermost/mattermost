@@ -6880,81 +6880,55 @@ func TestChannelEndpointsRejectBoards(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
-	t.Run("updateChannel rejects board", func(t *testing.T) {
+	t.Run("updateChannel not found for board", func(t *testing.T) {
 		_, resp, err := client.UpdateChannel(ctx, boardChannel)
 		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 	})
 
-	t.Run("patchChannel rejects board", func(t *testing.T) {
+	t.Run("patchChannel not found for board", func(t *testing.T) {
 		newName := "patched"
 		_, resp, err := client.PatchChannel(ctx, boardChannel.Id, &model.ChannelPatch{
 			DisplayName: &newName,
 		})
 		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 	})
 
-	t.Run("deleteChannel rejects board", func(t *testing.T) {
+	t.Run("deleteChannel not found for board", func(t *testing.T) {
 		resp, err := client.DeleteChannel(ctx, boardChannel.Id)
 		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 	})
 
-	t.Run("updateChannelPrivacy rejects board", func(t *testing.T) {
+	t.Run("updateChannelPrivacy not found for board", func(t *testing.T) {
 		_, resp, err := client.UpdateChannelPrivacy(ctx, boardChannel.Id, model.ChannelTypePrivate)
 		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 	})
 
-	t.Run("restoreChannel rejects board", func(t *testing.T) {
-		// Delete the channel first so restore has something to restore
-		_, _ = th.SystemAdminClient.DeleteChannel(ctx, boardChannel.Id)
-
+	t.Run("restoreChannel not found for board", func(t *testing.T) {
 		_, resp, err := client.RestoreChannel(ctx, boardChannel.Id)
 		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
-
-		// Re-create the board channel for subsequent tests since delete may have succeeded
-		boardChannel, _, nErr = th.App.Srv().Store().Channel().SaveBoardChannel(th.Context, &model.Channel{
-			TeamId:      th.BasicTeam.Id,
-			DisplayName: "Test Board Restored",
-			Name:        "board-" + model.NewId(),
-			Type:        model.ChannelTypeOpenBoard,
-			CreatorId:   th.BasicUser.Id,
-		}, -1, &model.View{
-			Type:      model.ViewTypeKanban,
-			CreatorId: th.BasicUser.Id,
-			Title:     "Default View",
-		})
-		require.NoError(t, nErr)
-
-		_, nErr = th.App.Srv().Store().Channel().SaveMember(th.Context, &model.ChannelMember{
-			ChannelId:   boardChannel.Id,
-			UserId:      th.BasicUser.Id,
-			NotifyProps: model.GetDefaultChannelNotifyProps(),
-			SchemeAdmin: true,
-			SchemeUser:  true,
-		})
-		require.NoError(t, nErr)
+		CheckNotFoundStatus(t, resp)
 	})
 
-	t.Run("moveChannel rejects board", func(t *testing.T) {
+	t.Run("moveChannel not found for board", func(t *testing.T) {
 		_, resp, err := th.SystemAdminClient.MoveChannel(ctx, boardChannel.Id, th.BasicTeam.Id, false)
 		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 	})
 
-	t.Run("addChannelMember rejects board", func(t *testing.T) {
+	t.Run("addChannelMember not found for board", func(t *testing.T) {
 		_, resp, err := client.AddChannelMember(ctx, boardChannel.Id, th.BasicUser2.Id)
 		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 	})
 
-	t.Run("removeChannelMember rejects board", func(t *testing.T) {
+	t.Run("removeChannelMember not found for board", func(t *testing.T) {
 		resp, err := client.RemoveUserFromChannel(ctx, boardChannel.Id, th.BasicUser.Id)
 		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 	})
 
 	t.Run("updateChannelMemberRoles rejects board", func(t *testing.T) {
@@ -6966,33 +6940,33 @@ func TestChannelEndpointsRejectBoards(t *testing.T) {
 	t.Run("updateChannelScheme rejects board", func(t *testing.T) {
 		resp, err := th.SystemAdminClient.UpdateChannelScheme(ctx, boardChannel.Id, model.NewId())
 		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		CheckForbiddenStatus(t, resp) // license check fires before channel fetch
 	})
 
-	// --- READ operations that should reject boards ---
+	// --- READ operations: boards are invisible (404) via store-level filter ---
 
-	t.Run("getChannel rejects board", func(t *testing.T) {
+	t.Run("getChannel not found for board", func(t *testing.T) {
 		_, resp, err := client.GetChannel(ctx, boardChannel.Id)
 		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 	})
 
-	t.Run("getChannelStats rejects board", func(t *testing.T) {
+	t.Run("getChannelStats not found for board", func(t *testing.T) {
 		_, resp, err := client.GetChannelStats(ctx, boardChannel.Id, "", false)
 		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		CheckForbiddenStatus(t, resp)
 	})
 
-	t.Run("getChannelMembers rejects board", func(t *testing.T) {
+	t.Run("getChannelMembers not found for board", func(t *testing.T) {
 		_, resp, err := client.GetChannelMembers(ctx, boardChannel.Id, 0, 60, "")
 		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		CheckForbiddenStatus(t, resp)
 	})
 
-	t.Run("getPinnedPosts rejects board", func(t *testing.T) {
+	t.Run("getPinnedPosts not found for board", func(t *testing.T) {
 		_, resp, err := client.GetPinnedPosts(ctx, boardChannel.Id, "")
 		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 	})
 }
 
