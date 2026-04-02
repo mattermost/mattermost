@@ -97,6 +97,7 @@ export default function TeamPolicyEditor({
     const [saving, setSaving] = useState(false);
     const [showConfirmationModal, setShowConfirmationModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [backClicked, setBackClicked] = useState(false);
 
     const noUsableAttributes = attributesLoaded && !hasUsableAttributes(autocompleteResult, accessControlSettings.EnableUserManagedAttributes);
 
@@ -337,7 +338,11 @@ export default function TeamPolicyEditor({
         setPolicyActiveStatusChanges([]);
         setFormError('');
         setSaveChangesPanelState(undefined);
-    }, [originalName, originalExpression]);
+        if (backClicked) {
+            onNavigateBack();
+        }
+        setBackClicked(false);
+    }, [originalName, originalExpression, backClicked, onNavigateBack]);
 
     const handleClose = useCallback(() => {
         setSaveChangesPanelState(undefined);
@@ -377,7 +382,14 @@ export default function TeamPolicyEditor({
             <div className='TeamPolicyEditor__header'>
                 <button
                     className='style--none TeamPolicyEditor__back-btn'
-                    onClick={() => onNavigateBack()}
+                    onClick={() => {
+                        if (hasUnsavedChanges) {
+                            setBackClicked(true);
+                            setTimeout(() => setBackClicked(false), 3000);
+                        } else {
+                            onNavigateBack();
+                        }
+                    }}
                 >
                     <i className='icon icon-arrow-left'/>
                     <FormattedMessage
@@ -598,18 +610,15 @@ export default function TeamPolicyEditor({
                 </GenericModal>
             )}
 
-            {shouldShowPanel && (
+            {(shouldShowPanel || backClicked) && (
                 <SaveChangesPanel
                     handleSubmit={handleSaveChanges}
                     handleCancel={handleCancel}
                     handleClose={handleClose}
-                    tabChangeError={hasErrors || showTabSwitchError || (!hasChannels() && Boolean(policyId))}
-                    state={hasErrors || showTabSwitchError || (!hasChannels() && Boolean(policyId)) ? SAVE_RESULT_ERROR : saveChangesPanelState}
+                    tabChangeError={backClicked || hasErrors || showTabSwitchError || (!hasChannels() && Boolean(policyId))}
+                    state={backClicked || hasErrors || showTabSwitchError || (!hasChannels() && Boolean(policyId)) ? SAVE_RESULT_ERROR : saveChangesPanelState}
                     customErrorMessage={!hasChannels() && policyId ? formatMessage({id: 'team_settings.policy_editor.error.no_channels_delete_hint', defaultMessage: 'Remove all channels to delete, or undo to keep the policy.'}) : (formError || undefined)}
-                    cancelButtonText={formatMessage({
-                        id: 'team_settings.policy_editor.undo',
-                        defaultMessage: 'Undo',
-                    })}
+                    cancelButtonText={formatMessage({id: 'team_settings.policy_editor.undo', defaultMessage: 'Undo'})}
                 />
             )}
         </div>
