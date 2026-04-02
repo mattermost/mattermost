@@ -1318,7 +1318,7 @@ func (a *App) getAddManageAgentPermissionsMigration() (permissionsMap, error) {
 				isNotExactRole(model.SystemAdminRoleId),
 				isNotExactRole(model.SystemUserRoleId),
 			),
-			Add: []string{model.PermissionManageOwnAgent.Id},
+			Add:    []string{model.PermissionManageOwnAgent.Id},
 			Remove: []string{legacyCreateAgentPermissionID},
 		},
 	}, nil

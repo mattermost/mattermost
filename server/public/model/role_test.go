@@ -380,9 +380,9 @@ func TestManageAgentPermissionsDefaultRoles(t *testing.T) {
 	roles := MakeDefaultRoles()
 
 	for _, tc := range []struct {
-		roleId              string
-		expectOwn           bool
-		expectOthers        bool
+		roleId       string
+		expectOwn    bool
+		expectOthers bool
 	}{
 		{SystemAdminRoleId, true, true},
 		{SystemUserRoleId, true, false},
