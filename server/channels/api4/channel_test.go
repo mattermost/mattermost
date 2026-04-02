@@ -6837,6 +6837,25 @@ func TestChannelMemberSanitization(t *testing.T) {
 	})
 }
 
+func makeTestBoardView(creatorID string) *model.View {
+	kanban := &model.KanbanProps{
+		GroupBy: model.KanbanGroupBy{
+			FieldID: model.NewId(),
+			Columns: []model.KanbanColumn{
+				{ID: model.NewId(), Name: "Todo", OptionIDs: []string{model.NewId()}},
+				{ID: model.NewId(), Name: "Done", OptionIDs: []string{model.NewId()}},
+			},
+		},
+	}
+	props, _ := kanban.ToProps()
+	return &model.View{
+		Type:      model.ViewTypeKanban,
+		CreatorId: creatorID,
+		Title:     "Default View",
+		Props:     props,
+	}
+}
+
 func TestChannelEndpointsRejectBoards(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -6850,11 +6869,7 @@ func TestChannelEndpointsRejectBoards(t *testing.T) {
 		Name:        "board-" + model.NewId(),
 		Type:        model.ChannelTypeOpenBoard,
 		CreatorId:   th.BasicUser.Id,
-	}, -1, &model.View{
-		Type:      model.ViewTypeKanban,
-		CreatorId: th.BasicUser.Id,
-		Title:     "Default View",
-	})
+	}, -1, makeTestBoardView(th.BasicUser.Id))
 	require.NoError(t, nErr)
 
 	// Add the user as a member so they can access it
@@ -6982,11 +6997,7 @@ func TestChannelEndpointsExcludeBoards(t *testing.T) {
 		Name:        "open-board-" + model.NewId(),
 		Type:        model.ChannelTypeOpenBoard,
 		CreatorId:   th.BasicUser.Id,
-	}, -1, &model.View{
-		Type:      model.ViewTypeKanban,
-		CreatorId: th.BasicUser.Id,
-		Title:     "Default View",
-	})
+	}, -1, makeTestBoardView(th.BasicUser.Id))
 	require.NoError(t, nErr)
 
 	privateBoard, _, nErr := th.App.Srv().Store().Channel().SaveBoardChannel(th.Context, &model.Channel{
@@ -6995,11 +7006,7 @@ func TestChannelEndpointsExcludeBoards(t *testing.T) {
 		Name:        "private-board-" + model.NewId(),
 		Type:        model.ChannelTypePrivateBoard,
 		CreatorId:   th.BasicUser.Id,
-	}, -1, &model.View{
-		Type:      model.ViewTypeKanban,
-		CreatorId: th.BasicUser.Id,
-		Title:     "Default View",
-	})
+	}, -1, makeTestBoardView(th.BasicUser.Id))
 	require.NoError(t, nErr)
 
 	// Add user as member of both boards

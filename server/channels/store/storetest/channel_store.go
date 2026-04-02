@@ -8703,10 +8703,21 @@ func testChannelStoreSaveBoardChannel(t *testing.T, rctx request.CTX, ss store.S
 	creatorID := model.NewId()
 
 	makeView := func(title string) *model.View {
+		kanban := &model.KanbanProps{
+			GroupBy: model.KanbanGroupBy{
+				FieldID: model.NewId(),
+				Columns: []model.KanbanColumn{
+					{ID: model.NewId(), Name: "Todo", OptionIDs: []string{model.NewId()}},
+					{ID: model.NewId(), Name: "Done", OptionIDs: []string{model.NewId()}},
+				},
+			},
+		}
+		props, _ := kanban.ToProps()
 		return &model.View{
 			Type:      model.ViewTypeKanban,
 			CreatorId: creatorID,
 			Title:     title,
+			Props:     props,
 		}
 	}
 

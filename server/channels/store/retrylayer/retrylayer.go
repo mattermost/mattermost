@@ -1836,6 +1836,27 @@ func (s *RetryLayerChannelStore) GetAllDirectChannelsForExportAfter(limit int, a
 
 }
 
+func (s *RetryLayerChannelStore) GetBoardChannel(id string) (*model.Channel, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetBoardChannel(id)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerChannelStore) GetByName(teamID string, name string, allowFromCache bool) (*model.Channel, error) {
 
 	tries := 0

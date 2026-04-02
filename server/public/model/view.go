@@ -29,6 +29,8 @@ const (
 	BoardsStatusOptionTodo       = "Todo"
 	BoardsStatusOptionInProgress = "In Progress"
 	BoardsStatusOptionComplete   = "Complete"
+
+	MaxKanbanColumns = 100
 )
 
 // KanbanColumn represents a single column in a kanban view.
@@ -178,9 +180,47 @@ func (o *View) IsValid() *AppError {
 }
 
 // validateViewProps validates the props map based on the view type.
-// As we add new view types with specific prop requirements, add validation rules here.
-func validateViewProps(_ ViewType, _ StringInterface) *AppError {
-	// ViewTypeKanban: no required props at this time.
+func validateViewProps(viewType ViewType, props StringInterface) *AppError {
+	if viewType == ViewTypeKanban {
+		return validateKanbanProps(props)
+	}
+	return nil
+}
+
+func validateKanbanProps(props StringInterface) *AppError {
+	if props == nil {
+		return NewAppError("View.IsValid", "model.view.is_valid.props.kanban_required.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	kanban, err := KanbanPropsFromProps(props)
+	if err != nil {
+		return NewAppError("View.IsValid", "model.view.is_valid.props.kanban_invalid.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	if !IsValidId(kanban.GroupBy.FieldID) {
+		return NewAppError("View.IsValid", "model.view.is_valid.props.kanban_field_id.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(kanban.GroupBy.Columns) == 0 {
+		return NewAppError("View.IsValid", "model.view.is_valid.props.kanban_columns_empty.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(kanban.GroupBy.Columns) > MaxKanbanColumns {
+		return NewAppError("View.IsValid", "model.view.is_valid.props.kanban_columns_max.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	for i, col := range kanban.GroupBy.Columns {
+		if !IsValidId(col.ID) {
+			return NewAppError("View.IsValid", "model.view.is_valid.props.kanban_column_id.app_error", map[string]any{"Index": i}, "", http.StatusBadRequest)
+		}
+		if strings.TrimSpace(col.Name) == "" {
+			return NewAppError("View.IsValid", "model.view.is_valid.props.kanban_column_name.app_error", map[string]any{"Index": i}, "", http.StatusBadRequest)
+		}
+		if len(col.OptionIDs) == 0 {
+			return NewAppError("View.IsValid", "model.view.is_valid.props.kanban_column_options.app_error", map[string]any{"Index": i}, "", http.StatusBadRequest)
+		}
+	}
+
 	return nil
 }
 

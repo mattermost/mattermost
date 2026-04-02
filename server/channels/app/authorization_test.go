@@ -842,7 +842,16 @@ func TestHasPermissionToReadChannel(t *testing.T) {
 			var channel *model.Channel
 			switch tc.channelType {
 			case model.ChannelTypeOpenBoard, model.ChannelTypePrivateBoard:
-				view := &model.View{CreatorId: th.SystemAdminUser.Id, Type: model.ViewTypeKanban, Title: "Board"}
+				kanban := &model.KanbanProps{
+					GroupBy: model.KanbanGroupBy{
+						FieldID: model.NewId(),
+						Columns: []model.KanbanColumn{
+							{ID: model.NewId(), Name: "Todo", OptionIDs: []string{model.NewId()}},
+						},
+					},
+				}
+				viewProps, _ := kanban.ToProps()
+				view := &model.View{CreatorId: th.SystemAdminUser.Id, Type: model.ViewTypeKanban, Title: "Board", Props: viewProps}
 				ch, _, storeErr := th.App.Srv().Store().Channel().SaveBoardChannel(th.Context, &model.Channel{
 					TeamId:      team.Id,
 					DisplayName: "Board " + model.NewId(),
