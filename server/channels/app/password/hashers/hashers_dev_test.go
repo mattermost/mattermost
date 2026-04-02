@@ -51,14 +51,15 @@ func TestFastTestHasher(t *testing.T) {
 	require.Equal(t, fastTestHasherWorkFactor, pbkdf2Hasher.workFactor)
 
 	// Test that it produces valid hashes
-	hash, err := hasher.Hash("testpassword")
+	testPassword := "T3stP@ssw0rd!xYz"
+	hash, err := hasher.Hash(testPassword)
 	require.NoError(t, err)
 	require.Contains(t, hash, ",w=1000,")
 
 	// Verify the hash can be validated
 	parsedHasher, phc, err := GetHasherFromPHCString(hash)
 	require.NoError(t, err)
-	require.NoError(t, parsedHasher.CompareHashAndPassword(phc, "testpassword"))
+	require.NoError(t, parsedHasher.CompareHashAndPassword(phc, testPassword))
 }
 
 func TestGetLatestHasher(t *testing.T) {

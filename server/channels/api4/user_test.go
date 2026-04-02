@@ -113,7 +113,7 @@ func TestCreateUser(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableUserCreation = false })
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		user2 := &model.User{Email: th.GenerateTestEmail(), Password: "Password1", Username: GenerateTestUsername(), EmailVerified: true}
+		user2 := &model.User{Email: th.GenerateTestEmail(), Password: model.NewRandomPassword(), Username: GenerateTestUsername(), EmailVerified: true}
 		ruser2, _, err2 := client.CreateUser(context.Background(), user2)
 		require.NoError(t, err2)
 		// Creating a user as sysadmin should verify the user with the EmailVerified flag.
@@ -126,13 +126,13 @@ func TestCreateUser(t *testing.T) {
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		email := th.GenerateTestEmail()
-		user2 := &model.User{Email: email, Password: "Password1", Username: GenerateTestUsername(), EmailVerified: true}
+		user2 := &model.User{Email: email, Password: model.NewRandomPassword(), Username: GenerateTestUsername(), EmailVerified: true}
 		_, _, err = client.CreateUser(context.Background(), user2)
 		require.NoError(t, err)
 		_, appErr := th.App.GetUserByUsername(user2.Username)
 		require.Nil(t, appErr)
 
-		user3 := &model.User{Email: fmt.Sprintf(" %s  ", email), Password: "Password1", Username: GenerateTestUsername(), EmailVerified: true}
+		user3 := &model.User{Email: fmt.Sprintf(" %s  ", email), Password: model.NewRandomPassword(), Username: GenerateTestUsername(), EmailVerified: true}
 		_, resp, err = client.CreateUser(context.Background(), user3)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
@@ -146,7 +146,7 @@ func TestCreateUser(t *testing.T) {
 			Id:            model.NewId(),
 			RemoteId:      model.NewPointer(model.NewId()),
 			Email:         email,
-			Password:      "Password1",
+			Password:      model.NewRandomPassword(),
 			Username:      GenerateTestUsername(),
 			EmailVerified: true,
 		}
@@ -313,10 +313,9 @@ func TestCreateUserAudit(t *testing.T) {
 	th := SetupWithServerOptions(t, options)
 
 	email := th.GenerateTestEmail()
-	password := "this_is_the_password"
 	user := model.User{
 		Email:    email,
-		Password: password,
+		Password: model.NewRandomPassword(),
 		Username: GenerateTestUsername(),
 	}
 	_, resp, err := th.Client.CreateUser(context.Background(), &user)
@@ -334,7 +333,7 @@ func TestCreateUserAudit(t *testing.T) {
 	require.NotEmpty(t, data)
 
 	require.Contains(t, string(data), email)
-	require.NotContains(t, string(data), password)
+	require.NotContains(t, string(data), user.Password)
 }
 
 func TestUserLoginAudit(t *testing.T) {
@@ -497,7 +496,7 @@ func TestCreateUserInputFilter(t *testing.T) {
 		})
 
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-			user := &model.User{Email: "foobar+testdomainrestriction@mattermost.com", Password: "Password1", Username: GenerateTestUsername()}
+			user := &model.User{Email: "foobar+testdomainrestriction@mattermost.com", Password: model.NewRandomPassword(), Username: GenerateTestUsername()}
 			u, _, err := client.CreateUser(context.Background(), user) // we need the returned created user to use its Id for deletion.
 			require.NoError(t, err)
 			_, err = client.PermanentDeleteUser(context.Background(), u.Id)
@@ -505,7 +504,7 @@ func TestCreateUserInputFilter(t *testing.T) {
 		}, "ValidUser")
 
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-			user := &model.User{Email: "foobar+testdomainrestriction@mattermost.org", Password: "Password1", Username: GenerateTestUsername()}
+			user := &model.User{Email: "foobar+testdomainrestriction@mattermost.org", Password: model.NewRandomPassword(), Username: GenerateTestUsername()}
 			_, resp, err := client.CreateUser(context.Background(), user)
 			require.Error(t, err)
 			CheckBadRequestStatus(t, resp)
@@ -539,7 +538,7 @@ func TestCreateUserInputFilter(t *testing.T) {
 		})
 
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-			user := &model.User{Email: "foobar+testdomainrestriction@mattermost.org", Password: "Password1", Username: GenerateTestUsername(), AuthService: "ldap"}
+			user := &model.User{Email: "foobar+testdomainrestriction@mattermost.org", Password: model.NewRandomPassword(), Username: GenerateTestUsername(), AuthService: "ldap"}
 			_, resp, err := th.Client.CreateUser(context.Background(), user)
 			require.Error(t, err)
 			CheckBadRequestStatus(t, resp)
@@ -556,7 +555,7 @@ func TestCreateUserInputFilter(t *testing.T) {
 
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 			emailAddr := "foobar+testinvalidrole@mattermost.com"
-			user := &model.User{Email: emailAddr, Password: "Password1", Username: GenerateTestUsername(), Roles: "system_user system_admin"}
+			user := &model.User{Email: emailAddr, Password: model.NewRandomPassword(), Username: GenerateTestUsername(), Roles: "system_user system_admin"}
 			_, _, err := client.CreateUser(context.Background(), user)
 			require.NoError(t, err)
 			ruser, appErr := th.App.GetUserByEmail(emailAddr)
@@ -572,7 +571,7 @@ func TestCreateUserInputFilter(t *testing.T) {
 			*cfg.TeamSettings.EnableOpenServer = true
 			*cfg.TeamSettings.EnableUserCreation = true
 		})
-		user := &model.User{Id: "AAAAAAAAAAAAAAAAAAAAAAAAAA", Email: "foobar+testinvalidid@mattermost.com", Password: "Password1", Username: GenerateTestUsername(), Roles: "system_user system_admin"}
+		user := &model.User{Id: "AAAAAAAAAAAAAAAAAAAAAAAAAA", Email: "foobar+testinvalidid@mattermost.com", Password: model.NewRandomPassword(), Username: GenerateTestUsername(), Roles: "system_user system_admin"}
 		_, resp, err := client.CreateUser(context.Background(), user)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
@@ -849,7 +848,7 @@ func TestCreateUserWebSocketEvent(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.AllowEmailAccounts = true })
 
 		id := model.NewId()
-		guestPassword := "Pa$$word11"
+		guestPassword := model.NewRandomPassword()
 		guest := &model.User{
 			Email:         "success+" + id + "@simulator.amazonses.com",
 			Username:      "un_" + id,
@@ -1368,7 +1367,7 @@ func TestGetUserByEmail(t *testing.T) {
 	userWithSlash, _, err := th.SystemAdminClient.CreateUser(context.Background(), &model.User{
 		Email:    "email/with/slashes@example.com",
 		Username: GenerateTestUsername(),
-		Password: "Pa$$word11",
+		Password: model.NewRandomPassword(),
 	})
 	require.NoError(t, err)
 
@@ -2387,7 +2386,7 @@ func TestPatchUser(t *testing.T) {
 	})
 
 	patch := &model.UserPatch{}
-	patch.Password = model.NewPointer("testpassword")
+	patch.Password = model.NewPointer(model.NewRandomPassword())
 	patch.Nickname = model.NewPointer("Joram Wilander")
 	patch.FirstName = model.NewPointer("Joram")
 	patch.LastName = model.NewPointer("Wilander")
@@ -2633,7 +2632,7 @@ func TestUpdateUserAuth(t *testing.T) {
 	_, err = th.App.Srv().Store().User().VerifyEmail(user2.Id, user2.Email)
 	require.NoError(t, err)
 
-	_, _, err = th.SystemAdminClient.Login(context.Background(), user2.Email, "Pa$$word11")
+	_, _, err = th.SystemAdminClient.Login(context.Background(), user2.Email, user2.Password)
 	require.NoError(t, err)
 
 	userAuth.AuthData = user.AuthData
@@ -2972,7 +2971,7 @@ func TestUpdateUserActive(t *testing.T) {
 			Email:         "success+" + id + "@simulator.amazonses.com",
 			Username:      "un_" + id,
 			Nickname:      "nn_" + id,
-			Password:      "Password1",
+			Password:      model.NewRandomPassword(),
 			EmailVerified: true,
 		}
 		user, err := th.App.CreateGuest(th.Context, guest)
@@ -2999,7 +2998,7 @@ func TestUpdateUserActive(t *testing.T) {
 			Email:         "success+" + id + "@simulator.amazonses.com",
 			Username:      "un_" + id,
 			Nickname:      "nn_" + id,
-			Password:      "Password1",
+			Password:      model.NewRandomPassword(),
 			EmailVerified: true,
 		}
 		user, appErr := th.App.CreateGuest(th.Context, guest)
@@ -3206,7 +3205,7 @@ func TestGetUsersWithoutTeam(t *testing.T) {
 	user, _, err := th.Client.CreateUser(context.Background(), &model.User{
 		Username: "a000000000" + model.NewId(),
 		Email:    "success+" + model.NewId() + "@simulator.amazonses.com",
-		Password: "Password1",
+		Password: model.NewRandomPassword(),
 	})
 	require.NoError(t, err)
 	th.LinkUserToTeam(t, user, th.BasicTeam)
@@ -3218,7 +3217,7 @@ func TestGetUsersWithoutTeam(t *testing.T) {
 	user2, _, err := th.Client.CreateUser(context.Background(), &model.User{
 		Username: "a000000001" + model.NewId(),
 		Email:    "success+" + model.NewId() + "@simulator.amazonses.com",
-		Password: "Password1",
+		Password: model.NewRandomPassword(),
 	})
 	require.NoError(t, err)
 	defer func() {
@@ -3728,7 +3727,7 @@ func TestUpdateUserPassword(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	password := "newpassword1"
+	password := model.NewRandomPassword()
 	_, err := th.Client.UpdateUserPassword(context.Background(), th.BasicUser.Id, th.BasicUser.Password, password)
 	require.NoError(t, err)
 
@@ -3785,7 +3784,7 @@ func TestUpdateUserPassword(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 
 	// System admin can update another user's password
-	adminSetPassword := "pwdsetbyadmin"
+	adminSetPassword := model.NewRandomPassword()
 	_, err = th.SystemAdminClient.UpdateUserPassword(context.Background(), th.BasicUser.Id, "", adminSetPassword)
 	require.NoError(t, err)
 
@@ -6119,6 +6118,7 @@ func TestGetUsersByStatus(t *testing.T) {
 	}, false)
 	require.Nil(t, appErr, "failed to create channel")
 
+	userPassword := model.NewRandomPassword()
 	createUserWithStatus := func(username string, status string) *model.User {
 		id := model.NewId()
 
@@ -6126,7 +6126,7 @@ func TestGetUsersByStatus(t *testing.T) {
 			Email:    "success+" + id + "@simulator.amazonses.com",
 			Username: "un_" + username + "_" + id,
 			Nickname: "nn_" + id,
-			Password: "Password1",
+			Password: userPassword,
 		})
 		require.Nil(t, err, "failed to create user")
 
@@ -6153,7 +6153,7 @@ func TestGetUsersByStatus(t *testing.T) {
 	dndUser2 := createUserWithStatus("dnd2", model.StatusDnd)
 
 	client := th.CreateClient()
-	_, _, err := client.Login(context.Background(), onlineUser2.Username, "Password1")
+	_, _, err := client.Login(context.Background(), onlineUser2.Username, userPassword)
 	require.NoError(t, err)
 
 	t.Run("sorting by status then alphabetical", func(t *testing.T) {
@@ -6860,7 +6860,7 @@ func TestUpdatePassword(t *testing.T) {
 	th := Setup(t)
 
 	t.Run("Forbidden when request performed by system user on a system admin", func(t *testing.T) {
-		res, err := th.Client.UpdatePassword(context.Background(), th.SystemAdminUser.Id, "Pa$$word11", "foobar")
+		res, err := th.Client.UpdatePassword(context.Background(), th.SystemAdminUser.Id, th.SystemAdminUser.Password, model.NewRandomPassword())
 		require.Error(t, err)
 		CheckForbiddenStatus(t, res)
 	})
@@ -6869,16 +6869,16 @@ func TestUpdatePassword(t *testing.T) {
 		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
 		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
 
-		res, _ := th.Client.UpdatePassword(context.Background(), th.TeamAdminUser.Id, "Pa$$word11", "foobar")
+		res, _ := th.Client.UpdatePassword(context.Background(), th.TeamAdminUser.Id, th.TeamAdminUser.Password, model.NewRandomPassword())
 		CheckOKStatus(t, res)
 
-		res, err := th.Client.UpdatePassword(context.Background(), th.SystemAdminUser.Id, "Pa$$word11", "foobar")
+		res, err := th.Client.UpdatePassword(context.Background(), th.SystemAdminUser.Id, th.SystemAdminUser.Password, model.NewRandomPassword())
 		require.Error(t, err)
 		CheckForbiddenStatus(t, res)
 	})
 
 	t.Run("OK when request performed by system admin, even if requested user is system admin", func(t *testing.T) {
-		res, _ := th.SystemAdminClient.UpdatePassword(context.Background(), th.SystemAdminUser.Id, "Pa$$word11", "foobar")
+		res, _ := th.SystemAdminClient.UpdatePassword(context.Background(), th.SystemAdminUser.Id, th.SystemAdminUser.Password, model.NewRandomPassword())
 		CheckOKStatus(t, res)
 	})
 }
@@ -6896,7 +6896,7 @@ func TestUpdatePasswordAudit(t *testing.T) {
 	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
 	th := SetupWithServerOptions(t, options)
 
-	password := "this_is_the_password"
+	password := model.NewRandomPassword()
 	th.LoginBasic(t)
 	resp, err := th.Client.UpdatePassword(context.Background(), th.BasicUser.Id, th.BasicUser.Password, password)
 	require.NoError(t, err)

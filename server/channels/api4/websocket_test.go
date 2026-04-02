@@ -587,7 +587,7 @@ func TestWebSocketMFAEnforcement(t *testing.T) {
 
 		// Login user (this should work for initial authentication)
 		client := th.CreateClient()
-		_, _, err := client.Login(context.Background(), user.Email, "Pa$$word11")
+		_, _, err := client.Login(context.Background(), user.Email, user.Password)
 		require.NoError(t, err)
 
 		// Create WebSocket client - initial connection succeeds, but subsequent API requests require completed MFA

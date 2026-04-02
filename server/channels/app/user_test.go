@@ -350,7 +350,7 @@ func TestCreateUser(t *testing.T) {
 			Email:         "success+" + id + "@simulator.amazonses.com",
 			Username:      *group.Name,
 			Nickname:      "nn_" + id,
-			Password:      "Password1",
+			Password:      model.NewRandomPassword(),
 			EmailVerified: true,
 		}
 
@@ -828,7 +828,7 @@ func TestGetUsersByStatus(t *testing.T) {
 			Email:    "success+" + id + "@simulator.amazonses.com",
 			Username: "un_" + username + "_" + id,
 			Nickname: "nn_" + id,
-			Password: "Password1",
+			Password: model.NewRandomPassword(),
 		})
 		require.Nil(t, err, "failed to create user: %v", err)
 
@@ -1615,7 +1615,7 @@ func TestPasswordChangeSessionTermination(t *testing.T) {
 		th.Context.Session().UserId = th.BasicUser2.Id
 		th.Context.Session().Id = session.Id
 
-		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password2")
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, model.NewRandomPassword())
 		require.Nil(t, err)
 
 		session, err = th.App.GetSession(session.Token)
@@ -1627,7 +1627,7 @@ func TestPasswordChangeSessionTermination(t *testing.T) {
 		require.Nil(t, session2)
 
 		// Cleanup
-		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password1")
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, model.NewRandomPassword())
 		require.Nil(t, err)
 		th.Context.Session().UserId = ""
 		th.Context.Session().Id = ""
@@ -1653,7 +1653,7 @@ func TestPasswordChangeSessionTermination(t *testing.T) {
 		th.Context.Session().UserId = th.BasicUser2.Id
 		th.Context.Session().Id = session.Id
 
-		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password2")
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, model.NewRandomPassword())
 		require.Nil(t, err)
 
 		session, err = th.App.GetSession(session.Token)
@@ -1665,7 +1665,7 @@ func TestPasswordChangeSessionTermination(t *testing.T) {
 		require.False(t, session2.IsExpired())
 
 		// Cleanup
-		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password1")
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, model.NewRandomPassword())
 		require.Nil(t, err)
 		th.Context.Session().UserId = ""
 		th.Context.Session().Id = ""
@@ -1688,7 +1688,7 @@ func TestPasswordChangeSessionTermination(t *testing.T) {
 		})
 		require.Nil(t, err)
 
-		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password2")
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, model.NewRandomPassword())
 		require.Nil(t, err)
 
 		session, err = th.App.GetSession(session.Token)
@@ -1700,7 +1700,7 @@ func TestPasswordChangeSessionTermination(t *testing.T) {
 		require.Nil(t, session2)
 
 		// Cleanup
-		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password1")
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, model.NewRandomPassword())
 		require.Nil(t, err)
 	})
 
@@ -1721,7 +1721,7 @@ func TestPasswordChangeSessionTermination(t *testing.T) {
 		})
 		require.Nil(t, err)
 
-		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password2")
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, model.NewRandomPassword())
 		require.Nil(t, err)
 
 		session, err = th.App.GetSession(session.Token)
@@ -1733,7 +1733,7 @@ func TestPasswordChangeSessionTermination(t *testing.T) {
 		require.False(t, session2.IsExpired())
 
 		// Cleanup
-		err = th.App.UpdatePassword(th.Context, th.BasicUser2, "Password1")
+		err = th.App.UpdatePassword(th.Context, th.BasicUser2, model.NewRandomPassword())
 		require.Nil(t, err)
 	})
 }

@@ -744,7 +744,7 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 		Email:    "user1@example.com",
 		Username: "user1_disabled",
 		Nickname: "user1",
-		Password: "Password1",
+		Password: model.NewRandomPassword(),
 	})
 	require.Nil(t, err, "failed to create user")
 
@@ -753,7 +753,7 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 		Email:    "user2@example.com",
 		Username: "user2_disabled",
 		Nickname: "user2",
-		Password: "Password1",
+		Password: model.NewRandomPassword(),
 	})
 	require.Nil(t, err, "failed to create user")
 
