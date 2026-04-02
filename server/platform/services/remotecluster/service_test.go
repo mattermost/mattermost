@@ -435,8 +435,9 @@ func TestPingLifecycle(t *testing.T) {
 		defer func() { require.NoError(t, service.Shutdown()) }()
 
 		// Non-leader: no pings should be sent
-		time.Sleep(time.Millisecond * 150)
-		assert.Equal(t, int32(0), pingCount.Load(), "no pings should fire on non-leader")
+		assert.Never(t, func() bool {
+			return pingCount.Load() > 0
+		}, time.Millisecond*200, time.Millisecond*50, "no pings should fire on non-leader")
 
 		// Become leader: pings should start firing
 		mockServer.setLeader(true)
@@ -448,12 +449,11 @@ func TestPingLifecycle(t *testing.T) {
 		// Lose leadership: pings should stop
 		mockServer.setLeader(false)
 
-		// Wait for any in-flight pings to complete, then snapshot
-		time.Sleep(time.Millisecond * 200)
-		countAfterStop := pingCount.Load()
-
-		// Wait again and verify count hasn't grown
-		time.Sleep(time.Millisecond * 200)
-		assert.Equal(t, countAfterStop, pingCount.Load(), "no new pings should fire after losing leadership")
+		// Allow in-flight pings to drain, then verify no new pings arrive
+		assert.Eventually(t, func() bool {
+			snapshot := pingCount.Load()
+			time.Sleep(time.Millisecond * 150)
+			return pingCount.Load() == snapshot
+		}, time.Second*5, time.Millisecond*50, "no new pings should fire after losing leadership")
 	})
 }

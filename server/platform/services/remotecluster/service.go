@@ -142,10 +142,9 @@ func NewRemoteClusterService(server ServerIface, app AppIface) (*Service, error)
 
 // Start is called by the server on server start-up.
 func (rcs *Service) Start() error {
-	if rcs.active.Load() {
+	if !rcs.active.CompareAndSwap(false, true) {
 		return nil
 	}
-	rcs.active.Store(true)
 	rcs.done = make(chan struct{})
 	for i := range rcs.send {
 		go rcs.sendLoop(i, rcs.done)
@@ -162,13 +161,12 @@ func (rcs *Service) Start() error {
 
 // Shutdown is called by the server on server shutdown.
 func (rcs *Service) Shutdown() error {
-	if !rcs.active.Load() {
+	if !rcs.active.CompareAndSwap(true, false) {
 		return nil
 	}
 	rcs.server.RemoveClusterLeaderChangedListener(rcs.leaderListenerId)
 	rcs.pingStop()
 	close(rcs.done)
-	rcs.active.Store(false)
 	return nil
 }
 
