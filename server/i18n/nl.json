@@ -10033,11 +10033,7 @@
   },
   {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
-    "translation": "Kan eigenschapgroep Aangepaste profielattributen niet registreren"
-  },
-  {
-    "id": "app.custom_profile_attributes.create_property_field.app_error",
-    "translation": "Kan geen aangepast profielattribuutveld maken"
+    "translation": "Kan de eigenschappengroep Aangepaste profielattributen niet ophalen."
   },
   {
     "id": "app.custom_profile_attributes.get_property_field.app_error",
@@ -11837,7 +11833,7 @@
   },
   {
     "id": "app.data_spillage.get_group.error",
-    "translation": "Fout bij het ophalen van de Content Flagging bot."
+    "translation": "Kan de eigenschapgroep voor het markeren van inhoud niet ophalen."
   },
   {
     "id": "app.data_spillage.get_reviewer_settings.app_error",
@@ -12006,5 +12002,17 @@
   {
     "id": "web.error.unsupported_desktop_app.title",
     "translation": "Update Vereist"
+  },
+  {
+    "id": "app.role.send_updated_role_event.app_error",
+    "translation": "Er is een fout opgetreden tijdens het uitzenden van de update van de rol."
+  },
+  {
+    "id": "app.role.send_updated_role_event.unknown_scope",
+    "translation": "Er is een fout opgetreden tijdens het uitzenden van de rolupdate: onbekend schemascope."
+  },
+  {
+    "id": "model.config.is_valid.native_app_settings.download_link.app_error",
+    "translation": "Een of meer links voor het downloaden van apps zijn geen geldige URL's."
   }
 ]
