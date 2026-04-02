@@ -178,7 +178,6 @@ jobs:
             SHOULD_RUN="true"
           fi
 
-          fi
 
           echo "should_run=${SHOULD_RUN}" >> $GITHUB_OUTPUT
           echo "Should run E2E tests: ${SHOULD_RUN}"
