@@ -74,6 +74,7 @@ export default function ClassificationMarkings() {
 
     // Confirm modal for preset switch
     const [confirmPresetSwitch, setConfirmPresetSwitch] = useState<string | null>(null);
+    const [hasAcknowledgedPresetWarning, setHasAcknowledgedPresetWarning] = useState(false);
 
     const hasChanges = useMemo(() => {
         if (enabled !== initialEnabled) {
@@ -82,9 +83,6 @@ export default function ClassificationMarkings() {
         if (!enabled) {
             return false;
         }
-        if (presetId !== initialPresetId) {
-            return true;
-        }
         if (levels.length !== initialLevels.length) {
             return true;
         }
@@ -92,7 +90,7 @@ export default function ClassificationMarkings() {
             const initial = initialLevels[i];
             return level.name !== initial.name || level.color !== initial.color || level.id !== initial.id;
         });
-    }, [enabled, initialEnabled, presetId, initialPresetId, levels, initialLevels]);
+    }, [enabled, initialEnabled, levels, initialLevels]);
 
     useEffect(() => {
         dispatch(setNavigationBlocked(hasChanges));
@@ -145,30 +143,30 @@ export default function ClassificationMarkings() {
         const newPresetId = e.target.value;
 
         if (newPresetId === PRESET_CUSTOM) {
-            // Switching to custom doesn't clear anything
             setPresetId(PRESET_CUSTOM);
             return;
         }
 
-        // Switching to a country preset - warn if there are existing levels
-        if (levels.length > 0 && presetId === PRESET_CUSTOM) {
+        // Warn once when switching presets on an existing field
+        if (existingField && !hasAcknowledgedPresetWarning) {
             setConfirmPresetSwitch(newPresetId);
             return;
         }
 
         applyPreset(newPresetId);
-    }, [levels, presetId]);
+    }, [existingField, hasAcknowledgedPresetWarning]);
 
     const applyPreset = useCallback((newPresetId: string) => {
         const preset = presets.find((p) => p.id === newPresetId);
         if (preset) {
             setPresetId(newPresetId);
-            setLevels(preset.levels.map((l) => ({...l, id: ''})));
+            setLevels(preset.levels.map((l) => ({...l})));
         }
     }, []);
 
     const handleConfirmPresetSwitch = useCallback(() => {
         if (confirmPresetSwitch) {
+            setHasAcknowledgedPresetWarning(true);
             applyPreset(confirmPresetSwitch);
         }
         setConfirmPresetSwitch(null);
@@ -463,9 +461,10 @@ export default function ClassificationMarkings() {
 
             <ConfirmModal
                 show={confirmPresetSwitch !== null}
-                title={formatMessage({id: 'admin.classification_markings.preset_switch.title', defaultMessage: 'Switch classification preset?'})}
-                message={formatMessage({id: 'admin.classification_markings.preset_switch.message', defaultMessage: 'Switching to a different preset will replace your current classification levels. This action cannot be undone.'})}
-                confirmButtonText={formatMessage({id: 'admin.classification_markings.preset_switch.confirm', defaultMessage: 'Switch preset'})}
+                title={formatMessage({id: 'admin.classification_markings.preset_switch.title', defaultMessage: 'Change classification preset?'})}
+                message={formatMessage({id: 'admin.classification_markings.preset_switch.message', defaultMessage: 'Changing the classification preset will affect all existing classifications across the system. Any channels, files, or other resources marked with the current classification levels may lose their markings.'})}
+                confirmButtonText={formatMessage({id: 'admin.classification_markings.preset_switch.confirm', defaultMessage: 'Change preset'})}
+                confirmButtonClass='btn btn-danger'
                 onConfirm={handleConfirmPresetSwitch}
                 onCancel={handleCancelPresetSwitch}
                 onExited={handleCancelPresetSwitch}
