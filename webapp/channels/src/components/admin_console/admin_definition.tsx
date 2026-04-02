@@ -633,36 +633,6 @@ const AdminDefinition: AdminDefinitionType = {
                 },
                 restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.EnterpriseAdvanced),
             },
-            access_control_policy_details_edit: {
-                url: `system_attributes/attribute_based_access_control/edit_policy/:policy_id(${ID_PATH_PATTERN})`,
-                isHidden: it.any(
-                    it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
-                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
-                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
-                ),
-                isDisabled: it.any(
-                    it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
-                    it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
-                ),
-                schema: {
-                    id: 'AccessControlPolicy',
-                    component: PolicyDetails,
-                },
-            },
-            access_control_policy_details: {
-                url: 'system_attributes/attribute_based_access_control/edit_policy',
-                isHidden: it.any(
-                    it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
-                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
-                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
-                    it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
-                ),
-                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
-                schema: {
-                    id: 'AccessControlPolicy',
-                    component: PolicyDetails,
-                },
-            },
             attribute_based_access_control: {
                 url: 'system_attributes/attribute_based_access_control',
                 title: defineMessage({id: 'admin.sidebar.attributeBasedAccessControl', defaultMessage: 'Attribute-Based Access'}),
@@ -697,12 +667,78 @@ const AdminDefinition: AdminDefinitionType = {
                                 },
                             ],
                         },
+                    ],
+                },
+                restrictedIndicator: getRestrictedIndicator(false, LicenseSkus.EnterpriseAdvanced),
+            },
+            attribute_based_access_control_feature_discovery: {
+                url: 'system_attributes/attribute_based_access_control',
+                isDiscovery: true,
+                title: defineMessage({id: 'admin.sidebar.attributeBasedAccessControl', defaultMessage: 'Attribute-Based Access'}),
+                isHidden: it.any(
+                    it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
+                    it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
+                ),
+                schema: {
+                    id: 'AttributeBasedAccessControl',
+                    name: defineMessage({id: 'admin.accesscontrol.title', defaultMessage: 'Attribute-Based Access'}),
+                    settings: [
                         {
-                            key: 'admin.accesscontrol.policies',
-                            isHidden: it.any(
-                                it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
-                                it.stateIsFalse('AccessControlSettings.EnableAttributeBasedAccessControl'),
-                            ),
+                            type: 'custom',
+                            component: AttributeBasedAccessControlFeatureDiscovery,
+                            key: 'AttributeBasedAccessControlFeatureDiscovery',
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
+                        },
+                    ],
+                },
+                restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.EnterpriseAdvanced),
+            },
+            membership_policy_details_edit: {
+                url: `system_attributes/membership_policies/edit_policy/:policy_id(${ID_PATH_PATTERN})`,
+                isHidden: it.any(
+                    it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
+                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                ),
+                isDisabled: it.any(
+                    it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                    it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
+                ),
+                schema: {
+                    id: 'AccessControlPolicy',
+                    component: PolicyDetails,
+                },
+            },
+            membership_policy_details: {
+                url: 'system_attributes/membership_policies/edit_policy',
+                isHidden: it.any(
+                    it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
+                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                    it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
+                ),
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                schema: {
+                    id: 'AccessControlPolicy',
+                    component: PolicyDetails,
+                },
+            },
+            membership_policies: {
+                url: 'system_attributes/membership_policies',
+                title: defineMessage({id: 'admin.sidebar.membershipPolicies', defaultMessage: 'Membership Policies'}),
+                isHidden: it.any(
+                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                    it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
+                    it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
+                ),
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                schema: {
+                    id: 'MembershipPolicies',
+                    name: defineMessage({id: 'admin.membership_policies.page_title', defaultMessage: 'Membership Policies'}),
+                    sections: [
+                        {
+                            key: 'admin.membershippolicies.policies',
                             settings: [
                                 {
                                     type: 'custom',
@@ -712,16 +748,12 @@ const AdminDefinition: AdminDefinitionType = {
                             ],
                         },
                         {
-                            key: 'admin.accesscontrol.policyjobs',
-                            isHidden: it.any(
-                                it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
-                                it.stateIsFalse('AccessControlSettings.EnableAttributeBasedAccessControl'),
-                            ),
+                            key: 'admin.membershippolicies.policyjobs',
                             settings: [
                                 {
                                     type: 'custom',
                                     component: AccessControlPolicyJobs,
-                                    key: 'AcessControlPolicyJobs',
+                                    key: 'AccessControlPolicyJobs',
                                 },
                             ],
                         },
@@ -766,6 +798,7 @@ const AdminDefinition: AdminDefinitionType = {
                     it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                     it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
+                    it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
                 ),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                 schema: {
@@ -785,28 +818,6 @@ const AdminDefinition: AdminDefinitionType = {
                     ],
                 },
                 restrictedIndicator: getRestrictedIndicator(false, LicenseSkus.EnterpriseAdvanced),
-            },
-            attribute_based_access_control_feature_discovery: {
-                url: 'system_attributes/attribute_based_access_control',
-                isDiscovery: true,
-                title: defineMessage({id: 'admin.sidebar.attributeBasedAccessControl', defaultMessage: 'Attribute-Based Access'}),
-                isHidden: it.any(
-                    it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
-                    it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
-                ),
-                schema: {
-                    id: 'AttributeBasedAccessControl',
-                    name: defineMessage({id: 'admin.accesscontrol.title', defaultMessage: 'Attribute-Based Access'}),
-                    settings: [
-                        {
-                            type: 'custom',
-                            component: AttributeBasedAccessControlFeatureDiscovery,
-                            key: 'AttributeBasedAccessControlFeatureDiscovery',
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
-                        },
-                    ],
-                },
-                restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.EnterpriseAdvanced),
             },
         },
     },

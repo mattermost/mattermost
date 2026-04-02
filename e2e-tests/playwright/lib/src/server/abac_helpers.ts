@@ -102,7 +102,7 @@ export async function disableABAC(page: Page): Promise<void> {
  * Navigate to ABAC page in System Console
  */
 export async function navigateToABACPage(page: Page): Promise<void> {
-    await page.goto('/admin_console/system_attributes/attribute_based_access_control');
+    await page.goto('/admin_console/system_attributes/membership_policies');
     await page.waitForLoadState('networkidle');
 }
 

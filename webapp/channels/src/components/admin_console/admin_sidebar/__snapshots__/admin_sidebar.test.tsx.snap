@@ -1524,17 +1524,6 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                 />
               }
             />
-            <AdminSidebarSection
-              definitionKey="system_attributes.permission_policies"
-              key="system_attributes.permission_policies"
-              name="system_attributes/permission_policies"
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Permission Policies"
-                  id="admin.sidebar.permissionPolicies"
-                />
-              }
-            />
           </AdminSidebarCategory>
           <AdminSidebarCategory
             definitionKey="environment"
