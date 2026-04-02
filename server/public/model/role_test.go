@@ -356,43 +356,33 @@ func TestMakeDefaultRolesContainsNewManagerRoles(t *testing.T) {
 	})
 }
 
-func TestCreateAgentPermissionInAllPermissions(t *testing.T) {
+func TestCreateAgentPermissionDefinition(t *testing.T) {
+	assert.Equal(t, "create_agent", PermissionCreateAgent.Id)
+	assert.Equal(t, "authentication.permissions.create_agent.name", PermissionCreateAgent.Name)
+	assert.Equal(t, "authentication.permissions.create_agent.description", PermissionCreateAgent.Description)
+	assert.Equal(t, PermissionScopeSystem, PermissionCreateAgent.Scope,
+		"create_agent should have system scope")
 	assert.True(t, slices.ContainsFunc(AllPermissions, func(p *Permission) bool {
 		return p.Id == PermissionCreateAgent.Id
 	}), "create_agent should be in AllPermissions")
 }
 
-func TestCreateAgentPermissionIsSystemScoped(t *testing.T) {
-	assert.Equal(t, PermissionScopeSystem, PermissionCreateAgent.Scope,
-		"create_agent should have system scope")
-}
-
-func TestCreateAgentPermissionFields(t *testing.T) {
-	assert.Equal(t, "create_agent", PermissionCreateAgent.Id)
-	assert.Equal(t, "authentication.permissions.create_agent.name", PermissionCreateAgent.Name)
-	assert.Equal(t, "authentication.permissions.create_agent.description", PermissionCreateAgent.Description)
-}
-
-func TestSystemAdminHasCreateAgentPermission(t *testing.T) {
+func TestCreateAgentPermissionDefaultRoles(t *testing.T) {
 	roles := MakeDefaultRoles()
-	role, ok := roles[SystemAdminRoleId]
-	require.True(t, ok, "system_admin role should exist")
-	assert.True(t, slices.Contains(role.Permissions, PermissionCreateAgent.Id),
-		"system_admin should have create_agent permission")
-}
 
-func TestSystemUserHasCreateAgentPermission(t *testing.T) {
-	roles := MakeDefaultRoles()
-	role, ok := roles[SystemUserRoleId]
-	require.True(t, ok, "system_user role should exist")
-	assert.True(t, slices.Contains(role.Permissions, PermissionCreateAgent.Id),
-		"system_user should have create_agent permission")
-}
-
-func TestSystemGuestDoesNotHaveCreateAgentPermission(t *testing.T) {
-	roles := MakeDefaultRoles()
-	role, ok := roles[SystemGuestRoleId]
-	require.True(t, ok, "system_guest role should exist")
-	assert.False(t, slices.Contains(role.Permissions, PermissionCreateAgent.Id),
-		"system_guest should NOT have create_agent permission")
+	for _, tc := range []struct {
+		roleId   string
+		expected bool
+	}{
+		{SystemAdminRoleId, true},
+		{SystemUserRoleId, true},
+		{SystemGuestRoleId, false},
+	} {
+		t.Run(tc.roleId, func(t *testing.T) {
+			role, ok := roles[tc.roleId]
+			require.True(t, ok, "%s role should exist", tc.roleId)
+			assert.Equal(t, tc.expected, slices.Contains(role.Permissions, PermissionCreateAgent.Id),
+				"%s create_agent permission presence", tc.roleId)
+		})
+	}
 }
