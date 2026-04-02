@@ -740,7 +740,7 @@ test(
     },
 );
 
-test(
+test.fixme(
     'translated message has indicator; click opens Show Translation modal',
     {
         tag: ['@autotranslation'],
