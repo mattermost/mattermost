@@ -182,10 +182,77 @@ jobs:
           echo "should_run=${SHOULD_RUN}" >> $GITHUB_OUTPUT
           echo "Should run E2E tests: ${SHOULD_RUN}"
 
+  wait-for-enterprise-ci:
+    needs: resolve-pr
+    if: needs.resolve-pr.outputs.PR_NUMBER != '' && github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: ci/wait-for-enterprise-ci-docker-image
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
+          REPO: ${{ github.repository }}
+        run: |
+          MAX_WAIT_SECONDS=$((30 * 60))  # 30 minutes
+          POLL_INTERVAL_SECONDS=10
+          START_TIME=$(date +%s)
+
+          echo "Waiting for Enterprise CI/docker-image status check to complete..."
+          echo "Commit SHA: ${COMMIT_SHA}"
+          echo "Max wait time: 30 minutes"
+          echo "Poll interval: 10 seconds"
+          echo ""
+
+          iteration=0
+          while true; do
+            iteration=$((iteration + 1))
+            current_time=$(date +%s)
+            elapsed=$((current_time - START_TIME))
+            elapsed_mins=$((elapsed / 60))
+            elapsed_secs=$((elapsed % 60))
+
+            # Get the status of Enterprise CI/docker-image check
+            # Try check-runs API first (GitHub Checks), fallback to status API (commit status)
+            status=$(gh api repos/${REPO}/commits/${COMMIT_SHA}/check-runs \
+              --jq '.check_runs[] | select(.name=="Enterprise CI/docker-image") | .conclusion' 2>/dev/null || \
+              gh api repos/${REPO}/commits/${COMMIT_SHA}/status \
+              --jq '.statuses[] | select(.context=="Enterprise CI/docker-image") | .state' 2>/dev/null || \
+              echo "")
+
+            if [ $((iteration % 12)) -eq 0 ] || [ -n "$status" ]; then
+              echo "[Iteration $iteration, ${elapsed_mins}m${elapsed_secs}s] Status: ${status:-'not found yet'}"
+            fi
+
+            # Check if status is success
+            if [ "$status" = "success" ]; then
+              echo ""
+              echo "SUCCESS - Enterprise CI/docker-image check has passed!"
+              exit 0
+            fi
+
+            # Check if status is failure
+            if [ "$status" = "failure" ]; then
+              echo ""
+              echo "FAILURE - Enterprise CI/docker-image check has failed!"
+              exit 1
+            fi
+
+            # Check timeout
+            if [ "$elapsed" -ge "$MAX_WAIT_SECONDS" ]; then
+              echo ""
+              echo "TIMEOUT - Waited 30 minutes for Enterprise CI/docker-image to complete"
+              exit 1
+            fi
+
+            # Wait before next poll
+            sleep "$POLL_INTERVAL_SECONDS"
+          done
+
   e2e-cypress:
     needs:
       - resolve-pr
       - check-changes
+      - wait-for-enterprise-ci
     if: needs.resolve-pr.outputs.PR_NUMBER != ''
     permissions:
       statuses: write
@@ -211,6 +278,7 @@ jobs:
     needs:
       - resolve-pr
       - check-changes
+      - wait-for-enterprise-ci
     if: needs.resolve-pr.outputs.PR_NUMBER != ''
     permissions:
       statuses: write
