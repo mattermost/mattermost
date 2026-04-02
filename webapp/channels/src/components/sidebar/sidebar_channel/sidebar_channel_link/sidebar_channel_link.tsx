@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {type WrappedComponentProps, injectIntl} from 'react-intl';
+import {type WrappedComponentProps, defineMessages, injectIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -27,6 +27,13 @@ import ChannelMentionBadge from '../channel_mention_badge';
 import ChannelPencilIcon from '../channel_pencil_icon';
 import SidebarChannelIcon from '../sidebar_channel_icon';
 import SidebarChannelMenu from '../sidebar_channel_menu';
+
+const messages = defineMessages({
+    urgentMentionTooltip: {
+        id: 'channel_mention_badge.urgent_tooltip',
+        defaultMessage: 'You have an urgent mention',
+    },
+});
 
 type Props = WrappedComponentProps & {
     channel: Channel;
@@ -262,6 +269,7 @@ export class SidebarChannelLink extends React.PureComponent<Props, State> {
                 <ChannelMentionBadge
                     unreadMentions={unreadMentions}
                     hasUrgent={hasUrgent}
+                    tooltip={hasUrgent ? messages.urgentMentionTooltip : undefined}
                 />
                 <div
                     className={classNames(

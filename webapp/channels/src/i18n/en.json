@@ -3884,6 +3884,7 @@
   "channel_members_rhs.policy_enforced_restrictions": "Channel access is restricted by user attributes",
   "channel_members_rhs.search_bar.aria.cancel_search_button": "cancel members search",
   "channel_members_rhs.search_bar.placeholder": "Search members",
+  "channel_mention_badge.urgent_tooltip": "You have an urgent mention",
   "channel_menu.bookmarks": "Bookmarks Bar",
   "channel_menu.bookmarks.addFile": "Attach a file",
   "channel_menu.bookmarks.addLink": "Add a link",

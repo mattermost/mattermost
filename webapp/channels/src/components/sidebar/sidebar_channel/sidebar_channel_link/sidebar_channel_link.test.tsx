@@ -166,6 +166,39 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
         expect(props.actions.fetchChannelRemotes).not.toHaveBeenCalled();
     });
 
+    test('should pass urgent tooltip to ChannelMentionBadge when hasUrgent is true', () => {
+        const props = {
+            ...baseProps,
+            unreadMentions: 3,
+            hasUrgent: true,
+        };
+
+        const wrapper = shallowWithIntl(
+            <SidebarChannelLink {...props}/>,
+        );
+
+        const badge = wrapper.find('ChannelMentionBadge');
+        expect(badge.prop('hasUrgent')).toBe(true);
+        expect(badge.prop('tooltip')).toBeDefined();
+        expect(badge.prop('tooltip')).toHaveProperty('defaultMessage', 'You have an urgent mention');
+    });
+
+    test('should not pass tooltip to ChannelMentionBadge when hasUrgent is false', () => {
+        const props = {
+            ...baseProps,
+            unreadMentions: 3,
+            hasUrgent: false,
+        };
+
+        const wrapper = shallowWithIntl(
+            <SidebarChannelLink {...props}/>,
+        );
+
+        const badge = wrapper.find('ChannelMentionBadge');
+        expect(badge.prop('hasUrgent')).toBe(false);
+        expect(badge.prop('tooltip')).toBeUndefined();
+    });
+
     test('should refetch when channel changes', () => {
         const props = {
             ...baseProps,
