@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import DatabaseSettings from 'components/admin_console/database_settings';
+
+import {renderWithContext} from 'tests/react_testing_utils';
 
 jest.mock('actions/admin_actions.jsx', () => {
     const pingFn = () => {
@@ -47,11 +48,11 @@ describe('components/DatabaseSettings', () => {
             config,
             isDisabled: false,
         };
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <DatabaseSettings
                 {...props}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

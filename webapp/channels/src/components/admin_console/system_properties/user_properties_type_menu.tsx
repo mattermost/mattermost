@@ -46,6 +46,9 @@ const SelectType = (props: Props) => {
     }, [props.field]);
     const CurrentTypeIcon = currentTypeDescriptor.icon;
 
+    const isProtected = Boolean(props.field.attrs?.protected);
+    const isDisabled = props.field.delete_at !== 0 || isProtected;
+
     return (
         <Menu.Container
             menuButton={{
@@ -61,7 +64,7 @@ const SelectType = (props: Props) => {
                     </>
                 ),
                 dataTestId: 'fieldTypeSelectorMenuButton',
-                disabled: props.field.delete_at !== 0,
+                disabled: isDisabled,
             }}
             menu={{
                 id: 'type-selector-menu',

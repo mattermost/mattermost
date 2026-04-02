@@ -612,4 +612,16 @@ func TestIsValidWebAuthRedirectURL(t *testing.T) {
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "host")
 	})
+
+	t.Run("Valid relative URL path", func(t *testing.T) {
+		config := &model.Config{
+			ServiceSettings: model.ServiceSettings{
+				SiteURL: model.NewPointer("https://example.com"),
+			},
+		}
+		redirectURL := "/test/channels/town-square"
+
+		err := ValidateWebAuthRedirectUrl(config, redirectURL)
+		require.NoError(t, err)
+	})
 }

@@ -851,10 +851,15 @@
         .post__header,
         .post-preview__header {
             display: flex;
+            overflow: visible;
             width: auto;
             max-height: 22px;
             padding: 0;
             margin-bottom: 0;
+        }
+
+        .badges-wrapper {
+            margin-right: 5px;
         }
 
         .post__body {
@@ -942,8 +947,10 @@
             .post-image__name {
                 @include mixins.clearfix;
 
-                display: block;
+                display: flex;
                 width: 100%;
+                align-items: center;
+                justify-content: flex-start;
                 padding: 0 5px;
                 margin: 0;
                 text-overflow: ellipsis;
@@ -1031,6 +1038,18 @@
                     left: -11px;
                 }
             }
+        }
+    }
+
+    &.post--modal {
+        padding: 0;
+
+        .post__content {
+            padding: 0;
+        }
+
+        .post__img {
+            width: 42px;
         }
     }
 
@@ -1654,6 +1673,28 @@
         }
     }
 
+    .post__translation-icon-processing {        
+        color: rgba(var(--center-channel-color-rgb), 0.73);
+        font-size: 10px;
+        line-height: 16px;
+        
+        .LoadingSpinner.with-text .spinner {
+            margin-right: 3px;
+        }
+    }
+
+    .post__translation-icon-unavailable {
+        display: inline-flex;
+
+        width: 20px;
+        height: 20px;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        color: var(--dnd-indicator);
+        font-size: 12px;
+    }
+
     .post_permalink_mobile_view {
         display: inline-block;
         color: inherit;
@@ -2083,6 +2124,7 @@
 
     .edit-post-history__content_container {
         margin-left: 26px;
+        cursor: default;
 
         .post__content {
             padding-left: 0;
@@ -2287,5 +2329,35 @@
                 background-color: rgba(var(--center-channel-color-rgb), 0.05);
             }
         }
+    }
+}
+
+.post-message__shimmer {
+    position: absolute;
+    z-index: 999;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    border-radius: 4px;
+    animation: post-message-shimmer 3.5s linear infinite;
+    background: linear-gradient(
+        110deg,
+        rgba(var(--center-channel-bg-rgb), 0.40) 0%,
+        rgba(var(--center-channel-bg-rgb), 0.40) 40%,
+        var(--center-channel-bg) 50%,
+        rgba(var(--center-channel-bg-rgb), 0.40) 60%,
+        rgba(var(--center-channel-bg-rgb), 0.40) 100%
+    );
+    background-size: 300% 100%;
+    pointer-events: none;
+}
+
+@keyframes post-message-shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
     }
 }

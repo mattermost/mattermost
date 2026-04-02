@@ -2,7 +2,7 @@ dist: | check-style test package
 
 build-linux: build-linux-amd64 build-linux-arm64
 
-build-linux-amd64:
+build-linux-amd64: setup-go-work
 	@echo Build Linux amd64
 ifeq ($(BUILDER_GOOS_GOARCH),"linux_amd64")
 	env GOOS=linux GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./...
@@ -14,13 +14,13 @@ ifeq ($(FIPS_ENABLED),true)
 	@echo Verifying Build Linux amd64 for FIPS
 	$(GO) version -m $(GOBIN)/$(MM_BIN_NAME) | grep -q "GOEXPERIMENT=systemcrypto" || (echo "ERROR: FIPS mattermost binary missing GOEXPERIMENT=systemcrypto" && exit 1)
 	$(GO) version -m $(GOBIN)/$(MM_BIN_NAME) | grep "\-tags" | grep -q "requirefips" || (echo "ERROR: FIPS mattermost binary missing -tags=requirefips" && exit 1)
-	$(GO) tool nm $(GOBIN)/$(MM_BIN_NAME) | grep -q "func_go_openssl_OpenSSL_version" || (echo "ERROR: FIPS mattermost binary missing OpenSSL integration" && exit 1)
+	$(GO) tool nm $(GOBIN)/$(MM_BIN_NAME) | grep -qE "func_go_openssl_OpenSSL_version|_mkcgo_OpenSSL_version" || (echo "ERROR: FIPS mattermost binary missing OpenSSL integration" && exit 1)
 	$(GO) version -m $(GOBIN)/$(MMCTL_BIN_NAME) | grep -q "GOEXPERIMENT=systemcrypto" || (echo "ERROR: FIPS mmctl binary missing GOEXPERIMENT=systemcrypto" && exit 1)
 	$(GO) version -m $(GOBIN)/$(MMCTL_BIN_NAME) | grep "\-tags" | grep -q "requirefips" || (echo "ERROR: FIPS mmctl binary missing -tags=requirefips" && exit 1)
-	$(GO) tool nm $(GOBIN)/$(MMCTL_BIN_NAME) | grep -q "func_go_openssl_OpenSSL_version" || (echo "ERROR: FIPS mmctl binary missing OpenSSL integration" && exit 1)
+	$(GO) tool nm $(GOBIN)/$(MMCTL_BIN_NAME) | grep -qE "func_go_openssl_OpenSSL_version|_mkcgo_OpenSSL_version" || (echo "ERROR: FIPS mmctl binary missing OpenSSL integration" && exit 1)
 endif
 
-build-linux-arm64:
+build-linux-arm64: setup-go-work
 ifeq ($(FIPS_ENABLED),true)
 	@echo Skipping Build Linux arm64 for FIPS
 else
@@ -33,7 +33,7 @@ else
 endif
 endif
 
-build-osx:
+build-osx: setup-go-work
 	@echo Build OSX amd64
 ifeq ($(BUILDER_GOOS_GOARCH),"darwin_amd64")
 	env GOOS=darwin GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./...
@@ -49,7 +49,27 @@ else
 	env GOOS=darwin GOARCH=arm64 $(GO) build -o $(GOBIN)/darwin_arm64 $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./...
 endif
 
-build-windows:
+build-freebsd: build-freebsd-amd64 build-freebsd-arm64
+
+build-freebsd-amd64: setup-go-work
+	@echo Build FreeBSD amd64
+ifeq ($(BUILDER_GOOS_GOARCH),"freebsd_amd64")
+	env GOOS=freebsd GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./...
+else
+	mkdir -p $(GOBIN)/freebsd_amd64
+	env GOOS=freebsd GOARCH=amd64 $(GO) build -o $(GOBIN)/freebsd_amd64 $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./...
+endif
+
+build-freebsd-arm64: setup-go-work
+	@echo Build FreeBSD arm64
+ifeq ($(BUILDER_GOOS_GOARCH),"freebsd_arm64")
+	env GOOS=freebsd GOARCH=arm64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./...
+else
+	mkdir -p $(GOBIN)/freebsd_arm64
+	env GOOS=freebsd GOARCH=arm64 $(GO) build -o $(GOBIN)/freebsd_arm64 $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./...
+endif
+
+build-windows: setup-go-work
 	@echo Build Windows amd64
 ifeq ($(BUILDER_GOOS_GOARCH),"windows_amd64")
 	env GOOS=windows GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./...
@@ -58,7 +78,7 @@ else
 	env GOOS=windows GOARCH=amd64 $(GO) build -o $(GOBIN)/windows_amd64 $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./...
 endif
 
-build-cmd-linux:
+build-cmd-linux: setup-go-work
 	@echo Build CMD Linux amd64
 ifeq ($(BUILDER_GOOS_GOARCH),"linux_amd64")
 	env GOOS=linux GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./cmd/...
@@ -70,10 +90,10 @@ ifeq ($(FIPS_ENABLED),true)
 	@echo Verifying Build Linux amd64 for FIPS
 	$(GO) version -m $(GOBIN)/mattermost | grep -q "GOEXPERIMENT=systemcrypto" || (echo "ERROR: FIPS mattermost binary missing GOEXPERIMENT=systemcrypto" && exit 1)
 	$(GO) version -m $(GOBIN)/mattermost | grep "\-tags" | grep -q "requirefips" || (echo "ERROR: FIPS mattermost binary missing -tags=requirefips" && exit 1)
-	$(GO) tool nm $(GOBIN)/mattermost | grep -q "func_go_openssl_OpenSSL_version" || (echo "ERROR: FIPS mattermost binary missing OpenSSL integration" && exit 1)
+	$(GO) tool nm $(GOBIN)/mattermost | grep -qE "func_go_openssl_OpenSSL_version|_mkcgo_OpenSSL_version" || (echo "ERROR: FIPS mattermost binary missing OpenSSL integration" && exit 1)
 	$(GO) version -m $(GOBIN)/mmctl | grep -q "GOEXPERIMENT=systemcrypto" || (echo "ERROR: FIPS mmctl binary missing GOEXPERIMENT=systemcrypto" && exit 1)
 	$(GO) version -m $(GOBIN)/mmctl | grep "\-tags" | grep -q "requirefips" || (echo "ERROR: FIPS mmctl binary missing -tags=requirefips" && exit 1)
-	$(GO) tool nm $(GOBIN)/mmctl | grep -q "func_go_openssl_OpenSSL_version" || (echo "ERROR: FIPS mmctl binary missing OpenSSL integration" && exit 1)
+	$(GO) tool nm $(GOBIN)/mmctl | grep -qE "func_go_openssl_OpenSSL_version|_mkcgo_OpenSSL_version" || (echo "ERROR: FIPS mmctl binary missing OpenSSL integration" && exit 1)
 endif
 ifeq ($(FIPS_ENABLED),true)
 	@echo Skipping Build Linux arm64 for FIPS
@@ -87,7 +107,7 @@ else
 endif
 endif
 
-build-cmd-osx:
+build-cmd-osx: setup-go-work
 	@echo Build CMD OSX amd64
 ifeq ($(BUILDER_GOOS_GOARCH),"darwin_amd64")
 	env GOOS=darwin GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./cmd/...
@@ -103,7 +123,23 @@ else
 	env GOOS=darwin GOARCH=arm64 $(GO) build -o $(GOBIN)/darwin_arm64 $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./cmd/...
 endif
 
-build-cmd-windows:
+build-cmd-freebsd: setup-go-work
+	@echo Build CMD FreeBSD amd64
+ifeq ($(BUILDER_GOOS_GOARCH),"freebsd_amd64")
+	env GOOS=freebsd GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./cmd/...
+else
+	mkdir -p $(GOBIN)/freebsd_amd64
+	env GOOS=freebsd GOARCH=amd64 $(GO) build -o $(GOBIN)/freebsd_amd64 $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./cmd/...
+endif
+	@echo Build CMD FreeBSD arm64
+ifeq ($(BUILDER_GOOS_GOARCH),"freebsd_arm64")
+	env GOOS=freebsd GOARCH=arm64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./cmd/...
+else
+	mkdir -p $(GOBIN)/freebsd_arm64
+	env GOOS=freebsd GOARCH=arm64 $(GO) build -o $(GOBIN)/freebsd_arm64 $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./cmd/...
+endif
+
+build-cmd-windows: setup-go-work
 	@echo Build CMD Windows amd64
 ifeq ($(BUILDER_GOOS_GOARCH),"windows_amd64")
 	env GOOS=windows GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./cmd/...
@@ -123,7 +159,7 @@ build-client:
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) dist
 
-package-prep:
+package-prep: setup-go-work
 	@ echo Packaging mattermost
 	@# Remove any old files
 	rm -Rf $(DIST_ROOT)
@@ -222,6 +258,22 @@ package-osx-arm64: package-prep
 	rm -rf $(DIST_ROOT)/darwin_arm64
 
 package-osx: package-osx-amd64 package-osx-arm64
+
+package-freebsd-amd64: package-prep
+	DIST_PATH_GENERIC=$(DIST_PATH_FREEBSD_AMD64) CURRENT_PACKAGE_ARCH=freebsd_amd64 MM_BIN_NAME=mattermost MMCTL_BIN_NAME=mmctl $(MAKE) package-general
+	@# Package
+	tar -C $(DIST_PATH_FREEBSD_AMD64)/.. -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-freebsd-amd64.tar.gz mattermost ../mattermost
+	@# Cleanup
+	rm -rf $(DIST_ROOT)/freebsd_amd64
+
+package-freebsd-arm64: package-prep
+	DIST_PATH_GENERIC=$(DIST_PATH_FREEBSD_ARM64) CURRENT_PACKAGE_ARCH=freebsd_arm64 MM_BIN_NAME=mattermost MMCTL_BIN_NAME=mmctl $(MAKE) package-general
+	@# Package
+	tar -C $(DIST_PATH_FREEBSD_ARM64)/.. -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-freebsd-arm64.tar.gz mattermost ../mattermost
+	@# Cleanup
+	rm -rf $(DIST_ROOT)/freebsd_arm64
+
+package-freebsd: package-freebsd-amd64 package-freebsd-arm64
 
 package-linux-amd64: package-prep
 	DIST_PATH_GENERIC=$(DIST_PATH_LIN_AMD64) PLUGIN_ARCH=linux-amd64 $(MAKE) package-plugins

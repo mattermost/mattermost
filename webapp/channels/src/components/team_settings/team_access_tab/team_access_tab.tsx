@@ -2,9 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useState} from 'react';
-import {useIntl} from 'react-intl';
 
-import ModalSection from 'components/widgets/modals/components/modal_section';
 import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 
 import AllowedDomainsSelect from './allowed_domains_select';
@@ -25,11 +23,10 @@ const generateAllowedDomainOptions = (allowedDomains?: string) => {
 
 type Props = PropsFromRedux & OwnProps;
 
-const AccessTab = ({closeModal, collapseModal, hasChangeTabError, hasChanges, setHasChangeTabError, setHasChanges, setJustSaved, team, actions}: Props) => {
+const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitchError, setAreThereUnsavedChanges, team, actions}: Props) => {
     const [allowedDomains, setAllowedDomains] = useState<string[]>(() => generateAllowedDomainOptions(team.allowed_domains));
     const [allowOpenInvite, setAllowOpenInvite] = useState<boolean>(team.allow_open_invite ?? false);
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>();
-    const {formatMessage} = useIntl();
 
     const handleAllowedDomainsSubmit = useCallback(async (): Promise<boolean> => {
         const {error} = await actions.patchTeam({
@@ -59,31 +56,22 @@ const AccessTab = ({closeModal, collapseModal, hasChangeTabError, hasChanges, se
     }, [actions, allowOpenInvite, team]);
 
     const updateOpenInvite = useCallback((value: boolean) => {
-        setHasChanges(true);
+        setAreThereUnsavedChanges(true);
         setSaveChangesPanelState('editing');
         setAllowOpenInvite(value);
-    }, [setHasChanges]);
+    }, [setAreThereUnsavedChanges]);
 
     const handleClose = useCallback(() => {
         setSaveChangesPanelState('editing');
-        setHasChanges(false);
-        setHasChangeTabError(false);
-        setJustSaved(false); // Reset flag when panel closes
-    }, [setHasChangeTabError, setHasChanges, setJustSaved]);
+        setAreThereUnsavedChanges(false);
+        setShowTabSwitchError(false);
+    }, [setShowTabSwitchError, setAreThereUnsavedChanges]);
 
     const handleCancel = useCallback(() => {
         setAllowedDomains(generateAllowedDomainOptions(team.allowed_domains));
         setAllowOpenInvite(team.allow_open_invite ?? false);
         handleClose();
     }, [handleClose, team.allow_open_invite, team.allowed_domains]);
-
-    const collapseModalHandler = useCallback(() => {
-        if (hasChanges) {
-            setHasChangeTabError(true);
-            return;
-        }
-        collapseModal();
-    }, [collapseModal, hasChanges, setHasChangeTabError]);
 
     const handleSaveChanges = useCallback(async () => {
         const allowedDomainSuccess = await handleAllowedDomainsSubmit();
@@ -93,75 +81,48 @@ const AccessTab = ({closeModal, collapseModal, hasChangeTabError, hasChanges, se
             return;
         }
         setSaveChangesPanelState('saved');
-        setHasChangeTabError(false);
-        setJustSaved(true); // Flag that save just completed
-    }, [handleAllowedDomainsSubmit, handleOpenInviteSubmit, setHasChangeTabError, setJustSaved]);
+        setShowTabSwitchError(false);
+
+        // allows modal to close immediately
+        setAreThereUnsavedChanges(false);
+    }, [handleAllowedDomainsSubmit, handleOpenInviteSubmit, setShowTabSwitchError, setAreThereUnsavedChanges]);
 
     return (
-        <ModalSection
-            content={
-                <>
-                    <div className='modal-header'>
-                        <button
-                            id='closeButton'
-                            type='button'
-                            className='close'
-                            data-dismiss='modal'
-                            onClick={closeModal}
-                        >
-                            <span aria-hidden='true'>{'×'}</span>
-                        </button>
-                        <h4 className='modal-title'>
-                            <div className='modal-back'>
-                                <i
-                                    className='fa fa-angle-left'
-                                    aria-label={formatMessage({
-                                        id: 'generic_icons.collapse',
-                                        defaultMessage: 'Collapse Icon',
-                                    })}
-                                    onClick={collapseModalHandler}
-                                />
-                            </div>
-                            <span>{formatMessage({id: 'team_settings_modal.title', defaultMessage: 'Team Settings'})}</span>
-                        </h4>
-                    </div>
-                    <div
-                        className='modal-access-tab-content user-settings'
-                        id='accessSettings'
-                        aria-labelledby='accessButton'
-                        role='tabpanel'
-                    >
-                        {!team.group_constrained && (
-                            <AllowedDomainsSelect
-                                allowedDomains={allowedDomains}
-                                setAllowedDomains={setAllowedDomains}
-                                setHasChanges={setHasChanges}
-                                setSaveChangesPanelState={setSaveChangesPanelState}
-                            />
-                        )}
-                        <div className='divider-light'/>
-                        <OpenInvite
-                            isGroupConstrained={team.group_constrained}
-                            allowOpenInvite={allowOpenInvite}
-                            setAllowOpenInvite={updateOpenInvite}
-                        />
-                        <div className='divider-light'/>
-                        {!team.group_constrained && (
-                            <InviteSectionInput regenerateTeamInviteId={actions.regenerateTeamInviteId}/>
-                        )}
-                        {hasChanges && (
-                            <SaveChangesPanel
-                                handleCancel={handleCancel}
-                                handleSubmit={handleSaveChanges}
-                                handleClose={handleClose}
-                                tabChangeError={hasChangeTabError}
-                                state={saveChangesPanelState}
-                            />
-                        )}
-                    </div>
-                </>
-            }
-        />
+        <div
+            className='modal-access-tab-content user-settings'
+            id='accessSettings'
+            aria-labelledby='accessButton'
+            role='tabpanel'
+        >
+            {!team.group_constrained && (
+                <AllowedDomainsSelect
+                    allowedDomains={allowedDomains}
+                    setAllowedDomains={setAllowedDomains}
+                    setHasChanges={setAreThereUnsavedChanges}
+                    setSaveChangesPanelState={setSaveChangesPanelState}
+                />
+            )}
+            <div className='divider-light'/>
+            <OpenInvite
+                isGroupConstrained={team.group_constrained}
+                allowOpenInvite={allowOpenInvite}
+                setAllowOpenInvite={updateOpenInvite}
+            />
+            <div className='divider-light'/>
+            {!team.group_constrained && (
+                <InviteSectionInput regenerateTeamInviteId={actions.regenerateTeamInviteId}/>
+            )}
+            {(areThereUnsavedChanges || saveChangesPanelState === 'saved') && (
+                <SaveChangesPanel
+                    handleCancel={handleCancel}
+                    handleSubmit={handleSaveChanges}
+                    handleClose={handleClose}
+                    tabChangeError={showTabSwitchError}
+                    state={saveChangesPanelState}
+                />
+            )}
+        </div>
     );
 };
+
 export default AccessTab;

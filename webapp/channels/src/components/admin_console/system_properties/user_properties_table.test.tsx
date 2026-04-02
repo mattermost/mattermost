@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, screen, waitFor} from '@testing-library/react';
 import React from 'react';
 
 import type {UserPropertyField} from '@mattermost/types/properties';
 import {collectionFromArray} from '@mattermost/types/utilities';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import {UserPropertiesTable} from './user_properties_table';
 
@@ -27,6 +26,11 @@ describe('UserPropertiesTable', () => {
             create_at: 1736541716295,
             delete_at: 0,
             update_at: 0,
+            created_by: '',
+            updated_by: '',
+            target_id: '',
+            target_type: '',
+            object_type: '',
             attrs: {
                 sort_order: 0,
                 visibility: 'when_set',
@@ -41,6 +45,11 @@ describe('UserPropertiesTable', () => {
             create_at: 1736541716295,
             delete_at: 0,
             update_at: 0,
+            created_by: '',
+            updated_by: '',
+            target_id: '',
+            target_type: '',
+            object_type: '',
             attrs: {
                 sort_order: 1,
                 visibility: 'when_set',
@@ -57,10 +66,6 @@ describe('UserPropertiesTable', () => {
     const updateField = jest.fn();
     const deleteField = jest.fn();
     const reorderField = jest.fn();
-
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
 
     const renderComponent = (fields = baseFields) => {
         const collection = collectionFromArray(fields);
@@ -93,11 +98,14 @@ describe('UserPropertiesTable', () => {
         expect(screen.getByText('Select')).toBeInTheDocument();
     });
 
-    it('allows editing field names', () => {
+    it('allows editing field names', async () => {
         renderComponent();
 
         const field1Input = screen.getByDisplayValue('Field 1');
-        fireEvent.change(field1Input, {target: {value: 'Edited Field 1'}});
+        await userEvent.clear(field1Input);
+        await userEvent.type(field1Input, 'Edited Field 1');
+
+        // Trigger blur to save the edited field name - fireEvent used because userEvent doesn't have direct focus/blur methods
         fireEvent.blur(field1Input);
 
         expect(updateField).toHaveBeenCalledWith({
@@ -175,6 +183,11 @@ describe('UserPropertiesTable', () => {
             create_at: 0,
             delete_at: 0,
             update_at: 0,
+            created_by: '',
+            updated_by: '',
+            target_id: '',
+            target_type: '',
+            object_type: '',
             attrs: {
                 sort_order: 2,
                 visibility: 'when_set',
@@ -198,6 +211,11 @@ describe('UserPropertiesTable', () => {
             create_at: 0,
             delete_at: 0,
             update_at: 0,
+            created_by: '',
+            updated_by: '',
+            target_id: '',
+            target_type: '',
+            object_type: '',
             attrs: {
                 sort_order: 2,
                 visibility: 'when_set',
@@ -222,6 +240,11 @@ describe('UserPropertiesTable', () => {
             create_at: 0,
             delete_at: 0,
             update_at: 0,
+            created_by: '',
+            updated_by: '',
+            target_id: '',
+            target_type: '',
+            object_type: '',
             attrs: {
                 sort_order: 2,
                 visibility: 'when_set',

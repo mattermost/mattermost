@@ -36,6 +36,9 @@ func TestGenerateSupportPacket(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
+	// Set MM_LOG_PATH to allow log file reads from our temp directory
+	t.Setenv("MM_LOG_PATH", dir)
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.LogSettings.FileLocation = dir
 	})
@@ -365,6 +368,7 @@ func TestGetSupportPacketStats(t *testing.T) {
 		assert.Equal(t, int64(0), sp.MonthlyActiveUsers)
 		assert.Equal(t, int64(0), sp.DeactivatedUsers)
 		assert.Equal(t, int64(0), sp.Guests)
+		assert.Equal(t, int64(0), sp.SingleChannelGuests)
 		assert.Equal(t, int64(0), sp.BotAccounts)
 		assert.Equal(t, int64(0), sp.Posts)
 		assert.Equal(t, int64(0), sp.Channels)
@@ -434,6 +438,7 @@ func TestGetSupportPacketStats(t *testing.T) {
 		assert.Equal(t, int64(0), sp.MonthlyActiveUsers)
 		assert.Equal(t, int64(3), sp.DeactivatedUsers)
 		assert.Equal(t, int64(2), sp.Guests)
+		assert.Equal(t, int64(0), sp.SingleChannelGuests)
 		assert.Equal(t, int64(1), sp.BotAccounts)
 		assert.Equal(t, int64(4), sp.Posts)    // 1 from the bot creation and 3 created directly
 		assert.Equal(t, int64(3), sp.Channels) // 2 from the team creation and 1 created directly
@@ -441,6 +446,18 @@ func TestGetSupportPacketStats(t *testing.T) {
 		assert.Equal(t, int64(1), sp.SlashCommands)
 		assert.Equal(t, int64(1), sp.IncomingWebhooks)
 		assert.Equal(t, int64(1), sp.OutgoingWebhooks)
+	})
+
+	t.Run("single channel guests are counted when a guest is in exactly one channel", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		channel := th.CreateChannel(t, th.BasicTeam)
+
+		guest := th.CreateGuest(t)
+		th.LinkUserToTeam(t, guest, th.BasicTeam)
+		th.AddUserToChannel(t, guest, channel)
+
+		sp := generateStats(t, th.Context, th.App)
+		assert.Equal(t, int64(1), sp.SingleChannelGuests)
 	})
 
 	t.Run("post count should be present if number of users extends AnalyticsSettings.MaxUsersForStatistics", func(t *testing.T) {
@@ -594,7 +611,7 @@ func TestGetSupportPacketPermissionsInfo(t *testing.T) {
 	t.Run("No custom permissions", func(t *testing.T) {
 		permissions := generatePermissionInfo(t)
 
-		assert.Len(t, permissions.Roles, 23)
+		assert.Len(t, permissions.Roles, 25)
 		assert.Empty(t, permissions.Schemes)
 	})
 
@@ -608,7 +625,7 @@ func TestGetSupportPacketPermissionsInfo(t *testing.T) {
 	t.Run("with custom scheme", func(t *testing.T) {
 		permissions := generatePermissionInfo(t)
 
-		assert.Len(t, permissions.Roles, 33) // 23 default roles + 10 custom roles from the scheme
+		assert.Len(t, permissions.Roles, 35) // 25 default roles + 10 custom roles from the scheme
 		require.Len(t, permissions.Schemes, 1)
 		assert.Equal(t, scheme.Id, permissions.Schemes[0].Id)
 		assert.Equal(t, model.FakeSetting, permissions.Schemes[0].Name, "Name should be obfuscated")
@@ -630,7 +647,7 @@ func TestGetSupportPacketPermissionsInfo(t *testing.T) {
 		permissions := generatePermissionInfo(t)
 
 		require.Len(t, permissions.Schemes, 1)
-		require.Len(t, permissions.Roles, 34) // 23 default roles + 10 custom roles from the scheme + 1 custom role
+		require.Len(t, permissions.Roles, 36) // 25 default roles + 10 custom roles from the scheme + 1 custom role
 		found := false
 		for _, r := range permissions.Roles {
 			// Confirm that sensitive fields are obfuscated

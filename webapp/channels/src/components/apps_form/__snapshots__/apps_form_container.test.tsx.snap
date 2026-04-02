@@ -1,39 +1,256 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/apps_form/AppsFormContainer should match snapshot 1`] = `
-<injectIntl(AppsForm)
-  actions={
-    Object {
-      "performLookupCall": [Function],
-      "refreshOnSelect": [Function],
-      "submit": [Function],
-    }
-  }
-  form={
-    Object {
-      "fields": Array [
-        Object {
-          "name": "field1",
-          "type": "text",
-          "value": "initial_value_1",
-        },
-        Object {
-          "lookup": Object {
-            "path": "/form_lookup",
-          },
-          "name": "field2",
-          "refresh": true,
-          "type": "dynamic_select",
-          "value": "initial_value_2",
-        },
-      ],
-      "header": "Form Header",
-      "submit": Object {
-        "path": "/form_url",
-      },
-      "title": "Form Title",
-    }
-  }
-  onExited={[MockFunction]}
-/>
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
+  >
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      aria-labelledby="appsModalLabel"
+      class="fade in modal"
+      id="appsModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="a11y__modal about-modal modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <form
+            autocomplete="off"
+          >
+            <div
+              class="modal-header"
+            >
+              <button
+                aria-label="Close"
+                class="close"
+                type="button"
+              >
+                <span
+                  aria-hidden="true"
+                >
+                  ×
+                </span>
+                <span
+                  class="sr-only"
+                >
+                  Close
+                </span>
+              </button>
+              <h1
+                class="modal-title"
+                id="appsModalLabel"
+              >
+                Form Title
+              </h1>
+            </div>
+            <div
+              class="modal-body"
+            >
+              <div
+                class="fade apps-form-modal-body-common apps-form-modal-body-loaded"
+              >
+                <span
+                  class="LoadingSpinner"
+                  data-testid="loadingSpinner"
+                  id="loadingSpinner"
+                  style="font-size: 24px;"
+                >
+                  <span
+                    class="fa fa-spinner fa-fw fa-pulse spinner"
+                    title="Loading Icon"
+                  />
+                </span>
+              </div>
+              <p>
+                Form Header
+              </p>
+              <div
+                class="form-group"
+                data-testid="field1"
+              >
+                <label
+                  class="control-label "
+                  data-testid="field1label"
+                  for="field1"
+                >
+                  <span
+                    class="light"
+                  >
+                     
+                    (optional)
+                  </span>
+                </label>
+                <div
+                  class=""
+                >
+                  <input
+                    class="form-control"
+                    data-testid="field1input"
+                    id="field1"
+                    maxlength="150"
+                    placeholder=""
+                    type="text"
+                    value="initial_value_1"
+                  />
+                  <div
+                    class="help-text"
+                    data-testid="field1help-text"
+                  >
+                    <span />
+                  </div>
+                </div>
+              </div>
+              <div
+                class="form-group"
+                data-testid="field2"
+              >
+                <label>
+                  <span
+                    class="light"
+                  >
+                     
+                    (optional)
+                  </span>
+                </label>
+                <div
+                  class="react-select"
+                >
+                  <div
+                    class="css-b62m3t-container"
+                    id="MultiInput_field2"
+                  >
+                    <span
+                      class="css-1f43avz-a11yText-A11yText"
+                      id="react-select-2-live-region"
+                    />
+                    <span
+                      aria-atomic="false"
+                      aria-live="polite"
+                      aria-relevant="additions text"
+                      class="css-1f43avz-a11yText-A11yText"
+                      role="log"
+                    />
+                    <div
+                      class="react-select-auto react-select__control css-13cymwt-control"
+                    >
+                      <div
+                        class="react-select-auto react-select__value-container css-hlgwow"
+                      >
+                        <div
+                          class="react-select-auto react-select__placeholder css-1jqq78o-placeholder"
+                          id="react-select-2-placeholder"
+                        />
+                        <div
+                          class="react-select-auto react-select__input-container css-19bb58m"
+                          data-value=""
+                        >
+                          <input
+                            aria-activedescendant=""
+                            aria-autocomplete="list"
+                            aria-describedby="react-select-2-placeholder"
+                            aria-expanded="false"
+                            aria-haspopup="true"
+                            autocapitalize="none"
+                            autocomplete="off"
+                            autocorrect="off"
+                            class="react-select-auto react-select__input"
+                            id="react-select-2-input"
+                            role="combobox"
+                            spellcheck="false"
+                            style="color: inherit; background: 0px; opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+                            tabindex="0"
+                            type="text"
+                            value=""
+                          />
+                        </div>
+                      </div>
+                      <div
+                        class="react-select-auto react-select__indicators css-1wy0on6"
+                      >
+                        <div
+                          aria-hidden="true"
+                          class="react-select-auto react-select__indicator react-select-auto react-select__loading-indicator css-pogzpp-loadingIndicator"
+                        >
+                          <span
+                            class="css-1icxkl9-LoadingDot"
+                          />
+                          <span
+                            class="css-1oazjx7-LoadingDot"
+                          />
+                          <span
+                            class="css-1wonz24-LoadingDot"
+                          />
+                        </div>
+                        <span
+                          class="react-select-auto react-select__indicator-separator css-1u9des2-indicatorSeparator"
+                        />
+                        <div
+                          aria-hidden="true"
+                          class="react-select-auto react-select__indicator react-select-auto react-select__dropdown-indicator css-1xc3v61-indicatorContainer"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            class="css-tj5bde-Svg"
+                            focusable="false"
+                            height="20"
+                            viewBox="0 0 20 20"
+                            width="20"
+                          >
+                            <path
+                              d="M4.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.574 0 0.436 0.445 0.408 1.197 0 1.615-0.406 0.418-4.695 4.502-4.695 4.502-0.217 0.223-0.502 0.335-0.787 0.335s-0.57-0.112-0.789-0.335c0 0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="help-text"
+                >
+                  <span />
+                </div>
+              </div>
+            </div>
+            <div
+              class="modal-footer"
+            >
+              <div>
+                <button
+                  class="btn btn-tertiary cancel-button"
+                  id="appsModalCancel"
+                  type="button"
+                >
+                  Cancel
+                </button>
+                <button
+                  class="btn btn-primary save-button"
+                  id="appsModalSubmit"
+                  type="submit"
+                >
+                  Submit
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
 `;

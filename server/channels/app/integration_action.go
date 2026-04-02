@@ -252,7 +252,8 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 	defer resp.Body.Close()
 
 	var response model.PostActionIntegrationResponse
-	respBytes, err := io.ReadAll(resp.Body)
+	limitedReader := io.LimitReader(resp.Body, MaxIntegrationResponseSize)
+	respBytes, err := io.ReadAll(limitedReader)
 	if err != nil {
 		return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -470,11 +471,11 @@ func (a *App) OpenInteractiveDialog(rctx request.CTX, request model.OpenDialogRe
 		return appErr
 	}
 
+	request.TriggerId = clientTriggerId
+
 	if dialogErr := request.IsValid(); dialogErr != nil {
 		rctx.Logger().Warn("Interactive dialog is invalid", mlog.Err(dialogErr))
 	}
-
-	request.TriggerId = clientTriggerId
 
 	jsonRequest, err := json.Marshal(request)
 	if err != nil {

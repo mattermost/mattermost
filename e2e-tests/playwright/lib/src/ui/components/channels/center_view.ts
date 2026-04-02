@@ -24,9 +24,8 @@ export default class ChannelsCenterView {
     readonly postEdit;
     readonly editedPostIcon;
     readonly channelBanner;
+    readonly autotranslationBadge;
     readonly flagPostConfirmationDialog;
-    readonly messageDeleted;
-    readonly postText;
 
     constructor(container: Locator, page: Page) {
         this.container = container;
@@ -39,13 +38,11 @@ export default class ChannelsCenterView {
         this.scheduledPostIndicator = new ScheduledPostIndicator(container.getByTestId('scheduledPostIndicator'));
         this.editedPostIcon = (postID: string) => container.locator(`#postEdited_${postID}`);
         this.channelBanner = container.getByTestId('channel_banner_container');
+        this.autotranslationBadge = container.getByTestId('autotranslation-badge');
         this.flagPostConfirmationDialog = new FlagPostConfirmationDialog(
             page.locator('#FlagPostModal div.modal-content'),
             page,
         );
-        this.messageDeleted = (postId: string) =>
-            this.container.locator(`#${postId}_message >> text=(message deleted)`);
-        this.postText = (postID: string) => this.container.locator(`#postMessageText_${postID}`);
     }
 
     async toBeVisible() {
@@ -100,9 +97,12 @@ export default class ChannelsCenterView {
     /**
      * Returns the Center post by post's id
      * @param postId Just the ID without the prefix
+     * Note: Handles both simple posts (post_id) and combined posts (post_id:timestamp)
      */
     async getPostById(id: string) {
-        const postById = this.container.locator(`[id="post_${id}"]`);
+        // Match either exact ID or ID with timestamp suffix (for combined posts)
+        // Use CSS selector that matches: post_id OR post_id:*
+        const postById = this.container.locator(`[id="post_${id}"], [id^="post_${id}:"]`).first();
         await postById.waitFor();
         return new ChannelsPost(postById);
     }
@@ -175,14 +175,5 @@ export default class ChannelsCenterView {
 
         const actualText = await strikethroughText.textContent();
         expect(actualText).toBe(text);
-    }
-
-    async messageDeletedVisible(isVisible: boolean = false, postId: string, message: string) {
-        await expect(this.messageDeleted(postId)).toBeVisible({visible: isVisible});
-        if (!isVisible) {
-            const postMessageText = this.postText(postId);
-            const postMessageTextContent = await postMessageText.textContent();
-            expect(postMessageTextContent).toBe(message);
-        }
     }
 }

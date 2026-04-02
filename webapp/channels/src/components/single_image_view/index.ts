@@ -6,21 +6,32 @@ import type {ConnectedProps} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
+import type {FileInfo} from '@mattermost/types/files';
+
 import {getFilePublicLink} from 'mattermost-redux/actions/files';
+import {isFileRejected} from 'mattermost-redux/selectors/entities/files';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {toggleEmbedVisibility} from 'actions/post_actions';
 import {openModal} from 'actions/views/modals';
+import {getIsRhsOpen} from 'selectors/rhs';
 
 import SingleImageView from 'components/single_image_view/single_image_view';
 
 import type {GlobalState} from 'types/store';
 
-function mapStateToProps(state: GlobalState) {
+type OwnProps = {
+    fileInfo: FileInfo;
+};
+
+function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
+    const isRhsOpen = getIsRhsOpen(state);
     const config = getConfig(state);
 
     return {
         enablePublicLink: config.EnablePublicLink === 'true',
+        isFileRejected: isFileRejected(state, ownProps.fileInfo.id),
+        isRhsOpen,
     };
 }
 

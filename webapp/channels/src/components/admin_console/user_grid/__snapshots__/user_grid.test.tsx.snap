@@ -1,1120 +1,737 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/user_grid/UserGrid should match snapshot with 2 users 1`] = `
-<DataGrid
-  columns={
-    Array [
-      Object {
-        "field": "name",
-        "fixed": true,
-        "name": <Memo(MemoizedFormattedMessage)
-          defaultMessage="Name"
-          id="admin.user_grid.name"
-        />,
-        "width": 3,
-      },
-      Object {
-        "field": "new",
-        "fixed": true,
-        "name": "",
-      },
-      Object {
-        "field": "role",
-        "name": <Memo(MemoizedFormattedMessage)
-          defaultMessage="Role"
-          id="admin.user_grid.role"
-        />,
-        "overflow": "visible",
-      },
-      Object {
-        "field": "remove",
-        "fixed": true,
-        "name": "",
-        "textAlign": "right",
-      },
-    ]
-  }
-  endCount={2}
-  filterProps={
-    Object {
-      "keys": Array [],
-      "onFilter": [Function],
-      "options": Object {},
-    }
-  }
-  loading={false}
-  nextPage={[Function]}
-  onSearch={[Function]}
-  placeholderEmpty={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="No users found"
-      id="admin.user_grid.notFound"
-    />
-  }
-  previousPage={[Function]}
-  rows={
-    Array [
-      Object {
-        "cells": Object {
-          "id": "userid1",
-          "name": <UserGridName
-            user={
-              Object {
-                "auth_service": "",
-                "bot_description": "",
-                "create_at": 0,
-                "delete_at": 0,
-                "email": "",
-                "first_name": "",
-                "id": "userid1",
-                "is_bot": false,
-                "last_activity_at": 0,
-                "last_name": "",
-                "last_password_update": 0,
-                "last_picture_update": 0,
-                "locale": "",
-                "mfa_active": false,
-                "nickname": "",
-                "notify_props": Object {
-                  "calls_desktop_sound": "true",
-                  "channel": "false",
-                  "comments": "never",
-                  "desktop": "default",
-                  "desktop_sound": "false",
-                  "email": "false",
-                  "first_name": "false",
-                  "highlight_keys": "",
-                  "mark_unread": "mention",
-                  "mention_keys": "",
-                  "push": "none",
-                  "push_status": "offline",
-                },
-                "password": "",
-                "position": "",
-                "props": Object {},
-                "roles": "",
-                "terms_of_service_create_at": 0,
-                "terms_of_service_id": "",
-                "update_at": 0,
-                "username": "user-1",
-              }
-            }
-          />,
-          "new": null,
-          "remove": <UserGridRemove
-            removeUser={[Function]}
-            user={
-              Object {
-                "auth_service": "",
-                "bot_description": "",
-                "create_at": 0,
-                "delete_at": 0,
-                "email": "",
-                "first_name": "",
-                "id": "userid1",
-                "is_bot": false,
-                "last_activity_at": 0,
-                "last_name": "",
-                "last_password_update": 0,
-                "last_picture_update": 0,
-                "locale": "",
-                "mfa_active": false,
-                "nickname": "",
-                "notify_props": Object {
-                  "calls_desktop_sound": "true",
-                  "channel": "false",
-                  "comments": "never",
-                  "desktop": "default",
-                  "desktop_sound": "false",
-                  "email": "false",
-                  "first_name": "false",
-                  "highlight_keys": "",
-                  "mark_unread": "mention",
-                  "mention_keys": "",
-                  "push": "none",
-                  "push_status": "offline",
-                },
-                "password": "",
-                "position": "",
-                "props": Object {},
-                "roles": "",
-                "terms_of_service_create_at": 0,
-                "terms_of_service_id": "",
-                "update_at": 0,
-                "username": "user-1",
-              }
-            }
-          />,
-          "role": <UserGridRoleDropdown
-            handleUpdateMembership={[Function]}
-            membership={
-              Object {
-                "delete_at": 0,
-                "mention_count": 0,
-                "mention_count_root": 0,
-                "msg_count": 0,
-                "msg_count_root": 0,
-                "roles": "team_user",
-                "scheme_admin": false,
-                "scheme_guest": false,
-                "scheme_user": true,
-                "team_id": "team",
-                "user_id": "userId1",
-              }
-            }
-            scope="team"
-            user={
-              Object {
-                "auth_service": "",
-                "bot_description": "",
-                "create_at": 0,
-                "delete_at": 0,
-                "email": "",
-                "first_name": "",
-                "id": "userid1",
-                "is_bot": false,
-                "last_activity_at": 0,
-                "last_name": "",
-                "last_password_update": 0,
-                "last_picture_update": 0,
-                "locale": "",
-                "mfa_active": false,
-                "nickname": "",
-                "notify_props": Object {
-                  "calls_desktop_sound": "true",
-                  "channel": "false",
-                  "comments": "never",
-                  "desktop": "default",
-                  "desktop_sound": "false",
-                  "email": "false",
-                  "first_name": "false",
-                  "highlight_keys": "",
-                  "mark_unread": "mention",
-                  "mention_keys": "",
-                  "push": "none",
-                  "push_status": "offline",
-                },
-                "password": "",
-                "position": "",
-                "props": Object {},
-                "roles": "",
-                "terms_of_service_create_at": 0,
-                "terms_of_service_id": "",
-                "update_at": 0,
-                "username": "user-1",
-              }
-            }
-          />,
-        },
-      },
-      Object {
-        "cells": Object {
-          "id": "userid2",
-          "name": <UserGridName
-            user={
-              Object {
-                "auth_service": "",
-                "bot_description": "",
-                "create_at": 0,
-                "delete_at": 0,
-                "email": "",
-                "first_name": "",
-                "id": "userid2",
-                "is_bot": false,
-                "last_activity_at": 0,
-                "last_name": "",
-                "last_password_update": 0,
-                "last_picture_update": 0,
-                "locale": "",
-                "mfa_active": false,
-                "nickname": "",
-                "notify_props": Object {
-                  "calls_desktop_sound": "true",
-                  "channel": "false",
-                  "comments": "never",
-                  "desktop": "default",
-                  "desktop_sound": "false",
-                  "email": "false",
-                  "first_name": "false",
-                  "highlight_keys": "",
-                  "mark_unread": "mention",
-                  "mention_keys": "",
-                  "push": "none",
-                  "push_status": "offline",
-                },
-                "password": "",
-                "position": "",
-                "props": Object {},
-                "roles": "",
-                "terms_of_service_create_at": 0,
-                "terms_of_service_id": "",
-                "update_at": 0,
-                "username": "user-2",
-              }
-            }
-          />,
-          "new": null,
-          "remove": <UserGridRemove
-            removeUser={[Function]}
-            user={
-              Object {
-                "auth_service": "",
-                "bot_description": "",
-                "create_at": 0,
-                "delete_at": 0,
-                "email": "",
-                "first_name": "",
-                "id": "userid2",
-                "is_bot": false,
-                "last_activity_at": 0,
-                "last_name": "",
-                "last_password_update": 0,
-                "last_picture_update": 0,
-                "locale": "",
-                "mfa_active": false,
-                "nickname": "",
-                "notify_props": Object {
-                  "calls_desktop_sound": "true",
-                  "channel": "false",
-                  "comments": "never",
-                  "desktop": "default",
-                  "desktop_sound": "false",
-                  "email": "false",
-                  "first_name": "false",
-                  "highlight_keys": "",
-                  "mark_unread": "mention",
-                  "mention_keys": "",
-                  "push": "none",
-                  "push_status": "offline",
-                },
-                "password": "",
-                "position": "",
-                "props": Object {},
-                "roles": "",
-                "terms_of_service_create_at": 0,
-                "terms_of_service_id": "",
-                "update_at": 0,
-                "username": "user-2",
-              }
-            }
-          />,
-          "role": <UserGridRoleDropdown
-            handleUpdateMembership={[Function]}
-            membership={
-              Object {
-                "delete_at": 0,
-                "mention_count": 0,
-                "mention_count_root": 0,
-                "msg_count": 0,
-                "msg_count_root": 0,
-                "roles": "team_user",
-                "scheme_admin": false,
-                "scheme_guest": false,
-                "scheme_user": true,
-                "team_id": "team",
-                "user_id": "userId2",
-              }
-            }
-            scope="team"
-            user={
-              Object {
-                "auth_service": "",
-                "bot_description": "",
-                "create_at": 0,
-                "delete_at": 0,
-                "email": "",
-                "first_name": "",
-                "id": "userid2",
-                "is_bot": false,
-                "last_activity_at": 0,
-                "last_name": "",
-                "last_password_update": 0,
-                "last_picture_update": 0,
-                "locale": "",
-                "mfa_active": false,
-                "nickname": "",
-                "notify_props": Object {
-                  "calls_desktop_sound": "true",
-                  "channel": "false",
-                  "comments": "never",
-                  "desktop": "default",
-                  "desktop_sound": "false",
-                  "email": "false",
-                  "first_name": "false",
-                  "highlight_keys": "",
-                  "mark_unread": "mention",
-                  "mention_keys": "",
-                  "push": "none",
-                  "push_status": "offline",
-                },
-                "password": "",
-                "position": "",
-                "props": Object {},
-                "roles": "",
-                "terms_of_service_create_at": 0,
-                "terms_of_service_id": "",
-                "update_at": 0,
-                "username": "user-2",
-              }
-            }
-          />,
-        },
-      },
-    ]
-  }
-  rowsContainerStyles={
-    Object {
-      "minHeight": "160px",
-    }
-  }
-  startCount={1}
-  term=""
-  total={2}
-/>
+<div>
+  <div
+    class="DataGrid"
+  >
+    <div
+      class="DataGrid_search"
+    >
+      <div
+        class="DataGrid_searchBar"
+      >
+        <span
+          aria-hidden="true"
+          class="DataGrid_searchIcon"
+        >
+          <i
+            class="fa fa-search"
+            title="Search Icon"
+          />
+        </span>
+        <input
+          data-testid="searchInput"
+          placeholder="Search"
+          type="text"
+          value=""
+        />
+        <i
+          class="DataGrid_clearButton fa fa-times-circle hidden"
+          data-testid="clear-search"
+        />
+      </div>
+      <div
+        class="Filter"
+      >
+        <button
+          class="Filter_button"
+          type="button"
+        >
+          <i
+            class="Icon icon-filter-variant"
+          />
+          Filters
+        </button>
+        <div
+          class="Filter_content"
+        >
+          <div
+            class="Filter_header"
+          >
+            <div
+              class="Filter_title"
+            >
+              Filter by
+            </div>
+            <a
+              class="Filter_reset"
+            >
+              Reset filters
+            </a>
+          </div>
+          <hr />
+          <div
+            class="Filter_lists"
+          />
+          <button
+            class="btn btn-primary btn-sm Filter_apply"
+            disabled=""
+            type="button"
+          >
+            Apply
+          </button>
+        </div>
+      </div>
+    </div>
+    <div
+      class="DataGrid_header"
+    >
+      <div
+        class="DataGrid_cell"
+        style="flex-grow: 3;"
+      >
+        Name
+      </div>
+      <div
+        class="DataGrid_cell"
+      />
+      <div
+        class="DataGrid_cell"
+      />
+    </div>
+    <div
+      class="DataGrid_rows"
+      style="min-height: 160px;"
+    >
+      <div
+        class="DataGrid_row"
+      >
+        <div
+          class="DataGrid_cell"
+          style="flex-grow: 3;"
+        >
+          <div
+            class="UserGrid_nameRow"
+          >
+            <span
+              class="status-wrapper style--none"
+            >
+              <span
+                class="profile-icon "
+              >
+                <img
+                  alt="user profile image"
+                  class="Avatar Avatar-md"
+                  loading="lazy"
+                  src="/api/v4/users/userid1/image"
+                />
+              </span>
+            </span>
+            <div
+              class="UserGrid_name"
+            >
+              <span>
+                user-1 -  
+              </span>
+              <span
+                class="ug-email"
+              />
+            </div>
+          </div>
+        </div>
+        <div
+          class="DataGrid_cell"
+        />
+        <div
+          class="DataGrid_cell"
+          style="text-align: right;"
+        >
+          <div
+            class="UserGrid_removeRow"
+          >
+            <a
+              class=""
+              href="#"
+              role="button"
+            >
+              Remove
+            </a>
+          </div>
+        </div>
+      </div>
+      <div
+        class="DataGrid_row"
+      >
+        <div
+          class="DataGrid_cell"
+          style="flex-grow: 3;"
+        >
+          <div
+            class="UserGrid_nameRow"
+          >
+            <span
+              class="status-wrapper style--none"
+            >
+              <span
+                class="profile-icon "
+              >
+                <img
+                  alt="user profile image"
+                  class="Avatar Avatar-md"
+                  loading="lazy"
+                  src="/api/v4/users/userid2/image"
+                />
+              </span>
+            </span>
+            <div
+              class="UserGrid_name"
+            >
+              <span>
+                user-2 -  
+              </span>
+              <span
+                class="ug-email"
+              />
+            </div>
+          </div>
+        </div>
+        <div
+          class="DataGrid_cell"
+        />
+        <div
+          class="DataGrid_cell"
+          style="text-align: right;"
+        >
+          <div
+            class="UserGrid_removeRow"
+          >
+            <a
+              class=""
+              href="#"
+              role="button"
+            >
+              Remove
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="DataGrid_footer"
+    >
+      <div
+        class="DataGrid_cell"
+      >
+        1 - 2 of 2
+        <button
+          aria-label="Previous page"
+          class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+          disabled=""
+          type="button"
+        >
+          <i
+            class="icon icon-chevron-left"
+            title="Previous Icon"
+          />
+        </button>
+        <button
+          aria-label="Next page"
+          class="btn btn-quaternary btn-icon btn-sm next disabled"
+          disabled=""
+          type="button"
+        >
+          <i
+            class="icon icon-chevron-right"
+            title="Next Icon"
+          />
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 `;
 
 exports[`components/admin_console/user_grid/UserGrid should match snapshot with 2 users and 1 added included 1`] = `
-<DataGrid
-  columns={
-    Array [
-      Object {
-        "field": "name",
-        "fixed": true,
-        "name": <Memo(MemoizedFormattedMessage)
-          defaultMessage="Name"
-          id="admin.user_grid.name"
-        />,
-        "width": 3,
-      },
-      Object {
-        "field": "new",
-        "fixed": true,
-        "name": "",
-      },
-      Object {
-        "field": "role",
-        "name": <Memo(MemoizedFormattedMessage)
-          defaultMessage="Role"
-          id="admin.user_grid.role"
-        />,
-        "overflow": "visible",
-      },
-      Object {
-        "field": "remove",
-        "fixed": true,
-        "name": "",
-        "textAlign": "right",
-      },
-    ]
-  }
-  endCount={3}
-  filterProps={
-    Object {
-      "keys": Array [],
-      "onFilter": [Function],
-      "options": Object {},
-    }
-  }
-  loading={false}
-  nextPage={[Function]}
-  onSearch={[Function]}
-  placeholderEmpty={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="No users found"
-      id="admin.user_grid.notFound"
-    />
-  }
-  previousPage={[Function]}
-  rows={
-    Array [
-      Object {
-        "cells": Object {
-          "id": "userid-not-saved",
-          "name": <UserGridName
-            user={
-              Object {
-                "auth_service": "",
-                "bot_description": "",
-                "create_at": 0,
-                "delete_at": 0,
-                "email": "",
-                "first_name": "",
-                "id": "userid-not-saved",
-                "is_bot": false,
-                "last_activity_at": 0,
-                "last_name": "",
-                "last_password_update": 0,
-                "last_picture_update": 0,
-                "locale": "",
-                "mfa_active": false,
-                "nickname": "",
-                "notify_props": Object {
-                  "calls_desktop_sound": "true",
-                  "channel": "false",
-                  "comments": "never",
-                  "desktop": "default",
-                  "desktop_sound": "false",
-                  "email": "false",
-                  "first_name": "false",
-                  "highlight_keys": "",
-                  "mark_unread": "mention",
-                  "mention_keys": "",
-                  "push": "none",
-                  "push_status": "offline",
-                },
-                "password": "",
-                "position": "",
-                "props": Object {},
-                "roles": "",
-                "terms_of_service_create_at": 0,
-                "terms_of_service_id": "",
-                "update_at": 0,
-                "username": "user-not-saved",
-              }
-            }
-          />,
-          "new": <Memo(Tag)
-            className="NewUserBadge"
-            text={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="New"
-                id="admin.user_grid.new"
+<div>
+  <div
+    class="DataGrid"
+  >
+    <div
+      class="DataGrid_search"
+    >
+      <div
+        class="DataGrid_searchBar"
+      >
+        <span
+          aria-hidden="true"
+          class="DataGrid_searchIcon"
+        >
+          <i
+            class="fa fa-search"
+            title="Search Icon"
+          />
+        </span>
+        <input
+          data-testid="searchInput"
+          placeholder="Search"
+          type="text"
+          value=""
+        />
+        <i
+          class="DataGrid_clearButton fa fa-times-circle hidden"
+          data-testid="clear-search"
+        />
+      </div>
+      <div
+        class="Filter"
+      >
+        <button
+          class="Filter_button"
+          type="button"
+        >
+          <i
+            class="Icon icon-filter-variant"
+          />
+          Filters
+        </button>
+        <div
+          class="Filter_content"
+        >
+          <div
+            class="Filter_header"
+          >
+            <div
+              class="Filter_title"
+            >
+              Filter by
+            </div>
+            <a
+              class="Filter_reset"
+            >
+              Reset filters
+            </a>
+          </div>
+          <hr />
+          <div
+            class="Filter_lists"
+          />
+          <button
+            class="btn btn-primary btn-sm Filter_apply"
+            disabled=""
+            type="button"
+          >
+            Apply
+          </button>
+        </div>
+      </div>
+    </div>
+    <div
+      class="DataGrid_header"
+    >
+      <div
+        class="DataGrid_cell"
+        style="flex-grow: 3;"
+      >
+        Name
+      </div>
+      <div
+        class="DataGrid_cell"
+      />
+      <div
+        class="DataGrid_cell"
+      />
+    </div>
+    <div
+      class="DataGrid_rows"
+      style="min-height: 240px;"
+    >
+      <div
+        class="DataGrid_row"
+      >
+        <div
+          class="DataGrid_cell"
+          style="flex-grow: 3;"
+        >
+          <div
+            class="UserGrid_nameRow"
+          >
+            <span
+              class="status-wrapper style--none"
+            >
+              <span
+                class="profile-icon "
+              >
+                <img
+                  alt="user profile image"
+                  class="Avatar Avatar-md"
+                  loading="lazy"
+                  src="/api/v4/users/userid-not-saved/image"
+                />
+              </span>
+            </span>
+            <div
+              class="UserGrid_name"
+            >
+              <span>
+                user-not-saved -  
+              </span>
+              <span
+                class="ug-email"
               />
-            }
-          />,
-          "remove": <UserGridRemove
-            removeUser={[Function]}
-            user={
-              Object {
-                "auth_service": "",
-                "bot_description": "",
-                "create_at": 0,
-                "delete_at": 0,
-                "email": "",
-                "first_name": "",
-                "id": "userid-not-saved",
-                "is_bot": false,
-                "last_activity_at": 0,
-                "last_name": "",
-                "last_password_update": 0,
-                "last_picture_update": 0,
-                "locale": "",
-                "mfa_active": false,
-                "nickname": "",
-                "notify_props": Object {
-                  "calls_desktop_sound": "true",
-                  "channel": "false",
-                  "comments": "never",
-                  "desktop": "default",
-                  "desktop_sound": "false",
-                  "email": "false",
-                  "first_name": "false",
-                  "highlight_keys": "",
-                  "mark_unread": "mention",
-                  "mention_keys": "",
-                  "push": "none",
-                  "push_status": "offline",
-                },
-                "password": "",
-                "position": "",
-                "props": Object {},
-                "roles": "",
-                "terms_of_service_create_at": 0,
-                "terms_of_service_id": "",
-                "update_at": 0,
-                "username": "user-not-saved",
-              }
-            }
-          />,
-          "role": <UserGridRoleDropdown
-            handleUpdateMembership={[Function]}
-            membership={
-              Object {
-                "scheme_admin": false,
-                "scheme_user": true,
-                "user_id": "userid-not-saved",
-              }
-            }
-            scope="team"
-            user={
-              Object {
-                "auth_service": "",
-                "bot_description": "",
-                "create_at": 0,
-                "delete_at": 0,
-                "email": "",
-                "first_name": "",
-                "id": "userid-not-saved",
-                "is_bot": false,
-                "last_activity_at": 0,
-                "last_name": "",
-                "last_password_update": 0,
-                "last_picture_update": 0,
-                "locale": "",
-                "mfa_active": false,
-                "nickname": "",
-                "notify_props": Object {
-                  "calls_desktop_sound": "true",
-                  "channel": "false",
-                  "comments": "never",
-                  "desktop": "default",
-                  "desktop_sound": "false",
-                  "email": "false",
-                  "first_name": "false",
-                  "highlight_keys": "",
-                  "mark_unread": "mention",
-                  "mention_keys": "",
-                  "push": "none",
-                  "push_status": "offline",
-                },
-                "password": "",
-                "position": "",
-                "props": Object {},
-                "roles": "",
-                "terms_of_service_create_at": 0,
-                "terms_of_service_id": "",
-                "update_at": 0,
-                "username": "user-not-saved",
-              }
-            }
-          />,
-        },
-      },
-      Object {
-        "cells": Object {
-          "id": "userid1",
-          "name": <UserGridName
-            user={
-              Object {
-                "auth_service": "",
-                "bot_description": "",
-                "create_at": 0,
-                "delete_at": 0,
-                "email": "",
-                "first_name": "",
-                "id": "userid1",
-                "is_bot": false,
-                "last_activity_at": 0,
-                "last_name": "",
-                "last_password_update": 0,
-                "last_picture_update": 0,
-                "locale": "",
-                "mfa_active": false,
-                "nickname": "",
-                "notify_props": Object {
-                  "calls_desktop_sound": "true",
-                  "channel": "false",
-                  "comments": "never",
-                  "desktop": "default",
-                  "desktop_sound": "false",
-                  "email": "false",
-                  "first_name": "false",
-                  "highlight_keys": "",
-                  "mark_unread": "mention",
-                  "mention_keys": "",
-                  "push": "none",
-                  "push_status": "offline",
-                },
-                "password": "",
-                "position": "",
-                "props": Object {},
-                "roles": "",
-                "terms_of_service_create_at": 0,
-                "terms_of_service_id": "",
-                "update_at": 0,
-                "username": "user-1",
-              }
-            }
-          />,
-          "new": null,
-          "remove": <UserGridRemove
-            removeUser={[Function]}
-            user={
-              Object {
-                "auth_service": "",
-                "bot_description": "",
-                "create_at": 0,
-                "delete_at": 0,
-                "email": "",
-                "first_name": "",
-                "id": "userid1",
-                "is_bot": false,
-                "last_activity_at": 0,
-                "last_name": "",
-                "last_password_update": 0,
-                "last_picture_update": 0,
-                "locale": "",
-                "mfa_active": false,
-                "nickname": "",
-                "notify_props": Object {
-                  "calls_desktop_sound": "true",
-                  "channel": "false",
-                  "comments": "never",
-                  "desktop": "default",
-                  "desktop_sound": "false",
-                  "email": "false",
-                  "first_name": "false",
-                  "highlight_keys": "",
-                  "mark_unread": "mention",
-                  "mention_keys": "",
-                  "push": "none",
-                  "push_status": "offline",
-                },
-                "password": "",
-                "position": "",
-                "props": Object {},
-                "roles": "",
-                "terms_of_service_create_at": 0,
-                "terms_of_service_id": "",
-                "update_at": 0,
-                "username": "user-1",
-              }
-            }
-          />,
-          "role": <UserGridRoleDropdown
-            handleUpdateMembership={[Function]}
-            membership={
-              Object {
-                "delete_at": 0,
-                "mention_count": 0,
-                "mention_count_root": 0,
-                "msg_count": 0,
-                "msg_count_root": 0,
-                "roles": "team_user",
-                "scheme_admin": false,
-                "scheme_guest": false,
-                "scheme_user": true,
-                "team_id": "team",
-                "user_id": "userId1",
-              }
-            }
-            scope="team"
-            user={
-              Object {
-                "auth_service": "",
-                "bot_description": "",
-                "create_at": 0,
-                "delete_at": 0,
-                "email": "",
-                "first_name": "",
-                "id": "userid1",
-                "is_bot": false,
-                "last_activity_at": 0,
-                "last_name": "",
-                "last_password_update": 0,
-                "last_picture_update": 0,
-                "locale": "",
-                "mfa_active": false,
-                "nickname": "",
-                "notify_props": Object {
-                  "calls_desktop_sound": "true",
-                  "channel": "false",
-                  "comments": "never",
-                  "desktop": "default",
-                  "desktop_sound": "false",
-                  "email": "false",
-                  "first_name": "false",
-                  "highlight_keys": "",
-                  "mark_unread": "mention",
-                  "mention_keys": "",
-                  "push": "none",
-                  "push_status": "offline",
-                },
-                "password": "",
-                "position": "",
-                "props": Object {},
-                "roles": "",
-                "terms_of_service_create_at": 0,
-                "terms_of_service_id": "",
-                "update_at": 0,
-                "username": "user-1",
-              }
-            }
-          />,
-        },
-      },
-      Object {
-        "cells": Object {
-          "id": "userid2",
-          "name": <UserGridName
-            user={
-              Object {
-                "auth_service": "",
-                "bot_description": "",
-                "create_at": 0,
-                "delete_at": 0,
-                "email": "",
-                "first_name": "",
-                "id": "userid2",
-                "is_bot": false,
-                "last_activity_at": 0,
-                "last_name": "",
-                "last_password_update": 0,
-                "last_picture_update": 0,
-                "locale": "",
-                "mfa_active": false,
-                "nickname": "",
-                "notify_props": Object {
-                  "calls_desktop_sound": "true",
-                  "channel": "false",
-                  "comments": "never",
-                  "desktop": "default",
-                  "desktop_sound": "false",
-                  "email": "false",
-                  "first_name": "false",
-                  "highlight_keys": "",
-                  "mark_unread": "mention",
-                  "mention_keys": "",
-                  "push": "none",
-                  "push_status": "offline",
-                },
-                "password": "",
-                "position": "",
-                "props": Object {},
-                "roles": "",
-                "terms_of_service_create_at": 0,
-                "terms_of_service_id": "",
-                "update_at": 0,
-                "username": "user-2",
-              }
-            }
-          />,
-          "new": null,
-          "remove": <UserGridRemove
-            removeUser={[Function]}
-            user={
-              Object {
-                "auth_service": "",
-                "bot_description": "",
-                "create_at": 0,
-                "delete_at": 0,
-                "email": "",
-                "first_name": "",
-                "id": "userid2",
-                "is_bot": false,
-                "last_activity_at": 0,
-                "last_name": "",
-                "last_password_update": 0,
-                "last_picture_update": 0,
-                "locale": "",
-                "mfa_active": false,
-                "nickname": "",
-                "notify_props": Object {
-                  "calls_desktop_sound": "true",
-                  "channel": "false",
-                  "comments": "never",
-                  "desktop": "default",
-                  "desktop_sound": "false",
-                  "email": "false",
-                  "first_name": "false",
-                  "highlight_keys": "",
-                  "mark_unread": "mention",
-                  "mention_keys": "",
-                  "push": "none",
-                  "push_status": "offline",
-                },
-                "password": "",
-                "position": "",
-                "props": Object {},
-                "roles": "",
-                "terms_of_service_create_at": 0,
-                "terms_of_service_id": "",
-                "update_at": 0,
-                "username": "user-2",
-              }
-            }
-          />,
-          "role": <UserGridRoleDropdown
-            handleUpdateMembership={[Function]}
-            membership={
-              Object {
-                "delete_at": 0,
-                "mention_count": 0,
-                "mention_count_root": 0,
-                "msg_count": 0,
-                "msg_count_root": 0,
-                "roles": "team_user",
-                "scheme_admin": false,
-                "scheme_guest": false,
-                "scheme_user": true,
-                "team_id": "team",
-                "user_id": "userId2",
-              }
-            }
-            scope="team"
-            user={
-              Object {
-                "auth_service": "",
-                "bot_description": "",
-                "create_at": 0,
-                "delete_at": 0,
-                "email": "",
-                "first_name": "",
-                "id": "userid2",
-                "is_bot": false,
-                "last_activity_at": 0,
-                "last_name": "",
-                "last_password_update": 0,
-                "last_picture_update": 0,
-                "locale": "",
-                "mfa_active": false,
-                "nickname": "",
-                "notify_props": Object {
-                  "calls_desktop_sound": "true",
-                  "channel": "false",
-                  "comments": "never",
-                  "desktop": "default",
-                  "desktop_sound": "false",
-                  "email": "false",
-                  "first_name": "false",
-                  "highlight_keys": "",
-                  "mark_unread": "mention",
-                  "mention_keys": "",
-                  "push": "none",
-                  "push_status": "offline",
-                },
-                "password": "",
-                "position": "",
-                "props": Object {},
-                "roles": "",
-                "terms_of_service_create_at": 0,
-                "terms_of_service_id": "",
-                "update_at": 0,
-                "username": "user-2",
-              }
-            }
-          />,
-        },
-      },
-    ]
-  }
-  rowsContainerStyles={
-    Object {
-      "minHeight": "240px",
-    }
-  }
-  startCount={1}
-  term=""
-  total={3}
-/>
+            </div>
+          </div>
+        </div>
+        <div
+          class="DataGrid_cell"
+        >
+          <div
+            class="TagWrapper-kezsCu gCuUKH Tag Tag--xs NewUserBadge"
+          >
+            <span
+              class="TagText-bWoQAI beIloY"
+            >
+              New
+            </span>
+          </div>
+        </div>
+        <div
+          class="DataGrid_cell"
+          style="text-align: right;"
+        >
+          <div
+            class="UserGrid_removeRow"
+          >
+            <a
+              class=""
+              href="#"
+              role="button"
+            >
+              Remove
+            </a>
+          </div>
+        </div>
+      </div>
+      <div
+        class="DataGrid_row"
+      >
+        <div
+          class="DataGrid_cell"
+          style="flex-grow: 3;"
+        >
+          <div
+            class="UserGrid_nameRow"
+          >
+            <span
+              class="status-wrapper style--none"
+            >
+              <span
+                class="profile-icon "
+              >
+                <img
+                  alt="user profile image"
+                  class="Avatar Avatar-md"
+                  loading="lazy"
+                  src="/api/v4/users/userid1/image"
+                />
+              </span>
+            </span>
+            <div
+              class="UserGrid_name"
+            >
+              <span>
+                user-1 -  
+              </span>
+              <span
+                class="ug-email"
+              />
+            </div>
+          </div>
+        </div>
+        <div
+          class="DataGrid_cell"
+        />
+        <div
+          class="DataGrid_cell"
+          style="text-align: right;"
+        >
+          <div
+            class="UserGrid_removeRow"
+          >
+            <a
+              class=""
+              href="#"
+              role="button"
+            >
+              Remove
+            </a>
+          </div>
+        </div>
+      </div>
+      <div
+        class="DataGrid_row"
+      >
+        <div
+          class="DataGrid_cell"
+          style="flex-grow: 3;"
+        >
+          <div
+            class="UserGrid_nameRow"
+          >
+            <span
+              class="status-wrapper style--none"
+            >
+              <span
+                class="profile-icon "
+              >
+                <img
+                  alt="user profile image"
+                  class="Avatar Avatar-md"
+                  loading="lazy"
+                  src="/api/v4/users/userid2/image"
+                />
+              </span>
+            </span>
+            <div
+              class="UserGrid_name"
+            >
+              <span>
+                user-2 -  
+              </span>
+              <span
+                class="ug-email"
+              />
+            </div>
+          </div>
+        </div>
+        <div
+          class="DataGrid_cell"
+        />
+        <div
+          class="DataGrid_cell"
+          style="text-align: right;"
+        >
+          <div
+            class="UserGrid_removeRow"
+          >
+            <a
+              class=""
+              href="#"
+              role="button"
+            >
+              Remove
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="DataGrid_footer"
+    >
+      <div
+        class="DataGrid_cell"
+      >
+        1 - 3 of 3
+        <button
+          aria-label="Previous page"
+          class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+          disabled=""
+          type="button"
+        >
+          <i
+            class="icon icon-chevron-left"
+            title="Previous Icon"
+          />
+        </button>
+        <button
+          aria-label="Next page"
+          class="btn btn-quaternary btn-icon btn-sm next disabled"
+          disabled=""
+          type="button"
+        >
+          <i
+            class="icon icon-chevron-right"
+            title="Next Icon"
+          />
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 `;
 
 exports[`components/admin_console/user_grid/UserGrid should match snapshot with 2 users and 1 removed user 1`] = `
-<DataGrid
-  columns={
-    Array [
-      Object {
-        "field": "name",
-        "fixed": true,
-        "name": <Memo(MemoizedFormattedMessage)
-          defaultMessage="Name"
-          id="admin.user_grid.name"
-        />,
-        "width": 3,
-      },
-      Object {
-        "field": "new",
-        "fixed": true,
-        "name": "",
-      },
-      Object {
-        "field": "role",
-        "name": <Memo(MemoizedFormattedMessage)
-          defaultMessage="Role"
-          id="admin.user_grid.role"
-        />,
-        "overflow": "visible",
-      },
-      Object {
-        "field": "remove",
-        "fixed": true,
-        "name": "",
-        "textAlign": "right",
-      },
-    ]
-  }
-  endCount={1}
-  filterProps={
-    Object {
-      "keys": Array [],
-      "onFilter": [Function],
-      "options": Object {},
-    }
-  }
-  loading={false}
-  nextPage={[Function]}
-  onSearch={[Function]}
-  placeholderEmpty={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="No users found"
-      id="admin.user_grid.notFound"
-    />
-  }
-  previousPage={[Function]}
-  rows={
-    Array [
-      Object {
-        "cells": Object {
-          "id": "userid2",
-          "name": <UserGridName
-            user={
-              Object {
-                "auth_service": "",
-                "bot_description": "",
-                "create_at": 0,
-                "delete_at": 0,
-                "email": "",
-                "first_name": "",
-                "id": "userid2",
-                "is_bot": false,
-                "last_activity_at": 0,
-                "last_name": "",
-                "last_password_update": 0,
-                "last_picture_update": 0,
-                "locale": "",
-                "mfa_active": false,
-                "nickname": "",
-                "notify_props": Object {
-                  "calls_desktop_sound": "true",
-                  "channel": "false",
-                  "comments": "never",
-                  "desktop": "default",
-                  "desktop_sound": "false",
-                  "email": "false",
-                  "first_name": "false",
-                  "highlight_keys": "",
-                  "mark_unread": "mention",
-                  "mention_keys": "",
-                  "push": "none",
-                  "push_status": "offline",
-                },
-                "password": "",
-                "position": "",
-                "props": Object {},
-                "roles": "",
-                "terms_of_service_create_at": 0,
-                "terms_of_service_id": "",
-                "update_at": 0,
-                "username": "user-2",
-              }
-            }
-          />,
-          "new": null,
-          "remove": <UserGridRemove
-            removeUser={[Function]}
-            user={
-              Object {
-                "auth_service": "",
-                "bot_description": "",
-                "create_at": 0,
-                "delete_at": 0,
-                "email": "",
-                "first_name": "",
-                "id": "userid2",
-                "is_bot": false,
-                "last_activity_at": 0,
-                "last_name": "",
-                "last_password_update": 0,
-                "last_picture_update": 0,
-                "locale": "",
-                "mfa_active": false,
-                "nickname": "",
-                "notify_props": Object {
-                  "calls_desktop_sound": "true",
-                  "channel": "false",
-                  "comments": "never",
-                  "desktop": "default",
-                  "desktop_sound": "false",
-                  "email": "false",
-                  "first_name": "false",
-                  "highlight_keys": "",
-                  "mark_unread": "mention",
-                  "mention_keys": "",
-                  "push": "none",
-                  "push_status": "offline",
-                },
-                "password": "",
-                "position": "",
-                "props": Object {},
-                "roles": "",
-                "terms_of_service_create_at": 0,
-                "terms_of_service_id": "",
-                "update_at": 0,
-                "username": "user-2",
-              }
-            }
-          />,
-          "role": <UserGridRoleDropdown
-            handleUpdateMembership={[Function]}
-            membership={
-              Object {
-                "delete_at": 0,
-                "mention_count": 0,
-                "mention_count_root": 0,
-                "msg_count": 0,
-                "msg_count_root": 0,
-                "roles": "team_user",
-                "scheme_admin": false,
-                "scheme_guest": false,
-                "scheme_user": true,
-                "team_id": "team",
-                "user_id": "userId2",
-              }
-            }
-            scope="team"
-            user={
-              Object {
-                "auth_service": "",
-                "bot_description": "",
-                "create_at": 0,
-                "delete_at": 0,
-                "email": "",
-                "first_name": "",
-                "id": "userid2",
-                "is_bot": false,
-                "last_activity_at": 0,
-                "last_name": "",
-                "last_password_update": 0,
-                "last_picture_update": 0,
-                "locale": "",
-                "mfa_active": false,
-                "nickname": "",
-                "notify_props": Object {
-                  "calls_desktop_sound": "true",
-                  "channel": "false",
-                  "comments": "never",
-                  "desktop": "default",
-                  "desktop_sound": "false",
-                  "email": "false",
-                  "first_name": "false",
-                  "highlight_keys": "",
-                  "mark_unread": "mention",
-                  "mention_keys": "",
-                  "push": "none",
-                  "push_status": "offline",
-                },
-                "password": "",
-                "position": "",
-                "props": Object {},
-                "roles": "",
-                "terms_of_service_create_at": 0,
-                "terms_of_service_id": "",
-                "update_at": 0,
-                "username": "user-2",
-              }
-            }
-          />,
-        },
-      },
-    ]
-  }
-  rowsContainerStyles={
-    Object {
-      "minHeight": "80px",
-    }
-  }
-  startCount={1}
-  term=""
-  total={1}
-/>
+<div>
+  <div
+    class="DataGrid"
+  >
+    <div
+      class="DataGrid_search"
+    >
+      <div
+        class="DataGrid_searchBar"
+      >
+        <span
+          aria-hidden="true"
+          class="DataGrid_searchIcon"
+        >
+          <i
+            class="fa fa-search"
+            title="Search Icon"
+          />
+        </span>
+        <input
+          data-testid="searchInput"
+          placeholder="Search"
+          type="text"
+          value=""
+        />
+        <i
+          class="DataGrid_clearButton fa fa-times-circle hidden"
+          data-testid="clear-search"
+        />
+      </div>
+      <div
+        class="Filter"
+      >
+        <button
+          class="Filter_button"
+          type="button"
+        >
+          <i
+            class="Icon icon-filter-variant"
+          />
+          Filters
+        </button>
+        <div
+          class="Filter_content"
+        >
+          <div
+            class="Filter_header"
+          >
+            <div
+              class="Filter_title"
+            >
+              Filter by
+            </div>
+            <a
+              class="Filter_reset"
+            >
+              Reset filters
+            </a>
+          </div>
+          <hr />
+          <div
+            class="Filter_lists"
+          />
+          <button
+            class="btn btn-primary btn-sm Filter_apply"
+            disabled=""
+            type="button"
+          >
+            Apply
+          </button>
+        </div>
+      </div>
+    </div>
+    <div
+      class="DataGrid_header"
+    >
+      <div
+        class="DataGrid_cell"
+        style="flex-grow: 3;"
+      >
+        Name
+      </div>
+      <div
+        class="DataGrid_cell"
+      />
+      <div
+        class="DataGrid_cell"
+      />
+    </div>
+    <div
+      class="DataGrid_rows"
+      style="min-height: 80px;"
+    >
+      <div
+        class="DataGrid_row"
+      >
+        <div
+          class="DataGrid_cell"
+          style="flex-grow: 3;"
+        >
+          <div
+            class="UserGrid_nameRow"
+          >
+            <span
+              class="status-wrapper style--none"
+            >
+              <span
+                class="profile-icon "
+              >
+                <img
+                  alt="user profile image"
+                  class="Avatar Avatar-md"
+                  loading="lazy"
+                  src="/api/v4/users/userid2/image"
+                />
+              </span>
+            </span>
+            <div
+              class="UserGrid_name"
+            >
+              <span>
+                user-2 -  
+              </span>
+              <span
+                class="ug-email"
+              />
+            </div>
+          </div>
+        </div>
+        <div
+          class="DataGrid_cell"
+        />
+        <div
+          class="DataGrid_cell"
+          style="text-align: right;"
+        >
+          <div
+            class="UserGrid_removeRow"
+          >
+            <a
+              class=""
+              href="#"
+              role="button"
+            >
+              Remove
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="DataGrid_footer"
+    >
+      <div
+        class="DataGrid_cell"
+      >
+        1 - 1 of 1
+        <button
+          aria-label="Previous page"
+          class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+          disabled=""
+          type="button"
+        >
+          <i
+            class="icon icon-chevron-left"
+            title="Previous Icon"
+          />
+        </button>
+        <button
+          aria-label="Next page"
+          class="btn btn-quaternary btn-icon btn-sm next disabled"
+          disabled=""
+          type="button"
+        >
+          <i
+            class="icon icon-chevron-right"
+            title="Next Icon"
+          />
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 `;

@@ -3,14 +3,17 @@
 
 /* eslint-disable max-lines */
 
+import React from 'react';
 import {batchActions} from 'redux-batched-actions';
 
 import type {WebSocketMessage, WebSocketMessages} from '@mattermost/client';
 import {WebSocketEvents} from '@mattermost/client';
+import {AlertCircleOutlineIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
 import type {ChannelBookmarkWithFileInfo, UpdateChannelBookmarkResponse} from '@mattermost/types/channel_bookmarks';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {Draft} from '@mattermost/types/drafts';
 import type {Emoji} from '@mattermost/types/emojis';
+import {FileDownloadTypes} from '@mattermost/types/files';
 import type {Group, GroupMember} from '@mattermost/types/groups';
 import type {OpenDialogRequest} from '@mattermost/types/integrations';
 import type {Post, PostAcknowledgement} from '@mattermost/types/posts';
@@ -25,6 +28,7 @@ import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {
     ChannelTypes,
     EmojiTypes,
+    FileTypes,
     GroupTypes,
     PostTypes,
     TeamTypes,
@@ -65,6 +69,8 @@ import {
     postDeleted,
     receivedNewPost,
     receivedPost,
+    resetReloadPostsInChannel,
+    resetReloadPostsInTranslatedChannels,
 } from 'mattermost-redux/actions/posts';
 import {getRecap} from 'mattermost-redux/actions/recaps';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
@@ -97,6 +103,7 @@ import {
     getCurrentChannel,
     getCurrentChannelId,
     getRedirectChannelNameForTeam,
+    hasAutotranslationBecomeEnabled,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
@@ -131,21 +138,25 @@ import {setGlobalItem} from 'actions/storage';
 import {loadProfilesForDM, loadProfilesForGM, loadProfilesForSidebar} from 'actions/user_actions';
 import {syncPostsInChannel} from 'actions/views/channel';
 import {setGlobalDraft, transformServerDraft} from 'actions/views/drafts';
-import {openModal} from 'actions/views/modals';
+import {openModal, closeModal} from 'actions/views/modals';
 import {closeRightHandSide} from 'actions/views/rhs';
 import {resetWsErrorCount} from 'actions/views/system';
 import {updateThreadLastOpened} from 'actions/views/threads';
+import {getCurrentLocale} from 'selectors/i18n';
 import {getSelectedChannelId, getSelectedPost} from 'selectors/rhs';
 import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
 import store from 'stores/redux_store';
 
 import DialogRouter from 'components/dialog_router';
+import InfoToast from 'components/info_toast/info_toast';
 import RemovedFromChannelModal from 'components/removed_from_channel_modal';
 
 import WebSocketClient from 'client/web_websocket_client';
 import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
 import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
+import {getIntl} from 'utils/i18n';
+import {isChannelPopoutWindow} from 'utils/popouts/popout_windows';
 import {getSiteURL} from 'utils/url';
 
 import type {ActionFunc, ThunkActionFunc} from 'types/store';
@@ -473,7 +484,7 @@ export function handleEvent(msg: WebSocketMessage) {
         break;
 
     case WebSocketEvents.ChannelMemberUpdated:
-        handleChannelMemberUpdatedEvent(msg);
+        dispatch(handleChannelMemberUpdatedEvent(msg));
         break;
 
     case WebSocketEvents.ChannelBookmarkCreated:
@@ -673,8 +684,17 @@ export function handleEvent(msg: WebSocketMessage) {
     case WebSocketEvents.ContentFlaggingReportValueUpdated:
         dispatch(handleContentFlaggingReportValueChanged(msg));
         break;
+    case WebSocketEvents.PostTranslationUpdated:
+        dispatch(handlePostTranslationUpdated(msg));
+        break;
     case WebSocketEvents.RecapUpdated:
         dispatch(handleRecapUpdated(msg));
+        break;
+    case WebSocketEvents.FileDownloadRejected:
+        dispatch(handleFileDownloadRejected(msg));
+        break;
+    case WebSocketEvents.ShowToast:
+        dispatch(handleShowToast(msg));
         break;
     default:
     }
@@ -724,6 +744,10 @@ export function handleChannelUpdatedEvent(msg: WebSocketMessages.ChannelUpdated)
             if (existingChannel.type === General.GM_CHANNEL && channel.type === General.PRIVATE_CHANNEL) {
                 actions.push({type: ChannelTypes.GM_CONVERTED_TO_CHANNEL, data: channel});
             }
+
+            if (hasAutotranslationBecomeEnabled(state, channel)) {
+                doDispatch(resetReloadPostsInChannel(channel.id));
+            }
         }
 
         doDispatch(batchActions(actions));
@@ -731,16 +755,34 @@ export function handleChannelUpdatedEvent(msg: WebSocketMessages.ChannelUpdated)
         if (channel.id === getCurrentChannelId(state)) {
             // using channel's team_id to ensure we always redirect to current channel even if channel's team changes.
             const teamId = channel.team_id || getCurrentTeamId(state);
-            getHistory().replace(`${getRelativeTeamUrl(state, teamId)}/channels/${channel.name}`);
+            const teamUrl = getRelativeTeamUrl(state, teamId);
+            let channelPath = `${teamUrl}/channels/${channel.name}`;
+
+            // For the popout we make an exception and redirect to the popout path instead of the channel path.
+            // DM/GM names never change, so we only need to handle regular channels here.
+            if (isChannelPopoutWindow() && channel.type !== General.DM_CHANNEL && channel.type !== General.GM_CHANNEL) {
+                channelPath = `/_popout/channel${teamUrl}/channels/${channel.name}`;
+            }
+            getHistory().replace(channelPath);
         }
     };
 }
 
-function handleChannelMemberUpdatedEvent(msg: WebSocketMessages.ChannelMemberUpdated) {
-    const channelMember = JSON.parse(msg.data.channelMember) as ChannelMembership;
-    const roles = channelMember.roles.split(' ');
-    dispatch(loadRolesIfNeeded(roles));
-    dispatch({type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBER, data: channelMember});
+function handleChannelMemberUpdatedEvent(msg: WebSocketMessages.ChannelMemberUpdated): ThunkActionFunc<void> {
+    return (doDispatch, doGetState) => {
+        const channelMember = JSON.parse(msg.data.channelMember) as ChannelMembership;
+        const roles = channelMember.roles.split(' ');
+        doDispatch(loadRolesIfNeeded(roles));
+
+        const state = doGetState();
+        const becameEnabled = hasAutotranslationBecomeEnabled(state, channelMember);
+
+        doDispatch({type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBER, data: channelMember});
+
+        if (becameEnabled) {
+            doDispatch(resetReloadPostsInChannel(channelMember.channel_id));
+        }
+    };
 }
 
 function debouncePostEvent(wait: number) {
@@ -958,7 +1000,8 @@ export function handleLeaveTeamEvent(msg: WebSocketMessages.UserRemovedFromTeam)
     const currentUser = getCurrentUser(state);
 
     if (currentUser.id === msg.data.user_id) {
-        dispatch({type: TeamTypes.LEAVE_TEAM, data: {id: msg.data.team_id}});
+        // Include channel IDs so reducers can clean up posts/embeds for those channels
+        dispatch({type: TeamTypes.LEAVE_TEAM, data: {id: msg.data.team_id, channelIds: channels}});
 
         // if they are on the team being removed redirect them to default team
         if (getCurrentTeamId(state) === msg.data.team_id) {
@@ -1058,6 +1101,9 @@ function handleDeleteTeamEvent(msg: WebSocketMessages.Team) {
                 getHistory().push(`${getCurrentTeamUrl(globalState)}/channels/${redirectChannel}`);
             } else {
                 getHistory().push('/');
+            }
+            if (isChannelPopoutWindow()) {
+                window.close();
             }
         }
     }
@@ -1172,7 +1218,10 @@ export function handleUserRemovedEvent(msg: WebSocketMessages.UserRemovedFromCha
         });
 
         if (currentChannel && msg.data.channel_id === currentChannel.id) {
-            redirectUserToDefaultTeam();
+            const redirect = redirectUserToDefaultTeam();
+            if (isChannelPopoutWindow()) {
+                redirect.then(() => window.close());
+            }
         }
 
         if (isGuest(currentUser.roles)) {
@@ -1246,6 +1295,10 @@ export async function handleUserUpdatedEvent(msg: WebSocketMessages.UserUpdated)
                 data: user,
             });
             dispatch(loadRolesIfNeeded(user.roles.split(' ')));
+        }
+        const autotranslationIsEnabled = getConfig(state)?.EnableAutoTranslation === 'true';
+        if (autotranslationIsEnabled && user.locale !== currentUser.locale) {
+            dispatch(resetReloadPostsInTranslatedChannels());
         }
     } else {
         dispatch({
@@ -1433,7 +1486,19 @@ function handleUserRoleUpdated(msg: WebSocketMessages.UserRoleUpdated) {
 }
 
 function handleConfigChanged(msg: WebSocketMessages.ConfigChanged) {
-    store.dispatch({type: GeneralTypes.CLIENT_CONFIG_RECEIVED, data: msg.data.config});
+    const state = getState();
+    const currentConfig = getConfig(state);
+    const newConfig = msg.data.config;
+
+    // Check if EnableAutoTranslation changed from enabled to disabled
+    const enableAutoTranslationWasEnabled = currentConfig?.EnableAutoTranslation === 'true';
+    const enableAutoTranslationIsEnabled = newConfig?.EnableAutoTranslation === 'true';
+
+    if (!enableAutoTranslationWasEnabled && enableAutoTranslationIsEnabled) {
+        dispatch(resetReloadPostsInTranslatedChannels());
+    }
+
+    store.dispatch({type: GeneralTypes.CLIENT_CONFIG_RECEIVED, data: newConfig});
 }
 
 function handleLicenseChanged(msg: WebSocketMessages.LicenseChanged) {
@@ -1717,7 +1782,7 @@ function handleFirstAdminVisitMarketplaceStatusReceivedEvent(msg: WebSocketMessa
 
 function handleThreadReadChanged(msg: WebSocketMessages.ThreadReadChanged): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
-        if (msg.data.thread_id && msg.data.channel_id && msg.data.unread_mentions && msg.data.unread_replies) {
+        if ('thread_id' in msg.data && msg.data.thread_id) {
             const state = doGetState();
             const thread = getThreads(state)?.[msg.data.thread_id];
 
@@ -1994,11 +2059,131 @@ export function handleContentFlaggingReportValueChanged(msg: WebSocketMessages.C
     };
 }
 
+export function handlePostTranslationUpdated(msg: WebSocketMessages.PostTranslationUpdated): ThunkActionFunc<void> {
+    return (dispatch, getState) => {
+        const locale = getCurrentLocale(getState());
+        const t = msg.data.translations[locale];
+        if (!t) {
+            return;
+        }
+
+        dispatch({
+            type: PostTypes.POST_TRANSLATION_UPDATED,
+            data: {
+                object_id: msg.data.object_id,
+                language: locale,
+                ...t,
+            },
+        });
+    };
+}
+
 export function handleRecapUpdated(msg: WebSocketMessages.RecapUpdated): ThunkActionFunc<void> {
     const recapId = msg.data.recap_id;
 
     return async (doDispatch) => {
         // Fetch the updated recap and dispatch to Redux
         doDispatch(getRecap(recapId));
+    };
+}
+
+export function handleFileDownloadRejected(msg: WebSocketMessages.FileDownloadRejected): ThunkActionFunc<void> {
+    return (dispatch, getState) => {
+        const {file_id: fileId, file_name: fileName, rejection_reason: rejectionReason, channel_id: channelId, post_id: postId, download_type: downloadType} = msg.data;
+
+        // Store the rejected file ID in Redux state
+        dispatch({
+            type: FileTypes.FILE_DOWNLOAD_REJECTED,
+            data: {
+                file_id: fileId,
+                file_name: fileName,
+                rejection_reason: rejectionReason,
+                channel_id: channelId,
+                post_id: postId,
+                download_type: downloadType,
+            },
+        });
+
+        // Handle different download types appropriately:
+        // - Thumbnail: Small preview in message list, loaded automatically, no modal, no toast
+        // - Preview: Can be either:
+        //   a) Large image in channel list (SingleImageView) - loaded automatically, no modal, no toast
+        //   b) Full-screen modal view - user clicked, modal open, close it WITH toast
+        // - File: User clicked download button, close modal WITH toast
+        // - Public: User requested public link, close modal WITH toast
+
+        if (downloadType === FileDownloadTypes.THUMBNAIL) {
+            // Thumbnails are loaded automatically in the background
+            // No modal to close, no toast to show
+            return;
+        }
+
+        if (downloadType === FileDownloadTypes.PREVIEW) {
+            // Check if the file preview modal is actually open
+            const state = getState();
+            const isModalOpen = state.views?.modals?.modalState?.[ModalIdentifiers.FILE_PREVIEW_MODAL]?.open;
+
+            if (!isModalOpen) {
+                // Preview was loaded in channel list (SingleImageView), not in modal
+                // This is an automatic background load, no toast needed
+                return;
+            }
+
+            // Modal is open, so user clicked to view the preview
+            // Close the modal and show toast to explain why
+            // Continue to close modal and show toast below
+        }
+
+        // Close the file preview modal for preview (when open), file, and public rejections
+        dispatch(closeModal(ModalIdentifiers.FILE_PREVIEW_MODAL));
+
+        // Show a toast notification to explain why the modal was closed
+        // Use normalized message format for all file types
+        const intl = getIntl();
+
+        const displayMessage = intl.formatMessage(
+            {id: 'file_download.rejected.file', defaultMessage: 'File access blocked: {reason}'},
+            {reason: rejectionReason},
+        );
+
+        // Show toast notification using the existing InfoToast system
+        dispatch(openModal({
+            modalId: ModalIdentifiers.INFO_TOAST,
+            dialogType: InfoToast,
+            dialogProps: {
+                content: {
+                    icon: React.createElement(AlertCircleOutlineIcon, {size: 18}),
+                    message: displayMessage,
+                },
+                position: 'bottom-center',
+                onExited: () => {
+                    // Close the modal when the toast is dismissed
+                    dispatch(closeModal(ModalIdentifiers.INFO_TOAST));
+                },
+            },
+        }));
+    };
+}
+
+function handleShowToast(msg: WebSocketMessages.ShowToast): ThunkActionFunc<void> {
+    return (doDispatch) => {
+        const {message, position} = msg.data;
+        if (message) {
+            const toastPosition = position as 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right' | undefined;
+            doDispatch(openModal({
+                modalId: ModalIdentifiers.INFO_TOAST,
+                dialogType: InfoToast,
+                dialogProps: {
+                    content: {
+                        message,
+                        icon: React.createElement(InformationOutlineIcon, {size: 18}),
+                    },
+                    position: toastPosition || 'bottom-right',
+                    onExited: () => {
+                        doDispatch(closeModal(ModalIdentifiers.INFO_TOAST));
+                    },
+                },
+            }));
+        }
     };
 }

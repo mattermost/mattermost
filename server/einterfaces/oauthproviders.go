@@ -11,7 +11,7 @@ import (
 )
 
 type OAuthProvider interface {
-	GetUserFromJSON(rctx request.CTX, data io.Reader, tokenUser *model.User) (*model.User, error)
+	GetUserFromJSON(rctx request.CTX, data io.Reader, tokenUser *model.User, settings *model.SSOSettings) (*model.User, error)
 	GetSSOSettings(rctx request.CTX, config *model.Config, service string) (*model.SSOSettings, error)
 	GetUserFromIdToken(rctx request.CTX, idToken string) (*model.User, error)
 	IsSameUser(rctx request.CTX, dbUser, oAuthUser *model.User) bool

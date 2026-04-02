@@ -9,6 +9,7 @@ import {getSelectedPostId, getIsRhsOpen} from 'selectors/rhs';
 import AdvancedTextEditor from 'components/advanced_text_editor/advanced_text_editor';
 import ChannelInviteModal from 'components/channel_invite_modal';
 import ChannelMembersModal from 'components/channel_members_modal';
+import DatePicker from 'components/date_picker/date_picker';
 import {useNotifyAdmin} from 'components/notify_admin_cta/notify_admin_cta';
 import PostMessagePreview from 'components/post_view/post_message_preview';
 import StartTrialFormModal from 'components/start_trial_form_modal';
@@ -23,12 +24,13 @@ import {ModalIdentifiers} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import messageHtmlToComponent from 'utils/message_html_to_component';
 import * as NotificationSounds from 'utils/notification_sounds';
-import {sendToParent, onMessageFromParent, isPopoutWindow, canPopout} from 'utils/popouts/popout_windows';
+import {sendToParent, onMessageFromParent, isPopoutWindow, canPopout, popoutRhsPlugin} from 'utils/popouts/popout_windows';
 import {formatText} from 'utils/text_formatting';
 import {useWebSocket, useWebSocketClient, WebSocketContext} from 'utils/use_websocket';
 import {imageURLForUser} from 'utils/utils';
 
 import {openInteractiveDialog} from './interactive_dialog'; // This import has intentional side effects. Do not remove without research.
+import {loadSharedDependency} from './shared_dependencies';
 import Textbox from './textbox';
 
 // Note: We can't directly use the hook here, but we can create a function that opens the external pricing page
@@ -70,8 +72,10 @@ interface WindowWithLibraries {
             onMessageFromParent: typeof onMessageFromParent;
             isPopoutWindow: typeof isPopoutWindow;
             canPopout: typeof canPopout;
+            popoutRhsPlugin: typeof popoutRhsPlugin;
         };
     };
+    loadSharedDependency(request: string): unknown;
     openPricingModal: () => void;
     Components: {
         Textbox: typeof Textbox;
@@ -85,6 +89,7 @@ interface WindowWithLibraries {
         ThreadViewer: typeof ThreadViewer;
         PostMessagePreview: typeof PostMessagePreview;
         AdvancedTextEditor: typeof AdvancedTextEditor;
+        DatePicker: typeof DatePicker;
     };
     ProductApi: {
         useWebSocket: typeof useWebSocket;
@@ -146,8 +151,10 @@ window.WebappUtils = {
         onMessageFromParent,
         isPopoutWindow,
         canPopout,
+        popoutRhsPlugin,
     },
 };
+window.loadSharedDependency = loadSharedDependency;
 
 // For plugins, we provide a simple function that always tries to open the external pricing page
 // This won't respect air-gapped status, but plugins shouldn't be calling this in air-gapped environments
@@ -168,6 +175,7 @@ window.Components = {
     ThreadViewer,
     PostMessagePreview,
     AdvancedTextEditor,
+    DatePicker,
 };
 
 // This is a prototype of the Product API for use by internal plugins only while we transition to the proper architecture

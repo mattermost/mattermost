@@ -7,7 +7,6 @@ import type {MouseEvent, KeyboardEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {DotsVerticalIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
 import {PostPriority} from '@mattermost/types/posts';
@@ -23,14 +22,14 @@ import {ensureString} from 'mattermost-redux/utils/post_utils';
 import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
 
 import Markdown from 'components/markdown';
+import PostHeaderTranslateIcon from 'components/post/post_header_translate_icon';
 import {makeGetMentionKeysForPost} from 'components/post_markdown';
 import PriorityBadge from 'components/post_priority/post_priority_badge';
-import Button from 'components/threading/common/button';
 import Timestamp from 'components/timestamp';
 import Tag from 'components/widgets/tag/tag';
 import Avatars from 'components/widgets/users/avatars';
-import WithTooltip from 'components/with_tooltip';
 
+import {getPostTranslatedMessage, getPostTranslation} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -58,6 +57,7 @@ type Props = {
     postsInThread?: Post[];
     thread?: UserThread | null;
     isPostPriorityEnabled?: boolean;
+    isChannelAutotranslated?: boolean;
 };
 
 const markdownPreviewOptions = {
@@ -78,10 +78,11 @@ function ThreadItem({
     threadId,
     isFirstThreadInList,
     isPostPriorityEnabled,
+    isChannelAutotranslated,
 }: Props & OwnProps): React.ReactElement|null {
     const dispatch = useDispatch();
     const {select, goToInChannel, currentTeamId} = useThreadRouting();
-    const {formatMessage} = useIntl();
+    const {formatMessage, locale} = useIntl();
     const currentUserId = useSelector(getCurrentUserId);
     const msgDeleted = formatMessage({id: 'post_body.deleted', defaultMessage: '(message deleted)'});
     const postAuthor = ensureString(post?.props?.override_username) || displayName;
@@ -126,6 +127,13 @@ function ThreadItem({
                 return;
             }
         }
+
+        // Don't select the thread when a menu is focused
+        if (e.target instanceof HTMLElement &&
+            (e.target.hasAttribute('aria-haspopup') || e.target.role === 'menuitem')) {
+            return;
+        }
+
         if (e.altKey) {
             const hasUnreads = thread ? Boolean(thread.unread_replies) : false;
             const lastViewedAt = hasUnreads ? Date.now() : unreadTimestamp;
@@ -188,6 +196,12 @@ function ThreadItem({
         unreadTimestamp = p.edit_at || p.create_at;
     }
 
+    const translation = getPostTranslation(post, locale);
+    let message = post.message;
+    if (isChannelAutotranslated && post.type === '' && translation?.state === 'ready') {
+        message = getPostTranslatedMessage(message, translation);
+    }
+
     return (
         <>
             <div
@@ -237,6 +251,13 @@ function ThreadItem({
                                 />
                             )
                         )}
+                        {isChannelAutotranslated && (
+                            <PostHeaderTranslateIcon
+                                postId={post.id}
+                                translationState={translation?.state}
+                                postType={post.type}
+                            />
+                        )}
                     </div>
                     <Timestamp
                         {...THREADING_TIME}
@@ -246,31 +267,12 @@ function ThreadItem({
                 </div>
                 <div className='menu-anchor alt-visible'>
                     <ThreadMenu
+                        idPrefix='thread-list-menu'
                         threadId={threadId}
                         isFollowing={isFollowing ?? false}
                         hasUnreads={Boolean(newReplies)}
                         unreadTimestamp={unreadTimestamp ?? 0}
-                    >
-                        <WithTooltip
-                            title={(
-                                <FormattedMessage
-                                    id='threading.threadItem.menu'
-                                    defaultMessage='Actions'
-                                />
-                            )}
-                        >
-                            <Button
-                                marginTop={true}
-                                className='Button___icon'
-                                aria-label={formatMessage({
-                                    id: 'threading.threadItem.menu',
-                                    defaultMessage: 'Actions',
-                                })}
-                            >
-                                <DotsVerticalIcon size={18}/>
-                            </Button>
-                        </WithTooltip>
-                    </ThreadMenu>
+                    />
                 </div>
 
                 {/* The strange interaction here where we need a click/keydown handler messes with the ESLint rules, so we just disable it */}
@@ -281,9 +283,9 @@ function ThreadItem({
                     onClick={handleFormattedTextClick}
                     onKeyDown={handleFormattedTextClick}
                 >
-                    {post.message ? (
+                    {message ? (
                         <Markdown
-                            message={post.state === Posts.POST_DELETED ? msgDeleted : post.message}
+                            message={post.state === Posts.POST_DELETED ? msgDeleted : message}
                             options={markdownPreviewOptions}
                             imagesMetadata={post?.metadata && post?.metadata?.images}
                             mentionKeys={mentionsKeys}
