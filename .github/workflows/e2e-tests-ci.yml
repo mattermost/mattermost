@@ -1,6 +1,11 @@
 ---
 name: E2E Tests (pull request)
 on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
   # Argo Events Trigger (automated):
   #   - Triggered by: Enterprise CI/docker-image status check (success)
   #   - Payload: { ref: "<branch>", inputs: { commit_sha: "<sha>" } }
@@ -40,8 +45,8 @@ jobs:
         id: resolve
         env:
           GH_TOKEN: ${{ github.token }}
-          INPUT_PR_NUMBER: ${{ inputs.pr_number }}
-          INPUT_COMMIT_SHA: ${{ inputs.commit_sha }}
+          INPUT_PR_NUMBER: ${{ inputs.pr_number || github.event.pull_request.number }}
+          INPUT_COMMIT_SHA: ${{ inputs.commit_sha || github.event.pull_request.head.sha }}
         run: |
           # Validate inputs
           if [ -n "$INPUT_PR_NUMBER" ] && ! [[ "$INPUT_PR_NUMBER" =~ ^[0-9]+$ ]]; then
@@ -120,7 +125,7 @@ jobs:
       should_run: "${{ steps.check.outputs.should_run }}"
     steps:
       - name: ci/checkout-repo
-        if: inputs.commit_sha != ''
+        if: inputs.commit_sha != '' || github.event.pull_request
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ needs.resolve-pr.outputs.COMMIT_SHA }}
@@ -182,10 +187,67 @@ jobs:
           echo "should_run=${SHOULD_RUN}" >> $GITHUB_OUTPUT
           echo "Should run E2E tests: ${SHOULD_RUN}"
 
+  wait-for-enterprise-ci:
+    needs: resolve-pr
+    if: needs.resolve-pr.outputs.PR_NUMBER != '' && github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: ci/wait-for-enterprise-ci-docker-image
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
+          REPO: ${{ github.repository }}
+        run: |
+          MAX_WAIT_SECONDS=$((30 * 60))  # 30 minutes
+          POLL_INTERVAL_SECONDS=10
+          START_TIME=$(date +%s)
+
+          echo "Waiting for Enterprise CI/docker-image status check to complete..."
+          echo "Commit SHA: ${COMMIT_SHA}"
+          echo "Max wait time: 30 minutes"
+          echo ""
+
+          iteration=0
+          while true; do
+            iteration=$((iteration + 1))
+            current_time=$(date +%s)
+            elapsed=$((current_time - START_TIME))
+            elapsed_mins=$((elapsed / 60))
+            elapsed_secs=$((elapsed % 60))
+
+            status=$(gh api repos/${REPO}/commits/${COMMIT_SHA}/check-runs \
+              --jq '.check_runs[] | select(.name=="Enterprise CI/docker-image") | .conclusion' 2>/dev/null || \
+              gh api repos/${REPO}/commits/${COMMIT_SHA}/status \
+              --jq '.statuses[] | select(.context=="Enterprise CI/docker-image") | .state' 2>/dev/null || \
+              echo "")
+
+            if [ $((iteration % 12)) -eq 0 ] || [ -n "$status" ]; then
+              echo "[Iteration $iteration, ${elapsed_mins}m${elapsed_secs}s] Status: ${status:-'not found yet'}"
+            fi
+
+            if [ "$status" = "success" ]; then
+              echo "SUCCESS - Enterprise CI/docker-image check has passed!"
+              exit 0
+            fi
+
+            if [ "$status" = "failure" ]; then
+              echo "FAILURE - Enterprise CI/docker-image check has failed!"
+              exit 1
+            fi
+
+            if [ "$elapsed" -ge "$MAX_WAIT_SECONDS" ]; then
+              echo "TIMEOUT - Waited 30 minutes for Enterprise CI/docker-image to complete"
+              exit 1
+            fi
+
+            sleep "$POLL_INTERVAL_SECONDS"
+          done
+
   e2e-cypress:
     needs:
       - resolve-pr
       - check-changes
+      - wait-for-enterprise-ci
     if: needs.resolve-pr.outputs.PR_NUMBER != ''
     permissions:
       statuses: write
@@ -211,6 +273,7 @@ jobs:
     needs:
       - resolve-pr
       - check-changes
+      - wait-for-enterprise-ci
     if: needs.resolve-pr.outputs.PR_NUMBER != ''
     permissions:
       statuses: write
