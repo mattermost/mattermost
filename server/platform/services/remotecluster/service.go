@@ -142,6 +142,9 @@ func NewRemoteClusterService(server ServerIface, app AppIface) (*Service, error)
 
 // Start is called by the server on server start-up.
 func (rcs *Service) Start() error {
+	if rcs.active.Load() {
+		return nil
+	}
 	rcs.active.Store(true)
 	rcs.done = make(chan struct{})
 	for i := range rcs.send {

@@ -175,6 +175,27 @@ func TestServiceLifecycle(t *testing.T) {
 		assert.False(t, service.Active(), "service should not be active after Shutdown")
 	})
 
+	t.Run("Double Start is idempotent", func(t *testing.T) {
+		mockServer := newLeaderAwareMockServer(t, nil, false)
+		mockApp := newMockApp(t, nil)
+
+		service, err := NewRemoteClusterService(mockServer, mockApp)
+		require.NoError(t, err)
+
+		err = service.Start()
+		require.NoError(t, err)
+
+		firstDone := service.done
+
+		// Second Start should be a no-op
+		err = service.Start()
+		require.NoError(t, err)
+
+		assert.Equal(t, firstDone, service.done, "second Start should not replace done channel")
+
+		require.NoError(t, service.Shutdown())
+	})
+
 	t.Run("Shutdown before Start does not panic", func(t *testing.T) {
 		mockServer := newLeaderAwareMockServer(t, nil, false)
 		mockApp := newMockApp(t, nil)
