@@ -2,6 +2,17 @@
     min-width: 400px;
 }
 
+.ai-actions-submenu {
+    & .MuiPaper-root {
+        min-width: 260px;
+        margin-block-start: 0;
+    }
+
+    &.ai-actions-submenu-rewrite .MuiPaper-root {
+        min-width: 400px;
+    }
+}
+
 .rewrite-menu-header {
     padding: 8px 12px 0 12px;
     margin-bottom: -4px;

@@ -1,12 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import MuiMenuList from '@mui/material/MenuList';
+import MuiPopover from '@mui/material/Popover';
 import classNames from 'classnames';
 import React, {useCallback, useMemo, useState} from 'react';
+import type {MouseEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {ChevronLeftIcon, ChevronRightIcon, CreationOutlineIcon, PencilOutlineIcon} from '@mattermost/compass-icons/components';
+import {ChevronRightIcon, CreationOutlineIcon, PencilOutlineIcon} from '@mattermost/compass-icons/components';
 
 import * as Menu from 'components/menu';
 
@@ -39,6 +42,7 @@ const AIActionsMenu = ({
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null);
+    const [submenuAnchorEl, setSubmenuAnchorEl] = useState<HTMLElement | null>(null);
 
     const pluginItems = useSelector((state: GlobalState) =>
         state.plugins.components.AIActionMenuItem,
@@ -56,187 +60,201 @@ const AIActionsMenu = ({
         setIsMenuOpen(open);
         if (!open) {
             setActiveSubmenu(null);
+            setSubmenuAnchorEl(null);
         }
         if (rewriteMenuProps) {
             rewriteMenuProps.setIsMenuOpen(open);
         }
     }, [rewriteMenuProps]);
 
-    const handleBack = useCallback(() => {
-        setActiveSubmenu(null);
+    const handleItemHover = useCallback((submenuId: string) => {
+        return (event: MouseEvent<HTMLLIElement>) => {
+            setActiveSubmenu(submenuId);
+            setSubmenuAnchorEl(event.currentTarget);
+        };
     }, []);
 
     if (!hasItems) {
         return <></>;
     }
 
-    // Render submenu content inline when a submenu is active
-    const renderActiveSubmenu = () => {
-        if (!activeSubmenu) {
-            return null;
-        }
+    const isRewriteSubmenu = activeSubmenu === '__rewrite__';
+    const activePluginItem = activeSubmenu && !isRewriteSubmenu ? sortedItems.find((item) => item.id === activeSubmenu) : null;
+    const hasActiveSubmenu = Boolean(activeSubmenu) && (isRewriteSubmenu || Boolean(activePluginItem));
 
-        // Check if it's the rewrite submenu
-        if (activeSubmenu === '__rewrite__' && rewriteMenuProps) {
-            return (
-                <>
+    const submenuClassName = classNames(
+        'menu_menuStyled',
+        'AsSubMenu',
+        'ai-actions-submenu',
+        {
+            'ai-actions-submenu-rewrite': isRewriteSubmenu,
+        },
+    );
+
+    return (
+        <>
+            <Menu.Container
+                menuButton={{
+                    id: 'ai-actions-button',
+                    as: 'div',
+                    children: (
+                        <IconContainer
+                            id='aiActionsMenu'
+                            className={classNames('control', {active: isMenuOpen})}
+                            type='button'
+                            aria-label={formatMessage({
+                                id: 'texteditor.ai_actions',
+                                defaultMessage: 'AI Actions',
+                            })}
+                        >
+                            <CreationOutlineIcon
+                                size={18}
+                                color='currentColor'
+                            />
+                        </IconContainer>
+                    ),
+                }}
+                menuButtonTooltip={{
+                    text: formatMessage({
+                        id: 'texteditor.ai_actions',
+                        defaultMessage: 'AI Actions',
+                    }),
+                }}
+                menu={{
+                    id: 'ai-actions-menu',
+                    'aria-label': formatMessage({
+                        id: 'texteditor.ai_actions.menu',
+                        defaultMessage: 'AI Actions',
+                    }),
+                    className: 'ai-actions-menu',
+                    onToggle: handleToggle,
+                    isMenuOpen,
+                }}
+                anchorOrigin={{
+                    vertical: 'top',
+                    horizontal: 'left',
+                }}
+                transformOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'left',
+                }}
+            >
+                {sortedItems.map((item) => (
                     <Menu.Item
-                        id='ai-action-back-rewrite'
+                        key={item.id}
+                        id={`ai-action-${item.id}`}
                         role='menuitemradio'
-                        leadingElement={<ChevronLeftIcon size={18}/>}
+                        aria-checked={activeSubmenu === item.id}
+                        leadingElement={item.icon}
+                        labels={<span>{item.text}</span>}
+                        trailingElements={<ChevronRightIcon size={18}/>}
+                        onMouseEnter={handleItemHover(item.id)}
+                    />
+                ))}
+                {aiRewriteEnabled && rewriteMenuProps && sortedItems.length > 0 && (
+                    <Menu.Separator/>
+                )}
+                {aiRewriteEnabled && rewriteMenuProps && (
+                    <Menu.Item
+                        id='ai-action-rewrite'
+                        role='menuitemradio'
+                        aria-checked={activeSubmenu === '__rewrite__'}
+                        leadingElement={<PencilOutlineIcon size={18}/>}
                         labels={(
                             <FormattedMessage
                                 id='texteditor.rewrite'
                                 defaultMessage='Rewrite'
                             />
                         )}
-                        onClick={handleBack}
+                        trailingElements={<ChevronRightIcon size={18}/>}
+                        onMouseEnter={handleItemHover('__rewrite__')}
                     />
-                    <Menu.Separator/>
-                    <RewriteSubMenuHeader
-                        isProcessing={rewriteMenuProps.isProcessing}
-                        draftMessage={rewriteMenuProps.draftMessage}
-                        prompt={rewriteMenuProps.prompt}
-                        setPrompt={rewriteMenuProps.setPrompt}
-                        selectedAgentId={rewriteMenuProps.selectedAgentId}
-                        setSelectedAgentId={rewriteMenuProps.setSelectedAgentId}
-                        agents={rewriteMenuProps.agents}
-                        onCustomPromptKeyDown={rewriteMenuProps.onCustomPromptKeyDown}
-                        onCancelProcessing={rewriteMenuProps.onCancelProcessing}
-                        customPromptRef={rewriteMenuProps.customPromptRef}
-                    />
-                    <RewriteSubmenu
-                        draftMessage={rewriteMenuProps.draftMessage}
-                        onMenuAction={rewriteMenuProps.onMenuAction}
-                    />
-                    <RewriteSubMenuFooter
-                        isProcessing={rewriteMenuProps.isProcessing}
-                        originalMessage={rewriteMenuProps.originalMessage}
-                        lastAction={rewriteMenuProps.lastAction}
-                        onUndoMessage={rewriteMenuProps.onUndoMessage}
-                        onRegenerateMessage={rewriteMenuProps.onRegenerateMessage}
-                    />
-                </>
-            );
-        }
+                )}
+            </Menu.Container>
 
-        // Check plugin submenus
-        const pluginItem = sortedItems.find((item) => item.id === activeSubmenu);
-        if (pluginItem) {
-            const PluginComponent = pluginItem.component;
-            const SubMenuHeader = pluginItem.subMenuHeader;
-            return (
-                <>
-                    <Menu.Item
-                        id={`ai-action-back-${pluginItem.id}`}
-                        role='menuitemradio'
-                        leadingElement={<ChevronLeftIcon size={18}/>}
-                        labels={<span>{pluginItem.text}</span>}
-                        onClick={handleBack}
-                    />
-                    <Menu.Separator/>
-                    {SubMenuHeader && (
-                        <SubMenuHeader
-                            draft={draft}
-                            getSelectedText={getSelectedText}
-                            updateText={updateText}
-                            channelId={channelId}
-                        />
-                    )}
-                    <PluginComponent
-                        draft={draft}
-                        getSelectedText={getSelectedText}
-                        updateText={updateText}
-                        channelId={channelId}
-                    />
-                </>
-            );
-        }
-
-        return null;
-    };
-
-    return (
-        <Menu.Container
-            menuButton={{
-                id: 'ai-actions-button',
-                as: 'div',
-                children: (
-                    <IconContainer
-                        id='aiActionsMenu'
-                        className={classNames('control', {active: isMenuOpen})}
-                        type='button'
-                        aria-label={formatMessage({
-                            id: 'texteditor.ai_actions',
-                            defaultMessage: 'AI Actions',
-                        })}
-                    >
-                        <CreationOutlineIcon
-                            size={18}
-                            color='currentColor'
-                        />
-                    </IconContainer>
-                ),
-            }}
-            menuButtonTooltip={{
-                text: formatMessage({
-                    id: 'texteditor.ai_actions',
-                    defaultMessage: 'AI Actions',
-                }),
-            }}
-            menu={{
-                id: 'ai-actions-menu',
-                'aria-label': formatMessage({
-                    id: 'texteditor.ai_actions.menu',
-                    defaultMessage: 'AI Actions',
-                }),
-                className: 'ai-actions-menu',
-                onToggle: handleToggle,
-                isMenuOpen,
-            }}
-            anchorOrigin={{
-                vertical: 'top',
-                horizontal: 'left',
-            }}
-            transformOrigin={{
-                vertical: 'bottom',
-                horizontal: 'left',
-            }}
-        >
-            {activeSubmenu ? renderActiveSubmenu() : (
-                <>
-                    {sortedItems.map((item) => (
-                        <Menu.Item
-                            key={item.id}
-                            id={`ai-action-${item.id}`}
-                            role='menuitemradio'
-                            leadingElement={item.icon}
-                            labels={<span>{item.text}</span>}
-                            trailingElements={<ChevronRightIcon size={18}/>}
-                            onClick={() => setActiveSubmenu(item.id)}
-                        />
-                    ))}
-                    {aiRewriteEnabled && rewriteMenuProps && sortedItems.length > 0 && (
-                        <Menu.Separator/>
-                    )}
-                    {aiRewriteEnabled && rewriteMenuProps && (
-                        <Menu.Item
-                            id='ai-action-rewrite'
-                            role='menuitemradio'
-                            leadingElement={<PencilOutlineIcon size={18}/>}
-                            labels={(
-                                <FormattedMessage
-                                    id='texteditor.rewrite'
-                                    defaultMessage='Rewrite'
+            {/* Cascading submenu popover — anchored to the hovered menu item */}
+            {hasActiveSubmenu && isMenuOpen && (
+                <MuiPopover
+                    open={true}
+                    anchorEl={submenuAnchorEl}
+                    anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'right',
+                    }}
+                    transformOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'left',
+                    }}
+                    className={submenuClassName}
+                    disableAutoFocus={true}
+                    disableEnforceFocus={true}
+                    disableRestoreFocus={true}
+                    hideBackdrop={true}
+                >
+                    {/* pointer-events wrapper: AsSubMenu disables pointer-events on the popover root,
+                        so we re-enable on the content div to make everything inside clickable */}
+                    <div style={{pointerEvents: 'auto'}}>
+                    {isRewriteSubmenu && rewriteMenuProps && (
+                        <>
+                            <RewriteSubMenuHeader
+                                isProcessing={rewriteMenuProps.isProcessing}
+                                draftMessage={rewriteMenuProps.draftMessage}
+                                prompt={rewriteMenuProps.prompt}
+                                setPrompt={rewriteMenuProps.setPrompt}
+                                selectedAgentId={rewriteMenuProps.selectedAgentId}
+                                setSelectedAgentId={rewriteMenuProps.setSelectedAgentId}
+                                agents={rewriteMenuProps.agents}
+                                onCustomPromptKeyDown={rewriteMenuProps.onCustomPromptKeyDown}
+                                onCancelProcessing={rewriteMenuProps.onCancelProcessing}
+                                customPromptRef={rewriteMenuProps.customPromptRef}
+                            />
+                            <MuiMenuList
+                                sx={{py: 0}}
+                            >
+                                <RewriteSubmenu
+                                    draftMessage={rewriteMenuProps.draftMessage}
+                                    onMenuAction={rewriteMenuProps.onMenuAction}
                                 />
-                            )}
-                            trailingElements={<ChevronRightIcon size={18}/>}
-                            onClick={() => setActiveSubmenu('__rewrite__')}
-                        />
+                            </MuiMenuList>
+                            <RewriteSubMenuFooter
+                                isProcessing={rewriteMenuProps.isProcessing}
+                                originalMessage={rewriteMenuProps.originalMessage}
+                                lastAction={rewriteMenuProps.lastAction}
+                                onUndoMessage={rewriteMenuProps.onUndoMessage}
+                                onRegenerateMessage={rewriteMenuProps.onRegenerateMessage}
+                            />
+                        </>
                     )}
-                </>
+                    {activePluginItem && (() => {
+                        const PluginComponent = activePluginItem.component;
+                        const SubMenuHeader = activePluginItem.subMenuHeader;
+                        return (
+                            <>
+                                {SubMenuHeader && (
+                                    <SubMenuHeader
+                                        draft={draft}
+                                        getSelectedText={getSelectedText}
+                                        updateText={updateText}
+                                        channelId={channelId}
+                                    />
+                                )}
+                                <MuiMenuList
+                                    sx={{py: 0}}
+                                >
+                                    <PluginComponent
+                                        draft={draft}
+                                        getSelectedText={getSelectedText}
+                                        updateText={updateText}
+                                        channelId={channelId}
+                                    />
+                                </MuiMenuList>
+                            </>
+                        );
+                    })()}
+                    </div>
+                </MuiPopover>
             )}
-        </Menu.Container>
+        </>
     );
 };
 
