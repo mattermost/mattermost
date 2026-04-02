@@ -159,6 +159,9 @@ func (rcs *Service) Start() error {
 
 // Shutdown is called by the server on server shutdown.
 func (rcs *Service) Shutdown() error {
+	if !rcs.active.Load() {
+		return nil
+	}
 	rcs.server.RemoveClusterLeaderChangedListener(rcs.leaderListenerId)
 	rcs.pingStop()
 	close(rcs.done)

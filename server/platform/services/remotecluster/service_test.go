@@ -175,6 +175,17 @@ func TestServiceLifecycle(t *testing.T) {
 		assert.False(t, service.Active(), "service should not be active after Shutdown")
 	})
 
+	t.Run("Shutdown before Start does not panic", func(t *testing.T) {
+		mockServer := newLeaderAwareMockServer(t, nil, false)
+		mockApp := newMockApp(t, nil)
+
+		service, err := NewRemoteClusterService(mockServer, mockApp)
+		require.NoError(t, err)
+
+		err = service.Shutdown()
+		require.NoError(t, err)
+	})
+
 	t.Run("Active on non-leader node", func(t *testing.T) {
 		mockServer := newLeaderAwareMockServer(t, nil, false)
 		mockApp := newMockApp(t, nil)
