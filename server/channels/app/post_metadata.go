@@ -360,6 +360,11 @@ func (a *App) SanitizePostMetadataForUser(rctx request.CTX, post *model.Post, us
 	// sanitizeChannelMentionsForUser returns immediately if no channel mentions exist
 	post = a.sanitizeChannelMentionsForUser(rctx, post, userID)
 
+	// Strip file attachments if user lacks ABAC download permission
+	if post.Metadata != nil && len(post.Metadata.Files) > 0 {
+		a.sanitizeFileAttachmentsForUser(rctx, post, userID)
+	}
+
 	return post, isMemberForPreviews, nil
 }
 
@@ -424,6 +429,39 @@ func (a *App) sanitizeChannelMentionsForUser(rctx request.CTX, post *model.Post,
 	}
 
 	return post
+}
+
+// sanitizeFileAttachmentsForUser strips file metadata from the post if the user is denied
+// the download_file_attachment action by ABAC permission policies.
+func (a *App) sanitizeFileAttachmentsForUser(rctx request.CTX, post *model.Post, userID string) {
+	acs := a.Srv().Channels().AccessControl
+	if acs == nil {
+		return
+	}
+
+	if !*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl {
+		return
+	}
+
+	user, err := a.GetUser(userID)
+	if err != nil {
+		rctx.Logger().Warn("Failed to get user for file attachment sanitization",
+			mlog.String("user_id", userID),
+			mlog.Err(err),
+		)
+		return
+	}
+
+	if !a.HasPermissionToFileAction(rctx, userID, user.Roles, post.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
+		rctx.Logger().Debug("Stripping file attachments from post due to ABAC permission policy",
+			mlog.String("user_id", userID),
+			mlog.String("post_id", post.Id),
+			mlog.String("channel_id", post.ChannelId),
+			mlog.Int("files_removed", len(post.Metadata.Files)),
+		)
+		post.Metadata.Files = nil
+		post.FileIds = model.StringArray{}
+	}
 }
 
 func (a *App) SanitizePostListMetadataForUser(rctx request.CTX, postList *model.PostList, userID string) (*model.PostList, bool, *model.AppError) {

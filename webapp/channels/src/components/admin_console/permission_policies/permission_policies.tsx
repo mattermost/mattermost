@@ -72,6 +72,11 @@ export default function PermissionPolicyList(props: Props): JSX.Element {
 
         try {
             const action = await props.actions.searchPolicies(term, afterParam, PAGE_SIZE + 1);
+            if (!action?.data) {
+                setLoading(false);
+                setSearchErrored(true);
+                return;
+            }
             const data = action.data.policies || [];
             const newTotal = action.data.total || 0;
 

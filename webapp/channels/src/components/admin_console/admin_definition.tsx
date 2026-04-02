@@ -699,6 +699,7 @@ const AdminDefinition: AdminDefinitionType = {
                     it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
                     it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                    it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
                 ),
                 isDisabled: it.any(
                     it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
@@ -767,6 +768,7 @@ const AdminDefinition: AdminDefinitionType = {
                     it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
                     it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                    it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
                 ),
                 isDisabled: it.any(
                     it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),

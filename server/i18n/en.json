@@ -2205,6 +2205,10 @@
     "translation": "Unable to get the file size."
   },
   {
+    "id": "api.file.get_file.abac_denied.app_error",
+    "translation": "You do not have the required access to download this file."
+  },
+  {
     "id": "api.file.get_file.invalid_flagged_post.app_error",
     "translation": "Mismatched flagged post ID specified."
   },
@@ -2299,6 +2303,10 @@
   {
     "id": "api.file.test_connection_s3_settings_nil.app_error",
     "translation": "File storage settings has unset values."
+  },
+  {
+    "id": "api.file.upload_file.abac_denied.app_error",
+    "translation": "You do not have the required access to upload files to this channel."
   },
   {
     "id": "api.file.upload_file.get_channel.app_error",
@@ -5061,6 +5069,14 @@
   {
     "id": "api4.plugin.reattachPlugin.invalid_request",
     "translation": "Failed to parse request"
+  },
+  {
+    "id": "app.access_control.build_subject.get_subject.app_error",
+    "translation": "Failed to retrieve the access control subject."
+  },
+  {
+    "id": "app.access_control.build_subject.group_id.app_error",
+    "translation": "Failed to retrieve the access control attribute group."
   },
   {
     "id": "app.access_control.insufficient_permissions",

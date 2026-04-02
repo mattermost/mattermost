@@ -222,7 +222,14 @@ function PermissionPolicyDetails({
             return;
         }
         try {
-            await actions.deletePolicy(policyId);
+            const result = await actions.deletePolicy(policyId);
+            if (result.error) {
+                setServerError(formatMessage({
+                    id: 'admin.permission_policies.edit.error.delete',
+                    defaultMessage: 'Error deleting policy: {error}',
+                }, {error: result.error.message || result.error}));
+                return;
+            }
             getHistory().push('/admin_console/system_attributes/permission_policies');
         } catch (error: any) {
             setServerError(formatMessage({
