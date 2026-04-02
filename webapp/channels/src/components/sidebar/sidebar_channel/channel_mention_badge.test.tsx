@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen} from '@testing-library/react';
 import React from 'react';
 import {defineMessages} from 'react-intl';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import ChannelMentionBadge from './channel_mention_badge';
 
@@ -55,7 +54,9 @@ describe('ChannelMentionBadge', () => {
         expect(screen.getByText('1').closest('.badge')).not.toHaveClass('urgent');
     });
 
-    it('should show tooltip when tooltip prop is provided', async () => {
+    it('should show tooltip on hover when tooltip prop is provided', async () => {
+        jest.useFakeTimers();
+
         renderWithContext(
             <ChannelMentionBadge
                 unreadMentions={2}
@@ -65,8 +66,11 @@ describe('ChannelMentionBadge', () => {
         );
 
         const badge = screen.getByText('2').closest('.badge')!;
-        expect(badge).toBeInTheDocument();
-        expect(badge.closest('[class]')).toBeInTheDocument();
+        await userEvent.hover(badge, {advanceTimers: jest.advanceTimersByTime});
+
+        await waitFor(() => {
+            expect(screen.getByText('You have an urgent mention')).toBeInTheDocument();
+        });
     });
 
     it('should not render WithTooltip wrapper when tooltip prop is not provided', () => {
