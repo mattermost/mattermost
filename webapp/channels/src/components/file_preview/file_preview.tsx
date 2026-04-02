@@ -144,7 +144,7 @@ export default class FilePreview extends React.PureComponent<Props> {
         }
 
         return (
-            <div className='file-preview__container'>
+            <div className={classNames('file-preview__container', {compact: this.props.compactMode})}>
                 {previews}
             </div>
         );

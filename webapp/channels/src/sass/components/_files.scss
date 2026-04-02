@@ -15,6 +15,10 @@
     overflow-x: auto;
     overflow-y: hidden;
     white-space: nowrap;
+
+    &.compact {
+        height: unset;
+    }
 }
 
 .file-preview {
@@ -503,6 +507,12 @@
     font-size: 12px;
     text-align: left;
 
+    &.compact {
+        .post-image__name {
+            font-size: 12px;
+        }
+    }
+
     .post-image__archived-name {
         align-items: center;
         justify-content: start;
@@ -548,6 +558,10 @@
 
             &.compact {
                 height: unset;
+
+                .post-image__name {
+                    font-size: 12px;
+                }
             }
 
             .post-image__name {
