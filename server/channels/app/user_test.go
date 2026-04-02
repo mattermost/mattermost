@@ -1060,7 +1060,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: model.NewRandomPassword(), AuthService: ""}
 
 	t.Run("should create a user", func(t *testing.T) {
 		u, err := th.App.CreateUserWithInviteId(th.Context, &user, th.BasicTeam.InviteId, "")
@@ -1091,7 +1091,7 @@ func TestCreateUserWithToken(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: model.NewRandomPassword(), AuthService: ""}
 
 	t.Run("invalid token", func(t *testing.T) {
 		_, err := th.App.CreateUserWithToken(th.Context, &user, &model.Token{Token: "123"})
@@ -1155,7 +1155,7 @@ func TestCreateUserWithToken(t *testing.T) {
 
 	t.Run("valid regular user request", func(t *testing.T) {
 		invitationEmail := strings.ToLower(model.NewId()) + "other-email@test.com"
-		u := model.User{Email: invitationEmail, Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		u := model.User{Email: invitationEmail, Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: model.NewRandomPassword(), AuthService: ""}
 		token := model.NewToken(
 			model.TokenTypeTeamInvitation,
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail}),
@@ -1182,7 +1182,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		)
 
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
-		guest := model.User{Email: invitationEmail, Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		guest := model.User{Email: invitationEmail, Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: model.NewRandomPassword(), AuthService: ""}
 		newGuest, err := th.App.CreateUserWithToken(th.Context, &guest, token)
 		require.Nil(t, err, "Should add user to the team. err=%v", err)
 
@@ -1302,7 +1302,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 
-		guest := model.User{Email: invitationEmail, Nickname: "Magic Link Guest", Username: "magiclinkguest" + model.NewId(), Password: "passwd1", AuthService: ""}
+		guest := model.User{Email: invitationEmail, Nickname: "Magic Link Guest", Username: "magiclinkguest" + model.NewId(), Password: model.NewRandomPassword(), AuthService: ""}
 		newGuest, err := th.App.CreateUserWithToken(th.Context, &guest, token)
 		require.Nil(t, err, "Should create guest user successfully")
 		require.True(t, newGuest.IsGuest())
@@ -1351,7 +1351,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 
-		guest := model.User{Email: invitationEmail, Nickname: "Magic Link Guest", Username: "magiclinkguest" + model.NewId(), Password: "passwd1", AuthService: ""}
+		guest := model.User{Email: invitationEmail, Nickname: "Magic Link Guest", Username: "magiclinkguest" + model.NewId(), Password: model.NewRandomPassword(), AuthService: ""}
 		newGuest, err := th.App.CreateUserWithToken(th.Context, &guest, token)
 		require.Nil(t, err)
 
@@ -1385,7 +1385,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 
-		regularUser := model.User{Email: invitationEmail, Nickname: "Regular User", Username: "regular" + model.NewId(), Password: "passwd1", AuthService: ""}
+		regularUser := model.User{Email: invitationEmail, Nickname: "Regular User", Username: "regular" + model.NewId(), Password: model.NewRandomPassword(), AuthService: ""}
 		newUser, err := th.App.CreateUserWithToken(th.Context, &regularUser, token)
 		require.Nil(t, err)
 		require.False(t, newUser.IsGuest())
