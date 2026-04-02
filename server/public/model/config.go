@@ -2409,6 +2409,7 @@ type TeamSettings struct {
 	// In seconds.
 	UserStatusAwayTimeout               *int64  `access:"experimental_features"`
 	MaxChannelsPerTeam                  *int64  `access:"site_users_and_teams"`
+	EnableManagedChannelCategories      *bool   `access:"site_users_and_teams"`
 	MaxNotificationsPerChannel          *int64  `access:"environment_push_notification_server"`
 	EnableConfirmNotificationsToChannel *bool   `access:"site_notifications"`
 	TeammateNameDisplay                 *string `access:"site_users_and_teams"`
@@ -2479,6 +2480,10 @@ func (s *TeamSettings) SetDefaults() {
 
 	if s.MaxChannelsPerTeam == nil {
 		s.MaxChannelsPerTeam = NewPointer(int64(2000))
+	}
+
+	if s.EnableManagedChannelCategories == nil {
+		s.EnableManagedChannelCategories = NewPointer(false)
 	}
 
 	if s.MaxNotificationsPerChannel == nil {

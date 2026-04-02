@@ -17,7 +17,7 @@ import type {ChannelCategory} from '@mattermost/types/channel_categories';
 import type {Channel} from '@mattermost/types/channels';
 
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
-import {getCategoryInTeamWithChannel} from 'mattermost-redux/selectors/entities/channel_categories';
+import {getCategoryInTeamWithChannel, isChannelInManagedCategory} from 'mattermost-redux/selectors/entities/channel_categories';
 import {getAllChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
@@ -45,6 +45,7 @@ const ChannelMoveToSubMenu = (props: Props) => {
     const allChannels = useSelector(getAllChannels);
     const multiSelectedChannelIds = useSelector((state: GlobalState) => state.views.channelSidebar.multiSelectedChannelIds);
 
+    const isInManagedCategory = useSelector((state: GlobalState) => isChannelInManagedCategory(state, props.channel.id));
     const currentTeam = useSelector(getCurrentTeam);
     const categories = useSelector((state: GlobalState) => {
         return currentTeam ? getCategoriesForCurrentTeam(state) : undefined;
@@ -171,6 +172,23 @@ const ChannelMoveToSubMenu = (props: Props) => {
 
     if (!categories) {
         return null;
+    }
+
+    if (isInManagedCategory) {
+        return (
+            <Menu.Item
+                id={`moveTo-${props.channel.id}`}
+                labels={
+                    <FormattedMessage
+                        id='sidebar_left.sidebar_channel_menu.moveTo'
+                        defaultMessage='Move to...'
+                    />
+                }
+                leadingElement={props.inHeaderDropdown ? null : <FolderMoveOutlineIcon size={18}/>}
+                trailingElements={<ChevronRightIcon size={16}/>}
+                disabled={true}
+            />
+        );
     }
 
     return (

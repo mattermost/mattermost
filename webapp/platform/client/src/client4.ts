@@ -117,6 +117,7 @@ import type {
     UserPropertyField,
     UserPropertyFieldPatch,
     PropertyValue,
+    PropertyField,
 } from '@mattermost/types/properties';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {Recap, CreateRecapRequest} from '@mattermost/types/recaps';
@@ -2123,6 +2124,29 @@ export default class Client4 {
         return this.doFetch<ChannelCategory>(
             `${this.getChannelCategoriesRoute(userId, teamId)}/${categoryId}`,
             {method: 'delete'},
+        );
+    };
+
+    // Managed Channel Categories Routes
+
+    getManagedCategories = (teamId: string) => {
+        return this.doFetch<Record<string, string>>(
+            `${this.getTeamRoute(teamId)}/channels/managed_categories`,
+            {method: 'get'},
+        );
+    };
+
+    getPropertyFields = (groupName: string, objectType: string, targetType: string) => {
+        return this.doFetch<PropertyField[]>(
+            `${this.getBaseRoute()}/properties/groups/${groupName}/${objectType}/fields?target_type=${targetType}`,
+            {method: 'get'},
+        );
+    };
+
+    getPropertyValues = <T>(groupName: string, objectType: string, targetId: string) => {
+        return this.doFetch<Array<PropertyValue<T>>>(
+            `${this.getBaseRoute()}/properties/groups/${groupName}/${objectType}/values/${targetId}`,
+            {method: 'get'},
         );
     };
 

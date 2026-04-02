@@ -113,16 +113,17 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
 
     renderChannel = (channelId: string, index: number) => {
         const {setChannelRef, category, draggingState} = this.props;
+        const isManaged = category.type === CategoryTypes.MANAGED;
         return (
             <SidebarChannel
                 key={channelId}
                 channelIndex={index}
                 channelId={channelId}
-                isDraggable={true}
+                isDraggable={!isManaged}
                 setChannelRef={setChannelRef}
                 isCategoryCollapsed={category.collapsed}
                 isCategoryDragged={draggingState.type === DraggingStateTypes.CATEGORY && draggingState.id === category.id}
-                isAutoSortedCategory={category.sorting === CategorySorting.Alphabetical || category.sorting === CategorySorting.Recency}
+                isAutoSortedCategory={isManaged || category.sorting === CategorySorting.Alphabetical || category.sorting === CategorySorting.Recency}
             />
         );
     };
@@ -147,6 +148,10 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
 
     isDropDisabled = () => {
         const {draggingState, category} = this.props;
+
+        if (category.type === CategoryTypes.MANAGED) {
+            return true;
+        }
 
         if (category.type === CategoryTypes.DIRECT_MESSAGES) {
             return draggingState.type === DraggingStateTypes.CHANNEL;
@@ -293,14 +298,44 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
             if (!channelIds || !channelIds.length) {
                 isCollapsible = false;
             }
-        } else {
+        } else if (category.type !== CategoryTypes.MANAGED) {
             categoryMenu = <SidebarCategoryMenu category={category}/>;
         }
 
         let displayName = category.display_name;
-        if (category.type !== CategoryTypes.CUSTOM) {
+        if (category.type !== CategoryTypes.CUSTOM && category.type !== CategoryTypes.MANAGED) {
             const message = categoryNames[category.type as keyof typeof categoryNames];
             displayName = localizeMessage({id: message.id, defaultMessage: message.defaultMessage});
+        }
+
+        if (category.type === CategoryTypes.MANAGED) {
+            return (
+                <div
+                    className={classNames('SidebarChannelGroup a11y__section', {
+                        menuIsOpen: this.state.isMenuOpen,
+                        isCollapsed: category.collapsed,
+                    })}
+                >
+                    <div>
+                        <SidebarCategoryHeader
+                            ref={this.categoryTitleRef}
+                            displayName={displayName}
+                            dragHandleProps={undefined}
+                            isCollapsed={category.collapsed}
+                            isCollapsible={isCollapsible}
+                            isDragging={false}
+                            isDraggingOver={false}
+                            muted={category.muted}
+                            onClick={this.handleCollapse}
+                        />
+                        <div className={classNames('SidebarChannelGroup_content')}>
+                            <ul className='NavGroupContent'>
+                                {renderedChannels}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            );
         }
 
         return (
