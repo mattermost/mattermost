@@ -20,6 +20,7 @@ import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, makeGetDis
 import * as GlobalActions from 'actions/global_actions';
 import type {CreatePostOptions} from 'actions/post_actions';
 import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
+import {editLatestPost} from 'actions/views/create_comment';
 import type {SubmitPostReturnType} from 'actions/views/create_comment';
 import {removeDraft, updateDraft} from 'actions/views/drafts';
 import {openModal} from 'actions/views/modals';
@@ -234,6 +235,7 @@ const AdvancedTextEditor = ({
     const showFormattingBar = !isFormattingBarHidden && !readOnlyChannel;
     const enableSharedChannelsDMs = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'EnableSharedChannelsDMs') === 'true');
     const wysiwygEnabled = useSelector(getWysiwygEditorPreference);
+    const ctrlSend = useSelector((state: GlobalState) => getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'));
     const isDMOrGMRemote = isChannelShared && (channelType === Constants.DM_CHANNEL || channelType === Constants.GM_CHANNEL);
 
     const handleShowPreview = useCallback(() => {
@@ -336,6 +338,10 @@ const AdvancedTextEditor = ({
         isInEditMode,
     );
 
+    const insertWysiwygText = useCallback((text: string) => {
+        wysiwygRef.current?.insertText(text);
+    }, []);
+
     const {
         emojiPicker,
         enableEmojiPicker,
@@ -344,6 +350,7 @@ const AdvancedTextEditor = ({
         textboxId,
         isDisabled,
         showPreview,
+        wysiwygEnabled ? insertWysiwygText : undefined,
     );
     const {
         labels: priorityLabels,
@@ -477,6 +484,10 @@ const AdvancedTextEditor = ({
     const handleFocus = useCallback(() => {
         setKeepEditorInFocus(true);
     }, []);
+
+    const handleEditLatestPost = useCallback(() => {
+        dispatch(editLatestPost(channelId, rootId));
+    }, [dispatch, channelId, rootId]);
 
     const handleChange = useCallback((e: React.ChangeEvent<TextboxElement>) => {
         const message = e.target.value;
@@ -636,7 +647,7 @@ const AdvancedTextEditor = ({
         />
     );
 
-    const showFormatJSX = disableSendButton ? null : (
+    const showFormatJSX = (disableSendButton || wysiwygEnabled) ? null : (
         <ShowFormat
             onClick={handleShowPreview}
             active={showPreview}
@@ -817,12 +828,15 @@ const AdvancedTextEditor = ({
                                 value={messageValue}
                                 onChange={handleWysiwygChange}
                                 onSubmit={handleSubmitWrapper}
+                                onEditLatestPost={handleEditLatestPost}
                                 onFocus={handleFocus}
                                 onBlur={handleBlur}
                                 placeholder={createMessage}
                                 channelId={channelId}
+                                rootId={rootId}
                                 id={textboxId}
                                 disabled={isDisabled && !rewriteIsProcessing}
+                                useCtrlSend={ctrlSend}
                             />
                         ) : (
                             <Textbox

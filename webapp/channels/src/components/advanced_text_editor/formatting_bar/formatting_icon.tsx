@@ -76,6 +76,7 @@ interface FormattingIconProps {
     onClick?: () => void;
     className?: string;
     disabled?: boolean;
+    isActive?: boolean;
 }
 
 const MAP_MARKDOWN_MODE_TO_ICON: Record<FormattingIconProps['mode'], React.FC<IconProps>> = {
@@ -115,13 +116,8 @@ const MAP_MARKDOWN_MODE_TO_KEYBOARD_SHORTCUTS: Record<FormattingIconProps['mode'
 };
 
 const FormattingIcon = (props: FormattingIconProps): JSX.Element => {
-    /**
-     * by passing in the otherProps spread we guarantee that accessibility
-     * properties like aria-label, etc. get added to the DOM
-     */
-    const {mode, onClick, ...otherProps} = props;
+    const {mode, onClick, isActive, className, ...otherProps} = props;
 
-    /* get the correct Icon from the IconMap */
     const Icon = MAP_MARKDOWN_MODE_TO_ICON[mode];
     const {formatMessage} = useIntl();
     const ariaLabelDefinition = MAP_MARKDOWN_MODE_TO_ARIA_LABEL[mode];
@@ -133,6 +129,7 @@ const FormattingIcon = (props: FormattingIconProps): JSX.Element => {
             id={props.id || `FormattingControl_${mode}`}
             onClick={onClick}
             aria-label={buttonAriaLabel}
+            className={isActive ? `${className || ''} active`.trim() : className}
             {...otherProps}
         >
             <Icon

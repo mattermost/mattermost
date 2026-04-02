@@ -3,7 +3,7 @@
 
 import {useFloating, offset, useClick, useDismiss, useInteractions, flip, shift} from '@floating-ui/react';
 import type {Editor} from '@tiptap/react';
-import React, {memo, useCallback, useState} from 'react';
+import React, {memo, useCallback, useRef, useState} from 'react';
 import {useIntl, defineMessages} from 'react-intl';
 import styled from 'styled-components';
 
@@ -12,8 +12,10 @@ import {ChevronDownIcon} from '@mattermost/compass-icons/components';
 const DropdownButton = styled.button`
     display: flex;
     align-items: center;
+    flex-shrink: 0;
     gap: 2px;
     height: 32px;
+    max-width: 130px;
     padding: 0 8px;
     border: none;
     border-radius: 4px;
@@ -23,6 +25,8 @@ const DropdownButton = styled.button`
     font-weight: 400;
     white-space: nowrap;
     cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
 
     &:hover {
         background: rgba(var(--center-channel-color-rgb), 0.08);
@@ -134,13 +138,27 @@ const STYLES: Array<{style: TextStyle; level?: number}> = [
 const TextStyleDropdown = ({getWysiwygEditor, disabled}: TextStyleDropdownProps) => {
     const {formatMessage} = useIntl();
     const [isOpen, setIsOpen] = useState(false);
+    const savedSelectionRef = useRef<{from: number; to: number} | null>(null);
 
     const editor = getWysiwygEditor();
     const activeStyle = getActiveStyle(editor);
 
+    const handleOpenChange = useCallback((open: boolean) => {
+        if (open) {
+            const ed = getWysiwygEditor();
+            if (ed && !ed.isDestroyed) {
+                savedSelectionRef.current = {
+                    from: ed.state.selection.from,
+                    to: ed.state.selection.to,
+                };
+            }
+        }
+        setIsOpen(open);
+    }, [getWysiwygEditor]);
+
     const {x, y, strategy, refs, context} = useFloating({
         open: isOpen,
-        onOpenChange: setIsOpen,
+        onOpenChange: handleOpenChange,
         placement: 'bottom-start',
         middleware: [offset(4), flip(), shift()],
     });
@@ -155,15 +173,25 @@ const TextStyleDropdown = ({getWysiwygEditor, disabled}: TextStyleDropdownProps)
             return;
         }
 
+        const sel = savedSelectionRef.current;
+        const chain = sel ?
+            ed.chain().focus().setTextSelection(sel) :
+            ed.chain().focus();
+
         if (style === 'normal') {
-            ed.chain().focus().setParagraph().run();
+            chain.setParagraph().run();
         } else {
             const level = parseInt(style.replace('h', ''), 10) as 1 | 2 | 3 | 4 | 5 | 6;
-            ed.chain().focus().toggleHeading({level}).run();
+            chain.toggleHeading({level}).run();
         }
 
+        savedSelectionRef.current = null;
         setIsOpen(false);
     }, [getWysiwygEditor]);
+
+    const handleButtonMouseDown = useCallback((e: React.MouseEvent) => {
+        e.preventDefault();
+    }, []);
 
     return (
         <>
@@ -171,6 +199,7 @@ const TextStyleDropdown = ({getWysiwygEditor, disabled}: TextStyleDropdownProps)
                 ref={refs.setReference}
                 className={isOpen ? 'active' : ''}
                 disabled={disabled}
+                onMouseDown={handleButtonMouseDown}
                 {...getReferenceProps()}
             >
                 {getStyleLabel(activeStyle, formatMessage)}
@@ -187,6 +216,7 @@ const TextStyleDropdown = ({getWysiwygEditor, disabled}: TextStyleDropdownProps)
                         top: y ?? 0,
                         left: x ?? 0,
                     }}
+                    onMouseDown={(e: React.MouseEvent) => e.preventDefault()}
                     {...getFloatingProps()}
                 >
                     {STYLES.map(({style, level}) => {

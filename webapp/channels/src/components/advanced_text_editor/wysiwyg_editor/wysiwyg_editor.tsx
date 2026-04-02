@@ -17,6 +17,7 @@ import {common, createLowlight} from 'lowlight';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef} from 'react';
 
 import {MattermostListCompat} from './mattermost_list_extension';
+import WysiwygSuggestionList from './wysiwyg_suggestion_list';
 
 import './wysiwyg_editor.scss';
 
@@ -31,29 +32,36 @@ type Props = {
     value: string;
     onChange: (markdown: string) => void;
     onSubmit: () => void;
+    onEditLatestPost?: () => void;
     onFocus?: () => void;
     onBlur?: () => void;
     placeholder?: string;
     channelId: string;
+    rootId?: string;
     disabled?: boolean;
     id?: string;
+    useCtrlSend?: boolean;
 };
 
 const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     value,
     onChange,
     onSubmit,
+    onEditLatestPost,
     onFocus,
     onBlur,
     placeholder: placeholderText,
     channelId,
+    rootId,
     disabled = false,
     id,
+    useCtrlSend = false,
 }, ref) => {
     const onSubmitRef = useRef(onSubmit);
     const onChangeRef = useRef(onChange);
     const onFocusRef = useRef(onFocus);
     const onBlurRef = useRef(onBlur);
+    const onEditLatestPostRef = useRef(onEditLatestPost);
 
     useEffect(() => {
         onSubmitRef.current = onSubmit;
@@ -70,6 +78,12 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     useEffect(() => {
         onBlurRef.current = onBlur;
     }, [onBlur]);
+
+    useEffect(() => {
+        onEditLatestPostRef.current = onEditLatestPost;
+    }, [onEditLatestPost]);
+
+    const editorRef = useRef<Editor | null>(null);
 
     const handleUpdate = useCallback(({editor}: {editor: Editor}) => {
         const md = editor.getMarkdown().trimEnd();
@@ -92,6 +106,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
             }),
             Placeholder.configure({
                 placeholder: placeholderText ?? '',
+                showOnlyCurrent: true,
             }),
             Table.configure({resizable: false}),
             TableRow,
@@ -110,7 +125,43 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                 ...(id ? {id} : {}),
                 'data-channel-id': channelId,
             },
+            handlePaste: (_view, event) => {
+                const text = event.clipboardData?.getData('text/plain');
+                if (!text) {
+                    return false;
+                }
+
+                const html = event.clipboardData?.getData('text/html');
+                if (html) {
+                    return false;
+                }
+
+                const markdownPatterns = /(?:^#{1,6}\s|^\*\s|^-\s|^\d+\.\s|^>\s|\*\*|__|~~|`[^`]|^\|.*\|$|\[.*\]\(.*\))/m;
+                if (!markdownPatterns.test(text)) {
+                    return false;
+                }
+
+                const ed = editorRef.current;
+                if (!ed || ed.isDestroyed) {
+                    return false;
+                }
+
+                event.preventDefault();
+                ed.commands.insertContent(text, {contentType: 'markdown'});
+                return true;
+            },
             handleKeyDown: (view, event) => {
+                // UP arrow: edit previous message when editor is empty
+                if (event.key === 'ArrowUp' && !event.shiftKey && !event.ctrlKey && !event.metaKey && !event.altKey) {
+                    const {state} = view;
+                    const isEmpty = state.doc.textContent.length === 0 && state.doc.childCount <= 1;
+                    if (isEmpty && onEditLatestPostRef.current) {
+                        event.preventDefault();
+                        onEditLatestPostRef.current();
+                        return true;
+                    }
+                }
+
                 if (event.key !== 'Enter') {
                     return false;
                 }
@@ -133,7 +184,21 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                     return true;
                 }
 
-                if (event.shiftKey || event.metaKey || event.ctrlKey || event.altKey) {
+                const ctrlOrMeta = event.metaKey || event.ctrlKey;
+
+                if (useCtrlSend) {
+                    if (ctrlOrMeta && !event.shiftKey && !event.altKey) {
+                        if (insideList || insideBlockquote || insideCodeBlock || insideTable || insideHeading) {
+                            return false;
+                        }
+                        event.preventDefault();
+                        onSubmitRef.current();
+                        return true;
+                    }
+                    return false;
+                }
+
+                if (event.shiftKey || ctrlOrMeta || event.altKey) {
                     return false;
                 }
 
@@ -150,6 +215,10 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
         onBlur: () => onBlurRef.current?.(),
         onUpdate: handleUpdate,
     }, [channelId, placeholderText, disabled]);
+
+    useEffect(() => {
+        editorRef.current = editor;
+    }, [editor]);
 
     useImperativeHandle(ref, () => ({
         getEditor: () => editor,
@@ -186,6 +255,11 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     return (
         <div className={`WysiwygEditor${disabled ? ' WysiwygEditor--disabled' : ''}`}>
             <EditorContent editor={editor}/>
+            <WysiwygSuggestionList
+                editor={editor}
+                channelId={channelId}
+                rootId={rootId}
+            />
         </div>
     );
 });

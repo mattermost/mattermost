@@ -48,13 +48,18 @@
         h4,
         h5,
         h6 {
-            margin: 8px 0 4px;
+            margin: 4px 0 0;
             color: var(--center-channel-color);
             font-weight: 600;
             line-height: 1.4;
 
             &:first-child {
                 margin-top: 0;
+            }
+
+            + p:empty,
+            + p:has(br:only-child) {
+                margin: 0;
             }
         }
 
@@ -275,6 +280,10 @@
 
         td {
             background: var(--center-channel-bg);
+        }
+
+        .selectedCell {
+            background: rgba(var(--button-bg-rgb), 0.08);
         }
 
         .tableWrapper {

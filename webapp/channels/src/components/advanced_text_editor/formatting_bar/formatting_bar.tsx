@@ -4,7 +4,7 @@
 import {useFloating, offset, useClick, useDismiss, useInteractions} from '@floating-ui/react';
 import type {Editor} from '@tiptap/react';
 import classNames from 'classnames';
-import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useState, useReducer} from 'react';
 import {useIntl} from 'react-intl';
 import {CSSTransition} from 'react-transition-group';
 import styled from 'styled-components';
@@ -44,6 +44,7 @@ const FormattingBarContainer = styled.div`
     gap: 2px;
     transform-origin: top;
     transition: height 0.25s ease;
+    overflow: hidden;
 `;
 
 const HiddenControlsContainer = styled.div`
@@ -143,6 +144,24 @@ interface FormattingBarProps {
 
 const DEFAULT_MIN_MODE_X_COORD = 55;
 
+function isWysiwygMarkActive(editor: Editor | null, mode: MarkdownMode): boolean {
+    if (!editor) {
+        return false;
+    }
+    switch (mode) {
+    case 'bold': return editor.isActive('bold');
+    case 'italic': return editor.isActive('italic');
+    case 'strike': return editor.isActive('strike');
+    case 'code': return editor.isActive('codeBlock');
+    case 'quote': return editor.isActive('blockquote');
+    case 'heading': return editor.isActive('heading');
+    case 'ul': return editor.isActive('bulletList');
+    case 'ol': return editor.isActive('orderedList');
+    case 'link': return editor.isActive('link');
+    default: return false;
+    }
+}
+
 function applyWysiwygCommand(editor: Editor, mode: MarkdownMode): boolean {
     switch (mode) {
     case 'bold':
@@ -169,11 +188,24 @@ function applyWysiwygCommand(editor: Editor, mode: MarkdownMode): boolean {
     case 'ol':
         editor.chain().focus().toggleOrderedList().run();
         return true;
-    case 'link':
+    case 'link': {
         if (editor.isActive('link')) {
             editor.chain().focus().unsetLink().run();
+            return true;
+        }
+        const {from, to} = editor.state.selection;
+        const selectedText = editor.state.doc.textBetween(from, to, '');
+        const url = window.prompt('Enter URL:', 'https://');
+        if (url) {
+            if (selectedText) {
+                editor.chain().focus().setLink({href: url}).run();
+            } else {
+                const linkText = window.prompt('Enter link text:', '') || url;
+                editor.chain().focus().insertContent(`<a href="${url}">${linkText}</a>`).run();
+            }
         }
         return true;
+    }
     default:
         return false;
     }
@@ -196,6 +228,23 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
     }, [additionalControls]);
 
     const {formattingBarRef, controls, hiddenControls, layoutMode} = useFormattingBarControls(additionalControlsCount, location);
+
+    const [, forceUpdate] = useReducer((c: number) => c + 1, 0);
+
+    useEffect(() => {
+        const editor = getWysiwygEditor?.();
+        if (!editor || editor.isDestroyed) {
+            return;
+        }
+
+        editor.on('selectionUpdate', forceUpdate);
+        editor.on('transaction', forceUpdate);
+
+        return () => {
+            editor.off('selectionUpdate', forceUpdate);
+            editor.off('transaction', forceUpdate);
+        };
+    }, [getWysiwygEditor]);
 
     const {formatMessage} = useIntl();
     const HiddenControlsButtonAriaLabel = formatMessage({id: 'accessibility.button.hidden_controls_button', defaultMessage: 'show hidden formatting options'});
@@ -287,6 +336,10 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
                 </>
             )}
             {controls.map((mode) => {
+                if (mode === 'heading' && getWysiwygEditor) {
+                    return null;
+                }
+                const wysiwygEditor = getWysiwygEditor?.();
                 return (
                     <React.Fragment key={mode}>
                         <FormattingIcon
@@ -294,6 +347,7 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
                             className='control'
                             onClick={makeFormattingHandler(mode)}
                             disabled={disableControls}
+                            isActive={wysiwygEditor ? isWysiwygMarkActive(wysiwygEditor, mode) : undefined}
                         />
                         {mode === 'heading' && showSeparators && <Separator/>}
                     </React.Fragment>
@@ -347,6 +401,7 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
                     {...getDismissFloatingProps()}
                 >
                     {hiddenControls.map((mode) => {
+                        const wysiwygEditor = getWysiwygEditor?.();
                         return (
                             <FormattingIcon
                                 key={mode}
@@ -354,6 +409,7 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
                                 className='control'
                                 onClick={makeFormattingHandler(mode)}
                                 disabled={disableControls}
+                                isActive={wysiwygEditor ? isWysiwygMarkActive(wysiwygEditor, mode) : undefined}
                             />
                         );
                     })}
