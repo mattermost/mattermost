@@ -5428,7 +5428,7 @@
   "onboarding_wizard.invite_members.copied_link": "Link Copied",
   "onboarding_wizard.invite_members.copy_link": "Copy Link",
   "onboarding_wizard.invite_members.copy_link_input": "team invite link",
-  "onboarding_wizard.invite_members.description": "Collaboration is tough by yourself. Invite a few team members. Separate each email address with a space or comma.",
+  "onboarding_wizard.invite_members.description": "Collaboration is tough by yourself. Invite a few team members. Separate each email address with a comma or semicolon.",
   "onboarding_wizard.invite_members.description_link": "Collaboration is tough by yourself. Invite a few team members using the invitation link below.",
   "onboarding_wizard.invite_members.next": "Send invites",
   "onboarding_wizard.invite_members.next_link": "Finish setup",
