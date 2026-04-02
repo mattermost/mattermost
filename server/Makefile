@@ -621,10 +621,10 @@ endif
 	mkdir -p $(BUILD_WEBAPP_DIR)/channels/dist/files; \
 	if [ "$$(uname)" = "Darwin" ]; then \
 		DYLD_INSERT_LIBRARIES="$$LIBFAKETIME" DYLD_FORCE_FLAT_NAMESPACE=1 FAKETIME="$(FAKETIME)" FAKETIME_NO_CACHE=1 \
-			$(GOBIN)/mattermost-faketime $(RUN_IN_BACKGROUND); \
+			$(GOBIN)/mattermost-faketime $(RUN_IN_BACKGROUND) \
 	else \
 		LD_PRELOAD="$$LIBFAKETIME" FAKETIME="$(FAKETIME)" FAKETIME_NO_CACHE=1 \
-			$(GOBIN)/mattermost-faketime $(RUN_IN_BACKGROUND); \
+			$(GOBIN)/mattermost-faketime $(RUN_IN_BACKGROUND) \
 	fi
 
 run-server-pgvector: ## Starts the server with pgvector PostgreSQL image.
