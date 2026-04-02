@@ -173,10 +173,6 @@ jobs:
             SHOULD_RUN="true"
           fi
 
-          # Check for E2E-related CI workflow files
-          if echo "$CHANGED_FILES" | grep -qE '^\.github/workflows/e2e-.*\.yml$'; then
-            echo "Found E2E CI workflow file changes"
-            SHOULD_RUN="true"
           fi
 
           echo "should_run=${SHOULD_RUN}" >> $GITHUB_OUTPUT
