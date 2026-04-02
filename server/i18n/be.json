@@ -10004,10 +10004,6 @@
     "translation": "Немагчыма зарэгістраваць групу ўласцівасцей \"Атрыбуты карыстальніцкага профілю\""
   },
   {
-    "id": "app.custom_profile_attributes.create_property_field.app_error",
-    "translation": "Немагчыма стварыць поле \"Атрыбут карыстальніцкага профілю\""
-  },
-  {
     "id": "app.custom_profile_attributes.get_property_field.app_error",
     "translation": "Немагчыма атрымаць поле \"Атрыбут карыстальніцкага профілю\""
   },

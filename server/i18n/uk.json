@@ -10068,10 +10068,6 @@
     "translation": "Не вдалось зареєструвати групу властивостей \"Атрибути користувацького профілю\""
   },
   {
-    "id": "app.custom_profile_attributes.create_property_field.app_error",
-    "translation": "Неможливо створити поле \"Атрибут користувацького профілю\""
-  },
-  {
     "id": "app.custom_profile_attributes.get_property_field.app_error",
     "translation": "Неможливо отримати поле \"Атрибут профілю користувача\""
   },
