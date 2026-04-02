@@ -1206,7 +1206,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
         if (allExpressions.length === 0) {
             return '';
         } else if (allExpressions.length === 1) {
-            return allExpressions[0];
+            return allExpressions[0]!;
         }
 
         // Wrap each expression in parentheses and combine with &&

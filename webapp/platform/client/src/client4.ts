@@ -4685,7 +4685,7 @@ export default class Client4 {
     getChildPolicies = (parentId: string, after: string, limit: number) => {
         return this.doFetch<AccessControlPoliciesResult>(
             `${this.getBaseRoute()}/access_control_policies/search`,
-            {method: 'post', body: JSON.stringify({parent_id: parentId, cursor: {id: after}, limit, actions: ['membership']})},
+            {method: 'post', body: JSON.stringify({parent_id: parentId, cursor: {id: after}, limit})},
         );
     };
 
@@ -4699,7 +4699,7 @@ export default class Client4 {
     searchAccessControlPolicies = (term: string, type: string, after: string, limit: number) => {
         return this.doFetch<AccessControlPoliciesResult>(
             `${this.getBaseRoute()}/access_control_policies/search`,
-            {method: 'post', body: JSON.stringify({term, type, cursor: {id: after}, limit, include_children: true, actions: ['membership']})},
+            {method: 'post', body: JSON.stringify({term, type, cursor: {id: after}, limit, include_children: true})},
         );
     };
 

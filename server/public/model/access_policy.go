@@ -222,7 +222,7 @@ func (p *AccessControlPolicy) accessPolicyVersionV0_2() *AppError {
 }
 
 func (p *AccessControlPolicy) accessPolicyVersionV0_3() *AppError {
-	if !slices.Contains([]string{AccessControlPolicyTypeParent, AccessControlPolicyTypeChannel}, p.Type) {
+	if !slices.Contains([]string{AccessControlPolicyTypeParent, AccessControlPolicyTypeChannel, AccessControlPolicyTypePermission}, p.Type) {
 		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.type.app_error", nil, "", 400)
 	}
 
