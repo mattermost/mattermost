@@ -1293,8 +1293,6 @@ func (a *App) getRestoreManageOAuthPermissionMigration() (permissionsMap, error)
 	}, nil
 }
 
-const legacyCreateAgentPermissionID = "create_agent"
-
 func (a *App) getAddManageAgentPermissionsMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
@@ -1303,23 +1301,12 @@ func (a *App) getAddManageAgentPermissionsMigration() (permissionsMap, error) {
 				model.PermissionManageOwnAgent.Id,
 				model.PermissionManageOthersAgent.Id,
 			},
-			Remove: []string{legacyCreateAgentPermissionID},
 		},
 		permissionTransformation{
 			On: isExactRole(model.SystemUserRoleId),
 			Add: []string{
 				model.PermissionManageOwnAgent.Id,
 			},
-			Remove: []string{legacyCreateAgentPermissionID},
-		},
-		permissionTransformation{
-			On: permissionAnd(
-				permissionExists(legacyCreateAgentPermissionID),
-				isNotExactRole(model.SystemAdminRoleId),
-				isNotExactRole(model.SystemUserRoleId),
-			),
-			Add:    []string{model.PermissionManageOwnAgent.Id},
-			Remove: []string{legacyCreateAgentPermissionID},
 		},
 	}, nil
 }
