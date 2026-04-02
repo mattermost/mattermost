@@ -1,0 +1,88 @@
+name: Server Test Merge Template
+
+on:
+  workflow_call:
+    inputs:
+      artifact-pattern:
+        description: "Glob pattern to download shard artifacts"
+        required: true
+        type: string
+      artifact-name:
+        description: "Name for the merged output artifact"
+        required: true
+        type: string
+      save-timing-cache:
+        description: "Whether to save timing cache for future shard balancing"
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  merge:
+    name: Merge
+    if: always()
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Download all shard artifacts
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        with:
+          pattern: ${{ inputs.artifact-pattern }}
+          path: shards
+
+      - name: Setup Node for junit-report-merger
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: 20
+
+      - name: Merge JUnit reports
+        working-directory: .github
+        run: |
+          expected="sha512-i7IYPpwVFpju+UKdxYIG9UTMb6NjfRGzWzE/lRExdEf4K3agqXtVBnJWhL9aMM2lNX7uWW/rhVidiDBsG4n5cw=="
+          npm install junit-report-merger@7.0.0
+          actual=$(node -p "require('./node_modules/.package-lock.json').packages['node_modules/junit-report-merger'].integrity")
+          if [[ "$actual" != "$expected" ]]; then
+            echo "::error::junit-report-merger integrity mismatch: expected $expected, got $actual"
+            exit 1
+          fi
+          npx junit-report-merger "$GITHUB_WORKSPACE/merged-report.xml" "$GITHUB_WORKSPACE/shards/*/report.xml"
+
+      - name: Prepare merged artifact
+        run: |
+          mkdir -p merged
+          cp merged-report.xml merged/report.xml
+          for dir in shards/*/; do
+            if [[ -f "${dir}test-name" ]]; then
+              cp "${dir}test-name" merged/test-name
+              cp "${dir}pr-number" merged/pr-number
+              break
+            fi
+          done
+
+      - name: Upload merged test logs
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: merged/
+
+      - name: Prepare timing cache
+        if: inputs.save-timing-cache
+        id: timing-prep
+        run: |
+          mkdir -p server
+          if [[ -f merged-report.xml && $(stat -c%s merged-report.xml) -gt 1024 ]]; then
+            cp merged-report.xml server/prev-report.xml
+            cat shards/*/gotestsum.json > server/prev-gotestsum.json 2>/dev/null || true
+            echo "has_timing=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Skipping timing cache — merged report too small or missing"
+            echo "has_timing=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Save test timing cache
+        if: inputs.save-timing-cache && steps.timing-prep.outputs.has_timing == 'true' && github.ref_name == github.event.repository.default_branch
+        uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: |
+            server/prev-report.xml
+            server/prev-gotestsum.json
+          key: server-test-timing-master-${{ github.run_id }}
