@@ -64,11 +64,14 @@ jobs:
             fi
 
             # Parse and construct new message
-            if [[ "$CURRENT_DESC" =~ ^([0-9]+)\ failed,\ ([0-9]+)\ passed$ ]]; then
+            # Store regex in variables to avoid bash misinterpreting ) in [[ =~ ]]
+            REGEX1='^([0-9]+) failed, ([0-9]+) passed$'
+            REGEX2='^([0-9]+) failed \([^)]+\), ([0-9]+) passed$'
+            if [[ "$CURRENT_DESC" =~ $REGEX1 ]]; then
               FAILED="${BASH_REMATCH[1]}"
               PASSED="${BASH_REMATCH[2]}"
               NEW_MSG="${FAILED} failed (verified), ${PASSED} passed"
-            elif [[ "$CURRENT_DESC" =~ ^([0-9]+)\ failed\ \([^)]+\),\ ([0-9]+)\ passed$ ]]; then
+            elif [[ "$CURRENT_DESC" =~ $REGEX2 ]]; then
               FAILED="${BASH_REMATCH[1]}"
               PASSED="${BASH_REMATCH[2]}"
               NEW_MSG="${FAILED} failed (verified), ${PASSED} passed"
