@@ -211,6 +211,7 @@ test(
         if (!posterClient) throw new Error('Failed to create poster client');
 
         const oldMessage = 'Old message before enable';
+        await setMockSourceLanguage(translationUrl, 'en');
         await posterClient.createPost({
             channel_id: created.id,
             message: oldMessage,
@@ -221,6 +222,7 @@ test(
         await setUserChannelAutotranslation(userClient, created.id, true);
 
         const newMessage = 'Hola nuevo';
+        await setMockSourceLanguage(translationUrl, 'es');
         await posterClient.createPost({
             channel_id: created.id,
             message: newMessage,
