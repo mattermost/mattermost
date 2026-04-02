@@ -241,9 +241,7 @@ func TestSendLoopLifecycle(t *testing.T) {
 
 		service, err := NewRemoteClusterService(mockServer, mockApp)
 		require.NoError(t, err)
-
-		disablePing = true
-		defer func() { disablePing = false }()
+		service.disablePing = true
 
 		err = service.Start()
 		require.NoError(t, err)
@@ -294,9 +292,7 @@ func TestSendLoopLifecycle(t *testing.T) {
 
 		service, err := NewRemoteClusterService(mockServer, mockApp)
 		require.NoError(t, err)
-
-		disablePing = true
-		defer func() { disablePing = false }()
+		service.disablePing = true
 
 		err = service.Start()
 		require.NoError(t, err)
@@ -422,9 +418,6 @@ func TestPingLifecycle(t *testing.T) {
 		remotes := makeRemoteClusters(2, ts.URL, false)
 		mockServer := newLeaderAwareMockServer(t, remotes, false) // start as non-leader
 		mockApp := newMockApp(t, nil)
-
-		disablePing = false
-		defer func() { disablePing = true }()
 
 		service, err := NewRemoteClusterService(mockServer, mockApp)
 		require.NoError(t, err)

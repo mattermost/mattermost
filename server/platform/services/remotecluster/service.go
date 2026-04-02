@@ -37,10 +37,6 @@ const (
 	InviteExpiresAfter            = time.Hour * 48
 )
 
-var (
-	disablePing bool // override for testing
-)
-
 type ServerIface interface {
 	Config() *model.Config
 	IsLeader() bool
@@ -84,12 +80,13 @@ type ConnectionStateListener func(rc *model.RemoteCluster, online bool)
 
 // Service provides inter-cluster communication via topic based messages. In product these are called "Secured Connections".
 type Service struct {
-	server     ServerIface
-	app        AppIface
-	httpClient *http.Client
-	send       []chan any
-	done       chan struct{} // signals sendLoop workers to stop; lifecycle: Start -> Shutdown
-	active     atomic.Bool   // true after Start(), false after Shutdown()
+	server      ServerIface
+	app         AppIface
+	httpClient  *http.Client
+	send        []chan any
+	done        chan struct{} // signals sendLoop workers to stop; lifecycle: Start -> Shutdown
+	active      atomic.Bool   // true after Start(), false after Shutdown()
+	disablePing bool          // when true, pingStart skips launching the ping loop; for testing
 
 	// everything below guarded by `mux`
 	mux                      sync.RWMutex
@@ -164,7 +161,11 @@ func (rcs *Service) Shutdown() error {
 	if !rcs.active.CompareAndSwap(true, false) {
 		return nil
 	}
-	rcs.server.RemoveClusterLeaderChangedListener(rcs.leaderListenerId)
+	rcs.mux.Lock()
+	id := rcs.leaderListenerId
+	rcs.mux.Unlock()
+
+	rcs.server.RemoveClusterLeaderChangedListener(id)
 	rcs.pingStop()
 	close(rcs.done)
 	return nil
@@ -270,7 +271,7 @@ func (rcs *Service) pingStart() {
 	}
 	rcs.pingDone = make(chan struct{})
 
-	if !disablePing {
+	if !rcs.disablePing {
 		// first ping all the plugin remotes immediately, synchronously.
 		rcs.pingAllNow(model.RemoteClusterQueryFilter{OnlyPlugins: true})
 
