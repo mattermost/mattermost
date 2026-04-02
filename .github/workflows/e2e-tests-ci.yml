@@ -45,8 +45,8 @@ jobs:
         id: resolve
         env:
           GH_TOKEN: ${{ github.token }}
-          INPUT_PR_NUMBER: ${{ inputs.pr_number }}
-          INPUT_COMMIT_SHA: ${{ inputs.commit_sha }}
+          INPUT_PR_NUMBER: ${{ inputs.pr_number || github.event.pull_request.number }}
+          INPUT_COMMIT_SHA: ${{ inputs.commit_sha || github.event.pull_request.head.sha }}
         run: |
           # Validate inputs
           if [ -n "$INPUT_PR_NUMBER" ] && ! [[ "$INPUT_PR_NUMBER" =~ ^[0-9]+$ ]]; then
