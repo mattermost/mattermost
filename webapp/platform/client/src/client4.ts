@@ -4703,6 +4703,13 @@ export default class Client4 {
         );
     };
 
+    searchPermissionPolicies = (term: string, after: string, limit: number) => {
+        return this.doFetch<AccessControlPoliciesResult>(
+            `${this.getBaseRoute()}/access_control_policies/search`,
+            {method: 'post', body: JSON.stringify({term, type: 'permission', cursor: {id: after}, limit})},
+        );
+    };
+
     searchChildAccessControlPolicyChannels = (policyId: string, term: string, opts: ChannelSearchOpts) => {
         return this.doFetch<ChannelsWithTotalCount>(
             `${this.getBaseRoute()}/access_control_policies/${policyId}/resources/channels/search?term=${term}`,

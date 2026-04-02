@@ -26,6 +26,7 @@ const DefaultPerPage = 10
 type accessControlPolicyV0_1 struct {
 	Imports []string                        `json:"imports"`
 	Rules   []model.AccessControlPolicyRule `json:"rules"`
+	Roles   []string                        `json:"roles,omitempty"`
 }
 
 // These are the fields that meant to be unchanged with the policy versions.
@@ -61,6 +62,7 @@ func (s *storeAccessControlPolicy) toModel() (*model.AccessControlPolicy, error)
 		}
 		policy.Imports = p.Imports
 		policy.Rules = p.Rules
+		policy.Roles = p.Roles
 	}
 
 	if len(s.Props) > 0 {
@@ -76,6 +78,7 @@ func fromModel(policy *model.AccessControlPolicy) (*storeAccessControlPolicy, er
 	data, err := json.Marshal(&accessControlPolicyV0_1{
 		Imports: policy.Imports,
 		Rules:   policy.Rules,
+		Roles:   policy.Roles,
 	})
 	if err != nil {
 		return nil, err

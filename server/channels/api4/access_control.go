@@ -54,6 +54,11 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 			c.SetPermissionError(model.PermissionManageSystem)
 			return
 		}
+	case model.AccessControlPolicyTypePermission:
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+			c.SetPermissionError(model.PermissionManageSystem)
+			return
+		}
 	case model.AccessControlPolicyTypeChannel:
 		// Check if user has system admin permission first
 		hasManageSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)

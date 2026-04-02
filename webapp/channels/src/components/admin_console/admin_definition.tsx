@@ -103,6 +103,8 @@ import Localization, {searchableStrings as localizationSearchableStrings} from '
 import MessageExportSettings, {searchableStrings as messageExportSearchableStrings} from './message_export_settings';
 import OpenIdConvert from './openid_convert';
 import PasswordSettings, {searchableStrings as passwordSearchableStrings} from './password_settings';
+import PermissionPolicyList from './permission_policies';
+import PermissionPolicyDetails from './permission_policies/policy_details';
 import PermissionSchemesSettings from './permission_schemes_settings';
 import {searchableStrings as PermissionSchemeSearchableStrings} from './permission_schemes_settings/permission_schemes_settings';
 import PermissionSystemSchemeSettings from './permission_schemes_settings/permission_system_scheme_settings';
@@ -720,6 +722,63 @@ const AdminDefinition: AdminDefinitionType = {
                                     type: 'custom',
                                     component: AccessControlPolicyJobs,
                                     key: 'AcessControlPolicyJobs',
+                                },
+                            ],
+                        },
+                    ],
+                },
+                restrictedIndicator: getRestrictedIndicator(false, LicenseSkus.EnterpriseAdvanced),
+            },
+            permission_policy_details_edit: {
+                url: `system_attributes/permission_policies/edit_policy/:policy_id(${ID_PATH_PATTERN})`,
+                isHidden: it.any(
+                    it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
+                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                ),
+                isDisabled: it.any(
+                    it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                    it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
+                ),
+                schema: {
+                    id: 'PermissionPolicy',
+                    component: PermissionPolicyDetails,
+                },
+            },
+            permission_policy_details: {
+                url: 'system_attributes/permission_policies/edit_policy',
+                isHidden: it.any(
+                    it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
+                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                    it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
+                ),
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                schema: {
+                    id: 'PermissionPolicy',
+                    component: PermissionPolicyDetails,
+                },
+            },
+            permission_policies: {
+                url: 'system_attributes/permission_policies',
+                title: defineMessage({id: 'admin.sidebar.permissionPolicies', defaultMessage: 'Permission Policies'}),
+                isHidden: it.any(
+                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                    it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
+                ),
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                schema: {
+                    id: 'PermissionPolicies',
+                    name: defineMessage({id: 'admin.permission_policies.page_title', defaultMessage: 'Permission Policies'}),
+                    sections: [
+                        {
+                            key: 'admin.permissionpolicies.policies',
+                            settings: [
+                                {
+                                    type: 'custom',
+                                    component: PermissionPolicyList,
+                                    key: 'PermissionPolicyListPanel',
                                 },
                             ],
                         },
