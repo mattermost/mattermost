@@ -17,6 +17,7 @@ on:
       - ".github/workflows/mmctl-test-template.yml"
       - "!server/build/Dockerfile.buildenv"
       - "!server/build/Dockerfile.buildenv-fips"
+      - "tools/mattermost-govet/**"
       - "!server/**/*.md"
       - "!server/NOTICE.txt"
       - "!server/CHANGELOG.md"
