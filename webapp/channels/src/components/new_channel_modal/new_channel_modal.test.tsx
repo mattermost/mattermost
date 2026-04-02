@@ -452,7 +452,6 @@ describe('components/new_channel_modal', () => {
             id: '',
             last_post_at: 0,
             last_root_post_at: 0,
-            managed_category_name: '',
             name: 'channel-name',
             purpose: '',
             scheme_id: '',
