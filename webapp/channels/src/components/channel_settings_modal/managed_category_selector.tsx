@@ -91,7 +91,8 @@ export default function ManagedCategorySelector({value, onChange, menuPortalTarg
     const selectedOption: Option | null = value ? {label: value, value} : null;
 
     const handleChange = useCallback((option: Option | null) => {
-        onChange(option?.value);
+        const trimmed = option?.value?.trim();
+        onChange(trimmed || undefined);
     }, [onChange]);
 
     const formatCreateLabel = useCallback((inputValue: string) => {

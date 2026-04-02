@@ -2731,7 +2731,7 @@ func getManagedCategories(c *Context, w http.ResponseWriter, r *http.Request) {
 	teamID := c.Params.TeamId
 
 	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
-		c.Err = model.NewAppError("Api4.getManagedCategories", "api.managed_category.license_error", nil, "", http.StatusForbidden)
+		c.Err = model.NewAppError("Api4.getManagedCategories", "api.license_error", nil, "", http.StatusForbidden)
 		return
 	}
 

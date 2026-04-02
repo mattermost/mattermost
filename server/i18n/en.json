@@ -2553,10 +2553,6 @@
     "translation": ""
   },
   {
-    "id": "api.managed_category.license_error",
-    "translation": ""
-  },
-  {
     "id": "api.marshal_error",
     "translation": "Failed to marshal."
   },
