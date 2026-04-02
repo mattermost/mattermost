@@ -31,10 +31,10 @@ import SaveChangesPanel from '../save_changes_panel';
 import type {ClassificationLevel} from './presets';
 import {PRESET_CUSTOM, presets} from './presets';
 
-const GROUP_NAME = 'attributes';
-const OBJECT_TYPE = 'system';
+const GROUP_NAME = 'custom_profile_attributes';
+const OBJECT_TYPE = 'user';
 const TARGET_TYPE = 'system';
-const TARGET_ID = 'system';
+const TARGET_ID = '';
 const FIELD_NAME = 'classification';
 
 type LevelRow = ClassificationLevel & {
@@ -252,7 +252,7 @@ export default function ClassificationMarkings() {
                     type: 'select' as PropertyField['type'],
                     target_type: TARGET_TYPE,
                     target_id: TARGET_ID,
-                    attrs: {options},
+                    attrs: {options, managed: 'admin'},
                 });
                 setExistingField(created);
                 const createdOptions = (created.attrs?.options as PropertyFieldOption[]) || [];
