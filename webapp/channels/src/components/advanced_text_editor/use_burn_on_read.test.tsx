@@ -215,6 +215,42 @@ describe('useBurnOnRead', () => {
 
             expect(result.current.additionalControl).toBeDefined();
         });
+
+        it('should hide burn-on-read button in shared channels', () => {
+            const sharedChannel = {...createMockChannel('O'), shared: true};
+            (getChannel as jest.Mock).mockReturnValue(sharedChannel);
+
+            const {result} = renderHook(
+                () => useBurnOnRead(
+                    createMockDraft(),
+                    mockHandleDraftChange,
+                    mockFocusTextbox,
+                    false,
+                    true,
+                ),
+                {wrapper},
+            );
+
+            expect(result.current.additionalControl).toBeUndefined();
+        });
+
+        it('should show burn-on-read button in non-shared channels', () => {
+            const nonSharedChannel = {...createMockChannel('O'), shared: false};
+            (getChannel as jest.Mock).mockReturnValue(nonSharedChannel);
+
+            const {result} = renderHook(
+                () => useBurnOnRead(
+                    createMockDraft(),
+                    mockHandleDraftChange,
+                    mockFocusTextbox,
+                    false,
+                    true,
+                ),
+                {wrapper},
+            );
+
+            expect(result.current.additionalControl).toBeDefined();
+        });
     });
 
     describe('button visibility with feature flags', () => {

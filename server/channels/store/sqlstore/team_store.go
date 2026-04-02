@@ -737,7 +737,7 @@ func (s SqlTeamStore) getTeamMembersWithSchemeSelectQuery() sq.SelectBuilder {
 	return query
 }
 
-func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersPerTeam int) ([]*model.TeamMember, error) {
+func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersPerTeam int) (_ []*model.TeamMember, err error) {
 	newTeamMembers := map[string]int{}
 	users := map[string]bool{}
 	for _, member := range members {
@@ -835,21 +835,28 @@ func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersP
 		}
 	}
 
-	query := s.getQueryBuilder().Insert("TeamMembers").Columns(teamMemberSliceColumns()...)
-	for _, member := range members {
-		query = query.Values(teamMemberToSlice(member)...)
-	}
-
-	sql, args, err := query.ToSql()
+	transaction, err := s.GetMaster().Beginx()
 	if err != nil {
-		return nil, errors.Wrap(err, "insert_members_to_sql")
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	chunks := chunkSlice(members, len(teamMemberSliceColumns()), s.SqlStore.getMaxInsertParams())
+	for _, chunk := range chunks {
+		query := s.getQueryBuilder().Insert("TeamMembers").Columns(teamMemberSliceColumns()...)
+		for _, member := range chunk {
+			query = query.Values(teamMemberToSlice(member)...)
+		}
+		if _, execErr := transaction.ExecBuilder(query); execErr != nil {
+			if IsUniqueConstraintError(execErr, []string{"TeamId", "teammembers_pkey", "PRIMARY"}) {
+				return nil, store.NewErrConflict("TeamMember", execErr, "")
+			}
+			return nil, errors.Wrap(execErr, "unable_to_save_team_member")
+		}
 	}
 
-	if _, err = s.GetMaster().Exec(sql, args...); err != nil {
-		if IsUniqueConstraintError(err, []string{"TeamId", "teammembers_pkey", "PRIMARY"}) {
-			return nil, store.NewErrConflict("TeamMember", err, "")
-		}
-		return nil, errors.Wrap(err, "unable_to_save_team_member")
+	if err = transaction.Commit(); err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
 	}
 
 	newMembers := []*model.TeamMember{}

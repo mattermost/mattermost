@@ -1,0 +1,392 @@
+  /api/v4/channels/{channel_id}/views:
+    get:
+      tags:
+        - views
+      summary: List channel views
+      description: |
+        Get a list of views for a channel.
+
+        __Minimum server version__: 11.6
+
+        ##### Permissions
+        Must have `read_channel_content` permission for the channel.
+      operationId: ListChannelViews
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+        - name: per_page
+          in: query
+          description: The number of views per page (default 60, max 200)
+          required: false
+          schema:
+            type: integer
+            default: 60
+            maximum: 200
+        - name: page
+          in: query
+          description: The 0-based page number for pagination (default 0)
+          required: false
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+        - name: include_total_count
+          in: query
+          description: >
+            When true, the response is a ViewsWithCount object containing
+            a views array and a total_count integer. When false or omitted,
+            the response is a plain JSON array of View objects.
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: Channel views retrieval successful
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: array
+                    items:
+                      $ref: "#/components/schemas/View"
+                    description: Plain array of views (default, when include_total_count is false)
+                  - $ref: "#/components/schemas/ViewsWithCount"
+                    description: Views with total count (when include_total_count is true)
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    post:
+      tags:
+        - views
+      summary: Create channel view
+      description: |
+        Create a new view for a channel.
+
+        __Minimum server version__: 11.6
+
+        ##### Permissions
+        Must have `create_post` permission for the channel.
+      operationId: CreateChannelView
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - type
+              properties:
+                title:
+                  type: string
+                  description: The title of the view
+                  maxLength: 256
+                type:
+                  type: string
+                  enum: [kanban]
+                  description: |
+                    The type of the view.
+                    * `kanban` - a kanban view
+                description:
+                  type: string
+                  description: The description of the view
+                  maxLength: 1024
+                sort_order:
+                  type: integer
+                  description: The display order of the view within the channel
+                props:
+                  type: object
+                  description: Arbitrary key-value properties for the view
+                  additionalProperties: true
+        description: View object to be created
+        required: true
+      responses:
+        "201":
+          description: Channel view creation successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/View"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v4/channels/{channel_id}/views/{view_id}:
+    get:
+      tags:
+        - views
+      summary: Get a channel view
+      description: |
+        Get a single view by its ID.
+
+        __Minimum server version__: 11.6
+
+        ##### Permissions
+        Must have `read_channel_content` permission for the channel.
+      operationId: GetChannelView
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+        - name: view_id
+          in: path
+          description: View GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Channel view retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/View"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    patch:
+      tags:
+        - views
+      summary: Update a channel view
+      description: |
+        Partially update a channel view by providing only the fields
+        you want to update. Omitted fields will not be updated.
+
+        __Minimum server version__: 11.6
+
+        ##### Permissions
+        Must have `create_post` permission for the channel.
+      operationId: UpdateChannelView
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+        - name: view_id
+          in: path
+          description: View GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ViewPatch"
+        description: View fields to be updated
+        required: true
+      responses:
+        "200":
+          description: Channel view update successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/View"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    delete:
+      tags:
+        - views
+      summary: Delete a channel view
+      description: |
+        Soft-deletes a channel view. Sets `delete_at` to current timestamp.
+
+        __Minimum server version__: 11.6
+
+        ##### Permissions
+        Must have `create_post` permission for the channel.
+      operationId: DeleteChannelView
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+        - name: view_id
+          in: path
+          description: View GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Channel view deletion successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v4/channels/{channel_id}/views/{view_id}/posts:
+    get:
+      tags:
+        - views
+      summary: Get posts for a view
+      description: |
+        Get a paginated list of posts that belong to a specific view.
+
+        __Minimum server version__: 11.6
+
+        ##### Permissions
+        Must have `read_channel_content` permission for the channel.
+      operationId: GetPostsForView
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+        - name: view_id
+          in: path
+          description: View GUID
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: The 0-based page number for pagination (default 0)
+          required: false
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+        - name: per_page
+          in: query
+          description: The number of posts per page (default 60, max 200)
+          required: false
+          schema:
+            type: integer
+            default: 60
+            maximum: 200
+      responses:
+        "200":
+          description: Post list retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostList"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v4/channels/{channel_id}/views/{view_id}/sort_order:
+    post:
+      tags:
+        - views
+      summary: Update a channel view's sort order
+      description: |
+        Updates the sort order of a channel view, setting its new index
+        from the request body and updating the rest of the views in the
+        channel to accommodate the change.
+
+        __Minimum server version__: 11.6
+
+        ##### Permissions
+        Must have `create_post` permission for the channel.
+      operationId: UpdateChannelViewSortOrder
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+        - name: view_id
+          in: path
+          description: View GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: integer
+              format: int64
+              description: The new sort order index for the view
+      responses:
+        "200":
+          description: Channel view sort order update successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/View"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
