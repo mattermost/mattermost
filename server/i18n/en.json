@@ -5544,7 +5544,7 @@
   },
   {
     "id": "app.channel.save_member.app_error",
-    "translation": ""
+    "translation": "Unable to save channel member."
   },
   {
     "id": "app.channel.save_member.exists.app_error",
