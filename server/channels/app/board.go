@@ -33,11 +33,67 @@ func (a *App) CreateBoardChannel(rctx request.CTX, channel *model.Channel) (*mod
 	// Trim display name
 	channel.DisplayName = strings.TrimSpace(channel.DisplayName)
 
-	// Create default kanban view
+	// Look up boards property fields by name
+	boardsGroup, err := a.Srv().PropertyService().GetPropertyGroup(model.BoardsPropertyGroupName)
+	if err != nil {
+		return nil, model.NewAppError("CreateBoardChannel", "app.channel.create_board_channel.internal_error", nil, "boards property group not found", http.StatusInternalServerError).Wrap(err)
+	}
+
+	assigneeField, err := a.Srv().PropertyService().GetPropertyFieldByName(rctx, boardsGroup.ID, "", model.BoardsPropertyFieldAssignee)
+	if err != nil {
+		return nil, model.NewAppError("CreateBoardChannel", "app.channel.create_board_channel.internal_error", nil, "assignee property field not found", http.StatusInternalServerError).Wrap(err)
+	}
+
+	statusField, err := a.Srv().PropertyService().GetPropertyFieldByName(rctx, boardsGroup.ID, "", model.BoardsPropertyFieldStatus)
+	if err != nil {
+		return nil, model.NewAppError("CreateBoardChannel", "app.channel.create_board_channel.internal_error", nil, "status property field not found", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Set linked properties on channel
+	if channel.Props == nil {
+		channel.Props = make(map[string]any)
+	}
+	channel.Props[model.ChannelPropsBoardLinkedProperties] = []string{statusField.ID, assigneeField.ID}
+
+	// Build kanban column config from status field options
+	statusOptions, ok := statusField.Attrs["options"].([]any)
+	if !ok || len(statusOptions) == 0 {
+		return nil, model.NewAppError("CreateBoardChannel", "app.channel.create_board_channel.internal_error", nil, "status field has no options", http.StatusInternalServerError)
+	}
+	var columns []model.KanbanColumn
+	for _, opt := range statusOptions {
+		optMap, ok := opt.(map[string]any)
+		if !ok {
+			continue
+		}
+		optID, _ := optMap["id"].(string)
+		optName, _ := optMap["name"].(string)
+		if optID != "" && optName != "" {
+			columns = append(columns, model.KanbanColumn{
+				ID:        model.NewId(),
+				Name:      optName,
+				OptionIDs: []string{optID},
+			})
+		}
+	}
+
+	kanbanProps := &model.KanbanProps{
+		GroupBy: model.KanbanGroupBy{
+			FieldID: statusField.ID,
+			Columns: columns,
+		},
+	}
+
+	viewProps, err := kanbanProps.ToProps()
+	if err != nil {
+		return nil, model.NewAppError("CreateBoardChannel", "app.channel.create_board_channel.internal_error", nil, "failed to serialize kanban props", http.StatusInternalServerError).Wrap(err)
+	}
+
 	view := &model.View{
 		CreatorId: channel.CreatorId,
 		Type:      model.ViewTypeKanban,
 		Title:     "Board",
+		Props:     viewProps,
 	}
 
 	// Atomically save channel + view
@@ -51,7 +107,7 @@ func (a *App) CreateBoardChannel(rctx request.CTX, channel *model.Channel) (*mod
 		case errors.As(nErr, &invErr):
 			return nil, model.NewAppError("CreateBoardChannel", "app.channel.create_board_channel.invalid.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 		case errors.As(nErr, &cErr):
-			return sc, model.NewAppError("CreateBoardChannel", "store.sql_channel.save_channel.exists.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
+			return nil, model.NewAppError("CreateBoardChannel", "store.sql_channel.save_channel.exists.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 		case errors.As(nErr, &ltErr):
 			return nil, model.NewAppError("CreateBoardChannel", "app.channel.create_board_channel.limit.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 		case errors.As(nErr, &appError):

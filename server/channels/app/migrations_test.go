@@ -56,3 +56,60 @@ func TestDoSetupContentFlaggingProperties(t *testing.T) {
 		require.Equal(t, "v5", data.Value)
 	})
 }
+
+func TestDoSetupBoardsProperties(t *testing.T) {
+	t.Run("should register property group and fields", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.BoardsPropertyGroupName)
+		require.Nil(t, appErr)
+		require.NotNil(t, group)
+		require.Equal(t, model.BoardsPropertyGroupName, group.Name)
+
+		propertyFields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, propertyFields, 2)
+
+		fieldsByName := map[string]*model.PropertyField{}
+		for _, f := range propertyFields {
+			fieldsByName[f.Name] = f
+		}
+
+		assignee := fieldsByName[model.BoardsPropertyFieldAssignee]
+		require.NotNil(t, assignee)
+		require.Equal(t, model.PropertyFieldTypeUser, assignee.Type)
+		require.True(t, assignee.Protected)
+
+		status := fieldsByName[model.BoardsPropertyFieldStatus]
+		require.NotNil(t, status)
+		require.Equal(t, model.PropertyFieldTypeSelect, status.Type)
+		require.True(t, status.Protected)
+		require.NotNil(t, status.Attrs["options"])
+
+		data, sysErr := th.Store.System().GetByName(boardsPropertySetupDoneKey)
+		require.NoError(t, sysErr)
+		require.Equal(t, boardsPropertyMigrationVersion, data.Value)
+	})
+
+	t.Run("the migration is idempotent", func(t *testing.T) {
+		th := Setup(t)
+
+		_, err := th.Store.System().PermanentDeleteByName(boardsPropertySetupDoneKey)
+		require.NoError(t, err)
+
+		err = th.Server.doSetupBoardsProperties()
+		require.NoError(t, err)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.BoardsPropertyGroupName)
+		require.Nil(t, appErr)
+		require.Equal(t, model.BoardsPropertyGroupName, group.Name)
+
+		propertyFields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, propertyFields, 2)
+
+		data, sysErr := th.Store.System().GetByName(boardsPropertySetupDoneKey)
+		require.NoError(t, sysErr)
+		require.Equal(t, boardsPropertyMigrationVersion, data.Value)
+	})
+}

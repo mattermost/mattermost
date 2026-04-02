@@ -32,6 +32,8 @@ const (
 	ChannelTypeOpenBoard    ChannelType = "BO"
 	ChannelTypePrivateBoard ChannelType = "BP"
 
+	ChannelPropsBoardLinkedProperties = "board:linked_properties"
+
 	ChannelGroupMaxUsers       = 8
 	ChannelGroupMinUsers       = 3
 	DefaultChannelName         = "town-square"

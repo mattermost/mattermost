@@ -45,6 +45,9 @@ const (
 	contentFlaggingPropertyManageByContentFlagging = "content_flagging_managed"
 
 	contentFlaggingPropertySubTypeTimestamp = "timestamp"
+
+	boardsPropertySetupDoneKey     = "boards_property_setup_done"
+	boardsPropertyMigrationVersion = "v1"
 )
 
 // This function migrates the default built in roles from code/config to the database.
@@ -758,6 +761,96 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 	return nil
 }
 
+func (s *Server) doSetupBoardsProperties() error {
+	var nfErr *store.ErrNotFound
+	data, err := s.Store().System().GetByName(boardsPropertySetupDoneKey)
+	if err != nil && !errors.As(err, &nfErr) {
+		return fmt.Errorf("could not query boards migration: %w", err)
+	}
+
+	if data != nil && data.Value == boardsPropertyMigrationVersion {
+		return nil
+	}
+
+	group, err := s.propertyService.RegisterPropertyGroup(model.BoardsPropertyGroupName)
+	if err != nil {
+		return fmt.Errorf("failed to register boards property group: %w", err)
+	}
+
+	existingProperties, err := s.propertyService.SearchPropertyFields(nil, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+	if err != nil {
+		return fmt.Errorf("failed to search for existing boards properties: %w", err)
+	}
+
+	existingPropertiesMap := map[string]*model.PropertyField{}
+	for _, property := range existingProperties {
+		existingPropertiesMap[property.Name] = property
+	}
+
+	permNone := model.PermissionLevelNone
+	expectedPropertiesMap := map[string]*model.PropertyField{
+		model.BoardsPropertyFieldAssignee: {
+			GroupID:         group.ID,
+			Name:            model.BoardsPropertyFieldAssignee,
+			Type:            model.PropertyFieldTypeUser,
+			ObjectType:      model.PropertyFieldObjectTypePost,
+			TargetType:      string(model.PropertyFieldTargetLevelSystem),
+			Protected:       true,
+			PermissionField: &permNone,
+		},
+		model.BoardsPropertyFieldStatus: {
+			GroupID:         group.ID,
+			Name:            model.BoardsPropertyFieldStatus,
+			Type:            model.PropertyFieldTypeSelect,
+			ObjectType:      model.PropertyFieldObjectTypePost,
+			TargetType:      string(model.PropertyFieldTargetLevelSystem),
+			Protected:       true,
+			PermissionField: &permNone,
+			Attrs: map[string]any{
+				"options": []map[string]string{
+					{"name": model.BoardsStatusOptionTodo},
+					{"name": model.BoardsStatusOptionInProgress},
+					{"name": model.BoardsStatusOptionComplete},
+				},
+			},
+		},
+	}
+
+	var propertiesToUpdate []*model.PropertyField
+	var propertiesToCreate []*model.PropertyField
+
+	for name, expectedProperty := range expectedPropertiesMap {
+		if _, exists := existingPropertiesMap[name]; exists {
+			property := existingPropertiesMap[name]
+			property.Type = expectedProperty.Type
+			property.Attrs = expectedProperty.Attrs
+			property.Protected = expectedProperty.Protected
+			property.PermissionField = expectedProperty.PermissionField
+			propertiesToUpdate = append(propertiesToUpdate, property)
+		} else {
+			propertiesToCreate = append(propertiesToCreate, expectedProperty)
+		}
+	}
+
+	for _, property := range propertiesToCreate {
+		if _, err := s.propertyService.CreatePropertyField(nil, property); err != nil {
+			return fmt.Errorf("failed to create boards property: %q, error: %w", property.Name, err)
+		}
+	}
+
+	if len(propertiesToUpdate) > 0 {
+		if _, err := s.propertyService.UpdatePropertyFields(nil, group.ID, propertiesToUpdate); err != nil {
+			return fmt.Errorf("failed to update boards property fields: %w", err)
+		}
+	}
+
+	if err := s.Store().System().SaveOrUpdate(&model.System{Name: boardsPropertySetupDoneKey, Value: boardsPropertyMigrationVersion}); err != nil {
+		return fmt.Errorf("failed to save boards setup done flag in system store %w", err)
+	}
+
+	return nil
+}
+
 func (s *Server) doCloudS3PathMigrations(rctx request.CTX) error {
 	// This migration is only applicable for cloud environments
 	if os.Getenv("MM_CLOUD_FILESTORE_BIFROST") == "" {
@@ -874,6 +967,7 @@ func (s *Server) doAppMigrations() {
 		{"Remaining Schema Migrations", s.doRemainingSchemaMigrations},
 		{"Post Priority Config Default True Migration", s.doPostPriorityConfigDefaultTrueMigration},
 		{"Content Flagging Properties Setup", s.doSetupContentFlaggingProperties},
+		{"Boards Properties Setup", s.doSetupBoardsProperties},
 	}
 
 	for i := range m1 {

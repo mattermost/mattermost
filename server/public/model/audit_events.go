@@ -47,6 +47,11 @@ const (
 	AuditEventListChannelBookmarksForChannel = "listChannelBookmarksForChannel" // list bookmarks for channel
 )
 
+// Boards
+const (
+	AuditEventCreateBoard = "createBoard" // create board channel
+)
+
 // Views
 const (
 	AuditEventCreateView          = "createView"          // create view in channel

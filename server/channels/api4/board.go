@@ -29,6 +29,11 @@ func createBoard(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if channel.TeamId == "" {
+		c.SetInvalidParam("team_id")
+		return
+	}
+
 	// Permission check
 	if channel.IsOpenBoard() {
 		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionCreatePublicChannel) {
@@ -44,11 +49,19 @@ func createBoard(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	channel.CreatorId = c.AppContext.Session().UserId
 
+	auditRec := c.MakeAuditRecord(model.AuditEventCreateBoard, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "team_id", channel.TeamId)
+	model.AddEventParameterToAuditRec(auditRec, "type", string(channel.Type))
+
 	board, appErr := c.App.CreateBoardChannel(c.AppContext, &channel)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
+
+	auditRec.Success()
+	auditRec.AddEventResultState(board)
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(board); err != nil {

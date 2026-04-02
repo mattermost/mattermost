@@ -6932,7 +6932,7 @@ func TestChannelEndpointsRejectBoards(t *testing.T) {
 	})
 
 	t.Run("updateChannelMemberRoles rejects board", func(t *testing.T) {
-		resp, err := client.UpdateChannelRoles(ctx, boardChannel.Id, th.BasicUser.Id, "")
+		resp, err := client.UpdateChannelRoles(ctx, boardChannel.Id, th.BasicUser.Id, model.ChannelUserRoleId)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})

@@ -48,11 +48,30 @@ func TestCreateBoard(t *testing.T) {
 		assert.Equal(t, model.ChannelTypeOpenBoard, created.Type)
 		assert.NotEmpty(t, created.Id)
 
-		// Verify view was created
+		// Verify view was created with kanban props
 		views, appErr := th.App.GetViewsForChannel(th.Context, created.Id, model.ViewQueryOpts{PerPage: 10})
 		require.Nil(t, appErr)
 		require.Len(t, views, 1)
 		assert.Equal(t, model.ViewTypeKanban, views[0].Type)
+
+		kanban, kErr := model.KanbanPropsFromProps(views[0].Props)
+		require.NoError(t, kErr)
+		assert.NotEmpty(t, kanban.GroupBy.FieldID, "kanban should reference a field")
+		require.Len(t, kanban.GroupBy.Columns, 3, "should have 3 default columns")
+		assert.Equal(t, model.BoardsStatusOptionTodo, kanban.GroupBy.Columns[0].Name)
+		assert.Equal(t, model.BoardsStatusOptionInProgress, kanban.GroupBy.Columns[1].Name)
+		assert.Equal(t, model.BoardsStatusOptionComplete, kanban.GroupBy.Columns[2].Name)
+		for _, col := range kanban.GroupBy.Columns {
+			assert.Len(t, col.OptionIDs, 1, "each default column maps to one option")
+			assert.NotEmpty(t, col.ID, "column should have a stable ID")
+		}
+
+		// Verify linked_properties on channel
+		linkedProps, ok := created.Props[model.ChannelPropsBoardLinkedProperties]
+		require.True(t, ok, "channel should have board:linked_properties")
+		linkedList, ok := linkedProps.([]any)
+		require.True(t, ok, "linked_properties should be a list")
+		assert.Len(t, linkedList, 2, "should have status and assignee field IDs")
 	})
 
 	t.Run("create private board", func(t *testing.T) {
