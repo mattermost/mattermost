@@ -416,7 +416,8 @@ var SysconsoleReadPermissions []*Permission
 var SysconsoleWritePermissions []*Permission
 
 var PermissionManageOutgoingOAuthConnections *Permission
-var PermissionCreateAgent *Permission
+var PermissionManageOwnAgent *Permission
+var PermissionManageOthersAgent *Permission
 var ModeratedBookmarkPermissions []*Permission
 
 func initializePermissions() {
@@ -2329,10 +2330,16 @@ func initializePermissions() {
 		PermissionScopeSystem,
 	}
 
-	PermissionCreateAgent = &Permission{
-		"create_agent",
-		"authentication.permissions.create_agent.name",
-		"authentication.permissions.create_agent.description",
+	PermissionManageOwnAgent = &Permission{
+		"manage_own_agent",
+		"authentication.permissions.manage_own_agent.name",
+		"authentication.permissions.manage_own_agent.description",
+		PermissionScopeSystem,
+	}
+	PermissionManageOthersAgent = &Permission{
+		"manage_others_agent",
+		"authentication.permissions.manage_others_agent.name",
+		"authentication.permissions.manage_others_agent.description",
 		PermissionScopeSystem,
 	}
 
@@ -2532,7 +2539,8 @@ func initializePermissions() {
 		PermissionManageLicenseInformation,
 		PermissionCreateCustomGroup,
 		PermissionManageOutgoingOAuthConnections,
-		PermissionCreateAgent,
+		PermissionManageOwnAgent,
+		PermissionManageOthersAgent,
 	}
 
 	TeamScopedPermissions := []*Permission{

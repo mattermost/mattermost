@@ -1293,15 +1293,33 @@ func (a *App) getRestoreManageOAuthPermissionMigration() (permissionsMap, error)
 	}, nil
 }
 
-func (a *App) getAddCreateAgentPermissionMigration() (permissionsMap, error) {
+const legacyCreateAgentPermissionID = "create_agent"
+
+func (a *App) getAddManageAgentPermissionsMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
-			On:  isExactRole(model.SystemAdminRoleId),
-			Add: []string{model.PermissionCreateAgent.Id},
+			On: isExactRole(model.SystemAdminRoleId),
+			Add: []string{
+				model.PermissionManageOwnAgent.Id,
+				model.PermissionManageOthersAgent.Id,
+			},
+			Remove: []string{legacyCreateAgentPermissionID},
 		},
 		permissionTransformation{
-			On:  isExactRole(model.SystemUserRoleId),
-			Add: []string{model.PermissionCreateAgent.Id},
+			On: isExactRole(model.SystemUserRoleId),
+			Add: []string{
+				model.PermissionManageOwnAgent.Id,
+			},
+			Remove: []string{legacyCreateAgentPermissionID},
+		},
+		permissionTransformation{
+			On: permissionAnd(
+				permissionExists(legacyCreateAgentPermissionID),
+				isNotExactRole(model.SystemAdminRoleId),
+				isNotExactRole(model.SystemUserRoleId),
+			),
+			Add: []string{model.PermissionManageOwnAgent.Id},
+			Remove: []string{legacyCreateAgentPermissionID},
 		},
 	}, nil
 }
@@ -1366,7 +1384,7 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationKeyAddSharedChannelManagerPermissions, Migration: a.getAddSharedChannelManagerPermissionsMigration},
 		{Key: model.MigrationKeyAddSecureConnectionManagerPermissions, Migration: a.getAddSecureConnectionManagerPermissionsMigration},
 		{Key: model.MigrationKeyRestoreManageOAuthPermission, Migration: a.getRestoreManageOAuthPermissionMigration},
-		{Key: model.MigrationKeyAddCreateAgentPermission, Migration: a.getAddCreateAgentPermissionMigration},
+		{Key: model.MigrationKeyAddManageAgentPermissions, Migration: a.getAddManageAgentPermissionsMigration},
 	}
 
 	roles, err := s.Store().Role().GetAll()
