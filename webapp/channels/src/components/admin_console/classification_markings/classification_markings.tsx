@@ -8,10 +8,9 @@ import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 import styled from 'styled-components';
 
+import type {ClientError} from '@mattermost/client';
 import {PlusIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
-
-import type {ClientError} from '@mattermost/client';
 
 import {Client4} from 'mattermost-redux/client';
 
@@ -22,14 +21,12 @@ import ConfirmModal from 'components/confirm_modal';
 import LoadingScreen from 'components/loading_screen';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
-import {generateId} from 'utils/utils';
-
-import {AdminSection, AdminWrapper, SectionContent, SectionHeader, SectionHeading, BorderlessInput, LinkButton} from '../system_properties/controls';
-import {AdminConsoleListTable} from '../list_table';
-import SaveChangesPanel from '../save_changes_panel';
-
 import type {ClassificationLevel} from './presets';
 import {PRESET_CUSTOM, presets} from './presets';
+
+import {AdminConsoleListTable} from '../list_table';
+import SaveChangesPanel from '../save_changes_panel';
+import {AdminSection, AdminWrapper, SectionContent, SectionHeader, SectionHeading, BorderlessInput, LinkButton} from '../system_properties/controls';
 
 const GROUP_NAME = 'custom_profile_attributes';
 const OBJECT_TYPE = 'user';
