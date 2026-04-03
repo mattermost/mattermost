@@ -750,7 +750,7 @@ func TestImageProxy(t *testing.T) {
 		"atmos/camo": {
 			ProxyType:              model.ImageProxyTypeAtmosCamo,
 			ProxyURL:               "https://127.0.0.1",
-			ProxyOptions:           "foo",
+			ProxyOptions:           "test-hmac-key-fips",
 			ImageURL:               "http://mydomain.com/myimage",
 			ProxiedRemovedImageURL: "http://mydomain.com/myimage",
 			ProxiedImageURL:        "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage",
@@ -758,7 +758,7 @@ func TestImageProxy(t *testing.T) {
 		"atmos/camo_SameSite": {
 			ProxyType:              model.ImageProxyTypeAtmosCamo,
 			ProxyURL:               "https://127.0.0.1",
-			ProxyOptions:           "foo",
+			ProxyOptions:           "test-hmac-key-fips",
 			ImageURL:               "http://mymattermost.com/myimage",
 			ProxiedRemovedImageURL: "http://mymattermost.com/myimage",
 			ProxiedImageURL:        "http://mymattermost.com/myimage",
@@ -766,7 +766,7 @@ func TestImageProxy(t *testing.T) {
 		"atmos/camo_PathOnly": {
 			ProxyType:              model.ImageProxyTypeAtmosCamo,
 			ProxyURL:               "https://127.0.0.1",
-			ProxyOptions:           "foo",
+			ProxyOptions:           "test-hmac-key-fips",
 			ImageURL:               "/myimage",
 			ProxiedRemovedImageURL: "http://mymattermost.com/myimage",
 			ProxiedImageURL:        "http://mymattermost.com/myimage",
@@ -774,7 +774,7 @@ func TestImageProxy(t *testing.T) {
 		"atmos/camo_EmptyImageURL": {
 			ProxyType:              model.ImageProxyTypeAtmosCamo,
 			ProxyURL:               "https://127.0.0.1",
-			ProxyOptions:           "foo",
+			ProxyOptions:           "test-hmac-key-fips",
 			ImageURL:               "",
 			ProxiedRemovedImageURL: "",
 			ProxiedImageURL:        "",
@@ -961,8 +961,9 @@ func TestCreatePost(t *testing.T) {
 			*cfg.ImageProxySettings.Enable = true
 			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
 			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
-			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
+			*cfg.ImageProxySettings.RemoteImageProxyOptions = "test-hmac-key-fips"
 		})
+		require.True(t, *th.App.Config().ImageProxySettings.Enable, "UpdateConfig must have applied the image proxy settings")
 
 		th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server.platform, th.Server.HTTPService(), th.Server.Log())
 
@@ -1448,8 +1449,9 @@ func TestPatchPost(t *testing.T) {
 			*cfg.ImageProxySettings.Enable = true
 			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
 			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
-			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
+			*cfg.ImageProxySettings.RemoteImageProxyOptions = "test-hmac-key-fips"
 		})
+		require.True(t, *th.App.Config().ImageProxySettings.Enable, "UpdateConfig must have applied the image proxy settings")
 
 		th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server.platform, th.Server.HTTPService(), th.Server.Log())
 
@@ -1903,8 +1905,9 @@ func TestUpdatePost(t *testing.T) {
 			*cfg.ImageProxySettings.Enable = true
 			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
 			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
-			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
+			*cfg.ImageProxySettings.RemoteImageProxyOptions = "test-hmac-key-fips"
 		})
+		require.True(t, *th.App.Config().ImageProxySettings.Enable, "UpdateConfig must have applied the image proxy settings")
 
 		th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server.platform, th.Server.HTTPService(), th.Server.Log())
 
@@ -3150,7 +3153,7 @@ func TestFillInPostProps(t *testing.T) {
 			Email:         "success+" + id + "@simulator.amazonses.com",
 			Username:      "un_" + id,
 			Nickname:      "nn_" + id,
-			Password:      "Password1",
+			Password:      model.NewTestPassword(),
 			EmailVerified: true,
 		}
 		guest, err := th.App.CreateGuest(th.Context, guest)
@@ -3184,7 +3187,7 @@ func TestFillInPostProps(t *testing.T) {
 			Email:         "success+" + id + "@simulator.amazonses.com",
 			Username:      "un_" + id,
 			Nickname:      "nn_" + id,
-			Password:      "Password1",
+			Password:      model.NewTestPassword(),
 			EmailVerified: true,
 		}
 		guest, err := th.App.CreateGuest(th.Context, guest)
