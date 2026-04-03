@@ -2372,7 +2372,7 @@ func testUserStoreUpdatePassword(t *testing.T, rctx request.CTX, ss store.Store)
 	_, err = hashers.Hash(strings.Repeat("1234567890", 8))
 	require.ErrorIs(t, err, hashers.ErrPasswordTooLong)
 
-	hashedPassword, err := hashers.Hash("newpwd")
+	hashedPassword, err := hashers.Hash("n3wP@ssword123!")
 	require.NoError(t, err)
 
 	err = ss.User().UpdatePassword(u1.Id, hashedPassword)
