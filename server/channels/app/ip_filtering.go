@@ -10,7 +10,8 @@ import (
 
 func (a *App) SendIPFiltersChangedEmail(rctx request.CTX, userID string) error {
 	cloudWorkspaceOwnerEmailAddress := ""
-	if a.License() != nil && a.License().IsCloud() {
+	license := a.License()
+	if license != nil && license.IsCloud() {
 		portalUserCustomer, cErr := a.Cloud().GetCloudCustomer(userID)
 		if cErr != nil {
 			rctx.Logger().Error("Failed to get portal user customer", mlog.Err(cErr))
