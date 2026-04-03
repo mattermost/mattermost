@@ -125,7 +125,14 @@ func (scs *Service) processMemberAdd(change *model.MembershipChangeMsg, channel 
 		}
 	}
 
-	if user.GetRemoteID() != rc.RemoteId {
+	// Only process users that originated from the sending remote.
+	// Local users (RemoteID == "") are managed locally, and users from other
+	// remotes should not be manipulated by this sender.
+	remoteID := user.GetRemoteID()
+	if remoteID == "" {
+		return nil
+	}
+	if remoteID != rc.RemoteId {
 		return fmt.Errorf("membership add sync failed: %w", ErrRemoteIDMismatch)
 	}
 
@@ -169,7 +176,12 @@ func (scs *Service) processMemberRemove(change *model.MembershipChangeMsg, rc *m
 	if userErr != nil {
 		return fmt.Errorf("cannot get user for channel remove: %w", userErr)
 	}
-	if user.GetRemoteID() != rc.RemoteId {
+
+	remoteID := user.GetRemoteID()
+	if remoteID == "" {
+		return nil
+	}
+	if remoteID != rc.RemoteId {
 		return fmt.Errorf("membership remove sync failed: %w", ErrRemoteIDMismatch)
 	}
 
