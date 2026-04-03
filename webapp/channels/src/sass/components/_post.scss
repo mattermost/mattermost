@@ -955,11 +955,18 @@
                 margin: 0;
                 text-overflow: ellipsis;
                 white-space: nowrap;
+                max-width: 100%;
 
                 i {
                     margin-right: 5px;
                     font-size: 0.9em;
                     opacity: 0.5;
+                }
+
+                .post-image__filename {
+                    display: inline;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
                 }
             }
 
@@ -1673,11 +1680,11 @@
         }
     }
 
-    .post__translation-icon-processing {        
+    .post__translation-icon-processing {
         color: rgba(var(--center-channel-color-rgb), 0.73);
         font-size: 10px;
         line-height: 16px;
-        
+
         .LoadingSpinner.with-text .spinner {
             margin-right: 3px;
         }
