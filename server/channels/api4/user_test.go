@@ -3776,15 +3776,15 @@ func TestUpdateUserPassword(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.MaximumLoginAttempts = 2 })
 
 	// Fail twice
-	resp, err = th.Client.UpdateUserPassword(context.Background(), th.BasicUser.Id, "badpwd", "newpwd")
+	resp, err = th.Client.UpdateUserPassword(context.Background(), th.BasicUser.Id, "BadP@ssword123!", "NewP@ssw0rd!23")
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
-	resp, err = th.Client.UpdateUserPassword(context.Background(), th.BasicUser.Id, "badpwd", "newpwd")
+	resp, err = th.Client.UpdateUserPassword(context.Background(), th.BasicUser.Id, "BadP@ssword123!", "NewP@ssw0rd!23")
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	// Should fail because account is locked out
-	resp, err = th.Client.UpdateUserPassword(context.Background(), th.BasicUser.Id, th.BasicUser.Password, "newpwd")
+	resp, err = th.Client.UpdateUserPassword(context.Background(), th.BasicUser.Id, th.BasicUser.Password, "NewP@ssw0rd!23")
 	CheckErrorID(t, err, "api.user.check_user_login_attempts.too_many.app_error")
 	CheckUnauthorizedStatus(t, resp)
 

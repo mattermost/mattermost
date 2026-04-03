@@ -407,7 +407,7 @@ func TestCheckUserPassword(t *testing.T) {
 	t.Run("invalid password", func(t *testing.T) {
 		user := createUserWithHash(pwdPBKDF2)
 
-		err := th.App.checkUserPassword(user, "wrongpassword", false)
+		err := th.App.checkUserPassword(user, "Wr0ngP@ssword123!", false)
 		require.NotNil(t, err)
 		require.Equal(t, "api.user.check_user_password.invalid.app_error", err.Id)
 
@@ -437,7 +437,7 @@ func TestCheckUserPassword(t *testing.T) {
 	t.Run("password migration fails with invalid password", func(t *testing.T) {
 		user := createUserWithHash(pwdBcrypt)
 
-		err := th.App.checkUserPassword(user, "wrongpassword", false)
+		err := th.App.checkUserPassword(user, "Wr0ngP@ssword123!", false)
 		require.NotNil(t, err)
 		require.Equal(t, "api.user.check_user_password.invalid.app_error", err.Id)
 
