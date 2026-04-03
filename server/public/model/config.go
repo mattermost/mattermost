@@ -4203,7 +4203,7 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	minPasswordLength := PasswordMinimumLength
-	if FIPSEnabled && PasswordFIPSMinimumLength > minPasswordLength {
+	if FIPSEnabled {
 		minPasswordLength = PasswordFIPSMinimumLength
 	}
 	if *o.PasswordSettings.MinimumLength < minPasswordLength || *o.PasswordSettings.MinimumLength > PasswordMaximumLength {

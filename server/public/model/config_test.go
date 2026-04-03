@@ -974,6 +974,8 @@ func TestImageProxySettingsSetDefaults(t *testing.T) {
 }
 
 func TestImageProxySettingsIsValid(t *testing.T) {
+	testHMACKey := NewTestPassword()
+
 	for _, test := range []struct {
 		Name                    string
 		Enable                  bool
@@ -1014,7 +1016,7 @@ func TestImageProxySettingsIsValid(t *testing.T) {
 			Enable:                  true,
 			ImageProxyType:          ImageProxyTypeAtmosCamo,
 			RemoteImageProxyURL:     "someurl",
-			RemoteImageProxyOptions: "7e5f3fab20b94782b43cdb022a66985ef28ba355df2c5d5da3c9a05e4b697bac",
+			RemoteImageProxyOptions: testHMACKey,
 			ExpectError:             false,
 		},
 		{
