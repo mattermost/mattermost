@@ -83,7 +83,7 @@ func TestGetAllSharedChannelsWithSharedChannelManagerRole(t *testing.T) {
 			}
 		}
 		assert.True(t, found,
-			"shared_channel_manager user should see all shared channels, including ones they are not a member of")
+			"system_shared_channel_manager user should see all shared channels, including ones they are not a member of")
 	})
 }
 
