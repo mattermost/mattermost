@@ -10014,10 +10014,6 @@
     "translation": "无法注册自定义个人资料属性组"
   },
   {
-    "id": "app.custom_profile_attributes.create_property_field.app_error",
-    "translation": "无法创建自定义个人资料属性字段"
-  },
-  {
     "id": "app.custom_profile_attributes.get_property_field.app_error",
     "translation": "无法获取自定义个人资料属性字段"
   },
