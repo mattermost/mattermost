@@ -5695,7 +5695,6 @@
   "threading.numReplies": "{totalReplies, plural, =0 {답장} =1 {답장 #개} other {답장 #개}}",
   "threading.threadHeader.menu": "더 많은 작업",
   "threading.threadItem.ariaLabel": "스레드 작성자 {author}",
-  "threading.threadItem.menu": "액션",
   "threading.threadItem.timestamp": "마지막 댓글 ",
   "threading.threadList.markRead": "모든 스레드를 읽음으로 표시",
   "threading.threadList.tabsLabel": "표시되는 스레드 필터링",

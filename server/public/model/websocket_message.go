@@ -112,6 +112,7 @@ const (
 	WebsocketEventPropertyValuesUpdated               WebsocketEventType = "property_values_updated"
 	WebsocketEventFileDownloadRejected                WebsocketEventType = "file_download_rejected"
 	WebsocketEventShowToast                           WebsocketEventType = "show_toast"
+	WebsocketEventSharedChannelRemoteUpdated          WebsocketEventType = "shared_channel_remote_updated"
 
 	WebSocketMsgTypeResponse = "response"
 	WebSocketMsgTypeEvent    = "event"
