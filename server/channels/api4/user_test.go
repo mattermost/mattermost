@@ -3752,7 +3752,7 @@ func TestUpdateUserPassword(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	resp, err = th.Client.UpdateUserPassword(context.Background(), th.BasicUser.Id, "junk", password)
+	resp, err = th.Client.UpdateUserPassword(context.Background(), th.BasicUser.Id, "JunkP@ssword123!", password)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
@@ -6263,7 +6263,7 @@ func TestLoginErrorMessage(t *testing.T) {
 		*cfg.EmailSettings.EnableSignInWithEmail = true
 		*cfg.EmailSettings.EnableSignInWithUsername = true
 	})
-	_, _, err = th.Client.Login(context.Background(), th.BasicUser.Email, "wrong")
+	_, _, err = th.Client.Login(context.Background(), th.BasicUser.Email, "Wr0ngP@ssword123!")
 	CheckErrorID(t, err, "api.user.login.invalid_credentials_email_username")
 
 	// Email enabled
@@ -6271,7 +6271,7 @@ func TestLoginErrorMessage(t *testing.T) {
 		*cfg.EmailSettings.EnableSignInWithEmail = true
 		*cfg.EmailSettings.EnableSignInWithUsername = false
 	})
-	_, _, err = th.Client.Login(context.Background(), th.BasicUser.Email, "wrong")
+	_, _, err = th.Client.Login(context.Background(), th.BasicUser.Email, "Wr0ngP@ssword123!")
 	CheckErrorID(t, err, "api.user.login.invalid_credentials_email")
 
 	// Username enabled
@@ -6279,7 +6279,7 @@ func TestLoginErrorMessage(t *testing.T) {
 		*cfg.EmailSettings.EnableSignInWithEmail = false
 		*cfg.EmailSettings.EnableSignInWithUsername = true
 	})
-	_, _, err = th.Client.Login(context.Background(), th.BasicUser.Email, "wrong")
+	_, _, err = th.Client.Login(context.Background(), th.BasicUser.Email, "Wr0ngP@ssword123!")
 	CheckErrorID(t, err, "api.user.login.invalid_credentials_username")
 
 	// SAML/SSO enabled
@@ -6303,7 +6303,7 @@ func TestLoginErrorMessage(t *testing.T) {
 		*cfg.SamlSettings.PositionAttribute = ""
 		*cfg.SamlSettings.LocaleAttribute = ""
 	})
-	_, _, err = th.Client.Login(context.Background(), th.BasicUser.Email, "wrong")
+	_, _, err = th.Client.Login(context.Background(), th.BasicUser.Email, "Wr0ngP@ssword123!")
 	CheckErrorID(t, err, "api.user.login.invalid_credentials_sso")
 }
 
@@ -6318,15 +6318,15 @@ func TestLoginLockout(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.MaximumLoginAttempts = 3 })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = true })
 
-	_, _, err = th.Client.Login(context.Background(), th.BasicUser.Email, "wrong")
+	_, _, err = th.Client.Login(context.Background(), th.BasicUser.Email, "Wr0ngP@ssword123!")
 	CheckErrorID(t, err, "api.user.login.invalid_credentials_email_username")
-	_, _, err = th.Client.Login(context.Background(), th.BasicUser.Email, "wrong")
+	_, _, err = th.Client.Login(context.Background(), th.BasicUser.Email, "Wr0ngP@ssword123!")
 	CheckErrorID(t, err, "api.user.login.invalid_credentials_email_username")
-	_, _, err = th.Client.Login(context.Background(), th.BasicUser.Email, "wrong")
+	_, _, err = th.Client.Login(context.Background(), th.BasicUser.Email, "Wr0ngP@ssword123!")
 	CheckErrorID(t, err, "api.user.login.invalid_credentials_email_username")
-	_, _, err = th.Client.Login(context.Background(), th.BasicUser.Email, "wrong")
+	_, _, err = th.Client.Login(context.Background(), th.BasicUser.Email, "Wr0ngP@ssword123!")
 	CheckErrorID(t, err, "api.user.check_user_login_attempts.too_many.app_error")
-	_, _, err = th.Client.Login(context.Background(), th.BasicUser.Email, "wrong")
+	_, _, err = th.Client.Login(context.Background(), th.BasicUser.Email, "Wr0ngP@ssword123!")
 	CheckErrorID(t, err, "api.user.check_user_login_attempts.too_many.app_error")
 
 	// Check if lock is active
@@ -9327,7 +9327,7 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 		user := th.CreateUser(t)
 
 		for i := 0; i < *maxAttempts; i++ {
-			_, _, err := client.Login(context.Background(), user.Email, "wrongpassword")
+			_, _, err := client.Login(context.Background(), user.Email, "Wr0ngP@ssword123!")
 			require.Error(t, err)
 		}
 
@@ -9406,7 +9406,7 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 		user := th.CreateUser(t)
 
 		for i := 0; i < *maxAttempts; i++ {
-			_, _, err := client.Login(context.Background(), user.Email, "wrongpassword")
+			_, _, err := client.Login(context.Background(), user.Email, "Wr0ngP@ssword123!")
 			require.Error(t, err)
 		}
 
@@ -9438,7 +9438,7 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 		user := th.CreateUser(t)
 
 		for i := 0; i < *maxAttempts; i++ {
-			_, _, err := client.Login(context.Background(), user.Email, "wrongpassword")
+			_, _, err := client.Login(context.Background(), user.Email, "Wr0ngP@ssword123!")
 			require.Error(t, err)
 		}
 
@@ -9474,7 +9474,7 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 		require.Nil(t, appErr)
 
 		for i := 0; i < *maxAttempts; i++ {
-			_, _, err := client.Login(context.Background(), sysadmin.Email, "wrongpassword")
+			_, _, err := client.Login(context.Background(), sysadmin.Email, "Wr0ngP@ssword123!")
 			require.Error(t, err)
 		}
 
@@ -9506,7 +9506,7 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 		require.Nil(t, appErr)
 
 		for i := 0; i < *maxAttempts; i++ {
-			_, _, err := client.Login(context.Background(), sysadmin.Email, "wrongpassword")
+			_, _, err := client.Login(context.Background(), sysadmin.Email, "Wr0ngP@ssword123!")
 			require.Error(t, err)
 		}
 
