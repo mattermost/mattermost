@@ -986,7 +986,10 @@ func (s SqlChannelStore) GetMany(ids []string, allowFromCache bool) (model.Chann
 	query := s.getQueryBuilder().
 		Select(channelSliceColumns(true)...).
 		From("Channels").
-		Where(sq.Eq{"Id": ids})
+		Where(sq.And{
+			sq.Eq{"Id": ids},
+			sq.NotEq{"Type": []model.ChannelType{model.ChannelTypeOpenBoard, model.ChannelTypePrivateBoard}},
+		})
 	sql, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrapf(err, "getmany_tosql")

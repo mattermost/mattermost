@@ -845,6 +845,11 @@ func getChannelsMemberCount(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	filteredIDs := make([]string, len(channels))
+	for i, ch := range channels {
+		filteredIDs[i] = ch.Id
+	}
+
 	for _, channel := range channels {
 		if !c.App.HasPermissionToChannelMemberCount(c.AppContext, c.AppContext.Session().UserId, channel) {
 			c.SetPermissionError(model.PermissionListTeamChannels)
@@ -852,7 +857,7 @@ func getChannelsMemberCount(c *Context, w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
-	channelsMemberCount, appErr := c.App.GetChannelsMemberCount(c.AppContext, channelIDs)
+	channelsMemberCount, appErr := c.App.GetChannelsMemberCount(c.AppContext, filteredIDs)
 	if appErr != nil {
 		c.Err = appErr
 		return

@@ -7092,4 +7092,15 @@ func TestChannelEndpointsExcludeBoards(t *testing.T) {
 		require.NoError(t, err)
 		assertNoBoardsInList(t, channels)
 	})
+
+	t.Run("getChannelsMemberCount excludes boards", func(t *testing.T) {
+		counts, _, err := client.GetChannelsMemberCount(ctx, []string{th.BasicChannel.Id, openBoard.Id, privateBoard.Id})
+		require.NoError(t, err)
+		_, hasRegular := counts[th.BasicChannel.Id]
+		assert.True(t, hasRegular, "regular channel should be in member count results")
+		_, hasOpenBoard := counts[openBoard.Id]
+		assert.False(t, hasOpenBoard, "open board should not be in member count results")
+		_, hasPrivateBoard := counts[privateBoard.Id]
+		assert.False(t, hasPrivateBoard, "private board should not be in member count results")
+	})
 }
