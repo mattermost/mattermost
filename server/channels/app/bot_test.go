@@ -902,7 +902,7 @@ func TestConvertUserToBot(t *testing.T) {
 		oauthUser := &model.User{
 			Email:         "oauth_user@example.com",
 			Username:      "oauth_user",
-			Password:      "password",
+			Password:      model.NewRandomPassword(),
 			EmailVerified: true,
 		}
 

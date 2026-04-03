@@ -2242,7 +2242,7 @@ func TestAPIMetrics(t *testing.T) {
 			Email:       model.NewId() + "success+test@example.com",
 			Nickname:    "Darth Vader1",
 			Username:    "vader" + model.NewId(),
-			Password:    "passwd1",
+			Password:    model.NewRandomPassword(),
 			AuthService: "",
 		}
 		_, appErr := th.App.CreateUser(th.Context, user1)

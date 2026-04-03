@@ -18,6 +18,7 @@ func TestIsPasswordValidWithSettings(t *testing.T) {
 		Password      string
 		Settings      *model.PasswordSettings
 		ExpectedError string
+		SkipFIPS      bool
 	}{
 		"Short": {
 			Password: strings.Repeat("x", 3),
@@ -28,6 +29,7 @@ func TestIsPasswordValidWithSettings(t *testing.T) {
 				Number:        model.NewPointer(false),
 				Symbol:        model.NewPointer(false),
 			},
+			SkipFIPS: true,
 		},
 		"Long": {
 			Password: strings.Repeat("x", model.PasswordMaximumLength),
@@ -110,7 +112,7 @@ func TestIsPasswordValidWithSettings(t *testing.T) {
 			ExpectedError: "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
 		},
 		"Everything": {
-			Password: "asdASD!@#123",
+			Password: "asdASDasd!@#123",
 			Settings: &model.PasswordSettings{
 				Lowercase: model.NewPointer(true),
 				Uppercase: model.NewPointer(true),
@@ -121,6 +123,9 @@ func TestIsPasswordValidWithSettings(t *testing.T) {
 	} {
 		tc.Settings.SetDefaults()
 		t.Run(name, func(t *testing.T) {
+			if tc.SkipFIPS && model.FIPSEnabled {
+				t.Skip("skipping under FIPS: minimum password length is 14")
+			}
 			if err := IsPasswordValidWithSettings(tc.Password, tc.Settings); tc.ExpectedError == "" {
 				assert.NoError(t, err)
 			} else {

@@ -54,7 +54,7 @@ func TestCreateUser(t *testing.T) {
 	user = model.User{
 		Email:          th.GenerateTestEmail(),
 		Nickname:       "Corey Hulen",
-		Password:       "hello1",
+		Password:       model.NewRandomPassword(),
 		Username:       GenerateTestUsername(),
 		Roles:          model.SystemAdminRoleId + " " + model.SystemUserRoleId,
 		EmailVerified:  true,
@@ -174,7 +174,7 @@ func TestCreateUserPasswordValidation(t *testing.T) {
 
 	ruser := model.User{
 		Nickname:      "Corey Hulen",
-		Password:      "hello1",
+		Password:      model.NewRandomPassword(),
 		Roles:         model.SystemAdminRoleId + " " + model.SystemUserRoleId,
 		EmailVerified: true,
 	}
@@ -183,6 +183,7 @@ func TestCreateUserPasswordValidation(t *testing.T) {
 		Password      string
 		Settings      *model.PasswordSettings
 		ExpectedError string
+		SkipFIPS      bool
 	}{
 		"Short": {
 			Password: strings.Repeat("x", 5),
@@ -193,6 +194,7 @@ func TestCreateUserPasswordValidation(t *testing.T) {
 				Number:        model.NewPointer(false),
 				Symbol:        model.NewPointer(false),
 			},
+			SkipFIPS: true,
 		},
 		"Long": {
 			Password: strings.Repeat("x", model.PasswordMaximumLength),
@@ -285,6 +287,9 @@ func TestCreateUserPasswordValidation(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
+			if tc.SkipFIPS && model.FIPSEnabled {
+				t.Skip("skipping under FIPS: minimum password length is 14")
+			}
 			th.App.UpdateConfig(func(cfg *model.Config) { cfg.PasswordSettings = *tc.Settings })
 			ruser.Email = th.GenerateTestEmail()
 			ruser.Password = tc.Password
@@ -2535,7 +2540,7 @@ func TestUserUnicodeNames(t *testing.T) {
 			FirstName: "Andrew\u202e",
 			LastName:  "\ufeffWiggin",
 			Nickname:  "Ender\u2028 Wiggin",
-			Password:  "hello1",
+			Password:  model.NewRandomPassword(),
 			Username:  "\ufeffwiggin77",
 			Roles:     model.SystemAdminRoleId + " " + model.SystemUserRoleId,
 		}
@@ -3020,7 +3025,7 @@ func TestUpdateUserActive(t *testing.T) {
 		ldapUser := &model.User{
 			Email:         "ldapuser@mattermost-customer.com",
 			Username:      "ldapuser",
-			Password:      "Password123",
+			Password:      model.NewRandomPassword(),
 			AuthService:   model.UserAuthServiceLdap,
 			EmailVerified: true,
 		}
@@ -4440,7 +4445,7 @@ func TestLogin(t *testing.T) {
 		_, err := th.SystemAdminClient.UpdateUserPassword(context.Background(), ruser.Id, "", "password")
 		require.Error(t, err)
 
-		_, _, err = th.Client.Login(context.Background(), ruser.Email, "hello1")
+		_, _, err = th.Client.Login(context.Background(), ruser.Email, model.NewRandomPassword())
 		CheckErrorID(t, err, "api.user.login.remote_users.login.error")
 	})
 

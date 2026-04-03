@@ -394,7 +394,7 @@ func TestCreateUser(t *testing.T) {
 			Email:       model.NewId() + "success+test@example.com",
 			Nickname:    "Darth Vader",
 			Username:    "vader" + model.NewId(),
-			Password:    "passwd12345",
+			Password:    model.NewRandomPassword(),
 			AuthService: "",
 		}
 		_, err := th.App.CreateUser(th.Context, user)
@@ -1221,7 +1221,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			Email:       forbiddenInvitationEmail,
 			Nickname:    "Darth Vader",
 			Username:    "vader" + model.NewId(),
-			Password:    "passwd1",
+			Password:    model.NewRandomPassword(),
 			AuthService: "",
 		}
 		newGuest, err := th.App.CreateUserWithToken(th.Context, &guest, forbiddenDomainToken)
@@ -1267,7 +1267,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			Email:       invitationEmail,
 			Nickname:    "Darth Vader",
 			Username:    "vader" + model.NewId(),
-			Password:    "passwd1",
+			Password:    model.NewRandomPassword(),
 			AuthService: "",
 		}
 		newGuest, err := th.App.CreateUserWithToken(th.Context, &guest, token)
