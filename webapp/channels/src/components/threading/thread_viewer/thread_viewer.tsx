@@ -20,6 +20,7 @@ import WebSocketClient from 'client/web_websocket_client';
 
 import type {FakePost} from 'types/store/rhs';
 
+import ChannelBanner from 'components/channel_banner/channel_banner';
 import ThreadViewerVirtualized from '../virtualized_thread_viewer';
 
 import './thread_viewer.scss';
@@ -238,6 +239,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
         return (
             <>
                 <div className={classNames('ThreadViewer', this.props.className)}>
+                    <ChannelBanner channelId={this.props.channel?.id || ''}/>
                     <div className='post-right-comments-container'>
                         <>
                             <FileUploadOverlay
