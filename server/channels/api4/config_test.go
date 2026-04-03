@@ -182,6 +182,9 @@ func TestUpdateConfig(t *testing.T) {
 		})
 
 		t.Run("Should fail with validation error if invalid config setting is passed", func(t *testing.T) {
+			if model.FIPSEnabled {
+				t.Skip("under FIPS, MinimumLength < 14 is silently raised to 14 by SetDefaults rather than rejected")
+			}
 			//Revert the change
 			badcfg := cfg.Clone()
 			badcfg.PasswordSettings.MinimumLength = model.NewPointer(4)
@@ -779,6 +782,9 @@ func TestPatchConfig(t *testing.T) {
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		t.Run("check if config is valid", func(t *testing.T) {
+			if model.FIPSEnabled {
+				t.Skip("under FIPS, MinimumLength < 14 is silently raised to 14 by SetDefaults rather than rejected")
+			}
 			config := model.Config{PasswordSettings: model.PasswordSettings{
 				MinimumLength: model.NewPointer(4),
 			}}
