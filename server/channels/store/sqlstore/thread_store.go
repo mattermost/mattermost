@@ -1058,6 +1058,14 @@ func (s *SqlThreadStore) GetThreadUnreadReplyCount(threadMembership *model.Threa
 	return unreadReplies, nil
 }
 
+func threadMembershipSliceColumns() []string {
+	return []string{"PostId", "UserId", "Following", "LastViewed", "LastUpdated", "UnreadMentions"}
+}
+
+func threadMembershipToSlice(m *model.ThreadMembership) []any {
+	return []any{m.PostId, m.UserId, m.Following, m.LastViewed, m.LastUpdated, m.UnreadMentions}
+}
+
 // SaveMultipleMemberships saves multiple NEW thread memberships in a single query and meant to be used only in the import
 // process. Unlike MaintainMembership, this method does not update the thread participants (which is handled separately
 // in the post creation).
@@ -1066,16 +1074,11 @@ func (s *SqlThreadStore) SaveMultipleMemberships(memberships []*model.ThreadMemb
 		return memberships, nil
 	}
 
-	query := s.getQueryBuilder().
-		Insert("ThreadMemberships").
-		Columns("PostId", "UserId", "Following", "LastViewed", "LastUpdated", "UnreadMentions")
-
 	for _, member := range memberships {
 		if err := member.IsValid(); err != nil {
 			return memberships, err
 		}
 		member.LastUpdated = model.GetMillis()
-		query = query.Values(member.PostId, member.UserId, member.Following, member.LastViewed, member.LastUpdated, member.UnreadMentions)
 	}
 
 	tx, err := s.GetMaster().Beginx()
@@ -1084,10 +1087,20 @@ func (s *SqlThreadStore) SaveMultipleMemberships(memberships []*model.ThreadMemb
 	}
 	defer finalizeTransactionX(tx, &err)
 
-	_, err = tx.ExecBuilder(query)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to save thread memberships")
+	chunks := chunkSlice(memberships, len(threadMembershipSliceColumns()), s.SqlStore.getMaxInsertParams())
+	for _, chunk := range chunks {
+		query := s.getQueryBuilder().
+			Insert("ThreadMemberships").
+			Columns(threadMembershipSliceColumns()...)
+		for _, member := range chunk {
+			query = query.Values(threadMembershipToSlice(member)...)
+		}
+		_, err = tx.ExecBuilder(query)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to save thread memberships")
+		}
 	}
+
 	err = tx.Commit()
 	if err != nil {
 		return nil, errors.Wrap(err, "commit_transaction")

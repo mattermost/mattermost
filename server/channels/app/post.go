@@ -18,7 +18,6 @@ import (
 	"maps"
 	"slices"
 
-	agentclient "github.com/mattermost/mattermost-plugin-ai/public/bridgeclient"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
@@ -3296,11 +3295,9 @@ func (a *App) RewriteMessage(
 	if rootID != "" {
 		context, appErr := a.buildThreadContextForRewrite(rctx, rootID)
 		if appErr != nil {
-			// Log error but continue without context rather than failing the rewrite
-			rctx.Logger().Warn("Failed to build thread context for rewrite", mlog.String("root_id", rootID), mlog.Err(appErr))
-		} else {
-			threadContext = context
+			return nil, appErr
 		}
+		threadContext = context
 	}
 
 	userPrompt := getRewritePromptForAction(action, message, customPrompt, threadContext)
@@ -3320,35 +3317,25 @@ func (a *App) RewriteMessage(
 
 	systemPrompt := buildRewriteSystemPrompt(userLocale)
 
-	// Prepare completion request in the format expected by the client
-	client := a.GetBridgeClient(rctx.Session().UserId)
-	completionRequest := agentclient.CompletionRequest{
-		Posts: []agentclient.Post{
+	sessionUserID := ""
+	if session := rctx.Session(); session != nil {
+		sessionUserID = session.UserId
+	}
+
+	completionRequest := BridgeCompletionRequest{
+		Operation:       BridgeOperationRewrite,
+		ClientOperation: "message_rewrite",
+		Messages: []BridgeMessage{
 			{Role: "system", Message: systemPrompt},
 			{Role: "user", Message: userPrompt},
 		},
-		UserID:           rctx.Session().UserId,
-		Operation:        "message_rewrite",
 		OperationSubType: normalizeRewriteAction(action),
+		UserID:           sessionUserID,
 	}
 
-	rctx.Logger().Info("Calling AI agent",
-		mlog.String("agent_id", agentID),
-		mlog.String("service_id", serviceID),
-		mlog.String("service_type", serviceType),
-		mlog.String("service_name", serviceName),
-		mlog.Int("system_prompt_length", len(model.RewriteSystemPrompt)),
-		mlog.Int("user_prompt_length", len(userPrompt)),
-	)
-
-	completion, completionErr := client.AgentCompletion(agentID, completionRequest)
-	if completionErr != nil {
-		rctx.Logger().Error("AI agent call failed",
-			mlog.String("agent_id", agentID),
-			mlog.String("service_type", serviceType),
-			mlog.Err(completionErr),
-		)
-		return nil, model.NewAppError("RewriteMessage", "app.post.rewrite.agent_call_failed", nil, completionErr.Error(), 500)
+	completion, err := a.ch.agentsBridge.AgentCompletion(sessionUserID, agentID, completionRequest)
+	if err != nil {
+		return nil, model.NewAppError("RewriteMessage", "app.post.rewrite.agent_call_failed", nil, err.Error(), 500)
 	}
 
 	rctx.Logger().Info("AI agent call succeeded",
@@ -3377,8 +3364,17 @@ func (a *App) RewriteMessage(
 func (a *App) buildThreadContextForRewrite(rctx request.CTX, rootID string) (string, *model.AppError) {
 	const maxContextPosts = 10
 
-	// Get the thread posts
-	postList, appErr := a.GetPostThread(rctx, rootID, model.GetPostsOptions{}, rctx.Session().UserId)
+	anchorPost, appErr, _ := a.GetPostIfAuthorized(rctx, rootID, rctx.Session(), false)
+	if appErr != nil {
+		return "", appErr
+	}
+	threadRootID := anchorPost.RootId
+	if threadRootID == "" {
+		threadRootID = anchorPost.Id
+	}
+
+	// Get the thread posts (only after confirming the session may read the anchor post's channel)
+	postList, appErr := a.GetPostThread(rctx, anchorPost.Id, model.GetPostsOptions{}, rctx.Session().UserId)
 	if appErr != nil {
 		return "", appErr
 	}
@@ -3388,7 +3384,7 @@ func (a *App) buildThreadContextForRewrite(rctx request.CTX, rootID string) (str
 	}
 
 	// Get root post
-	rootPost, ok := postList.Posts[rootID]
+	rootPost, ok := postList.Posts[threadRootID]
 	if !ok {
 		return "", nil
 	}
@@ -3401,7 +3397,7 @@ func (a *App) buildThreadContextForRewrite(rctx request.CTX, rootID string) (str
 	// Collect reply posts, filtering out system posts and deleted posts
 	var replies []*model.Post
 	for _, postID := range postList.Order {
-		if postID == rootID {
+		if postID == threadRootID {
 			continue // Skip root post
 		}
 		post, ok := postList.Posts[postID]
