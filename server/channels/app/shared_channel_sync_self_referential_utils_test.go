@@ -41,7 +41,7 @@ type SelfReferentialSyncHandler struct {
 	t                *testing.T
 	service          *sharedchannel.Service
 	selfCluster      *model.RemoteCluster
-	syncMessageCount *int32
+	syncMessageCount *atomic.Int32
 	SimulateUnshared bool // When true, always return ErrChannelIsNotShared for sync messages
 
 	// Callbacks for capturing sync data
@@ -52,12 +52,11 @@ type SelfReferentialSyncHandler struct {
 
 // NewSelfReferentialSyncHandler creates a new handler for processing sync messages in tests
 func NewSelfReferentialSyncHandler(t *testing.T, service *sharedchannel.Service, selfCluster *model.RemoteCluster) *SelfReferentialSyncHandler {
-	count := int32(0)
 	return &SelfReferentialSyncHandler{
 		t:                t,
 		service:          service,
 		selfCluster:      selfCluster,
-		syncMessageCount: &count,
+		syncMessageCount: &atomic.Int32{},
 	}
 }
 
@@ -69,7 +68,7 @@ func NewSelfReferentialSyncHandler(t *testing.T, service *sharedchannel.Service,
 func (h *SelfReferentialSyncHandler) HandleRequest(w http.ResponseWriter, r *http.Request) {
 	switch r.URL.Path {
 	case "/api/v4/remotecluster/msg":
-		currentCall := atomic.AddInt32(h.syncMessageCount, 1)
+		currentCall := h.syncMessageCount.Add(1)
 
 		// Read and process the sync message
 		body, _ := io.ReadAll(r.Body)
@@ -129,8 +128,10 @@ func (h *SelfReferentialSyncHandler) HandleRequest(w http.ResponseWriter, r *htt
 							if h.OnBatchSync != nil {
 								h.OnBatchSync(batch, currentCall)
 							}
-							if len(batch) == 1 && h.OnIndividualSync != nil {
-								h.OnIndividualSync(batch[0], currentCall)
+							if h.OnIndividualSync != nil {
+								for _, uid := range batch {
+									h.OnIndividualSync(uid, currentCall)
+								}
 							}
 						}
 					}
@@ -162,7 +163,7 @@ func (h *SelfReferentialSyncHandler) HandleRequest(w http.ResponseWriter, r *htt
 
 // GetSyncMessageCount returns the current count of sync messages received
 func (h *SelfReferentialSyncHandler) GetSyncMessageCount() int32 {
-	return atomic.LoadInt32(h.syncMessageCount)
+	return h.syncMessageCount.Load()
 }
 
 // EnsureCleanState ensures a clean test state by removing all shared channels, remote clusters,

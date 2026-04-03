@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import SystemRolePermissionDropdown from './system_role_permission_dropdown';
 import {readAccess} from './types';
@@ -20,21 +21,23 @@ describe('admin_console/system_role_permission_dropdown', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <SystemRolePermissionDropdown
                 {...props}
-            />);
+            />,
+        );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with isDisabledTrue', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <SystemRolePermissionDropdown
                 {...props}
                 isDisabled={true}
-            />);
+            />,
+        );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });
