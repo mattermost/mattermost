@@ -11,6 +11,7 @@ import type {UserThread} from '@mattermost/types/threads';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import ChannelBanner from 'components/channel_banner/channel_banner';
 import deferComponentRender from 'components/deferComponentRender';
 import FileUploadOverlay from 'components/file_upload_overlay';
 import {DropOverlayIdThreads} from 'components/file_upload_overlay/file_upload_overlay';
@@ -20,7 +21,6 @@ import WebSocketClient from 'client/web_websocket_client';
 
 import type {FakePost} from 'types/store/rhs';
 
-import ChannelBanner from 'components/channel_banner/channel_banner';
 import ThreadViewerVirtualized from '../virtualized_thread_viewer';
 
 import './thread_viewer.scss';
