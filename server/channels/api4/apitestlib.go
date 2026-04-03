@@ -202,12 +202,6 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, sqlSettings *model.SqlS
 
 		*cfg.TeamSettings.EnableOpenServer = true
 
-		// Disable strict password requirements for test
-		*cfg.PasswordSettings.Lowercase = false
-		*cfg.PasswordSettings.Uppercase = false
-		*cfg.PasswordSettings.Symbol = false
-		*cfg.PasswordSettings.Number = false
-
 		*cfg.ServiceSettings.ListenAddress = "localhost:0"
 	})
 

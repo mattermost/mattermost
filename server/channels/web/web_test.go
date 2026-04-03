@@ -115,18 +115,6 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool, options []app.Option
 	require.NoError(tb, err)
 	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 
-	// Disable strict password requirements for test
-	a.UpdateConfig(func(cfg *model.Config) {
-		*cfg.PasswordSettings.MinimumLength = model.PasswordMinimumLength
-		if model.FIPSEnabled {
-			*cfg.PasswordSettings.MinimumLength = model.PasswordFIPSMinimumLength
-		}
-		*cfg.PasswordSettings.Lowercase = false
-		*cfg.PasswordSettings.Uppercase = false
-		*cfg.PasswordSettings.Symbol = false
-		*cfg.PasswordSettings.Number = false
-	})
-
 	web := New(s)
 	URL = fmt.Sprintf("http://localhost:%v", s.ListenAddr.Port)
 	apiClient = model.NewAPIv4Client(URL)

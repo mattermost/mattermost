@@ -168,18 +168,6 @@ func setupTestHelper(dbStore store.Store, sqlStore *sqlstore.SqlStore, sqlSettin
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
 
-	// Disable strict password requirements for test
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.PasswordSettings.MinimumLength = model.PasswordMinimumLength
-		if model.FIPSEnabled {
-			*cfg.PasswordSettings.MinimumLength = model.PasswordFIPSMinimumLength
-		}
-		*cfg.PasswordSettings.Lowercase = false
-		*cfg.PasswordSettings.Uppercase = false
-		*cfg.PasswordSettings.Symbol = false
-		*cfg.PasswordSettings.Number = false
-	})
-
 	tb.Cleanup(func() {
 		if th.IncludeCacheLayer {
 			// Clean all the caches

@@ -203,18 +203,6 @@ func setupTestHelper(dbStore store.Store, dbSettings *model.SqlSettings, enterpr
 		*cfg.TeamSettings.EnableOpenServer = true
 	})
 
-	// Disable strict password requirements for test
-	th.Service.UpdateConfig(func(cfg *model.Config) {
-		*cfg.PasswordSettings.MinimumLength = model.PasswordMinimumLength
-		if model.FIPSEnabled {
-			*cfg.PasswordSettings.MinimumLength = model.PasswordFIPSMinimumLength
-		}
-		*cfg.PasswordSettings.Lowercase = false
-		*cfg.PasswordSettings.Uppercase = false
-		*cfg.PasswordSettings.Symbol = false
-		*cfg.PasswordSettings.Number = false
-	})
-
 	if enterprise {
 		th.Service.SetLicense(model.NewTestLicense())
 	} else {

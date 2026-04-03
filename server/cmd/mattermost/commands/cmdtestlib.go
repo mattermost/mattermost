@@ -94,16 +94,6 @@ func (h *testHelper) SetConfig(config *model.Config) {
 		config.SqlSettings = *mainHelper.GetSQLSettings()
 	}
 
-	// Disable strict password requirements for test
-	*config.PasswordSettings.MinimumLength = model.PasswordMinimumLength
-	if model.FIPSEnabled {
-		*config.PasswordSettings.MinimumLength = model.PasswordFIPSMinimumLength
-	}
-	*config.PasswordSettings.Lowercase = false
-	*config.PasswordSettings.Uppercase = false
-	*config.PasswordSettings.Symbol = false
-	*config.PasswordSettings.Number = false
-
 	h.config = config
 
 	buf, err := json.Marshal(config)

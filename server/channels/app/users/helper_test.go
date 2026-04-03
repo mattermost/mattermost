@@ -59,15 +59,6 @@ func setupTestHelper(s store.Store, _ bool, tb testing.TB) *TestHelper {
 	*config.TeamSettings.MaxUsersPerTeam = 50
 	*config.RateLimitSettings.Enable = false
 	*config.TeamSettings.EnableOpenServer = true
-	// Disable strict password requirements for test
-	*config.PasswordSettings.MinimumLength = model.PasswordMinimumLength
-	if model.FIPSEnabled {
-		*config.PasswordSettings.MinimumLength = model.PasswordFIPSMinimumLength
-	}
-	*config.PasswordSettings.Lowercase = false
-	*config.PasswordSettings.Uppercase = false
-	*config.PasswordSettings.Symbol = false
-	*config.PasswordSettings.Number = false
 	_, _, err = configStore.Set(config)
 	require.NoError(tb, err)
 
