@@ -95,7 +95,10 @@ func (h *testHelper) SetConfig(config *model.Config) {
 	}
 
 	// Disable strict password requirements for test
-	*config.PasswordSettings.MinimumLength = 5
+	*config.PasswordSettings.MinimumLength = model.PasswordMinimumLength
+	if model.FIPSEnabled {
+		*config.PasswordSettings.MinimumLength = model.PasswordFIPSMinimumLength
+	}
 	*config.PasswordSettings.Lowercase = false
 	*config.PasswordSettings.Uppercase = false
 	*config.PasswordSettings.Symbol = false
