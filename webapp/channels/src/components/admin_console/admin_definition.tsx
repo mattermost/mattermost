@@ -2935,7 +2935,9 @@ const AdminDefinition: AdminDefinitionType = {
                 isHidden: it.any(
                     it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
                     it.not(it.configIsTrue('FeatureFlags', 'ClassificationMarkings')),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.CLASSIFICATION_MARKINGS)),
                 ),
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CLASSIFICATION_MARKINGS)),
                 schema: {
                     id: 'ClassificationMarkings',
                     component: ClassificationMarkings,

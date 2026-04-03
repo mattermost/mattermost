@@ -238,7 +238,7 @@ export default function ClassificationMarkings() {
             if (enabled && !initialEnabled) {
                 // Create new field
                 const options = levels.map((level) => ({
-                    id: '',
+                    id: level.id || '',
                     name: level.name,
                     color: level.color,
                 }));

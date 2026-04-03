@@ -283,6 +283,9 @@ var PermissionSysconsoleWriteSiteNotifications *Permission
 var PermissionSysconsoleReadSiteAnnouncementBanner *Permission
 var PermissionSysconsoleWriteSiteAnnouncementBanner *Permission
 
+var PermissionSysconsoleReadSiteClassificationMarkings *Permission
+var PermissionSysconsoleWriteSiteClassificationMarkings *Permission
+
 var PermissionSysconsoleReadSiteEmoji *Permission
 var PermissionSysconsoleWriteSiteEmoji *Permission
 
@@ -1785,6 +1788,18 @@ func initializePermissions() {
 		"",
 		PermissionScopeSystem,
 	}
+	PermissionSysconsoleReadSiteClassificationMarkings = &Permission{
+		"sysconsole_read_site_classification_markings",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PermissionSysconsoleWriteSiteClassificationMarkings = &Permission{
+		"sysconsole_write_site_classification_markings",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
 	PermissionSysconsoleReadSiteEmoji = &Permission{
 		"sysconsole_read_site_emoji",
 		"",
@@ -2359,6 +2374,7 @@ func initializePermissions() {
 		PermissionSysconsoleReadSiteUsersAndTeams,
 		PermissionSysconsoleReadSiteNotifications,
 		PermissionSysconsoleReadSiteAnnouncementBanner,
+		PermissionSysconsoleReadSiteClassificationMarkings,
 		PermissionSysconsoleReadSiteEmoji,
 		PermissionSysconsoleReadSitePosts,
 		PermissionSysconsoleReadSiteFileSharingAndDownloads,
@@ -2418,6 +2434,7 @@ func initializePermissions() {
 		PermissionSysconsoleWriteSiteUsersAndTeams,
 		PermissionSysconsoleWriteSiteNotifications,
 		PermissionSysconsoleWriteSiteAnnouncementBanner,
+		PermissionSysconsoleWriteSiteClassificationMarkings,
 		PermissionSysconsoleWriteSiteEmoji,
 		PermissionSysconsoleWriteSitePosts,
 		PermissionSysconsoleWriteSiteFileSharingAndDownloads,
