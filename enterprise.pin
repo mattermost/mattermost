@@ -1,0 +1,3 @@
+# Enterprise commit this server branch is tested against.
+# Updated via: make bump-enterprise
+f76c6e9a4ab25ba8e103ef82ea66b13cee089282
