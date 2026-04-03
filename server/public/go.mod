@@ -18,7 +18,6 @@ require (
 	github.com/mattermost/gosaml2 v0.10.0
 	github.com/mattermost/ldap v0.0.0-20231116144001-0f480c025956
 	github.com/mattermost/logr/v2 v2.0.22
-	github.com/mattermost/mattermost/server/v8 v8.0.0-20260327201152-fd2dd1c6188c
 	github.com/nicksnyder/go-i18n/v2 v2.6.1
 	github.com/pborman/uuid v1.2.1
 	github.com/pkg/errors v0.9.1
