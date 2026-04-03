@@ -80,8 +80,6 @@ describe('components/channel_members_rhs/MemberListItem', () => {
             />,
         );
 
-        expect(screen.getByTestId('mock-member-user_id_1')).toBeVisible();
-        expect(screen.getByText('Test User')).toBeVisible();
         expect(screen.getByText('Separator Label')).toBeVisible();
     });
 

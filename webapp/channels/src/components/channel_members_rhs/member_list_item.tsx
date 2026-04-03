@@ -63,6 +63,4 @@ const MemberListItem = memo(({index, style, data}: ListChildComponentProps<ItemD
     return null;
 });
 
-// MemberListItem.displayName = 'MemberListItem';
-
 export default MemberListItem;
