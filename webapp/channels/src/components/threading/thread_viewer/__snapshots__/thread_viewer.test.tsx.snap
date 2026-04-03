@@ -5,6 +5,9 @@ exports[`components/threading/ThreadViewer should match snapshot 1`] = `
   <div
     className="ThreadViewer"
   >
+    <ChannelBanner
+      channelId="channel_id"
+    />
     <div
       className="post-right-comments-container"
     >
