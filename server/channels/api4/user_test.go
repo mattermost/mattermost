@@ -4428,10 +4428,11 @@ func TestLogin(t *testing.T) {
 		botUser, _, err := th.SystemAdminClient.GetUser(context.Background(), bot.UserId, "")
 		require.NoError(t, err)
 
-		_, err = th.SystemAdminClient.UpdateUserPassword(context.Background(), bot.UserId, "", "password")
+		botPassword := model.NewRandomPassword()
+		_, err = th.SystemAdminClient.UpdateUserPassword(context.Background(), bot.UserId, "", botPassword)
 		require.NoError(t, err)
 
-		_, _, err = th.Client.Login(context.Background(), botUser.Email, "password")
+		_, _, err = th.Client.Login(context.Background(), botUser.Email, botPassword)
 		CheckErrorID(t, err, "api.user.login.bot_login_forbidden.app_error")
 	})
 

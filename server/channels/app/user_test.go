@@ -1516,7 +1516,7 @@ func TestPasswordRecovery(t *testing.T) {
 		assert.Equal(t, th.BasicUser.Id, tokenData.UserID)
 		assert.Equal(t, th.BasicUser.Email, tokenData.Email)
 
-		err = th.App.ResetPasswordFromToken(th.Context, token.Token, "abcdefgh")
+		err = th.App.ResetPasswordFromToken(th.Context, token.Token, model.NewRandomPassword())
 		assert.Nil(t, err)
 	})
 
@@ -1532,7 +1532,7 @@ func TestPasswordRecovery(t *testing.T) {
 		_, err = th.App.UpdateUser(th.Context, th.BasicUser, false)
 		assert.Nil(t, err)
 
-		err = th.App.ResetPasswordFromToken(th.Context, token.Token, "abcdefgh")
+		err = th.App.ResetPasswordFromToken(th.Context, token.Token, model.NewRandomPassword())
 		assert.NotNil(t, err)
 	})
 
@@ -1540,7 +1540,7 @@ func TestPasswordRecovery(t *testing.T) {
 		token, err := th.App.CreatePasswordRecoveryToken(th.Context, th.BasicUser.Id, th.BasicUser.Email)
 		assert.Nil(t, err)
 
-		err = th.App.resetPasswordFromToken(th.Context, token.Token, "abcdefgh", model.GetMillis())
+		err = th.App.resetPasswordFromToken(th.Context, token.Token, model.NewRandomPassword(), model.GetMillis())
 		assert.Nil(t, err)
 	})
 
@@ -1548,7 +1548,7 @@ func TestPasswordRecovery(t *testing.T) {
 		token, err := th.App.CreatePasswordRecoveryToken(th.Context, th.BasicUser.Id, th.BasicUser.Email)
 		assert.Nil(t, err)
 
-		err = th.App.resetPasswordFromToken(th.Context, token.Token, "abcdefgh", model.GetMillisForTime(time.Now().Add(25*time.Hour)))
+		err = th.App.resetPasswordFromToken(th.Context, token.Token, model.NewRandomPassword(), model.GetMillisForTime(time.Now().Add(25*time.Hour)))
 		assert.NotNil(t, err)
 	})
 }
