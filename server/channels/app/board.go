@@ -30,8 +30,11 @@ func (a *App) CreateBoardChannel(rctx request.CTX, channel *model.Channel) (*mod
 		return nil, model.NewAppError("CreateBoardChannel", "app.channel.create_board_channel.no_team.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	// Trim display name
+	// Validate display name
 	channel.DisplayName = strings.TrimSpace(channel.DisplayName)
+	if channel.DisplayName == "" {
+		return nil, model.NewAppError("CreateBoardChannel", "app.channel.create_board_channel.no_display_name.app_error", nil, "", http.StatusBadRequest)
+	}
 
 	// Look up boards property fields by name
 	boardsGroup, err := a.Srv().PropertyService().GetPropertyGroup(model.BoardsPropertyGroupName)

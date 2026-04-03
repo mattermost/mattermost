@@ -111,6 +111,38 @@ func TestCreateBoard(t *testing.T) {
 		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
 	})
 
+	t.Run("rejected with empty display name", func(t *testing.T) {
+		board := &model.Channel{
+			DisplayName: "",
+			Name:        GenerateTestChannelName(),
+			Type:        model.ChannelTypeOpenBoard,
+			TeamId:      th.BasicTeam.Id,
+		}
+
+		boardJSON, err := json.Marshal(board)
+		require.NoError(t, err)
+
+		resp, err := client.DoAPIPost(context.Background(), "/boards", string(boardJSON))
+		require.Error(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("rejected with whitespace-only display name", func(t *testing.T) {
+		board := &model.Channel{
+			DisplayName: "   ",
+			Name:        GenerateTestChannelName(),
+			Type:        model.ChannelTypeOpenBoard,
+			TeamId:      th.BasicTeam.Id,
+		}
+
+		boardJSON, err := json.Marshal(board)
+		require.NoError(t, err)
+
+		resp, err := client.DoAPIPost(context.Background(), "/boards", string(boardJSON))
+		require.Error(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
 	t.Run("board not in sidebar", func(t *testing.T) {
 		board := &model.Channel{
 			DisplayName: "Sidebar Check Board",

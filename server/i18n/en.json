@@ -5279,6 +5279,10 @@
     "translation": "The maximum number of channels per team has been reached."
   },
   {
+    "id": "app.channel.create_board_channel.no_display_name.app_error",
+    "translation": "Board display name must not be empty."
+  },
+  {
     "id": "app.channel.create_board_channel.no_team.app_error",
     "translation": "Board channels must belong to a team."
   },
