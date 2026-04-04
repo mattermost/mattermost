@@ -85,6 +85,7 @@ export default function TeamPolicyEditor({
     const [channelChanges, setChannelChanges] = useState<ChannelChanges>({removed: {}, added: {}, removedCount: 0});
     const [policyActiveStatusChanges, setPolicyActiveStatusChanges] = useState<PolicyActiveStatus[]>([]);
     const [channelsCount, setChannelsCount] = useState(0);
+    const [savedChannelIds, setSavedChannelIds] = useState<string[]>([]);
     const [addChannelOpen, setAddChannelOpen] = useState(false);
 
     // Attribute state
@@ -134,8 +135,9 @@ export default function TeamPolicyEditor({
                 setOriginalExpression(result.data.rules?.[0]?.expression || '');
             }
         });
-        actions.searchChannels(policyId, '', {per_page: DEFAULT_PAGE_SIZE}).then((result) => {
+        actions.searchChannels(policyId, '', {per_page: 1000}).then((result) => {
             setChannelsCount(result.data?.total_count || 0);
+            setSavedChannelIds((result.data?.channels || []).map((ch: ChannelWithTeamData) => ch.id));
         });
     }, [policyId]);// eslint-disable-line react-hooks/exhaustive-deps
 
@@ -551,7 +553,7 @@ export default function TeamPolicyEditor({
                     onModalDismissed={() => setAddChannelOpen(false)}
                     onChannelsSelected={addToNewChannels}
                     groupID=''
-                    alreadySelected={Object.values(channelChanges.added).map((ch) => ch.id)}
+                    alreadySelected={[...savedChannelIds, ...Object.keys(channelChanges.added)].filter((id) => !channelChanges.removed[id])}
                     excludeTypes={['O', 'D', 'G']}
                     excludeGroupConstrained={true}
                     teamId={teamId}
