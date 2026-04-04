@@ -35,7 +35,7 @@ for (const {accessor, roleId} of roleCases) {
             await expect(modal).toBeVisible();
 
             // Search for the test user
-            const searchInput = modal.getByPlaceholder('Search for people');
+            const searchInput = modal.getByRole('textbox', {name: 'Search for people'});
             await searchInput.fill(user.username);
 
             // Wait for search results and click the user row
