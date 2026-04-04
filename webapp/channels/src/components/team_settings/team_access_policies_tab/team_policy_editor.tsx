@@ -31,7 +31,6 @@ import './team_policy_editor.scss';
 
 const SAVE_RESULT_SAVED = 'saved' as const;
 const SAVE_RESULT_ERROR = 'error' as const;
-const DEFAULT_PAGE_SIZE = 10;
 
 interface ChannelChanges {
     removed: Record<string, ChannelWithTeamData>;
@@ -85,6 +84,7 @@ export default function TeamPolicyEditor({
     const [channelChanges, setChannelChanges] = useState<ChannelChanges>({removed: {}, added: {}, removedCount: 0});
     const [policyActiveStatusChanges, setPolicyActiveStatusChanges] = useState<PolicyActiveStatus[]>([]);
     const [channelsCount, setChannelsCount] = useState(0);
+    const [savedChannelIds, setSavedChannelIds] = useState<string[]>([]);
     const [addChannelOpen, setAddChannelOpen] = useState(false);
 
     // Attribute state
@@ -97,6 +97,7 @@ export default function TeamPolicyEditor({
     const [saving, setSaving] = useState(false);
     const [showConfirmationModal, setShowConfirmationModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [backClicked, setBackClicked] = useState(false);
 
     const noUsableAttributes = attributesLoaded && !hasUsableAttributes(autocompleteResult, accessControlSettings.EnableUserManagedAttributes);
 
@@ -133,8 +134,9 @@ export default function TeamPolicyEditor({
                 setOriginalExpression(result.data.rules?.[0]?.expression || '');
             }
         });
-        actions.searchChannels(policyId, '', {per_page: DEFAULT_PAGE_SIZE}).then((result) => {
+        actions.searchChannels(policyId, '', {per_page: 1000}).then((result) => {
             setChannelsCount(result.data?.total_count || 0);
+            setSavedChannelIds((result.data?.channels || []).map((ch: ChannelWithTeamData) => ch.id));
         });
     }, [policyId]);// eslint-disable-line react-hooks/exhaustive-deps
 
@@ -337,7 +339,11 @@ export default function TeamPolicyEditor({
         setPolicyActiveStatusChanges([]);
         setFormError('');
         setSaveChangesPanelState(undefined);
-    }, [originalName, originalExpression]);
+        if (backClicked) {
+            onNavigateBack();
+        }
+        setBackClicked(false);
+    }, [originalName, originalExpression, backClicked, onNavigateBack]);
 
     const handleClose = useCallback(() => {
         setSaveChangesPanelState(undefined);
@@ -377,7 +383,14 @@ export default function TeamPolicyEditor({
             <div className='TeamPolicyEditor__header'>
                 <button
                     className='style--none TeamPolicyEditor__back-btn'
-                    onClick={() => onNavigateBack()}
+                    onClick={() => {
+                        if (hasUnsavedChanges) {
+                            setBackClicked(true);
+                            setTimeout(() => setBackClicked(false), 3000);
+                        } else {
+                            onNavigateBack();
+                        }
+                    }}
                 >
                     <i className='icon icon-arrow-left'/>
                     <FormattedMessage
@@ -539,7 +552,7 @@ export default function TeamPolicyEditor({
                     onModalDismissed={() => setAddChannelOpen(false)}
                     onChannelsSelected={addToNewChannels}
                     groupID=''
-                    alreadySelected={Object.values(channelChanges.added).map((ch) => ch.id)}
+                    alreadySelected={[...savedChannelIds, ...Object.keys(channelChanges.added)].filter((id) => !channelChanges.removed[id])}
                     excludeTypes={['O', 'D', 'G']}
                     excludeGroupConstrained={true}
                     teamId={teamId}
@@ -599,18 +612,15 @@ export default function TeamPolicyEditor({
                 </GenericModal>
             )}
 
-            {shouldShowPanel && (
+            {(shouldShowPanel || backClicked) && (
                 <SaveChangesPanel
                     handleSubmit={handleSaveChanges}
                     handleCancel={handleCancel}
                     handleClose={handleClose}
-                    tabChangeError={hasErrors || showTabSwitchError || (!hasChannels() && Boolean(policyId))}
-                    state={hasErrors || showTabSwitchError || (!hasChannels() && Boolean(policyId)) ? SAVE_RESULT_ERROR : saveChangesPanelState}
+                    tabChangeError={backClicked || hasErrors || showTabSwitchError || (!hasChannels() && Boolean(policyId))}
+                    state={backClicked || hasErrors || showTabSwitchError || (!hasChannels() && Boolean(policyId)) ? SAVE_RESULT_ERROR : saveChangesPanelState}
                     customErrorMessage={!hasChannels() && policyId ? formatMessage({id: 'team_settings.policy_editor.error.no_channels_delete_hint', defaultMessage: 'Remove all channels to delete, or undo to keep the policy.'}) : (formError || undefined)}
-                    cancelButtonText={formatMessage({
-                        id: 'team_settings.policy_editor.undo',
-                        defaultMessage: 'Undo',
-                    })}
+                    cancelButtonText={formatMessage({id: 'team_settings.policy_editor.undo', defaultMessage: 'Undo'})}
                 />
             )}
         </div>
