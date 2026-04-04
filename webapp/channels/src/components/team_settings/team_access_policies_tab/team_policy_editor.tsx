@@ -31,7 +31,6 @@ import './team_policy_editor.scss';
 
 const SAVE_RESULT_SAVED = 'saved' as const;
 const SAVE_RESULT_ERROR = 'error' as const;
-const DEFAULT_PAGE_SIZE = 10;
 
 interface ChannelChanges {
     removed: Record<string, ChannelWithTeamData>;
