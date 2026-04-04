@@ -120,7 +120,7 @@ func (th *TestHelper) CreateUser(tb testing.TB) *model.User {
 		Email:         "success+" + id + "@simulator.amazonses.com",
 		Username:      "un_" + id,
 		Nickname:      "nn_" + id,
-		Password:      "Password1",
+		Password:      model.NewRandomPassword(),
 		EmailVerified: true,
 	}
 	user, err := th.dbStore.User().Save(th.Context, user)

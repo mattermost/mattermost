@@ -33,6 +33,12 @@ func TestRandomString(t *testing.T) {
 	}
 }
 
+func BenchmarkNewRandomPassword(b *testing.B) {
+	for range b.N {
+		NewRandomPassword()
+	}
+}
+
 func TestGetMillisForTime(t *testing.T) {
 	thisTimeMillis := int64(1471219200000)
 	thisTime := time.Date(2016, time.August, 15, 0, 0, 0, 0, time.UTC)

@@ -76,7 +76,7 @@ func TestCheckPasswordAndAllCriteria(t *testing.T) {
 		*cfg.ServiceSettings.EnableMultifactorAuthentication = true
 	})
 
-	password := "newpassword1"
+	password := model.NewRandomPassword()
 	appErr := th.App.UpdatePassword(th.Context, th.BasicUser, password)
 	require.Nil(t, appErr)
 
@@ -368,7 +368,7 @@ func TestCheckLdapUserPasswordConcurrency(t *testing.T) {
 func TestCheckUserPassword(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
-	pwd := "testPassword123$"
+	pwd := model.NewRandomPassword()
 	pwdBcryptBytes, err := bcrypt.GenerateFromPassword([]byte(pwd), 10)
 	require.NoError(t, err)
 	pwdBcrypt := string(pwdBcryptBytes)
@@ -500,7 +500,7 @@ func TestCheckUserPassword(t *testing.T) {
 func TestMigratePassword(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
-	pwd := "testPassword123$"
+	pwd := model.NewRandomPassword()
 	pwdBcryptBytes, err := bcrypt.GenerateFromPassword([]byte(pwd), 10)
 	require.NoError(t, err)
 	pwdBcrypt := string(pwdBcryptBytes)

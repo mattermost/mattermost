@@ -172,10 +172,10 @@ func (th *TestHelper) InitBasic(tb testing.TB) *TestHelper {
 	tb.Helper()
 
 	var appErr *model.AppError
-	th.SystemAdminUser, appErr = th.App.CreateUser(th.Context, &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", EmailVerified: true, Roles: model.SystemAdminRoleId})
+	th.SystemAdminUser, appErr = th.App.CreateUser(th.Context, &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: model.NewRandomPassword(), EmailVerified: true, Roles: model.SystemAdminRoleId})
 	require.Nil(tb, appErr)
 
-	th.BasicUser, appErr = th.App.CreateUser(th.Context, &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", EmailVerified: true, Roles: model.SystemUserRoleId})
+	th.BasicUser, appErr = th.App.CreateUser(th.Context, &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: model.NewRandomPassword(), EmailVerified: true, Roles: model.SystemUserRoleId})
 	require.Nil(tb, appErr)
 
 	th.BasicTeam, appErr = th.App.CreateTeam(th.Context, &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: th.BasicUser.Email, Type: model.TeamOpen})

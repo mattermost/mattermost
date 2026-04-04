@@ -1014,7 +1014,7 @@ func TestImageProxySettingsIsValid(t *testing.T) {
 			Enable:                  true,
 			ImageProxyType:          ImageProxyTypeAtmosCamo,
 			RemoteImageProxyURL:     "someurl",
-			RemoteImageProxyOptions: "someoptions",
+			RemoteImageProxyOptions: "7e5f3fab20b94782b43cdb022a66985ef28ba355df2c5d5da3c9a05e4b697bac",
 			ExpectError:             false,
 		},
 		{
@@ -1032,6 +1032,14 @@ func TestImageProxySettingsIsValid(t *testing.T) {
 			RemoteImageProxyURL:     "someurl",
 			RemoteImageProxyOptions: "",
 			ExpectError:             true,
+		},
+		{
+			Name:                    "atmos/camo, short options under FIPS",
+			Enable:                  true,
+			ImageProxyType:          ImageProxyTypeAtmosCamo,
+			RemoteImageProxyURL:     "someurl",
+			RemoteImageProxyOptions: "foo",
+			ExpectError:             FIPSEnabled,
 		},
 	} {
 		t.Run(test.Name, func(t *testing.T) {

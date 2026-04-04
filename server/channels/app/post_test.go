@@ -3150,7 +3150,7 @@ func TestFillInPostProps(t *testing.T) {
 			Email:         "success+" + id + "@simulator.amazonses.com",
 			Username:      "un_" + id,
 			Nickname:      "nn_" + id,
-			Password:      "Password1",
+			Password:      model.NewRandomPassword(),
 			EmailVerified: true,
 		}
 		guest, err := th.App.CreateGuest(th.Context, guest)
@@ -3184,7 +3184,7 @@ func TestFillInPostProps(t *testing.T) {
 			Email:         "success+" + id + "@simulator.amazonses.com",
 			Username:      "un_" + id,
 			Nickname:      "nn_" + id,
-			Password:      "Password1",
+			Password:      model.NewRandomPassword(),
 			EmailVerified: true,
 		}
 		guest, err := th.App.CreateGuest(th.Context, guest)
