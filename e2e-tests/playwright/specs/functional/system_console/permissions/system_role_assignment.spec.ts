@@ -63,7 +63,10 @@ for (const {accessor, roleId} of roleCases) {
             await systemConsolePage.delegatedGranularAdministration.systemRoles.toBeVisible();
 
             // Verify the user persists in the Assigned People panel
-            const persistedUserRow = systemConsolePage.delegatedGranularAdministration.systemRoles.assignedPeoplePanel.getUserRowByUsername(user.username);
+            const persistedUserRow =
+                systemConsolePage.delegatedGranularAdministration.systemRoles.assignedPeoplePanel.getUserRowByUsername(
+                    user.username,
+                );
             await persistedUserRow.toBeVisible();
 
             // Also verify via API that the user has the role
