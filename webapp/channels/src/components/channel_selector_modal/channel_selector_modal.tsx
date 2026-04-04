@@ -64,18 +64,30 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
         this.loadInitialChannels();
     }
 
-    loadInitialChannels() {
+    buildSearchOpts(): ChannelSearchOpts {
+        const opts: ChannelSearchOpts = {};
         if (this.props.teamId) {
-            this.props.actions.searchAllChannels('', {team_ids: [this.props.teamId], nonAdminSearch: true}).then((response) => {
-                this.setState({channels: (response.data || []).sort(compareChannels)});
-                this.setChannelsLoadingState(false);
-            });
+            opts.team_ids = [this.props.teamId];
+            opts.nonAdminSearch = true;
         } else {
-            this.props.actions.loadChannels(0, CHANNELS_PER_PAGE + 1, this.props.groupID, false, this.props.excludePolicyConstrained, this.props.excludeAccessControlPolicyEnforced).then((response) => {
-                this.setState({channels: (response.data || []).sort(compareChannels)});
-                this.setChannelsLoadingState(false);
-            });
+            opts.not_associated_to_group = this.props.groupID;
+            opts.exclude_access_control_policy_enforced = this.props.excludeAccessControlPolicyEnforced;
         }
+        const wantsPublic = !this.props.excludeTypes?.includes('O');
+        const wantsPrivate = !this.props.excludeTypes?.includes('P');
+        if (wantsPublic && !wantsPrivate) {
+            opts.public = true;
+        } else if (wantsPrivate && !wantsPublic) {
+            opts.private = true;
+        }
+        return opts;
+    }
+
+    loadInitialChannels() {
+        this.props.actions.searchAllChannels('', this.buildSearchOpts()).then((response) => {
+            this.setState({channels: (response.data || []).sort(compareChannels)});
+            this.setChannelsLoadingState(false);
+        });
     }
 
     componentDidUpdate(prevProps: Props) {
@@ -89,12 +101,7 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
                 this.searchTimeoutId = window.setTimeout(
                     async () => {
                         this.setChannelsLoadingState(true);
-                        const opts: ChannelSearchOpts = {not_associated_to_group: this.props.groupID};
-                        if (this.props.teamId) {
-                            opts.team_ids = [this.props.teamId];
-                            opts.nonAdminSearch = true;
-                        }
-                        const response = await this.props.actions.searchAllChannels(searchTerm, opts);
+                        const response = await this.props.actions.searchAllChannels(searchTerm, this.buildSearchOpts());
                         this.setState({channels: response.data!});
                         this.setChannelsLoadingState(false);
                     },
