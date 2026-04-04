@@ -34,9 +34,10 @@ for (const {accessor, roleId} of roleCases) {
             const modal = systemConsolePage.page.locator('#addUsersToRoleModal');
             await expect(modal).toBeVisible();
 
-            // Search for the test user
-            const searchInput = modal.getByRole('textbox', {name: 'Search for people'});
-            await searchInput.fill(user.username);
+            // Search for the test user using react-select's combobox input
+            const searchInput = modal.getByRole('combobox', {name: 'Search for people'});
+            await searchInput.click();
+            await searchInput.pressSequentially(user.username, {delay: 50});
 
             // Wait for search results and click the user row
             const userRow = modal.locator('.more-modal__row').filter({hasText: user.username});
@@ -44,8 +45,7 @@ for (const {accessor, roleId} of roleCases) {
             await userRow.click();
 
             // Click the Add button in the modal
-            const addButton = modal.locator('button').filter({hasText: 'Add'});
-            await addButton.click();
+            await modal.locator('#saveItems').click();
 
             // The user should now appear in the Assigned People panel
             const assignedPanel = systemConsolePage.delegatedGranularAdministration.systemRoles.assignedPeoplePanel;
