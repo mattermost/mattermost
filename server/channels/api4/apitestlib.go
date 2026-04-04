@@ -755,6 +755,7 @@ func (th *TestHelper) CreateGuestAndClient(tb testing.TB) (*model.User, *model.C
 	_, _, err := guestClient.Login(context.Background(), guest.Email, password)
 	require.NoError(tb, err)
 
+	guest.Password = password
 	return guest, guestClient
 }
 

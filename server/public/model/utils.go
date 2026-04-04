@@ -410,12 +410,12 @@ func NewRandomString(length int) string {
 // (uppercase, lowercase, number, special character) with a minimum length of 14.
 func NewRandomPassword() string {
 	const (
-		lowers   = "abcdefghijklmnopqrstuvwxyz"
-		uppers   = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-		digits   = "0123456789"
+		lowers   = LowercaseLetters
+		uppers   = UppercaseLetters
+		digits   = NUMBERS
 		specials = "!%^&*(),."
 		all      = lowers + uppers + digits + specials
-		minLen   = 14
+		minLen   = PasswordFIPSMinimumLength
 	)
 
 	// Read all randomness in one call for performance.

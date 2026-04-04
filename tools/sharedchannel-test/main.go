@@ -41,11 +41,16 @@ func main() {
 	flag.StringVar(&cfg.ServerDir, "server-dir", "", "Path to server directory (for managed mode)")
 	flag.BoolVar(&cfg.Manage, "manage", true, "Manage server lifecycle (build/start/stop)")
 	flag.StringVar(&cfg.AdminUser, "admin-user", "admin", "Admin username to create")
-	flag.StringVar(&cfg.AdminPass, "admin-pass", "Admin1234567890", "Admin password")
+	flag.StringVar(&cfg.AdminPass, "admin-pass", "", "Admin password (required)")
 	flag.Parse()
 
 	if cfg.LicensePath == "" {
 		fmt.Fprintln(os.Stderr, "error: --license is required")
+		flag.Usage()
+		os.Exit(1)
+	}
+	if cfg.AdminPass == "" {
+		fmt.Fprintln(os.Stderr, "error: --admin-pass is required")
 		flag.Usage()
 		os.Exit(1)
 	}
