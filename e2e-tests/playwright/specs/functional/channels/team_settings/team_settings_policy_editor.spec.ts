@@ -362,6 +362,54 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await teamSettings.close();
     });
 
+    test('MM-67594_11b Add channels modal excludes channels already assigned to the policy', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        const {adminClient, team} = await pw.initSetup();
+        await enableABACConfig(adminClient);
+        await ensureDepartmentAttribute(adminClient);
+
+        // # Create two channels and assign one to the policy via API
+        const assignedChannel = await createPrivateChannel(adminClient, team.id);
+        const unassignedChannel = await createPrivateChannel(adminClient, team.id);
+        const policy = await createParentPolicy(adminClient, `Duplicate Test ${Date.now()}`);
+        await assignChannelsToPolicy(adminClient, policy.id, [assignedChannel.id]);
+
+        const teamAdmin = await createTeamAdmin(adminClient, team.id);
+        await adminClient.addToChannel(teamAdmin.id, assignedChannel.id);
+        await adminClient.addToChannel(teamAdmin.id, unassignedChannel.id);
+
+        const {page} = await pw.testBrowser.login(teamAdmin);
+        const channelsPage = new ChannelsPage(page);
+        await channelsPage.goto(team.name);
+        await channelsPage.toBeVisible();
+
+        const teamSettings = await channelsPage.openTeamSettings();
+        await teamSettings.openAccessPoliciesTab();
+
+        // # Open the existing policy editor
+        await teamSettings.container.getByText(policy.name).click();
+        await expect(teamSettings.container.locator('#input_policyName')).toBeVisible({timeout: 10000});
+
+        // # Open Add channels modal
+        await teamSettings.container.getByRole('button', {name: /Add channels/}).click();
+        const channelModal = page.locator('.channel-selector-modal');
+        await channelModal.waitFor();
+        await expect(channelModal.locator('.more-modal__row').first()).toBeVisible({timeout: 10000});
+
+        // * Already assigned channel is NOT shown in the modal
+        await expect(
+            channelModal.locator('.more-modal__row').filter({hasText: assignedChannel.display_name}),
+        ).not.toBeVisible();
+
+        // * Unassigned channel IS shown in the modal
+        await expect(
+            channelModal.locator('.more-modal__row').filter({hasText: unassignedChannel.display_name}),
+        ).toBeVisible();
+
+        await page.keyboard.press('Escape');
+        await teamSettings.close();
+    });
+
     test('MM-67594_12 Success message shown after saving policy', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminClient, team} = await pw.initSetup();
