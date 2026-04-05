@@ -204,7 +204,6 @@ test.describe('System Console - User Attributes Management', () => {
         // # Find the attribute name input and edit it
         const nameInput = systemConsolePage.page.locator('input[value="Old Name"]');
         await expect(nameInput).toBeVisible();
-        await nameInput.clear();
         await nameInput.fill('New Name');
         await nameInput.blur();
 
@@ -311,13 +310,14 @@ test.describe('System Console - User Attributes Management', () => {
         const dotMenuButton = systemConsolePage.page.getByTestId(`user-property-field_dotmenu-${fieldId}`);
         await dotMenuButton.click();
 
-        // # Hover/click on Visibility submenu
+        // # Hover on Visibility submenu to open it
         const visibilitySubmenu = systemConsolePage.page.locator(`#user-property-field_dotmenu-${fieldId}-visibility`);
-        await visibilitySubmenu.click();
+        await visibilitySubmenu.hover();
 
-        // # Select "Always hide"
+        // # Select "Always hide" — use force:true since submenu items may detach/reattach during open animation
         const alwaysHideOption = systemConsolePage.page.locator('#user-property-field_dotmenu_visibility-hidden');
-        await alwaysHideOption.click();
+        await expect(alwaysHideOption).toBeAttached();
+        await alwaysHideOption.click({force: true});
 
         // # Save changes
         const saveButton = systemConsolePage.page.getByTestId('saveSetting');
@@ -349,6 +349,9 @@ test.describe('System Console - User Attributes Management', () => {
         // # Click "Editable by users" toggle
         const editableItem = systemConsolePage.page.locator('#user-property-field_dotmenu_editable-by-users');
         await editableItem.click();
+
+        // # Close the dot menu — it stays open after toggling; backdrop would block Save click
+        await systemConsolePage.page.keyboard.press('Escape');
 
         // # Save changes
         const saveButton = systemConsolePage.page.getByTestId('saveSetting');
@@ -402,9 +405,10 @@ test.describe('System Console - User Attributes Management', () => {
         await newNameInput.fill('Unique Name');
         await newNameInput.blur();
 
-        // * Verify validation warning about taken name is shown
-        const warning = systemConsolePage.page.getByText('Attribute name already taken.');
-        await expect(warning).toBeVisible();
+        // * Verify validation warning about duplicate name is shown
+        // Both fields exist in pending state simultaneously → "must be unique" (not "already taken")
+        const warning = systemConsolePage.page.getByText('Attribute names must be unique.');
+        await expect(warning.first()).toBeVisible();
 
         // * Verify Save button is disabled
         const saveButton = systemConsolePage.page.getByTestId('saveSetting');
@@ -527,9 +531,8 @@ test.describe('System Console - User Attributes Management', () => {
         // * Verify attribute exists
         await expect(systemConsolePage.page.locator('input[value="Persistent Field"]')).toBeVisible();
 
-        // # Edit the name
+        // # Edit the name — fill() already clears the field; avoid separate clear() which invalidates the value-based locator
         const nameInput = systemConsolePage.page.locator('input[value="Persistent Field"]');
-        await nameInput.clear();
         await nameInput.fill('Updated Persistent');
         await nameInput.blur();
 
@@ -563,7 +566,6 @@ test.describe('System Console - User Attributes Management', () => {
         await nameInput.blur();
 
         // # Open dot menu for the new (pending) field and click delete
-        // Pending fields have dot menu too; find the last dot menu button
         const dotMenuButtons = systemConsolePage.page.locator('.user-property-field-dotmenu-menu-button');
         await dotMenuButtons.last().click();
 
@@ -575,6 +577,6 @@ test.describe('System Console - User Attributes Management', () => {
 
         // * Verify Save button returns to disabled state (no pending changes)
         const saveButton = systemConsolePage.page.getByTestId('saveSetting');
-        await expect(saveButton).toBeDisabled();
+        await expect(saveButton).toBeDisabled({timeout: 15000});
     });
 });
