@@ -173,6 +173,13 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 		}
 
 		scs.NotifyChannelChanged(sc.ChannelId)
+
+		// Notify clients that shared channel remotes have been updated so the UI
+		// can refresh its cached remote names for this channel.
+		messageWs := model.NewWebSocketEvent(model.WebsocketEventSharedChannelRemoteUpdated, "", sc.ChannelId, "", nil, "")
+		messageWs.Add("channel_id", sc.ChannelId)
+		scs.app.Publish(messageWs)
+
 		scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("`%s` has been added to channel.", rc.DisplayName))
 
 		// Trigger membership sync via the normal sync pipeline (reads from ChannelMemberHistory)

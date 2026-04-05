@@ -272,6 +272,7 @@ info:
       - reaction_removed
       - response
       - role_updated
+      - shared_channel_remote_updated
       - status_change
       - typing
       - update_team
