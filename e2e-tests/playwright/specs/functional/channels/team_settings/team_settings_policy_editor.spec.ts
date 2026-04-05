@@ -460,10 +460,14 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await expect(channelModal.locator('.more-modal__row').first()).toBeVisible({timeout: 10000});
 
         // * Already assigned channel is NOT shown in the modal
-        await expect(channelModal.locator('.more-modal__row').filter({hasText: assignedChannel.display_name})).not.toBeVisible();
+        await expect(
+            channelModal.locator('.more-modal__row').filter({hasText: assignedChannel.display_name}),
+        ).not.toBeVisible();
 
         // * Unassigned channel IS shown in the modal
-        await expect(channelModal.locator('.more-modal__row').filter({hasText: unassignedChannel.display_name})).toBeVisible();
+        await expect(
+            channelModal.locator('.more-modal__row').filter({hasText: unassignedChannel.display_name}),
+        ).toBeVisible();
 
         await page.keyboard.press('Escape');
         await teamSettings.close();
