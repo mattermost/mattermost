@@ -4,7 +4,6 @@
 package app
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"strings"
@@ -121,7 +120,7 @@ func (a *App) CreateBoardChannel(rctx request.CTX, channel *model.Channel) (*mod
 	}
 
 	// Add creator as admin member
-	user, nErr := a.Srv().Store().User().Get(context.Background(), channel.CreatorId)
+	user, nErr := a.Srv().Store().User().Get(rctx.Context(), channel.CreatorId)
 	if nErr != nil {
 		return nil, model.NewAppError("CreateBoardChannel", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
