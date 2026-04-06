@@ -300,6 +300,7 @@ export function RewriteSubmenu({draftMessage, onMenuAction}: RewriteSubmenuProps
 export interface RewriteSubMenuHeaderProps {
     isProcessing: boolean;
     draftMessage: string;
+    originalMessage: string;
     prompt: string;
     setPrompt: (prompt: string) => void;
     selectedAgentId: string;
@@ -313,6 +314,7 @@ export interface RewriteSubMenuHeaderProps {
 export function RewriteSubMenuHeader({
     isProcessing,
     draftMessage,
+    originalMessage,
     prompt,
     setPrompt,
     selectedAgentId,
@@ -342,6 +344,11 @@ export function RewriteSubMenuHeader({
         placeholderText = formatMessage({
             id: 'texteditor.rewrite.create',
             defaultMessage: 'Create a new message...',
+        });
+    } else if (originalMessage) {
+        placeholderText = formatMessage({
+            id: 'texteditor.rewrite.nextPrompt',
+            defaultMessage: 'What would you like AI to do next?',
         });
     }
 

@@ -5,13 +5,16 @@ import MuiMenuList from '@mui/material/MenuList';
 import MuiPopover from '@mui/material/Popover';
 import classNames from 'classnames';
 import React, {useCallback, useMemo, useState} from 'react';
-import type {MouseEvent} from 'react';
+import type {KeyboardEvent, MouseEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {ChevronRightIcon, CreationOutlineIcon, PencilOutlineIcon} from '@mattermost/compass-icons/components';
 
 import * as Menu from 'components/menu';
+
+import Constants from 'utils/constants';
+import {isKeyPressed} from 'utils/keyboard';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
@@ -54,7 +57,7 @@ const AIActionsMenu = ({
         return items;
     }, [pluginItems]);
 
-    const hasItems = sortedItems.length > 0 || aiRewriteEnabled;
+    const hasItems = sortedItems.length > 0 || (aiRewriteEnabled && Boolean(rewriteMenuProps));
 
     const handleToggle = useCallback((open: boolean) => {
         setIsMenuOpen(open);
@@ -71,6 +74,20 @@ const AIActionsMenu = ({
         return (event: MouseEvent<HTMLLIElement>) => {
             setActiveSubmenu(submenuId);
             setSubmenuAnchorEl(event.currentTarget);
+        };
+    }, []);
+
+    const handleItemKeyDown = useCallback((submenuId: string) => {
+        return (event: KeyboardEvent<HTMLLIElement>) => {
+            if (
+                isKeyPressed(event, Constants.KeyCodes.ENTER) ||
+                isKeyPressed(event, Constants.KeyCodes.SPACE) ||
+                isKeyPressed(event, Constants.KeyCodes.RIGHT)
+            ) {
+                event.preventDefault();
+                setActiveSubmenu(submenuId);
+                setSubmenuAnchorEl(event.currentTarget);
+            }
         };
     }, []);
 
@@ -143,12 +160,14 @@ const AIActionsMenu = ({
                     <Menu.Item
                         key={item.id}
                         id={`ai-action-${item.id}`}
-                        role='menuitemradio'
-                        aria-checked={activeSubmenu === item.id}
+                        role='menuitem'
+                        aria-haspopup='menu'
+                        aria-expanded={activeSubmenu === item.id}
                         leadingElement={item.icon}
                         labels={<span>{item.text}</span>}
                         trailingElements={<ChevronRightIcon size={18}/>}
                         onMouseEnter={handleItemHover(item.id)}
+                        onKeyDown={handleItemKeyDown(item.id)}
                     />
                 ))}
                 {aiRewriteEnabled && rewriteMenuProps && sortedItems.length > 0 && (
@@ -157,8 +176,9 @@ const AIActionsMenu = ({
                 {aiRewriteEnabled && rewriteMenuProps && (
                     <Menu.Item
                         id='ai-action-rewrite'
-                        role='menuitemradio'
-                        aria-checked={activeSubmenu === '__rewrite__'}
+                        role='menuitem'
+                        aria-haspopup='menu'
+                        aria-expanded={activeSubmenu === '__rewrite__'}
                         leadingElement={<PencilOutlineIcon size={18}/>}
                         labels={(
                             <FormattedMessage
@@ -168,6 +188,7 @@ const AIActionsMenu = ({
                         )}
                         trailingElements={<ChevronRightIcon size={18}/>}
                         onMouseEnter={handleItemHover('__rewrite__')}
+                        onKeyDown={handleItemKeyDown('__rewrite__')}
                     />
                 )}
             </Menu.Container>
@@ -199,6 +220,7 @@ const AIActionsMenu = ({
                                 <RewriteSubMenuHeader
                                     isProcessing={rewriteMenuProps.isProcessing}
                                     draftMessage={rewriteMenuProps.draftMessage}
+                                    originalMessage={rewriteMenuProps.originalMessage}
                                     prompt={rewriteMenuProps.prompt}
                                     setPrompt={rewriteMenuProps.setPrompt}
                                     selectedAgentId={rewriteMenuProps.selectedAgentId}
