@@ -3,54 +3,52 @@
 
 import React from 'react';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import FollowButton from './follow_button';
 
-import Button from '../button';
-
 describe('components/threading/common/follow_button', () => {
-    test('should say follow', () => {
+    test('should say follow', async () => {
         const clickHandler = jest.fn();
 
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <FollowButton
                 isFollowing={false}
                 onClick={clickHandler}
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        expect(wrapper.find(Button).text()).toBe('Follow');
+        expect(screen.getByText('Follow')).toBeInTheDocument();
 
-        wrapper.find(Button).simulate('click');
+        await userEvent.click(screen.getByRole('button'));
         expect(clickHandler).toHaveBeenCalled();
     });
 
     test('should say following', () => {
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <FollowButton
                 isFollowing={true}
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        expect(wrapper.find(Button).text()).toBe('Following');
+        expect(screen.getByText('Following')).toBeInTheDocument();
     });
 
-    test('should fire click handler', () => {
+    test('should fire click handler', async () => {
         const clickHandler = jest.fn();
 
-        const wrapper = mountWithIntl(
+        renderWithContext(
             <FollowButton
                 isFollowing={false}
                 onClick={clickHandler}
             />,
         );
 
-        wrapper.find(Button).simulate('click');
+        await userEvent.click(screen.getByRole('button'));
         expect(clickHandler).toHaveBeenCalled();
     });
 });
