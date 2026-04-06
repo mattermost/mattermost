@@ -159,6 +159,14 @@ export default function ClassificationMarkings({disabled}: Props) {
         setEnabled(e.target.value === 'true');
     }, []);
 
+    const applyPreset = useCallback((newPresetId: string) => {
+        const preset = presets.find((p) => p.id === newPresetId);
+        if (preset) {
+            setPresetId(newPresetId);
+            setLevels(preset.levels.map((l) => ({...l})));
+        }
+    }, []);
+
     const handlePresetChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
         const newPresetId = e.target.value;
 
@@ -174,15 +182,7 @@ export default function ClassificationMarkings({disabled}: Props) {
         }
 
         applyPreset(newPresetId);
-    }, [existingField, hasAcknowledgedPresetWarning]);
-
-    const applyPreset = useCallback((newPresetId: string) => {
-        const preset = presets.find((p) => p.id === newPresetId);
-        if (preset) {
-            setPresetId(newPresetId);
-            setLevels(preset.levels.map((l) => ({...l})));
-        }
-    }, []);
+    }, [existingField, hasAcknowledgedPresetWarning, applyPreset]);
 
     const handleConfirmPresetSwitch = useCallback(() => {
         if (confirmPresetSwitch) {
@@ -536,9 +536,9 @@ function ClassificationLevelsTable({levels, updateLevel, deleteLevel, onReorder,
     const {formatMessage} = useIntl();
 
     const rows: LevelRow[] = useMemo(() => {
-        return [...levels]
-            .sort((a, b) => a.rank - b.rank)
-            .map((level, i) => ({
+        return [...levels].
+            sort((a, b) => a.rank - b.rank).
+            map((level, i) => ({
                 ...level,
                 id: level.id || `pending_${i}`,
             }));
@@ -612,7 +612,7 @@ function ClassificationLevelsTable({levels, updateLevel, deleteLevel, onReorder,
                 ),
                 enableSorting: false,
             }),
-            ...(!disabled ? [col.display({
+            ...(disabled ? [] : [col.display({
                 id: 'actions',
                 size: 40,
                 header: () => null,
@@ -630,9 +630,9 @@ function ClassificationLevelsTable({levels, updateLevel, deleteLevel, onReorder,
                     </ActionsCell>
                 ),
                 enableSorting: false,
-            })] : []),
+            })]),
         ];
-    }, [updateLevel, deleteLevel, disabled, formatMessage]);
+    }, [col, updateLevel, deleteLevel, disabled, formatMessage]);
 
     const table = useReactTable<LevelRow>({
         data: rows,
