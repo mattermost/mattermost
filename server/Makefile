@@ -444,10 +444,12 @@ bump-enterprise: ## Update enterprise.pin to the current enterprise HEAD
 		echo "Enterprise directory not found at $(BUILD_ENTERPRISE_DIR)"; \
 		exit 1; \
 	fi
-	@SHA=$$(cd $(BUILD_ENTERPRISE_DIR) && git rev-parse HEAD); \
-	echo "# Enterprise commit this server branch is tested against." > ../enterprise.pin; \
-	echo "# Updated via: make bump-enterprise" >> ../enterprise.pin; \
-	echo "$$SHA" >> ../enterprise.pin; \
+	@set -e; \
+	SHA=$$(cd "$(BUILD_ENTERPRISE_DIR)" && git rev-parse HEAD); \
+	PIN_FILE="$(ROOT)/../enterprise.pin"; \
+	echo "# Enterprise commit this server branch is tested against." > "$$PIN_FILE"; \
+	echo "# Updated via: make bump-enterprise" >> "$$PIN_FILE"; \
+	echo "$$SHA" >> "$$PIN_FILE"; \
 	echo "Updated enterprise.pin to $$SHA"
 
 check-style: plugin-checker vet golangci-lint ## Runs style/lint checks
