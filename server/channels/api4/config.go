@@ -80,7 +80,8 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 			RemoveMasked:   filterMasked,
 		},
 	}
-	if c.App.Channels().License() != nil && c.App.Channels().License().IsCloud() {
+	license := c.App.Channels().License()
+	if license != nil && license.IsCloud() {
 		filterOpts.TagFilters = append(filterOpts.TagFilters, model.FilterTag{
 			TagType: model.ConfigAccessTagType,
 			TagName: model.ConfigAccessTagCloudRestrictable,
@@ -168,7 +169,8 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// There are some settings that cannot be changed in a cloud env
-	if c.App.Channels().License() != nil && c.App.Channels().License().IsCloud() {
+	license := c.App.Channels().License()
+	if license != nil && license.IsCloud() {
 		// Both of them cannot be nil since cfg.SetDefaults is called earlier for cfg,
 		// and appCfg is the existing earlier config and if it's nil, server sets a default value.
 		if *appCfg.ComplianceSettings.Directory != *cfg.ComplianceSettings.Directory {
@@ -233,7 +235,8 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("updateConfig")
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	if c.App.Channels().License() != nil && c.App.Channels().License().IsCloud() {
+	license = c.App.Channels().License()
+	if license != nil && license.IsCloud() {
 		js, err := cfg.ToJSONFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)
 		if err != nil {
 			c.Err = model.NewAppError("updateConfig", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -324,7 +327,8 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// There are some settings that cannot be changed in a cloud env
-	if c.App.Channels().License() != nil && c.App.Channels().License().IsCloud() {
+	license := c.App.Channels().License()
+	if license != nil && license.IsCloud() {
 		if cfg.ComplianceSettings.Directory != nil && *appCfg.ComplianceSettings.Directory != *cfg.ComplianceSettings.Directory {
 			c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]any{"Name": "ComplianceSettings.Directory"}, "", http.StatusForbidden)
 			return
@@ -383,7 +387,8 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	if c.App.Channels().License() != nil && c.App.Channels().License().IsCloud() {
+	license = c.App.Channels().License()
+	if license != nil && license.IsCloud() {
 		js, err := cfg.ToJSONFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)
 		if err != nil {
 			c.Err = model.NewAppError("patchConfig", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)

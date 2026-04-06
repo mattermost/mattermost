@@ -194,7 +194,8 @@ func (a *App) DoLogin(rctx request.CTX, w http.ResponseWriter, r *http.Request, 
 
 	rctx = rctx.WithSession(session)
 
-	if a.Srv().License() != nil && *a.Srv().License().Features.LDAP && a.Ldap() != nil {
+	license := a.Srv().License()
+	if license != nil && *license.Features.LDAP && a.Ldap() != nil {
 		userVal := *user
 		sessionVal := *session
 		a.Srv().Go(func() {
@@ -310,7 +311,8 @@ func (a *App) AttachSessionCookies(rctx request.CTX, w http.ResponseWriter, r *h
 	http.SetCookie(w, csrfCookie)
 
 	// For context see: https://mattermost.atlassian.net/browse/MM-39583
-	if a.License() != nil && a.License().IsCloud() {
+	license := a.License()
+	if license != nil && license.IsCloud() {
 		a.AttachCloudSessionCookie(rctx, w, r)
 	}
 }
@@ -323,5 +325,6 @@ func GetProtocol(r *http.Request) string {
 }
 
 func isCWSLogin(a *App, token string) bool {
-	return a.License() != nil && a.License().IsCloud() && token != ""
+	license := a.License()
+	return license != nil && license.IsCloud() && token != ""
 }

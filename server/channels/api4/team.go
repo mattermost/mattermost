@@ -99,7 +99,8 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// On a cloud license, we must check limits before allowing to create
-	if c.App.Channels().License() != nil && c.App.Channels().License().IsCloud() {
+	license = c.App.Channels().License()
+	if license != nil && license.IsCloud() {
 		limits, err := c.App.Cloud().GetCloudLimits(c.AppContext.Session().UserId)
 		if err != nil {
 			c.Err = model.NewAppError("Api4.createTeam", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -379,7 +380,8 @@ func restoreTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// On a cloud license, we must check limits before allowing to restore
-	if c.App.Channels().License() != nil && c.App.Channels().License().IsCloud() {
+	license := c.App.Channels().License()
+	if license != nil && license.IsCloud() {
 		limits, err := c.App.Cloud().GetCloudLimits(c.AppContext.Session().UserId)
 		if err != nil {
 			c.Err = model.NewAppError("Api4.restoreTeam", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1398,7 +1400,8 @@ func teamExists(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Channels().License() != nil && c.App.Channels().License().IsCloud() {
+	license := c.App.Channels().License()
+	if license != nil && license.IsCloud() {
 		c.Err = model.NewAppError("importTeam", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 		return
 	}
@@ -1637,7 +1640,8 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	guestEnabled := c.App.Channels().License() != nil && *c.App.Channels().License().Features.GuestAccounts
+	license := c.App.Channels().License()
+	guestEnabled := license != nil && *license.Features.GuestAccounts
 
 	if !guestEnabled {
 		c.Err = model.NewAppError("Api4.InviteGuestsToChannels", "api.team.invite_guests_to_channels.disabled.error", nil, "", http.StatusForbidden)

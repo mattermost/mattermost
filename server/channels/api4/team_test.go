@@ -240,10 +240,11 @@ func TestCreateTeam(t *testing.T) {
 		th.App.Srv().SetLicense(nil)
 
 		team := &model.Team{Name: GenerateTestUsername(), DisplayName: "No License Team", Type: model.TeamOpen}
-		_, _, err := th.Client.CreateTeam(context.Background(), team)
+		_, resp, err := th.Client.CreateTeam(context.Background(), team)
 		// The request may succeed or fail depending on permissions,
 		// but it must NOT panic due to nil License().IsCloud()
-		_ = err
+		require.NoError(t, err)
+		require.NotEqual(t, http.StatusInternalServerError, resp.StatusCode)
 	})
 }
 
