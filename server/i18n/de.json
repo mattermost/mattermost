@@ -10024,10 +10024,6 @@
     "translation": "Die Eigenschaftsgruppe der benutzerdefinierten Profilattribute kann nicht abgerufen werden."
   },
   {
-    "id": "app.custom_profile_attributes.create_property_field.app_error",
-    "translation": "Benutzerdefiniertes Profilattributfeld kann nicht erstellt werden"
-  },
-  {
     "id": "app.custom_profile_attributes.get_property_field.app_error",
     "translation": "Benutzerdefiniertes Profilattributfeld kann nicht abgerufen werden"
   },
@@ -12006,5 +12002,9 @@
   {
     "id": "model.user_report_options.is_valid.invalid_guest_filter",
     "translation": "Der vorgegebene Gast-Filter ist nicht gültig."
+  },
+  {
+    "id": "api.oauth.get_access_token.client_id_mismatch.app_error",
+    "translation": "invalid_grant: Die Token-Gewährung wurde nicht für diesen Kunden ausgestellt."
   }
 ]
