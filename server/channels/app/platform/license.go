@@ -42,8 +42,69 @@ func (ps *PlatformService) SetLicenseManager(impl einterfaces.LicenseInterface) 
 	ps.licenseManager = impl
 }
 
+// [v11.4.0.1] syntheticEnterpriseAdvancedLicense injects a fully-featured
+// license when no real license is present.
+func syntheticEnterpriseAdvancedLicense() *model.License {
+	users := 999999
+	t := true
+	f := false
+	return &model.License{
+		Id:           "00000000000000000000000000synthetic",
+		IssuedAt:     0,
+		StartsAt:     0,
+		ExpiresAt:    9_999_999_999_999,
+		SkuName:      "Enterprise Advanced",
+		SkuShortName: model.LicenseShortSkuEnterpriseAdvanced,
+		IsTrial:      false,
+		IsGovSku:     false,
+		Customer: &model.Customer{
+			Id:      "synthetic",
+			Name:    "Internal",
+			Email:   "internal@internal.local",
+			Company: "Internal",
+		},
+		Features: &model.Features{
+			Users:                     &users,
+			LDAP:                      &t,
+			LDAPGroups:                &t,
+			MFA:                       &t,
+			GoogleOAuth:               &t,
+			Office365OAuth:            &t,
+			OpenId:                    &t,
+			Compliance:                &t,
+			Cluster:                   &t,
+			Metrics:                   &t,
+			MHPNS:                     &t,
+			SAML:                      &t,
+			Elasticsearch:             &t,
+			Announcement:              &t,
+			ThemeManagement:           &t,
+			EmailNotificationContents: &t,
+			DataRetention:             &t,
+			MessageExport:             &t,
+			CustomPermissionsSchemes:  &t,
+			CustomTermsOfService:      &t,
+			GuestAccounts:             &t,
+			GuestAccountsPermissions:  &t,
+			IDLoadedPushNotifications: &t,
+			LockTeammateNameDisplay:   &t,
+			EnterprisePlugins:         &t,
+			AdvancedLogging:           &t,
+			Cloud:                     &f,
+			SharedChannels:            &t,
+			RemoteClusterService:      &t,
+			OutgoingOAuthConnections:  &t,
+			FutureFeatures:            &t,
+		},
+	}
+}
+
+// [v11.4.0.1] License never returns nil — falls back to synthetic license.
 func (ps *PlatformService) License() *model.License {
-	return ps.licenseValue.Load()
+	if lic := ps.licenseValue.Load(); lic != nil {
+		return lic
+	}
+	return syntheticEnterpriseAdvancedLicense()
 }
 
 func (ps *PlatformService) LoadLicense() {
@@ -102,20 +163,12 @@ func (ps *PlatformService) LoadLicense() {
 
 	record, nErr := ps.Store.License().Get(sqlstore.RequestContextWithMaster(c), licenseId)
 	if nErr != nil {
-		if ps.Config().FeatureFlags.EnableMattermostEntry && model.BuildEnterpriseReady == "true" {
-			ps.logger.Info("Mattermost Entry is enabled. Unlocking enterprise features.")
-
-			if ps.LicenseManager() == nil {
-				ps.logger.Warn("License manager not available, setting license to nil.")
-				ps.SetLicense(nil)
-				return
-			}
-
-			ps.SetLicense(ps.LicenseManager().NewMattermostEntryLicense(ps.telemetryId))
-		} else {
-			ps.logger.Warn("License key from https://mattermost.com required to unlock enterprise features.", mlog.Err(nErr))
-			ps.SetLicense(nil)
-		}
+		// [v11.4.0.1] No real license in DB — inject synthetic EnterpriseAdvanced.
+		ps.logger.Info("[v11.4.0.1] No license found. Injecting synthetic EnterpriseAdvanced license.")
+		synthetic := syntheticEnterpriseAdvancedLicense()
+		synthetic.Features.SetDefaults()
+		ps.licenseValue.Store(synthetic)
+		ps.clientLicenseValue.Store(utils.GetClientLicense(synthetic))
 		return
 	}
 
