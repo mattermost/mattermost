@@ -29,6 +29,7 @@ func TestSharedChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("GetSharedChannelRemote", func(t *testing.T) { testGetSharedChannelRemote(t, rctx, ss) })
 	t.Run("GetSharedChannelRemoteByIds", func(t *testing.T) { testGetSharedChannelRemoteByIds(t, rctx, ss) })
 	t.Run("GetSharedChannelRemotes", func(t *testing.T) { testGetSharedChannelRemotes(t, rctx, ss) })
+	t.Run("GetRemotesStatus", func(t *testing.T) { testGetRemotesStatus(t, rctx, ss) })
 	t.Run("HasRemote", func(t *testing.T) { testHasRemote(t, rctx, ss) })
 	t.Run("GetRemoteForUser", func(t *testing.T) { testGetRemoteForUser(t, rctx, ss) })
 	t.Run("UpdateSharedChannelRemoteNextSyncAt", func(t *testing.T) { testUpdateSharedChannelRemoteCursor(t, rctx, ss) })
@@ -759,6 +760,124 @@ func testGetSharedChannelRemotes(t *testing.T, rctx request.CTX, ss store.Store)
 		remotes, err := ss.SharedChannel().GetRemotes(0, 999999, opts)
 		require.NoError(t, err, "should not error", err)
 		require.Len(t, remotes, 3)
+	})
+}
+
+func testGetRemotesStatus(t *testing.T, rctx request.CTX, ss store.Store) {
+	// Create a channel and share it
+	channel, err := createTestChannel(ss, rctx, "test_remotes_status")
+	require.NoError(t, err)
+
+	_, scErr := shareChannel(ss, channel, true, "")
+	require.NoError(t, scErr)
+
+	// Create remote clusters
+	rc1 := &model.RemoteCluster{
+		RemoteId:    model.NewId(),
+		Name:        "remote_status_1",
+		DisplayName: "Remote Status 1",
+		SiteURL:     "http://example1.com",
+		CreatorId:   model.NewId(),
+	}
+	rc1, err = ss.RemoteCluster().Save(rc1)
+	require.NoError(t, err)
+
+	rc2 := &model.RemoteCluster{
+		RemoteId:    model.NewId(),
+		Name:        "remote_status_2",
+		DisplayName: "Remote Status 2",
+		SiteURL:     "http://example2.com",
+		CreatorId:   model.NewId(),
+	}
+	rc2, err = ss.RemoteCluster().Save(rc2)
+	require.NoError(t, err)
+
+	// Add remotes to the shared channel
+	scr1 := &model.SharedChannelRemote{
+		Id:                model.NewId(),
+		ChannelId:         channel.Id,
+		RemoteId:          rc1.RemoteId,
+		CreatorId:         rc1.CreatorId,
+		IsInviteAccepted:  true,
+		IsInviteConfirmed: true,
+	}
+	_, err = ss.SharedChannel().SaveRemote(scr1)
+	require.NoError(t, err)
+
+	scr2 := &model.SharedChannelRemote{
+		Id:                model.NewId(),
+		ChannelId:         channel.Id,
+		RemoteId:          rc2.RemoteId,
+		CreatorId:         rc2.CreatorId,
+		IsInviteAccepted:  false,
+		IsInviteConfirmed: true,
+	}
+	_, err = ss.SharedChannel().SaveRemote(scr2)
+	require.NoError(t, err)
+
+	t.Run("Get remotes status for channel", func(t *testing.T) {
+		statuses, err := ss.SharedChannel().GetRemotesStatus(channel.Id)
+		require.NoError(t, err)
+		require.Len(t, statuses, 2)
+
+		// Build a map by RemoteId for easier assertion
+		statusMap := make(map[string]*model.SharedChannelRemoteStatus)
+		for _, s := range statuses {
+			statusMap[s.RemoteId] = s
+		}
+
+		s1 := statusMap[rc1.RemoteId]
+		require.NotNil(t, s1)
+		assert.Equal(t, channel.Id, s1.ChannelId)
+		assert.Equal(t, rc1.RemoteId, s1.RemoteId)
+		assert.Equal(t, rc1.DisplayName, s1.DisplayName)
+		assert.Equal(t, rc1.SiteURL, s1.SiteURL)
+		assert.True(t, s1.IsInviteAccepted)
+
+		s2 := statusMap[rc2.RemoteId]
+		require.NotNil(t, s2)
+		assert.Equal(t, channel.Id, s2.ChannelId)
+		assert.Equal(t, rc2.RemoteId, s2.RemoteId)
+		assert.Equal(t, rc2.DisplayName, s2.DisplayName)
+		assert.Equal(t, rc2.SiteURL, s2.SiteURL)
+		assert.False(t, s2.IsInviteAccepted)
+	})
+
+	t.Run("Get remotes status for channel with no remotes", func(t *testing.T) {
+		emptyChannel, err := createTestChannel(ss, rctx, "test_remotes_status_empty")
+		require.NoError(t, err)
+
+		_, scErr := shareChannel(ss, emptyChannel, true, "")
+		require.NoError(t, scErr)
+
+		statuses, err := ss.SharedChannel().GetRemotesStatus(emptyChannel.Id)
+		require.NoError(t, err)
+		require.Empty(t, statuses)
+	})
+
+	t.Run("Get remotes status excludes deleted remotes", func(t *testing.T) {
+		// Create another channel with a deleted remote
+		channel2, err := createTestChannel(ss, rctx, "test_remotes_status_deleted")
+		require.NoError(t, err)
+
+		_, scErr := shareChannel(ss, channel2, true, "")
+		require.NoError(t, scErr)
+
+		scrDeleted := &model.SharedChannelRemote{
+			Id:                model.NewId(),
+			ChannelId:         channel2.Id,
+			RemoteId:          rc1.RemoteId,
+			CreatorId:         rc1.CreatorId,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: true,
+			DeleteAt:          model.GetMillis(),
+		}
+		_, err = ss.SharedChannel().SaveRemote(scrDeleted)
+		require.NoError(t, err)
+
+		statuses, err := ss.SharedChannel().GetRemotesStatus(channel2.Id)
+		require.NoError(t, err)
+		require.Empty(t, statuses)
 	})
 }
 
