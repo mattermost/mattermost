@@ -93,4 +93,5 @@ export const enum WebSocketEvents {
     PostTranslationUpdated = 'post_translation_updated',
     FileDownloadRejected = 'file_download_rejected',
     ShowToast = 'show_toast',
+    SharedChannelRemoteUpdated = 'shared_channel_remote_updated',
 }
