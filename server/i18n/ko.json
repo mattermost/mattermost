@@ -8686,10 +8686,6 @@
     "translation": "사용자 지정 프로필 속성 그룹을 등록할 수 없습니다."
   },
   {
-    "id": "app.custom_profile_attributes.create_property_field.app_error",
-    "translation": "사용자 지정 프로필 속성 필드를 만들 수 없습니다."
-  },
-  {
     "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
     "translation": "사용자에 대한 사용자 지정 프로필 속성 값을 삭제할 수 없습니다."
   },

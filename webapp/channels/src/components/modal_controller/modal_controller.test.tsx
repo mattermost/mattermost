@@ -1,14 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount} from 'enzyme';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {Provider} from 'react-redux';
 
 import {closeModal} from 'actions/views/modals';
 
-import mockStore from 'tests/test_store';
+import {renderWithContext, act, userEvent} from 'tests/react_testing_utils';
 
 import ModalController from '.';
 
@@ -59,16 +57,14 @@ describe('components/ModalController', () => {
             },
         };
 
-        const store = mockStore(state);
-
-        const wrapper = mount(
-            <Provider store={store}>
-                <ModalController/>
-            </Provider>,
+        const {container} = renderWithContext(
+            <ModalController/>,
+            state,
+            {useMockedStore: true},
         );
 
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('ModalController > *').length).toBe(0);
+        expect(container).toMatchSnapshot();
+        expect(container.childElementCount).toBe(0);
         expect(document.getElementsByClassName('modal-dialog').length).toBeFalsy();
     });
 
@@ -87,18 +83,16 @@ describe('components/ModalController', () => {
             },
         };
 
-        const store = mockStore(state);
-
-        mount(
-            <Provider store={store}>
-                <ModalController/>
-            </Provider>,
+        renderWithContext(
+            <ModalController/>,
+            state,
+            {useMockedStore: true},
         );
 
         expect(document.getElementsByClassName('modal-dialog').length).toBe(1);
     });
 
-    test('should pass onExited to modal to allow a modal to remove itself', () => {
+    test('should pass onExited to modal to allow a modal to remove itself', async () => {
         const state = {
             views: {
                 modals: {
@@ -113,26 +107,30 @@ describe('components/ModalController', () => {
             },
         };
 
-        const store = mockStore(state);
-
-        const wrapper = mount(
-            <Provider store={store}>
-                <ModalController/>
-            </Provider>,
+        const {store} = renderWithContext(
+            <ModalController/>,
+            state,
+            {useMockedStore: true},
         );
 
-        expect(wrapper.find(TestModal).exists()).toBe(true);
-        expect(wrapper.find(TestModal).prop('onExited')).toBeDefined();
-        expect(wrapper.find(Modal).prop('onExited')).toBeDefined();
+        // Verify the modal is rendered
+        expect(document.getElementsByClassName('modal-dialog').length).toBe(1);
 
-        wrapper.find(TestModal).prop('onExited')!();
+        // Click the close button to trigger modal close flow (onHide -> setState show:false -> onExited)
+        const closeButton = document.querySelector('.close') as HTMLElement;
+        await userEvent.click(closeButton);
 
-        expect(store.getActions()).toEqual([
+        // Wait for the modal's exit transition to complete and fire onExited
+        await act(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 500));
+        });
+
+        expect((store as unknown as {getActions: () => unknown[]}).getActions()).toEqual([
             closeModal(modalId),
         ]);
     });
 
-    test('should call a provided onExited in addition to removing the modal', () => {
+    test('should call a provided onExited in addition to removing the modal', async () => {
         const onExited = jest.fn();
 
         const state = {
@@ -151,21 +149,25 @@ describe('components/ModalController', () => {
             },
         };
 
-        const store = mockStore(state);
-
-        const wrapper = mount(
-            <Provider store={store}>
-                <ModalController/>
-            </Provider>,
+        renderWithContext(
+            <ModalController/>,
+            state,
+            {useMockedStore: true},
         );
 
-        expect(wrapper.find(TestModal).exists()).toBe(true);
-        expect(wrapper.find(TestModal).prop('onExited')).toBeDefined();
-        expect(wrapper.find(Modal).prop('onExited')).toBeDefined();
+        // Verify the modal is rendered
+        expect(document.getElementsByClassName('modal-dialog').length).toBe(1);
 
         expect(onExited).not.toHaveBeenCalled();
 
-        wrapper.find(TestModal).prop('onExited')!();
+        // Click the close button to trigger modal close flow (onHide -> setState show:false -> onExited)
+        const closeButton = document.querySelector('.close') as HTMLElement;
+        await userEvent.click(closeButton);
+
+        // Wait for the modal's exit transition to complete and fire onExited
+        await act(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 500));
+        });
 
         expect(onExited).toHaveBeenCalled();
     });

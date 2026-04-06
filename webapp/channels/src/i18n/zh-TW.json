@@ -5096,7 +5096,6 @@
   "threading.numNewReplies": "{newReplies, plural, other {# 則新回覆}}",
   "threading.numReplies": "{totalReplies, plural, =0 {回覆} other {# 則回覆}}",
   "threading.threadHeader.menu": "更多動作",
-  "threading.threadItem.menu": "動作",
   "threading.threadList.markRead": "全部標記為已讀",
   "threading.threadMenu.copy": "複製連結",
   "threading.threadMenu.follow": "追蹤討論串",
