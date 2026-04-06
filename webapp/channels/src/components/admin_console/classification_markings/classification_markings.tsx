@@ -132,7 +132,7 @@ export default function ClassificationMarkings({disabled}: Props) {
                         name: opt.name,
                         color: opt.color || '#000000',
                         rank: opt.rank ?? (i + 1),
-                    }));
+                    })).sort((a, b) => a.rank - b.rank);
                     setLevels(loadedLevels);
                     setInitialLevels(loadedLevels);
 
@@ -202,20 +202,20 @@ export default function ClassificationMarkings({disabled}: Props) {
         }
     }, [presetId]);
 
-    const updateLevel = useCallback((index: number, updates: Partial<ClassificationLevel>) => {
-        setLevels((prev) => prev.map((level, i) => (i === index ? {...level, ...updates} : level)));
+    const updateLevel = useCallback((id: string, updates: Partial<ClassificationLevel>) => {
+        setLevels((prev) => prev.map((level) => (level.id === id ? {...level, ...updates} : level)));
         switchToCustom();
     }, [switchToCustom]);
 
-    const deleteLevel = useCallback((index: number) => {
-        setLevels((prev) => prev.filter((_, i) => i !== index).map((level, i) => ({...level, rank: i + 1})));
+    const deleteLevel = useCallback((id: string) => {
+        setLevels((prev) => prev.filter((level) => level.id !== id).map((level, i) => ({...level, rank: i + 1})));
         switchToCustom();
     }, [switchToCustom]);
 
     const addLevel = useCallback(() => {
         setLevels((prev) => {
             const maxRank = prev.reduce((max, l) => Math.max(max, l.rank), 0);
-            return [...prev, {id: '', name: '', color: '#000000', rank: maxRank + 1}];
+            return [...prev, {id: `pending_${Date.now()}`, name: '', color: '#000000', rank: maxRank + 1}];
         });
         switchToCustom();
     }, [switchToCustom]);
@@ -264,7 +264,7 @@ export default function ClassificationMarkings({disabled}: Props) {
             if (enabled && !initialEnabled) {
                 // Create new field
                 const options = levels.map((level) => ({
-                    id: level.id || '',
+                    id: level.id.startsWith('pending_') ? '' : level.id,
                     name: level.name,
                     color: level.color,
                     rank: level.rank,
@@ -286,7 +286,7 @@ export default function ClassificationMarkings({disabled}: Props) {
                     name: opt.name,
                     color: opt.color || '#000000',
                     rank: opt.rank ?? (i + 1),
-                }));
+                })).sort((a, b) => a.rank - b.rank);
                 setLevels(newLevels);
                 setInitialLevels(newLevels);
                 setInitialEnabled(true);
@@ -303,7 +303,7 @@ export default function ClassificationMarkings({disabled}: Props) {
             } else if (enabled && initialEnabled && existingField) {
                 // Patch existing field options
                 const options = levels.map((level) => ({
-                    id: level.id || '',
+                    id: level.id.startsWith('pending_') ? '' : level.id,
                     name: level.name,
                     color: level.color,
                     rank: level.rank,
@@ -318,7 +318,7 @@ export default function ClassificationMarkings({disabled}: Props) {
                     name: opt.name,
                     color: opt.color || '#000000',
                     rank: opt.rank ?? (i + 1),
-                }));
+                })).sort((a, b) => a.rank - b.rank);
                 setLevels(newLevels);
                 setInitialLevels(newLevels);
                 setInitialPresetId(presetId);
@@ -529,8 +529,8 @@ function detectPreset(levels: ClassificationLevel[]): string {
 
 type TableProps = {
     levels: ClassificationLevel[];
-    updateLevel: (index: number, updates: Partial<ClassificationLevel>) => void;
-    deleteLevel: (index: number) => void;
+    updateLevel: (id: string, updates: Partial<ClassificationLevel>) => void;
+    deleteLevel: (id: string) => void;
     onReorder: (prev: number, next: number) => void;
     disabled?: boolean;
 };
@@ -539,12 +539,7 @@ function ClassificationLevelsTable({levels, updateLevel, deleteLevel, onReorder,
     const {formatMessage} = useIntl();
 
     const rows: LevelRow[] = useMemo(() => {
-        return [...levels].
-            sort((a, b) => a.rank - b.rank).
-            map((level, i) => ({
-                ...level,
-                id: level.id || `pending_${i}`,
-            }));
+        return [...levels].sort((a, b) => a.rank - b.rank);
     }, [levels]);
 
     const col = createColumnHelper<LevelRow>();
@@ -564,7 +559,7 @@ function ClassificationLevelsTable({levels, updateLevel, deleteLevel, onReorder,
                 cell: ({row}) => (
                     <LevelNameCell
                         value={row.original.name}
-                        index={row.index}
+                        id={row.original.id}
                         updateLevel={updateLevel}
                         disabled={disabled}
                         label={formatMessage({id: 'admin.classification_markings.levels.table.text.input', defaultMessage: 'Classification level name'})}
@@ -591,9 +586,9 @@ function ClassificationLevelsTable({levels, updateLevel, deleteLevel, onReorder,
                             </ReadOnlyColor>
                         ) : (
                             <ColorInput
-                                id={`classification-color-${row.index}`}
+                                id={`classification-color-${row.original.id}`}
                                 value={row.original.color}
-                                onChange={(color: string) => updateLevel(row.index, {color})}
+                                onChange={(color: string) => updateLevel(row.original.id, {color})}
                             />
                         )}
                     </ColorCellWrapper>
@@ -623,7 +618,7 @@ function ClassificationLevelsTable({levels, updateLevel, deleteLevel, onReorder,
                     <ActionsCell>
                         <DeleteButton
                             aria-label={formatMessage({id: 'admin.classification_markings.levels.table.delete', defaultMessage: 'Delete level'})}
-                            onClick={() => deleteLevel(row.index)}
+                            onClick={() => deleteLevel(row.original.id)}
                         >
                             <TrashCanOutlineIcon
                                 size={18}
@@ -661,13 +656,13 @@ function ClassificationLevelsTable({levels, updateLevel, deleteLevel, onReorder,
 
 type LevelNameCellProps = {
     value: string;
-    index: number;
-    updateLevel: (index: number, updates: Partial<ClassificationLevel>) => void;
+    id: string;
+    updateLevel: (id: string, updates: Partial<ClassificationLevel>) => void;
     label: string;
     disabled?: boolean;
 };
 
-function LevelNameCell({value, index, updateLevel, label, disabled}: LevelNameCellProps) {
+function LevelNameCell({value, id, updateLevel, label, disabled}: LevelNameCellProps) {
     const [localValue, setLocalValue] = useState(value);
 
     useEffect(() => {
@@ -684,7 +679,7 @@ function LevelNameCell({value, index, updateLevel, label, disabled}: LevelNameCe
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLocalValue(e.target.value)}
             onBlur={() => {
                 if (localValue !== value) {
-                    updateLevel(index, {name: localValue.trim()});
+                    updateLevel(id, {name: localValue.trim()});
                 }
             }}
         />
