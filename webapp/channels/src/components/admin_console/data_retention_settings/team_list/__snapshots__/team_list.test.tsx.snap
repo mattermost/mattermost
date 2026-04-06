@@ -1,55 +1,87 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/data_retention_settings/team_list should match snapshot 1`] = `
-<div
-  className="PolicyTeamsList"
->
-  <DataGrid
-    className="customTable"
-    columns={
-      Array [
-        Object {
-          "field": "name",
-          "fixed": true,
-          "name": <Memo(MemoizedFormattedMessage)
-            defaultMessage="Name"
-            id="admin.team_settings.team_list.nameHeader"
-          />,
-        },
-        Object {
-          "className": "TeamList__actionColumn",
-          "field": "remove",
-          "fixed": true,
-          "name": "",
-          "textAlign": "right",
-        },
-      ]
-    }
-    endCount={1}
-    loading={false}
-    nextPage={[Function]}
-    onSearch={[Function]}
-    previousPage={[Function]}
-    rows={
-      Array [
-        Object {
-          "cells": Object {
-            "id": "team-1",
-            "name": <div
-              className="TeamList__nameColumn"
+<div>
+  <div
+    class="PolicyTeamsList"
+  >
+    <div
+      class="DataGrid customTable"
+    >
+      <div
+        class="DataGrid_search"
+      >
+        <div
+          class="DataGrid_searchBar"
+        >
+          <span
+            aria-hidden="true"
+            class="DataGrid_searchIcon"
+          >
+            <i
+              class="fa fa-search"
+              title="Search Icon"
+            />
+          </span>
+          <input
+            data-testid="searchInput"
+            placeholder="Search"
+            type="text"
+            value=""
+          />
+          <i
+            class="DataGrid_clearButton fa fa-times-circle hidden"
+            data-testid="clear-search"
+          />
+        </div>
+      </div>
+      <div
+        class="DataGrid_header"
+      >
+        <div
+          class="DataGrid_cell"
+        >
+          Name
+        </div>
+        <div
+          class="DataGrid_cell"
+        />
+      </div>
+      <div
+        class="DataGrid_rows"
+      >
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+          >
+            <div
+              class="TeamList__nameColumn"
               id="team-name-team-1"
             >
               <div
-                className="TeamList__lowerOpacity"
+                class="TeamList__lowerOpacity"
               >
-                <injectIntl(TeamIcon)
-                  content="name"
-                  size="sm"
-                  url={null}
-                />
+                <div
+                  class="TeamIcon TeamIcon__sm no-hover"
+                >
+                  <div
+                    class="TeamIcon__content no-hover"
+                  >
+                    <div
+                      aria-label="name Team Initials"
+                      class="TeamIcon__initials TeamIcon__initials__sm"
+                      data-testid="teamIconInitial"
+                      role="img"
+                    >
+                      na
+                    </div>
+                  </div>
+                </div>
               </div>
               <div
-                className="TeamList__nameText"
+                class="TeamList__nameText"
               >
                 <b
                   data-testid="team-display-name"
@@ -57,79 +89,140 @@ exports[`components/admin_console/data_retention_settings/team_list should match
                   name
                 </b>
               </div>
-            </div>,
-            "remove": <a
-              className="group-actions TeamList_editText"
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell TeamList__actionColumn"
+            style="text-align: right;"
+          >
+            <a
+              class="group-actions TeamList_editText"
               href="#"
               id="remove-team-team-1"
-              onClick={[Function]}
             >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Remove"
-                id="admin.data_retention.custom_policy.teams.remove"
-              />
-            </a>,
-          },
-        },
-      ]
-    }
-    startCount={1}
-    term=""
-    total={1}
-  />
+              Remove
+            </a>
+          </div>
+        </div>
+      </div>
+      <div
+        class="DataGrid_footer"
+      >
+        <div
+          class="DataGrid_cell"
+        >
+          1 - 1 of 1
+          <button
+            aria-label="Previous page"
+            class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+            disabled=""
+            type="button"
+          >
+            <i
+              class="icon icon-chevron-left"
+              title="Previous Icon"
+            />
+          </button>
+          <button
+            aria-label="Next page"
+            class="btn btn-quaternary btn-icon btn-sm next disabled"
+            disabled=""
+            type="button"
+          >
+            <i
+              class="icon icon-chevron-right"
+              title="Next Icon"
+            />
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 `;
 
 exports[`components/admin_console/data_retention_settings/team_list should match snapshot with paging 1`] = `
-<div
-  className="PolicyTeamsList"
->
-  <DataGrid
-    className="customTable"
-    columns={
-      Array [
-        Object {
-          "field": "name",
-          "fixed": true,
-          "name": <Memo(MemoizedFormattedMessage)
-            defaultMessage="Name"
-            id="admin.team_settings.team_list.nameHeader"
-          />,
-        },
-        Object {
-          "className": "TeamList__actionColumn",
-          "field": "remove",
-          "fixed": true,
-          "name": "",
-          "textAlign": "right",
-        },
-      ]
-    }
-    endCount={10}
-    loading={false}
-    nextPage={[Function]}
-    onSearch={[Function]}
-    previousPage={[Function]}
-    rows={
-      Array [
-        Object {
-          "cells": Object {
-            "id": "id0",
-            "name": <div
-              className="TeamList__nameColumn"
+<div>
+  <div
+    class="PolicyTeamsList"
+  >
+    <div
+      class="DataGrid customTable"
+    >
+      <div
+        class="DataGrid_search"
+      >
+        <div
+          class="DataGrid_searchBar"
+        >
+          <span
+            aria-hidden="true"
+            class="DataGrid_searchIcon"
+          >
+            <i
+              class="fa fa-search"
+              title="Search Icon"
+            />
+          </span>
+          <input
+            data-testid="searchInput"
+            placeholder="Search"
+            type="text"
+            value=""
+          />
+          <i
+            class="DataGrid_clearButton fa fa-times-circle hidden"
+            data-testid="clear-search"
+          />
+        </div>
+      </div>
+      <div
+        class="DataGrid_header"
+      >
+        <div
+          class="DataGrid_cell"
+        >
+          Name
+        </div>
+        <div
+          class="DataGrid_cell"
+        />
+      </div>
+      <div
+        class="DataGrid_rows"
+      >
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+          >
+            <div
+              class="TeamList__nameColumn"
               id="team-name-id0"
             >
               <div
-                className="TeamList__lowerOpacity"
+                class="TeamList__lowerOpacity"
               >
-                <injectIntl(TeamIcon)
-                  content="DN0"
-                  size="sm"
-                  url={null}
-                />
+                <div
+                  class="TeamIcon TeamIcon__sm no-hover"
+                >
+                  <div
+                    class="TeamIcon__content no-hover"
+                  >
+                    <div
+                      aria-label="DN0 Team Initials"
+                      class="TeamIcon__initials TeamIcon__initials__sm"
+                      data-testid="teamIconInitial"
+                      role="img"
+                    >
+                      DN
+                    </div>
+                  </div>
+                </div>
               </div>
               <div
-                className="TeamList__nameText"
+                class="TeamList__nameText"
               >
                 <b
                   data-testid="team-display-name"
@@ -137,38 +230,53 @@ exports[`components/admin_console/data_retention_settings/team_list should match
                   DN0
                 </b>
               </div>
-            </div>,
-            "remove": <a
-              className="group-actions TeamList_editText"
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell TeamList__actionColumn"
+            style="text-align: right;"
+          >
+            <a
+              class="group-actions TeamList_editText"
               href="#"
               id="remove-team-id0"
-              onClick={[Function]}
             >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Remove"
-                id="admin.data_retention.custom_policy.teams.remove"
-              />
-            </a>,
-          },
-        },
-        Object {
-          "cells": Object {
-            "id": "id1",
-            "name": <div
-              className="TeamList__nameColumn"
+              Remove
+            </a>
+          </div>
+        </div>
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+          >
+            <div
+              class="TeamList__nameColumn"
               id="team-name-id1"
             >
               <div
-                className="TeamList__lowerOpacity"
+                class="TeamList__lowerOpacity"
               >
-                <injectIntl(TeamIcon)
-                  content="DN1"
-                  size="sm"
-                  url={null}
-                />
+                <div
+                  class="TeamIcon TeamIcon__sm no-hover"
+                >
+                  <div
+                    class="TeamIcon__content no-hover"
+                  >
+                    <div
+                      aria-label="DN1 Team Initials"
+                      class="TeamIcon__initials TeamIcon__initials__sm"
+                      data-testid="teamIconInitial"
+                      role="img"
+                    >
+                      DN
+                    </div>
+                  </div>
+                </div>
               </div>
               <div
-                className="TeamList__nameText"
+                class="TeamList__nameText"
               >
                 <b
                   data-testid="team-display-name"
@@ -176,38 +284,53 @@ exports[`components/admin_console/data_retention_settings/team_list should match
                   DN1
                 </b>
               </div>
-            </div>,
-            "remove": <a
-              className="group-actions TeamList_editText"
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell TeamList__actionColumn"
+            style="text-align: right;"
+          >
+            <a
+              class="group-actions TeamList_editText"
               href="#"
               id="remove-team-id1"
-              onClick={[Function]}
             >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Remove"
-                id="admin.data_retention.custom_policy.teams.remove"
-              />
-            </a>,
-          },
-        },
-        Object {
-          "cells": Object {
-            "id": "id2",
-            "name": <div
-              className="TeamList__nameColumn"
+              Remove
+            </a>
+          </div>
+        </div>
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+          >
+            <div
+              class="TeamList__nameColumn"
               id="team-name-id2"
             >
               <div
-                className="TeamList__lowerOpacity"
+                class="TeamList__lowerOpacity"
               >
-                <injectIntl(TeamIcon)
-                  content="DN2"
-                  size="sm"
-                  url={null}
-                />
+                <div
+                  class="TeamIcon TeamIcon__sm no-hover"
+                >
+                  <div
+                    class="TeamIcon__content no-hover"
+                  >
+                    <div
+                      aria-label="DN2 Team Initials"
+                      class="TeamIcon__initials TeamIcon__initials__sm"
+                      data-testid="teamIconInitial"
+                      role="img"
+                    >
+                      DN
+                    </div>
+                  </div>
+                </div>
               </div>
               <div
-                className="TeamList__nameText"
+                class="TeamList__nameText"
               >
                 <b
                   data-testid="team-display-name"
@@ -215,38 +338,53 @@ exports[`components/admin_console/data_retention_settings/team_list should match
                   DN2
                 </b>
               </div>
-            </div>,
-            "remove": <a
-              className="group-actions TeamList_editText"
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell TeamList__actionColumn"
+            style="text-align: right;"
+          >
+            <a
+              class="group-actions TeamList_editText"
               href="#"
               id="remove-team-id2"
-              onClick={[Function]}
             >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Remove"
-                id="admin.data_retention.custom_policy.teams.remove"
-              />
-            </a>,
-          },
-        },
-        Object {
-          "cells": Object {
-            "id": "id3",
-            "name": <div
-              className="TeamList__nameColumn"
+              Remove
+            </a>
+          </div>
+        </div>
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+          >
+            <div
+              class="TeamList__nameColumn"
               id="team-name-id3"
             >
               <div
-                className="TeamList__lowerOpacity"
+                class="TeamList__lowerOpacity"
               >
-                <injectIntl(TeamIcon)
-                  content="DN3"
-                  size="sm"
-                  url={null}
-                />
+                <div
+                  class="TeamIcon TeamIcon__sm no-hover"
+                >
+                  <div
+                    class="TeamIcon__content no-hover"
+                  >
+                    <div
+                      aria-label="DN3 Team Initials"
+                      class="TeamIcon__initials TeamIcon__initials__sm"
+                      data-testid="teamIconInitial"
+                      role="img"
+                    >
+                      DN
+                    </div>
+                  </div>
+                </div>
               </div>
               <div
-                className="TeamList__nameText"
+                class="TeamList__nameText"
               >
                 <b
                   data-testid="team-display-name"
@@ -254,38 +392,53 @@ exports[`components/admin_console/data_retention_settings/team_list should match
                   DN3
                 </b>
               </div>
-            </div>,
-            "remove": <a
-              className="group-actions TeamList_editText"
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell TeamList__actionColumn"
+            style="text-align: right;"
+          >
+            <a
+              class="group-actions TeamList_editText"
               href="#"
               id="remove-team-id3"
-              onClick={[Function]}
             >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Remove"
-                id="admin.data_retention.custom_policy.teams.remove"
-              />
-            </a>,
-          },
-        },
-        Object {
-          "cells": Object {
-            "id": "id4",
-            "name": <div
-              className="TeamList__nameColumn"
+              Remove
+            </a>
+          </div>
+        </div>
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+          >
+            <div
+              class="TeamList__nameColumn"
               id="team-name-id4"
             >
               <div
-                className="TeamList__lowerOpacity"
+                class="TeamList__lowerOpacity"
               >
-                <injectIntl(TeamIcon)
-                  content="DN4"
-                  size="sm"
-                  url={null}
-                />
+                <div
+                  class="TeamIcon TeamIcon__sm no-hover"
+                >
+                  <div
+                    class="TeamIcon__content no-hover"
+                  >
+                    <div
+                      aria-label="DN4 Team Initials"
+                      class="TeamIcon__initials TeamIcon__initials__sm"
+                      data-testid="teamIconInitial"
+                      role="img"
+                    >
+                      DN
+                    </div>
+                  </div>
+                </div>
               </div>
               <div
-                className="TeamList__nameText"
+                class="TeamList__nameText"
               >
                 <b
                   data-testid="team-display-name"
@@ -293,38 +446,53 @@ exports[`components/admin_console/data_retention_settings/team_list should match
                   DN4
                 </b>
               </div>
-            </div>,
-            "remove": <a
-              className="group-actions TeamList_editText"
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell TeamList__actionColumn"
+            style="text-align: right;"
+          >
+            <a
+              class="group-actions TeamList_editText"
               href="#"
               id="remove-team-id4"
-              onClick={[Function]}
             >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Remove"
-                id="admin.data_retention.custom_policy.teams.remove"
-              />
-            </a>,
-          },
-        },
-        Object {
-          "cells": Object {
-            "id": "id5",
-            "name": <div
-              className="TeamList__nameColumn"
+              Remove
+            </a>
+          </div>
+        </div>
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+          >
+            <div
+              class="TeamList__nameColumn"
               id="team-name-id5"
             >
               <div
-                className="TeamList__lowerOpacity"
+                class="TeamList__lowerOpacity"
               >
-                <injectIntl(TeamIcon)
-                  content="DN5"
-                  size="sm"
-                  url={null}
-                />
+                <div
+                  class="TeamIcon TeamIcon__sm no-hover"
+                >
+                  <div
+                    class="TeamIcon__content no-hover"
+                  >
+                    <div
+                      aria-label="DN5 Team Initials"
+                      class="TeamIcon__initials TeamIcon__initials__sm"
+                      data-testid="teamIconInitial"
+                      role="img"
+                    >
+                      DN
+                    </div>
+                  </div>
+                </div>
               </div>
               <div
-                className="TeamList__nameText"
+                class="TeamList__nameText"
               >
                 <b
                   data-testid="team-display-name"
@@ -332,38 +500,53 @@ exports[`components/admin_console/data_retention_settings/team_list should match
                   DN5
                 </b>
               </div>
-            </div>,
-            "remove": <a
-              className="group-actions TeamList_editText"
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell TeamList__actionColumn"
+            style="text-align: right;"
+          >
+            <a
+              class="group-actions TeamList_editText"
               href="#"
               id="remove-team-id5"
-              onClick={[Function]}
             >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Remove"
-                id="admin.data_retention.custom_policy.teams.remove"
-              />
-            </a>,
-          },
-        },
-        Object {
-          "cells": Object {
-            "id": "id6",
-            "name": <div
-              className="TeamList__nameColumn"
+              Remove
+            </a>
+          </div>
+        </div>
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+          >
+            <div
+              class="TeamList__nameColumn"
               id="team-name-id6"
             >
               <div
-                className="TeamList__lowerOpacity"
+                class="TeamList__lowerOpacity"
               >
-                <injectIntl(TeamIcon)
-                  content="DN6"
-                  size="sm"
-                  url={null}
-                />
+                <div
+                  class="TeamIcon TeamIcon__sm no-hover"
+                >
+                  <div
+                    class="TeamIcon__content no-hover"
+                  >
+                    <div
+                      aria-label="DN6 Team Initials"
+                      class="TeamIcon__initials TeamIcon__initials__sm"
+                      data-testid="teamIconInitial"
+                      role="img"
+                    >
+                      DN
+                    </div>
+                  </div>
+                </div>
               </div>
               <div
-                className="TeamList__nameText"
+                class="TeamList__nameText"
               >
                 <b
                   data-testid="team-display-name"
@@ -371,38 +554,53 @@ exports[`components/admin_console/data_retention_settings/team_list should match
                   DN6
                 </b>
               </div>
-            </div>,
-            "remove": <a
-              className="group-actions TeamList_editText"
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell TeamList__actionColumn"
+            style="text-align: right;"
+          >
+            <a
+              class="group-actions TeamList_editText"
               href="#"
               id="remove-team-id6"
-              onClick={[Function]}
             >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Remove"
-                id="admin.data_retention.custom_policy.teams.remove"
-              />
-            </a>,
-          },
-        },
-        Object {
-          "cells": Object {
-            "id": "id7",
-            "name": <div
-              className="TeamList__nameColumn"
+              Remove
+            </a>
+          </div>
+        </div>
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+          >
+            <div
+              class="TeamList__nameColumn"
               id="team-name-id7"
             >
               <div
-                className="TeamList__lowerOpacity"
+                class="TeamList__lowerOpacity"
               >
-                <injectIntl(TeamIcon)
-                  content="DN7"
-                  size="sm"
-                  url={null}
-                />
+                <div
+                  class="TeamIcon TeamIcon__sm no-hover"
+                >
+                  <div
+                    class="TeamIcon__content no-hover"
+                  >
+                    <div
+                      aria-label="DN7 Team Initials"
+                      class="TeamIcon__initials TeamIcon__initials__sm"
+                      data-testid="teamIconInitial"
+                      role="img"
+                    >
+                      DN
+                    </div>
+                  </div>
+                </div>
               </div>
               <div
-                className="TeamList__nameText"
+                class="TeamList__nameText"
               >
                 <b
                   data-testid="team-display-name"
@@ -410,38 +608,53 @@ exports[`components/admin_console/data_retention_settings/team_list should match
                   DN7
                 </b>
               </div>
-            </div>,
-            "remove": <a
-              className="group-actions TeamList_editText"
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell TeamList__actionColumn"
+            style="text-align: right;"
+          >
+            <a
+              class="group-actions TeamList_editText"
               href="#"
               id="remove-team-id7"
-              onClick={[Function]}
             >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Remove"
-                id="admin.data_retention.custom_policy.teams.remove"
-              />
-            </a>,
-          },
-        },
-        Object {
-          "cells": Object {
-            "id": "id8",
-            "name": <div
-              className="TeamList__nameColumn"
+              Remove
+            </a>
+          </div>
+        </div>
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+          >
+            <div
+              class="TeamList__nameColumn"
               id="team-name-id8"
             >
               <div
-                className="TeamList__lowerOpacity"
+                class="TeamList__lowerOpacity"
               >
-                <injectIntl(TeamIcon)
-                  content="DN8"
-                  size="sm"
-                  url={null}
-                />
+                <div
+                  class="TeamIcon TeamIcon__sm no-hover"
+                >
+                  <div
+                    class="TeamIcon__content no-hover"
+                  >
+                    <div
+                      aria-label="DN8 Team Initials"
+                      class="TeamIcon__initials TeamIcon__initials__sm"
+                      data-testid="teamIconInitial"
+                      role="img"
+                    >
+                      DN
+                    </div>
+                  </div>
+                </div>
               </div>
               <div
-                className="TeamList__nameText"
+                class="TeamList__nameText"
               >
                 <b
                   data-testid="team-display-name"
@@ -449,38 +662,53 @@ exports[`components/admin_console/data_retention_settings/team_list should match
                   DN8
                 </b>
               </div>
-            </div>,
-            "remove": <a
-              className="group-actions TeamList_editText"
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell TeamList__actionColumn"
+            style="text-align: right;"
+          >
+            <a
+              class="group-actions TeamList_editText"
               href="#"
               id="remove-team-id8"
-              onClick={[Function]}
             >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Remove"
-                id="admin.data_retention.custom_policy.teams.remove"
-              />
-            </a>,
-          },
-        },
-        Object {
-          "cells": Object {
-            "id": "id9",
-            "name": <div
-              className="TeamList__nameColumn"
+              Remove
+            </a>
+          </div>
+        </div>
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+          >
+            <div
+              class="TeamList__nameColumn"
               id="team-name-id9"
             >
               <div
-                className="TeamList__lowerOpacity"
+                class="TeamList__lowerOpacity"
               >
-                <injectIntl(TeamIcon)
-                  content="DN9"
-                  size="sm"
-                  url={null}
-                />
+                <div
+                  class="TeamIcon TeamIcon__sm no-hover"
+                >
+                  <div
+                    class="TeamIcon__content no-hover"
+                  >
+                    <div
+                      aria-label="DN9 Team Initials"
+                      class="TeamIcon__initials TeamIcon__initials__sm"
+                      data-testid="teamIconInitial"
+                      role="img"
+                    >
+                      DN
+                    </div>
+                  </div>
+                </div>
               </div>
               <div
-                className="TeamList__nameText"
+                class="TeamList__nameText"
               >
                 <b
                   data-testid="team-display-name"
@@ -488,25 +716,53 @@ exports[`components/admin_console/data_retention_settings/team_list should match
                   DN9
                 </b>
               </div>
-            </div>,
-            "remove": <a
-              className="group-actions TeamList_editText"
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell TeamList__actionColumn"
+            style="text-align: right;"
+          >
+            <a
+              class="group-actions TeamList_editText"
               href="#"
               id="remove-team-id9"
-              onClick={[Function]}
             >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Remove"
-                id="admin.data_retention.custom_policy.teams.remove"
-              />
-            </a>,
-          },
-        },
-      ]
-    }
-    startCount={1}
-    term=""
-    total={30}
-  />
+              Remove
+            </a>
+          </div>
+        </div>
+      </div>
+      <div
+        class="DataGrid_footer"
+      >
+        <div
+          class="DataGrid_cell"
+        >
+          1 - 10 of 30
+          <button
+            aria-label="Previous page"
+            class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+            disabled=""
+            type="button"
+          >
+            <i
+              class="icon icon-chevron-left"
+              title="Previous Icon"
+            />
+          </button>
+          <button
+            aria-label="Next page"
+            class="btn btn-quaternary btn-icon btn-sm next "
+            type="button"
+          >
+            <i
+              class="icon icon-chevron-right"
+              title="Next Icon"
+            />
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 `;
