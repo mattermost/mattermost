@@ -334,10 +334,7 @@ export function postMessageOnKeyPress(
         return {allowSending: false, ignoreKeyPress: true};
     }
 
-    if (
-        message.trim() === '' ||
-        !(sendMessageOnCtrlEnter || sendCodeBlockOnCtrlEnter)
-    ) {
+    if (!(sendMessageOnCtrlEnter || sendCodeBlockOnCtrlEnter)) {
         return {allowSending: true};
     }
 
@@ -346,6 +343,9 @@ export function postMessageOnKeyPress(
     if (sendMessageOnCtrlEnter) {
         return sendOnCtrlEnter(message, ctrlOrMetaKeyPressed, true, caretPosition);
     } else if (sendCodeBlockOnCtrlEnter) {
+        if (message.trim() === '') {
+            return {allowSending: true};
+        }
         return sendOnCtrlEnter(message, ctrlOrMetaKeyPressed, false, caretPosition);
     }
 
