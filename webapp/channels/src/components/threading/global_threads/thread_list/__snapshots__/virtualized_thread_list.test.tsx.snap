@@ -1,7 +1,37 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/threading/global_threads/thread_list/virtualized_thread_list should match snapshot 1`] = `
-<AutoSizer>
-  <Component />
-</AutoSizer>
+<body>
+  <div>
+    <div>
+      <div
+        class="virtualized-thread-list"
+        style="position: relative; height: 500px; width: 300px; overflow: auto; -webkit-overflow-scrolling: touch; will-change: auto; direction: ltr;"
+      >
+        <div
+          style="height: 399px; width: 100%;"
+        >
+          <div
+            data-testid="thread-row-1"
+            style="position: absolute; left: 0px; top: 0px; height: 133px; width: 100%;"
+          >
+            1
+          </div>
+          <div
+            data-testid="thread-row-2"
+            style="position: absolute; left: 0px; top: 133px; height: 133px; width: 100%;"
+          >
+            2
+          </div>
+          <div
+            data-testid="thread-row-3"
+            style="position: absolute; left: 0px; top: 266px; height: 133px; width: 100%;"
+          >
+            3
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
 `;

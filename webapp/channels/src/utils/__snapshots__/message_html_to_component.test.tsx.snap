@@ -1,273 +1,413 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`messageHtmlToComponent At mention 1`] = `
-<p>
-  <span
-    className="mention--highlight"
-  >
+<div>
+  <p>
     <span
-      data-mention="joram"
+      class="mention--highlight"
     >
-      <Memo(Connect(Component))
-        disableGroupHighlight={false}
-        disableHighlight={false}
-        mentionName="joram"
+      <span
+        data-mention="joram"
       >
         @joram
-      </Memo(Connect(Component))>
+      </span>
     </span>
-  </span>
-</p>
+  </p>
+</div>
 `;
 
 exports[`messageHtmlToComponent At mention 2`] = `
-<p>
-  <span
-    data-mention="joram"
-  >
-    <Memo(Connect(Component))
-      disableGroupHighlight={false}
-      disableHighlight={true}
-      mentionName="joram"
+<div>
+  <p>
+    <span
+      data-mention="joram"
     >
       @joram
-    </Memo(Connect(Component))>
-  </span>
-</p>
+    </span>
+  </p>
+</div>
 `;
 
 exports[`messageHtmlToComponent At mention with group highlight disabled 1`] = `
-<p>
-  <span
-    data-mention="developers"
-  >
-    <Memo(Connect(Component))
-      disableGroupHighlight={false}
-      disableHighlight={false}
-      mentionName="developers"
+<div>
+  <p>
+    <span
+      data-mention="developers"
     >
       @developers
-    </Memo(Connect(Component))>
-  </span>
-</p>
+    </span>
+  </p>
+</div>
 `;
 
 exports[`messageHtmlToComponent At mention with group highlight disabled 2`] = `
-<p>
-  <span
-    data-mention="developers"
-  >
-    <Memo(Connect(Component))
-      disableGroupHighlight={true}
-      disableHighlight={false}
-      mentionName="developers"
+<div>
+  <p>
+    <span
+      data-mention="developers"
     >
       @developers
-    </Memo(Connect(Component))>
-  </span>
-</p>
+    </span>
+  </p>
+</div>
 `;
 
 exports[`messageHtmlToComponent Inline markdown image 1`] = `
-<div
-  className="markdown-inline-img__container"
->
-  <Memo(Connect(MarkdownImage))
-    alt="Mattermost"
-    className="markdown-inline-img"
-    imageIsLink={false}
-    postId="post_id"
-    postType="system_header_change"
-    src="/images/icon.png"
-  />
-   and a 
-  <a
-    className="theme markdown__link"
-    href="http://link"
-    rel="noreferrer"
-    target="_blank"
+<div>
+  <div
+    class="markdown-inline-img__container"
   >
-    link
-  </a>
+    <div
+      class="file-preview__button"
+      style="display: inline-block;"
+    >
+      <figure
+        class="image-loaded-container"
+      >
+        <img
+          alt="Mattermost"
+          aria-label="file thumbnail"
+          class="markdown-inline-img markdown-inline-img--scaled-down-loading"
+          src="/images/icon.png"
+          tabindex="0"
+        />
+      </figure>
+    </div>
+     and a 
+    <a
+      class="theme markdown__link"
+      href="http://link"
+      rel="noreferrer"
+      target="_blank"
+    >
+      link
+    </a>
+  </div>
 </div>
 `;
 
 exports[`messageHtmlToComponent Inline markdown image where image is link 1`] = `
-<div
-  className="markdown-inline-img__container"
->
-  <a
-    className="theme markdown__link"
-    href="http://images/icon.png"
-    rel="noreferrer"
-    target="_blank"
+<div>
+  <div
+    class="markdown-inline-img__container"
   >
-    <Memo(Connect(MarkdownImage))
-      alt="Mattermost"
-      className="markdown-inline-img"
-      imageIsLink={true}
-      postId="post_id"
-      postType="system_header_change"
-      src="images/icon.png"
-    />
-  </a>
+    <a
+      class="theme markdown__link"
+      href="http://images/icon.png"
+      rel="noreferrer"
+      target="_blank"
+    >
+      <div
+        class="file-preview__button"
+        style="display: inline-block;"
+      >
+        <figure
+          class="image-loaded-container"
+        >
+          <img
+            alt="Mattermost"
+            aria-label="file thumbnail"
+            class="markdown-inline-img markdown-inline-img--scaled-down-loading"
+            src="images/icon.png"
+            tabindex="0"
+          />
+        </figure>
+      </div>
+    </a>
+  </div>
 </div>
 `;
 
 exports[`messageHtmlToComponent Remote at mention 1`] = `
-<p>
-  <span
-    className="mention--highlight"
-  >
+<div>
+  <p>
     <span
-      data-mention="joram"
+      class="mention--highlight"
     >
-      <Memo(Connect(Component))
-        disableGroupHighlight={false}
-        disableHighlight={false}
-        mentionName="joram"
+      <span
+        data-mention="joram"
       >
         @joram
-      </Memo(Connect(Component))>
+      </span>
     </span>
-  </span>
-</p>
+  </p>
+</div>
 `;
 
 exports[`messageHtmlToComponent Remote at mention 2`] = `
-<p>
-  <span
-    data-mention="joram"
-  >
-    <Memo(Connect(Component))
-      disableGroupHighlight={false}
-      disableHighlight={true}
-      mentionName="joram"
+<div>
+  <p>
+    <span
+      data-mention="joram"
     >
       @joram
-    </Memo(Connect(Component))>
-  </span>
-</p>
+    </span>
+  </p>
+</div>
 `;
 
 exports[`messageHtmlToComponent citation links should not render normal links as InlineEntityLink 1`] = `
-<p>
-  <a
-    className="theme markdown__link"
-    href="http://localhost:8065/team/pl/postid"
-    rel="noreferrer"
-    target="_blank"
-  >
-    post
-  </a>
-</p>
+<div>
+  <p>
+    <a
+      class="theme markdown__link"
+      href="http://localhost:8065/team/pl/postid"
+      rel="noreferrer"
+      target="_blank"
+    >
+      post
+    </a>
+  </p>
+</div>
 `;
 
 exports[`messageHtmlToComponent citation links should render citation link using InlineEntityLink 1`] = `
-<p>
-  <InlineEntityLink
-    text={
-      Array [
-        "post",
-      ]
-    }
-    url="http://localhost:8065/team/pl/postid?view=citation"
-  />
-</p>
+<div>
+  <p>
+    <a
+      aria-label="Go to post"
+      class="inline-entity-link"
+      href="http://localhost:8065/team/pl/postid?view=citation"
+    >
+      <svg
+        fill="currentColor"
+        height="14"
+        version="1.1"
+        viewBox="0 0 24 24"
+        width="14"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M10.59,13.41C11,13.8 11,14.44 10.59,14.83C10.2,15.22 9.56,15.22 9.17,14.83C7.22,12.88 7.22,9.71 9.17,7.76V7.76L12.71,4.22C14.66,2.27 17.83,2.27 19.78,4.22C21.73,6.17 21.73,9.34 19.78,11.29L18.29,12.78C18.3,11.96 18.17,11.14 17.89,10.36L18.36,9.88C19.54,8.71 19.54,6.81 18.36,5.64C17.19,4.46 15.29,4.46 14.12,5.64L10.59,9.17C9.41,10.34 9.41,12.24 10.59,13.41M13.41,9.17C13.8,8.78 14.44,8.78 14.83,9.17C16.78,11.12 16.78,14.29 14.83,16.24V16.24L11.29,19.78C9.34,21.73 6.17,21.73 4.22,19.78C2.27,17.83 2.27,14.66 4.22,12.71L5.71,11.22C5.7,12.04 5.83,12.86 6.11,13.65L5.64,14.12C4.46,15.29 4.46,17.19 5.64,18.36C6.81,19.54 8.71,19.54 9.88,18.36L13.41,14.83C14.59,13.66 14.59,11.76 13.41,10.59C13,10.2 13,9.56 13.41,9.17Z"
+        />
+      </svg>
+    </a>
+  </p>
+</div>
 `;
 
 exports[`messageHtmlToComponent html 1`] = `
-<CodeBlock
-  code="<div>This is a html div</div>"
-  language="html"
-  searchedContent=""
-/>
+<div>
+  <div
+    class="post-code"
+  >
+    <div
+      class="post-code__overlay"
+    >
+      <span
+        aria-label="Copy code"
+        class="post-code__clipboard"
+        role="button"
+      >
+        <i
+          class="icon icon-content-copy"
+        />
+      </span>
+      <span
+        class="post-code__language"
+      >
+        HTML, XML
+      </span>
+    </div>
+    <div
+      class="hljs"
+    >
+      <div
+        class="post-code__line-numbers"
+      >
+        1
+      </div>
+      <code>
+        &lt;div&gt;This is a html div&lt;/div&gt;
+      </code>
+    </div>
+  </div>
+</div>
 `;
 
 exports[`messageHtmlToComponent latex 1`] = `
-Array [
+<div>
   <p>
     This is some latex!
-  </p>,
-  "
-",
-  <Memo(Connect(Component))
-    content="x^2 + y^2 = z^2"
-  />,
-  <Memo(Connect(Component))
-    content="F_m - 2 = F_0 F_1 \\\\dots F_{m-1}"
-  />,
+  </p>
+  
+
+  <div
+    class="post-code"
+  >
+    <div
+      class="post-code__overlay"
+    >
+      <span
+        aria-label="Copy code"
+        class="post-code__clipboard"
+        role="button"
+      >
+        <i
+          class="icon icon-content-copy"
+        />
+      </span>
+      <span
+        class="post-code__language"
+      >
+        LaTeX
+      </span>
+    </div>
+    <div
+      class="hljs"
+    >
+      <div
+        class="post-code__line-numbers"
+      >
+        1
+      </div>
+      <code>
+        x^2 + y^2 = z^2
+      </code>
+    </div>
+  </div>
+  <div
+    class="post-code"
+  >
+    <div
+      class="post-code__overlay"
+    >
+      <span
+        aria-label="Copy code"
+        class="post-code__clipboard"
+        role="button"
+      >
+        <i
+          class="icon icon-content-copy"
+        />
+      </span>
+      <span
+        class="post-code__language"
+      >
+        LaTeX
+      </span>
+    </div>
+    <div
+      class="hljs"
+    >
+      <div
+        class="post-code__line-numbers"
+      >
+        1
+      </div>
+      <code>
+        F_m - 2 = F_0 F_1 \\dots F_{m-1}
+      </code>
+    </div>
+  </div>
   <p>
     That was some latex!
-  </p>,
-]
+  </p>
+</div>
 `;
 
 exports[`messageHtmlToComponent link with enabled a tooltip plugin 1`] = `
-<p>
-  lorem ipsum 
-  <PluginLinkTooltip
-    nodeAttributes={
-      Object {
-        "className": "theme markdown__link",
-        "href": "http://www.dolor.com",
-        "rel": "noreferrer",
-        "target": "_blank",
-      }
-    }
-  >
-    www.dolor.com
-  </PluginLinkTooltip>
-   sit amet
-</p>
+<div>
+  <p>
+    lorem ipsum 
+    <a
+      class="theme markdown__link"
+      href="http://www.dolor.com"
+      rel="noreferrer"
+      target="_blank"
+    >
+      www.dolor.com
+    </a>
+     sit amet
+  </p>
+</div>
 `;
 
 exports[`messageHtmlToComponent link without enabled tooltip plugins 1`] = `
-<p>
-  lorem ipsum 
-  <a
-    className="theme markdown__link"
-    href="http://www.dolor.com"
-    rel="noreferrer"
-    target="_blank"
-  >
-    www.dolor.com
-  </a>
-   sit amet
-</p>
+<div>
+  <p>
+    lorem ipsum 
+    <a
+      class="theme markdown__link"
+      href="http://www.dolor.com"
+      rel="noreferrer"
+      target="_blank"
+    >
+      www.dolor.com
+    </a>
+     sit amet
+  </p>
+</div>
 `;
 
 exports[`messageHtmlToComponent plain text 1`] = `
-<p>
-  Hello, world!
-</p>
+<div>
+  <p>
+    Hello, world!
+  </p>
+</div>
 `;
 
 exports[`messageHtmlToComponent typescript 1`] = `
-<CodeBlock
-  code="const myFunction = () => {
+<div>
+  <div
+    class="post-code"
+  >
+    <div
+      class="post-code__overlay"
+    >
+      <span
+        aria-label="Copy code"
+        class="post-code__clipboard"
+        role="button"
+      >
+        <i
+          class="icon icon-content-copy"
+        />
+      </span>
+      <span
+        class="post-code__language"
+      >
+        TypeScript
+      </span>
+    </div>
+    <div
+      class="hljs"
+    >
+      <div
+        class="post-code__line-numbers"
+      >
+        1
+2
+3
+      </div>
+      <code>
+        const myFunction = () =&gt; {
     console.log('This is a meaningful function');
-};"
-  language="typescript"
-  searchedContent=""
-/>
+};
+      </code>
+    </div>
+  </div>
+</div>
 `;
 
 exports[`messageHtmlToComponent typescript 2`] = `
-<p>
-  Text before typescript codeblock
+<div>
+  <p>
+    Text before typescript codeblock
             
-  <span
-    className="codespan__pre-wrap"
-  >
-    <code>
-      typescript
+    <span
+      class="codespan__pre-wrap"
+    >
+      <code>
+        typescript
             const myFunction = () =&gt; {
                 console.log('This is a test function');
             };
-    </code>
-  </span>
-  
+      </code>
+    </span>
+    
             text after typescript block
-</p>
+  </p>
+</div>
 `;
