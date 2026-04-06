@@ -63,7 +63,8 @@ type State = {
     prevValue: string;
 }
 
-const multipleValuesDelimiter = /[\s,;]+/;
+const typedInputDelimiter = /[,;]+/;
+const pasteDelimiter = /[\s,;]+/;
 
 const messages = defineMessages({
     loadingDefault: {
@@ -336,8 +337,8 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
                     prevValue: action.prevInputValue,
                 }));
             }
-        } else if (action.action === 'input-change' && action.prevInputValue !== '' && action.prevInputValue?.[action.prevInputValue.length - 1].match(multipleValuesDelimiter)) {
-            const newValuesCount = await this.appendDelimitedValues(action.prevInputValue);
+        } else if (action.action === 'input-change' && action.prevInputValue !== '' && action.prevInputValue?.[action.prevInputValue.length - 1].match(typedInputDelimiter)) {
+            const newValuesCount = await this.appendDelimitedValues(action.prevInputValue, typedInputDelimiter);
             if (newValuesCount === 0) {
                 return;
             }
@@ -390,9 +391,9 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
         }
     };
 
-    appendDelimitedValues = async (values: string): Promise<number> => {
+    appendDelimitedValues = async (values: string, delimiter: RegExp = pasteDelimiter): Promise<number> => {
         const existingValues = this.formatValuesForCreatable();
-        const entries = [...new Set(values.split(multipleValuesDelimiter))];
+        const entries = [...new Set(values.split(delimiter).map((e) => e.trim()))];
 
         if (entries.length === 0) {
             return 0;
