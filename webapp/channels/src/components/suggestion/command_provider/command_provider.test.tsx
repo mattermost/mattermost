@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {AutocompleteSuggestion} from '@mattermost/types/integrations';
 
 import {Client4} from 'mattermost-redux/client';
 
+import {renderWithContext} from 'tests/react_testing_utils';
 import * as UserAgent from 'utils/user_agent';
 
 import CommandProvider, {commandsGroup, CommandSuggestion} from './command_provider';
@@ -32,12 +32,14 @@ describe('CommandSuggestion', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <CommandSuggestion {...baseProps}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('.slash-command__title').first().text()).toEqual('invite @[username] ~[channel]');
+        expect(container).toMatchSnapshot();
+
+        const titleElement = container.querySelector('.slash-command__title');
+        expect(titleElement?.textContent).toEqual('invite @[username] ~[channel]');
     });
 });
 
