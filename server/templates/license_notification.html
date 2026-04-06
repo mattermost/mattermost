@@ -1,6 +1,6 @@
-{{define "license_up_for_renewal"}}
+{{define "license_notification"}}
 
-<!-- FILE: license_up_for_renewal.mjml -->
+<!-- FILE: license_notification.mjml -->
 <!doctype html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 
@@ -362,12 +362,12 @@
                           <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
                             <tbody>
                               <tr>
-                                <td align="left" style="font-size:0px;padding:0px;word-break:break-word;">
+                                <td align="center" style="font-size:0px;padding:0px;word-break:break-word;">
                                   <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;border-spacing:0px;">
                                     <tbody>
                                       <tr>
                                         <td style="width:132px;">
-                                          <img alt height="21" src="{{.Props.SiteURL}}/static/images/logo_email_gray.png" style="border:0;display:block;outline:none;text-decoration:none;height:21.76px;width:100%;font-size:13px;" width="132">
+                                          <img alt height="21" src="{{.Props.SiteURL}}/static/images/logo_email_dark.png" style="border:0;display:block;outline:none;text-decoration:none;height:21.76px;width:100%;font-size:13px;" width="132">
                                         </td>
                                       </tr>
                                     </tbody>
@@ -400,20 +400,20 @@
                               </tr>
                               <tr>
                                 <td align="center" style="font-size:0px;padding:10px 0px;padding-bottom:24px;word-break:break-word;">
-                                  <div style="font-family:Arial;font-size:16px;line-height:24px;text-align:center;color:#000000;">{{.Props.SubTitle}}</div>
+                                  <div style="font-family:Arial;font-size:16px;line-height:24px;text-align:center;color:#000000;">{{.HTML.SubTitle}}</div>
                                 </td>
                               </tr>
                               <tr>
-                                <td align="center" style="font-size:0px;padding:10px 0px;padding-bottom:24px;word-break:break-word;">
-                                  <div style="font-family:Arial;font-size:16px;font-weight:bold;line-height:24px;text-align:center;color:#000000;">{{.Props.SubTitleTwo}}</div>
+                                <td align="center" style="font-size:0px;padding:0px;padding-bottom:24px;word-break:break-word;">
+                                  <div style="font-family:Arial;font-size:16px;line-height:24px;text-align:center;color:#000000;">{{.Props.SubTitleTwo}}</div>
                                 </td>
                               </tr>
                               <tr>
                                 <td align="center" vertical-align="middle" class="button" style="font-size:0px;padding:0px;word-break:break-word;">
                                   <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;">
                                     <tr>
-                                      <td align="center" bgcolor="#0058CC" role="presentation" style="border:none;border-radius:4px;border-top:16px;cursor:auto;mso-padding-alt:10px 25px;background:#0058CC;" valign="middle">
-                                        <a href="{{.Props.ButtonURL}}" style="display: inline-block; background: #0058CC; font-family: Arial; margin: 0; text-transform: none; mso-padding-alt: 0px; border-radius: 4px; text-decoration: none; background-color: #1C58D9; font-weight: 600; font-size: 16px; line-height: 18px; color: #FFFFFF; padding: 15px 24px;" target="_blank">
+                                      <td align="center" bgcolor="#1C58D9" role="presentation" style="border:none;border-radius:4px;border-top:16px;cursor:auto;mso-padding-alt:10px 25px;background:#1C58D9;" valign="middle">
+                                        <a href="{{.Props.ButtonURL}}" style="display: inline-block; background: #1C58D9; font-family: Arial; margin: 0; text-transform: none; mso-padding-alt: 0px; border-radius: 4px; text-decoration: none; background-color: #1C58D9; font-weight: 600; font-size: 16px; line-height: 18px; color: #FFFFFF; padding: 15px 24px;" target="_blank">
                                           {{.Props.Button}}
                                         </a>
                                       </td>
@@ -446,7 +446,7 @@
                                     <tbody>
                                       <tr>
                                         <td style="width:320px;">
-                                          <img alt height="auto" src="https://ucarecdn.com/8cd90d9d-8902-4845-a15b-f4664e5fcfb3/-/format/auto/-/quality/lighter/-/max_icc_size/10/-/resize/1288x/" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="320">
+                                          <img alt height="auto" src="{{.Props.SiteURL}}/static/images/license_illustration.png" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="320">
                                         </td>
                                       </tr>
                                     </tbody>
@@ -474,16 +474,12 @@
                             <tbody>
                               <tr>
                                 <td align="left" class="footerTitle" style="font-size:0px;padding:24px 0px 0px 0px;word-break:break-word;">
-                                  <div style="font-family: Arial; text-align: left; font-weight: 600; font-size: 16px; line-height: 24px; color: #3F4350; padding: 0px 0px 4px 0px;">{{.Props.QuestionTitle}}</div>
+                                  <div style="font-family: Arial; text-align: left; font-weight: 600; font-size: 16px; line-height: 24px; color: #3F4350; padding: 0px 0px 4px 0px;">{{.Props.NeedHelpTitle}}</div>
                                 </td>
                               </tr>
                               <tr>
-                                <td align="left" style="font-size:0px;padding:0px 0px ;word-break:break-word;">
-                                  <div style="font-family:Arial;font-size:14px;line-height:20px;text-align:left;color:#3D3C40;">{{.Props.QuestionInfo}}
-                                    <a href="mailto:{{.Props.SupportEmail}}" style="color: #1C58D9; text-decoration: none;">
-                                      {{.Props.SupportEmail}}
-                                    </a>
-                                  </div>
+                                <td align="left" style="font-size:0px;padding:0px 0px;word-break:break-word;">
+                                  <div style="font-family:Arial;font-size:14px;line-height:20px;text-align:left;color:#3D3C40;">{{.HTML.NeedHelpInfo}}</div>
                                 </td>
                               </tr>
                             </tbody>
