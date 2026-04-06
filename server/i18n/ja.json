@@ -10022,10 +10022,6 @@
     "translation": "カスタムプロフィール属性のフィールドを削除できませんでした"
   },
   {
-    "id": "app.custom_profile_attributes.create_property_field.app_error",
-    "translation": "カスタムプロフィール属性のフィールドを作成できませんでした"
-  },
-  {
     "id": "app.custom_profile_attributes.get_property_field.app_error",
     "translation": "カスタムプロフィール属性のフィールドを取得できませんでした"
   },

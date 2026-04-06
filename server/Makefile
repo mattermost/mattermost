@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server run-node run-haserver stop-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker update-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-freebsd build-windows package-prep package-linux package-osx package-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race test-mmctl-unit test-mmctl-e2e test-mmctl test-mmctl-coverage mmctl-build mmctl-docs new-migration migrations-extract test-public mocks-public
+.PHONY: build package run stop run-client run-server run-node run-haserver stop-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker update-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-freebsd build-windows package-prep package-linux package-osx package-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race test-mmctl-unit test-mmctl-e2e test-mmctl test-mmctl-coverage mmctl-build mmctl-docs new-migration migrations-extract test-public mocks-public run-server-faketime
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -603,6 +603,30 @@ endif
 	mkdir -p $(BUILD_WEBAPP_DIR)/channels/dist/files
 	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' -tags '$(BUILD_TAGS)' $(PLATFORM_FILES) $(RUN_IN_BACKGROUND)
 
+run-server-faketime: setup-go-work prepackaged-binaries validate-go-version start-docker client ## Starts the server with FAKETIME.
+ifndef FAKETIME
+	$(error FAKETIME is not set. Usage: make run-server-faketime FAKETIME="+30d")
+endif
+	@if [ "$$(uname)" = "Darwin" ]; then \
+		LIBFAKETIME="$$(brew --prefix libfaketime 2>/dev/null)/lib/faketime/libfaketime.1.dylib"; \
+	else \
+		for p in /usr/lib/x86_64-linux-gnu/faketime /usr/lib/aarch64-linux-gnu/faketime /usr/lib/faketime /usr/lib64/faketime; do \
+			if [ -f "$$p/libfaketime.so.1" ]; then LIBFAKETIME="$$p/libfaketime.so.1"; break; fi; \
+		done; \
+	fi; \
+	[ -f "$$LIBFAKETIME" ] || { echo "Error: libfaketime not found. Install it with your package manager."; exit 1; }; \
+	echo "Building mattermost..."; \
+	$(GO) build $(GOFLAGS) -ldflags '$(LDFLAGS)' -tags '$(BUILD_TAGS)' -o $(GOBIN)/mattermost-faketime $(PLATFORM_FILES); \
+	echo "Running mattermost with FAKETIME=$(FAKETIME) (libfaketime: $$LIBFAKETIME)"; \
+	mkdir -p $(BUILD_WEBAPP_DIR)/channels/dist/files; \
+	if [ "$$(uname)" = "Darwin" ]; then \
+		DYLD_INSERT_LIBRARIES="$$LIBFAKETIME" DYLD_FORCE_FLAT_NAMESPACE=1 FAKETIME="$(FAKETIME)" FAKETIME_NO_CACHE=1 \
+			$(GOBIN)/mattermost-faketime $(RUN_IN_BACKGROUND) \
+	else \
+		LD_PRELOAD="$$LIBFAKETIME" FAKETIME="$(FAKETIME)" FAKETIME_NO_CACHE=1 \
+			$(GOBIN)/mattermost-faketime $(RUN_IN_BACKGROUND) \
+	fi
+
 run-server-pgvector: ## Starts the server with pgvector PostgreSQL image.
 	@MM_USE_PGVECTOR=true $(MAKE) run-server
 
@@ -805,7 +829,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 
 vet: setup-go-work ## Run mattermost go vet specific checks
-	$(GO) install github.com/mattermost/mattermost-govet/v2@b9756c1328ecab43db9b0a892eaa6d4d0a7227b1
+	cd ../tools/mattermost-govet && $(GO) install .
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet \
 		-structuredLogging \
 		-inconsistentReceiverName \
@@ -831,7 +855,7 @@ vet-api: export GO := $(GO)
 vet-api: export GOBIN := $(GOBIN)
 vet-api: export ROOT := $(ROOT)
 vet-api: ## Run mattermost go vet to verify api4 documentation, currently not passing
-	$(GO) install github.com/mattermost/mattermost-govet/v2@7d8db289e508999dfcac47b97c9490a0fec12d66
+	cd ../tools/mattermost-govet && $(GO) install .
 	make -C ../api build
 	./scripts/vet-api-check.sh
 

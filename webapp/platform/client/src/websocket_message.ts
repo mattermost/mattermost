@@ -31,6 +31,7 @@ export type WebSocketMessage = (
     Messages.ChannelCreated |
     Messages.ChannelUpdated |
     Messages.ChannelConverted |
+    Messages.SharedChannelRemoteUpdated |
     Messages.ChannelSchemeUpdated |
     Messages.ChannelDeleted |
     Messages.ChannelRestored |
