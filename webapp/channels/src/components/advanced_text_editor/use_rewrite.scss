@@ -1,5 +1,4 @@
 .rewrite-menu {
-    min-width: 400px;
 }
 
 .ai-actions-submenu {
@@ -14,8 +13,8 @@
 }
 
 .rewrite-menu-header {
-    padding: 8px 12px 0 12px;
-    margin-bottom: -4px;
+    padding: 8px 12px 8px 12px;
+    min-width: 400px;
 
     .Input_wrapper {
         padding-left: 8px;
