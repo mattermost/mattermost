@@ -14,7 +14,7 @@ import (
 
 // cleanCPAValuesForUser removes all CPA values for a user
 func (s *MmctlE2ETestSuite) cleanCPAValuesForUser(userID string) {
-	existingValues, appErr := s.th.App.ListCPAValues("", userID)
+	existingValues, appErr := s.th.App.ListCPAValues(nil, userID)
 	s.Require().Nil(appErr)
 
 	// Clear all existing values by setting them to null
@@ -24,7 +24,7 @@ func (s *MmctlE2ETestSuite) cleanCPAValuesForUser(userID string) {
 	}
 
 	if len(updates) > 0 {
-		_, appErr = s.th.App.PatchCPAValues("", userID, updates, false)
+		_, appErr = s.th.App.PatchCPAValues(nil, userID, updates, false)
 		s.Require().Nil(appErr)
 	}
 }
@@ -64,14 +64,14 @@ func (s *MmctlE2ETestSuite) TestCPAValueList() {
 			},
 		}
 
-		createdField, appErr := s.th.App.CreateCPAField("", textField)
+		createdField, appErr := s.th.App.CreateCPAField(nil, textField)
 		s.Require().Nil(appErr)
 
 		// Set a text value using the app layer
 		updates := map[string]json.RawMessage{
 			createdField.ID: json.RawMessage(`"Engineering"`),
 		}
-		_, appErr = s.th.App.PatchCPAValues("", s.th.BasicUser.Id, updates, false)
+		_, appErr = s.th.App.PatchCPAValues(nil, s.th.BasicUser.Id, updates, false)
 		s.Require().Nil(appErr)
 
 		// Test listing the values with plain format (human-readable)
@@ -122,7 +122,7 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 			},
 		}
 
-		createdField, appErr := s.th.App.CreateCPAField("", textField)
+		createdField, appErr := s.th.App.CreateCPAField(nil, textField)
 		s.Require().Nil(appErr)
 
 		// Set a text value
@@ -136,7 +136,7 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 
 		// Verify the value was set
 
-		values, appErr := s.th.App.ListCPAValues("", s.th.BasicUser.Id)
+		values, appErr := s.th.App.ListCPAValues(nil, s.th.BasicUser.Id)
 		s.Require().Nil(appErr)
 		s.Require().Len(values, 1)
 		s.Require().Equal(createdField.ID, values[0].FieldID)
@@ -166,7 +166,7 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 			},
 		}
 
-		createdField, appErr := s.th.App.CreateCPAField("", selectField)
+		createdField, appErr := s.th.App.CreateCPAField(nil, selectField)
 		s.Require().Nil(appErr)
 
 		// Set a select value using the option name
@@ -180,7 +180,7 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 
 		// Verify the value was set (should be stored as option ID)
 
-		values, appErr := s.th.App.ListCPAValues("", s.th.BasicUser.Id)
+		values, appErr := s.th.App.ListCPAValues(nil, s.th.BasicUser.Id)
 		s.Require().Nil(appErr)
 		s.Require().Len(values, 1)
 		s.Require().Equal(createdField.ID, values[0].FieldID)
@@ -220,7 +220,7 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 			},
 		}
 
-		createdField, appErr := s.th.App.CreateCPAField("", multiselectField)
+		createdField, appErr := s.th.App.CreateCPAField(nil, multiselectField)
 		s.Require().Nil(appErr)
 
 		// Set multiple values using option names
@@ -239,7 +239,7 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 
 		// Verify the values were set (should be stored as option IDs)
 
-		values, appErr := s.th.App.ListCPAValues("", s.th.BasicUser.Id)
+		values, appErr := s.th.App.ListCPAValues(nil, s.th.BasicUser.Id)
 		s.Require().Nil(appErr)
 		s.Require().Len(values, 1)
 		s.Require().Equal(createdField.ID, values[0].FieldID)
@@ -288,7 +288,7 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 			},
 		}
 
-		createdField, appErr := s.th.App.CreateCPAField("", multiselectField)
+		createdField, appErr := s.th.App.CreateCPAField(nil, multiselectField)
 		s.Require().Nil(appErr)
 
 		// Set a single value using option name
@@ -303,7 +303,7 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 
 		// Verify the value was set (should be stored as an array with single option ID)
 
-		values, appErr := s.th.App.ListCPAValues("", s.th.BasicUser.Id)
+		values, appErr := s.th.App.ListCPAValues(nil, s.th.BasicUser.Id)
 		s.Require().Nil(appErr)
 		s.Require().Len(values, 1)
 		s.Require().Equal(createdField.ID, values[0].FieldID)
@@ -349,7 +349,7 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 			},
 		}
 
-		createdField, appErr := s.th.App.CreateCPAField("", userField)
+		createdField, appErr := s.th.App.CreateCPAField(nil, userField)
 		s.Require().Nil(appErr)
 
 		// Set a user value using the system admin user ID
@@ -363,7 +363,7 @@ func (s *MmctlE2ETestSuite) TestCPAValueSet() {
 
 		// Verify the value was set
 
-		values, appErr := s.th.App.ListCPAValues("", s.th.BasicUser.Id)
+		values, appErr := s.th.App.ListCPAValues(nil, s.th.BasicUser.Id)
 		s.Require().Nil(appErr)
 		s.Require().Len(values, 1)
 		s.Require().Equal(createdField.ID, values[0].FieldID)

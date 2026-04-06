@@ -16,7 +16,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/blang/semver/v4"
+	"github.com/Masterminds/semver/v3"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 
@@ -2538,7 +2538,7 @@ func handleDeviceProps(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	mobileVersion := receivedProps[model.SessionPropMobileVersion]
 	if mobileVersion != "" {
-		if _, err := semver.Parse(mobileVersion); err != nil {
+		if _, err := semver.StrictNewVersion(mobileVersion); err != nil {
 			c.SetInvalidParam(model.SessionPropMobileVersion)
 			return
 		}

@@ -9776,10 +9776,6 @@
     "translation": "Невозможно зарегистрировать группу свойств \"Атрибуты пользовательского профиля\""
   },
   {
-    "id": "app.custom_profile_attributes.create_property_field.app_error",
-    "translation": "Невозможно создать поле \"Атрибут пользовательского профиля\""
-  },
-  {
     "id": "app.custom_profile_attributes.get_property_field.app_error",
     "translation": "Невозможно получить поле \"Атрибут пользовательского профиля\""
   },
@@ -10314,5 +10310,453 @@
   {
     "id": "api.post.reveal_post.disabled.app_error",
     "translation": "Функция при прочтении сжечь не включена или требует лицензии Enterprise Advanced."
+  },
+  {
+    "id": "api.post.reveal_post.user_not_in_channel.app_error",
+    "translation": "У Вас нет разрешения на раскрытие этого сообщения. Вы должны быть участником канала."
+  },
+  {
+    "id": "api.post.update_post.burn_on_read.app_error",
+    "translation": "Сообщения, сгораемые при прочтении, невозможно изменить."
+  },
+  {
+    "id": "api.post.update_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "Невозможно обновить сообщение в ограниченном канале личных сообщений."
+  },
+  {
+    "id": "api.reaction.delete.restricted_dm.error",
+    "translation": "Невозможно ставить реакции в ограниченных ЛС"
+  },
+  {
+    "id": "api.reaction.save.burn_on_read.app_error",
+    "translation": "Вы не можете ставить реакции на сообщения, сгораемые при прочтении."
+  },
+  {
+    "id": "api.reaction.save.restricted_dm.error",
+    "translation": "Невозможно ставить реакции в ограниченных ЛС"
+  },
+  {
+    "id": "api.recap.disabled.app_error",
+    "translation": "Эта функция не включена."
+  },
+  {
+    "id": "api.recap.permission_denied",
+    "translation": "У Вас нет разрешения на доступ к этому краткому обзору."
+  },
+  {
+    "id": "api.remote_cluster.import_not_allowed.app_error",
+    "translation": "Импорт удаленного кластера не разрешен"
+  },
+  {
+    "id": "api.slackimport.slack_add_bot_user.email",
+    "translation": "Пользователь Integration/Slack Bot с электронной почтой {{.Email}} был импортирован.\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.email",
+    "translation": "Пользователь Slack с электронной почтой {{.Email}} был импортирован.\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.send_reset_email_failed",
+    "translation": "Невозможно отправить письмо со сбросом пароля на {{.Username}} по адресу {{.Email}}.\n"
+  },
+  {
+    "id": "api.team.get_team.flagged_post_mismatch.app_error",
+    "translation": "Идентификатор команды не совпадает с идентификатором отмеченного сообщения."
+  },
+  {
+    "id": "api.team.invite_guests.policy_enforced_channel.app_error",
+    "translation": "Невозможно приглашать гостевых пользователей в этот канал, так как на него распространяются ограничения доступа на основе атрибутов пользователя."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.guest_magic_link_disabled.error",
+    "translation": "Магическая ссылка для гостя не включена"
+  },
+  {
+    "id": "api.team.update_team_member_roles.unset_user_scheme.app_error",
+    "translation": "Недопустимое обновление участника команды: у участника команды всегда есть схема пользователя."
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.footer.info",
+    "translation": "Это письмо было отправлено вам, потому что кто-то запросил ссылку для входа в Mattermost. Если Вы её не запрашивали, то можете безопасно проигнорировать это письмо."
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.footer.title",
+    "translation": "Не запрашивали это письмо?"
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.subtitle",
+    "translation": "Нажмите на кнопку ниже, чтобы войти в свою учетную запись. Помните, что не стоит делиться этой ссылкой с кем-либо еще."
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.title",
+    "translation": "Войдите в Mattermost"
+  },
+  {
+    "id": "api.templates.guest_magic_link_subject",
+    "translation": "Войдите в систему {{ .SiteName }}"
+  },
+  {
+    "id": "api.upload.create.check_directory.app_error",
+    "translation": "При проверке конфигурации каталога импорта произошла ошибка."
+  },
+  {
+    "id": "api.upload.create.directory_conflict.app_error",
+    "translation": "Невозможно создать загрузку импорта: ImportSettings.Directory конфликтует с PluginSettings.Directory."
+  },
+  {
+    "id": "api.upload.invalid_type_for_shared_channel.app_error",
+    "translation": "Не удалось загрузить файл. Канал загрузки не используется совместно с удаленным."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_hook_error.app_error",
+    "translation": "Произошла ошибка в хуке OnSamlLogin. Обратитесь к своему системному администратору."
+  },
+  {
+    "id": "api.user.check_user_password.invalid_hash.app_error",
+    "translation": "Формат хэшированного пароля неверен и не может быть разобран."
+  },
+  {
+    "id": "api.user.create_user.license_user_limits.exceeded",
+    "translation": "Невозможно создать пользователя. На сервере превышено максимальное количество лицензированных пользователей. Обратись к своему администратору: ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
+    "id": "api.user.delete_channel.not_enabled.for_admin.app_error",
+    "translation": "Функция постоянного удаления каналов не включена. Для использования этой команды параметр ServiceSettings.EnableAPIChannelDeletion должен быть установлен в true. Дополнительную информацию см. на сайте https://mattermost.com/pl/environment-configuration-settings."
+  },
+  {
+    "id": "api.user.delete_team.not_enabled.for_admin.app_error",
+    "translation": "Функция постоянного удаления команд не включена. ServiceSettings.EnableAPITeamDeletion должен иметь значение true, чтобы использовать эту команду. Более подробную информацию смотри на сайте https://mattermost.com/pl/environment-configuration-settings."
+  },
+  {
+    "id": "api.user.delete_user.not_enabled.for_admin.app_error",
+    "translation": "Функция постоянного удаления пользователей не включена. ServiceSettings.EnableAPIUserDeletion должен быть установлен в true, чтобы использовать эту команду. Более подробную информацию смотри на сайте https://mattermost.com/pl/environment-configuration-settings."
+  },
+  {
+    "id": "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error",
+    "translation": "Служба контроля доступа недоступна. Невозможно отфильтровать пользователей для канала с поддержкой ABAC."
+  },
+  {
+    "id": "api.user.guest_magic_link.expired_token.app_error",
+    "translation": "Срок действия этой ссылки на приглашение истек."
+  },
+  {
+    "id": "api.user.guest_magic_link.invalid_token.app_error",
+    "translation": "Недействительная ссылка на приглашение."
+  },
+  {
+    "id": "api.user.guest_magic_link.missing_token.app_error",
+    "translation": "Отсутствует токен приглашения."
+  },
+  {
+    "id": "api.user.guest_magic_link.username_generation_failed.app_error",
+    "translation": "Не удалось сгенерировать уникальное имя пользователя. Обратитесь к своему системному администратору."
+  },
+  {
+    "id": "api.user.login.guest_magic_link.disabled.error",
+    "translation": "Вход с помощью магической ссылки отключен."
+  },
+  {
+    "id": "api.user.login_by_intune.account_locked.app_error",
+    "translation": "Ваша учетная запись была деактивирована. Обратитесь к своему системному администратору."
+  },
+  {
+    "id": "api.user.login_by_intune.bot_login_forbidden.app_error",
+    "translation": "Учетные записи ботов не могут входить в систему с помощью аутентификации Microsoft."
+  },
+  {
+    "id": "api.user.login_by_intune.not_available.app_error",
+    "translation": "Аутентификация Microsoft Intune недоступна."
+  },
+  {
+    "id": "api.user.login_by_intune.not_configured.app_error",
+    "translation": "Аутентификация Microsoft Intune не настроена."
+  },
+  {
+    "id": "api.user.login_sso_code_exchange.deprecated.app_error",
+    "translation": "Эта конечная точка устарела и отключена. Пожалуйста, обновите свое мобильное приложение."
+  },
+  {
+    "id": "api.user.oauth.get_settings.app_error",
+    "translation": "Не удалось получить настройки {{.Service}}"
+  },
+  {
+    "id": "api.user.oauth_to_email.magic_link.app_error",
+    "translation": "Магическая ссылка — единственный доступный метод входа для этой учетной записи."
+  },
+  {
+    "id": "api.user.update_password.magic_link.app_error",
+    "translation": "Невозможно обновить пароль для учетных записей с магической ссылкой."
+  },
+  {
+    "id": "api.user.promote_guest_to_user.magic_link_enabled.app_error",
+    "translation": "Невозможно преобразовать гостя в обычного пользователя, потому что он использует аутентификацию по магической ссылке."
+  },
+  {
+    "id": "api.user.send_password_reset.guest_magic_link.app_error",
+    "translation": "Невозможно сбросить пароль для гостевых аккаунтов с магической ссылкой."
+  },
+  {
+    "id": "model.config.is_valid.guest_accounts.cannot_enforce_multifactor_authentication_when_guest_magic_link_is_enabled.app_error",
+    "translation": "Вы не можете применить многофакторную аутентификацию для гостевых записей, если включена аутентификация по магической ссылке."
+  },
+  {
+    "id": "api.user.oauth_to_email.not_oauth_user.app_error",
+    "translation": "Невозможно переключиться на аутентификацию по электронной почте, потому что пользователь не использует OAuth или SAML-аутентификацию."
+  },
+  {
+    "id": "app.access_control.insufficient_permissions",
+    "translation": "У Вас нет прав на управление этой политикой контроля доступа."
+  },
+  {
+    "id": "app.acknowledgement.batch_save.app_error",
+    "translation": "Не удалось сохранить партию объектов подтверждения"
+  },
+  {
+    "id": "app.acknowledgement.delete.missing_post.app_error",
+    "translation": "Невозможно удалить подтверждение отсутствующего сообщения"
+  },
+  {
+    "id": "app.acknowledgement.save.missing_post.app_error",
+    "translation": "Невозможно сохранить подтверждение отсутствующего сообщения"
+  },
+  {
+    "id": "app.agents.get_agents.app_error",
+    "translation": "Не удалось получить агентов."
+  },
+  {
+    "id": "app.agents.get_agents.bridge_call_failed",
+    "translation": "Вызов моста не удался."
+  },
+  {
+    "id": "app.agents.get_services.app_error",
+    "translation": "Не удалось получить услуги LLM."
+  },
+  {
+    "id": "app.agents.get_services.bridge_call_failed",
+    "translation": "Вызов моста не удался."
+  },
+  {
+    "id": "app.ai.summarize.agent_call_failed",
+    "translation": "Вызов агента ИИ не удался."
+  },
+  {
+    "id": "app.ai.summarize.parse_failed",
+    "translation": "Не удалось обработать обобщающий ответ ИИ."
+  },
+  {
+    "id": "app.burn_post.not_burn_on_read.app_error",
+    "translation": "Это сообщение не относится к категории сгорающих при прочтении и не может быть сожжено."
+  },
+  {
+    "id": "app.burn_post.not_revealed.app_error",
+    "translation": "Это сообщение о сожжении при прочтении еще не раскрыто. Ты должен раскрыть его, прежде чем сжечь."
+  },
+  {
+    "id": "app.burn_post.read_receipt.get.error",
+    "translation": "Во время получения подтверждения о прочтении произошла ошибка."
+  },
+  {
+    "id": "app.burn_post.read_receipt.update.error",
+    "translation": "Во время обновления подтверждения о прочтении произошла ошибка."
+  },
+  {
+    "id": "app.channel.get.app_error",
+    "translation": "Не удалось получить канал."
+  },
+  {
+    "id": "app.channel.get_common_teams.app_error",
+    "translation": "Ошибка получения общих команд для канала"
+  },
+  {
+    "id": "app.cloud.preview_modal_bucket_url_not_configured",
+    "translation": "URL предварительного просмотра корзины не настроен"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_fetch_error",
+    "translation": "Не удалось получить данные предпросмотра модального окна"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_parse_error",
+    "translation": "Не удалось разобрать модальные данные предпросмотра"
+  },
+  {
+    "id": "app.command.validatecommandtriggeruniqueness.internal_error",
+    "translation": "Указанное ключевое слово триггера уже существует."
+  },
+  {
+    "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
+    "translation": "Невозможно удалить пользовательские значения атрибутов профиля для пользователя"
+  },
+  {
+    "id": "app.custom_profile_attributes.patch_field.app_error",
+    "translation": "Невозможно исправить поле \"Атрибут пользовательского профиля\""
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
+    "translation": "Невозможно обновить значение для поля Атрибут пользовательского профиля, управляемого администратором"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
+    "translation": "Невозможно обновить значение для синхронизированного поля Атрибут пользовательского профиля"
+  },
+  {
+    "id": "app.custom_profile_attributes.validate_value.app_error",
+    "translation": "Не удалось проверить значение свойства"
+  },
+  {
+    "id": "app.data_spillage.assign_reviewer.no_reviewer_field.app_error",
+    "translation": "Не найдено поле свойств идентификатора рецензента."
+  },
+  {
+    "id": "app.data_spillage.assign_reviewer.update_status_property_value.app_error",
+    "translation": "Не удалось обновить значение свойства \"Статус\" при просмотре настроек."
+  },
+  {
+    "id": "app.data_spillage.assign_reviewer.upsert_property_value.app_error",
+    "translation": "Не удалось установить флаги для проверки сообщений."
+  },
+  {
+    "id": "app.data_spillage.can_flag_post.in_progress",
+    "translation": "Невозможно поместить это сообщение в карантин, так как оно уже в карантине на проверке."
+  },
+  {
+    "id": "app.data_spillage.can_flag_post.removed",
+    "translation": "Невозможно поместить это сообщение в карантин, так как оно было удалено в предыдущем обзоре."
+  },
+  {
+    "id": "app.data_spillage.can_flag_post.retained",
+    "translation": "Невозможно поместить это сообщение в карантин, так как оно было сохранено в предыдущем обзоре."
+  },
+  {
+    "id": "app.data_spillage.can_flag_post.unknown",
+    "translation": "Невозможно поместить это сообщение в карантин, так как оно находится в неизвестном статусе."
+  },
+  {
+    "id": "app.data_spillage.create_property_values.app_error",
+    "translation": "Невозможно сохранить значения свойств для отмеченного сообщения."
+  },
+  {
+    "id": "app.data_spillage.flag_post.marshal_comment.app_error",
+    "translation": "Не удалось обработать комментарий пользователя с флагом"
+  },
+  {
+    "id": "app.data_spillage.flag_post.marshal_reason.app_error",
+    "translation": "Не удалось определить причину, по которой пользователь выставляет флаг"
+  },
+  {
+    "id": "app.data_spillage.flag_post_confirmation.message",
+    "translation": "Сообщение от @{{.username}} было помещено в карантин для проверки. Вы получите уведомление, как только оно будет рассмотрено рецензентом."
+  },
+  {
+    "id": "app.data_spillage.get_group.error",
+    "translation": "Невозможно получить группу свойств флагов содержимого."
+  },
+  {
+    "id": "app.data_spillage.get_reviewer_settings.app_error",
+    "translation": "Не удалось получить настройки обозревателя контента из базы данных"
+  },
+  {
+    "id": "app.data_spillage.get_status_property.app_error",
+    "translation": "Не удалось получить поле свойства Status."
+  },
+  {
+    "id": "app.data_spillage.get_thread_replies.app_error",
+    "translation": "Не удалось получить ответы на сообщения для отмеченного сообщения."
+  },
+  {
+    "id": "app.data_spillage.get_users_in_team.app_error",
+    "translation": "Не удалось найти рецензентов в команде."
+  },
+  {
+    "id": "app.data_spillage.keep_flag_post.marshal_comment.app_error",
+    "translation": "Не удалось получить комментарий рецензента"
+  },
+  {
+    "id": "app.data_spillage.keep_post.status_update.app_error",
+    "translation": "Не удалось обновить статус сообщения, отмеченного флагом, при снятии флага "
+  },
+  {
+    "id": "app.data_spillage.keep_post.undelete.app_error",
+    "translation": "Не удалось обновить сообщение в базе данных при попытке отменить удаление отмеченного сообщения и связанных с ним данных."
+  },
+  {
+    "id": "app.data_spillage.marshal_property_values.app_error",
+    "translation": "Не удалось получить значения свойства Content Flagging для отправки в событии WebSocket."
+  },
+  {
+    "id": "app.data_spillage.missing_flagged_post_id_field.app_error",
+    "translation": "Невозможно найти поле свойства Flagged Post ID."
+  },
+  {
+    "id": "app.data_spillage.missing_manage_by_field.app_error",
+    "translation": "Не удалось найти поле свойства \"Управление по\"."
+  },
+  {
+    "id": "app.data_spillage.missing_reporting_user_id_field.app_error",
+    "translation": "Не удаётся найти поле пользователя, сообщающего о проблеме."
+  },
+  {
+    "id": "app.data_spillage.missing_reporting_user_id_property_value.app_error",
+    "translation": "Невозможно найти значение для поля пользовательского отчета."
+  },
+  {
+    "id": "app.data_spillage.missing_status_field.app_error",
+    "translation": "Не удалось найти поле свойства Status."
+  },
+  {
+    "id": "app.data_spillage.no_status_property.app_error",
+    "translation": "Невозможно получить сообщение с флагом, так как оно не отмечено."
+  },
+  {
+    "id": "app.data_spillage.permanently_delete.marshal_comment.app_error",
+    "translation": "Не удалось получить комментарий рецензента"
+  },
+  {
+    "id": "app.data_spillage.permanently_delete.update_property_value.app_error",
+    "translation": "Не удалось обновить статус сообщения с флагом при постоянном удалении сообщения с флагом."
+  },
+  {
+    "id": "app.data_spillage.save_reviewer_settings.app_error",
+    "translation": "Не удалось сохранить настройки обозревателя контента в базе данных."
+  },
+  {
+    "id": "app.data_spillage.search_common_reviewers.app_error",
+    "translation": "Не удалось найти термин в Common Reviewers."
+  },
+  {
+    "id": "app.data_spillage.search_property_fields.app_error",
+    "translation": "Не удалось выполнить поиск по полям свойства Content Flagging."
+  },
+  {
+    "id": "app.data_spillage.search_property_values.app_error",
+    "translation": "Не удалось получить из базы данных значения свойств флагов содержимого сообщения."
+  },
+  {
+    "id": "app.data_spillage.search_reviewer_posts.app_error",
+    "translation": "Не удалось выполнить поиск сообщений рецензентов для отмеченного сообщения."
+  },
+  {
+    "id": "app.data_spillage.search_status_property.app_error",
+    "translation": "Не удалось выполнить поиск значений свойств для отмеченного сообщения."
+  },
+  {
+    "id": "app.data_spillage.search_sysadmin_reviewers.app_error",
+    "translation": "Не удалось найти поисковый запрос в системе проверки системных администраторов."
+  },
+  {
+    "id": "app.pap.unassign_access_control_policy_from_channels.app_error",
+    "translation": "Не удалось снять назначение политики управления доступом с каналов."
+  },
+  {
+    "id": "app.pap.update_access_control_policies_active.app_error",
+    "translation": "Не удалось обновить активный статус политик контроля доступа."
+  },
+  {
+    "id": "app.pdp.access_evaluation.app_error",
+    "translation": "Не удалось оценить политику контроля доступа."
+  },
+  {
+    "id": "app.plugin.seek.app_error",
+    "translation": "Невозможно сбросить позицию чтения к началу пакета плагинов."
   }
 ]

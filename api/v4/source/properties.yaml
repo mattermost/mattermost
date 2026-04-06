@@ -1,0 +1,359 @@
+  "/api/v4/properties/groups/{group_name}/{object_type}/fields":
+    post:
+      tags:
+        - properties
+      summary: Create a property field
+      description: >
+        Create a new property field for a specific group and object type.
+      operationId: CreatePropertyField
+      parameters:
+        - name: group_name
+          in: path
+          description: The name of the property group
+          required: true
+          schema:
+            type: string
+        - name: object_type
+          in: path
+          description: The type of object this property field applies to
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - type
+                - target_type
+              properties:
+                name:
+                  type: string
+                  description: The name of the property field
+                type:
+                  type: string
+                  description: The type of property field
+                  enum: [text, select, multiselect, date, user, multiuser]
+                attrs:
+                  type: object
+                  description: Additional attributes for the property field
+                target_type:
+                  type: string
+                  description: The scope level of the property
+                target_id:
+                  type: string
+                  description: The ID of the target
+                permission_field:
+                  type: string
+                  enum: [none, sysadmin, member]
+                  description: >
+                    Permission level for editing the field definition.
+                    Only system admins can set this; ignored for non-admin users.
+                  default: member
+                permission_values:
+                  type: string
+                  enum: [none, sysadmin, member]
+                  description: >
+                    Permission level for setting values on objects.
+                    Only system admins can set this; ignored for non-admin users.
+                  default: member
+                permission_options:
+                  type: string
+                  enum: [none, sysadmin, member]
+                  description: >
+                    Permission level for managing options on select/multiselect fields.
+                    Only system admins can set this; ignored for non-admin users.
+                  default: member
+        description: Property field object to create
+        required: true
+      responses:
+        "201":
+          description: Property field creation successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PropertyField"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    get:
+      tags:
+        - properties
+      summary: Get property fields
+      description: >
+        Get a list of property fields for a specific group and object type. Requires a target_type parameter to scope the query. Filter further by target_id to narrow results. Uses cursor-based pagination.
+      operationId: GetPropertyFields
+      parameters:
+        - name: group_name
+          in: path
+          description: The name of the property group
+          required: true
+          schema:
+            type: string
+        - name: object_type
+          in: path
+          description: The type of object to retrieve property fields for
+          required: true
+          schema:
+            type: string
+        - name: target_type
+          in: query
+          description: The scope level to query. Must be one of 'system', 'team', or 'channel'.
+          required: true
+          schema:
+            type: string
+            enum:
+              - system
+              - team
+              - channel
+        - name: target_id
+          in: query
+          description: Filter by target ID. Required when target_type is 'channel' or 'team'.
+          schema:
+            type: string
+        - name: cursor_id
+          in: query
+          description: The ID of the last property field from the previous page, for cursor-based pagination.
+          schema:
+            type: string
+        - name: cursor_create_at
+          in: query
+          description: The create_at timestamp of the last property field from the previous page. Must be provided together with cursor_id.
+          schema:
+            type: integer
+            format: int64
+        - name: per_page
+          in: query
+          description: The number of property fields per page.
+          schema:
+            type: integer
+            default: 60
+      responses:
+        "200":
+          description: Property fields retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PropertyField"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  "/api/v4/properties/groups/{group_name}/{object_type}/fields/{field_id}":
+    patch:
+      tags:
+        - properties
+      summary: Update a property field
+      description: >
+        Partially update a property field by providing only the fields you want to update. Omitted fields will not be updated.
+        The `attrs` object uses merge semantics: only the keys present in the patch are updated; omitted keys are preserved. Setting a key to `null` removes it from attrs.
+      operationId: UpdatePropertyField
+      parameters:
+        - name: group_name
+          in: path
+          description: The name of the property group
+          required: true
+          schema:
+            type: string
+        - name: object_type
+          in: path
+          description: The type of object this property field applies to
+          required: true
+          schema:
+            type: string
+        - name: field_id
+          in: path
+          description: Property field ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PropertyFieldPatch"
+        description: Property field patch object
+        required: true
+      responses:
+        "200":
+          description: Property field update successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PropertyField"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags:
+        - properties
+      summary: Delete a property field
+      description: >
+        Deletes a property field and all its associated values.
+      operationId: DeletePropertyField
+      parameters:
+        - name: group_name
+          in: path
+          description: The name of the property group
+          required: true
+          schema:
+            type: string
+        - name: object_type
+          in: path
+          description: The type of object this property field applies to
+          required: true
+          schema:
+            type: string
+        - name: field_id
+          in: path
+          description: Property field ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Property field deletion successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  "/api/v4/properties/groups/{group_name}/{object_type}/values/{target_id}":
+    get:
+      tags:
+        - properties
+      summary: Get property values for a target
+      description: >
+        Get all property values for a specific target within a group.
+      operationId: GetPropertyValues
+      parameters:
+        - name: group_name
+          in: path
+          description: The name of the property group
+          required: true
+          schema:
+            type: string
+        - name: object_type
+          in: path
+          description: The type of object
+          required: true
+          schema:
+            type: string
+        - name: target_id
+          in: path
+          description: The ID of the target object
+          required: true
+          schema:
+            type: string
+        - name: cursor_id
+          in: query
+          description: The ID of the last property value from the previous page, for cursor-based pagination.
+          schema:
+            type: string
+        - name: cursor_create_at
+          in: query
+          description: The create_at timestamp of the last property value from the previous page. Must be provided together with cursor_id.
+          schema:
+            type: integer
+            format: int64
+        - name: per_page
+          in: query
+          description: The number of property values per page.
+          schema:
+            type: integer
+            default: 60
+      responses:
+        "200":
+          description: Property values retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PropertyValue"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    patch:
+      tags:
+        - properties
+      summary: Update property values for a target
+      description: >
+        Update one or more property values for a specific target within a group. Uses upsert semantics: creates the value if it doesn't exist, updates it if it does. All field IDs must belong to the specified group.
+      operationId: UpdatePropertyValues
+      parameters:
+        - name: group_name
+          in: path
+          description: The name of the property group
+          required: true
+          schema:
+            type: string
+        - name: object_type
+          in: path
+          description: The type of object
+          required: true
+          schema:
+            type: string
+        - name: target_id
+          in: path
+          description: The ID of the target object
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                required:
+                  - field_id
+                  - value
+                properties:
+                  field_id:
+                    type: string
+                    description: The ID of the property field
+                  value:
+                    description: The value to set for this property. Can be any JSON type.
+        description: Array of property values to update
+        required: true
+      responses:
+        "200":
+          description: Property values update successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PropertyValue"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"

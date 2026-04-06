@@ -3318,7 +3318,6 @@
   "threading.numNewReplies": "{newReplies, plural, = 1 {# new reply} other {# new replies}}",
   "threading.numReplies": "{totalReplies, plural, = 0 {Reply} = 1 {# reply} other {# replies}}",
   "threading.threadHeader.menu": "Mai multe actiuni",
-  "threading.threadItem.menu": "Acțiuni",
   "threading.threadList.markRead": "Marcare totală ca citit",
   "threading.threadMenu.copy": "Copiere link",
   "threading.threadMenu.follow": "Urmăriți firul",
