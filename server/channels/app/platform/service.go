@@ -439,11 +439,10 @@ func (ps *PlatformService) Start(broadcastHooks map[string]BroadcastHook) error 
 
 	// Start the post read status update processors.
 	for range postReadStatusNumWorkers {
-		ps.postReadStatusWg.Add(1)
-		go func() {
+		ps.postReadStatusWg.Go(func() {
 			defer ps.postReadStatusWg.Done()
 			ps.processPostReadStatusUpdates()
-		}()
+		})
 	}
 
 	ps.hubStart(broadcastHooks)
