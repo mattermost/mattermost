@@ -234,6 +234,7 @@ const AIActionsMenu = ({
                                     sx={{py: 0}}
                                 >
                                     <RewriteSubmenu
+                                        isProcessing={rewriteMenuProps.isProcessing}
                                         draftMessage={rewriteMenuProps.draftMessage}
                                         onMenuAction={rewriteMenuProps.onMenuAction}
                                     />

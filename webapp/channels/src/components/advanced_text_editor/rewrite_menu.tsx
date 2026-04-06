@@ -270,12 +270,13 @@ export default function RewriteMenu({
 }
 
 export interface RewriteSubmenuProps {
+    isProcessing: boolean;
     draftMessage: string;
     onMenuAction: (action: RewriteAction) => () => void;
 }
 
-export function RewriteSubmenu({draftMessage, onMenuAction}: RewriteSubmenuProps) {
-    const showMenuItem = draftMessage.trim();
+export function RewriteSubmenu({isProcessing, draftMessage, onMenuAction}: RewriteSubmenuProps) {
+    const showMenuItem = !isProcessing && draftMessage.trim();
 
     if (!showMenuItem) {
         return null;
