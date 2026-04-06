@@ -207,6 +207,11 @@ var searchPostStoreTests = []searchTest{
 		Tags: []string{EngineAll},
 	},
 	{
+		Name: "Should not return card posts",
+		Fn:   testSearchShouldExcludeCardPosts,
+		Tags: []string{EngineAll},
+	},
+	{
 		Name: "Should be able to search matching by mentions",
 		Fn:   testSearchShouldBeAbleToMatchByMentions,
 		Tags: []string{EngineAll},
@@ -1832,6 +1837,21 @@ func testSearchShouldExcludeSystemMessages(t *testing.T, th *SearchTestHelper) {
 	require.NoError(t, err)
 
 	require.Len(t, results.Posts, 0)
+}
+
+func testSearchShouldExcludeCardPosts(t *testing.T, th *SearchTestHelper) {
+	_, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "test card content unique", "", model.PostTypeCard, 0, false)
+	require.NoError(t, err)
+	p2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "test regular content unique", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	defer th.deleteUserPosts(th.User.Id)
+
+	params := &model.SearchParams{Terms: "content unique"}
+	results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+	require.NoError(t, err)
+
+	require.Len(t, results.Posts, 1)
+	th.checkPostInSearchResults(t, p2.Id, results.Posts)
 }
 
 func testSearchShouldBeAbleToMatchByMentions(t *testing.T, th *SearchTestHelper) {

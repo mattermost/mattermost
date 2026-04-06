@@ -4199,7 +4199,6 @@
   "threading.numNewReplies": "{newReplies, số nhiều, = 1 {# new reply} khác {# new replies}}",
   "threading.numReplies": "{totalReplies, số nhiều, = 0 {Reply} = 1 {# reply} other {# replies}}",
   "threading.threadHeader.menu": "Hành động khác",
-  "threading.threadItem.menu": "Tác vụ",
   "threading.threadList.markRead": "Đánh đấu tất cả là đã đọc",
   "threading.threadMenu.copy": "Sao chép liên kết",
   "threading.threadMenu.follow": "Theo dõi chuỗi",

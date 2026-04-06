@@ -186,7 +186,9 @@ jobs:
     needs:
       - resolve-pr
       - check-changes
-    if: needs.check-changes.outputs.should_run == 'true'
+    if: needs.resolve-pr.outputs.PR_NUMBER != ''
+    permissions:
+      statuses: write
     uses: ./.github/workflows/e2e-tests-cypress.yml
     with:
       commit_sha: "${{ needs.resolve-pr.outputs.COMMIT_SHA }}"
@@ -195,6 +197,7 @@ jobs:
       enable_reporting: true
       report_type: "PR"
       pr_number: "${{ needs.resolve-pr.outputs.PR_NUMBER }}"
+      should_run: "${{ needs.check-changes.outputs.should_run }}"
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
       AUTOMATION_DASHBOARD_URL: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_URL }}"
@@ -208,7 +211,9 @@ jobs:
     needs:
       - resolve-pr
       - check-changes
-    if: needs.check-changes.outputs.should_run == 'true'
+    if: needs.resolve-pr.outputs.PR_NUMBER != ''
+    permissions:
+      statuses: write
     uses: ./.github/workflows/e2e-tests-playwright.yml
     with:
       commit_sha: "${{ needs.resolve-pr.outputs.COMMIT_SHA }}"
@@ -217,6 +222,7 @@ jobs:
       enable_reporting: true
       report_type: "PR"
       pr_number: "${{ needs.resolve-pr.outputs.PR_NUMBER }}"
+      should_run: "${{ needs.check-changes.outputs.should_run }}"
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
       AWS_ACCESS_KEY_ID: "${{ secrets.CYPRESS_AWS_ACCESS_KEY_ID }}"

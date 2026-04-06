@@ -624,9 +624,7 @@ describe('components/channel_invite_modal', () => {
             profilesFromRecentDMs: [users[1]],
         };
 
-        await act(async () => {
-            renderWithContext(<ChannelInviteModal {...props}/>);
-        });
+        renderWithContext(<ChannelInviteModal {...props}/>);
 
         // Wait for the API call to complete and state to update
         await act(async () => {
@@ -657,9 +655,7 @@ describe('components/channel_invite_modal', () => {
             profilesFromRecentDMs: [users[1]],
         };
 
-        await act(async () => {
-            renderWithContext(<ChannelInviteModal {...props}/>);
-        });
+        renderWithContext(<ChannelInviteModal {...props}/>);
 
         const input = screen.getByRole('combobox', {name: /search for people/i});
         await userEvent.type(input, 'user');
@@ -687,11 +683,9 @@ describe('components/channel_invite_modal', () => {
         };
 
         // Render the component
-        await act(async () => {
-            renderWithContext(
-                <ChannelInviteModal {...props}/>,
-            );
-        });
+        renderWithContext(
+            <ChannelInviteModal {...props}/>,
+        );
 
         // Reset the mock after component mount to ignore initial data loading
         getProfilesNotInChannelMock.mockClear();
@@ -770,9 +764,7 @@ describe('components/channel_invite_modal', () => {
             profilesNotInCurrentChannel: [users[0]],
         };
 
-        await act(async () => {
-            renderWithContext(<ChannelInviteModal {...props}/>);
-        });
+        renderWithContext(<ChannelInviteModal {...props}/>);
 
         const input = screen.getByRole('combobox', {name: /search for people/i});
         await userEvent.type(input, '@');
@@ -819,9 +811,7 @@ describe('components/channel_invite_modal', () => {
             profilesNotInCurrentChannel: [users[0]],
         };
 
-        await act(async () => {
-            renderWithContext(<ChannelInviteModal {...props}/>);
-        });
+        renderWithContext(<ChannelInviteModal {...props}/>);
 
         // Wait for the API call to complete and state to update
         await act(async () => {
@@ -853,9 +843,7 @@ describe('components/channel_invite_modal', () => {
             channel: {...channel, policy_enforced: true},
         };
 
-        await act(async () => {
-            renderWithContext(<ChannelInviteModal {...props}/>);
-        });
+        renderWithContext(<ChannelInviteModal {...props}/>);
 
         // Wait for the API call to complete
         await act(async () => {
@@ -886,9 +874,7 @@ describe('components/channel_invite_modal', () => {
             includeUsers: {[users[1].id]: users[1]}, // Contaminated data
         };
 
-        await act(async () => {
-            renderWithContext(<ChannelInviteModal {...props}/>);
-        });
+        renderWithContext(<ChannelInviteModal {...props}/>);
 
         // Wait for the API call to complete and state to update
         await act(async () => {

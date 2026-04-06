@@ -17,6 +17,7 @@ on:
       - ".github/workflows/mmctl-test-template.yml"
       - "!server/build/Dockerfile.buildenv"
       - "!server/build/Dockerfile.buildenv-fips"
+      - "tools/mattermost-govet/**"
       - "!server/**/*.md"
       - "!server/NOTICE.txt"
       - "!server/CHANGELOG.md"
@@ -302,7 +303,7 @@ jobs:
     secrets: inherit
     with:
       name: Postgres
-      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      datasource: postgres://mmuser:mostest-fips-test@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: postgres-server-test-logs
       go-version: ${{ needs.go.outputs.version }}
@@ -344,7 +345,7 @@ jobs:
     secrets: inherit
     with:
       name: mmctl
-      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      datasource: postgres://mmuser:mostest-fips-test@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: mmctl-test-logs
       go-version: ${{ needs.go.outputs.version }}
@@ -385,6 +386,7 @@ jobs:
           compression-level: 0
           retention-days: 2
       - name: Persist build artifacts
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: server-build-artifact

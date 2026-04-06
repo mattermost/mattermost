@@ -31,8 +31,8 @@ func TestSetTestHasher(t *testing.T) {
 	require.NotEmpty(t, hash2)
 
 	// Verify the hash was generated with different parameters
-	// The fast hasher uses work factor 1, so the hash should contain w=1
-	require.Contains(t, hash2, "w=1")
+	// The fast hasher uses the FIPS-minimum work factor.
+	require.Contains(t, hash2, ",w=1000,")
 
 	// Verify the password can be verified against the hash
 	hasher, phc, err := GetHasherFromPHCString(hash2)
@@ -45,15 +45,15 @@ func TestFastTestHasher(t *testing.T) {
 	hasher := FastTestHasher()
 	require.NotNil(t, hasher)
 
-	// Verify it's a PBKDF2 hasher with work factor 1
+	// Verify it's a PBKDF2 hasher with the FIPS-minimum work factor.
 	pbkdf2Hasher, ok := hasher.(PBKDF2)
 	require.True(t, ok, "FastTestHasher should return a PBKDF2 hasher")
-	require.Equal(t, 1, pbkdf2Hasher.workFactor)
+	require.Equal(t, fastTestHasherWorkFactor, pbkdf2Hasher.workFactor)
 
 	// Test that it produces valid hashes
 	hash, err := hasher.Hash("testpassword")
 	require.NoError(t, err)
-	require.Contains(t, hash, "w=1")
+	require.Contains(t, hash, ",w=1000,")
 
 	// Verify the hash can be validated
 	parsedHasher, phc, err := GetHasherFromPHCString(hash)
@@ -66,7 +66,7 @@ func TestGetLatestHasher(t *testing.T) {
 	SetTestHasher(nil)
 
 	// Without test hasher, should return latestHasher
-	require.Equal(t, latestHasher, getLatestHasher())
+	require.Equal(t, latestHasher, GetLatestHasher())
 
 	// Set a fast test hasher
 	fastHasher := FastTestHasher()
@@ -74,8 +74,8 @@ func TestGetLatestHasher(t *testing.T) {
 	defer SetTestHasher(nil)
 
 	// With test hasher set, should return the test hasher
-	require.Equal(t, fastHasher, getLatestHasher())
-	require.NotEqual(t, latestHasher, getLatestHasher())
+	require.Equal(t, fastHasher, GetLatestHasher())
+	require.NotEqual(t, latestHasher, GetLatestHasher())
 }
 
 func BenchmarkFastTestHasher(b *testing.B) {

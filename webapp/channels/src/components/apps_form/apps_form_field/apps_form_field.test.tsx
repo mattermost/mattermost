@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {act} from '@testing-library/react';
 import React from 'react';
 
 import type {AppField} from '@mattermost/types/apps';
@@ -218,69 +217,57 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
             expect(reactSelect).toBeInTheDocument();
         });
 
-        it('should render user select field', async () => {
+        it('should render user select field', () => {
             const userField: AppField = {
                 name: 'user-field',
                 type: AppFieldTypes.USER,
                 label: 'User Field',
             };
 
-            let container: HTMLElement;
-            await act(async () => {
-                const result = renderWithContext(
-                    <AppsFormField
-                        {...baseProps}
-                        field={userField}
-                    />,
-                );
-                container = result.container;
-            });
+            const {container} = renderWithContext(
+                <AppsFormField
+                    {...baseProps}
+                    field={userField}
+                />,
+            );
 
-            const reactSelect = container!.querySelector('.react-select');
+            const reactSelect = container.querySelector('.react-select');
             expect(reactSelect).toBeInTheDocument();
         });
 
-        it('should render channel select field', async () => {
+        it('should render channel select field', () => {
             const channelField: AppField = {
                 name: 'channel-field',
                 type: AppFieldTypes.CHANNEL,
                 label: 'Channel Field',
             };
 
-            let container: HTMLElement;
-            await act(async () => {
-                const result = renderWithContext(
-                    <AppsFormField
-                        {...baseProps}
-                        field={channelField}
-                    />,
-                );
-                container = result.container;
-            });
+            const {container} = renderWithContext(
+                <AppsFormField
+                    {...baseProps}
+                    field={channelField}
+                />,
+            );
 
-            const reactSelect = container!.querySelector('.react-select');
+            const reactSelect = container.querySelector('.react-select');
             expect(reactSelect).toBeInTheDocument();
         });
 
-        it('should render dynamic select field', async () => {
+        it('should render dynamic select field', () => {
             const dynamicSelectField: AppField = {
                 name: 'dynamic-select-field',
                 type: AppFieldTypes.DYNAMIC_SELECT,
                 label: 'Dynamic Select Field',
             };
 
-            let container: HTMLElement;
-            await act(async () => {
-                const result = renderWithContext(
-                    <AppsFormField
-                        {...baseProps}
-                        field={dynamicSelectField}
-                    />,
-                );
-                container = result.container;
-            });
+            const {container} = renderWithContext(
+                <AppsFormField
+                    {...baseProps}
+                    field={dynamicSelectField}
+                />,
+            );
 
-            const reactSelect = container!.querySelector('.react-select');
+            const reactSelect = container.querySelector('.react-select');
             expect(reactSelect).toBeInTheDocument();
         });
 
