@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithContext, screen, act} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {CloudProducts, LicenseSkus} from 'utils/constants';
 
 import ADLDAPUpsellBanner from './ad_ldap_upsell_banner';
@@ -81,12 +81,10 @@ describe('component/user_groups_modal/ad_ldap_upsell_banner', () => {
             },
         };
 
-        await act(async () => {
-            renderWithContext(
-                <ADLDAPUpsellBanner/>,
-                state,
-            );
-        });
+        renderWithContext(
+            <ADLDAPUpsellBanner/>,
+            state,
+        );
 
         expect(screen.getByText('AD/LDAP group sync creates groups faster')).toBeInTheDocument();
         expect(screen.getByText('Contact sales to use')).toBeInTheDocument();
@@ -137,12 +135,10 @@ describe('component/user_groups_modal/ad_ldap_upsell_banner', () => {
             },
         };
 
-        await act(async () => {
-            renderWithContext(
-                <ADLDAPUpsellBanner/>,
-                state,
-            );
-        });
+        renderWithContext(
+            <ADLDAPUpsellBanner/>,
+            state,
+        );
 
         expect(screen.queryByText('AD/LDAP group sync creates groups faster')).not.toBeInTheDocument();
     });

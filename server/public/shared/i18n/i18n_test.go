@@ -62,6 +62,18 @@ func TestEscapeForHTML(t *testing.T) {
 				"123": "&lt;b&gt;123&lt;/b&gt;",
 			},
 		},
+		"Int": {
+			In:       59,
+			Expected: 59,
+		},
+		"Int64": {
+			In:       int64(59),
+			Expected: int64(59),
+		},
+		"Float64": {
+			In:       3.14,
+			Expected: 3.14,
+		},
 		"Unsupported": {
 			In:       struct{ string }{"<b>abc</b>"},
 			Expected: "",
