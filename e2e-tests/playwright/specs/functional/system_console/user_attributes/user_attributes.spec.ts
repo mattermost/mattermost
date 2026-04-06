@@ -15,11 +15,6 @@
  * causing subsequent calls (blur, click, etc.) to time out. Use a stable locator
  * (data-testid + nth) for any input you plan to mutate; value-based selectors are
  * fine for read-only assertions (toBeVisible, toHaveValue, etc.).
- *
- * LOCALIZATION NOTE:
- * This test suite uses test attributes (data-testid, id, aria-label) where possible.
- * Some assertions depend on English text (field type labels, validation messages, button text).
- * Currently runs in English-only (locale: 'en-US' in playwright.config.ts).
  */
 
 import {UserProfile} from '@mattermost/types/users';
@@ -47,6 +42,14 @@ async function refreshFieldsMap(client: Client4): Promise<void> {
     for (const field of fields) {
         attributeFieldsMap[field.id] = field;
     }
+}
+
+async function saveAndWaitForSettled(): Promise<void> {
+    const saveButton = systemConsolePage.page.getByTestId('saveSetting');
+    await expect(saveButton).toBeEnabled();
+    await saveButton.click();
+    await systemConsolePage.page.waitForLoadState('networkidle');
+    await expect(saveButton).toBeDisabled({timeout: 10000});
 }
 
 test.describe('System Console - User Attributes Management', () => {
@@ -116,8 +119,8 @@ test.describe('System Console - User Attributes Management', () => {
         await systemConsolePage.page.waitForLoadState('networkidle');
 
         // * Verify attributes appear in the table
-        const deptInput = systemConsolePage.page.getByTestId('property-field-input').filter({hasText: 'Department'});
-        await expect(deptInput.or(systemConsolePage.page.locator('input[value="Department"]'))).toBeVisible();
+        const deptInput = systemConsolePage.page.locator('input[value="Department"]');
+        await expect(deptInput).toBeVisible();
 
         const roleInput = systemConsolePage.page.locator('input[value="Role"]');
         await expect(roleInput).toBeVisible();
@@ -140,16 +143,7 @@ test.describe('System Console - User Attributes Management', () => {
         await nameInputs.first().fill('Test Department');
         await nameInputs.first().blur();
 
-        // * Verify Save button is now enabled
-        const saveButton = systemConsolePage.page.getByTestId('saveSetting');
-        await expect(saveButton).toBeEnabled();
-
-        // # Save changes
-        await saveButton.click();
-        await systemConsolePage.page.waitForLoadState('networkidle');
-
-        // * Verify Save button returns to disabled after successful save
-        await expect(saveButton).toBeDisabled({timeout: 10000});
+        await saveAndWaitForSettled();
 
         // * Verify the field was created by fetching from API
         await refreshFieldsMap(adminClient);
@@ -187,11 +181,7 @@ test.describe('System Console - User Attributes Management', () => {
         await valuesInput.fill('Hybrid');
         await valuesInput.press('Enter');
 
-        // # Save changes
-        const saveButton = systemConsolePage.page.getByTestId('saveSetting');
-        await expect(saveButton).toBeEnabled();
-        await saveButton.click();
-        await systemConsolePage.page.waitForLoadState('networkidle');
+        await saveAndWaitForSettled();
 
         // * Verify field was created with correct type via API
         await refreshFieldsMap(adminClient);
@@ -217,13 +207,7 @@ test.describe('System Console - User Attributes Management', () => {
         await nameInput.fill('New Name');
         await nameInput.blur();
 
-        // * Verify Save button is enabled
-        const saveButton = systemConsolePage.page.getByTestId('saveSetting');
-        await expect(saveButton).toBeEnabled();
-
-        // # Save changes
-        await saveButton.click();
-        await systemConsolePage.page.waitForLoadState('networkidle');
+        await saveAndWaitForSettled();
 
         // * Verify field was updated via API
         await refreshFieldsMap(adminClient);
@@ -256,13 +240,7 @@ test.describe('System Console - User Attributes Management', () => {
         const confirmButton = systemConsolePage.page.getByRole('button', {name: 'Delete'});
         await confirmButton.click();
 
-        // * Verify Save button is enabled
-        const saveButton = systemConsolePage.page.getByTestId('saveSetting');
-        await expect(saveButton).toBeEnabled();
-
-        // # Save changes
-        await saveButton.click();
-        await systemConsolePage.page.waitForLoadState('networkidle');
+        await saveAndWaitForSettled();
 
         // * Verify field was deleted via API
         await refreshFieldsMap(adminClient);
@@ -292,13 +270,7 @@ test.describe('System Console - User Attributes Management', () => {
         const copyInput = systemConsolePage.page.locator('input[value="Original (copy)"]');
         await expect(copyInput).toBeVisible();
 
-        // * Verify Save button is enabled
-        const saveButton = systemConsolePage.page.getByTestId('saveSetting');
-        await expect(saveButton).toBeEnabled();
-
-        // # Save changes
-        await saveButton.click();
-        await systemConsolePage.page.waitForLoadState('networkidle');
+        await saveAndWaitForSettled();
 
         // * Verify both fields exist via API
         await refreshFieldsMap(adminClient);
@@ -329,11 +301,7 @@ test.describe('System Console - User Attributes Management', () => {
         await expect(alwaysHideOption).toBeAttached();
         await alwaysHideOption.click({force: true});
 
-        // # Save changes
-        const saveButton = systemConsolePage.page.getByTestId('saveSetting');
-        await expect(saveButton).toBeEnabled();
-        await saveButton.click();
-        await systemConsolePage.page.waitForLoadState('networkidle');
+        await saveAndWaitForSettled();
 
         // * Verify visibility was updated via API
         await refreshFieldsMap(adminClient);
@@ -363,11 +331,7 @@ test.describe('System Console - User Attributes Management', () => {
         // # Close the dot menu — it stays open after toggling; backdrop would block Save click
         await systemConsolePage.page.keyboard.press('Escape');
 
-        // # Save changes
-        const saveButton = systemConsolePage.page.getByTestId('saveSetting');
-        await expect(saveButton).toBeEnabled();
-        await saveButton.click();
-        await systemConsolePage.page.waitForLoadState('networkidle');
+        await saveAndWaitForSettled();
 
         // * Verify managed was set to 'admin' (not editable by users) via API
         await refreshFieldsMap(adminClient);
@@ -442,11 +406,7 @@ test.describe('System Console - User Attributes Management', () => {
         const phoneOption = systemConsolePage.page.locator('#phone');
         await phoneOption.click();
 
-        // # Save changes
-        const saveButton = systemConsolePage.page.getByTestId('saveSetting');
-        await expect(saveButton).toBeEnabled();
-        await saveButton.click();
-        await systemConsolePage.page.waitForLoadState('networkidle');
+        await saveAndWaitForSettled();
 
         // * Verify field type was updated via API
         await refreshFieldsMap(adminClient);
@@ -485,11 +445,7 @@ test.describe('System Console - User Attributes Management', () => {
         await valuesInput.fill('Go');
         await valuesInput.press('Enter');
 
-        // # Save changes
-        const saveButton = systemConsolePage.page.getByTestId('saveSetting');
-        await expect(saveButton).toBeEnabled();
-        await saveButton.click();
-        await systemConsolePage.page.waitForLoadState('networkidle');
+        await saveAndWaitForSettled();
 
         // * Verify field was created with correct type via API
         await refreshFieldsMap(adminClient);
@@ -500,7 +456,7 @@ test.describe('System Console - User Attributes Management', () => {
         expect(createdField!.attrs.options!.length).toBe(3);
     });
 
-    test('Should create multiple attributes of different types and save all at once', async () => {
+    test('Should create multiple text attributes and save all at once', async () => {
         // # Navigate to User Attributes page
         await systemConsolePage.page.goto(USER_ATTRIBUTES_URL);
         await systemConsolePage.page.waitForLoadState('networkidle');
@@ -517,11 +473,7 @@ test.describe('System Console - User Attributes Management', () => {
         await secondInput.fill('Team Name');
         await secondInput.blur();
 
-        // # Save all changes at once
-        const saveButton = systemConsolePage.page.getByTestId('saveSetting');
-        await expect(saveButton).toBeEnabled();
-        await saveButton.click();
-        await systemConsolePage.page.waitForLoadState('networkidle');
+        await saveAndWaitForSettled();
 
         // * Verify both fields were created via API
         await refreshFieldsMap(adminClient);
@@ -547,10 +499,7 @@ test.describe('System Console - User Attributes Management', () => {
         await nameInput.fill('Updated Persistent');
         await nameInput.blur();
 
-        // # Save
-        const saveButton = systemConsolePage.page.getByTestId('saveSetting');
-        await saveButton.click();
-        await systemConsolePage.page.waitForLoadState('networkidle');
+        await saveAndWaitForSettled();
 
         // # Reload the page
         await systemConsolePage.page.goto(USER_ATTRIBUTES_URL);
