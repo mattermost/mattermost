@@ -219,7 +219,7 @@ func (scs *Service) processSyncMessage(rctx request.CTX, syncMsg *model.SyncMsg,
 	// add/remove reactions
 	for _, reaction := range syncMsg.Reactions {
 		if _, err := scs.upsertSyncReaction(reaction, targetChannel, rc); err != nil {
-			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Error upserting sync reaction",
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Error upserting sync reaction",
 				mlog.String("remote", rc.Name),
 				mlog.String("user_id", reaction.UserId),
 				mlog.String("post_id", reaction.PostId),
@@ -245,7 +245,7 @@ func (scs *Service) processSyncMessage(rctx request.CTX, syncMsg *model.SyncMsg,
 	// add/remove acknowledgements
 	for _, acknowledgement := range syncMsg.Acknowledgements {
 		if _, err := scs.upsertSyncAcknowledgement(acknowledgement, targetChannel, rc); err != nil {
-			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Error upserting sync acknowledgement",
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Error upserting sync acknowledgement",
 				mlog.String("remote", rc.Name),
 				mlog.String("user_id", acknowledgement.UserId),
 				mlog.String("post_id", acknowledgement.PostId),
@@ -595,7 +595,7 @@ func (scs *Service) syncRemotePriorityMetadata(rctx request.CTX, post *model.Pos
 	// Save the new priority - this will replace any existing priority for the post
 	savedPriority, priorityErr := scs.server.GetStore().PostPriority().Save(newPriority)
 	if priorityErr != nil {
-		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Error saving post priority from remote",
+		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Error saving post priority from remote",
 			mlog.String("post_id", post.Id),
 			mlog.String("channel_id", post.ChannelId),
 			mlog.Err(priorityErr),
