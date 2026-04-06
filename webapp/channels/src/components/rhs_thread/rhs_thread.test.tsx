@@ -1,24 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
-import type {UserProfile} from '@mattermost/types/users';
 
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import RhsThread from './rhs_thread';
 
-const mockDispatch = jest.fn();
-let mockState: any;
-
-jest.mock('react-redux', () => ({
-    ...jest.requireActual('react-redux') as typeof import('react-redux'),
-    useSelector: (selector: (state: typeof mockState) => unknown) => selector(mockState),
-    useDispatch: () => mockDispatch,
+jest.mock('components/rhs_header_post', () => (props: any) => (
+    <div
+        data-testid='rhs-header-post'
+        data-root-post-id={props.rootPostId}
+    />
+));
+jest.mock('components/threading/thread_viewer', () => (props: any) => (
+    <div
+        data-testid='thread-viewer'
+        data-root-post-id={props.rootPostId}
+    />
+));
+jest.mock('actions/views/rhs', () => ({
+    closeRightHandSide: jest.fn(() => ({type: 'CLOSE_RHS'})),
 }));
 
 describe('components/RhsThread', () => {
@@ -39,34 +45,18 @@ describe('components/RhsThread', () => {
         status: '',
     });
 
-    const actions = {
-        removePost: jest.fn(),
-        selectPostCard: jest.fn(),
-        getPostThread: jest.fn(),
-    };
-
-    const directTeammate: UserProfile = TestHelper.getUserMock();
-
     const currentTeam = TestHelper.getTeamMock();
 
     const baseProps = {
-        posts: [post],
         selected: post,
         channel,
-        currentUserId: 'user_id',
-        previewCollapsed: 'false',
-        previewEnabled: true,
-        socketConnectionStatus: true,
-        actions,
-        directTeammate,
         currentTeam,
-        fromSuppressed: false,
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <RhsThread {...baseProps}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

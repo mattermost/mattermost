@@ -4269,7 +4269,6 @@
   "threading.numNewReplies": "{newReplies, plural, =1 {# nova resposta} other {# novas respostas}}",
   "threading.numReplies": "{totalReplies, plural, =0 {Resposta} =1 {# resposta} other {# respostas}}",
   "threading.threadHeader.menu": "Ações",
-  "threading.threadItem.menu": "Ações",
   "threading.threadList.markRead": "Marcar tudo como lido",
   "threading.threadMenu.copy": "Copiar link",
   "threading.threadMenu.follow": "Seguir o fio",
