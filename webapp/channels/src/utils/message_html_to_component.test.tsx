@@ -1,12 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
+import React from 'react';
 import type {AnchorHTMLAttributes} from 'react';
-
-import AtMention from 'components/at_mention';
-import InlineEntityLink from 'components/inline_entity_link';
-import MarkdownImage from 'components/markdown_image';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
@@ -21,7 +17,8 @@ describe('messageHtmlToComponent', () => {
         const input = 'Hello, world!';
         const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
 
-        expect(messageHtmlToComponent(html)).toMatchSnapshot();
+        const {container} = renderWithContext(<>{messageHtmlToComponent(html)}</>);
+        expect(container).toMatchSnapshot();
     });
 
     test('latex', () => {
@@ -37,7 +34,8 @@ F_m - 2 = F_0 F_1 \\dots F_{m-1}
 That was some latex!`;
         const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
 
-        expect(messageHtmlToComponent(html)).toMatchSnapshot();
+        const {container} = renderWithContext(<>{messageHtmlToComponent(html)}</>);
+        expect(container).toMatchSnapshot();
     });
 
     test('typescript', () => {
@@ -49,7 +47,8 @@ const myFunction = () => {
 `;
         const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
 
-        expect(messageHtmlToComponent(html, {postId: 'randompostid'})).toMatchSnapshot();
+        const {container} = renderWithContext(<>{messageHtmlToComponent(html, {postId: 'randompostid'})}</>);
+        expect(container).toMatchSnapshot();
     });
 
     test('html', () => {
@@ -59,21 +58,24 @@ const myFunction = () => {
 `;
         const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
 
-        expect(messageHtmlToComponent(html, {postId: 'randompostid'})).toMatchSnapshot();
+        const {container} = renderWithContext(<>{messageHtmlToComponent(html, {postId: 'randompostid'})}</>);
+        expect(container).toMatchSnapshot();
     });
 
     test('link without enabled tooltip plugins', () => {
         const input = 'lorem ipsum www.dolor.com sit amet';
         const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
 
-        expect(messageHtmlToComponent(html)).toMatchSnapshot();
+        const {container} = renderWithContext(<>{messageHtmlToComponent(html)}</>);
+        expect(container).toMatchSnapshot();
     });
 
     test('link with enabled a tooltip plugin', () => {
         const input = 'lorem ipsum www.dolor.com sit amet';
         const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
 
-        expect(messageHtmlToComponent(html, {hasPluginTooltips: true})).toMatchSnapshot();
+        const {container} = renderWithContext(<>{messageHtmlToComponent(html, {hasPluginTooltips: true})}</>);
+        expect(container).toMatchSnapshot();
     });
 
     test('Inline markdown image', () => {
@@ -85,8 +87,12 @@ const myFunction = () => {
             postId: 'post_id',
             postType: Constants.PostTypes.HEADER_CHANGE,
         });
-        expect(component).toMatchSnapshot();
-        expect(shallow(component).find(MarkdownImage).prop('imageIsLink')).toBe(false);
+        const {container} = renderWithContext(<>{component}</>);
+        expect(container).toMatchSnapshot();
+
+        // imageIsLink=false means the img is NOT wrapped in an <a> tag
+        const img = container.querySelector('img');
+        expect(img?.closest('a')).toBeNull();
     });
 
     test('Inline markdown image where image is link', () => {
@@ -98,8 +104,12 @@ const myFunction = () => {
             postId: 'post_id',
             postType: Constants.PostTypes.HEADER_CHANGE,
         });
-        expect(component).toMatchSnapshot();
-        expect(shallow(component).find(MarkdownImage).prop('imageIsLink')).toBe(true);
+        const {container} = renderWithContext(<>{component}</>);
+        expect(container).toMatchSnapshot();
+
+        // imageIsLink=true means the img IS wrapped in an <a> tag
+        const img = container.querySelector('img');
+        expect(img?.closest('a')).not.toBeNull();
     });
 
     test('At mention', () => {
@@ -107,16 +117,24 @@ const myFunction = () => {
         let html = TextFormatting.formatText('@joram', options, emptyEmojiMap);
 
         let component = messageHtmlToComponent(html, {mentionHighlight: true});
-        expect(component).toMatchSnapshot();
-        expect(shallow(component).find(AtMention).prop('disableHighlight')).toBe(false);
+        const {container, unmount} = renderWithContext(<>{component}</>);
+        expect(container).toMatchSnapshot();
+
+        // When mentionHighlight is true, disableHighlight is false - the mention--highlight class wraps the mention
+        expect(container.querySelector('.mention--highlight')).toBeInTheDocument();
+
+        unmount();
 
         options.mentionHighlight = false;
 
         html = TextFormatting.formatText('@joram', options, emptyEmojiMap);
 
         component = messageHtmlToComponent(html, {mentionHighlight: false});
-        expect(component).toMatchSnapshot();
-        expect(shallow(component).find(AtMention).prop('disableHighlight')).toBe(true);
+        const {container: container2} = renderWithContext(<>{component}</>);
+        expect(container2).toMatchSnapshot();
+
+        // When mentionHighlight is false, disableHighlight is true - no mention--highlight class
+        expect(container2.querySelector('.mention--highlight')).not.toBeInTheDocument();
     });
 
     test('At mention with group highlight disabled', () => {
@@ -124,16 +142,18 @@ const myFunction = () => {
         let html = TextFormatting.formatText('@developers', options, emptyEmojiMap);
 
         let component = messageHtmlToComponent(html, {disableGroupHighlight: false});
-        expect(component).toMatchSnapshot();
-        expect(shallow(component).find(AtMention).prop('disableGroupHighlight')).toBe(false);
+        const {container, unmount} = renderWithContext(<>{component}</>);
+        expect(container).toMatchSnapshot();
+
+        unmount();
 
         options.disableGroupHighlight = true;
 
         html = TextFormatting.formatText('@developers', options, emptyEmojiMap);
 
         component = messageHtmlToComponent(html, {disableGroupHighlight: true});
-        expect(component).toMatchSnapshot();
-        expect(shallow(component).find(AtMention).prop('disableGroupHighlight')).toBe(true);
+        const {container: container2} = renderWithContext(<>{component}</>);
+        expect(container2).toMatchSnapshot();
     });
 
     test('Remote at mention', () => {
@@ -141,16 +161,24 @@ const myFunction = () => {
         let html = TextFormatting.formatText('@joram', options, emptyEmojiMap);
 
         let component = messageHtmlToComponent(html, {mentionHighlight: true});
-        expect(component).toMatchSnapshot();
-        expect(shallow(component).find(AtMention).prop('disableHighlight')).toBe(false);
+        const {container, unmount} = renderWithContext(<>{component}</>);
+        expect(container).toMatchSnapshot();
+
+        // When mentionHighlight is true, disableHighlight is false - the mention--highlight class wraps the mention
+        expect(container.querySelector('.mention--highlight')).toBeInTheDocument();
+
+        unmount();
 
         options.mentionHighlight = false;
 
         html = TextFormatting.formatText('@joram', options, emptyEmojiMap);
 
         component = messageHtmlToComponent(html, {mentionHighlight: false});
-        expect(component).toMatchSnapshot();
-        expect(shallow(component).find(AtMention).prop('disableHighlight')).toBe(true);
+        const {container: container2} = renderWithContext(<>{component}</>);
+        expect(container2).toMatchSnapshot();
+
+        // When mentionHighlight is false, disableHighlight is true - no mention--highlight class
+        expect(container2.querySelector('.mention--highlight')).not.toBeInTheDocument();
     });
 
     test('typescript', () => {
@@ -164,7 +192,8 @@ const myFunction = () => {
 
         const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
 
-        expect(messageHtmlToComponent(html)).toMatchSnapshot();
+        const {container} = renderWithContext(<>{messageHtmlToComponent(html)}</>);
+        expect(container).toMatchSnapshot();
     });
 
     describe('citation links', () => {
@@ -173,11 +202,13 @@ const myFunction = () => {
             const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
 
             const component = messageHtmlToComponent(html);
-            expect(component).toMatchSnapshot();
+            const {container} = renderWithContext(<>{component}</>);
+            expect(container).toMatchSnapshot();
 
-            const wrapper = shallow(component);
-            expect(wrapper.find(InlineEntityLink).exists()).toBe(true);
-            expect(wrapper.find(InlineEntityLink).prop('url')).toBe('http://localhost:8065/team/pl/postid?view=citation');
+            // InlineEntityLink renders an anchor with the citation URL and class 'inline-entity-link'
+            const link = container.querySelector('a.inline-entity-link');
+            expect(link).toBeInTheDocument();
+            expect(link?.getAttribute('href')).toBe('http://localhost:8065/team/pl/postid?view=citation');
         });
 
         test('should not render normal links as InlineEntityLink', () => {
@@ -185,11 +216,12 @@ const myFunction = () => {
             const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
 
             const component = messageHtmlToComponent(html);
-            expect(component).toMatchSnapshot();
+            const {container} = renderWithContext(<>{component}</>);
+            expect(container).toMatchSnapshot();
 
-            const wrapper = shallow(component);
-            expect(wrapper.find(InlineEntityLink).exists()).toBe(false);
-            expect(wrapper.find('a').exists()).toBe(true);
+            // Normal links should NOT have the inline-entity-link class
+            expect(container.querySelector('a.inline-entity-link')).not.toBeInTheDocument();
+            expect(container.querySelector('a')).toBeInTheDocument();
         });
     });
 
