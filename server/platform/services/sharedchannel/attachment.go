@@ -22,7 +22,7 @@ func (scs *Service) shouldSyncAttachment(fi *model.FileInfo, rc *model.RemoteClu
 	sca, err := scs.server.GetStore().SharedChannel().GetAttachment(fi.Id, rc.RemoteId)
 	if err != nil {
 		if _, ok := err.(errNotFound); !ok {
-			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "error fetching shared channel attachment",
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "error fetching shared channel attachment",
 				mlog.String("file_id", fi.Id),
 				mlog.String("remote_id", rc.RemoteId),
 				mlog.Err(err),

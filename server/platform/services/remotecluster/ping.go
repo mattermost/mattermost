@@ -135,7 +135,7 @@ func (rcs *Service) pingRemote(rc *model.RemoteCluster) error {
 	}
 
 	if err := rcs.server.GetStore().RemoteCluster().SetLastPingAt(rc.RemoteId); err != nil {
-		rcs.server.Log().LogM(mlog.MlvlRemoteClusterServiceWarn, "Failed to update LastPingAt for remote cluster",
+		rcs.server.Log().LogM(mlog.MlvlRemoteClusterServiceError, "Failed to update LastPingAt for remote cluster",
 			mlog.String("remote", rc.DisplayName),
 			mlog.String("remoteId", rc.RemoteId),
 			mlog.Err(err),
