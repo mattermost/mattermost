@@ -8,6 +8,8 @@ import {defineMessage, FormattedMessage, useIntl} from 'react-intl';
 
 import {
     AiSummarizeIcon,
+    CloseIcon,
+    ContentCopyIcon,
     CreationOutlineIcon,
     TextShortIcon,
     TextLongIcon,
@@ -366,7 +368,7 @@ export function RewriteSubMenuHeader({
                         type='button'
                         onClick={onCancelProcessing}
                     >
-                        <i className='icon icon-close'/>
+                        <CloseIcon size={14}/>
                         <FormattedMessage
                             id='texteditor.rewrite.stopGenerating'
                             defaultMessage='Stop generating'
@@ -416,7 +418,7 @@ export function RewriteSubMenuFooter({
                 type='button'
                 onClick={onUndoMessage}
             >
-                <i className='icon icon-close'/>
+                <CloseIcon size={14}/>
                 <FormattedMessage
                     id='texteditor.rewrite.discard'
                     defaultMessage='Discard'
@@ -427,7 +429,7 @@ export function RewriteSubMenuFooter({
                 type='button'
                 onClick={onRegenerateMessage}
             >
-                <i className='icon icon-content-copy'/>
+                <ContentCopyIcon size={14}/>
                 <FormattedMessage
                     id='texteditor.rewrite.regenerate'
                     defaultMessage='Regenerate'

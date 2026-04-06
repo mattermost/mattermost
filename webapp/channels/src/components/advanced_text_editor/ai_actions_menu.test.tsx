@@ -27,22 +27,22 @@ jest.mock('./rewrite_menu', () => ({
 jest.mock('components/menu', () => ({
     ...jest.requireActual('components/menu'),
     Container: ({children, menuButton}: any) => (
-        <div data-testid='ai-menu-container'>
-            <div data-testid='ai-menu-button'>{menuButton.children}</div>
-            <div data-testid='ai-menu-items'>{children}</div>
+        <div>
+            <div>{menuButton.children}</div>
+            <ul role='menu'>{children}</ul>
         </div>
     ),
     Item: ({labels, onClick, leadingElement, trailingElements}: any) => (
-        <button
-            data-testid='ai-menu-item'
+        <li
+            role='menuitem'
             onClick={onClick}
         >
             {leadingElement}
             {labels}
             {trailingElements}
-        </button>
+        </li>
     ),
-    Separator: () => <hr data-testid='ai-menu-separator'/>,
+    Separator: () => <li role='separator'/>,
 }));
 
 const mockDraft: PostDraft = {
@@ -56,38 +56,42 @@ const mockDraft: PostDraft = {
     metadata: {},
 };
 
-const baseProps = {
-    draft: mockDraft,
-    getSelectedText: jest.fn(() => ({start: 0, end: 0})),
-    updateText: jest.fn(),
-    channelId: 'channel1',
-};
+function getBaseProps() {
+    return {
+        draft: mockDraft,
+        getSelectedText: jest.fn(() => ({start: 0, end: 0})),
+        updateText: jest.fn(),
+        channelId: 'channel1',
+    };
+}
 
-const mockRewriteMenuProps: RewriteMenuProps = {
-    isProcessing: false,
-    isMenuOpen: false,
-    setIsMenuOpen: jest.fn(),
-    draftMessage: 'Test message',
-    prompt: '',
-    setPrompt: jest.fn(),
-    selectedAgentId: 'agent1',
-    setSelectedAgentId: jest.fn(),
-    agents: [],
-    originalMessage: '',
-    lastAction: RewriteAction.CUSTOM,
-    onMenuAction: jest.fn(() => () => {}),
-    onCustomPromptKeyDown: jest.fn(),
-    onCancelProcessing: jest.fn(),
-    onUndoMessage: jest.fn(),
-    onRegenerateMessage: jest.fn(),
-    customPromptRef: React.createRef<HTMLInputElement>(),
-};
+function getRewriteMenuProps(): RewriteMenuProps {
+    return {
+        isProcessing: false,
+        isMenuOpen: false,
+        setIsMenuOpen: jest.fn(),
+        draftMessage: 'Test message',
+        prompt: '',
+        setPrompt: jest.fn(),
+        selectedAgentId: 'agent1',
+        setSelectedAgentId: jest.fn(),
+        agents: [],
+        originalMessage: '',
+        lastAction: RewriteAction.CUSTOM,
+        onMenuAction: jest.fn(() => () => {}),
+        onCustomPromptKeyDown: jest.fn(),
+        onCancelProcessing: jest.fn(),
+        onUndoMessage: jest.fn(),
+        onRegenerateMessage: jest.fn(),
+        customPromptRef: React.createRef<HTMLInputElement>(),
+    };
+}
 
 describe('AIActionsMenu', () => {
     test('should not render when there are no plugin items and rewrite is disabled', () => {
         const {container} = renderWithContext(
             <AIActionsMenu
-                {...baseProps}
+                {...getBaseProps()}
                 aiRewriteEnabled={false}
             />,
             {
@@ -107,11 +111,11 @@ describe('AIActionsMenu', () => {
     });
 
     test('should render menu with rewrite item when rewrite is enabled', () => {
-        const {container} = renderWithContext(
+        renderWithContext(
             <AIActionsMenu
-                {...baseProps}
+                {...getBaseProps()}
                 aiRewriteEnabled={true}
-                rewriteMenuProps={mockRewriteMenuProps}
+                rewriteMenuProps={getRewriteMenuProps()}
             />,
             {
                 entities: {
@@ -127,7 +131,6 @@ describe('AIActionsMenu', () => {
             } as any,
         );
 
-        expect(container.innerHTML).not.toBe('');
         expect(screen.getByText('Rewrite')).toBeInTheDocument();
     });
 
@@ -136,7 +139,7 @@ describe('AIActionsMenu', () => {
 
         renderWithContext(
             <AIActionsMenu
-                {...baseProps}
+                {...getBaseProps()}
                 aiRewriteEnabled={false}
             />,
             {
@@ -170,7 +173,7 @@ describe('AIActionsMenu', () => {
 
         renderWithContext(
             <AIActionsMenu
-                {...baseProps}
+                {...getBaseProps()}
                 aiRewriteEnabled={false}
             />,
             {
@@ -203,7 +206,7 @@ describe('AIActionsMenu', () => {
                 },
             } as any,
         );
-        const items = screen.getAllByTestId('ai-menu-item');
+        const items = screen.getAllByRole('menuitem');
         expect(items[0]).toHaveTextContent('First Action');
         expect(items[1]).toHaveTextContent('Second Action');
     });
@@ -213,9 +216,9 @@ describe('AIActionsMenu', () => {
 
         renderWithContext(
             <AIActionsMenu
-                {...baseProps}
+                {...getBaseProps()}
                 aiRewriteEnabled={true}
-                rewriteMenuProps={mockRewriteMenuProps}
+                rewriteMenuProps={getRewriteMenuProps()}
             />,
             {
                 entities: {
@@ -239,15 +242,17 @@ describe('AIActionsMenu', () => {
                 },
             } as any,
         );
-        expect(screen.getByTestId('ai-menu-separator')).toBeInTheDocument();
+        expect(screen.getByRole('separator')).toBeInTheDocument();
+        expect(screen.getByText('Plugin Action')).toBeInTheDocument();
+        expect(screen.getByText('Rewrite')).toBeInTheDocument();
     });
 
     test('should not render separator when only rewrite items are present', () => {
         renderWithContext(
             <AIActionsMenu
-                {...baseProps}
+                {...getBaseProps()}
                 aiRewriteEnabled={true}
-                rewriteMenuProps={mockRewriteMenuProps}
+                rewriteMenuProps={getRewriteMenuProps()}
             />,
             {
                 entities: {
@@ -262,42 +267,6 @@ describe('AIActionsMenu', () => {
                 },
             } as any,
         );
-        expect(screen.queryByTestId('ai-menu-separator')).not.toBeInTheDocument();
-    });
-
-    test('should render menu with both plugin items and rewrite when both present', () => {
-        const MockComponent = () => <div>{'Plugin Content'}</div>;
-
-        renderWithContext(
-            <AIActionsMenu
-                {...baseProps}
-                aiRewriteEnabled={true}
-                rewriteMenuProps={mockRewriteMenuProps}
-            />,
-            {
-                entities: {
-                    general: {config: {}},
-                    preferences: {myPreferences: {}},
-                    users: {currentUserId: 'user1'},
-                },
-                plugins: {
-                    components: {
-                        AIActionMenuItem: [
-                            {
-                                id: 'plugin1',
-                                pluginId: 'test-plugin',
-                                component: MockComponent,
-                                icon: <span>{'icon'}</span>,
-                                text: 'Custom Action',
-                                sortOrder: 1,
-                            },
-                        ],
-                    },
-                },
-            } as any,
-        );
-
-        expect(screen.getByText('Custom Action')).toBeInTheDocument();
-        expect(screen.getByText('Rewrite')).toBeInTheDocument();
+        expect(screen.queryByRole('separator')).not.toBeInTheDocument();
     });
 });

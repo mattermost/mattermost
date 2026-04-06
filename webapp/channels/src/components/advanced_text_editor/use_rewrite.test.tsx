@@ -74,6 +74,7 @@ describe('useRewrite', () => {
     };
 
     beforeEach(() => {
+        jest.clearAllMocks();
         document.body.innerHTML = '';
         try {
             Object.defineProperty(mockTextboxRef, 'current', {
@@ -120,16 +121,6 @@ describe('useRewrite', () => {
         it('should dispatch getAgents action on mount', () => {
             renderHookWithProps();
             expect(getAgentsAction).toHaveBeenCalledTimes(1);
-        });
-
-        it('should return isProcessing state', () => {
-            const {result} = renderHookWithProps();
-            expect(result.current.isProcessing).toBe(false);
-        });
-
-        it('should return rewriteMenuProps', () => {
-            const {result} = renderHookWithProps();
-            expect(result.current.rewriteMenuProps).toBeDefined();
         });
 
         it('should set default selected agent when agents are available', () => {
@@ -238,8 +229,6 @@ describe('useRewrite', () => {
         });
 
         it('should ignore stale promise responses', async () => {
-            mockHandleDraftChange.mockClear();
-
             const {result, rerender} = renderHookWithProps();
 
             let resolveFirst: (value: string) => void;
@@ -248,7 +237,6 @@ describe('useRewrite', () => {
             });
 
             const mockClient = Client4.getAIRewrittenMessage as jest.Mock;
-            mockClient.mockClear();
             mockClient.mockImplementationOnce(() => rewritePromise1);
             mockClient.mockImplementationOnce(() => Promise.resolve('Second response'));
 
@@ -385,11 +373,13 @@ describe('useRewrite', () => {
 
     describe('cancelProcessing', () => {
         it('should cancel processing and reset state', async () => {
-            const {result, rerender} = renderHookWithProps();
+            let resolveSlowPromise: (value: string) => void;
             const slowPromise = new Promise<string>((resolve) => {
-                setTimeout(() => resolve('Slow response'), 1000);
+                resolveSlowPromise = resolve;
             });
             (Client4.getAIRewrittenMessage as jest.Mock).mockReturnValue(slowPromise);
+
+            const {result, rerender} = renderHookWithProps();
 
             let props = result.current.rewriteMenuProps;
             const actionHandler = props.onMenuAction(RewriteAction.SHORTEN);
@@ -409,7 +399,9 @@ describe('useRewrite', () => {
                 expect(result.current.isProcessing).toBe(false);
             });
 
-            await new Promise((resolve) => setTimeout(resolve, 1200));
+            // Resolve the stale promise — the hook should ignore it
+            resolveSlowPromise!('Slow response');
+            await slowPromise;
 
             expect(mockHandleDraftChange).not.toHaveBeenCalled();
         });
@@ -535,7 +527,18 @@ describe('useRewrite', () => {
         });
 
         it('should reset state when draft message becomes empty', async () => {
-            const {result, rerender} = renderHookWithProps(mockDraft);
+            let currentDraft = mockDraft;
+            const {result, rerender} = renderHookWithContext(
+                () => useRewrite(
+                    currentDraft,
+                    mockHandleDraftChange,
+                    mockTextboxRef,
+                    mockFocusTextbox,
+                    mockSetServerError,
+                ),
+                getBaseState(),
+            );
+
             let props = result.current.rewriteMenuProps;
             const actionHandler = props.onMenuAction(RewriteAction.SHORTEN);
             actionHandler();
@@ -549,8 +552,11 @@ describe('useRewrite', () => {
             props = result.current.rewriteMenuProps;
             expect(props.originalMessage).toBe('Test message');
 
-            const {result: result2} = renderHookWithProps({...mockDraft, message: ''});
-            props = result2.current.rewriteMenuProps;
+            // Change draft to empty message on the same hook instance
+            currentDraft = {...mockDraft, message: ''};
+            rerender();
+
+            props = result.current.rewriteMenuProps;
             expect(props.originalMessage).toBe('');
         });
     });
