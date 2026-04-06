@@ -603,7 +603,7 @@ export default class PluginRegistry {
      * Register an item in the AI actions menu in the text editor toolbar.
      * Accepts the following:
      * - icon - React element to use as the menu item's icon
-     * - text - Display text for the menu item
+     * - text - A string or React element to display in the menu item
      * - sortOrder - Numeric sort order for positioning in the menu
      * - component - React component rendered as a submenu on hover
      * - subMenuHeader - Optional React component rendered as the submenu header
@@ -611,14 +611,14 @@ export default class PluginRegistry {
      */
     registerAIActionMenuItemComponent = reArg(
         ['icon', 'text', 'sortOrder', 'component', 'subMenuHeader'],
-        ({icon, text, sortOrder, component, subMenuHeader}: {icon: React.ReactNode; text: string; sortOrder: number; component: AIActionMenuItemComponent['component']; subMenuHeader?: AIActionMenuItemComponent['subMenuHeader']}) => {
+        ({icon, text, sortOrder, component, subMenuHeader}: {icon: React.ReactNode; text: PluggableText; sortOrder: number; component: AIActionMenuItemComponent['component']; subMenuHeader?: AIActionMenuItemComponent['subMenuHeader']}) => {
             const id = generateId();
 
             dispatchPluginComponentWithData('AIActionMenuItem', {
                 id,
                 pluginId: this.id,
                 icon,
-                text,
+                text: resolveReactElement(text),
                 sortOrder,
                 component,
                 subMenuHeader,

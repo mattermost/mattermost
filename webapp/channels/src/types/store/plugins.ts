@@ -447,7 +447,7 @@ export type AIActionMenuItemProps = {
 export type AIActionMenuItemComponent = PluginComponent & {
     component: React.ComponentType<AIActionMenuItemProps>;
     icon: React.ReactNode;
-    text: string;
+    text: React.ReactNode;
     sortOrder: number;
     subMenuHeader?: React.ComponentType<AIActionMenuItemProps>;
 };
