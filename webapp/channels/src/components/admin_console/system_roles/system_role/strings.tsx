@@ -276,6 +276,12 @@ export const sectionStrings: Record<string, Record<string, MessageDescriptor>> =
             defaultMessage: 'Notices',
         },
     }),
+    site_classification_markings: defineMessages({
+        name: {
+            id: 'admin.permissions.sysconsole_section_site_classification_markings.name',
+            defaultMessage: 'Classification Markings',
+        },
+    }),
     authentication: defineMessages({
         name: {
             id: 'admin.permissions.sysconsole_section_authentication.name',

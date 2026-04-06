@@ -99,6 +99,7 @@ const sectionsList: SystemSection[] = [
             {name: 'site_file_sharing_and_downloads'},
             {name: 'site_public_links'},
             {name: 'site_notices'},
+            {name: 'site_classification_markings'},
         ],
     },
     {

@@ -46,7 +46,11 @@ const msg = defineMessages({
     levelsDescription: {id: 'admin.classification_markings.levels.description', defaultMessage: 'Select colors and text for different classification levels that will be used in classification banners'},
 });
 
-export default function ClassificationMarkings() {
+type Props = {
+    disabled?: boolean;
+};
+
+export default function ClassificationMarkings({disabled}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
@@ -366,6 +370,7 @@ export default function ClassificationMarkings() {
                                     name='classificationEnabled'
                                     value='true'
                                     checked={enabled}
+                                    disabled={disabled}
                                     onChange={handleToggleEnabled}
                                 />
                                 <FormattedMessage
@@ -379,6 +384,7 @@ export default function ClassificationMarkings() {
                                     name='classificationEnabled'
                                     value='false'
                                     checked={!enabled}
+                                    disabled={disabled}
                                     onChange={handleToggleEnabled}
                                 />
                                 <FormattedMessage
@@ -405,6 +411,7 @@ export default function ClassificationMarkings() {
                             <SectionContent $compact={true}>
                                 <PresetSelect
                                     value={presetId}
+                                    disabled={disabled}
                                     onChange={handlePresetChange}
                                 >
                                     {presets.map((preset) => (
@@ -438,14 +445,17 @@ export default function ClassificationMarkings() {
                                     updateLevel={updateLevel}
                                     deleteLevel={deleteLevel}
                                     onReorder={handleReorder}
+                                    disabled={disabled}
                                 />
-                                <LinkButton onClick={addLevel}>
-                                    <PlusIcon size={16}/>
-                                    <FormattedMessage
-                                        id='admin.classification_markings.levels.add'
-                                        defaultMessage='Add level'
-                                    />
-                                </LinkButton>
+                                {!disabled && (
+                                    <LinkButton onClick={addLevel}>
+                                        <PlusIcon size={16}/>
+                                        <FormattedMessage
+                                            id='admin.classification_markings.levels.add'
+                                            defaultMessage='Add level'
+                                        />
+                                    </LinkButton>
+                                )}
                             </SectionContent>
                         </AdminSection>
                     </>
@@ -458,7 +468,7 @@ export default function ClassificationMarkings() {
                 onClick={handleSave}
                 onCancel={handleCancel}
                 serverError={saveError}
-                isDisabled={saving}
+                isDisabled={saving || disabled}
                 savingMessage={formatMessage({id: 'admin.classification_markings.saving', defaultMessage: 'Saving...'})}
             />
 
@@ -499,9 +509,10 @@ type TableProps = {
     updateLevel: (index: number, updates: Partial<ClassificationLevel>) => void;
     deleteLevel: (index: number) => void;
     onReorder: (prev: number, next: number) => void;
+    disabled?: boolean;
 };
 
-function ClassificationLevelsTable({levels, updateLevel, deleteLevel, onReorder}: TableProps) {
+function ClassificationLevelsTable({levels, updateLevel, deleteLevel, onReorder, disabled}: TableProps) {
     const {formatMessage} = useIntl();
 
     const rows: LevelRow[] = useMemo(() => {
@@ -532,6 +543,7 @@ function ClassificationLevelsTable({levels, updateLevel, deleteLevel, onReorder}
                         value={row.original.name}
                         index={row.index}
                         updateLevel={updateLevel}
+                        disabled={disabled}
                         label={formatMessage({id: 'admin.classification_markings.levels.table.text.input', defaultMessage: 'Classification level name'})}
                     />
                 ),
@@ -549,11 +561,18 @@ function ClassificationLevelsTable({levels, updateLevel, deleteLevel, onReorder}
                 ),
                 cell: ({row}) => (
                     <ColorCellWrapper>
-                        <ColorInput
-                            id={`classification-color-${row.index}`}
-                            value={row.original.color}
-                            onChange={(color: string) => updateLevel(row.index, {color})}
-                        />
+                        {disabled ? (
+                            <ReadOnlyColor>
+                                <ColorSwatch style={{backgroundColor: row.original.color}}/>
+                                <span>{row.original.color}</span>
+                            </ReadOnlyColor>
+                        ) : (
+                            <ColorInput
+                                id={`classification-color-${row.index}`}
+                                value={row.original.color}
+                                onChange={(color: string) => updateLevel(row.index, {color})}
+                            />
+                        )}
                     </ColorCellWrapper>
                 ),
                 enableSorting: false,
@@ -573,7 +592,7 @@ function ClassificationLevelsTable({levels, updateLevel, deleteLevel, onReorder}
                 ),
                 enableSorting: false,
             }),
-            col.display({
+            ...(!disabled ? [col.display({
                 id: 'actions',
                 size: 40,
                 header: () => null,
@@ -591,9 +610,9 @@ function ClassificationLevelsTable({levels, updateLevel, deleteLevel, onReorder}
                     </ActionsCell>
                 ),
                 enableSorting: false,
-            }),
+            })] : []),
         ];
-    }, [updateLevel, deleteLevel, formatMessage]);
+    }, [updateLevel, deleteLevel, disabled, formatMessage]);
 
     const table = useReactTable<LevelRow>({
         data: rows,
@@ -605,7 +624,7 @@ function ClassificationLevelsTable({levels, updateLevel, deleteLevel, onReorder}
         meta: {
             tableId: 'classificationLevels',
             disablePaginationControls: true,
-            onReorder,
+            ...(!disabled && {onReorder}),
         },
         manualPagination: true,
     });
@@ -622,9 +641,10 @@ type LevelNameCellProps = {
     index: number;
     updateLevel: (index: number, updates: Partial<ClassificationLevel>) => void;
     label: string;
+    disabled?: boolean;
 };
 
-function LevelNameCell({value, index, updateLevel, label}: LevelNameCellProps) {
+function LevelNameCell({value, index, updateLevel, label, disabled}: LevelNameCellProps) {
     const [localValue, setLocalValue] = useState(value);
 
     useEffect(() => {
@@ -637,6 +657,7 @@ function LevelNameCell({value, index, updateLevel, label}: LevelNameCellProps) {
             aria-label={label}
             $strong={true}
             value={localValue}
+            readOnly={disabled}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLocalValue(e.target.value)}
             onBlur={() => {
                 if (localValue !== value) {
@@ -723,6 +744,23 @@ const ColorCellWrapper = styled.div`
     .color-input {
         max-width: 160px;
     }
+`;
+
+const ReadOnlyColor = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+`;
+
+const ColorSwatch = styled.span`
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    flex-shrink: 0;
 `;
 
 const RankCell = styled.div`
