@@ -5224,10 +5224,6 @@
     "translation": "Mattermost Enterprise license has been disabled."
   },
   {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Twoja licencja Enterprise Edition wygasła i niektóre funkcjonalności mogą być niedostępne. Proszę odnowić swoją licencję."
-  },
-  {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} zaprasza Cię do dołączenia do zespołu {{ .TeamDisplayName }} jako gość"
   },
