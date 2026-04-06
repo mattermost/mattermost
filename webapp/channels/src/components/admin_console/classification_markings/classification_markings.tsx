@@ -275,6 +275,9 @@ export default function ClassificationMarkings({disabled}: Props) {
                     target_type: TARGET_TYPE,
                     target_id: TARGET_ID,
                     attrs: {options, managed: 'admin'},
+                    permission_field: 'sysadmin',
+                    permission_values: 'sysadmin',
+                    permission_options: 'sysadmin',
                 });
                 setExistingField(created);
                 const createdOptions = (created.attrs?.options as PropertyFieldOption[]) || [];
