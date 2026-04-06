@@ -4043,20 +4043,32 @@
     "translation": "Having trouble accessing your workspace?"
   },
   {
+    "id": "api.templates.license_need_help.info",
+    "translation": "<a href=\"https://mattermost.com/contact-sales/\">Talk to a Mattermost expert</a> for help with plans and renewal options."
+  },
+  {
+    "id": "api.templates.license_need_help.title",
+    "translation": "Need Help?"
+  },
+  {
     "id": "api.templates.license_up_for_renewal_contact_sales",
     "translation": "Contact sales"
   },
   {
     "id": "api.templates.license_up_for_renewal_subject",
-    "translation": "Your license is up for renewal"
+    "translation": "Your {{.SkuName}} license is up for renewal"
   },
   {
     "id": "api.templates.license_up_for_renewal_subtitle",
-    "translation": "{{.UserName}}, your subscription is set to expire in {{.Days}} days. We hope you’re experiencing the flexible, secure team collaboration that Mattermost enables. Renew soon to ensure your team can keep enjoying these benefits."
+    "translation": "Your {{.SkuName}} license for <a href=\"{{.SiteURL}}\">{{.SiteName}}</a> is due to expire in {{.Days}} days. We hope you’re enjoying the secure, mission-critical collaboration that Mattermost enables."
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle_two",
+    "translation": "Renew soon to ensure your team can keep enjoying these benefits."
   },
   {
     "id": "api.templates.license_up_for_renewal_title",
-    "translation": "Your Mattermost subscription is up for renewal"
+    "translation": "Your Mattermost license is up for renewal"
   },
   {
     "id": "api.templates.mfa_activated_body.info",
@@ -4103,12 +4115,20 @@
     "translation": "Questions?"
   },
   {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Your Enterprise Edition license has expired and some features may be disabled. Please renew your license now."
+    "id": "api.templates.remove_expired_license.body.heading",
+    "translation": "Your Mattermost license has expired"
+  },
+  {
+    "id": "api.templates.remove_expired_license.body.subtitle",
+    "translation": "Your {{.SkuName}} license for <a href=\"{{.SiteURL}}\">{{.SiteName}}</a> has expired and some features may be disabled."
+  },
+  {
+    "id": "api.templates.remove_expired_license.body.subtitle_two",
+    "translation": "Please renew your license now to continue using the full capabilities of Mattermost."
   },
   {
     "id": "api.templates.remove_expired_license.subject",
-    "translation": "Mattermost Enterprise license has been disabled."
+    "translation": "Your {{.SkuName}} license has expired"
   },
   {
     "id": "api.templates.reset_body.button",

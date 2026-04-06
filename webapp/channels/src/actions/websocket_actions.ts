@@ -75,6 +75,7 @@ import {
 import {getRecap} from 'mattermost-redux/actions/recaps';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {fetchTeamScheduledPosts} from 'mattermost-redux/actions/scheduled_posts';
+import {fetchChannelRemotes} from 'mattermost-redux/actions/shared_channels';
 import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/status_profile_polling';
 import * as TeamActions from 'mattermost-redux/actions/teams';
 import {
@@ -479,6 +480,10 @@ export function handleEvent(msg: WebSocketMessage) {
         handleChannelConvertedEvent(msg);
         break;
 
+    case WebSocketEvents.SharedChannelRemoteUpdated:
+        handleSharedChannelRemoteUpdatedEvent(msg);
+        break;
+
     case WebSocketEvents.ChannelUpdated:
         dispatch(handleChannelUpdatedEvent(msg));
         break;
@@ -708,6 +713,13 @@ export function handleEvent(msg: WebSocketMessage) {
             pluginEvents[msg.event](msg);
         }
     });
+}
+
+function handleSharedChannelRemoteUpdatedEvent(msg: WebSocketMessages.SharedChannelRemoteUpdated) {
+    const channelId = msg.data.channel_id || msg.broadcast.channel_id;
+    if (channelId) {
+        dispatch(fetchChannelRemotes(channelId, true));
+    }
 }
 
 // handleChannelConvertedEvent handles updating of channel which is converted from public to private
