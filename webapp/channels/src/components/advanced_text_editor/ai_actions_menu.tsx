@@ -194,63 +194,63 @@ const AIActionsMenu = ({
                     {/* pointer-events wrapper: AsSubMenu disables pointer-events on the popover root,
                         so we re-enable on the content div to make everything inside clickable */}
                     <div style={{pointerEvents: 'auto'}}>
-                    {isRewriteSubmenu && rewriteMenuProps && (
-                        <>
-                            <RewriteSubMenuHeader
-                                isProcessing={rewriteMenuProps.isProcessing}
-                                draftMessage={rewriteMenuProps.draftMessage}
-                                prompt={rewriteMenuProps.prompt}
-                                setPrompt={rewriteMenuProps.setPrompt}
-                                selectedAgentId={rewriteMenuProps.selectedAgentId}
-                                setSelectedAgentId={rewriteMenuProps.setSelectedAgentId}
-                                agents={rewriteMenuProps.agents}
-                                onCustomPromptKeyDown={rewriteMenuProps.onCustomPromptKeyDown}
-                                onCancelProcessing={rewriteMenuProps.onCancelProcessing}
-                                customPromptRef={rewriteMenuProps.customPromptRef}
-                            />
-                            <MuiMenuList
-                                sx={{py: 0}}
-                            >
-                                <RewriteSubmenu
-                                    draftMessage={rewriteMenuProps.draftMessage}
-                                    onMenuAction={rewriteMenuProps.onMenuAction}
-                                />
-                            </MuiMenuList>
-                            <RewriteSubMenuFooter
-                                isProcessing={rewriteMenuProps.isProcessing}
-                                originalMessage={rewriteMenuProps.originalMessage}
-                                lastAction={rewriteMenuProps.lastAction}
-                                onUndoMessage={rewriteMenuProps.onUndoMessage}
-                                onRegenerateMessage={rewriteMenuProps.onRegenerateMessage}
-                            />
-                        </>
-                    )}
-                    {activePluginItem && (() => {
-                        const PluginComponent = activePluginItem.component;
-                        const SubMenuHeader = activePluginItem.subMenuHeader;
-                        return (
+                        {isRewriteSubmenu && rewriteMenuProps && (
                             <>
-                                {SubMenuHeader && (
-                                    <SubMenuHeader
-                                        draft={draft}
-                                        getSelectedText={getSelectedText}
-                                        updateText={updateText}
-                                        channelId={channelId}
-                                    />
-                                )}
+                                <RewriteSubMenuHeader
+                                    isProcessing={rewriteMenuProps.isProcessing}
+                                    draftMessage={rewriteMenuProps.draftMessage}
+                                    prompt={rewriteMenuProps.prompt}
+                                    setPrompt={rewriteMenuProps.setPrompt}
+                                    selectedAgentId={rewriteMenuProps.selectedAgentId}
+                                    setSelectedAgentId={rewriteMenuProps.setSelectedAgentId}
+                                    agents={rewriteMenuProps.agents}
+                                    onCustomPromptKeyDown={rewriteMenuProps.onCustomPromptKeyDown}
+                                    onCancelProcessing={rewriteMenuProps.onCancelProcessing}
+                                    customPromptRef={rewriteMenuProps.customPromptRef}
+                                />
                                 <MuiMenuList
                                     sx={{py: 0}}
                                 >
-                                    <PluginComponent
-                                        draft={draft}
-                                        getSelectedText={getSelectedText}
-                                        updateText={updateText}
-                                        channelId={channelId}
+                                    <RewriteSubmenu
+                                        draftMessage={rewriteMenuProps.draftMessage}
+                                        onMenuAction={rewriteMenuProps.onMenuAction}
                                     />
                                 </MuiMenuList>
+                                <RewriteSubMenuFooter
+                                    isProcessing={rewriteMenuProps.isProcessing}
+                                    originalMessage={rewriteMenuProps.originalMessage}
+                                    lastAction={rewriteMenuProps.lastAction}
+                                    onUndoMessage={rewriteMenuProps.onUndoMessage}
+                                    onRegenerateMessage={rewriteMenuProps.onRegenerateMessage}
+                                />
                             </>
-                        );
-                    })()}
+                        )}
+                        {activePluginItem && (() => {
+                            const PluginComponent = activePluginItem.component;
+                            const SubMenuHeader = activePluginItem.subMenuHeader;
+                            return (
+                                <>
+                                    {SubMenuHeader && (
+                                        <SubMenuHeader
+                                            draft={draft}
+                                            getSelectedText={getSelectedText}
+                                            updateText={updateText}
+                                            channelId={channelId}
+                                        />
+                                    )}
+                                    <MuiMenuList
+                                        sx={{py: 0}}
+                                    >
+                                        <PluginComponent
+                                            draft={draft}
+                                            getSelectedText={getSelectedText}
+                                            updateText={updateText}
+                                            channelId={channelId}
+                                        />
+                                    </MuiMenuList>
+                                </>
+                            );
+                        })()}
                     </div>
                 </MuiPopover>
             )}

@@ -7,10 +7,10 @@ import {closeRightHandSide, selectPostById} from 'actions/views/rhs';
 import {getSelectedPostId, getIsRhsOpen} from 'selectors/rhs';
 
 import AdvancedTextEditor from 'components/advanced_text_editor/advanced_text_editor';
-import * as Menu from 'components/menu';
 import ChannelInviteModal from 'components/channel_invite_modal';
 import ChannelMembersModal from 'components/channel_members_modal';
 import DatePicker from 'components/date_picker/date_picker';
+import * as Menu from 'components/menu';
 import {useNotifyAdmin} from 'components/notify_admin_cta/notify_admin_cta';
 import PostMessagePreview from 'components/post_view/post_message_preview';
 import StartTrialFormModal from 'components/start_trial_form_modal';

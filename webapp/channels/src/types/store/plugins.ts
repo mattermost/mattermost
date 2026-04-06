@@ -22,8 +22,8 @@ import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import type {NewPostMessageProps} from 'actions/new_post';
 
 import type {PluginConfiguration} from 'types/plugins/user_settings';
-import type {PostDraft} from 'types/store/draft';
 import type {GlobalState} from 'types/store';
+import type {PostDraft} from 'types/store/draft';
 
 export type PluginSiteStatsHandler = () => Promise<Record<string, PluginAnalyticsRow>>;
 
