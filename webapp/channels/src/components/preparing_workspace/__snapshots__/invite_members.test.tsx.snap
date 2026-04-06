@@ -107,7 +107,7 @@ exports[`InviteMembers component should match snapshot when it is cloud 1`] = `
           class="PreparingWorkspaceDescription"
         >
           <span>
-            Collaboration is tough by yourself. Invite a few team members. Separate each email address with a space or comma.
+            Collaboration is tough by yourself. Invite a few team members. Separate each email address with a comma or semicolon.
           </span>
         </p>
         <div
