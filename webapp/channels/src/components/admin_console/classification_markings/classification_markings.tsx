@@ -95,12 +95,32 @@ export default function ClassificationMarkings({disabled}: Props) {
         dispatch(setNavigationBlocked(hasChanges));
     }, [hasChanges, dispatch]);
 
-    // Load existing field on mount
+    // Load existing field on mount, paginating through all results
     useEffect(() => {
         const loadField = async () => {
             try {
-                const fields = await Client4.getPropertyFields(GROUP_NAME, OBJECT_TYPE, TARGET_TYPE, TARGET_ID);
-                const classificationField = fields.find((f: PropertyField) => f.name === FIELD_NAME && f.delete_at === 0);
+                const maxItems = 500;
+                let fetched = 0;
+                let classificationField: PropertyField | undefined;
+                let cursorId: string | undefined;
+                let cursorCreateAt: number | undefined;
+
+                // Paginate through property fields until we find the classification field or exhaust all pages
+                while (fetched < maxItems) {
+                    const fields = await Client4.getPropertyFields(GROUP_NAME, OBJECT_TYPE, TARGET_TYPE, TARGET_ID, {cursorId, cursorCreateAt}); // eslint-disable-line no-await-in-loop
+                    classificationField = fields.find((f: PropertyField) => f.name === FIELD_NAME && f.delete_at === 0);
+                    if (classificationField || fields.length === 0) {
+                        break;
+                    }
+
+                    fetched += fields.length;
+
+                    // Set cursor from the last item for the next page
+                    const last = fields[fields.length - 1];
+                    cursorId = last.id;
+                    cursorCreateAt = last.create_at;
+                }
+
                 if (classificationField) {
                     setExistingField(classificationField);
                     setEnabled(true);

@@ -2279,10 +2279,19 @@ export default class Client4 {
 
     // Generic Property Field Routes
 
-    getPropertyFields = async (groupName: string, objectType: string, targetType: string, targetId?: string) => {
+    getPropertyFields = async (groupName: string, objectType: string, targetType: string, targetId?: string, options?: {perPage?: number; cursorId?: string; cursorCreateAt?: number}) => {
         const params = new URLSearchParams({target_type: targetType});
         if (targetId) {
             params.set('target_id', targetId);
+        }
+        if (options?.perPage) {
+            params.set('per_page', String(options.perPage));
+        }
+        if (options?.cursorId) {
+            params.set('cursor_id', options.cursorId);
+        }
+        if (options?.cursorCreateAt !== undefined) {
+            params.set('cursor_create_at', String(options.cursorCreateAt));
         }
         return this.doFetch<PropertyField[]>(
             `${this.getPropertyFieldsRoute(groupName, objectType)}?${params.toString()}`,
