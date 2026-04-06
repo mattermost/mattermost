@@ -67,6 +67,7 @@ export type PropertyFieldOption = {
     id: string;
     name: string;
     color?: string;
+    rank?: number;
 }
 
 export type UserPropertyField = PropertyField & {

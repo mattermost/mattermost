@@ -34,9 +34,7 @@ const TARGET_TYPE = 'system';
 const TARGET_ID = '';
 const FIELD_NAME = 'classification';
 
-type LevelRow = ClassificationLevel & {
-    rank: number;
-};
+type LevelRow = ClassificationLevel;
 
 const msg = defineMessages({
     pageTitle: {id: 'admin.sidebar.classificationMarkings', defaultMessage: 'Classification Markings'},
@@ -85,7 +83,7 @@ export default function ClassificationMarkings() {
         }
         return levels.some((level, i) => {
             const initial = initialLevels[i];
-            return level.name !== initial.name || level.color !== initial.color || level.id !== initial.id;
+            return level.name !== initial.name || level.color !== initial.color || level.id !== initial.id || level.rank !== initial.rank;
         });
     }, [enabled, initialEnabled, levels, initialLevels]);
 
@@ -105,10 +103,11 @@ export default function ClassificationMarkings() {
                     setInitialEnabled(true);
 
                     const options = (classificationField.attrs?.options as PropertyFieldOption[]) || [];
-                    const loadedLevels = options.map((opt) => ({
+                    const loadedLevels = options.map((opt, i) => ({
                         id: opt.id,
                         name: opt.name,
                         color: opt.color || '#000000',
+                        rank: opt.rank ?? (i + 1),
                     }));
                     setLevels(loadedLevels);
                     setInitialLevels(loadedLevels);
@@ -185,12 +184,15 @@ export default function ClassificationMarkings() {
     }, [switchToCustom]);
 
     const deleteLevel = useCallback((index: number) => {
-        setLevels((prev) => prev.filter((_, i) => i !== index));
+        setLevels((prev) => prev.filter((_, i) => i !== index).map((level, i) => ({...level, rank: i + 1})));
         switchToCustom();
     }, [switchToCustom]);
 
     const addLevel = useCallback(() => {
-        setLevels((prev) => [...prev, {id: '', name: '', color: '#000000'}]);
+        setLevels((prev) => {
+            const maxRank = prev.reduce((max, l) => Math.max(max, l.rank), 0);
+            return [...prev, {id: '', name: '', color: '#000000', rank: maxRank + 1}];
+        });
         switchToCustom();
     }, [switchToCustom]);
 
@@ -199,7 +201,7 @@ export default function ClassificationMarkings() {
             const next = [...prev];
             const [moved] = next.splice(prevIndex, 1);
             next.splice(nextIndex, 0, moved);
-            return next;
+            return next.map((level, i) => ({...level, rank: i + 1}));
         });
         switchToCustom();
     }, [switchToCustom]);
@@ -241,6 +243,7 @@ export default function ClassificationMarkings() {
                     id: level.id || '',
                     name: level.name,
                     color: level.color,
+                    rank: level.rank,
                 }));
                 const created = await Client4.createPropertyField(GROUP_NAME, OBJECT_TYPE, {
                     name: FIELD_NAME,
@@ -251,10 +254,11 @@ export default function ClassificationMarkings() {
                 });
                 setExistingField(created);
                 const createdOptions = (created.attrs?.options as PropertyFieldOption[]) || [];
-                const newLevels = createdOptions.map((opt) => ({
+                const newLevels = createdOptions.map((opt, i) => ({
                     id: opt.id,
                     name: opt.name,
                     color: opt.color || '#000000',
+                    rank: opt.rank ?? (i + 1),
                 }));
                 setLevels(newLevels);
                 setInitialLevels(newLevels);
@@ -275,16 +279,18 @@ export default function ClassificationMarkings() {
                     id: level.id || '',
                     name: level.name,
                     color: level.color,
+                    rank: level.rank,
                 }));
                 const patched = await Client4.patchPropertyField(GROUP_NAME, OBJECT_TYPE, existingField.id, {
                     attrs: {options},
                 } as Partial<PropertyField>);
                 setExistingField(patched);
                 const patchedOptions = (patched.attrs?.options as PropertyFieldOption[]) || [];
-                const newLevels = patchedOptions.map((opt) => ({
+                const newLevels = patchedOptions.map((opt, i) => ({
                     id: opt.id,
                     name: opt.name,
                     color: opt.color || '#000000',
+                    rank: opt.rank ?? (i + 1),
                 }));
                 setLevels(newLevels);
                 setInitialLevels(newLevels);
@@ -477,7 +483,7 @@ function detectPreset(levels: ClassificationLevel[]): string {
         }
         const matches = preset.levels.every((presetLevel, i) => {
             const level = levels[i];
-            return presetLevel.name === level.name && presetLevel.color.toUpperCase() === level.color.toUpperCase();
+            return presetLevel.name === level.name && presetLevel.color.toUpperCase() === level.color.toUpperCase() && presetLevel.rank === level.rank;
         });
         if (matches) {
             return preset.id;
@@ -499,11 +505,12 @@ function ClassificationLevelsTable({levels, updateLevel, deleteLevel, onReorder}
     const {formatMessage} = useIntl();
 
     const rows: LevelRow[] = useMemo(() => {
-        return levels.map((level, i) => ({
-            ...level,
-            id: level.id || `pending_${i}`,
-            rank: i + 1,
-        }));
+        return [...levels]
+            .sort((a, b) => a.rank - b.rank)
+            .map((level, i) => ({
+                ...level,
+                id: level.id || `pending_${i}`,
+            }));
     }, [levels]);
 
     const col = createColumnHelper<LevelRow>();
