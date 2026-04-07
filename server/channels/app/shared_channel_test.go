@@ -5,7 +5,6 @@ package app
 
 import (
 	"bytes"
-	"context"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -1142,6 +1141,10 @@ func activatePluginFromTemplate(t *testing.T, th *TestHelper, pluginID, template
 	require.NotNil(t, manifest)
 	require.True(t, activated)
 
+	t.Cleanup(func() {
+		env.Shutdown()
+	})
+
 	return env
 }
 
@@ -1192,7 +1195,7 @@ func TestPluginRPCSharedChannelSync(t *testing.T) {
 	// the detailed DB verification for attachment persistence.
 
 	// Verify profile image was saved for the synced user
-	updatedUser, err := th.App.Srv().Store().User().Get(context.Background(), syncUserID)
+	updatedUser, err := th.App.Srv().Store().User().Get(th.Context.Context(), syncUserID)
 	require.NoError(t, err)
 	assert.Greater(t, updatedUser.LastPictureUpdate, int64(0), "LastPictureUpdate should be set after profile image sync")
 

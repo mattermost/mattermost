@@ -5,7 +5,6 @@ package app
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -306,7 +305,7 @@ func (a *App) SendSharedChannelProfileImageSyncMsg(rctx request.CTX, pluginID st
 	}
 
 	// Validate user exists and belongs to this remote
-	user, userErr := a.Srv().Store().User().Get(context.Background(), userID)
+	user, userErr := a.Srv().Store().User().Get(rctx.Context(), userID)
 	if userErr != nil {
 		return fmt.Errorf("user %s not found: %w", userID, userErr)
 	}
