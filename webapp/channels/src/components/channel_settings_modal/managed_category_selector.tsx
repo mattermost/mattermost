@@ -85,6 +85,7 @@ export default function ManagedCategorySelector({value, onChange, menuPortalTarg
     const managedMappings = useSelector((state: GlobalState) => getManagedCategoryMappings(state, teamId));
     const options: Option[] = useMemo(() => {
         const uniqueNames = [...new Set(Object.values(managedMappings ?? []))];
+        uniqueNames.sort((a, b) => a.localeCompare(b, undefined, {numeric: true}));
         return uniqueNames.map((name) => ({label: name, value: name}));
     }, [managedMappings]);
 

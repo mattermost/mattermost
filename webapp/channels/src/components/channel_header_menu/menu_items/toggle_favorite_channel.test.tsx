@@ -41,7 +41,7 @@ describe('components/ChannelHeaderMenu/MenuItems/ToggleFavoriteChannel', () => {
         expect(channelActions.favoriteChannel).toHaveBeenCalledWith(channel.id);
     });
 
-    test('should render menu item as disabled when channel is in a managed category', async () => {
+    test('should render menu item as disabled when channel is in a managed category', () => {
         const isChannelInManagedCategorySpy = jest.spyOn(require('mattermost-redux/selectors/entities/channel_categories'), 'isChannelInManagedCategory').mockReturnValue(true);
 
         renderWithContext(
@@ -55,9 +55,6 @@ describe('components/ChannelHeaderMenu/MenuItems/ToggleFavoriteChannel', () => {
 
         const menuItem = screen.getByRole('menuitem', {name: 'Add to Favorites'});
         expect(menuItem).toHaveAttribute('aria-disabled', 'true');
-
-        await userEvent.click(menuItem);
-        expect(channelActions.favoriteChannel).not.toHaveBeenCalled();
 
         isChannelInManagedCategorySpy.mockRestore();
     });

@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -285,6 +286,11 @@ func (a *App) DeleteSidebarCategory(rctx request.CTX, userID, teamID, categoryId
 }
 
 func (a *App) SetChannelManagedCategory(rctx request.CTX, channelID, categoryName string) *model.AppError {
+	categoryName = strings.TrimSpace(categoryName)
+	if categoryName == "" {
+		return model.NewAppError("SetChannelManagedCategory", "app.managed_category.empty_name.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	channel, appErr := a.GetChannel(rctx, channelID)
 	if appErr != nil {
 		return appErr

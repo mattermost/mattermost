@@ -559,10 +559,13 @@ func TestGetVisibleManagedCategoryMappings(t *testing.T) {
 	})
 
 	t.Run("should return mappings only for channels the user is a member of", func(t *testing.T) {
-		channel1 := th.CreateChannel(t, th.BasicTeam)
+		team := th.CreateTeam(t)
+		th.LinkUserToTeam(t, th.BasicUser, team)
+
+		channel1 := th.CreateChannel(t, team)
 
 		otherUser := th.CreateUser(t)
-		th.LinkUserToTeam(t, otherUser, th.BasicTeam)
+		th.LinkUserToTeam(t, otherUser, team)
 		otherSession := &model.Session{UserId: otherUser.Id, Props: model.StringMap{}}
 		otherCtx := th.Context.WithSession(otherSession)
 
@@ -570,7 +573,7 @@ func TestGetVisibleManagedCategoryMappings(t *testing.T) {
 			DisplayName: "other_channel",
 			Name:        "other_" + model.NewId(),
 			Type:        model.ChannelTypeOpen,
-			TeamId:      th.BasicTeam.Id,
+			TeamId:      team.Id,
 			CreatorId:   otherUser.Id,
 		}, true)
 		require.Nil(t, appErr)
@@ -580,7 +583,7 @@ func TestGetVisibleManagedCategoryMappings(t *testing.T) {
 		err = th.App.SetChannelManagedCategory(otherCtx, channel2.Id, "Bravo")
 		require.Nil(t, err)
 
-		mappings, err := th.App.GetVisibleManagedCategoryMappings(rctx, th.BasicTeam.Id)
+		mappings, err := th.App.GetVisibleManagedCategoryMappings(rctx, team.Id)
 		require.Nil(t, err)
 
 		assert.Equal(t, "Alpha", mappings[channel1.Id])
@@ -589,9 +592,12 @@ func TestGetVisibleManagedCategoryMappings(t *testing.T) {
 	})
 
 	t.Run("should return multiple category mappings", func(t *testing.T) {
-		channel1 := th.CreateChannel(t, th.BasicTeam)
+		team := th.CreateTeam(t)
+		th.LinkUserToTeam(t, th.BasicUser, team)
+
+		channel1 := th.CreateChannel(t, team)
 		th.AddUserToChannel(t, th.BasicUser, channel1)
-		channel2 := th.CreateChannel(t, th.BasicTeam)
+		channel2 := th.CreateChannel(t, team)
 		th.AddUserToChannel(t, th.BasicUser, channel2)
 
 		err := th.App.SetChannelManagedCategory(rctx, channel1.Id, "Ops")
@@ -599,7 +605,7 @@ func TestGetVisibleManagedCategoryMappings(t *testing.T) {
 		err = th.App.SetChannelManagedCategory(rctx, channel2.Id, "Intel")
 		require.Nil(t, err)
 
-		mappings, err := th.App.GetVisibleManagedCategoryMappings(rctx, th.BasicTeam.Id)
+		mappings, err := th.App.GetVisibleManagedCategoryMappings(rctx, team.Id)
 		require.Nil(t, err)
 		assert.Equal(t, "Ops", mappings[channel1.Id])
 		assert.Equal(t, "Intel", mappings[channel2.Id])
