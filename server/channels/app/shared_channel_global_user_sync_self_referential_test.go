@@ -61,11 +61,6 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 	if rcService != nil {
 		_ = rcService.Start()
 
-		// Force the service to be active in test environment
-		if rc, ok := rcService.(*remotecluster.Service); ok {
-			rc.SetActive(true)
-		}
-
 		// Verify it's active
 		if !rcService.Active() {
 			t.Fatalf("RemoteClusterService is not active after Start")

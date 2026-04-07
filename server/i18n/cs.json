@@ -10028,10 +10028,6 @@
     "translation": "Nepodařilo se obnovit přílohy souborů k příspěvku"
   },
   {
-    "id": "app.custom_profile_attributes.create_property_field.app_error",
-    "translation": "Nepodařilo se vytvořit pole vlastního atributu profilu"
-  },
-  {
     "id": "app.custom_profile_attributes.get_property_field.app_error",
     "translation": "Nepodařilo se získat pole vlastního atributu profilu"
   },

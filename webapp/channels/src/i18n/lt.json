@@ -4240,7 +4240,6 @@
   "threading.numNewReplies": "{newReplies, plural, =1 {# new reply} other {# new replies}}",
   "threading.numReplies": "{totalReplies, plural, =0 {Reply} =1 {# reply} other {# replies}}",
   "threading.threadHeader.menu": "Daugiau veiksmų",
-  "threading.threadItem.menu": "Veiksmai",
   "threading.threadList.markRead": "pažymėti visus kaip skaitytus",
   "threading.threadMenu.copy": "Nukopijuoti nuorodą",
   "threading.threadMenu.follow": "Sekti giją",
