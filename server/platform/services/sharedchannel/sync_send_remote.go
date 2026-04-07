@@ -415,17 +415,23 @@ func (scs *Service) fetchMembershipsForSync(sd *syncData) error {
 
 	// Build MembershipChangeMsg entries
 	for userID, state := range byUser {
-		if state.isAdd {
-			user, userErr := scs.server.GetStore().User().Get(context.Background(), userID)
-			if userErr != nil {
-				scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Failed to get user for membership sync",
-					mlog.String("user_id", userID),
-					mlog.String("channel_id", sd.task.channelID),
-					mlog.Err(userErr),
-				)
-				continue
-			}
+		user, userErr := scs.server.GetStore().User().Get(context.Background(), userID)
+		if userErr != nil {
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Failed to get user for membership sync",
+				mlog.String("user_id", userID),
+				mlog.String("channel_id", sd.task.channelID),
+				mlog.Err(userErr),
+			)
+			continue
+		}
 
+		// Skip users that originated from the target remote — they are local
+		// on the receiver and their membership is managed there.
+		if user.GetRemoteID() == sd.rc.RemoteId {
+			continue
+		}
+
+		if state.isAdd {
 			sd.membershipChanges = append(sd.membershipChanges, &model.MembershipChangeMsg{
 				ChannelId:  sd.task.channelID,
 				UserId:     userID,

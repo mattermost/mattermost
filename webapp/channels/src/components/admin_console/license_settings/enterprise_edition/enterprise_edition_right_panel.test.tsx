@@ -2,10 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Provider} from 'react-redux';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {LicenseSkus} from 'utils/constants';
 
 import EnterpriseEditionRightPanel from './enterprise_edition_right_panel';
@@ -60,95 +58,84 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
     } as EnterpriseEditionProps;
 
     test('should render for Professional license', () => {
-        const store = mockStore(initialState);
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <EnterpriseEditionRightPanel
-                    license={{...props.license, SkuShortName: LicenseSkus.Professional}}
-                    isTrialLicense={props.isTrialLicense}
-                />
-            </Provider>,
+        const {container} = renderWithContext(
+            <EnterpriseEditionRightPanel
+                license={{...props.license, SkuShortName: LicenseSkus.Professional}}
+                isTrialLicense={props.isTrialLicense}
+            />,
+            initialState,
         );
 
-        expect(wrapper.find('.upgrade-title').text()).toEqual('Upgrade to Enterprise');
+        expect(container.querySelector('.upgrade-title')?.textContent).toEqual('Upgrade to Enterprise');
 
-        const subtitleList = wrapper.find('.upgrade-subtitle').find('.item');
-        expect(subtitleList.at(0).text()).toEqual('AD/LDAP Group sync');
-        expect(subtitleList.at(1).text()).toEqual('High Availability');
-        expect(subtitleList.at(2).text()).toEqual('Advanced compliance');
-        expect(subtitleList.at(3).text()).toEqual('Advanced roles and permissions');
-        expect(subtitleList.at(4).text()).toEqual('And more...');
+        const subtitleItems = container.querySelectorAll('.upgrade-subtitle .item');
+        expect(subtitleItems[0].textContent).toEqual('AD/LDAP Group sync');
+        expect(subtitleItems[1].textContent).toEqual('High Availability');
+        expect(subtitleItems[2].textContent).toEqual('Advanced compliance');
+        expect(subtitleItems[3].textContent).toEqual('Advanced roles and permissions');
+        expect(subtitleItems[4].textContent).toEqual('And more...');
     });
 
     test('should render for Enterprise license', () => {
-        const store = mockStore(initialState);
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <EnterpriseEditionRightPanel
-                    license={{...props.license, SkuShortName: LicenseSkus.Enterprise}}
-                    isTrialLicense={props.isTrialLicense}
-                />
-            </Provider>,
+        const {container} = renderWithContext(
+            <EnterpriseEditionRightPanel
+                license={{...props.license, SkuShortName: LicenseSkus.Enterprise}}
+                isTrialLicense={props.isTrialLicense}
+            />,
+            initialState,
         );
 
-        expect(wrapper.find('.upgrade-title').text()).toEqual('Upgrade to Enterprise Advanced');
+        expect(container.querySelector('.upgrade-title')?.textContent).toEqual('Upgrade to Enterprise Advanced');
 
-        const subtitleList = wrapper.find('.upgrade-subtitle').find('.item');
-        expect(subtitleList.at(0).text()).toEqual('Dynamic attribute-based access controls');
-        expect(subtitleList.at(1).text()).toEqual('Data spillage handling');
-        expect(subtitleList.at(2).text()).toEqual('Burn-on-read messages');
-        expect(subtitleList.at(3).text()).toEqual('Mobile biometrics & advanced security');
-        expect(subtitleList.at(4).text()).toEqual('Automatic channel translations');
-        expect(subtitleList.at(5).text()).toEqual('Channel banners');
-        expect(subtitleList.at(6).text()).toEqual('And more...');
+        const subtitleItems = container.querySelectorAll('.upgrade-subtitle .item');
+        expect(subtitleItems[0].textContent).toEqual('Dynamic attribute-based access controls');
+        expect(subtitleItems[1].textContent).toEqual('Data spillage handling');
+        expect(subtitleItems[2].textContent).toEqual('Burn-on-read messages');
+        expect(subtitleItems[3].textContent).toEqual('Mobile biometrics & advanced security');
+        expect(subtitleItems[4].textContent).toEqual('Automatic channel translations');
+        expect(subtitleItems[5].textContent).toEqual('Channel banners');
+        expect(subtitleItems[6].textContent).toEqual('And more...');
     });
 
     test('should render for Enterprise Advanced license', () => {
-        const store = mockStore(initialState);
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <EnterpriseEditionRightPanel
-                    license={{...props.license, SkuShortName: LicenseSkus.EnterpriseAdvanced}}
-                    isTrialLicense={props.isTrialLicense}
-                />
-            </Provider>,
+        const {container} = renderWithContext(
+            <EnterpriseEditionRightPanel
+                license={{...props.license, SkuShortName: LicenseSkus.EnterpriseAdvanced}}
+                isTrialLicense={props.isTrialLicense}
+            />,
+            initialState,
         );
 
-        expect(wrapper.find('.upgrade-title').text()).toEqual('Need to increase your headcount?');
-        expect(wrapper.find('.upgrade-subtitle').text()).toEqual("We're here to work with you and your needs. Contact us today to get more seats on your plan.");
+        expect(container.querySelector('.upgrade-title')?.textContent).toEqual('Need to increase your headcount?');
+        expect(container.querySelector('.upgrade-subtitle')?.textContent).toEqual("We're here to work with you and your needs. Contact us today to get more seats on your plan.");
     });
 
     test('should render for Entry license', () => {
-        const store = mockStore(initialState);
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <EnterpriseEditionRightPanel
-                    license={{...props.license, SkuShortName: LicenseSkus.Entry}}
-                    isTrialLicense={props.isTrialLicense}
-                />
-            </Provider>,
+        const {container} = renderWithContext(
+            <EnterpriseEditionRightPanel
+                license={{...props.license, SkuShortName: LicenseSkus.Entry}}
+                isTrialLicense={props.isTrialLicense}
+            />,
+            initialState,
         );
 
-        expect(wrapper.find('.upgrade-title').text()).toEqual('Get access to full message history, AI-powered coordination, and secure workflow continuity');
-        expect(wrapper.find('.upgrade-subtitle').text()).toEqual('Purchase a plan to unlock full access, or start a trial to remove limits while you evaluate Enterprise Advanced.');
+        expect(container.querySelector('.upgrade-title')?.textContent).toEqual('Get access to full message history, AI-powered coordination, and secure workflow continuity');
+        expect(container.querySelector('.upgrade-subtitle')?.textContent).toEqual('Purchase a plan to unlock full access, or start a trial to remove limits while you evaluate Enterprise Advanced.');
 
         // Check for the Contact sales button
-        const contactSalesBtn = wrapper.find('button.btn-primary');
-        expect(contactSalesBtn.text()).toEqual('Questions? Contact sales');
+        expect(screen.getByRole('button', {name: 'Questions? Contact sales'})).toBeInTheDocument();
     });
 
     test('should render for Trial license', () => {
-        const store = mockStore(initialState);
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <EnterpriseEditionRightPanel
-                    license={props.license}
-                    isTrialLicense={true}
-                />
-            </Provider>,
+        const {container} = renderWithContext(
+            <EnterpriseEditionRightPanel
+                license={props.license}
+                isTrialLicense={true}
+            />,
+            initialState,
         );
 
-        expect(wrapper.find('.upgrade-title').text()).toEqual('Purchase Enterprise Advanced');
-        expect(wrapper.find('.upgrade-subtitle').text()).toEqual('Continue your access to Enterprise Advanced features by purchasing a license.');
+        expect(container.querySelector('.upgrade-title')?.textContent).toEqual('Purchase Enterprise Advanced');
+        expect(container.querySelector('.upgrade-subtitle')?.textContent).toEqual('Continue your access to Enterprise Advanced features by purchasing a license.');
     });
 });

@@ -3897,6 +3897,43 @@ func TestResetPassword(t *testing.T) {
 	})
 }
 
+func TestResetPasswordAuditDoesNotLeakToken(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	user := th.BasicUser
+
+	tokenExtra, err := json.Marshal(struct {
+		UserId string
+		Email  string
+	}{UserId: user.Id, Email: user.Email})
+	require.NoError(t, err)
+
+	token := model.NewToken(model.TokenTypePasswordRecovery, string(tokenExtra))
+	require.NoError(t, th.App.Srv().Store().Token().Save(token))
+	defer func() {
+		_ = th.App.Srv().Store().Token().Delete(token.Token)
+	}()
+
+	_, err = th.Client.ResetPassword(context.Background(), token.Token, "newPassword1!")
+	require.NoError(t, err)
+
+	audits, appErr := th.App.GetAudits(request.EmptyContext(th.TestLogger), "", 100)
+	require.Nil(t, appErr)
+
+	found := false
+	for _, audit := range audits {
+		if !strings.Contains(audit.Action, "password/reset") {
+			continue
+		}
+		found = true
+		require.NotContains(t, audit.ExtraInfo, token.Token,
+			"Full reset token should not appear in audit log ExtraInfo")
+		require.Contains(t, audit.ExtraInfo, token.Token[:5],
+			"Audit log should contain the token prefix for correlation")
+	}
+	require.True(t, found, "Expected at least one audit entry for password/reset")
+}
+
 func TestGetSessions(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
