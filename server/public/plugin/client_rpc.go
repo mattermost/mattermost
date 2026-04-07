@@ -58,7 +58,7 @@ import (
 
 var hookNameToId = make(map[string]int)
 
-// hooksRPCClient is the client-side RPC proxy that runs in the Mattermost server process and connects to to the [hooksRPCServer] on the plugin side.
+// hooksRPCClient is the client-side RPC proxy that runs in the Mattermost server process and connects to the [hooksRPCServer] on the plugin side.
 // It implements the Hooks interface and forwards hook invocations to plugins running in
 // separate processes via RPC.
 //
@@ -303,23 +303,19 @@ type Z_OnActivateReturns struct {
 
 func (g *hooksRPCClient) OnActivate() error {
 	muxId := g.muxBroker.NextId()
-	g.doneWg.Add(1)
-	go func() {
-		defer g.doneWg.Done()
+	g.doneWg.Go(func() {
 		g.muxBroker.AcceptAndServe(muxId, &apiRPCServer{
 			impl:      g.apiImpl,
 			muxBroker: g.muxBroker,
 		})
-	}()
+	})
 
 	nextID := g.muxBroker.NextId()
-	g.doneWg.Add(1)
-	go func() {
-		defer g.doneWg.Done()
+	g.doneWg.Go(func() {
 		g.muxBroker.AcceptAndServe(nextID, &dbRPCServer{
 			dbImpl: g.driver,
 		})
-	}()
+	})
 
 	_args := &Z_OnActivateArgs{
 		APIMuxId:    muxId,
