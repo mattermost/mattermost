@@ -6955,6 +6955,10 @@
     "translation": "Direct and group message channels cannot be assigned to a managed category."
   },
   {
+    "id": "app.managed_category.empty_name.app_error",
+    "translation": "Managed category name cannot be empty."
+  },
+  {
     "id": "app.managed_category.get_mappings.app_error",
     "translation": "Failed to retrieve managed category mappings."
   },
