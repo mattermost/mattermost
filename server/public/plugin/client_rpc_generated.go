@@ -6777,6 +6777,66 @@ func (s *apiRPCServer) UninviteRemoteFromChannel(args *Z_UninviteRemoteFromChann
 	return nil
 }
 
+type Z_SendSharedChannelSyncMsgArgs struct {
+	A *model.SyncMsg
+}
+
+type Z_SendSharedChannelSyncMsgReturns struct {
+	A model.SyncResponse
+	B error
+}
+
+func (g *apiRPCClient) SendSharedChannelSyncMsg(msg *model.SyncMsg) (model.SyncResponse, error) {
+	_args := &Z_SendSharedChannelSyncMsgArgs{msg}
+	_returns := &Z_SendSharedChannelSyncMsgReturns{}
+	if err := g.client.Call("Plugin.SendSharedChannelSyncMsg", _args, _returns); err != nil {
+		log.Printf("RPC call to SendSharedChannelSyncMsg API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) SendSharedChannelSyncMsg(args *Z_SendSharedChannelSyncMsgArgs, returns *Z_SendSharedChannelSyncMsgReturns) error {
+	if hook, ok := s.impl.(interface {
+		SendSharedChannelSyncMsg(msg *model.SyncMsg) (model.SyncResponse, error)
+	}); ok {
+		returns.A, returns.B = hook.SendSharedChannelSyncMsg(args.A)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API SendSharedChannelSyncMsg called but not implemented."))
+	}
+	return nil
+}
+
+type Z_SendSharedChannelProfileImageSyncMsgArgs struct {
+	A string
+	B []byte
+}
+
+type Z_SendSharedChannelProfileImageSyncMsgReturns struct {
+	A error
+}
+
+func (g *apiRPCClient) SendSharedChannelProfileImageSyncMsg(userID string, image []byte) error {
+	_args := &Z_SendSharedChannelProfileImageSyncMsgArgs{userID, image}
+	_returns := &Z_SendSharedChannelProfileImageSyncMsgReturns{}
+	if err := g.client.Call("Plugin.SendSharedChannelProfileImageSyncMsg", _args, _returns); err != nil {
+		log.Printf("RPC call to SendSharedChannelProfileImageSyncMsg API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) SendSharedChannelProfileImageSyncMsg(args *Z_SendSharedChannelProfileImageSyncMsgArgs, returns *Z_SendSharedChannelProfileImageSyncMsgReturns) error {
+	if hook, ok := s.impl.(interface {
+		SendSharedChannelProfileImageSyncMsg(userID string, image []byte) error
+	}); ok {
+		returns.A = hook.SendSharedChannelProfileImageSyncMsg(args.A, args.B)
+		returns.A = encodableError(returns.A)
+	} else {
+		return encodableError(fmt.Errorf("API SendSharedChannelProfileImageSyncMsg called but not implemented."))
+	}
+	return nil
+}
+
 type Z_UpsertGroupMemberArgs struct {
 	A string
 	B string

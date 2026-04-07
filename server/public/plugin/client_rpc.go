@@ -1210,6 +1210,59 @@ func (s *apiRPCServer) InstallPlugin(args *Z_InstallPluginArgs, returns *Z_Insta
 	return nil
 }
 
+type Z_SendSharedChannelAttachmentSyncMsgArgs struct {
+	A            string          // channelID
+	B            *model.FileInfo // fi
+	DataStreamID uint32
+}
+
+type Z_SendSharedChannelAttachmentSyncMsgReturns struct {
+	A *model.FileInfo
+	B error
+}
+
+func (g *apiRPCClient) SendSharedChannelAttachmentSyncMsg(channelID string, fi *model.FileInfo, data io.Reader) (*model.FileInfo, error) {
+	dataStreamID := g.muxBroker.NextId()
+
+	go func() {
+		dataConnection, err := g.muxBroker.Accept(dataStreamID)
+		if err != nil {
+			log.Print("Failed to stream attachment data. MuxBroker could not Accept connection", mlog.Err(err))
+			return
+		}
+		defer dataConnection.Close()
+		serveIOReader(data, dataConnection)
+	}()
+
+	_args := &Z_SendSharedChannelAttachmentSyncMsgArgs{channelID, fi, dataStreamID}
+	_returns := &Z_SendSharedChannelAttachmentSyncMsgReturns{}
+	if err := g.client.Call("Plugin.SendSharedChannelAttachmentSyncMsg", _args, _returns); err != nil {
+		log.Print("RPC call SendSharedChannelAttachmentSyncMsg to plugin failed.", mlog.Err(err))
+	}
+
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) SendSharedChannelAttachmentSyncMsg(args *Z_SendSharedChannelAttachmentSyncMsgArgs, returns *Z_SendSharedChannelAttachmentSyncMsgReturns) error {
+	hook, ok := s.impl.(interface {
+		SendSharedChannelAttachmentSyncMsg(channelID string, fi *model.FileInfo, data io.Reader) (*model.FileInfo, error)
+	})
+	if !ok {
+		return encodableError(fmt.Errorf("API SendSharedChannelAttachmentSyncMsg called but not implemented"))
+	}
+
+	receiveDataConnection, err := s.muxBroker.Dial(args.DataStreamID)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[ERROR] Can't connect to remote data stream, error: %v", err.Error())
+		return err
+	}
+	dataReader := connectIOReader(receiveDataConnection)
+	defer dataReader.Close()
+
+	returns.A, returns.B = hook.SendSharedChannelAttachmentSyncMsg(args.A, args.B, dataReader)
+	return nil
+}
+
 type Z_UploadDataArgs struct {
 	A              *model.UploadSession
 	PluginStreamID uint32

@@ -1311,6 +1311,33 @@ type API interface {
 	// Minimum server version: 9.5
 	UninviteRemoteFromChannel(channelID string, remoteID string) error
 
+	// SendSharedChannelSyncMsg processes a sync message from this plugin, creating or updating
+	// posts, reactions, users, statuses, and membership changes in the specified shared channel.
+	// This is the inbound counterpart of the OnSharedChannelsSyncMsg hook.
+	// The plugin's RemoteCluster is automatically resolved from the plugin ID — entities in the
+	// SyncMsg will have their RemoteId set to match this plugin's remote.
+	//
+	// @tag SharedChannels
+	// Minimum server version: 11.7
+	SendSharedChannelSyncMsg(msg *model.SyncMsg) (model.SyncResponse, error)
+
+	// SendSharedChannelAttachmentSyncMsg syncs a file attachment into a shared channel.
+	// The FileInfo must reference a post that exists in the specified channel.
+	// The data reader provides the raw file bytes.
+	// This is the inbound counterpart of the OnSharedChannelsAttachmentSyncMsg hook.
+	//
+	// @tag SharedChannels
+	// Minimum server version: 11.7
+	SendSharedChannelAttachmentSyncMsg(channelID string, fi *model.FileInfo, data io.Reader) (*model.FileInfo, error)
+
+	// SendSharedChannelProfileImageSyncMsg syncs a user's profile image from this plugin's
+	// remote into Mattermost. The user must have a RemoteId matching this plugin's remote.
+	// This is the inbound counterpart of the OnSharedChannelsProfileImageSyncMsg hook.
+	//
+	// @tag SharedChannels
+	// Minimum server version: 11.7
+	SendSharedChannelProfileImageSyncMsg(userID string, image []byte) error
+
 	// UpsertGroupMember adds a user to a group or updates their existing membership.
 	//
 	// @tag Group
