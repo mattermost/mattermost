@@ -1,0 +1,9 @@
+# Exclude from `git archive` (used to build the AGPL corresponding-source
+# tarball served on /static/source.tar.gz). Everything excluded here is
+# either regenerated from the preferred form for modification or not part
+# of the AGPL corresponding source.
+e2e-tests export-ignore
+server/enterprise export-ignore
+**/node_modules export-ignore
+**/dist export-ignore
+**/vendor export-ignore
