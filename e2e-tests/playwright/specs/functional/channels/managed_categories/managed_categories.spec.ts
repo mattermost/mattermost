@@ -416,7 +416,7 @@ test.describe('Managed Channel Categories', () => {
             await expect(channelItem).toBeVisible();
 
             await channelItem.hover();
-            const menuButton = sidebar.getByRole('button', {name: `Channel options for ${channel.name}`});
+            const menuButton = channelItem.getByRole('button', {name: /Channel options/});
             await menuButton.click();
 
             // * Verify the Favorite menu item is visible but disabled
@@ -457,7 +457,7 @@ test.describe('Managed Channel Categories', () => {
             await expect(channelItem).toBeVisible();
 
             await channelItem.hover();
-            const menuButton = sidebar.getByRole('button', {name: `Channel options for ${channel.name}`});
+            const menuButton = channelItem.getByRole('button', {name: /Channel options/});
             await menuButton.click();
 
             // * Verify the Move To menu item is visible but disabled

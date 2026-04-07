@@ -764,7 +764,7 @@ function createFavoriteButton(isFavorite: boolean, toggleFavorite: () => void, d
                     />
                 }
             >
-                {button}
+                <div>{button}</div>
             </WithTooltip>
         );
     }

@@ -531,7 +531,8 @@ func TestClearChannelManagedCategory(t *testing.T) {
 
 		mappings, err := th.App.GetVisibleManagedCategoryMappings(rctx, th.BasicTeam.Id)
 		require.Nil(t, err)
-		assert.Empty(t, mappings[channel.Id])
+		_, exists := mappings[channel.Id]
+		assert.False(t, exists, "expected channel.Id to be absent from mappings")
 	})
 
 	t.Run("should not error when clearing a channel with no managed category", func(t *testing.T) {

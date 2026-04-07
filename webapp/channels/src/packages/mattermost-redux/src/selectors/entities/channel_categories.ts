@@ -557,7 +557,9 @@ export function makeGetManagedCategoriesForTeam(): (state: GlobalState, teamId: 
                 channelsByCategory[categoryName].push(channelId);
             }
 
-            const sortedNames = Object.keys(channelsByCategory).sort((a, b) => a.localeCompare(b));
+            const sortedNames = Object.keys(channelsByCategory).sort((a, b) => (
+                a.localeCompare(b, undefined, {numeric: true})
+            ));
 
             return sortedNames.map((name) => {
                 const id = `managed_${name}`;

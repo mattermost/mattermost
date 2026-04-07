@@ -6,7 +6,7 @@ import React, {useState, useMemo, useCallback} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 import {components} from 'react-select';
-import type {ClearIndicatorProps} from 'react-select';
+import type {ClearIndicatorProps, GroupBase, Options, OptionsOrGroups} from 'react-select';
 import CreatableSelect from 'react-select/creatable';
 
 import {FolderOutlineIcon} from '@mattermost/compass-icons/components';
@@ -102,8 +102,9 @@ export default function ManagedCategorySelector({value, onChange, menuPortalTarg
         );
     }, [formatMessage]);
 
-    const isValidNewOption = useCallback((inputValue: string) => {
-        return inputValue.trim().length >= 2;
+    const isValidNewOption = useCallback((inputValue: string, _value: Options<Option>, selectOptions: OptionsOrGroups<Option, GroupBase<Option>>) => {
+        const trimmed = inputValue.trim();
+        return trimmed.length >= 2 && !selectOptions.some((o) => 'value' in o && o.value.trim() === trimmed);
     }, []);
 
     const onFocus = useCallback(() => {

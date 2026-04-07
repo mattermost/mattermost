@@ -803,7 +803,9 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 		}
 
 		if _, err := s.propertyService.CreatePropertyField(nil, field); err != nil {
-			return fmt.Errorf("failed to create managed category field: %w", err)
+			if _, retryErr := s.propertyService.GetPropertyFieldByName(nil, group.ID, "", model.ManagedCategoryPropertyFieldName); retryErr != nil {
+				return fmt.Errorf("failed to create managed category field: %w", err)
+			}
 		}
 	}
 
