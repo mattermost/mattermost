@@ -2323,6 +2323,50 @@ func TestUpdateUser(t *testing.T) {
 	})
 }
 
+func TestUpdateUserRemoteIdIgnored(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	t.Run("remote_id in update body is ignored for regular user", func(t *testing.T) {
+		user := th.CreateUser(t)
+		_, _, err := th.Client.Login(context.Background(), user.Email, user.Password)
+		require.NoError(t, err)
+
+		user.RemoteId = model.NewPointer("attacker-remote-id")
+		user.Nickname = "updated-nickname"
+		ruser, _, err := th.Client.UpdateUser(context.Background(), user)
+		require.NoError(t, err)
+		require.Equal(t, "updated-nickname", ruser.Nickname)
+		require.Empty(t, model.SafeDereference(ruser.RemoteId), "remote_id should remain empty")
+
+		dbUser, appErr := th.App.GetUser(user.Id)
+		require.Nil(t, appErr)
+		require.Empty(t, model.SafeDereference(dbUser.RemoteId), "remote_id should not be persisted")
+	})
+
+	t.Run("remote_id in update body is ignored for system admin", func(t *testing.T) {
+		user := th.CreateUser(t)
+
+		user.RemoteId = model.NewPointer("admin-remote-id")
+		user.Nickname = "admin-updated"
+		ruser, _, err := th.SystemAdminClient.UpdateUser(context.Background(), user)
+		require.NoError(t, err)
+		require.Equal(t, "admin-updated", ruser.Nickname)
+		require.Empty(t, model.SafeDereference(ruser.RemoteId), "remote_id should remain empty even for admin")
+	})
+
+	t.Run("existing remote_id is preserved when updating other fields", func(t *testing.T) {
+		remoteId := model.NewId()
+		user := th.SetUserRemoteID(t, th.CreateUser(t).Id, remoteId)
+
+		user.Nickname = "updated-nickname"
+		ruser, _, err := th.SystemAdminClient.UpdateUser(context.Background(), user)
+		require.NoError(t, err)
+		require.Equal(t, "updated-nickname", ruser.Nickname)
+		require.Equal(t, remoteId, model.SafeDereference(ruser.RemoteId), "existing remote_id should be preserved")
+	})
+}
+
 func TestUpdateAdminUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -2522,11 +2566,8 @@ func TestPatchUserRemoteIdIgnored(t *testing.T) {
 	})
 
 	t.Run("existing remote_id is preserved when patching other fields", func(t *testing.T) {
-		user := th.CreateUser(t)
 		remoteId := model.NewId()
-		user.RemoteId = &remoteId
-		_, appErr := th.App.UpdateUser(th.Context, user, false)
-		require.Nil(t, appErr)
+		user := th.SetUserRemoteID(t, th.CreateUser(t).Id, remoteId)
 
 		patch := &model.UserPatch{
 			Nickname: model.NewPointer("updated-nickname"),
