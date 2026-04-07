@@ -43,7 +43,16 @@ func (ps *PlatformService) SetLicenseManager(impl einterfaces.LicenseInterface) 
 }
 
 func (ps *PlatformService) License() *model.License {
-	return ps.licenseValue.Load()
+	if l := ps.licenseValue.Load(); l != nil {
+		return l
+	}
+	// Hack: when no real license is loaded, return a synthetic license with
+	// every feature enabled. This unlocks all license-gated features that
+	// live in the AGPL tree (OpenID/GitLab SSO, SAML, LDAP, Cluster, etc.)
+	// in a single chokepoint. Features whose implementation lives under
+	// server/enterprise/ (Elasticsearch, MessageExport, Prometheus metrics)
+	// are not linked in team builds, so the flag has no effect there.
+	return model.NewTestLicense()
 }
 
 func (ps *PlatformService) LoadLicense() {
