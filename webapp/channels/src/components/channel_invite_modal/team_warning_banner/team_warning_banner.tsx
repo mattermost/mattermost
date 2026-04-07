@@ -21,6 +21,9 @@ export type Props = {
     teamId: string;
     users: UserProfileValue[];
     guests: UserProfileValue[];
+    canAddUsersToTeamAndChannel?: boolean;
+    isAddingUsersToTeamAndChannel?: boolean;
+    onAddUsersToTeamAndChannel?: () => void;
 }
 
 const TeamWarningBanner = (props: Props) => {
@@ -28,6 +31,9 @@ const TeamWarningBanner = (props: Props) => {
         teamId,
         users,
         guests,
+        canAddUsersToTeamAndChannel,
+        isAddingUsersToTeamAndChannel,
+        onAddUsersToTeamAndChannel,
     } = props;
 
     const {formatMessage} = useIntl();
@@ -181,6 +187,25 @@ const TeamWarningBanner = (props: Props) => {
         );
     }, [users, getCommaSeparatedUsernames, team, formatMessage]);
 
+    const actionButton = canAddUsersToTeamAndChannel && users.length > 0 && onAddUsersToTeamAndChannel ? (
+        <button
+            type='button'
+            className='btn btn-tertiary btn-sm'
+            onClick={onAddUsersToTeamAndChannel}
+            disabled={isAddingUsersToTeamAndChannel}
+        >
+            <FormattedMessage
+                id='channel_invite.invite_team_members.add_to_team_and_channel'
+                defaultMessage='Add to team and channel'
+            />
+        </button>
+    ) : null;
+
+    let footerMessage;
+    if (guests.length > 0) {
+        footerMessage = getGuestMessage();
+    }
+
     return (
         <>
             {
@@ -202,10 +227,8 @@ const TeamWarningBanner = (props: Props) => {
                         users.length > 0 &&
                         getMessage()
                     }
-                    footerMessage={
-                        guests.length > 0 &&
-                        getGuestMessage()
-                    }
+                    footerMessage={footerMessage}
+                    actionButtonRight={actionButton || undefined}
                 />
             }
         </>

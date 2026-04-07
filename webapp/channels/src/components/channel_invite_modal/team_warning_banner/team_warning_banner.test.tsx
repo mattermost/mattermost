@@ -10,6 +10,7 @@ import TeamWarningBanner from 'components/channel_invite_modal/team_warning_bann
 import type {Value} from 'components/multiselect/multiselect';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 
 type UserProfileValue = Value & UserProfile;
@@ -119,6 +120,67 @@ describe('components/channel_invite_modal/team_warning_banner', () => {
             </Provider>,
         );
         expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should render add to team and channel action when allowed', () => {
+        const users = createUsers(2);
+        const onAddUsersToTeamAndChannel = jest.fn();
+
+        renderWithContext(
+            <Provider store={store}>
+                <TeamWarningBanner
+                    teamId={teamId}
+                    users={users}
+                    guests={[]}
+                    canAddUsersToTeamAndChannel={true}
+                    onAddUsersToTeamAndChannel={onAddUsersToTeamAndChannel}
+                />
+            </Provider>,
+        );
+
+        expect(screen.getByRole('button', {name: 'Add to team and channel'})).toBeInTheDocument();
+        expect(screen.queryByText('Only eligible full members will be added. Guests still need a team invite.')).not.toBeInTheDocument();
+    });
+
+    test('should invoke add to team and channel action', async () => {
+        const users = createUsers(1);
+        const onAddUsersToTeamAndChannel = jest.fn();
+
+        renderWithContext(
+            <Provider store={store}>
+                <TeamWarningBanner
+                    teamId={teamId}
+                    users={users}
+                    guests={[]}
+                    canAddUsersToTeamAndChannel={true}
+                    onAddUsersToTeamAndChannel={onAddUsersToTeamAndChannel}
+                />
+            </Provider>,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: 'Add to team and channel'}));
+
+        expect(onAddUsersToTeamAndChannel).toHaveBeenCalledTimes(1);
+    });
+
+    test('should disable add to team and channel action while saving', () => {
+        const users = createUsers(1);
+        const onAddUsersToTeamAndChannel = jest.fn();
+
+        renderWithContext(
+            <Provider store={store}>
+                <TeamWarningBanner
+                    teamId={teamId}
+                    users={users}
+                    guests={[]}
+                    canAddUsersToTeamAndChannel={true}
+                    isAddingUsersToTeamAndChannel={true}
+                    onAddUsersToTeamAndChannel={onAddUsersToTeamAndChannel}
+                />
+            </Provider>,
+        );
+
+        expect(screen.getByRole('button', {name: 'Add to team and channel'})).toBeDisabled();
     });
 
     test('should match snapshot for team_warning_banner with > 10 guest profiles', () => {

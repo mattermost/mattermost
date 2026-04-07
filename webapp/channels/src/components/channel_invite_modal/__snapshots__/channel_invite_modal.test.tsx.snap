@@ -125,6 +125,45 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
       />
     </div>
   </div>
+  <Memo(ConfirmModal)
+    confirmButtonClass="btn btn-primary"
+    confirmButtonText={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Add to channel and team"
+        id="channel_invite.add_to_team_and_channel.confirm.confirmButton"
+      />
+    }
+    id="channelInviteAddToTeamConfirmModal"
+    isStacked={true}
+    message={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="{users} will be added to the {channel} channel. They will also get access to the {team} team and any public channels in the team."
+        id="channel_invite.add_to_team_and_channel.confirm.message"
+        values={
+          Object {
+            "channel": <strong>
+              testing
+            </strong>,
+            "team": <strong>
+              Operations
+            </strong>,
+            "users": <FormattedList
+              value={Array []}
+            />,
+          }
+        }
+      />
+    }
+    onCancel={[Function]}
+    onConfirm={[Function]}
+    show={false}
+    title={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Add people to the channel and team?"
+        id="channel_invite.add_to_team_and_channel.confirm.title"
+      />
+    }
+  />
 </GenericModal>
 `;
 
@@ -253,6 +292,45 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
       />
     </div>
   </div>
+  <Memo(ConfirmModal)
+    confirmButtonClass="btn btn-primary"
+    confirmButtonText={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Add to channel and team"
+        id="channel_invite.add_to_team_and_channel.confirm.confirmButton"
+      />
+    }
+    id="channelInviteAddToTeamConfirmModal"
+    isStacked={true}
+    message={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="{users} will be added to the {channel} channel. They will also get access to the {team} team and any public channels in the team."
+        id="channel_invite.add_to_team_and_channel.confirm.message"
+        values={
+          Object {
+            "channel": <strong>
+              testing
+            </strong>,
+            "team": <strong>
+              Operations
+            </strong>,
+            "users": <FormattedList
+              value={Array []}
+            />,
+          }
+        }
+      />
+    }
+    onCancel={[Function]}
+    onConfirm={[Function]}
+    show={false}
+    title={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Add people to the channel and team?"
+        id="channel_invite.add_to_team_and_channel.confirm.title"
+      />
+    }
+  />
 </GenericModal>
 `;
 
@@ -381,6 +459,45 @@ exports[`components/channel_invite_modal should match snapshot for channel_invit
       />
     </div>
   </div>
+  <Memo(ConfirmModal)
+    confirmButtonClass="btn btn-primary"
+    confirmButtonText={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Add to channel and team"
+        id="channel_invite.add_to_team_and_channel.confirm.confirmButton"
+      />
+    }
+    id="channelInviteAddToTeamConfirmModal"
+    isStacked={true}
+    message={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="{users} will be added to the {channel} channel. They will also get access to the {team} team and any public channels in the team."
+        id="channel_invite.add_to_team_and_channel.confirm.message"
+        values={
+          Object {
+            "channel": <strong>
+              testing
+            </strong>,
+            "team": <strong>
+              Operations
+            </strong>,
+            "users": <FormattedList
+              value={Array []}
+            />,
+          }
+        }
+      />
+    }
+    onCancel={[Function]}
+    onConfirm={[Function]}
+    show={false}
+    title={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Add people to the channel and team?"
+        id="channel_invite.add_to_team_and_channel.confirm.title"
+      />
+    }
+  />
 </GenericModal>
 `;
 
@@ -509,5 +626,44 @@ exports[`components/channel_invite_modal should match snapshot with exclude and 
       />
     </div>
   </div>
+  <Memo(ConfirmModal)
+    confirmButtonClass="btn btn-primary"
+    confirmButtonText={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Add to channel and team"
+        id="channel_invite.add_to_team_and_channel.confirm.confirmButton"
+      />
+    }
+    id="channelInviteAddToTeamConfirmModal"
+    isStacked={true}
+    message={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="{users} will be added to the {channel} channel. They will also get access to the {team} team and any public channels in the team."
+        id="channel_invite.add_to_team_and_channel.confirm.message"
+        values={
+          Object {
+            "channel": <strong>
+              testing
+            </strong>,
+            "team": <strong>
+              Operations
+            </strong>,
+            "users": <FormattedList
+              value={Array []}
+            />,
+          }
+        }
+      />
+    }
+    onCancel={[Function]}
+    onConfirm={[Function]}
+    show={false}
+    title={
+      <Memo(MemoizedFormattedMessage)
+        defaultMessage="Add people to the channel and team?"
+        id="channel_invite.add_to_team_and_channel.confirm.title"
+      />
+    }
+  />
 </GenericModal>
 `;

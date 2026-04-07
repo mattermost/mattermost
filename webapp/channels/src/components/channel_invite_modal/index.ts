@@ -5,6 +5,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
+import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {getTeamStats, getTeamMembersByIds} from 'mattermost-redux/actions/teams';
@@ -14,12 +15,13 @@ import {getRecentProfilesFromDMs, getChannel} from 'mattermost-redux/selectors/e
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {makeGetAllAssociatedGroupsForReference} from 'mattermost-redux/selectors/entities/groups';
 import {getTeammateNameDisplaySetting, isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
+import {haveIChannelPermission, haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam, getMembersInCurrentTeam, getMembersInTeam, getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getProfilesNotInCurrentChannel, getProfilesInCurrentChannel, getProfilesNotInCurrentTeam, getProfilesNotInTeam, getUserStatuses, makeGetProfilesNotInChannel, makeGetProfilesInChannel} from 'mattermost-redux/selectors/entities/users';
 
 import {addUsersToChannel} from 'actions/channel_actions';
 import {loadStatusesForProfilesList} from 'actions/status_actions';
+import {addUsersToTeam} from 'actions/team_actions';
 import {searchAssociatedGroupsForReference} from 'actions/views/group';
 import {closeModal} from 'actions/views/modals';
 
@@ -30,6 +32,7 @@ import ChannelInviteModal from './channel_invite_modal';
 type OwnProps = {
     channelId?: string;
     teamId?: string;
+    channel?: Channel;
 }
 
 function makeMapStateToProps(initialState: GlobalState, initialProps: OwnProps) {
@@ -46,8 +49,9 @@ function makeMapStateToProps(initialState: GlobalState, initialProps: OwnProps) 
 
     return (state: GlobalState, props: OwnProps) => {
         // Check if this is an ABAC channel to bypass contaminated Redux state
-        const channel = props.channelId ? getChannel(state, props.channelId) : null;
+        const channel = props.channelId ? getChannel(state, props.channelId) : props.channel;
         const isAbacChannel = Boolean(channel?.policy_enforced);
+        const effectiveTeamId = props.teamId ?? channel?.team_id;
 
         let profilesNotInCurrentChannel: UserProfile[];
         let profilesInCurrentChannel: UserProfile[];
@@ -59,12 +63,12 @@ function makeMapStateToProps(initialState: GlobalState, initialProps: OwnProps) 
             profilesNotInCurrentChannel = [];
             profilesInCurrentChannel = [];
             profilesNotInCurrentTeam = [];
-            membersInTeam = props.teamId ? getMembersInTeam(state, props.teamId) : getMembersInCurrentTeam(state);
-        } else if (props.channelId && props.teamId) {
+            membersInTeam = effectiveTeamId ? getMembersInTeam(state, effectiveTeamId) : getMembersInCurrentTeam(state);
+        } else if (props.channelId && effectiveTeamId) {
             profilesNotInCurrentChannel = doGetProfilesNotInChannel(state, props.channelId);
             profilesInCurrentChannel = doGetProfilesInChannel(state, props.channelId);
-            profilesNotInCurrentTeam = getProfilesNotInTeam(state, props.teamId);
-            membersInTeam = getMembersInTeam(state, props.teamId);
+            profilesNotInCurrentTeam = getProfilesNotInTeam(state, effectiveTeamId);
+            membersInTeam = getMembersInTeam(state, effectiveTeamId);
         } else {
             profilesNotInCurrentChannel = getProfilesNotInCurrentChannel(state);
             profilesInCurrentChannel = getProfilesInCurrentChannel(state);
@@ -77,14 +81,25 @@ function makeMapStateToProps(initialState: GlobalState, initialProps: OwnProps) 
         const config = getConfig(state);
         const license = getLicense(state);
 
-        const currentTeam = props.teamId ? getTeam(state, props.teamId) : getCurrentTeam(state);
+        const currentTeam = effectiveTeamId ? getTeam(state, effectiveTeamId) : getCurrentTeam(state);
+        const teamId = currentTeam?.id;
+        const isPrivateChannel = channel?.type === 'P';
 
         const guestAccountsEnabled = config.EnableGuestAccounts === 'true';
         const emailInvitationsEnabled = config.EnableEmailInvitations === 'true';
         const isLicensed = license && license.IsLicensed === 'true';
         const isGroupConstrained = Boolean(currentTeam?.group_constrained);
-        const canInviteGuests = !isGroupConstrained && isLicensed && guestAccountsEnabled && haveICurrentTeamPermission(state, Permissions.INVITE_GUEST);
+        const canInviteGuests = !isGroupConstrained && isLicensed && guestAccountsEnabled && haveITeamPermission(state, teamId, Permissions.INVITE_GUEST);
         const enableCustomUserGroups = isCustomGroupsEnabled(state);
+        const canManageChannelMembers = Boolean(channel) && haveIChannelPermission(
+            state,
+            channel?.team_id,
+            channel?.id,
+            isPrivateChannel ? Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS : Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS,
+        );
+        const canAddUsersNotInTeam = Boolean(teamId) &&
+            haveITeamPermission(state, teamId, Permissions.ADD_USER_TO_TEAM) &&
+            canManageChannelMembers;
 
         const isGroupsEnabled = enableCustomUserGroups || (license?.IsLicensed === 'true' && license?.LDAPGroups === 'true');
 
@@ -98,10 +113,12 @@ function makeMapStateToProps(initialState: GlobalState, initialProps: OwnProps) 
             profilesInCurrentChannel,
             profilesNotInCurrentTeam,
             membersInTeam,
+            teamDisplayName: currentTeam?.display_name,
             teammateNameDisplaySetting,
             profilesFromRecentDMs,
             userStatuses,
             canInviteGuests,
+            canAddUsersNotInTeam,
             emailInvitationsEnabled,
             groups,
             isGroupsEnabled,
@@ -113,6 +130,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             addUsersToChannel,
+            addUsersToTeam,
             getProfilesNotInChannel,
             getProfilesInChannel,
             getTeamStats,
