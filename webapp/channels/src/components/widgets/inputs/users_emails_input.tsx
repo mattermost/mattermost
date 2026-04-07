@@ -34,7 +34,6 @@ type Props = {
     ariaLabel: string;
     usersLoader: (search: string, callback: (users: UserProfile[]) => void) => Promise<UserProfile[]> | undefined;
     onUsersLoad?: (users: UserProfile[]) => void;
-    onBlur?: () => void;
     onChange: (change: Array<UserProfile | string>) => void;
     showError?: boolean;
     errorMessage?: MessageDescriptor;
@@ -383,13 +382,6 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
         this.selectRef.current?.onInputChange(this.props.inputValue, {action: 'set-value', prevInputValue: this.props.inputValue});
     };
 
-    onBlur = () => {
-        this.selectRef.current?.onInputChange(this.props.inputValue, {action: 'input-blur', prevInputValue: this.state.prevValue});
-        if (this.props.onBlur) {
-            this.props.onBlur();
-        }
-    };
-
     appendDelimitedValues = async (values: string): Promise<number> => {
         const existingValues = this.formatValuesForCreatable();
         const entries = [...new Set(values.split(multipleValuesDelimiter))];
@@ -560,7 +552,6 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
                     inputValue={this.props.inputValue}
                     openMenuOnFocus={true}
                     onFocus={this.onFocus}
-                    onBlur={this.onBlur}
                     tabSelectsValue={true}
                     value={values}
                     aria-label={this.props.ariaLabel}
