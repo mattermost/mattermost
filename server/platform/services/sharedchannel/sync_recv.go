@@ -46,9 +46,9 @@ func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.R
 	return scs.processSyncMessageForRemote(request.EmptyContext(scs.server.Log()), &sm, rc, response)
 }
 
-// ProcessGlobalUserSync processes a global user sync message from a remote cluster or plugin.
+// processGlobalUserSync processes a global user sync message from a remote cluster or plugin.
 // Returns the SyncResponse directly.
-func (scs *Service) ProcessGlobalUserSync(rctx request.CTX, syncMsg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error) {
+func (scs *Service) processGlobalUserSync(rctx request.CTX, syncMsg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error) {
 	syncResp := model.SyncResponse{
 		UserErrors: make([]string, 0),
 		UsersSyncd: make([]string, 0),
@@ -129,7 +129,7 @@ func (scs *Service) ProcessSyncMessage(rctx request.CTX, syncMsg *model.SyncMsg,
 		if !scs.isGlobalUserSyncEnabled() {
 			return syncResp, nil
 		}
-		return scs.ProcessGlobalUserSync(rctx, syncMsg, rc)
+		return scs.processGlobalUserSync(rctx, syncMsg, rc)
 	}
 
 	// For regular sync messages, we need a specific channel
@@ -283,7 +283,7 @@ func (scs *Service) ProcessSyncMessage(rctx request.CTX, syncMsg *model.SyncMsg,
 
 	// Process membership changes after users have been synced
 	if hasMembershipChanges && membershipSyncEnabled {
-		if err := scs.onReceiveMembershipChanges(syncMsg, rc, nil); err != nil {
+		if err := scs.onReceiveMembershipChanges(syncMsg, rc); err != nil {
 			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Error processing membership changes",
 				mlog.String("remote", rc.Name),
 				mlog.String("channel_id", syncMsg.ChannelId),

@@ -1322,8 +1322,8 @@ type API interface {
 	SendSharedChannelSyncMsg(msg *model.SyncMsg) (model.SyncResponse, error)
 
 	// SendSharedChannelAttachmentSyncMsg syncs a file attachment into a shared channel.
-	// The FileInfo must reference a post that exists in the specified channel.
-	// The data reader provides the raw file bytes.
+	// The FileInfo provides metadata (Name, Size, CreatorId); the server constructs the
+	// storage path and manages the upload. The data reader provides the raw file bytes.
 	// This is the inbound counterpart of the OnSharedChannelsAttachmentSyncMsg hook.
 	//
 	// @tag SharedChannels

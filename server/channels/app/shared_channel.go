@@ -259,6 +259,17 @@ func (a *App) SendSharedChannelAttachmentSyncMsg(rctx request.CTX, pluginID stri
 		return nil, fmt.Errorf("channel %s is not shared with remote %s", channelID, rc.RemoteId)
 	}
 
+	// Validate file attachments are enabled and size is within limits
+	if !*a.Config().FileSettings.EnableFileAttachments {
+		return nil, model.NewAppError("SendSharedChannelAttachmentSyncMsg",
+			"api.file.attachments.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+	if a.Config().FileSettings.MaxFileSize != nil && fi.Size > *a.Config().FileSettings.MaxFileSize {
+		return nil, model.NewAppError("SendSharedChannelAttachmentSyncMsg",
+			"api.upload.create.upload_too_large.app_error",
+			map[string]any{"channelId": channelID}, "", http.StatusRequestEntityTooLarge)
+	}
+
 	// Create an upload session — this constructs the file path server-side
 	us := &model.UploadSession{
 		Id:        model.NewId(),
