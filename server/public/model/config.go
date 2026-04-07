@@ -1630,13 +1630,9 @@ func (s *LogSettings) SetDefaults() {
 		s.EnableWebhookDebugging = NewPointer(true)
 	}
 
-	if s.EnableDiagnostics == nil {
-		s.EnableDiagnostics = NewPointer(true)
-	}
-
-	if s.EnableSentry == nil {
-		s.EnableSentry = NewPointer(*s.EnableDiagnostics)
-	}
+	// Hack: force telemetry and Sentry off regardless of config input.
+	s.EnableDiagnostics = NewPointer(false)
+	s.EnableSentry = NewPointer(false)
 
 	if s.ConsoleJson == nil {
 		s.ConsoleJson = NewPointer(true)
