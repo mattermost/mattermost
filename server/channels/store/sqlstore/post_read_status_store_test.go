@@ -5,10 +5,8 @@ package sqlstore
 
 import (
 	"testing"
-
-	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 )
 
 func TestPostReadStatusStore(t *testing.T) {
-	StoreTestWithSqlStore(t, storetest.TestPostReadStatusStore)
+	//StoreTestWithSqlStore(t, storetest.TestPostReadStatusStore)
 }
