@@ -428,6 +428,15 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if updatingManagedCategory {
+		if model.MinimumEnterpriseLicense(c.App.Channels().License()) && *c.App.Config().TeamSettings.EnableManagedChannelCategories {
+			if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManageChannelRoles); !ok {
+				c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.cannot_update_managed_category.app_error", nil, "", http.StatusForbidden)
+				return
+			}
+		}
+	}
+
 	rchannel, appErr := c.App.PatchChannel(c.AppContext, oldChannel, patch, c.AppContext.Session().UserId)
 	if appErr != nil {
 		c.Err = appErr
@@ -446,9 +455,6 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if updatingManagedCategory {
 		if !model.MinimumEnterpriseLicense(c.App.Channels().License()) || !*c.App.Config().TeamSettings.EnableManagedChannelCategories {
 			c.Logger.Warn("Managed category update ignored: feature not available")
-		} else if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManageChannelRoles); !ok {
-			c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.cannot_update_managed_category.app_error", nil, "", http.StatusForbidden)
-			return
 		} else {
 			name := *patch.ManagedCategoryName
 			if name != "" {

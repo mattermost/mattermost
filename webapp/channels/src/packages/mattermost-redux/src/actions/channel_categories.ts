@@ -531,6 +531,10 @@ export function handleManagedCategoryPropertyValuesUpdated(parsedPropertyValuesU
             return;
         }
 
+        if (!parsedPropertyValuesUpdated.values?.length) {
+            return;
+        }
+
         const first = parsedPropertyValuesUpdated.values[0];
         const propertyGroup = getPropertyGroupById(state, first.group_id);
         const propertyField = getPropertyFieldById(state, first.field_id);
