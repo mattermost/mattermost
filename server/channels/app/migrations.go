@@ -820,20 +820,15 @@ func (s *Server) cacheManagedCategoryIDs() error {
 		return fmt.Errorf("failed to get managed category group: %w", err)
 	}
 
-	fields, err := s.propertyService.SearchPropertyFields(nil, group.ID, model.PropertyFieldSearchOpts{PerPage: 10})
+	field, err := s.propertyService.GetPropertyFieldByName(nil, group.ID, "", model.ManagedCategoryPropertyFieldName)
 	if err != nil {
-		return fmt.Errorf("failed to search managed category fields: %w", err)
+		return fmt.Errorf("failed to get managed category field: %w", err)
 	}
 
-	for _, field := range fields {
-		if field.Name == model.ManagedCategoryPropertyFieldName {
-			s.Channels().managedCategoryGroupID = group.ID
-			s.Channels().managedCategoryFieldID = field.ID
-			return nil
-		}
-	}
+	s.Channels().managedCategoryGroupID = group.ID
+	s.Channels().managedCategoryFieldID = field.ID
 
-	return fmt.Errorf("managed category field %q not found", model.ManagedCategoryPropertyFieldName)
+	return nil
 }
 
 func (s *Server) doCloudS3PathMigrations(rctx request.CTX) error {
