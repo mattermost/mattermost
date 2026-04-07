@@ -23,7 +23,7 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {addChannelsInSidebar} from 'actions/views/channel_sidebar';
 import {openModal} from 'actions/views/modals';
-import {getCategoriesForCurrentTeam} from 'selectors/views/channel_sidebar';
+import {getUserCategoriesForCurrentTeam} from 'selectors/views/channel_sidebar';
 
 import EditCategoryModal from 'components/edit_category_modal';
 import * as Menu from 'components/menu';
@@ -45,10 +45,15 @@ const ChannelMoveToSubMenu = (props: Props) => {
     const allChannels = useSelector(getAllChannels);
     const multiSelectedChannelIds = useSelector((state: GlobalState) => state.views.channelSidebar.multiSelectedChannelIds);
 
-    const isInManagedCategory = useSelector((state: GlobalState) => isChannelInManagedCategory(state, props.channel.id));
+    const isInManagedCategory = useSelector((state: GlobalState) => {
+        if (multiSelectedChannelIds.includes(props.channel.id)) {
+            return multiSelectedChannelIds.some((id) => isChannelInManagedCategory(state, id));
+        }
+        return isChannelInManagedCategory(state, props.channel.id);
+    });
     const currentTeam = useSelector(getCurrentTeam);
     const categories = useSelector((state: GlobalState) => {
-        return currentTeam ? getCategoriesForCurrentTeam(state) : undefined;
+        return currentTeam ? getUserCategoriesForCurrentTeam(state) : undefined;
     });
     const currentCategory = useSelector((state: GlobalState) => {
         return currentTeam ? getCategoryInTeamWithChannel(state, currentTeam?.id || '', props.channel.id) : undefined;
