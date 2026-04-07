@@ -29,9 +29,9 @@ describe('components/PostProfilePicture', () => {
         isBot: Boolean(user.is_bot),
     };
 
-    test('no status and post icon override specified, default props', () => {
+    test('no status and post icon override specified, default props', async () => {
         const props: Props = baseProps;
-        renderWithContext(
+        await renderWithContext(
             <PostProfilePicture {...props}/>,
         );
 
@@ -41,12 +41,12 @@ describe('components/PostProfilePicture', () => {
         expect(screen.getByLabelText('Offline')).toBeInTheDocument();
     });
 
-    test('status is specified, default props', () => {
+    test('status is specified, default props', async () => {
         const props: Props = {
             ...baseProps,
             status: 'away',
         };
-        renderWithContext(
+        await renderWithContext(
             <PostProfilePicture {...props}/>,
         );
 

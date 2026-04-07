@@ -48,9 +48,9 @@ function getBaseProps(): Props {
     };
 }
 describe('radio', () => {
-    it('all texts are displayed', () => {
+    it('all texts are displayed', async () => {
         const props = getBaseProps();
-        renderWithContext(<RadioInput {...getBaseProps()}/>);
+        await renderWithContext(<RadioInput {...getBaseProps()}/>);
 
         expect(screen.queryByText(props.setting.helpText!)).toBeInTheDocument();
         expect(screen.queryByText(props.setting.title!)).toBeInTheDocument();
@@ -58,14 +58,14 @@ describe('radio', () => {
 
     it('inform change is called', async () => {
         const props = getBaseProps();
-        renderWithContext(<RadioInput {...props}/>);
+        await renderWithContext(<RadioInput {...props}/>);
 
         await userEvent.click(screen.getByText(OPTION_1_TEXT));
 
         expect(props.informChange).toHaveBeenCalledWith(SETTING_NAME, '1');
     });
 
-    it('properly get the default from preferences', () => {
+    it('properly get the default from preferences', async () => {
         const category = getPluginPreferenceKey(PLUGIN_ID);
         const prefKey = getPreferenceKey(category, SETTING_NAME);
         const state: DeepPartial<GlobalState> = {
@@ -82,7 +82,7 @@ describe('radio', () => {
                 },
             },
         };
-        renderWithContext(<RadioInput {...getBaseProps()}/>, state);
+        await renderWithContext(<RadioInput {...getBaseProps()}/>, state);
 
         const option0Radio = screen.getByText(OPTION_0_TEXT).children[0];
         const option1Radio = screen.getByText(OPTION_1_TEXT).children[0];
@@ -92,7 +92,7 @@ describe('radio', () => {
         expect((option1Radio as HTMLInputElement).checked).toBeTruthy();
     });
 
-    it('properly get the default from props', () => {
+    it('properly get the default from props', async () => {
         const category = getPluginPreferenceKey(PLUGIN_ID);
         const prefKey = getPreferenceKey(category, SETTING_NAME);
         const state: DeepPartial<GlobalState> = {
@@ -111,7 +111,7 @@ describe('radio', () => {
         };
         const props = getBaseProps();
         props.setting.default = '1';
-        renderWithContext(<RadioInput {...props}/>, state);
+        await renderWithContext(<RadioInput {...props}/>, state);
 
         const option0Radio = screen.getByText(OPTION_0_TEXT).children[0];
         const option1Radio = screen.getByText(OPTION_1_TEXT).children[0];
@@ -122,7 +122,7 @@ describe('radio', () => {
     });
 
     it('properly persist changes', async () => {
-        renderWithContext(<RadioInput {...getBaseProps()}/>);
+        await renderWithContext(<RadioInput {...getBaseProps()}/>);
 
         const option0Radio = screen.getByText(OPTION_0_TEXT).children[0];
         const option1Radio = screen.getByText(OPTION_1_TEXT).children[0];

@@ -8,8 +8,8 @@ import GroupSettings from 'components/admin_console/group_settings/group_setting
 import {renderWithContext} from 'tests/react_testing_utils';
 
 describe('components/admin_console/group_settings/GroupSettings', () => {
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <GroupSettings/>,
         );
         expect(container).toMatchSnapshot();

@@ -69,21 +69,21 @@ describe('components/ChannelHeader', () => {
         }),
     };
 
-    test('should render properly when empty', () => {
-        const {container} = renderWithContext(
+    test('should render properly when empty', async () => {
+        const {container} = await renderWithContext(
             <ChannelHeader {...baseProps}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should render properly when populated', () => {
-        const {container} = renderWithContext(
+    test('should render properly when populated', async () => {
+        const {container} = await renderWithContext(
             <ChannelHeader {...populatedProps}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should render properly when populated with channel props', () => {
+    test('should render properly when populated with channel props', async () => {
         const props = {
             ...baseProps,
             channel: TestHelper.getChannelMock({
@@ -108,25 +108,25 @@ describe('components/ChannelHeader', () => {
             }),
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelHeader {...props}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should render archived view', () => {
+    test('should render archived view', async () => {
         const props = {
             ...populatedProps,
             channel: {...populatedProps.channel, delete_at: 1234},
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelHeader {...props}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should render shared view', () => {
+    test('should render shared view', async () => {
         const props = {
             ...populatedProps,
             channel: TestHelper.getChannelMock({
@@ -136,31 +136,31 @@ describe('components/ChannelHeader', () => {
             }),
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelHeader {...props}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should render correct menu when muted', () => {
+    test('should render correct menu when muted', async () => {
         const props = {
             ...populatedProps,
             isChannelMuted: true,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelHeader {...props}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should unmute the channel when mute icon is clicked', () => {
+    test('should unmute the channel when mute icon is clicked', async () => {
         const props = {
             ...populatedProps,
             isChannelMuted: true,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelHeader {...props}/>,
         );
 
@@ -171,80 +171,80 @@ describe('components/ChannelHeader', () => {
         expect(props.actions.updateChannelNotifyProps).toHaveBeenCalledWith('user_id', 'channel_id', {mark_unread: 'all'});
     });
 
-    test('should render active pinned posts', () => {
+    test('should render active pinned posts', async () => {
         const props = {
             ...populatedProps,
             rhsState: RHSStates.PIN,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelHeader {...props}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should render active channel files', () => {
+    test('should render active channel files', async () => {
         const props = {
             ...populatedProps,
             rhsState: RHSStates.CHANNEL_FILES,
             showChannelFilesButton: true,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelHeader {...props}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should render not active channel files', () => {
+    test('should render not active channel files', async () => {
         const props = {
             ...populatedProps,
             rhsState: RHSStates.PIN,
             showChannelFilesButton: true,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelHeader {...props}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should render active flagged posts', () => {
+    test('should render active flagged posts', async () => {
         const props = {
             ...populatedProps,
             rhsState: RHSStates.FLAG,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelHeader {...props}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should render active mentions posts', () => {
+    test('should render active mentions posts', async () => {
         const props = {
             ...populatedProps,
             rhsState: RHSStates.MENTION,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelHeader {...props}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should render the pinned icon with the pinned posts count', () => {
+    test('should render the pinned icon with the pinned posts count', async () => {
         const props = {
             ...populatedProps,
             pinnedPostsCount: 2,
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelHeader {...props}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should render properly when custom status is set', () => {
+    test('should render properly when custom status is set', async () => {
         const props = {
             ...populatedProps,
             channel: TestHelper.getChannelMock({
@@ -263,13 +263,13 @@ describe('components/ChannelHeader', () => {
             } as UserCustomStatus,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelHeader {...props}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should render properly when custom status is expired', () => {
+    test('should render properly when custom status is expired', async () => {
         const props = {
             ...populatedProps,
             channel: TestHelper.getChannelMock({
@@ -289,14 +289,14 @@ describe('components/ChannelHeader', () => {
             } as UserCustomStatus,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelHeader {...props}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should contain the channel info button', () => {
-        const {container} = renderWithContext(
+    test('should contain the channel info button', async () => {
+        const {container} = await renderWithContext(
             <ChannelHeader {...populatedProps}/>,
         );
 
@@ -305,7 +305,7 @@ describe('components/ChannelHeader', () => {
         expect(channelInfoButton).not.toBeNull();
     });
 
-    test('should match snapshot with last active display', () => {
+    test('should match snapshot with last active display', async () => {
         const props = {
             ...populatedProps,
             channel: TestHelper.getChannelMock({
@@ -322,13 +322,13 @@ describe('components/ChannelHeader', () => {
             }),
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelHeader {...props}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with no last active display because it is disabled', () => {
+    test('should match snapshot with no last active display because it is disabled', async () => {
         const props = {
             ...populatedProps,
             isLastActiveEnabled: false,
@@ -346,7 +346,7 @@ describe('components/ChannelHeader', () => {
             }),
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelHeader {...props}/>,
         );
         expect(container).toMatchSnapshot();

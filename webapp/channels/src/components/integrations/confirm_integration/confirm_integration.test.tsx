@@ -75,9 +75,9 @@ describe('components/integrations/ConfirmIntegration', () => {
         bots,
     };
 
-    test('should match snapshot, oauthApps case', () => {
+    test('should match snapshot, oauthApps case', async () => {
         props.location.search = getSearchString('oauth2-apps');
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ConfirmIntegration {...props}/>,
             initialState,
         );
@@ -86,9 +86,9 @@ describe('components/integrations/ConfirmIntegration', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match callback URLs of OAuth Apps', () => {
+    test('should match callback URLs of OAuth Apps', async () => {
         props.location.search = getSearchString('oauth2-apps');
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ConfirmIntegration {...props}/>,
             initialState,
         );
@@ -96,9 +96,9 @@ describe('components/integrations/ConfirmIntegration', () => {
         expect(container.querySelector('.word-break--all')).toHaveTextContent('URL(s): https://someCallback, https://anotherCallback');
     });
 
-    test('should match snapshot, outgoingOAuthConnections case', () => {
+    test('should match snapshot, outgoingOAuthConnections case', async () => {
         props.location.search = getSearchString('outgoing-oauth2-connections');
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ConfirmIntegration {...props}/>,
             initialState,
         );
@@ -107,9 +107,9 @@ describe('components/integrations/ConfirmIntegration', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, commands case', () => {
+    test('should match snapshot, commands case', async () => {
         props.location.search = getSearchString('commands');
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ConfirmIntegration {...props}/>,
             initialState,
         );
@@ -119,9 +119,9 @@ describe('components/integrations/ConfirmIntegration', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, incomingHooks case', () => {
+    test('should match snapshot, incomingHooks case', async () => {
         props.location.search = getSearchString('incoming_webhooks');
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ConfirmIntegration {...props}/>,
             initialState,
         );
@@ -130,9 +130,9 @@ describe('components/integrations/ConfirmIntegration', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, outgoingHooks case', () => {
+    test('should match snapshot, outgoingHooks case', async () => {
         props.location.search = getSearchString('outgoing_webhooks');
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ConfirmIntegration {...props}/>,
             initialState,
         );
@@ -142,9 +142,9 @@ describe('components/integrations/ConfirmIntegration', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, outgoingHooks and bad identifier case', () => {
+    test('should match snapshot, outgoingHooks and bad identifier case', async () => {
         props.location.search = getSearchString('outgoing_webhooks', 'bad');
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ConfirmIntegration {...props}/>,
             initialState,
         );
@@ -153,9 +153,9 @@ describe('components/integrations/ConfirmIntegration', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, bad integration type case', () => {
+    test('should match snapshot, bad integration type case', async () => {
         props.location.search = getSearchString('bad');
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ConfirmIntegration {...props}/>,
             initialState,
         );

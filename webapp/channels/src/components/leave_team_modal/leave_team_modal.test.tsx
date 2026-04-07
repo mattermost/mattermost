@@ -24,13 +24,13 @@ describe('components/LeaveTeamModal', () => {
         },
     };
 
-    it('should render the leave team model', () => {
-        const {baseElement} = renderWithContext(<LeaveTeamModal {...requiredProps}/>);
+    it('should render the leave team model', async () => {
+        const {baseElement} = await renderWithContext(<LeaveTeamModal {...requiredProps}/>);
         expect(baseElement).toMatchSnapshot();
     });
 
     it('should hide when No is clicked', async () => {
-        renderWithContext(<LeaveTeamModal {...requiredProps}/>);
+        await renderWithContext(<LeaveTeamModal {...requiredProps}/>);
 
         // Modal should be visible initially
         expect(screen.getByRole('dialog')).toBeInTheDocument();
@@ -54,7 +54,7 @@ describe('components/LeaveTeamModal', () => {
                 toggleSideBarRightMenu,
             },
         };
-        renderWithContext(<LeaveTeamModal {...props}/>);
+        await renderWithContext(<LeaveTeamModal {...props}/>);
 
         // Click Yes button
         await userEvent.click(screen.getByRole('button', {name: 'Yes'}));
@@ -69,11 +69,11 @@ describe('components/LeaveTeamModal', () => {
         });
     });
 
-    it('should call attach and remove event listeners', () => {
+    it('should call attach and remove event listeners', async () => {
         const addEventListenerSpy = jest.spyOn(document, 'addEventListener');
         const removeEventListenerSpy = jest.spyOn(document, 'removeEventListener');
 
-        const {unmount} = renderWithContext(<LeaveTeamModal {...requiredProps}/>);
+        const {unmount} = await renderWithContext(<LeaveTeamModal {...requiredProps}/>);
 
         expect(addEventListenerSpy).toHaveBeenCalledWith('keypress', expect.any(Function));
 

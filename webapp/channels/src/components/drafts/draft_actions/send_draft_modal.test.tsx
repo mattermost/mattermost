@@ -37,8 +37,8 @@ describe('components/drafts/draft_actions/send_draft_modal', () => {
         onExited: jest.fn(),
     };
 
-    it('should match snapshot', () => {
-        const {container} = renderWithContext(
+    it('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <SendDraftModal
                 {...baseProps}
             />,
@@ -47,7 +47,7 @@ describe('components/drafts/draft_actions/send_draft_modal', () => {
     });
 
     it('should have called onConfirm', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SendDraftModal {...baseProps}/>,
         );
 
@@ -58,7 +58,7 @@ describe('components/drafts/draft_actions/send_draft_modal', () => {
     });
 
     it('should have called onExited', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SendDraftModal {...baseProps}/>,
         );
 

@@ -23,40 +23,40 @@ describe('FormattingBar', () => {
         location: Locations.CENTER,
     };
 
-    test('should render hidden formatting button when screen size is min', () => {
+    test('should render hidden formatting button when screen size is min', async () => {
         jest.spyOn(Hooks, 'useFormattingBarControls').mockReturnValue({layoutMode: LayoutModes.Min, ...splitFormattingBarControls('min')});
 
-        renderWithContext(
+        await renderWithContext(
             <FormattingBar {...baseProps}/>,
         );
 
         expect(screen.getByLabelText('show hidden formatting options')).toBeInTheDocument();
     });
 
-    test('should render hidden formatting button when screen size is narrow', () => {
+    test('should render hidden formatting button when screen size is narrow', async () => {
         jest.spyOn(Hooks, 'useFormattingBarControls').mockReturnValue({layoutMode: LayoutModes.Narrow, ...splitFormattingBarControls('narrow')});
 
-        renderWithContext(
+        await renderWithContext(
             <FormattingBar {...baseProps}/>,
         );
 
         expect(screen.getByLabelText('show hidden formatting options')).toBeInTheDocument();
     });
 
-    test('should render hidden formatting button when screen size is normal', () => {
+    test('should render hidden formatting button when screen size is normal', async () => {
         jest.spyOn(Hooks, 'useFormattingBarControls').mockReturnValue({layoutMode: LayoutModes.Normal, ...splitFormattingBarControls('normal')});
 
-        renderWithContext(
+        await renderWithContext(
             <FormattingBar {...baseProps}/>,
         );
 
         expect(screen.getByLabelText('show hidden formatting options')).toBeInTheDocument();
     });
 
-    test('should not render hidden formatting button when screen size is wide', () => {
+    test('should not render hidden formatting button when screen size is wide', async () => {
         jest.spyOn(Hooks, 'useFormattingBarControls').mockReturnValue({layoutMode: LayoutModes.Wide, ...splitFormattingBarControls('wide')});
 
-        renderWithContext(
+        await renderWithContext(
             <FormattingBar {...baseProps}/>,
         );
 
@@ -68,7 +68,7 @@ describe('FormattingBar', () => {
 
         const onSubmit = jest.fn();
 
-        renderWithContext(
+        await renderWithContext(
             <form onSubmit={onSubmit}>
                 <FormattingBar {...baseProps}/>
             </form>,
@@ -85,7 +85,7 @@ describe('FormattingBar', () => {
     test('should disable tooltip when hidden controls are shown', async () => {
         jest.spyOn(Hooks, 'useFormattingBarControls').mockReturnValue({layoutMode: LayoutModes.Narrow, ...splitFormattingBarControls('narrow')});
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <FormattingBar {...baseProps}/>,
         );
 

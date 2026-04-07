@@ -13,15 +13,15 @@ import * as TextFormatting from 'utils/text_formatting';
 const emptyEmojiMap = new EmojiMap(new Map());
 
 describe('messageHtmlToComponent', () => {
-    test('plain text', () => {
+    test('plain text', async () => {
         const input = 'Hello, world!';
         const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
 
-        const {container} = renderWithContext(<>{messageHtmlToComponent(html)}</>);
+        const {container} = await renderWithContext(<>{messageHtmlToComponent(html)}</>);
         expect(container).toMatchSnapshot();
     });
 
-    test('latex', () => {
+    test('latex', async () => {
         const input = `This is some latex!
 \`\`\`latex
 x^2 + y^2 = z^2
@@ -34,11 +34,11 @@ F_m - 2 = F_0 F_1 \\dots F_{m-1}
 That was some latex!`;
         const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
 
-        const {container} = renderWithContext(<>{messageHtmlToComponent(html)}</>);
+        const {container} = await renderWithContext(<>{messageHtmlToComponent(html)}</>);
         expect(container).toMatchSnapshot();
     });
 
-    test('typescript', () => {
+    test('typescript', async () => {
         const input = `\`\`\`typescript
 const myFunction = () => {
     console.log('This is a meaningful function');
@@ -47,38 +47,38 @@ const myFunction = () => {
 `;
         const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
 
-        const {container} = renderWithContext(<>{messageHtmlToComponent(html, {postId: 'randompostid'})}</>);
+        const {container} = await renderWithContext(<>{messageHtmlToComponent(html, {postId: 'randompostid'})}</>);
         expect(container).toMatchSnapshot();
     });
 
-    test('html', () => {
+    test('html', async () => {
         const input = `\`\`\`html
 <div>This is a html div</div>
 \`\`\`
 `;
         const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
 
-        const {container} = renderWithContext(<>{messageHtmlToComponent(html, {postId: 'randompostid'})}</>);
+        const {container} = await renderWithContext(<>{messageHtmlToComponent(html, {postId: 'randompostid'})}</>);
         expect(container).toMatchSnapshot();
     });
 
-    test('link without enabled tooltip plugins', () => {
+    test('link without enabled tooltip plugins', async () => {
         const input = 'lorem ipsum www.dolor.com sit amet';
         const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
 
-        const {container} = renderWithContext(<>{messageHtmlToComponent(html)}</>);
+        const {container} = await renderWithContext(<>{messageHtmlToComponent(html)}</>);
         expect(container).toMatchSnapshot();
     });
 
-    test('link with enabled a tooltip plugin', () => {
+    test('link with enabled a tooltip plugin', async () => {
         const input = 'lorem ipsum www.dolor.com sit amet';
         const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
 
-        const {container} = renderWithContext(<>{messageHtmlToComponent(html, {hasPluginTooltips: true})}</>);
+        const {container} = await renderWithContext(<>{messageHtmlToComponent(html, {hasPluginTooltips: true})}</>);
         expect(container).toMatchSnapshot();
     });
 
-    test('Inline markdown image', () => {
+    test('Inline markdown image', async () => {
         const options = {markdown: true};
         const html = TextFormatting.formatText('![Mattermost](/images/icon.png) and a [link](link)', options, emptyEmojiMap);
 
@@ -87,7 +87,7 @@ const myFunction = () => {
             postId: 'post_id',
             postType: Constants.PostTypes.HEADER_CHANGE,
         });
-        const {container} = renderWithContext(<>{component}</>);
+        const {container} = await renderWithContext(<>{component}</>);
         expect(container).toMatchSnapshot();
 
         // imageIsLink=false means the img is NOT wrapped in an <a> tag
@@ -95,7 +95,7 @@ const myFunction = () => {
         expect(img?.closest('a')).toBeNull();
     });
 
-    test('Inline markdown image where image is link', () => {
+    test('Inline markdown image where image is link', async () => {
         const options = {markdown: true};
         const html = TextFormatting.formatText('[![Mattermost](images/icon.png)](images/icon.png)', options, emptyEmojiMap);
 
@@ -104,7 +104,7 @@ const myFunction = () => {
             postId: 'post_id',
             postType: Constants.PostTypes.HEADER_CHANGE,
         });
-        const {container} = renderWithContext(<>{component}</>);
+        const {container} = await renderWithContext(<>{component}</>);
         expect(container).toMatchSnapshot();
 
         // imageIsLink=true means the img IS wrapped in an <a> tag
@@ -112,12 +112,12 @@ const myFunction = () => {
         expect(img?.closest('a')).not.toBeNull();
     });
 
-    test('At mention', () => {
+    test('At mention', async () => {
         const options = {mentionHighlight: true, atMentions: true, mentionKeys: [{key: '@joram'}]};
         let html = TextFormatting.formatText('@joram', options, emptyEmojiMap);
 
         let component = messageHtmlToComponent(html, {mentionHighlight: true});
-        const {container, unmount} = renderWithContext(<>{component}</>);
+        const {container, unmount} = await renderWithContext(<>{component}</>);
         expect(container).toMatchSnapshot();
 
         // When mentionHighlight is true, disableHighlight is false - the mention--highlight class wraps the mention
@@ -130,19 +130,19 @@ const myFunction = () => {
         html = TextFormatting.formatText('@joram', options, emptyEmojiMap);
 
         component = messageHtmlToComponent(html, {mentionHighlight: false});
-        const {container: container2} = renderWithContext(<>{component}</>);
+        const {container: container2} = await renderWithContext(<>{component}</>);
         expect(container2).toMatchSnapshot();
 
         // When mentionHighlight is false, disableHighlight is true - no mention--highlight class
         expect(container2.querySelector('.mention--highlight')).not.toBeInTheDocument();
     });
 
-    test('At mention with group highlight disabled', () => {
+    test('At mention with group highlight disabled', async () => {
         const options: TextFormatting.TextFormattingOptions = {mentionHighlight: true, atMentions: true, mentionKeys: [{key: '@joram'}]};
         let html = TextFormatting.formatText('@developers', options, emptyEmojiMap);
 
         let component = messageHtmlToComponent(html, {disableGroupHighlight: false});
-        const {container, unmount} = renderWithContext(<>{component}</>);
+        const {container, unmount} = await renderWithContext(<>{component}</>);
         expect(container).toMatchSnapshot();
 
         unmount();
@@ -152,16 +152,16 @@ const myFunction = () => {
         html = TextFormatting.formatText('@developers', options, emptyEmojiMap);
 
         component = messageHtmlToComponent(html, {disableGroupHighlight: true});
-        const {container: container2} = renderWithContext(<>{component}</>);
+        const {container: container2} = await renderWithContext(<>{component}</>);
         expect(container2).toMatchSnapshot();
     });
 
-    test('Remote at mention', () => {
+    test('Remote at mention', async () => {
         const options = {mentionHighlight: true, atMentions: true, mentionKeys: [{key: '@joram'}]};
         let html = TextFormatting.formatText('@joram', options, emptyEmojiMap);
 
         let component = messageHtmlToComponent(html, {mentionHighlight: true});
-        const {container, unmount} = renderWithContext(<>{component}</>);
+        const {container, unmount} = await renderWithContext(<>{component}</>);
         expect(container).toMatchSnapshot();
 
         // When mentionHighlight is true, disableHighlight is false - the mention--highlight class wraps the mention
@@ -174,14 +174,14 @@ const myFunction = () => {
         html = TextFormatting.formatText('@joram', options, emptyEmojiMap);
 
         component = messageHtmlToComponent(html, {mentionHighlight: false});
-        const {container: container2} = renderWithContext(<>{component}</>);
+        const {container: container2} = await renderWithContext(<>{component}</>);
         expect(container2).toMatchSnapshot();
 
         // When mentionHighlight is false, disableHighlight is true - no mention--highlight class
         expect(container2.querySelector('.mention--highlight')).not.toBeInTheDocument();
     });
 
-    test('typescript', () => {
+    test('typescript', async () => {
         const input = `Text before typescript codeblock
             \`\`\`typescript
             const myFunction = () => {
@@ -192,17 +192,17 @@ const myFunction = () => {
 
         const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
 
-        const {container} = renderWithContext(<>{messageHtmlToComponent(html)}</>);
+        const {container} = await renderWithContext(<>{messageHtmlToComponent(html)}</>);
         expect(container).toMatchSnapshot();
     });
 
     describe('citation links', () => {
-        test('should render citation link using InlineEntityLink', () => {
+        test('should render citation link using InlineEntityLink', async () => {
             const input = '[post](http://localhost:8065/team/pl/postid?view=citation)';
             const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
 
             const component = messageHtmlToComponent(html);
-            const {container} = renderWithContext(<>{component}</>);
+            const {container} = await renderWithContext(<>{component}</>);
             expect(container).toMatchSnapshot();
 
             // InlineEntityLink renders an anchor with the citation URL and class 'inline-entity-link'
@@ -211,12 +211,12 @@ const myFunction = () => {
             expect(link?.getAttribute('href')).toBe('http://localhost:8065/team/pl/postid?view=citation');
         });
 
-        test('should not render normal links as InlineEntityLink', () => {
+        test('should not render normal links as InlineEntityLink', async () => {
             const input = '[post](http://localhost:8065/team/pl/postid)';
             const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
 
             const component = messageHtmlToComponent(html);
-            const {container} = renderWithContext(<>{component}</>);
+            const {container} = await renderWithContext(<>{component}</>);
             expect(container).toMatchSnapshot();
 
             // Normal links should NOT have the inline-entity-link class
@@ -226,10 +226,10 @@ const myFunction = () => {
     });
 
     describe('emojis', () => {
-        test('should render valid named emojis as spans with background images', () => {
+        test('should render valid named emojis as spans with background images', async () => {
             const input = 'These are emojis: :taco: :astronaut:';
 
-            const {container} = renderWithContext(messageHtmlToComponent(TextFormatting.formatText(input, {}, emptyEmojiMap)));
+            const {container} = await renderWithContext(messageHtmlToComponent(TextFormatting.formatText(input, {}, emptyEmojiMap)));
 
             expect(screen.getByTestId('postEmoji.:taco:')).toBeInTheDocument();
             expect(screen.getByTestId('postEmoji.:taco:').getAttribute('style')).toContain('background-image');
@@ -239,10 +239,10 @@ const myFunction = () => {
             expect(container).toHaveTextContent('These are emojis: :taco: :astronaut:');
         });
 
-        test('should render invalid named emojis as spans with background images', () => {
+        test('should render invalid named emojis as spans with background images', async () => {
             const input = 'These are emojis: :fake: :notAnEmoji:';
 
-            const {container} = renderWithContext(messageHtmlToComponent(TextFormatting.formatText(input, {}, emptyEmojiMap)));
+            const {container} = await renderWithContext(messageHtmlToComponent(TextFormatting.formatText(input, {}, emptyEmojiMap)));
 
             expect(screen.queryByTestId('postEmoji.:taco:')).not.toBeInTheDocument();
             expect(screen.queryByTestId('postEmoji.:astronaut:')).not.toBeInTheDocument();
@@ -250,10 +250,10 @@ const myFunction = () => {
             expect(container).toHaveTextContent('These are emojis: :fake: :notAnEmoji:');
         });
 
-        test('should render supported unicode emojis as spans with background images', () => {
+        test('should render supported unicode emojis as spans with background images', async () => {
             const input = 'These are emojis: 🌮 🧑‍🚀';
 
-            const {container} = renderWithContext(messageHtmlToComponent(TextFormatting.formatText(input, {}, emptyEmojiMap)));
+            const {container} = await renderWithContext(messageHtmlToComponent(TextFormatting.formatText(input, {}, emptyEmojiMap)));
 
             expect(screen.getByTestId('postEmoji.:taco:')).toBeInTheDocument();
             expect(screen.getByTestId('postEmoji.:taco:').getAttribute('style')).toContain('background-image');

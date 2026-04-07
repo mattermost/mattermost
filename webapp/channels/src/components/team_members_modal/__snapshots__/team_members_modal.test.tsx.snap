@@ -144,25 +144,14 @@ exports[`components/TeamMembersModal should match snapshot 1`] = `
                               <div
                                 class="simplebar-content"
                               >
-                                <div
-                                  class="loading-screen"
-                                  style="position: relative;"
-                                >
+                                <div>
                                   <div
-                                    class="loading__content"
+                                    class="more-modal__placeholder-row no-users-found"
+                                    data-testid="noUsersFound"
                                   >
                                     <p>
-                                      Loading
+                                      No users found
                                     </p>
-                                    <div
-                                      class="round round-1"
-                                    />
-                                    <div
-                                      class="round round-2"
-                                    />
-                                    <div
-                                      class="round round-3"
-                                    />
                                   </div>
                                 </div>
                               </div>

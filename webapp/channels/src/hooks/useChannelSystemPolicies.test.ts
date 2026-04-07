@@ -100,8 +100,8 @@ describe('hooks/useChannelSystemPolicies', () => {
         dispatchMock.mockClear();
     });
 
-    test('should return empty state when channel is null', () => {
-        const {result} = renderHookWithContext(() => useChannelSystemPolicies(null));
+    test('should return empty state when channel is null', async () => {
+        const {result} = await renderHookWithContext(() => useChannelSystemPolicies(null));
 
         expect(result.current.loading).toBe(false);
         expect(result.current.policies).toEqual([]);
@@ -109,8 +109,8 @@ describe('hooks/useChannelSystemPolicies', () => {
         expect(dispatchMock).not.toHaveBeenCalled();
     });
 
-    test('should return empty state when channel has no policy enforcement', () => {
-        const {result} = renderHookWithContext(() => useChannelSystemPolicies(mockChannelWithoutPolicyEnforcement));
+    test('should return empty state when channel has no policy enforcement', async () => {
+        const {result} = await renderHookWithContext(() => useChannelSystemPolicies(mockChannelWithoutPolicyEnforcement));
 
         expect(result.current.loading).toBe(false);
         expect(result.current.policies).toEqual([]);
@@ -123,9 +123,7 @@ describe('hooks/useChannelSystemPolicies', () => {
             error: {message: 'Policy not found'},
         });
 
-        const {result} = renderHookWithContext(() => useChannelSystemPolicies(mockChannelWithPolicyEnforcement));
-
-        expect(result.current.loading).toBe(true);
+        const {result} = await renderHookWithContext(() => useChannelSystemPolicies(mockChannelWithPolicyEnforcement));
 
         await waitFor(() => {
             expect(result.current.loading).toBe(false);
@@ -147,9 +145,7 @@ describe('hooks/useChannelSystemPolicies', () => {
                 data: mockParentPolicy2,
             });
 
-        const {result} = renderHookWithContext(() => useChannelSystemPolicies(mockChannelWithPolicyEnforcement));
-
-        expect(result.current.loading).toBe(true);
+        const {result} = await renderHookWithContext(() => useChannelSystemPolicies(mockChannelWithPolicyEnforcement));
 
         await waitFor(() => {
             expect(result.current.loading).toBe(false);
@@ -164,9 +160,7 @@ describe('hooks/useChannelSystemPolicies', () => {
             data: mockChannelPolicyParentType,
         });
 
-        const {result} = renderHookWithContext(() => useChannelSystemPolicies(mockChannelWithPolicyEnforcement));
-
-        expect(result.current.loading).toBe(true);
+        const {result} = await renderHookWithContext(() => useChannelSystemPolicies(mockChannelWithPolicyEnforcement));
 
         await waitFor(() => {
             expect(result.current.loading).toBe(false);
@@ -179,9 +173,7 @@ describe('hooks/useChannelSystemPolicies', () => {
     test('should handle network/API errors', async () => {
         dispatchMock.mockRejectedValue(new Error('Network error'));
 
-        const {result} = renderHookWithContext(() => useChannelSystemPolicies(mockChannelWithPolicyEnforcement));
-
-        expect(result.current.loading).toBe(true);
+        const {result} = await renderHookWithContext(() => useChannelSystemPolicies(mockChannelWithPolicyEnforcement));
 
         await waitFor(() => {
             expect(result.current.loading).toBe(false);
@@ -202,7 +194,7 @@ describe('hooks/useChannelSystemPolicies', () => {
                 error: {message: 'Parent policy not found'},
             });
 
-        const {result} = renderHookWithContext(() => useChannelSystemPolicies(mockChannelWithPolicyEnforcement));
+        const {result} = await renderHookWithContext(() => useChannelSystemPolicies(mockChannelWithPolicyEnforcement));
 
         await waitFor(() => {
             expect(result.current.loading).toBe(false);

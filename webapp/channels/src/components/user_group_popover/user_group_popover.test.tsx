@@ -84,8 +84,8 @@ describe('component/user_group_popover', () => {
         returnFocus: jest.fn(),
     };
 
-    test('should match snapshot', () => {
-        const {baseElement} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {baseElement} = await renderWithContext(
             <UserGroupPopover
                 {...baseProps}
             />,
@@ -95,7 +95,7 @@ describe('component/user_group_popover', () => {
     });
 
     test('should not show search bar', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <UserGroupPopover
                 {...baseProps}
                 group={group2}
@@ -107,7 +107,7 @@ describe('component/user_group_popover', () => {
     });
 
     test('should show users', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <UserGroupPopover
                 {...baseProps}
             />,

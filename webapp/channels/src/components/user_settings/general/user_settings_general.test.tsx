@@ -51,7 +51,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             setDefaultProfileImage: jest.fn(),
             uploadProfileImage: jest.fn(),
             saveCustomProfileAttribute: jest.fn(),
-            getCustomProfileAttributeValues: jest.fn(),
+            getCustomProfileAttributeValues: jest.fn().mockResolvedValue({data: {}}),
         },
         maxFileSize: 1024,
         ldapPositionAttributeSet: false,
@@ -80,27 +80,29 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         },
     };
 
-    test('submitUser() should have called updateMe', () => {
+    test('submitUser() should have called updateMe', async () => {
         const updateMe = jest.fn().mockResolvedValue({data: true});
         const props = {...requiredProps, actions: {...requiredProps.actions, updateMe}};
         const ref = React.createRef<UserSettingsGeneralTab>();
-        renderWithContext(
+        await renderWithContext(
             <UserSettingsGeneralTab
                 {...props}
                 ref={ref}
             />,
         );
 
-        ref.current!.submitUser(requiredProps.user, false);
+        await act(async () => {
+            ref.current!.submitUser(requiredProps.user, false);
+        });
         expect(updateMe).toHaveBeenCalledTimes(1);
         expect(updateMe).toHaveBeenCalledWith(requiredProps.user);
     });
 
-    test('submitPicture() should not have called uploadProfileImage', () => {
+    test('submitPicture() should not have called uploadProfileImage', async () => {
         const uploadProfileImage = jest.fn().mockResolvedValue({});
         const props = {...requiredProps, actions: {...requiredProps.actions, uploadProfileImage}};
         const ref = React.createRef<UserSettingsGeneralTab>();
-        renderWithContext(
+        await renderWithContext(
             <UserSettingsGeneralTab
                 {...props}
                 ref={ref}
@@ -115,7 +117,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         const uploadProfileImage = jest.fn(() => Promise.resolve({data: true}));
         const props = {...requiredProps, actions: {...requiredProps.actions, uploadProfileImage}};
         const ref = React.createRef<UserSettingsGeneralTab>();
-        renderWithContext(
+        await renderWithContext(
             <UserSettingsGeneralTab
                 {...props}
                 ref={ref}
@@ -146,7 +148,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         expect(requiredProps.updateSection).toHaveBeenCalledWith('');
     });
 
-    test('should not show position input field when LDAP or SAML position attribute is set', () => {
+    test('should not show position input field when LDAP or SAML position attribute is set', async () => {
         const props = {...requiredProps};
         props.user = {...user};
         props.user.auth_service = 'ldap';
@@ -155,7 +157,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         props.ldapPositionAttributeSet = false;
         props.samlPositionAttributeSet = false;
 
-        const {container, rerender} = renderWithContext(
+        const {container, rerender} = await renderWithContext(
             <UserSettingsGeneral {...props}/>,
         );
         expect(container.querySelectorAll('#position').length).toBe(1);
@@ -182,7 +184,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         expect(container.querySelectorAll('#position').length).toBe(0);
     });
 
-    test('should not show image field when LDAP picture attribute is set', () => {
+    test('should not show image field when LDAP picture attribute is set', async () => {
         const props = {...requiredProps};
         props.user = {...user};
         props.user.auth_service = 'ldap';
@@ -190,7 +192,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
 
         props.ldapPictureAttributeSet = false;
 
-        const {container, rerender} = renderWithContext(
+        const {container, rerender} = await renderWithContext(
             <UserSettingsGeneral {...props}/>,
         );
         expect(container.querySelector('.profile-img')).toBeTruthy();
@@ -205,7 +207,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         const updateMe = () => Promise.resolve({data: false, error: {server_error_id: 'app.user.group_name_conflict', message: ''}});
         const props = {...requiredProps, actions: {...requiredProps.actions, updateMe}};
         const ref = React.createRef<UserSettingsGeneralTab>();
-        renderWithContext(
+        await renderWithContext(
             <UserSettingsGeneralTab
                 {...props}
                 ref={ref}
@@ -227,7 +229,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             user: testUser,
         };
 
-        renderWithContext(<UserSettingsGeneral {...props}/>);
+        await renderWithContext(<UserSettingsGeneral {...props}/>);
 
         expect(props.actions.getCustomProfileAttributeValues).not.toHaveBeenCalled();
         expect(await screen.getByRole('button', {name: `${customProfileAttribute.name} Edit`})).toBeInTheDocument();
@@ -244,7 +246,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             user: testUser,
         };
 
-        renderWithContext(<UserSettingsGeneral {...props}/>);
+        await renderWithContext(<UserSettingsGeneral {...props}/>);
 
         expect(props.actions.getCustomProfileAttributeValues).not.toHaveBeenCalled();
         expect(await screen.getByRole('button', {name: `${customProfileAttribute.name} Edit`})).toBeInTheDocument();
@@ -261,7 +263,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             user: testUser,
         };
 
-        renderWithContext(<UserSettingsGeneral {...props}/>);
+        await renderWithContext(<UserSettingsGeneral {...props}/>);
 
         expect(props.actions.getCustomProfileAttributeValues).not.toHaveBeenCalled();
         expect(await screen.findByText('FieldOneValue')).toBeInTheDocument();
@@ -277,7 +279,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             user: testUser,
         };
 
-        const {rerender} = renderWithContext(<UserSettingsGeneral {...props}/>);
+        const {rerender} = await renderWithContext(<UserSettingsGeneral {...props}/>);
         expect(props.actions.getCustomProfileAttributeValues).toHaveBeenCalledTimes(1);
         expect(await screen.getByRole('button', {name: `${customProfileAttribute.name} Edit`})).toBeInTheDocument();
 
@@ -296,7 +298,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             activeSection: 'customAttribute_field1',
         };
 
-        renderWithContext(<UserSettingsGeneral {...props}/>);
+        await renderWithContext(<UserSettingsGeneral {...props}/>);
         expect(await screen.getByRole('textbox', {name: `${customProfileAttribute.name}`})).toBeInTheDocument();
     });
 
@@ -324,7 +326,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             activeSection: 'customAttribute_field1',
         };
 
-        renderWithContext(<UserSettingsGeneral {...props}/>);
+        await renderWithContext(<UserSettingsGeneral {...props}/>);
         expect(await screen.getByText('Option 1')).toBeInTheDocument();
     });
 
@@ -352,7 +354,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             activeSection: 'customAttribute_field1',
         };
 
-        renderWithContext(<UserSettingsGeneral {...props}/>);
+        await renderWithContext(<UserSettingsGeneral {...props}/>);
         expect(await screen.getByText('Option 2')).toBeInTheDocument();
     });
 
@@ -367,7 +369,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             activeSection: 'customAttribute_field1',
         };
 
-        renderWithContext(<UserSettingsGeneral {...props}/>);
+        await renderWithContext(<UserSettingsGeneral {...props}/>);
 
         expect(await screen.getByRole('textbox', {name: `${customProfileAttribute.name}`})).toBeInTheDocument();
         expect(await screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
@@ -390,7 +392,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             activeSection: 'customAttribute_field1',
         };
 
-        renderWithContext(<UserSettingsGeneral {...props}/>);
+        await renderWithContext(<UserSettingsGeneral {...props}/>);
 
         await userEvent.clear(screen.getByRole('textbox', {name: `${customProfileAttribute.name}`}));
         await userEvent.type(screen.getByRole('textbox', {name: `${customProfileAttribute.name}`}), 'Updated Value');
@@ -427,7 +429,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             },
         };
 
-        renderWithContext(<UserSettingsGeneral {...props}/>);
+        await renderWithContext(<UserSettingsGeneral {...props}/>);
 
         const select = await screen.findByText('Select');
         await userEvent.click(select);
@@ -467,7 +469,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             },
         };
 
-        renderWithContext(<UserSettingsGeneral {...props}/>);
+        await renderWithContext(<UserSettingsGeneral {...props}/>);
 
         const select = await screen.findByText('Select');
         await userEvent.click(select);
@@ -511,7 +513,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             },
         };
 
-        const {container} = renderWithContext(<UserSettingsGeneral {...props}/>);
+        const {container} = await renderWithContext(<UserSettingsGeneral {...props}/>);
 
         const clearIndicator = container.querySelector('.react-select__clear-indicator');
         expect(clearIndicator).toBeInTheDocument();
@@ -556,7 +558,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             },
         };
 
-        renderWithContext(<UserSettingsGeneral {...props}/>);
+        await renderWithContext(<UserSettingsGeneral {...props}/>);
 
         // Should not display any value since the option no longer exists
         expect(screen.queryByText('Option 2')).not.toBeInTheDocument();
@@ -594,7 +596,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             },
         };
 
-        renderWithContext(<UserSettingsGeneral {...props}/>);
+        await renderWithContext(<UserSettingsGeneral {...props}/>);
 
         // Should only display the option that still exists
         expect(await screen.findByText('Option 1')).toBeInTheDocument();
@@ -633,7 +635,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             },
         };
 
-        renderWithContext(<UserSettingsGeneral {...props}/>);
+        await renderWithContext(<UserSettingsGeneral {...props}/>);
 
         // Should show empty select since the option no longer exists
         expect(await screen.findByText('Select')).toBeInTheDocument();
@@ -678,7 +680,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             },
         };
 
-        renderWithContext(<UserSettingsGeneral {...props}/>);
+        await renderWithContext(<UserSettingsGeneral {...props}/>);
 
         // Should only show the valid option
         expect(await screen.findByText('Option 1')).toBeInTheDocument();
@@ -710,7 +712,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             activeSection: 'customAttribute_field1',
         };
 
-        renderWithContext(<UserSettingsGeneral {...props}/>);
+        await renderWithContext(<UserSettingsGeneral {...props}/>);
         expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
         expect(screen.queryByRole('textbox', {name: customProfileAttribute.name})).not.toBeInTheDocument();
         expect(await screen.findByText('This field is handled through your login provider. If you want to change it, you need to do so through your login provider.')).toBeInTheDocument();
@@ -733,7 +735,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             activeSection: 'customAttribute_field1',
         };
 
-        renderWithContext(<UserSettingsGeneral {...props}/>);
+        await renderWithContext(<UserSettingsGeneral {...props}/>);
         expect(await screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
         expect(screen.queryByRole('textbox', {name: customProfileAttribute.name})).not.toBeInTheDocument();
         expect(await screen.findByText('This field is handled through your login provider. If you want to change it, you need to do so through your login provider.')).toBeInTheDocument();
@@ -756,7 +758,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             activeSection: 'customAttribute_field1',
         };
 
-        renderWithContext(<UserSettingsGeneral {...props}/>);
+        await renderWithContext(<UserSettingsGeneral {...props}/>);
         expect(await screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
         expect(screen.queryByRole('textbox', {name: customProfileAttribute.name})).toBeInTheDocument();
     });
@@ -783,7 +785,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             },
         };
 
-        renderWithContext(<UserSettingsGeneral {...props}/>);
+        await renderWithContext(<UserSettingsGeneral {...props}/>);
         const input = screen.getByRole('textbox', {name: urlAttribute.name});
 
         // Type the invalid value
@@ -827,7 +829,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             },
         };
 
-        renderWithContext(<UserSettingsGeneral {...props}/>);
+        await renderWithContext(<UserSettingsGeneral {...props}/>);
         const input = screen.getByRole('textbox', {name: emailAttribute.name});
 
         // Type the invalid value
@@ -867,7 +869,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             activeSection: 'customAttribute_field1',
         };
 
-        renderWithContext(<UserSettingsGeneral {...props}/>);
+        await renderWithContext(<UserSettingsGeneral {...props}/>);
         expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
         expect(screen.queryByRole('textbox', {name: adminManagedAttribute.name})).not.toBeInTheDocument();
         expect(await screen.findByText('This field can only be changed by an administrator.')).toBeInTheDocument();
@@ -890,7 +892,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             activeSection: 'customAttribute_field1',
         };
 
-        renderWithContext(<UserSettingsGeneral {...props}/>);
+        await renderWithContext(<UserSettingsGeneral {...props}/>);
         expect(await screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
         expect(screen.getByRole('textbox', {name: regularAttribute.name})).toBeInTheDocument();
         expect(screen.queryByText('This field can only be changed by an administrator.')).not.toBeInTheDocument();
@@ -913,7 +915,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             activeSection: 'customAttribute_field1',
         };
 
-        renderWithContext(<UserSettingsGeneral {...props}/>);
+        await renderWithContext(<UserSettingsGeneral {...props}/>);
         expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
         expect(screen.queryByRole('textbox', {name: protectedAttribute.name})).not.toBeInTheDocument();
         expect(await screen.findByText(/This field is managed by a plugin and cannot be edited\./)).toBeInTheDocument();
@@ -936,7 +938,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             activeSection: 'customAttribute_field1',
         };
 
-        renderWithContext(<UserSettingsGeneral {...props}/>);
+        await renderWithContext(<UserSettingsGeneral {...props}/>);
         expect(await screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
         expect(screen.getByRole('textbox', {name: normalAttribute.name})).toBeInTheDocument();
         expect(screen.queryByText('This field is managed by a plugin and cannot be edited.')).not.toBeInTheDocument();

@@ -68,8 +68,8 @@ describe('components/learn_more_trial_modal/start_trial_btn', () => {
         message: 'Start trial',
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <StartTrialBtn {...props}/>,
             state,
         );
@@ -79,7 +79,7 @@ describe('components/learn_more_trial_modal/start_trial_btn', () => {
     test('should handle on click', async () => {
         const mockOnClick = jest.fn();
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <StartTrialBtn
                 {...props}
                 onClick={mockOnClick}
@@ -95,7 +95,7 @@ describe('components/learn_more_trial_modal/start_trial_btn', () => {
     test('should handle on click when rendered as button', async () => {
         const mockOnClick = jest.fn();
 
-        renderWithContext(
+        await renderWithContext(
             <StartTrialBtn
                 {...props}
                 renderAsButton={true}

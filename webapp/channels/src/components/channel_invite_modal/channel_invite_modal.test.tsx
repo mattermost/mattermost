@@ -161,8 +161,8 @@ describe('components/channel_invite_modal', () => {
         Client4.getBaseRoute.mockReturnValue('/api/v4');
     });
 
-    test('should match snapshot for channel_invite_modal with profiles', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot for channel_invite_modal with profiles', async () => {
+        const {container} = await renderWithContext(
             <ChannelInviteModal
                 {...baseProps}
                 profilesNotInCurrentChannel={users}
@@ -174,8 +174,8 @@ describe('components/channel_invite_modal', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot for channel_invite_modal with profiles from DMs', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot for channel_invite_modal with profiles from DMs', async () => {
+        const {container} = await renderWithContext(
             <ChannelInviteModal
                 {...baseProps}
                 profilesNotInCurrentChannel={[]}
@@ -187,8 +187,8 @@ describe('components/channel_invite_modal', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with exclude and include users', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with exclude and include users', async () => {
+        const {container} = await renderWithContext(
             <ChannelInviteModal
                 {...baseProps}
                 profilesNotInCurrentChannel={users}
@@ -220,8 +220,8 @@ describe('components/channel_invite_modal', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot for channel_invite_modal with userStatuses', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot for channel_invite_modal with userStatuses', async () => {
+        const {container} = await renderWithContext(
             <ChannelInviteModal
                 {...baseProps}
                 profilesNotInCurrentChannel={users}
@@ -236,8 +236,8 @@ describe('components/channel_invite_modal', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should hide modal when onHide is called', () => {
-        renderWithContext(
+    test('should hide modal when onHide is called', async () => {
+        await renderWithContext(
             <ChannelInviteModal {...baseProps}/>,
         );
 
@@ -249,9 +249,9 @@ describe('components/channel_invite_modal', () => {
         expect(baseProps.actions.closeModal).not.toHaveBeenCalled();
     });
 
-    test('should have called props.onExited when GenericModal.onExited is called', () => {
+    test('should have called props.onExited when GenericModal.onExited is called', async () => {
         const props = {...baseProps, onExited: jest.fn()};
-        renderWithContext(
+        await renderWithContext(
             <ChannelInviteModal {...props}/>,
         );
 
@@ -281,7 +281,7 @@ describe('components/channel_invite_modal', () => {
             membersInTeam: {'user-1': {user_id: 'user-1', team_id: channel.team_id, roles: '', delete_at: 0, scheme_admin: false, scheme_guest: false, scheme_user: true, mention_count: 0, mention_count_root: 0, msg_count: 0, msg_count_root: 0} as TeamMembership},
         };
 
-        const {getByText} = renderWithContext(
+        const {getByText} = await renderWithContext(
             <ChannelInviteModal
                 {...props}
             />,
@@ -329,7 +329,7 @@ describe('components/channel_invite_modal', () => {
             membersInTeam: {'user-1': {user_id: 'user-1', team_id: channel.team_id, roles: '', delete_at: 0, scheme_admin: false, scheme_guest: false, scheme_user: true, mention_count: 0, mention_count_root: 0, msg_count: 0, msg_count_root: 0} as TeamMembership},
         };
 
-        const {getByText} = renderWithContext(
+        const {getByText} = await renderWithContext(
             <ChannelInviteModal
                 {...props}
             />,
@@ -373,7 +373,7 @@ describe('components/channel_invite_modal', () => {
 
         };
 
-        const {getByText} = renderWithContext(
+        const {getByText} = await renderWithContext(
             <ChannelInviteModal
                 {...props}
             />,
@@ -411,7 +411,7 @@ describe('components/channel_invite_modal', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ChannelInviteModal
                 {...props}
             />,
@@ -433,13 +433,13 @@ describe('components/channel_invite_modal', () => {
         });
     });
 
-    test('should send the invite as guest param through the link', () => {
+    test('should send the invite as guest param through the link', async () => {
         const props = {
             ...baseProps,
             canInviteGuests: true,
             emailInvitationsEnabled: true,
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelInviteModal {...props}/>,
         );
 
@@ -450,13 +450,13 @@ describe('components/channel_invite_modal', () => {
         expect(screen.getByText('Invite as a Guest')).toBeInTheDocument();
     });
 
-    test('should hide the invite as guest param when can not invite guests', () => {
+    test('should hide the invite as guest param when can not invite guests', async () => {
         const props = {
             ...baseProps,
             canInviteGuests: false,
             emailInvitationsEnabled: false,
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelInviteModal {...props}/>,
         );
 
@@ -465,7 +465,7 @@ describe('components/channel_invite_modal', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should show AlertBanner when policy_enforced is true', () => {
+    test('should show AlertBanner when policy_enforced is true', async () => {
         const channelWithPolicy = {
             ...channel,
             policy_enforced: true,
@@ -476,7 +476,7 @@ describe('components/channel_invite_modal', () => {
             channel: channelWithPolicy,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ChannelInviteModal {...props}/>,
         );
 
@@ -484,7 +484,7 @@ describe('components/channel_invite_modal', () => {
         expect(document.querySelector('.AlertBanner')).not.toBeNull();
     });
 
-    test('should show attribute tags in AlertBanner', () => {
+    test('should show attribute tags in AlertBanner', async () => {
         const channelWithPolicy = {
             ...channel,
             policy_enforced: true,
@@ -495,7 +495,7 @@ describe('components/channel_invite_modal', () => {
             channel: channelWithPolicy,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ChannelInviteModal {...props}/>,
         );
 
@@ -507,7 +507,7 @@ describe('components/channel_invite_modal', () => {
         expect(screen.getByText('tag2')).toBeInTheDocument();
     });
 
-    test('should not show AlertBanner when policy_enforced is false', () => {
+    test('should not show AlertBanner when policy_enforced is false', async () => {
         const channelWithoutPolicy = {
             ...channel,
             policy_enforced: false,
@@ -518,7 +518,7 @@ describe('components/channel_invite_modal', () => {
             channel: channelWithoutPolicy,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ChannelInviteModal {...props}/>,
         );
 
@@ -526,11 +526,11 @@ describe('components/channel_invite_modal', () => {
         expect(document.querySelector('.AlertBanner')).toBeNull();
     });
 
-    test('should show loading state for access attributes', () => {
+    test('should show loading state for access attributes', async () => {
         // Mock the useAccessControlAttributes hook to return loading state
         const useAccessControlAttributesModule = require('components/common/hooks/useAccessControlAttributes');
         const useAccessControlAttributesMock = useAccessControlAttributesModule.default;
-        useAccessControlAttributesMock.mockReturnValueOnce({
+        useAccessControlAttributesMock.mockReturnValue({
             structuredAttributes: [],
             loading: true,
             error: null,
@@ -547,7 +547,7 @@ describe('components/channel_invite_modal', () => {
             channel: channelWithPolicy,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ChannelInviteModal {...props}/>,
         );
 
@@ -557,13 +557,15 @@ describe('components/channel_invite_modal', () => {
         // Check that no tags are shown (loading state)
         expect(screen.queryByText('tag1')).not.toBeInTheDocument();
         expect(screen.queryByText('tag2')).not.toBeInTheDocument();
+
+        useAccessControlAttributesMock.mockClear();
     });
 
-    test('should handle error state for access attributes', () => {
+    test('should handle error state for access attributes', async () => {
         // Mock the useAccessControlAttributes hook to return error state
         const useAccessControlAttributesModule = require('components/common/hooks/useAccessControlAttributes');
         const useAccessControlAttributesMock = useAccessControlAttributesModule.default;
-        useAccessControlAttributesMock.mockReturnValueOnce({
+        useAccessControlAttributesMock.mockReturnValue({
             structuredAttributes: [],
             loading: false,
             error: 'Failed to load attributes',
@@ -580,7 +582,7 @@ describe('components/channel_invite_modal', () => {
             channel: channelWithPolicy,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ChannelInviteModal {...props}/>,
         );
 
@@ -590,6 +592,8 @@ describe('components/channel_invite_modal', () => {
         // Check that no tags are shown (error state)
         expect(screen.queryByText('tag1')).not.toBeInTheDocument();
         expect(screen.queryByText('tag2')).not.toBeInTheDocument();
+
+        useAccessControlAttributesMock.mockClear();
     });
 
     // the multiselect returns several elements with the same text, usiing a custom function to get the correct one specifing the tagName
@@ -611,7 +615,7 @@ describe('components/channel_invite_modal', () => {
             profilesFromRecentDMs: [users[1]],
         };
 
-        renderWithContext(<ChannelInviteModal {...props}/>);
+        await renderWithContext(<ChannelInviteModal {...props}/>);
 
         // Wait for the API call to complete and state to update
         await act(async () => {
@@ -642,7 +646,7 @@ describe('components/channel_invite_modal', () => {
             profilesFromRecentDMs: [users[1]],
         };
 
-        renderWithContext(<ChannelInviteModal {...props}/>);
+        await renderWithContext(<ChannelInviteModal {...props}/>);
 
         const input = screen.getByRole('combobox', {name: /search for people/i});
         await userEvent.type(input, 'user');
@@ -670,7 +674,7 @@ describe('components/channel_invite_modal', () => {
         };
 
         // Render the component
-        renderWithContext(
+        await renderWithContext(
             <ChannelInviteModal {...props}/>,
         );
 
@@ -693,7 +697,7 @@ describe('components/channel_invite_modal', () => {
         expect(getProfilesNotInChannelMock).not.toHaveBeenCalled();
     });
 
-    test('should hide the invite as guest link when channel has policy_enforced', () => {
+    test('should hide the invite as guest link when channel has policy_enforced', async () => {
         const channelWithPolicy = {
             ...channel,
             policy_enforced: true,
@@ -706,7 +710,7 @@ describe('components/channel_invite_modal', () => {
             emailInvitationsEnabled: true,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ChannelInviteModal {...props}/>,
         );
 
@@ -745,7 +749,7 @@ describe('components/channel_invite_modal', () => {
             profilesNotInCurrentChannel: [users[0]],
         };
 
-        renderWithContext(<ChannelInviteModal {...props}/>);
+        await renderWithContext(<ChannelInviteModal {...props}/>);
 
         const input = screen.getByRole('combobox', {name: /search for people/i});
         await userEvent.type(input, '@');
@@ -792,7 +796,7 @@ describe('components/channel_invite_modal', () => {
             profilesNotInCurrentChannel: [users[0]],
         };
 
-        renderWithContext(<ChannelInviteModal {...props}/>);
+        await renderWithContext(<ChannelInviteModal {...props}/>);
 
         // Wait for the API call to complete and state to update
         await act(async () => {
@@ -824,7 +828,7 @@ describe('components/channel_invite_modal', () => {
             channel: {...channel, policy_enforced: true},
         };
 
-        renderWithContext(<ChannelInviteModal {...props}/>);
+        await renderWithContext(<ChannelInviteModal {...props}/>);
 
         // Wait for the API call to complete
         await act(async () => {
@@ -855,7 +859,7 @@ describe('components/channel_invite_modal', () => {
             includeUsers: {[users[1].id]: users[1]}, // Contaminated data
         };
 
-        renderWithContext(<ChannelInviteModal {...props}/>);
+        await renderWithContext(<ChannelInviteModal {...props}/>);
 
         // Wait for the API call to complete and state to update
         await act(async () => {

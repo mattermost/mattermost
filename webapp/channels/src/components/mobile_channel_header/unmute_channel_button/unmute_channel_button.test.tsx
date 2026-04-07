@@ -21,8 +21,8 @@ describe('components/ChannelHeaderMobile/UnmuteChannelButton', () => {
         },
     };
 
-    it('should match snapshot', () => {
-        const {container} = renderWithContext(<UnmuteChannelButton {...baseProps}/>);
+    it('should match snapshot', async () => {
+        const {container} = await renderWithContext(<UnmuteChannelButton {...baseProps}/>);
 
         expect(container).toMatchSnapshot();
     });
@@ -36,7 +36,7 @@ describe('components/ChannelHeaderMobile/UnmuteChannelButton', () => {
             },
         };
 
-        renderWithContext(<UnmuteChannelButton {...props}/>);
+        await renderWithContext(<UnmuteChannelButton {...props}/>);
 
         await userEvent.click(screen.getByRole('button'));
 

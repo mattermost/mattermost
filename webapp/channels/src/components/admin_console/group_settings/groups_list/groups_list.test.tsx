@@ -27,9 +27,9 @@ function openFilters() {
 }
 
 describe('components/admin_console/group_settings/GroupsList.tsx', () => {
-    test('should match snapshot, while loading', () => {
+    test('should match snapshot, while loading', async () => {
         // getLdapGroups never resolves, so component stays in loading state
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <GroupsList
                 groups={[]}
                 total={0}
@@ -44,7 +44,7 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
     });
 
     test('should match snapshot, with only linked selected', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <GroupsList
                 groups={[
                     {primary_key: 'test1', name: 'test1'},
@@ -69,7 +69,7 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
     });
 
     test('should match snapshot, with only not-linked selected', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <GroupsList
                 groups={[
                     {primary_key: 'test1', name: 'test1'},
@@ -94,7 +94,7 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
     });
 
     test('should match snapshot, with mixed types selected', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <GroupsList
                 groups={[
                     {primary_key: 'test1', name: 'test1'},
@@ -120,7 +120,7 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
     });
 
     test('should match snapshot, without selection', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <GroupsList
                 groups={[
                     {primary_key: 'test1', name: 'test1'},
@@ -142,7 +142,7 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
     });
 
     test('onCheckToggle must toggle the checked data', async () => {
-        renderWithContext(
+        await renderWithContext(
             <GroupsList
                 groups={[
                     {primary_key: 'test1', name: 'test1'},
@@ -186,7 +186,7 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
 
     test('linkSelectedGroups must call link for unlinked selected groups', async () => {
         const link = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <GroupsList
                 groups={[
                     {primary_key: 'test1', name: 'test1'},
@@ -218,7 +218,7 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
 
     test('unlinkSelectedGroups must call unlink for linked selected groups', async () => {
         const unlink = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <GroupsList
                 groups={[
                     {primary_key: 'test1', name: 'test1'},
@@ -249,7 +249,7 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
     });
 
     test('should match snapshot, without results', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <GroupsList
                 groups={[]}
                 total={0}
@@ -267,7 +267,7 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
     });
 
     test('should match snapshot, with results', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <GroupsList
                 groups={[
                     {primary_key: 'test1', name: 'test1'},
@@ -303,7 +303,7 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
             {primary_key: 'test10', name: 'test10'},
         ];
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <GroupsList
                 groups={groups}
                 total={401}
@@ -331,7 +331,7 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
 
     test('should match snapshot, with results and next', async () => {
         const getLdapGroups = jest.fn().mockReturnValue(Promise.resolve());
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <GroupsList
                 groups={[
                     {primary_key: 'test1', name: 'test1'},
@@ -363,7 +363,7 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
 
     test('should match snapshot, with results and previous', async () => {
         const getLdapGroups = jest.fn().mockReturnValue(Promise.resolve());
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <GroupsList
                 groups={[
                     {primary_key: 'test1', name: 'test1'},
@@ -395,7 +395,7 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
 
     test('should change properly the state and call the getLdapGroups, on previousPage when page > 0', async () => {
         const getLdapGroups = jest.fn().mockReturnValue(Promise.resolve());
-        renderWithContext(
+        await renderWithContext(
             <GroupsList
                 groups={[
                     {primary_key: 'test1', name: 'test1'},
@@ -461,7 +461,7 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
 
     test('should change properly the state and call the getLdapGroups, on previousPage when page == 0', async () => {
         const getLdapGroups = jest.fn().mockReturnValue(Promise.resolve());
-        renderWithContext(
+        await renderWithContext(
             <GroupsList
                 groups={[
                     {primary_key: 'test1', name: 'test1'},
@@ -492,7 +492,7 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
 
     test('should change properly the state and call the getLdapGroups, on nextPage clicked', async () => {
         const getLdapGroups = jest.fn().mockReturnValue(Promise.resolve());
-        renderWithContext(
+        await renderWithContext(
             <GroupsList
                 groups={[
                     {primary_key: 'test1', name: 'test1'},
@@ -545,7 +545,7 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
     });
 
     test('should match snapshot, with filters open', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <GroupsList
                 groups={[]}
                 total={0}
@@ -571,7 +571,7 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
     });
 
     test('clicking the clear icon clears searchString', async () => {
-        renderWithContext(
+        await renderWithContext(
             <GroupsList
                 groups={[]}
                 total={0}
@@ -598,7 +598,7 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
     });
 
     test('clicking the down arrow opens the filters', async () => {
-        renderWithContext(
+        await renderWithContext(
             <GroupsList
                 groups={[]}
                 total={0}
@@ -625,7 +625,7 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
 
     test('clicking search invokes getLdapGroups', async () => {
         const getLdapGroups = jest.fn().mockReturnValue(Promise.resolve());
-        renderWithContext(
+        await renderWithContext(
             <GroupsList
                 groups={[]}
                 total={0}
@@ -658,7 +658,7 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
 
     test('checking a filter checkbox add the filter to the searchString', async () => {
         const getLdapGroups = jest.fn().mockReturnValue(Promise.resolve());
-        renderWithContext(
+        await renderWithContext(
             <GroupsList
                 groups={[]}
                 total={0}
@@ -690,7 +690,7 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
 
     test('unchecking a filter checkbox removes the filter from the searchString', async () => {
         const getLdapGroups = jest.fn().mockReturnValue(Promise.resolve());
-        renderWithContext(
+        await renderWithContext(
             <GroupsList
                 groups={[]}
                 total={0}

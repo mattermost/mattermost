@@ -13,7 +13,7 @@ import {TestHelper} from 'utils/test_helper';
 describe('components/admin_console/data_retention_settings/team_list', () => {
     const team: Team = Object.assign(TestHelper.getTeamMock({id: 'team-1'}));
 
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const testTeams = [{
             ...team,
         }];
@@ -23,7 +23,7 @@ describe('components/admin_console/data_retention_settings/team_list', () => {
             setTeamListSearch: jest.fn(),
             setTeamListFilters: jest.fn(),
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <TeamList
                 searchTerm=''
                 onRemoveCallback={jest.fn()}
@@ -37,7 +37,7 @@ describe('components/admin_console/data_retention_settings/team_list', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with paging', () => {
+    test('should match snapshot with paging', async () => {
         const testTeams = [];
         for (let i = 0; i < 30; i++) {
             testTeams.push({
@@ -53,7 +53,7 @@ describe('components/admin_console/data_retention_settings/team_list', () => {
             setTeamListSearch: jest.fn(),
             setTeamListFilters: jest.fn(),
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <TeamList
                 searchTerm=''
                 onRemoveCallback={jest.fn()}

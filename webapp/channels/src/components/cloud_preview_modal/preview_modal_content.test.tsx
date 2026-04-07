@@ -26,20 +26,20 @@ describe('PreviewModalContent', () => {
         useCase: 'missionops',
     };
 
-    const renderComponent = (content: PreviewModalContentData) => {
+    const renderComponent = async (content: PreviewModalContentData) => {
         return renderWithContext(
             <PreviewModalContent content={content}/>,
         );
     };
 
-    it('should render title and subtitle', () => {
+    it('should render title and subtitle', async () => {
         renderComponent(baseContent);
 
         expect(screen.getByText('Test Title')).toBeInTheDocument();
         expect(screen.getByText('Test subtitle with bold text')).toBeInTheDocument();
     });
 
-    it('should render SKU label with logo when provided', () => {
+    it('should render SKU label with logo when provided', async () => {
         const content = {
             ...baseContent,
             skuLabel: {
@@ -56,7 +56,7 @@ describe('PreviewModalContent', () => {
         expect(screen.getByLabelText('Mattermost Logo')).toBeInTheDocument();
     });
 
-    it('should not render SKU label when not provided', () => {
+    it('should not render SKU label when not provided', async () => {
         const contentWithoutSku = {
             ...baseContent,
             skuLabel: {
@@ -72,7 +72,7 @@ describe('PreviewModalContent', () => {
         expect(skuContainer).not.toBeInTheDocument();
     });
 
-    it('should render video when videoUrl is provided with .mp4 extension', () => {
+    it('should render video when videoUrl is provided with .mp4 extension', async () => {
         const content = {
             ...baseContent,
             videoUrl: 'https://example.com/video.mp4',
@@ -88,7 +88,7 @@ describe('PreviewModalContent', () => {
         expect(video.tagName).toBe('VIDEO');
     });
 
-    it('should render video with poster when videoPoster is provided', () => {
+    it('should render video with poster when videoPoster is provided', async () => {
         const content = {
             ...baseContent,
             videoUrl: 'https://example.com/video.mp4',
@@ -102,7 +102,7 @@ describe('PreviewModalContent', () => {
         expect(video.poster).toBe('https://example.com/poster.jpg');
     });
 
-    it('should render video without poster when videoPoster is not provided', () => {
+    it('should render video without poster when videoPoster is not provided', async () => {
         const content = {
             ...baseContent,
             videoUrl: 'https://example.com/video.mp4',
@@ -115,7 +115,7 @@ describe('PreviewModalContent', () => {
         expect(video.poster).toBe('');
     });
 
-    it('should show play button initially for video content', () => {
+    it('should show play button initially for video content', async () => {
         const content = {
             ...baseContent,
             videoUrl: 'https://example.com/video.mp4',

@@ -8,8 +8,8 @@ import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {GroupProfileAndSettings} from './group_profile_and_settings';
 
 describe('components/admin_console/group_settings/group_details/GroupProfileAndSettings', () => {
-    test('should match snapshot, with toggle off', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot, with toggle off', async () => {
+        const {container} = await renderWithContext(
             <GroupProfileAndSettings
                 displayname='GroupProfileAndSettings'
                 mentionname='GroupProfileAndSettings'
@@ -26,8 +26,8 @@ describe('components/admin_console/group_settings/group_details/GroupProfileAndS
         expect(screen.queryByText('Group Mention:')).not.toBeInTheDocument();
     });
 
-    test('should match snapshot, with toggle on', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot, with toggle on', async () => {
+        const {container} = await renderWithContext(
             <GroupProfileAndSettings
                 displayname='GroupProfileAndSettings'
                 mentionname='GroupProfileAndSettings'

@@ -172,7 +172,7 @@ describe('ChannelSettingsModal', () => {
     it('should render the modal with correct header text', async () => {
         const testState = makeTestState();
 
-        renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
+        await renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
         expect(screen.getByText('Channel Settings')).toBeInTheDocument();
     });
@@ -180,7 +180,7 @@ describe('ChannelSettingsModal', () => {
     it('should render Info tab by default', async () => {
         const testState = makeTestState();
 
-        renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
+        await renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
         // Wait for the lazy-loaded components
         await waitFor(() => {
@@ -191,7 +191,7 @@ describe('ChannelSettingsModal', () => {
     it('should switch tabs when clicked', async () => {
         const testState = makeTestState();
 
-        renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
+        await renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
         // Wait for the sidebar to load
         await waitFor(() => {
@@ -214,7 +214,7 @@ describe('ChannelSettingsModal', () => {
 
         testState.entities.channels.channels[channelId].name = 'town-square';
 
-        renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
+        await renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
         // Wait for the sidebar to load
         await waitFor(() => {
@@ -233,7 +233,7 @@ describe('ChannelSettingsModal', () => {
 
         const testState = makeTestState();
 
-        renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
+        await renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
         // Wait for the sidebar to load
         await waitFor(() => {
@@ -249,7 +249,7 @@ describe('ChannelSettingsModal', () => {
 
         const testState = makeTestState();
 
-        renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
+        await renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
         // Wait for the sidebar to load
         await waitFor(() => {
@@ -266,7 +266,7 @@ describe('ChannelSettingsModal', () => {
         const testState = makeTestState();
         testState.entities.channels.channels[channelId].type = General.PRIVATE_CHANNEL;
 
-        renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
+        await renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
         // Wait for the sidebar to load
         await waitFor(() => {
@@ -283,7 +283,7 @@ describe('ChannelSettingsModal', () => {
         const testState = makeTestState();
         testState.entities.channels.channels[channelId].type = General.PRIVATE_CHANNEL;
 
-        renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
+        await renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
         // Wait for the sidebar to load
         await waitFor(() => {
@@ -297,7 +297,7 @@ describe('ChannelSettingsModal', () => {
     it('should not show configuration tab with no license', async () => {
         const testState = makeTestState();
 
-        renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
+        await renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
         expect(screen.queryByTestId('configuration-tab-button')).not.toBeInTheDocument();
     });
 
@@ -305,7 +305,7 @@ describe('ChannelSettingsModal', () => {
         const testState = makeTestState();
         testState.entities.general.license.SkuShortName = 'professional';
 
-        renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
+        await renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
         expect(screen.queryByTestId('configuration-tab-button')).not.toBeInTheDocument();
     });
 
@@ -313,7 +313,7 @@ describe('ChannelSettingsModal', () => {
         const testState = makeTestState();
         testState.entities.general.license.SkuShortName = 'enterprise';
 
-        renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
+        await renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
         expect(screen.queryByTestId('configuration-tab-button')).not.toBeInTheDocument();
     });
 
@@ -321,7 +321,7 @@ describe('ChannelSettingsModal', () => {
         const testState = makeTestState();
         testState.entities.general.license.SkuShortName = 'advanced';
 
-        renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
+        await renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
         expect(screen.getByTestId('configuration-tab-button')).toBeInTheDocument();
     });
 
@@ -332,7 +332,7 @@ describe('ChannelSettingsModal', () => {
             const testState = makeTestState();
             testState.entities.channels.channels[channelId].type = General.PRIVATE_CHANNEL;
 
-            renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
+            await renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
             // Wait for the sidebar to load
             await waitFor(() => {
@@ -350,7 +350,7 @@ describe('ChannelSettingsModal', () => {
             const testState = makeTestState();
             testState.entities.channels.channels[channelId].type = General.PRIVATE_CHANNEL;
 
-            renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
+            await renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
             // Wait for the sidebar to load
             await waitFor(() => {
@@ -367,7 +367,7 @@ describe('ChannelSettingsModal', () => {
 
             const testState = makeTestState();
 
-            renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
+            await renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
             // Wait for the sidebar to load
             await waitFor(() => {
@@ -384,7 +384,7 @@ describe('ChannelSettingsModal', () => {
 
             const testState = makeTestState();
 
-            renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
+            await renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
             // Wait for the sidebar to load
             await waitFor(() => {
@@ -402,7 +402,7 @@ describe('ChannelSettingsModal', () => {
             const testState = makeTestState();
             testState.entities.channels.channels[channelId].type = General.PRIVATE_CHANNEL;
 
-            renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
+            await renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
             // Wait for the sidebar to load
             await waitFor(() => {
@@ -427,7 +427,7 @@ describe('ChannelSettingsModal', () => {
             const testState = makeTestState();
             testState.entities.channels.channels[channelId].type = General.PRIVATE_CHANNEL;
 
-            renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
+            await renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
             // Wait for the sidebar to load
             await waitFor(() => {
@@ -446,7 +446,7 @@ describe('ChannelSettingsModal', () => {
             testState.entities.channels.channels[channelId].name = 'town-square';
             testState.entities.channels.channels[channelId].type = General.PRIVATE_CHANNEL;
 
-            renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
+            await renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
             // Wait for the sidebar to load
             await waitFor(() => {
@@ -464,7 +464,7 @@ describe('ChannelSettingsModal', () => {
             testState.entities.channels.channels[channelId].type = General.PRIVATE_CHANNEL;
             testState.entities.channels.channels[channelId].group_constrained = true;
 
-            renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
+            await renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
             // Wait for the sidebar to load
             await waitFor(() => {
@@ -483,7 +483,7 @@ describe('ChannelSettingsModal', () => {
             testState.entities.channels.channels[channelId].type = General.PRIVATE_CHANNEL;
             testState.entities.channels.channels[channelId].group_constrained = true;
 
-            renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
+            await renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
             // Wait for the sidebar to load
             await waitFor(() => {
@@ -501,7 +501,7 @@ describe('ChannelSettingsModal', () => {
             const testState = makeTestState();
             testState.entities.channels.channels[channelId].group_constrained = true;
 
-            renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
+            await renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
             // Wait for the sidebar to load
             await waitFor(() => {
@@ -516,7 +516,7 @@ describe('ChannelSettingsModal', () => {
 
     describe('warn-once modal closing behavior', () => {
         it('should close immediately when no unsaved changes exist', async () => {
-            renderWithContext(<ChannelSettingsModal {...baseProps}/>, makeTestState());
+            await renderWithContext(<ChannelSettingsModal {...baseProps}/>, makeTestState());
 
             await waitFor(() => {
                 expect(screen.getByRole('dialog')).toBeInTheDocument();
@@ -531,7 +531,7 @@ describe('ChannelSettingsModal', () => {
         });
 
         it('should prevent close on first attempt with unsaved changes', async () => {
-            renderWithContext(<ChannelSettingsModal {...baseProps}/>, makeTestState());
+            await renderWithContext(<ChannelSettingsModal {...baseProps}/>, makeTestState());
 
             await waitFor(() => {
                 expect(screen.getByRole('dialog')).toBeInTheDocument();
@@ -556,7 +556,7 @@ describe('ChannelSettingsModal', () => {
         });
 
         it('should allow close on second attempt (warn-once behavior)', async () => {
-            renderWithContext(<ChannelSettingsModal {...baseProps}/>, makeTestState());
+            await renderWithContext(<ChannelSettingsModal {...baseProps}/>, makeTestState());
 
             await waitFor(() => {
                 expect(screen.getByRole('dialog')).toBeInTheDocument();
@@ -583,7 +583,7 @@ describe('ChannelSettingsModal', () => {
         });
 
         it('should reset warning state when changes are saved', async () => {
-            renderWithContext(<ChannelSettingsModal {...baseProps}/>, makeTestState());
+            await renderWithContext(<ChannelSettingsModal {...baseProps}/>, makeTestState());
 
             await waitFor(() => {
                 expect(screen.getByRole('dialog')).toBeInTheDocument();

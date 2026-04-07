@@ -14,6 +14,16 @@ import {AddUsersToTeamModal} from './add_users_to_team_modal';
 import type {AddUsersToTeamModal as AddUsersToTeamModalClass} from './add_users_to_team_modal';
 
 describe('components/admin_console/add_users_to_team_modal/AddUsersToTeamModal', () => {
+    const originalRAF = window.requestAnimationFrame;
+
+    beforeEach(() => {
+        window.requestAnimationFrame = jest.fn();
+    });
+
+    afterEach(() => {
+        window.requestAnimationFrame = originalRAF;
+    });
+
     function createUser(id: string, username: string, bot: boolean): UserProfile {
         return TestHelper.getUserMock({
             id,
@@ -60,8 +70,8 @@ describe('components/admin_console/add_users_to_team_modal/AddUsersToTeamModal',
         },
     };
 
-    test('should match snapshot with 2 users', () => {
-        const {baseElement} = renderWithContext(
+    test('should match snapshot with 2 users', async () => {
+        const {baseElement} = await renderWithContext(
             <AddUsersToTeamModal
                 {...baseProps}
             />,
@@ -69,8 +79,8 @@ describe('components/admin_console/add_users_to_team_modal/AddUsersToTeamModal',
         expect(baseElement).toMatchSnapshot();
     });
 
-    test('should match snapshot with 2 users, 1 included and 1 removed', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with 2 users, 1 included and 1 removed', async () => {
+        const {container} = await renderWithContext(
             <AddUsersToTeamModal
                 {...baseProps}
                 includeUsers={{[removedUser.id]: removedUser}}
@@ -80,9 +90,9 @@ describe('components/admin_console/add_users_to_team_modal/AddUsersToTeamModal',
         expect(container).toMatchSnapshot();
     });
 
-    test('should match state when handleHide is called', () => {
+    test('should match state when handleHide is called', async () => {
         const ref = React.createRef<AddUsersToTeamModalClass>();
-        renderWithContext(
+        await renderWithContext(
             <AddUsersToTeamModal
                 {...baseProps}
                 ref={ref}
@@ -98,9 +108,9 @@ describe('components/admin_console/add_users_to_team_modal/AddUsersToTeamModal',
         expect(ref.current!.state.show).toEqual(false);
     });
 
-    test('should search', () => {
+    test('should search', async () => {
         const ref = React.createRef<AddUsersToTeamModalClass>();
-        renderWithContext(
+        await renderWithContext(
             <AddUsersToTeamModal
                 {...baseProps}
                 ref={ref}

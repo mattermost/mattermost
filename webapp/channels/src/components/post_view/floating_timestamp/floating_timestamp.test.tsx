@@ -25,8 +25,8 @@ describe('components/post_view/FloatingTimestamp', () => {
         },
     };
 
-    test('should match component state with given props', () => {
-        renderWithContext(<FloatingTimestamp {...baseProps}/>, initialState);
+    test('should match component state with given props', async () => {
+        await renderWithContext(<FloatingTimestamp {...baseProps}/>, initialState);
 
         const floatingTimeStamp = screen.getByTestId('floatingTimestamp');
         const time = screen.getByText('January 01, 1970');

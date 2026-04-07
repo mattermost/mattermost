@@ -16,8 +16,8 @@ describe('settings_desktop_header', () => {
         text: 'setting section header',
     };
 
-    it('properly renders the header', () => {
-        renderWithContext(<SettingDesktopHeader {...baseProps}/>);
+    it('properly renders the header', async () => {
+        await renderWithContext(<SettingDesktopHeader {...baseProps}/>);
         const header = screen.queryByText('setting section header');
         expect(header).toBeInTheDocument();
 

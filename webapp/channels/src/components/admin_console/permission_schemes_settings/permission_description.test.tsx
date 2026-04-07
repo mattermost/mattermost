@@ -14,8 +14,8 @@ describe('components/admin_console/permission_schemes_settings/permission_descri
         description: 'This is the description',
     };
 
-    test('should match snapshot with default Props', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with default Props', async () => {
+        const {container} = await renderWithContext(
             <PermissionDescription
                 {...defaultProps}
             />,
@@ -23,8 +23,8 @@ describe('components/admin_console/permission_schemes_settings/permission_descri
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot if inherited', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot if inherited', async () => {
+        const {container} = await renderWithContext(
             <PermissionDescription
                 {...defaultProps}
                 inherited={{
@@ -35,11 +35,11 @@ describe('components/admin_console/permission_schemes_settings/permission_descri
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with clickable link', () => {
+    test('should match snapshot with clickable link', async () => {
         const description = (
             <span>{'This is a clickable description'}</span>
         );
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PermissionDescription
                 {...defaultProps}
                 description={description}
@@ -51,7 +51,7 @@ describe('components/admin_console/permission_schemes_settings/permission_descri
     test('should allow select with link', async () => {
         const selectRow = jest.fn();
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PermissionDescription
                 {...defaultProps}
                 inherited={{

@@ -25,7 +25,7 @@ describe('components/LatexBlock', () => {
     };
 
     test('should match snapshot', async () => {
-        renderWithContext(<LatexBlock {...defaultProps}/>);
+        await renderWithContext(<LatexBlock {...defaultProps}/>);
         const wrapper = await screen.findAllByTestId('latex-enabled');
         expect(wrapper.length).toBe(1);
         expect(wrapper.at(0)).toMatchSnapshot();
@@ -37,7 +37,7 @@ describe('components/LatexBlock', () => {
             enableLatex: false,
         };
 
-        const {container} = renderWithContext(<LatexBlock {...props}/>);
+        const {container} = await renderWithContext(<LatexBlock {...props}/>);
 
         expect(screen.getByText('LaTeX')).toBeInTheDocument();
         expect(container.querySelector('.post-code__line-numbers')).toBeInTheDocument();
@@ -51,7 +51,7 @@ describe('components/LatexBlock', () => {
             enableLatex: true,
         };
 
-        renderWithContext(<LatexBlock {...props}/>);
+        await renderWithContext(<LatexBlock {...props}/>);
         const wrapper = await screen.findAllByTestId('latex-enabled');
         expect(wrapper.length).toBe(1);
         expect(wrapper.at(0)).toMatchSnapshot();

@@ -33,8 +33,8 @@ describe('components/pricing_modal/downgrade_team_removal_modal', () => {
         },
     };
 
-    test('matches snapshot', () => {
-        const {container} = renderWithContext(
+    test('matches snapshot', async () => {
+        const {container} = await renderWithContext(
             <SuccessModal/>,
             state,
         );

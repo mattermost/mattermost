@@ -8,8 +8,8 @@ import {renderWithContext, screen} from 'tests/react_testing_utils';
 import KeyboardShortcutsSequence from './keyboard_shortcuts_sequence';
 
 describe('components/shortcuts/KeyboardShortcutsSequence', () => {
-    test('should match snapshot when used for modal with description', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot when used for modal with description', async () => {
+        const {container} = await renderWithContext(
             <KeyboardShortcutsSequence
                 shortcut={{
                     id: 'test',
@@ -24,8 +24,8 @@ describe('components/shortcuts/KeyboardShortcutsSequence', () => {
         expect(container.querySelectorAll('.shortcut-key--shortcut-modal')).toHaveLength(2);
     });
 
-    test('should render sequence without description', () => {
-        const {container} = renderWithContext(
+    test('should render sequence without description', async () => {
+        const {container} = await renderWithContext(
             <KeyboardShortcutsSequence
                 shortcut={{
                     id: 'test',
@@ -39,8 +39,8 @@ describe('components/shortcuts/KeyboardShortcutsSequence', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with alternative shortcut', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with alternative shortcut', async () => {
+        const {container} = await renderWithContext(
             <KeyboardShortcutsSequence
                 shortcut={{
                     id: 'test',
@@ -55,8 +55,8 @@ describe('components/shortcuts/KeyboardShortcutsSequence', () => {
         expect(container.querySelectorAll('.shortcut-key--shortcut-modal')).toHaveLength(5);
     });
 
-    test('should render sequence without description', () => {
-        const {container} = renderWithContext(
+    test('should render sequence without description', async () => {
+        const {container} = await renderWithContext(
             <KeyboardShortcutsSequence
                 shortcut={{
                     id: 'test',
@@ -71,8 +71,8 @@ describe('components/shortcuts/KeyboardShortcutsSequence', () => {
         expect(container.querySelectorAll('.shortcut-key--tooltip')).toHaveLength(2);
         expect(container.querySelectorAll('.shortcut-key--shortcut-modal')).toHaveLength(0);
     });
-    test('should render sequence hoisting description', () => {
-        const {container} = renderWithContext(
+    test('should render sequence hoisting description', async () => {
+        const {container} = await renderWithContext(
             <KeyboardShortcutsSequence
                 shortcut={{
                     id: 'test',

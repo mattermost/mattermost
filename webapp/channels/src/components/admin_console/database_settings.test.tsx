@@ -26,7 +26,7 @@ describe('components/DatabaseSettings', () => {
             Cluster: 'true',
         },
     };
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const config = {
             SqlSettings: {
                 MaxIdleConns: 10,
@@ -48,7 +48,7 @@ describe('components/DatabaseSettings', () => {
             config,
             isDisabled: false,
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <DatabaseSettings
                 {...props}
             />,

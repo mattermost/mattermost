@@ -132,23 +132,23 @@ describe('SidebarHeader', () => {
         },
     };
 
-    test('should render the team menu button', () => {
-        renderWithContext(<SidebarHeader {...defaultProps}/>, initialState);
+    test('should render the team menu button', async () => {
+        await renderWithContext(<SidebarHeader {...defaultProps}/>, initialState);
 
         expect(screen.getByText('Steadfast')).toBeInTheDocument();
         expect(screen.getByRole('button', {name: team.display_name})).toBeInTheDocument();
     });
 
-    test('should render the \'Browse or create channels\' menu button', () => {
-        renderWithContext(<SidebarHeader {...defaultProps}/>, initialState);
+    test('should render the \'Browse or create channels\' menu button', async () => {
+        await renderWithContext(<SidebarHeader {...defaultProps}/>, initialState);
 
         expect(screen.getByRole('button', {name: /Browse or create channels/i})).toBeInTheDocument();
     });
 
-    test('should not render anything when team is empty', () => {
+    test('should not render anything when team is empty', async () => {
         const state = {...initialState};
         state.entities.teams.currentTeamId = '';
-        renderWithContext(<SidebarHeader {...defaultProps}/>, state);
+        await renderWithContext(<SidebarHeader {...defaultProps}/>, state);
 
         expect(screen.queryByRole('button', {name: team.display_name})).toBeNull();
         expect(screen.queryByRole('button', {name: /Add Channel Dropdown/i})).toBeNull();

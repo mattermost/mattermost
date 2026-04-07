@@ -15,8 +15,8 @@ describe('components/KeyboardShortcutsModal', () => {
         },
     };
 
-    test('should match snapshot modal', () => {
-        const {baseElement} = renderWithContext(
+    test('should match snapshot modal', async () => {
+        const {baseElement} = await renderWithContext(
             <KeyboardShortcutsModal onExited={jest.fn()}/>,
             initialState,
         );
@@ -24,8 +24,8 @@ describe('components/KeyboardShortcutsModal', () => {
         expect(baseElement).toMatchSnapshot();
     });
 
-    test('should match snapshot modal with Calls enabled', () => {
-        const {baseElement} = renderWithContext(
+    test('should match snapshot modal with Calls enabled', async () => {
+        const {baseElement} = await renderWithContext(
             <KeyboardShortcutsModal onExited={jest.fn()}/>,
             {
                 ...initialState,

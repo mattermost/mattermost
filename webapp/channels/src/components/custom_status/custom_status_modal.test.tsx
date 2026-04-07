@@ -34,7 +34,7 @@ describe('CustomStatusModal', () => {
     };
 
     test('should render suggested statuses until the user starts typing', async () => {
-        renderWithContext(
+        await renderWithContext(
             <CustomStatusModal
                 {...baseProps}
             />,
@@ -53,7 +53,7 @@ describe('CustomStatusModal', () => {
     });
 
     test('should render suggested statuses until the user selects an emoji', async () => {
-        renderWithContext(
+        await renderWithContext(
             <CustomStatusModal
                 {...baseProps}
             />,
@@ -72,7 +72,7 @@ describe('CustomStatusModal', () => {
         expect(screen.queryByLabelText(':hamburger:')).not.toBeInTheDocument();
     });
 
-    test('should render recently used statuses as suggestions', () => {
+    test('should render recently used statuses as suggestions', async () => {
         const testState = mergeObjects(initialState, {
             entities: {
                 preferences: {
@@ -89,7 +89,7 @@ describe('CustomStatusModal', () => {
             },
         });
 
-        renderWithContext(
+        await renderWithContext(
             <CustomStatusModal
                 {...baseProps}
             />,
@@ -101,7 +101,7 @@ describe('CustomStatusModal', () => {
         expect(screen.getByLabelText(':taco:')).toBeInTheDocument();
     });
 
-    test('should render recently used statuses with custom emojis which exist', () => {
+    test('should render recently used statuses with custom emojis which exist', async () => {
         const existentEmoji = TestHelper.getCustomEmojiMock({name: 'existent'});
 
         const testState = mergeObjects(initialState, {
@@ -126,7 +126,7 @@ describe('CustomStatusModal', () => {
             },
         });
 
-        renderWithContext(
+        await renderWithContext(
             <CustomStatusModal
                 {...baseProps}
             />,

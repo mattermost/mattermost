@@ -19,8 +19,8 @@ describe('components/user_settings/notifications/ManageAutoResponder', () => {
         error: '',
     };
 
-    test('should match snapshot, default disabled', () => {
-        const {container} = renderWithContext(<ManageAutoResponder {...requiredProps}/>);
+    test('should match snapshot, default disabled', async () => {
+        const {container} = await renderWithContext(<ManageAutoResponder {...requiredProps}/>);
 
         expect(container).toMatchSnapshot();
 
@@ -28,8 +28,8 @@ describe('components/user_settings/notifications/ManageAutoResponder', () => {
         expect(container.querySelector('#autoResponderMessage')).not.toBeInTheDocument();
     });
 
-    test('should match snapshot, enabled', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot, enabled', async () => {
+        const {container} = await renderWithContext(
             <ManageAutoResponder
                 {...requiredProps}
                 autoResponderActive={true}
@@ -42,9 +42,9 @@ describe('components/user_settings/notifications/ManageAutoResponder', () => {
         expect(container.querySelector('#autoResponderMessage')).toBeInTheDocument();
     });
 
-    test('should pass handleChange', () => {
+    test('should pass handleChange', async () => {
         const setParentState = jest.fn();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ManageAutoResponder
                 {...requiredProps}
                 autoResponderActive={true}

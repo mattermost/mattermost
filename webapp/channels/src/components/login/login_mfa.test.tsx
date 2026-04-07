@@ -15,8 +15,8 @@ describe('components/login/LoginMfa', () => {
     };
     const token = '123456';
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <LoginMfa {...baseProps}/>,
         );
 
@@ -24,7 +24,7 @@ describe('components/login/LoginMfa', () => {
     });
 
     test('should handle token entered', async () => {
-        renderWithContext(
+        await renderWithContext(
             <LoginMfa {...baseProps}/>,
         );
 
@@ -42,7 +42,7 @@ describe('components/login/LoginMfa', () => {
     });
 
     test('should handle submit', async () => {
-        renderWithContext(
+        await renderWithContext(
             <LoginMfa {...baseProps}/>,
         );
 

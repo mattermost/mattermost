@@ -10,8 +10,8 @@ import {ChannelsSettings} from './channel_settings';
 jest.mock('components/admin_console/team_channel_settings/channel/list', () => () => <div>{'ChannelsList'}</div>);
 
 describe('admin_console/team_channel_settings/channel/ChannelSettings', () => {
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <ChannelsSettings
                 siteName='site'
             />,

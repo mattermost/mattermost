@@ -23,17 +23,17 @@ describe('components/activity_log_modal/MoreInfo', () => {
         handleMoreInfo: jest.fn(),
     };
 
-    test('should match snapshot extra info toggled off', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot extra info toggled off', async () => {
+        const {container} = await renderWithContext(
             <MoreInfo {...baseProps}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, extra info toggled on', () => {
+    test('should match snapshot, extra info toggled on', async () => {
         const props = {...baseProps, moreInfo: true};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <MoreInfo {...props}/>,
         );
 

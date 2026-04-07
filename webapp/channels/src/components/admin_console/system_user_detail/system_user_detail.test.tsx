@@ -14,7 +14,7 @@ import SystemUserDetail, {getUserAuthenticationTextField} from 'components/admin
 import type {Params, Props} from 'components/admin_console/system_user_detail/system_user_detail';
 
 import type {MockIntl} from 'tests/helpers/intl-test-helper';
-import {renderWithContext, screen, waitFor, waitForElementToBeRemoved} from 'tests/react_testing_utils';
+import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -58,13 +58,15 @@ describe('SystemUserDetail', () => {
     };
 
     const waitForLoadingToFinish = async () => {
-        await waitForElementToBeRemoved(screen.queryAllByTitle('Loading Icon'));
-        await waitFor(() => expect(screen.queryByText('No teams found')).toBeInTheDocument());
+        await waitFor(() => {
+            expect(screen.queryAllByTitle('Loading Icon')).toHaveLength(0);
+            expect(screen.queryByText('No teams found')).toBeInTheDocument();
+        });
     };
 
     test('should match default snapshot', async () => {
         const props = defaultProps;
-        const {container} = renderWithContext(<SystemUserDetail {...props}/>);
+        const {container} = await renderWithContext(<SystemUserDetail {...props}/>);
 
         await waitForLoadingToFinish();
 
@@ -76,7 +78,7 @@ describe('SystemUserDetail', () => {
             ...defaultProps,
             mfaEnabled: true,
         };
-        const {container} = renderWithContext(<SystemUserDetail {...props}/>);
+        const {container} = await renderWithContext(<SystemUserDetail {...props}/>);
 
         await waitForLoadingToFinish();
 
@@ -88,7 +90,7 @@ describe('SystemUserDetail', () => {
             ...defaultProps,
             showManageUserSettings: true,
         };
-        const {container} = renderWithContext(<SystemUserDetail {...props}/>);
+        const {container} = await renderWithContext(<SystemUserDetail {...props}/>);
 
         await waitForLoadingToFinish();
 
@@ -100,7 +102,7 @@ describe('SystemUserDetail', () => {
             ...defaultProps,
             showLockedManageUserSettings: false,
         };
-        const {container} = renderWithContext(<SystemUserDetail {...props}/>);
+        const {container} = await renderWithContext(<SystemUserDetail {...props}/>);
 
         await waitForLoadingToFinish();
 
@@ -113,7 +115,7 @@ describe('SystemUserDetail', () => {
             getUser: getLdapUserMock,
         };
 
-        const {container} = renderWithContext(<SystemUserDetail {...props}/>);
+        const {container} = await renderWithContext(<SystemUserDetail {...props}/>);
 
         await waitForLoadingToFinish();
 
@@ -128,7 +130,7 @@ describe('SystemUserDetail', () => {
             ...defaultProps,
             showManageUserSettings: false,
         };
-        const {container} = renderWithContext(<SystemUserDetail {...props}/>);
+        const {container} = await renderWithContext(<SystemUserDetail {...props}/>);
 
         await waitForLoadingToFinish();
 
@@ -138,9 +140,9 @@ describe('SystemUserDetail', () => {
     describe('change detection', () => {
         test('should detect email changes and enable save', async () => {
             const userEventInstance = userEvent.setup();
-            renderWithContext(<SystemUserDetail {...defaultProps}/>);
+            await renderWithContext(<SystemUserDetail {...defaultProps}/>);
 
-            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+            await waitFor(() => expect(screen.queryAllByTestId('loadingSpinner')).toHaveLength(0));
 
             const emailInput = screen.getByLabelText('Email');
             await userEventInstance.clear(emailInput);
@@ -150,9 +152,9 @@ describe('SystemUserDetail', () => {
 
         test('should detect username changes and enable save', async () => {
             const userEventInstance = userEvent.setup();
-            renderWithContext(<SystemUserDetail {...defaultProps}/>);
+            await renderWithContext(<SystemUserDetail {...defaultProps}/>);
 
-            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+            await waitFor(() => expect(screen.queryAllByTestId('loadingSpinner')).toHaveLength(0));
 
             const usernameInput = screen.getByPlaceholderText('Enter username');
             await userEventInstance.clear(usernameInput);
@@ -164,9 +166,9 @@ describe('SystemUserDetail', () => {
     describe('email validation', () => {
         test('should handle email validation and still set navigation blocking', async () => {
             const userEventInstance = userEvent.setup();
-            renderWithContext(<SystemUserDetail {...defaultProps}/>);
+            await renderWithContext(<SystemUserDetail {...defaultProps}/>);
 
-            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+            await waitFor(() => expect(screen.queryAllByTestId('loadingSpinner')).toHaveLength(0));
 
             const emailInput = screen.getByLabelText('Email');
             await userEventInstance.clear(emailInput);
@@ -178,9 +180,9 @@ describe('SystemUserDetail', () => {
 
         test('should not show validation error for valid email', async () => {
             const userEventInstance = userEvent.setup();
-            renderWithContext(<SystemUserDetail {...defaultProps}/>);
+            await renderWithContext(<SystemUserDetail {...defaultProps}/>);
 
-            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+            await waitFor(() => expect(screen.queryAllByTestId('loadingSpinner')).toHaveLength(0));
 
             const emailInput = screen.getByLabelText('Email');
             await userEventInstance.clear(emailInput);
@@ -193,9 +195,9 @@ describe('SystemUserDetail', () => {
 
         test('should show validation error for empty email', async () => {
             const userEventInstance = userEvent.setup();
-            renderWithContext(<SystemUserDetail {...defaultProps}/>);
+            await renderWithContext(<SystemUserDetail {...defaultProps}/>);
 
-            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+            await waitFor(() => expect(screen.queryAllByTestId('loadingSpinner')).toHaveLength(0));
 
             const emailInput = screen.getByLabelText('Email');
             await userEventInstance.clear(emailInput);
@@ -210,9 +212,9 @@ describe('SystemUserDetail', () => {
     describe('username validation', () => {
         test('should show validation error for empty username', async () => {
             const userEventInstance = userEvent.setup();
-            renderWithContext(<SystemUserDetail {...defaultProps}/>);
+            await renderWithContext(<SystemUserDetail {...defaultProps}/>);
 
-            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+            await waitFor(() => expect(screen.queryAllByTestId('loadingSpinner')).toHaveLength(0));
 
             const usernameInput = screen.getByPlaceholderText('Enter username');
             await userEventInstance.clear(usernameInput);
@@ -234,9 +236,9 @@ describe('SystemUserDetail', () => {
                 ...defaultProps,
                 getUser: getSamlUserMock,
             };
-            renderWithContext(<SystemUserDetail {...props}/>);
+            await renderWithContext(<SystemUserDetail {...props}/>);
 
-            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+            await waitFor(() => expect(screen.queryAllByTestId('loadingSpinner')).toHaveLength(0));
 
             const authDataInput = screen.getByPlaceholderText('Enter auth data');
             await userEventInstance.clear(authDataInput);
@@ -253,9 +255,9 @@ describe('SystemUserDetail', () => {
                 ...defaultProps,
                 getUser: getSamlUserMock,
             };
-            renderWithContext(<SystemUserDetail {...props}/>);
+            await renderWithContext(<SystemUserDetail {...props}/>);
 
-            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+            await waitFor(() => expect(screen.queryAllByTestId('loadingSpinner')).toHaveLength(0));
 
             const authDataInput = screen.getByPlaceholderText('Enter auth data');
             const longAuthData = 'a'.repeat(129); // 129 characters, exceeds max
@@ -273,9 +275,9 @@ describe('SystemUserDetail', () => {
                 ...defaultProps,
                 getUser: getSamlUserMock,
             };
-            renderWithContext(<SystemUserDetail {...props}/>);
+            await renderWithContext(<SystemUserDetail {...props}/>);
 
-            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+            await waitFor(() => expect(screen.queryAllByTestId('loadingSpinner')).toHaveLength(0));
 
             const authDataInput = screen.getByPlaceholderText('Enter auth data');
             const validAuthData = 'a'.repeat(128); // Exactly 128 characters
@@ -304,7 +306,7 @@ describe('SystemUserDetail', () => {
                 getUser: getUserErrorMock,
             };
 
-            renderWithContext(<SystemUserDetail {...props}/>);
+            await renderWithContext(<SystemUserDetail {...props}/>);
 
             await waitFor(() => {
                 expect(screen.getByText('Cannot load User')).toBeInTheDocument();
@@ -334,9 +336,9 @@ describe('SystemUserDetail', () => {
                 updateUserActive: updateUserActiveMock,
             };
 
-            renderWithContext(<SystemUserDetail {...props}/>);
+            await renderWithContext(<SystemUserDetail {...props}/>);
 
-            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+            await waitFor(() => expect(screen.queryAllByTestId('loadingSpinner')).toHaveLength(0));
 
             // Find and click activate button
             const activateButton = screen.getByText('Activate');

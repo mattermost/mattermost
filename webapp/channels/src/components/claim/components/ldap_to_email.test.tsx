@@ -18,7 +18,7 @@ describe('components/claim/components/ldap_to_email.jsx', () => {
             requireNumber: true,
             requireSymbol: true,
         },
-        switchLdapToEmail: jest.fn(() => Promise.resolve({data: {follow_link: '/login'}})),
+        switchLdapToEmail: jest.fn(() => Promise.resolve({data: {follow_link: ''}})),
     };
 
     beforeEach(() => {
@@ -28,7 +28,7 @@ describe('components/claim/components/ldap_to_email.jsx', () => {
     test('submit via MFA should call switchLdapToEmail with empty passwords', async () => {
         const token = 'abcd1234';
 
-        renderWithContext(<LDAPToEmail {...requiredProps}/>);
+        await renderWithContext(<LDAPToEmail {...requiredProps}/>);
 
         // The component initially renders LoginMfa (showMfa starts as true).
         // In this flow, password and ldapPassword state are still empty.
@@ -61,7 +61,7 @@ describe('components/claim/components/ldap_to_email.jsx', () => {
             switchLdapToEmail,
         };
 
-        renderWithContext(<LDAPToEmail {...props}/>);
+        await renderWithContext(<LDAPToEmail {...props}/>);
 
         // Step 1: Submit the initial MFA form to trigger an error that shows the password form
         const mfaInput = screen.getByLabelText('MFA Token');

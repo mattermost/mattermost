@@ -14,7 +14,7 @@ describe('components/ClusterSettings', () => {
             Cluster: 'true',
         },
     };
-    test('should match snapshot, encryption disabled', () => {
+    test('should match snapshot, encryption disabled', async () => {
         const props = {
             ...baseProps,
             value: [],
@@ -31,7 +31,7 @@ describe('components/ClusterSettings', () => {
                 SteamingPort: 8075,
             },
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ClusterSettings
                 {...props}
                 config={config}
@@ -42,7 +42,7 @@ describe('components/ClusterSettings', () => {
         expect(screen.getByText('Enable Gossip encryption:')).toBeInTheDocument();
     });
 
-    test('should match snapshot, encryption enabled', () => {
+    test('should match snapshot, encryption enabled', async () => {
         const props = {
             ...baseProps,
             value: [],
@@ -59,7 +59,7 @@ describe('components/ClusterSettings', () => {
                 SteamingPort: 8075,
             },
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ClusterSettings
                 {...props}
                 config={config}
@@ -70,7 +70,7 @@ describe('components/ClusterSettings', () => {
         expect(screen.getByText('Enable Gossip encryption:')).toBeInTheDocument();
     });
 
-    test('should match snapshot, compression enabled', () => {
+    test('should match snapshot, compression enabled', async () => {
         const props = {
             ...baseProps,
             value: [],
@@ -87,7 +87,7 @@ describe('components/ClusterSettings', () => {
                 SteamingPort: 8075,
             },
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ClusterSettings
                 {...props}
                 config={config}
@@ -98,7 +98,7 @@ describe('components/ClusterSettings', () => {
         expect(screen.getByText('Enable Gossip compression:')).toBeInTheDocument();
     });
 
-    test('should match snapshot, compression disabled', () => {
+    test('should match snapshot, compression disabled', async () => {
         const props = {
             ...baseProps,
             value: [],
@@ -115,7 +115,7 @@ describe('components/ClusterSettings', () => {
                 SteamingPort: 8075,
             },
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ClusterSettings
                 {...props}
                 config={config}

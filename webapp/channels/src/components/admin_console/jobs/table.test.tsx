@@ -111,7 +111,7 @@ describe('components/admin_console/jobs/table', () => {
     };
 
     test('should call create job func', async () => {
-        renderWithContext(
+        await renderWithContext(
             <JobTable {...baseProps}/>,
         );
 
@@ -121,7 +121,7 @@ describe('components/admin_console/jobs/table', () => {
     });
 
     test('should call cancel job func', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <JobTable {...baseProps}/>,
         );
 
@@ -133,7 +133,7 @@ describe('components/admin_console/jobs/table', () => {
         expect(cancelJob).toHaveBeenCalledTimes(1);
     });
 
-    test('files column should show', () => {
+    test('files column should show', async () => {
         const cols = [
             {header: ''},
             {header: 'Status'},
@@ -143,7 +143,7 @@ describe('components/admin_console/jobs/table', () => {
             {header: 'Details'},
         ];
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <JobTable
                 {...baseProps}
                 jobType='message_export'
@@ -164,7 +164,7 @@ describe('components/admin_console/jobs/table', () => {
         expect(headers).toHaveLength(cols.length);
     });
 
-    test('files column should not show', () => {
+    test('files column should not show', async () => {
         const cols = [
             {header: ''},
             {header: 'Status'},
@@ -173,7 +173,7 @@ describe('components/admin_console/jobs/table', () => {
             {header: 'Details'},
         ];
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <JobTable
                 {...baseProps}
                 downloadExportResults={false}
@@ -193,8 +193,8 @@ describe('components/admin_console/jobs/table', () => {
         expect(headers).toHaveLength(cols.length);
     });
 
-    test('hide create job button', () => {
-        const {container} = renderWithContext(
+    test('hide create job button', async () => {
+        const {container} = await renderWithContext(
             <JobTable
                 {...baseProps}
                 hideJobCreateButton={true}
@@ -205,8 +205,8 @@ describe('components/admin_console/jobs/table', () => {
         expect(button).toHaveLength(0);
     });
 
-    test('add custom class', () => {
-        const {container} = renderWithContext(
+    test('add custom class', async () => {
+        const {container} = await renderWithContext(
             <JobTable
                 {...baseProps}
                 className={'job-table__data-retention'}

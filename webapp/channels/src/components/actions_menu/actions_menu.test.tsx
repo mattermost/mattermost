@@ -69,8 +69,8 @@ describe('components/actions_menu/ActionsMenu', () => {
         },
     };
 
-    test('sysadmin - should have divider when plugin menu item exists', () => {
-        const {container, rerender} = renderWithContext(
+    test('sysadmin - should have divider when plugin menu item exists', async () => {
+        const {container, rerender} = await renderWithContext(
             <ActionsMenu {...baseProps}/>,
         );
         expect(container.querySelector('#divider_post_post_id_1_marketplace')).toBeNull();
@@ -85,8 +85,8 @@ describe('components/actions_menu/ActionsMenu', () => {
         expect(container.querySelector('#divider_post_post_id_1_marketplace')).not.toBeNull();
     });
 
-    test('has actions - marketplace enabled and user has SYSCONSOLE_WRITE_PLUGINS - should show actions and app marketplace', () => {
-        const {container} = renderWithContext(
+    test('has actions - marketplace enabled and user has SYSCONSOLE_WRITE_PLUGINS - should show actions and app marketplace', async () => {
+        const {container} = await renderWithContext(
             <ActionsMenu
                 {...baseProps}
                 pluginMenuItems={dropdownMenuActions}
@@ -96,8 +96,8 @@ describe('components/actions_menu/ActionsMenu', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('has actions - marketplace disabled or user not having SYSCONSOLE_WRITE_PLUGINS - should not show actions and app marketplace', () => {
-        const {container} = renderWithContext(
+    test('has actions - marketplace disabled or user not having SYSCONSOLE_WRITE_PLUGINS - should not show actions and app marketplace', async () => {
+        const {container} = await renderWithContext(
             <ActionsMenu
                 {...baseProps}
                 pluginMenuItems={dropdownMenuActions}
@@ -107,8 +107,8 @@ describe('components/actions_menu/ActionsMenu', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('no actions - sysadmin - menu should show visit marketplace', () => {
-        const {container} = renderWithContext(
+    test('no actions - sysadmin - menu should show visit marketplace', async () => {
+        const {container} = await renderWithContext(
             <ActionsMenu
                 {...baseProps}
                 canOpenMarketplace={true}
@@ -118,8 +118,8 @@ describe('components/actions_menu/ActionsMenu', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('no actions - end user - menu should not be visible to end user', () => {
-        const {container} = renderWithContext(
+    test('no actions - end user - menu should not be visible to end user', async () => {
+        const {container} = await renderWithContext(
             <ActionsMenu
                 {...baseProps}
                 isSysAdmin={false}
@@ -130,8 +130,8 @@ describe('components/actions_menu/ActionsMenu', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('sysadmin - should have divider when pluggable menu item exists', () => {
-        const {container, rerender} = renderWithContext(
+    test('sysadmin - should have divider when pluggable menu item exists', async () => {
+        const {container, rerender} = await renderWithContext(
             <ActionsMenu {...baseProps}/>,
         );
         expect(container.querySelector('#divider_post_post_id_1_marketplace')).toBeNull();
@@ -146,8 +146,8 @@ describe('components/actions_menu/ActionsMenu', () => {
         expect(container.querySelector('#divider_post_post_id_1_marketplace')).not.toBeNull();
     });
 
-    test('end user - should not have divider when pluggable menu item exists', () => {
-        const {container, rerender} = renderWithContext(
+    test('end user - should not have divider when pluggable menu item exists', async () => {
+        const {container, rerender} = await renderWithContext(
             <ActionsMenu
                 {...baseProps}
                 isSysAdmin={false}

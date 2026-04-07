@@ -32,8 +32,8 @@ describe('components/SharedUserIndicator', () => {
         jest.spyOn(reactIntl, 'useIntl').mockImplementation(() => mockIntl as any);
     });
 
-    test('should render without tooltip', () => {
-        renderWithContext(
+    test('should render without tooltip', async () => {
+        await renderWithContext(
             <SharedUserIndicator withTooltip={false}/>,
         );
 
@@ -44,7 +44,7 @@ describe('components/SharedUserIndicator', () => {
     test('should render with custom title in tooltip', async () => {
         jest.useFakeTimers();
 
-        renderWithContext(
+        await renderWithContext(
             <SharedUserIndicator
                 withTooltip={true}
                 title='Custom title'
@@ -64,7 +64,7 @@ describe('components/SharedUserIndicator', () => {
     test('should render with default tooltip when no remote names', async () => {
         jest.useFakeTimers();
 
-        renderWithContext(
+        await renderWithContext(
             <SharedUserIndicator withTooltip={true}/>,
         );
 
@@ -82,7 +82,7 @@ describe('components/SharedUserIndicator', () => {
         jest.useFakeTimers();
 
         const remoteNames = ['Remote 1', 'Remote 2'];
-        renderWithContext(
+        await renderWithContext(
             <SharedUserIndicator
                 withTooltip={true}
                 remoteNames={remoteNames}
@@ -103,7 +103,7 @@ describe('components/SharedUserIndicator', () => {
         jest.useFakeTimers();
 
         const remoteNames = ['Remote 1', 'Remote 2', 'Remote 3', 'Remote 4', 'Remote 5'];
-        renderWithContext(
+        await renderWithContext(
             <SharedUserIndicator
                 withTooltip={true}
                 remoteNames={remoteNames}
@@ -124,7 +124,7 @@ describe('components/SharedUserIndicator', () => {
         jest.useFakeTimers();
 
         const remoteNames = ['Remote 1', 'Remote 2', 'Remote 3', 'Remote 4'];
-        renderWithContext(
+        await renderWithContext(
             <SharedUserIndicator
                 withTooltip={true}
                 remoteNames={remoteNames}
@@ -154,7 +154,7 @@ describe('components/SharedUserIndicator', () => {
             'Very Long Organization Name 6 That Exceeds Length Limits',
         ];
 
-        renderWithContext(
+        await renderWithContext(
             <SharedUserIndicator
                 withTooltip={true}
                 remoteNames={longRemoteNames}

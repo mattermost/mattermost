@@ -17,64 +17,64 @@ describe('NotificationPermissionSectionNotice', () => {
         jest.restoreAllMocks();
     });
 
-    test('should render "Unsupported" notice when notifications are not supported', () => {
+    test('should render "Unsupported" notice when notifications are not supported', async () => {
         jest.spyOn(utilsNotifications, 'isNotificationAPISupported').mockReturnValue(false);
 
-        renderWithContext(<NotificationPermissionSectionNotice/>);
+        await renderWithContext(<NotificationPermissionSectionNotice/>);
 
         expect(screen.getByText('Browser notifications unsupported')).toBeInTheDocument();
     });
 
-    test('should not render "Unsupported" notice for MS 365 mobile apps even when notifications are not supported', () => {
+    test('should not render "Unsupported" notice for MS 365 mobile apps even when notifications are not supported', async () => {
         jest.spyOn(utilsNotifications, 'isNotificationAPISupported').mockReturnValue(false);
         jest.spyOn(UserAgent, 'isM365Mobile').mockReturnValue(true);
 
-        const {container} = renderWithContext(<NotificationPermissionSectionNotice/>);
+        const {container} = await renderWithContext(<NotificationPermissionSectionNotice/>);
 
         expect(container).toBeEmptyDOMElement();
     });
 
-    test('should render "Never granted" notice when notifications are never granted', () => {
+    test('should render "Never granted" notice when notifications are never granted', async () => {
         jest.spyOn(utilsNotifications, 'isNotificationAPISupported').mockReturnValue(true);
         jest.spyOn(utilsNotifications, 'getNotificationPermission').mockReturnValue('default');
 
-        renderWithContext(<NotificationPermissionSectionNotice/>);
+        await renderWithContext(<NotificationPermissionSectionNotice/>);
 
         expect(screen.getByText('Browser notifications are disabled')).toBeInTheDocument();
     });
 
-    test('should render "Denied" notice when notifications are denied', () => {
+    test('should render "Denied" notice when notifications are denied', async () => {
         jest.spyOn(utilsNotifications, 'isNotificationAPISupported').mockReturnValue(true);
         jest.spyOn(utilsNotifications, 'getNotificationPermission').mockReturnValue('denied');
 
-        renderWithContext(<NotificationPermissionSectionNotice/>);
+        await renderWithContext(<NotificationPermissionSectionNotice/>);
 
         expect(screen.getByText('Browser notification permission was denied')).toBeInTheDocument();
     });
 
-    test('should render nothing when notifications are granted', () => {
+    test('should render nothing when notifications are granted', async () => {
         jest.spyOn(utilsNotifications, 'isNotificationAPISupported').mockReturnValue(true);
         jest.spyOn(utilsNotifications, 'getNotificationPermission').mockReturnValue('granted');
 
-        const {container} = renderWithContext(<NotificationPermissionSectionNotice/>);
+        const {container} = await renderWithContext(<NotificationPermissionSectionNotice/>);
 
         expect(container).toBeEmptyDOMElement();
     });
 
-    test('should render "Desktop denied" notice when desktop permission is denied', () => {
+    test('should render "Desktop denied" notice when desktop permission is denied', async () => {
         jest.spyOn(utilsNotifications, 'isNotificationAPISupported').mockReturnValue(true);
         jest.spyOn(useDesktopAppNotificationPermission, 'useDesktopAppNotificationPermission').mockReturnValue([utilsNotifications.NotificationPermissionDenied as DesktopNotificationPermission, jest.fn()]);
 
-        renderWithContext(<NotificationPermissionSectionNotice/>);
+        await renderWithContext(<NotificationPermissionSectionNotice/>);
 
         expect(screen.getByText('Desktop notifications permission required')).toBeInTheDocument();
     });
 
-    test('should render nothing when desktop permission is granted', () => {
+    test('should render nothing when desktop permission is granted', async () => {
         jest.spyOn(utilsNotifications, 'isNotificationAPISupported').mockReturnValue(true);
         jest.spyOn(useDesktopAppNotificationPermission, 'useDesktopAppNotificationPermission').mockReturnValue([utilsNotifications.NotificationPermissionGranted as DesktopNotificationPermission, jest.fn()]);
 
-        const {container} = renderWithContext(<NotificationPermissionSectionNotice/>);
+        const {container} = await renderWithContext(<NotificationPermissionSectionNotice/>);
 
         expect(container).toBeEmptyDOMElement();
     });

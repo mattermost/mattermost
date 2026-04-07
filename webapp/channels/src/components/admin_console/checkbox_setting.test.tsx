@@ -8,9 +8,9 @@ import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import CheckboxSetting from './checkbox_setting';
 
 describe('components/admin_console/CheckboxSetting', () => {
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const onChange = jest.fn();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <CheckboxSetting
                 id='string.id'
                 label='some label'
@@ -28,7 +28,7 @@ describe('components/admin_console/CheckboxSetting', () => {
 
     test('onChange', async () => {
         const onChange = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <CheckboxSetting
                 id='string.id'
                 label='some label'

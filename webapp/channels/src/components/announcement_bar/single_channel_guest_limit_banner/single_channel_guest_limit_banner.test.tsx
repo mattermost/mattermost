@@ -42,8 +42,8 @@ const baseState = {
 const bannerMessage = 'Your workspace has reached the limit for single-channel guests';
 
 describe('SingleChannelGuestLimitBanner', () => {
-    test('does not render when user is not admin', () => {
-        renderWithContext(
+    test('does not render when user is not admin', async () => {
+        await renderWithContext(
             <SingleChannelGuestLimitBanner userIsAdmin={false}/>,
             baseState,
         );
@@ -51,7 +51,7 @@ describe('SingleChannelGuestLimitBanner', () => {
         expect(screen.queryByText(bannerMessage)).not.toBeInTheDocument();
     });
 
-    test('does not render when guest count is within limit', () => {
+    test('does not render when guest count is within limit', async () => {
         const state = {
             ...baseState,
             entities: {
@@ -66,7 +66,7 @@ describe('SingleChannelGuestLimitBanner', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <SingleChannelGuestLimitBanner userIsAdmin={true}/>,
             state,
         );
@@ -74,7 +74,7 @@ describe('SingleChannelGuestLimitBanner', () => {
         expect(screen.queryByText(bannerMessage)).not.toBeInTheDocument();
     });
 
-    test('does not render when license is Entry SKU', () => {
+    test('does not render when license is Entry SKU', async () => {
         const state = {
             ...baseState,
             entities: {
@@ -89,7 +89,7 @@ describe('SingleChannelGuestLimitBanner', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <SingleChannelGuestLimitBanner userIsAdmin={true}/>,
             state,
         );
@@ -97,7 +97,7 @@ describe('SingleChannelGuestLimitBanner', () => {
         expect(screen.queryByText(bannerMessage)).not.toBeInTheDocument();
     });
 
-    test('does not render when guest accounts are disabled', () => {
+    test('does not render when guest accounts are disabled', async () => {
         const state = {
             ...baseState,
             entities: {
@@ -111,7 +111,7 @@ describe('SingleChannelGuestLimitBanner', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <SingleChannelGuestLimitBanner userIsAdmin={true}/>,
             state,
         );
@@ -119,8 +119,8 @@ describe('SingleChannelGuestLimitBanner', () => {
         expect(screen.queryByText(bannerMessage)).not.toBeInTheDocument();
     });
 
-    test('renders banner when guest count exceeds limit for admin user with eligible license', () => {
-        renderWithContext(
+    test('renders banner when guest count exceeds limit for admin user with eligible license', async () => {
+        await renderWithContext(
             <SingleChannelGuestLimitBanner userIsAdmin={true}/>,
             baseState,
         );
@@ -128,7 +128,7 @@ describe('SingleChannelGuestLimitBanner', () => {
         expect(screen.getByText(bannerMessage)).toBeInTheDocument();
     });
 
-    test('does not render when banner has been dismissed', () => {
+    test('does not render when banner has been dismissed', async () => {
         const state = {
             ...baseState,
             entities: {
@@ -145,7 +145,7 @@ describe('SingleChannelGuestLimitBanner', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <SingleChannelGuestLimitBanner userIsAdmin={true}/>,
             state,
         );
@@ -153,7 +153,7 @@ describe('SingleChannelGuestLimitBanner', () => {
         expect(screen.queryByText(bannerMessage)).not.toBeInTheDocument();
     });
 
-    test('does not render when singleChannelGuestLimit is 0', () => {
+    test('does not render when singleChannelGuestLimit is 0', async () => {
         const state = {
             ...baseState,
             entities: {
@@ -167,7 +167,7 @@ describe('SingleChannelGuestLimitBanner', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <SingleChannelGuestLimitBanner userIsAdmin={true}/>,
             state,
         );

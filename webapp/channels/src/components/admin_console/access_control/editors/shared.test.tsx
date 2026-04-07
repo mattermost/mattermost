@@ -19,8 +19,8 @@ describe('TestButton', () => {
         baseProps.onClick.mockClear();
     });
 
-    test('should render test button with correct text and icon', () => {
-        renderWithContext(<TestButton {...baseProps}/>, {});
+    test('should render test button with correct text and icon', async () => {
+        await renderWithContext(<TestButton {...baseProps}/>, {});
 
         const button = screen.getByRole('button', {name: /test access rule/i});
         expect(button).toBeInTheDocument();
@@ -31,28 +31,28 @@ describe('TestButton', () => {
         expect(icon).toBeInTheDocument();
     });
 
-    test('should be enabled and clickable when disabled is false', () => {
-        renderWithContext(<TestButton {...baseProps}/>, {});
+    test('should be enabled and clickable when disabled is false', async () => {
+        await renderWithContext(<TestButton {...baseProps}/>, {});
 
         const button = screen.getByRole('button', {name: /test access rule/i});
         expect(button).not.toBeDisabled();
         expect(button).toBeEnabled();
     });
 
-    test('should be disabled when disabled is true', () => {
+    test('should be disabled when disabled is true', async () => {
         const props = {
             ...baseProps,
             disabled: true,
         };
 
-        renderWithContext(<TestButton {...props}/>, {});
+        await renderWithContext(<TestButton {...props}/>, {});
 
         const button = screen.getByRole('button', {name: /test access rule/i});
         expect(button).toBeDisabled();
     });
 
-    test('should call onClick when clicked and not disabled', () => {
-        renderWithContext(<TestButton {...baseProps}/>, {});
+    test('should call onClick when clicked and not disabled', async () => {
+        await renderWithContext(<TestButton {...baseProps}/>, {});
 
         const button = screen.getByRole('button', {name: /test access rule/i});
         button.click();
@@ -60,13 +60,13 @@ describe('TestButton', () => {
         expect(baseProps.onClick).toHaveBeenCalledTimes(1);
     });
 
-    test('should not call onClick when clicked and disabled', () => {
+    test('should not call onClick when clicked and disabled', async () => {
         const props = {
             ...baseProps,
             disabled: true,
         };
 
-        renderWithContext(<TestButton {...props}/>, {});
+        await renderWithContext(<TestButton {...props}/>, {});
 
         const button = screen.getByRole('button', {name: /test access rule/i});
         button.click();
@@ -74,8 +74,8 @@ describe('TestButton', () => {
         expect(baseProps.onClick).not.toHaveBeenCalled();
     });
 
-    test('should not show tooltip when not disabled', () => {
-        renderWithContext(<TestButton {...baseProps}/>, {});
+    test('should not show tooltip when not disabled', async () => {
+        await renderWithContext(<TestButton {...baseProps}/>, {});
 
         const button = screen.getByRole('button', {name: /test access rule/i});
 
@@ -84,13 +84,13 @@ describe('TestButton', () => {
         expect(button).not.toHaveAttribute('title');
     });
 
-    test('should not show tooltip when disabled but no disabledTooltip provided', () => {
+    test('should not show tooltip when disabled but no disabledTooltip provided', async () => {
         const props = {
             ...baseProps,
             disabled: true,
         };
 
-        renderWithContext(<TestButton {...props}/>, {});
+        await renderWithContext(<TestButton {...props}/>, {});
 
         const button = screen.getByRole('button', {name: /test access rule/i});
 
@@ -99,7 +99,7 @@ describe('TestButton', () => {
         expect(button).not.toHaveAttribute('title');
     });
 
-    test('should show tooltip when disabled and disabledTooltip is provided', () => {
+    test('should show tooltip when disabled and disabledTooltip is provided', async () => {
         const tooltipMessage = 'You cannot test access rules that would exclude you from the channel';
         const props = {
             ...baseProps,
@@ -107,7 +107,7 @@ describe('TestButton', () => {
             disabledTooltip: tooltipMessage,
         };
 
-        renderWithContext(<TestButton {...props}/>, {});
+        await renderWithContext(<TestButton {...props}/>, {});
 
         const button = screen.getByRole('button', {name: /test access rule/i});
         expect(button).toBeDisabled();
@@ -117,7 +117,7 @@ describe('TestButton', () => {
         // In actual usage, hovering over the button would show the tooltip
     });
 
-    test('should show correct tooltip message when disabled and disabledTooltip is provided', () => {
+    test('should show correct tooltip message when disabled and disabledTooltip is provided', async () => {
         const tooltipMessage = 'Custom tooltip message';
         const props = {
             ...baseProps,
@@ -125,7 +125,7 @@ describe('TestButton', () => {
             disabledTooltip: tooltipMessage,
         };
 
-        renderWithContext(<TestButton {...props}/>, {});
+        await renderWithContext(<TestButton {...props}/>, {});
 
         // Since WithTooltip is complex and uses floating-ui, we mainly test that
         // the tooltip wrapper is present when needed
@@ -136,14 +136,14 @@ describe('TestButton', () => {
         // In a real test environment, you could hover over the button and check for tooltip
     });
 
-    test('should handle empty string tooltip', () => {
+    test('should handle empty string tooltip', async () => {
         const props = {
             ...baseProps,
             disabled: true,
             disabledTooltip: '',
         };
 
-        renderWithContext(<TestButton {...props}/>, {});
+        await renderWithContext(<TestButton {...props}/>, {});
 
         const button = screen.getByRole('button', {name: /test access rule/i});
         expect(button).toBeDisabled();
@@ -152,14 +152,14 @@ describe('TestButton', () => {
         expect(button.parentElement).not.toHaveAttribute('data-testid', 'tooltip-wrapper');
     });
 
-    test('should handle undefined disabledTooltip same as no tooltip', () => {
+    test('should handle undefined disabledTooltip same as no tooltip', async () => {
         const props = {
             ...baseProps,
             disabled: true,
             disabledTooltip: undefined,
         };
 
-        renderWithContext(<TestButton {...props}/>, {});
+        await renderWithContext(<TestButton {...props}/>, {});
 
         const button = screen.getByRole('button', {name: /test access rule/i});
         expect(button).toBeDisabled();

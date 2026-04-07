@@ -25,8 +25,8 @@ describe('components/global/AtMentionsButton', () => {
         },
     } as unknown as GlobalState;
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <AtMentionsButton/>,
             initialState,
         );
@@ -34,7 +34,7 @@ describe('components/global/AtMentionsButton', () => {
     });
 
     test('should show active mentions', async () => {
-        renderWithContext(
+        await renderWithContext(
             <AtMentionsButton/>,
             initialState,
         );

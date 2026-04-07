@@ -48,8 +48,8 @@ describe('components/sidebar/invite_members_button', () => {
 
     jest.spyOn(teams, 'getCurrentTeamId').mockReturnValue('team_id2sss');
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <InviteMembersButton {...props}/>,
             state,
         );
@@ -57,7 +57,7 @@ describe('components/sidebar/invite_members_button', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should return nothing when user does not have permissions', () => {
+    test('should return nothing when user does not have permissions', async () => {
         const guestUser = {
             currentUserId: 'guest_user_id',
             profiles: {
@@ -69,7 +69,7 @@ describe('components/sidebar/invite_members_button', () => {
         };
         const noPermissionsState = {...state, entities: {...state.entities, users: guestUser}};
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <InviteMembersButton {...props}/>,
             noPermissionsState,
         );

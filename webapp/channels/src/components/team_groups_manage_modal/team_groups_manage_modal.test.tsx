@@ -29,7 +29,7 @@ describe('components/TeamGroupsManageModal', () => {
     };
 
     test('should show confirm modal when remove-group button is clicked', async () => {
-        const wrapper = renderWithContext(<TeamGroupsManageModal {...baseProps}/>);
+        const wrapper = await renderWithContext(<TeamGroupsManageModal {...baseProps}/>);
         expect(await wrapper.findByTestId('group-name')).toBeInTheDocument();
         await userEvent.click(wrapper.getByTestId('menu-button'));
 
@@ -39,7 +39,7 @@ describe('components/TeamGroupsManageModal', () => {
     });
 
     test('should call loadItems on render', async () => {
-        renderWithContext(<TeamGroupsManageModal {...baseProps}/>);
+        await renderWithContext(<TeamGroupsManageModal {...baseProps}/>);
 
         await waitFor(() => {
             expect(actions.getGroupsAssociatedToTeam).toHaveBeenCalledTimes(1);
@@ -47,7 +47,7 @@ describe('components/TeamGroupsManageModal', () => {
     });
 
     test('should hide confirm modal when cancel button is clicked', async () => {
-        const wrapper = renderWithContext(<TeamGroupsManageModal {...baseProps}/>);
+        const wrapper = await renderWithContext(<TeamGroupsManageModal {...baseProps}/>);
         expect(await wrapper.findByTestId('group-name')).toBeInTheDocument();
         await userEvent.click(wrapper.getByTestId('menu-button'));
 

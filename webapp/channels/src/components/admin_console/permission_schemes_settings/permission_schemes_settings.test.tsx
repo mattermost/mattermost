@@ -31,10 +31,10 @@ describe('components/admin_console/permission_schemes_settings/permission_scheme
         ...{} as RouteComponentProps,
     };
 
-    test('should match snapshot loading', () => {
+    test('should match snapshot loading', async () => {
         // loadSchemes returns a pending promise so component stays in loading state
         const loadSchemes = jest.fn(() => new Promise<any>(() => {}));
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PermissionSchemesSettings
                 {...defaultProps}
                 actions={{...defaultProps.actions, loadSchemes}}
@@ -45,7 +45,7 @@ describe('components/admin_console/permission_schemes_settings/permission_scheme
 
     test('should match snapshot without schemes', async () => {
         const loadSchemes = jest.fn(() => Promise.resolve({data: [], error: {}}));
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PermissionSchemesSettings
                 {...defaultProps}
                 schemes={{}}
@@ -60,7 +60,7 @@ describe('components/admin_console/permission_schemes_settings/permission_scheme
 
     test('should match snapshot with schemes', async () => {
         const loadSchemes = jest.fn(() => Promise.resolve({data: [], error: {}}));
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PermissionSchemesSettings
                 {...defaultProps}
                 actions={{...defaultProps.actions, loadSchemes}}
@@ -76,7 +76,7 @@ describe('components/admin_console/permission_schemes_settings/permission_scheme
         const loadSchemes = jest.fn(() =>
             Promise.resolve({data: [], error: {status_code: 501}}),
         );
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PermissionSchemesSettings
                 {...defaultProps}
                 actions={{...defaultProps.actions, loadSchemes}}
@@ -92,7 +92,7 @@ describe('components/admin_console/permission_schemes_settings/permission_scheme
         const loadSchemes = jest.fn(() =>
             Promise.resolve({data: [], error: {status_code: 501}}),
         );
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PermissionSchemesSettings
                 {...defaultProps}
                 jobsAreEnabled={false}
@@ -107,7 +107,7 @@ describe('components/admin_console/permission_schemes_settings/permission_scheme
 
     test('should show normal view (jobs disabled after migration)', async () => {
         const loadSchemes = jest.fn(() => Promise.resolve({data: [], error: {}}));
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PermissionSchemesSettings
                 {...defaultProps}
                 jobsAreEnabled={false}

@@ -26,8 +26,8 @@ describe('useTeam', () => {
             jest.restoreAllMocks();
         });
 
-        test("should return the team if it's already in the store", () => {
-            const {result} = renderHookWithContext(
+        test("should return the team if it's already in the store", async () => {
+            const {result} = await renderHookWithContext(
                 () => useTeam('team1'),
                 {
                     entities: {
@@ -44,8 +44,8 @@ describe('useTeam', () => {
             expect(dispatchMock).not.toHaveBeenCalled();
         });
 
-        test("should fetch the team if it's not in the store", () => {
-            const {result} = renderHookWithContext(
+        test("should fetch the team if it's not in the store", async () => {
+            const {result} = await renderHookWithContext(
                 () => useTeam('team1'),
             );
 
@@ -53,8 +53,8 @@ describe('useTeam', () => {
             expect(dispatchMock).toHaveBeenCalledTimes(1);
         });
 
-        test('should only attempt to fetch the team once regardless of how many times the hook is used', () => {
-            const {result, rerender} = renderHookWithContext(
+        test('should only attempt to fetch the team once regardless of how many times the hook is used', async () => {
+            const {result, rerender} = await renderHookWithContext(
                 () => useTeam('team1'),
             );
 
@@ -69,9 +69,9 @@ describe('useTeam', () => {
             expect(dispatchMock).toHaveBeenCalledTimes(1);
         });
 
-        test('should attempt to fetch different teams if the team ID changes', () => {
+        test('should attempt to fetch different teams if the team ID changes', async () => {
             let teamId = 'team1';
-            const {result, rerender} = renderHookWithContext(
+            const {result, rerender} = await renderHookWithContext(
                 () => useTeam(teamId),
             );
 
@@ -85,9 +85,9 @@ describe('useTeam', () => {
             expect(dispatchMock).toHaveBeenCalledTimes(2);
         });
 
-        test("should only attempt to fetch each team once when they aren't loaded", () => {
+        test("should only attempt to fetch each team once when they aren't loaded", async () => {
             let teamId = 'team1';
-            const {result, replaceStoreState, rerender} = renderHookWithContext(
+            const {result, replaceStoreState, rerender} = await renderHookWithContext(
                 () => useTeam(teamId),
             );
 
@@ -141,8 +141,8 @@ describe('useTeam', () => {
             expect(dispatchMock).toHaveBeenCalledTimes(2);
         });
 
-        test("shouldn't attempt to load anything when given an empty team ID", () => {
-            const {result} = renderHookWithContext(
+        test("shouldn't attempt to load anything when given an empty team ID", async () => {
+            const {result} = await renderHookWithContext(
                 () => useTeam(''),
             );
 
@@ -162,13 +162,9 @@ describe('useTeam', () => {
                 once().
                 reply(200, team1);
 
-            const {result} = renderHookWithContext(
+            const {result} = await renderHookWithContext(
                 () => useTeam('team1'),
             );
-
-            // Initial state without team1 loaded
-            expect(result.current).toEqual(undefined);
-            expect(teamMock.isDone()).toBe(false);
 
             // Wait for the response with team1
             await waitFor(() => {
@@ -188,27 +184,19 @@ describe('useTeam', () => {
                 reply(200, team2);
 
             let teamId = 'team1';
-            const {result, rerender} = renderHookWithContext(
+            const {result, rerender} = await renderHookWithContext(
                 () => useTeam(teamId),
             );
-
-            // Initial state without team1 loaded
-            expect(result.current).toEqual(undefined);
-            expect(team1Mock.isDone()).toBe(false);
-            expect(team2Mock.isDone()).toBe(false);
 
             // Wait for the response with team1
             await waitFor(() => {
                 expect(team1Mock.isDone()).toBe(true);
-                expect(team2Mock.isDone()).toBe(false);
                 expect(result.current).toEqual(team1);
             });
 
             // Switch to team2
             teamId = 'team2';
             rerender();
-
-            expect(result.current).toEqual(undefined);
 
             // Wait for the response with team2
             await waitFor(() => {
@@ -243,8 +231,8 @@ describe('useTeamByName', () => {
             jest.restoreAllMocks();
         });
 
-        test("should return the team if it's already in the store", () => {
-            const {result} = renderHookWithContext(
+        test("should return the team if it's already in the store", async () => {
+            const {result} = await renderHookWithContext(
                 () => useTeamByName('team1'),
                 {
                     entities: {
@@ -261,8 +249,8 @@ describe('useTeamByName', () => {
             expect(dispatchMock).not.toHaveBeenCalled();
         });
 
-        test("should fetch the team if it's not in the store", () => {
-            const {result} = renderHookWithContext(
+        test("should fetch the team if it's not in the store", async () => {
+            const {result} = await renderHookWithContext(
                 () => useTeamByName('team1'),
             );
 
@@ -270,8 +258,8 @@ describe('useTeamByName', () => {
             expect(dispatchMock).toHaveBeenCalledTimes(1);
         });
 
-        test('should only attempt to fetch the team once regardless of how many times the hook is used', () => {
-            const {result, rerender} = renderHookWithContext(
+        test('should only attempt to fetch the team once regardless of how many times the hook is used', async () => {
+            const {result, rerender} = await renderHookWithContext(
                 () => useTeamByName('team1'),
             );
 
@@ -286,9 +274,9 @@ describe('useTeamByName', () => {
             expect(dispatchMock).toHaveBeenCalledTimes(1);
         });
 
-        test('should attempt to fetch different teams if the team name changes', () => {
+        test('should attempt to fetch different teams if the team name changes', async () => {
             let teamName = 'team1';
-            const {result, rerender} = renderHookWithContext(
+            const {result, rerender} = await renderHookWithContext(
                 () => useTeamByName(teamName),
             );
 
@@ -302,9 +290,9 @@ describe('useTeamByName', () => {
             expect(dispatchMock).toHaveBeenCalledTimes(2);
         });
 
-        test("should only attempt to fetch each team once when they aren't loaded", () => {
+        test("should only attempt to fetch each team once when they aren't loaded", async () => {
             let teamName = 'team1';
-            const {result, replaceStoreState, rerender} = renderHookWithContext(
+            const {result, replaceStoreState, rerender} = await renderHookWithContext(
                 () => useTeamByName(teamName),
             );
 
@@ -358,8 +346,8 @@ describe('useTeamByName', () => {
             expect(dispatchMock).toHaveBeenCalledTimes(2);
         });
 
-        test("shouldn't attempt to load anything when given an empty team name", () => {
-            const {result} = renderHookWithContext(
+        test("shouldn't attempt to load anything when given an empty team name", async () => {
+            const {result} = await renderHookWithContext(
                 () => useTeamByName(''),
             );
 
@@ -379,13 +367,9 @@ describe('useTeamByName', () => {
                 once().
                 reply(200, team1);
 
-            const {result} = renderHookWithContext(
+            const {result} = await renderHookWithContext(
                 () => useTeamByName('team1'),
             );
-
-            // Initial state without team1 loaded
-            expect(result.current).toEqual(undefined);
-            expect(teamMock.isDone()).toBe(false);
 
             // Wait for the response with team1
             await waitFor(() => {
@@ -405,27 +389,19 @@ describe('useTeamByName', () => {
                 reply(200, team2);
 
             let teamName = 'team1';
-            const {result, rerender} = renderHookWithContext(
+            const {result, rerender} = await renderHookWithContext(
                 () => useTeamByName(teamName),
             );
-
-            // Initial state without team1 loaded
-            expect(result.current).toEqual(undefined);
-            expect(team1Mock.isDone()).toBe(false);
-            expect(team2Mock.isDone()).toBe(false);
 
             // Wait for the response with team1
             await waitFor(() => {
                 expect(team1Mock.isDone()).toBe(true);
-                expect(team2Mock.isDone()).toBe(false);
                 expect(result.current).toEqual(team1);
             });
 
             // Switch to team2
             teamName = 'team2';
             rerender();
-
-            expect(result.current).toEqual(undefined);
 
             // Wait for the response with team2
             await waitFor(() => {

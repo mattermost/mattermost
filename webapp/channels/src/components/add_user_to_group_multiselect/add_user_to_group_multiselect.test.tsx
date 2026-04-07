@@ -53,8 +53,8 @@ describe('component/add_user_to_group_multiselect', () => {
         },
     };
 
-    test('should match snapshot without any profiles', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot without any profiles', async () => {
+        const {container} = await renderWithContext(
             <AddUserToGroupMultiSelect
                 {...baseProps}
             />,
@@ -62,8 +62,8 @@ describe('component/add_user_to_group_multiselect', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with profiles', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with profiles', async () => {
+        const {container} = await renderWithContext(
             <AddUserToGroupMultiSelect
                 {...baseProps}
                 profiles={users}
@@ -72,8 +72,8 @@ describe('component/add_user_to_group_multiselect', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with different submit button text', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with different submit button text', async () => {
+        const {container} = await renderWithContext(
             <AddUserToGroupMultiSelect
                 {...baseProps}
                 profiles={users}
@@ -85,9 +85,9 @@ describe('component/add_user_to_group_multiselect', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should trim the search term', () => {
+    test('should trim the search term', async () => {
         const ref = React.createRef<AddUserToGroupMultiSelectClass>();
-        renderWithContext(
+        await renderWithContext(
             <AddUserToGroupMultiSelect
                 {...baseProps}
                 ref={ref}
@@ -100,9 +100,9 @@ describe('component/add_user_to_group_multiselect', () => {
         expect(ref.current!.state.term).toEqual('something');
     });
 
-    test('should add users on handleSubmit', (done) => {
+    test('should add users on handleSubmit', async () => {
         const ref = React.createRef<AddUserToGroupMultiSelectClass>();
-        renderWithContext(
+        await renderWithContext(
             <AddUserToGroupMultiSelect
                 {...baseProps}
                 ref={ref}
@@ -117,8 +117,5 @@ describe('component/add_user_to_group_multiselect', () => {
             instance.handleSubmit();
         });
         expect(instance.props.onSubmitCallback).toHaveBeenCalledTimes(1);
-        process.nextTick(() => {
-            done();
-        });
     });
 });

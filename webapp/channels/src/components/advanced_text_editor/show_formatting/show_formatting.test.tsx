@@ -12,8 +12,8 @@ jest.mock('components/with_tooltip', () => {
 });
 
 describe('ShowFormatting Component', () => {
-    it('should render correctly with default props', () => {
-        renderWithContext(
+    it('should render correctly with default props', async () => {
+        await renderWithContext(
             <ShowFormatting
                 onClick={jest.fn()}
                 active={false}
@@ -25,7 +25,7 @@ describe('ShowFormatting Component', () => {
 
     it('should call onClick handler when clicked', async () => {
         const onClick = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <ShowFormatting
                 onClick={onClick}
                 active={false}
@@ -36,8 +36,8 @@ describe('ShowFormatting Component', () => {
         expect(onClick).toHaveBeenCalledTimes(1);
     });
 
-    it('should apply the active class when active prop is true', () => {
-        const {container} = renderWithContext(
+    it('should apply the active class when active prop is true', async () => {
+        const {container} = await renderWithContext(
             <ShowFormatting
                 onClick={jest.fn()}
                 active={true}

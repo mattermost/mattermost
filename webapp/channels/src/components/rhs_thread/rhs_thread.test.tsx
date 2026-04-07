@@ -53,8 +53,8 @@ describe('components/RhsThread', () => {
         currentTeam,
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <RhsThread {...baseProps}/>,
         );
         expect(container).toMatchSnapshot();

@@ -27,7 +27,7 @@ describe('components/ChannelHeaderMenu/MenuItems/Groups', () => {
     const channel = TestHelper.getChannelMock();
 
     test('renders the component correctly, handle click event for add groups', async () => {
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <Groups channel={channel}/>
             </WithTestMenuContext>, {},
@@ -46,7 +46,7 @@ describe('components/ChannelHeaderMenu/MenuItems/Groups', () => {
     });
 
     test('renders the component correctly, handle click event for manage groups', async () => {
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <Groups channel={channel}/>
             </WithTestMenuContext>, {},

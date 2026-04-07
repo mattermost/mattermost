@@ -22,35 +22,35 @@ describe('components/admin_console/workspace-optimization/chips_list', () => {
         hideCountZeroChips: false,
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<ChipsList {...baseProps}/>);
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(<ChipsList {...baseProps}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('test chips list lenght is 3 as defined in baseProps', () => {
-        renderWithContext(<ChipsList {...baseProps}/>);
+    test('test chips list lenght is 3 as defined in baseProps', async () => {
+        await renderWithContext(<ChipsList {...baseProps}/>);
         const chips = screen.getAllByRole('button');
 
         expect(chips.length).toBe(3);
     });
 
-    test('test chips list lenght is 2 if one of the properties count is 0 and the hide zero count value is TRUE', () => {
+    test('test chips list lenght is 2 if one of the properties count is 0 and the hide zero count value is TRUE', async () => {
         const zeroErrorProps = {
             chipsData: {...overallScoreChips, [ItemStatus.ERROR]: 0},
             hideCountZeroChips: true,
         };
-        renderWithContext(<ChipsList {...zeroErrorProps}/>);
+        await renderWithContext(<ChipsList {...zeroErrorProps}/>);
         const chips = screen.getAllByRole('button');
 
         expect(chips.length).toBe(2);
     });
 
-    test('test chips list lenght is 3 even if one of the properties count is 0 BUT the hide zero count value is FALSE', () => {
+    test('test chips list lenght is 3 even if one of the properties count is 0 BUT the hide zero count value is FALSE', async () => {
         const zeroErrorProps = {
             chipsData: {...overallScoreChips, [ItemStatus.ERROR]: 0},
             hideCountZeroChips: false,
         };
-        renderWithContext(<ChipsList {...zeroErrorProps}/>);
+        await renderWithContext(<ChipsList {...zeroErrorProps}/>);
         const chips = screen.getAllByRole('button');
 
         expect(chips.length).toBe(3);

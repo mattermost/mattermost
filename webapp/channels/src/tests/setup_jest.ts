@@ -47,6 +47,20 @@ jest.mock('@mui/styled-engine', () => {
 
 global.ResizeObserver = require('resize-observer-polyfill');
 
+// jsdom doesn't fully implement getComputedStyle with pseudoElement parameter.
+// SimpleBar (scrollbar library) calls it during initialization, causing console noise.
+const origGetComputedStyle = window.getComputedStyle;
+window.getComputedStyle = (elt: Element, pseudoElt?: string | null) => {
+    if (pseudoElt) {
+        return {} as CSSStyleDeclaration;
+    }
+    return origGetComputedStyle(elt);
+};
+
+// Set React act() environment flag so state updates outside act() produce proper warnings
+// instead of "The current testing environment is not configured to support act(...)".
+(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
+
 // isDependencyWarning returns true when the given console.warn message is coming from a dependency using deprecated
 // React lifecycle methods.
 function isDependencyWarning(params: string[]) {

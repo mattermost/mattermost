@@ -8,8 +8,8 @@ import {renderWithContext} from 'tests/react_testing_utils';
 import DropdownInputHybrid from './dropdown_input_hybrid';
 
 describe('components/widgets/inputs/DropdownInputHybrid', () => {
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <DropdownInputHybrid
                 onDropdownChange={jest.fn()}
                 onInputChange={jest.fn()}

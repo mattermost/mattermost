@@ -65,16 +65,16 @@ describe('components/trial_benefits_modal/trial_benefits_modal', () => {
         mockLocation.pathname = '';
     });
 
-    test('should match snapshot', () => {
-        const {baseElement} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {baseElement} = await renderWithContext(
             <TrialBenefitsModal {...props}/>,
             state,
         );
         expect(baseElement).toMatchSnapshot();
     });
 
-    test('should match snapshot when trial has already started', () => {
-        const {baseElement} = renderWithContext(
+    test('should match snapshot when trial has already started', async () => {
+        const {baseElement} = await renderWithContext(
             <TrialBenefitsModal
                 {...props}
                 trialJustStarted={true}
@@ -84,22 +84,22 @@ describe('components/trial_benefits_modal/trial_benefits_modal', () => {
         expect(baseElement).toMatchSnapshot();
     });
 
-    test('should show the benefits modal', () => {
-        renderWithContext(
+    test('should show the benefits modal', async () => {
+        await renderWithContext(
             <TrialBenefitsModal {...props}/>,
             state,
         );
         expect(document.getElementById('trialBenefitsModalCarousel')).toBeInTheDocument();
     });
 
-    test('should hide the benefits modal', () => {
+    test('should hide the benefits modal', async () => {
         const trialBenefitsModalHidden = {
             modals: {
                 modalState: {},
             },
         };
         const localState = {...state, views: trialBenefitsModalHidden};
-        renderWithContext(
+        await renderWithContext(
             <TrialBenefitsModal {...props}/>,
             localState,
         );
@@ -109,7 +109,7 @@ describe('components/trial_benefits_modal/trial_benefits_modal', () => {
     test('should call on close', async () => {
         const mockOnClose = jest.fn();
 
-        renderWithContext(
+        await renderWithContext(
             <TrialBenefitsModal
                 {...props}
                 onClose={mockOnClose}
@@ -128,7 +128,7 @@ describe('components/trial_benefits_modal/trial_benefits_modal', () => {
     test('should call on exited', async () => {
         const mockOnExited = jest.fn();
 
-        renderWithContext(
+        await renderWithContext(
             <TrialBenefitsModal
                 {...props}
                 onExited={mockOnExited}
@@ -143,8 +143,8 @@ describe('components/trial_benefits_modal/trial_benefits_modal', () => {
         });
     });
 
-    test('should present the just started trial modal content', () => {
-        renderWithContext(
+    test('should present the just started trial modal content', async () => {
+        await renderWithContext(
             <TrialBenefitsModal
                 {...props}
                 trialJustStarted={true}
@@ -155,9 +155,9 @@ describe('components/trial_benefits_modal/trial_benefits_modal', () => {
         expect(screen.getByText('Your trial has started! Explore the benefits of Enterprise')).toBeInTheDocument();
     });
 
-    test('should have a shorter title and not include the cta button when in cloud env', () => {
+    test('should have a shorter title and not include the cta button when in cloud env', async () => {
         const cloudState = {...state, entities: {...state.entities, general: {...state.entities.general, license: {Cloud: 'true'}}}};
-        renderWithContext(
+        await renderWithContext(
             <TrialBenefitsModal
                 {...props}
                 trialJustStarted={true}
@@ -171,9 +171,9 @@ describe('components/trial_benefits_modal/trial_benefits_modal', () => {
         expect(trialStartDiv?.querySelector('button.btn-primary')).toBeNull();
     });
 
-    test('should show the invite people call to action when trial started from the team', () => {
+    test('should show the invite people call to action when trial started from the team', async () => {
         const cloudState = {...state, entities: {...state.entities, general: {...state.entities.general, license: {Cloud: 'true'}}}};
-        renderWithContext(
+        await renderWithContext(
             <TrialBenefitsModal
                 {...props}
                 trialJustStarted={true}
@@ -185,11 +185,11 @@ describe('components/trial_benefits_modal/trial_benefits_modal', () => {
         expect(screen.getByText('Invite people')).toBeInTheDocument();
     });
 
-    test('should show hide the invite people call to action when trial started from system console', () => {
+    test('should show hide the invite people call to action when trial started from system console', async () => {
         const cloudState = {...state, entities: {...state.entities, general: {...state.entities.general, license: {Cloud: 'true'}}}};
 
         mockLocation.pathname = '/admin_console';
-        renderWithContext(
+        await renderWithContext(
             <TrialBenefitsModal
                 {...props}
                 trialJustStarted={true}

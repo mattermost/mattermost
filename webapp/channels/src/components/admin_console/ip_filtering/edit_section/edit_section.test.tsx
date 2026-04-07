@@ -31,8 +31,8 @@ describe('EditSection', () => {
         currentIPIsInRange,
     };
 
-    test('renders the component', () => {
-        renderWithContext(
+    test('renders the component', async () => {
+        await renderWithContext(
             <EditSection
                 {...baseProps}
             />,
@@ -49,7 +49,7 @@ describe('EditSection', () => {
     });
 
     test('clicking the Add Filter button calls setShowAddModal', async () => {
-        renderWithContext(
+        await renderWithContext(
             <EditSection
                 {...baseProps}
             />,
@@ -62,7 +62,7 @@ describe('EditSection', () => {
     });
 
     test('clicking the Edit button calls setEditFilter', async () => {
-        renderWithContext(
+        await renderWithContext(
             <EditSection
                 {...baseProps}
             />,
@@ -78,7 +78,7 @@ describe('EditSection', () => {
     });
 
     test('clicking the Delete button calls handleConfirmDeleteFilter', async () => {
-        renderWithContext(
+        await renderWithContext(
             <EditSection
                 {...baseProps}
             />,
@@ -93,8 +93,8 @@ describe('EditSection', () => {
         expect(handleConfirmDeleteFilter).toHaveBeenCalledWith(ipFilters[0]);
     });
 
-    test('displays an error panel if current IP is not in range', () => {
-        renderWithContext(
+    test('displays an error panel if current IP is not in range', async () => {
+        await renderWithContext(
             <EditSection
                 {...baseProps}
                 currentUsersIP='192.168.1.1'
@@ -107,8 +107,8 @@ describe('EditSection', () => {
         expect(screen.getByText('Add your IP address')).toBeInTheDocument();
     });
 
-    test('displays a message if no filters are added', () => {
-        renderWithContext(
+    test('displays a message if no filters are added', async () => {
+        await renderWithContext(
             <EditSection
                 {...baseProps}
                 ipFilters={[]}

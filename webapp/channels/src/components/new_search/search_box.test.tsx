@@ -24,26 +24,26 @@ describe('components/new_search/SearchBox', () => {
         myTeams: [{id: 'team1', name: 'team1', display_name: 'Team 1', description: ''}] as Team[],
     };
 
-    test('should have the focus on the input field', () => {
-        renderWithContext(<SearchBox {...baseProps}/>);
+    test('should have the focus on the input field', async () => {
+        await renderWithContext(<SearchBox {...baseProps}/>);
         expect(screen.getByPlaceholderText('Search messages')).toBeInTheDocument();
         expect(screen.getByPlaceholderText('Search messages')).toHaveFocus();
     });
 
-    test('should have set the initial search terms', () => {
+    test('should have set the initial search terms', async () => {
         const props = {...baseProps, initialSearchTerms: 'test'};
-        renderWithContext(<SearchBox {...props}/>);
+        await renderWithContext(<SearchBox {...props}/>);
         expect(screen.getByPlaceholderText('Search messages')).toHaveValue('test');
     });
 
     test('should have the focus on the input field after switching search type', async () => {
-        renderWithContext(<SearchBox {...baseProps}/>);
+        await renderWithContext(<SearchBox {...baseProps}/>);
         await userEvent.click(screen.getByText('Files'));
         expect(screen.getByPlaceholderText('Search files')).toHaveFocus();
     });
 
     test('should see files hints when i click on files', async () => {
-        renderWithContext(<SearchBox {...baseProps}/>);
+        await renderWithContext(<SearchBox {...baseProps}/>);
         expect(screen.getByText('From:')).toBeInTheDocument();
         expect(screen.queryByText('Ext:')).not.toBeInTheDocument();
         await userEvent.click(screen.getByText('Files'));
@@ -51,7 +51,7 @@ describe('components/new_search/SearchBox', () => {
     });
 
     test('should call close on esc keydown', async () => {
-        renderWithContext(<SearchBox {...baseProps}/>);
+        await renderWithContext(<SearchBox {...baseProps}/>);
         const input = screen.getByPlaceholderText('Search messages');
         input.focus();
         await userEvent.keyboard('{Escape}');
@@ -59,7 +59,7 @@ describe('components/new_search/SearchBox', () => {
     });
 
     test('should call search on enter keydown', async () => {
-        renderWithContext(<SearchBox {...baseProps}/>);
+        await renderWithContext(<SearchBox {...baseProps}/>);
         const input = screen.getByPlaceholderText('Search messages');
         input.focus();
         await userEvent.keyboard('{Enter}');
@@ -67,7 +67,7 @@ describe('components/new_search/SearchBox', () => {
     });
 
     test('should be able to select with the up and down arrows', async () => {
-        renderWithContext(<SearchBox {...baseProps}/>);
+        await renderWithContext(<SearchBox {...baseProps}/>);
         await userEvent.click(screen.getByText('Files'));
         await userEvent.type(screen.getByPlaceholderText('Search files'), 'ext:');
         expect(screen.getByText('Text file')).toHaveClass('selected');
@@ -80,7 +80,7 @@ describe('components/new_search/SearchBox', () => {
         expect(screen.getByText('Word Document')).not.toHaveClass('selected');
     });
 
-    test('should show team selector when there is more than one team', () => {
+    test('should show team selector when there is more than one team', async () => {
         const props = {
             ...baseProps,
             myTeams: [
@@ -88,23 +88,23 @@ describe('components/new_search/SearchBox', () => {
                 {id: 'team2', name: 'team2', display_name: 'Team 2', description: ''} as Team,
             ],
         };
-        renderWithContext(<SearchBox {...props}/>);
+        await renderWithContext(<SearchBox {...props}/>);
 
         // The select team dropdown should be visible
         const teamSelector = document.querySelector('div[data-testid="searchTeamSelector"]');
         expect(teamSelector).toBeInTheDocument();
     });
 
-    test('should not show team selector when there is only one team', () => {
+    test('should not show team selector when there is only one team', async () => {
         // Base props already has one team
-        renderWithContext(<SearchBox {...baseProps}/>);
+        await renderWithContext(<SearchBox {...baseProps}/>);
 
         // The select team dropdown should not be visible
         const teamSelector = document.querySelector('div[data-testid="searchTeamSelector"]');
         expect(teamSelector).not.toBeInTheDocument();
     });
 
-    test('should not show team selector when cross-team search is disabled', () => {
+    test('should not show team selector when cross-team search is disabled', async () => {
         const props = {
             ...baseProps,
             crossTeamSearchEnabled: false,
@@ -113,7 +113,7 @@ describe('components/new_search/SearchBox', () => {
                 {id: 'team2', name: 'team2', display_name: 'Team 2', description: ''} as Team,
             ],
         };
-        renderWithContext(<SearchBox {...props}/>);
+        await renderWithContext(<SearchBox {...props}/>);
 
         // The select team dropdown should not be visible
         const teamSelector = document.querySelector('div[data-testid="searchTeamSelector"]');

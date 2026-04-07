@@ -47,7 +47,7 @@ describe('components/integrations/InstalledOutgoingOAuthConnections', () => {
         team,
     };
 
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const state = {
             entities: {
                 general: {
@@ -78,7 +78,7 @@ describe('components/integrations/InstalledOutgoingOAuthConnections', () => {
 
         const props = {...baseProps};
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <Router>
                 <InstalledOutgoingOAuthConnections {...props}/>
             </Router>,

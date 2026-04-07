@@ -25,8 +25,8 @@ describe('DisplayNameStep', () => {
         jest.clearAllMocks();
     });
 
-    test('should render with default props', () => {
-        renderWithContext(<DisplayNameStep {...defaultProps}/>);
+    test('should render with default props', async () => {
+        await renderWithContext(<DisplayNameStep {...defaultProps}/>);
 
         expect(screen.getByRole('textbox')).toHaveValue('My Team');
         expect(screen.getByRole('button', {name: /next/i})).toBeEnabled();
@@ -34,8 +34,8 @@ describe('DisplayNameStep', () => {
         expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     });
 
-    test('should disable button when team name is invalid', () => {
-        renderWithContext(
+    test('should disable button when team name is invalid', async () => {
+        await renderWithContext(
             <DisplayNameStep
                 {...defaultProps}
                 isValidTeamName={false}
@@ -45,8 +45,8 @@ describe('DisplayNameStep', () => {
         expect(screen.getByRole('button', {name: /next/i})).toBeDisabled();
     });
 
-    test('should disable button when isLoading is true', () => {
-        renderWithContext(
+    test('should disable button when isLoading is true', async () => {
+        await renderWithContext(
             <DisplayNameStep
                 {...defaultProps}
                 isLoading={true}
@@ -57,7 +57,7 @@ describe('DisplayNameStep', () => {
     });
 
     test('should call onDisplayNameChange when input changes', async () => {
-        renderWithContext(<DisplayNameStep {...defaultProps}/>);
+        await renderWithContext(<DisplayNameStep {...defaultProps}/>);
 
         await userEvent.type(screen.getByRole('textbox'), 'a');
 
@@ -65,15 +65,15 @@ describe('DisplayNameStep', () => {
     });
 
     test('should call onSubmit when button is clicked', async () => {
-        renderWithContext(<DisplayNameStep {...defaultProps}/>);
+        await renderWithContext(<DisplayNameStep {...defaultProps}/>);
 
         await userEvent.click(screen.getByRole('button', {name: /next/i}));
 
         expect(defaultProps.onSubmit).toHaveBeenCalledTimes(1);
     });
 
-    test('should display error with has-error class when nameError is provided', () => {
-        const {container} = renderWithContext(
+    test('should display error with has-error class when nameError is provided', async () => {
+        const {container} = await renderWithContext(
             <DisplayNameStep
                 {...defaultProps}
                 nameError='Team name is required'
@@ -84,8 +84,8 @@ describe('DisplayNameStep', () => {
         expect(container.querySelector('.form-group.has-error')).toBeInTheDocument();
     });
 
-    test('should render with JSX element as nameError', () => {
-        renderWithContext(
+    test('should render with JSX element as nameError', async () => {
+        await renderWithContext(
             <DisplayNameStep
                 {...defaultProps}
                 nameError={<span>{'Custom JSX error'}</span>}

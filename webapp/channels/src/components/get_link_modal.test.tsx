@@ -25,19 +25,19 @@ describe('components/GetLinkModal', () => {
         jest.useRealTimers();
     });
 
-    test('should match snapshot when all props is set', () => {
+    test('should match snapshot when all props is set', async () => {
         const helpText = 'help text';
         const props = {...requiredProps, helpText};
 
-        const {baseElement} = renderWithContext(
+        const {baseElement} = await renderWithContext(
             <GetLinkModal {...props}/>,
         );
 
         expect(baseElement).toMatchSnapshot();
     });
 
-    test('should match snapshot when helpText is not set', () => {
-        const {baseElement} = renderWithContext(
+    test('should match snapshot when helpText is not set', async () => {
+        const {baseElement} = await renderWithContext(
             <GetLinkModal {...requiredProps}/>,
         );
 
@@ -49,7 +49,7 @@ describe('components/GetLinkModal', () => {
         const newOnHide = jest.fn();
         const props = {...requiredProps, onHide: newOnHide};
 
-        const {baseElement} = renderWithContext(
+        const {baseElement} = await renderWithContext(
             <GetLinkModal {...props}/>,
         );
 
@@ -82,7 +82,7 @@ describe('components/GetLinkModal', () => {
 
     test('should have handle copyLink', async () => {
         const user = userEvent.setup({advanceTimers: jest.advanceTimersByTime});
-        const {baseElement} = renderWithContext(
+        const {baseElement} = await renderWithContext(
             <GetLinkModal {...requiredProps}/>,
         );
 
@@ -102,7 +102,7 @@ describe('components/GetLinkModal', () => {
 
     test('should change button state when copying', async () => {
         const user = userEvent.setup({advanceTimers: jest.advanceTimersByTime});
-        renderWithContext(
+        await renderWithContext(
             <GetLinkModal {...requiredProps}/>,
         );
 
@@ -130,7 +130,7 @@ describe('components/GetLinkModal', () => {
 
     test('should cleanup timeout on unmount', async () => {
         const user = userEvent.setup({advanceTimers: jest.advanceTimersByTime});
-        const {unmount} = renderWithContext(
+        const {unmount} = await renderWithContext(
             <GetLinkModal {...requiredProps}/>,
         );
 

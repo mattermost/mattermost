@@ -81,13 +81,13 @@ describe('components/more_direct_channels/list_item/user_details/UserDetails', (
         },
     };
 
-    test('should render local user without shared indicator', () => {
+    test('should render local user without shared indicator', async () => {
         const localUser = {
             ...mockUser,
             remote_id: '',
         };
 
-        renderWithContext(
+        await renderWithContext(
             <UserDetails
                 {...baseProps}
                 option={localUser}
@@ -100,13 +100,13 @@ describe('components/more_direct_channels/list_item/user_details/UserDetails', (
         expect(screen.queryByTestId('SharedUserIcon')).not.toBeInTheDocument();
     });
 
-    test('should render remote user with shared indicator', () => {
+    test('should render remote user with shared indicator', async () => {
         const remoteUser = {
             ...mockUser,
             remote_id: 'remote_id_123',
         };
 
-        renderWithContext(
+        await renderWithContext(
             <UserDetails
                 {...baseProps}
                 option={remoteUser}
@@ -127,7 +127,7 @@ describe('components/more_direct_channels/list_item/user_details/UserDetails', (
             remote_id: 'remote_id_123',
         };
 
-        renderWithContext(
+        await renderWithContext(
             <UserDetails
                 {...baseProps}
                 option={remoteUser}
@@ -153,7 +153,7 @@ describe('components/more_direct_channels/list_item/user_details/UserDetails', (
             remote_id: 'unknown_remote_id',
         };
 
-        renderWithContext(
+        await renderWithContext(
             <UserDetails
                 {...baseProps}
                 option={remoteUser}
@@ -171,13 +171,13 @@ describe('components/more_direct_channels/list_item/user_details/UserDetails', (
         });
     });
 
-    test('should render current user with "(you)" suffix', () => {
+    test('should render current user with "(you)" suffix', async () => {
         const currentUser = {
             ...mockUser,
             id: 'current_user_id',
         };
 
-        renderWithContext(
+        await renderWithContext(
             <UserDetails
                 {...baseProps}
                 option={currentUser}
@@ -188,13 +188,13 @@ describe('components/more_direct_channels/list_item/user_details/UserDetails', (
         expect(screen.getByText('(you)')).toBeInTheDocument();
     });
 
-    test('should render deactivated user with "- Deactivated" suffix', () => {
+    test('should render deactivated user with "- Deactivated" suffix', async () => {
         const deactivatedUser = {
             ...mockUser,
             delete_at: 1234567890,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <UserDetails
                 {...baseProps}
                 option={deactivatedUser}
@@ -205,13 +205,13 @@ describe('components/more_direct_channels/list_item/user_details/UserDetails', (
         expect(screen.getByText('- Deactivated')).toBeInTheDocument();
     });
 
-    test('should render bot user with bot tag and no email', () => {
+    test('should render bot user with bot tag and no email', async () => {
         const botUser = {
             ...mockUser,
             is_bot: true,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <UserDetails
                 {...baseProps}
                 option={botUser}
@@ -224,13 +224,13 @@ describe('components/more_direct_channels/list_item/user_details/UserDetails', (
         expect(screen.queryByText('test@example.com')).not.toBeInTheDocument();
     });
 
-    test('should render guest user with guest tag', () => {
+    test('should render guest user with guest tag', async () => {
         const guestUser = {
             ...mockUser,
             roles: 'system_guest',
         };
 
-        renderWithContext(
+        await renderWithContext(
             <UserDetails
                 {...baseProps}
                 option={guestUser}

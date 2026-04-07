@@ -109,44 +109,44 @@ describe('components/integrations/AbstractOutgoingWebhook', () => {
         action,
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<AbstractOutgoingWebhook {...requiredProps}/>, initialState as GlobalState);
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(<AbstractOutgoingWebhook {...requiredProps}/>, initialState as GlobalState);
         expect(container).toMatchSnapshot();
     });
 
-    test('should not render username in case of enablePostUsernameOverride is false ', () => {
+    test('should not render username in case of enablePostUsernameOverride is false ', async () => {
         const usernameTrueProps = {...requiredProps};
-        const {container} = renderWithContext(<AbstractOutgoingWebhook {...usernameTrueProps}/>, initialState as GlobalState);
+        const {container} = await renderWithContext(<AbstractOutgoingWebhook {...usernameTrueProps}/>, initialState as GlobalState);
         expect(container.querySelector('#username')).not.toBeInTheDocument();
     });
 
-    test('should not render post icon override in case of enablePostIconOverride is false ', () => {
+    test('should not render post icon override in case of enablePostIconOverride is false ', async () => {
         const iconUrlTrueProps = {...requiredProps};
-        const {container} = renderWithContext(<AbstractOutgoingWebhook {...iconUrlTrueProps}/>, initialState as GlobalState);
+        const {container} = await renderWithContext(<AbstractOutgoingWebhook {...iconUrlTrueProps}/>, initialState as GlobalState);
         expect(container.querySelector('#iconURL')).not.toBeInTheDocument();
     });
 
-    test('should render username in case of enablePostUsernameOverride is true ', () => {
+    test('should render username in case of enablePostUsernameOverride is true ', async () => {
         const usernameTrueProps = {...requiredProps, enablePostUsernameOverride: true};
-        const {container} = renderWithContext(<AbstractOutgoingWebhook {...usernameTrueProps}/>, initialState as GlobalState);
+        const {container} = await renderWithContext(<AbstractOutgoingWebhook {...usernameTrueProps}/>, initialState as GlobalState);
         expect(container.querySelector('#username')).toBeInTheDocument();
     });
 
-    test('should render post icon override in case of enablePostIconOverride is true ', () => {
+    test('should render post icon override in case of enablePostIconOverride is true ', async () => {
         const iconUrlTrueProps = {...requiredProps, enablePostIconOverride: true};
-        const {container} = renderWithContext(<AbstractOutgoingWebhook {...iconUrlTrueProps}/>, initialState as GlobalState);
+        const {container} = await renderWithContext(<AbstractOutgoingWebhook {...iconUrlTrueProps}/>, initialState as GlobalState);
         expect(container.querySelector('#iconURL')).toBeInTheDocument();
     });
 
     test('should update state.channelId when on channel change', async () => {
-        const {container} = renderWithContext(<AbstractOutgoingWebhook {...requiredProps}/>, initialState as GlobalState);
+        const {container} = await renderWithContext(<AbstractOutgoingWebhook {...requiredProps}/>, initialState as GlobalState);
         const channelSelect = container.querySelector('#channelSelect') as HTMLSelectElement;
         await userEvent.selectOptions(channelSelect, 'current_channel_id');
         expect(channelSelect).toHaveValue('current_channel_id');
     });
 
     test('should update state.description when on description change', async () => {
-        const {container} = renderWithContext(<AbstractOutgoingWebhook {...requiredProps}/>, initialState as GlobalState);
+        const {container} = await renderWithContext(<AbstractOutgoingWebhook {...requiredProps}/>, initialState as GlobalState);
         const descriptionInput = container.querySelector('#description') as HTMLInputElement;
         await userEvent.clear(descriptionInput);
         await userEvent.type(descriptionInput, 'new_description');
@@ -155,14 +155,14 @@ describe('components/integrations/AbstractOutgoingWebhook', () => {
 
     test('should update state.username on post username change', async () => {
         const usernameTrueProps = {...requiredProps, enablePostUsernameOverride: true};
-        const {container} = renderWithContext(<AbstractOutgoingWebhook {...usernameTrueProps}/>, initialState as GlobalState);
+        const {container} = await renderWithContext(<AbstractOutgoingWebhook {...usernameTrueProps}/>, initialState as GlobalState);
         const usernameInput = container.querySelector('#username') as HTMLInputElement;
         await userEvent.type(usernameInput, 'new_username');
         expect(usernameInput).toHaveValue('new_username');
     });
 
     test('should update state.triggerWhen on selection change', async () => {
-        const {container} = renderWithContext(<AbstractOutgoingWebhook {...requiredProps}/>, initialState as GlobalState);
+        const {container} = await renderWithContext(<AbstractOutgoingWebhook {...requiredProps}/>, initialState as GlobalState);
         const triggerWhenSelect = container.querySelector('#triggerWhen') as HTMLSelectElement;
         expect(triggerWhenSelect).toHaveValue('0');
         await userEvent.selectOptions(triggerWhenSelect, '1');
@@ -170,7 +170,7 @@ describe('components/integrations/AbstractOutgoingWebhook', () => {
     });
 
     test('should call action function', async () => {
-        const {container} = renderWithContext(<AbstractOutgoingWebhook {...requiredProps}/>, initialState as GlobalState);
+        const {container} = await renderWithContext(<AbstractOutgoingWebhook {...requiredProps}/>, initialState as GlobalState);
         const displayNameInput = container.querySelector('#displayName') as HTMLInputElement;
         await userEvent.clear(displayNameInput);
         await userEvent.type(displayNameInput, 'name');

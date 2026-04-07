@@ -28,8 +28,8 @@ describe('components/drafts/draft_actions', () => {
         channelId: '',
     };
 
-    it('should match snapshot', () => {
-        const {container} = renderWithContext(
+    it('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <DraftActions
                 {...baseProps}
             />,

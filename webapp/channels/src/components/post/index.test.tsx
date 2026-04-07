@@ -56,7 +56,7 @@ describe('PostComponent', () => {
             post('/users/ids', [otherUser.id]).
             reply(200, [otherUser]);
 
-        renderWithContext(
+        await renderWithContext(
             <ConnectedPostComponent
                 location={Locations.CENTER}
                 post={post3}
@@ -132,7 +132,7 @@ describe('PostComponent', () => {
             post('/users/ids', [otherUser.id]).
             reply(200, [otherUser]);
 
-        renderWithContext(
+        await renderWithContext(
             <ConnectedPostComponent
                 location={Locations.CENTER}
                 post={post3}

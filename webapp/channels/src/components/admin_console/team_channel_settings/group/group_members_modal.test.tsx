@@ -9,10 +9,10 @@ import {TestHelper} from 'utils/test_helper';
 import GroupMembersModal from './group_members_modal';
 
 describe('admin_console/team_channel_settings/group/GroupList', () => {
-    test('should match snapshot while visible', () => {
+    test('should match snapshot while visible', async () => {
         const group = TestHelper.getGroupMock({});
 
-        const {baseElement} = renderWithContext(
+        const {baseElement} = await renderWithContext(
             <GroupMembersModal
                 group={group}
                 onExited={jest.fn()}

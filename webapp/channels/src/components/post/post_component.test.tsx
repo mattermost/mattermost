@@ -74,13 +74,13 @@ describe('PostComponent', () => {
             },
         };
 
-        test('should show reactions in the center channel', () => {
-            renderWithContext(<PostComponent {...baseProps}/>, baseState);
+        test('should show reactions in the center channel', async () => {
+            await renderWithContext(<PostComponent {...baseProps}/>, baseState);
 
             expect(screen.getByLabelText('reactions')).toBeInTheDocument();
         });
 
-        test('should show reactions in thread view', () => {
+        test('should show reactions in thread view', async () => {
             const state = mergeObjects(baseState, {
                 views: {
                     rhs: {
@@ -93,7 +93,7 @@ describe('PostComponent', () => {
                 ...baseProps,
                 location: Locations.RHS_ROOT,
             };
-            const {rerender} = renderWithContext(<PostComponent {...props}/>, state);
+            const {rerender} = await renderWithContext(<PostComponent {...props}/>, state);
 
             expect(screen.getByLabelText('reactions')).toBeInTheDocument();
 
@@ -106,12 +106,12 @@ describe('PostComponent', () => {
             expect(screen.getByLabelText('reactions')).toBeInTheDocument();
         });
 
-        test('should show only show reactions in search results with pinned/saved posts visible', () => {
+        test('should show only show reactions in search results with pinned/saved posts visible', async () => {
             let props = {
                 ...baseProps,
                 location: Locations.SEARCH,
             };
-            const {rerender} = renderWithContext(<PostComponent {...props}/>, baseState);
+            const {rerender} = await renderWithContext(<PostComponent {...props}/>, baseState);
 
             expect(screen.queryByLabelText('reactions')).not.toBeInTheDocument();
 
@@ -136,9 +136,9 @@ describe('PostComponent', () => {
     });
 
     describe('thread footer', () => {
-        test('should never show thread footer for a post that isn\'t part of a thread', () => {
+        test('should never show thread footer for a post that isn\'t part of a thread', async () => {
             let props: Props = baseProps;
-            const {rerender} = renderWithContext(<PostComponent {...props}/>);
+            const {rerender} = await renderWithContext(<PostComponent {...props}/>);
 
             expect(screen.queryByText(/Follow|Following/)).not.toBeInTheDocument();
 
@@ -152,7 +152,7 @@ describe('PostComponent', () => {
         });
 
         // This probably shouldn't appear in the search results https://mattermost.atlassian.net/browse/MM-53078
-        test('should only show thread footer for a root post in the center channel and search results', () => {
+        test('should only show thread footer for a root post in the center channel and search results', async () => {
             const rootPost = TestHelper.getPostMock({
                 id: 'rootPost',
                 channel_id: channel.id,
@@ -174,7 +174,7 @@ describe('PostComponent', () => {
                 post: rootPost,
                 replyCount: 1,
             };
-            const {rerender} = renderWithContext(<PostComponent {...props}/>, state);
+            const {rerender} = await renderWithContext(<PostComponent {...props}/>, state);
 
             expect(screen.queryByText(/Follow|Following/)).toBeInTheDocument();
 
@@ -195,7 +195,7 @@ describe('PostComponent', () => {
             expect(screen.queryByText(/Follow|Following/)).toBeInTheDocument();
         });
 
-        test('should never show thread footer for a comment', () => {
+        test('should never show thread footer for a comment', async () => {
             let props = {
                 ...baseProps,
                 hasReplies: true,
@@ -204,7 +204,7 @@ describe('PostComponent', () => {
                     root_id: 'some_other_post_id',
                 },
             };
-            const {rerender} = renderWithContext(<PostComponent {...props}/>);
+            const {rerender} = await renderWithContext(<PostComponent {...props}/>);
 
             expect(screen.queryByText(/Follow|Following/)).not.toBeInTheDocument();
 
@@ -225,7 +225,7 @@ describe('PostComponent', () => {
             expect(screen.queryByText(/Follow|Following/)).not.toBeInTheDocument();
         });
 
-        test('should not show thread footer with CRT disabled', () => {
+        test('should not show thread footer with CRT disabled', async () => {
             const rootPost = TestHelper.getPostMock({
                 id: 'rootPost',
                 channel_id: channel.id,
@@ -248,7 +248,7 @@ describe('PostComponent', () => {
                 post: rootPost,
                 replyCount: 1,
             };
-            const {rerender} = renderWithContext(<PostComponent {...props}/>, state);
+            const {rerender} = await renderWithContext(<PostComponent {...props}/>, state);
 
             expect(screen.queryByText(/Follow|Following/)).not.toBeInTheDocument();
 
@@ -285,7 +285,7 @@ describe('PostComponent', () => {
             };
 
             test('should select post in RHS when clicked in center channel', async () => {
-                renderWithContext(<PostComponent {...propsForRootPost}/>, state);
+                await renderWithContext(<PostComponent {...propsForRootPost}/>, state);
 
                 await userEvent.click(screen.getByText('1 reply'));
 
@@ -298,7 +298,7 @@ describe('PostComponent', () => {
                     ...propsForRootPost,
                     team: undefined,
                 };
-                renderWithContext(<PostComponent {...props}/>, state);
+                await renderWithContext(<PostComponent {...props}/>, state);
 
                 await userEvent.click(screen.getByText('1 reply'));
 
@@ -312,7 +312,7 @@ describe('PostComponent', () => {
                     ...propsForRootPost,
                     location: Locations.SEARCH,
                 };
-                renderWithContext(<PostComponent {...props}/>, state);
+                await renderWithContext(<PostComponent {...props}/>, state);
 
                 await userEvent.click(screen.getByText('1 reply'));
 
@@ -326,7 +326,7 @@ describe('PostComponent', () => {
                     location: Locations.SEARCH,
                     team: TestHelper.getTeamMock({id: 'another_team'}),
                 };
-                renderWithContext(<PostComponent {...props}/>, state);
+                await renderWithContext(<PostComponent {...props}/>, state);
 
                 await userEvent.click(screen.getByText('1 reply'));
 
@@ -343,7 +343,7 @@ describe('PostComponent', () => {
                     matches: ['test'],
                     teamName: currentTeam.name,
                 };
-                renderWithContext(<PostComponent {...props}/>, state);
+                await renderWithContext(<PostComponent {...props}/>, state);
 
                 await userEvent.click(screen.getByText('1 reply'));
 
@@ -365,7 +365,7 @@ describe('PostComponent', () => {
                     team: TestHelper.getTeamMock({id: 'another_team'}),
                     teamName: currentTeam.name,
                 };
-                renderWithContext(<PostComponent {...props}/>, state);
+                await renderWithContext(<PostComponent {...props}/>, state);
 
                 await userEvent.click(screen.getByText('1 reply'));
 
@@ -384,7 +384,7 @@ describe('PostComponent', () => {
                     ...propsForRootPost,
                     location: Locations.CENTER,
                 };
-                renderWithContext(<PostComponent {...props}/>, state);
+                await renderWithContext(<PostComponent {...props}/>, state);
 
                 await userEvent.click(screen.getByText('1 reply'));
 
@@ -397,7 +397,7 @@ describe('PostComponent', () => {
     });
 
     describe('file list', () => {
-        test('should show file list in post', () => {
+        test('should show file list in post', async () => {
             const fileInfo1 = TestHelper.getFileInfoMock({id: 'fileId1', name: 'file1.jpg'});
             const fileInfo2 = TestHelper.getFileInfoMock({id: 'fileId2', name: 'file2.jpg'});
             const fileInfo3 = TestHelper.getFileInfoMock({id: 'fileId3', name: 'file3.jpg'});
@@ -429,7 +429,7 @@ describe('PostComponent', () => {
                 post,
             };
 
-            const {container} = renderWithContext(<PostComponent {...props}/>, state);
+            const {container} = await renderWithContext(<PostComponent {...props}/>, state);
             expect(screen.getByTestId('fileAttachmentList')).toBeInTheDocument();
             expect(container.querySelectorAll('.post-image__column')).toHaveLength(3);
             expect(container.querySelectorAll('.post-image__column')[0]).toHaveTextContent(fileInfo1.name);
@@ -514,7 +514,7 @@ describe('PostComponent', () => {
                 isPostBeingEdited: true,
             };
 
-            const {container} = renderWithContext(<PostComponent {...props}/>, state);
+            const {container} = await renderWithContext(<PostComponent {...props}/>, state);
 
             // advanced text editor should be visible
             expect(container.querySelector('.AdvancedTextEditor__body')).toBeInTheDocument();
@@ -532,7 +532,7 @@ describe('PostComponent', () => {
     });
 
     describe('priority labels', () => {
-        test('should show priority label for non-deleted post with priority metadata', () => {
+        test('should show priority label for non-deleted post with priority metadata', async () => {
             const post = TestHelper.getPostMock({
                 metadata: {
                     priority: {
@@ -545,12 +545,12 @@ describe('PostComponent', () => {
                 post,
                 isPostPriorityEnabled: true,
             };
-            renderWithContext(<PostComponent {...props}/>);
+            await renderWithContext(<PostComponent {...props}/>);
 
             expect(screen.getByTestId('post-priority-label')).toBeInTheDocument();
         });
 
-        test('should show priority label for non-deleted post with important priority metadata', () => {
+        test('should show priority label for non-deleted post with important priority metadata', async () => {
             const post = TestHelper.getPostMock({
                 metadata: {
                     priority: {
@@ -563,12 +563,12 @@ describe('PostComponent', () => {
                 post,
                 isPostPriorityEnabled: true,
             };
-            renderWithContext(<PostComponent {...props}/>);
+            await renderWithContext(<PostComponent {...props}/>);
 
             expect(screen.getByTestId('post-priority-label')).toBeInTheDocument();
         });
 
-        test('should not show priority label for deleted post with priority metadata', () => {
+        test('should not show priority label for deleted post with priority metadata', async () => {
             const post = TestHelper.getPostMock({
                 state: Posts.POST_DELETED as 'DELETED',
                 metadata: {
@@ -582,12 +582,12 @@ describe('PostComponent', () => {
                 post,
                 isPostPriorityEnabled: true,
             };
-            renderWithContext(<PostComponent {...props}/>);
+            await renderWithContext(<PostComponent {...props}/>);
 
             expect(screen.queryByTestId('post-priority-label')).not.toBeInTheDocument();
         });
 
-        test('should not show priority label for deleted post with important priority metadata', () => {
+        test('should not show priority label for deleted post with important priority metadata', async () => {
             const post = TestHelper.getPostMock({
                 state: Posts.POST_DELETED as 'DELETED',
                 metadata: {
@@ -601,19 +601,19 @@ describe('PostComponent', () => {
                 post,
                 isPostPriorityEnabled: true,
             };
-            renderWithContext(<PostComponent {...props}/>);
+            await renderWithContext(<PostComponent {...props}/>);
 
             expect(screen.queryByTestId('post-priority-label')).not.toBeInTheDocument();
         });
 
-        test('should not show priority label for post without priority metadata', () => {
+        test('should not show priority label for post without priority metadata', async () => {
             const post = TestHelper.getPostMock();
             const props = {
                 ...baseProps,
                 post,
                 isPostPriorityEnabled: true,
             };
-            renderWithContext(<PostComponent {...props}/>);
+            await renderWithContext(<PostComponent {...props}/>);
 
             expect(screen.queryByTestId('post-priority-label')).not.toBeInTheDocument();
         });
@@ -628,18 +628,18 @@ describe('PostComponent', () => {
             },
         });
 
-        test('should show AI-generated indicator for AI posts in non-compact mode', () => {
+        test('should show AI-generated indicator for AI posts in non-compact mode', async () => {
             const props = {
                 ...baseProps,
                 post: aiGeneratedPost,
                 compactDisplay: false,
             };
-            renderWithContext(<PostComponent {...props}/>);
+            await renderWithContext(<PostComponent {...props}/>);
 
             expect(screen.getByLabelText('Message posted by @aibot')).toBeInTheDocument();
         });
 
-        test('should not show AI-generated indicator for regular posts', () => {
+        test('should not show AI-generated indicator for regular posts', async () => {
             const regularPost = TestHelper.getPostMock({
                 channel_id: channel.id,
             });
@@ -648,31 +648,31 @@ describe('PostComponent', () => {
                 post: regularPost,
                 compactDisplay: false,
             };
-            renderWithContext(<PostComponent {...props}/>);
+            await renderWithContext(<PostComponent {...props}/>);
 
             expect(screen.queryByLabelText(/AI-generated|Message posted by/)).not.toBeInTheDocument();
         });
 
-        test('should not show AI-generated indicator for consecutive posts', () => {
+        test('should not show AI-generated indicator for consecutive posts', async () => {
             const props = {
                 ...baseProps,
                 post: aiGeneratedPost,
                 compactDisplay: false,
                 isConsecutivePost: true,
             };
-            renderWithContext(<PostComponent {...props}/>);
+            await renderWithContext(<PostComponent {...props}/>);
 
             expect(screen.queryByLabelText(/AI-generated|Message posted by/)).not.toBeInTheDocument();
         });
 
-        test('should show AI-generated indicator in PostUserProfile for compact mode in CENTER', () => {
+        test('should show AI-generated indicator in PostUserProfile for compact mode in CENTER', async () => {
             const props = {
                 ...baseProps,
                 post: aiGeneratedPost,
                 compactDisplay: true,
                 location: Locations.CENTER,
             };
-            renderWithContext(<PostComponent {...props}/>);
+            await renderWithContext(<PostComponent {...props}/>);
 
             // In compact CENTER mode, indicator is rendered by PostUserProfile (after username)
             // Verify it appears exactly once
@@ -680,7 +680,7 @@ describe('PostComponent', () => {
             expect(indicators.length).toBe(1);
         });
 
-        test('should hide AI-generated indicator for consecutive posts in threads', () => {
+        test('should hide AI-generated indicator for consecutive posts in threads', async () => {
             const threadPost = TestHelper.getPostMock({
                 channel_id: channel.id,
                 root_id: 'root_post_id',
@@ -696,12 +696,12 @@ describe('PostComponent', () => {
                 isConsecutivePost: true,
                 location: Locations.RHS_COMMENT,
             };
-            renderWithContext(<PostComponent {...props}/>);
+            await renderWithContext(<PostComponent {...props}/>);
 
             expect(screen.queryByLabelText(/AI-generated|Message posted by/)).not.toBeInTheDocument();
         });
 
-        test('should show AI-generated indicator for non-consecutive posts in threads', () => {
+        test('should show AI-generated indicator for non-consecutive posts in threads', async () => {
             const threadPost = TestHelper.getPostMock({
                 channel_id: channel.id,
                 root_id: 'root_post_id',
@@ -717,7 +717,7 @@ describe('PostComponent', () => {
                 isConsecutivePost: false,
                 location: Locations.RHS_COMMENT,
             };
-            renderWithContext(<PostComponent {...props}/>);
+            await renderWithContext(<PostComponent {...props}/>);
 
             expect(screen.getByLabelText('Message posted by @aibot')).toBeInTheDocument();
         });

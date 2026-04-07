@@ -17,7 +17,7 @@ describe('components/integrations/AddOutgoingOAuthConnection', () => {
         name: 'test',
     });
 
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const baseProps: React.ComponentProps<typeof AddOutgoingOAuthConnection> = {
             team,
         };
@@ -48,7 +48,7 @@ describe('components/integrations/AddOutgoingOAuthConnection', () => {
         };
 
         const props = {...baseProps};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <Router>
                 <AddOutgoingOAuthConnection {...props}/>
             </Router>,

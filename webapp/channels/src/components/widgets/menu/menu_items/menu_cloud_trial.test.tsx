@@ -65,7 +65,7 @@ const users = {
 };
 
 describe('components/widgets/menu/menu_items/menu_cloud_trial', () => {
-    test('should render when on cloud license and during free trial period', () => {
+    test('should render when on cloud license and during free trial period', async () => {
         const FOURTEEN_DAYS = 1209600000; // in milliseconds
         const subscriptionCreateAt = Date.now();
         const subscriptionEndAt = subscriptionCreateAt + FOURTEEN_DAYS;
@@ -93,11 +93,11 @@ describe('components/widgets/menu/menu_items/menu_cloud_trial', () => {
                 },
             },
         };
-        const {container} = renderWithContext(<MenuCloudTrial id='menuCloudTrial'/>, state);
+        const {container} = await renderWithContext(<MenuCloudTrial id='menuCloudTrial'/>, state);
         expect(container.querySelector('.MenuCloudTrial')).not.toBeNull();
     });
 
-    test('should NOT render when NOT on cloud license and NOT during free trial period', () => {
+    test('should NOT render when NOT on cloud license and NOT during free trial period', async () => {
         const state = {
             entities: {
                 users,
@@ -112,11 +112,11 @@ describe('components/widgets/menu/menu_items/menu_cloud_trial', () => {
                 usage,
             },
         };
-        const {container} = renderWithContext(<MenuCloudTrial id='menuCloudTrial'/>, state);
+        const {container} = await renderWithContext(<MenuCloudTrial id='menuCloudTrial'/>, state);
         expect(container.querySelector('.MenuCloudTrial')).toBeNull();
     });
 
-    test('should NOT render when NO license is available', () => {
+    test('should NOT render when NO license is available', async () => {
         const state = {
             entities: {
                 users,
@@ -127,11 +127,11 @@ describe('components/widgets/menu/menu_items/menu_cloud_trial', () => {
                 usage,
             },
         };
-        const {container} = renderWithContext(<MenuCloudTrial id='menuCloudTrial'/>, state);
+        const {container} = await renderWithContext(<MenuCloudTrial id='menuCloudTrial'/>, state);
         expect(container.querySelector('.MenuCloudTrial')).toBeNull();
     });
 
-    test('should NOT render when is cloud and not on a trial', () => {
+    test('should NOT render when is cloud and not on a trial', async () => {
         const state = {
             entities: {
                 users,
@@ -151,12 +151,12 @@ describe('components/widgets/menu/menu_items/menu_cloud_trial', () => {
                 usage,
             },
         };
-        const {container} = renderWithContext(<MenuCloudTrial id='menuCloudTrial'/>, state);
+        const {container} = await renderWithContext(<MenuCloudTrial id='menuCloudTrial'/>, state);
         expect(container.querySelector('.open-learn-more-trial-modal')).toBeNull();
         expect(container.querySelector('.MenuCloudTrial')).toBeNull();
     });
 
-    test('should show the open trial benefits modal when is free trial', () => {
+    test('should show the open trial benefits modal when is free trial', async () => {
         const state = {
             entities: {
                 users,
@@ -183,13 +183,13 @@ describe('components/widgets/menu/menu_items/menu_cloud_trial', () => {
                 usage,
             },
         };
-        const {container} = renderWithContext(<MenuCloudTrial id='menuCloudTrial'/>, state);
+        const {container} = await renderWithContext(<MenuCloudTrial id='menuCloudTrial'/>, state);
         const openModalLink = container.querySelector('.open-trial-benefits-modal');
         expect(openModalLink).not.toBeNull();
         expect(openModalLink?.textContent).toBe('Learn more');
     });
 
-    test('should show the invitation to see plans when is not in Trial and has had previous Trial', () => {
+    test('should show the invitation to see plans when is not in Trial and has had previous Trial', async () => {
         const state = {
             entities: {
                 general: {
@@ -221,13 +221,13 @@ describe('components/widgets/menu/menu_items/menu_cloud_trial', () => {
                 },
             },
         };
-        const {container} = renderWithContext(<MenuCloudTrial id='menuCloudTrial'/>, state);
+        const {container} = await renderWithContext(<MenuCloudTrial id='menuCloudTrial'/>, state);
         const openModalLink = container.querySelector('.open-see-plans-modal');
         expect(openModalLink).not.toBeNull();
         expect(openModalLink?.textContent).toEqual('See plans');
     });
 
-    test('should show the invitation to open the trial benefits modal when is End User and is in TRIAL', () => {
+    test('should show the invitation to open the trial benefits modal when is End User and is in TRIAL', async () => {
         const state = {
             entities: {
                 general: {
@@ -259,13 +259,13 @@ describe('components/widgets/menu/menu_items/menu_cloud_trial', () => {
                 },
             },
         };
-        const {container} = renderWithContext(<MenuCloudTrial id='menuCloudTrial'/>, state);
+        const {container} = await renderWithContext(<MenuCloudTrial id='menuCloudTrial'/>, state);
         const openModalLink = container.querySelector('.open-trial-benefits-modal');
         expect(openModalLink).not.toBeNull();
         expect(openModalLink?.textContent).toEqual('Learn more');
     });
 
-    test('should NOT show the menu cloud trial when is End User and is NOT in TRIAL', () => {
+    test('should NOT show the menu cloud trial when is End User and is NOT in TRIAL', async () => {
         const state = {
             entities: {
                 general: {
@@ -297,12 +297,12 @@ describe('components/widgets/menu/menu_items/menu_cloud_trial', () => {
                 },
             },
         };
-        const {container} = renderWithContext(<MenuCloudTrial id='menuCloudTrial'/>, state);
+        const {container} = await renderWithContext(<MenuCloudTrial id='menuCloudTrial'/>, state);
         const openModalLink = container.querySelector('.open-trial-benefits-modal');
         expect(openModalLink).toBeNull();
     });
 
-    test('should return null if some limit needs attention', () => {
+    test('should return null if some limit needs attention', async () => {
         const state = {
             entities: {
                 users,
@@ -335,7 +335,7 @@ describe('components/widgets/menu/menu_items/menu_cloud_trial', () => {
                 },
             },
         };
-        const {container} = renderWithContext(<MenuCloudTrial id='menuCloudTrial'/>, state);
+        const {container} = await renderWithContext(<MenuCloudTrial id='menuCloudTrial'/>, state);
         expect(container.querySelector('.MenuCloudTrial')).toBeNull();
         expect(container.querySelector('.open-see-plans-modal')).toBeNull();
         expect(container.querySelector('.open-learn-more-trial-modal')).toBeNull();

@@ -90,8 +90,8 @@ describe('components/post_view/ChannelIntroMessages', () => {
     } as any;
 
     describe('test Open Channel', () => {
-        test('should match component state, without boards', () => {
-            renderWithContext(
+        test('should match component state, without boards', async () => {
+            await renderWithContext(
                 <ChannelIntroMessage{...baseProps}/>, initialState,
             );
 
@@ -114,8 +114,8 @@ describe('components/post_view/ChannelIntroMessages', () => {
             channel: groupChannel,
         };
 
-        test('should match component state, no profiles', () => {
-            renderWithContext(
+        test('should match component state, no profiles', async () => {
+            await renderWithContext(
                 <ChannelIntroMessage
                     {...props}
                 />, initialState,
@@ -130,8 +130,8 @@ describe('components/post_view/ChannelIntroMessages', () => {
             expect(screen.getByText('This is the start of your', {exact: false})).toHaveClass('channel-intro__text');
         });
 
-        test('should match component state, with profiles', () => {
-            renderWithContext(
+        test('should match component state, with profiles', async () => {
+            await renderWithContext(
                 <ChannelIntroMessage
                     {...props}
                     channelProfiles={users}
@@ -170,8 +170,8 @@ describe('components/post_view/ChannelIntroMessages', () => {
             channel: directChannel,
         };
 
-        test('should match component state, without teammate', () => {
-            renderWithContext(
+        test('should match component state, without teammate', async () => {
+            await renderWithContext(
                 <ChannelIntroMessage
                     {...props}
                 />, initialState,
@@ -182,8 +182,8 @@ describe('components/post_view/ChannelIntroMessages', () => {
             expect(message).toHaveClass('channel-intro__text');
         });
 
-        test('should match component state, with teammate', () => {
-            renderWithContext(
+        test('should match component state, with teammate', async () => {
+            await renderWithContext(
                 <ChannelIntroMessage
                     {...props}
                     teammate={user1 as UserProfile}
@@ -223,8 +223,8 @@ describe('components/post_view/ChannelIntroMessages', () => {
             channel: directChannel,
         };
 
-        test('should match component state, readonly', () => {
-            renderWithContext(
+        test('should match component state, readonly', async () => {
+            await renderWithContext(
                 <ChannelIntroMessage
                     {...props}
                     isReadOnly={true}
@@ -239,8 +239,8 @@ describe('components/post_view/ChannelIntroMessages', () => {
             expect(screen.getByText('Messages can only be posted by admins. Everyone automatically becomes a permanent member of this channel when they join the team.', {exact: false})).toBeInTheDocument();
         });
 
-        test('should match component state without any permission', () => {
-            renderWithContext(
+        test('should match component state without any permission', async () => {
+            await renderWithContext(
                 <ChannelIntroMessage
                     {...props}
                     teamIsGroupConstrained={true}
@@ -270,8 +270,8 @@ describe('components/post_view/ChannelIntroMessages', () => {
             channel: directChannel,
         };
 
-        test('should match component state', () => {
-            renderWithContext(
+        test('should match component state', async () => {
+            await renderWithContext(
                 <ChannelIntroMessage
                     {...props}
                 />, initialState,

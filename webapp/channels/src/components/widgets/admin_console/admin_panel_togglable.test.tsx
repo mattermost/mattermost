@@ -20,8 +20,8 @@ describe('components/widgets/admin_console/AdminPanelTogglable', () => {
         onToggle: jest.fn(),
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <AdminPanelTogglable {...defaultProps}>
                 {'Test'}
             </AdminPanelTogglable>,
@@ -30,8 +30,8 @@ describe('components/widgets/admin_console/AdminPanelTogglable', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot closed', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot closed', async () => {
+        const {container} = await renderWithContext(
             <AdminPanelTogglable
                 {...defaultProps}
                 open={false}

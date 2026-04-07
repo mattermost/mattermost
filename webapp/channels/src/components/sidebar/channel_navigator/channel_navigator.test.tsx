@@ -20,8 +20,8 @@ describe('Components/ChannelNavigator', () => {
         },
     };
 
-    it('should not show BrowserOrAddChannelMenu', () => {
-        renderWithContext(<ChannelNavigator {...baseProps}/>);
+    it('should not show BrowserOrAddChannelMenu', async () => {
+        await renderWithContext(<ChannelNavigator {...baseProps}/>);
 
         // Component renders find channel button instead of BrowserOrAddChannelMenu
         expect(screen.getByRole('button', {name: /find channels/i})).toBeInTheDocument();

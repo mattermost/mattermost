@@ -8,8 +8,8 @@ import {renderWithContext} from 'tests/react_testing_utils';
 import {TeamModes} from './team_modes';
 
 describe('admin_console/team_channel_settings/team/TeamModes', () => {
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <TeamModes
                 onToggle={jest.fn()}
                 syncChecked={false}

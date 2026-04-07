@@ -98,8 +98,8 @@ describe('components/threading/VirtualizedThreadViewer', () => {
         mockScrollToItem.mockClear();
     });
 
-    test('should scroll to the bottom when the current user makes a new post in the thread', () => {
-        const {rerender} = renderWithContext(
+    test('should scroll to the bottom when the current user makes a new post in the thread', async () => {
+        const {rerender} = await renderWithContext(
             <VirtualizedThreadViewer {...baseProps}/>,
             baseState,
         );
@@ -120,8 +120,8 @@ describe('components/threading/VirtualizedThreadViewer', () => {
         expect(mockScrollToItem).toHaveBeenCalledWith(0, 'end', undefined);
     });
 
-    test('should not scroll to the bottom when another user makes a new post in the thread', () => {
-        const {rerender} = renderWithContext(
+    test('should not scroll to the bottom when another user makes a new post in the thread', async () => {
+        const {rerender} = await renderWithContext(
             <VirtualizedThreadViewer {...baseProps}/>,
             baseState,
         );
@@ -142,8 +142,8 @@ describe('components/threading/VirtualizedThreadViewer', () => {
         expect(mockScrollToItem).not.toHaveBeenCalled();
     });
 
-    test('should not scroll to the bottom when there is a highlighted reply', () => {
-        const {rerender} = renderWithContext(
+    test('should not scroll to the bottom when there is a highlighted reply', async () => {
+        const {rerender} = await renderWithContext(
             <VirtualizedThreadViewer {...baseProps}/>,
             baseState,
         );

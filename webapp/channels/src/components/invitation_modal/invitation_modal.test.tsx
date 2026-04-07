@@ -112,18 +112,18 @@ describe('InvitationModal', () => {
         props = defaultProps;
     });
 
-    it('shows invite view when view state is invite', () => {
-        renderWithContext(
+    it('shows invite view when view state is invite', async () => {
+        await renderWithContext(
             <InvitationModal {...props}/>,
             state,
         );
         expect(screen.getByTestId('inviteButton')).toBeInTheDocument();
     });
 
-    it('shows result view when view state is result', () => {
+    it('shows result view when view state is result', async () => {
         const ref = React.createRef<InvitationModal>();
 
-        renderWithContext(
+        await renderWithContext(
             <InvitationModal
                 {...props}
                 ref={ref}
@@ -138,13 +138,13 @@ describe('InvitationModal', () => {
         expect(screen.getByTestId('confirm-done')).toBeInTheDocument();
     });
 
-    it('shows no permissions view when user can neither invite users nor guests', () => {
+    it('shows no permissions view when user can neither invite users nor guests', async () => {
         props = {
             ...props,
             canAddUsers: false,
             canInviteGuests: false,
         };
-        renderWithContext(
+        await renderWithContext(
             <InvitationModal {...props}/>,
             state,
         );
@@ -175,7 +175,7 @@ describe('InvitationModal', () => {
 
         const ref = React.createRef<InvitationModal>();
 
-        renderWithContext(
+        await renderWithContext(
             <InvitationModal
                 {...props}
                 ref={ref}

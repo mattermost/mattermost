@@ -49,7 +49,7 @@ describe('components/user_settings/security/UserSettingsSecurityTab - Auth Servi
     };
 
     describe('Password section auth service messages', () => {
-        it('should display GitLab message when user auth_service is gitlab', () => {
+        it('should display GitLab message when user auth_service is gitlab', async () => {
             const props = {
                 ...baseProps,
                 user: {
@@ -58,12 +58,12 @@ describe('components/user_settings/security/UserSettingsSecurityTab - Auth Servi
                 } as UserProfile,
             };
 
-            renderWithContext(<SecurityTab {...props}/>);
+            await renderWithContext(<SecurityTab {...props}/>);
 
             expect(screen.getByText('Login occurs through GitLab. Password cannot be updated.')).toBeInTheDocument();
         });
 
-        it('should display LDAP message when user auth_service is ldap', () => {
+        it('should display LDAP message when user auth_service is ldap', async () => {
             const props = {
                 ...baseProps,
                 user: {
@@ -72,12 +72,12 @@ describe('components/user_settings/security/UserSettingsSecurityTab - Auth Servi
                 } as UserProfile,
             };
 
-            renderWithContext(<SecurityTab {...props}/>);
+            await renderWithContext(<SecurityTab {...props}/>);
 
             expect(screen.getByText('Login occurs through AD/LDAP. Password cannot be updated.')).toBeInTheDocument();
         });
 
-        it('should display SAML message when user auth_service is saml', () => {
+        it('should display SAML message when user auth_service is saml', async () => {
             const props = {
                 ...baseProps,
                 user: {
@@ -86,12 +86,12 @@ describe('components/user_settings/security/UserSettingsSecurityTab - Auth Servi
                 } as UserProfile,
             };
 
-            renderWithContext(<SecurityTab {...props}/>);
+            await renderWithContext(<SecurityTab {...props}/>);
 
             expect(screen.getByText('This field is handled through your login provider. If you want to change it, you need to do so through your login provider.')).toBeInTheDocument();
         });
 
-        it('should display Google message when user auth_service is google', () => {
+        it('should display Google message when user auth_service is google', async () => {
             const props = {
                 ...baseProps,
                 user: {
@@ -100,12 +100,12 @@ describe('components/user_settings/security/UserSettingsSecurityTab - Auth Servi
                 } as UserProfile,
             };
 
-            renderWithContext(<SecurityTab {...props}/>);
+            await renderWithContext(<SecurityTab {...props}/>);
 
             expect(screen.getByText('Login occurs through Google Apps. Password cannot be updated.')).toBeInTheDocument();
         });
 
-        it('should display Office365 message when user auth_service is office365', () => {
+        it('should display Office365 message when user auth_service is office365', async () => {
             const props = {
                 ...baseProps,
                 user: {
@@ -114,12 +114,12 @@ describe('components/user_settings/security/UserSettingsSecurityTab - Auth Servi
                 } as UserProfile,
             };
 
-            renderWithContext(<SecurityTab {...props}/>);
+            await renderWithContext(<SecurityTab {...props}/>);
 
             expect(screen.getByText('Login occurs through Entra ID. Password cannot be updated.')).toBeInTheDocument();
         });
 
-        it('should display Guest Magic Link message when user auth_service is magic_link', () => {
+        it('should display Guest Magic Link message when user auth_service is magic_link', async () => {
             const props = {
                 ...baseProps,
                 user: {
@@ -128,12 +128,12 @@ describe('components/user_settings/security/UserSettingsSecurityTab - Auth Servi
                 } as UserProfile,
             };
 
-            renderWithContext(<SecurityTab {...props}/>);
+            await renderWithContext(<SecurityTab {...props}/>);
 
             expect(screen.getByText('Login occurs via magic link. Password cannot be updated.')).toBeInTheDocument();
         });
 
-        it('should not display password fields or auth message when user auth_service is openid (unhandled case)', () => {
+        it('should not display password fields or auth message when user auth_service is openid (unhandled case)', async () => {
             const props = {
                 ...baseProps,
                 user: {
@@ -142,7 +142,7 @@ describe('components/user_settings/security/UserSettingsSecurityTab - Auth Servi
                 } as UserProfile,
             };
 
-            renderWithContext(<SecurityTab {...props}/>);
+            await renderWithContext(<SecurityTab {...props}/>);
 
             // OpenID is not explicitly handled in the password section, so it falls through
             // Should not show password input fields
@@ -154,7 +154,7 @@ describe('components/user_settings/security/UserSettingsSecurityTab - Auth Servi
             expect(screen.queryByText('Login occurs through Google Apps. Password cannot be updated.')).not.toBeInTheDocument();
         });
 
-        it('should display password input fields when user auth_service is empty (email/password)', () => {
+        it('should display password input fields when user auth_service is empty (email/password)', async () => {
             const props = {
                 ...baseProps,
                 user: {
@@ -163,7 +163,7 @@ describe('components/user_settings/security/UserSettingsSecurityTab - Auth Servi
                 } as UserProfile,
             };
 
-            renderWithContext(<SecurityTab {...props}/>);
+            await renderWithContext(<SecurityTab {...props}/>);
 
             // Should show password input fields, not a message
             expect(screen.getByText('Current Password')).toBeInTheDocument();

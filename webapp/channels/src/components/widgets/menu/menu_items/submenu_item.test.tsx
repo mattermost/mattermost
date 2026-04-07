@@ -14,8 +14,8 @@ jest.mock('../is_mobile_view_hack', () => ({
 }));
 
 describe('components/widgets/menu/menu_items/submenu_item', () => {
-    test('empty subMenu should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('empty subMenu should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <SubMenuItem
                 key={'_pluginmenuitem'}
                 id={'1'}
@@ -29,8 +29,8 @@ describe('components/widgets/menu/menu_items/submenu_item', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('present subMenu should match snapshot with submenu', () => {
-        const {container} = renderWithContext(
+    test('present subMenu should match snapshot with submenu', async () => {
+        const {container} = await renderWithContext(
             <SubMenuItem
                 key={'_pluginmenuitem'}
                 id={'1'}
@@ -60,7 +60,7 @@ describe('components/widgets/menu/menu_items/submenu_item', () => {
         const action2 = jest.fn();
         const action3 = jest.fn();
 
-        renderWithContext(
+        await renderWithContext(
             <SubMenuItem
                 key={'_pluginmenuitem'}
                 id={'Z'}
@@ -97,9 +97,9 @@ describe('components/widgets/menu/menu_items/submenu_item', () => {
         expect(action1).toHaveBeenCalledTimes(1);
     });
 
-    test('should show/hide submenu based on keyboard commands', () => {
+    test('should show/hide submenu based on keyboard commands', async () => {
         const ref = React.createRef<SubMenuItemClass>();
-        renderWithContext(
+        await renderWithContext(
             <SubMenuItemClass
                 intl={defaultIntl}
                 key={'_pluginmenuitem'}

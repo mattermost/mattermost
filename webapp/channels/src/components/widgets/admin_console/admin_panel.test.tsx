@@ -16,8 +16,8 @@ describe('components/widgets/admin_console/AdminPanel', () => {
         subtitleValues: {foo: 'bar'},
     };
 
-    test('should render with title, subtitle, and children', () => {
-        renderWithContext(
+    test('should render with title, subtitle, and children', async () => {
+        await renderWithContext(
             <AdminPanel {...defaultProps}>{'Test'}</AdminPanel>,
         );
 
@@ -38,8 +38,8 @@ describe('components/widgets/admin_console/AdminPanel', () => {
         expect(screen.queryByText(/Button/i)).not.toBeInTheDocument();
     });
 
-    test('should render with button when provided', () => {
-        renderWithContext(
+    test('should render with button when provided', async () => {
+        await renderWithContext(
             <AdminPanel
                 {...defaultProps}
                 button={<span>{'TestButton'}</span>}
@@ -58,7 +58,7 @@ describe('components/widgets/admin_console/AdminPanel', () => {
 
     test('should call onHeaderClick when header is clicked', async () => {
         const onHeaderClick = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <AdminPanel
                 {...defaultProps}
                 onHeaderClick={onHeaderClick}

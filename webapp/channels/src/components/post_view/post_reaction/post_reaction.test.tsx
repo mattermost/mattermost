@@ -42,7 +42,7 @@ describe('components/post_view/PostReaction', () => {
     };
 
     test('should not render the emoji picker initially', async () => {
-        const {rerender} = renderWithContext(
+        const {rerender} = await renderWithContext(
             <PostReaction {...baseProps}/>,
             initialState,
         );
@@ -62,7 +62,7 @@ describe('components/post_view/PostReaction', () => {
     });
 
     test('should toggle the reaction and close the emoji picker when an emoji is selected', async () => {
-        renderWithContext(
+        await renderWithContext(
             <PostReaction
                 {...baseProps}
                 showEmojiPicker={true}

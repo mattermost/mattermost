@@ -65,15 +65,15 @@ describe('components/admin_console/license_settings/modals/upload_license_modal'
         fileObjFromProps: {name: 'Test license file'} as File,
     };
 
-    test('should match snapshot when is not licensed', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot when is not licensed', async () => {
+        const {container} = await renderWithContext(
             <UploadLicenseModal {...props}/>,
             state,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when is licensed', () => {
+    test('should match snapshot when is licensed', async () => {
         const localState: DeepPartial<GlobalState> = {
             ...state,
             entities: {
@@ -82,16 +82,16 @@ describe('components/admin_console/license_settings/modals/upload_license_modal'
                 },
             },
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <UploadLicenseModal {...props}/>,
             localState,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should display upload btn Disabled on initial load and no file selected', () => {
+    test('should display upload btn Disabled on initial load and no file selected', async () => {
         const newProps = {...props, fileObjFromProps: null};
-        renderWithContext(
+        await renderWithContext(
             <UploadLicenseModal {...newProps}/>,
             state,
         );
@@ -99,12 +99,12 @@ describe('components/admin_console/license_settings/modals/upload_license_modal'
         expect(uploadButton).toBeDisabled();
     });
 
-    test('should display upload btn Enabled when file is loaded', () => {
+    test('should display upload btn Enabled when file is loaded', async () => {
         const realUseState = React.useState;
         const initialStateForFileObj = {name: 'testing.mattermost-license', size: 10240000} as File;
 
         jest.spyOn(React, 'useState').mockImplementationOnce(() => realUseState(initialStateForFileObj as any));
-        renderWithContext(
+        await renderWithContext(
             <UploadLicenseModal {...props}/>,
             state,
         );
@@ -112,21 +112,21 @@ describe('components/admin_console/license_settings/modals/upload_license_modal'
         expect(uploadButton).not.toBeDisabled();
     });
 
-    test('should display no file selected text when no file is loaded', () => {
+    test('should display no file selected text when no file is loaded', async () => {
         const newProps = {...props, fileObjFromProps: null};
-        renderWithContext(
+        await renderWithContext(
             <UploadLicenseModal {...newProps}/>,
             state,
         );
         expect(screen.getByText('No file selected')).toBeInTheDocument();
     });
 
-    test('should display the file name when is selected', () => {
+    test('should display the file name when is selected', async () => {
         const realUseState = React.useState;
         const initialStateForFileObj = {name: 'testing.mattermost-license', size: (5 * 1024)} as File;
 
         jest.spyOn(React, 'useState').mockImplementationOnce(() => realUseState(initialStateForFileObj as any));
-        renderWithContext(
+        await renderWithContext(
             <UploadLicenseModal {...props}/>,
             state,
         );
@@ -144,7 +144,7 @@ describe('components/admin_console/license_settings/modals/upload_license_modal'
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <UploadLicenseModal {...props}/>,
             localState,
         );
@@ -167,7 +167,7 @@ describe('components/admin_console/license_settings/modals/upload_license_modal'
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <UploadLicenseModal {...props}/>,
             localState,
         );
@@ -179,7 +179,7 @@ describe('components/admin_console/license_settings/modals/upload_license_modal'
         expect(screen.getByText(/123,456,789/)).toBeInTheDocument();
     });
 
-    test('should hide the upload modal', () => {
+    test('should hide the upload modal', async () => {
         const localState: DeepPartial<GlobalState> = {
             ...state,
             views: {
@@ -188,7 +188,7 @@ describe('components/admin_console/license_settings/modals/upload_license_modal'
                 },
             },
         };
-        renderWithContext(
+        await renderWithContext(
             <UploadLicenseModal {...props}/>,
             localState,
         );

@@ -44,8 +44,8 @@ describe('YoutubeVideo', () => {
         },
     };
 
-    test('should match init snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match init snapshot', async () => {
+        const {container} = await renderWithContext(
             <YoutubeVideo {...baseProps}/>,
             initialState,
         );
@@ -60,7 +60,7 @@ describe('YoutubeVideo', () => {
     });
 
     test('should match snapshot for playing state', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <YoutubeVideo {...baseProps}/>,
             initialState,
         );
@@ -72,7 +72,7 @@ describe('YoutubeVideo', () => {
     });
 
     test('should match snapshot for playing state and `youtubeReferrerPolicy = true`', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <YoutubeVideo
                 {...baseProps}
                 youtubeReferrerPolicy={true}
@@ -92,7 +92,7 @@ describe('YoutubeVideo', () => {
         expect(container.querySelector('.video-playing iframe')).toHaveAttribute('src', 'https://www.youtube.com/embed/xqCoNej8Zxo?autoplay=1&rel=0&fs=1&enablejsapi=1');
     });
 
-    test('should use url if secure_url is not present', () => {
+    test('should use url if secure_url is not present', async () => {
         const props = {
             ...baseProps,
             metadata: {
@@ -102,7 +102,7 @@ describe('YoutubeVideo', () => {
                 }],
             },
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <YoutubeVideo {...props}/>,
             initialState,
         );
@@ -115,8 +115,8 @@ describe('YoutubeVideo', () => {
     });
 
     describe('thumbnail fallback', () => {
-        it('should fallback to hqdefault.jpg on image error', () => {
-            const {container} = renderWithContext(
+        it('should fallback to hqdefault.jpg on image error', async () => {
+            const {container} = await renderWithContext(
                 <YoutubeVideo {...baseProps}/>,
                 initialState,
             );
@@ -141,8 +141,8 @@ describe('YoutubeVideo', () => {
         });
     });
 
-    it('should initialize with useMaxResThumbnail set to true', () => {
-        const {container} = renderWithContext(
+    it('should initialize with useMaxResThumbnail set to true', async () => {
+        const {container} = await renderWithContext(
             <YoutubeVideo {...baseProps}/>,
             initialState,
         );

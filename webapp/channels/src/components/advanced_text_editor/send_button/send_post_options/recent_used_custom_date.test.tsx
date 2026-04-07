@@ -81,8 +81,8 @@ describe('CoreMenuOptions Component', () => {
         };
     }
 
-    function renderComponent(state = initialState, handleOnSelectOverride = handleOnSelect) {
-        renderWithContext(
+    async function renderComponent(state = initialState, handleOnSelectOverride = handleOnSelect) {
+        await renderWithContext(
             <RecentUsedCustomDate
                 handleOnSelect={handleOnSelectOverride}
                 userCurrentTimezone={userCurrentTimezone}

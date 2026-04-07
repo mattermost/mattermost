@@ -33,7 +33,7 @@ describe('components/ChannelHeaderMenu/MenuItems/OpenMembersRHS', () => {
         };
         const channel = TestHelper.getChannelMock();
 
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <OpenMembersRHS
                     channel={channel}
@@ -69,7 +69,7 @@ describe('components/ChannelHeaderMenu/MenuItems/OpenMembersRHS', () => {
 
         const channel = TestHelper.getChannelMock();
 
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <OpenMembersRHS
                     channel={channel}

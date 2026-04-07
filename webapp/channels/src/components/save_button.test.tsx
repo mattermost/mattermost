@@ -12,8 +12,8 @@ describe('components/SaveButton', () => {
         saving: false,
     };
 
-    test('should match snapshot, on defaultMessage', () => {
-        const {rerender, container} = renderWithContext(<SaveButton {...baseProps}/>);
+    test('should match snapshot, on defaultMessage', async () => {
+        const {rerender, container} = await renderWithContext(<SaveButton {...baseProps}/>);
 
         expect(container).toMatchSnapshot();
         expect(screen.getByRole('button')).not.toBeDisabled();
@@ -27,9 +27,9 @@ describe('components/SaveButton', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, on savingMessage', () => {
+    test('should match snapshot, on savingMessage', async () => {
         const props = {...baseProps, saving: true, disabled: true};
-        const {rerender, container} = renderWithContext(<SaveButton {...props}/>);
+        const {rerender, container} = await renderWithContext(<SaveButton {...props}/>);
 
         expect(container).toMatchSnapshot();
         expect(screen.getByRole('button')).toBeDisabled();
@@ -43,9 +43,9 @@ describe('components/SaveButton', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, extraClasses', () => {
+    test('should match snapshot, extraClasses', async () => {
         const props = {...baseProps, extraClasses: 'some-class'};
-        const {container} = renderWithContext(<SaveButton {...props}/>);
+        const {container} = await renderWithContext(<SaveButton {...props}/>);
 
         expect(container).toMatchSnapshot();
     });

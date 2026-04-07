@@ -22,14 +22,14 @@ function getBaseProps(): Props {
 }
 
 describe('PluginAction', () => {
-    it('does not show when no action is provided', () => {
+    it('does not show when no action is provided', async () => {
         const {container} = render(<PluginAction/>);
         expect(container.firstChild).toBeNull();
     });
 
     it('does show the correct information', async () => {
         const props = getBaseProps();
-        renderWithContext(<PluginAction {...props}/>);
+        await renderWithContext(<PluginAction {...props}/>);
         const button = screen.getByText(props.action!.buttonText);
         expect(button).toBeInTheDocument();
         expect(screen.queryByText(props.action!.text)).toBeInTheDocument();

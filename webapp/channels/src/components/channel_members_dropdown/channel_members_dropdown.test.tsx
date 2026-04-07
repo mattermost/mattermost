@@ -68,7 +68,7 @@ describe('components/channel_members_dropdown', () => {
         },
     };
 
-    test('should match snapshot for dropdown with guest user', () => {
+    test('should match snapshot for dropdown with guest user', async () => {
         const props = {
             ...baseProps,
             user: {
@@ -81,13 +81,13 @@ describe('components/channel_members_dropdown', () => {
             },
             canChangeMemberRoles: true,
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelMembersDropdown {...props}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot for dropdown with shared user', () => {
+    test('should match snapshot for dropdown with shared user', async () => {
         const props = {
             ...baseProps,
             user: {
@@ -96,13 +96,13 @@ describe('components/channel_members_dropdown', () => {
                 remote_id: 'fakeid',
             },
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelMembersDropdown {...props}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot for not dropdown with guest user', () => {
+    test('should match snapshot for not dropdown with guest user', async () => {
         const props = {
             ...baseProps,
             user: {
@@ -115,21 +115,21 @@ describe('components/channel_members_dropdown', () => {
             },
             canChangeMemberRoles: false,
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelMembersDropdown {...props}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot for channel_members_dropdown', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot for channel_members_dropdown', async () => {
+        const {container} = await renderWithContext(
             <ChannelMembersDropdown {...baseProps}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot opening dropdown upwards', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot opening dropdown upwards', async () => {
+        const {container} = await renderWithContext(
             <ChannelMembersDropdown
                 {...baseProps}
                 index={4}
@@ -157,7 +157,7 @@ describe('components/channel_members_dropdown', () => {
             },
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelMembersDropdown {...props}/>,
         );
 
@@ -185,7 +185,7 @@ describe('components/channel_members_dropdown', () => {
             },
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelMembersDropdown {...props}/>,
         );
 
@@ -212,7 +212,7 @@ describe('components/channel_members_dropdown', () => {
             },
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelMembersDropdown {...props}/>,
         );
 
@@ -225,7 +225,7 @@ describe('components/channel_members_dropdown', () => {
         });
     });
 
-    test('should match snapshot for group_constrained channel', () => {
+    test('should match snapshot for group_constrained channel', async () => {
         const props = {
             ...baseProps,
             channel: {
@@ -233,14 +233,14 @@ describe('components/channel_members_dropdown', () => {
                 group_constrained: true,
             },
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelMembersDropdown {...props}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with role change possible', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with role change possible', async () => {
+        const {container} = await renderWithContext(
             <ChannelMembersDropdown
                 {...baseProps}
                 canChangeMemberRoles={true}
@@ -249,12 +249,12 @@ describe('components/channel_members_dropdown', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when user is current user', () => {
+    test('should match snapshot when user is current user', async () => {
         const props = {
             ...baseProps,
             currentUserId: 'user-1',
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelMembersDropdown {...props}/>,
         );
         expect(container).toMatchSnapshot();
@@ -282,7 +282,7 @@ describe('components/channel_members_dropdown', () => {
                 removeChannelMember: removeMock,
             },
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelMembersDropdown {...props}/>,
         );
 

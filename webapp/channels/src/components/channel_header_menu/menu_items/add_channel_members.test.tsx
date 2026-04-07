@@ -29,8 +29,8 @@ describe('components/ChannelHeaderMenu/MenuItems/AddChannelMembers', () => {
         jest.clearAllMocks();
     });
 
-    test('renders the component correctly', () => {
-        renderWithContext(
+    test('renders the component correctly', async () => {
+        await renderWithContext(
             <AddChannelMembers
                 channel={channel}
             />, {},
@@ -41,7 +41,7 @@ describe('components/ChannelHeaderMenu/MenuItems/AddChannelMembers', () => {
     });
 
     test('dispatches openModal action on click', async () => {
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <AddChannelMembers
                     channel={channel}

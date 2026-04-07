@@ -44,8 +44,8 @@ describe('components/permissions_gates', () => {
     const CONTENT = 'The content inside the permission gate';
 
     describe('ChannelPermissionGate', () => {
-        test('should show content when user have permission', () => {
-            renderWithContext(
+        test('should show content when user have permission', async () => {
+            await renderWithContext(
                 <ChannelPermissionGate
                     channelId={'channel_id'}
                     teamId={'team_id'}
@@ -58,8 +58,8 @@ describe('components/permissions_gates', () => {
 
             expect(screen.queryByText(CONTENT)).toBeInTheDocument();
         });
-        test('should show content when user have at least on of the permissions', () => {
-            renderWithContext(
+        test('should show content when user have at least on of the permissions', async () => {
+            await renderWithContext(
                 <ChannelPermissionGate
                     channelId={'channel_id'}
                     teamId={'team_id'}
@@ -72,8 +72,8 @@ describe('components/permissions_gates', () => {
 
             expect(screen.queryByText(CONTENT)).toBeInTheDocument();
         });
-        test('should NOT show content when user have permission and use invert', () => {
-            renderWithContext(
+        test('should NOT show content when user have permission and use invert', async () => {
+            await renderWithContext(
                 <ChannelPermissionGate
                     channelId={'channel_id'}
                     teamId={'team_id'}
@@ -87,8 +87,8 @@ describe('components/permissions_gates', () => {
 
             expect(screen.queryByText(CONTENT)).not.toBeInTheDocument();
         });
-        test('should show content when user not have permission and use invert', () => {
-            renderWithContext(
+        test('should show content when user not have permission and use invert', async () => {
+            await renderWithContext(
                 <ChannelPermissionGate
                     channelId={'channel_id'}
                     teamId={'team_id'}
@@ -102,8 +102,8 @@ describe('components/permissions_gates', () => {
 
             expect(screen.queryByText(CONTENT)).toBeInTheDocument();
         });
-        test('should NOT show content when user haven\'t permission', () => {
-            renderWithContext(
+        test('should NOT show content when user haven\'t permission', async () => {
+            await renderWithContext(
                 <ChannelPermissionGate
                     channelId={'channel_id'}
                     teamId={'team_id'}
@@ -116,8 +116,8 @@ describe('components/permissions_gates', () => {
 
             expect(screen.queryByText(CONTENT)).not.toBeInTheDocument();
         });
-        test('should NOT show content when the channel doesn\'t exists', () => {
-            renderWithContext(
+        test('should NOT show content when the channel doesn\'t exists', async () => {
+            await renderWithContext(
                 <ChannelPermissionGate
                     channelId={'invalid_id'}
                     teamId={'team_id'}
@@ -130,8 +130,8 @@ describe('components/permissions_gates', () => {
 
             expect(screen.queryByText(CONTENT)).not.toBeInTheDocument();
         });
-        test('should show content when user have permission team wide', () => {
-            renderWithContext(
+        test('should show content when user have permission team wide', async () => {
+            await renderWithContext(
                 <ChannelPermissionGate
                     channelId={'channel_id'}
                     teamId={'team_id'}
@@ -144,8 +144,8 @@ describe('components/permissions_gates', () => {
 
             expect(screen.queryByText(CONTENT)).toBeInTheDocument();
         });
-        test('should show content when user have permission system wide', () => {
-            renderWithContext(
+        test('should show content when user have permission system wide', async () => {
+            await renderWithContext(
                 <ChannelPermissionGate
                     channelId={'channel_id'}
                     teamId={'team_id'}
@@ -159,8 +159,8 @@ describe('components/permissions_gates', () => {
             expect(screen.queryByText(CONTENT)).toBeInTheDocument();
         });
 
-        test('should show content when user have permissions in DM and GM', () => {
-            renderWithContext(
+        test('should show content when user have permissions in DM and GM', async () => {
+            await renderWithContext(
                 <ChannelPermissionGate
                     channelId={'channel_id'}
                     teamId={''}
@@ -174,8 +174,8 @@ describe('components/permissions_gates', () => {
             expect(screen.queryByText(CONTENT)).toBeInTheDocument();
         });
 
-        test('should NOT show content when user does not have permissions in DM and GM', () => {
-            renderWithContext(
+        test('should NOT show content when user does not have permissions in DM and GM', async () => {
+            await renderWithContext(
                 <ChannelPermissionGate
                     channelId={'channel_id'}
                     teamId={''}

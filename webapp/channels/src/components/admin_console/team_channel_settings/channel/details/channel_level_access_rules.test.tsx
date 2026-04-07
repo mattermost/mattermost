@@ -126,15 +126,15 @@ describe('ChannelLevelAccessRules', () => {
         isDisabled: false,
     };
 
-    it('should render the component with correct title and subtitle', () => {
-        renderWithContext(<ChannelLevelAccessRules {...defaultProps}/>);
+    it('should render the component with correct title and subtitle', async () => {
+        await renderWithContext(<ChannelLevelAccessRules {...defaultProps}/>);
 
         expect(screen.getByText('Channel-Specific Access Rules')).toBeInTheDocument();
         expect(screen.getByText(/Define additional rules specific to this channel/)).toBeInTheDocument();
     });
 
     it('should render the TableEditor when attributes are loaded', async () => {
-        renderWithContext(<ChannelLevelAccessRules {...defaultProps}/>);
+        await renderWithContext(<ChannelLevelAccessRules {...defaultProps}/>);
 
         // Wait for the component to load attributes
         await screen.findByTestId('table-editor');
@@ -145,7 +145,7 @@ describe('ChannelLevelAccessRules', () => {
 
     it('should call onRulesChange when expression changes', async () => {
         const onRulesChange = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <ChannelLevelAccessRules
                 {...defaultProps}
                 onRulesChange={onRulesChange}
@@ -167,7 +167,7 @@ describe('ChannelLevelAccessRules', () => {
     });
 
     it('should show auto-sync checkbox when expression is not empty', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ChannelLevelAccessRules
                 {...defaultProps}
                 initialExpression='user.department == "Engineering"'
@@ -182,7 +182,7 @@ describe('ChannelLevelAccessRules', () => {
     });
 
     it('should render table editor with expression', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ChannelLevelAccessRules
                 {...defaultProps}
                 initialExpression='user.department == "Engineering"'
@@ -198,7 +198,7 @@ describe('ChannelLevelAccessRules', () => {
 
     it('should call onRulesChange when auto-sync checkbox is toggled', async () => {
         const onRulesChange = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <ChannelLevelAccessRules
                 {...defaultProps}
                 onRulesChange={onRulesChange}
@@ -220,8 +220,8 @@ describe('ChannelLevelAccessRules', () => {
         );
     });
 
-    it('should initialize with provided initial values', () => {
-        renderWithContext(
+    it('should initialize with provided initial values', async () => {
+        await renderWithContext(
             <ChannelLevelAccessRules
                 {...defaultProps}
                 initialExpression='user.role == "admin"'
@@ -239,7 +239,7 @@ describe('ChannelLevelAccessRules', () => {
     });
 
     it('should be disabled when isDisabled prop is true', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ChannelLevelAccessRules
                 {...defaultProps}
                 isDisabled={true}
@@ -255,7 +255,7 @@ describe('ChannelLevelAccessRules', () => {
     });
 
     it('should not show auto-sync and test sections when expression is empty', async () => {
-        renderWithContext(<ChannelLevelAccessRules {...defaultProps}/>);
+        await renderWithContext(<ChannelLevelAccessRules {...defaultProps}/>);
 
         // Wait for the component to load
         await screen.findByTestId('table-editor');

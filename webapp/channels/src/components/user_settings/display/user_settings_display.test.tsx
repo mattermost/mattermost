@@ -120,96 +120,96 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         lastActiveTimeEnabled: true,
     };
 
-    test('should match snapshot, no active section', () => {
-        const {container} = renderWithContext(<UserSettingsDisplay {...requiredProps}/>);
+    test('should match snapshot, no active section', async () => {
+        const {container} = await renderWithContext(<UserSettingsDisplay {...requiredProps}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, collapse section', () => {
+    test('should match snapshot, collapse section', async () => {
         const props = {...requiredProps, activeSection: 'collapse'};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
+        const {container} = await renderWithContext(<UserSettingsDisplay {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, link preview section with EnableLinkPreviews is false', () => {
+    test('should match snapshot, link preview section with EnableLinkPreviews is false', async () => {
         const props = {
             ...requiredProps,
             activeSection: 'linkpreview',
             enableLinkPreviews: false,
         };
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
+        const {container} = await renderWithContext(<UserSettingsDisplay {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, link preview section with EnableLinkPreviews is true', () => {
+    test('should match snapshot, link preview section with EnableLinkPreviews is true', async () => {
         const props = {
             ...requiredProps,
             activeSection: 'linkpreview',
             enableLinkPreviews: true,
         };
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
+        const {container} = await renderWithContext(<UserSettingsDisplay {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, clock section', () => {
+    test('should match snapshot, clock section', async () => {
         const props = {...requiredProps, activeSection: 'clock'};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
+        const {container} = await renderWithContext(<UserSettingsDisplay {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, teammate name display section', () => {
+    test('should match snapshot, teammate name display section', async () => {
         const props = {...requiredProps, activeSection: 'teammate_name_display'};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
+        const {container} = await renderWithContext(<UserSettingsDisplay {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, timezone section', () => {
+    test('should match snapshot, timezone section', async () => {
         const props = {...requiredProps, activeSection: 'timezone'};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
+        const {container} = await renderWithContext(<UserSettingsDisplay {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, message display section', () => {
+    test('should match snapshot, message display section', async () => {
         const props = {...requiredProps, activeSection: 'message_display'};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
+        const {container} = await renderWithContext(<UserSettingsDisplay {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, channel display mode section', () => {
+    test('should match snapshot, channel display mode section', async () => {
         const props = {...requiredProps, activeSection: 'channel_display_mode'};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
+        const {container} = await renderWithContext(<UserSettingsDisplay {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, languages section', () => {
+    test('should match snapshot, languages section', async () => {
         const props = {...requiredProps, activeSection: 'languages'};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
+        const {container} = await renderWithContext(<UserSettingsDisplay {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, theme section with EnableThemeSelection is false', () => {
+    test('should match snapshot, theme section with EnableThemeSelection is false', async () => {
         const props = {
             ...requiredProps,
             activeSection: 'theme',
             enableThemeSelection: false,
         };
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
+        const {container} = await renderWithContext(<UserSettingsDisplay {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, theme section with EnableThemeSelection is true', () => {
+    test('should match snapshot, theme section with EnableThemeSelection is true', async () => {
         const props = {
             ...requiredProps,
             activeSection: 'theme',
             enableThemeSelection: true,
         };
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
+        const {container} = await renderWithContext(<UserSettingsDisplay {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, clickToReply section', () => {
+    test('should match snapshot, clickToReply section', async () => {
         const props = {...requiredProps, activeSection: 'click_to_reply'};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
+        const {container} = await renderWithContext(<UserSettingsDisplay {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
@@ -217,7 +217,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         const updateSection = jest.fn();
 
         const props = {...requiredProps, updateSection, activeSection: 'clock'};
-        renderWithContext(<UserSettingsDisplay {...props}/>);
+        await renderWithContext(<UserSettingsDisplay {...props}/>);
 
         await userEvent.click(screen.getByTestId('saveSetting'));
         expect(updateSection).toHaveBeenCalledWith('');
@@ -227,7 +227,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         const updateSection = jest.fn();
 
         const props = {...requiredProps, updateSection, activeSection: 'clock'};
-        renderWithContext(<UserSettingsDisplay {...props}/>);
+        await renderWithContext(<UserSettingsDisplay {...props}/>);
 
         // Click Save → handleSubmit → updateSection('')
         await userEvent.click(screen.getByTestId('saveSetting'));
@@ -242,7 +242,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     test('should have called closeModal', async () => {
         const closeModal = jest.fn();
         const props = {...requiredProps, closeModal};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
+        const {container} = await renderWithContext(<UserSettingsDisplay {...props}/>);
 
         await userEvent.click(container.querySelector('#closeButton')!);
         expect(closeModal).toHaveBeenCalled();
@@ -251,7 +251,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     test('should have called collapseModal', async () => {
         const collapseModal = jest.fn();
         const props = {...requiredProps, collapseModal};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
+        const {container} = await renderWithContext(<UserSettingsDisplay {...props}/>);
 
         await userEvent.click(container.querySelector('.fa-angle-left')!);
         expect(collapseModal).toHaveBeenCalled();
@@ -259,7 +259,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
 
     test('should update militaryTime state', async () => {
         const props = {...requiredProps, activeSection: 'clock'};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
+        const {container} = await renderWithContext(<UserSettingsDisplay {...props}/>);
 
         const radioA = container.querySelector('#clockFormatA') as HTMLInputElement;
         const radioB = container.querySelector('#clockFormatB') as HTMLInputElement;
@@ -273,7 +273,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
 
     test('should update teammateNameDisplay state', async () => {
         const props = {...requiredProps, activeSection: 'name_format'};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
+        const {container} = await renderWithContext(<UserSettingsDisplay {...props}/>);
 
         const radioA = container.querySelector('#name_formatFormatA') as HTMLInputElement;
         const radioB = container.querySelector('#name_formatFormatB') as HTMLInputElement;
@@ -291,7 +291,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
 
     test('should update channelDisplayMode state', async () => {
         const props = {...requiredProps, activeSection: 'channel_display_mode'};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
+        const {container} = await renderWithContext(<UserSettingsDisplay {...props}/>);
 
         const radioA = container.querySelector('#channel_display_modeFormatA') as HTMLInputElement;
         const radioB = container.querySelector('#channel_display_modeFormatB') as HTMLInputElement;
@@ -305,7 +305,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
 
     test('should update messageDisplay state', async () => {
         const props = {...requiredProps, activeSection: 'message_display'};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
+        const {container} = await renderWithContext(<UserSettingsDisplay {...props}/>);
 
         const radioA = container.querySelector('#message_displayFormatA') as HTMLInputElement;
         const radioB = container.querySelector('#message_displayFormatB') as HTMLInputElement;
@@ -319,7 +319,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
 
     test('should update collapseDisplay state', async () => {
         const props = {...requiredProps, activeSection: 'collapse'};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
+        const {container} = await renderWithContext(<UserSettingsDisplay {...props}/>);
 
         const radioA = container.querySelector('#collapseFormatA') as HTMLInputElement;
         const radioB = container.querySelector('#collapseFormatB') as HTMLInputElement;
@@ -333,7 +333,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
 
     test('should update linkPreviewDisplay state', async () => {
         const props = {...requiredProps, activeSection: 'linkpreview', enableLinkPreviews: true};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
+        const {container} = await renderWithContext(<UserSettingsDisplay {...props}/>);
 
         const radioA = container.querySelector('#linkpreviewFormatA') as HTMLInputElement;
         const radioB = container.querySelector('#linkpreviewFormatB') as HTMLInputElement;
@@ -347,7 +347,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
 
     test('should update display state', async () => {
         const props = {...requiredProps, activeSection: 'linkpreview', enableLinkPreviews: true};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
+        const {container} = await renderWithContext(<UserSettingsDisplay {...props}/>);
 
         // Click radio buttons in the link preview section to test handleOnChange
         const radioA = container.querySelector('#linkpreviewFormatA') as HTMLInputElement;
@@ -362,7 +362,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
 
     test('should update collapsed reply threads state', async () => {
         const props = {...requiredProps, activeSection: 'collapsed_reply_threads', collapsedReplyThreadsAllowUserPreference: true};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
+        const {container} = await renderWithContext(<UserSettingsDisplay {...props}/>);
 
         const radioA = container.querySelector('#collapsed_reply_threadsFormatA') as HTMLInputElement;
         const radioB = container.querySelector('#collapsed_reply_threadsFormatB') as HTMLInputElement;
@@ -376,7 +376,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
 
     test('should update last active state', async () => {
         const props = {...requiredProps, activeSection: 'lastactive', lastActiveTimeEnabled: true};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
+        const {container} = await renderWithContext(<UserSettingsDisplay {...props}/>);
 
         const radioA = container.querySelector('#lastactiveFormatA') as HTMLInputElement;
         const radioB = container.querySelector('#lastactiveFormatB') as HTMLInputElement;
@@ -388,8 +388,8 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         expect(radioA).toBeChecked();
     });
 
-    test('should not show last active section', () => {
-        const {container} = renderWithContext(
+    test('should not show last active section', async () => {
+        const {container} = await renderWithContext(
             <UserSettingsDisplay
                 {...requiredProps}
                 lastActiveTimeEnabled={false}

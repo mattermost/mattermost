@@ -41,7 +41,7 @@ export type FullContextOptions = {
     history?: History<unknown>;
 }
 
-export const renderWithContext = (
+export const renderWithContext = async (
     component: React.ReactElement,
     initialState: DeepPartial<GlobalState> = {},
     partialOptions?: FullContextOptions,
@@ -70,6 +70,8 @@ export const renderWithContext = (
             return <Providers {...renderState}>{children}</Providers>;
         },
     });
+
+    await flushEffects();
 
     return {
         ...results,
@@ -101,7 +103,7 @@ export const renderWithContext = (
     };
 };
 
-export const renderHookWithContext = <TProps, TResult>(
+export const renderHookWithContext = async <TProps, TResult>(
     callback: (props: TProps) => TResult,
     initialState: DeepPartial<GlobalState> = {},
     partialOptions?: FullContextOptions,
@@ -129,6 +131,8 @@ export const renderHookWithContext = <TProps, TResult>(
             return <Providers {...renderState}>{children}</Providers>;
         },
     });
+
+    await flushEffects();
 
     return {
         ...results,
@@ -201,33 +205,33 @@ const Providers = ({children, store, history, options}: RenderStateProps) => {
 };
 
 /**
- * After `render` / `renderWithContext`, runs an async `act` boundary so updates from mount effects
- * (e.g. promise chains) can commit. Does not wrap the render call itself.
+ * Flushes pending microtasks inside an `act` boundary so that state updates from mount effects
+ * (e.g. promise chains in useEffect) commit without triggering act() warnings.
  *
- * @param microtaskRounds How many times to `await Promise.resolve()` inside `act`, yielding to the
- * microtask queue between each. Increase above the default when mocked thunks resolve in sequence
- * (e.g. effect + multiple `await`s) so `setState` runs inside `act` and React does not warn.
- * @default 1
+ * Each `await Promise.resolve()` advances the microtask queue by one tick. 10 rounds is chosen
+ * because the deepest observed async chain in mount effects was 3 sequential awaits (e.g. effect
+ * dispatches a thunk that awaits an API call that triggers setState). 10 provides ~3x headroom
+ * over the worst case while adding negligible cost (~10 microseconds total).
+ *
+ * Called automatically by `renderWithContext` and `renderHookWithContext`.
+ *
+ * **Trade-off**: Because effects resolve before the render result is returned, intermediate states
+ * (loading spinners, skeleton screens) are no longer observable. To test intermediate states,
+ * mock the async action so it never resolves:
+ *
+ * @example
+ * ```ts
+ * // Mock the async action to stay pending so the component remains in loading state
+ * jest.spyOn(Client4, 'getUser').mockReturnValue(new Promise(() => {}));
+ *
+ * const {container} = await renderWithContext(<UserProfile userId='uid'/>);
+ * expect(screen.getByText('Loading...')).toBeInTheDocument();
+ * ```
  */
-export function runPostRenderAct(microtaskRounds: number = 1) {
-    const rounds = Math.max(1, microtaskRounds);
+function flushEffects() {
     return act(async () => {
-        const drainMicrotasks = async (remaining: number): Promise<void> => {
-            if (remaining <= 0) {
-                return;
-            }
-            await Promise.resolve();
-            await drainMicrotasks(remaining - 1);
-        };
-        await drainMicrotasks(rounds);
+        for (let i = 0; i < 10; i++) {
+            await Promise.resolve(); // eslint-disable-line no-await-in-loop
+        }
     });
-}
-
-/**
- * A helper to use when an Enzyme test needs to wait for async code to run in a component before generating a snapshot.
- *
- * This should only be used in those cases.
- */
-export function waitForEnzymeSnapshot() {
-    return act(async () => {});
 }

@@ -56,10 +56,10 @@ describe('LatestPostReader', () => {
         autotranslated: false,
     };
 
-    test('should render aria-label as a child in the given locale', () => {
+    test('should render aria-label as a child in the given locale', async () => {
         (useIntl as jest.Mock).mockImplementation(() => createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'}));
 
-        const {rerender} = renderWithContext(
+        const {rerender} = await renderWithContext(
             <LatestPostReader {...baseProps}/>,
             baseState,
         );
@@ -78,13 +78,13 @@ describe('LatestPostReader', () => {
         expect(message).toHaveClass('sr-only');
     });
 
-    test('should be able to handle an empty post array', () => {
+    test('should be able to handle an empty post array', async () => {
         const props = {
             ...baseProps,
             postIds: [],
         };
 
-        renderWithContext(<LatestPostReader {...props}/>, baseState);
+        await renderWithContext(<LatestPostReader {...props}/>, baseState);
 
         // body should be empty
         const message = screen.queryByText('This is a test');

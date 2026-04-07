@@ -24,8 +24,8 @@ describe('components/widgets/admin_console/AdminPanelWithButton', () => {
         disabled: false,
     };
 
-    test('should render with button', () => {
-        const {container} = renderWithContext(
+    test('should render with button', async () => {
+        const {container} = await renderWithContext(
             <AdminPanelWithButton {...defaultProps}>
                 {'Test'}
             </AdminPanelWithButton>,
@@ -46,9 +46,9 @@ describe('components/widgets/admin_console/AdminPanelWithButton', () => {
         expect(screen.getByText('test-button-text-default')).toBeInTheDocument();
     });
 
-    test('should render disabled button when disabled prop is true', () => {
+    test('should render disabled button when disabled prop is true', async () => {
         const onButtonClick = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <AdminPanelWithButton
                 {...defaultProps}
                 disabled={true}
@@ -65,7 +65,7 @@ describe('components/widgets/admin_console/AdminPanelWithButton', () => {
 
     test('should call onButtonClick when button is clicked', async () => {
         const onButtonClick = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <AdminPanelWithButton
                 {...defaultProps}
                 onButtonClick={onButtonClick}

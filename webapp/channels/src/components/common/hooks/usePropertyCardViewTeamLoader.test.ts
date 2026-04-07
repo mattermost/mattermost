@@ -11,8 +11,8 @@ describe('usePropertyCardViewTeamLoader', () => {
     const team2 = TestHelper.getTeamMock({id: 'team2'});
 
     describe('with store team loading', () => {
-        test('should return the team from store when available and no getTeam provided', () => {
-            const {result} = renderHookWithContext(
+        test('should return the team from store when available and no getTeam provided', async () => {
+            const {result} = await renderHookWithContext(
                 () => usePropertyCardViewTeamLoader('team1'),
                 {
                     entities: {
@@ -28,16 +28,16 @@ describe('usePropertyCardViewTeamLoader', () => {
             expect(result.current).toBe(team1);
         });
 
-        test('should return undefined when team not in store and no getTeam provided', () => {
-            const {result} = renderHookWithContext(
+        test('should return undefined when team not in store and no getTeam provided', async () => {
+            const {result} = await renderHookWithContext(
                 () => usePropertyCardViewTeamLoader('team1'),
             );
 
             expect(result.current).toBe(undefined);
         });
 
-        test('should return undefined when no teamId provided', () => {
-            const {result} = renderHookWithContext(
+        test('should return undefined when no teamId provided', async () => {
+            const {result} = await renderHookWithContext(
                 () => usePropertyCardViewTeamLoader(),
             );
 
@@ -49,11 +49,10 @@ describe('usePropertyCardViewTeamLoader', () => {
         test('should use getTeam when provided and team not in store', async () => {
             const getTeamMock = jest.fn().mockResolvedValue(team1);
 
-            const {result} = renderHookWithContext(
+            const {result} = await renderHookWithContext(
                 () => usePropertyCardViewTeamLoader('team1', getTeamMock),
             );
 
-            expect(result.current).toBe(undefined);
             expect(getTeamMock).toHaveBeenCalledWith('team1');
 
             await waitFor(() => {
@@ -65,7 +64,7 @@ describe('usePropertyCardViewTeamLoader', () => {
             const mockedTeam1 = TestHelper.getTeamMock({id: 'team1', display_name: 'Mocked Team 1'});
             const getTeamMock = jest.fn().mockResolvedValue(mockedTeam1);
 
-            const {result} = renderHookWithContext(
+            const {result} = await renderHookWithContext(
                 () => usePropertyCardViewTeamLoader('team1', getTeamMock),
                 {
                     entities: {
@@ -88,7 +87,7 @@ describe('usePropertyCardViewTeamLoader', () => {
             const getTeamMock = jest.fn().mockRejectedValue(new Error('Network error'));
             const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
-            const {result} = renderHookWithContext(
+            const {result} = await renderHookWithContext(
                 () => usePropertyCardViewTeamLoader('team1', getTeamMock),
             );
 
@@ -108,7 +107,7 @@ describe('usePropertyCardViewTeamLoader', () => {
         test('should only call getTeam once per teamId', async () => {
             const getTeamMock = jest.fn().mockResolvedValue(team1);
 
-            const {result, rerender} = renderHookWithContext(
+            const {result, rerender} = await renderHookWithContext(
                 () => usePropertyCardViewTeamLoader('team1', getTeamMock),
             );
 
@@ -132,7 +131,7 @@ describe('usePropertyCardViewTeamLoader', () => {
                 mockResolvedValueOnce(team2);
 
             let teamId = 'team1';
-            const {result, rerender} = renderHookWithContext(
+            const {result, rerender} = await renderHookWithContext(
                 () => usePropertyCardViewTeamLoader(teamId, getTeamMock),
             );
 
@@ -155,10 +154,10 @@ describe('usePropertyCardViewTeamLoader', () => {
             expect(getTeamMock).toHaveBeenCalledTimes(2);
         });
 
-        test('should not call getTeam when teamId is empty', () => {
+        test('should not call getTeam when teamId is empty', async () => {
             const getTeamMock = jest.fn();
 
-            const {result} = renderHookWithContext(
+            const {result} = await renderHookWithContext(
                 () => usePropertyCardViewTeamLoader('', getTeamMock),
             );
 

@@ -87,28 +87,28 @@ function CustomSectionThrows() {
 }
 
 describe('plugin tab', () => {
-    it('all props are properly passed to the children', () => {
-        const {container} = renderWithContext(<PluginTab {...getBaseProps()}/>);
+    it('all props are properly passed to the children', async () => {
+        const {container} = await renderWithContext(<PluginTab {...getBaseProps()}/>);
         expect(container).toMatchSnapshot();
     });
 
-    it('setting name is properly set', () => {
-        renderWithContext(<PluginTab {...getBaseProps()}/>);
+    it('setting name is properly set', async () => {
+        await renderWithContext(<PluginTab {...getBaseProps()}/>);
         expect(screen.queryAllByText('plugin A Settings')).toHaveLength(2);
     });
 
-    it('custom section component', () => {
+    it('custom section component', async () => {
         const props = getBaseProps();
         props.settings.sections.push({
             title: 'custom section',
             component: CustomSection,
         });
-        renderWithContext(<PluginTab {...props}/>);
+        await renderWithContext(<PluginTab {...props}/>);
         expect(screen.queryAllByText('plugin A Settings')).toHaveLength(2);
         expect(screen.queryByText(CUSTOM_SECTION_TEXT)).toBeInTheDocument();
     });
 
-    it('custom section component throws', () => {
+    it('custom section component throws', async () => {
         const consoleError = console.error;
         console.error = jest.fn();
 
@@ -117,7 +117,7 @@ describe('plugin tab', () => {
             title: 'custom section',
             component: CustomSectionThrows,
         });
-        renderWithContext(<PluginTab {...props}/>);
+        await renderWithContext(<PluginTab {...props}/>);
         expect(screen.queryAllByText('plugin A Settings')).toHaveLength(2);
         expect(screen.queryByText(CUSTOM_SECTION_TEXT)).not.toBeInTheDocument();
         expect(screen.queryByText('An error occurred in the pluginA plugin.')).toBeInTheDocument();

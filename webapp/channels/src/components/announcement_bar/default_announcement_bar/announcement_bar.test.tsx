@@ -25,8 +25,8 @@ describe('components/announcement_bar/default_announcement_bar', () => {
         Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth);
     });
 
-    test('should not show tooltip by default', () => {
-        const wrapper = renderWithContext(<AnnouncementBar message={<span>{'Lorem Ipsum'}</span>}/>);
+    test('should not show tooltip by default', async () => {
+        const wrapper = await renderWithContext(<AnnouncementBar message={<span>{'Lorem Ipsum'}</span>}/>);
 
         wrapper.getByText('Lorem Ipsum');
 
@@ -34,7 +34,7 @@ describe('components/announcement_bar/default_announcement_bar', () => {
     });
 
     test('should show tooltip on hover', async () => {
-        const wrapper = renderWithContext(<AnnouncementBar message={<span>{'Lorem Ipsum'}</span>}/>);
+        const wrapper = await renderWithContext(<AnnouncementBar message={<span>{'Lorem Ipsum'}</span>}/>);
 
         userEvent.hover(wrapper.getByText('Lorem Ipsum'));
 

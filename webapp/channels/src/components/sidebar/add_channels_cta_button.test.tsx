@@ -91,13 +91,13 @@ describe('components/new_channel_modal', () => {
         (savePreferences as jest.Mock).mockClear();
     });
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<AddChannelsCtaButton/>, initialState);
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(<AddChannelsCtaButton/>, initialState);
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when user has only join channel permissions', () => {
+    test('should match snapshot when user has only join channel permissions', async () => {
         const joinOnlyState = {
             ...initialState,
             entities: {
@@ -114,19 +114,19 @@ describe('components/new_channel_modal', () => {
             },
         };
 
-        const {container} = renderWithContext(<AddChannelsCtaButton/>, joinOnlyState);
+        const {container} = await renderWithContext(<AddChannelsCtaButton/>, joinOnlyState);
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should find the add channels button when user has permissions', () => {
-        renderWithContext(<AddChannelsCtaButton/>, initialState);
+    test('should find the add channels button when user has permissions', async () => {
+        await renderWithContext(<AddChannelsCtaButton/>, initialState);
 
         const button = screen.getByRole('button', {name: /add channels/i});
         expect(button).toHaveAttribute('aria-haspopup', 'true');
     });
 
-    test('should return nothing when user does not have permissions', () => {
+    test('should return nothing when user does not have permissions', async () => {
         const guestState = {
             ...initialState,
             entities: {
@@ -143,13 +143,13 @@ describe('components/new_channel_modal', () => {
             },
         };
 
-        const {container} = renderWithContext(<AddChannelsCtaButton/>, guestState);
+        const {container} = await renderWithContext(<AddChannelsCtaButton/>, guestState);
 
         expect(container.querySelector('.AddChannelsCtaDropdown')).not.toBeInTheDocument();
     });
 
     test('should fire dispatch to save preferences when button is clicked', async () => {
-        renderWithContext(<AddChannelsCtaButton/>, initialState);
+        await renderWithContext(<AddChannelsCtaButton/>, initialState);
 
         const button = screen.getByRole('button', {name: /add channels/i});
         expect(savePreferences).not.toHaveBeenCalled();
@@ -167,7 +167,7 @@ describe('components/new_channel_modal', () => {
         );
     });
 
-    test('should not display as a Cta Dropdown when user only has permissions to join channels ', () => {
+    test('should not display as a Cta Dropdown when user only has permissions to join channels ', async () => {
         const joinOnlyState = {
             ...initialState,
             entities: {
@@ -184,13 +184,13 @@ describe('components/new_channel_modal', () => {
             },
         };
 
-        const {container} = renderWithContext(<AddChannelsCtaButton/>, joinOnlyState);
+        const {container} = await renderWithContext(<AddChannelsCtaButton/>, joinOnlyState);
 
         expect(container.querySelector('.AddChannelsCtaDropdown')).not.toBeInTheDocument();
         expect(screen.getByRole('button', {name: /add channels/i})).toBeInTheDocument();
     });
 
-    test('should still display as a Cta Dropdown when user has permissions to create at least one form of channel', () => {
+    test('should still display as a Cta Dropdown when user has permissions to create at least one form of channel', async () => {
         const createPublicState = {
             ...initialState,
             entities: {
@@ -207,7 +207,7 @@ describe('components/new_channel_modal', () => {
             },
         };
 
-        renderWithContext(<AddChannelsCtaButton/>, createPublicState);
+        await renderWithContext(<AddChannelsCtaButton/>, createPublicState);
 
         const button = screen.getByRole('button', {name: /add channels/i});
         expect(button).toHaveAttribute('aria-haspopup', 'true');

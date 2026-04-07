@@ -32,22 +32,22 @@ describe('components/post_edit_history/edited_post_item', () => {
         isChannelAutotranslated: false,
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<EditedPostItem {...baseProps}/>);
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(<EditedPostItem {...baseProps}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when isCurrent is true', () => {
+    test('should match snapshot when isCurrent is true', async () => {
         const props = {
             ...baseProps,
             isCurrent: true,
         };
-        const {container} = renderWithContext(<EditedPostItem {...props}/>);
+        const {container} = await renderWithContext(<EditedPostItem {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
     test('clicking on the restore button should call openRestorePostModal', async () => {
-        renderWithContext(<EditedPostItem {...baseProps}/>);
+        await renderWithContext(<EditedPostItem {...baseProps}/>);
 
         // find the button with restore icon and click it
         const restoreButton = screen.getByRole('button', {name: /restore/i});
@@ -61,25 +61,25 @@ describe('components/post_edit_history/edited_post_item', () => {
         );
     });
 
-    test('when isCurrent is true, should not renderWithContext the restore button', () => {
+    test('when isCurrent is true, should not renderWithContext the restore button', async () => {
         const props = {
             ...baseProps,
             isCurrent: true,
         };
-        renderWithContext(<EditedPostItem {...props}/>);
+        await renderWithContext(<EditedPostItem {...props}/>);
         expect(screen.queryByRole('button', {name: /restore/i})).toBeNull();
     });
 
-    test('when isCurrent is true, should renderWithContext the current version text', () => {
+    test('when isCurrent is true, should renderWithContext the current version text', async () => {
         const props = {
             ...baseProps,
             isCurrent: true,
         };
-        renderWithContext(<EditedPostItem {...props}/>);
+        await renderWithContext(<EditedPostItem {...props}/>);
         expect(screen.getByText(/current version/i)).toBeInTheDocument();
     });
 
-    test('should match snapshot with file metadata', () => {
+    test('should match snapshot with file metadata', async () => {
         const props = {
             ...baseProps,
             post: {
@@ -95,11 +95,11 @@ describe('components/post_edit_history/edited_post_item', () => {
             },
         };
 
-        const {container} = renderWithContext(<EditedPostItem {...props}/>);
+        const {container} = await renderWithContext(<EditedPostItem {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with file metadata with some deleted files', () => {
+    test('should match snapshot with file metadata with some deleted files', async () => {
         const props = {
             ...baseProps,
             post: {
@@ -115,7 +115,7 @@ describe('components/post_edit_history/edited_post_item', () => {
             },
         };
 
-        const {container} = renderWithContext(<EditedPostItem {...props}/>);
+        const {container} = await renderWithContext(<EditedPostItem {...props}/>);
         expect(container).toMatchSnapshot();
     });
 });

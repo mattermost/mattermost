@@ -15,13 +15,13 @@ describe('components/file_preview_modal/file_preview_modal_main_nav/FilePreviewM
         handleNext: jest.fn(),
     };
 
-    test('should match snapshot with multiple files', () => {
+    test('should match snapshot with multiple files', async () => {
         const props = {
             ...defaultProps,
             enablePublicLink: false,
         };
 
-        const {container} = renderWithContext(<FilePreviewModalMainNav {...props}/>);
+        const {container} = await renderWithContext(<FilePreviewModalMainNav {...props}/>);
         expect(container).toMatchSnapshot();
     });
 });

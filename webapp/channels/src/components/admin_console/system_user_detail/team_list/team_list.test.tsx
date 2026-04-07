@@ -46,7 +46,7 @@ describe('admin_console/system_user_detail/team_list/TeamList', () => {
     };
 
     test('should match snapshot when no teams are found', async () => {
-        const {container} = renderWithContext(<TeamList {...defaultProps}/>);
+        const {container} = await renderWithContext(<TeamList {...defaultProps}/>);
 
         await waitFor(() => {
             expect(container.querySelector('.AbstractList__loading')).not.toBeInTheDocument();
@@ -75,7 +75,7 @@ describe('admin_console/system_user_detail/team_list/TeamList', () => {
             },
         };
 
-        const {container} = renderWithContext(<TeamList {...props}/>);
+        const {container} = await renderWithContext(<TeamList {...props}/>);
 
         await waitFor(() => {
             expect(container.querySelector('.AbstractList__loading')).not.toBeInTheDocument();

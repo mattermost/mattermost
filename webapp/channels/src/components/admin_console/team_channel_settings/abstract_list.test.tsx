@@ -49,7 +49,7 @@ describe('admin_console/team_channel_settings/AbstractList', () => {
             removeGroup: jest.fn(),
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <AbstractList
                 onPageChangedCallback={jest.fn()}
                 total={0}
@@ -82,7 +82,7 @@ describe('admin_console/team_channel_settings/AbstractList', () => {
             removeGroup: jest.fn(),
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <AbstractList
                 data={testTeams}
                 onPageChangedCallback={jest.fn()}

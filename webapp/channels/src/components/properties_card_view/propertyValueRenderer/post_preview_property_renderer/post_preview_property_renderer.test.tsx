@@ -98,7 +98,7 @@ describe('PostPreviewPropertyRenderer', () => {
     };
 
     it('should render PostMessagePreview when all data is available', async () => {
-        const {getByTestId, getByText} = renderWithContext(
+        const {getByTestId, getByText} = await renderWithContext(
             <PostPreviewPropertyRenderer {...defaultProps}/>,
             baseState,
         );
@@ -115,7 +115,7 @@ describe('PostPreviewPropertyRenderer', () => {
         const props = cloneDeep(defaultProps);
         props.metadata.post = undefined;
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PostPreviewPropertyRenderer {...props}/>,
             baseState,
         );
@@ -127,7 +127,7 @@ describe('PostPreviewPropertyRenderer', () => {
         const props = cloneDeep(defaultProps);
         props.metadata.channel = undefined;
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PostPreviewPropertyRenderer {...props}/>,
             baseState,
         );
@@ -139,7 +139,7 @@ describe('PostPreviewPropertyRenderer', () => {
         const props = cloneDeep(defaultProps);
         props.metadata.team = undefined;
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PostPreviewPropertyRenderer {...props}/>,
             baseState,
         );
@@ -156,7 +156,7 @@ describe('PostPreviewPropertyRenderer', () => {
         const props = cloneDeep(defaultProps);
         props.metadata.channel = privateChannel;
 
-        const {getByTestId, getByText} = renderWithContext(
+        const {getByTestId, getByText} = await renderWithContext(
             <PostPreviewPropertyRenderer {...props}/>,
             baseState,
         );
@@ -181,7 +181,7 @@ describe('PostPreviewPropertyRenderer', () => {
         props.metadata.channel = channelWithoutDisplayName;
         props.metadata.team = teamWithoutName;
 
-        const {getByTestId, getByText} = renderWithContext(
+        const {getByTestId, getByText} = await renderWithContext(
             <PostPreviewPropertyRenderer {...props}/>,
             baseState,
         );
@@ -219,7 +219,7 @@ describe('PostPreviewPropertyRenderer', () => {
         const props = cloneDeep(defaultProps);
         props.metadata.post = postWithAttachments;
 
-        const {getByTestId, getByText} = renderWithContext(
+        const {getByTestId, getByText} = await renderWithContext(
             <PostPreviewPropertyRenderer {...props}/>,
             baseState,
         );

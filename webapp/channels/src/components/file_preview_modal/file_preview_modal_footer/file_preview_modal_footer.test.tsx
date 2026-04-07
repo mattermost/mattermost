@@ -32,22 +32,22 @@ describe('components/file_preview_modal/file_preview_modal_footer/FilePreviewMod
         canCopyContent: false,
     };
 
-    test('should match snapshot the desktop view', () => {
+    test('should match snapshot the desktop view', async () => {
         const props = {
             ...defaultProps,
         };
 
-        const {container} = renderWithContext(<FilePreviewModalFooter {...props}/>);
+        const {container} = await renderWithContext(<FilePreviewModalFooter {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot the mobile view', () => {
+    test('should match snapshot the mobile view', async () => {
         const props = {
             ...defaultProps,
             isMobile: true,
         };
 
-        const {container} = renderWithContext(<FilePreviewModalFooter {...props}/>);
+        const {container} = await renderWithContext(<FilePreviewModalFooter {...props}/>);
         expect(container).toMatchSnapshot();
     });
 });

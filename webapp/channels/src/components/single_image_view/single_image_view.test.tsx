@@ -40,7 +40,7 @@ describe('components/SingleImageView', () => {
     };
 
     test('should match snapshot', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SingleImageView {...baseProps}/>,
         );
 
@@ -69,7 +69,7 @@ describe('components/SingleImageView', () => {
             extension: 'svg',
         });
         const props = {...baseProps, fileInfo};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SingleImageView {...props}/>,
         );
 
@@ -91,7 +91,7 @@ describe('components/SingleImageView', () => {
     });
 
     test('should call openModal on handleImageClick', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SingleImageView {...baseProps}/>,
         );
 
@@ -123,7 +123,7 @@ describe('components/SingleImageView', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <SingleImageView {...props}/>,
         );
 
@@ -138,7 +138,7 @@ describe('components/SingleImageView', () => {
     });
 
     test('should set loaded state on callback of onImageLoaded on SizeAwareImage component', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SingleImageView {...baseProps}/>,
         );
 
@@ -165,7 +165,7 @@ describe('components/SingleImageView', () => {
     });
 
     test('should correctly pass prop down to surround small images with a container', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SingleImageView {...baseProps}/>,
         );
 
@@ -181,7 +181,7 @@ describe('components/SingleImageView', () => {
     });
 
     test('should not show filename when image is displayed', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SingleImageView
                 {...baseProps}
                 isEmbedVisible={true}
@@ -197,7 +197,7 @@ describe('components/SingleImageView', () => {
     });
 
     test('should show filename when image is collapsed', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SingleImageView
                 {...baseProps}
                 isEmbedVisible={false}
@@ -219,7 +219,7 @@ describe('components/SingleImageView', () => {
                 isInPermalink: true,
             };
 
-            const {container} = renderWithContext(<SingleImageView {...props}/>);
+            const {container} = await renderWithContext(<SingleImageView {...props}/>);
 
             // Wait for thumbnail availability check to complete
             await waitFor(() => {

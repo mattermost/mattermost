@@ -47,18 +47,18 @@ describe('components/integrations/EditOAuthApp', () => {
         enableOAuthServiceProvider: true,
     };
 
-    test('should match snapshot, loading', () => {
+    test('should match snapshot, loading', async () => {
         const props = {...baseProps, oauthApp: undefined as unknown as OAuthApp};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <EditOAuthApp {...props}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const props = {...baseProps, oauthApp};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <EditOAuthApp {...props}/>,
         );
 
@@ -66,9 +66,9 @@ describe('components/integrations/EditOAuthApp', () => {
         expect(props.actions.getOAuthApp).toHaveBeenCalledWith(oauthApp.id);
     });
 
-    test('should match snapshot when EnableOAuthServiceProvider is false', () => {
+    test('should match snapshot when EnableOAuthServiceProvider is false', async () => {
         const props = {...baseProps, oauthApp, enableOAuthServiceProvider: false};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <EditOAuthApp {...props}/>,
         );
 
@@ -79,7 +79,7 @@ describe('components/integrations/EditOAuthApp', () => {
     test('should have match state when handleConfirmModal is called', async () => {
         const editOAuthApp = jest.fn().mockResolvedValue({data: true});
         const props = {...baseProps, oauthApp, actions: {...baseProps.actions, editOAuthApp}};
-        renderWithContext(
+        await renderWithContext(
             <EditOAuthApp {...props}/>,
         );
 
@@ -99,7 +99,7 @@ describe('components/integrations/EditOAuthApp', () => {
     test('should have match state when confirmModalDismissed is called', async () => {
         const editOAuthApp = jest.fn().mockResolvedValue({data: true});
         const props = {...baseProps, oauthApp, actions: {...baseProps.actions, editOAuthApp}};
-        renderWithContext(
+        await renderWithContext(
             <EditOAuthApp {...props}/>,
         );
 
@@ -124,9 +124,9 @@ describe('components/integrations/EditOAuthApp', () => {
         });
     });
 
-    test('should have match renderExtra', () => {
+    test('should have match renderExtra', async () => {
         const props = {...baseProps, oauthApp};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <EditOAuthApp {...props}/>,
         );
 
@@ -137,7 +137,7 @@ describe('components/integrations/EditOAuthApp', () => {
     test('should have match when editOAuthApp is called', async () => {
         const editOAuthApp = jest.fn().mockResolvedValue({data: true});
         const props = {...baseProps, oauthApp, actions: {...baseProps.actions, editOAuthApp}};
-        renderWithContext(
+        await renderWithContext(
             <EditOAuthApp {...props}/>,
         );
 
@@ -153,7 +153,7 @@ describe('components/integrations/EditOAuthApp', () => {
     test('should have match when submitOAuthApp is called on success', async () => {
         const editOAuthApp = jest.fn().mockResolvedValue({data: 'data'});
         const props = {...baseProps, oauthApp, actions: {...baseProps.actions, editOAuthApp}};
-        renderWithContext(
+        await renderWithContext(
             <EditOAuthApp {...props}/>,
         );
 
@@ -168,7 +168,7 @@ describe('components/integrations/EditOAuthApp', () => {
     test('should have match when submitOAuthApp is called on error', async () => {
         const editOAuthApp = jest.fn().mockResolvedValue({error: {message: 'error message'}});
         const props = {...baseProps, oauthApp, actions: {...baseProps.actions, editOAuthApp}};
-        renderWithContext(
+        await renderWithContext(
             <EditOAuthApp {...props}/>,
         );
 

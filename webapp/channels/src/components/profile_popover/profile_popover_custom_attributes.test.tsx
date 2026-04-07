@@ -141,10 +141,10 @@ describe('components/ProfilePopoverCustomAttributes', () => {
         userID: 'user_id',
     };
 
-    test('should render all attribute types', () => {
+    test('should render all attribute types', async () => {
         const store = mockStore(baseState);
 
-        renderWithContext(
+        await renderWithContext(
             <Provider store={store}>
                 <ProfilePopoverCustomAttributes {...baseProps}/>
             </Provider>,
@@ -169,7 +169,7 @@ describe('components/ProfilePopoverCustomAttributes', () => {
         expect(screen.getByText('Option 1')).toBeInTheDocument();
     });
 
-    test('should fetch custom profile attributes if not available', () => {
+    test('should fetch custom profile attributes if not available', async () => {
         const state = {
             ...baseState,
             entities: {
@@ -188,7 +188,7 @@ describe('components/ProfilePopoverCustomAttributes', () => {
         const store = mockStore(state);
         const dispatchMock = jest.spyOn(store, 'dispatch');
 
-        renderWithContext(
+        await renderWithContext(
             <Provider store={store}>
                 <ProfilePopoverCustomAttributes {...baseProps}/>
             </Provider>,
@@ -199,7 +199,7 @@ describe('components/ProfilePopoverCustomAttributes', () => {
         }));
     });
 
-    test('should respect visibility settings', () => {
+    test('should respect visibility settings', async () => {
         const state = {
             ...baseState,
             entities: {
@@ -221,7 +221,7 @@ describe('components/ProfilePopoverCustomAttributes', () => {
 
         const store = mockStore(state);
 
-        renderWithContext(
+        await renderWithContext(
             <Provider store={store}>
                 <ProfilePopoverCustomAttributes {...baseProps}/>
             </Provider>,
@@ -236,7 +236,7 @@ describe('components/ProfilePopoverCustomAttributes', () => {
         expect(screen.getByText('Select Attribute')).toBeInTheDocument();
     });
 
-    test('should respect when_set visibility with empty values', () => {
+    test('should respect when_set visibility with empty values', async () => {
         const state = {
             ...baseState,
             entities: {
@@ -269,7 +269,7 @@ describe('components/ProfilePopoverCustomAttributes', () => {
 
         const store = mockStore(state);
 
-        renderWithContext(
+        await renderWithContext(
             <Provider store={store}>
                 <ProfilePopoverCustomAttributes {...baseProps}/>
             </Provider>,

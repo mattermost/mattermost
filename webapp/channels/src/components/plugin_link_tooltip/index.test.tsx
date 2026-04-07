@@ -34,7 +34,7 @@ describe('PluginLinkTooltip', () => {
     };
 
     test('should show tooltip on hover', async () => {
-        renderWithContext(
+        await renderWithContext(
             <>
                 <PluginLinkTooltip
                     nodeAttributes={{
@@ -62,7 +62,7 @@ describe('PluginLinkTooltip', () => {
     });
 
     test('should not take focus when the tooltip appears', async () => {
-        renderWithContext(
+        await renderWithContext(
             <>
                 <textarea data-testid='textarea'/>
                 <PluginLinkTooltip
@@ -95,7 +95,7 @@ describe('PluginLinkTooltip', () => {
     });
 
     test('should not take focus when hovered without a tooltip', async () => {
-        renderWithContext(
+        await renderWithContext(
             <>
                 <textarea data-testid='textarea'/>
                 <PluginLinkTooltip

@@ -13,8 +13,8 @@ describe('admin_console/team_channel_settings/group/GroupRow', () => {
         display_name: 'DN',
         member_count: 3,
     };
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <GroupRow
                 group={testGroup}
                 removeGroup={() => {}}

@@ -135,8 +135,8 @@ describe('channel_members_rhs/channel_members_rhs', () => {
         },
     };
 
-    test('should render correctly', () => {
-        renderWithContext(
+    test('should render correctly', async () => {
+        await renderWithContext(
             <ChannelMembersRHS
                 {...baseProps as any}
             />,
@@ -148,13 +148,13 @@ describe('channel_members_rhs/channel_members_rhs', () => {
         expect(screen.getByTestId('member-list')).toBeInTheDocument();
     });
 
-    test('should show search bar when there are more than 20 members', () => {
+    test('should show search bar when there are more than 20 members', async () => {
         const props = {
             ...baseProps,
             membersCount: 25,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ChannelMembersRHS
                 {...props as any}
             />,
@@ -163,13 +163,13 @@ describe('channel_members_rhs/channel_members_rhs', () => {
         expect(screen.getByTestId('search-bar')).toBeInTheDocument();
     });
 
-    test('should show search bar when search terms are present', () => {
+    test('should show search bar when search terms are present', async () => {
         const props = {
             ...baseProps,
             searchTerms: 'test',
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ChannelMembersRHS
                 {...props as any}
             />,
@@ -178,8 +178,8 @@ describe('channel_members_rhs/channel_members_rhs', () => {
         expect(screen.getByTestId('search-bar')).toBeInTheDocument();
     });
 
-    test('should not show search bar when there are less than 20 members and no search terms', () => {
-        renderWithContext(
+    test('should not show search bar when there are less than 20 members and no search terms', async () => {
+        await renderWithContext(
             <ChannelMembersRHS
                 {...baseProps as any}
             />,
@@ -188,7 +188,7 @@ describe('channel_members_rhs/channel_members_rhs', () => {
         expect(screen.queryByTestId('search-bar')).not.toBeInTheDocument();
     });
 
-    test('should show alert banner for default channel when editing and not channel admin', () => {
+    test('should show alert banner for default channel when editing and not channel admin', async () => {
         const props = {
             ...baseProps,
             channel: {
@@ -199,7 +199,7 @@ describe('channel_members_rhs/channel_members_rhs', () => {
             editing: true,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ChannelMembersRHS
                 {...props as any}
             />,
@@ -209,7 +209,7 @@ describe('channel_members_rhs/channel_members_rhs', () => {
         expect(screen.getByText(/channel admins/)).toBeInTheDocument();
     });
 
-    test('should show alert banner for policy-enforced channels', () => {
+    test('should show alert banner for policy-enforced channels', async () => {
         const props = {
             ...baseProps,
             channel: {
@@ -218,7 +218,7 @@ describe('channel_members_rhs/channel_members_rhs', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ChannelMembersRHS
                 {...props as any}
             />,

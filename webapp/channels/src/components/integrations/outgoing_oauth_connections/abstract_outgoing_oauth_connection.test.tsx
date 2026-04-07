@@ -75,9 +75,9 @@ describe('components/integrations/AbstractOutgoingOAuthConnection', () => {
         submitAction: jest.fn(),
     };
 
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const props = {...baseProps};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <Router>
                 <AbstractOutgoingOAuthConnection {...props}/>
             </Router>,
@@ -91,7 +91,7 @@ describe('components/integrations/AbstractOutgoingOAuthConnection', () => {
 
         const newServerError = 'serverError';
         const props = {...baseProps, serverError: newServerError, submitAction};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <Router>
                 <AbstractOutgoingOAuthConnection {...props}/>
             </Router>,
@@ -114,7 +114,7 @@ describe('components/integrations/AbstractOutgoingOAuthConnection', () => {
         const submitAction = jest.fn().mockResolvedValue({data: true});
 
         const props = {...baseProps, submitAction};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <Router>
                 <AbstractOutgoingOAuthConnection {...props}/>
             </Router>,

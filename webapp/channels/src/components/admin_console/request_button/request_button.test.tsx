@@ -9,10 +9,10 @@ import RequestButton from 'components/admin_console/request_button/request_butto
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 describe('components/admin_console/request_button/request_button.jsx', () => {
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const emptyFunction = jest.fn();
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <RequestButton
                 requestAction={emptyFunction}
                 helpText={
@@ -36,7 +36,7 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
         const requestActionSuccess = jest.fn((success) => success());
         const saveConfigActionSuccess = jest.fn((success) => success());
 
-        renderWithContext(
+        await renderWithContext(
             <RequestButton
                 requestAction={requestActionSuccess}
                 helpText={
@@ -66,7 +66,7 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
         const requestActionSuccess = jest.fn((success) => success());
         const saveConfigActionSuccess = jest.fn((success) => success());
 
-        renderWithContext(
+        await renderWithContext(
             <RequestButton
                 requestAction={requestActionSuccess}
                 helpText={
@@ -96,7 +96,7 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
         const requestActionSuccess = jest.fn((success) => success());
 
         // Success & showSuccessMessage=true
-        const {container: container1} = renderWithContext(
+        const {container: container1} = await renderWithContext(
             <RequestButton
                 requestAction={requestActionSuccess}
                 helpText={
@@ -123,7 +123,7 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
         expect(container1).toMatchSnapshot();
 
         // Success & showSuccessMessage=false
-        const {container: container2} = renderWithContext(
+        const {container: container2} = await renderWithContext(
             <RequestButton
                 requestAction={requestActionSuccess}
                 helpText={
@@ -158,7 +158,7 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
         }));
 
         // Error & includeDetailedError=true
-        const {container: container1} = renderWithContext(
+        const {container: container1} = await renderWithContext(
             <RequestButton
                 requestAction={requestActionFailure}
                 helpText={
@@ -185,7 +185,7 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
         expect(container1).toMatchSnapshot();
 
         // Error & includeDetailedError=false
-        const {container: container2} = renderWithContext(
+        const {container: container2} = await renderWithContext(
             <RequestButton
                 requestAction={requestActionFailure}
                 helpText={

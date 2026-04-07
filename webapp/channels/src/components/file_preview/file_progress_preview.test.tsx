@@ -36,14 +36,14 @@ describe('component/file_preview/file_progress_preview', () => {
         handleRemove,
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <FileProgressPreview {...baseProps}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('snapshot for percent value undefined', () => {
+    test('snapshot for percent value undefined', async () => {
         const props = {
             ...baseProps,
             fileInfo: {
@@ -52,7 +52,7 @@ describe('component/file_preview/file_progress_preview', () => {
             },
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <FileProgressPreview {...props}/>,
         );
         expect(container).toMatchSnapshot();

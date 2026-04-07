@@ -63,7 +63,7 @@ describe('components/ToastWrapper', () => {
     } as unknown as Props;
 
     describe('unread count logic', () => {
-        test('If not atLatestPost and channelMarkedAsUnread is false then unread count is equal to unreads in present chunk plus recent messages', () => {
+        test('If not atLatestPost and channelMarkedAsUnread is false then unread count is equal to unreads in present chunk plus recent messages', async () => {
             const props = {
                 ...baseProps,
                 unreadCountInChannel: 10,
@@ -71,7 +71,7 @@ describe('components/ToastWrapper', () => {
             };
 
             const ref = React.createRef<ToastWrapperClass>();
-            renderWithContext(
+            await renderWithContext(
                 <ToastWrapperClass
                     {...props}
                     ref={ref}
@@ -80,7 +80,7 @@ describe('components/ToastWrapper', () => {
             expect(ref.current!.state.unreadCount).toBe(15);
         });
 
-        test('If atLatestPost and unreadScrollPosition is startFromNewest and prevState.unreadCountInChannel is not 0 then unread count then unread count is based on the unreadCountInChannel', () => {
+        test('If atLatestPost and unreadScrollPosition is startFromNewest and prevState.unreadCountInChannel is not 0 then unread count then unread count is based on the unreadCountInChannel', async () => {
             const props = {
                 ...baseProps,
                 atLatestPost: true,
@@ -98,7 +98,7 @@ describe('components/ToastWrapper', () => {
             };
 
             const ref = React.createRef<ToastWrapperClass>();
-            renderWithContext(
+            await renderWithContext(
                 <ToastWrapperClass
                     {...props}
                     ref={ref}
@@ -107,7 +107,7 @@ describe('components/ToastWrapper', () => {
             expect(ref.current!.state.unreadCount).toBe(10);
         });
 
-        test('If atLatestPost and prevState.unreadCountInChannel is 0 then unread count is based on the number of posts below the new message indicator', () => {
+        test('If atLatestPost and prevState.unreadCountInChannel is 0 then unread count is based on the number of posts below the new message indicator', async () => {
             const props = {
                 ...baseProps,
                 atLatestPost: true,
@@ -123,7 +123,7 @@ describe('components/ToastWrapper', () => {
             };
 
             const ref = React.createRef<ToastWrapperClass>();
-            renderWithContext(
+            await renderWithContext(
                 <ToastWrapperClass
                     {...props}
                     ref={ref}
@@ -132,7 +132,7 @@ describe('components/ToastWrapper', () => {
             expect(ref.current!.state.unreadCount).toBe(3);
         });
 
-        test('If channelMarkedAsUnread then unread count should be based on the unreadCountInChannel', () => {
+        test('If channelMarkedAsUnread then unread count should be based on the unreadCountInChannel', async () => {
             const props = {
                 ...baseProps,
                 atLatestPost: false,
@@ -141,7 +141,7 @@ describe('components/ToastWrapper', () => {
             };
 
             const ref = React.createRef<ToastWrapperClass>();
-            renderWithContext(
+            await renderWithContext(
                 <ToastWrapperClass
                     {...props}
                     ref={ref}
@@ -152,7 +152,7 @@ describe('components/ToastWrapper', () => {
     });
 
     describe('toasts state', () => {
-        test('Should have unread toast if unreadCount > 0', () => {
+        test('Should have unread toast if unreadCount > 0', async () => {
             const props = {
                 ...baseProps,
                 unreadCountInChannel: 10,
@@ -160,7 +160,7 @@ describe('components/ToastWrapper', () => {
             };
 
             const ref = React.createRef<ToastWrapperClass>();
-            renderWithContext(
+            await renderWithContext(
                 <ToastWrapperClass
                     {...props}
                     ref={ref}
@@ -169,7 +169,7 @@ describe('components/ToastWrapper', () => {
             expect(ref.current!.state.showUnreadToast).toBe(true);
         });
 
-        test('Should set state of have unread toast when atBottom changes from undefined', () => {
+        test('Should set state of have unread toast when atBottom changes from undefined', async () => {
             const props = {
                 ...baseProps,
                 unreadCountInChannel: 10,
@@ -178,7 +178,7 @@ describe('components/ToastWrapper', () => {
             };
 
             const ref = React.createRef<ToastWrapperClass>();
-            const {rerender} = renderWithContext(
+            const {rerender} = await renderWithContext(
                 <ToastWrapperClass
                     {...props}
                     ref={ref}
@@ -195,7 +195,7 @@ describe('components/ToastWrapper', () => {
             expect(ref.current!.state.showUnreadToast).toBe(true);
         });
 
-        test('Should have unread toast channel is marked as unread', () => {
+        test('Should have unread toast channel is marked as unread', async () => {
             const props = {
                 ...baseProps,
                 atLatestPost: true,
@@ -212,7 +212,7 @@ describe('components/ToastWrapper', () => {
                 atBottom: true,
             };
             const ref = React.createRef<ToastWrapperClass>();
-            const {rerender} = renderWithContext(
+            const {rerender} = await renderWithContext(
                 <ToastWrapperClass
                     {...props}
                     ref={ref}
@@ -230,14 +230,14 @@ describe('components/ToastWrapper', () => {
             expect(ref.current!.state.showUnreadToast).toBe(true);
         });
 
-        test('Should have unread toast channel is marked as unread again', () => {
+        test('Should have unread toast channel is marked as unread again', async () => {
             const props = {
                 ...baseProps,
                 channelMarkedAsUnread: false,
                 atLatestPost: true,
             };
             const ref = React.createRef<ToastWrapperClass>();
-            const {rerender} = renderWithContext(
+            const {rerender} = await renderWithContext(
                 <ToastWrapperClass
                     {...props}
                     ref={ref}
@@ -297,7 +297,7 @@ describe('components/ToastWrapper', () => {
             expect(ref.current!.state.showUnreadToast).toBe(true);
         });
 
-        test('Should have archive toast if channel is not atLatestPost and focusedPostId exists', () => {
+        test('Should have archive toast if channel is not atLatestPost and focusedPostId exists', async () => {
             const props = {
                 ...baseProps,
                 focusedPostId: 'asdasd',
@@ -305,7 +305,7 @@ describe('components/ToastWrapper', () => {
                 atBottom: null,
             };
             const ref = React.createRef<ToastWrapperClass>();
-            const {rerender} = renderWithContext(
+            const {rerender} = await renderWithContext(
                 <ToastWrapperClass
                     {...props}
                     ref={ref}
@@ -323,7 +323,7 @@ describe('components/ToastWrapper', () => {
             expect(ref.current!.state.showMessageHistoryToast).toBe(true);
         });
 
-        test('Should have archive toast if channel initScrollOffsetFromBottom is greater than 1000 and focusedPostId exists', () => {
+        test('Should have archive toast if channel initScrollOffsetFromBottom is greater than 1000 and focusedPostId exists', async () => {
             const props = {
                 ...baseProps,
                 focusedPostId: 'asdasd',
@@ -331,7 +331,7 @@ describe('components/ToastWrapper', () => {
                 initScrollOffsetFromBottom: 1001,
             };
             const ref = React.createRef<ToastWrapperClass>();
-            renderWithContext(
+            await renderWithContext(
                 <ToastWrapperClass
                     {...props}
                     ref={ref}
@@ -341,14 +341,14 @@ describe('components/ToastWrapper', () => {
             expect(ref.current!.state.showMessageHistoryToast).toBe(true);
         });
 
-        test('Should not have unread toast if channel is marked as unread and at bottom', () => {
+        test('Should not have unread toast if channel is marked as unread and at bottom', async () => {
             const props = {
                 ...baseProps,
                 channelMarkedAsUnread: false,
                 atLatestPost: true,
             };
             const ref = React.createRef<ToastWrapperClass>();
-            const {rerender} = renderWithContext(
+            const {rerender} = await renderWithContext(
                 <ToastWrapperClass
                     {...props}
                     ref={ref}
@@ -383,14 +383,14 @@ describe('components/ToastWrapper', () => {
             expect(ref.current!.state.showUnreadToast).toBe(false);
         });
 
-        test('Should have showNewMessagesToast if there are unreads and lastViewedAt is less than latestPostTimeStamp', () => {
+        test('Should have showNewMessagesToast if there are unreads and lastViewedAt is less than latestPostTimeStamp', async () => {
             const props = {
                 ...baseProps,
                 unreadCountInChannel: 10,
                 newRecentMessagesCount: 5,
             };
             const ref = React.createRef<ToastWrapperClass>();
-            const {rerender} = renderWithContext(
+            const {rerender} = await renderWithContext(
                 <ToastWrapperClass
                     {...props}
                     ref={ref}
@@ -409,7 +409,7 @@ describe('components/ToastWrapper', () => {
             expect(ref.current!.state.showNewMessagesToast).toBe(true);
         });
 
-        test('Should hide unread toast if atBottom is true', () => {
+        test('Should hide unread toast if atBottom is true', async () => {
             const props = {
                 ...baseProps,
                 atLatestPost: true,
@@ -425,7 +425,7 @@ describe('components/ToastWrapper', () => {
             };
 
             const ref = React.createRef<ToastWrapperClass>();
-            const {rerender} = renderWithContext(
+            const {rerender} = await renderWithContext(
                 <ToastWrapperClass
                     {...props}
                     ref={ref}
@@ -442,7 +442,7 @@ describe('components/ToastWrapper', () => {
             expect(ref.current!.state.showUnreadToast).toBe(false);
         });
 
-        test('Should hide archive toast if channel is atBottom is true', () => {
+        test('Should hide archive toast if channel is atBottom is true', async () => {
             const props = {
                 ...baseProps,
                 focusedPostId: 'asdasd',
@@ -450,7 +450,7 @@ describe('components/ToastWrapper', () => {
                 initScrollOffsetFromBottom: 1001,
             };
             const ref = React.createRef<ToastWrapperClass>();
-            const {rerender} = renderWithContext(
+            const {rerender} = await renderWithContext(
                 <ToastWrapperClass
                     {...props}
                     ref={ref}
@@ -468,7 +468,7 @@ describe('components/ToastWrapper', () => {
             expect(ref.current!.state.showMessageHistoryToast).toBe(false);
         });
 
-        test('Should hide showNewMessagesToast if atBottom is true', () => {
+        test('Should hide showNewMessagesToast if atBottom is true', async () => {
             const props = {
                 ...baseProps,
                 atLatestPost: true,
@@ -483,7 +483,7 @@ describe('components/ToastWrapper', () => {
                 ],
             };
             const ref = React.createRef<ToastWrapperClass>();
-            const {rerender} = renderWithContext(
+            const {rerender} = await renderWithContext(
                 <ToastWrapperClass
                     {...props}
                     ref={ref}
@@ -513,7 +513,7 @@ describe('components/ToastWrapper', () => {
             expect(ref.current!.state.showNewMessagesToast).toBe(false);
         });
 
-        test('Should hide unread toast on scrollToNewMessage', () => {
+        test('Should hide unread toast on scrollToNewMessage', async () => {
             const props = {
                 ...baseProps,
                 atLatestPost: true,
@@ -529,7 +529,7 @@ describe('components/ToastWrapper', () => {
             };
 
             const ref = React.createRef<ToastWrapperClass>();
-            renderWithContext(
+            await renderWithContext(
                 <ToastWrapperClass
                     {...props}
                     ref={ref}
@@ -543,7 +543,7 @@ describe('components/ToastWrapper', () => {
             expect(baseProps.scrollToLatestMessages).toHaveBeenCalledTimes(1);
         });
 
-        test('Should hide new messages toast if lastViewedBottom is not less than latestPostTimeStamp', () => {
+        test('Should hide new messages toast if lastViewedBottom is not less than latestPostTimeStamp', async () => {
             const props = {
                 ...baseProps,
                 atLatestPost: true,
@@ -559,7 +559,7 @@ describe('components/ToastWrapper', () => {
             };
 
             const ref = React.createRef<ToastWrapperClass>();
-            const {rerender} = renderWithContext(
+            const {rerender} = await renderWithContext(
                 <ToastWrapperClass
                     {...props}
                     ref={ref}
@@ -594,7 +594,7 @@ describe('components/ToastWrapper', () => {
             expect(baseProps.scrollToNewMessage).toHaveBeenCalledTimes(1);
         });
 
-        test('Should hide unread toast if esc key is pressed', () => {
+        test('Should hide unread toast if esc key is pressed', async () => {
             const props = {
                 ...baseProps,
                 atLatestPost: true,
@@ -610,7 +610,7 @@ describe('components/ToastWrapper', () => {
             };
 
             const ref = React.createRef<ToastWrapperClass>();
-            renderWithContext(
+            await renderWithContext(
                 <ToastWrapperClass
                     {...props}
                     ref={ref}
@@ -624,7 +624,7 @@ describe('components/ToastWrapper', () => {
             expect(ref.current!.state.showUnreadToast).toBe(false);
         });
 
-        test('Should call for updateLastViewedBottomAt when new messages toast is present and if esc key is pressed', () => {
+        test('Should call for updateLastViewedBottomAt when new messages toast is present and if esc key is pressed', async () => {
             const props = {
                 ...baseProps,
                 atLatestPost: true,
@@ -640,7 +640,7 @@ describe('components/ToastWrapper', () => {
             };
 
             const ref = React.createRef<ToastWrapperClass>();
-            const {rerender} = renderWithContext(
+            const {rerender} = await renderWithContext(
                 <ToastWrapperClass
                     {...props}
                     ref={ref}
@@ -665,7 +665,7 @@ describe('components/ToastWrapper', () => {
             expect(baseProps.updateLastViewedBottomAt).toHaveBeenCalledTimes(1);
         });
 
-        test('Changing unreadCount to 0 should set the showNewMessagesToast state to false', () => {
+        test('Changing unreadCount to 0 should set the showNewMessagesToast state to false', async () => {
             const props = {
                 ...baseProps,
                 atLatestPost: true,
@@ -681,7 +681,7 @@ describe('components/ToastWrapper', () => {
             };
 
             const ref = React.createRef<ToastWrapperClass>();
-            const {rerender} = renderWithContext(
+            const {rerender} = await renderWithContext(
                 <ToastWrapperClass
                     {...props}
                     ref={ref}
@@ -713,7 +713,7 @@ describe('components/ToastWrapper', () => {
             expect(ref.current!.state.showNewMessagesToast).toBe(false);
         });
 
-        test('Should call updateToastStatus on toasts state change', () => {
+        test('Should call updateToastStatus on toasts state change', async () => {
             const props = {
                 ...baseProps,
                 unreadCountInChannel: 10,
@@ -722,7 +722,7 @@ describe('components/ToastWrapper', () => {
             const updateToastStatus = baseProps.actions.updateToastStatus;
 
             const ref = React.createRef<ToastWrapperClass>();
-            const {rerender} = renderWithContext(
+            const {rerender} = await renderWithContext(
                 <ToastWrapperClass
                     {...props}
                     ref={ref}
@@ -742,7 +742,7 @@ describe('components/ToastWrapper', () => {
             expect(updateToastStatus).toHaveBeenCalledWith(false);
         });
 
-        test('Should call updateNewMessagesAtInChannel on addition of posts at the bottom of channel and user not at bottom', () => {
+        test('Should call updateNewMessagesAtInChannel on addition of posts at the bottom of channel and user not at bottom', async () => {
             const props = {
                 ...baseProps,
                 atLatestPost: true,
@@ -758,7 +758,7 @@ describe('components/ToastWrapper', () => {
             };
 
             const ref = React.createRef<ToastWrapperClass>();
-            const {rerender} = renderWithContext(
+            const {rerender} = await renderWithContext(
                 <ToastWrapperClass
                     {...props}
                     ref={ref}
@@ -812,7 +812,7 @@ describe('components/ToastWrapper', () => {
             expect(baseProps.updateNewMessagesAtInChannel).toHaveBeenCalledTimes(1);
         });
 
-        test('Should have unreadWithBottomStart toast if lastViewdAt and props.lastViewedAt !== prevState.lastViewedAt and shouldStartFromBottomWhenUnread and unreadCount > 0 and not isNewMessageLineReached ', () => {
+        test('Should have unreadWithBottomStart toast if lastViewdAt and props.lastViewedAt !== prevState.lastViewedAt and shouldStartFromBottomWhenUnread and unreadCount > 0 and not isNewMessageLineReached ', async () => {
             const props = {
                 ...baseProps,
                 lastViewedAt: 20000,
@@ -822,7 +822,7 @@ describe('components/ToastWrapper', () => {
             };
 
             const ref = React.createRef<ToastWrapperClass>();
-            renderWithContext(
+            await renderWithContext(
                 <ToastWrapperClass
                     {...props}
                     ref={ref}
@@ -831,7 +831,7 @@ describe('components/ToastWrapper', () => {
             expect(ref.current!.state.showUnreadWithBottomStartToast).toBe(true);
         });
 
-        test('Should hide unreadWithBottomStart toast if isNewMessageLineReached is set true', () => {
+        test('Should hide unreadWithBottomStart toast if isNewMessageLineReached is set true', async () => {
             const props = {
                 ...baseProps,
                 unreadCountInChannel: 10,
@@ -840,7 +840,7 @@ describe('components/ToastWrapper', () => {
             };
 
             const ref = React.createRef<ToastWrapperClass>();
-            const {rerender} = renderWithContext(
+            const {rerender} = await renderWithContext(
                 <ToastWrapperClass
                     {...props}
                     ref={ref}
@@ -860,7 +860,7 @@ describe('components/ToastWrapper', () => {
     });
 
     describe('History toast', () => {
-        test('Replace browser history when not at latest posts and in permalink view with call to scrollToLatestMessages', () => {
+        test('Replace browser history when not at latest posts and in permalink view with call to scrollToLatestMessages', async () => {
             const props = {
                 ...baseProps,
                 focusedPostId: 'asdasd',
@@ -868,7 +868,7 @@ describe('components/ToastWrapper', () => {
                 atBottom: false,
             };
             const ref = React.createRef<ToastWrapperClass>();
-            renderWithContext(
+            await renderWithContext(
                 <ToastWrapperClass
                     {...props}
                     ref={ref}
@@ -882,7 +882,7 @@ describe('components/ToastWrapper', () => {
             expect(getHistory().replace).toHaveBeenCalledWith('/team');
         });
 
-        test('Replace browser history when not at latest posts and in permalink view with call to scrollToNewMessage', () => {
+        test('Replace browser history when not at latest posts and in permalink view with call to scrollToNewMessage', async () => {
             const props = {
                 ...baseProps,
                 focusedPostId: 'asdasd',
@@ -890,7 +890,7 @@ describe('components/ToastWrapper', () => {
                 atBottom: false,
             };
             const ref = React.createRef<ToastWrapperClass>();
-            renderWithContext(
+            await renderWithContext(
                 <ToastWrapperClass
                     {...props}
                     ref={ref}
@@ -906,7 +906,7 @@ describe('components/ToastWrapper', () => {
     });
 
     describe('Search hint toast', () => {
-        test('should not be shown when unread toast should be shown', () => {
+        test('should not be shown when unread toast should be shown', async () => {
             const props = {
                 ...baseProps,
                 unreadCountInChannel: 10,
@@ -914,12 +914,12 @@ describe('components/ToastWrapper', () => {
                 showSearchHintToast: true,
             };
 
-            const {container} = renderWithContext(<ToastWrapperClass {...props}/>);
+            const {container} = await renderWithContext(<ToastWrapperClass {...props}/>);
 
             expect(container.querySelector('.toast__hint')).toBeNull();
         });
 
-        test('should not be shown when history toast should be shown', () => {
+        test('should not be shown when history toast should be shown', async () => {
             const props = {
                 ...baseProps,
                 focusedPostId: 'asdasd',
@@ -927,23 +927,23 @@ describe('components/ToastWrapper', () => {
                 atBottom: false,
             };
 
-            const {container} = renderWithContext(<ToastWrapperClass {...props}/>);
+            const {container} = await renderWithContext(<ToastWrapperClass {...props}/>);
 
             expect(container.querySelector('.toast__hint')).toBeNull();
         });
 
-        test('should be shown when no other toasts are shown', () => {
+        test('should be shown when no other toasts are shown', async () => {
             const props = {
                 ...baseProps,
                 showSearchHintToast: true,
             };
 
-            const {container} = renderWithContext(<ToastWrapperClass {...props}/>);
+            const {container} = await renderWithContext(<ToastWrapperClass {...props}/>);
 
             expect(container.querySelector('.toast__hint')).toBeDefined();
         });
 
-        test('should call the dismiss callback', () => {
+        test('should call the dismiss callback', async () => {
             const dismissHandler = jest.fn();
             const props = {
                 ...baseProps,
@@ -952,7 +952,7 @@ describe('components/ToastWrapper', () => {
             };
 
             const ref = React.createRef<ToastWrapperClass>();
-            renderWithContext(
+            await renderWithContext(
                 <ToastWrapperClass
                     {...props}
                     ref={ref}
@@ -968,19 +968,19 @@ describe('components/ToastWrapper', () => {
     });
 
     describe('Scroll-to-bottom toast', () => {
-        test('should not be shown when unread toast should be shown', () => {
+        test('should not be shown when unread toast should be shown', async () => {
             const props = {
                 ...baseProps,
                 unreadCountInChannel: 10,
                 newRecentMessagesCount: 5,
                 showScrollToBottomToast: true,
             };
-            renderWithContext(<ToastWrapperClass {...props}/>);
+            await renderWithContext(<ToastWrapperClass {...props}/>);
             const scrollToBottomToast = screen.queryByTestId(SCROLL_TO_BOTTOM_TOAST_TESTID);
             expect(scrollToBottomToast).not.toBeInTheDocument();
         });
 
-        test('should not be shown when history toast should be shown', () => {
+        test('should not be shown when history toast should be shown', async () => {
             const props = {
                 ...baseProps,
                 focusedPostId: 'asdasd',
@@ -989,45 +989,45 @@ describe('components/ToastWrapper', () => {
                 showScrollToBottomToast: true,
             };
 
-            renderWithContext(<ToastWrapperClass {...props}/>);
+            await renderWithContext(<ToastWrapperClass {...props}/>);
 
             const scrollToBottomToast = screen.queryByTestId(SCROLL_TO_BOTTOM_TOAST_TESTID);
             expect(scrollToBottomToast).not.toBeInTheDocument();
         });
 
-        test('should NOT be shown if showScrollToBottomToast is false', () => {
+        test('should NOT be shown if showScrollToBottomToast is false', async () => {
             const props = {
                 ...baseProps,
                 showScrollToBottomToast: false,
             };
 
-            renderWithContext(<ToastWrapperClass {...props}/>);
+            await renderWithContext(<ToastWrapperClass {...props}/>);
 
             const scrollToBottomToast = screen.queryByTestId(SCROLL_TO_BOTTOM_TOAST_TESTID);
             expect(scrollToBottomToast).not.toBeInTheDocument();
         });
 
-        test('should be shown when no other toasts are shown', () => {
+        test('should be shown when no other toasts are shown', async () => {
             const props = {
                 ...baseProps,
                 showSearchHintToast: false,
                 showScrollToBottomToast: true,
             };
 
-            renderWithContext(<ToastWrapperClass {...props}/>);
+            await renderWithContext(<ToastWrapperClass {...props}/>);
 
             const scrollToBottomToast = screen.queryByTestId(SCROLL_TO_BOTTOM_TOAST_TESTID);
             expect(scrollToBottomToast).toBeInTheDocument();
         });
 
-        test('should be shown along side with Search hint toast', () => {
+        test('should be shown along side with Search hint toast', async () => {
             const props = {
                 ...baseProps,
                 showSearchHintToast: true,
                 showScrollToBottomToast: true,
             };
 
-            renderWithContext(<ToastWrapperClass {...props}/>);
+            await renderWithContext(<ToastWrapperClass {...props}/>);
 
             const scrollToBottomToast = screen.queryByTestId(SCROLL_TO_BOTTOM_TOAST_TESTID);
             const hintToast = screen.queryByTestId(HINT_TOAST_TESTID);
@@ -1043,7 +1043,7 @@ describe('components/ToastWrapper', () => {
                 showScrollToBottomToast: true,
             };
 
-            renderWithContext(<ToastWrapperClass {...props}/>);
+            await renderWithContext(<ToastWrapperClass {...props}/>);
             const scrollToBottomToast = screen.getByTestId(SCROLL_TO_BOTTOM_TOAST_TESTID);
             await userEvent.click(scrollToBottomToast);
 
@@ -1060,7 +1060,7 @@ describe('components/ToastWrapper', () => {
                 showScrollToBottomToast: true,
             };
 
-            renderWithContext(<ToastWrapperClass {...props}/>);
+            await renderWithContext(<ToastWrapperClass {...props}/>);
             const scrollToBottomToastDismiss = screen.getByTestId(SCROLL_TO_BOTTOM_DISMISS_BUTTON_TESTID);
             await userEvent.click(scrollToBottomToastDismiss);
 

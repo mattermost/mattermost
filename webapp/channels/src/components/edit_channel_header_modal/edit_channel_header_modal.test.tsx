@@ -56,20 +56,20 @@ describe('components/EditChannelHeaderModal', () => {
         } as MockIntl,
     };
 
-    test('should match snapshot, init', () => {
-        const {baseElement} = renderWithContext(
+    test('should match snapshot, init', async () => {
+        const {baseElement} = await renderWithContext(
             <EditChannelHeaderModal {...baseProps}/>,
         );
         expect(baseElement).toMatchSnapshot();
     });
 
-    test('edit direct message channel', () => {
+    test('edit direct message channel', async () => {
         const dmChannel: Channel = {
             ...channel,
             type: Constants.DM_CHANNEL as ChannelType,
         };
 
-        const {baseElement} = renderWithContext(
+        const {baseElement} = await renderWithContext(
             <EditChannelHeaderModal
                 {...baseProps}
                 channel={dmChannel}
@@ -81,7 +81,7 @@ describe('components/EditChannelHeaderModal', () => {
 
     test('submitted', async () => {
         const patchChannel = jest.fn().mockImplementation(() => new Promise(() => {})); // Never resolves to keep saving state
-        const {baseElement} = renderWithContext(
+        const {baseElement} = await renderWithContext(
             <EditChannelHeaderModal
                 {...baseProps}
                 actions={{...baseProps.actions, patchChannel}}
@@ -103,7 +103,7 @@ describe('components/EditChannelHeaderModal', () => {
         const patchChannel = jest.fn().mockResolvedValue({
             error: {...serverError, server_error_id: 'model.channel.is_valid.header.app_error'},
         });
-        const {baseElement} = renderWithContext(
+        const {baseElement} = await renderWithContext(
             <EditChannelHeaderModal
                 {...baseProps}
                 actions={{...baseProps.actions, patchChannel}}
@@ -127,7 +127,7 @@ describe('components/EditChannelHeaderModal', () => {
 
     test('error without intl message', async () => {
         const patchChannel = jest.fn().mockResolvedValue({error: serverError});
-        const {baseElement} = renderWithContext(
+        const {baseElement} = await renderWithContext(
             <EditChannelHeaderModal
                 {...baseProps}
                 actions={{...baseProps.actions, patchChannel}}
@@ -152,7 +152,7 @@ describe('components/EditChannelHeaderModal', () => {
     describe('handleSave', () => {
         test('on no change, should hide the modal without trying to patch a channel', async () => {
             const patchChannel = jest.fn().mockResolvedValue({});
-            renderWithContext(
+            await renderWithContext(
                 <EditChannelHeaderModal
                     {...baseProps}
                     actions={{...baseProps.actions, patchChannel}}
@@ -172,7 +172,7 @@ describe('components/EditChannelHeaderModal', () => {
 
         test('on error, should not close modal and set server error state', async () => {
             const patchChannel = jest.fn().mockResolvedValue({error: serverError});
-            renderWithContext(
+            await renderWithContext(
                 <EditChannelHeaderModal
                     {...baseProps}
                     actions={{...baseProps.actions, patchChannel}}
@@ -200,7 +200,7 @@ describe('components/EditChannelHeaderModal', () => {
 
         test('on success, should close modal', async () => {
             const patchChannel = jest.fn().mockResolvedValue({});
-            renderWithContext(
+            await renderWithContext(
                 <EditChannelHeaderModal
                     {...baseProps}
                     actions={{...baseProps.actions, patchChannel}}
@@ -225,7 +225,7 @@ describe('components/EditChannelHeaderModal', () => {
     });
 
     test('change header', async () => {
-        renderWithContext(
+        await renderWithContext(
             <EditChannelHeaderModal {...baseProps}/>,
         );
 
@@ -238,7 +238,7 @@ describe('components/EditChannelHeaderModal', () => {
 
     test('patch on save button click', async () => {
         const patchChannel = jest.fn().mockResolvedValue({});
-        renderWithContext(
+        await renderWithContext(
             <EditChannelHeaderModal
                 {...baseProps}
                 actions={{...baseProps.actions, patchChannel}}
@@ -257,7 +257,7 @@ describe('components/EditChannelHeaderModal', () => {
 
     test('patch on enter keypress event with ctrl', async () => {
         const patchChannel = jest.fn().mockResolvedValue({});
-        renderWithContext(
+        await renderWithContext(
             <EditChannelHeaderModal
                 {...baseProps}
                 ctrlSend={true}
@@ -287,7 +287,7 @@ describe('components/EditChannelHeaderModal', () => {
 
     test('patch on enter keypress', async () => {
         const patchChannel = jest.fn().mockResolvedValue({});
-        renderWithContext(
+        await renderWithContext(
             <EditChannelHeaderModal
                 {...baseProps}
                 actions={{...baseProps.actions, patchChannel}}
@@ -308,7 +308,7 @@ describe('components/EditChannelHeaderModal', () => {
 
     test('patch on enter keydown', async () => {
         const patchChannel = jest.fn().mockResolvedValue({});
-        renderWithContext(
+        await renderWithContext(
             <EditChannelHeaderModal
                 {...baseProps}
                 ctrlSend={true}
@@ -338,7 +338,7 @@ describe('components/EditChannelHeaderModal', () => {
     test('should show error only for invalid length', async () => {
         // Render with a header value that's already very long (just under limit)
         const initialLongHeader = 'a'.repeat(1020);
-        const {baseElement} = renderWithContext(
+        const {baseElement} = await renderWithContext(
             <EditChannelHeaderModal
                 {...baseProps}
                 channel={{...channel, header: initialLongHeader}}

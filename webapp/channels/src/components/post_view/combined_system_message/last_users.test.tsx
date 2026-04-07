@@ -49,7 +49,7 @@ describe('components/post_view/combined_system_message/LastUsers', () => {
     } as any;
 
     test('should match component state', async () => {
-        renderWithContext(
+        await renderWithContext(
             <LastUsers {...baseProps}/>, initialState,
         );
 
@@ -66,7 +66,7 @@ describe('components/post_view/combined_system_message/LastUsers', () => {
     });
 
     test('should match component state, expanded', async () => {
-        renderWithContext(
+        await renderWithContext(
             <LastUsers {...baseProps}/>, initialState,
         );
 

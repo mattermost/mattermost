@@ -89,8 +89,8 @@ describe('components/sidebar', () => {
         },
     };
 
-    test('should render the sidebar components correctly', () => {
-        renderWithContext(
+    test('should render the sidebar components correctly', async () => {
+        await renderWithContext(
             <Sidebar {...baseProps}/>,
             initialState,
         );
@@ -101,12 +101,12 @@ describe('components/sidebar', () => {
         expect(screen.getByRole('application', {name: /channel sidebar region/i})).toBeInTheDocument();
     });
 
-    test('should not rendering anything when teamId is missing', () => {
+    test('should not rendering anything when teamId is missing', async () => {
         const props = {
             ...baseProps,
             teamId: '',
         };
-        renderWithContext(
+        await renderWithContext(
             <Sidebar {...props}/>,
             initialState,
         );
@@ -195,7 +195,7 @@ describe('components/sidebar', () => {
                 },
             };
 
-            renderWithContext(
+            await renderWithContext(
                 <Sidebar {...baseProps}/>,
                 mergeObjects(baseState, testState),
             );
@@ -221,7 +221,7 @@ describe('components/sidebar', () => {
                 },
             };
 
-            renderWithContext(
+            await renderWithContext(
                 <Sidebar {...baseProps}/>,
                 mergeObjects(baseState, testState),
             );
@@ -242,7 +242,7 @@ describe('components/sidebar', () => {
                 },
             };
 
-            renderWithContext(
+            await renderWithContext(
                 <Sidebar {...baseProps}/>,
                 mergeObjects(baseState, testState),
             );
@@ -268,7 +268,7 @@ describe('components/sidebar', () => {
                 },
             };
 
-            renderWithContext(
+            await renderWithContext(
                 <Sidebar {...baseProps}/>,
                 mergeObjects(baseState, testState),
             );
@@ -280,7 +280,7 @@ describe('components/sidebar', () => {
     });
 
     describe('modals', () => {
-        test('should call Shortcut modal on FORWARD_SLASH+ctrl/meta', () => {
+        test('should call Shortcut modal on FORWARD_SLASH+ctrl/meta', async () => {
             const openModalSpy = jest.fn();
             const closeModalSpy = jest.fn();
 
@@ -294,7 +294,7 @@ describe('components/sidebar', () => {
                 },
             };
 
-            renderWithContext(
+            await renderWithContext(
                 <Sidebar {...props}/>,
                 initialState,
             );
@@ -353,7 +353,7 @@ describe('components/sidebar', () => {
             }));
         });
 
-        test('should close Shortcut modal on FORWARD_SLASH+ctrl/meta when already open', () => {
+        test('should close Shortcut modal on FORWARD_SLASH+ctrl/meta when already open', async () => {
             const openModalSpy = jest.fn();
             const closeModalSpy = jest.fn();
 
@@ -367,7 +367,7 @@ describe('components/sidebar', () => {
                 },
             };
 
-            renderWithContext(
+            await renderWithContext(
                 <Sidebar {...props}/>,
                 initialState,
             );

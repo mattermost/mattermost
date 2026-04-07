@@ -27,7 +27,7 @@ describe('components/ChannelHeaderMenu/MenuItems/Notification', () => {
         const channel = TestHelper.getChannelMock();
         const user = TestHelper.getUserMock();
 
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <Notification
                     channel={channel}

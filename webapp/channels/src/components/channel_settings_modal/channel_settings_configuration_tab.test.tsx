@@ -65,8 +65,8 @@ const baseProps = {
 };
 
 describe('ChannelSettingsConfigurationTab', () => {
-    it('should render with the correct initial values when banner is disabled', () => {
-        renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
+    it('should render with the correct initial values when banner is disabled', async () => {
+        await renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
 
         // Check that the toggle is not enabled
         const toggle = screen.getByTestId('channelBannerToggle-button');
@@ -80,7 +80,7 @@ describe('ChannelSettingsConfigurationTab', () => {
 
     it('should render with the correct default values when banner is enabled', async () => {
         const channelWithNoColor = {...mockChannelWithBanner, banner_info: undefined};
-        renderWithContext(<ChannelSettingsConfigurationTab {...{...baseProps, channel: channelWithNoColor}}/>);
+        await renderWithContext(<ChannelSettingsConfigurationTab {...{...baseProps, channel: channelWithNoColor}}/>);
 
         // Check that the toggle is enabled
         const toggle = screen.getByTestId('channelBannerToggle-button');
@@ -99,8 +99,8 @@ describe('ChannelSettingsConfigurationTab', () => {
         expect(screen.getByTestId('color-inputColorValue')).toHaveValue('#DDDDDD');
     });
 
-    it('should render with the correct initial values when banner is enabled', () => {
-        renderWithContext(<ChannelSettingsConfigurationTab {...{...baseProps, channel: mockChannelWithBanner}}/>);
+    it('should render with the correct initial values when banner is enabled', async () => {
+        await renderWithContext(<ChannelSettingsConfigurationTab {...{...baseProps, channel: mockChannelWithBanner}}/>);
 
         // Check that the toggle is enabled
         const toggle = screen.getByTestId('channelBannerToggle-button');
@@ -117,7 +117,7 @@ describe('ChannelSettingsConfigurationTab', () => {
     });
 
     it('should show banner settings when toggle is clicked', async () => {
-        renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
+        await renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
 
         // Initially, banner settings should not be visible
         expect(screen.queryByTestId('channel_banner_banner_text_textbox')).not.toBeInTheDocument();
@@ -131,7 +131,7 @@ describe('ChannelSettingsConfigurationTab', () => {
     });
 
     it('should show SaveChangesPanel when changes are made', async () => {
-        renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
+        await renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
 
         // Initially, SaveChangesPanel should not be visible
         expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
@@ -150,7 +150,7 @@ describe('ChannelSettingsConfigurationTab', () => {
         const {patchChannel} = require('mattermost-redux/actions/channels');
         patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
 
-        renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
+        await renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
 
         // Enable the banner
         await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
@@ -179,7 +179,7 @@ describe('ChannelSettingsConfigurationTab', () => {
     });
 
     it('should reset form when Reset button is clicked', async () => {
-        renderWithContext(<ChannelSettingsConfigurationTab {...{...baseProps, channel: mockChannelWithBanner}}/>);
+        await renderWithContext(<ChannelSettingsConfigurationTab {...{...baseProps, channel: mockChannelWithBanner}}/>);
 
         // Change the banner text
         const textInput = screen.getByTestId('channel_banner_banner_text_textbox');
@@ -203,7 +203,7 @@ describe('ChannelSettingsConfigurationTab', () => {
     });
 
     it('should show error when banner text is empty but banner is enabled', async () => {
-        renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
+        await renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
 
         // Enable the banner
         await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
@@ -222,7 +222,7 @@ describe('ChannelSettingsConfigurationTab', () => {
     });
 
     it('should show error when banner text exceeds character limit', async () => {
-        renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
+        await renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
 
         // Enable the banner
         await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
@@ -245,7 +245,7 @@ describe('ChannelSettingsConfigurationTab', () => {
     });
 
     it('should toggle preview when preview button is clicked', async () => {
-        renderWithContext(<ChannelSettingsConfigurationTab {...{...baseProps, channel: mockChannelWithBanner}}/>);
+        await renderWithContext(<ChannelSettingsConfigurationTab {...{...baseProps, channel: mockChannelWithBanner}}/>);
 
         // Initially, preview should not be active
         const previewButton = screen.getByTestId('mock-show-format');
@@ -259,7 +259,7 @@ describe('ChannelSettingsConfigurationTab', () => {
     });
 
     it('should disable banner when toggle is clicked while banner is enabled', async () => {
-        renderWithContext(<ChannelSettingsConfigurationTab {...{...baseProps, channel: mockChannelWithBanner}}/>);
+        await renderWithContext(<ChannelSettingsConfigurationTab {...{...baseProps, channel: mockChannelWithBanner}}/>);
 
         // Initially, banner settings should be visible
         expect(screen.getByTestId('channel_banner_banner_text_textbox')).toBeInTheDocument();
@@ -275,7 +275,7 @@ describe('ChannelSettingsConfigurationTab', () => {
         const {patchChannel} = require('mattermost-redux/actions/channels');
         patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
 
-        renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
+        await renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
 
         // Enable the banner
         await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
@@ -298,7 +298,7 @@ describe('ChannelSettingsConfigurationTab', () => {
         const {patchChannel} = require('mattermost-redux/actions/channels');
         patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
 
-        renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
+        await renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
 
         // Enable the banner
         await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
@@ -342,7 +342,7 @@ describe('ChannelSettingsConfigurationTab', () => {
         };
 
         // Render with the invalid color channel
-        renderWithContext(
+        await renderWithContext(
             <ChannelSettingsConfigurationTab
                 channel={channelWithValidColor}
                 setAreThereUnsavedChanges={jest.fn()}
@@ -381,7 +381,7 @@ describe('ChannelSettingsConfigurationTab', () => {
         const {patchChannel} = require('mattermost-redux/actions/channels');
         patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
 
-        renderWithContext(<ChannelSettingsConfigurationTab {...{...baseProps, channel: mockChannelWithBanner}}/>);
+        await renderWithContext(<ChannelSettingsConfigurationTab {...{...baseProps, channel: mockChannelWithBanner}}/>);
 
         // Add whitespace to the banner text
         const textInput = screen.getByTestId('channel_banner_banner_text_textbox');

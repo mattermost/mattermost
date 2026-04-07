@@ -82,8 +82,8 @@ describe('custom plugin sections and settings', () => {
         },
     };
 
-    it('empty sections and settings', () => {
-        renderWithContext(
+    it('empty sections and settings', async () => {
+        await renderWithContext(
             <CustomPluginSettings
                 {...baseProps}
                 patchConfig={jest.fn()}
@@ -96,7 +96,7 @@ describe('custom plugin sections and settings', () => {
         expect(screen.getByText('This is the footer')).toBeInTheDocument();
     });
 
-    it('all custom sections with plugin disabled should show single warning', () => {
+    it('all custom sections with plugin disabled should show single warning', async () => {
         const state = {
             ...baseState,
             entities: {
@@ -153,7 +153,7 @@ describe('custom plugin sections and settings', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <CustomPluginSettings
                 {...props}
                 patchConfig={jest.fn()}
@@ -167,7 +167,7 @@ describe('custom plugin sections and settings', () => {
         expect(screen.queryByText('Custom Section 2')).not.toBeInTheDocument();
     });
 
-    it('all custom sections with plugin disabled and fallback enabled should render available settings', () => {
+    it('all custom sections with plugin disabled and fallback enabled should render available settings', async () => {
         const state = {
             ...baseState,
             entities: {
@@ -232,7 +232,7 @@ describe('custom plugin sections and settings', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <CustomPluginSettings
                 {...props}
                 patchConfig={jest.fn()}
@@ -250,7 +250,7 @@ describe('custom plugin sections and settings', () => {
         expect(screen.getByText('In order to view this setting, enable the plugin and click Save.')).toBeInTheDocument();
     });
 
-    it('custom sections with plugin enabled should render as expected', () => {
+    it('custom sections with plugin enabled should render as expected', async () => {
         const CustomSection1 = () => {
             return (
                 <div>{'Custom Component Section 1'}</div>
@@ -335,7 +335,7 @@ describe('custom plugin sections and settings', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <CustomPluginSettings
                 {...props}
                 patchConfig={jest.fn()}

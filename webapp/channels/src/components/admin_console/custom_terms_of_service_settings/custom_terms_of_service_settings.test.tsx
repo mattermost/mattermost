@@ -31,7 +31,7 @@ describe('components/admin_console/CustomTermsOfServiceSettings', () => {
     });
 
     async function renderLoaded(props: ReturnType<typeof getBaseProps>) {
-        const view = renderWithContext(
+        const view = await renderWithContext(
             <CustomTermsOfServiceSettings
                 {...props}
             />,

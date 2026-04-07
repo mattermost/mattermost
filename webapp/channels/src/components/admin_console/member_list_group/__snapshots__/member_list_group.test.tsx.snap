@@ -37,24 +37,395 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
       </div>
       <div
         class="DataGrid_header"
-      />
+      >
+        <div
+          class="DataGrid_cell"
+        >
+          Name
+        </div>
+      </div>
       <div
         class="DataGrid_rows"
       >
         <div
-          class="DataGrid_loading"
+          class="DataGrid_row"
         >
-          <span
-            class="LoadingSpinner"
-            data-testid="loadingSpinner"
-            id="loadingSpinner"
+          <div
+            class="DataGrid_cell"
           >
-            <span
-              class="fa fa-spinner fa-fw fa-pulse spinner"
-              title="Loading Icon"
-            />
-          </span>
-          Loading
+            <div
+              class="UserGrid_nameRow"
+            >
+              <span
+                class="status-wrapper style--none"
+              >
+                <span
+                  class="profile-icon "
+                >
+                  <img
+                    alt="user profile image"
+                    class="Avatar Avatar-md"
+                    loading="lazy"
+                    src="/api/v4/users/id0/image"
+                  />
+                </span>
+              </span>
+              <div
+                class="UserGrid_name"
+              >
+                <span>
+                  username0 - Name0 Surname0
+                </span>
+                <span
+                  class="ug-email"
+                >
+                  test0@test.com
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+          >
+            <div
+              class="UserGrid_nameRow"
+            >
+              <span
+                class="status-wrapper style--none"
+              >
+                <span
+                  class="profile-icon "
+                >
+                  <img
+                    alt="user profile image"
+                    class="Avatar Avatar-md"
+                    loading="lazy"
+                    src="/api/v4/users/id1/image"
+                  />
+                </span>
+              </span>
+              <div
+                class="UserGrid_name"
+              >
+                <span>
+                  username1 - Name1 Surname1
+                </span>
+                <span
+                  class="ug-email"
+                >
+                  test1@test.com
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+          >
+            <div
+              class="UserGrid_nameRow"
+            >
+              <span
+                class="status-wrapper style--none"
+              >
+                <span
+                  class="profile-icon "
+                >
+                  <img
+                    alt="user profile image"
+                    class="Avatar Avatar-md"
+                    loading="lazy"
+                    src="/api/v4/users/id2/image"
+                  />
+                </span>
+              </span>
+              <div
+                class="UserGrid_name"
+              >
+                <span>
+                  username2 - Name2 Surname2
+                </span>
+                <span
+                  class="ug-email"
+                >
+                  test2@test.com
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+          >
+            <div
+              class="UserGrid_nameRow"
+            >
+              <span
+                class="status-wrapper style--none"
+              >
+                <span
+                  class="profile-icon "
+                >
+                  <img
+                    alt="user profile image"
+                    class="Avatar Avatar-md"
+                    loading="lazy"
+                    src="/api/v4/users/id3/image"
+                  />
+                </span>
+              </span>
+              <div
+                class="UserGrid_name"
+              >
+                <span>
+                  username3 - Name3 Surname3
+                </span>
+                <span
+                  class="ug-email"
+                >
+                  test3@test.com
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+          >
+            <div
+              class="UserGrid_nameRow"
+            >
+              <span
+                class="status-wrapper style--none"
+              >
+                <span
+                  class="profile-icon "
+                >
+                  <img
+                    alt="user profile image"
+                    class="Avatar Avatar-md"
+                    loading="lazy"
+                    src="/api/v4/users/id4/image"
+                  />
+                </span>
+              </span>
+              <div
+                class="UserGrid_name"
+              >
+                <span>
+                  username4 - Name4 Surname4
+                </span>
+                <span
+                  class="ug-email"
+                >
+                  test4@test.com
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+          >
+            <div
+              class="UserGrid_nameRow"
+            >
+              <span
+                class="status-wrapper style--none"
+              >
+                <span
+                  class="profile-icon "
+                >
+                  <img
+                    alt="user profile image"
+                    class="Avatar Avatar-md"
+                    loading="lazy"
+                    src="/api/v4/users/id5/image"
+                  />
+                </span>
+              </span>
+              <div
+                class="UserGrid_name"
+              >
+                <span>
+                  username5 - Name5 Surname5
+                </span>
+                <span
+                  class="ug-email"
+                >
+                  test5@test.com
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+          >
+            <div
+              class="UserGrid_nameRow"
+            >
+              <span
+                class="status-wrapper style--none"
+              >
+                <span
+                  class="profile-icon "
+                >
+                  <img
+                    alt="user profile image"
+                    class="Avatar Avatar-md"
+                    loading="lazy"
+                    src="/api/v4/users/id6/image"
+                  />
+                </span>
+              </span>
+              <div
+                class="UserGrid_name"
+              >
+                <span>
+                  username6 - Name6 Surname6
+                </span>
+                <span
+                  class="ug-email"
+                >
+                  test6@test.com
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+          >
+            <div
+              class="UserGrid_nameRow"
+            >
+              <span
+                class="status-wrapper style--none"
+              >
+                <span
+                  class="profile-icon "
+                >
+                  <img
+                    alt="user profile image"
+                    class="Avatar Avatar-md"
+                    loading="lazy"
+                    src="/api/v4/users/id7/image"
+                  />
+                </span>
+              </span>
+              <div
+                class="UserGrid_name"
+              >
+                <span>
+                  username7 - Name7 Surname7
+                </span>
+                <span
+                  class="ug-email"
+                >
+                  test7@test.com
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+          >
+            <div
+              class="UserGrid_nameRow"
+            >
+              <span
+                class="status-wrapper style--none"
+              >
+                <span
+                  class="profile-icon "
+                >
+                  <img
+                    alt="user profile image"
+                    class="Avatar Avatar-md"
+                    loading="lazy"
+                    src="/api/v4/users/id8/image"
+                  />
+                </span>
+              </span>
+              <div
+                class="UserGrid_name"
+              >
+                <span>
+                  username8 - Name8 Surname8
+                </span>
+                <span
+                  class="ug-email"
+                >
+                  test8@test.com
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+          >
+            <div
+              class="UserGrid_nameRow"
+            >
+              <span
+                class="status-wrapper style--none"
+              >
+                <span
+                  class="profile-icon "
+                >
+                  <img
+                    alt="user profile image"
+                    class="Avatar Avatar-md"
+                    loading="lazy"
+                    src="/api/v4/users/id9/image"
+                  />
+                </span>
+              </span>
+              <div
+                class="UserGrid_name"
+              >
+                <span>
+                  username9 - Name9 Surname9
+                </span>
+                <span
+                  class="ug-email"
+                >
+                  test9@test.com
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <div
@@ -129,24 +500,20 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
       </div>
       <div
         class="DataGrid_header"
-      />
+      >
+        <div
+          class="DataGrid_cell"
+        >
+          Name
+        </div>
+      </div>
       <div
         class="DataGrid_rows"
       >
         <div
-          class="DataGrid_loading"
+          class="DataGrid_empty"
         >
-          <span
-            class="LoadingSpinner"
-            data-testid="loadingSpinner"
-            id="loadingSpinner"
-          >
-            <span
-              class="fa fa-spinner fa-fw fa-pulse spinner"
-              title="Loading Icon"
-            />
-          </span>
-          Loading
+          No users found
         </div>
       </div>
     </div>

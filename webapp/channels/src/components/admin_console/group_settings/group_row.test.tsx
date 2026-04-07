@@ -8,8 +8,8 @@ import GroupRow from 'components/admin_console/group_settings/group_row';
 import {renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing_utils';
 
 describe('components/admin_console/group_settings/GroupRow', () => {
-    test('should match snapshot, on linked and configured row', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot, on linked and configured row', async () => {
+        const {container} = await renderWithContext(
             <GroupRow
                 primary_key='primary_key'
                 name='name'
@@ -27,8 +27,8 @@ describe('components/admin_console/group_settings/GroupRow', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, on linked but not configured row', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot, on linked but not configured row', async () => {
+        const {container} = await renderWithContext(
             <GroupRow
                 primary_key='primary_key'
                 name='name'
@@ -46,8 +46,8 @@ describe('components/admin_console/group_settings/GroupRow', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, on not linked row', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot, on not linked row', async () => {
+        const {container} = await renderWithContext(
             <GroupRow
                 primary_key='primary_key'
                 name='name'
@@ -65,8 +65,8 @@ describe('components/admin_console/group_settings/GroupRow', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, on checked row', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot, on checked row', async () => {
+        const {container} = await renderWithContext(
             <GroupRow
                 primary_key='primary_key'
                 name='name'
@@ -84,8 +84,8 @@ describe('components/admin_console/group_settings/GroupRow', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, on failed linked row', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot, on failed linked row', async () => {
+        const {container} = await renderWithContext(
             <GroupRow
                 primary_key='primary_key'
                 name='name'
@@ -103,8 +103,8 @@ describe('components/admin_console/group_settings/GroupRow', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, on failed not linked row', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot, on failed not linked row', async () => {
+        const {container} = await renderWithContext(
             <GroupRow
                 primary_key='primary_key'
                 name='name'
@@ -124,7 +124,7 @@ describe('components/admin_console/group_settings/GroupRow', () => {
 
     test('onRowClick call to onCheckToggle', async () => {
         const onCheckToggle = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <GroupRow
                 primary_key='primary_key'
                 name='name'
@@ -146,7 +146,7 @@ describe('components/admin_console/group_settings/GroupRow', () => {
 
     test('linkHandler must run the link action', async () => {
         const link = jest.fn().mockReturnValue(Promise.resolve());
-        renderWithContext(
+        await renderWithContext(
             <GroupRow
                 primary_key='primary_key'
                 name='name'
@@ -171,7 +171,7 @@ describe('components/admin_console/group_settings/GroupRow', () => {
 
     test('unlinkHandler must run the unlink action', async () => {
         const unlink = jest.fn().mockReturnValue(Promise.resolve());
-        renderWithContext(
+        await renderWithContext(
             <GroupRow
                 primary_key='primary_key'
                 name='name'

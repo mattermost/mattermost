@@ -24,8 +24,8 @@ describe('components/widgets/admin_console/AdminPanelWithLink', () => {
         disabled: false,
     };
 
-    test('should render with link button', () => {
-        const {container} = renderWithContext(
+    test('should render with link button', async () => {
+        const {container} = await renderWithContext(
             <AdminPanelWithLink {...defaultProps}>{'Test'}</AdminPanelWithLink>,
         );
 
@@ -45,8 +45,8 @@ describe('components/widgets/admin_console/AdminPanelWithLink', () => {
         expect(screen.getByText('test-button-text-default')).toBeInTheDocument();
     });
 
-    test('should render disabled link when disabled prop is true', () => {
-        renderWithContext(
+    test('should render disabled link when disabled prop is true', async () => {
+        await renderWithContext(
             <AdminPanelWithLink
                 {...defaultProps}
                 disabled={true}
@@ -62,7 +62,7 @@ describe('components/widgets/admin_console/AdminPanelWithLink', () => {
     });
 
     test('should prevent default when clicking disabled link', async () => {
-        renderWithContext(
+        await renderWithContext(
             <AdminPanelWithLink
                 {...defaultProps}
                 disabled={true}
@@ -82,7 +82,7 @@ describe('components/widgets/admin_console/AdminPanelWithLink', () => {
     });
 
     test('should allow navigation when clicking enabled link', async () => {
-        renderWithContext(
+        await renderWithContext(
             <AdminPanelWithLink
                 {...defaultProps}
                 disabled={false}
@@ -103,9 +103,9 @@ describe('components/widgets/admin_console/AdminPanelWithLink', () => {
         expect(link).toBeInTheDocument();
     });
 
-    test('should render subtitle with values', () => {
+    test('should render subtitle with values', async () => {
         const subtitleValues = {count: 5, name: 'Test'};
-        renderWithContext(
+        await renderWithContext(
             <AdminPanelWithLink
                 {...defaultProps}
                 subtitleValues={subtitleValues}
@@ -118,8 +118,8 @@ describe('components/widgets/admin_console/AdminPanelWithLink', () => {
         expect(screen.getByText('test-subtitle-default')).toBeInTheDocument();
     });
 
-    test('should render without children', () => {
-        const {container} = renderWithContext(
+    test('should render without children', async () => {
+        const {container} = await renderWithContext(
             <AdminPanelWithLink {...defaultProps}/>,
         );
 

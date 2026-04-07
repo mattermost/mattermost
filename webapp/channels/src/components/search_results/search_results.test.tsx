@@ -122,7 +122,7 @@ describe('components/SearchResults', () => {
         jest.mocked(getHistory).mockReturnValue({push: jest.fn()} as any);
     });
 
-    function renderSearchResults(propOverrides?: Partial<Props>) {
+    async function renderSearchResults(propOverrides?: Partial<Props>) {
         const props = {...baseProps, ...propOverrides};
         return renderWithContext(
             <SearchResults {...props}/>,
@@ -131,37 +131,37 @@ describe('components/SearchResults', () => {
     }
 
     describe('newWindowHandler', () => {
-        function clickPopout(propOverrides?: Partial<Props>) {
-            const {container} = renderSearchResults(propOverrides);
+        async function clickPopout(propOverrides?: Partial<Props>) {
+            const {container} = await renderSearchResults(propOverrides);
             within(container).getByTestId('popout-button').click();
         }
 
-        test('should resolve mode from boolean props and pass channel only when needed', () => {
-            clickPopout({isMentionSearch: true});
+        test('should resolve mode from boolean props and pass channel only when needed', async () => {
+            await clickPopout({isMentionSearch: true});
             expect(jest.mocked(popoutRhsSearch)).toHaveBeenCalledWith(
                 expect.any(String), team.name, 'hello', 'mention', 'messages', undefined, team.id,
             );
 
             jest.clearAllMocks();
-            clickPopout({isFlaggedPosts: true});
+            await clickPopout({isFlaggedPosts: true});
             expect(jest.mocked(popoutRhsSearch)).toHaveBeenCalledWith(
                 expect.any(String), team.name, 'hello', 'flag', 'messages', undefined, team.id,
             );
 
             jest.clearAllMocks();
-            clickPopout({isPinnedPosts: true});
+            await clickPopout({isPinnedPosts: true});
             expect(jest.mocked(popoutRhsSearch)).toHaveBeenCalledWith(
                 expect.any(String), team.name, 'hello', 'pin', 'messages', channel.name, team.id,
             );
 
             jest.clearAllMocks();
-            clickPopout({isChannelFiles: true});
+            await clickPopout({isChannelFiles: true});
             expect(jest.mocked(popoutRhsSearch)).toHaveBeenCalledWith(
                 expect.any(String), team.name, 'hello', 'channel-files', 'messages', channel.name, team.id,
             );
 
             jest.clearAllMocks();
-            clickPopout();
+            await clickPopout();
             expect(jest.mocked(popoutRhsSearch)).toHaveBeenCalledWith(
                 expect.any(String), team.name, 'hello', 'search', 'messages', undefined, team.id,
             );

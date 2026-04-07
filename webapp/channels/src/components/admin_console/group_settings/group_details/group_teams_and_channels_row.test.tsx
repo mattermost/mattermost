@@ -8,7 +8,7 @@ import GroupTeamsAndChannelsRow from 'components/admin_console/group_settings/gr
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 describe('components/admin_console/group_settings/group_details/GroupTeamsAndChannelsRow', () => {
-    const renderInTable = (ui: React.ReactElement) => {
+    const renderInTable = async (ui: React.ReactElement) => {
         return renderWithContext(
             <table>
                 <tbody>
@@ -24,8 +24,8 @@ describe('components/admin_console/group_settings/group_details/GroupTeamsAndCha
         'public-channel',
         'private-channel',
     ]) {
-        test('should match snapshot, for ' + type, () => {
-            const {container} = renderInTable(
+        test('should match snapshot, for ' + type, async () => {
+            const {container} = await renderInTable(
                 <GroupTeamsAndChannelsRow
                     id='xxxxxxxxxxxxxxxxxxxxxxxxxx'
                     type={type}
@@ -40,8 +40,8 @@ describe('components/admin_console/group_settings/group_details/GroupTeamsAndCha
             expect(container).toMatchSnapshot();
         });
     }
-    test('should match snapshot, when has children', () => {
-        const {container} = renderInTable(
+    test('should match snapshot, when has children', async () => {
+        const {container} = await renderInTable(
             <GroupTeamsAndChannelsRow
                 id='xxxxxxxxxxxxxxxxxxxxxxxxxx'
                 type='public-team'
@@ -56,8 +56,8 @@ describe('components/admin_console/group_settings/group_details/GroupTeamsAndCha
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, when has children and is collapsed', () => {
-        const {container} = renderInTable(
+    test('should match snapshot, when has children and is collapsed', async () => {
+        const {container} = await renderInTable(
             <GroupTeamsAndChannelsRow
                 id='xxxxxxxxxxxxxxxxxxxxxxxxxx'
                 type='public-team'

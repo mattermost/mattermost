@@ -9,7 +9,7 @@ import {TestHelper} from 'utils/test_helper';
 import SystemRoles from './system_roles';
 
 describe('admin_console/system_roles', () => {
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const roles = {
             system_admin: TestHelper.getRoleMock({
                 id: 'system_admin',
@@ -18,7 +18,7 @@ describe('admin_console/system_roles', () => {
             }),
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SystemRoles
                 roles={roles}
             />,

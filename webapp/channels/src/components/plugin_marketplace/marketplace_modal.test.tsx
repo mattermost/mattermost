@@ -98,82 +98,63 @@ describe('components/marketplace/', () => {
         } as unknown as GlobalState;
     });
 
-    test('should render default', () => {
-        const {baseElement} = renderWithContext(
+    test('should render default', async () => {
+        const {baseElement} = await renderWithContext(
             <MarketplaceModal/>,
         );
 
         expect(baseElement).toMatchSnapshot();
     });
 
-    test('should render with no plugins available', () => {
-        const setState = jest.fn();
-        const useStateSpy = jest.spyOn(React, 'useState');
-        useStateSpy.mockImplementationOnce(() => [false, setState]);
-
-        const {baseElement} = renderWithContext(
+    test('should render with no plugins available', async () => {
+        const {baseElement} = await renderWithContext(
             <MarketplaceModal/>,
         );
 
         expect(baseElement).toMatchSnapshot();
     });
 
-    test('should render with plugins available', () => {
-        const setState = jest.fn();
-        const useStateSpy = jest.spyOn(React, 'useState');
-        useStateSpy.mockImplementationOnce(() => [false, setState]);
-
+    test('should render with plugins available', async () => {
         mockState.views.marketplace.plugins = [
             samplePlugin,
         ];
 
-        const {baseElement} = renderWithContext(
+        const {baseElement} = await renderWithContext(
             <MarketplaceModal/>,
         );
 
         expect(baseElement).toMatchSnapshot();
     });
 
-    test('should render with plugins installed', () => {
-        const setState = jest.fn();
-        const useStateSpy = jest.spyOn(React, 'useState');
-        useStateSpy.mockImplementationOnce(() => [false, setState]);
-
+    test('should render with plugins installed', async () => {
         mockState.views.marketplace.plugins = [
             samplePlugin,
             sampleInstalledPlugin,
         ];
 
-        const {baseElement} = renderWithContext(
+        const {baseElement} = await renderWithContext(
             <MarketplaceModal/>,
         );
 
         expect(baseElement).toMatchSnapshot();
     });
 
-    test('should render with error banner', () => {
-        const setState = jest.fn();
-        const useStateSpy = jest.spyOn(React, 'useState');
-        useStateSpy.mockImplementation(() => [true, setState]);
+    test('should render with error banner', async () => {
+        // Make fetchListing return an error so serverError state gets set
+        jest.mock('actions/marketplace', () => ({
+            ...jest.requireActual('actions/marketplace'),
+            fetchListing: () => () => ({error: 'fetch failed'}),
+        }));
 
-        // Suppress expected errors from useState mock affecting all child components
-        const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-        try {
-            const {baseElement} = renderWithContext(
-                <MarketplaceModal/>,
-            );
+        const {baseElement} = await renderWithContext(
+            <MarketplaceModal/>,
+        );
 
-            expect(baseElement).toMatchSnapshot();
-        } finally {
-            errorSpy.mockRestore();
-        }
+        expect(baseElement).toMatchSnapshot();
+        jest.restoreAllMocks();
     });
 
-    test('hides search, shows web marketplace banner in FeatureFlags.StreamlinedMarketplace', () => {
-        const setState = jest.fn();
-        const useStateSpy = jest.spyOn(React, 'useState');
-        useStateSpy.mockImplementation(() => [true, setState]);
-
+    test('hides search, shows web marketplace banner in FeatureFlags.StreamlinedMarketplace', async () => {
         mockState.views.marketplace.plugins = [
             samplePlugin,
             sampleInstalledPlugin,
@@ -181,42 +162,26 @@ describe('components/marketplace/', () => {
 
         (mockState.entities.general.config as any).FeatureFlagStreamlinedMarketplace = 'true';
 
-        // Suppress expected errors from useState mock affecting all child components
-        const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-        try {
-            const {baseElement} = renderWithContext(
-                <MarketplaceModal/>,
-            );
+        const {baseElement} = await renderWithContext(
+            <MarketplaceModal/>,
+        );
 
-            expect(baseElement.querySelector('#searchMarketplaceTextbox')).not.toBeInTheDocument();
-            expect(document.querySelector('.WebMarketplaceBanner')).toBeInTheDocument();
+        expect(baseElement.querySelector('#searchMarketplaceTextbox')).not.toBeInTheDocument();
+        expect(document.querySelector('.WebMarketplaceBanner')).toBeInTheDocument();
 
-            expect(baseElement).toMatchSnapshot();
-        } finally {
-            errorSpy.mockRestore();
-        }
+        expect(baseElement).toMatchSnapshot();
     });
 
-    test("doesn't show web marketplace banner in FeatureFlags.StreamlinedMarketplace for Cloud", () => {
-        const setState = jest.fn();
-        const useStateSpy = jest.spyOn(React, 'useState');
-        useStateSpy.mockImplementation(() => [true, setState]);
-
+    test("doesn't show web marketplace banner in FeatureFlags.StreamlinedMarketplace for Cloud", async () => {
         (mockState.entities.general.config as any).FeatureFlagStreamlinedMarketplace = 'true';
         mockState.entities.general.license.Cloud = 'true';
 
-        // Suppress expected errors from useState mock affecting all child components
-        const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-        try {
-            const {baseElement} = renderWithContext(
-                <MarketplaceModal/>,
-            );
+        const {baseElement} = await renderWithContext(
+            <MarketplaceModal/>,
+        );
 
-            expect(document.querySelector('.WebMarketplaceBanner')).not.toBeInTheDocument();
+        expect(document.querySelector('.WebMarketplaceBanner')).not.toBeInTheDocument();
 
-            expect(baseElement).toMatchSnapshot();
-        } finally {
-            errorSpy.mockRestore();
-        }
+        expect(baseElement).toMatchSnapshot();
     });
 });

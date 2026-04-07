@@ -38,8 +38,8 @@ describe('at mention suggestion', () => {
         onMouseMove: jest.fn(),
     };
 
-    test('should not display nick name of the signed in user', () => {
-        const {container} = renderWithContext(
+    test('should not display nick name of the signed in user', async () => {
+        const {container} = await renderWithContext(
             <AtMentionSuggestion
                 {...baseProps}
                 item={userid1}
@@ -53,8 +53,8 @@ describe('at mention suggestion', () => {
         expect(ellipsis?.textContent).not.toContain('a b (c)');
     });
 
-    test('should display nick name of non signed in user', () => {
-        const {container} = renderWithContext(
+    test('should display nick name of non signed in user', async () => {
+        const {container} = await renderWithContext(
             <AtMentionSuggestion
                 {...baseProps}
                 item={userid2}
@@ -121,8 +121,8 @@ describe('at mention suggestion', () => {
         ];
 
         for (const testCase of testCases) {
-            test(testCase.name, () => {
-                renderWithContext(
+            test(testCase.name, async () => {
+                await renderWithContext(
                     <AtMentionSuggestion
                         {...baseProps}
                         term={testCase.term}

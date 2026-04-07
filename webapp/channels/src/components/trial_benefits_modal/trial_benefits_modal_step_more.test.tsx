@@ -26,8 +26,8 @@ describe('components/trial_benefits_modal/trial_benefits_modal_step_more', () =>
         message: 'Test Message',
     };
 
-    test('should match snapshot', () => {
-        const {baseElement} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {baseElement} = await renderWithContext(
             <TrialBenefitsModalStepMore {...props}/>,
         );
         expect(baseElement).toMatchSnapshot();
@@ -37,7 +37,7 @@ describe('components/trial_benefits_modal/trial_benefits_modal_step_more', () =>
         const mockHistory = useHistory();
         const mockOnClick = jest.fn();
 
-        renderWithContext(
+        await renderWithContext(
             <TrialBenefitsModalStepMore
                 {...props}
                 onClick={mockOnClick}

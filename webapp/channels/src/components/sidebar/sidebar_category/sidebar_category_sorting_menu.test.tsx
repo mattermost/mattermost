@@ -29,8 +29,8 @@ describe('components/sidebar/sidebar_category/sidebar_category_sorting_menu', ()
         },
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <SidebarCategorySortingMenu {...baseProps}/>,
             initialState,
         );

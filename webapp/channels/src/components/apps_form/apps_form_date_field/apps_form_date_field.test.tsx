@@ -37,7 +37,7 @@ describe('AppsFormDateField', () => {
         jest.useRealTimers();
     });
 
-    const renderComponent = (props = {}) => {
+    const renderComponent = async (props = {}) => {
         return renderWithContext(
             <AppsFormDateField
                 {...defaultProps}

@@ -14,16 +14,16 @@ describe('BurnOnReadLabel', () => {
         durationMinutes: 10,
     };
 
-    it('should render correctly with duration', () => {
-        renderWithContext(
+    it('should render correctly with duration', async () => {
+        await renderWithContext(
             <BurnOnReadLabel {...defaultProps}/>,
         );
 
         expect(screen.getByText(/BURN ON READ \(10m\)/i)).toBeInTheDocument();
     });
 
-    it('should display custom duration', () => {
-        renderWithContext(
+    it('should display custom duration', async () => {
+        await renderWithContext(
             <BurnOnReadLabel
                 {...defaultProps}
                 durationMinutes={15}
@@ -33,8 +33,8 @@ describe('BurnOnReadLabel', () => {
         expect(screen.getByText(/BURN ON READ \(15m\)/i)).toBeInTheDocument();
     });
 
-    it('should render close button when canRemove is true', () => {
-        renderWithContext(
+    it('should render close button when canRemove is true', async () => {
+        await renderWithContext(
             <BurnOnReadLabel
                 {...defaultProps}
                 canRemove={true}
@@ -46,8 +46,8 @@ describe('BurnOnReadLabel', () => {
         expect(closeButton).toHaveAttribute('aria-label', 'Remove burn-on-read');
     });
 
-    it('should not render close button when canRemove is false', () => {
-        renderWithContext(
+    it('should not render close button when canRemove is false', async () => {
+        await renderWithContext(
             <BurnOnReadLabel
                 {...defaultProps}
                 canRemove={false}
@@ -60,7 +60,7 @@ describe('BurnOnReadLabel', () => {
 
     it('should call onRemove when close button is clicked', async () => {
         const onRemove = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <BurnOnReadLabel
                 {...defaultProps}
                 onRemove={onRemove}
@@ -73,8 +73,8 @@ describe('BurnOnReadLabel', () => {
         expect(onRemove).toHaveBeenCalledTimes(1);
     });
 
-    it('should have correct CSS classes', () => {
-        const {container} = renderWithContext(
+    it('should have correct CSS classes', async () => {
+        const {container} = await renderWithContext(
             <BurnOnReadLabel {...defaultProps}/>,
         );
 

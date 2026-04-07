@@ -1168,7 +1168,7 @@ describe('components/SwitchChannelProvider', () => {
             expect(results.items.some((item) => item.channel.id === 'dm_channel_2')).toBe(true);
         });
 
-        it('should handle @ at the beginning correctly', () => {
+        it('should handle @ at the beginning correctly', async () => {
             const channels = [
                 modifiedState.entities.channels.channels.dm_channel_1,
                 modifiedState.entities.channels.channels.dm_channel_2,
@@ -1189,7 +1189,7 @@ describe('components/SwitchChannelProvider', () => {
             expect(results.items.some((item) => item.channel.id === 'dm_channel_2')).toBe(true);
         });
 
-        it('should match domain when @ is present in search term', () => {
+        it('should match domain when @ is present in search term', async () => {
             const channels = [
                 modifiedState.entities.channels.channels.dm_channel_1,
                 modifiedState.entities.channels.channels.dm_channel_2,
@@ -1251,10 +1251,10 @@ describe('SwitchChannelSuggestion', () => {
         };
     }
 
-    test('should show the team name for channels if the user is on multiple teams', () => {
+    test('should show the team name for channels if the user is on multiple teams', async () => {
         const channel1 = TestHelper.getChannelMock({id: 'channel1', team_id: 'team1', name: 'channel_one', display_name: 'Channel One'});
 
-        const {replaceStoreState} = renderWithContext(
+        const {replaceStoreState} = await renderWithContext(
             <ConnectedSwitchChannelSuggestion
                 {...baseProps}
                 term={channel1.name}
@@ -1282,11 +1282,11 @@ describe('SwitchChannelSuggestion', () => {
         expect(suggestion).toHaveAccessibleDescription(`${team1.display_name} Public channel`);
     });
 
-    test('should show the type of channel', () => {
+    test('should show the type of channel', async () => {
         const channel1 = TestHelper.getChannelMock({id: 'channel1', team_id: 'team1', name: 'channel_one', display_name: 'Channel One', type: General.OPEN_CHANNEL});
         const channel2 = TestHelper.getChannelMock({id: 'channel2', team_id: 'team1', name: 'channel_two', display_name: 'Channel Two', type: General.PRIVATE_CHANNEL});
 
-        const {rerender} = renderWithContext(
+        const {rerender} = await renderWithContext(
             <ConnectedSwitchChannelSuggestion
                 {...baseProps}
                 term={channel1.name}
@@ -1322,7 +1322,7 @@ describe('SwitchChannelSuggestion', () => {
         expect(suggestion).toHaveAccessibleDescription(`~${channel2.name} Private channel`);
     });
 
-    test('should show if the channel has a draft instead of the channel type', () => {
+    test('should show if the channel has a draft instead of the channel type', async () => {
         const channel1 = TestHelper.getChannelMock({id: 'channel1', team_id: 'team1', name: 'channel_one', display_name: 'Channel One'});
         const channel2 = TestHelper.getChannelMock({id: 'channel2', team_id: 'team1', name: 'channel_two', display_name: 'Channel Two'});
 
@@ -1335,7 +1335,7 @@ describe('SwitchChannelSuggestion', () => {
             },
         };
 
-        const {rerender} = renderWithContext(
+        const {rerender} = await renderWithContext(
             <ConnectedSwitchChannelSuggestion
                 {...baseProps}
                 term={channel1.name}
@@ -1371,11 +1371,11 @@ describe('SwitchChannelSuggestion', () => {
         expect(suggestion).toHaveAccessibleDescription(`~${channel2.name} Has draft`);
     });
 
-    test('should show if the channel is archived instead of the channel type', () => {
+    test('should show if the channel is archived instead of the channel type', async () => {
         const channel1 = TestHelper.getChannelMock({id: 'channel1', team_id: 'team1', name: 'channel_one', display_name: 'Channel One'});
         const channel2 = TestHelper.getChannelMock({id: 'channel2', team_id: 'team1', name: 'channel_two', display_name: 'Channel Two', delete_at: 1});
 
-        const {rerender} = renderWithContext(
+        const {rerender} = await renderWithContext(
             <ConnectedSwitchChannelSuggestion
                 {...baseProps}
                 term={channel1.name}
@@ -1411,7 +1411,7 @@ describe('SwitchChannelSuggestion', () => {
         expect(suggestion).toHaveAccessibleDescription(`~${channel2.name} Archived channel`);
     });
 
-    test('should show if the channel has unread mentions', () => {
+    test('should show if the channel has unread mentions', async () => {
         const channel1 = TestHelper.getChannelMock({id: 'channel1', team_id: 'team1', name: 'channel_one', display_name: 'Channel One'});
         const channel2 = TestHelper.getChannelMock({id: 'channel2', team_id: 'team1', name: 'channel_two', display_name: 'Channel Two'});
         const channel3 = TestHelper.getChannelMock({id: 'channel3', team_id: 'team1', name: 'channel_three', display_name: 'Channel Three'});
@@ -1421,7 +1421,7 @@ describe('SwitchChannelSuggestion', () => {
         testState.entities.channels.myMembers[channel2.id].mention_count = 1;
         testState.entities.channels.myMembers[channel3.id].mention_count = 5;
 
-        const {rerender} = renderWithContext(
+        const {rerender} = await renderWithContext(
             <ConnectedSwitchChannelSuggestion
                 {...baseProps}
                 term={channel1.name}

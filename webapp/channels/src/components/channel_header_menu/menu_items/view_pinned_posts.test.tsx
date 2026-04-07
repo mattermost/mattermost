@@ -32,7 +32,7 @@ describe('components/ChannelHeaderMenu/MenuItems/ViewPinnedPosts', () => {
         };
         const channel = TestHelper.getChannelMock();
 
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <ViewPinnedPosts channelID={channel.id}/>
             </WithTestMenuContext>, state,
@@ -57,7 +57,7 @@ describe('components/ChannelHeaderMenu/MenuItems/ViewPinnedPosts', () => {
         };
         const channel = TestHelper.getChannelMock();
 
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <ViewPinnedPosts channelID={channel.id}/>
             </WithTestMenuContext>, state,

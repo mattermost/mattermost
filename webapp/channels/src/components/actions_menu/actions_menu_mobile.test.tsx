@@ -25,7 +25,7 @@ jest.mock('utils/post_utils', () => {
 });
 
 describe('components/actions_menu/ActionsMenu on mobile view', () => {
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const baseProps: Omit<Props, 'intl'> = {
             post: TestHelper.getPostMock({id: 'post_id_1'}),
             teamId: 'team_id_1',
@@ -46,7 +46,7 @@ describe('components/actions_menu/ActionsMenu on mobile view', () => {
             pluginMenuItemComponents: [],
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ActionsMenu {...baseProps}/>,
         );
 

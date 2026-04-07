@@ -50,9 +50,9 @@ describe('components/select_team/SelectTeam', () => {
         } as CloudUsage,
     };
 
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const props = {...baseProps};
-        const {container} = renderWithContext(<SelectTeam {...props}/>);
+        const {container} = await renderWithContext(<SelectTeam {...props}/>);
         expect(container).toMatchSnapshot();
 
         // on componentDidMount
@@ -70,7 +70,7 @@ describe('components/select_team/SelectTeam', () => {
                 addUserToTeam,
             },
         };
-        const {container} = renderWithContext(<SelectTeam {...props}/>);
+        const {container} = await renderWithContext(<SelectTeam {...props}/>);
 
         // Click on a team to trigger loading state
         await userEvent.click(screen.getByText('Team A'));
@@ -91,7 +91,7 @@ describe('components/select_team/SelectTeam', () => {
                 addUserToTeam,
             },
         };
-        const {container} = renderWithContext(<SelectTeam {...props}/>);
+        const {container} = await renderWithContext(<SelectTeam {...props}/>);
 
         // Click on a team to trigger error state
         await userEvent.click(screen.getByText('Team A'));
@@ -103,21 +103,21 @@ describe('components/select_team/SelectTeam', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, on no joinable team but can create team', () => {
+    test('should match snapshot, on no joinable team but can create team', async () => {
         const props = {...baseProps, listableTeams: []};
-        const {container} = renderWithContext(<SelectTeam {...props}/>);
+        const {container} = await renderWithContext(<SelectTeam {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, on no joinable team and is not system admin nor can create team', () => {
+    test('should match snapshot, on no joinable team and is not system admin nor can create team', async () => {
         const props = {...baseProps, listableTeams: [], currentUserRoles: '', canManageSystem: false, canCreateTeams: false};
-        const {container} = renderWithContext(<SelectTeam {...props}/>);
+        const {container} = await renderWithContext(<SelectTeam {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, on no joinable team and user is guest', () => {
+    test('should match snapshot, on no joinable team and user is guest', async () => {
         const props = {...baseProps, listableTeams: [], currentUserRoles: '', currentUserIsGuest: true, canManageSystem: false, canCreateTeams: false};
-        const {container} = renderWithContext(<SelectTeam {...props}/>);
+        const {container} = await renderWithContext(<SelectTeam {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
@@ -130,7 +130,7 @@ describe('components/select_team/SelectTeam', () => {
                 addUserToTeam,
             },
         };
-        renderWithContext(<SelectTeam {...props}/>);
+        await renderWithContext(<SelectTeam {...props}/>);
 
         // Click on the first team
         await userEvent.click(screen.getByText('Team A'));
@@ -143,7 +143,7 @@ describe('components/select_team/SelectTeam', () => {
 
     test('should call emitUserLoggedOutEvent on logout', async () => {
         const props = {...baseProps, isMemberOfTeam: false};
-        renderWithContext(<SelectTeam {...props}/>);
+        await renderWithContext(<SelectTeam {...props}/>);
 
         // Click the logout link (shown when user is not a member of a team)
         await userEvent.click(screen.getByRole('link', {name: /logout/i}));
@@ -161,7 +161,7 @@ describe('components/select_team/SelectTeam', () => {
                 addUserToTeam,
             },
         };
-        renderWithContext(<SelectTeam {...props}/>);
+        await renderWithContext(<SelectTeam {...props}/>);
 
         // Trigger error by clicking a team
         await userEvent.click(screen.getByText('Team A'));
@@ -178,7 +178,7 @@ describe('components/select_team/SelectTeam', () => {
         });
     });
 
-    test('should match snapshot, on create team restricted', () => {
+    test('should match snapshot, on create team restricted', async () => {
         const props = {
             ...baseProps,
             isCloud: true,
@@ -190,12 +190,12 @@ describe('components/select_team/SelectTeam', () => {
             } as CloudUsage,
         };
 
-        const {container} = renderWithContext(<SelectTeam {...props}/>);
+        const {container} = await renderWithContext(<SelectTeam {...props}/>);
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should filter out group-constrained teams from joinable teams list', () => {
+    test('should filter out group-constrained teams from joinable teams list', async () => {
         const props = {
             ...baseProps,
             listableTeams: [
@@ -206,7 +206,7 @@ describe('components/select_team/SelectTeam', () => {
             ],
         };
 
-        renderWithContext(<SelectTeam {...props}/>);
+        await renderWithContext(<SelectTeam {...props}/>);
 
         // Should show teams that are not group-constrained (false, undefined, null)
         expect(screen.getByText('Team A')).toBeInTheDocument(); // group_constrained: false

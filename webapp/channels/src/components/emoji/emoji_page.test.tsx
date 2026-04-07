@@ -35,20 +35,20 @@ describe('EmojiPage', () => {
         },
     };
 
-    it('should render without crashing', () => {
-        const {container} = renderWithContext(<EmojiPage {...defaultProps}/>);
+    it('should render without crashing', async () => {
+        const {container} = await renderWithContext(<EmojiPage {...defaultProps}/>);
         expect(container).toMatchSnapshot();
     });
 
-    it('should render the emoji list and the add button with permission', () => {
-        renderWithContext(<EmojiPage {...defaultProps}/>);
+    it('should render the emoji list and the add button with permission', async () => {
+        await renderWithContext(<EmojiPage {...defaultProps}/>);
         expect(screen.getByTestId('emoji-list')).toBeInTheDocument();
         expect(screen.getByTestId('permission-gate')).toBeInTheDocument();
         expect(screen.getByRole('link')).toHaveAttribute('href', '/team/emoji/add');
     });
 
-    it('should not render the add button if permission is not granted', () => {
-        renderWithContext(
+    it('should not render the add button if permission is not granted', async () => {
+        await renderWithContext(
             <EmojiPage
                 {...defaultProps}
                 teamName=''
@@ -59,8 +59,8 @@ describe('EmojiPage', () => {
         expect(screen.getByRole('link')).toBeInTheDocument();
     });
 
-    it('should render EmojiList component', () => {
-        renderWithContext(<EmojiPage {...defaultProps}/>);
+    it('should render EmojiList component', async () => {
+        await renderWithContext(<EmojiPage {...defaultProps}/>);
         expect(screen.getByTestId('emoji-list')).toBeInTheDocument();
     });
 });

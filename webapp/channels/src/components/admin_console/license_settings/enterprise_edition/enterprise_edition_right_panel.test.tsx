@@ -57,8 +57,8 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
         license,
     } as EnterpriseEditionProps;
 
-    test('should render for Professional license', () => {
-        const {container} = renderWithContext(
+    test('should render for Professional license', async () => {
+        const {container} = await renderWithContext(
             <EnterpriseEditionRightPanel
                 license={{...props.license, SkuShortName: LicenseSkus.Professional}}
                 isTrialLicense={props.isTrialLicense}
@@ -76,8 +76,8 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
         expect(subtitleItems[4].textContent).toEqual('And more...');
     });
 
-    test('should render for Enterprise license', () => {
-        const {container} = renderWithContext(
+    test('should render for Enterprise license', async () => {
+        const {container} = await renderWithContext(
             <EnterpriseEditionRightPanel
                 license={{...props.license, SkuShortName: LicenseSkus.Enterprise}}
                 isTrialLicense={props.isTrialLicense}
@@ -97,8 +97,8 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
         expect(subtitleItems[6].textContent).toEqual('And more...');
     });
 
-    test('should render for Enterprise Advanced license', () => {
-        const {container} = renderWithContext(
+    test('should render for Enterprise Advanced license', async () => {
+        const {container} = await renderWithContext(
             <EnterpriseEditionRightPanel
                 license={{...props.license, SkuShortName: LicenseSkus.EnterpriseAdvanced}}
                 isTrialLicense={props.isTrialLicense}
@@ -110,8 +110,8 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
         expect(container.querySelector('.upgrade-subtitle')?.textContent).toEqual("We're here to work with you and your needs. Contact us today to get more seats on your plan.");
     });
 
-    test('should render for Entry license', () => {
-        const {container} = renderWithContext(
+    test('should render for Entry license', async () => {
+        const {container} = await renderWithContext(
             <EnterpriseEditionRightPanel
                 license={{...props.license, SkuShortName: LicenseSkus.Entry}}
                 isTrialLicense={props.isTrialLicense}
@@ -126,8 +126,8 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
         expect(screen.getByRole('button', {name: 'Questions? Contact sales'})).toBeInTheDocument();
     });
 
-    test('should render for Trial license', () => {
-        const {container} = renderWithContext(
+    test('should render for Trial license', async () => {
+        const {container} = await renderWithContext(
             <EnterpriseEditionRightPanel
                 license={props.license}
                 isTrialLicense={true}

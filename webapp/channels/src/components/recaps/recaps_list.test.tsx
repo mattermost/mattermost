@@ -44,15 +44,15 @@ describe('RecapsList', () => {
         },
     ];
 
-    test('should render empty state when no recaps', () => {
-        renderWithContext(<RecapsList recaps={[]}/>);
+    test('should render empty state when no recaps', async () => {
+        await renderWithContext(<RecapsList recaps={[]}/>);
 
         expect(screen.getByText("You're all caught up")).toBeInTheDocument();
         expect(screen.getByText("You don't have any recaps yet. Create one to get started.")).toBeInTheDocument();
     });
 
-    test('should render recap items when recaps exist', () => {
-        renderWithContext(<RecapsList recaps={mockCompletedRecaps}/>);
+    test('should render recap items when recaps exist', async () => {
+        await renderWithContext(<RecapsList recaps={mockCompletedRecaps}/>);
 
         expect(screen.getByText('Morning Standup')).toBeInTheDocument();
         expect(screen.getByText('Weekly Review')).toBeInTheDocument();

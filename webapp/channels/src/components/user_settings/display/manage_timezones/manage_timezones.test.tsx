@@ -52,7 +52,7 @@ describe('components/user_settings/display/manage_timezones/manage_timezones', (
             }],
             actions: {...requiredProps.actions, updateMe},
         };
-        renderWithContext(<ManageTimezones {...props}/>);
+        await renderWithContext(<ManageTimezones {...props}/>);
 
         // Toggle the automatic timezone checkbox to create a state diff
         await userEvent.click(screen.getByRole('checkbox', {name: /automatic/i}));

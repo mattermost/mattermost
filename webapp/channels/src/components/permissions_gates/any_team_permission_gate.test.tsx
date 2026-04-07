@@ -47,8 +47,8 @@ describe('components/permissions_gates', () => {
     const CONTENT = 'The content inside the permission gate';
 
     describe('TeamPermissionGate', () => {
-        test('should show content when user have permission', () => {
-            renderWithContext(
+        test('should show content when user have permission', async () => {
+            await renderWithContext(
                 <AnyTeamPermissionGate permissions={['test_team_permission']}>
                     <p>{CONTENT}</p>
                 </AnyTeamPermissionGate>,
@@ -57,8 +57,8 @@ describe('components/permissions_gates', () => {
 
             expect(screen.queryByText(CONTENT)).toBeInTheDocument();
         });
-        test('should show content when user have the permission in other team', () => {
-            renderWithContext(
+        test('should show content when user have the permission in other team', async () => {
+            await renderWithContext(
                 <AnyTeamPermissionGate permissions={['other_permission']}>
                     <p>{CONTENT}</p>
                 </AnyTeamPermissionGate>,
@@ -67,16 +67,16 @@ describe('components/permissions_gates', () => {
 
             expect(screen.queryByText(CONTENT)).toBeInTheDocument();
         });
-        test('should show content when user have at least one of the permissions', () => {
-            renderWithContext(
+        test('should show content when user have at least one of the permissions', async () => {
+            await renderWithContext(
                 <AnyTeamPermissionGate permissions={['test_team_permission', 'not_existing_permission']}>
                     <p>{CONTENT}</p>
                 </AnyTeamPermissionGate>,
                 state,
             );
         });
-        test('should NOT show content when user have permission and use invert', () => {
-            renderWithContext(
+        test('should NOT show content when user have permission and use invert', async () => {
+            await renderWithContext(
                 <AnyTeamPermissionGate
                     permissions={['test_team_permission']}
                     invert={true}
@@ -88,8 +88,8 @@ describe('components/permissions_gates', () => {
 
             expect(screen.queryByText(CONTENT)).not.toBeInTheDocument();
         });
-        test('should show content when user not have permission and use invert', () => {
-            renderWithContext(
+        test('should show content when user not have permission and use invert', async () => {
+            await renderWithContext(
                 <AnyTeamPermissionGate
                     permissions={['invalid_permission']}
                     invert={true}
@@ -101,8 +101,8 @@ describe('components/permissions_gates', () => {
 
             expect(screen.queryByText(CONTENT)).toBeInTheDocument();
         });
-        test('should NOT show content when user have the permission in other team and use invert', () => {
-            renderWithContext(
+        test('should NOT show content when user have the permission in other team and use invert', async () => {
+            await renderWithContext(
                 <AnyTeamPermissionGate
                     permissions={['other_permission']}
                     invert={true}
@@ -114,8 +114,8 @@ describe('components/permissions_gates', () => {
 
             expect(screen.queryByText(CONTENT)).not.toBeInTheDocument();
         });
-        test('should NOT show content when user doesn\'t have permission', () => {
-            renderWithContext(
+        test('should NOT show content when user doesn\'t have permission', async () => {
+            await renderWithContext(
                 <AnyTeamPermissionGate
                     permissions={['invalid_permission']}
                 >
@@ -126,8 +126,8 @@ describe('components/permissions_gates', () => {
 
             expect(screen.queryByText(CONTENT)).not.toBeInTheDocument();
         });
-        test('should show content when user have permission system wide', () => {
-            renderWithContext(
+        test('should show content when user have permission system wide', async () => {
+            await renderWithContext(
                 <AnyTeamPermissionGate
                     permissions={['test_system_permission']}
                 >

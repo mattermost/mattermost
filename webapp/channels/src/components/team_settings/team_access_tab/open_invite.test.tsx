@@ -15,9 +15,9 @@ describe('components/TeamSettings/OpenInvite', () => {
         setAllowOpenInvite,
     };
 
-    test('should render correct title and link when the team is constrained', () => {
+    test('should render correct title and link when the team is constrained', async () => {
         const props = {...defaultProps, isGroupConstrained: true};
-        renderWithContext(<OpenInvite {...props}/>);
+        await renderWithContext(<OpenInvite {...props}/>);
         const title = screen.getByText('Users on this server');
         expect(title).toBeInTheDocument();
         const externalLink = screen.getByText('Learn More');
@@ -25,23 +25,23 @@ describe('components/TeamSettings/OpenInvite', () => {
         expect(externalLink).toHaveAttribute('href', 'https://mattermost.com/pl/default-ldap-group-constrained-team-channel.html?utm_source=mattermost&utm_medium=in-product&utm_content=open_invite&uid=&sid=&edition=team&server_version=');
     });
 
-    test('should render the checkbox when the team is not constrained and not checked', () => {
-        renderWithContext(<OpenInvite {...defaultProps}/>);
+    test('should render the checkbox when the team is not constrained and not checked', async () => {
+        await renderWithContext(<OpenInvite {...defaultProps}/>);
         const checkbox = screen.getByRole('checkbox');
         expect(checkbox).toBeInTheDocument();
         expect(checkbox).not.toBeChecked();
     });
 
-    test('should render the checkbox when the team is not constrained and checked', () => {
+    test('should render the checkbox when the team is not constrained and checked', async () => {
         const props = {...defaultProps, allowOpenInvite: true};
-        renderWithContext(<OpenInvite {...props}/>);
+        await renderWithContext(<OpenInvite {...props}/>);
         const checkbox = screen.getByRole('checkbox');
         expect(checkbox).toBeInTheDocument();
         expect(checkbox).toBeChecked();
     });
 
     test('should call setAllowOpenInvite when the checkbox is clicked', async () => {
-        renderWithContext(<OpenInvite {...defaultProps}/>);
+        await renderWithContext(<OpenInvite {...defaultProps}/>);
         const checkbox = screen.getByRole('checkbox');
         expect(checkbox).toBeInTheDocument();
         expect(checkbox).not.toBeChecked();

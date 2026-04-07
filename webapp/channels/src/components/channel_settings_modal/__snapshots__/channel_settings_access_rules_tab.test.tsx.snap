@@ -19,6 +19,15 @@ exports[`components/channel_settings_modal/ChannelSettingsAccessRulesTab should 
         Select user attributes and values as rules to restrict channel membership
       </p>
     </div>
+    <div
+      class="ChannelSettingsModal__accessRulesEditor"
+    >
+      <div
+        data-testid="table-editor"
+      >
+        TableEditor
+      </div>
+    </div>
     <hr
       class="ChannelSettingsModal__divider"
     />

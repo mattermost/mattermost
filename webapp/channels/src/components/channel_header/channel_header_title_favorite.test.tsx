@@ -59,7 +59,7 @@ describe('ChannelHeaderTitleFavorite Component', () => {
         jest.restoreAllMocks();
     });
 
-    function renderComponent() {
+    async function renderComponent() {
         return renderWithContext(<ChannelHeaderTitleFavorite/>);
     }
 
@@ -73,7 +73,7 @@ describe('ChannelHeaderTitleFavorite Component', () => {
             data: activeChannel.id,
         });
 
-        renderComponent();
+        await renderComponent();
 
         const button = screen.getByRole('button', {name: ADD_TO_FAVORITES_REGEX});
         await userEvent.click(button);
@@ -95,7 +95,7 @@ describe('ChannelHeaderTitleFavorite Component', () => {
             data: activeChannel.id,
         });
 
-        renderComponent();
+        await renderComponent();
 
         const button = screen.getByRole('button', {name: REMOVE_FROM_FAVORITES_REGEX});
         await userEvent.click(button);
@@ -107,31 +107,31 @@ describe('ChannelHeaderTitleFavorite Component', () => {
         });
     });
 
-    it('should not render anything when channel is null', () => {
+    it('should not render anything when channel is null', async () => {
         isCurrentChannelFavoriteMock.mockReturnValue(false);
         getCurrentChannelMock.mockReturnValue(null);
 
-        renderComponent();
+        await renderComponent();
 
         const button = screen.queryByRole('button', {name: ADD_TO_FAVORITES_REGEX});
         expect(button).toBeNull();
     });
 
-    it('should not render anything when channel is archived', () => {
+    it('should not render anything when channel is archived', async () => {
         isCurrentChannelFavoriteMock.mockReturnValue(false);
         getCurrentChannelMock.mockReturnValue(archivedChannel);
 
-        renderComponent();
+        await renderComponent();
 
         const button = screen.queryByRole('button', {name: ADD_TO_FAVORITES_REGEX});
         expect(button).toBeNull();
     });
 
-    it('should render "Add to Favorites" button when not favorite', () => {
+    it('should render "Add to Favorites" button when not favorite', async () => {
         isCurrentChannelFavoriteMock.mockReturnValue(false);
         getCurrentChannelMock.mockReturnValue(activeChannel);
 
-        renderComponent();
+        await renderComponent();
 
         const button = screen.getByRole('button', {name: ADD_TO_FAVORITES_REGEX});
         expect(button).toBeInTheDocument();
@@ -142,11 +142,11 @@ describe('ChannelHeaderTitleFavorite Component', () => {
         expect(icon).toHaveClass('icon-star-outline');
     });
 
-    it('should render "Remove from Favorites" button when favorite', () => {
+    it('should render "Remove from Favorites" button when favorite', async () => {
         isCurrentChannelFavoriteMock.mockReturnValue(true);
         getCurrentChannelMock.mockReturnValue(activeChannel);
 
-        renderComponent();
+        await renderComponent();
 
         const button = screen.getByRole('button', {name: REMOVE_FROM_FAVORITES_REGEX});
         expect(button).toBeInTheDocument();
@@ -157,12 +157,12 @@ describe('ChannelHeaderTitleFavorite Component', () => {
         expect(icon).toHaveClass('icon-star');
     });
 
-    it('should have correct aria-label and icon based on isFavorite', () => {
+    it('should have correct aria-label and icon based on isFavorite', async () => {
         // Start with Not favorite channel
         isCurrentChannelFavoriteMock.mockReturnValue(false);
         getCurrentChannelMock.mockReturnValue(activeChannel);
 
-        renderComponent();
+        await renderComponent();
 
         let button = screen.getByRole('button', {name: ADD_TO_FAVORITES_REGEX});
         expect(button).toHaveAttribute('aria-label', ADD_TO_FAVORITES_LABEL);
@@ -178,7 +178,7 @@ describe('ChannelHeaderTitleFavorite Component', () => {
         getCurrentChannelMock.mockReturnValue(activeChannel);
 
         // Re-render component with updated state, now is Favorite
-        renderComponent();
+        await renderComponent();
 
         button = screen.getByRole('button', {name: REMOVE_FROM_FAVORITES_REGEX});
         expect(button).toHaveAttribute('aria-label', REMOVE_FROM_FAVORITES_LABEL);
@@ -198,7 +198,7 @@ describe('ChannelHeaderTitleFavorite Component', () => {
         // Spy on document.dispatchEvent
         const dispatchEventSpy = jest.spyOn(document, 'dispatchEvent');
 
-        renderComponent();
+        await renderComponent();
 
         const button = screen.getByRole('button', {name: ADD_TO_FAVORITES_REGEX});
 

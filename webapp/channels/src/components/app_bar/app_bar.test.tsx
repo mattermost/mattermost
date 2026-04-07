@@ -105,9 +105,9 @@ describe('components/app_bar/app_bar', () => {
         },
     };
 
-    test('should match snapshot on mount', () => {
+    test('should match snapshot on mount', async () => {
         const testState = initialState;
-        const {asFragment} = renderWithContext(
+        const {asFragment} = await renderWithContext(
             <AppBar/>,
             testState,
         );
@@ -115,7 +115,7 @@ describe('components/app_bar/app_bar', () => {
         expect(asFragment()).toMatchSnapshot();
     });
 
-    test('should match snapshot on mount when App Bar is disabled', () => {
+    test('should match snapshot on mount when App Bar is disabled', async () => {
         const testState = mergeObjects(initialState, {
             entities: {
                 general: {
@@ -126,7 +126,7 @@ describe('components/app_bar/app_bar', () => {
             },
         });
 
-        const {asFragment} = renderWithContext(
+        const {asFragment} = await renderWithContext(
             <AppBar/>,
             testState,
         );
@@ -134,7 +134,7 @@ describe('components/app_bar/app_bar', () => {
         expect(asFragment()).toMatchSnapshot();
     });
 
-    test('should not show marketplace if disabled or user does not have SYSCONSOLE_WRITE_PLUGINS permission', () => {
+    test('should not show marketplace if disabled or user does not have SYSCONSOLE_WRITE_PLUGINS permission', async () => {
         const testState = mergeObjects(initialState, {
             entities: {
                 general: {
@@ -148,7 +148,7 @@ describe('components/app_bar/app_bar', () => {
             },
         });
 
-        renderWithContext(
+        await renderWithContext(
             <AppBar/>,
             testState,
         );
@@ -156,7 +156,7 @@ describe('components/app_bar/app_bar', () => {
         expect(screen.queryByLabelText('App Marketplace')).not.toBeInTheDocument();
     });
 
-    test('should show marketplace if enabled and user has SYSCONSOLE_WRITE_PLUGINS permission', () => {
+    test('should show marketplace if enabled and user has SYSCONSOLE_WRITE_PLUGINS permission', async () => {
         const testState = mergeObjects(initialState, {
             entities: {
                 general: {
@@ -179,7 +179,7 @@ describe('components/app_bar/app_bar', () => {
             },
         });
 
-        renderWithContext(
+        await renderWithContext(
             <AppBar/>,
             testState,
         );

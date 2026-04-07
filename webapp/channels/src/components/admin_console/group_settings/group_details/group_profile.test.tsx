@@ -8,8 +8,8 @@ import GroupProfile from 'components/admin_console/group_settings/group_details/
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 describe('components/admin_console/group_settings/group_details/GroupProfile', () => {
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <GroupProfile
                 customID='test'
                 isDisabled={false}

@@ -60,24 +60,24 @@ describe('components/logged_in/LoggedIn', () => {
         },
     };
 
-    it('should render loading state without user', () => {
+    it('should render loading state without user', async () => {
         const props = {
             ...baseProps,
             currentUser: undefined,
         };
 
-        const {container} = renderWithContext(<LoggedIn {...props}>{children}</LoggedIn>);
+        const {container} = await renderWithContext(<LoggedIn {...props}>{children}</LoggedIn>);
 
         expect(container.querySelector('.loading-screen')).toBeInTheDocument();
     });
 
-    it('should redirect to mfa when required and not on /mfa/setup', () => {
+    it('should redirect to mfa when required and not on /mfa/setup', async () => {
         const props = {
             ...baseProps,
             mfaRequired: true,
         };
 
-        renderWithContext(<LoggedIn {...props}>{children}</LoggedIn>);
+        await renderWithContext(<LoggedIn {...props}>{children}</LoggedIn>);
 
         expect(Redirect).toHaveBeenCalledWith(
             expect.objectContaining({to: '/mfa/setup'}),
@@ -85,7 +85,7 @@ describe('components/logged_in/LoggedIn', () => {
         );
     });
 
-    it('should render children when mfa required and already on /mfa/setup', () => {
+    it('should render children when mfa required and already on /mfa/setup', async () => {
         const props = {
             ...baseProps,
             mfaRequired: true,
@@ -95,12 +95,12 @@ describe('components/logged_in/LoggedIn', () => {
             },
         };
 
-        renderWithContext(<LoggedIn {...props}>{children}</LoggedIn>);
+        await renderWithContext(<LoggedIn {...props}>{children}</LoggedIn>);
 
         expect(screen.getByText('Test')).toBeInTheDocument();
     });
 
-    it('should render children when mfa is not required and on /mfa/confirm', () => {
+    it('should render children when mfa is not required and on /mfa/confirm', async () => {
         const props = {
             ...baseProps,
             mfaRequired: false,
@@ -110,19 +110,19 @@ describe('components/logged_in/LoggedIn', () => {
             },
         };
 
-        renderWithContext(<LoggedIn {...props}>{children}</LoggedIn>);
+        await renderWithContext(<LoggedIn {...props}>{children}</LoggedIn>);
 
         expect(screen.getByText('Test')).toBeInTheDocument();
     });
 
-    it('should redirect to terms of service when mfa not required and terms of service required but not on /terms_of_service', () => {
+    it('should redirect to terms of service when mfa not required and terms of service required but not on /terms_of_service', async () => {
         const props = {
             ...baseProps,
             mfaRequired: false,
             showTermsOfService: true,
         };
 
-        renderWithContext(<LoggedIn {...props}>{children}</LoggedIn>);
+        await renderWithContext(<LoggedIn {...props}>{children}</LoggedIn>);
 
         expect(Redirect).toHaveBeenCalledWith(
             expect.objectContaining({to: '/terms_of_service?redirect_to=%2F'}),
@@ -130,7 +130,7 @@ describe('components/logged_in/LoggedIn', () => {
         );
     });
 
-    it('should render children when mfa is not required and terms of service required and on /terms_of_service', () => {
+    it('should render children when mfa is not required and terms of service required and on /terms_of_service', async () => {
         const props = {
             ...baseProps,
             mfaRequired: false,
@@ -141,36 +141,36 @@ describe('components/logged_in/LoggedIn', () => {
             },
         };
 
-        renderWithContext(<LoggedIn {...props}>{children}</LoggedIn>);
+        await renderWithContext(<LoggedIn {...props}>{children}</LoggedIn>);
 
         expect(screen.getByText('Test')).toBeInTheDocument();
     });
 
-    it('should render children when neither mfa nor terms of service required', () => {
+    it('should render children when neither mfa nor terms of service required', async () => {
         const props = {
             ...baseProps,
             mfaRequired: false,
             showTermsOfService: false,
         };
 
-        renderWithContext(<LoggedIn {...props}>{children}</LoggedIn>);
+        await renderWithContext(<LoggedIn {...props}>{children}</LoggedIn>);
 
         expect(screen.getByText('Test')).toBeInTheDocument();
     });
 
-    it('should signal to other tabs when login is successful', () => {
+    it('should signal to other tabs when login is successful', async () => {
         const props = {
             ...baseProps,
             mfaRequired: false,
             showTermsOfService: true,
         };
 
-        renderWithContext(<LoggedIn {...props}>{children}</LoggedIn>);
+        await renderWithContext(<LoggedIn {...props}>{children}</LoggedIn>);
 
         expect(BrowserStore.signalLogin).toHaveBeenCalledTimes(1);
     });
 
-    it('should set state to unfocused if it starts in the background', () => {
+    it('should set state to unfocused if it starts in the background', async () => {
         document.hasFocus = jest.fn(() => false);
 
         const obj = Object.assign(GlobalActions);
@@ -182,18 +182,18 @@ describe('components/logged_in/LoggedIn', () => {
             showTermsOfService: true,
         };
 
-        renderWithContext(<LoggedIn {...props}>{children}</LoggedIn>);
+        await renderWithContext(<LoggedIn {...props}>{children}</LoggedIn>);
         expect(obj.emitBrowserFocus).toHaveBeenCalledTimes(1);
     });
 
-    it('should not make viewChannel call on unload', () => {
+    it('should not make viewChannel call on unload', async () => {
         const props = {
             ...baseProps,
             mfaRequired: false,
             showTermsOfService: false,
         };
 
-        renderWithContext(<LoggedIn {...props}>{children}</LoggedIn>);
+        await renderWithContext(<LoggedIn {...props}>{children}</LoggedIn>);
         expect(screen.getByText('Test')).toBeInTheDocument();
 
         fireEvent(window, new Event('beforeunload'));
@@ -201,24 +201,24 @@ describe('components/logged_in/LoggedIn', () => {
     });
 
     describe('custom profile attributes', () => {
-        it('should call getCustomProfileAttributeFields when feature is enabled on mount', () => {
+        it('should call getCustomProfileAttributeFields when feature is enabled on mount', async () => {
             const props = {
                 ...baseProps,
                 customProfileAttributesEnabled: true,
             };
 
-            renderWithContext(<LoggedIn {...props}>{children}</LoggedIn>);
+            await renderWithContext(<LoggedIn {...props}>{children}</LoggedIn>);
 
             expect(props.actions.getCustomProfileAttributeFields).toHaveBeenCalledTimes(1);
         });
 
-        it('should not call getCustomProfileAttributeFields when feature is disabled', () => {
+        it('should not call getCustomProfileAttributeFields when feature is disabled', async () => {
             const props = {
                 ...baseProps,
                 customProfileAttributesEnabled: false,
             };
 
-            renderWithContext(<LoggedIn {...props}>{children}</LoggedIn>);
+            await renderWithContext(<LoggedIn {...props}>{children}</LoggedIn>);
 
             expect(props.actions.getCustomProfileAttributeFields).not.toHaveBeenCalled();
         });

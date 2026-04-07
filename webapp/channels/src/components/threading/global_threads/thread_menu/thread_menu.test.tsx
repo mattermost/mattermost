@@ -110,8 +110,8 @@ describe('components/threading/common/thread_menu', () => {
         };
     });
 
-    test('should render thread menu button', () => {
-        renderWithContext(
+    test('should render thread menu button', async () => {
+        await renderWithContext(
             <ThreadMenu
                 {...props}
             />,
@@ -121,7 +121,7 @@ describe('components/threading/common/thread_menu', () => {
     });
 
     test('should open menu when button is clicked', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ThreadMenu
                 {...props}
             />,
@@ -139,7 +139,7 @@ describe('components/threading/common/thread_menu', () => {
     });
 
     test('should allow following', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ThreadMenu
                 {...props}
                 isFollowing={false}
@@ -160,7 +160,7 @@ describe('components/threading/common/thread_menu', () => {
     });
 
     test('should allow unfollowing', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ThreadMenu
                 {...props}
                 isFollowing={true}
@@ -181,7 +181,7 @@ describe('components/threading/common/thread_menu', () => {
     });
 
     test('should allow opening in channel', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ThreadMenu
                 {...props}
             />,
@@ -202,7 +202,7 @@ describe('components/threading/common/thread_menu', () => {
 
     test('should allow marking as read', async () => {
         const resetFakeDate = fakeDate(new Date(1612582579566));
-        renderWithContext(
+        await renderWithContext(
             <ThreadMenu
                 {...props}
                 hasUnreads={true}
@@ -226,7 +226,7 @@ describe('components/threading/common/thread_menu', () => {
     });
 
     test('should allow marking as unread', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ThreadMenu
                 {...props}
                 hasUnreads={false}
@@ -249,7 +249,7 @@ describe('components/threading/common/thread_menu', () => {
     });
 
     test('should allow saving', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ThreadMenu
                 {...props}
             />,
@@ -268,7 +268,7 @@ describe('components/threading/common/thread_menu', () => {
         });
     });
     test('should allow unsaving', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ThreadMenu
                 {...props}
             />,
@@ -301,7 +301,7 @@ describe('components/threading/common/thread_menu', () => {
     });
 
     test('should allow link copying', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ThreadMenu
                 {...props}
             />,

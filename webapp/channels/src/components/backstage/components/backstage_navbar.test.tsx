@@ -16,8 +16,8 @@ describe('components/backstage/components/BackstageNavbar', () => {
         delete_at: 0,
     } as Team;
 
-    test('should render back link to team channel when team exists', () => {
-        renderWithContext(
+    test('should render back link to team channel when team exists', async () => {
+        await renderWithContext(
             <BackstageNavbar
                 team={activeTeam}
                 siteName='Mattermost'
@@ -29,16 +29,16 @@ describe('components/backstage/components/BackstageNavbar', () => {
         expect(screen.getByText('Back to Mattermost')).toBeInTheDocument();
     });
 
-    test('should use team display_name when siteName is not provided', () => {
-        renderWithContext(
+    test('should use team display_name when siteName is not provided', async () => {
+        await renderWithContext(
             <BackstageNavbar team={activeTeam}/>,
         );
 
         expect(screen.getByText('Back to My Team')).toBeInTheDocument();
     });
 
-    test('should render generic back link when team is undefined', () => {
-        renderWithContext(
+    test('should render generic back link when team is undefined', async () => {
+        await renderWithContext(
             <BackstageNavbar/>,
         );
 
@@ -47,13 +47,13 @@ describe('components/backstage/components/BackstageNavbar', () => {
         expect(screen.getByText('Back')).toBeInTheDocument();
     });
 
-    test('should render generic back link when team is deleted', () => {
+    test('should render generic back link when team is deleted', async () => {
         const deletedTeam = {
             ...activeTeam,
             delete_at: 1234567890,
         } as Team;
 
-        renderWithContext(
+        await renderWithContext(
             <BackstageNavbar
                 team={deletedTeam}
                 siteName='Mattermost'

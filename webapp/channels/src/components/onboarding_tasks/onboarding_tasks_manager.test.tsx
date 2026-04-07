@@ -46,8 +46,8 @@ describe('onboarding tasks manager', () => {
         },
     };
 
-    it('Places all the elements (6 ignoring plugins) when user is first admin or admin', () => {
-        renderWithContext(
+    it('Places all the elements (6 ignoring plugins) when user is first admin or admin', async () => {
+        await renderWithContext(
             <WrapperComponent/>,
             initialState,
         );
@@ -59,10 +59,10 @@ describe('onboarding tasks manager', () => {
         expect(screen.getByText('start_trial')).toBeInTheDocument();
     });
 
-    it('Removes start_trial and visit_system_console when user is end user', () => {
+    it('Removes start_trial and visit_system_console when user is end user', async () => {
         const endUserState = {...initialState, entities: {...initialState.entities, users: {...initialState.entities.users, currentUserId: user2}}};
 
-        renderWithContext(
+        await renderWithContext(
             <WrapperComponent/>,
             endUserState,
         );
@@ -74,10 +74,10 @@ describe('onboarding tasks manager', () => {
         expect(screen.queryByText('start_trial')).not.toBeInTheDocument();
     });
 
-    it('Removes invite people task item when user is GUEST user', () => {
+    it('Removes invite people task item when user is GUEST user', async () => {
         const endUserState = {...initialState, entities: {...initialState.entities, users: {...initialState.entities.users, currentUserId: user3}}};
 
-        renderWithContext(
+        await renderWithContext(
             <WrapperComponent/>,
             endUserState,
         );

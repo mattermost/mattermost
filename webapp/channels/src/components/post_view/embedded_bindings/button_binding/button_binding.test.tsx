@@ -80,14 +80,14 @@ describe('components/post_view/embedded_bindings/button_binding/', () => {
         },
     };
 
-    test('should match default component state', () => {
-        renderWithContext(<ButtonBinding {...baseProps}/>, initialState);
+    test('should match default component state', async () => {
+        await renderWithContext(<ButtonBinding {...baseProps}/>, initialState);
 
         screen.getByText('some_label');
     });
 
     test('should call doAppSubmit on click', async () => {
-        renderWithContext(<ButtonBinding {...baseProps}/>, initialState);
+        await renderWithContext(<ButtonBinding {...baseProps}/>, initialState);
 
         screen.getByText('some_label');
 
@@ -135,7 +135,7 @@ describe('components/post_view/embedded_bindings/button_binding/', () => {
             },
         };
 
-        renderWithContext(<ButtonBinding {...props}/>, initialState);
+        await renderWithContext(<ButtonBinding {...props}/>, initialState);
 
         screen.getByText('some_label');
 

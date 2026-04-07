@@ -24,17 +24,17 @@ describe('components/activity_log_modal/ActivityLog', () => {
         submitRevoke: jest.fn(),
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <ActivityLog {...baseProps}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with mobile props', () => {
+    test('should match snapshot with mobile props', async () => {
         const mobileDeviceIdProps = Object.assign({}, baseProps, {currentSession: {...baseProps.currentSession, device_id: 'apple'}});
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ActivityLog {...mobileDeviceIdProps}/>,
         );
 
@@ -42,7 +42,7 @@ describe('components/activity_log_modal/ActivityLog', () => {
     });
 
     test('submitRevoke is called correctly', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ActivityLog {...baseProps}/>,
         );
 
@@ -53,7 +53,7 @@ describe('components/activity_log_modal/ActivityLog', () => {
     });
 
     test('handleMoreInfo updates state correctly', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ActivityLog {...baseProps}/>,
         );
 

@@ -154,28 +154,28 @@ describe('components/signup/Signup', () => {
         };
     });
 
-    it('should match snapshot for all signup options enabled with isLicensed enabled', () => {
-        const {container} = renderWithContext(
+    it('should match snapshot for all signup options enabled with isLicensed enabled', async () => {
+        const {container} = await renderWithContext(
             <Signup/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    it('should match snapshot for all signup options enabled with isLicensed disabled', () => {
+    it('should match snapshot for all signup options enabled with isLicensed disabled', async () => {
         mockLicense = {IsLicensed: 'false', Cloud: 'false'};
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <Signup/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    it('should match snapshot for all signup options enabled with EnableUserCreaton disabled', () => {
+    it('should match snapshot for all signup options enabled with EnableUserCreaton disabled', async () => {
         mockConfig.EnableUserCreation = 'false';
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <Signup/>,
         );
 
@@ -190,7 +190,7 @@ describe('components/signup/Signup', () => {
             mockResolvedValueOnce({data: {id: 'userId', password: 'password', email: 'jdoe@mm.com}'}}). // createUser
             mockResolvedValueOnce({error: {server_error_id: 'api.user.login.not_verified.app_error'}}); // loginById
 
-        renderWithContext(
+        await renderWithContext(
             <Signup/>,
         );
 
@@ -221,7 +221,7 @@ describe('components/signup/Signup', () => {
             mockResolvedValueOnce({data: {id: 'userId', password: 'password', email: 'jdoe@mm.com}'}}). // createUser
             mockResolvedValueOnce({}); // loginById
 
-        renderWithContext(
+        await renderWithContext(
             <Signup/>,
         );
 
@@ -247,7 +247,7 @@ describe('components/signup/Signup', () => {
     });
 
     it('should focus email input when email validation fails', async () => {
-        renderWithContext(<Signup/>, mockState);
+        await renderWithContext(<Signup/>, mockState);
 
         const emailInput = screen.getByLabelText('Email address');
         const usernameInput = screen.getByLabelText('Choose a Username');
@@ -271,7 +271,7 @@ describe('components/signup/Signup', () => {
     });
 
     it('should focus password input when password validation fails', async () => {
-        renderWithContext(<Signup/>, mockState);
+        await renderWithContext(<Signup/>, mockState);
 
         const emailInput = screen.getByLabelText('Email address');
         const usernameInput = screen.getByLabelText('Choose a Username');
@@ -303,7 +303,7 @@ describe('components/signup/Signup', () => {
             },
         }));
 
-        renderWithContext(<Signup/>, mockState);
+        await renderWithContext(<Signup/>, mockState);
 
         const emailInput = screen.getByLabelText('Email address');
         const usernameInput = screen.getByLabelText('Choose a Username');
@@ -334,7 +334,7 @@ describe('components/signup/Signup', () => {
             mockResolvedValueOnce({}). // removeGlobalItem in useEffect
             mockResolvedValueOnce({data: {name: 'teamName'}}); // addUserToTeamFromInvite
 
-        renderWithContext(
+        await renderWithContext(
             <Signup/>,
         );
 
@@ -356,7 +356,7 @@ describe('components/signup/Signup', () => {
                 },
             }); // addUserToTeamFromInvite with error
 
-        renderWithContext(<Signup/>, mockState);
+        await renderWithContext(<Signup/>, mockState);
 
         await waitFor(() => {
             expect(mockHistoryPush).not.toHaveBeenCalled();
@@ -368,7 +368,7 @@ describe('components/signup/Signup', () => {
         mockConfig.TermsOfServiceLink = 'https://mattermost.com/terms';
         mockConfig.PrivacyPolicyLink = 'https://mattermost.com/privacy';
 
-        const {container: signupContainer} = renderWithContext(
+        const {container: signupContainer} = await renderWithContext(
             <Signup/>,
         );
 
@@ -380,7 +380,7 @@ describe('components/signup/Signup', () => {
     });
 
     it('should require terms acceptance before enabling submit button', async () => {
-        renderWithContext(<Signup/>, mockState);
+        await renderWithContext(<Signup/>, mockState);
 
         const emailInput = screen.getByLabelText('Email address');
         const usernameInput = screen.getByLabelText('Choose a Username');

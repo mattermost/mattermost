@@ -55,28 +55,28 @@ describe('components/sidebar/sidebar_channel/sidebar_direct_channel', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <SidebarDirectChannel {...baseProps}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot if DM is with current user', () => {
+    test('should match snapshot if DM is with current user', async () => {
         const props = {
             ...baseProps,
             currentUserId: baseProps.teammate.id,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SidebarDirectChannel {...props}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot if DM is with deleted user', () => {
+    test('should match snapshot if DM is with deleted user', async () => {
         const props = {
             ...baseProps,
             teammate: {
@@ -85,14 +85,14 @@ describe('components/sidebar/sidebar_channel/sidebar_direct_channel', () => {
             },
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SidebarDirectChannel {...props}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot if DM is with bot with custom icon', () => {
+    test('should match snapshot if DM is with bot with custom icon', async () => {
         const props = {
             ...baseProps,
             teammate: {
@@ -101,7 +101,7 @@ describe('components/sidebar/sidebar_channel/sidebar_direct_channel', () => {
             },
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SidebarDirectChannel {...props}/>,
         );
 

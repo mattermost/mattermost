@@ -8,8 +8,8 @@ import {renderWithContext} from 'tests/react_testing_utils';
 import {MenuItemLinkImpl} from './menu_item_link';
 
 describe('components/MenuItemLink', () => {
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <MenuItemLinkImpl
                 to='/wherever'
                 text='Whatever'

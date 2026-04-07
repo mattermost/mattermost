@@ -63,36 +63,36 @@ describe('ResultTable', () => {
         };
     });
 
-    test('emails render as email', () => {
+    test('emails render as email', async () => {
         props.rows = [{
             email: 'aa@aa.aa',
             reason: {id: 'some_reason', defaultMessage: 'some reason'},
         }];
-        const {container} = renderWithContext(<ResultTable {...props}/>);
+        const {container} = await renderWithContext(<ResultTable {...props}/>);
         expect(container.querySelector('.mail-icon')).toBeInTheDocument();
     });
 
-    test('unsent invites render as unsent invites', () => {
+    test('unsent invites render as unsent invites', async () => {
         props.rows = [{
             text: '@incomplete_userna',
             reason: {id: 'incomplete_user', defaultMessage: 'This was not a complete user'},
         }];
-        const {container} = renderWithContext(<ResultTable {...props}/>);
+        const {container} = await renderWithContext(<ResultTable {...props}/>);
         expect(container.querySelector('.alert-icon')).toBeInTheDocument();
     });
 
-    test('user invites render as users', () => {
+    test('user invites render as users', async () => {
         props.rows = [{
             user: defaultUser,
             reason: {id: 'success', defaultMessage: 'added successfully'},
         }];
-        const {container} = renderWithContext(<ResultTable {...props}/>);
+        const {container} = await renderWithContext(<ResultTable {...props}/>);
         expect(container.querySelector('.Avatar')).toBeInTheDocument();
         expect(screen.queryByText('BOT')).not.toBeInTheDocument();
         expect(screen.queryByText('GUEST')).not.toBeInTheDocument();
     });
 
-    test('bots render as bots', () => {
+    test('bots render as bots', async () => {
         props.rows = [{
             user: {
                 ...defaultUser,
@@ -100,13 +100,13 @@ describe('ResultTable', () => {
             },
             reason: {id: 'success', defaultMessage: 'added successfully'},
         }];
-        const {container} = renderWithContext(<ResultTable {...props}/>);
+        const {container} = await renderWithContext(<ResultTable {...props}/>);
         expect(container.querySelector('.Avatar')).toBeInTheDocument();
         expect(screen.getByText('BOT')).toBeInTheDocument();
         expect(screen.queryByText('GUEST')).not.toBeInTheDocument();
     });
 
-    test('guests render as guests', () => {
+    test('guests render as guests', async () => {
         props.rows = [{
             user: {
                 ...defaultUser,
@@ -114,21 +114,21 @@ describe('ResultTable', () => {
             },
             reason: {id: 'success', defaultMessage: 'added successfully'},
         }];
-        const {container} = renderWithContext(<ResultTable {...props}/>);
+        const {container} = await renderWithContext(<ResultTable {...props}/>);
         expect(container.querySelector('.Avatar')).toBeInTheDocument();
         expect(screen.queryByText('BOT')).not.toBeInTheDocument();
         expect(screen.getByText('GUEST')).toBeInTheDocument();
     });
 
-    test('renders success banner when invites were sent', () => {
+    test('renders success banner when invites were sent', async () => {
         props.sent = true;
-        renderWithContext(<ResultTable {...props}/>);
+        await renderWithContext(<ResultTable {...props}/>);
         expect(screen.getByText('Successful Invites')).toBeInTheDocument();
     });
 
-    test('renders not sent banner when invites were not sent', () => {
+    test('renders not sent banner when invites were not sent', async () => {
         props.sent = false;
-        renderWithContext(<ResultTable {...props}/>);
+        await renderWithContext(<ResultTable {...props}/>);
         expect(screen.getByText('Invitations Not Sent')).toBeInTheDocument();
     });
 });

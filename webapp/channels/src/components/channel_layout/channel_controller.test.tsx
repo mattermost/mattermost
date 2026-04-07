@@ -55,11 +55,11 @@ describe('ChannelController', () => {
         jest.useFakeTimers();
     });
 
-    it('dispatches addVisibleUsersInCurrentChannelAndSelfToStatusPoll when enableUserStatuses is true', () => {
+    it('dispatches addVisibleUsersInCurrentChannelAndSelfToStatusPoll when enableUserStatuses is true', async () => {
         mockState.entities.general.config.EnableUserStatuses = 'true';
         const store = mockStore(mockState);
 
-        renderWithContext(
+        await renderWithContext(
             <Provider store={store}>
                 <ChannelController shouldRenderCenterChannel={true}/>
             </Provider>,
@@ -72,11 +72,11 @@ describe('ChannelController', () => {
         expect(actions.addVisibleUsersInCurrentChannelAndSelfToStatusPoll).toHaveBeenCalled();
     });
 
-    it('does not dispatch addVisibleUsersInCurrentChannelAndSelfToStatusPoll when enableUserStatuses is false', () => {
+    it('does not dispatch addVisibleUsersInCurrentChannelAndSelfToStatusPoll when enableUserStatuses is false', async () => {
         const store = mockStore(mockState);
         mockState.entities.general.config.EnableUserStatuses = 'false';
 
-        renderWithContext(
+        await renderWithContext(
             <Provider store={store}>
                 <ChannelController shouldRenderCenterChannel={true}/>
             </Provider>,

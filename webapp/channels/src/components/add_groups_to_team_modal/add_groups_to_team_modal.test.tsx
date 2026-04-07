@@ -37,16 +37,16 @@ describe('components/AddGroupsToTeamModal', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {baseElement} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {baseElement} = await renderWithContext(
             <AddGroupsToTeamModal {...baseProps}/>,
         );
         expect(baseElement).toMatchSnapshot();
     });
 
-    test('should have called onExited when handleExit is called', () => {
+    test('should have called onExited when handleExit is called', async () => {
         const ref = React.createRef<AddGroupsToTeamModalClass>();
-        renderWithContext(
+        await renderWithContext(
             <AddGroupsToTeamModal
                 {...baseProps}
                 ref={ref}
@@ -59,9 +59,9 @@ describe('components/AddGroupsToTeamModal', () => {
         expect(baseProps.onExited).toHaveBeenCalledTimes(1);
     });
 
-    test('should match state when handleResponse is called', () => {
+    test('should match state when handleResponse is called', async () => {
         const ref = React.createRef<AddGroupsToTeamModalClass>();
-        renderWithContext(
+        await renderWithContext(
             <AddGroupsToTeamModal
                 {...baseProps}
                 ref={ref}
@@ -94,7 +94,7 @@ describe('components/AddGroupsToTeamModal', () => {
         const actions = {...baseProps.actions, linkGroupSyncable};
         const props = {...baseProps, actions};
         const ref = React.createRef<AddGroupsToTeamModalClass>();
-        renderWithContext(
+        await renderWithContext(
             <AddGroupsToTeamModal
                 {...props}
                 ref={ref}
@@ -130,9 +130,9 @@ describe('components/AddGroupsToTeamModal', () => {
         expect(instance.state.saving).toEqual(true);
     });
 
-    test('should match state when addValue is called', () => {
+    test('should match state when addValue is called', async () => {
         const ref = React.createRef<AddGroupsToTeamModalClass>();
-        renderWithContext(
+        await renderWithContext(
             <AddGroupsToTeamModal
                 {...baseProps}
                 ref={ref}
@@ -160,9 +160,9 @@ describe('components/AddGroupsToTeamModal', () => {
         expect(instance.state.values).toEqual([value1]);
     });
 
-    test('should match state when handlePageChange is called', () => {
+    test('should match state when handlePageChange is called', async () => {
         const ref = React.createRef<AddGroupsToTeamModalClass>();
-        renderWithContext(
+        await renderWithContext(
             <AddGroupsToTeamModal
                 {...baseProps}
                 ref={ref}
@@ -186,9 +186,9 @@ describe('components/AddGroupsToTeamModal', () => {
         expect(baseProps.actions.getGroupsNotAssociatedToTeam).toHaveBeenCalledTimes(2);
     });
 
-    test('should match state when search is called', () => {
+    test('should match state when search is called', async () => {
         const ref = React.createRef<AddGroupsToTeamModalClass>();
-        renderWithContext(
+        await renderWithContext(
             <AddGroupsToTeamModal
                 {...baseProps}
                 ref={ref}
@@ -206,14 +206,13 @@ describe('components/AddGroupsToTeamModal', () => {
         act(() => {
             instance.search(searchTerm);
         });
-        expect(instance.state.loadingGroups).toEqual(true);
         expect(baseProps.actions.setModalSearchTerm).toHaveBeenCalledTimes(2);
         expect(baseProps.actions.setModalSearchTerm).toHaveBeenCalledWith(searchTerm);
     });
 
-    test('should match state when handleDelete is called', () => {
+    test('should match state when handleDelete is called', async () => {
         const ref = React.createRef<AddGroupsToTeamModalClass>();
-        renderWithContext(
+        await renderWithContext(
             <AddGroupsToTeamModal
                 {...baseProps}
                 ref={ref}
@@ -235,9 +234,9 @@ describe('components/AddGroupsToTeamModal', () => {
         expect(instance.state.values).toEqual(newValues);
     });
 
-    test('should match when renderOption is called', () => {
+    test('should match when renderOption is called', async () => {
         const ref = React.createRef<AddGroupsToTeamModalClass>();
-        renderWithContext(
+        await renderWithContext(
             <AddGroupsToTeamModal
                 {...baseProps}
                 ref={ref}
@@ -256,9 +255,9 @@ describe('components/AddGroupsToTeamModal', () => {
         expect(instance.renderOption(option, isSelected, onAdd, onMouseMove)).toMatchSnapshot();
     });
 
-    test('should match when renderValue is called', () => {
+    test('should match when renderValue is called', async () => {
         const ref = React.createRef<AddGroupsToTeamModalClass>();
-        renderWithContext(
+        await renderWithContext(
             <AddGroupsToTeamModal
                 {...baseProps}
                 ref={ref}

@@ -99,22 +99,22 @@ describe('admin_console/team_channel_settings/team/TeamProfile__Cloud', () => {
         },
     };
 
-    test('should match snapshot - archived, at teams limit', () => {
-        const {container} = renderWithContext(<TeamProfile {...baseProps}/>, initialState);
+    test('should match snapshot - archived, at teams limit', async () => {
+        const {container} = await renderWithContext(<TeamProfile {...baseProps}/>, initialState);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot - not archived, at teams limit', () => {
+    test('should match snapshot - not archived, at teams limit', async () => {
         const props = {
             ...baseProps,
             isArchived: false,
         };
 
-        const {container} = renderWithContext(<TeamProfile {...props}/>, initialState);
+        const {container} = await renderWithContext(<TeamProfile {...props}/>, initialState);
         expect(container).toMatchSnapshot();
     });
 
-    test('restore should not be disabled when below teams limit', () => {
+    test('restore should not be disabled when below teams limit', async () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.cloud.limits = {
             limitsLoaded: true,
@@ -161,7 +161,7 @@ describe('admin_console/team_channel_settings/team/TeamProfile__Cloud', () => {
             },
         };
 
-        const {container} = renderWithContext(<TeamProfile {...baseProps}/>, state);
+        const {container} = await renderWithContext(<TeamProfile {...baseProps}/>, state);
         expect(container).toMatchSnapshot();
     });
 });
@@ -254,18 +254,18 @@ describe('admin_console/team_channel_settings/team/TeamProfile', () => {
         },
     };
 
-    test('should match snapshot (not cloud, freemium disabled', () => {
-        const {container} = renderWithContext(<TeamProfile {...baseProps}/>, initialState);
+    test('should match snapshot (not cloud, freemium disabled', async () => {
+        const {container} = await renderWithContext(<TeamProfile {...baseProps}/>, initialState);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with isArchived true', () => {
+    test('should match snapshot with isArchived true', async () => {
         const props = {
             ...baseProps,
             isArchived: true,
         };
 
-        const {container} = renderWithContext(<TeamProfile {...props}/>, initialState);
+        const {container} = await renderWithContext(<TeamProfile {...props}/>, initialState);
         expect(container).toMatchSnapshot();
     });
 });

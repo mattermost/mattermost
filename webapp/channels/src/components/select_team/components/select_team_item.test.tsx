@@ -18,49 +18,49 @@ describe('components/select_team/components/SelectTeamItem', () => {
         canJoinPrivateTeams: false,
     };
 
-    test('should match snapshot, on public joinable', () => {
-        const {container} = renderWithContext(<SelectTeamItem {...baseProps}/>);
+    test('should match snapshot, on public joinable', async () => {
+        const {container} = await renderWithContext(<SelectTeamItem {...baseProps}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, on public not joinable', () => {
+    test('should match snapshot, on public not joinable', async () => {
         const props = {...baseProps, canJoinPublicTeams: false};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SelectTeamItem {...props}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, on private joinable', () => {
+    test('should match snapshot, on private joinable', async () => {
         const props = {...baseProps, team: {...baseProps.team, allow_open_invite: false}, canJoinPrivateTeams: true};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SelectTeamItem {...props}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, on private not joinable', () => {
+    test('should match snapshot, on private not joinable', async () => {
         const props = {...baseProps, team: {...baseProps.team, allow_open_invite: false}};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SelectTeamItem {...props}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, on loading', () => {
+    test('should match snapshot, on loading', async () => {
         const props = {...baseProps, loading: true};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SelectTeamItem {...props}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, with description', () => {
+    test('should match snapshot, with description', async () => {
         // Suppress console error for ref warning from WithTooltip component
         const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
         const props = {...baseProps, team: {...baseProps.team, description: 'description'}};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SelectTeamItem {...props}/>,
         );
         expect(container).toMatchSnapshot();
@@ -71,7 +71,7 @@ describe('components/select_team/components/SelectTeamItem', () => {
     test('should call onTeamClick on click when joinable', async () => {
         const onTeamClick = jest.fn();
         const props = {...baseProps, onTeamClick};
-        renderWithContext(
+        await renderWithContext(
             <SelectTeamItem {...props}/>,
         );
         await userEvent.click(screen.getByRole('link'));
@@ -82,7 +82,7 @@ describe('components/select_team/components/SelectTeamItem', () => {
     test('should not call onTeamClick on click when you cant join the team', async () => {
         const onTeamClick = jest.fn();
         const props = {...baseProps, canJoinPublicTeams: false, onTeamClick};
-        renderWithContext(
+        await renderWithContext(
             <SelectTeamItem {...props}/>,
         );
         await userEvent.click(screen.getByRole('link'));

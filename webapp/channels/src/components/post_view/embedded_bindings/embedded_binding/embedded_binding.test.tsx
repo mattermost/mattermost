@@ -42,12 +42,12 @@ describe('components/post_view/embedded_bindings/embedded_binding', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<EmbeddedBinding {...baseProps}/>, initialState);
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(<EmbeddedBinding {...baseProps}/>, initialState);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when the attachment has an emoji in the title', () => {
+    test('should match snapshot when the attachment has an emoji in the title', async () => {
         const props = {
             ...baseProps,
             attachment: {
@@ -55,12 +55,12 @@ describe('components/post_view/embedded_bindings/embedded_binding', () => {
             } as MessageAttachmentType,
         };
 
-        const {container} = renderWithContext(<EmbeddedBinding {...props}/>, initialState);
+        const {container} = await renderWithContext(<EmbeddedBinding {...props}/>, initialState);
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when the attachment hasn\'t any emojis in the title', () => {
+    test('should match snapshot when the attachment hasn\'t any emojis in the title', async () => {
         const props = {
             ...baseProps,
             attachment: {
@@ -68,12 +68,12 @@ describe('components/post_view/embedded_bindings/embedded_binding', () => {
             } as MessageAttachmentType,
         };
 
-        const {container} = renderWithContext(<EmbeddedBinding {...props}/>, initialState);
+        const {container} = await renderWithContext(<EmbeddedBinding {...props}/>, initialState);
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when the attachment has a link in the title', () => {
+    test('should match snapshot when the attachment has a link in the title', async () => {
         const props = {
             ...baseProps,
             attachment: {
@@ -81,7 +81,7 @@ describe('components/post_view/embedded_bindings/embedded_binding', () => {
             } as MessageAttachmentType,
         };
 
-        const {container} = renderWithContext(<EmbeddedBinding {...props}/>, initialState);
+        const {container} = await renderWithContext(<EmbeddedBinding {...props}/>, initialState);
 
         expect(container).toMatchSnapshot();
     });

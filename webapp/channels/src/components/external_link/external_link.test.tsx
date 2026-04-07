@@ -26,8 +26,8 @@ describe('components/external_link', () => {
         },
     };
 
-    it('should render external link with correct attributes', () => {
-        renderWithContext(
+    it('should render external link with correct attributes', async () => {
+        await renderWithContext(
             <ExternalLink
                 location='test'
                 href='https://mattermost.com'
@@ -45,7 +45,7 @@ describe('components/external_link', () => {
         expect(linkElement).toHaveAttribute('href', expect.stringContaining('https://mattermost.com'));
     });
 
-    it('should attach parameters', () => {
+    it('should attach parameters', async () => {
         const state = {
             ...initialState,
             entities: {
@@ -58,7 +58,7 @@ describe('components/external_link', () => {
                 },
             },
         };
-        renderWithContext(
+        await renderWithContext(
             <ExternalLink
                 location='test'
                 href='https://mattermost.com'
@@ -76,7 +76,7 @@ describe('components/external_link', () => {
         );
     });
 
-    it('should use in-product-preview utm_medium for cloud preview workspaces', () => {
+    it('should use in-product-preview utm_medium for cloud preview workspaces', async () => {
         const state = {
             ...initialState,
             entities: {
@@ -94,7 +94,7 @@ describe('components/external_link', () => {
                 },
             },
         };
-        renderWithContext(
+        await renderWithContext(
             <ExternalLink
                 location='test'
                 href='https://mattermost.com'
@@ -110,7 +110,7 @@ describe('components/external_link', () => {
         );
     });
 
-    it('should preserve query params that already exist in the href', () => {
+    it('should preserve query params that already exist in the href', async () => {
         const state = {
             ...initialState,
             entities: {
@@ -123,7 +123,7 @@ describe('components/external_link', () => {
                 },
             },
         };
-        renderWithContext(
+        await renderWithContext(
             <ExternalLink
                 location='test'
                 href='https://mattermost.com?test=true'
@@ -139,7 +139,7 @@ describe('components/external_link', () => {
         );
     });
 
-    it("should not attach parameters if href isn't *.mattermost.com enabled", () => {
+    it("should not attach parameters if href isn't *.mattermost.com enabled", async () => {
         const state = {
             ...initialState,
             entities: {
@@ -152,7 +152,7 @@ describe('components/external_link', () => {
                 },
             },
         };
-        renderWithContext(
+        await renderWithContext(
             <ExternalLink
                 location='test'
                 href='https://google.com'
@@ -168,7 +168,7 @@ describe('components/external_link', () => {
         );
     });
 
-    it('should be able to override target, rel', () => {
+    it('should be able to override target, rel', async () => {
         const state = {
             ...initialState,
             entities: {
@@ -181,7 +181,7 @@ describe('components/external_link', () => {
                 },
             },
         };
-        renderWithContext(
+        await renderWithContext(
             <ExternalLink
                 target='test'
                 rel='test'
@@ -203,7 +203,7 @@ describe('components/external_link', () => {
         );
     });
 
-    it('renders href correctly when url contains anchor by setting anchor at the end', () => {
+    it('renders href correctly when url contains anchor by setting anchor at the end', async () => {
         const state = {
             ...initialState,
             entities: {
@@ -216,7 +216,7 @@ describe('components/external_link', () => {
                 },
             },
         };
-        renderWithContext(
+        await renderWithContext(
             <ExternalLink
                 location='test'
                 href='https://mattermost.com#desktop'

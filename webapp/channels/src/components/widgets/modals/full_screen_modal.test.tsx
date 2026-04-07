@@ -8,8 +8,8 @@ import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import FullScreenModal from './full_screen_modal';
 
 describe('components/widgets/modals/FullScreenModal', () => {
-    test('showing content', () => {
-        const {container} = renderWithContext(
+    test('showing content', async () => {
+        const {container} = await renderWithContext(
             <FullScreenModal
                 show={true}
                 onClose={jest.fn()}
@@ -20,8 +20,8 @@ describe('components/widgets/modals/FullScreenModal', () => {
         );
         expect(container).toMatchSnapshot();
     });
-    test('not showing content', () => {
-        const {container} = renderWithContext(
+    test('not showing content', async () => {
+        const {container} = await renderWithContext(
             <FullScreenModal
                 show={false}
                 onClose={jest.fn()}
@@ -32,8 +32,8 @@ describe('components/widgets/modals/FullScreenModal', () => {
         );
         expect(container).toMatchSnapshot();
     });
-    test('with back icon', () => {
-        const {container} = renderWithContext(
+    test('with back icon', async () => {
+        const {container} = await renderWithContext(
             <FullScreenModal
                 show={true}
                 onClose={jest.fn()}
@@ -48,7 +48,7 @@ describe('components/widgets/modals/FullScreenModal', () => {
 
     test('close on close icon click', async () => {
         const close = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <FullScreenModal
                 show={true}
                 onClose={close}
@@ -64,7 +64,7 @@ describe('components/widgets/modals/FullScreenModal', () => {
 
     test('go back on back icon click', async () => {
         const back = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <FullScreenModal
                 show={true}
                 onClose={jest.fn()}
@@ -79,9 +79,9 @@ describe('components/widgets/modals/FullScreenModal', () => {
         expect(back).toHaveBeenCalled();
     });
 
-    test('close on esc keypress', () => {
+    test('close on esc keypress', async () => {
         const close = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <FullScreenModal
                 show={true}
                 onClose={close}

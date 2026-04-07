@@ -106,13 +106,13 @@ describe('components/PluginManagement', () => {
         },
     };
 
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const props = {...defaultProps};
-        const {container} = renderWithContext(<PluginManagement {...props}/>);
+        const {container} = await renderWithContext(<PluginManagement {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, disabled', () => {
+    test('should match snapshot, disabled', async () => {
         const props = {
             ...defaultProps,
             config: {
@@ -123,11 +123,11 @@ describe('components/PluginManagement', () => {
                 },
             },
         };
-        const {container} = renderWithContext(<PluginManagement {...props}/>);
+        const {container} = await renderWithContext(<PluginManagement {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when `Enable Plugins` is hidden', () => {
+    test('should match snapshot when `Enable Plugins` is hidden', async () => {
         const props = {
             ...defaultProps,
             config: {
@@ -137,11 +137,11 @@ describe('components/PluginManagement', () => {
                 },
             },
         };
-        const {container} = renderWithContext(<PluginManagement {...props}/>);
+        const {container} = await renderWithContext(<PluginManagement {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when `Require Signature Plugin` is true', () => {
+    test('should match snapshot when `Require Signature Plugin` is true', async () => {
         const props = {
             ...defaultProps,
             config: {
@@ -152,11 +152,11 @@ describe('components/PluginManagement', () => {
                 },
             },
         };
-        const {container} = renderWithContext(<PluginManagement {...props}/>);
+        const {container} = await renderWithContext(<PluginManagement {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when `Enable Marketplace` is false', () => {
+    test('should match snapshot when `Enable Marketplace` is false', async () => {
         const props = {
             ...defaultProps,
             config: {
@@ -167,11 +167,11 @@ describe('components/PluginManagement', () => {
                 },
             },
         };
-        const {container} = renderWithContext(<PluginManagement {...props}/>);
+        const {container} = await renderWithContext(<PluginManagement {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when `Enable Remote Marketplace` is false', () => {
+    test('should match snapshot when `Enable Remote Marketplace` is false', async () => {
         const props = {
             ...defaultProps,
             config: {
@@ -182,11 +182,11 @@ describe('components/PluginManagement', () => {
                 },
             },
         };
-        const {container} = renderWithContext(<PluginManagement {...props}/>);
+        const {container} = await renderWithContext(<PluginManagement {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, upload disabled', () => {
+    test('should match snapshot, upload disabled', async () => {
         const props = {
             ...defaultProps,
             config: {
@@ -197,11 +197,11 @@ describe('components/PluginManagement', () => {
                 },
             },
         };
-        const {container} = renderWithContext(<PluginManagement {...props}/>);
+        const {container} = await renderWithContext(<PluginManagement {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, allow insecure URL enabled', () => {
+    test('should match snapshot, allow insecure URL enabled', async () => {
         const props = {
             ...defaultProps,
             config: {
@@ -212,15 +212,15 @@ describe('components/PluginManagement', () => {
                 },
             },
         };
-        const {container} = renderWithContext(<PluginManagement {...props}/>);
+        const {container} = await renderWithContext(<PluginManagement {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, text entered into the URL install text box', () => {
+    test('should match snapshot, text entered into the URL install text box', async () => {
         const props = defaultProps;
 
         const ref = React.createRef<InstanceType<typeof PluginManagement>>();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PluginManagement
                 {...props}
                 ref={ref}
@@ -232,7 +232,7 @@ describe('components/PluginManagement', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, No installed plugins', () => {
+    test('should match snapshot, No installed plugins', async () => {
         const props = {
             ...defaultProps,
             config: {
@@ -258,7 +258,7 @@ describe('components/PluginManagement', () => {
             },
         };
         const ref = React.createRef<InstanceType<typeof PluginManagement>>();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PluginManagement
                 {...props}
                 ref={ref}
@@ -270,9 +270,9 @@ describe('components/PluginManagement', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, with installed plugins', () => {
+    test('should match snapshot, with installed plugins', async () => {
         const ref = React.createRef<InstanceType<typeof PluginManagement>>();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PluginManagement
                 {...defaultProps}
                 ref={ref}
@@ -284,7 +284,7 @@ describe('components/PluginManagement', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, with installed plugins and not settings link should set hasSettings to false', () => {
+    test('should match snapshot, with installed plugins and not settings link should set hasSettings to false', async () => {
         const props = {
             ...defaultProps,
             config: {
@@ -365,7 +365,7 @@ describe('components/PluginManagement', () => {
             },
         };
         const ref = React.createRef<InstanceType<typeof PluginManagement>>();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PluginManagement
                 {...props}
                 ref={ref}
@@ -377,7 +377,7 @@ describe('components/PluginManagement', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, with installed plugins and just header should set hasSettings to true', () => {
+    test('should match snapshot, with installed plugins and just header should set hasSettings to true', async () => {
         const props = {
             ...defaultProps,
             config: {
@@ -431,7 +431,7 @@ describe('components/PluginManagement', () => {
             },
         };
         const ref = React.createRef<InstanceType<typeof PluginManagement>>();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PluginManagement
                 {...props}
                 ref={ref}
@@ -443,7 +443,7 @@ describe('components/PluginManagement', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, with installed plugins and just footer should set hasSettings to true', () => {
+    test('should match snapshot, with installed plugins and just footer should set hasSettings to true', async () => {
         const props = {
             ...defaultProps,
             config: {
@@ -498,7 +498,7 @@ describe('components/PluginManagement', () => {
             },
         };
         const ref = React.createRef<InstanceType<typeof PluginManagement>>();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PluginManagement
                 {...props}
                 ref={ref}
@@ -510,7 +510,7 @@ describe('components/PluginManagement', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, with installed plugins and just settings should set hasSettings to true', () => {
+    test('should match snapshot, with installed plugins and just settings should set hasSettings to true', async () => {
         const props = {
             ...defaultProps,
             config: {
@@ -566,7 +566,7 @@ describe('components/PluginManagement', () => {
             },
         };
         const ref = React.createRef<InstanceType<typeof PluginManagement>>();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PluginManagement
                 {...props}
                 ref={ref}

@@ -134,8 +134,8 @@ describe('channel_info_rhs/about_area_dm', () => {
         },
     };
 
-    test('should display user avatar', () => {
-        renderWithContext(
+    test('should display user avatar', async () => {
+        await renderWithContext(
             <AboutAreaDM
                 {...defaultProps}
             />,
@@ -145,8 +145,8 @@ describe('channel_info_rhs/about_area_dm', () => {
         expect(screen.getByAltText('my_username profile image')).toBeInTheDocument();
     });
 
-    test('should display user name', () => {
-        renderWithContext(
+    test('should display user name', async () => {
+        await renderWithContext(
             <AboutAreaDM
                 {...defaultProps}
             />,
@@ -156,8 +156,8 @@ describe('channel_info_rhs/about_area_dm', () => {
         expect(screen.getByText('my_username')).toBeInTheDocument();
     });
 
-    test('should display user position', () => {
-        renderWithContext(
+    test('should display user position', async () => {
+        await renderWithContext(
             <AboutAreaDM
                 {...defaultProps}
             />,
@@ -167,7 +167,7 @@ describe('channel_info_rhs/about_area_dm', () => {
         expect(screen.getByText('my position')).toBeInTheDocument();
     });
 
-    test('should display bot tag', () => {
+    test('should display bot tag', async () => {
         const props = {
             ...defaultProps,
             dmUser: {
@@ -178,7 +178,7 @@ describe('channel_info_rhs/about_area_dm', () => {
                 },
             },
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <AboutAreaDM
                 {...props}
             />,
@@ -188,7 +188,7 @@ describe('channel_info_rhs/about_area_dm', () => {
         expect(container.querySelector('.Tag')).toHaveTextContent('BOT');
     });
 
-    test('should display guest tag', () => {
+    test('should display guest tag', async () => {
         const props = {
             ...defaultProps,
             dmUser: {
@@ -196,7 +196,7 @@ describe('channel_info_rhs/about_area_dm', () => {
                 is_guest: true,
             },
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <AboutAreaDM
                 {...props}
             />,
@@ -206,7 +206,7 @@ describe('channel_info_rhs/about_area_dm', () => {
         expect(container.querySelector('.Tag')).toHaveTextContent('GUEST');
     });
 
-    test('should display bot description', () => {
+    test('should display bot description', async () => {
         const props = {
             ...defaultProps,
             dmUser: {
@@ -217,7 +217,7 @@ describe('channel_info_rhs/about_area_dm', () => {
                 },
             },
         };
-        renderWithContext(
+        await renderWithContext(
             <AboutAreaDM
                 {...props}
             />,
@@ -227,8 +227,8 @@ describe('channel_info_rhs/about_area_dm', () => {
         expect(screen.getByText('my bot description')).toBeInTheDocument();
     });
 
-    test('should display channel header', () => {
-        renderWithContext(
+    test('should display channel header', async () => {
+        await renderWithContext(
             <AboutAreaDM
                 {...defaultProps}
             />,
@@ -238,7 +238,7 @@ describe('channel_info_rhs/about_area_dm', () => {
         expect(screen.getByText('my channel header')).toBeInTheDocument();
     });
 
-    test('should not display channel header for bots', () => {
+    test('should not display channel header for bots', async () => {
         const props = {
             ...defaultProps,
             dmUser: {
@@ -249,7 +249,7 @@ describe('channel_info_rhs/about_area_dm', () => {
                 },
             },
         };
-        renderWithContext(
+        await renderWithContext(
             <AboutAreaDM
                 {...props}
             />,

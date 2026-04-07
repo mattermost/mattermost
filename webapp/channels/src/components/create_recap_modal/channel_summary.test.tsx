@@ -74,22 +74,22 @@ describe('ChannelSummary', () => {
     };
 
     describe('Rendering', () => {
-        it('should render the component with title', () => {
-            renderWithContext(<ChannelSummary {...defaultProps}/>);
+        it('should render the component with title', async () => {
+            await renderWithContext(<ChannelSummary {...defaultProps}/>);
 
             expect(screen.getByText('The following channels will be included in your recap')).toBeInTheDocument();
         });
 
-        it('should render selected channels only', () => {
-            renderWithContext(<ChannelSummary {...defaultProps}/>);
+        it('should render selected channels only', async () => {
+            await renderWithContext(<ChannelSummary {...defaultProps}/>);
 
             expect(screen.getByText('Town Square')).toBeInTheDocument();
             expect(screen.getByText('Off-Topic')).toBeInTheDocument();
             expect(screen.queryByText('Private Channel')).not.toBeInTheDocument();
         });
 
-        it('should render all selected channels when multiple are selected', () => {
-            renderWithContext(
+        it('should render all selected channels when multiple are selected', async () => {
+            await renderWithContext(
                 <ChannelSummary
                     {...defaultProps}
                     selectedChannelIds={['channel1', 'channel2', 'channel3']}
@@ -101,8 +101,8 @@ describe('ChannelSummary', () => {
             expect(screen.getByText('Private Channel')).toBeInTheDocument();
         });
 
-        it('should not render any channels when none are selected', () => {
-            renderWithContext(
+        it('should not render any channels when none are selected', async () => {
+            await renderWithContext(
                 <ChannelSummary
                     {...defaultProps}
                     selectedChannelIds={[]}
@@ -115,8 +115,8 @@ describe('ChannelSummary', () => {
     });
 
     describe('Channel Icons', () => {
-        it('should show globe icon for open channels', () => {
-            renderWithContext(
+        it('should show globe icon for open channels', async () => {
+            await renderWithContext(
                 <ChannelSummary
                     {...defaultProps}
                     selectedChannelIds={['channel1']}
@@ -128,8 +128,8 @@ describe('ChannelSummary', () => {
             expect(icon).toBeInTheDocument();
         });
 
-        it('should show lock icon for private channels', () => {
-            renderWithContext(
+        it('should show lock icon for private channels', async () => {
+            await renderWithContext(
                 <ChannelSummary
                     {...defaultProps}
                     selectedChannelIds={['channel3']}
@@ -141,8 +141,8 @@ describe('ChannelSummary', () => {
             expect(icon).toBeInTheDocument();
         });
 
-        it('should show group icon for group messages', () => {
-            renderWithContext(
+        it('should show group icon for group messages', async () => {
+            await renderWithContext(
                 <ChannelSummary
                     {...defaultProps}
                     selectedChannelIds={['channel4']}
@@ -154,8 +154,8 @@ describe('ChannelSummary', () => {
             expect(icon).toBeInTheDocument();
         });
 
-        it('should show account icon for direct messages', () => {
-            renderWithContext(
+        it('should show account icon for direct messages', async () => {
+            await renderWithContext(
                 <ChannelSummary
                     {...defaultProps}
                     selectedChannelIds={['channel5']}
@@ -167,7 +167,7 @@ describe('ChannelSummary', () => {
             expect(icon).toBeInTheDocument();
         });
 
-        it('should default to globe icon for unknown channel types', () => {
+        it('should default to globe icon for unknown channel types', async () => {
             const unknownChannel: Channel = {
                 id: 'channel6',
                 name: 'unknown',
@@ -180,7 +180,7 @@ describe('ChannelSummary', () => {
                 creator_id: 'user1',
             } as Channel;
 
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSummary
                     selectedChannelIds={['channel6']}
                     myChannels={[...mockChannels, unknownChannel]}
@@ -194,8 +194,8 @@ describe('ChannelSummary', () => {
     });
 
     describe('Channel Filtering', () => {
-        it('should only show channels that are both selected and in myChannels', () => {
-            renderWithContext(
+        it('should only show channels that are both selected and in myChannels', async () => {
+            await renderWithContext(
                 <ChannelSummary
                     selectedChannelIds={['channel1', 'channel999']}
                     myChannels={mockChannels}
@@ -206,8 +206,8 @@ describe('ChannelSummary', () => {
             expect(screen.queryByText('channel999')).not.toBeInTheDocument();
         });
 
-        it('should handle empty myChannels array', () => {
-            renderWithContext(
+        it('should handle empty myChannels array', async () => {
+            await renderWithContext(
                 <ChannelSummary
                     selectedChannelIds={['channel1', 'channel2']}
                     myChannels={[]}
@@ -218,8 +218,8 @@ describe('ChannelSummary', () => {
             expect(screen.queryByText('Off-Topic')).not.toBeInTheDocument();
         });
 
-        it('should maintain order of channels based on myChannels array', () => {
-            renderWithContext(
+        it('should maintain order of channels based on myChannels array', async () => {
+            await renderWithContext(
                 <ChannelSummary
                     {...defaultProps}
                     selectedChannelIds={['channel3', 'channel1', 'channel2']}
@@ -238,8 +238,8 @@ describe('ChannelSummary', () => {
     });
 
     describe('Display Names', () => {
-        it('should display channel display_name not name', () => {
-            renderWithContext(<ChannelSummary {...defaultProps}/>);
+        it('should display channel display_name not name', async () => {
+            await renderWithContext(<ChannelSummary {...defaultProps}/>);
 
             expect(screen.getByText('Town Square')).toBeInTheDocument();
             expect(screen.queryByText('town-square')).not.toBeInTheDocument();
@@ -247,8 +247,8 @@ describe('ChannelSummary', () => {
     });
 
     describe('Edge Cases', () => {
-        it('should handle duplicate channel IDs in selectedChannelIds', () => {
-            renderWithContext(
+        it('should handle duplicate channel IDs in selectedChannelIds', async () => {
+            await renderWithContext(
                 <ChannelSummary
                     selectedChannelIds={['channel1', 'channel1', 'channel2']}
                     myChannels={mockChannels}
@@ -261,7 +261,7 @@ describe('ChannelSummary', () => {
             expect(townSquareItems.length).toBe(1);
         });
 
-        it('should handle very long channel names', () => {
+        it('should handle very long channel names', async () => {
             const longNameChannel: Channel = {
                 id: 'channel-long',
                 name: 'long-channel-name',
@@ -274,7 +274,7 @@ describe('ChannelSummary', () => {
                 creator_id: 'user1',
             } as Channel;
 
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSummary
                     selectedChannelIds={['channel-long']}
                     myChannels={[longNameChannel]}

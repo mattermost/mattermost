@@ -35,9 +35,9 @@ describe('RecapTextFormatter', () => {
         },
     };
 
-    test('should render text content', () => {
+    test('should render text content', async () => {
         const text = 'This is a recap message';
-        renderWithContext(
+        await renderWithContext(
             <RecapTextFormatter text={text}/>,
             baseState,
         );
@@ -45,9 +45,9 @@ describe('RecapTextFormatter', () => {
         expect(screen.getByTestId('markdown')).toHaveTextContent(text);
     });
 
-    test('should strip HTML tags from text', () => {
+    test('should strip HTML tags from text', async () => {
         const text = 'This is <strong>bold</strong> text';
-        renderWithContext(
+        await renderWithContext(
             <RecapTextFormatter text={text}/>,
             baseState,
         );
@@ -55,10 +55,10 @@ describe('RecapTextFormatter', () => {
         expect(screen.getByTestId('markdown')).toHaveTextContent('This is bold text');
     });
 
-    test('should apply custom className when provided', () => {
+    test('should apply custom className when provided', async () => {
         const text = 'Test message';
         const className = 'custom-class';
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <RecapTextFormatter
                 text={text}
                 className={className}
@@ -69,9 +69,9 @@ describe('RecapTextFormatter', () => {
         expect(container.querySelector(`.${className}`)).toBeInTheDocument();
     });
 
-    test('should handle text with multiple HTML tags', () => {
+    test('should handle text with multiple HTML tags', async () => {
         const text = '<div><p>Nested <span>HTML</span> tags</p></div>';
-        renderWithContext(
+        await renderWithContext(
             <RecapTextFormatter text={text}/>,
             baseState,
         );
@@ -79,8 +79,8 @@ describe('RecapTextFormatter', () => {
         expect(screen.getByTestId('markdown')).toHaveTextContent('Nested HTML tags');
     });
 
-    test('should handle empty text', () => {
-        renderWithContext(
+    test('should handle empty text', async () => {
+        await renderWithContext(
             <RecapTextFormatter text=''/>,
             baseState,
         );
@@ -88,9 +88,9 @@ describe('RecapTextFormatter', () => {
         expect(screen.getByTestId('markdown')).toBeInTheDocument();
     });
 
-    test('should render with default props when className not provided', () => {
+    test('should render with default props when className not provided', async () => {
         const text = 'Default styling test';
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <RecapTextFormatter text={text}/>,
             baseState,
         );

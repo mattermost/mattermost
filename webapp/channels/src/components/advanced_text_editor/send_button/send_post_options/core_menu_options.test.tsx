@@ -61,8 +61,8 @@ describe('CoreMenuOptions Component', () => {
         jest.useRealTimers();
     });
 
-    function renderComponent(state = initialState, handleOnSelectOverride = handleOnSelect) {
-        renderWithContext(
+    async function renderComponent(state = initialState, handleOnSelectOverride = handleOnSelect) {
+        await renderWithContext(
             <WithTestMenuContext>
                 <CoreMenuOptions
                     handleOnSelect={handleOnSelectOverride}
@@ -130,10 +130,10 @@ describe('CoreMenuOptions Component', () => {
         expect(screen.queryByText(/John Doe/)).not.toBeInTheDocument();
     });
 
-    it('should call handleOnSelect with the right timestamp if tomorrow option is clicked', () => {
+    it('should call handleOnSelect with the right timestamp if tomorrow option is clicked', async () => {
         setMockDate(3); // Wednesday
 
-        renderComponent();
+        await renderComponent();
 
         const tomorrowOption = screen.getByText(/Tomorrow at/);
 

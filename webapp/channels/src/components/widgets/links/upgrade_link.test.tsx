@@ -8,8 +8,8 @@ import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import UpgradeLink from './upgrade_link';
 
 describe('components/widgets/links/UpgradeLink', () => {
-    test('should match the snapshot on show', () => {
-        const {container} = renderWithContext(<UpgradeLink/>);
+    test('should match the snapshot on show', async () => {
+        const {container} = await renderWithContext(<UpgradeLink/>);
 
         expect(container).toMatchSnapshot();
     });
@@ -18,7 +18,7 @@ describe('components/widgets/links/UpgradeLink', () => {
         const mockWindowOpen = jest.fn();
         global.window.open = mockWindowOpen;
 
-        renderWithContext(<UpgradeLink/>, {
+        await renderWithContext(<UpgradeLink/>, {
             entities: {
                 general: {},
                 cloud: {

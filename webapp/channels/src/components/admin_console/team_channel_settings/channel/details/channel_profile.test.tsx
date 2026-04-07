@@ -11,10 +11,10 @@ import {TestHelper} from 'utils/test_helper';
 import {ChannelProfile} from './channel_profile';
 
 describe('admin_console/team_channel_settings/channel/ChannelProfile', () => {
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const testTeam = TestHelper.getTeamMock({display_name: 'test'});
         const testChannel: Partial<Channel> = {display_name: 'test'};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelProfile
                 isArchived={false}
                 team={testTeam}
@@ -24,14 +24,14 @@ describe('admin_console/team_channel_settings/channel/ChannelProfile', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot for a shared channel', () => {
+    test('should match snapshot for a shared channel', async () => {
         const testTeam = TestHelper.getTeamMock({display_name: 'test'});
         const testChannel: Partial<Channel> = {
             display_name: 'test',
             type: 'O',
             shared: true,
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelProfile
                 isArchived={false}
                 team={testTeam}

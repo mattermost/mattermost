@@ -10,8 +10,8 @@ import {LicenseSkus} from 'utils/constants';
 import AdminSectionPanel from './admin_section_panel';
 
 describe('components/widgets/admin_console/AdminSectionPanel', () => {
-    test('renders with title and description as string', () => {
-        renderWithContext(
+    test('renders with title and description as string', async () => {
+        await renderWithContext(
             <AdminSectionPanel
                 title='Test Section'
                 description='Test description'
@@ -25,13 +25,13 @@ describe('components/widgets/admin_console/AdminSectionPanel', () => {
         expect(screen.getByText('Content')).toBeInTheDocument();
     });
 
-    test('renders with description as MessageDescriptor', () => {
+    test('renders with description as MessageDescriptor', async () => {
         const description = defineMessage({
             id: 'test.description',
             defaultMessage: 'Formatted description',
         });
 
-        renderWithContext(
+        await renderWithContext(
             <AdminSectionPanel
                 title='Test Section'
                 description={description}
@@ -44,8 +44,8 @@ describe('components/widgets/admin_console/AdminSectionPanel', () => {
         expect(screen.getByText('Formatted description')).toBeInTheDocument();
     });
 
-    test('renders with license SKU badge', () => {
-        renderWithContext(
+    test('renders with license SKU badge', async () => {
+        await renderWithContext(
             <AdminSectionPanel
                 title='Premium Feature'
                 licenseSku={LicenseSkus.EnterpriseAdvanced}
@@ -58,8 +58,8 @@ describe('components/widgets/admin_console/AdminSectionPanel', () => {
         expect(screen.getByText('Enterprise Advanced')).toBeInTheDocument();
     });
 
-    test('renders without header when no title or description', () => {
-        const {container} = renderWithContext(
+    test('renders without header when no title or description', async () => {
+        const {container} = await renderWithContext(
             <AdminSectionPanel>
                 <div>{'Content'}</div>
             </AdminSectionPanel>,
@@ -69,8 +69,8 @@ describe('components/widgets/admin_console/AdminSectionPanel', () => {
         expect(screen.getByText('Content')).toBeInTheDocument();
     });
 
-    test('renders with title only', () => {
-        renderWithContext(
+    test('renders with title only', async () => {
+        await renderWithContext(
             <AdminSectionPanel title='Test Section'>
                 <div>{'Content'}</div>
             </AdminSectionPanel>,
@@ -80,8 +80,8 @@ describe('components/widgets/admin_console/AdminSectionPanel', () => {
         expect(screen.getByText('Content')).toBeInTheDocument();
     });
 
-    test('renders with description only', () => {
-        renderWithContext(
+    test('renders with description only', async () => {
+        await renderWithContext(
             <AdminSectionPanel description='Test description'>
                 <div>{'Content'}</div>
             </AdminSectionPanel>,
@@ -91,8 +91,8 @@ describe('components/widgets/admin_console/AdminSectionPanel', () => {
         expect(screen.getByText('Content')).toBeInTheDocument();
     });
 
-    test('renders all props together', () => {
-        renderWithContext(
+    test('renders all props together', async () => {
+        await renderWithContext(
             <AdminSectionPanel
                 title='Premium Feature'
                 description='This is a premium feature'

@@ -42,10 +42,10 @@ function getBaseProps(): Props {
 }
 
 describe('plugin tabs', () => {
-    it('render the correct plugin tab', () => {
+    it('render the correct plugin tab', async () => {
         const props = getBaseProps();
         props.activeTab = PLUGIN_ID;
-        renderWithContext(<UserSettings {...props}/>);
+        await renderWithContext(<UserSettings {...props}/>);
 
         expect(screen.queryAllByText(`${UINAME} Settings`)).not.toHaveLength(0);
         expect(screen.queryAllByText(`${UINAME2} Settings`)).toHaveLength(0);

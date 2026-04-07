@@ -67,20 +67,20 @@ describe('ChannelSelector', () => {
     };
 
     describe('Rendering', () => {
-        it('should render the component with label', () => {
-            renderWithContext(<ChannelSelector {...defaultProps}/>);
+        it('should render the component with label', async () => {
+            await renderWithContext(<ChannelSelector {...defaultProps}/>);
 
             expect(screen.getByText('Select the channels you want to include')).toBeInTheDocument();
         });
 
-        it('should render search input', () => {
-            renderWithContext(<ChannelSelector {...defaultProps}/>);
+        it('should render search input', async () => {
+            await renderWithContext(<ChannelSelector {...defaultProps}/>);
 
             expect(screen.getByPlaceholderText('Search and select channels')).toBeInTheDocument();
         });
 
-        it('should render all channels', () => {
-            renderWithContext(<ChannelSelector {...defaultProps}/>);
+        it('should render all channels', async () => {
+            await renderWithContext(<ChannelSelector {...defaultProps}/>);
 
             expect(screen.getByText('Town Square')).toBeInTheDocument();
             expect(screen.getByText('Off-Topic')).toBeInTheDocument();
@@ -90,21 +90,21 @@ describe('ChannelSelector', () => {
     });
 
     describe('Channel Groups', () => {
-        it('should show recommended channels group with unread channels', () => {
-            renderWithContext(<ChannelSelector {...defaultProps}/>);
+        it('should show recommended channels group with unread channels', async () => {
+            await renderWithContext(<ChannelSelector {...defaultProps}/>);
 
             expect(screen.getByText('RECOMMENDED')).toBeInTheDocument();
             expect(screen.getByText('Town Square')).toBeInTheDocument();
             expect(screen.getByText('Private Channel')).toBeInTheDocument();
         });
 
-        it('should show all channels group', () => {
-            renderWithContext(<ChannelSelector {...defaultProps}/>);
+        it('should show all channels group', async () => {
+            await renderWithContext(<ChannelSelector {...defaultProps}/>);
 
             expect(screen.getByText('ALL CHANNELS')).toBeInTheDocument();
         });
 
-        it('should limit recommended channels to 5', () => {
+        it('should limit recommended channels to 5', async () => {
             const manyUnreadChannels: Channel[] = Array.from({length: 10}, (_, i) => ({
                 id: `channel${i}`,
                 name: `channel-${i}`,
@@ -117,7 +117,7 @@ describe('ChannelSelector', () => {
                 creator_id: 'user1',
             } as Channel));
 
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSelector
                     {...defaultProps}
                     myChannels={manyUnreadChannels}
@@ -133,7 +133,7 @@ describe('ChannelSelector', () => {
 
     describe('Search Functionality', () => {
         it('should filter channels by display name', async () => {
-            renderWithContext(<ChannelSelector {...defaultProps}/>);
+            await renderWithContext(<ChannelSelector {...defaultProps}/>);
 
             const searchInput = screen.getByPlaceholderText('Search and select channels');
             await userEvent.type(searchInput, 'Town');
@@ -143,7 +143,7 @@ describe('ChannelSelector', () => {
         });
 
         it('should filter channels by channel name', async () => {
-            renderWithContext(<ChannelSelector {...defaultProps}/>);
+            await renderWithContext(<ChannelSelector {...defaultProps}/>);
 
             const searchInput = screen.getByPlaceholderText('Search and select channels');
             await userEvent.type(searchInput, 'off-topic');
@@ -153,7 +153,7 @@ describe('ChannelSelector', () => {
         });
 
         it('should be case insensitive', async () => {
-            renderWithContext(<ChannelSelector {...defaultProps}/>);
+            await renderWithContext(<ChannelSelector {...defaultProps}/>);
 
             const searchInput = screen.getByPlaceholderText('Search and select channels');
             await userEvent.type(searchInput, 'PRIVATE');
@@ -162,7 +162,7 @@ describe('ChannelSelector', () => {
         });
 
         it('should show empty state when no channels match search', async () => {
-            renderWithContext(<ChannelSelector {...defaultProps}/>);
+            await renderWithContext(<ChannelSelector {...defaultProps}/>);
 
             const searchInput = screen.getByPlaceholderText('Search and select channels');
             await userEvent.type(searchInput, 'nonexistent');
@@ -171,7 +171,7 @@ describe('ChannelSelector', () => {
         });
 
         it('should update recommended channels based on search', async () => {
-            renderWithContext(<ChannelSelector {...defaultProps}/>);
+            await renderWithContext(<ChannelSelector {...defaultProps}/>);
 
             const searchInput = screen.getByPlaceholderText('Search and select channels');
             await userEvent.type(searchInput, 'Private');
@@ -183,15 +183,15 @@ describe('ChannelSelector', () => {
     });
 
     describe('Channel Selection', () => {
-        it('should show checkbox for each channel', () => {
-            renderWithContext(<ChannelSelector {...defaultProps}/>);
+        it('should show checkbox for each channel', async () => {
+            await renderWithContext(<ChannelSelector {...defaultProps}/>);
 
             const checkboxes = screen.getAllByRole('checkbox');
             expect(checkboxes.length).toBe(mockChannels.length);
         });
 
-        it('should check checkbox for selected channels', () => {
-            renderWithContext(
+        it('should check checkbox for selected channels', async () => {
+            await renderWithContext(
                 <ChannelSelector
                     {...defaultProps}
                     selectedChannelIds={['channel1', 'channel2']}
@@ -205,7 +205,7 @@ describe('ChannelSelector', () => {
 
         it('should call setSelectedChannelIds when channel is clicked', async () => {
             const setSelectedChannelIds = jest.fn();
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSelector
                     {...defaultProps}
                     setSelectedChannelIds={setSelectedChannelIds}
@@ -220,7 +220,7 @@ describe('ChannelSelector', () => {
 
         it('should call setSelectedChannelIds when checkbox is clicked', async () => {
             const setSelectedChannelIds = jest.fn();
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSelector
                     {...defaultProps}
                     setSelectedChannelIds={setSelectedChannelIds}
@@ -237,7 +237,7 @@ describe('ChannelSelector', () => {
 
         it('should add channel to selection when unselected channel is clicked', async () => {
             const setSelectedChannelIds = jest.fn();
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSelector
                     {...defaultProps}
                     selectedChannelIds={['channel1']}
@@ -253,7 +253,7 @@ describe('ChannelSelector', () => {
 
         it('should remove channel from selection when selected channel is clicked', async () => {
             const setSelectedChannelIds = jest.fn();
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSelector
                     {...defaultProps}
                     selectedChannelIds={['channel1', 'channel2']}
@@ -269,7 +269,7 @@ describe('ChannelSelector', () => {
 
         it('should remove channel from selection when selected checkbox is clicked', async () => {
             const setSelectedChannelIds = jest.fn();
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSelector
                     {...defaultProps}
                     selectedChannelIds={['channel1', 'channel2']}
@@ -287,16 +287,16 @@ describe('ChannelSelector', () => {
     });
 
     describe('Channel Icons', () => {
-        it('should show globe icon for open channels', () => {
-            renderWithContext(<ChannelSelector {...defaultProps}/>);
+        it('should show globe icon for open channels', async () => {
+            await renderWithContext(<ChannelSelector {...defaultProps}/>);
 
             const townSquareItem = screen.getByText('Town Square').closest('.channel-selector-item');
             const icon = townSquareItem?.querySelector('.icon-globe');
             expect(icon).toBeInTheDocument();
         });
 
-        it('should show lock icon for private channels', () => {
-            renderWithContext(<ChannelSelector {...defaultProps}/>);
+        it('should show lock icon for private channels', async () => {
+            await renderWithContext(<ChannelSelector {...defaultProps}/>);
 
             const privateChannelItem = screen.getByText('Private Channel').closest('.channel-selector-item');
             const icon = privateChannelItem?.querySelector('.icon-lock-outline');
@@ -305,8 +305,8 @@ describe('ChannelSelector', () => {
     });
 
     describe('Empty State', () => {
-        it('should show empty state when no channels available', () => {
-            renderWithContext(
+        it('should show empty state when no channels available', async () => {
+            await renderWithContext(
                 <ChannelSelector
                     {...defaultProps}
                     myChannels={[]}

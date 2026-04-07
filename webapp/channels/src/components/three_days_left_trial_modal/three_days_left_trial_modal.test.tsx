@@ -72,8 +72,8 @@ describe('components/three_days_left_trial_modal/three_days_left_trial_modal', (
         limitsOverpassed: false,
     };
 
-    test('should render the modal with header, subtitle, feature cards, and view plans button', () => {
-        renderWithContext(
+    test('should render the modal with header, subtitle, feature cards, and view plans button', async () => {
+        await renderWithContext(
             <ThreeDaysLeftTrialModal {...defaultProps}/>,
             state,
         );
@@ -91,8 +91,8 @@ describe('components/three_days_left_trial_modal/three_days_left_trial_modal', (
         expect(screen.getByRole('button', {name: 'View plan options'})).toBeInTheDocument();
     });
 
-    test('should show limits overpassed content when limitsOverpassed is true', () => {
-        renderWithContext(
+    test('should show limits overpassed content when limitsOverpassed is true', async () => {
+        await renderWithContext(
             <ThreeDaysLeftTrialModal
                 {...defaultProps}
                 limitsOverpassed={true}
@@ -112,7 +112,7 @@ describe('components/three_days_left_trial_modal/three_days_left_trial_modal', (
     test('should call onExited when modal is closed', async () => {
         const mockOnExited = jest.fn();
 
-        renderWithContext(
+        await renderWithContext(
             <ThreeDaysLeftTrialModal
                 {...defaultProps}
                 onExited={mockOnExited}
@@ -128,7 +128,7 @@ describe('components/three_days_left_trial_modal/three_days_left_trial_modal', (
         });
     });
 
-    test('should not render when modal is not open', () => {
+    test('should not render when modal is not open', async () => {
         const closedState = {
             ...state,
             views: {
@@ -142,7 +142,7 @@ describe('components/three_days_left_trial_modal/three_days_left_trial_modal', (
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ThreeDaysLeftTrialModal {...defaultProps}/>,
             closedState,
         );

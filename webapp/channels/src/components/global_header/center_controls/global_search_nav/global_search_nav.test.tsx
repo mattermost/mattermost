@@ -8,8 +8,8 @@ import {renderWithContext} from 'tests/react_testing_utils';
 import GlobalSearchNav from './global_search_nav';
 
 describe('components/GlobalSearchNav', () => {
-    test('should match snapshot with active flagged posts', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with active flagged posts', async () => {
+        const {container} = await renderWithContext(
             <GlobalSearchNav/>,
             {
                 entities: {
@@ -28,8 +28,8 @@ describe('components/GlobalSearchNav', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with active mentions posts', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with active mentions posts', async () => {
+        const {container} = await renderWithContext(
             <GlobalSearchNav/>,
             {
                 entities: {

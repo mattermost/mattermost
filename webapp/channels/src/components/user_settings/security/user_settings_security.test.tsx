@@ -55,35 +55,35 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         militaryTime: false,
     };
 
-    test('should match snapshot, enable google', () => {
+    test('should match snapshot, enable google', async () => {
         const props = {...requiredProps, enableSaml: false};
 
-        const {container} = renderWithContext(<SecurityTab {...props}/>);
+        const {container} = await renderWithContext(<SecurityTab {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, enable gitlab', () => {
+    test('should match snapshot, enable gitlab', async () => {
         const props = {...requiredProps, enableSignUpWithGoogle: false, enableSaml: false, enableSignUpWithGitLab: true};
 
-        const {container} = renderWithContext(<SecurityTab {...props}/>);
+        const {container} = await renderWithContext(<SecurityTab {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, enable office365', () => {
+    test('should match snapshot, enable office365', async () => {
         const props = {...requiredProps, enableSignUpWithGoogle: false, enableSaml: false, enableSignUpWithOffice365: true};
 
-        const {container} = renderWithContext(<SecurityTab {...props}/>);
+        const {container} = await renderWithContext(<SecurityTab {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, enable openID', () => {
+    test('should match snapshot, enable openID', async () => {
         const props = {...requiredProps, enableSignUpWithGoogle: false, enableSaml: false, enableSignUpWithOpenId: true};
 
-        const {container} = renderWithContext(<SecurityTab {...props}/>);
+        const {container} = await renderWithContext(<SecurityTab {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, to email', () => {
+    test('should match snapshot, to email', async () => {
         const user = {
             id: 'user_id',
             auth_service: Constants.OPENID_SERVICE,
@@ -91,14 +91,14 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
 
         const props = {...requiredProps, user: user as UserProfile};
 
-        const {container} = renderWithContext(<SecurityTab {...props}/>);
+        const {container} = await renderWithContext(<SecurityTab {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('componentDidMount() should have called getAuthorizedOAuthApps', () => {
+    test('componentDidMount() should have called getAuthorizedOAuthApps', async () => {
         const props = {...requiredProps, enableOAuthServiceProvider: true};
 
-        renderWithContext(<SecurityTab {...props}/>);
+        await renderWithContext(<SecurityTab {...props}/>);
 
         expect(requiredProps.actions.getAuthorizedOAuthApps).toHaveBeenCalled();
     });
@@ -113,7 +113,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             activeSection: 'apps',
         };
 
-        renderWithContext(<SecurityTab {...props}/>);
+        await renderWithContext(<SecurityTab {...props}/>);
 
         await waitFor(() => {
             expect(screen.getByText('app1')).toBeInTheDocument();
@@ -130,20 +130,20 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             activeSection: 'apps',
         };
 
-        renderWithContext(<SecurityTab {...props}/>);
+        await renderWithContext(<SecurityTab {...props}/>);
 
         await waitFor(() => {
             expect(screen.getByText('error')).toBeInTheDocument();
         });
     });
 
-    test('submitPassword() should not have called updateUserPassword', () => {
+    test('submitPassword() should not have called updateUserPassword', async () => {
         const props = {
             ...requiredProps,
             activeSection: 'password',
         };
 
-        renderWithContext(<SecurityTab {...props}/>);
+        await renderWithContext(<SecurityTab {...props}/>);
 
         // Save button is disabled because fields are empty (isValid is false)
         const saveButton = screen.getByText('Save');
@@ -160,7 +160,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             activeSection: 'password',
         };
 
-        renderWithContext(<SecurityTab {...props}/>);
+        await renderWithContext(<SecurityTab {...props}/>);
 
         const password = 'psw';
 
@@ -194,7 +194,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             activeSection: 'apps',
         };
 
-        renderWithContext(<SecurityTab {...props}/>);
+        await renderWithContext(<SecurityTab {...props}/>);
 
         await waitFor(() => {
             expect(screen.getByText('Deauthorize')).toBeInTheDocument();
@@ -220,7 +220,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             activeSection: 'apps',
         };
 
-        renderWithContext(<SecurityTab {...props}/>);
+        await renderWithContext(<SecurityTab {...props}/>);
 
         await waitFor(() => {
             expect(screen.getAllByText('Deauthorize')).toHaveLength(2);
@@ -247,7 +247,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             activeSection: 'apps',
         };
 
-        renderWithContext(<SecurityTab {...props}/>);
+        await renderWithContext(<SecurityTab {...props}/>);
 
         await waitFor(() => {
             expect(screen.getByText('Deauthorize')).toBeInTheDocument();

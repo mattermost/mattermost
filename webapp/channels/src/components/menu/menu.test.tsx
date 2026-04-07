@@ -20,7 +20,7 @@ import {SubMenu} from './sub_menu';
 
 describe('menu click handlers', () => {
     test('should be able to open a React Bootstrap modal with the mouse', async () => {
-        renderWithContext(
+        await renderWithContext(
             <MenuWithModal/>,
         );
 
@@ -45,7 +45,7 @@ describe('menu click handlers', () => {
         const key = enterOrSpace === 'space' ? ' ' : '{enter}';
 
         test(`should be able to open a React Bootstrap modal with the keyboard using the ${enterOrSpace} key`, async () => {
-            renderWithContext(
+            await renderWithContext(
                 <MenuWithModal/>,
             );
 
@@ -80,7 +80,7 @@ describe('menu click handlers', () => {
     }
 
     test('should be able to open a React Bootstrap modal from a submenu with the mouse', async () => {
-        renderWithContext(
+        await renderWithContext(
             <MenuWithSubMenuModal/>,
         );
 
@@ -115,7 +115,7 @@ describe('menu click handlers', () => {
         const key = enterOrSpace === 'space' ? ' ' : '{enter}';
 
         test(`should be able to open a React Bootstrap modal with the keyboard using the ${enterOrSpace} key`, async () => {
-            renderWithContext(
+            await renderWithContext(
                 <MenuWithSubMenuModal/>,
             );
 

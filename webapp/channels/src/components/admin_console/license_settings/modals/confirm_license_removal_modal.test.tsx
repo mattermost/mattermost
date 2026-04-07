@@ -41,16 +41,16 @@ describe('components/admin_console/license_settings/modals/confirm_license_remov
         handleRemove: mockHandleRemove,
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <ConfirmLicenseRemovalModal {...props}/>,
             state,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should call the removal method when confirm button is clicked', () => {
-        renderWithContext(
+    test('should call the removal method when confirm button is clicked', async () => {
+        await renderWithContext(
             <ConfirmLicenseRemovalModal {...props}/>,
             state,
         );
@@ -59,8 +59,8 @@ describe('components/admin_console/license_settings/modals/confirm_license_remov
         expect(mockHandleRemove).toHaveBeenCalledTimes(1);
     });
 
-    test('should close the modal when cancel button is clicked', () => {
-        renderWithContext(
+    test('should close the modal when cancel button is clicked', async () => {
+        await renderWithContext(
             <ConfirmLicenseRemovalModal {...props}/>,
             state,
         );
@@ -69,7 +69,7 @@ describe('components/admin_console/license_settings/modals/confirm_license_remov
         expect(mockOnExited).toHaveBeenCalledTimes(1);
     });
 
-    test('should hide the confirm modal', () => {
+    test('should hide the confirm modal', async () => {
         const localState: DeepPartial<GlobalState> = {
             ...state,
             views: {
@@ -78,15 +78,15 @@ describe('components/admin_console/license_settings/modals/confirm_license_remov
                 },
             },
         };
-        renderWithContext(
+        await renderWithContext(
             <ConfirmLicenseRemovalModal {...props}/>,
             localState,
         );
         expect(screen.queryByText('Are you sure?')).not.toBeInTheDocument();
     });
 
-    test('should show which SKU is currently being removed in confirmation message', () => {
-        renderWithContext(
+    test('should show which SKU is currently being removed in confirmation message', async () => {
+        await renderWithContext(
             <ConfirmLicenseRemovalModal {...props}/>,
             state,
         );

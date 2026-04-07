@@ -28,7 +28,7 @@ const state = {
     },
 };
 
-function renderFeatureList(props: FeatureListProps) {
+async function renderFeatureList(props: FeatureListProps) {
     return renderWithContext(
         <FeatureList {...props}/>,
         state,
@@ -36,27 +36,27 @@ function renderFeatureList(props: FeatureListProps) {
 }
 
 describe('components/admin_console/billing/plan_details/feature_list', () => {
-    test('should match snapshot when running FREE tier', () => {
-        const {container} = renderFeatureList({
+    test('should match snapshot when running FREE tier', async () => {
+        const {container} = await renderFeatureList({
             subscriptionPlan: CloudProducts.STARTER,
         });
         expect(container).toMatchSnapshot();
     });
-    test('should match snapshot when running paid tier and professional', () => {
-        const {container} = renderFeatureList({
+    test('should match snapshot when running paid tier and professional', async () => {
+        const {container} = await renderFeatureList({
             subscriptionPlan: CloudProducts.PROFESSIONAL,
         });
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when running paid tier and enterprise', () => {
-        const {container} = renderFeatureList({
+    test('should match snapshot when running paid tier and enterprise', async () => {
+        const {container} = await renderFeatureList({
             subscriptionPlan: CloudProducts.ENTERPRISE,
         });
         expect(container).toMatchSnapshot();
     });
 
-    test('all feature items must have different values', () => {
+    test('all feature items must have different values', async () => {
         const plans = [
             CloudProducts.PROFESSIONAL,
             CloudProducts.ENTERPRISE,
@@ -64,8 +64,9 @@ describe('components/admin_console/billing/plan_details/feature_list', () => {
             CloudProducts.PROFESSIONAL,
         ];
 
-        plans.forEach((plan) => {
-            const {container} = renderFeatureList({
+        for (const plan of plans) {
+            // eslint-disable-next-line no-await-in-loop
+            const {container} = await renderFeatureList({
                 subscriptionPlan: plan,
             });
 
@@ -80,6 +81,6 @@ describe('components/admin_console/billing/plan_details/feature_list', () => {
             const hasDuplicates = (arr: Array<string | null>) => arr.length !== new Set(arr).size;
 
             expect(hasDuplicates(featuresTexts)).toBeFalsy();
-        });
+        }
     });
 });

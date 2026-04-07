@@ -39,15 +39,15 @@ describe('components/team_members_dropdown', () => {
         },
     };
 
-    test('should match snapshot for team_members_dropdown', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot for team_members_dropdown', async () => {
+        const {container} = await renderWithContext(
             <TeamMembersDropdown {...baseProps}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot opening dropdown upwards', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot opening dropdown upwards', async () => {
+        const {container} = await renderWithContext(
             <TeamMembersDropdown
                 {...baseProps}
                 index={4}
@@ -57,18 +57,18 @@ describe('components/team_members_dropdown', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with group-constrained team', () => {
+    test('should match snapshot with group-constrained team', async () => {
         baseProps.currentTeam.group_constrained = true;
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <TeamMembersDropdown {...baseProps}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot for a bot with group-constrained team', () => {
+    test('should match snapshot for a bot with group-constrained team', async () => {
         baseProps.currentTeam.group_constrained = true;
         baseProps.user = bot;
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <TeamMembersDropdown {...baseProps}/>,
         );
         expect(container).toMatchSnapshot();

@@ -31,16 +31,16 @@ describe('components/MarkdownImage', () => {
         },
     };
 
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const props = {...baseProps, src: '/images/logo.png'};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <MarkdownImage {...props}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot for broken link', () => {
+    test('should match snapshot for broken link', async () => {
         const props = {
             ...baseProps,
             imageMetadata: {
@@ -51,14 +51,14 @@ describe('components/MarkdownImage', () => {
             },
             src: 'brokenLink',
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <MarkdownImage {...props}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should handle load failure properly', () => {
+    test('should handle load failure properly', async () => {
         const props = {
             ...baseProps,
             imageMetadata: {
@@ -69,7 +69,7 @@ describe('components/MarkdownImage', () => {
             },
             src: 'brokenLink',
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <MarkdownImage {...props}/>,
         );
 
@@ -84,7 +84,7 @@ describe('components/MarkdownImage', () => {
         expect(container.querySelector('img')).toHaveClass('broken-image');
     });
 
-    test('should reset loadFailed state after image source is updated', () => {
+    test('should reset loadFailed state after image source is updated', async () => {
         const props = {
             ...baseProps,
             imageMetadata: {
@@ -95,7 +95,7 @@ describe('components/MarkdownImage', () => {
             },
             src: 'brokenLink',
         };
-        const {container, rerender} = renderWithContext(
+        const {container, rerender} = await renderWithContext(
             <MarkdownImage {...props}/>,
         );
 
@@ -112,9 +112,9 @@ describe('components/MarkdownImage', () => {
         expect(container.querySelector('img')).not.toHaveClass('broken-image');
     });
 
-    test('should render a link if the source is unsafe', () => {
+    test('should render a link if the source is unsafe', async () => {
         const props = {...baseProps, src: ''};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <MarkdownImage {...props}/>,
         );
         const img = container.querySelector('img');
@@ -123,9 +123,9 @@ describe('components/MarkdownImage', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should handle not loaded state properly', () => {
+    test('should handle not loaded state properly', async () => {
         const props = {...baseProps, src: 'https://example.com/image.png'};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <MarkdownImage {...props}/>,
         );
 
@@ -134,9 +134,9 @@ describe('components/MarkdownImage', () => {
         expect(img).toHaveClass('markdown-inline-img--loading');
     });
 
-    test('should handle not loaded state properly in case of a header change system message', () => {
+    test('should handle not loaded state properly in case of a header change system message', async () => {
         const props = {...baseProps, src: 'https://example.com/image.png', postType: 'system_header_change'};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <MarkdownImage {...props}/>,
         );
 
@@ -145,9 +145,9 @@ describe('components/MarkdownImage', () => {
         expect(img).toHaveClass('markdown-inline-img--scaled-down-loading');
     });
 
-    test('should set loaded state when img loads and call onImageLoaded prop', () => {
+    test('should set loaded state when img loads and call onImageLoaded prop', async () => {
         const props = {...baseProps, src: 'https://example.com/image.png'};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <MarkdownImage {...props}/>,
         );
 
@@ -169,13 +169,13 @@ describe('components/MarkdownImage', () => {
         expect(props.onImageLoaded).toHaveBeenCalledWith({height: 90, width: 1041});
     });
 
-    it('should match snapshot for SizeAwareImage dimensions', () => {
+    it('should match snapshot for SizeAwareImage dimensions', async () => {
         const props = {
             ...baseProps,
             imageMetadata: {format: 'jpg', frameCount: 0, width: 100, height: 90},
             src: 'path/image',
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <MarkdownImage {...props}/>,
         );
 
@@ -190,9 +190,9 @@ describe('components/MarkdownImage', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should render an image with preview modal if the source is safe', () => {
+    test('should render an image with preview modal if the source is safe', async () => {
         const props = {...baseProps, src: 'https://example.com/image.png'};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <MarkdownImage {...props}/>,
         );
 
@@ -211,9 +211,9 @@ describe('components/MarkdownImage', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should render an image with no preview if the source is safe and the image is a link', () => {
+    test('should render an image with no preview if the source is safe and the image is a link', async () => {
         const props = {...baseProps, src: 'https://example.com/image.png', imageIsLink: true};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <MarkdownImage {...props}/>,
         );
 
@@ -234,7 +234,7 @@ describe('components/MarkdownImage', () => {
 
     test('should call openModal when showModal is called', async () => {
         const props = {...baseProps, src: 'https://example.com/image.png'};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <MarkdownImage {...props}/>,
         );
 
@@ -252,9 +252,9 @@ describe('components/MarkdownImage', () => {
         expect(props.actions.openModal).toHaveBeenCalledTimes(1);
     });
 
-    test('should properly scale down the image in case of a header change system message', () => {
+    test('should properly scale down the image in case of a header change system message', async () => {
         const props = {...baseProps, src: 'https://example.com/image.png', postType: 'system_header_change'};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <MarkdownImage {...props}/>,
         );
 
@@ -271,7 +271,7 @@ describe('components/MarkdownImage', () => {
         expect(img).not.toHaveClass('markdown-inline-img--scaled-down-loading');
     });
 
-    test('should render image with title, height, width', () => {
+    test('should render image with title, height, width', async () => {
         const props = {
             ...baseProps,
             alt: 'test image',
@@ -284,7 +284,7 @@ describe('components/MarkdownImage', () => {
             width: '50',
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <MarkdownImage {...props}/>,
         );
 
@@ -301,7 +301,7 @@ describe('components/MarkdownImage', () => {
         expect(img).toHaveAttribute('title', 'test title');
     });
 
-    test(`should render image with MarkdownImageExpand if it is taller than ${Constants.EXPANDABLE_INLINE_IMAGE_MIN_HEIGHT}px`, () => {
+    test(`should render image with MarkdownImageExpand if it is taller than ${Constants.EXPANDABLE_INLINE_IMAGE_MIN_HEIGHT}px`, async () => {
         const props = {
             ...baseProps,
             alt: 'test image',
@@ -314,7 +314,7 @@ describe('components/MarkdownImage', () => {
             width: '50',
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <MarkdownImage {...props}/>,
         );
 
@@ -329,7 +329,7 @@ describe('components/MarkdownImage', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should provide image src as an alt text for MarkdownImageExpand if image has no own alt text', () => {
+    test('should provide image src as an alt text for MarkdownImageExpand if image has no own alt text', async () => {
         const props = {
             ...baseProps,
             alt: '',
@@ -342,7 +342,7 @@ describe('components/MarkdownImage', () => {
             width: '50',
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <MarkdownImage {...props}/>,
         );
 
@@ -357,9 +357,9 @@ describe('components/MarkdownImage', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should render a alt text if the link is unsafe', () => {
+    test('should render a alt text if the link is unsafe', async () => {
         const props = {...baseProps, isUnsafeLinksPost: true};
-        renderWithContext(
+        await renderWithContext(
             <MarkdownImage {...props}/>,
         );
         expect(screen.getByText(props.alt)).toBeInTheDocument();

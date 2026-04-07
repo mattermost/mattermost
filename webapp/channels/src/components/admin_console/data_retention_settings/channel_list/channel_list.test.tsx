@@ -20,7 +20,7 @@ describe('components/admin_console/data_retention_settings/channel_list', () => 
         (console.error as jest.Mock).mockClear();
     });
 
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const testChannels = [{
             ...channel,
             id: '123',
@@ -35,7 +35,7 @@ describe('components/admin_console/data_retention_settings/channel_list', () => 
             setChannelListSearch: jest.fn(),
             setChannelListFilters: jest.fn(),
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelList
                 searchTerm=''
                 filters={{}}
@@ -50,7 +50,7 @@ describe('components/admin_console/data_retention_settings/channel_list', () => 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with paging', () => {
+    test('should match snapshot with paging', async () => {
         const testChannels = [];
         for (let i = 0; i < 30; i++) {
             testChannels.push({
@@ -69,7 +69,7 @@ describe('components/admin_console/data_retention_settings/channel_list', () => 
             setChannelListFilters: jest.fn(),
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelList
                 searchTerm=''
                 filters={{}}

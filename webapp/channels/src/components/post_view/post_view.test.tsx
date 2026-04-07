@@ -37,13 +37,13 @@ describe('components/post_view/post_view', () => {
         rafSpy.mockRestore();
     });
 
-    test('should match snapshot for channel loading', () => {
-        const {container} = renderWithContext(<PostView {...{...baseProps, channelLoading: true}}/>);
+    test('should match snapshot for channel loading', async () => {
+        const {container} = await renderWithContext(<PostView {...{...baseProps, channelLoading: true}}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot for loaderForChangeOfPostsChunk', () => {
-        const {container} = renderWithContext(<PostView {...baseProps}/>);
+    test('should match snapshot for loaderForChangeOfPostsChunk', async () => {
+        const {container} = await renderWithContext(<PostView {...baseProps}/>);
 
         // Get changeUnreadChunkTimeStamp from PostList's last call props
         const postListCalls = (PostList as unknown as jest.Mock).mock.calls;
@@ -57,8 +57,8 @@ describe('components/post_view/post_view', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('unreadChunkTimeStamp should be set for first load of channel', () => {
-        renderWithContext(<PostView {...{...baseProps, isFirstLoad: true}}/>);
+    test('unreadChunkTimeStamp should be set for first load of channel', async () => {
+        await renderWithContext(<PostView {...{...baseProps, isFirstLoad: true}}/>);
 
         // Verify PostList received the correct unreadChunkTimeStamp prop
         const postListCalls = (PostList as unknown as jest.Mock).mock.calls;
@@ -66,8 +66,8 @@ describe('components/post_view/post_view', () => {
         expect(lastCallProps.unreadChunkTimeStamp).toEqual(baseProps.lastViewedAt);
     });
 
-    test('changeUnreadChunkTimeStamp', () => {
-        renderWithContext(<PostView {...{...baseProps, isFirstLoad: true}}/>);
+    test('changeUnreadChunkTimeStamp', async () => {
+        await renderWithContext(<PostView {...{...baseProps, isFirstLoad: true}}/>);
 
         // Verify initial unreadChunkTimeStamp
         let postListCalls = (PostList as unknown as jest.Mock).mock.calls;

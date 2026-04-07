@@ -31,8 +31,8 @@ describe('useChannel', () => {
             jest.restoreAllMocks();
         });
 
-        test("should return the channel if it's already in the store", () => {
-            const {result} = renderHookWithContext(
+        test("should return the channel if it's already in the store", async () => {
+            const {result} = await renderHookWithContext(
                 () => useChannel('channel1'),
                 {
                     entities: {
@@ -49,8 +49,8 @@ describe('useChannel', () => {
             expect(dispatchMock).not.toHaveBeenCalled();
         });
 
-        test("should fetch the channel if it's not in the store", () => {
-            const {result} = renderHookWithContext(
+        test("should fetch the channel if it's not in the store", async () => {
+            const {result} = await renderHookWithContext(
                 () => useChannel('channel1'),
             );
 
@@ -58,8 +58,8 @@ describe('useChannel', () => {
             expect(dispatchMock).toHaveBeenCalledTimes(1);
         });
 
-        test('should only attempt to fetch the channel once regardless of how many times the hook is used', () => {
-            const {result, rerender} = renderHookWithContext(
+        test('should only attempt to fetch the channel once regardless of how many times the hook is used', async () => {
+            const {result, rerender} = await renderHookWithContext(
                 () => useChannel('channel1'),
             );
 
@@ -74,9 +74,9 @@ describe('useChannel', () => {
             expect(dispatchMock).toHaveBeenCalledTimes(1);
         });
 
-        test('should attempt to fetch different channels if the channel ID changes', () => {
+        test('should attempt to fetch different channels if the channel ID changes', async () => {
             let channelId = 'channel1';
-            const {result, rerender} = renderHookWithContext(
+            const {result, rerender} = await renderHookWithContext(
                 () => useChannel(channelId),
             );
 
@@ -90,9 +90,9 @@ describe('useChannel', () => {
             expect(dispatchMock).toHaveBeenCalledTimes(2);
         });
 
-        test("should only attempt to fetch each channel once when they aren't loaded", () => {
+        test("should only attempt to fetch each channel once when they aren't loaded", async () => {
             let channelId = 'channel1';
-            const {result, replaceStoreState, rerender} = renderHookWithContext(
+            const {result, replaceStoreState, rerender} = await renderHookWithContext(
                 () => useChannel(channelId),
             );
 
@@ -146,8 +146,8 @@ describe('useChannel', () => {
             expect(dispatchMock).toHaveBeenCalledTimes(2);
         });
 
-        test("shouldn't attempt to load anything when given an empty channel ID", () => {
-            const {result} = renderHookWithContext(
+        test("shouldn't attempt to load anything when given an empty channel ID", async () => {
+            const {result} = await renderHookWithContext(
                 () => useChannel(''),
             );
 
@@ -172,7 +172,7 @@ describe('useChannel', () => {
                 reply(200, channel2);
 
             let channelId = 'channel1';
-            const {result, rerender} = renderHookWithContext(
+            const {result, rerender} = await renderHookWithContext(
                 () => useChannel(channelId),
             );
 

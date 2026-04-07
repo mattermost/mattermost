@@ -96,8 +96,8 @@ describe('component/view_user_group_modal', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {baseElement} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {baseElement} = await renderWithContext(
             <ViewUserGroupModal
                 {...baseProps}
             />,
@@ -108,7 +108,7 @@ describe('component/view_user_group_modal', () => {
     });
 
     test('should match snapshot, search user1', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ViewUserGroupModal
                 {...baseProps}
                 searchTerm='user1'

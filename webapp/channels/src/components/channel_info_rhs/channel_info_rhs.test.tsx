@@ -54,7 +54,7 @@ describe('channel_info_rhs', () => {
 
     describe('about area', () => {
         test('should be editable', async () => {
-            renderWithContext(
+            await renderWithContext(
                 <ChannelInfoRHS
                     {...props}
                 />,
@@ -73,7 +73,7 @@ describe('channel_info_rhs', () => {
         test('should not be editable in archived channel', async () => {
             props.isArchived = true;
 
-            renderWithContext(
+            await renderWithContext(
                 <ChannelInfoRHS
                     {...props}
                 />,
@@ -91,9 +91,9 @@ describe('channel_info_rhs', () => {
         });
     });
 
-    test('editChannelName opens Rename Channel modal', () => {
+    test('editChannelName opens Rename Channel modal', async () => {
         props.currentTeam = {name: 'team-1'} as Team;
-        renderWithContext(
+        await renderWithContext(
             <ChannelInfoRHS
                 {...props}
             />,

@@ -41,8 +41,8 @@ describe('components/admin_console/group_settings/group_details/GroupUsers', () 
         jest.clearAllMocks();
     });
 
-    test('should match snapshot, on loading without data', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot, on loading without data', async () => {
+        const {container} = await renderWithContext(
             <GroupUsers
                 {...defaultProps}
                 members={[]}
@@ -53,8 +53,8 @@ describe('components/admin_console/group_settings/group_details/GroupUsers', () 
         expect(screen.getByText('No users found')).toBeInTheDocument();
     });
 
-    test('should match snapshot, plugin group', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot, plugin group', async () => {
+        const {container} = await renderWithContext(
             <GroupUsers
                 {...defaultProps}
                 source={PluginGroupSourcePrefix.Plugin + 'keycloak'}
@@ -65,8 +65,8 @@ describe('components/admin_console/group_settings/group_details/GroupUsers', () 
         expect(screen.getByText('This group is managed by a plugin.')).toBeInTheDocument();
     });
 
-    test('should match snapshot, on loading with data', () => {
-        const {container} = renderWithContext(<GroupUsers {...defaultProps}/>);
+    test('should match snapshot, on loading with data', async () => {
+        const {container} = await renderWithContext(<GroupUsers {...defaultProps}/>);
 
         expect(container).toMatchSnapshot();
         expect(screen.getByText(/AD\/LDAP Connector is configured/)).toBeInTheDocument();
@@ -78,7 +78,7 @@ describe('components/admin_console/group_settings/group_details/GroupUsers', () 
     test('should match snapshot, loaded without data', async () => {
         let container: HTMLElement;
         await act(async () => {
-            ({container} = renderWithContext(
+            ({container} = await renderWithContext(
                 <GroupUsers
                     {...defaultProps}
                     members={[]}
@@ -93,7 +93,7 @@ describe('components/admin_console/group_settings/group_details/GroupUsers', () 
     test('should match snapshot, loaded with data', async () => {
         let container: HTMLElement;
         await act(async () => {
-            ({container} = renderWithContext(<GroupUsers {...defaultProps}/>));
+            ({container} = await renderWithContext(<GroupUsers {...defaultProps}/>));
         });
 
         expect(container!).toMatchSnapshot();
@@ -144,9 +144,9 @@ describe('components/admin_console/group_settings/group_details/GroupUsers', () 
         expect(screen.getByText(/41 - 55 of 55/)).toBeInTheDocument();
     });
 
-    test('should get the members on mount', () => {
+    test('should get the members on mount', async () => {
         const getMembers = jest.fn().mockReturnValue(Promise.resolve());
-        renderWithContext(
+        await renderWithContext(
             <GroupUsers
                 {...defaultProps}
                 getMembers={getMembers}

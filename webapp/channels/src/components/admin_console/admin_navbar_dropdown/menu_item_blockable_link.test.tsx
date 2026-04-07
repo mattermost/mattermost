@@ -8,8 +8,8 @@ import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {MenuItemBlockableLinkImpl} from './menu_item_blockable_link';
 
 describe('components/MenuItemBlockableLink', () => {
-    test('should render my link', () => {
-        renderWithContext(
+    test('should render my link', async () => {
+        await renderWithContext(
             <MenuItemBlockableLinkImpl
                 to='/wherever'
                 text='Whatever'

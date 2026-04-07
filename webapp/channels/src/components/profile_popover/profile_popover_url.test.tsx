@@ -43,7 +43,7 @@ describe('components/ProfilePopoverUrl', () => {
         }),
     };
 
-    test('should not render when url is missing', () => {
+    test('should not render when url is missing', async () => {
         const props = {
             ...baseProps,
             userProfile: TestHelper.getUserMock({
@@ -51,11 +51,11 @@ describe('components/ProfilePopoverUrl', () => {
                 custom_profile_attributes: {},
             }),
         };
-        renderWithContext(<ProfilePopoverUrl {...props}/>);
+        await renderWithContext(<ProfilePopoverUrl {...props}/>);
         expect(screen.queryByRole('link')).not.toBeInTheDocument();
     });
 
-    test('should not render when url is empty', () => {
+    test('should not render when url is empty', async () => {
         const props = {
             ...baseProps,
             userProfile: TestHelper.getUserMock({
@@ -65,12 +65,12 @@ describe('components/ProfilePopoverUrl', () => {
                 },
             }),
         };
-        renderWithContext(<ProfilePopoverUrl {...props}/>);
+        await renderWithContext(<ProfilePopoverUrl {...props}/>);
         expect(screen.queryByRole('link')).not.toBeInTheDocument();
     });
 
-    test('should render url with icon', () => {
-        renderWithContext(<ProfilePopoverUrl {...baseProps}/>);
+    test('should render url with icon', async () => {
+        await renderWithContext(<ProfilePopoverUrl {...baseProps}/>);
 
         const url = 'https://example.com';
         const link = screen.getByRole('link');
@@ -79,7 +79,7 @@ describe('components/ProfilePopoverUrl', () => {
         expect(screen.getByTestId('url-icon')).toBeInTheDocument();
     });
 
-    test('should render long url correctly', () => {
+    test('should render long url correctly', async () => {
         const props = {
             ...baseProps,
             userProfile: TestHelper.getUserMock({
@@ -89,7 +89,7 @@ describe('components/ProfilePopoverUrl', () => {
                 },
             }),
         };
-        renderWithContext(<ProfilePopoverUrl {...props}/>);
+        await renderWithContext(<ProfilePopoverUrl {...props}/>);
 
         const url = 'https://really-long-subdomain.example.com/path/to/resource?param=value';
         const container = screen.getByTitle(url);
@@ -97,8 +97,8 @@ describe('components/ProfilePopoverUrl', () => {
         expect(screen.getByRole('link')).toHaveTextContent(url);
     });
 
-    test('should render url with ExternalLink component', () => {
-        renderWithContext(<ProfilePopoverUrl {...baseProps}/>);
+    test('should render url with ExternalLink component', async () => {
+        await renderWithContext(<ProfilePopoverUrl {...baseProps}/>);
 
         const url = 'https://example.com';
         const link = screen.getByRole('link');

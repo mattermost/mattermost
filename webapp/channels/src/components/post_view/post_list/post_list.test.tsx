@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithContext, act, runPostRenderAct} from 'tests/react_testing_utils';
+import {renderWithContext, act} from 'tests/react_testing_utils';
 import {PostRequestTypes} from 'utils/constants';
 
 import PostList, {MAX_EXTRA_PAGES_LOADED} from './post_list';
@@ -84,16 +84,16 @@ describe('components/post_view/post_list', () => {
         lastVirtPostListProps = null;
     });
 
-    it('snapshot for loading when there are no posts', () => {
-        const {container} = renderWithContext(
+    it('snapshot for loading when there are no posts', async () => {
+        const {container} = await renderWithContext(
             <PostList {...{...baseProps, postListIds: []}}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    it('snapshot with couple of posts', () => {
+    it('snapshot with couple of posts', async () => {
         const postIds = createFakePosIds(2);
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PostList {...{...baseProps, postListIds: postIds}}/>,
         );
         expect(container).toMatchSnapshot();
@@ -103,7 +103,7 @@ describe('components/post_view/post_list', () => {
         const emptyPostList: string[] = [];
 
         const ref = React.createRef<PostList>();
-        renderWithContext(
+        await renderWithContext(
             <PostList
                 ref={ref}
                 {...{...baseProps, postListIds: emptyPostList}}
@@ -121,7 +121,7 @@ describe('components/post_view/post_list', () => {
     it('Should not call loadUnreads if isPrefetchingInProcess is true', async () => {
         const emptyPostList: string[] = [];
 
-        renderWithContext(
+        await renderWithContext(
             <PostList
                 {...{...baseProps, postListIds: emptyPostList, isPrefetchingInProcess: true}}
             />,
@@ -134,14 +134,12 @@ describe('components/post_view/post_list', () => {
         const postIds = createFakePosIds(2);
         const ref = React.createRef<PostList>();
 
-        renderWithContext(
+        await renderWithContext(
             <PostList
                 ref={ref}
                 {...{...baseProps, postListIds: postIds}}
             />,
         );
-
-        await runPostRenderAct();
 
         // Use deferred promise to capture intermediate loading state
         let resolveOlderLoadPosts!: (value: any) => void;
@@ -177,7 +175,7 @@ describe('components/post_view/post_list', () => {
 
     it('VirtPostList Should have formattedPostIds as prop', async () => {
         const postIds = createFakePosIds(2);
-        renderWithContext(
+        await renderWithContext(
             <PostList {...{...baseProps, postListIds: postIds}}/>,
         );
 
@@ -188,7 +186,7 @@ describe('components/post_view/post_list', () => {
         const postIds = createFakePosIds(10);
         const formattedPostIds = ['1', '2'];
         const ref = React.createRef<PostList>();
-        renderWithContext(
+        await renderWithContext(
             <PostList
                 ref={ref}
                 {...{...baseProps, postListIds: postIds, formattedPostIds}}
@@ -202,7 +200,7 @@ describe('components/post_view/post_list', () => {
     it('Should call for permalink posts', async () => {
         const focusedPostId = 'new';
         const ref = React.createRef<PostList>();
-        renderWithContext(
+        await renderWithContext(
             <PostList
                 ref={ref}
                 {...{...baseProps, focusedPostId}}
@@ -219,7 +217,7 @@ describe('components/post_view/post_list', () => {
 
     it('Should call for loadLatestPosts', async () => {
         const ref = React.createRef<PostList>();
-        renderWithContext(
+        await renderWithContext(
             <PostList
                 ref={ref}
                 {...{...baseProps, postListIds: [], isFirstLoad: false}}
@@ -237,7 +235,7 @@ describe('components/post_view/post_list', () => {
     describe('getPostsSince', () => {
         test('should call getPostsSince on channel switch', async () => {
             const postIds = createFakePosIds(2);
-            renderWithContext(
+            await renderWithContext(
                 <PostList
                     {...{...baseProps, isFirstLoad: false, postListIds: postIds, latestPostTimeStamp: 1234}}
                 />,
@@ -249,7 +247,7 @@ describe('components/post_view/post_list', () => {
     describe('canLoadMorePosts', () => {
         test('Should not call loadLatestPosts if postListIds is empty', async () => {
             const ref = React.createRef<PostList>();
-            renderWithContext(
+            await renderWithContext(
                 <PostList
                     ref={ref}
                     {...{...baseProps, isFirstLoad: false, postListIds: []}}
@@ -266,7 +264,7 @@ describe('components/post_view/post_list', () => {
         test('Should not call loadPosts if olderPosts or newerPosts are loading', async () => {
             const postIds = createFakePosIds(2);
             const ref = React.createRef<PostList>();
-            renderWithContext(
+            await renderWithContext(
                 <PostList
                     ref={ref}
                     {...{...baseProps, isFirstLoad: false, postListIds: postIds}}
@@ -294,7 +292,7 @@ describe('components/post_view/post_list', () => {
         test('Should not call loadPosts if there were more than MAX_EXTRA_PAGES_LOADED', async () => {
             const postIds = createFakePosIds(2);
             const ref = React.createRef<PostList>();
-            renderWithContext(
+            await renderWithContext(
                 <PostList
                     ref={ref}
                     {...{...baseProps, isFirstLoad: false, postListIds: postIds}}
@@ -310,7 +308,7 @@ describe('components/post_view/post_list', () => {
         test('Should call getPostsBefore if not all older posts are loaded', async () => {
             const postIds = createFakePosIds(2);
             const ref = React.createRef<PostList>();
-            const {rerender} = renderWithContext(
+            const {rerender} = await renderWithContext(
                 <PostList
                     ref={ref}
                     {...{...baseProps, isFirstLoad: false, postListIds: postIds}}
@@ -332,7 +330,7 @@ describe('components/post_view/post_list', () => {
         test('Should call getPostsAfter if all older posts are loaded and not newerPosts', async () => {
             const postIds = createFakePosIds(2);
             const ref = React.createRef<PostList>();
-            const {rerender} = renderWithContext(
+            const {rerender} = await renderWithContext(
                 <PostList
                     ref={ref}
                     {...{...baseProps, isFirstLoad: false, postListIds: postIds}}
@@ -353,7 +351,7 @@ describe('components/post_view/post_list', () => {
 
         test('Should call getPostsAfter canLoadMorePosts is requested with AFTER_ID', async () => {
             const postIds = createFakePosIds(2);
-            renderWithContext(
+            await renderWithContext(
                 <PostList
                     {...{...baseProps, isFirstLoad: false, postListIds: postIds}}
                 />,
@@ -386,14 +384,12 @@ describe('components/post_view/post_list', () => {
             };
 
             const ref = React.createRef<PostList>();
-            renderWithContext(
+            await renderWithContext(
                 <PostList
                     ref={ref}
                     {...props}
                 />,
             );
-
-            await runPostRenderAct();
 
             await act(async () => {
                 lastVirtPostListProps.actions.loadOlderPosts();
@@ -418,7 +414,7 @@ describe('components/post_view/post_list', () => {
             const emptyPostList: string[] = [];
 
             const ref = React.createRef<PostList>();
-            renderWithContext(
+            await renderWithContext(
                 <PostList
                     ref={ref}
                     {...{...baseProps, postListIds: emptyPostList}}
@@ -433,7 +429,7 @@ describe('components/post_view/post_list', () => {
         test('Should not call markChannelAsReadAndViewed as it is a permalink', async () => {
             const emptyPostList: string[] = [];
             const focusedPostId = 'new';
-            renderWithContext(
+            await renderWithContext(
                 <PostList
                     {...{...baseProps, postListIds: emptyPostList, focusedPostId}}
                 />,
@@ -459,7 +455,7 @@ describe('components/post_view/post_list', () => {
                 },
             };
 
-            renderWithContext(
+            await renderWithContext(
                 <PostList {...props}/>,
             );
 
@@ -489,7 +485,7 @@ describe('components/post_view/post_list', () => {
                 },
             };
 
-            renderWithContext(
+            await renderWithContext(
                 <PostList {...props}/>,
             );
 
@@ -518,7 +514,7 @@ describe('components/post_view/post_list', () => {
                 },
             };
 
-            renderWithContext(
+            await renderWithContext(
                 <PostList {...props}/>,
             );
 
@@ -547,7 +543,7 @@ describe('components/post_view/post_list', () => {
                 },
             };
 
-            renderWithContext(
+            await renderWithContext(
                 <PostList {...props}/>,
             );
 

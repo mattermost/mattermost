@@ -41,8 +41,8 @@ describe('components/learn_more_trial_modal/learn_more_trial_modal_step', () => 
         },
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <LearnMoreTrialModalStep {...props}/>,
             state,
         );
@@ -50,8 +50,8 @@ describe('components/learn_more_trial_modal/learn_more_trial_modal_step', () => 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with optional params', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with optional params', async () => {
+        const {container} = await renderWithContext(
             <LearnMoreTrialModalStep
                 {...props}
                 bottomLeftMessage='Step bottom message'
@@ -62,9 +62,9 @@ describe('components/learn_more_trial_modal/learn_more_trial_modal_step', () => 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when loaded in cloud workspace', () => {
+    test('should match snapshot when loaded in cloud workspace', async () => {
         const cloudProps = {...props, isCloud: true};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <LearnMoreTrialModalStep
                 {...cloudProps}
                 bottomLeftMessage='Step bottom message'

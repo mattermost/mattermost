@@ -74,7 +74,7 @@ describe('component/ConvertGmToChannelModal', () => {
                 {id: 'team_id_2', display_name: 'Team 2', name: 'team_2'},
             ]);
 
-        renderWithContext(
+        await renderWithContext(
             <ConvertGmToChannelModal {...baseProps}/>,
             baseState,
         );
@@ -100,7 +100,7 @@ describe('component/ConvertGmToChannelModal', () => {
                 {id: 'team_id_1', display_name: 'Team 1', name: 'team_1'},
             ]);
 
-        renderWithContext(
+        await renderWithContext(
             <ConvertGmToChannelModal {...baseProps}/>,
             baseState,
         );
@@ -123,7 +123,7 @@ describe('component/ConvertGmToChannelModal', () => {
             get('/channels/channel_id_1/common_teams').
             reply(200, []);
 
-        renderWithContext(
+        await renderWithContext(
             <ConvertGmToChannelModal {...baseProps}/>,
             baseState,
         );
@@ -151,7 +151,7 @@ describe('component/ConvertGmToChannelModal', () => {
 
         baseProps.actions.convertGroupMessageToPrivateChannel.mockResolvedValueOnce({});
 
-        renderWithContext(
+        await renderWithContext(
             <ConvertGmToChannelModal {...baseProps}/>,
             baseState,
         );
@@ -209,7 +209,7 @@ describe('component/ConvertGmToChannelModal', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ConvertGmToChannelModal {...baseProps}/>,
             anonymousURLState,
         );
@@ -244,7 +244,7 @@ describe('component/ConvertGmToChannelModal', () => {
             },
         });
 
-        renderWithContext(
+        await renderWithContext(
             <ConvertGmToChannelModal {...baseProps}/>,
             baseState,
         );

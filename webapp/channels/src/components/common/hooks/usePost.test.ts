@@ -26,8 +26,8 @@ describe('usePost', () => {
             jest.restoreAllMocks();
         });
 
-        test("should return the post if it's already in the store", () => {
-            const {result} = renderHookWithContext(
+        test("should return the post if it's already in the store", async () => {
+            const {result} = await renderHookWithContext(
                 () => usePost('post1'),
                 {
                     entities: {
@@ -44,8 +44,8 @@ describe('usePost', () => {
             expect(dispatchMock).not.toHaveBeenCalled();
         });
 
-        test("should fetch the post if it's not in the store", () => {
-            const {result} = renderHookWithContext(
+        test("should fetch the post if it's not in the store", async () => {
+            const {result} = await renderHookWithContext(
                 () => usePost('post1'),
             );
 
@@ -53,8 +53,8 @@ describe('usePost', () => {
             expect(dispatchMock).toHaveBeenCalledTimes(1);
         });
 
-        test('should only attempt to fetch the post once regardless of how many times the hook is used', () => {
-            const {result, rerender} = renderHookWithContext(
+        test('should only attempt to fetch the post once regardless of how many times the hook is used', async () => {
+            const {result, rerender} = await renderHookWithContext(
                 () => usePost('post1'),
             );
 
@@ -69,9 +69,9 @@ describe('usePost', () => {
             expect(dispatchMock).toHaveBeenCalledTimes(1);
         });
 
-        test('should attempt to fetch different posts if the post ID changes', () => {
+        test('should attempt to fetch different posts if the post ID changes', async () => {
             let postId = 'post1';
-            const {result, rerender} = renderHookWithContext(
+            const {result, rerender} = await renderHookWithContext(
                 () => usePost(postId),
             );
 
@@ -85,9 +85,9 @@ describe('usePost', () => {
             expect(dispatchMock).toHaveBeenCalledTimes(2);
         });
 
-        test("should only attempt to fetch each post once when they aren't loaded", () => {
+        test("should only attempt to fetch each post once when they aren't loaded", async () => {
             let postId = 'post1';
-            const {result, replaceStoreState, rerender} = renderHookWithContext(
+            const {result, replaceStoreState, rerender} = await renderHookWithContext(
                 () => usePost(postId),
             );
 
@@ -141,8 +141,8 @@ describe('usePost', () => {
             expect(dispatchMock).toHaveBeenCalledTimes(2);
         });
 
-        test("shouldn't attempt to load anything when given an empty post ID", () => {
-            const {result} = renderHookWithContext(
+        test("shouldn't attempt to load anything when given an empty post ID", async () => {
+            const {result} = await renderHookWithContext(
                 () => usePost(''),
             );
 
@@ -167,7 +167,7 @@ describe('usePost', () => {
                 reply(200, [post2]);
 
             let postId = 'post1';
-            const {result, rerender} = renderHookWithContext(
+            const {result, rerender} = await renderHookWithContext(
                 () => usePost(postId),
             );
 
@@ -211,7 +211,7 @@ describe('usePost', () => {
                 once().
                 reply(200, [post1, post2]);
 
-            const {result} = renderHookWithContext(
+            const {result} = await renderHookWithContext(
                 () => {
                     return [
                         usePost('post1'),

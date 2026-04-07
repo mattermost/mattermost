@@ -53,10 +53,10 @@ describe('PostAriaLabelDiv', () => {
         autotranslated: false,
     };
 
-    test('should render aria-label in the given locale', () => {
+    test('should render aria-label in the given locale', async () => {
         (reactIntl.useIntl as jest.Mock).mockImplementation(() => reactIntl.createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'}));
 
-        let renderResult = renderWithContext(<PostAriaLabelDiv {...baseProps}/>, baseState, {
+        let renderResult = await renderWithContext(<PostAriaLabelDiv {...baseProps}/>, baseState, {
             locale: 'en',
             intlMessages: enMessages,
         });
@@ -67,7 +67,7 @@ describe('PostAriaLabelDiv', () => {
 
         (reactIntl.useIntl as jest.Mock).mockImplementation(() => reactIntl.createIntl({locale: 'es', messages: esMessages, defaultLocale: 'es'}));
 
-        renderResult = renderWithContext(<PostAriaLabelDiv {...baseProps}/>, baseState, {
+        renderResult = await renderWithContext(<PostAriaLabelDiv {...baseProps}/>, baseState, {
             locale: 'es',
             intlMessages: esMessages,
         });
@@ -77,12 +77,12 @@ describe('PostAriaLabelDiv', () => {
         expect(div.getAttribute('aria-label')).toContain('enero');
     });
 
-    test('should pass other props through to the rendered div', () => {
+    test('should pass other props through to the rendered div', async () => {
         (reactIntl.useIntl as jest.Mock).mockImplementation(() => reactIntl.createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'}));
 
         let props = baseProps;
 
-        let renderResult = renderWithContext(<PostAriaLabelDiv {...props}/>, baseState, {
+        let renderResult = await renderWithContext(<PostAriaLabelDiv {...props}/>, baseState, {
             locale: 'en',
             intlMessages: enMessages,
         });
@@ -98,7 +98,7 @@ describe('PostAriaLabelDiv', () => {
             'data-something': 'something',
         } as Props;
 
-        renderResult = renderWithContext(
+        renderResult = await renderWithContext(
             <PostAriaLabelDiv {...props}>
                 <p>{'This is a paragraph.'}</p>
             </PostAriaLabelDiv >,

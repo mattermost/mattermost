@@ -50,16 +50,16 @@ describe('components/post_view/CombinedSystemMessage', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <CombinedSystemMessage {...baseProps}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when join leave messages are turned off', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot when join leave messages are turned off', async () => {
+        const {container} = await renderWithContext(
             <CombinedSystemMessage
                 {...baseProps}
                 showJoinLeave={false}
@@ -69,7 +69,7 @@ describe('components/post_view/CombinedSystemMessage', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, "removed from channel" message when join leave messages are turned off', () => {
+    test('should match snapshot, "removed from channel" message when join leave messages are turned off', async () => {
         const allUserIds = ['current_user_id', 'other_user_id_1', 'removed_user_id_1', 'removed_user_id_2'];
         const messageData = [{
             actorId: 'current_user_id',
@@ -81,20 +81,20 @@ describe('components/post_view/CombinedSystemMessage', () => {
             userIds: ['removed_user_id_2'],
         }];
         const props = {...baseProps, messageData, allUserIds, showJoinLeave: false};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <CombinedSystemMessage {...props}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should call getMissingProfilesByIds and/or getMissingProfilesByUsernames on loadUserProfiles', () => {
+    test('should call getMissingProfilesByIds and/or getMissingProfilesByUsernames on loadUserProfiles', async () => {
         // Test 1: empty allUserIds and allUsernames - should not call either action
         const actions1 = {
             getMissingProfilesByIds: jest.fn(),
             getMissingProfilesByUsernames: jest.fn(),
         };
-        renderWithContext(
+        await renderWithContext(
             <CombinedSystemMessage
                 {...baseProps}
                 allUserIds={[]}
@@ -110,7 +110,7 @@ describe('components/post_view/CombinedSystemMessage', () => {
             getMissingProfilesByIds: jest.fn(),
             getMissingProfilesByUsernames: jest.fn(),
         };
-        renderWithContext(
+        await renderWithContext(
             <CombinedSystemMessage
                 {...baseProps}
                 allUserIds={['user_id_1']}
@@ -127,7 +127,7 @@ describe('components/post_view/CombinedSystemMessage', () => {
             getMissingProfilesByIds: jest.fn(),
             getMissingProfilesByUsernames: jest.fn(),
         };
-        renderWithContext(
+        await renderWithContext(
             <CombinedSystemMessage
                 {...baseProps}
                 allUserIds={['user_id_1', 'user_id_2']}
@@ -140,7 +140,7 @@ describe('components/post_view/CombinedSystemMessage', () => {
         expect(actions3.getMissingProfilesByUsernames).toHaveBeenCalledTimes(1);
         expect(actions3.getMissingProfilesByUsernames).toHaveBeenCalledWith(['user1']);
     });
-    test('should render messages in chronological order', () => {
+    test('should render messages in chronological order', async () => {
         const allUserIds = ['current_user_id', 'other_user_id_1', 'user_id_1', 'user_id_2', 'join_last'];
         const messageData = [{
             actorId: 'current_user_id',
@@ -164,7 +164,7 @@ describe('components/post_view/CombinedSystemMessage', () => {
             userIds: [''],
         }];
         const props = {...baseProps, messageData, allUserIds};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <CombinedSystemMessage {...props}/>,
         );
 

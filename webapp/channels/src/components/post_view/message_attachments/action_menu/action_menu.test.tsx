@@ -32,7 +32,7 @@ describe('components/post_view/message_attachments/ActionMenu', () => {
     };
 
     test('should start with nothing selected', async () => {
-        renderWithContext(<ActionMenu {...baseProps}/>);
+        await renderWithContext(<ActionMenu {...baseProps}/>);
 
         const autoCompleteSelector = screen.getByTestId('autoCompleteSelector');
         const input = screen.getByPlaceholderText('action');
@@ -47,7 +47,7 @@ describe('components/post_view/message_attachments/ActionMenu', () => {
         expect(input).toHaveAttribute('value', '');
     });
 
-    test('should set selected based on default option', () => {
+    test('should set selected based on default option', async () => {
         const props = {
             ...baseProps,
             action: {
@@ -55,7 +55,7 @@ describe('components/post_view/message_attachments/ActionMenu', () => {
                 default_option: '2',
             },
         };
-        renderWithContext(<ActionMenu {...props}/>);
+        await renderWithContext(<ActionMenu {...props}/>);
 
         const input = screen.getByPlaceholderText('action');
 

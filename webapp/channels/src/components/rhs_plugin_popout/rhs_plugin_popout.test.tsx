@@ -68,10 +68,10 @@ describe('RhsPluginPopout', () => {
         mockUseParams.mockReturnValue({pluginId});
     });
 
-    it('should render LoadingScreen when plugin is not found', () => {
+    it('should render LoadingScreen when plugin is not found', async () => {
         mockUseParams.mockReturnValue({pluginId: 'non-existent-plugin'});
 
-        renderWithContext(
+        await renderWithContext(
             <MemoryRouter initialEntries={['/_popout/rhs/team1/channel1/plugin/non-existent-plugin']}>
                 <Route
                     path='/_popout/rhs/:team/:identifier/plugin/:pluginId'
@@ -91,8 +91,8 @@ describe('RhsPluginPopout', () => {
         expect(screen.queryByTestId('pluggable-RightHandSidebarComponent-')).not.toBeInTheDocument();
     });
 
-    it('should render SearchResultsHeader and Pluggable when plugin is found', () => {
-        renderWithContext(
+    it('should render SearchResultsHeader and Pluggable when plugin is found', async () => {
+        await renderWithContext(
             <MemoryRouter initialEntries={['/_popout/rhs/team1/channel1/plugin/test-plugin']}>
                 <Route
                     path='/_popout/rhs/:team/:identifier/plugin/:pluginId'
@@ -112,10 +112,10 @@ describe('RhsPluginPopout', () => {
         expect(pluggable).toHaveTextContent(`Pluggable: RightHandSidebarComponent - ${pluggableId}`);
     });
 
-    it('should handle empty title when plugin component has no title', () => {
+    it('should handle empty title when plugin component has no title', async () => {
         mockUseParams.mockReturnValue({pluginId});
 
-        renderWithContext(
+        await renderWithContext(
             <MemoryRouter initialEntries={['/_popout/rhs/team1/channel1/plugin/test-plugin']}>
                 <Route
                     path='/_popout/rhs/:team/:identifier/plugin/:pluginId'

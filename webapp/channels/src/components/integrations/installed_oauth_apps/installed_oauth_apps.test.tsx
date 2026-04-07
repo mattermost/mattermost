@@ -75,7 +75,7 @@ describe('components/integrations/InstalledOAuthApps', () => {
     };
 
     test('should match snapshot', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <InstalledOAuthApps {...baseProps}/>,
             initialState,
         );
@@ -110,7 +110,7 @@ describe('components/integrations/InstalledOAuthApps', () => {
         expect(screen.getByText('secondApp')).toBeInTheDocument();
 
         // Re-render with canManageOauth=false, add link should not be present
-        const {container: container2} = renderWithContext(
+        const {container: container2} = await renderWithContext(
             <InstalledOAuthApps
                 {...baseProps}
                 canManageOauth={false}
@@ -128,7 +128,7 @@ describe('components/integrations/InstalledOAuthApps', () => {
             appsOAuthAppIDs: ['fzcxd9wpzpbpfp8pad78xj75pr'],
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <InstalledOAuthApps {...props}/>,
             initialState,
         );
@@ -152,7 +152,7 @@ describe('components/integrations/InstalledOAuthApps', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <InstalledOAuthApps {...props}/>,
             initialState,
         );

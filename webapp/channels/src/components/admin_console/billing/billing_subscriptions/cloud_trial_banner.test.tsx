@@ -49,24 +49,24 @@ describe('components/admin_console/billing_subscription/CloudTrialBanner', () =>
         },
     };
 
-    test('should match snapshot when no trial end date is passed', () => {
+    test('should match snapshot when no trial end date is passed', async () => {
         mockState = state;
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <CloudTrialBanner trialEndDate={0}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when is cloud and is free trial (the trial end is passed)', () => {
+    test('should match snapshot when is cloud and is free trial (the trial end is passed)', async () => {
         mockState = state;
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <CloudTrialBanner trialEndDate={12345}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when there is an stored preference value', () => {
+    test('should match snapshot when there is an stored preference value', async () => {
         const myPref = {
             myPreferences: {
                 [getPreferenceKey(Preferences.CLOUD_TRIAL_BANNER, CloudBanners.UPGRADE_FROM_TRIAL)]: {
@@ -78,7 +78,7 @@ describe('components/admin_console/billing_subscription/CloudTrialBanner', () =>
         };
 
         mockState = {...state, entities: {...state.entities, preferences: myPref}};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <CloudTrialBanner trialEndDate={12345}/>,
         );
         expect(container).toMatchSnapshot();

@@ -46,15 +46,15 @@ describe('components/submenu_modal', () => {
         onExited: jest.fn(),
     };
 
-    test('should match snapshot', () => {
-        const {baseElement} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {baseElement} = await renderWithContext(
             <SubMenuModal {...baseProps}/>,
         );
         expect(baseElement).toMatchSnapshot();
     });
 
     test('should hide on modal body click', async () => {
-        const view = renderWithContext(
+        const view = await renderWithContext(
             <SubMenuModal {...baseProps}/>,
         );
 
@@ -74,7 +74,7 @@ describe('components/submenu_modal', () => {
             ...baseProps,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <SubMenuModal {...props}/>,
         );
 
@@ -89,7 +89,7 @@ describe('components/submenu_modal', () => {
     });
 
     test('should have called props.onExited when Modal.onExited is called', async () => {
-        renderWithContext(
+        await renderWithContext(
             <SubMenuModal {...baseProps}/>,
         );
 

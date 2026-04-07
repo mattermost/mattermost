@@ -34,8 +34,8 @@ describe('components/admin_console/team_channel_settings/group/UsersToRemoveRole
     const scopeTeam: 'team' | 'channel' = 'team';
     const scopeChannel: 'team' | 'channel' = 'channel';
 
-    test('should match snapshot scope team and regular membership', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot scope team and regular membership', async () => {
+        const {container} = await renderWithContext(
             <UsersToRemoveRole
                 user={userWithGroups}
                 scope={scopeTeam}
@@ -45,8 +45,8 @@ describe('components/admin_console/team_channel_settings/group/UsersToRemoveRole
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot scope team and admin membership', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot scope team and admin membership', async () => {
+        const {container} = await renderWithContext(
             <UsersToRemoveRole
                 user={userWithGroups}
                 scope={scopeTeam}
@@ -56,8 +56,8 @@ describe('components/admin_console/team_channel_settings/group/UsersToRemoveRole
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot scope channel and regular membership', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot scope channel and regular membership', async () => {
+        const {container} = await renderWithContext(
             <UsersToRemoveRole
                 user={userWithGroups}
                 scope={scopeChannel}
@@ -67,8 +67,8 @@ describe('components/admin_console/team_channel_settings/group/UsersToRemoveRole
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot scope channel and admin membership', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot scope channel and admin membership', async () => {
+        const {container} = await renderWithContext(
             <UsersToRemoveRole
                 user={userWithGroups}
                 scope={scopeChannel}
@@ -78,8 +78,8 @@ describe('components/admin_console/team_channel_settings/group/UsersToRemoveRole
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot scope channel and admin membership but user is sys admin', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot scope channel and admin membership but user is sys admin', async () => {
+        const {container} = await renderWithContext(
             <UsersToRemoveRole
                 user={adminUserWithGroups}
                 scope={scopeChannel}
@@ -89,8 +89,8 @@ describe('components/admin_console/team_channel_settings/group/UsersToRemoveRole
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot guest', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot guest', async () => {
+        const {container} = await renderWithContext(
             <UsersToRemoveRole
                 user={guestUserWithGroups}
                 scope={scopeTeam}

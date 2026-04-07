@@ -17,16 +17,16 @@ describe('components/trial_benefits_modal/trial_benefits_modal_step', () => {
         buttonLabel: 'button',
     };
 
-    test('should match snapshot', () => {
-        const {baseElement} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {baseElement} = await renderWithContext(
             <TrialBenefitsModalStep {...props}/>,
         );
 
         expect(baseElement).toMatchSnapshot();
     });
 
-    test('should match snapshot with optional params', () => {
-        const {baseElement} = renderWithContext(
+    test('should match snapshot with optional params', async () => {
+        const {baseElement} = await renderWithContext(
             <TrialBenefitsModalStep
                 {...props}
                 bottomLeftMessage='Step bottom message'

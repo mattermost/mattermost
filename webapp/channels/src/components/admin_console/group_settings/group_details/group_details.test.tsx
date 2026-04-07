@@ -72,15 +72,15 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
         },
     };
 
-    test('should match snapshot, with everything closed', () => {
-        const {container} = renderWithContext(<GroupDetails {...defaultProps}/>);
+    test('should match snapshot, with everything closed', async () => {
+        const {container} = await renderWithContext(<GroupDetails {...defaultProps}/>);
         defaultProps.actions.getGroupSyncables.mockClear();
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, with add team selector open', () => {
+    test('should match snapshot, with add team selector open', async () => {
         const ref = React.createRef<InstanceType<typeof GroupDetails>>();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <GroupDetails
                 {...defaultProps}
                 ref={ref}
@@ -93,9 +93,9 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, with add channel selector open', () => {
+    test('should match snapshot, with add channel selector open', async () => {
         const ref = React.createRef<InstanceType<typeof GroupDetails>>();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <GroupDetails
                 {...defaultProps}
                 ref={ref}
@@ -108,9 +108,9 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, with loaded state', () => {
+    test('should match snapshot, with loaded state', async () => {
         const ref = React.createRef<InstanceType<typeof GroupDetails>>();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <GroupDetails
                 {...defaultProps}
                 ref={ref}
@@ -123,7 +123,7 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
         expect(container).toMatchSnapshot();
     });
 
-    test('should load data on mount', () => {
+    test('should load data on mount', async () => {
         const actions = {
             getGroupSyncables: jest.fn().mockReturnValue(Promise.resolve()),
             getGroupStats: jest.fn().mockReturnValue(Promise.resolve()),
@@ -135,7 +135,7 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
             patchGroupSyncable: jest.fn(),
             setNavigationBlocked: jest.fn(),
         };
-        renderWithContext(
+        await renderWithContext(
             <GroupDetails
                 {...defaultProps}
                 actions={actions}
@@ -160,7 +160,7 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
             setNavigationBlocked: jest.fn(),
         };
         const ref = React.createRef<InstanceType<typeof GroupDetails>>();
-        renderWithContext(
+        await renderWithContext(
             <GroupDetails
                 {...defaultProps}
                 actions={actions}
@@ -195,7 +195,7 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
             setNavigationBlocked: jest.fn(),
         };
         const ref = React.createRef<InstanceType<typeof GroupDetails>>();
-        renderWithContext(
+        await renderWithContext(
             <GroupDetails
                 {...defaultProps}
                 actions={actions}
@@ -205,8 +205,8 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
         expect((ref.current as any).state.groupTeams?.length).toBe(0);
         act(() => {
             (ref.current as any).addTeams([
-                {id: '11111111111111111111111111'} as Team,
-                {id: '22222222222222222222222222'} as Team,
+                {id: '11111111111111111111111111', display_name: 'Team 1', type: 'O'} as Team,
+                {id: '22222222222222222222222222', display_name: 'Team 2', type: 'O'} as Team,
             ]);
         });
         const testStateObj = (stateSubset?: GroupTeam[]) => {
@@ -220,7 +220,7 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
 
     test('update name for null slug', async () => {
         const ref = React.createRef<InstanceType<typeof GroupDetails>>();
-        renderWithContext(
+        await renderWithContext(
             <GroupDetails
                 {...defaultProps}
                 group={{
@@ -239,7 +239,7 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
 
     test('update name for empty slug', async () => {
         const ref = React.createRef<InstanceType<typeof GroupDetails>>();
-        renderWithContext(
+        await renderWithContext(
             <GroupDetails
                 {...defaultProps}
                 group={{
@@ -259,7 +259,7 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
 
     test('Should not update name for slug', async () => {
         const ref = React.createRef<InstanceType<typeof GroupDetails>>();
-        renderWithContext(
+        await renderWithContext(
             <GroupDetails
                 {...defaultProps}
                 group={{
@@ -284,7 +284,7 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
         };
 
         const ref = React.createRef<InstanceType<typeof GroupDetails>>();
-        renderWithContext(
+        await renderWithContext(
             <GroupDetails
                 {...defaultProps}
                 actions={actions}

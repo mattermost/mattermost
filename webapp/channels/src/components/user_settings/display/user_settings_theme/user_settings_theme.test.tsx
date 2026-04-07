@@ -34,8 +34,8 @@ describe('components/user_settings/display/user_settings_theme/user_settings_the
         areAllSectionsInactive: false,
     };
 
-    it('should match snapshot', () => {
-        const {container} = renderWithContext(
+    it('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <UserSettingsTheme {...requiredProps}/>,
         );
 
@@ -48,7 +48,7 @@ describe('components/user_settings/display/user_settings_theme/user_settings_the
             selected: true,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <UserSettingsTheme {...props}/>,
         );
 
@@ -64,14 +64,14 @@ describe('components/user_settings/display/user_settings_theme/user_settings_the
         expect(requiredProps.actions.saveTheme).toHaveBeenCalled();
     });
 
-    it('should show premade themes when custom themes are disabled', () => {
+    it('should show premade themes when custom themes are disabled', async () => {
         const props = {
             ...requiredProps,
             selected: true,
             allowCustomThemes: false,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <UserSettingsTheme {...props}/>,
         );
 
@@ -96,7 +96,7 @@ describe('components/user_settings/display/user_settings_theme/user_settings_the
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <UserSettingsTheme {...props}/>,
         );
 

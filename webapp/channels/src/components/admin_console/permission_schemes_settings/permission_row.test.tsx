@@ -20,15 +20,15 @@ describe('components/admin_console/permission_schemes_settings/permission_row', 
         additionalValues: {},
     };
 
-    test('should match snapshot on editable and not inherited', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot on editable and not inherited', async () => {
+        const {container} = await renderWithContext(
             <PermissionRow {...defaultProps}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot on editable and inherited', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot on editable and inherited', async () => {
+        const {container} = await renderWithContext(
             <PermissionRow
                 {...defaultProps}
                 inherited={{name: 'all_users'}}
@@ -37,8 +37,8 @@ describe('components/admin_console/permission_schemes_settings/permission_row', 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot on read only and not inherited', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot on read only and not inherited', async () => {
+        const {container} = await renderWithContext(
             <PermissionRow
                 {...defaultProps}
                 readOnly={true}
@@ -47,8 +47,8 @@ describe('components/admin_console/permission_schemes_settings/permission_row', 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot on read only and inherited', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot on read only and inherited', async () => {
+        const {container} = await renderWithContext(
             <PermissionRow
                 {...defaultProps}
                 readOnly={true}
@@ -58,7 +58,7 @@ describe('components/admin_console/permission_schemes_settings/permission_row', 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with additional values', () => {
+    test('should match snapshot with additional values', async () => {
         const ADDITIONAL_VALUES = {
             edit_post: {
                 editTimeLimitButton: (
@@ -69,7 +69,7 @@ describe('components/admin_console/permission_schemes_settings/permission_row', 
             },
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PermissionRow
                 {...defaultProps}
                 additionalValues={ADDITIONAL_VALUES}
@@ -80,7 +80,7 @@ describe('components/admin_console/permission_schemes_settings/permission_row', 
 
     test('should call onChange function on click', async () => {
         const onChange = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <PermissionRow
                 {...defaultProps}
                 onChange={onChange}
@@ -92,7 +92,7 @@ describe('components/admin_console/permission_schemes_settings/permission_row', 
 
     test('shouldn\'t call onChange function on click when is read-only', async () => {
         const onChange = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <PermissionRow
                 {...defaultProps}
                 readOnly={true}

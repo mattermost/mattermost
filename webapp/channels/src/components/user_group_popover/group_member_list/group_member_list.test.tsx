@@ -89,8 +89,8 @@ describe('component/user_group_popover/group_member_list', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {baseElement} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {baseElement} = await renderWithContext(
             <GroupMemberList
                 {...baseProps}
             />,
@@ -101,7 +101,7 @@ describe('component/user_group_popover/group_member_list', () => {
     });
 
     test('should open dms', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <GroupMemberList
                 {...baseProps}
             />,
@@ -116,7 +116,7 @@ describe('component/user_group_popover/group_member_list', () => {
     });
 
     test('should show user overlay and hide', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <GroupMemberList
                 {...baseProps}
             />,

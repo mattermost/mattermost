@@ -38,8 +38,8 @@ describe('components/multiselect/multiselect', () => {
         focusOnLoad: false,
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <MultiSelect
                 {...baseProps}
             />,
@@ -49,7 +49,7 @@ describe('components/multiselect/multiselect', () => {
     });
 
     test('should match snapshot for page 2', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <MultiSelect
                 {...baseProps}
             />,
@@ -77,7 +77,7 @@ describe('components/multiselect/multiselect', () => {
             return props.data.value;
         };
 
-        renderWithContext(
+        await renderWithContext(
             <MultiSelect
                 {...baseProps}
                 optionRenderer={renderOption}
@@ -95,14 +95,14 @@ describe('components/multiselect/multiselect', () => {
         expect(document.querySelector('.option--selected')).toBeInTheDocument();
     });
 
-    test('MultiSelectList should match snapshot when custom no option message is defined', () => {
+    test('MultiSelectList should match snapshot when custom no option message is defined', async () => {
         const customNoOptionsMessage = (
             <div className='custom-no-options-message'>
                 <span>{'No matches found'}</span>
             </div>
         );
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <MultiSelect
                 {...baseProps}
                 customNoOptionsMessage={customNoOptionsMessage}
@@ -114,7 +114,7 @@ describe('components/multiselect/multiselect', () => {
 
     test('Back button should be customizable', async () => {
         const handleBackButtonClick = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <MultiSelect
                 {...baseProps}
                 backButtonClick={handleBackButtonClick}

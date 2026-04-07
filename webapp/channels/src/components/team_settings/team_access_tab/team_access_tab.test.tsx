@@ -33,14 +33,14 @@ describe('components/TeamSettings', () => {
         setShowTabSwitchError: jest.fn(),
     };
 
-    test('should not render team invite section if no permissions for team inviting', () => {
+    test('should not render team invite section if no permissions for team inviting', async () => {
         const props = {...defaultProps, canInviteTeamMembers: false};
-        renderWithContext(<AccessTab {...props}/>);
+        await renderWithContext(<AccessTab {...props}/>);
         const inviteContainer = screen.queryByTestId('teamInviteContainer');
         expect(inviteContainer).toBeNull();
     });
 
-    test('should call regenerateTeamInviteId on handleRegenerateInviteId', () => {
+    test('should call regenerateTeamInviteId on handleRegenerateInviteId', async () => {
         const state = {
             entities: {
                 roles: {
@@ -65,29 +65,29 @@ describe('components/TeamSettings', () => {
                 },
             },
         };
-        const wrapper = renderWithContext(<AccessTab {...defaultProps}/>, state);
+        const wrapper = await renderWithContext(<AccessTab {...defaultProps}/>, state);
         wrapper.getByTestId('regenerateButton').click();
         expect(baseActions.regenerateTeamInviteId).toHaveBeenCalledTimes(1);
         expect(baseActions.regenerateTeamInviteId).toHaveBeenCalledWith(defaultProps.team?.id);
     });
 
-    test('should not render allowed domains checkbox if no permissions for team inviting', () => {
+    test('should not render allowed domains checkbox if no permissions for team inviting', async () => {
         const props = {...defaultProps, canInviteTeamMembers: false};
-        renderWithContext(<AccessTab {...props}/>);
+        await renderWithContext(<AccessTab {...props}/>);
         const allowedDomainsCheckbox = screen.queryByTestId('allowedDomainsCheckbox');
         expect(allowedDomainsCheckbox).toBeNull();
     });
 
-    test('should not show allowed domains input if allowed domains is empty', () => {
+    test('should not show allowed domains input if allowed domains is empty', async () => {
         const props = {...defaultProps, team: TestHelper.getTeamMock({allowed_domains: ''})};
-        renderWithContext(<AccessTab {...props}/>);
+        await renderWithContext(<AccessTab {...props}/>);
         const allowedDomainsInput = screen.queryByText('Seperate multiple domains with a space, comma, tab or enter.');
         expect(allowedDomainsInput).toBeNull();
     });
 
-    test('should show allowed domains input if allowed domains is not empty', () => {
+    test('should show allowed domains input if allowed domains is not empty', async () => {
         const props = {...defaultProps, team: TestHelper.getTeamMock({allowed_domains: 'test.com'})};
-        renderWithContext(<AccessTab {...props}/>);
+        await renderWithContext(<AccessTab {...props}/>);
         const allowedDomainsInput = screen.getByText('Seperate multiple domains with a space, comma, tab or enter.');
         expect(allowedDomainsInput).toBeInTheDocument();
         const allowedDomainsInputValue = screen.getByText('test.com');
@@ -96,7 +96,7 @@ describe('components/TeamSettings', () => {
 
     test('should call patchTeam on handleAllowedDomainsSubmit', async () => {
         const props = {...defaultProps, team: TestHelper.getTeamMock({allowed_domains: 'test.com'})};
-        renderWithContext(<AccessTab {...props}/>);
+        await renderWithContext(<AccessTab {...props}/>);
         const allowedDomainsInput = screen.getAllByRole('combobox')[0];
         const newDomain = 'best.com';
         await act(async () => {
@@ -117,7 +117,7 @@ describe('components/TeamSettings', () => {
     });
 
     test('MM-62891 should toggle the right checkboxes when their labels are clicked on', async () => {
-        renderWithContext(<AccessTab {...defaultProps}/>);
+        await renderWithContext(<AccessTab {...defaultProps}/>);
 
         expect(screen.getByRole('checkbox', {name: 'Allow only users with a specific email domain to join this team'})).not.toBeChecked();
         expect(screen.getByRole('checkbox', {name: 'Allow any user with an account on this server to join this team'})).not.toBeChecked();

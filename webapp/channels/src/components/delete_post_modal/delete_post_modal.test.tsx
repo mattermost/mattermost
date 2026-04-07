@@ -47,23 +47,23 @@ describe('components/delete_post_modal', () => {
         },
     };
 
-    test('should match snapshot for delete_post_modal with 0 comments', () => {
-        const {baseElement} = renderWithContext(
+    test('should match snapshot for delete_post_modal with 0 comments', async () => {
+        const {baseElement} = await renderWithContext(
             <DeletePostModal {...baseProps}/>,
         );
         expect(baseElement).toMatchSnapshot();
     });
 
-    test('should match snapshot for delete_post_modal with 1 comment', () => {
+    test('should match snapshot for delete_post_modal with 1 comment', async () => {
         const commentCount = 1;
         const props = {...baseProps, commentCount};
-        const {baseElement} = renderWithContext(
+        const {baseElement} = await renderWithContext(
             <DeletePostModal {...props}/>,
         );
         expect(baseElement).toMatchSnapshot();
     });
 
-    test('should match snapshot for post with 1 commentCount and is not rootPost', () => {
+    test('should match snapshot for post with 1 commentCount and is not rootPost', async () => {
         const commentCount = 1;
         const postObj = {
             ...post,
@@ -76,14 +76,14 @@ describe('components/delete_post_modal', () => {
             post: postObj,
         };
 
-        const {baseElement} = renderWithContext(
+        const {baseElement} = await renderWithContext(
             <DeletePostModal {...props}/>,
         );
         expect(baseElement).toMatchSnapshot();
     });
 
     test('should focus delete button on enter', async () => {
-        renderWithContext(
+        await renderWithContext(
             <DeletePostModal {...baseProps}/>,
         );
 
@@ -95,7 +95,7 @@ describe('components/delete_post_modal', () => {
     });
 
     test('should hide on Cancel', async () => {
-        renderWithContext(
+        await renderWithContext(
             <DeletePostModal {...baseProps}/>,
         );
 
@@ -112,7 +112,7 @@ describe('components/delete_post_modal', () => {
     });
 
     test('should match state when the cancel button is clicked', async () => {
-        renderWithContext(
+        await renderWithContext(
             <DeletePostModal {...baseProps}/>,
         );
 
@@ -139,7 +139,7 @@ describe('components/delete_post_modal', () => {
                 pathname: '/teamname/messages/@username',
             },
         };
-        renderWithContext(
+        await renderWithContext(
             <DeletePostModal {...props}/>,
         );
 
@@ -172,7 +172,7 @@ describe('components/delete_post_modal', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <DeletePostModal {...props}/>,
         );
 
@@ -197,7 +197,7 @@ describe('components/delete_post_modal', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <DeletePostModal {...props}/>,
         );
 
@@ -212,7 +212,7 @@ describe('components/delete_post_modal', () => {
 
     test('should have called props.onExited on Cancel', async () => {
         const onExited = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <DeletePostModal
                 {...baseProps}
                 onExited={onExited}
@@ -227,7 +227,7 @@ describe('components/delete_post_modal', () => {
         });
     });
 
-    test('should warn about remote post deletion', () => {
+    test('should warn about remote post deletion', async () => {
         const props = {
             ...baseProps,
             post: {
@@ -236,7 +236,7 @@ describe('components/delete_post_modal', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <DeletePostModal {...props}/>,
         );
 

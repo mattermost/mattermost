@@ -103,7 +103,7 @@ describe('components/sidebar/sidebar_header/sidebar_team_menu', () => {
     };
 
     test('should open team menu when clicked', async () => {
-        renderWithContext(
+        await renderWithContext(
             <SidebarTeamMenu {...baseProps}/>,
             initialState,
         );
@@ -137,7 +137,7 @@ describe('components/sidebar/sidebar_header/sidebar_team_menu', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <SidebarTeamMenu {...baseProps}/>,
             state,
         );
@@ -165,7 +165,7 @@ describe('components/sidebar/sidebar_header/sidebar_team_menu', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <SidebarTeamMenu {...baseProps}/>,
             state,
         );
@@ -205,7 +205,7 @@ describe('components/sidebar/sidebar_header/sidebar_team_menu', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <SidebarTeamMenu {...baseProps}/>,
             state,
         );
@@ -240,7 +240,7 @@ describe('components/sidebar/sidebar_header/sidebar_team_menu', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <SidebarTeamMenu {...baseProps}/>,
             state,
         );
@@ -274,7 +274,7 @@ describe('components/sidebar/sidebar_header/sidebar_team_menu', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <SidebarTeamMenu {...baseProps}/>,
             stateWithCloudFree,
         );

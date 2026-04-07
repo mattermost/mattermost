@@ -108,13 +108,13 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
         windowSpy.mockRestore();
     });
 
-    it('should not render the banner because we are not on overage state', () => {
-        renderWithContext(<OverageUsersBannerNotice/>);
+    it('should not render the banner because we are not on overage state', async () => {
+        await renderWithContext(<OverageUsersBannerNotice/>);
 
         expect(screen.queryByText(notifyText, {exact: false})).not.toBeInTheDocument();
     });
 
-    it('should not render the banner because we are not admins', () => {
+    it('should not render the banner because we are not admins', async () => {
         const store: GlobalState = JSON.parse(JSON.stringify(initialState));
 
         store.entities.users = {
@@ -128,7 +128,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <OverageUsersBannerNotice/>,
             store,
         );
@@ -136,7 +136,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
         expect(screen.queryByText(notifyText, {exact: false})).not.toBeInTheDocument();
     });
 
-    it('should not render the banner because it\'s cloud licenese', () => {
+    it('should not render the banner because it\'s cloud licenese', async () => {
         const store: GlobalState = JSON.parse(JSON.stringify(initialState));
 
         store.entities.general.license = {
@@ -144,7 +144,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             Cloud: 'true',
         };
 
-        renderWithContext(
+        await renderWithContext(
             <OverageUsersBannerNotice/>,
             store,
         );
@@ -152,7 +152,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
         expect(screen.queryByText(notifyText, {exact: false})).not.toBeInTheDocument();
     });
 
-    it('should not render the 5% banner because we have dissmised it', () => {
+    it('should not render the 5% banner because we have dissmised it', async () => {
         const store: GlobalState = JSON.parse(JSON.stringify(initialState));
 
         store.entities.preferences.myPreferences = TestHelper.getPreferencesMock(
@@ -172,7 +172,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <OverageUsersBannerNotice/>,
             store,
         );
@@ -180,7 +180,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
         expect(screen.queryByText(text5PercentageState)).not.toBeInTheDocument();
     });
 
-    it('should render the banner because we are over 5% and we don\'t have any preferences', () => {
+    it('should render the banner because we are over 5% and we don\'t have any preferences', async () => {
         const store: GlobalState = JSON.parse(JSON.stringify(initialState));
 
         store.entities.admin = {
@@ -190,7 +190,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <OverageUsersBannerNotice/>,
             store,
         );
@@ -213,7 +213,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             ...store.entities.cloud,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <OverageUsersBannerNotice/>,
             store,
         );
@@ -226,7 +226,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
         );
     });
 
-    it('should render the banner because we are over 5% and we have preferences from one old banner', () => {
+    it('should render the banner because we are over 5% and we have preferences from one old banner', async () => {
         const store: GlobalState = JSON.parse(JSON.stringify(initialState));
 
         store.entities.preferences.myPreferences = TestHelper.getPreferencesMock(
@@ -246,7 +246,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <OverageUsersBannerNotice/>,
             store,
         );
@@ -265,7 +265,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <OverageUsersBannerNotice/>,
             store,
         );
@@ -281,7 +281,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
         }]);
     });
 
-    it('should render the banner because we are over 10% and we don\'t have preferences', () => {
+    it('should render the banner because we are over 10% and we don\'t have preferences', async () => {
         const store: GlobalState = JSON.parse(JSON.stringify(initialState));
 
         store.entities.admin = {
@@ -291,7 +291,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <OverageUsersBannerNotice/>,
             store,
         );
@@ -314,7 +314,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             ...store.entities.cloud,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <OverageUsersBannerNotice/>,
             store,
         );
@@ -327,7 +327,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
         );
     });
 
-    it('should render the banner because we are over 10%, and we have preference only for the warning state', () => {
+    it('should render the banner because we are over 10%, and we have preference only for the warning state', async () => {
         const store: GlobalState = JSON.parse(JSON.stringify(initialState));
 
         store.entities.preferences.myPreferences = TestHelper.getPreferencesMock(
@@ -347,7 +347,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <OverageUsersBannerNotice/>,
             store,
         );
@@ -356,7 +356,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
         expect(screen.getByText(notifyText, {exact: false})).toBeInTheDocument();
     });
 
-    it('should not render the banner because we are over 10% and we have preferences', () => {
+    it('should not render the banner because we are over 10% and we have preferences', async () => {
         const store: GlobalState = JSON.parse(JSON.stringify(initialState));
 
         store.entities.preferences.myPreferences = TestHelper.getPreferencesMock(
@@ -376,7 +376,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <OverageUsersBannerNotice/>,
             store,
         );
@@ -395,7 +395,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <OverageUsersBannerNotice/>,
             store,
         );
@@ -426,7 +426,7 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
         };
         store.entities.general.license.IsGovSku = 'true';
 
-        renderWithContext(
+        await renderWithContext(
             <OverageUsersBannerNotice/>,
             store,
         );

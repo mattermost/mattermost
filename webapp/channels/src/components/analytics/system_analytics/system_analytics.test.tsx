@@ -54,8 +54,8 @@ describe('components/analytics/system_analytics/system_analytics.tsx', () => {
         },
     };
 
-    test('no data', () => {
-        renderWithContext(<SystemAnalytics {...baseProps}/>, initialState, {useMockedStore: true});
+    test('no data', async () => {
+        await renderWithContext(<SystemAnalytics {...baseProps}/>, initialState, {useMockedStore: true});
 
         expect(screen.getByTestId('totalPosts')).toHaveTextContent('Loading...');
         expect(screen.queryByTestId('totalPostsLineChart')).not.toBeInTheDocument();
@@ -90,7 +90,7 @@ describe('components/analytics/system_analytics/system_analytics.tsx', () => {
             },
         };
 
-        renderWithContext(<SystemAnalytics {...baseProps}/>, state, {useMockedStore: true});
+        await renderWithContext(<SystemAnalytics {...baseProps}/>, state, {useMockedStore: true});
 
         const detailsElement = screen.getByText('Load Advanced Statistics');
         await userEvent.click(detailsElement);
@@ -234,7 +234,7 @@ describe('components/analytics/system_analytics/system_analytics.tsx', () => {
             },
         };
 
-        renderWithContext(<SystemAnalytics {...baseProps}/>, state, {useMockedStore: true});
+        await renderWithContext(<SystemAnalytics {...baseProps}/>, state, {useMockedStore: true});
 
         const detailsElement = screen.getByText('Load Advanced Statistics');
         await userEvent.click(detailsElement);
@@ -251,7 +251,7 @@ describe('components/analytics/system_analytics/system_analytics.tsx', () => {
         expect(screen.getByText('Calls per day')).toBeInTheDocument();
     });
 
-    test('shows single-channel guests card when licensed, not entry, and guest accounts enabled', () => {
+    test('shows single-channel guests card when licensed, not entry, and guest accounts enabled', async () => {
         const state = {
             ...initialState,
             entities: {
@@ -286,12 +286,12 @@ describe('components/analytics/system_analytics/system_analytics.tsx', () => {
             },
         };
 
-        renderWithContext(<SystemAnalytics {...baseProps}/>, state, {useMockedStore: true});
+        await renderWithContext(<SystemAnalytics {...baseProps}/>, state, {useMockedStore: true});
 
         expect(screen.getByTestId('singleChannelGuests')).toBeInTheDocument();
     });
 
-    test('does not show single-channel guests card for Entry SKU', () => {
+    test('does not show single-channel guests card for Entry SKU', async () => {
         const state = {
             ...initialState,
             entities: {
@@ -326,12 +326,12 @@ describe('components/analytics/system_analytics/system_analytics.tsx', () => {
             },
         };
 
-        renderWithContext(<SystemAnalytics {...baseProps}/>, state, {useMockedStore: true});
+        await renderWithContext(<SystemAnalytics {...baseProps}/>, state, {useMockedStore: true});
 
         expect(screen.queryByTestId('singleChannelGuests')).not.toBeInTheDocument();
     });
 
-    test('does not show single-channel guests card when guest accounts disabled', () => {
+    test('does not show single-channel guests card when guest accounts disabled', async () => {
         const state = {
             ...initialState,
             entities: {
@@ -366,12 +366,12 @@ describe('components/analytics/system_analytics/system_analytics.tsx', () => {
             },
         };
 
-        renderWithContext(<SystemAnalytics {...baseProps}/>, state, {useMockedStore: true});
+        await renderWithContext(<SystemAnalytics {...baseProps}/>, state, {useMockedStore: true});
 
         expect(screen.queryByTestId('singleChannelGuests')).not.toBeInTheDocument();
     });
 
-    test('shows error status when single-channel guests exceed limit', () => {
+    test('shows error status when single-channel guests exceed limit', async () => {
         const state = {
             ...initialState,
             entities: {
@@ -406,7 +406,7 @@ describe('components/analytics/system_analytics/system_analytics.tsx', () => {
             },
         };
 
-        renderWithContext(<SystemAnalytics {...baseProps}/>, state, {useMockedStore: true});
+        await renderWithContext(<SystemAnalytics {...baseProps}/>, state, {useMockedStore: true});
 
         const titleElement = screen.getByTestId('singleChannelGuestsTitle');
         expect(titleElement).toHaveClass('team_statistics--error');

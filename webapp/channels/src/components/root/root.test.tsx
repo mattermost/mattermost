@@ -35,6 +35,14 @@ jest.mock('actions/global_actions', () => ({
     redirectUserToDefaultTeam: jest.fn(),
 }));
 
+jest.mock('components/initial_loading_screen', () => ({
+    __esModule: true,
+    default: {
+        start: jest.fn(),
+        stop: jest.fn(),
+    },
+}));
+
 jest.mock('mattermost-redux/actions/general', () => ({
     ...jest.requireActual('mattermost-redux/actions/general'),
     setUrl: () => {},
@@ -122,7 +130,7 @@ describe('components/Root', () => {
             noAccounts: true,
         };
 
-        renderWithContext(<Root {...props}/>);
+        await renderWithContext(<Root {...props}/>);
 
         await waitFor(() => {
             expect(props.history.push).toHaveBeenCalledWith('/signup_user_complete');
@@ -146,7 +154,7 @@ describe('components/Root', () => {
             },
         };
 
-        renderWithContext(<Root {...props}/>);
+        await renderWithContext(<Root {...props}/>);
 
         await waitFor(() => {
             expect(props.actions.loadConfigAndMe).toHaveBeenCalledTimes(1);
@@ -174,7 +182,7 @@ describe('components/Root', () => {
             },
         };
 
-        renderWithContext(<Root {...props}/>);
+        await renderWithContext(<Root {...props}/>);
 
         await waitFor(() => {
             expect(props.actions.loadConfigAndMe).toHaveBeenCalledTimes(1);
@@ -191,7 +199,7 @@ describe('components/Root', () => {
             } as unknown as RouteComponentProps['history'],
         };
 
-        const {rerender} = renderWithContext(<Root {...props}/>);
+        const {rerender} = await renderWithContext(<Root {...props}/>);
 
         expect(props.history.push).not.toHaveBeenCalled();
 
@@ -208,7 +216,7 @@ describe('components/Root', () => {
     });
 
     test('should reload on focus after getting signal login event from another tab', async () => {
-        renderWithContext(<Root {...baseProps}/>);
+        await renderWithContext(<Root {...baseProps}/>);
 
         const loginSignal = new StorageEvent('storage', {
             key: StoragePrefixes.LOGIN,
@@ -239,7 +247,7 @@ describe('components/Root', () => {
         };
 
         test('should show for normal cases', async () => {
-            renderWithContext(<Root {...landingProps}/>);
+            await renderWithContext(<Root {...landingProps}/>);
 
             await waitFor(() => {
                 expect(landingProps.history.push).toHaveBeenCalledWith('/landing#/');
@@ -256,7 +264,7 @@ describe('components/Root', () => {
                 } as RouteComponentProps,
             };
 
-            renderWithContext(<Root {...props}/>);
+            await renderWithContext(<Root {...props}/>);
 
             await waitFor(() => {
                 expect(props.history.push).not.toHaveBeenCalled();
@@ -269,7 +277,7 @@ describe('components/Root', () => {
                 enableDesktopLandingPage: false,
             };
 
-            renderWithContext(<Root {...props}/>);
+            await renderWithContext(<Root {...props}/>);
 
             await waitFor(() => {
                 expect(props.history.push).not.toHaveBeenCalled();

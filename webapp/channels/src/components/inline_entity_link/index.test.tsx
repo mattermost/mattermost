@@ -26,13 +26,13 @@ describe('InlineEntityLink', () => {
         className: 'custom-class',
     };
 
-    test('should render as a normal link if parsing fails', () => {
+    test('should render as a normal link if parsing fails', async () => {
         const props = {
             ...baseProps,
             url: 'http://invalid-url.com',
         };
 
-        renderWithContext(<InlineEntityLink {...props}/>);
+        await renderWithContext(<InlineEntityLink {...props}/>);
 
         const link = screen.getByRole('link');
         expect(link).toHaveAttribute('href', props.url);
@@ -41,13 +41,13 @@ describe('InlineEntityLink', () => {
         expect(screen.queryByTestId('linkVariantIcon')).not.toBeInTheDocument();
     });
 
-    test('should render as a Post link correctly', () => {
+    test('should render as a Post link correctly', async () => {
         const props = {
             ...baseProps,
             url: 'http://localhost:8065/team-name/pl/postid123?view=citation',
         };
 
-        renderWithContext(<InlineEntityLink {...props}/>);
+        await renderWithContext(<InlineEntityLink {...props}/>);
 
         const link = screen.getByRole('link');
         expect(link).toHaveAttribute('href', props.url);
@@ -56,13 +56,13 @@ describe('InlineEntityLink', () => {
         expect(link).toHaveAttribute('aria-label', 'Go to post');
     });
 
-    test('should render as a Channel link correctly', () => {
+    test('should render as a Channel link correctly', async () => {
         const props = {
             ...baseProps,
             url: 'http://localhost:8065/team-name/channels/channel-name?view=citation',
         };
 
-        renderWithContext(<InlineEntityLink {...props}/>);
+        await renderWithContext(<InlineEntityLink {...props}/>);
 
         const link = screen.getByRole('link');
         expect(link).toHaveAttribute('href', props.url);
@@ -70,13 +70,13 @@ describe('InlineEntityLink', () => {
         expect(link).toHaveAttribute('aria-label', 'Go to channel');
     });
 
-    test('should render as a Team link correctly', () => {
+    test('should render as a Team link correctly', async () => {
         const props = {
             ...baseProps,
             url: 'http://localhost:8065/team-name?view=citation',
         };
 
-        renderWithContext(<InlineEntityLink {...props}/>);
+        await renderWithContext(<InlineEntityLink {...props}/>);
 
         const link = screen.getByRole('link');
         expect(link).toHaveAttribute('href', props.url);
@@ -84,13 +84,13 @@ describe('InlineEntityLink', () => {
         expect(link).toHaveAttribute('aria-label', 'Go to team');
     });
 
-    test('should handle click event and dispatch action for Post', () => {
+    test('should handle click event and dispatch action for Post', async () => {
         const props = {
             ...baseProps,
             url: 'http://localhost:8065/team-name/pl/postid123?view=citation',
         };
 
-        renderWithContext(<InlineEntityLink {...props}/>);
+        await renderWithContext(<InlineEntityLink {...props}/>);
         const link = screen.getByRole('link');
 
         fireEvent.click(link);
@@ -103,13 +103,13 @@ describe('InlineEntityLink', () => {
         );
     });
 
-    test('should handle click event and dispatch action for Channel', () => {
+    test('should handle click event and dispatch action for Channel', async () => {
         const props = {
             ...baseProps,
             url: 'http://localhost:8065/team-name/channels/channel-name?view=citation',
         };
 
-        renderWithContext(<InlineEntityLink {...props}/>);
+        await renderWithContext(<InlineEntityLink {...props}/>);
         const link = screen.getByRole('link');
 
         fireEvent.click(link);
@@ -122,13 +122,13 @@ describe('InlineEntityLink', () => {
         );
     });
 
-    test('should handle click event and dispatch action for Team', () => {
+    test('should handle click event and dispatch action for Team', async () => {
         const props = {
             ...baseProps,
             url: 'http://localhost:8065/team-name?view=citation',
         };
 
-        renderWithContext(<InlineEntityLink {...props}/>);
+        await renderWithContext(<InlineEntityLink {...props}/>);
         const link = screen.getByRole('link');
 
         fireEvent.click(link);

@@ -41,8 +41,8 @@ describe('components/search_results/MessagesOrFilesSelector', () => {
         },
     };
 
-    test('should match snapshot, on messages selected', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot, on messages selected', async () => {
+        const {container} = await renderWithContext(
             <MessagesOrFilesSelector {...baseProps}/>,
             initialState,
         );
@@ -50,13 +50,13 @@ describe('components/search_results/MessagesOrFilesSelector', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, on files selected', () => {
+    test('should match snapshot, on files selected', async () => {
         const props = {
             ...baseProps,
             selected: 'files' as 'messages' | 'files',
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <MessagesOrFilesSelector {...props}/>,
             initialState,
         );
@@ -64,14 +64,14 @@ describe('components/search_results/MessagesOrFilesSelector', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, without files tab', () => {
+    test('should match snapshot, without files tab', async () => {
         const props = {
             ...baseProps,
             selected: 'files' as 'messages' | 'files',
             isFileAttachmentsEnabled: false,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <MessagesOrFilesSelector {...props}/>,
             initialState,
         );

@@ -116,7 +116,7 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
         getProfilesByIds: jest.fn().mockResolvedValue({data: []}),
     };
 
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const additionalProps = {
             channelPermissions: [],
             guestAccountsEnabled: true,
@@ -127,7 +127,7 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
         };
 
         let container;
-        ({container} = renderWithContext(
+        ({container} = await renderWithContext(
             <ChannelDetails
                 teamScheme={teamScheme}
                 groups={groups}
@@ -142,7 +142,7 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
         ));
         expect(container).toMatchSnapshot();
 
-        ({container} = renderWithContext(
+        ({container} = await renderWithContext(
             <ChannelDetails
                 teamScheme={teamScheme}
                 groups={groups}
@@ -157,7 +157,7 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
         ));
         expect(container).toMatchSnapshot();
     });
-    test('should match snapshot for Professional', () => {
+    test('should match snapshot for Professional', async () => {
         const additionalProps = {
             channelPermissions: [],
             guestAccountsEnabled: true,
@@ -168,7 +168,7 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
         };
 
         let container;
-        ({container} = renderWithContext(
+        ({container} = await renderWithContext(
             <ChannelDetails
                 teamScheme={teamScheme}
                 groups={groups}
@@ -183,7 +183,7 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
         ));
         expect(container).toMatchSnapshot();
 
-        ({container} = renderWithContext(
+        ({container} = await renderWithContext(
             <ChannelDetails
                 teamScheme={teamScheme}
                 groups={groups}
@@ -199,7 +199,7 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot for Enterprise', () => {
+    test('should match snapshot for Enterprise', async () => {
         const additionalProps = {
             channelPermissions: [],
             guestAccountsEnabled: true,
@@ -210,7 +210,7 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
         };
 
         let container;
-        ({container} = renderWithContext(
+        ({container} = await renderWithContext(
             <ChannelDetails
                 teamScheme={teamScheme}
                 groups={groups}
@@ -225,7 +225,7 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
         ));
         expect(container).toMatchSnapshot();
 
-        ({container} = renderWithContext(
+        ({container} = await renderWithContext(
             <ChannelDetails
                 teamScheme={teamScheme}
                 groups={groups}

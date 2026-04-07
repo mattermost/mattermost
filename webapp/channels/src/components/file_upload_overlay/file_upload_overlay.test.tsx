@@ -8,8 +8,8 @@ import {renderWithContext} from 'tests/react_testing_utils';
 import FileUploadOverlay from './index';
 
 describe('components/FileUploadOverlay', () => {
-    test('should match snapshot when file upload is showing with no overlay type', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot when file upload is showing with no overlay type', async () => {
+        const {container} = await renderWithContext(
             <FileUploadOverlay
                 overlayType=''
                 id={'fileUploadOverlay'}
@@ -19,8 +19,8 @@ describe('components/FileUploadOverlay', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when file upload is showing with overlay type of right', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot when file upload is showing with overlay type of right', async () => {
+        const {container} = await renderWithContext(
             <FileUploadOverlay
                 overlayType='right'
                 id={'fileUploadOverlay'}
@@ -30,8 +30,8 @@ describe('components/FileUploadOverlay', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when file upload is showing with overlay type of center', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot when file upload is showing with overlay type of center', async () => {
+        const {container} = await renderWithContext(
             <FileUploadOverlay
                 overlayType='center'
                 id={'fileUploadOverlay'}

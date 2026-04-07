@@ -62,18 +62,18 @@ describe('FileAttachmentList', () => {
         },
     } as unknown as GlobalState;
 
-    test('should render a FileAttachment for a single file', () => {
+    test('should render a FileAttachment for a single file', async () => {
         const props = {
             ...baseProps,
         };
 
-        renderWithContext(<FileAttachmentList {...props}/>, defaultState);
+        await renderWithContext(<FileAttachmentList {...props}/>, defaultState);
 
         expect(screen.getByTestId('fileAttachmentList').querySelectorAll('.post-image__column').length).toBe(3);
     });
 
-    test('should render multiple, sorted FileAttachments for multiple files', () => {
-        renderWithContext(<FileAttachmentList {...baseProps}/>, defaultState);
+    test('should render multiple, sorted FileAttachments for multiple files', async () => {
+        await renderWithContext(<FileAttachmentList {...baseProps}/>, defaultState);
 
         const fileAttachments = Array.from(screen.getByTestId('fileAttachmentList').querySelectorAll('.post-image__column'));
         expect(fileAttachments.length).toBe(3);
@@ -82,7 +82,7 @@ describe('FileAttachmentList', () => {
         expect(fileAttachments[2]?.textContent?.includes('image_3.png')).toBe(true);
     });
 
-    test('should render a SingleImageView for a single image', () => {
+    test('should render a SingleImageView for a single image', async () => {
         const props = {
             ...baseProps,
             post: {
@@ -105,12 +105,12 @@ describe('FileAttachmentList', () => {
             },
         } as unknown as GlobalState;
 
-        const {container} = renderWithContext(<FileAttachmentList {...props}/>, state);
+        const {container} = await renderWithContext(<FileAttachmentList {...props}/>, state);
 
         expect(container.querySelector('.file-view--single')).toBeInTheDocument();
     });
 
-    test('should render a SingleImageView for an SVG with SVG previews enabled', () => {
+    test('should render a SingleImageView for an SVG with SVG previews enabled', async () => {
         const state = {
             ...defaultState,
             entities: {
@@ -135,12 +135,12 @@ describe('FileAttachmentList', () => {
             enableSVGs: true,
         };
 
-        const {container} = renderWithContext(<FileAttachmentList {...props}/>, state);
+        const {container} = await renderWithContext(<FileAttachmentList {...props}/>, state);
 
         expect(container.querySelector('.file-view--single')).toBeInTheDocument();
     });
 
-    test('should render a FileAttachment for an SVG with SVG previews disabled', () => {
+    test('should render a FileAttachment for an SVG with SVG previews disabled', async () => {
         const state = {
             ...defaultState,
             entities: {
@@ -164,13 +164,13 @@ describe('FileAttachmentList', () => {
             ...baseProps,
         };
 
-        renderWithContext(<FileAttachmentList {...props}/>, state);
+        await renderWithContext(<FileAttachmentList {...props}/>, state);
 
         expect(screen.getByTestId('fileAttachmentList').querySelector('.file-view--single')).not.toBeInTheDocument();
         expect(screen.getByTestId('fileAttachmentList').querySelector('.post-image__column')).toBeInTheDocument();
     });
 
-    test('should render deleted files', () => {
+    test('should render deleted files', async () => {
         const state = {
             ...defaultState,
             entities: {
@@ -190,7 +190,7 @@ describe('FileAttachmentList', () => {
         const props = {
             ...baseProps,
         };
-        renderWithContext(<FileAttachmentList {...props}/>, state);
+        await renderWithContext(<FileAttachmentList {...props}/>, state);
 
         const fileAttachments = screen.getByTestId('fileAttachmentList').querySelectorAll('.post-image__column');
         expect(fileAttachments.length).toBe(3);
@@ -199,7 +199,7 @@ describe('FileAttachmentList', () => {
         expect(fileAttachments[2]?.textContent?.includes('image_3.png')).toBe(true);
     });
 
-    test('should render file list in edit history RHS', () => {
+    test('should render file list in edit history RHS', async () => {
         const fileInfo1 = TestHelper.getFileInfoMock({id: 'file_id_1', name: 'image_1.png', extension: 'png', create_at: 1, delete_at: 4});
         const fileInfo2 = TestHelper.getFileInfoMock({id: 'file_id_2', name: 'image_2.png', extension: 'png', create_at: 2, delete_at: 4});
         const fileInfo3 = TestHelper.getFileInfoMock({id: 'file_id_3', name: 'image_3.png', extension: 'png', create_at: 3, delete_at: 4});
@@ -243,7 +243,7 @@ describe('FileAttachmentList', () => {
                 } as PostMetadata,
             },
         };
-        renderWithContext(<FileAttachmentList {...props}/>, state);
+        await renderWithContext(<FileAttachmentList {...props}/>, state);
 
         const fileAttachments = screen.getByTestId('fileAttachmentList').querySelectorAll('.post-image__column');
         expect(fileAttachments.length).toBe(3);

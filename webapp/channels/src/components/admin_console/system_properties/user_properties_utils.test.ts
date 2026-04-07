@@ -76,16 +76,11 @@ describe('useUserPropertyFields', () => {
     getFields.mockResolvedValue([field0, field1, field2, field3]);
 
     it('should return a collection', async () => {
-        const {result, rerender} = renderHookWithContext(() => {
+        const {result, rerender} = await renderHookWithContext(() => {
             return useUserPropertyFields();
         }, getBaseState());
 
-        const [fields1, read1] = result.current;
-        expect(read1.loading).toBe(true);
-        expect(read1.error).toBe(undefined);
         expect(getFields).toHaveBeenCalledTimes(1);
-        expect(fields1.data).toEqual({});
-        expect(fields1.order).toEqual([]);
 
         act(() => {
             jest.runAllTimers();
@@ -105,7 +100,7 @@ describe('useUserPropertyFields', () => {
     });
 
     it('should successfully handle edits', async () => {
-        const {result, rerender} = renderHookWithContext(() => {
+        const {result, rerender} = await renderHookWithContext(() => {
             return useUserPropertyFields();
         }, getBaseState());
 
@@ -156,7 +151,7 @@ describe('useUserPropertyFields', () => {
     it('should successfully handle reordering', async () => {
         patchField.mockImplementation((id: string, patch: UserPropertyFieldPatch) => Promise.resolve({...baseField, ...patch, id, update_at: Date.now()} as UserPropertyField));
 
-        const {result, rerender} = renderHookWithContext(() => {
+        const {result, rerender} = await renderHookWithContext(() => {
             return useUserPropertyFields();
         }, getBaseState());
 
@@ -207,7 +202,7 @@ describe('useUserPropertyFields', () => {
     });
 
     it('should successfully handle deletes', async () => {
-        const {result, rerender} = renderHookWithContext(() => {
+        const {result, rerender} = await renderHookWithContext(() => {
             return useUserPropertyFields();
         }, getBaseState());
 
@@ -256,7 +251,7 @@ describe('useUserPropertyFields', () => {
     it('should successfully handle creates', async () => {
         createField.mockImplementation((patch) => Promise.resolve({...baseField, ...patch, id: generateId()} as UserPropertyField));
 
-        const {result, rerender} = renderHookWithContext(() => {
+        const {result, rerender} = await renderHookWithContext(() => {
             return useUserPropertyFields();
         }, getBaseState());
 
@@ -305,7 +300,7 @@ describe('useUserPropertyFields', () => {
     });
 
     it('should validate name uniqueness', async () => {
-        const {result, rerender} = renderHookWithContext(() => {
+        const {result, rerender} = await renderHookWithContext(() => {
             return useUserPropertyFields();
         }, getBaseState());
 
@@ -335,7 +330,7 @@ describe('useUserPropertyFields', () => {
     });
 
     it('should validate names already taken', async () => {
-        const {result, rerender} = renderHookWithContext(() => {
+        const {result, rerender} = await renderHookWithContext(() => {
             return useUserPropertyFields();
         }, getBaseState());
 
@@ -375,7 +370,7 @@ describe('useUserPropertyFields', () => {
     });
 
     it('should validate name required', async () => {
-        const {result, rerender} = renderHookWithContext(() => {
+        const {result, rerender} = await renderHookWithContext(() => {
             return useUserPropertyFields();
         }, getBaseState());
 

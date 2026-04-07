@@ -166,8 +166,8 @@ describe('useWords', () => {
         },
     };
     tests.forEach((t: Test) => {
-        test(t.label, () => {
-            renderWithContext(
+        test(t.label, async () => {
+            await renderWithContext(
                 <TestEl {...t.props}/>,
                 initialState,
             );

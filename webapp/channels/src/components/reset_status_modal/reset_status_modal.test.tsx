@@ -25,7 +25,7 @@ describe('components/ResetStatusModal', () => {
     };
 
     test('should match snapshot', async () => {
-        const {baseElement} = renderWithContext(
+        const {baseElement} = await renderWithContext(
             <ResetStatusModal
                 onHide={jest.fn()}
                 {...baseProps}
@@ -51,7 +51,7 @@ describe('components/ResetStatusModal', () => {
                 savePreferences,
             },
         };
-        renderWithContext(
+        await renderWithContext(
             <ResetStatusModal
                 onHide={jest.fn()}
                 {...props}
@@ -88,7 +88,7 @@ describe('components/ResetStatusModal', () => {
                 savePreferences,
             },
         };
-        renderWithContext(
+        await renderWithContext(
             <ResetStatusModal
                 onHide={jest.fn()}
                 {...props}
@@ -126,7 +126,7 @@ describe('components/ResetStatusModal', () => {
                 savePreferences,
             },
         };
-        renderWithContext(
+        await renderWithContext(
             <ResetStatusModal
                 onHide={jest.fn()}
                 {...props}
@@ -158,7 +158,7 @@ describe('components/ResetStatusModal', () => {
                 savePreferences,
             },
         };
-        renderWithContext(
+        await renderWithContext(
             <ResetStatusModal
                 onHide={jest.fn()}
                 {...props}
@@ -197,7 +197,7 @@ describe('components/ResetStatusModal', () => {
                 autoResetStatus: autoResetStatusOOF,
             },
         };
-        const {baseElement} = renderWithContext(
+        const {baseElement} = await renderWithContext(
             <ResetStatusModal
                 onHide={jest.fn()}
                 {...props}

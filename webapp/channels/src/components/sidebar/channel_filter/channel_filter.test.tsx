@@ -16,29 +16,29 @@ describe('components/sidebar/channel_filter', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <ChannelFilterIntl {...baseProps}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot if the unread filter is enabled', () => {
+    test('should match snapshot if the unread filter is enabled', async () => {
         const props = {
             ...baseProps,
             unreadFilterEnabled: true,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelFilterIntl {...props}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should enable the unread filter on toggle when it is disabled', () => {
-        const {container} = renderWithContext(
+    test('should enable the unread filter on toggle when it is disabled', async () => {
+        const {container} = await renderWithContext(
             <ChannelFilterIntl {...baseProps}/>,
         );
         const filterButton = container.querySelector('.SidebarFilters_filterButton')!;
@@ -47,13 +47,13 @@ describe('components/sidebar/channel_filter', () => {
         expect(baseProps.actions.setUnreadFilterEnabled).toHaveBeenCalledWith(true);
     });
 
-    test('should disable the unread filter on toggle when it is enabled', () => {
+    test('should disable the unread filter on toggle when it is enabled', async () => {
         const props = {
             ...baseProps,
             unreadFilterEnabled: true,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelFilterIntl {...props}/>,
         );
         const filterButton = container.querySelector('.SidebarFilters_filterButton')!;

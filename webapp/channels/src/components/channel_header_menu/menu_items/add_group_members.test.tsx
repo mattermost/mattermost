@@ -26,8 +26,8 @@ describe('components/ChannelHeaderMenu/MenuItems/AddGroupMembers', () => {
         jest.clearAllMocks();
     });
 
-    test('renders the component correctly', () => {
-        renderWithContext(
+    test('renders the component correctly', async () => {
+        await renderWithContext(
             <AddGroupMembers/>, {},
         );
 
@@ -36,7 +36,7 @@ describe('components/ChannelHeaderMenu/MenuItems/AddGroupMembers', () => {
     });
 
     test('dispatches openModal action on click', async () => {
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <AddGroupMembers/>
             </WithTestMenuContext>, {},

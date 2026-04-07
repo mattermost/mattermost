@@ -4,7 +4,7 @@
 import React from 'react';
 import {MemoryRouter} from 'react-router-dom';
 
-import {renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing_utils';
 
 import PasswordResetSendLink from './password_reset_send_link';
 
@@ -18,7 +18,7 @@ describe('components/PasswordResetSendLink', () => {
     it('should calls sendPasswordResetEmail() action on submit', async () => {
         const props = {...baseProps};
 
-        renderWithContext(
+        await renderWithContext(
             <MemoryRouter>
                 <PasswordResetSendLink {...props}/>
             </MemoryRouter>,
@@ -28,7 +28,9 @@ describe('components/PasswordResetSendLink', () => {
         await userEvent.type(emailInput, 'test@example.com');
 
         const form = emailInput.closest('form')!;
-        form.requestSubmit();
+        await act(async () => {
+            form.requestSubmit();
+        });
 
         await waitFor(() => {
             expect(props.actions.sendPasswordResetEmail).toHaveBeenCalledWith('test@example.com');

@@ -94,9 +94,9 @@ describe('components/integrations/EditOutgoingOAuthConnection', () => {
         } as any,
     };
 
-    test('should match snapshot, loading', () => {
+    test('should match snapshot, loading', async () => {
         const props = {...baseProps, oauthApp: connection};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <Router>
                 <EditOutgoingOAuthConnection {...props}/>
             </Router>,
@@ -106,9 +106,9 @@ describe('components/integrations/EditOutgoingOAuthConnection', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const props = {...baseProps, oauthApp: connection};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <Router>
                 <EditOutgoingOAuthConnection {...props}/>
             </Router>,
@@ -118,9 +118,9 @@ describe('components/integrations/EditOutgoingOAuthConnection', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when EnableOAuthServiceProvider is false', () => {
+    test('should match snapshot when EnableOAuthServiceProvider is false', async () => {
         const props = {...baseProps, oauthApp: connection, enableOAuthServiceProvider: false};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <Router>
                 <EditOutgoingOAuthConnection {...props}/>
             </Router>,

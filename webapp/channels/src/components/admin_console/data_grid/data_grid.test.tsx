@@ -24,8 +24,8 @@ describe('components/admin_console/data_grid/DataGrid', () => {
         term: '',
     };
 
-    test('should match snapshot with no items found', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with no items found', async () => {
+        const {container} = await renderWithContext(
             <DataGrid
                 {...baseProps}
             />,
@@ -33,8 +33,8 @@ describe('components/admin_console/data_grid/DataGrid', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot while loading', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot while loading', async () => {
+        const {container} = await renderWithContext(
             <DataGrid
                 {...baseProps}
                 loading={true}
@@ -43,8 +43,8 @@ describe('components/admin_console/data_grid/DataGrid', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with content and custom styling on rows', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with content and custom styling on rows', async () => {
+        const {container} = await renderWithContext(
             <DataGrid
                 {...baseProps}
                 rows={[
@@ -61,8 +61,8 @@ describe('components/admin_console/data_grid/DataGrid', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with custom classes', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with custom classes', async () => {
+        const {container} = await renderWithContext(
             <DataGrid
                 {...baseProps}
                 rows={[

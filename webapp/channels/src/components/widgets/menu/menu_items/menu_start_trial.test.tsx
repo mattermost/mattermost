@@ -16,7 +16,7 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
         useDispatchMock.mockClear();
     });
 
-    test('should render TEAM EDITION for unlicensed', () => {
+    test('should render TEAM EDITION for unlicensed', async () => {
         const state = {
             entities: {
                 users: {
@@ -32,14 +32,14 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
         };
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
-        const {container} = renderWithContext(<MenuStartTrial id='startTrial'/>, state);
+        const {container} = await renderWithContext(<MenuStartTrial id='startTrial'/>, state);
 
         expect(container.querySelector('.editionText')).not.toBeNull();
         expect(container.textContent).toContain('TEAM EDITION');
         expect(container.textContent).toContain('This is the free');
     });
 
-    test('should render ENTRY EDITION for Entry license', () => {
+    test('should render ENTRY EDITION for Entry license', async () => {
         const state = {
             entities: {
                 users: {
@@ -55,14 +55,14 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
         };
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
-        const {container} = renderWithContext(<MenuStartTrial id='startTrial'/>, state);
+        const {container} = await renderWithContext(<MenuStartTrial id='startTrial'/>, state);
 
         expect(container.querySelector('.editionText')).not.toBeNull();
         expect(container.textContent).toContain('ENTRY EDITION');
         expect(container.textContent).toContain('Entry offers Enterprise Advance capabilities');
     });
 
-    test('should return null for Professional license', () => {
+    test('should return null for Professional license', async () => {
         const state = {
             entities: {
                 users: {
@@ -78,12 +78,12 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
         };
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
-        const {container} = renderWithContext(<MenuStartTrial id='startTrial'/>, state);
+        const {container} = await renderWithContext(<MenuStartTrial id='startTrial'/>, state);
 
         expect(container.innerHTML).toBe('');
     });
 
-    test('should return null for Enterprise license', () => {
+    test('should return null for Enterprise license', async () => {
         const state = {
             entities: {
                 users: {
@@ -99,7 +99,7 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
         };
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
-        const {container} = renderWithContext(<MenuStartTrial id='startTrial'/>, state);
+        const {container} = await renderWithContext(<MenuStartTrial id='startTrial'/>, state);
 
         expect(container.innerHTML).toBe('');
     });

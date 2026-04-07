@@ -60,38 +60,34 @@ describe('components/admin_console/permission_schemes_settings/permission_system
         },
     };
 
-    test('should match snapshot on roles without permissions', (done) => {
+    test('should match snapshot on roles without permissions', async () => {
         const ref = React.createRef<InstanceType<typeof PermissionSystemSchemeSettings>>();
-        renderWithContext(
+        await renderWithContext(
             <PermissionSystemSchemeSettings
                 {...defaultProps}
                 ref={ref}
             />,
         );
-        defaultProps.actions.loadRolesIfNeeded().then(() => {
-            expect(ref.current!.state).toMatchSnapshot();
-            done();
-        });
+        await defaultProps.actions.loadRolesIfNeeded();
+        expect(ref.current!.state).toMatchSnapshot();
     });
 
-    test('should match snapshot when the license doesnt have custom schemes', (done) => {
+    test('should match snapshot when the license doesnt have custom schemes', async () => {
         const license = {
             IsLicensed: 'true',
             CustomPermissionsSchemes: 'false',
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PermissionSystemSchemeSettings
                 {...defaultProps}
                 license={license}
             />,
         );
-        defaultProps.actions.loadRolesIfNeeded().then(() => {
-            expect(container).toMatchSnapshot();
-            done();
-        });
+        await defaultProps.actions.loadRolesIfNeeded();
+        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot on roles with permissions', (done) => {
+    test('should match snapshot on roles with permissions', async () => {
         const roles: Record<string, Role> = {
             system_guest: {
                 ...defaultRole,
@@ -131,7 +127,7 @@ describe('components/admin_console/permission_schemes_settings/permission_system
             },
         };
         const ref = React.createRef<InstanceType<typeof PermissionSystemSchemeSettings>>();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PermissionSystemSchemeSettings
                 {...defaultProps}
                 roles={roles}
@@ -140,16 +136,14 @@ describe('components/admin_console/permission_schemes_settings/permission_system
         );
 
         expect(container).toMatchSnapshot();
-        defaultProps.actions.loadRolesIfNeeded().then(() => {
-            expect(ref.current!.state).toMatchSnapshot();
-            done();
-        });
+        await defaultProps.actions.loadRolesIfNeeded();
+        expect(ref.current!.state).toMatchSnapshot();
     });
 
     test('should save each role on handleSubmit except system_admin role', async () => {
         const editRole = jest.fn().mockImplementation(() => Promise.resolve({data: {}}));
         const ref = React.createRef<InstanceType<typeof PermissionSystemSchemeSettings>>();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PermissionSystemSchemeSettings
                 {...defaultProps}
                 actions={{...defaultProps.actions, editRole}}
@@ -173,7 +167,7 @@ describe('components/admin_console/permission_schemes_settings/permission_system
         };
         let editRole = jest.fn().mockImplementation(() => Promise.resolve({data: {}}));
         const ref = React.createRef<InstanceType<typeof PermissionSystemSchemeSettings>>();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PermissionSystemSchemeSettings
                 {...defaultProps}
                 license={license}
@@ -191,7 +185,7 @@ describe('components/admin_console/permission_schemes_settings/permission_system
         license.GuestAccountsPermissions = 'true';
         editRole = jest.fn().mockImplementation(() => Promise.resolve({data: {}}));
         const ref2 = React.createRef<InstanceType<typeof PermissionSystemSchemeSettings>>();
-        const {container: container2} = renderWithContext(
+        const {container: container2} = await renderWithContext(
             <PermissionSystemSchemeSettings
                 {...defaultProps}
                 license={license}
@@ -211,7 +205,7 @@ describe('components/admin_console/permission_schemes_settings/permission_system
     test('should show error if editRole fails', async () => {
         const editRole = jest.fn().mockImplementation(() => Promise.resolve({error: {message: 'test error'}}));
         const ref = React.createRef<InstanceType<typeof PermissionSystemSchemeSettings>>();
-        renderWithContext(
+        await renderWithContext(
             <PermissionSystemSchemeSettings
                 {...defaultProps}
                 actions={{...defaultProps.actions, editRole}}
@@ -225,9 +219,9 @@ describe('components/admin_console/permission_schemes_settings/permission_system
         expect(ref.current!.state.serverError).toBe('test error');
     });
 
-    test('should open and close correctly roles blocks', () => {
+    test('should open and close correctly roles blocks', async () => {
         const ref = React.createRef<InstanceType<typeof PermissionSystemSchemeSettings>>();
-        renderWithContext(
+        await renderWithContext(
             <PermissionSystemSchemeSettings
                 {...defaultProps}
                 ref={ref}
@@ -275,9 +269,9 @@ describe('components/admin_console/permission_schemes_settings/permission_system
         expect(ref.current!.state.openRoles.system_admin).toBe(true);
     });
 
-    test('should open modal on click reset defaults', () => {
+    test('should open modal on click reset defaults', async () => {
         const ref = React.createRef<InstanceType<typeof PermissionSystemSchemeSettings>>();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PermissionSystemSchemeSettings
                 {...defaultProps}
                 ref={ref}
@@ -292,9 +286,9 @@ describe('components/admin_console/permission_schemes_settings/permission_system
         expect(ref.current!.state.showResetDefaultModal).toBe(true);
     });
 
-    test('should have default permissions that match the defaults constant', () => {
+    test('should have default permissions that match the defaults constant', async () => {
         const ref = React.createRef<InstanceType<typeof PermissionSystemSchemeSettings>>();
-        renderWithContext(
+        await renderWithContext(
             <PermissionSystemSchemeSettings
                 {...defaultProps}
                 ref={ref}
@@ -313,9 +307,9 @@ describe('components/admin_console/permission_schemes_settings/permission_system
         expect(ref.current!.state.roles.system_admin.permissions?.length).toBe(defaultProps.roles.system_admin.permissions.length);
     });
 
-    test('should set moderated permissions on team/channel admins', () => {
+    test('should set moderated permissions on team/channel admins', async () => {
         const ref = React.createRef<InstanceType<typeof PermissionSystemSchemeSettings>>();
-        renderWithContext(
+        await renderWithContext(
             <PermissionSystemSchemeSettings
                 {...defaultProps}
                 ref={ref}

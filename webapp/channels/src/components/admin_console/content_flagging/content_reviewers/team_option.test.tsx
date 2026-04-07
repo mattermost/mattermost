@@ -84,8 +84,8 @@ describe('TeamOptionComponent', () => {
         (Utils.imageURLForTeam as jest.Mock).mockReturnValue('http://example.com/team-icon.png');
     });
 
-    it('should render team option with team icon and display name', () => {
-        renderWithContext(<TeamOptionComponent {...mockProps}/>);
+    it('should render team option with team icon and display name', async () => {
+        await renderWithContext(<TeamOptionComponent {...mockProps}/>);
 
         expect(screen.queryAllByText('Test Team')).toHaveLength(2);
         expect(screen.getByTestId('team-icon')).toBeInTheDocument();
@@ -94,42 +94,42 @@ describe('TeamOptionComponent', () => {
         expect(screen.getByTestId('team-icon')).toHaveTextContent('Test Team');
     });
 
-    it('should call imageURLForTeam with correct team data', () => {
-        renderWithContext(<TeamOptionComponent {...mockProps}/>);
+    it('should call imageURLForTeam with correct team data', async () => {
+        await renderWithContext(<TeamOptionComponent {...mockProps}/>);
 
         expect(Utils.imageURLForTeam).toHaveBeenCalledWith(mockTeam);
         expect(Utils.imageURLForTeam).toHaveBeenCalledTimes(1);
     });
 
-    it('should apply CSS class and inner props correctly', () => {
-        renderWithContext(<TeamOptionComponent {...mockProps}/>);
+    it('should apply CSS class and inner props correctly', async () => {
+        await renderWithContext(<TeamOptionComponent {...mockProps}/>);
 
         const container = screen.queryAllByText('Test Team')[0].closest('.TeamOptionComponent');
         expect(container).toBeInTheDocument();
         expect(container).toHaveClass('TeamOptionComponent');
     });
 
-    it('should return null when data is null', () => {
+    it('should return null when data is null', async () => {
         const propsWithNullData = {
             ...mockProps,
             data: null,
         } as unknown as OptionProps<AutocompleteOptionType<Team>, true>;
 
-        const {container} = renderWithContext(<TeamOptionComponent {...propsWithNullData}/>);
+        const {container} = await renderWithContext(<TeamOptionComponent {...propsWithNullData}/>);
         expect(container.firstChild).toBeNull();
     });
 
-    it('should return null when data is undefined', () => {
+    it('should return null when data is undefined', async () => {
         const propsWithUndefinedData = {
             ...mockProps,
             data: undefined,
         } as unknown as OptionProps<AutocompleteOptionType<Team>, true>;
 
-        const {container} = renderWithContext(<TeamOptionComponent {...propsWithUndefinedData}/>);
+        const {container} = await renderWithContext(<TeamOptionComponent {...propsWithUndefinedData}/>);
         expect(container.firstChild).toBeNull();
     });
 
-    it('should return null when data.raw is null', () => {
+    it('should return null when data.raw is null', async () => {
         const propsWithNullRaw = {
             ...mockProps,
             data: {
@@ -139,11 +139,11 @@ describe('TeamOptionComponent', () => {
             },
         } as unknown as OptionProps<AutocompleteOptionType<Team>, true>;
 
-        const {container} = renderWithContext(<TeamOptionComponent {...propsWithNullRaw}/>);
+        const {container} = await renderWithContext(<TeamOptionComponent {...propsWithNullRaw}/>);
         expect(container.firstChild).toBeNull();
     });
 
-    it('should return null when data.raw is undefined', () => {
+    it('should return null when data.raw is undefined', async () => {
         const propsWithUndefinedRaw = {
             ...mockProps,
             data: {
@@ -153,11 +153,11 @@ describe('TeamOptionComponent', () => {
             },
         } as unknown as OptionProps<AutocompleteOptionType<Team>, true>;
 
-        const {container} = renderWithContext(<TeamOptionComponent {...propsWithUndefinedRaw}/>);
+        const {container} = await renderWithContext(<TeamOptionComponent {...propsWithUndefinedRaw}/>);
         expect(container.firstChild).toBeNull();
     });
 
-    it('should handle different team types', () => {
+    it('should handle different team types', async () => {
         const privateTeam = {
             ...mockTeam,
             type: 'P' as const,
@@ -172,7 +172,7 @@ describe('TeamOptionComponent', () => {
             },
         } as unknown as OptionProps<AutocompleteOptionType<Team>, true>;
 
-        renderWithContext(<TeamOptionComponent {...propsWithPrivateTeam}/>);
+        await renderWithContext(<TeamOptionComponent {...propsWithPrivateTeam}/>);
 
         expect(screen.queryAllByText('Private Team')[0]).toBeInTheDocument();
         expect(Utils.imageURLForTeam).toHaveBeenCalledWith(privateTeam);

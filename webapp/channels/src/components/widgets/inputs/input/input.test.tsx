@@ -19,8 +19,8 @@ jest.mock('@mattermost/compass-icons/components', () => ({
 }));
 
 describe('components/widgets/inputs/Input', () => {
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <Input/>,
         );
 
@@ -32,7 +32,7 @@ describe('components/widgets/inputs/Input', () => {
         const clearableTooltipText = 'tooltip text';
         const onClear = jest.fn();
 
-        renderWithContext(
+        await renderWithContext(
             <Input
                 value={value}
                 clearable={true}
@@ -61,7 +61,7 @@ describe('components/widgets/inputs/Input', () => {
             const mockValidate = jest.fn();
             const mockOnBlur = jest.fn();
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <Input
                     name='test'
                     value=''
@@ -85,7 +85,7 @@ describe('components/widgets/inputs/Input', () => {
         test('should defer validation when relatedTarget has click method', async () => {
             const mockValidate = jest.fn();
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <Input
                     name='test'
                     value=''
@@ -130,7 +130,7 @@ describe('components/widgets/inputs/Input', () => {
 
     describe('minLength validation', () => {
         test('should show error styling when input is empty with minLength set', async () => {
-            renderWithContext(
+            await renderWithContext(
                 <Input
                     value={''}
                     minLength={2}
@@ -154,7 +154,7 @@ describe('components/widgets/inputs/Input', () => {
         });
 
         test('should show error styling and message when input length < minLength', async () => {
-            renderWithContext(
+            await renderWithContext(
                 <Input
                     value={'a'}
                     minLength={2}
@@ -182,7 +182,7 @@ describe('components/widgets/inputs/Input', () => {
         test('should not show error styling when input length >= minLength', async () => {
             const onChange = jest.fn();
 
-            renderWithContext(
+            await renderWithContext(
                 <Input
                     value={'ab'}
                     minLength={2}
@@ -206,7 +206,7 @@ describe('components/widgets/inputs/Input', () => {
             const onChange = jest.fn();
 
             // Render with a value that exceeds the limit
-            renderWithContext(
+            await renderWithContext(
                 <Input
                     value={'abcdef'}
                     limit={5}
@@ -229,7 +229,7 @@ describe('components/widgets/inputs/Input', () => {
         test('should not show error styling when input length <= limit', async () => {
             const onChange = jest.fn();
 
-            renderWithContext(
+            await renderWithContext(
                 <Input
                     value={'abcde'}
                     limit={5}
@@ -244,7 +244,7 @@ describe('components/widgets/inputs/Input', () => {
 
     describe('required field validation', () => {
         test('should not show error on empty required input until blur', async () => {
-            renderWithContext(
+            await renderWithContext(
                 <Input
                     value={''}
                     required={true}
@@ -273,7 +273,7 @@ describe('components/widgets/inputs/Input', () => {
         });
 
         test('should not show error on non-empty required input', async () => {
-            renderWithContext(
+            await renderWithContext(
                 <Input
                     value={'abc'}
                     required={true}
@@ -296,7 +296,7 @@ describe('components/widgets/inputs/Input', () => {
 
     describe('interaction between validations', () => {
         test('should prioritize required validation over minLength on blur for empty input', async () => {
-            renderWithContext(
+            await renderWithContext(
                 <Input
                     value={''}
                     required={true}

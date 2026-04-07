@@ -101,7 +101,7 @@ describe('components/integrations/InstalledOutgoingWebhooks', () => {
     };
 
     test('should match snapshot', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <InstalledOutgoingWebhooks
                 {...defaultProps}
             />,
@@ -125,7 +125,7 @@ describe('components/integrations/InstalledOutgoingWebhooks', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <InstalledOutgoingWebhooks
                 {...props}
             />,
@@ -151,7 +151,7 @@ describe('components/integrations/InstalledOutgoingWebhooks', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <InstalledOutgoingWebhooks
                 {...props}
             />,

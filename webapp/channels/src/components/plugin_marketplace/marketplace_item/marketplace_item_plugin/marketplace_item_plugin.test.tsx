@@ -21,48 +21,48 @@ describe('components/MarketplaceItemPlugin', () => {
         };
 
         describe('should render nothing', () => {
-            it('when no installed version', () => {
+            it('when no installed version', async () => {
                 const props = {
                     ...baseProps,
                     installedVersion: '',
                 };
-                const {container} = renderWithContext(
+                const {container} = await renderWithContext(
                     <UpdateDetails {...props}/>,
                 );
 
                 expect(container).toBeEmptyDOMElement();
             });
 
-            it('when installed version matches available version', () => {
+            it('when installed version matches available version', async () => {
                 const props = {
                     ...baseProps,
                     installedVersion: baseProps.version,
                 };
-                const {container} = renderWithContext(
+                const {container} = await renderWithContext(
                     <UpdateDetails {...props}/>,
                 );
 
                 expect(container).toBeEmptyDOMElement();
             });
 
-            it('when installed version is newer than available version', () => {
+            it('when installed version is newer than available version', async () => {
                 const props = {
                     ...baseProps,
                     installedVersion: '0.0.3',
                 };
-                const {container} = renderWithContext(
+                const {container} = await renderWithContext(
                     <UpdateDetails {...props}/>,
                 );
 
                 expect(container).toBeEmptyDOMElement();
             });
 
-            it('when installing', () => {
+            it('when installing', async () => {
                 const props = {
                     ...baseProps,
                     isInstalling: true,
                 };
-                const {container} = renderWithContext(
+                const {container} = await renderWithContext(
                     <UpdateDetails {...props}/>,
                 );
 
@@ -70,21 +70,21 @@ describe('components/MarketplaceItemPlugin', () => {
             });
         });
 
-        it('should render without release notes url', () => {
+        it('should render without release notes url', async () => {
             const props = {
                 ...baseProps,
                 releaseNotesUrl: '',
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <UpdateDetails {...props}/>,
             );
 
             expect(container).toMatchSnapshot();
         });
 
-        it('should render with release notes url', () => {
-            const {container} = renderWithContext(
+        it('should render with release notes url', async () => {
+            const {container} = await renderWithContext(
                 <UpdateDetails {...baseProps}/>,
             );
 
@@ -104,37 +104,37 @@ describe('components/MarketplaceItemPlugin', () => {
         };
 
         describe('should render nothing', () => {
-            it('if not installed', () => {
+            it('if not installed', async () => {
                 const props = {
                     ...baseProps,
                 };
                 delete props.installedVersion;
 
-                const {container} = renderWithContext(
+                const {container} = await renderWithContext(
                     <UpdateConfirmationModal {...props}/>,
                 );
                 expect(container).toBeEmptyDOMElement();
             });
 
-            it('when installed version is newer than available version', () => {
+            it('when installed version is newer than available version', async () => {
                 const props = {
                     ...baseProps,
                     installedVersion: '0.0.3',
                 };
 
-                const {container} = renderWithContext(
+                const {container} = await renderWithContext(
                     <UpdateConfirmationModal {...props}/>,
                 );
                 expect(container).toBeEmptyDOMElement();
             });
         });
 
-        it('should propogate show to ConfirmModal', () => {
+        it('should propogate show to ConfirmModal', async () => {
             const props = {
                 ...baseProps,
                 show: false,
             };
-            renderWithContext(
+            await renderWithContext(
                 <UpdateConfirmationModal {...props}/>,
             );
 
@@ -142,51 +142,51 @@ describe('components/MarketplaceItemPlugin', () => {
             expect(screen.queryByText('Confirm Plugin Update')).not.toBeInTheDocument();
         });
 
-        it('should render without release notes url', () => {
+        it('should render without release notes url', async () => {
             const props = {
                 ...baseProps,
             };
             delete props.releaseNotesUrl;
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <UpdateConfirmationModal {...props}/>,
             );
 
             expect(container).toMatchSnapshot();
         });
 
-        it('should add extra warning for major version change', () => {
+        it('should add extra warning for major version change', async () => {
             const props = {
                 ...baseProps,
                 version: '1.0.0',
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <UpdateConfirmationModal {...props}/>,
             );
             expect(container).toMatchSnapshot();
         });
 
-        it('should add extra warning for major version change, even without release notes', () => {
+        it('should add extra warning for major version change, even without release notes', async () => {
             const props = {
                 ...baseProps,
                 version: '1.0.0',
             };
             delete props.releaseNotesUrl;
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <UpdateConfirmationModal {...props}/>,
             );
             expect(container).toMatchSnapshot();
         });
 
-        it('should avoid exception on invalid semver', () => {
+        it('should avoid exception on invalid semver', async () => {
             const props = {
                 ...baseProps,
                 version: 'not-a-version',
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <UpdateConfirmationModal {...props}/>,
             );
             expect(container).toMatchSnapshot();
@@ -210,61 +210,61 @@ describe('components/MarketplaceItemPlugin', () => {
             },
         };
 
-        test('should render', () => {
-            const {container} = renderWithContext(
+        test('should render', async () => {
+            const {container} = await renderWithContext(
                 <MarketplaceItemPlugin {...baseProps}/>,
             );
 
             expect(container).toMatchSnapshot();
         });
 
-        test('should render with no plugin description', () => {
+        test('should render with no plugin description', async () => {
             const props = {...baseProps};
             delete props.description;
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <MarketplaceItemPlugin {...props}/>,
             );
 
             expect(container).toMatchSnapshot();
         });
 
-        test('should render with no plugin icon', () => {
+        test('should render with no plugin icon', async () => {
             const props = {...baseProps};
             delete props.iconData;
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <MarketplaceItemPlugin {...props}/>,
             );
 
             expect(container).toMatchSnapshot();
         });
 
-        test('should render with no homepage url', () => {
+        test('should render with no homepage url', async () => {
             const props = {...baseProps};
             delete props.homepageUrl;
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <MarketplaceItemPlugin {...props}/>,
             );
 
             expect(container).toMatchSnapshot();
         });
 
-        test('should render with server error', () => {
+        test('should render with server error', async () => {
             const props = {
                 ...baseProps,
                 error: 'An error occurred.',
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <MarketplaceItemPlugin {...props}/>,
             );
 
             expect(container).toMatchSnapshot();
         });
 
-        test('should render with plugin status error', () => {
+        test('should render with plugin status error', async () => {
             const pluginStatus: PluginStatusRedux = {
                 active: true,
                 description: '',
@@ -281,67 +281,67 @@ describe('components/MarketplaceItemPlugin', () => {
                 pluginStatus,
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <MarketplaceItemPlugin {...props}/>,
             );
 
             expect(container).toMatchSnapshot();
         });
 
-        test('should render installed plugin', () => {
+        test('should render installed plugin', async () => {
             const props = {
                 ...baseProps,
                 installedVersion: '1.0.0',
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <MarketplaceItemPlugin {...props}/>,
             );
 
             expect(container).toMatchSnapshot();
         });
 
-        test('should render with update available', () => {
+        test('should render with update available', async () => {
             const props = {
                 ...baseProps,
                 installedVersion: '0.9.9',
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <MarketplaceItemPlugin {...props}/>,
             );
 
             expect(container).toMatchSnapshot();
         });
 
-        test('should render with update and release notes available', () => {
+        test('should render with update and release notes available', async () => {
             const props = {
                 ...baseProps,
                 installedVersion: '0.9.9',
                 releaseNotesUrl: 'http://example.com/release',
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <MarketplaceItemPlugin {...props}/>,
             );
 
             expect(container).toMatchSnapshot();
         });
 
-        test('should render with empty list of labels', () => {
+        test('should render with empty list of labels', async () => {
             const props = {
                 ...baseProps,
                 labels: [],
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <MarketplaceItemPlugin {...props}/>,
             );
 
             expect(container).toMatchSnapshot();
         });
 
-        test('should render with one labels', () => {
+        test('should render with one labels', async () => {
             // Suppress known React ref warning from WithTooltip wrapping Tag (function component)
             const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -356,7 +356,7 @@ describe('components/MarketplaceItemPlugin', () => {
                 ],
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <MarketplaceItemPlugin {...props}/>,
             );
 
@@ -365,7 +365,7 @@ describe('components/MarketplaceItemPlugin', () => {
             expect(container).toMatchSnapshot();
         });
 
-        test('should render with two labels', () => {
+        test('should render with two labels', async () => {
             const props = {
                 ...baseProps,
                 labels: [
@@ -381,7 +381,7 @@ describe('components/MarketplaceItemPlugin', () => {
                 ],
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <MarketplaceItemPlugin {...props}/>,
             );
 

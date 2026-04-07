@@ -28,8 +28,8 @@ describe('comoponents/rhs_card/RhsCard', () => {
         previousRhsState: {} as RhsState,
     };
 
-    it('should match when no post is selected', () => {
-        const {container} = renderWithContext(
+    it('should match when no post is selected', async () => {
+        const {container} = await renderWithContext(
             <RhsCard
                 {...baseProps}
             />,
@@ -38,8 +38,8 @@ describe('comoponents/rhs_card/RhsCard', () => {
         expect(container).toMatchSnapshot();
     });
 
-    it('should match on post when no plugin defining card types', () => {
-        const {container} = renderWithContext(
+    it('should match on post when no plugin defining card types', async () => {
+        const {container} = await renderWithContext(
             <RhsCard
                 {...baseProps}
                 selected={post}
@@ -49,8 +49,8 @@ describe('comoponents/rhs_card/RhsCard', () => {
         expect(container).toMatchSnapshot();
     });
 
-    it('should match on post when plugin defining card types don\'t match with the post type', () => {
-        const {container} = renderWithContext(
+    it('should match on post when plugin defining card types don\'t match with the post type', async () => {
+        const {container} = await renderWithContext(
             <RhsCard
                 {...baseProps}
                 selected={post}
@@ -61,8 +61,8 @@ describe('comoponents/rhs_card/RhsCard', () => {
         expect(container).toMatchSnapshot();
     });
 
-    it('should match on post when plugin defining card types match with the post type', () => {
-        const {container} = renderWithContext(
+    it('should match on post when plugin defining card types match with the post type', async () => {
+        const {container} = await renderWithContext(
             <RhsCard
                 {...baseProps}
                 selected={post}

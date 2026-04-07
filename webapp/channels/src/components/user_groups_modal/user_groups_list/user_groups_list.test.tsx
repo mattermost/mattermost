@@ -90,8 +90,8 @@ describe('component/user_groups_modal', () => {
         },
     };
 
-    test('should match snapshot without groups', () => {
-        const {baseElement} = renderWithContext(
+    test('should match snapshot without groups', async () => {
+        const {baseElement} = await renderWithContext(
             <UserGroupsList
                 {...baseProps}
             />,
@@ -101,7 +101,7 @@ describe('component/user_groups_modal', () => {
         expect(baseElement).toMatchSnapshot();
     });
 
-    test('should match snapshot with groups', () => {
+    test('should match snapshot with groups', async () => {
         const groups = getGroups(3);
         const permissions = getPermissions(groups);
 
@@ -109,7 +109,7 @@ describe('component/user_groups_modal', () => {
         const originalError = console.error;
         console.error = jest.fn();
 
-        const {baseElement} = renderWithContext(
+        const {baseElement} = await renderWithContext(
             <UserGroupsList
                 {...baseProps}
                 groups={groups}

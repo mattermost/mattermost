@@ -21,16 +21,16 @@ describe('BurnOnReadTimerChip', () => {
         jest.useRealTimers();
     });
 
-    it('should render timer with duration', () => {
-        renderWithContext(<BurnOnReadTimerChip {...baseProps}/>);
+    it('should render timer with duration', async () => {
+        await renderWithContext(<BurnOnReadTimerChip {...baseProps}/>);
 
         expect(screen.getByRole('button')).toBeInTheDocument();
         expect(screen.getByText('10:00')).toBeInTheDocument();
     });
 
-    it('should call onClick when clicked', () => {
+    it('should call onClick when clicked', async () => {
         const onClick = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <BurnOnReadTimerChip
                 {...baseProps}
                 onClick={onClick}
@@ -45,9 +45,9 @@ describe('BurnOnReadTimerChip', () => {
         expect(onClick).toHaveBeenCalledTimes(1);
     });
 
-    it('should call onClick on keyboard interaction', () => {
+    it('should call onClick on keyboard interaction', async () => {
         const onClick = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <BurnOnReadTimerChip
                 {...baseProps}
                 onClick={onClick}
@@ -62,8 +62,8 @@ describe('BurnOnReadTimerChip', () => {
         expect(onClick).toHaveBeenCalled();
     });
 
-    it('should display warning state when timer below 1 minute', () => {
-        renderWithContext(
+    it('should display warning state when timer below 1 minute', async () => {
+        await renderWithContext(
             <BurnOnReadTimerChip
                 {...baseProps}
                 expireAt={Date.now() + (30 * 1000)}
@@ -76,10 +76,10 @@ describe('BurnOnReadTimerChip', () => {
         expect(chip).toHaveClass('BurnOnReadTimerChip--warning');
     });
 
-    it('should register post with expiration scheduler on mount', () => {
+    it('should register post with expiration scheduler on mount', async () => {
         // Note: Actual expiration is now handled by the global BurnOnReadExpirationScheduler
         // This test verifies the component renders correctly with a short duration
-        renderWithContext(
+        await renderWithContext(
             <BurnOnReadTimerChip
                 {...baseProps}
                 expireAt={Date.now() + (2 * 1000)}
@@ -92,8 +92,8 @@ describe('BurnOnReadTimerChip', () => {
         expect(screen.getByRole('button')).toBeInTheDocument();
     });
 
-    it('should have accessibility attributes', () => {
-        const {container} = renderWithContext(<BurnOnReadTimerChip {...baseProps}/>);
+    it('should have accessibility attributes', async () => {
+        const {container} = await renderWithContext(<BurnOnReadTimerChip {...baseProps}/>);
 
         const chip = screen.getByRole('button');
         expect(chip).toHaveAttribute('aria-label');

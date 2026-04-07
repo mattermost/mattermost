@@ -28,14 +28,14 @@ describe('components/TeamSidebar/TeamButton', () => {
         isInProduct: false,
     };
 
-    it('should show unread badge and set class when unread in channels', () => {
+    it('should show unread badge and set class when unread in channels', async () => {
         const props = {
             ...baseProps,
             active: false,
             unread: true,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <TeamButton {...props}/>,
         );
 
@@ -43,7 +43,7 @@ describe('components/TeamSidebar/TeamButton', () => {
         expect(screen.getByTestId('team-container-')).toHaveClass('unread');
     });
 
-    it('should hide unread badge and set no class when unread in a product', () => {
+    it('should hide unread badge and set no class when unread in a product', async () => {
         const props = {
             ...baseProps,
             active: false,
@@ -51,7 +51,7 @@ describe('components/TeamSidebar/TeamButton', () => {
             isInProduct: true,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <TeamButton {...props}/>,
         );
 
@@ -59,7 +59,7 @@ describe('components/TeamSidebar/TeamButton', () => {
         expect(screen.getByTestId('team-container-')).not.toHaveClass('unread');
     });
 
-    it('should show mentions badge and set class when mentions in channels', () => {
+    it('should show mentions badge and set class when mentions in channels', async () => {
         const props = {
             ...baseProps,
             active: false,
@@ -67,7 +67,7 @@ describe('components/TeamSidebar/TeamButton', () => {
             mentions: 1,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <TeamButton {...props}/>,
         );
 
@@ -75,7 +75,7 @@ describe('components/TeamSidebar/TeamButton', () => {
         expect(screen.getByTestId('team-container-')).toHaveClass('unread');
     });
 
-    it('should hide mentions badge and set no class when mentions in product', () => {
+    it('should hide mentions badge and set no class when mentions in product', async () => {
         const props = {
             ...baseProps,
             active: false,
@@ -84,7 +84,7 @@ describe('components/TeamSidebar/TeamButton', () => {
             isInProduct: true,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <TeamButton {...props}/>,
         );
 
@@ -93,49 +93,49 @@ describe('components/TeamSidebar/TeamButton', () => {
     });
 
     describe('aria-label accessibility', () => {
-        it('should use displayName as aria-label for create team button', () => {
+        it('should use displayName as aria-label for create team button', async () => {
             const props = {
                 ...baseProps,
                 url: '/create_team',
                 displayName: 'Create a Team',
             };
 
-            renderWithContext(
+            await renderWithContext(
                 <TeamButton {...props}/>,
             );
 
             expect(screen.getByRole('link')).toHaveAccessibleName('Create a Team');
         });
 
-        it('should use displayName as aria-label for join team button', () => {
+        it('should use displayName as aria-label for join team button', async () => {
             const props = {
                 ...baseProps,
                 url: '/select_team',
                 displayName: 'Other teams you can join',
             };
 
-            renderWithContext(
+            await renderWithContext(
                 <TeamButton {...props}/>,
             );
 
             expect(screen.getByRole('link')).toHaveAccessibleName('Other teams you can join');
         });
 
-        it('should use team name with "team" for regular team buttons', () => {
+        it('should use team name with "team" for regular team buttons', async () => {
             const props = {
                 ...baseProps,
                 url: '/team1',
                 displayName: 'My Team',
             };
 
-            renderWithContext(
+            await renderWithContext(
                 <TeamButton {...props}/>,
             );
 
             expect(screen.getByRole('link')).toHaveAccessibleName('my team team');
         });
 
-        it('should use "team unread" aria-label for unread team buttons, not create/join buttons', () => {
+        it('should use "team unread" aria-label for unread team buttons, not create/join buttons', async () => {
             const props = {
                 ...baseProps,
                 url: '/team1',
@@ -143,14 +143,14 @@ describe('components/TeamSidebar/TeamButton', () => {
                 unread: true,
             };
 
-            renderWithContext(
+            await renderWithContext(
                 <TeamButton {...props}/>,
             );
 
             expect(screen.getByRole('link')).toHaveAccessibleName('my team team unread');
         });
 
-        it('should use "team mentions" aria-label for team buttons with mentions', () => {
+        it('should use "team mentions" aria-label for team buttons with mentions', async () => {
             const props = {
                 ...baseProps,
                 url: '/team1',
@@ -158,7 +158,7 @@ describe('components/TeamSidebar/TeamButton', () => {
                 mentions: 5,
             };
 
-            renderWithContext(
+            await renderWithContext(
                 <TeamButton {...props}/>,
             );
 

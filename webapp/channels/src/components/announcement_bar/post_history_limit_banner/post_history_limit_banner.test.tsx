@@ -120,35 +120,35 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
     };
 
     describe('Banner Display Logic', () => {
-        it('should show banner when posts are truncated and never dismissed', () => {
+        it('should show banner when posts are truncated and never dismissed', async () => {
             setupServerLimits(true);
             const state = createInitialState(true, []);
 
-            renderWithContext(<PostHistoryLimitBanner/>, state);
+            await renderWithContext(<PostHistoryLimitBanner/>, state);
 
             expect(screen.getByText(bannerText)).toBeInTheDocument();
             expect(screen.getByText('Restore Access')).toBeInTheDocument();
         });
 
-        it('should not show banner when limits are not loaded', () => {
+        it('should not show banner when limits are not loaded', async () => {
             setupServerLimits(true, false);
             const state = createInitialState(true, []);
 
-            renderWithContext(<PostHistoryLimitBanner/>, state);
+            await renderWithContext(<PostHistoryLimitBanner/>, state);
 
             expect(screen.queryByText(bannerText)).not.toBeInTheDocument();
         });
 
-        it('should not show banner when posts are not truncated', () => {
+        it('should not show banner when posts are not truncated', async () => {
             setupServerLimits(false);
             const state = createInitialState(true, []);
 
-            renderWithContext(<PostHistoryLimitBanner/>, state);
+            await renderWithContext(<PostHistoryLimitBanner/>, state);
 
             expect(screen.queryByText(bannerText)).not.toBeInTheDocument();
         });
 
-        it('should not show banner when lastAccessiblePostTime is 0', () => {
+        it('should not show banner when lastAccessiblePostTime is 0', async () => {
             mockUseGetServerLimits.mockReturnValue([{
                 postHistoryLimit,
                 lastAccessiblePostTime: 0,
@@ -159,7 +159,7 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
 
             const state = createInitialState(true, []);
 
-            renderWithContext(<PostHistoryLimitBanner/>, state);
+            await renderWithContext(<PostHistoryLimitBanner/>, state);
 
             expect(screen.queryByText(bannerText)).not.toBeInTheDocument();
         });
@@ -168,7 +168,7 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
     describe('Time-Based Dismissal Logic', () => {
         const preferenceName = 'post_history_limit_banner';
 
-        it('should not show banner when recently dismissed by admin (< 7 days)', () => {
+        it('should not show banner when recently dismissed by admin (< 7 days)', async () => {
             setupServerLimits(true);
 
             const recentDismissalTime = Date.now() - (6 * 24 * 60 * 60 * 1000); // 6 days ago
@@ -180,12 +180,12 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
 
             const state = createInitialState(true, preferences);
 
-            renderWithContext(<PostHistoryLimitBanner/>, state);
+            await renderWithContext(<PostHistoryLimitBanner/>, state);
 
             expect(screen.queryByText(bannerText)).not.toBeInTheDocument();
         });
 
-        it('should show banner when dismissed by admin > 7 days ago', () => {
+        it('should show banner when dismissed by admin > 7 days ago', async () => {
             setupServerLimits(true);
 
             const oldDismissalTime = Date.now() - (8 * 24 * 60 * 60 * 1000); // 8 days ago
@@ -197,12 +197,12 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
 
             const state = createInitialState(true, preferences);
 
-            renderWithContext(<PostHistoryLimitBanner/>, state);
+            await renderWithContext(<PostHistoryLimitBanner/>, state);
 
             expect(screen.getByText(bannerText)).toBeInTheDocument();
         });
 
-        it('should not show banner when recently dismissed by regular user (< 30 days)', () => {
+        it('should not show banner when recently dismissed by regular user (< 30 days)', async () => {
             setupServerLimits(true);
 
             const recentDismissalTime = Date.now() - (29 * 24 * 60 * 60 * 1000); // 29 days ago
@@ -214,12 +214,12 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
 
             const state = createInitialState(false, preferences);
 
-            renderWithContext(<PostHistoryLimitBanner/>, state);
+            await renderWithContext(<PostHistoryLimitBanner/>, state);
 
             expect(screen.queryByText(bannerText)).not.toBeInTheDocument();
         });
 
-        it('should show banner when dismissed by regular user > 30 days ago', () => {
+        it('should show banner when dismissed by regular user > 30 days ago', async () => {
             setupServerLimits(true);
 
             const oldDismissalTime = Date.now() - (31 * 24 * 60 * 60 * 1000); // 31 days ago
@@ -231,12 +231,12 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
 
             const state = createInitialState(false, preferences);
 
-            renderWithContext(<PostHistoryLimitBanner/>, state);
+            await renderWithContext(<PostHistoryLimitBanner/>, state);
 
             expect(screen.getByText(bannerText)).toBeInTheDocument();
         });
 
-        it('should not show banner when dismissed and posts are no longer truncated', () => {
+        it('should not show banner when dismissed and posts are no longer truncated', async () => {
             setupServerLimits(false); // No limits
 
             const oldDismissalTime = Date.now() - (8 * 24 * 60 * 60 * 1000); // 8 days ago
@@ -248,7 +248,7 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
 
             const state = createInitialState(true, preferences);
 
-            renderWithContext(<PostHistoryLimitBanner/>, state);
+            await renderWithContext(<PostHistoryLimitBanner/>, state);
 
             expect(screen.queryByText(bannerText)).not.toBeInTheDocument();
         });
@@ -261,7 +261,7 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
             setupServerLimits(true);
             const state = createInitialState(true, []);
 
-            renderWithContext(<PostHistoryLimitBanner/>, state);
+            await renderWithContext(<PostHistoryLimitBanner/>, state);
 
             const upgradeButton = screen.getByText('Restore Access');
             await userEvent.click(upgradeButton);
@@ -276,7 +276,7 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
             const mockDateNow = 1234567890;
             jest.spyOn(Date, 'now').mockReturnValue(mockDateNow);
 
-            renderWithContext(<PostHistoryLimitBanner/>, state);
+            await renderWithContext(<PostHistoryLimitBanner/>, state);
 
             const closeButton = screen.getByRole('link', {name: '×'});
             await userEvent.click(closeButton);
@@ -295,7 +295,7 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
     });
 
     describe('Date Formatting', () => {
-        it('should format date correctly for recent dates', () => {
+        it('should format date correctly for recent dates', async () => {
             const recentDate = new Date('2023-07-15T12:00:00.000Z').getTime();
             const locale = 'en-US';
 
@@ -312,7 +312,7 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
 
             const state = createInitialState(true, [], locale);
 
-            renderWithContext(<PostHistoryLimitBanner/>, state);
+            await renderWithContext(<PostHistoryLimitBanner/>, state);
 
             expect(screen.getByText(/July 15, 2023/)).toBeInTheDocument();
             expect(mockToLocaleDateString).toHaveBeenCalledWith(locale, {
@@ -322,7 +322,7 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
             });
         });
 
-        it('should format date correctly for older dates with year', () => {
+        it('should format date correctly for older dates with year', async () => {
             const oldDate = new Date('2021-12-01T12:00:00.000Z').getTime();
             const locale = 'en-US';
 
@@ -339,7 +339,7 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
 
             const state = createInitialState(true, [], locale);
 
-            renderWithContext(<PostHistoryLimitBanner/>, state);
+            await renderWithContext(<PostHistoryLimitBanner/>, state);
 
             expect(screen.getByText(/December 1, 2021/)).toBeInTheDocument();
             expect(mockToLocaleDateString).toHaveBeenCalledWith(locale, {
@@ -351,7 +351,7 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
     });
 
     describe('Admin vs Regular User Behavior', () => {
-        it('should use 7-day threshold for admins', () => {
+        it('should use 7-day threshold for admins', async () => {
             setupServerLimits(true);
 
             const dismissalTime = Date.now() - (7.5 * 24 * 60 * 60 * 1000); // 7.5 days ago
@@ -364,12 +364,12 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
 
             const state = createInitialState(true, preferences); // Admin
 
-            renderWithContext(<PostHistoryLimitBanner/>, state);
+            await renderWithContext(<PostHistoryLimitBanner/>, state);
 
             expect(screen.getByText(bannerText)).toBeInTheDocument();
         });
 
-        it('should use 30-day threshold for regular users', () => {
+        it('should use 30-day threshold for regular users', async () => {
             setupServerLimits(true);
 
             const dismissalTime = Date.now() - (7.5 * 24 * 60 * 60 * 1000); // 7.5 days ago
@@ -382,7 +382,7 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
 
             const state = createInitialState(false, preferences); // Regular user
 
-            renderWithContext(<PostHistoryLimitBanner/>, state);
+            await renderWithContext(<PostHistoryLimitBanner/>, state);
 
             // Should not show because regular users need 30 days
             expect(screen.queryByText(bannerText)).not.toBeInTheDocument();
@@ -390,7 +390,7 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
     });
 
     describe('Edge Cases', () => {
-        it('should handle invalid dismissal timestamp gracefully', () => {
+        it('should handle invalid dismissal timestamp gracefully', async () => {
             setupServerLimits(true);
 
             const preferenceName = 'post_history_limit_banner';
@@ -402,25 +402,25 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
 
             const state = createInitialState(true, preferences);
 
-            renderWithContext(<PostHistoryLimitBanner/>, state);
+            await renderWithContext(<PostHistoryLimitBanner/>, state);
 
             // Should show banner because invalid timestamp is treated as 0
             expect(screen.getByText(bannerText)).toBeInTheDocument();
         });
 
-        it('should handle missing license ID gracefully', () => {
+        it('should handle missing license ID gracefully', async () => {
             setupServerLimits(true);
 
             const stateWithoutLicense = createInitialState(true, []);
             stateWithoutLicense.entities!.general!.license = {};
 
-            renderWithContext(<PostHistoryLimitBanner/>, stateWithoutLicense);
+            await renderWithContext(<PostHistoryLimitBanner/>, stateWithoutLicense);
 
             // Should still render because preference name will use empty string prefix
             expect(screen.getByText(bannerText)).toBeInTheDocument();
         });
 
-        it('should show banner when preference exists but has no value', () => {
+        it('should show banner when preference exists but has no value', async () => {
             setupServerLimits(true);
 
             const preferenceName = 'post_history_limit_banner';
@@ -432,7 +432,7 @@ describe('components/announcement_bar/PostHistoryLimitBanner', () => {
 
             const state = createInitialState(true, preferences);
 
-            renderWithContext(<PostHistoryLimitBanner/>, state);
+            await renderWithContext(<PostHistoryLimitBanner/>, state);
 
             expect(screen.getByText(bannerText)).toBeInTheDocument();
         });

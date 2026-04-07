@@ -26,8 +26,8 @@ describe('components/drafts/draft_actions', () => {
         type: 'channel' as 'channel' | 'thread',
     };
 
-    it('should match snapshot', () => {
-        const {container} = renderWithContext(
+    it('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <DraftTitle
                 {...baseProps}
             />,
@@ -35,13 +35,13 @@ describe('components/drafts/draft_actions', () => {
         expect(container).toMatchSnapshot();
     });
 
-    it('should match snapshot for self draft', () => {
+    it('should match snapshot for self draft', async () => {
         const props = {
             ...baseProps,
             selfDraft: true,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <DraftTitle
                 {...props}
             />,
@@ -49,7 +49,7 @@ describe('components/drafts/draft_actions', () => {
         expect(container).toMatchSnapshot();
     });
 
-    it('should match snapshot for private channel', () => {
+    it('should match snapshot for private channel', async () => {
         const channel = {
             type: Constants.PRIVATE_CHANNEL,
             display_name: 'Test Channel',
@@ -59,7 +59,7 @@ describe('components/drafts/draft_actions', () => {
             channel,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <DraftTitle
                 {...props}
             />,
@@ -67,7 +67,7 @@ describe('components/drafts/draft_actions', () => {
         expect(container).toMatchSnapshot();
     });
 
-    it('should match snapshot for DM channel', () => {
+    it('should match snapshot for DM channel', async () => {
         const channel = {
             type: Constants.DM_CHANNEL,
             display_name: 'Test Channel',
@@ -77,7 +77,7 @@ describe('components/drafts/draft_actions', () => {
             channel,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <DraftTitle
                 {...props}
             />,
@@ -85,7 +85,7 @@ describe('components/drafts/draft_actions', () => {
         expect(container).toMatchSnapshot();
     });
 
-    it('should match snapshot for DM channel with teammate', () => {
+    it('should match snapshot for DM channel with teammate', async () => {
         const channel = {
             type: Constants.DM_CHANNEL,
             display_name: 'Test Channel',
@@ -100,7 +100,7 @@ describe('components/drafts/draft_actions', () => {
             } as UserProfile,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <DraftTitle
                 {...props}
             />,
@@ -108,7 +108,7 @@ describe('components/drafts/draft_actions', () => {
         expect(container).toMatchSnapshot();
     });
 
-    it('should match snapshot for GM channel', () => {
+    it('should match snapshot for GM channel', async () => {
         const channel = {
             type: 'G',
             display_name: 'Test Channel',
@@ -119,7 +119,7 @@ describe('components/drafts/draft_actions', () => {
             channel,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <DraftTitle
                 {...props}
             />,
@@ -127,7 +127,7 @@ describe('components/drafts/draft_actions', () => {
         expect(container).toMatchSnapshot();
     });
 
-    it('should match snapshot for thread', () => {
+    it('should match snapshot for thread', async () => {
         const channel = {
             type: Constants.OPEN_CHANNEL,
             display_name: 'Test Channel',
@@ -139,7 +139,7 @@ describe('components/drafts/draft_actions', () => {
             type: 'thread' as 'channel' | 'thread',
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <DraftTitle
                 {...props}
             />,
@@ -147,7 +147,7 @@ describe('components/drafts/draft_actions', () => {
         expect(container).toMatchSnapshot();
     });
 
-    it('should match snapshot for open channel', () => {
+    it('should match snapshot for open channel', async () => {
         const channel = {
             type: Constants.OPEN_CHANNEL,
             display_name: 'Test Channel',
@@ -159,7 +159,7 @@ describe('components/drafts/draft_actions', () => {
             type: 'channel' as 'channel' | 'thread',
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <DraftTitle
                 {...props}
             />,
@@ -167,7 +167,7 @@ describe('components/drafts/draft_actions', () => {
         expect(container).toMatchSnapshot();
     });
 
-    it('should fetch members when member count is 0 for GM', () => {
+    it('should fetch members when member count is 0 for GM', async () => {
         const channel = {
             type: 'G',
             display_name: 'Test Channel',
@@ -180,7 +180,7 @@ describe('components/drafts/draft_actions', () => {
             type: 'channel' as 'channel' | 'thread',
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <DraftTitle
                 {...props}
             />,

@@ -181,11 +181,9 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
             class="group-teams-and-channels"
           >
             <div
-              class="group-teams-and-channels-loading"
+              class="group-teams-and-channels-empty"
             >
-              <i
-                class="fa fa-spinner fa-pulse fa-2x"
-              />
+              No teams or channels specified yet
             </div>
           </div>
         </div>
@@ -217,7 +215,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
               class="group-users--body"
             >
               <div
-                class="group-users-loading active"
+                class="group-users-loading "
               >
                 <i
                   class="fa fa-spinner fa-pulse fa-2x"
@@ -590,11 +588,9 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
             class="group-teams-and-channels"
           >
             <div
-              class="group-teams-and-channels-loading"
+              class="group-teams-and-channels-empty"
             >
-              <i
-                class="fa fa-spinner fa-pulse fa-2x"
-              />
+              No teams or channels specified yet
             </div>
           </div>
         </div>
@@ -626,7 +622,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
               class="group-users--body"
             >
               <div
-                class="group-users-loading active"
+                class="group-users-loading "
               >
                 <i
                   class="fa fa-spinner fa-pulse fa-2x"
@@ -997,11 +993,9 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
             class="group-teams-and-channels"
           >
             <div
-              class="group-teams-and-channels-loading"
+              class="group-teams-and-channels-empty"
             >
-              <i
-                class="fa fa-spinner fa-pulse fa-2x"
-              />
+              No teams or channels specified yet
             </div>
           </div>
         </div>
@@ -1033,7 +1027,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
               class="group-users--body"
             >
               <div
-                class="group-users-loading active"
+                class="group-users-loading "
               >
                 <i
                   class="fa fa-spinner fa-pulse fa-2x"
@@ -1438,7 +1432,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
               class="group-users--body"
             >
               <div
-                class="group-users-loading active"
+                class="group-users-loading "
               >
                 <i
                   class="fa fa-spinner fa-pulse fa-2x"

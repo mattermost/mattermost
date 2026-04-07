@@ -25,8 +25,8 @@ describe('ChannelPropertyRenderer', () => {
         value: 'channel-id-123',
     } as PropertyValue<string>;
 
-    it('should render channel name and icon when channel exists', () => {
-        renderWithContext(
+    it('should render channel name and icon when channel exists', async () => {
+        await renderWithContext(
             <ChannelPropertyRenderer
                 value={mockValue}
                 metadata={{channel: mockChannel}}
@@ -37,8 +37,8 @@ describe('ChannelPropertyRenderer', () => {
         expect(screen.getByText('Test Channel')).toBeInTheDocument();
     });
 
-    it('should render deleted channel message when channel does not exist', () => {
-        renderWithContext(
+    it('should render deleted channel message when channel does not exist', async () => {
+        await renderWithContext(
             <ChannelPropertyRenderer
                 value={mockValue}
                 metadata={{channel: undefined}}
@@ -49,14 +49,14 @@ describe('ChannelPropertyRenderer', () => {
         expect(screen.getByText(/Deleted channel ID: channel-id-123/)).toBeInTheDocument();
     });
 
-    it('should handle different channel types', () => {
+    it('should handle different channel types', async () => {
         const privateChannel = {
             ...mockChannel,
             type: 'P' as const,
             display_name: 'Private Channel',
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ChannelPropertyRenderer
                 value={mockValue}
                 metadata={{channel: privateChannel}}
@@ -66,14 +66,14 @@ describe('ChannelPropertyRenderer', () => {
         expect(screen.getByText('Private Channel')).toBeInTheDocument();
     });
 
-    it('should handle direct message channels', () => {
+    it('should handle direct message channels', async () => {
         const dmChannel = {
             ...mockChannel,
             type: 'D' as const,
             display_name: 'Direct Message',
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ChannelPropertyRenderer
                 value={mockValue}
                 metadata={{channel: dmChannel}}

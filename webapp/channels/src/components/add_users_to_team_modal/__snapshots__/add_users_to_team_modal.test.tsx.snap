@@ -151,27 +151,116 @@ exports[`components/admin_console/add_users_to_team_modal/AddUsersToTeamModal sh
                 class="multi-select__wrapper"
               >
                 <div
-                  aria-hidden="true"
+                  class="more-modal__list"
                 >
                   <div
-                    class="loading-screen"
-                    style="position: absolute;"
+                    aria-live="polite"
+                    class="sr-only"
+                    role="status"
+                  >
+                    2 results found for your search.
+                  </div>
+                  <div
+                    aria-atomic="true"
+                    aria-live="polite"
+                    class="sr-only"
+                  />
+                  <div
+                    class="more-modal__options"
+                    id="multiSelectList"
+                    role="presentation"
                   >
                     <div
-                      class="loading__content"
+                      class="more-modal__row clickable "
                     >
-                      <p>
-                        Loading
-                      </p>
+                      <span
+                        class="status-wrapper style--none"
+                      >
+                        <span
+                          class="profile-icon "
+                        >
+                          <img
+                            alt="user profile image"
+                            class="Avatar Avatar-md"
+                            loading="lazy"
+                            src="/api/v4/users/userid1/image"
+                          />
+                        </span>
+                      </span>
                       <div
-                        class="round round-1"
-                      />
+                        class="more-modal__details"
+                      >
+                        <div
+                          class="more-modal__name"
+                        >
+                          <span
+                            id="displayedUserNameuser-1"
+                          >
+                            @user-1
+                            <span
+                              class="light"
+                            />
+                          </span>
+                        </div>
+                      </div>
                       <div
-                        class="round round-2"
-                      />
+                        class="more-modal__actions"
+                      >
+                        <button
+                          aria-label="Add users to team"
+                          class="more-modal__actions--round"
+                        >
+                          <i
+                            class="icon icon-plus"
+                          />
+                        </button>
+                      </div>
+                    </div>
+                    <div
+                      class="more-modal__row clickable "
+                    >
+                      <span
+                        class="status-wrapper style--none"
+                      >
+                        <span
+                          class="profile-icon "
+                        >
+                          <img
+                            alt="user profile image"
+                            class="Avatar Avatar-md"
+                            loading="lazy"
+                            src="/api/v4/users/userid2/image"
+                          />
+                        </span>
+                      </span>
                       <div
-                        class="round round-3"
-                      />
+                        class="more-modal__details"
+                      >
+                        <div
+                          class="more-modal__name"
+                        >
+                          <span
+                            id="displayedUserNameuser-2"
+                          >
+                            @user-2
+                            <span
+                              class="light"
+                            />
+                          </span>
+                        </div>
+                      </div>
+                      <div
+                        class="more-modal__actions"
+                      >
+                        <button
+                          aria-label="Add users to team"
+                          class="more-modal__actions--round"
+                        >
+                          <i
+                            class="icon icon-plus"
+                          />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>

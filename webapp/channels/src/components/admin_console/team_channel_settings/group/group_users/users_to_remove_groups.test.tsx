@@ -24,8 +24,8 @@ describe('components/admin_console/team_channel_settings/group/UsersToRemoveGrou
     const group2 = TestHelper.getGroupMock({id: 'group2', display_name: 'group2'});
     const group3 = TestHelper.getGroupMock({id: 'group3', display_name: 'group3'});
 
-    test('should match snapshot with 0 groups', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with 0 groups', async () => {
+        const {container} = await renderWithContext(
             <UsersToRemoveGroups
                 user={userWithGroups(user, [])}
             />,
@@ -34,8 +34,8 @@ describe('components/admin_console/team_channel_settings/group/UsersToRemoveGrou
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with 1 group', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with 1 group', async () => {
+        const {container} = await renderWithContext(
             <UsersToRemoveGroups
                 user={userWithGroups(user, [group1])}
             />,
@@ -44,8 +44,8 @@ describe('components/admin_console/team_channel_settings/group/UsersToRemoveGrou
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with 3 groups', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with 3 groups', async () => {
+        const {container} = await renderWithContext(
             <UsersToRemoveGroups
                 user={userWithGroups(user, [group1, group2, group3])}
             />,

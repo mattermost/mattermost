@@ -60,8 +60,8 @@ describe('components/sidebar/sidebar_category', () => {
     };
 
     // Wrapper component to provide DragDropContext and Droppable
-    const renderWithDnd = (component: React.ReactElement) => {
-        const onDragEnd = () => {};
+    const renderWithDnd = async (component: React.ReactElement) => {
+        const onDragEnd = async () => {};
         return renderWithContext(
             <DragDropContext onDragEnd={onDragEnd}>
                 <Droppable
@@ -86,15 +86,15 @@ describe('components/sidebar/sidebar_category', () => {
         baseProps.actions.setCategoryCollapsed.mockClear();
     });
 
-    test('should match snapshot', () => {
-        const {container} = renderWithDnd(<SidebarCategory {...baseProps}/>);
+    test('should match snapshot', async () => {
+        const {container} = await renderWithDnd(<SidebarCategory {...baseProps}/>);
 
         expect(screen.getByText('custom_category_1')).toBeInTheDocument();
         expect(document.querySelector('#mock-category-menu')).toBeInTheDocument();
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when isNewCategory', () => {
+    test('should match snapshot when isNewCategory', async () => {
         const props = {
             ...baseProps,
             isNewCategory: true,
@@ -105,14 +105,14 @@ describe('components/sidebar/sidebar_category', () => {
             channelIds: [],
         };
 
-        const {container} = renderWithDnd(<SidebarCategory {...props}/>);
+        const {container} = await renderWithDnd(<SidebarCategory {...props}/>);
 
         expect(screen.getByText('new')).toBeInTheDocument();
         expect(screen.getByText('Drag channels here...')).toBeInTheDocument();
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when collapsed', () => {
+    test('should match snapshot when collapsed', async () => {
         const props = {
             ...baseProps,
             category: {
@@ -121,14 +121,14 @@ describe('components/sidebar/sidebar_category', () => {
             },
         };
 
-        const {container} = renderWithDnd(<SidebarCategory {...props}/>);
+        const {container} = await renderWithDnd(<SidebarCategory {...props}/>);
 
         expect(screen.getByText('custom_category_1')).toBeInTheDocument();
         expect(document.querySelector('.isCollapsed')).toBeInTheDocument();
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when the category is DM and there are no DMs to display', () => {
+    test('should match snapshot when the category is DM and there are no DMs to display', async () => {
         const props = {
             ...baseProps,
             category: {
@@ -139,13 +139,13 @@ describe('components/sidebar/sidebar_category', () => {
             channelIds: [],
         };
 
-        const {container} = renderWithDnd(<SidebarCategory {...props}/>);
+        const {container} = await renderWithDnd(<SidebarCategory {...props}/>);
 
         expect(document.querySelector('#mock-sorting-menu')).toBeInTheDocument();
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when there are no channels to display', () => {
+    test('should match snapshot when there are no channels to display', async () => {
         const props = {
             ...baseProps,
             category: {
@@ -156,7 +156,7 @@ describe('components/sidebar/sidebar_category', () => {
             channelIds: [],
         };
 
-        const {container} = renderWithDnd(<SidebarCategory {...props}/>);
+        const {container} = await renderWithDnd(<SidebarCategory {...props}/>);
 
         // Favorites category with no channels should not render
         expect(screen.queryByText('Favorites')).not.toBeInTheDocument();
@@ -164,7 +164,7 @@ describe('components/sidebar/sidebar_category', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when sorting is set to by recency', () => {
+    test('should match snapshot when sorting is set to by recency', async () => {
         const props = {
             ...baseProps,
             category: {
@@ -174,14 +174,14 @@ describe('components/sidebar/sidebar_category', () => {
             },
         };
 
-        const {container} = renderWithDnd(<SidebarCategory {...props}/>);
+        const {container} = await renderWithDnd(<SidebarCategory {...props}/>);
 
         expect(document.querySelector('#mock-sorting-menu')).toBeInTheDocument();
         expect(container).toMatchSnapshot();
     });
 
     test('should collapse the channel on toggle when it is not collapsed', async () => {
-        renderWithDnd(<SidebarCategory {...baseProps}/>);
+        await renderWithDnd(<SidebarCategory {...baseProps}/>);
 
         await userEvent.click(screen.getByText('custom_category_1'));
 
@@ -197,7 +197,7 @@ describe('components/sidebar/sidebar_category', () => {
             },
         };
 
-        renderWithDnd(<SidebarCategory {...props}/>);
+        await renderWithDnd(<SidebarCategory {...props}/>);
 
         await userEvent.click(screen.getByText('custom_category_1'));
 

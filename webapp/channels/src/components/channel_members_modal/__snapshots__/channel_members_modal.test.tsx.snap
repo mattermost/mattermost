@@ -73,25 +73,118 @@ exports[`components/ChannelMembersModal should match snapshot 1`] = `
             class="modal-body"
           >
             <div
-              class="loading-screen"
-              style="position: relative;"
+              class="filtered-user-list"
             >
               <div
-                class="loading__content"
+                class="filter-row"
               >
-                <p>
-                  Loading
-                </p>
                 <div
-                  class="round round-1"
-                />
+                  class="col-xs-12"
+                >
+                  <label
+                    class="hidden-label"
+                    for="searchUsersInput"
+                  >
+                    Search users
+                  </label>
+                  <div
+                    class="input-wrapper"
+                  >
+                    <input
+                      aria-label="Search users"
+                      class="form-control filter-textbox"
+                      id="searchUsersInput"
+                      placeholder="Search users"
+                      value=""
+                    />
+                  </div>
+                </div>
                 <div
-                  class="round round-2"
-                />
-                <div
-                  class="round round-3"
-                />
+                  class="col-sm-12"
+                >
+                  <span
+                    aria-live="polite"
+                    class="member-count pull-left"
+                    id="searchableUserListTotal"
+                  />
+                </div>
               </div>
+              <div
+                class="more-modal__list"
+              >
+                <div
+                  data-simplebar="init"
+                  style="--scrollbar-color: var(undefined);"
+                >
+                  <div
+                    class="simplebar-wrapper"
+                  >
+                    <div
+                      class="simplebar-height-auto-observer-wrapper"
+                    >
+                      <div
+                        class="simplebar-height-auto-observer"
+                      />
+                    </div>
+                    <div
+                      class="simplebar-mask"
+                    >
+                      <div
+                        class="simplebar-offset"
+                        style="right: 0px; bottom: 0px;"
+                      >
+                        <div
+                          aria-label="scrollable content"
+                          class="simplebar-content-wrapper"
+                          role="region"
+                          style="height: auto; overflow-x: hidden; overflow-y: hidden;"
+                          tabindex="-1"
+                        >
+                          <div
+                            class="simplebar-content"
+                          >
+                            <div>
+                              <div
+                                class="more-modal__placeholder-row no-users-found"
+                                data-testid="noUsersFound"
+                              >
+                                <p>
+                                  No users found
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="simplebar-placeholder"
+                      style="width: 0px; height: 0px;"
+                    />
+                  </div>
+                  <div
+                    class="simplebar-track simplebar-horizontal"
+                    style="visibility: hidden;"
+                  >
+                    <div
+                      class="simplebar-scrollbar"
+                      style="width: 0px; display: none;"
+                    />
+                  </div>
+                  <div
+                    class="simplebar-track simplebar-vertical"
+                    style="visibility: hidden;"
+                  >
+                    <div
+                      class="simplebar-scrollbar"
+                      style="height: 0px; display: none;"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div
+                class="filter-controls"
+              />
             </div>
           </div>
         </div>
@@ -167,25 +260,118 @@ exports[`components/ChannelMembersModal should match snapshot with archived chan
             class="modal-body"
           >
             <div
-              class="loading-screen"
-              style="position: relative;"
+              class="filtered-user-list"
             >
               <div
-                class="loading__content"
+                class="filter-row"
               >
-                <p>
-                  Loading
-                </p>
                 <div
-                  class="round round-1"
-                />
+                  class="col-xs-12"
+                >
+                  <label
+                    class="hidden-label"
+                    for="searchUsersInput"
+                  >
+                    Search users
+                  </label>
+                  <div
+                    class="input-wrapper"
+                  >
+                    <input
+                      aria-label="Search users"
+                      class="form-control filter-textbox"
+                      id="searchUsersInput"
+                      placeholder="Search users"
+                      value=""
+                    />
+                  </div>
+                </div>
                 <div
-                  class="round round-2"
-                />
-                <div
-                  class="round round-3"
-                />
+                  class="col-sm-12"
+                >
+                  <span
+                    aria-live="polite"
+                    class="member-count pull-left"
+                    id="searchableUserListTotal"
+                  />
+                </div>
               </div>
+              <div
+                class="more-modal__list"
+              >
+                <div
+                  data-simplebar="init"
+                  style="--scrollbar-color: var(undefined);"
+                >
+                  <div
+                    class="simplebar-wrapper"
+                  >
+                    <div
+                      class="simplebar-height-auto-observer-wrapper"
+                    >
+                      <div
+                        class="simplebar-height-auto-observer"
+                      />
+                    </div>
+                    <div
+                      class="simplebar-mask"
+                    >
+                      <div
+                        class="simplebar-offset"
+                        style="right: 0px; bottom: 0px;"
+                      >
+                        <div
+                          aria-label="scrollable content"
+                          class="simplebar-content-wrapper"
+                          role="region"
+                          style="height: auto; overflow-x: hidden; overflow-y: hidden;"
+                          tabindex="-1"
+                        >
+                          <div
+                            class="simplebar-content"
+                          >
+                            <div>
+                              <div
+                                class="more-modal__placeholder-row no-users-found"
+                                data-testid="noUsersFound"
+                              >
+                                <p>
+                                  No users found
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="simplebar-placeholder"
+                      style="width: 0px; height: 0px;"
+                    />
+                  </div>
+                  <div
+                    class="simplebar-track simplebar-horizontal"
+                    style="visibility: hidden;"
+                  >
+                    <div
+                      class="simplebar-scrollbar"
+                      style="width: 0px; display: none;"
+                    />
+                  </div>
+                  <div
+                    class="simplebar-track simplebar-vertical"
+                    style="visibility: hidden;"
+                  >
+                    <div
+                      class="simplebar-scrollbar"
+                      style="height: 0px; display: none;"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div
+                class="filter-controls"
+              />
             </div>
           </div>
         </div>

@@ -52,7 +52,7 @@ describe('components/integrations/bots/Bots', () => {
     it('bots', async () => {
         const {bots, users, loadBots} = createBotsAndUsers(3);
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <Bots
                 bots={bots}
                 team={team}
@@ -82,7 +82,7 @@ describe('components/integrations/bots/Bots', () => {
     it('bots with bots from apps', async () => {
         const {bots, users, loadBots} = createBotsAndUsers(3);
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <Bots
                 bots={bots}
                 team={team}
@@ -137,7 +137,7 @@ describe('components/integrations/bots/Bots', () => {
 
         const loadBots = jest.fn().mockReturnValue(Promise.resolve({data: Object.values(bots)}));
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <Bots
                 bots={bots}
                 team={team}

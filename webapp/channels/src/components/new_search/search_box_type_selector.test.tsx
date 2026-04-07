@@ -16,20 +16,20 @@ describe('components/new_search/SearchBoxTypeSelector', () => {
         searchType: 'messages',
     };
 
-    test('should have the built-in type options', () => {
-        renderWithContext(<SearchBoxTypeSelector {...baseProps}/>);
+    test('should have the built-in type options', async () => {
+        await renderWithContext(<SearchBoxTypeSelector {...baseProps}/>);
         expect(screen.getByText('Files')).toBeInTheDocument();
         expect(screen.getByText('Messages')).toBeInTheDocument();
     });
 
-    test('on option clicked should call the setSearchType', () => {
-        renderWithContext(<SearchBoxTypeSelector {...baseProps}/>);
+    test('on option clicked should call the setSearchType', async () => {
+        await renderWithContext(<SearchBoxTypeSelector {...baseProps}/>);
         screen.getByText('Messages').click();
         expect(baseProps.setSearchType).toHaveBeenCalledWith('messages');
     });
 
-    test('should not have the plugin options without license', () => {
-        renderWithContext(
+    test('should not have the plugin options without license', async () => {
+        await renderWithContext(
             <SearchBoxTypeSelector {...baseProps}/>,
             {
                 plugins: {components: {SearchButtons: [{component: (() => <pre>{'test'}</pre>) as React.ComponentType, pluginId: 'test-id'}]}},
@@ -39,8 +39,8 @@ describe('components/new_search/SearchBoxTypeSelector', () => {
         expect(screen.queryByText('test')).not.toBeInTheDocument();
     });
 
-    test('should have the plugin options', () => {
-        renderWithContext(
+    test('should have the plugin options', async () => {
+        await renderWithContext(
             <SearchBoxTypeSelector {...baseProps}/>,
             {
                 plugins: {components: {SearchButtons: [{component: (() => <pre>{'test'}</pre>) as React.ComponentType, pluginId: 'test-id'}]}},
@@ -50,8 +50,8 @@ describe('components/new_search/SearchBoxTypeSelector', () => {
         expect(screen.getByText('test')).toBeInTheDocument();
     });
 
-    test('on plugin option clicked should call the setSearchType', () => {
-        renderWithContext(
+    test('on plugin option clicked should call the setSearchType', async () => {
+        await renderWithContext(
             <SearchBoxTypeSelector {...baseProps}/>,
             {
                 plugins: {components: {SearchButtons: [{component: (() => <pre>{'test'}</pre>) as React.ComponentType, pluginId: 'test-id'}]}},

@@ -109,8 +109,8 @@ describe('InvoiceUserCount', () => {
     ];
 
     tests.forEach(({name, invoice, expected}) => {
-        it(name, () => {
-            const {container} = renderWithContext(<InvoiceUserCount invoice={invoice}/>);
+        it(name, async () => {
+            const {container} = await renderWithContext(<InvoiceUserCount invoice={invoice}/>);
             expect(container.textContent).toBe(expected);
         });
     });

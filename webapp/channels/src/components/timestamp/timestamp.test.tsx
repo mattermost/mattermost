@@ -37,8 +37,8 @@ describe('components/timestamp/Timestamp', () => {
         return date;
     }
 
-    test('should be wrapped in SemanticTime and support passthrough className and label', () => {
-        const {container} = renderWithContext(
+    test('should be wrapped in SemanticTime and support passthrough className and label', async () => {
+        const {container} = await renderWithContext(
             <Timestamp
                 useTime={false}
                 className='test class'
@@ -52,8 +52,8 @@ describe('components/timestamp/Timestamp', () => {
         expect(timeEl?.getAttribute('aria-label')).toBe('test label');
     });
 
-    test('should not be wrapped in SemanticTime', () => {
-        const {container} = renderWithContext(
+    test('should not be wrapped in SemanticTime', async () => {
+        const {container} = await renderWithContext(
             <Timestamp
                 useTime={false}
                 useSemanticOutput={false}
@@ -63,8 +63,8 @@ describe('components/timestamp/Timestamp', () => {
         expect(container.querySelector('time')).toBeNull();
     });
 
-    test.each(moment.tz.names())('should render supported timezone %p', (timeZone) => {
-        const {container} = renderWithContext(
+    test.each(moment.tz.names())('should render supported timezone %p', async (timeZone) => {
+        const {container} = await renderWithContext(
             <Timestamp
                 value={new Date('Fri Jan 12 2018 20:15:13 GMT+0000 (+00)').getTime()}
                 useDate={false}
@@ -76,8 +76,8 @@ describe('components/timestamp/Timestamp', () => {
         expect(timeEl?.textContent).toMatch(/\d{1,2}:\d{2}\s(?:AM|PM|a\.\sm\.|p\.\sm\.)/);
     });
 
-    test('should render title-case Today', () => {
-        const {container} = renderWithContext(
+    test('should render title-case Today', async () => {
+        const {container} = await renderWithContext(
             <Timestamp
                 useTime={false}
                 ranges={[
@@ -88,8 +88,8 @@ describe('components/timestamp/Timestamp', () => {
         expect(container.textContent).toEqual('Today');
     });
 
-    test('should render normal today', () => {
-        const {container} = renderWithContext(
+    test('should render normal today', async () => {
+        const {container} = await renderWithContext(
             <Timestamp
                 value={daysFromNow(0)}
                 useTime={false}
@@ -101,8 +101,8 @@ describe('components/timestamp/Timestamp', () => {
         expect(container.textContent).toEqual('today');
     });
 
-    test('should render title-case Yesterday', () => {
-        const {container} = renderWithContext(
+    test('should render title-case Yesterday', async () => {
+        const {container} = await renderWithContext(
             <Timestamp
                 value={daysFromNow(-1)}
                 useTime={false}
@@ -114,8 +114,8 @@ describe('components/timestamp/Timestamp', () => {
         expect(container.textContent).toEqual('Yesterday');
     });
 
-    test('should render normal yesterday', () => {
-        const {container} = renderWithContext(
+    test('should render normal yesterday', async () => {
+        const {container} = await renderWithContext(
             <Timestamp
                 value={daysFromNow(-1)}
                 useTime={false}
@@ -127,8 +127,8 @@ describe('components/timestamp/Timestamp', () => {
         expect(container.textContent).toEqual('yesterday');
     });
 
-    test('should render normal tomorrow', () => {
-        const {container} = renderWithContext(
+    test('should render normal tomorrow', async () => {
+        const {container} = await renderWithContext(
             <Timestamp
                 value={daysFromNow(1)}
                 useTime={false}
@@ -138,8 +138,8 @@ describe('components/timestamp/Timestamp', () => {
         expect(container.textContent).toEqual('tomorrow');
     });
 
-    test('should render 3 days ago', () => {
-        const {container} = renderWithContext(
+    test('should render 3 days ago', async () => {
+        const {container} = await renderWithContext(
             <Timestamp
                 value={daysFromNow(-3)}
                 useTime={false}
@@ -149,9 +149,9 @@ describe('components/timestamp/Timestamp', () => {
         expect(container.textContent).toEqual('3 days ago');
     });
 
-    test('should render 3 days ago as weekday', () => {
+    test('should render 3 days ago as weekday', async () => {
         const date = daysFromNow(-3);
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <Timestamp
                 value={date}
                 useTime={false}
@@ -160,9 +160,9 @@ describe('components/timestamp/Timestamp', () => {
         expect(container.textContent).toEqual(moment.utc(date).format('dddd'));
     });
 
-    test('should render 6 days ago as weekday', () => {
+    test('should render 6 days ago as weekday', async () => {
         const date = daysFromNow(-6);
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <Timestamp
                 value={date}
                 useTime={false}
@@ -172,9 +172,9 @@ describe('components/timestamp/Timestamp', () => {
         expect(container.textContent).toEqual(moment(date).format('dddd'));
     });
 
-    test('should render 2 days ago as weekday in supported timezone', () => {
+    test('should render 2 days ago as weekday in supported timezone', async () => {
         const date = daysFromNow(-2);
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <Timestamp
                 value={date}
                 timeZone='Asia/Manila'
@@ -185,9 +185,9 @@ describe('components/timestamp/Timestamp', () => {
         expect(container.textContent).toEqual(moment.utc(date).tz('Asia/Manila').format('dddd'));
     });
 
-    test('should render date in current year', () => {
+    test('should render date in current year', async () => {
         const date = daysFromNow(-20);
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <Timestamp
                 value={date}
                 useTime={false}
@@ -197,9 +197,9 @@ describe('components/timestamp/Timestamp', () => {
         expect(container.textContent).toEqual(moment.utc(date).format('MMMM DD'));
     });
 
-    test('should render date from previous year', () => {
+    test('should render date from previous year', async () => {
         const date = daysFromNow(-365);
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <Timestamp
                 value={date}
                 useTime={false}
@@ -209,9 +209,9 @@ describe('components/timestamp/Timestamp', () => {
         expect(container.textContent).toEqual(moment.utc(date).format('MMMM DD, YYYY'));
     });
 
-    test('should render time without timezone', () => {
+    test('should render time without timezone', async () => {
         const value = new Date('Fri Jan 12 2018 20:15:13 GMT+0800 (+08)').getTime();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <Timestamp
                 value={value}
                 useDate={false}
@@ -224,9 +224,9 @@ describe('components/timestamp/Timestamp', () => {
         expect(container.textContent).toBe(expectedTime);
     });
 
-    test('should render time without timezone, in military time', () => {
+    test('should render time without timezone, in military time', async () => {
         const value = new Date('Fri Jan 12 2018 23:15:13 GMT+0800 (+08)').getTime();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <Timestamp
                 value={value}
                 hourCycle='h23'
@@ -240,9 +240,9 @@ describe('components/timestamp/Timestamp', () => {
         expect(container.textContent).toBe(localDt.toFormat('HH:mm'));
     });
 
-    test('should render date without timezone', () => {
+    test('should render date without timezone', async () => {
         const value = new Date('Fri Jan 12 2018 23:15:13 GMT+0800 (+08)').getTime();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <Timestamp
                 value={value}
                 useTime={false}
@@ -256,9 +256,9 @@ describe('components/timestamp/Timestamp', () => {
         expect(container.textContent).toBe(localDt.toFormat('MMMM d, yyyy'));
     });
 
-    test('should render time with timezone enabled', () => {
+    test('should render time with timezone enabled', async () => {
         const value = new Date('Fri Jan 12 2018 20:15:13 GMT+0000 (+00)').getTime();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <Timestamp
                 value={value}
                 useDate={false}
@@ -270,9 +270,9 @@ describe('components/timestamp/Timestamp', () => {
         expect(container.textContent).toBe('7:15 AM');
     });
 
-    test('should render time with unsupported timezone', () => {
+    test('should render time with unsupported timezone', async () => {
         const value = new Date('Fri Jan 12 2018 20:15:13 GMT+0000 (+00)').getTime();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <Timestamp
                 value={value}
                 useDate={false}
@@ -284,9 +284,9 @@ describe('components/timestamp/Timestamp', () => {
         expect(container.textContent).toBe('10:15 AM');
     });
 
-    test('should render date with unsupported timezone', () => {
+    test('should render date with unsupported timezone', async () => {
         const value = new Date('Fri Jan 12 2018 20:15:13 GMT+0000 (+00)').getTime();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <Timestamp
                 value={value}
                 useTime={false}
@@ -298,9 +298,9 @@ describe('components/timestamp/Timestamp', () => {
         expect(container.textContent).toBe('January 12, 2018');
     });
 
-    test('should render datetime with timezone enabled, in military time', () => {
+    test('should render datetime with timezone enabled, in military time', async () => {
         const value = new Date('Fri Jan 12 2018 20:15:13 GMT-0800').getTime();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <Timestamp
                 value={value}
                 hourCycle='h23'
@@ -312,8 +312,8 @@ describe('components/timestamp/Timestamp', () => {
         expect(container.textContent).toBe('January 13, 2018 at 15:15');
     });
 
-    test('should render time with unsupported timezone enabled, in military time', () => {
-        const {container} = renderWithContext(
+    test('should render time with unsupported timezone enabled, in military time', async () => {
+        const {container} = await renderWithContext(
             <Timestamp
                 value={new Date('Fri Jan 12 2018 20:15:13 GMT-0800 (+00)').getTime()}
                 hourCycle='h23'

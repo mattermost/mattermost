@@ -15,8 +15,8 @@ describe('components/user_settings/display/CustomThemeChooser', () => {
         updateTheme: jest.fn(),
     };
 
-    it('should match, init', () => {
-        const {container} = renderWithContext(
+    it('should match, init', async () => {
+        const {container} = await renderWithContext(
             <CustomThemeChooser {...baseProps}/>,
         );
 
@@ -24,7 +24,7 @@ describe('components/user_settings/display/CustomThemeChooser', () => {
     });
 
     it('should create a custom theme when the code theme changes', async () => {
-        renderWithContext(
+        await renderWithContext(
             <CustomThemeChooser {...baseProps}/>,
         );
 

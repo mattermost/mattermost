@@ -60,8 +60,8 @@ describe('components/emoji/components/AddEmoji', () => {
         (baseProps.actions.createCustomEmoji as jest.Mock).mockClear();
     });
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<AddEmoji {...baseProps}/>);
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(<AddEmoji {...baseProps}/>);
         expect(container).toMatchSnapshot();
 
         const nameInput = screen.getByRole('textbox');
@@ -76,7 +76,7 @@ describe('components/emoji/components/AddEmoji', () => {
     });
 
     test('should update emoji name and match snapshot', async () => {
-        const {container} = renderWithContext(<AddEmoji {...baseProps}/>);
+        const {container} = await renderWithContext(<AddEmoji {...baseProps}/>);
 
         const nameInput = screen.getByRole('textbox');
         await userEvent.type(nameInput, 'emojiName');
@@ -85,7 +85,7 @@ describe('components/emoji/components/AddEmoji', () => {
     });
 
     test('should select a file and match snapshot', async () => {
-        const {container} = renderWithContext(<AddEmoji {...baseProps}/>);
+        const {container} = await renderWithContext(<AddEmoji {...baseProps}/>);
 
         const file = new File([image], 'emoji.png', {type: 'image/png'});
         setupFileReaderMock(image);
@@ -108,7 +108,7 @@ describe('components/emoji/components/AddEmoji', () => {
     });
 
     test('should submit the new added emoji', async () => {
-        const {container} = renderWithContext(<AddEmoji {...baseProps}/>);
+        const {container} = await renderWithContext(<AddEmoji {...baseProps}/>);
 
         const file = new File([image], 'emoji.png', {type: 'image/png'});
         setupFileReaderMock(image);
@@ -138,7 +138,7 @@ describe('components/emoji/components/AddEmoji', () => {
             },
         };
 
-        const {container} = renderWithContext(<AddEmoji {...props}/>);
+        const {container} = await renderWithContext(<AddEmoji {...props}/>);
 
         const file = new File([image], 'emoji.png', {type: 'image/png'});
         setupFileReaderMock(image);
@@ -164,7 +164,7 @@ describe('components/emoji/components/AddEmoji', () => {
     });
 
     test('should show error if emoji name unset', async () => {
-        renderWithContext(<AddEmoji {...baseProps}/>);
+        await renderWithContext(<AddEmoji {...baseProps}/>);
 
         const saveButton = screen.getByTestId('save-button');
         await userEvent.click(saveButton);
@@ -174,7 +174,7 @@ describe('components/emoji/components/AddEmoji', () => {
     });
 
     test('should show error if image unset', async () => {
-        renderWithContext(<AddEmoji {...baseProps}/>);
+        await renderWithContext(<AddEmoji {...baseProps}/>);
 
         const nameInput = screen.getByRole('textbox');
         await userEvent.type(nameInput, 'emojiName');
@@ -191,7 +191,7 @@ describe('components/emoji/components/AddEmoji', () => {
         'underscores_are_allowed',
         'numb3rsar3all0w3d',
     ])('%s should be a valid emoji name', async (emojiName) => {
-        const {container} = renderWithContext(<AddEmoji {...baseProps}/>);
+        const {container} = await renderWithContext(<AddEmoji {...baseProps}/>);
 
         const file = new File([image], 'emoji.png', {type: 'image/png'});
         setupFileReaderMock(image);
@@ -222,7 +222,7 @@ describe('components/emoji/components/AddEmoji', () => {
         "symbols'notallowed",
         'symbols.not.allowed',
     ])("'%s' should not be a valid emoji name", async (emojiName) => {
-        const {container} = renderWithContext(<AddEmoji {...baseProps}/>);
+        const {container} = await renderWithContext(<AddEmoji {...baseProps}/>);
 
         const file = new File([image], 'emoji.png', {type: 'image/png'});
         setupFileReaderMock(image);
@@ -245,7 +245,7 @@ describe('components/emoji/components/AddEmoji', () => {
         [' trimmed ', 'trimmed'],
         [':colonstrimmed:', 'colonstrimmed'],
     ])("emoji name '%s' should be corrected as '%s'", async (emojiName, expectedName) => {
-        const {container} = renderWithContext(<AddEmoji {...baseProps}/>);
+        const {container} = await renderWithContext(<AddEmoji {...baseProps}/>);
 
         const file = new File([image], 'emoji.png', {type: 'image/png'});
         setupFileReaderMock(image);
@@ -263,7 +263,7 @@ describe('components/emoji/components/AddEmoji', () => {
     });
 
     test('should show an error when emoji name is taken by a system emoji', async () => {
-        const {container} = renderWithContext(<AddEmoji {...baseProps}/>);
+        const {container} = await renderWithContext(<AddEmoji {...baseProps}/>);
 
         const file = new File([image], 'emoji.png', {type: 'image/png'});
         setupFileReaderMock(image);
@@ -282,7 +282,7 @@ describe('components/emoji/components/AddEmoji', () => {
     });
 
     test('should show error when emoji name is taken by an existing custom emoji', async () => {
-        const {container} = renderWithContext(<AddEmoji {...baseProps}/>);
+        const {container} = await renderWithContext(<AddEmoji {...baseProps}/>);
 
         const file = new File([image], 'emoji.png', {type: 'image/png'});
         setupFileReaderMock(image);
@@ -301,7 +301,7 @@ describe('components/emoji/components/AddEmoji', () => {
     });
 
     test('should show error when image is too large', async () => {
-        const {container} = renderWithContext(<AddEmoji {...baseProps}/>);
+        const {container} = await renderWithContext(<AddEmoji {...baseProps}/>);
 
         // Create a mock file with size > 1MB
         const largeFile = new File(['x'], 'large.png', {type: 'image/png'});
@@ -329,7 +329,7 @@ describe('components/emoji/components/AddEmoji', () => {
             },
         };
 
-        const {container} = renderWithContext(<AddEmoji {...props}/>);
+        const {container} = await renderWithContext(<AddEmoji {...props}/>);
 
         const file = new File([image], 'emoji.png', {type: 'image/png'});
         setupFileReaderMock(image);
@@ -359,7 +359,7 @@ describe('components/emoji/components/AddEmoji', () => {
             },
         };
 
-        const {container} = renderWithContext(<AddEmoji {...props}/>);
+        const {container} = await renderWithContext(<AddEmoji {...props}/>);
 
         const file = new File([image], 'emoji.png', {type: 'image/png'});
         setupFileReaderMock(image);

@@ -33,8 +33,8 @@ describe('component/add_users_to_group_modal', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {baseElement} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {baseElement} = await renderWithContext(
             <AddUsersToGroupModal
                 {...baseProps}
             />,

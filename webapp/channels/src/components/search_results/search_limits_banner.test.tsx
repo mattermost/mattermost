@@ -36,7 +36,7 @@ const limits = {
 };
 
 describe('components/select_results/SearchLimitsBanner', () => {
-    test('should NOT show banner for no limits when doing messages search', () => {
+    test('should NOT show banner for no limits when doing messages search', async () => {
         const state = {
             entities: {
                 general: {
@@ -70,10 +70,10 @@ describe('components/select_results/SearchLimitsBanner', () => {
                 },
             },
         };
-        const {container} = renderWithContext(<SearchLimitsBanner searchType='messages'/>, state);
+        const {container} = await renderWithContext(<SearchLimitsBanner searchType='messages'/>, state);
         expect(container.querySelector('#messages_search_limits_banner')).toBeNull();
     });
-    test('should show banner when doing messages search above the limit in Entry with limits', () => {
+    test('should show banner when doing messages search above the limit in Entry with limits', async () => {
         const aboveMessagesLimitUsage = JSON.parse(JSON.stringify(usage));
         aboveMessagesLimitUsage.messages.history = 15000; // above limit of 10K
 
@@ -123,11 +123,11 @@ describe('components/select_results/SearchLimitsBanner', () => {
                 },
             },
         };
-        const {container} = renderWithContext(<SearchLimitsBanner searchType='messages'/>, state);
+        const {container} = await renderWithContext(<SearchLimitsBanner searchType='messages'/>, state);
         expect(container.querySelector('#messages_search_limits_banner')).not.toBeNull();
     });
 
-    test('should display "View plans" CTA text for messages search when banner is shown', () => {
+    test('should display "View plans" CTA text for messages search when banner is shown', async () => {
         const aboveMessagesLimitUsage = JSON.parse(JSON.stringify(usage));
         aboveMessagesLimitUsage.messages.history = 15000; // above limit of 10K
 
@@ -179,13 +179,13 @@ describe('components/select_results/SearchLimitsBanner', () => {
             },
         };
 
-        const {container} = renderWithContext(<SearchLimitsBanner searchType={DataSearchTypes.MESSAGES_SEARCH_TYPE}/>, state);
+        const {container} = await renderWithContext(<SearchLimitsBanner searchType={DataSearchTypes.MESSAGES_SEARCH_TYPE}/>, state);
 
         expect(container.querySelector('#messages_search_limits_banner')).not.toBeNull();
         expect(container.textContent).toContain('paid plans');
     });
 
-    test('should display correct banner message format for messages search', () => {
+    test('should display correct banner message format for messages search', async () => {
         const aboveMessagesLimitUsage = JSON.parse(JSON.stringify(usage));
         aboveMessagesLimitUsage.messages.history = 15000; // above limit of 10K
 
@@ -237,14 +237,14 @@ describe('components/select_results/SearchLimitsBanner', () => {
             },
         };
 
-        const {container} = renderWithContext(<SearchLimitsBanner searchType={DataSearchTypes.MESSAGES_SEARCH_TYPE}/>, state);
+        const {container} = await renderWithContext(<SearchLimitsBanner searchType={DataSearchTypes.MESSAGES_SEARCH_TYPE}/>, state);
 
         const bannerText = container.textContent;
         expect(bannerText).toContain('Limited history is displayed');
         expect(bannerText).toContain('Full access to message history is included in');
     });
 
-    test('should render CTA link correctly when banner is shown', () => {
+    test('should render CTA link correctly when banner is shown', async () => {
         const aboveMessagesLimitUsage = JSON.parse(JSON.stringify(usage));
         aboveMessagesLimitUsage.messages.history = 15000; // above limit of 10K
 
@@ -298,7 +298,7 @@ describe('components/select_results/SearchLimitsBanner', () => {
             },
         };
 
-        const {container} = renderWithContext(<SearchLimitsBanner searchType={DataSearchTypes.MESSAGES_SEARCH_TYPE}/>, state);
+        const {container} = await renderWithContext(<SearchLimitsBanner searchType={DataSearchTypes.MESSAGES_SEARCH_TYPE}/>, state);
 
         // Verify the banner is shown and contains the CTA link
         expect(container.querySelector('#messages_search_limits_banner')).not.toBeNull();
@@ -309,7 +309,7 @@ describe('components/select_results/SearchLimitsBanner', () => {
         expect(ctaLinks).toHaveLength(1);
     });
 
-    test('should NOT show banner when RHS is showing pinned posts even with truncated search results', () => {
+    test('should NOT show banner when RHS is showing pinned posts even with truncated search results', async () => {
         const aboveMessagesLimitUsage = JSON.parse(JSON.stringify(usage));
         aboveMessagesLimitUsage.messages.history = 15000; // above limit of 10K
 
@@ -361,7 +361,7 @@ describe('components/select_results/SearchLimitsBanner', () => {
             },
         };
 
-        const {container} = renderWithContext(<SearchLimitsBanner searchType={DataSearchTypes.MESSAGES_SEARCH_TYPE}/>, state);
+        const {container} = await renderWithContext(<SearchLimitsBanner searchType={DataSearchTypes.MESSAGES_SEARCH_TYPE}/>, state);
 
         // Banner should NOT show because RHS is showing pinned posts, not search results
         expect(container.querySelector('#messages_search_limits_banner')).toBeNull();

@@ -10,8 +10,8 @@ import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import ScreeningInProgressModal from './';
 
 describe('ScreeningInProgressModal', () => {
-    it('informs customer that the subscription is under review', () => {
-        renderWithContext(<ScreeningInProgressModal/>);
+    it('informs customer that the subscription is under review', async () => {
+        await renderWithContext(<ScreeningInProgressModal/>);
         screen.getByText('Your transaction is being reviewed');
     });
 
@@ -19,7 +19,7 @@ describe('ScreeningInProgressModal', () => {
         const mockClose = jest.fn();
         jest.spyOn(controlModalHooks, 'useControlScreeningInProgressModal').mockImplementation(() => ({close: mockClose, open: jest.fn()}));
 
-        renderWithContext(<ScreeningInProgressModal/>);
+        await renderWithContext(<ScreeningInProgressModal/>);
         await userEvent.click(screen.getAllByText('Close')[1]);
         expect(mockClose).toHaveBeenCalled();
     });

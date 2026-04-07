@@ -92,8 +92,8 @@ describe('RecapChannelCard', () => {
         create_at: 1000,
     };
 
-    test('should render channel name', () => {
-        renderWithContext(
+    test('should render channel name', async () => {
+        await renderWithContext(
             <RecapChannelCard channel={mockRecapChannel}/>,
             baseState,
         );
@@ -101,8 +101,8 @@ describe('RecapChannelCard', () => {
         expect(screen.getByText('test-channel')).toBeInTheDocument();
     });
 
-    test('should render highlights section', () => {
-        renderWithContext(
+    test('should render highlights section', async () => {
+        await renderWithContext(
             <RecapChannelCard channel={mockRecapChannel}/>,
             baseState,
         );
@@ -112,8 +112,8 @@ describe('RecapChannelCard', () => {
         expect(screen.getByText('New feature released')).toBeInTheDocument();
     });
 
-    test('should render action items section', () => {
-        renderWithContext(
+    test('should render action items section', async () => {
+        await renderWithContext(
             <RecapChannelCard channel={mockRecapChannel}/>,
             baseState,
         );
@@ -123,14 +123,14 @@ describe('RecapChannelCard', () => {
         expect(screen.getByText('Schedule meeting')).toBeInTheDocument();
     });
 
-    test('should not render when no highlights or action items', () => {
+    test('should not render when no highlights or action items', async () => {
         const emptyChannel: RecapChannel = {
             ...mockRecapChannel,
             highlights: [],
             action_items: [],
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <RecapChannelCard channel={emptyChannel}/>,
             baseState,
         );
@@ -140,7 +140,7 @@ describe('RecapChannelCard', () => {
 
     test('should toggle collapse state when header is clicked', async () => {
         const user = userEvent.setup();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <RecapChannelCard channel={mockRecapChannel}/>,
             baseState,
         );
@@ -160,8 +160,8 @@ describe('RecapChannelCard', () => {
         expect(screen.getByText('Highlights')).toBeInTheDocument();
     });
 
-    test('should have keyboard-accessible header with proper ARIA attributes', () => {
-        const {container} = renderWithContext(
+    test('should have keyboard-accessible header with proper ARIA attributes', async () => {
+        const {container} = await renderWithContext(
             <RecapChannelCard channel={mockRecapChannel}/>,
             baseState,
         );
@@ -174,7 +174,7 @@ describe('RecapChannelCard', () => {
 
     test('should toggle collapse with Enter key on header', async () => {
         const user = userEvent.setup();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <RecapChannelCard channel={mockRecapChannel}/>,
             baseState,
         );
@@ -189,7 +189,7 @@ describe('RecapChannelCard', () => {
 
     test('should toggle collapse with Space key on header', async () => {
         const user = userEvent.setup();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <RecapChannelCard channel={mockRecapChannel}/>,
             baseState,
         );
@@ -204,7 +204,7 @@ describe('RecapChannelCard', () => {
     test('should dispatch switchToChannel when channel name clicked', async () => {
         const {switchToChannel} = require('actions/views/channel');
         const user = userEvent.setup();
-        renderWithContext(
+        await renderWithContext(
             <RecapChannelCard channel={mockRecapChannel}/>,
             baseState,
         );
@@ -216,8 +216,8 @@ describe('RecapChannelCard', () => {
         expect(switchToChannel).toHaveBeenCalledWith(mockChannel);
     });
 
-    test('should render menu with actions', () => {
-        renderWithContext(
+    test('should render menu with actions', async () => {
+        await renderWithContext(
             <RecapChannelCard channel={mockRecapChannel}/>,
             baseState,
         );
@@ -228,7 +228,7 @@ describe('RecapChannelCard', () => {
     test('should call mark channel as read action', async () => {
         const {readMultipleChannels} = require('mattermost-redux/actions/channels');
         const user = userEvent.setup();
-        renderWithContext(
+        await renderWithContext(
             <RecapChannelCard channel={mockRecapChannel}/>,
             baseState,
         );
@@ -243,7 +243,7 @@ describe('RecapChannelCard', () => {
     test('should call open channel action', async () => {
         const {switchToChannel} = require('actions/views/channel');
         const user = userEvent.setup();
-        renderWithContext(
+        await renderWithContext(
             <RecapChannelCard channel={mockRecapChannel}/>,
             baseState,
         );
@@ -255,13 +255,13 @@ describe('RecapChannelCard', () => {
         expect(switchToChannel).toHaveBeenCalledWith(mockChannel);
     });
 
-    test('should parse permalinks from highlights', () => {
+    test('should parse permalinks from highlights', async () => {
         const channelWithPermalinks: RecapChannel = {
             ...mockRecapChannel,
             highlights: ['Update from @john [PERMALINK:https://example.com/post1]'],
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <RecapChannelCard channel={channelWithPermalinks}/>,
             baseState,
         );
@@ -274,13 +274,13 @@ describe('RecapChannelCard', () => {
         expect(link).toBeInTheDocument();
     });
 
-    test('should parse permalinks from action items', () => {
+    test('should parse permalinks from action items', async () => {
         const channelWithPermalinks: RecapChannel = {
             ...mockRecapChannel,
             action_items: ['Review PR [PERMALINK:https://example.com/pr123]'],
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <RecapChannelCard channel={channelWithPermalinks}/>,
             baseState,
         );
@@ -293,8 +293,8 @@ describe('RecapChannelCard', () => {
         expect(link).toBeInTheDocument();
     });
 
-    test('should render badges for items without permalinks', () => {
-        const {container} = renderWithContext(
+    test('should render badges for items without permalinks', async () => {
+        const {container} = await renderWithContext(
             <RecapChannelCard channel={mockRecapChannel}/>,
             baseState,
         );
@@ -304,7 +304,7 @@ describe('RecapChannelCard', () => {
         expect(badges.length).toBeGreaterThan(0);
     });
 
-    test('should disable channel button when channel object not found', () => {
+    test('should disable channel button when channel object not found', async () => {
         const stateWithoutChannel = {
             entities: {
                 channels: {
@@ -322,7 +322,7 @@ describe('RecapChannelCard', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <RecapChannelCard channel={mockRecapChannel}/>,
             stateWithoutChannel,
         );
@@ -331,13 +331,13 @@ describe('RecapChannelCard', () => {
         expect(channelButton).toBeDisabled();
     });
 
-    test('should render only highlights when action items are empty', () => {
+    test('should render only highlights when action items are empty', async () => {
         const channelWithOnlyHighlights: RecapChannel = {
             ...mockRecapChannel,
             action_items: [],
         };
 
-        renderWithContext(
+        await renderWithContext(
             <RecapChannelCard channel={channelWithOnlyHighlights}/>,
             baseState,
         );
@@ -346,13 +346,13 @@ describe('RecapChannelCard', () => {
         expect(screen.queryByText('Action items:')).not.toBeInTheDocument();
     });
 
-    test('should render only action items when highlights are empty', () => {
+    test('should render only action items when highlights are empty', async () => {
         const channelWithOnlyActions: RecapChannel = {
             ...mockRecapChannel,
             highlights: [],
         };
 
-        renderWithContext(
+        await renderWithContext(
             <RecapChannelCard channel={channelWithOnlyActions}/>,
             baseState,
         );

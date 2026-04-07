@@ -22,7 +22,7 @@ describe('admin_console/team_channel_settings/group/GroupList', () => {
             getData: jest.fn().mockResolvedValue(testGroups),
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <GroupList
                 data={testGroups}
                 groups={testGroups}
@@ -58,7 +58,7 @@ describe('admin_console/team_channel_settings/group/GroupList', () => {
             getData: jest.fn().mockResolvedValue(Promise.resolve(testGroups)),
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <GroupList
                 data={testGroups}
                 groups={testGroups}

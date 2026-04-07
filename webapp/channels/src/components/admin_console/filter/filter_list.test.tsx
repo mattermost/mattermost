@@ -19,8 +19,8 @@ describe('admin_console/filter/FilterList', () => {
         },
     };
 
-    test('should render filter name and labels', () => {
-        renderWithContext(
+    test('should render filter name and labels', async () => {
+        await renderWithContext(
             <FilterList
                 option={baseOption}
                 optionKey='test'
@@ -33,8 +33,8 @@ describe('admin_console/filter/FilterList', () => {
         expect(screen.getByText('Option 2')).toBeInTheDocument();
     });
 
-    test('should render checkboxes matching boolean values', () => {
-        renderWithContext(
+    test('should render checkboxes matching boolean values', async () => {
+        await renderWithContext(
             <FilterList
                 option={baseOption}
                 optionKey='test'

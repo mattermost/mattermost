@@ -8,16 +8,16 @@ import {renderWithContext} from 'tests/react_testing_utils';
 import TooltipContent from './tooltip_content';
 
 describe('TooltipContent', () => {
-    test('have correct structure with just title', () => {
-        const {container} = renderWithContext(
+    test('have correct structure with just title', async () => {
+        const {container} = await renderWithContext(
             <TooltipContent title='Title'/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('have correct structure with title and emoji', () => {
-        const {container} = renderWithContext(
+    test('have correct structure with title and emoji', async () => {
+        const {container} = await renderWithContext(
             <TooltipContent
                 title='Title with Emoji'
                 emoji='smile'
@@ -27,8 +27,8 @@ describe('TooltipContent', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('have correct structure with title and large emoji', () => {
-        const {container} = renderWithContext(
+    test('have correct structure with title and large emoji', async () => {
+        const {container} = await renderWithContext(
             <TooltipContent
                 title='Title with Large Emoji'
                 emoji='smile'
@@ -39,8 +39,8 @@ describe('TooltipContent', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('have correct structure with title, emoji and hint', () => {
-        const {container} = renderWithContext(
+    test('have correct structure with title, emoji and hint', async () => {
+        const {container} = await renderWithContext(
             <TooltipContent
                 title='Title with Hint'
                 hint='This is a hint'
@@ -51,12 +51,12 @@ describe('TooltipContent', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('have correct structure with title and shortcut', () => {
+    test('have correct structure with title and shortcut', async () => {
         const shortcut = {
             default: ['Ctrl', 'K'],
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <TooltipContent
                 title='Title with Shortcut'
                 shortcut={shortcut}

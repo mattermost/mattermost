@@ -56,8 +56,8 @@ describe('components/AddUserToChannelModal', () => {
         });
     }
 
-    it('should match snapshot', () => {
-        const {baseElement} = renderWithContext(
+    it('should match snapshot', async () => {
+        const {baseElement} = await renderWithContext(
             <AddUserToChannelModal {...baseProps}/>,
         );
 
@@ -68,7 +68,7 @@ describe('components/AddUserToChannelModal', () => {
     });
 
     it('should enable the add button when a channel is selected', async () => {
-        renderWithContext(
+        await renderWithContext(
             <AddUserToChannelModal {...baseProps}/>,
         );
 
@@ -89,7 +89,7 @@ describe('components/AddUserToChannelModal', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <AddUserToChannelModal {...props}/>,
         );
 
@@ -120,7 +120,7 @@ describe('components/AddUserToChannelModal', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <AddUserToChannelModal {...props}/>,
         );
 
@@ -148,7 +148,7 @@ describe('components/AddUserToChannelModal', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <AddUserToChannelModal {...props}/>,
         );
 
@@ -174,7 +174,7 @@ describe('components/AddUserToChannelModal', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <AddUserToChannelModal {...props}/>,
         );
 
@@ -199,7 +199,7 @@ describe('components/AddUserToChannelModal', () => {
         it('should fetch the selected user\'s membership for the selected channel', async () => {
             const props = {...baseProps};
 
-            renderWithContext(
+            await renderWithContext(
                 <AddUserToChannelModal {...props}/>,
             );
 
@@ -220,7 +220,7 @@ describe('components/AddUserToChannelModal', () => {
                 },
             };
 
-            renderWithContext(
+            await renderWithContext(
                 <AddUserToChannelModal {...props}/>,
             );
 
@@ -251,7 +251,7 @@ describe('components/AddUserToChannelModal', () => {
         it('should do nothing if no channel is selected', async () => {
             const props = {...baseProps};
 
-            renderWithContext(
+            await renderWithContext(
                 <AddUserToChannelModal {...props}/>,
             );
 
@@ -269,7 +269,7 @@ describe('components/AddUserToChannelModal', () => {
                 },
             };
 
-            renderWithContext(
+            await renderWithContext(
                 <AddUserToChannelModal {...props}/>,
             );
 
@@ -287,7 +287,7 @@ describe('components/AddUserToChannelModal', () => {
                 },
             };
 
-            renderWithContext(
+            await renderWithContext(
                 <AddUserToChannelModal {...props}/>,
             );
 
@@ -311,7 +311,7 @@ describe('components/AddUserToChannelModal', () => {
                 },
             };
 
-            renderWithContext(
+            await renderWithContext(
                 <AddUserToChannelModal {...props}/>,
             );
 
@@ -340,7 +340,7 @@ describe('components/AddUserToChannelModal', () => {
                 },
             };
 
-            renderWithContext(
+            await renderWithContext(
                 <AddUserToChannelModal {...props}/>,
             );
 

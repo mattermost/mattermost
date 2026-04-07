@@ -8,10 +8,10 @@ import {renderWithContext, screen} from 'tests/react_testing_utils';
 import ColorSetting from './color_setting';
 
 describe('components/ColorSetting', () => {
-    test('should match snapshot, all', () => {
+    test('should match snapshot, all', async () => {
         function emptyFunction() {} //eslint-disable-line no-empty-function
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ColorSetting
                 id='id'
                 label='label'
@@ -27,10 +27,10 @@ describe('components/ColorSetting', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, no help text', () => {
+    test('should match snapshot, no help text', async () => {
         function emptyFunction() {} //eslint-disable-line no-empty-function
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ColorSetting
                 id='id'
                 label='label'
@@ -44,10 +44,10 @@ describe('components/ColorSetting', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, disabled', () => {
+    test('should match snapshot, disabled', async () => {
         function emptyFunction() {} //eslint-disable-line no-empty-function
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ColorSetting
                 id='id'
                 label='label'
@@ -62,10 +62,10 @@ describe('components/ColorSetting', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, clicked on color setting', () => {
+    test('should match snapshot, clicked on color setting', async () => {
         function emptyFunction() {} //eslint-disable-line no-empty-function
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ColorSetting
                 id='id'
                 label='label'

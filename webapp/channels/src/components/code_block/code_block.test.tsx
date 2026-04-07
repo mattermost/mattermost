@@ -24,7 +24,7 @@ describe('codeBlock', () => {
     console.log('This is a meaningful function');
 };`;
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <CodeBlock
                 code={input}
                 language={language}
@@ -34,14 +34,7 @@ describe('codeBlock', () => {
         expect(screen.getByText('TypeScript')).toBeInTheDocument();
         expect(container.querySelector('.post-code__line-numbers')).toBeInTheDocument();
 
-        expect(container.querySelector('.hljs-keyword')).not.toBeInTheDocument();
-
-        // Wait for highlight.js to finish loading
-        await actImmediate();
-
-        expect(screen.getByText('TypeScript')).toBeInTheDocument();
-        expect(container.querySelector('.post-code__line-numbers')).toBeInTheDocument();
-
+        // highlight.js resolves during async renderWithContext, so syntax highlighting is already applied
         expect(container.querySelector('.hljs-keyword')).toBeInTheDocument();
     });
 
@@ -50,7 +43,7 @@ describe('codeBlock', () => {
         const input = `this is my unknown language
 it shouldn't highlight, it's just garbage`;
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <CodeBlock
                 code={input}
                 language={language}
@@ -73,7 +66,7 @@ it shouldn't highlight, it's just garbage`;
         const searchedInput = '<span class="search-highlight">foo</span> <span class="search-highlight">foo</span> ' +
             '<span class="search-highlight">foo</span> <span class="search-highlight">foo</span>';
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <CodeBlock
                 code={input}
                 language={language}

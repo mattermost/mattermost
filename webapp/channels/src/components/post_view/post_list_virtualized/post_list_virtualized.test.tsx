@@ -124,9 +124,9 @@ describe('PostList', () => {
     describe('renderRow', () => {
         const postListIds = ['a', 'b', 'c', 'd'];
 
-        test('should get previous item ID correctly for oldest row', () => {
+        test('should get previous item ID correctly for oldest row', async () => {
             const ref = React.createRef<PostList>();
-            renderWithContext(
+            await renderWithContext(
                 <PostList
                     ref={ref}
                     {...baseProps}
@@ -141,9 +141,9 @@ describe('PostList', () => {
             expect(row.props.children.props.previousListId).toEqual('');
         });
 
-        test('should get previous item ID correctly for other rows', () => {
+        test('should get previous item ID correctly for other rows', async () => {
             const ref = React.createRef<PostList>();
-            renderWithContext(
+            await renderWithContext(
                 <PostList
                     ref={ref}
                     {...baseProps}
@@ -158,14 +158,14 @@ describe('PostList', () => {
             expect(row.props.children.props.previousListId).toEqual('c');
         });
 
-        test('should highlight the focused post', () => {
+        test('should highlight the focused post', async () => {
             const props = {
                 ...baseProps,
                 focusedPostId: 'b',
             };
 
             const ref = React.createRef<PostList>();
-            renderWithContext(
+            await renderWithContext(
                 <PostList
                     ref={ref}
                     {...props}
@@ -189,9 +189,9 @@ describe('PostList', () => {
     });
 
     describe('onScroll', () => {
-        test('should call checkBottom', () => {
+        test('should call checkBottom', async () => {
             const ref = React.createRef<PostList>();
-            renderWithContext(
+            await renderWithContext(
                 <PostList
                     ref={ref}
                     {...baseProps}
@@ -216,9 +216,9 @@ describe('PostList', () => {
             expect(ref.current!.checkBottom).toHaveBeenCalledWith(scrollOffset, scrollHeight, clientHeight);
         });
 
-        test('should call canLoadMorePosts with AFTER_ID if loader is visible', () => {
+        test('should call canLoadMorePosts with AFTER_ID if loader is visible', async () => {
             const ref = React.createRef<PostList>();
-            renderWithContext(
+            await renderWithContext(
                 <PostList
                     ref={ref}
                     {...baseProps}
@@ -244,9 +244,9 @@ describe('PostList', () => {
             expect(baseProps.actions.canLoadMorePosts).toHaveBeenCalledWith(PostRequestTypes.AFTER_ID);
         });
 
-        test('should not call canLoadMorePosts with AFTER_ID if loader is below the fold by couple of messages', () => {
+        test('should not call canLoadMorePosts with AFTER_ID if loader is below the fold by couple of messages', async () => {
             const ref = React.createRef<PostList>();
-            renderWithContext(
+            await renderWithContext(
                 <PostList
                     ref={ref}
                     {...baseProps}
@@ -272,11 +272,11 @@ describe('PostList', () => {
             expect(baseProps.actions.canLoadMorePosts).not.toHaveBeenCalled();
         });
 
-        test('should show search channel hint if user scrolled too far away from the bottom of the list', () => {
+        test('should show search channel hint if user scrolled too far away from the bottom of the list', async () => {
             const screenHeightSpy = jest.spyOn(window.screen, 'height', 'get').mockImplementation(() => 500);
 
             const ref = React.createRef<PostList>();
-            renderWithContext(
+            await renderWithContext(
                 <PostList
                     ref={ref}
                     {...baseProps}
@@ -303,11 +303,11 @@ describe('PostList', () => {
             screenHeightSpy.mockRestore();
         });
 
-        test('should not show search channel hint if user scrolls not that far away', () => {
+        test('should not show search channel hint if user scrolls not that far away', async () => {
             const screenHeightSpy = jest.spyOn(window.screen, 'height', 'get').mockImplementation(() => 500);
 
             const ref = React.createRef<PostList>();
-            renderWithContext(
+            await renderWithContext(
                 <PostList
                     ref={ref}
                     {...baseProps}
@@ -334,11 +334,11 @@ describe('PostList', () => {
             screenHeightSpy.mockRestore();
         });
 
-        test('should hide search channel hint in case of dismiss', () => {
+        test('should hide search channel hint in case of dismiss', async () => {
             const screenHeightSpy = jest.spyOn(window.screen, 'height', 'get').mockImplementation(() => 500);
 
             const ref = React.createRef<PostList>();
-            renderWithContext(
+            await renderWithContext(
                 <PostList
                     ref={ref}
                     {...baseProps}
@@ -368,7 +368,7 @@ describe('PostList', () => {
             screenHeightSpy.mockRestore();
         });
 
-        test('should not show search channel hint on mobile', () => {
+        test('should not show search channel hint on mobile', async () => {
             const screenHeightSpy = jest.spyOn(window.screen, 'height', 'get').mockImplementation(() => 500);
 
             const props = {
@@ -377,7 +377,7 @@ describe('PostList', () => {
             };
 
             const ref = React.createRef<PostList>();
-            renderWithContext(
+            await renderWithContext(
                 <PostList
                     ref={ref}
                     {...props}
@@ -404,10 +404,10 @@ describe('PostList', () => {
             screenHeightSpy.mockRestore();
         });
 
-        test('should not show search channel hint if it has already been dismissed', () => {
+        test('should not show search channel hint if it has already been dismissed', async () => {
             const screenHeightSpy = jest.spyOn(window.screen, 'height', 'get').mockImplementation(() => 500);
             const ref = React.createRef<PostList>();
-            renderWithContext(
+            await renderWithContext(
                 <PostList
                     ref={ref}
                     {...baseProps}
@@ -437,11 +437,11 @@ describe('PostList', () => {
             screenHeightSpy.mockRestore();
         });
 
-        test('should hide search channel hint in case of resize to mobile', () => {
+        test('should hide search channel hint in case of resize to mobile', async () => {
             const screenHeightSpy = jest.spyOn(window.screen, 'height', 'get').mockImplementation(() => 500);
 
             const ref = React.createRef<PostList>();
-            const {rerender} = renderWithContext(
+            const {rerender} = await renderWithContext(
                 <PostList
                     ref={ref}
                     {...baseProps}
@@ -515,9 +515,9 @@ describe('PostList', () => {
                 expected: true,
             },
         ]) {
-            test(testCase.name, () => {
+            test(testCase.name, async () => {
                 const ref = React.createRef<PostList>();
-                renderWithContext(
+                await renderWithContext(
                     <PostList
                         ref={ref}
                         {...baseProps}
@@ -529,9 +529,9 @@ describe('PostList', () => {
     });
 
     describe('updateAtBottom', () => {
-        test('should update atBottom and lastViewedBottom when atBottom changes', () => {
+        test('should update atBottom and lastViewedBottom when atBottom changes', async () => {
             const ref = React.createRef<PostList>();
-            renderWithContext(
+            await renderWithContext(
                 <PostList
                     ref={ref}
                     {...baseProps}
@@ -549,9 +549,9 @@ describe('PostList', () => {
             expect(ref.current!.state.lastViewedBottom).not.toBe(1234);
         });
 
-        test('should not update lastViewedBottom when atBottom does not change', () => {
+        test('should not update lastViewedBottom when atBottom does not change', async () => {
             const ref = React.createRef<PostList>();
-            renderWithContext(
+            await renderWithContext(
                 <PostList
                     ref={ref}
                     {...baseProps}
@@ -568,11 +568,11 @@ describe('PostList', () => {
             expect(ref.current!.state.lastViewedBottom).toBe(1234);
         });
 
-        test('should update lastViewedBottom with latestPostTimeStamp as that is greater than Date.now()', () => {
+        test('should update lastViewedBottom with latestPostTimeStamp as that is greater than Date.now()', async () => {
             Date.now = jest.fn().mockReturnValue(12344);
 
             const ref = React.createRef<PostList>();
-            renderWithContext(
+            await renderWithContext(
                 <PostList
                     ref={ref}
                     {...baseProps}
@@ -589,11 +589,11 @@ describe('PostList', () => {
             expect(ref.current!.state.lastViewedBottom).toBe(12345);
         });
 
-        test('should update lastViewedBottom with Date.now() as it is greater than latestPostTimeStamp', () => {
+        test('should update lastViewedBottom with Date.now() as it is greater than latestPostTimeStamp', async () => {
             Date.now = jest.fn().mockReturnValue(12346);
 
             const ref = React.createRef<PostList>();
-            renderWithContext(
+            await renderWithContext(
                 <PostList
                     ref={ref}
                     {...baseProps}
@@ -612,9 +612,9 @@ describe('PostList', () => {
     });
 
     describe('Scroll correction logic on mount of posts at the top', () => {
-        test('should return previous scroll position from getSnapshotBeforeUpdate', () => {
+        test('should return previous scroll position from getSnapshotBeforeUpdate', async () => {
             const ref = React.createRef<PostList>();
-            const {rerender} = renderWithContext(
+            const {rerender} = await renderWithContext(
                 <PostList
                     ref={ref}
                     {...baseProps}
@@ -658,9 +658,9 @@ describe('PostList', () => {
             expect((instance.componentDidUpdate as jest.Mock).mock.calls[2][2]).toEqual({previousScrollTop: 30, previousScrollHeight: 200});
         });
 
-        test('should not return previous scroll position from getSnapshotBeforeUpdate as list is at bottom', () => {
+        test('should not return previous scroll position from getSnapshotBeforeUpdate as list is at bottom', async () => {
             const ref = React.createRef<PostList>();
-            const {rerender} = renderWithContext(
+            const {rerender} = await renderWithContext(
                 <PostList
                     ref={ref}
                     {...baseProps}
@@ -685,7 +685,7 @@ describe('PostList', () => {
     });
 
     describe('initRangeToRender', () => {
-        test('should return 0 to 50 for channel with more than 100 messages', () => {
+        test('should return 0 to 50 for channel with more than 100 messages', async () => {
             const postListIds = [];
             for (let i = 0; i < 110; i++) {
                 postListIds.push(`post${i}`);
@@ -697,7 +697,7 @@ describe('PostList', () => {
             };
 
             const ref = React.createRef<PostList>();
-            renderWithContext(
+            await renderWithContext(
                 <PostList
                     ref={ref}
                     {...props}
@@ -706,7 +706,7 @@ describe('PostList', () => {
             expect(ref.current!.initRangeToRender).toEqual([0, 50]);
         });
 
-        test('should return range if new messages are present', () => {
+        test('should return range if new messages are present', async () => {
             const postListIds = [];
             for (let i = 0; i < 120; i++) {
                 postListIds.push(`post${i}`);
@@ -719,7 +719,7 @@ describe('PostList', () => {
             };
 
             const ref = React.createRef<PostList>();
-            renderWithContext(
+            await renderWithContext(
                 <PostList
                     ref={ref}
                     {...props}
@@ -730,14 +730,14 @@ describe('PostList', () => {
     });
 
     describe('renderRow', () => {
-        test('should have appropriate classNames for rows with START_OF_NEW_MESSAGES and DATE_LINE', () => {
+        test('should have appropriate classNames for rows with START_OF_NEW_MESSAGES and DATE_LINE', async () => {
             const props = {
                 ...baseProps,
                 postListIds: postListIdsForClassNames,
             };
 
             const ref = React.createRef<PostList>();
-            renderWithContext(
+            await renderWithContext(
                 <PostList
                     ref={ref}
                     {...props}
@@ -760,7 +760,7 @@ describe('PostList', () => {
             expect(post5Row.props.className).toEqual('post-row__padding bottom');
         });
 
-        test('should have both top and bottom classNames as post is in between DATE_LINE and START_OF_NEW_MESSAGES', () => {
+        test('should have both top and bottom classNames as post is in between DATE_LINE and START_OF_NEW_MESSAGES', async () => {
             const props = {
                 ...baseProps,
                 postListIds: [
@@ -775,7 +775,7 @@ describe('PostList', () => {
             };
 
             const ref = React.createRef<PostList>();
-            renderWithContext(
+            await renderWithContext(
                 <PostList
                     ref={ref}
                     {...props}
@@ -791,7 +791,7 @@ describe('PostList', () => {
             expect(row.props.className).toEqual('post-row__padding bottom top');
         });
 
-        test('should have empty string as className when both previousItemId and nextItemId are posts', () => {
+        test('should have empty string as className when both previousItemId and nextItemId are posts', async () => {
             const props = {
                 ...baseProps,
                 postListIds: [
@@ -806,7 +806,7 @@ describe('PostList', () => {
             };
 
             const ref = React.createRef<PostList>();
-            renderWithContext(
+            await renderWithContext(
                 <PostList
                     ref={ref}
                     {...props}
@@ -824,14 +824,14 @@ describe('PostList', () => {
     });
 
     describe('updateFloatingTimestamp', () => {
-        test('should not update topPostId as is it not mobile view', () => {
+        test('should not update topPostId as is it not mobile view', async () => {
             const props = {
                 ...baseProps,
                 isMobileView: false,
             };
 
             const ref = React.createRef<PostList>();
-            renderWithContext(
+            await renderWithContext(
                 <PostList
                     ref={ref}
                     {...props}
@@ -844,14 +844,14 @@ describe('PostList', () => {
             expect(ref.current!.state.topPostId).toBe('');
         });
 
-        test('should update topPostId with latest visible postId', () => {
+        test('should update topPostId with latest visible postId', async () => {
             const props = {
                 ...baseProps,
                 isMobileView: true,
             };
 
             const ref = React.createRef<PostList>();
-            renderWithContext(
+            await renderWithContext(
                 <PostList
                     ref={ref}
                     {...props}
@@ -871,9 +871,9 @@ describe('PostList', () => {
     });
 
     describe('scrollToLatestMessages', () => {
-        test('should call scrollToBottom', () => {
+        test('should call scrollToBottom', async () => {
             const ref = React.createRef<PostList>();
-            const {rerender} = renderWithContext(
+            const {rerender} = await renderWithContext(
                 <PostList
                     ref={ref}
                     {...baseProps}
@@ -892,9 +892,9 @@ describe('PostList', () => {
             expect(instance.scrollToBottom).toHaveBeenCalled();
         });
 
-        test('should call changeUnreadChunkTimeStamp', () => {
+        test('should call changeUnreadChunkTimeStamp', async () => {
             const ref = React.createRef<PostList>();
-            renderWithContext(
+            await renderWithContext(
                 <PostList
                     ref={ref}
                     {...baseProps}
@@ -907,9 +907,9 @@ describe('PostList', () => {
     });
 
     describe('postIds state', () => {
-        test('should have LOAD_NEWER_MESSAGES_TRIGGER and LOAD_OLDER_MESSAGES_TRIGGER', () => {
+        test('should have LOAD_NEWER_MESSAGES_TRIGGER and LOAD_OLDER_MESSAGES_TRIGGER', async () => {
             const ref = React.createRef<PostList>();
-            const {rerender} = renderWithContext(
+            const {rerender} = await renderWithContext(
                 <PostList
                     ref={ref}
                     {...baseProps}
@@ -929,7 +929,7 @@ describe('PostList', () => {
     });
 
     describe('initScrollToIndex', () => {
-        test('return date index if it is just above new message line', () => {
+        test('return date index if it is just above new message line', async () => {
             const postListIds = [
                 'post1',
                 'post2',
@@ -946,7 +946,7 @@ describe('PostList', () => {
             };
 
             const ref = React.createRef<PostList>();
-            renderWithContext(
+            await renderWithContext(
                 <PostList
                     ref={ref}
                     {...props}
@@ -957,7 +957,7 @@ describe('PostList', () => {
         });
     });
 
-    test('return new message line index if there is no date just above it', () => {
+    test('return new message line index if there is no date just above it', async () => {
         const postListIds = [
             'post1',
             'post2',
@@ -973,7 +973,7 @@ describe('PostList', () => {
         };
 
         const ref = React.createRef<PostList>();
-        renderWithContext(
+        await renderWithContext(
             <PostList
                 ref={ref}
                 {...props}

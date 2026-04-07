@@ -36,7 +36,7 @@ describe('AddReactionButton', () => {
             onEmojiClick: jest.fn(),
         };
 
-        renderWithContext(
+        await renderWithContext(
             <AddReactionButton {...props}/>,
             initialState,
         );

@@ -102,7 +102,7 @@ describe('components/PermalinkView', () => {
     };
 
     test('should match snapshot', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PermalinkView {...baseProps}/>,
         );
 
@@ -110,7 +110,7 @@ describe('components/PermalinkView', () => {
     });
 
     test('should call baseProps.actions.focusPost on doPermalinkEvent', async () => {
-        renderWithContext(
+        await renderWithContext(
             <PermalinkView {...baseProps}/>,
         );
 
@@ -121,7 +121,7 @@ describe('components/PermalinkView', () => {
     });
 
     test('should call baseProps.actions.focusPost when postid changes', async () => {
-        const {rerender} = renderWithContext(
+        const {rerender} = await renderWithContext(
             <PermalinkView {...baseProps}/>,
         );
 
@@ -143,11 +143,9 @@ describe('components/PermalinkView', () => {
     test('should match snapshot with archived channel', async () => {
         const props = {...baseProps, channelIsArchived: true};
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PermalinkView {...props}/>,
         );
-
-        await waitFor(() => {});
 
         expect(container).toMatchSnapshot();
     });

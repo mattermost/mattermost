@@ -55,12 +55,12 @@ describe('components/post_view/Reaction', () => {
         actions,
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<ReactionComponent {...baseProps}/>);
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(<ReactionComponent {...baseProps}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when a current user reacted to a post', () => {
+    test('should match snapshot when a current user reacted to a post', async () => {
         const newReactions = [{
             user_id: 'user_id_1',
             post_id: post.id,
@@ -76,34 +76,34 @@ describe('components/post_view/Reaction', () => {
             currentUserReacted: true,
             reactions: newReactions,
         };
-        const {container} = renderWithContext(<ReactionComponent {...props}/>);
+        const {container} = await renderWithContext(<ReactionComponent {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should return null/empty if no emojiImageUrl', () => {
+    test('should return null/empty if no emojiImageUrl', async () => {
         const props = {...baseProps, emojiImageUrl: ''};
-        const {container} = renderWithContext(<ReactionComponent {...props}/>);
+        const {container} = await renderWithContext(<ReactionComponent {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should apply read-only class if user does not have permission to add reaction', () => {
+    test('should apply read-only class if user does not have permission to add reaction', async () => {
         const props = {...baseProps, canAddReactions: false};
-        const {container} = renderWithContext(<ReactionComponent {...props}/>);
+        const {container} = await renderWithContext(<ReactionComponent {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should apply read-only class if user does not have permission to remove reaction', () => {
+    test('should apply read-only class if user does not have permission to remove reaction', async () => {
         const props = {
             ...baseProps,
             canRemoveReactions: false,
             currentUserReacted: true,
         };
-        const {container} = renderWithContext(<ReactionComponent {...props}/>);
+        const {container} = await renderWithContext(<ReactionComponent {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
     test('should have called actions.getMissingProfilesByIds when loadMissingProfiles is called', async () => {
-        renderWithContext(<ReactionComponent {...baseProps}/>);
+        await renderWithContext(<ReactionComponent {...baseProps}/>);
 
         const tooltipTrigger = screen.getByTestId('reaction-tooltip');
         await userEvent.hover(tooltipTrigger);

@@ -458,7 +458,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
                 disabled=""
                 id="activeSearchBackend"
                 type="text"
-                value=""
+                value="none"
               />
               <div
                 class="help-text"

@@ -42,26 +42,26 @@ describe('DesktopNotificationSettings', () => {
         desktopAndMobileSettingsDifferent: false,
     };
 
-    test('should match snapshot, on max setting', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot, on max setting', async () => {
+        const {container} = await renderWithContext(
             <DesktopNotificationSettings {...baseProps}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, on min setting', () => {
+    test('should match snapshot, on min setting', async () => {
         const props = {...baseProps, active: false};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <DesktopNotificationSettings {...props}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should not show desktop thread notification checkbox when collapsed threads are not enabled', () => {
+    test('should not show desktop thread notification checkbox when collapsed threads are not enabled', async () => {
         const props = {...baseProps, isCollapsedThreadsEnabled: false};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <DesktopNotificationSettings {...props}/>,
         );
 
@@ -69,53 +69,53 @@ describe('DesktopNotificationSettings', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should not show desktop thread notification checkbox when desktop is all', () => {
+    test('should not show desktop thread notification checkbox when desktop is all', async () => {
         const props = {...baseProps, desktopActivity: NotificationLevels.ALL};
-        renderWithContext(
+        await renderWithContext(
             <DesktopNotificationSettings {...props}/>,
         );
 
         expect(screen.queryByText('Notify me about replies to threads I\'m following')).toBeNull();
     });
 
-    test('should not show desktop thread notification checkbox when desktop is none', () => {
+    test('should not show desktop thread notification checkbox when desktop is none', async () => {
         const props = {...baseProps, desktopActivity: NotificationLevels.NONE};
-        renderWithContext(
+        await renderWithContext(
             <DesktopNotificationSettings {...props}/>,
         );
 
         expect(screen.queryByText('Notify me about replies to threads I\'m following')).toBeNull();
     });
 
-    test('should show desktop thread notification checkbox when desktop is mention', () => {
+    test('should show desktop thread notification checkbox when desktop is mention', async () => {
         const props = {...baseProps, desktopActivity: NotificationLevels.MENTION};
-        renderWithContext(
+        await renderWithContext(
             <DesktopNotificationSettings {...props}/>,
         );
 
         expect(screen.getByText('Notify me about replies to threads I\'m following')).toBeInTheDocument();
     });
 
-    test('should show mobile notification when checkbox for use different mobile settings is checked', () => {
+    test('should show mobile notification when checkbox for use different mobile settings is checked', async () => {
         const props = {...baseProps, desktopAndMobileSettingsDifferent: true};
-        renderWithContext(
+        await renderWithContext(
             <DesktopNotificationSettings {...props}/>,
         );
 
         expect(screen.getByText('Send mobile notifications for:')).toBeInTheDocument();
     });
 
-    test('should not show mobile notification when checkbox for use different mobile settings is not checked', () => {
+    test('should not show mobile notification when checkbox for use different mobile settings is not checked', async () => {
         const props = {...baseProps, desktopAndMobileSettingsDifferent: false};
-        renderWithContext(
+        await renderWithContext(
             <DesktopNotificationSettings {...props}/>,
         );
 
         expect(screen.queryByText('Send mobile notifications for:')).toBeNull();
     });
 
-    test('should shown notify me about mobile threads when mobile setting is mention and desktop setting is anything', () => {
-        const {rerender} = renderWithContext(
+    test('should shown notify me about mobile threads when mobile setting is mention and desktop setting is anything', async () => {
+        const {rerender} = await renderWithContext(
             <DesktopNotificationSettings
                 {...baseProps}
                 desktopAndMobileSettingsDifferent={true}
@@ -138,8 +138,8 @@ describe('DesktopNotificationSettings', () => {
         expect(screen.getByText('Notify me on mobile about replies to threads I\'m following')).toBeInTheDocument();
     });
 
-    test('should not show notify me about mobile threads when mobile setting is anything other than mention', () => {
-        const {rerender} = renderWithContext(
+    test('should not show notify me about mobile threads when mobile setting is anything other than mention', async () => {
+        const {rerender} = await renderWithContext(
             <DesktopNotificationSettings
                 {...baseProps}
                 desktopAndMobileSettingsDifferent={true}
@@ -162,18 +162,18 @@ describe('DesktopNotificationSettings', () => {
         expect(screen.queryByText('Notify me on mobile about replies to threads I\'m following')).toBeNull();
     });
 
-    test('should show trigger mobile notifications section when desktop setting is mention', () => {
+    test('should show trigger mobile notifications section when desktop setting is mention', async () => {
         const props = {...baseProps, desktopActivity: NotificationLevels.MENTION, desktopAndMobileSettingsDifferent: false};
-        renderWithContext(
+        await renderWithContext(
             <DesktopNotificationSettings {...props}/>,
         );
 
         expect(screen.getByText('Trigger mobile notifications when I am:')).toBeInTheDocument();
     });
 
-    test('should not show trigger mobile notifications section when desktop setting is none', () => {
+    test('should not show trigger mobile notifications section when desktop setting is none', async () => {
         const props = {...baseProps, desktopActivity: NotificationLevels.NONE, desktopAndMobileSettingsDifferent: false};
-        renderWithContext(
+        await renderWithContext(
             <DesktopNotificationSettings {...props}/>,
         );
 
@@ -182,8 +182,8 @@ describe('DesktopNotificationSettings', () => {
 
     // New accessibility tests for the option labels fix
     describe('Accessibility - Option Labels', () => {
-        test('should render notification option labels as proper text for screen readers', () => {
-            renderWithContext(
+        test('should render notification option labels as proper text for screen readers', async () => {
+            await renderWithContext(
                 <DesktopNotificationSettings {...baseProps}/>,
             );
 
@@ -193,9 +193,9 @@ describe('DesktopNotificationSettings', () => {
             expect(screen.getByText('Nothing')).toBeInTheDocument();
         });
 
-        test('should render mobile notification option labels correctly in select dropdown', () => {
+        test('should render mobile notification option labels correctly in select dropdown', async () => {
             const props = {...baseProps, desktopAndMobileSettingsDifferent: true};
-            renderWithContext(
+            await renderWithContext(
                 <DesktopNotificationSettings {...props}/>,
             );
 
@@ -207,9 +207,9 @@ describe('DesktopNotificationSettings', () => {
             expect(selectElement).toHaveAttribute('aria-labelledby', 'sendMobileNotificationsLabel');
         });
 
-        test('should render mobile notification status options correctly', () => {
+        test('should render mobile notification status options correctly', async () => {
             const props = {...baseProps, desktopActivity: NotificationLevels.MENTION, desktopAndMobileSettingsDifferent: false};
-            renderWithContext(
+            await renderWithContext(
                 <DesktopNotificationSettings {...props}/>,
             );
 

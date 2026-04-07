@@ -55,13 +55,13 @@ describe('components/post_view/AddMembersButton', () => {
 
     jest.spyOn(teams, 'getCurrentTeamId').mockReturnValue('team-id');
 
-    test('should match snapshot, less than limit', () => {
+    test('should match snapshot, less than limit', async () => {
         const props = {
             totalUsers: 10,
             usersLimit: 100,
             channel,
         };
-        renderWithContext(
+        await renderWithContext(
             <AddMembersButton {...props}/>,
             initialState,
         );
@@ -69,13 +69,13 @@ describe('components/post_view/AddMembersButton', () => {
         expect(screen.queryByText('Invite others to the workspace')).toBeInTheDocument();
     });
 
-    test('should match snapshot, more than limit', () => {
+    test('should match snapshot, more than limit', async () => {
         const props = {
             totalUsers: 100,
             usersLimit: 10,
             channel,
         };
-        renderWithContext(
+        await renderWithContext(
             <AddMembersButton {...props}/>,
             initialState,
         );
@@ -83,7 +83,7 @@ describe('components/post_view/AddMembersButton', () => {
         expect(screen.queryByText('Add people')).toBeInTheDocument();
     });
 
-    test('should match snapshot, setHeader and pluginButtons', () => {
+    test('should match snapshot, setHeader and pluginButtons', async () => {
         const PLUGIN_TEXT = 'Create a board plugin';
         const pluginButtons = (
             <button>
@@ -97,7 +97,7 @@ describe('components/post_view/AddMembersButton', () => {
             channel,
             pluginButtons,
         };
-        renderWithContext(
+        await renderWithContext(
             <AddMembersButton {...props}/>,
             initialState,
         );

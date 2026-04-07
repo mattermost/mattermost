@@ -32,14 +32,14 @@ describe('ListItem', () => {
         option: {} as OptionValue,
     };
 
-    test('should match snapshot when rendering user', () => {
+    test('should match snapshot when rendering user', async () => {
         const user = {
             id: 'user_id_1',
             username: 'username1',
             last_post_at: 0,
         } as OptionValue;
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ListItem
                 {...baseProps}
                 option={user}
@@ -50,7 +50,7 @@ describe('ListItem', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when rendering GroupChannel', () => {
+    test('should match snapshot when rendering GroupChannel', async () => {
         const channel = {
             id: 'channel_id_1',
             type: General.GM_CHANNEL,
@@ -72,7 +72,7 @@ describe('ListItem', () => {
             ],
         } as OptionValue;
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ListItem
                 {...baseProps}
                 option={channel}

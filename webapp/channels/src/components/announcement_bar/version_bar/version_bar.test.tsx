@@ -8,8 +8,8 @@ import VersionBar from 'components/announcement_bar/version_bar/version_bar';
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 describe('components/VersionBar', () => {
-    test('should match snapshot - bar rendered after build hash change', () => {
-        const {container, rerender} = renderWithContext(
+    test('should match snapshot - bar rendered after build hash change', async () => {
+        const {container, rerender} = await renderWithContext(
             <VersionBar buildHash='844f70a08ead47f06232ecb6fcad63d2'/>,
         );
         expect(container).toMatchSnapshot();

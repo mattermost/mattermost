@@ -11,7 +11,7 @@ describe('components/threading/common/follow_button', () => {
     test('should say follow', async () => {
         const clickHandler = jest.fn();
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <FollowButton
                 isFollowing={false}
                 onClick={clickHandler}
@@ -26,8 +26,8 @@ describe('components/threading/common/follow_button', () => {
         expect(clickHandler).toHaveBeenCalled();
     });
 
-    test('should say following', () => {
-        const {container} = renderWithContext(
+    test('should say following', async () => {
+        const {container} = await renderWithContext(
             <FollowButton
                 isFollowing={true}
             />,
@@ -41,7 +41,7 @@ describe('components/threading/common/follow_button', () => {
     test('should fire click handler', async () => {
         const clickHandler = jest.fn();
 
-        renderWithContext(
+        await renderWithContext(
             <FollowButton
                 isFollowing={false}
                 onClick={clickHandler}

@@ -46,7 +46,7 @@ describe('components/FlagPostModal', () => {
     };
 
     it('should render modal with reasons and post preview', async () => {
-        renderWithContext(
+        await renderWithContext(
             <FlagPostModal
                 postId={'post_id'}
                 onExited={() => {}}
@@ -64,8 +64,8 @@ describe('components/FlagPostModal', () => {
         expect(screen.getByTestId('FlagPostModal__comment_section_title')).toHaveTextContent('Comment (required)');
     });
 
-    it('should render "required" title when comment is required', () => {
-        renderWithContext(
+    it('should render "required" title when comment is required', async () => {
+        await renderWithContext(
             <FlagPostModal
                 postId={'post_id'}
                 onExited={() => {}}
@@ -76,10 +76,10 @@ describe('components/FlagPostModal', () => {
         expect(screen.getByTestId('FlagPostModal__comment_section_title')).toHaveTextContent('Comment (required)');
     });
 
-    it('should render "optional" title when comment is not required', () => {
+    it('should render "optional" title when comment is not required', async () => {
         const state = JSON.parse(JSON.stringify(baseState));
         state.entities!.contentFlagging!.settings!.reporter_comment_required = false;
-        renderWithContext(
+        await renderWithContext(
             <FlagPostModal
                 postId={'post_id'}
                 onExited={() => {}}
@@ -96,7 +96,7 @@ describe('components/FlagPostModal', () => {
 
         const onExited = jest.fn();
 
-        renderWithContext(
+        await renderWithContext(
             <FlagPostModal
                 postId={'post_id'}
                 onExited={onExited}

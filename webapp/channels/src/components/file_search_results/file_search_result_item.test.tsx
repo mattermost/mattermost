@@ -26,49 +26,49 @@ describe('components/file_search_result/FileSearchResultItem', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <FileSearchResultItem {...baseProps}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with channel name', () => {
+    test('should match snapshot with channel name', async () => {
         const props = {
             ...baseProps,
             channelDisplayName: 'test',
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <FileSearchResultItem {...props}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with DM', () => {
+    test('should match snapshot with DM', async () => {
         const props = {
             ...baseProps,
             channelDisplayName: 'test',
             channelType: Constants.DM_CHANNEL as ChannelType,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <FileSearchResultItem {...props}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with GM', () => {
+    test('should match snapshot with GM', async () => {
         const props = {
             ...baseProps,
             channelDisplayName: 'test',
             channelType: Constants.GM_CHANNEL as ChannelType,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <FileSearchResultItem {...props}/>,
         );
 

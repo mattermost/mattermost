@@ -21,8 +21,8 @@ describe('component/ConvertChannelModal', () => {
         },
     };
 
-    test('should render the title and buttons correctly', () => {
-        renderWithContext(<ConvertChannelModal {...baseProps}/>);
+    test('should render the title and buttons correctly', async () => {
+        await renderWithContext(<ConvertChannelModal {...baseProps}/>);
 
         expect(screen.getByText('Convert Channel Display Name to a Private Channel?')).toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'No, cancel'})).toBeInTheDocument();
@@ -30,7 +30,7 @@ describe('component/ConvertChannelModal', () => {
     });
 
     test('should match call updateChannelPrivacy when convert is clicked', async () => {
-        renderWithContext(<ConvertChannelModal {...baseProps}/>);
+        await renderWithContext(<ConvertChannelModal {...baseProps}/>);
         await userEvent.click(screen.getByRole('button', {name: 'Yes, convert to private channel'}));
 
         expect(updateChannelPrivacy).toHaveBeenCalledTimes(1);
@@ -38,7 +38,7 @@ describe('component/ConvertChannelModal', () => {
     });
 
     test('should not call updateChannelPrivacy when Close button is clicked', async () => {
-        renderWithContext(<ConvertChannelModal {...baseProps}/>);
+        await renderWithContext(<ConvertChannelModal {...baseProps}/>);
         await userEvent.click(screen.getByRole('button', {name: 'Close'}));
 
         await waitForElementToBeRemoved(() => screen.getByText('Convert Channel Display Name to a Private Channel?'));
@@ -46,7 +46,7 @@ describe('component/ConvertChannelModal', () => {
     });
 
     test('should not call updateChannelPrivacy when other Cancel is clicked', async () => {
-        renderWithContext(<ConvertChannelModal {...baseProps}/>);
+        await renderWithContext(<ConvertChannelModal {...baseProps}/>);
         await userEvent.click(screen.getByRole('button', {name: 'No, cancel'}));
 
         await waitForElementToBeRemoved(() => screen.getByText('Convert Channel Display Name to a Private Channel?'));

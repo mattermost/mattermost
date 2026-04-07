@@ -117,7 +117,7 @@ describe('components/global/CloudTrialEndAnnouncementBar', () => {
             },
         },
     };
-    it('Should show banner when not on free trial with a trial_end_at in the past', () => {
+    it('Should show banner when not on free trial with a trial_end_at in the past', async () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.cloud.subscription = {
             ...state.entities.cloud.subscription,
@@ -130,7 +130,7 @@ describe('components/global/CloudTrialEndAnnouncementBar', () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <CloudTrialEndAnnouncementBar/>,
             state,
         );
@@ -138,7 +138,7 @@ describe('components/global/CloudTrialEndAnnouncementBar', () => {
         expect(container.querySelector('.announcement-bar')).not.toBeNull();
     });
 
-    it('Should show banner cloudArchived teams exist', () => {
+    it('Should show banner cloudArchived teams exist', async () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.cloud.subscription = {
             ...state.entities.cloud.subscription,
@@ -156,7 +156,7 @@ describe('components/global/CloudTrialEndAnnouncementBar', () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <CloudTrialEndAnnouncementBar/>,
             state,
         );
@@ -164,7 +164,7 @@ describe('components/global/CloudTrialEndAnnouncementBar', () => {
         expect(container.querySelector('.announcement-bar')).not.toBeNull();
     });
 
-    it('should not show banner if on free trial', () => {
+    it('should not show banner if on free trial', async () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.cloud = {
             subscription: {
@@ -229,7 +229,7 @@ describe('components/global/CloudTrialEndAnnouncementBar', () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <CloudTrialEndAnnouncementBar/>,
             state,
         );
@@ -237,7 +237,7 @@ describe('components/global/CloudTrialEndAnnouncementBar', () => {
         expect(container.querySelector('.announcement-bar')).toBeNull();
     });
 
-    it('should not show for non-admins', () => {
+    it('should not show for non-admins', async () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.users = {
             currentUserId: 'current_user_id',
@@ -246,7 +246,7 @@ describe('components/global/CloudTrialEndAnnouncementBar', () => {
             },
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <CloudTrialEndAnnouncementBar/>,
             state,
         );
@@ -254,11 +254,11 @@ describe('components/global/CloudTrialEndAnnouncementBar', () => {
         expect(container.querySelector('.announcement-bar')).toBeNull();
     });
 
-    it('should not show for enterprise workspaces', () => {
+    it('should not show for enterprise workspaces', async () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.cloud.subscription.product_id = 'test_prod_2';
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <CloudTrialEndAnnouncementBar/>,
             state,
         );
@@ -266,11 +266,11 @@ describe('components/global/CloudTrialEndAnnouncementBar', () => {
         expect(container.querySelector('.announcement-bar')).toBeNull();
     });
 
-    it('should not show for professional workspaces', () => {
+    it('should not show for professional workspaces', async () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.cloud.subscription.product_id = 'test_prod_3';
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <CloudTrialEndAnnouncementBar/>,
             state,
         );
@@ -278,7 +278,7 @@ describe('components/global/CloudTrialEndAnnouncementBar', () => {
         expect(container.querySelector('.announcement-bar')).toBeNull();
     });
 
-    it('Should not show banner if preference is set to hidden', () => {
+    it('Should not show banner if preference is set to hidden', async () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.preferences = {
             myPreferences: {
@@ -289,7 +289,7 @@ describe('components/global/CloudTrialEndAnnouncementBar', () => {
             },
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <CloudTrialEndAnnouncementBar/>,
             state,
         );

@@ -32,15 +32,15 @@ describe('components/unarchive_channel_modal', () => {
         onExited: jest.fn(),
     };
 
-    test('should match snapshot for unarchive_channel_modal', () => {
-        const {baseElement} = renderWithContext(
+    test('should match snapshot for unarchive_channel_modal', async () => {
+        const {baseElement} = await renderWithContext(
             <UnarchiveChannelModal {...baseProps}/>,
         );
         expect(baseElement).toMatchSnapshot();
     });
 
     test('should match state when onHide is called', async () => {
-        renderWithContext(
+        await renderWithContext(
             <UnarchiveChannelModal {...baseProps}/>,
         );
 
@@ -59,7 +59,7 @@ describe('components/unarchive_channel_modal', () => {
     test('should have called actions.unarchiveChannel when handleUnarchive is called', async () => {
         const unarchiveChannel = jest.fn();
         const props = {...baseProps, actions: {unarchiveChannel}};
-        renderWithContext(
+        await renderWithContext(
             <UnarchiveChannelModal {...props}/>,
         );
 
@@ -77,7 +77,7 @@ describe('components/unarchive_channel_modal', () => {
 
     test('should have called props.onExited on Cancel', async () => {
         const onExited = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <UnarchiveChannelModal
                 {...baseProps}
                 onExited={onExited}

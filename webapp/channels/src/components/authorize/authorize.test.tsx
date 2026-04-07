@@ -47,10 +47,10 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         };
     });
 
-    test('UNSAFE_componentWillMount() should have called getOAuthAppInfo', () => {
+    test('UNSAFE_componentWillMount() should have called getOAuthAppInfo', async () => {
         const props = {...requiredProps, location: {search: 'client_id=1234abcd'}};
 
-        renderWithContext(<Authorize {...props}/>);
+        await renderWithContext(<Authorize {...props}/>);
 
         expect(props.actions.getOAuthAppInfo).toHaveBeenCalled();
         expect(props.actions.getOAuthAppInfo).toHaveBeenCalledWith('1234abcd');
@@ -59,7 +59,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     test('UNSAFE_componentWillMount() should have updated state.app', async () => {
         const props = {...requiredProps, location: {search: 'client_id=1234abcd'}};
 
-        renderWithContext(<Authorize {...props}/>);
+        await renderWithContext(<Authorize {...props}/>);
 
         await waitFor(() => {
             expect(screen.getByRole('button', {name: 'Allow'})).toBeInTheDocument();
@@ -69,7 +69,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     test('handleAllow() should have called allowOAuth2', async () => {
         const props = {...requiredProps, location: {search: 'client_id=1234abcd'}};
 
-        renderWithContext(<Authorize {...props}/>);
+        await renderWithContext(<Authorize {...props}/>);
 
         await waitFor(() => {
             expect(screen.getByRole('button', {name: 'Allow'})).toBeInTheDocument();
@@ -94,7 +94,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     test('handleAllow() should include resource parameter when provided in URL', async () => {
         const props = {...requiredProps, location: {search: 'client_id=1234abcd&resource=https://example.com/api'}};
 
-        renderWithContext(<Authorize {...props}/>);
+        await renderWithContext(<Authorize {...props}/>);
 
         await waitFor(() => {
             expect(screen.getByRole('button', {name: 'Allow'})).toBeInTheDocument();
@@ -124,7 +124,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         };
         const props = {...requiredProps, actions, location: {search: 'client_id=1234abcd'}};
 
-        renderWithContext(<Authorize {...props}/>);
+        await renderWithContext(<Authorize {...props}/>);
 
         await waitFor(() => {
             expect(screen.getByRole('button', {name: 'Allow'})).toBeInTheDocument();

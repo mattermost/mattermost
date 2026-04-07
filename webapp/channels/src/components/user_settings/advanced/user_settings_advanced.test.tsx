@@ -52,7 +52,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         const updateSection = jest.fn();
 
         const props = {...requiredProps, updateSection, activeSection: 'formatting'};
-        renderWithContext(<AdvancedSettingsDisplay {...props}/>);
+        await renderWithContext(<AdvancedSettingsDisplay {...props}/>);
 
         await userEvent.click(screen.getByTestId('saveSetting'));
         expect(updateSection).toHaveBeenCalledWith('');
@@ -61,7 +61,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     test('should have called updateSection', async () => {
         const updateSection = jest.fn();
         const props = {...requiredProps, updateSection, activeSection: 'formatting'};
-        renderWithContext(<AdvancedSettingsDisplay {...props}/>);
+        await renderWithContext(<AdvancedSettingsDisplay {...props}/>);
 
         // Click Save → handleSubmit → handleUpdateSection('') → updateSection('')
         await userEvent.click(screen.getByTestId('saveSetting'));
@@ -77,7 +77,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             activeSection: 'deactivateAccount',
             actions: {...requiredProps.actions, updateUserActive, revokeAllSessionsForUser},
         };
-        renderWithContext(<AdvancedSettingsDisplay {...props}/>);
+        await renderWithContext(<AdvancedSettingsDisplay {...props}/>);
 
         // Click "Deactivate" button in SettingItemMax to show the modal
         await userEvent.click(screen.getByText('Deactivate'));
@@ -97,7 +97,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             activeSection: 'deactivateAccount',
             actions: {...requiredProps.actions, revokeAllSessionsForUser},
         };
-        renderWithContext(<AdvancedSettingsDisplay {...props}/>);
+        await renderWithContext(<AdvancedSettingsDisplay {...props}/>);
 
         // Click "Deactivate" button then confirm
         await userEvent.click(screen.getByText('Deactivate'));
@@ -116,7 +116,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             activeSection: 'deactivateAccount',
             actions: {...requiredProps.actions, revokeAllSessionsForUser},
         };
-        renderWithContext(<AdvancedSettingsDisplay {...props}/>);
+        await renderWithContext(<AdvancedSettingsDisplay {...props}/>);
 
         // Click "Deactivate" button then confirm
         await userEvent.click(screen.getByText('Deactivate'));
@@ -125,19 +125,19 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         expect(await screen.findByText(error.message)).toBeInTheDocument();
     });
 
-    test('function getCtrlSendText should return correct value for Mac', () => {
+    test('function getCtrlSendText should return correct value for Mac', async () => {
         (isMac as jest.Mock).mockReturnValue(true);
         const props = {...requiredProps};
 
-        renderWithContext(<AdvancedSettingsDisplay {...props}/>);
+        await renderWithContext(<AdvancedSettingsDisplay {...props}/>);
         expect(screen.getByText('Send Messages on ⌘+ENTER')).toBeInTheDocument();
     });
 
-    test('function getCtrlSendText should return correct value for Windows', () => {
+    test('function getCtrlSendText should return correct value for Windows', async () => {
         (isMac as jest.Mock).mockReturnValue(false);
         const props = {...requiredProps};
 
-        renderWithContext(<AdvancedSettingsDisplay {...props}/>);
+        await renderWithContext(<AdvancedSettingsDisplay {...props}/>);
         expect(screen.getByText('Send Messages on CTRL+ENTER')).toBeInTheDocument();
     });
 });

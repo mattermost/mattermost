@@ -25,78 +25,78 @@ describe('components/SystemNotice', () => {
         },
     };
 
-    test('should match snapshot for regular user, regular notice', () => {
-        const {container} = renderWithContext(<SystemNotice {...baseProps}/>);
+    test('should match snapshot for regular user, regular notice', async () => {
+        const {container} = await renderWithContext(<SystemNotice {...baseProps}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot for regular user, no notice', () => {
+    test('should match snapshot for regular user, no notice', async () => {
         const props = {...baseProps, notices: []};
-        const {container} = renderWithContext(<SystemNotice {...props}/>);
+        const {container} = await renderWithContext(<SystemNotice {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot for regular user, admin notice', () => {
+    test('should match snapshot for regular user, admin notice', async () => {
         const props = {...baseProps, notices: [{...baseProps.notices[0], adminOnly: true}]};
-        const {container} = renderWithContext(<SystemNotice {...props}/>);
+        const {container} = await renderWithContext(<SystemNotice {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot for regular user, admin and regular notice', () => {
+    test('should match snapshot for regular user, admin and regular notice', async () => {
         const props = {...baseProps,
             notices: [
                 {...baseProps.notices[0], adminOnly: true},
                 {...baseProps.notices[0], name: 'notice2', title: 'some title2', body: 'some body2'},
             ]};
-        const {container} = renderWithContext(<SystemNotice {...props}/>);
+        const {container} = await renderWithContext(<SystemNotice {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot for admin, regular notice', () => {
+    test('should match snapshot for admin, regular notice', async () => {
         const props = {...baseProps, isSystemAdmin: true};
-        const {container} = renderWithContext(<SystemNotice {...props}/>);
+        const {container} = await renderWithContext(<SystemNotice {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot for admin, admin notice', () => {
+    test('should match snapshot for admin, admin notice', async () => {
         const props = {...baseProps, isSystemAdmin: true, notices: [{...baseProps.notices[0], adminOnly: true}]};
-        const {container} = renderWithContext(<SystemNotice {...props}/>);
+        const {container} = await renderWithContext(<SystemNotice {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot for regular user, dismissed notice', () => {
+    test('should match snapshot for regular user, dismissed notice', async () => {
         const props = {...baseProps, dismissedNotices: {notice1: true}};
-        const {container} = renderWithContext(<SystemNotice {...props}/>);
+        const {container} = await renderWithContext(<SystemNotice {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot for regular user, dont show again notice', () => {
+    test('should match snapshot for regular user, dont show again notice', async () => {
         const props = {...baseProps, preferences: {notice1: {}}};
-        const {container} = renderWithContext(<SystemNotice {...props}/>);
+        const {container} = await renderWithContext(<SystemNotice {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot for show function returning false', () => {
+    test('should match snapshot for show function returning false', async () => {
         const props = {...baseProps, notices: [{...baseProps.notices[0], show: () => false}]};
-        const {container} = renderWithContext(<SystemNotice {...props}/>);
+        const {container} = await renderWithContext(<SystemNotice {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot for show function returning true', () => {
+    test('should match snapshot for show function returning true', async () => {
         const props = {...baseProps, notices: [{...baseProps.notices[0], show: () => true}]};
-        const {container} = renderWithContext(<SystemNotice {...props}/>);
+        const {container} = await renderWithContext(<SystemNotice {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot for with allowForget equal false', () => {
+    test('should match snapshot for with allowForget equal false', async () => {
         const props = {...baseProps, notices: [{...baseProps.notices[0], allowForget: false}]};
-        const {container} = renderWithContext(<SystemNotice {...props}/>);
+        const {container} = await renderWithContext(<SystemNotice {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when a custom icon is passed', () => {
+    test('should match snapshot when a custom icon is passed', async () => {
         const props = {...baseProps, notices: [{...baseProps.notices[0], icon: <span>{'icon'}</span>}]};
-        const {container} = renderWithContext(<SystemNotice {...props}/>);
+        const {container} = await renderWithContext(<SystemNotice {...props}/>);
         expect(container).toMatchSnapshot();
     });
 });

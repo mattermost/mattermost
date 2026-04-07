@@ -38,8 +38,8 @@ jest.mock('./images/mobile_security_svg', () => ({
 }));
 
 describe('components/admin_console/feature_discovery/features/MobileSecurityFeatureDiscovery', () => {
-    it('renders correctly with expected props', () => {
-        renderWithContext(<MobileSecurityFeatureDiscovery/>);
+    it('renders correctly with expected props', async () => {
+        await renderWithContext(<MobileSecurityFeatureDiscovery/>);
 
         // Verify feature name
         expect(screen.getByTestId('feature-name')).toHaveTextContent('mobile_security');

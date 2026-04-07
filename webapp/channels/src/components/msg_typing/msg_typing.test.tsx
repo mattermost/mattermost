@@ -16,24 +16,24 @@ describe('components/MsgTyping', () => {
         userStoppedTyping: jest.fn(),
     };
 
-    test('should match snapshot, on nobody typing', () => {
-        const {container} = renderWithContext(<MsgTyping {...baseProps}/>);
+    test('should match snapshot, on nobody typing', async () => {
+        const {container} = await renderWithContext(<MsgTyping {...baseProps}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, on one user typing', () => {
+    test('should match snapshot, on one user typing', async () => {
         const typingUsers = ['test.user'];
         const props = {...baseProps, typingUsers};
 
-        const {container} = renderWithContext(<MsgTyping {...props}/>);
+        const {container} = await renderWithContext(<MsgTyping {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, on multiple users typing', () => {
+    test('should match snapshot, on multiple users typing', async () => {
         const typingUsers = ['test.user', 'other.test.user', 'another.user'];
         const props = {...baseProps, typingUsers};
 
-        const {container} = renderWithContext(<MsgTyping {...props}/>);
+        const {container} = await renderWithContext(<MsgTyping {...props}/>);
         expect(container).toMatchSnapshot();
     });
 });

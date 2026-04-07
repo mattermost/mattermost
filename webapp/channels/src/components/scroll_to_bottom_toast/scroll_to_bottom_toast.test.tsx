@@ -11,8 +11,8 @@ describe('ScrollToBottomToast Component', () => {
     const mockOnDismiss = jest.fn();
     const mockOnClick = jest.fn();
 
-    it('should render ScrollToBottomToast component', () => {
-        const {container} = renderWithContext(
+    it('should render ScrollToBottomToast component', async () => {
+        const {container} = await renderWithContext(
             <ScrollToBottomToast
                 onDismiss={mockOnDismiss}
                 onClick={mockOnClick}
@@ -25,7 +25,7 @@ describe('ScrollToBottomToast Component', () => {
     });
 
     it('should call onClick when clicked', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ScrollToBottomToast
                 onDismiss={mockOnDismiss}
                 onClick={mockOnClick}
@@ -38,7 +38,7 @@ describe('ScrollToBottomToast Component', () => {
     });
 
     it('should call onDismiss when close button is clicked', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ScrollToBottomToast
                 onDismiss={mockOnDismiss}
                 onClick={mockOnClick}

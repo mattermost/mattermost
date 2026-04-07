@@ -20,14 +20,14 @@ describe('TooltipShortcut', () => {
         jest.resetAllMocks();
     });
 
-    test('should show non mac shortcut when on non mac', () => {
+    test('should show non mac shortcut when on non mac', async () => {
         isMacMock.mockReturnValue(false);
         const shortcut = {
             default: ['Ctrl', 'K'],
             mac: ['⌘', 'K'],
         };
 
-        renderWithContext(
+        await renderWithContext(
             <TooltipShortcut shortcut={shortcut}/>,
         );
 
@@ -37,7 +37,7 @@ describe('TooltipShortcut', () => {
         expect(screen.queryByText('⌘')).not.toBeInTheDocument();
     });
 
-    test('should show mac shortcut when on mac', () => {
+    test('should show mac shortcut when on mac', async () => {
         isMacMock.mockReturnValue(true);
 
         const shortcut = {
@@ -45,7 +45,7 @@ describe('TooltipShortcut', () => {
             mac: ['⌘', 'K'],
         };
 
-        renderWithContext(
+        await renderWithContext(
             <TooltipShortcut shortcut={shortcut}/>,
         );
 
@@ -55,7 +55,7 @@ describe('TooltipShortcut', () => {
         expect(screen.queryByText('Ctrl')).not.toBeInTheDocument();
     });
 
-    test('show shortcut with message descriptor', () => {
+    test('show shortcut with message descriptor', async () => {
         const shortcut = {
             default: [
                 defineMessage({
@@ -65,7 +65,7 @@ describe('TooltipShortcut', () => {
             ],
         };
 
-        renderWithContext(
+        await renderWithContext(
             <TooltipShortcut shortcut={shortcut}/>,
         );
 

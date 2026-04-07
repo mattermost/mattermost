@@ -74,7 +74,7 @@ describe('components/dot_menu/DotMenu on mobile view', () => {
         },
     };
 
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const baseProps = {
             post: TestHelper.getPostMock({id: 'post_id_1'}),
             isLicensed: false,
@@ -126,7 +126,7 @@ describe('components/dot_menu/DotMenu on mobile view', () => {
             isUnrevealedBurnOnReadPost: false,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <DotMenu {...baseProps}/>,
             initialState,
         );

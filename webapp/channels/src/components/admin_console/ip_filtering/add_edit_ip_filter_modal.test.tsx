@@ -33,8 +33,8 @@ describe('IPFilteringAddOrEditModal', () => {
         currentIP,
     };
 
-    test('renders the modal with the correct title when an existingRange is provided', () => {
-        const {getByText} = renderWithContext(
+    test('renders the modal with the correct title when an existingRange is provided', async () => {
+        const {getByText} = await renderWithContext(
             <IPFilteringAddOrEditModal
                 {...baseProps}
             />,
@@ -43,8 +43,8 @@ describe('IPFilteringAddOrEditModal', () => {
         expect(getByText('Edit IP Filter')).toBeInTheDocument();
     });
 
-    test('renders the modal with the correct title when an existingRange is omitted (ie, Add Modal)', () => {
-        const {getByText} = renderWithContext(
+    test('renders the modal with the correct title when an existingRange is omitted (ie, Add Modal)', async () => {
+        const {getByText} = await renderWithContext(
             <IPFilteringAddOrEditModal
                 {...baseProps}
                 existingRange={undefined}
@@ -54,8 +54,8 @@ describe('IPFilteringAddOrEditModal', () => {
         expect(getByText('Add IP Filter')).toBeInTheDocument();
     });
 
-    test('renders the modal with the correct inputs and values', () => {
-        const {getByLabelText} = renderWithContext(
+    test('renders the modal with the correct inputs and values', async () => {
+        const {getByLabelText} = await renderWithContext(
             <IPFilteringAddOrEditModal
                 {...baseProps}
             />,
@@ -66,7 +66,7 @@ describe('IPFilteringAddOrEditModal', () => {
     });
 
     test('calls the onSave function with the correct values when the Save button is clicked', async () => {
-        const {getByLabelText, getByTestId} = renderWithContext(
+        const {getByLabelText, getByTestId} = await renderWithContext(
             <IPFilteringAddOrEditModal
                 {...baseProps}
             />,
@@ -90,7 +90,7 @@ describe('IPFilteringAddOrEditModal', () => {
     });
 
     test('calls the onSave function with the correct values when the Save button is clicked for a new IP filter', async () => {
-        const {getByLabelText, getByTestId} = renderWithContext(
+        const {getByLabelText, getByTestId} = await renderWithContext(
             <IPFilteringAddOrEditModal
                 {...baseProps}
                 existingRange={undefined}
@@ -115,7 +115,7 @@ describe('IPFilteringAddOrEditModal', () => {
     });
 
     test('displays an error message when an invalid CIDR is entered', async () => {
-        const {getByLabelText, getByTestId, getByText} = renderWithContext(
+        const {getByLabelText, getByTestId, getByText} = await renderWithContext(
             <IPFilteringAddOrEditModal
                 {...baseProps}
             />,
@@ -136,7 +136,7 @@ describe('IPFilteringAddOrEditModal', () => {
     });
 
     test('disables the Save button when an invalid CIDR is entered', async () => {
-        const {getByLabelText, getByTestId} = renderWithContext(
+        const {getByLabelText, getByTestId} = await renderWithContext(
             <IPFilteringAddOrEditModal
                 {...baseProps}
             />,

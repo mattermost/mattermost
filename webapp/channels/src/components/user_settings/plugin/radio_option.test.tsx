@@ -24,9 +24,9 @@ function getBaseProps(): Props {
 }
 
 describe('radio option', () => {
-    it('all text are properly rendered', () => {
+    it('all text are properly rendered', async () => {
         const props = getBaseProps();
-        renderWithContext(<RadioOption {...props}/>);
+        await renderWithContext(<RadioOption {...props}/>);
 
         expect(screen.queryByText(props.option.text)).toBeInTheDocument();
         expect(screen.queryByText(props.option.helpText!)).toBeInTheDocument();
@@ -34,7 +34,7 @@ describe('radio option', () => {
 
     it('onSelected is properly called', async () => {
         const props = getBaseProps();
-        renderWithContext(<RadioOption {...props}/>);
+        await renderWithContext(<RadioOption {...props}/>);
 
         await userEvent.click(screen.getByText(props.option.text));
 

@@ -77,17 +77,17 @@ describe('components/PostMarkdown', () => {
     },
     };
 
-    test('should not error when rendering without a post', () => {
+    test('should not error when rendering without a post', async () => {
         const props = {...baseProps};
 
         Reflect.deleteProperty(props, 'post');
-        renderWithContext(<PostMarkdown {...props}/>, state);
+        await renderWithContext(<PostMarkdown {...props}/>, state);
 
         expect(screen.getByText('message')).toBeInTheDocument();
     });
 
-    test('should render properly with an empty post', () => {
-        renderWithContext(
+    test('should render properly with an empty post', async () => {
+        await renderWithContext(
             <PostMarkdown
                 {...baseProps}
                 post={{} as any}
@@ -96,7 +96,7 @@ describe('components/PostMarkdown', () => {
         expect(screen.getByText('message')).toBeInTheDocument();
     });
 
-    test('should render properly with a post', () => {
+    test('should render properly with a post', async () => {
         const post = TestHelper.getPostMock({
             props: {
                 channel_mentions: {
@@ -127,7 +127,7 @@ describe('components/PostMarkdown', () => {
             },
         };
 
-        renderWithContext(<PostMarkdown {...props}/>, stateWithPost);
+        await renderWithContext(<PostMarkdown {...props}/>, stateWithPost);
 
         const link = screen.getByRole('link');
 
@@ -138,7 +138,7 @@ describe('components/PostMarkdown', () => {
         expect(link).toHaveClass('mention-link');
     });
 
-    test('should render properly without highlight a post', () => {
+    test('should render properly without highlight a post', async () => {
         const props = {
             ...baseProps,
             message: 'No highlight',
@@ -156,13 +156,13 @@ describe('components/PostMarkdown', () => {
                 },
             }),
         };
-        renderWithContext(<PostMarkdown {...props}/>, state);
+        await renderWithContext(<PostMarkdown {...props}/>, state);
         expect(screen.getByText('No highlight')).toBeInTheDocument();
 
         expect(screen.queryByRole('link')).not.toBeInTheDocument();
     });
 
-    test('should render properly without group highlight on a post', () => {
+    test('should render properly without group highlight on a post', async () => {
         const props = {
             ...baseProps,
             message: 'No @group highlight',
@@ -173,7 +173,7 @@ describe('components/PostMarkdown', () => {
                 },
             }),
         };
-        renderWithContext(<PostMarkdown {...props}/>, state);
+        await renderWithContext(<PostMarkdown {...props}/>, state);
 
         const groupMention = screen.getByText('@group');
 
@@ -186,18 +186,18 @@ describe('components/PostMarkdown', () => {
         expect(screen.getByText('highlight', {exact: false})).toBeInTheDocument();
     });
 
-    test('should correctly pass postId down', () => {
+    test('should correctly pass postId down', async () => {
         const props = {
             ...baseProps,
             post: TestHelper.getPostMock({
                 id: 'post_id',
             }),
         };
-        renderWithContext(<PostMarkdown {...props}/>, state);
+        await renderWithContext(<PostMarkdown {...props}/>, state);
         expect(screen.getByText('message')).toBeInTheDocument();
     });
 
-    test('should render header change properly', () => {
+    test('should render header change properly', async () => {
         const post = TestHelper.getPostMock({
             id: 'post_id',
             type: Posts.POST_TYPES.HEADER_CHANGE as PostType,
@@ -232,7 +232,7 @@ describe('components/PostMarkdown', () => {
             },
         };
 
-        renderWithContext(<PostMarkdown {...props}/>, stateWithPost);
+        await renderWithContext(<PostMarkdown {...props}/>, stateWithPost);
         expect(screen.getByText('@user')).toBeInTheDocument();
         expect(screen.getByText('updated the channel header')).toBeInTheDocument();
         expect(screen.getByText('From:')).toBeInTheDocument();
@@ -255,7 +255,7 @@ describe('components/PostMarkdown', () => {
         expect(screen.getAllByRole('link')[1]).toHaveClass('mention-link');
     });
 
-    test('plugin hooks can build upon other hook message updates', () => {
+    test('plugin hooks can build upon other hook message updates', async () => {
         const props: ComponentProps<typeof PostMarkdown> = {
             ...baseProps,
             message: 'world',
@@ -286,14 +286,14 @@ describe('components/PostMarkdown', () => {
                 },
             ],
         };
-        renderWithContext(<PostMarkdown {...props}/>, state);
+        await renderWithContext(<PostMarkdown {...props}/>, state);
         expect(screen.queryByText('world', {exact: true})).not.toBeInTheDocument();
 
         // hook message
         expect(screen.getByText('hello world!')).toBeInTheDocument();
     });
 
-    test('plugin hooks can overwrite other hooks messages', () => {
+    test('plugin hooks can overwrite other hooks messages', async () => {
         const props: ComponentProps<typeof PostMarkdown> = {
             ...baseProps,
             message: 'world',
@@ -324,7 +324,7 @@ describe('components/PostMarkdown', () => {
                 },
             ],
         };
-        renderWithContext(<PostMarkdown {...props}/>, state);
+        await renderWithContext(<PostMarkdown {...props}/>, state);
         expect(screen.queryByText('world', {exact: true})).not.toBeInTheDocument();
         expect(screen.queryByText('world!', {exact: true})).toBeInTheDocument();
     });
@@ -351,7 +351,7 @@ describe('components/PostMarkdown', () => {
         };
 
         mockedClient4.getFlaggedPost = jest.fn().mockResolvedValue(reportedPost);
-        renderWithContext(<PostMarkdown {...props}/>, state);
+        await renderWithContext(<PostMarkdown {...props}/>, state);
         await act(async () => {});
 
         expect(screen.queryByTestId('data-spillage-report')).toBeInTheDocument();

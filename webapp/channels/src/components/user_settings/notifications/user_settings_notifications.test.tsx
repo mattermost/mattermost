@@ -31,38 +31,38 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         isEnterpriseReady: true,
     };
 
-    test('should match snapshot', () => {
-        const wrapper = renderWithContext(
+    test('should match snapshot', async () => {
+        const wrapper = await renderWithContext(
             <UserSettingsNotifications {...defaultProps}/>,
         );
 
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot when its a starter free', () => {
+    test('should match snapshot when its a starter free', async () => {
         const props = {...defaultProps, isEnterpriseOrCloudOrSKUStarterFree: true};
 
-        const wrapper = renderWithContext(
+        const wrapper = await renderWithContext(
             <UserSettingsNotifications {...props}/>,
         );
 
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot when its team edition', () => {
+    test('should match snapshot when its team edition', async () => {
         const props = {...defaultProps, isEnterpriseReady: false};
 
-        const wrapper = renderWithContext(
+        const wrapper = await renderWithContext(
             <UserSettingsNotifications {...props}/>,
         );
 
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should show reply notifications section when CRT off', () => {
+    test('should show reply notifications section when CRT off', async () => {
         const props = {...defaultProps, isCollapsedThreadsEnabled: false};
 
-        renderWithContext(<UserSettingsNotifications {...props}/>);
+        await renderWithContext(<UserSettingsNotifications {...props}/>);
 
         expect(screen.getByText('Reply notifications')).toBeInTheDocument();
     });

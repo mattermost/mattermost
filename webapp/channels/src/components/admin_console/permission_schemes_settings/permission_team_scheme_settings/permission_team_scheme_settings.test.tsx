@@ -166,7 +166,7 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
     });
 
     test('should match snapshot on new with default roles without permissions', async () => {
-        renderWithContext(
+        await renderWithContext(
             <PermissionTeamSchemeSettings {...defaultProps}/>,
         );
         await waitFor(() => {
@@ -221,7 +221,7 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
                 permissions: [],
             },
         };
-        renderWithContext(
+        await renderWithContext(
             <PermissionTeamSchemeSettings
                 {...defaultProps}
                 roles={roles}
@@ -258,7 +258,7 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
             },
         }));
         const updateTeamScheme = jest.fn().mockImplementation(() => Promise.resolve({}));
-        renderWithContext(
+        await renderWithContext(
             <PermissionTeamSchemeSettings
                 {...defaultProps}
                 actions={{...defaultProps.actions, editRole, createScheme, updateTeamScheme}}
@@ -282,7 +282,7 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
         const editRole = jest.fn().mockImplementation(() => Promise.resolve({}));
         const createScheme = jest.fn().mockImplementation(() => Promise.resolve({error: {message: 'test error'}}));
         const updateTeamScheme = jest.fn().mockImplementation(() => Promise.resolve({}));
-        renderWithContext(
+        await renderWithContext(
             <PermissionTeamSchemeSettings
                 {...defaultProps}
                 actions={{...defaultProps.actions, editRole, createScheme, updateTeamScheme}}
@@ -319,7 +319,7 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
             },
         }));
         const updateTeamScheme = jest.fn().mockImplementation(() => Promise.resolve({}));
-        renderWithContext(
+        await renderWithContext(
             <PermissionTeamSchemeSettings
                 {...defaultProps}
                 actions={{...defaultProps.actions, editRole, createScheme, updateTeamScheme}}
@@ -339,7 +339,7 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
     });
 
     test('should open and close correctly roles blocks', async () => {
-        renderWithContext(
+        await renderWithContext(
             <PermissionTeamSchemeSettings {...defaultProps}/>,
         );
 
@@ -409,7 +409,7 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <PermissionTeamSchemeSettings {...props}/>,
         );
         await waitFor(() => {
@@ -484,7 +484,7 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <PermissionTeamSchemeSettings {...props}/>,
         );
         await waitFor(() => {
@@ -552,7 +552,7 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <PermissionTeamSchemeSettings {...props}/>,
         );
         await waitFor(() => {
@@ -593,7 +593,7 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <PermissionTeamSchemeSettings {...props}/>,
         );
         await waitFor(() => {
@@ -610,8 +610,8 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
         expect(screen.getByTestId('permissions-tree-team_admin')).toBeInTheDocument();
     });
 
-    test('should set moderated permissions on team/channel admins', () => {
-        renderWithContext(
+    test('should set moderated permissions on team/channel admins', async () => {
+        await renderWithContext(
             <PermissionTeamSchemeSettings {...defaultProps}/>,
         );
 

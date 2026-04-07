@@ -8,10 +8,10 @@ import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 import MarkdownImageExpand from './markdown_image_expand';
 
 describe('components/MarkdownImageExpand', () => {
-    it('should match snapshot for collapsed embeds', () => {
+    it('should match snapshot for collapsed embeds', async () => {
         const toggleHandler = jest.fn();
         const imageCollapseHandler = jest.fn();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <MarkdownImageExpand
                 alt={'Some alt text'}
                 postId={'abc'}
@@ -25,10 +25,10 @@ describe('components/MarkdownImageExpand', () => {
         expect(container).toMatchSnapshot();
     });
 
-    it('should match snapshot for expanded embeds', () => {
+    it('should match snapshot for expanded embeds', async () => {
         const toggleHandler = jest.fn();
         const imageCollapseHandler = jest.fn();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <MarkdownImageExpand
                 alt={'Some alt text'}
                 postId={'abc'}
@@ -45,7 +45,7 @@ describe('components/MarkdownImageExpand', () => {
     it('should emit toggle action on collapse button click', async () => {
         const toggleHandler = jest.fn();
         const imageCollapseHandler = jest.fn();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <MarkdownImageExpand
                 alt={'Some alt text'}
                 postId={'abc'}
@@ -65,7 +65,7 @@ describe('components/MarkdownImageExpand', () => {
     it('should emit toggle action on expand button click', async () => {
         const toggleHandler = jest.fn();
         const imageCollapseHandler = jest.fn();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <MarkdownImageExpand
                 alt={'Some alt text'}
                 postId={'abc'}

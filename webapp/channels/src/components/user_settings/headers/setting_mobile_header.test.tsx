@@ -19,19 +19,19 @@ const baseProps: Props = {
 
 describe('plugin tab', () => {
     it('calls closeModal on hitting close', async () => {
-        renderWithContext(<SettingMobileHeader {...baseProps}/>);
+        await renderWithContext(<SettingMobileHeader {...baseProps}/>);
         await userEvent.click(screen.getByText('×'));
         expect(baseProps.closeModal).toHaveBeenCalled();
     });
 
     it('calls collapseModal on hitting back', async () => {
-        renderWithContext(<SettingMobileHeader {...baseProps}/>);
+        await renderWithContext(<SettingMobileHeader {...baseProps}/>);
         await userEvent.click(screen.getByLabelText('Collapse Icon'));
         expect(baseProps.collapseModal).toHaveBeenCalled();
     });
 
-    it('properly renders the header', () => {
-        renderWithContext(<SettingMobileHeader {...baseProps}/>);
+    it('properly renders the header', async () => {
+        await renderWithContext(<SettingMobileHeader {...baseProps}/>);
         const header = screen.queryByText('setting header');
         expect(header).toBeInTheDocument();
 

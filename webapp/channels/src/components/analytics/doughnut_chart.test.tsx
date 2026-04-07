@@ -11,8 +11,8 @@ import {renderWithContext} from 'tests/react_testing_utils';
 jest.mock('chart.js');
 
 describe('components/analytics/doughnut_chart.tsx', () => {
-    test('should match snapshot, on loading', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot, on loading', async () => {
+        const {container} = await renderWithContext(
             <DoughnutChart
                 title='Test'
                 height={400}
@@ -23,11 +23,11 @@ describe('components/analytics/doughnut_chart.tsx', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, loaded without data', () => {
+    test('should match snapshot, loaded without data', async () => {
         const Chart = jest.requireMock('chart.js');
         const data: ChartData | undefined = undefined;
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <DoughnutChart
                 title='Test'
                 height={400}
@@ -40,7 +40,7 @@ describe('components/analytics/doughnut_chart.tsx', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, loaded with data', () => {
+    test('should match snapshot, loaded with data', async () => {
         const Chart = jest.requireMock('chart.js');
         const data: ChartData = {
             datasets: [
@@ -48,7 +48,7 @@ describe('components/analytics/doughnut_chart.tsx', () => {
             ],
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <DoughnutChart
                 title='Test'
                 height={400}
@@ -61,7 +61,7 @@ describe('components/analytics/doughnut_chart.tsx', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should create and destroy the chart on mount and unmount with data', () => {
+    test('should create and destroy the chart on mount and unmount with data', async () => {
         const Chart = jest.requireMock('chart.js');
 
         const data: ChartData = {
@@ -71,7 +71,7 @@ describe('components/analytics/doughnut_chart.tsx', () => {
             labels: ['test1', 'test2', 'test3'],
         };
 
-        const {unmount} = renderWithContext(
+        const {unmount} = await renderWithContext(
             <DoughnutChart
                 title='Test'
                 height={400}
@@ -84,7 +84,7 @@ describe('components/analytics/doughnut_chart.tsx', () => {
         unmount();
     });
 
-    test('should update the chart on data change', () => {
+    test('should update the chart on data change', async () => {
         const Chart = jest.requireMock('chart.js');
 
         const oldData: ChartData = {
@@ -101,7 +101,7 @@ describe('components/analytics/doughnut_chart.tsx', () => {
             labels: ['test1', 'test2', 'test3', 'test4'],
         };
 
-        const {rerender} = renderWithContext(
+        const {rerender} = await renderWithContext(
             <DoughnutChart
                 title='Test'
                 height={400}

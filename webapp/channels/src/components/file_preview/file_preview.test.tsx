@@ -62,15 +62,15 @@ describe('FilePreview', () => {
         uploadsProgressPercent,
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <FilePreview {...baseProps}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when props are changed', () => {
-        const {container, rerender} = renderWithContext(
+    test('should match snapshot when props are changed', async () => {
+        const {container, rerender} = await renderWithContext(
             <FilePreview {...baseProps}/>,
         );
         expect(container).toMatchSnapshot();
@@ -96,7 +96,7 @@ describe('FilePreview', () => {
     test('should call handleRemove when file removed', async () => {
         const newOnRemove = jest.fn();
         const props = {...baseProps, onRemove: newOnRemove};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <FilePreview {...props}/>,
         );
 
@@ -109,7 +109,7 @@ describe('FilePreview', () => {
         expect(newOnRemove).toHaveBeenCalled();
     });
 
-    test('should not render an SVG when SVGs are disabled', () => {
+    test('should not render an SVG when SVGs are disabled', async () => {
         const props = {
             ...baseProps,
             fileInfos: [
@@ -121,7 +121,7 @@ describe('FilePreview', () => {
             ],
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <FilePreview {...props}/>,
         );
 
@@ -129,7 +129,7 @@ describe('FilePreview', () => {
         expect(container.querySelector('.file-icon.generic')).toBeInTheDocument();
     });
 
-    test('should render an SVG when SVGs are enabled', () => {
+    test('should render an SVG when SVGs are enabled', async () => {
         const fileId = 'file_id_1';
         const props = {
             ...baseProps,
@@ -143,7 +143,7 @@ describe('FilePreview', () => {
             ],
         };
 
-        renderWithContext(
+        await renderWithContext(
             <FilePreview {...props}/>,
         );
 

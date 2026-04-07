@@ -30,7 +30,7 @@ describe('admin_console/team_channel_settings/channel/ChannelList', () => {
             searchAllChannels: jest.fn().mockResolvedValue(testChannels),
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelList
                 data={testChannels}
                 total={testChannels.length}
@@ -61,7 +61,7 @@ describe('admin_console/team_channel_settings/channel/ChannelList', () => {
             searchAllChannels: jest.fn().mockResolvedValue(testChannels),
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelList
                 data={testChannels}
                 total={testChannels.length}
@@ -93,7 +93,7 @@ describe('admin_console/team_channel_settings/channel/ChannelList', () => {
             searchAllChannels: jest.fn().mockResolvedValue(testChannels),
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelList
                 data={testChannels}
                 total={30}
@@ -125,7 +125,7 @@ describe('admin_console/team_channel_settings/channel/ChannelList', () => {
             searchAllChannels: jest.fn().mockResolvedValue(archivedPublicChannel),
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelList
                 data={archivedPublicChannel}
                 total={1}
@@ -157,7 +157,7 @@ describe('admin_console/team_channel_settings/channel/ChannelList', () => {
             searchAllChannels: jest.fn().mockResolvedValue(archivedPrivateChannel),
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelList
                 data={archivedPrivateChannel}
                 total={1}

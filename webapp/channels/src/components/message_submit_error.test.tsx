@@ -12,7 +12,7 @@ describe('components/MessageSubmitError', () => {
         handleSubmit: jest.fn(),
     };
 
-    it('should display the submit link if the error is for an invalid slash command', () => {
+    it('should display the submit link if the error is for an invalid slash command', async () => {
         const error = {
             message: 'No command found',
             server_error_id: 'api.command.execute_command.not_found.app_error',
@@ -25,7 +25,7 @@ describe('components/MessageSubmitError', () => {
             submittedMessage,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <MessageSubmitError {...props}/>,
         );
 
@@ -34,7 +34,7 @@ describe('components/MessageSubmitError', () => {
         expect(screen.queryByText('No command found')).not.toBeInTheDocument();
     });
 
-    it('should not display the submit link if the error is not for an invalid slash command', () => {
+    it('should not display the submit link if the error is not for an invalid slash command', async () => {
         const error = {
             message: 'Some server error',
             server_error_id: 'api.other_error',
@@ -47,7 +47,7 @@ describe('components/MessageSubmitError', () => {
             submittedMessage,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <MessageSubmitError {...props}/>,
         );
 

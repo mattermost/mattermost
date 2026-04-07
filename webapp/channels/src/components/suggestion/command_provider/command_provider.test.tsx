@@ -31,8 +31,8 @@ describe('CommandSuggestion', () => {
         onMouseMove: jest.fn(),
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <CommandSuggestion {...baseProps}/>,
         );
 
@@ -125,7 +125,7 @@ describe('CommandProvider', () => {
     });
 });
 
-test('should forward pretext to handleWebapp unaltered (case-preserving)', () => {
+test('should forward pretext to handleWebapp unaltered (case-preserving)', async () => {
     const uaSpy = jest.spyOn(UserAgent, 'isMobile').mockReturnValue(false);
 
     const provider = new CommandProvider({

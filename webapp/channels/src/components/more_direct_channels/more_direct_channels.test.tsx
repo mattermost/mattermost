@@ -86,16 +86,16 @@ describe('components/MoreDirectChannels', () => {
         },
     };
 
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const props = {...baseProps, actions: {...baseProps.actions, loadProfilesMissingStatus: jest.fn()}};
-        const {baseElement} = renderWithContext(<MoreDirectChannels {...props}/>);
+        const {baseElement} = await renderWithContext(<MoreDirectChannels {...props}/>);
         expect(baseElement).toMatchSnapshot();
     });
 
-    test('should call for modal data on callback of modal onEntered', () => {
+    test('should call for modal data on callback of modal onEntered', async () => {
         const props = {...baseProps, actions: {...baseProps.actions, loadProfilesMissingStatus: jest.fn()}};
         const ref = React.createRef<MoreDirectChannels>();
-        renderWithContext(
+        await renderWithContext(
             <MoreDirectChannels
                 ref={ref}
                 {...props}
@@ -111,9 +111,9 @@ describe('components/MoreDirectChannels', () => {
         expect(props.actions.loadProfilesMissingStatus).toHaveBeenCalledWith(baseProps.users);
     });
 
-    test('should call actions.loadProfilesMissingStatus on componentDidUpdate when users prop changes length', () => {
+    test('should call actions.loadProfilesMissingStatus on componentDidUpdate when users prop changes length', async () => {
         const props = {...baseProps, actions: {...baseProps.actions, loadProfilesMissingStatus: jest.fn()}};
-        const {rerender} = renderWithContext(<MoreDirectChannels {...props}/>);
+        const {rerender} = await renderWithContext(<MoreDirectChannels {...props}/>);
         const newUsers = [{
             id: 'user_id_1',
             label: 'user_id_1',
@@ -131,10 +131,10 @@ describe('components/MoreDirectChannels', () => {
         expect(props.actions.loadProfilesMissingStatus).toHaveBeenCalledWith(newUsers);
     });
 
-    test('should call actions.setModalSearchTerm and match state on handleHide', () => {
+    test('should call actions.setModalSearchTerm and match state on handleHide', async () => {
         const props = {...baseProps, actions: {...baseProps.actions, setModalSearchTerm: jest.fn()}};
         const ref = React.createRef<MoreDirectChannels>();
-        renderWithContext(
+        await renderWithContext(
             <MoreDirectChannels
                 ref={ref}
                 {...props}
@@ -153,10 +153,10 @@ describe('components/MoreDirectChannels', () => {
         expect(ref.current!.state.show).toEqual(false);
     });
 
-    test('should match state on setUsersLoadingState', () => {
+    test('should match state on setUsersLoadingState', async () => {
         const props = {...baseProps, users: []};
         const ref = React.createRef<MoreDirectChannels>();
-        renderWithContext(
+        await renderWithContext(
             <MoreDirectChannels
                 ref={ref}
                 {...props}
@@ -180,12 +180,12 @@ describe('components/MoreDirectChannels', () => {
         expect(ref.current!.state.loadingUsers).toEqual(true);
     });
 
-    test('should call on search', () => {
+    test('should call on search', async () => {
         jest.useFakeTimers();
         try {
             const props = {...baseProps, actions: {...baseProps.actions, setModalSearchTerm: jest.fn()}};
             const ref = React.createRef<MoreDirectChannels>();
-            renderWithContext(
+            await renderWithContext(
                 <MoreDirectChannels
                     ref={ref}
                     {...props}
@@ -203,10 +203,10 @@ describe('components/MoreDirectChannels', () => {
         }
     });
 
-    test('should match state on handleDelete', () => {
+    test('should match state on handleDelete', async () => {
         const props = {...baseProps};
         const ref = React.createRef<MoreDirectChannels>();
-        renderWithContext(
+        await renderWithContext(
             <MoreDirectChannels
                 ref={ref}
                 {...props}
@@ -236,10 +236,10 @@ describe('components/MoreDirectChannels', () => {
         expect(ref.current!.state.values).toEqual([user2]);
     });
 
-    test('should not open a DM or GM if no user Ids', () => {
+    test('should not open a DM or GM if no user Ids', async () => {
         const props = {...baseProps, currentChannelMembers: []};
         const ref = React.createRef<MoreDirectChannels>();
-        renderWithContext(
+        await renderWithContext(
             <MoreDirectChannels
                 ref={ref}
                 {...props}
@@ -259,7 +259,7 @@ describe('components/MoreDirectChannels', () => {
         };
         const props = {...baseProps, currentChannelMembers: [user]};
         const ref = React.createRef<MoreDirectChannels>();
-        renderWithContext(
+        await renderWithContext(
             <MoreDirectChannels
                 ref={ref}
                 {...props}
@@ -285,7 +285,7 @@ describe('components/MoreDirectChannels', () => {
 
     test('should open a GM', async () => {
         const ref = React.createRef<MoreDirectChannels>();
-        renderWithContext(
+        await renderWithContext(
             <MoreDirectChannels
                 ref={ref}
                 {...baseProps}
@@ -309,7 +309,7 @@ describe('components/MoreDirectChannels', () => {
         expect(ref.current!.exitToChannel).toEqual(`/${baseProps.currentTeamName}/channels/group`);
     });
 
-    test('should exclude deleted users if there is not direct channel between users', () => {
+    test('should exclude deleted users if there is not direct channel between users', async () => {
         const users: UserProfile[] = [
             {
                 ...mockedUser,
@@ -344,7 +344,7 @@ describe('components/MoreDirectChannels', () => {
         ];
         const currentChannelMembers: UserProfile[] = [];
         const props = {...baseProps, users, myDirectChannels, currentChannelMembers};
-        const {baseElement} = renderWithContext(<MoreDirectChannels {...props}/>);
+        const {baseElement} = await renderWithContext(<MoreDirectChannels {...props}/>);
         expect(baseElement).toMatchSnapshot();
     });
 });

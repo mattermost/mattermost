@@ -17,36 +17,36 @@ describe('components/GetPublicLinkModal', () => {
         },
     };
 
-    test('should match snapshot when link is empty', () => {
+    test('should match snapshot when link is empty', async () => {
         const props = {
             ...baseProps,
             link: '',
         };
 
-        const {baseElement} = renderWithContext(
+        const {baseElement} = await renderWithContext(
             <GetPublicLinkModal {...props}/>,
         );
 
         expect(baseElement).toMatchSnapshot();
     });
 
-    test('should match snapshot when link is not empty', () => {
-        const {baseElement} = renderWithContext(
+    test('should match snapshot when link is not empty', async () => {
+        const {baseElement} = await renderWithContext(
             <GetPublicLinkModal {...baseProps}/>,
         );
 
         expect(baseElement).toMatchSnapshot();
     });
 
-    test('should call getFilePublicLink on GetPublicLinkModal\'s show', () => {
-        renderWithContext(<GetPublicLinkModal {...baseProps}/>);
+    test('should call getFilePublicLink on GetPublicLinkModal\'s show', async () => {
+        await renderWithContext(<GetPublicLinkModal {...baseProps}/>);
 
         expect(baseProps.actions.getFilePublicLink).toHaveBeenCalledTimes(1);
         expect(baseProps.actions.getFilePublicLink).toHaveBeenCalledWith(baseProps.fileId);
     });
 
     test('should not call getFilePublicLink on GetLinkModal\'s onHide', async () => {
-        renderWithContext(
+        await renderWithContext(
             <GetPublicLinkModal {...baseProps}/>,
         );
 
@@ -59,7 +59,7 @@ describe('components/GetPublicLinkModal', () => {
     });
 
     test('should call handleToggle on GetLinkModal\'s onHide', async () => {
-        renderWithContext(<GetPublicLinkModal {...baseProps}/>);
+        await renderWithContext(<GetPublicLinkModal {...baseProps}/>);
 
         // Verify modal is showing before clicking close
         expect(screen.getByText('Copy Public Link')).toBeInTheDocument();

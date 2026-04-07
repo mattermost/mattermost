@@ -46,8 +46,8 @@ describe('PostAttachmentContainer', () => {
         }));
     });
 
-    test('should render correctly', () => {
-        renderWithContext(
+    test('should render correctly', async () => {
+        await renderWithContext(
             <PostAttachmentContainer {...baseProps}/>, initialState,
         );
 
@@ -59,8 +59,8 @@ describe('PostAttachmentContainer', () => {
         expect(screen.getByText('some children')).toBeInTheDocument();
     });
 
-    test('should handle clicks on elements with non-string className without throwing error', () => {
-        renderWithContext(
+    test('should handle clicks on elements with non-string className without throwing error', async () => {
+        await renderWithContext(
             <PostAttachmentContainer {...baseProps}/>, initialState,
         );
 
@@ -88,8 +88,8 @@ describe('PostAttachmentContainer', () => {
         }).not.toThrow();
     });
 
-    test('should handle clicks on elements without className property', () => {
-        renderWithContext(
+    test('should handle clicks on elements without className property', async () => {
+        await renderWithContext(
             <PostAttachmentContainer {...baseProps}/>, initialState,
         );
 

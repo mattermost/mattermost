@@ -52,9 +52,9 @@ describe('components/ChannelSelectorModal', () => {
         },
     };
 
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const ref = React.createRef<InstanceType<typeof ChannelSelectorModal>>();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelSelectorModal
                 {...defaultProps}
                 ref={ref}
@@ -70,9 +70,9 @@ describe('components/ChannelSelectorModal', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('exclude already selected', () => {
+    test('exclude already selected', async () => {
         const ref = React.createRef<InstanceType<typeof ChannelSelectorModal>>();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelSelectorModal
                 {...defaultProps}
                 excludeTeamIds={['teamid2']}
@@ -101,7 +101,7 @@ describe('components/ChannelSelectorModal', () => {
         const loadChannels = jest.fn().mockResolvedValue({data: []});
 
         const ref = React.createRef<InstanceType<typeof ChannelSelectorModal>>();
-        renderWithContext(
+        await renderWithContext(
             <ChannelSelectorModal
                 {...defaultProps}
                 searchTerm={''}
@@ -115,15 +115,12 @@ describe('components/ChannelSelectorModal', () => {
         );
 
         // Wait for the initial loadChannels promise from componentDidMount to resolve and flush state updates
-        await act(async () => {
-            await new Promise((resolve) => setTimeout(resolve, 0));
-        });
 
         // Modal renders in a portal, so query the document body instead of container
         expect(document.body.querySelector('.custom-message')).not.toBeNull();
     });
 
-    test('should not show custom message when user is searching', () => {
+    test('should not show custom message when user is searching', async () => {
         const customMessage = (
             <div className='custom-message'>
                 {'No private channels available'}
@@ -131,7 +128,7 @@ describe('components/ChannelSelectorModal', () => {
         );
 
         const ref = React.createRef<InstanceType<typeof ChannelSelectorModal>>();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelSelectorModal
                 {...defaultProps}
                 searchTerm={'test'}
@@ -152,7 +149,7 @@ describe('components/ChannelSelectorModal', () => {
         expect(container.querySelector('.custom-message')).toBeNull();
     });
 
-    test('should not show custom message when channels are available', () => {
+    test('should not show custom message when channels are available', async () => {
         const customMessage = (
             <div className='custom-message'>
                 {'No private channels available'}
@@ -160,7 +157,7 @@ describe('components/ChannelSelectorModal', () => {
         );
 
         const ref = React.createRef<InstanceType<typeof ChannelSelectorModal>>();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelSelectorModal
                 {...defaultProps}
                 searchTerm={''}
@@ -181,9 +178,9 @@ describe('components/ChannelSelectorModal', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('excludes group constrained channels when requested', () => {
+    test('excludes group constrained channels when requested', async () => {
         const ref = React.createRef<InstanceType<typeof ChannelSelectorModal>>();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelSelectorModal
                 {...defaultProps}
                 excludeGroupConstrained={true}

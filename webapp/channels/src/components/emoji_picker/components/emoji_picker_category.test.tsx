@@ -29,25 +29,25 @@ const defaultProps: Props = {
 };
 
 describe('EmojiPickerCategory', () => {
-    test('should match snapshot', () => {
-        const {asFragment} = renderWithContext(<EmojiPickerCategory {...defaultProps}/>);
+    test('should match snapshot', async () => {
+        const {asFragment} = await renderWithContext(<EmojiPickerCategory {...defaultProps}/>);
         expect(asFragment()).toMatchSnapshot();
     });
 
-    test('should be disabled when prop is passed disabled', () => {
+    test('should be disabled when prop is passed disabled', async () => {
         const props = {
             ...defaultProps,
             enable: false,
         };
 
-        renderWithContext(<EmojiPickerCategory {...props}/>);
+        await renderWithContext(<EmojiPickerCategory {...props}/>);
 
         // TODO: Change when we actually disabled the element when enable is false
         expect(screen.getByRole('button')).toHaveClass('emoji-picker__category disable');
     });
 
     test('should have tooltip on hover', async () => {
-        renderWithContext(<EmojiPickerCategory {...defaultProps}/>);
+        await renderWithContext(<EmojiPickerCategory {...defaultProps}/>);
 
         const emojiPickerCategory = screen.getByRole('button');
         await userEvent.hover(emojiPickerCategory);

@@ -51,27 +51,27 @@ describe('components/new_search/SearchBoxHints', () => {
         },
     };
 
-    test('should show the hints for messages', () => {
-        renderWithContext(<SearchBoxHints {...baseProps}/>);
+    test('should show the hints for messages', async () => {
+        await renderWithContext(<SearchBoxHints {...baseProps}/>);
         expect(screen.getByText('From:')).toBeInTheDocument();
     });
 
     test('should change the search term and focus on click', async () => {
-        renderWithContext(<SearchBoxHints {...baseProps}/>);
+        await renderWithContext(<SearchBoxHints {...baseProps}/>);
         await userEvent.click(screen.getByText('From:'));
         expect(baseProps.setSearchTerms).toHaveBeenCalledWith('From:');
         expect(baseProps.focus).toHaveBeenCalledWith(5);
     });
 
-    test('should set the selected option if it is passed from the parent', () => {
+    test('should set the selected option if it is passed from the parent', async () => {
         const props = {...baseProps, selectedTerm: 'user1'};
-        renderWithContext(<SearchBoxHints {...props}/>);
+        await renderWithContext(<SearchBoxHints {...props}/>);
         expect(screen.getByText('Press Enter to select')).toBeInTheDocument();
     });
 
-    test('should not show the plugin suggestions without license', () => {
+    test('should not show the plugin suggestions without license', async () => {
         const props = {...baseProps, searchType: 'test-id', searchTerms: 'test-search-terms'};
-        renderWithContext(
+        await renderWithContext(
             <SearchBoxHints {...props}/>,
             {
                 plugins: {components: {SearchHints: [{component: TestPluginProviderComponent as React.ComponentType, pluginId: 'test-id'}]}},
@@ -82,9 +82,9 @@ describe('components/new_search/SearchBoxHints', () => {
         expect(screen.queryByText('test-search-terms')).not.toBeInTheDocument();
     });
 
-    test('should show the plugin suggestions', () => {
+    test('should show the plugin suggestions', async () => {
         const props = {...baseProps, searchType: 'test-id', searchTerms: 'test-search-terms'};
-        renderWithContext(
+        await renderWithContext(
             <SearchBoxHints {...props}/>,
             {
                 plugins: {components: {SearchHints: [{component: TestPluginProviderComponent as React.ComponentType, pluginId: 'test-id'}]}},
@@ -95,9 +95,9 @@ describe('components/new_search/SearchBoxHints', () => {
         expect(screen.getByText('test-search-terms')).toBeInTheDocument();
     });
 
-    test('should on search change change the search term and focus', () => {
+    test('should on search change change the search term and focus', async () => {
         const props = {...baseProps, searchType: 'test-id', searchTerms: 'something from:t'};
-        renderWithContext(
+        await renderWithContext(
             <SearchBoxHints {...props}/>,
             {
                 plugins: {components: {SearchHints: [{component: TestPluginProviderComponent as React.ComponentType, pluginId: 'test-id'}]}},

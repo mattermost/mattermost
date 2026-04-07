@@ -36,7 +36,7 @@ describe('components/admin_console/access_control/PolicyList', () => {
 
     test('should match snapshot with no policies', async () => {
         mockSearchPolicies.mockResolvedValue({data: {policies: [], total: 0}} as ActionResult);
-        const {container} = renderWithContext(<PolicyList {...defaultProps}/>);
+        const {container} = await renderWithContext(<PolicyList {...defaultProps}/>);
         await waitFor(() => {
             expect(screen.getByText('No policies found')).toBeInTheDocument();
         });
@@ -53,7 +53,7 @@ describe('components/admin_console/access_control/PolicyList', () => {
                 total: 2,
             },
         } as ActionResult);
-        const {container} = renderWithContext(<PolicyList {...defaultProps}/>);
+        const {container} = await renderWithContext(<PolicyList {...defaultProps}/>);
         await waitFor(() => {
             expect(screen.getByText('Policy 1')).toBeInTheDocument();
         });
@@ -62,7 +62,7 @@ describe('components/admin_console/access_control/PolicyList', () => {
 
     test('should match snapshot with search error', async () => {
         mockSearchPolicies.mockRejectedValue(new Error('Search failed'));
-        const {container} = renderWithContext(<PolicyList {...defaultProps}/>);
+        const {container} = await renderWithContext(<PolicyList {...defaultProps}/>);
         await waitFor(() => {
             expect(screen.getByText('Something went wrong. Try again')).toBeInTheDocument();
         });
@@ -79,7 +79,7 @@ describe('components/admin_console/access_control/PolicyList', () => {
                 total: 2,
             },
         } as ActionResult);
-        renderWithContext(<PolicyList {...defaultProps}/>);
+        await renderWithContext(<PolicyList {...defaultProps}/>);
         await waitFor(() => {
             expect(screen.getByText('Policy 1')).toBeInTheDocument();
         });
@@ -94,7 +94,7 @@ describe('components/admin_console/access_control/PolicyList', () => {
 
     test('should get columns correctly', async () => {
         mockSearchPolicies.mockResolvedValue({data: {policies: [], total: 0}} as ActionResult);
-        renderWithContext(<PolicyList {...defaultProps}/>);
+        await renderWithContext(<PolicyList {...defaultProps}/>);
         await waitFor(() => {
             expect(screen.getByText('No policies found')).toBeInTheDocument();
         });

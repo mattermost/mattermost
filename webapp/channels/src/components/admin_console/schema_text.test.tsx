@@ -14,25 +14,25 @@ describe('SchemaText', () => {
         text: 'This is help text',
     };
 
-    test('should render plain text correctly', () => {
-        const {container} = renderWithContext(<SchemaText {...baseProps}/>);
+    test('should render plain text correctly', async () => {
+        const {container} = await renderWithContext(<SchemaText {...baseProps}/>);
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should render markdown text correctly', () => {
+    test('should render markdown text correctly', async () => {
         const props = {
             ...baseProps,
             isMarkdown: true,
             text: 'This is **HELP TEXT**',
         };
 
-        const {container} = renderWithContext(<SchemaText {...props}/>);
+        const {container} = await renderWithContext(<SchemaText {...props}/>);
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should render translated text correctly', () => {
+    test('should render translated text correctly', async () => {
         const props = {
             ...baseProps,
             isTranslated: true,
@@ -42,12 +42,12 @@ describe('SchemaText', () => {
             },
         };
 
-        const {container} = renderWithContext(<SchemaText {...props}/>);
+        const {container} = await renderWithContext(<SchemaText {...props}/>);
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should render translated markdown text correctly', () => {
+    test('should render translated markdown text correctly', async () => {
         const props = {
             ...baseProps,
             isMarkdown: true,
@@ -58,45 +58,45 @@ describe('SchemaText', () => {
             },
         };
 
-        const {container} = renderWithContext(<SchemaText {...props}/>);
+        const {container} = await renderWithContext(<SchemaText {...props}/>);
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should open external markdown links in the new window', () => {
+    test('should open external markdown links in the new window', async () => {
         const props = {
             ...baseProps,
             isMarkdown: true,
             text: 'This is [a link](https://example.com)',
         };
 
-        const {container} = renderWithContext(<SchemaText {...props}/>);
+        const {container} = await renderWithContext(<SchemaText {...props}/>);
 
         const span = container.querySelector('span');
         expect(span).toHaveProperty('innerHTML', 'This is <a href="https://example.com" rel="noopener noreferrer" target="_blank">a link</a>');
     });
 
-    test('should open internal markdown links in the same window', () => {
+    test('should open internal markdown links in the same window', async () => {
         const props = {
             ...baseProps,
             isMarkdown: true,
             text: 'This is [a link](http://localhost:8065/api/v4/users/src_id)',
         };
 
-        const {container} = renderWithContext(<SchemaText {...props}/>);
+        const {container} = await renderWithContext(<SchemaText {...props}/>);
 
         const span = container.querySelector('span');
         expect(span).toHaveProperty('innerHTML', 'This is <a href="http://localhost:8065/api/v4/users/src_id">a link</a>');
     });
 
-    test('should support explicit external links like FormattedMarkdownMessage', () => {
+    test('should support explicit external links like FormattedMarkdownMessage', async () => {
         const props = {
             ...baseProps,
             isMarkdown: true,
             text: 'This is [a link](!https://example.com)',
         };
 
-        const {container} = renderWithContext(<SchemaText {...props}/>);
+        const {container} = await renderWithContext(<SchemaText {...props}/>);
 
         const span = container.querySelector('span');
         expect(span).toHaveProperty('innerHTML', 'This is <a href="https://example.com" rel="noopener noreferrer" target="_blank">a link</a>');

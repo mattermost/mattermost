@@ -225,7 +225,7 @@ describe('ChannelSettingsAccessRulesTab - Activity Warning Integration', () => {
             data: [], // No current members, so user2 will be added
         });
 
-        renderWithContext(
+        await renderWithContext(
             <ChannelSettingsAccessRulesTab {...defaultProps}/>,
             initialState,
         );
@@ -298,7 +298,7 @@ describe('ChannelSettingsAccessRulesTab - Activity Warning Integration', () => {
         });
         mockActions.getChannelMembers.mockResolvedValue({data: []});
 
-        renderWithContext(
+        await renderWithContext(
             <ChannelSettingsAccessRulesTab {...defaultProps}/>,
             initialState,
         );

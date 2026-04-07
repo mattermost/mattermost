@@ -37,14 +37,14 @@ describe('components/post_view/post_time/PostTime', () => {
         },
     };
 
-    test('should render PostTime component', () => {
-        renderWithContext(<PostTime {...baseProps}/>, initialState);
+    test('should render PostTime component', async () => {
+        await renderWithContext(<PostTime {...baseProps}/>, initialState);
 
         expect(screen.getByText('12:00 AM')).toBeInTheDocument();
     });
 
-    test('should render as permalink when isPermalink is true and not mobile', () => {
-        renderWithContext(<PostTime {...baseProps}/>, initialState);
+    test('should render as permalink when isPermalink is true and not mobile', async () => {
+        await renderWithContext(<PostTime {...baseProps}/>, initialState);
 
         const link = screen.getByRole('link');
         expect(link).toBeInTheDocument();
@@ -52,12 +52,12 @@ describe('components/post_view/post_time/PostTime', () => {
         expect(link).toHaveClass('post__permalink');
     });
 
-    test('should render as div when isPermalink is false', () => {
+    test('should render as div when isPermalink is false', async () => {
         const props = {
             ...baseProps,
             isPermalink: false,
         };
-        renderWithContext(<PostTime {...props}/>, initialState);
+        await renderWithContext(<PostTime {...props}/>, initialState);
 
         expect(screen.queryByRole('link')).not.toBeInTheDocument();
         expect(screen.getByText('12:00 AM').closest('div')).toHaveClass('post__permalink', 'post_permalink_mobile_view');
@@ -66,7 +66,7 @@ describe('components/post_view/post_time/PostTime', () => {
     test('should show tooltip with date and time on hover', async () => {
         jest.useFakeTimers();
 
-        renderWithContext(<PostTime {...baseProps}/>, initialState);
+        await renderWithContext(<PostTime {...baseProps}/>, initialState);
 
         const timeElement = screen.getByText('12:00 AM');
         await userEvent.hover(timeElement.closest('a') || timeElement, {advanceTimers: jest.advanceTimersByTime});
@@ -91,7 +91,7 @@ describe('components/post_view/post_time/PostTime', () => {
             eventTime: 1609459200000, // Jan 1, 2021 00:00:00 UTC
         };
 
-        renderWithContext(<PostTime {...props}/>, initialState);
+        await renderWithContext(<PostTime {...props}/>, initialState);
 
         const timeElement = screen.getByText('12:00 AM');
         await userEvent.hover(timeElement.closest('a') || timeElement, {advanceTimers: jest.advanceTimersByTime});
@@ -116,7 +116,7 @@ describe('components/post_view/post_time/PostTime', () => {
             eventTime: 1577880000000, // Jan 1, 2020 12:00:00 UTC (noon)
         };
 
-        renderWithContext(<PostTime {...props}/>, initialState);
+        await renderWithContext(<PostTime {...props}/>, initialState);
 
         const timeElement = screen.getByText('12:00 PM');
         await userEvent.hover(timeElement.closest('a') || timeElement, {advanceTimers: jest.advanceTimersByTime});
@@ -133,7 +133,7 @@ describe('components/post_view/post_time/PostTime', () => {
         jest.useRealTimers();
     });
 
-    test('should handle timestampProps correctly', () => {
+    test('should handle timestampProps correctly', async () => {
         const props = {
             ...baseProps,
             timestampProps: {
@@ -142,24 +142,24 @@ describe('components/post_view/post_time/PostTime', () => {
             },
         };
 
-        renderWithContext(<PostTime {...props}/>, initialState);
+        await renderWithContext(<PostTime {...props}/>, initialState);
 
         const timeElement = screen.getByText('00:00');
         expect(timeElement).toHaveClass('custom-timestamp');
     });
 
-    test('should have correct accessibility attributes', () => {
-        renderWithContext(<PostTime {...baseProps}/>, initialState);
+    test('should have correct accessibility attributes', async () => {
+        await renderWithContext(<PostTime {...baseProps}/>, initialState);
 
         const link = screen.getByRole('link');
         expect(link).toHaveAttribute('aria-labelledby', baseProps.eventTime.toString());
         expect(link).toHaveAttribute('id', `${baseProps.location}_time_${baseProps.postId}`);
     });
 
-    test('should render as div when isMobile returns true', () => {
+    test('should render as div when isMobile returns true', async () => {
         require('utils/user_agent').isMobile.mockReturnValue(true);
 
-        renderWithContext(<PostTime {...baseProps}/>, initialState);
+        await renderWithContext(<PostTime {...baseProps}/>, initialState);
 
         expect(screen.queryByRole('link')).not.toBeInTheDocument();
         expect(screen.getByText('12:00 AM').closest('div')).toHaveClass('post__permalink', 'post_permalink_mobile_view');
@@ -176,7 +176,7 @@ describe('components/post_view/post_time/PostTime', () => {
             isMobileView: true,
         };
 
-        renderWithContext(<PostTime {...props}/>, initialState);
+        await renderWithContext(<PostTime {...props}/>, initialState);
 
         const timeElement = screen.getByText('12:00 AM');
         await userEvent.click(timeElement.closest('a') || timeElement);

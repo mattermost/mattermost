@@ -91,26 +91,26 @@ describe('components/integrations/EditOutgoingWebhook', () => {
         mockPush.mockClear();
     });
 
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const props = {...baseProps, hook};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <EditOutgoingWebhook {...props}/>,
             initialState as GlobalState,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, loading', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot, loading', async () => {
+        const {container} = await renderWithContext(
             <EditOutgoingWebhook {...baseProps}/>,
             initialState as GlobalState,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when EnableOutgoingWebhooks is false', () => {
+    test('should match snapshot when EnableOutgoingWebhooks is false', async () => {
         const props = {...baseProps, enableOutgoingWebhooks: false, hook};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <EditOutgoingWebhook {...props}/>,
             initialState as GlobalState,
         );
@@ -124,7 +124,7 @@ describe('components/integrations/EditOutgoingWebhook', () => {
             updateOutgoingHook: jest.fn().mockReturnValue({data: 'data'}),
         };
         const props = {...baseProps, hook, actions: newActions};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <EditOutgoingWebhook {...props}/>,
             initialState as GlobalState,
         );
@@ -149,7 +149,7 @@ describe('components/integrations/EditOutgoingWebhook', () => {
             updateOutgoingHook: jest.fn().mockReturnValue({data: 'data'}),
         };
         const props = {...baseProps, hook, actions: newActions};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <EditOutgoingWebhook {...props}/>,
             initialState as GlobalState,
         );
@@ -173,9 +173,9 @@ describe('components/integrations/EditOutgoingWebhook', () => {
         });
     });
 
-    test('should have match renderExtra', () => {
+    test('should have match renderExtra', async () => {
         const props = {...baseProps, hook};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <EditOutgoingWebhook {...props}/>,
             initialState as GlobalState,
         );
@@ -190,7 +190,7 @@ describe('components/integrations/EditOutgoingWebhook', () => {
             updateOutgoingHook: jest.fn().mockReturnValue({data: 'data'}),
         };
         const props = {...baseProps, hook, actions: newActions};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <EditOutgoingWebhook {...props}/>,
             initialState as GlobalState,
         );
@@ -212,7 +212,7 @@ describe('components/integrations/EditOutgoingWebhook', () => {
             updateOutgoingHook: jest.fn().mockReturnValue({data: 'data'}),
         };
         const props = {...baseProps, hook, actions: newActions};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <EditOutgoingWebhook {...props}/>,
             initialState as GlobalState,
         );
@@ -232,7 +232,7 @@ describe('components/integrations/EditOutgoingWebhook', () => {
             updateOutgoingHook: jest.fn().mockReturnValue({data: ''}),
         };
         const props = {...baseProps, hook, actions: newActions};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <EditOutgoingWebhook {...props}/>,
             initialState as GlobalState,
         );

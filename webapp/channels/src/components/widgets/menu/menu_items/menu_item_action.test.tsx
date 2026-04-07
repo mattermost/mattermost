@@ -8,8 +8,8 @@ import {renderWithContext} from 'tests/react_testing_utils';
 import {MenuItemActionImpl} from './menu_item_action';
 
 describe('components/MenuItemAction', () => {
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <MenuItemActionImpl
                 onClick={jest.fn()}
                 text='Whatever'
@@ -18,8 +18,8 @@ describe('components/MenuItemAction', () => {
 
         expect(container).toMatchSnapshot();
     });
-    test('should match snapshot with extra text', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with extra text', async () => {
+        const {container} = await renderWithContext(
             <MenuItemActionImpl
                 onClick={jest.fn()}
                 text='Whatever'

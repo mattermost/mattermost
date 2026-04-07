@@ -115,22 +115,22 @@ describe('CreateRecapModal', () => {
         },
     };
 
-    test('should render modal with header including AI agent dropdown', () => {
-        renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
+    test('should render modal with header including AI agent dropdown', async () => {
+        await renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
 
         expect(screen.getByText('Set up your recap')).toBeInTheDocument();
         expect(screen.getByText('GENERATE WITH:')).toBeInTheDocument();
         expect(screen.getByText('Copilot')).toBeInTheDocument();
     });
 
-    test('should fetch AI agents on mount', () => {
-        renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
+    test('should fetch AI agents on mount', async () => {
+        await renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
 
         expect(getAgents).toHaveBeenCalledTimes(1);
     });
 
-    test('should show AI agent dropdown with default bot selected and label', () => {
-        renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
+    test('should show AI agent dropdown with default bot selected and label', async () => {
+        await renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
 
         // The default bot (Copilot) should be displayed
         expect(screen.getByText('Copilot')).toBeInTheDocument();
@@ -140,7 +140,7 @@ describe('CreateRecapModal', () => {
     });
 
     test('should open AI agent dropdown and show bot options', async () => {
-        renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
+        await renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
 
         const dropdownButton = screen.getByLabelText('Agent selector');
         await userEvent.click(dropdownButton);
@@ -152,7 +152,7 @@ describe('CreateRecapModal', () => {
     });
 
     test('should change selected bot when clicking on a different bot', async () => {
-        renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
+        await renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
 
         // Wait for initial bot to be selected
         await waitFor(() => {
@@ -176,7 +176,7 @@ describe('CreateRecapModal', () => {
     });
 
     test('should disable AI agent dropdown when submitting', async () => {
-        renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
+        await renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
 
         // Fill in the form to enable submit
         const nameInput = screen.getByPlaceholderText('Give your recap a name');
@@ -195,36 +195,36 @@ describe('CreateRecapModal', () => {
         expect(dropdownButton).not.toBeDisabled();
     });
 
-    test('should render step one initially', () => {
-        renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
+    test('should render step one initially', async () => {
+        await renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
 
         expect(screen.getByText('Give your recap a name')).toBeInTheDocument();
         expect(screen.getByText('What type of recap would you like?')).toBeInTheDocument();
     });
 
-    test('should show pagination dots', () => {
-        renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
+    test('should show pagination dots', async () => {
+        await renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
 
         const paginationDots = document.querySelectorAll('.pagination-dot');
         expect(paginationDots.length).toBeGreaterThan(0);
     });
 
-    test('should show Next button on first step', () => {
-        renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
+    test('should show Next button on first step', async () => {
+        await renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
 
         expect(screen.getByRole('button', {name: /next/i})).toBeInTheDocument();
         expect(screen.queryByRole('button', {name: /previous/i})).not.toBeInTheDocument();
     });
 
-    test('should disable Next button when form is incomplete', () => {
-        renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
+    test('should disable Next button when form is incomplete', async () => {
+        await renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
 
         const nextButton = screen.getByRole('button', {name: /next/i});
         expect(nextButton).toBeDisabled();
     });
 
     test('should enable Next button when form is complete', async () => {
-        renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
+        await renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
 
         // Wait for bot to be selected automatically
         await waitFor(() => {
@@ -243,7 +243,7 @@ describe('CreateRecapModal', () => {
     });
 
     test('should show Previous button on later steps', async () => {
-        renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
+        await renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
 
         // Fill form to enable navigation
         await waitFor(() => {
@@ -268,7 +268,7 @@ describe('CreateRecapModal', () => {
     });
 
     test('should not advance to next step when name is empty and show validation error', async () => {
-        renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
+        await renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
 
         await waitFor(() => {
             const dropdownButton = screen.getByLabelText('Agent selector');
@@ -289,7 +289,7 @@ describe('CreateRecapModal', () => {
     });
 
     test('should enable Next on channel selection step when a checkbox is clicked', async () => {
-        renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
+        await renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
 
         await waitFor(() => {
             const dropdownButton = screen.getByLabelText('Agent selector');
@@ -318,7 +318,7 @@ describe('CreateRecapModal', () => {
     });
 
     test('should maintain selected bot across step navigation', async () => {
-        renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
+        await renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
 
         // Wait for initial bot to be selected
         await waitFor(() => {

@@ -26,8 +26,8 @@ describe('useUser', () => {
             jest.restoreAllMocks();
         });
 
-        test("should return the user if they're already in the store", () => {
-            const {result} = renderHookWithContext(
+        test("should return the user if they're already in the store", async () => {
+            const {result} = await renderHookWithContext(
                 () => useUser('user1'),
                 {
                     entities: {
@@ -44,8 +44,8 @@ describe('useUser', () => {
             expect(dispatchMock).not.toHaveBeenCalled();
         });
 
-        test("should fetch the user if they're not in the store", () => {
-            const {result} = renderHookWithContext(
+        test("should fetch the user if they're not in the store", async () => {
+            const {result} = await renderHookWithContext(
                 () => useUser('user1'),
             );
 
@@ -53,8 +53,8 @@ describe('useUser', () => {
             expect(dispatchMock).toHaveBeenCalledTimes(1);
         });
 
-        test('should only attempt to fetch the user once regardless of how many times the hook is used', () => {
-            const {result, rerender} = renderHookWithContext(
+        test('should only attempt to fetch the user once regardless of how many times the hook is used', async () => {
+            const {result, rerender} = await renderHookWithContext(
                 () => useUser('user1'),
             );
 
@@ -69,9 +69,9 @@ describe('useUser', () => {
             expect(dispatchMock).toHaveBeenCalledTimes(1);
         });
 
-        test('should attempt to fetch different users if the user changes', () => {
+        test('should attempt to fetch different users if the user changes', async () => {
             let userId = 'user1';
-            const {result, rerender} = renderHookWithContext(
+            const {result, rerender} = await renderHookWithContext(
                 () => useUser(userId),
             );
 
@@ -85,9 +85,9 @@ describe('useUser', () => {
             expect(dispatchMock).toHaveBeenCalledTimes(2);
         });
 
-        test("should only attempt to fetch each user once when they aren't loaded", () => {
+        test("should only attempt to fetch each user once when they aren't loaded", async () => {
             let userId = 'user1';
-            const {result, replaceStoreState, rerender} = renderHookWithContext(
+            const {result, replaceStoreState, rerender} = await renderHookWithContext(
                 () => useUser(userId),
             );
 
@@ -141,8 +141,8 @@ describe('useUser', () => {
             expect(dispatchMock).toHaveBeenCalledTimes(2);
         });
 
-        test("shouldn't attempt to load anything when given an empty user ID", () => {
-            const {result} = renderHookWithContext(
+        test("shouldn't attempt to load anything when given an empty user ID", async () => {
+            const {result} = await renderHookWithContext(
                 () => useUser(''),
             );
 
@@ -167,7 +167,7 @@ describe('useUser', () => {
                 reply(200, [user2]);
 
             let userId = 'user1';
-            const {result, rerender} = renderHookWithContext(
+            const {result, rerender} = await renderHookWithContext(
                 () => useUser(userId),
             );
 
@@ -211,7 +211,7 @@ describe('useUser', () => {
                 once().
                 reply(200, [user1, user2]);
 
-            const {result} = renderHookWithContext(
+            const {result} = await renderHookWithContext(
                 () => {
                     return [
                         useUser('user1'),

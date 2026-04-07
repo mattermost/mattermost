@@ -60,8 +60,8 @@ describe('components/admin_console/group_settings/group_details/GroupTeamsAndCha
         onRemoveItem: jest.fn(),
     };
 
-    test('should match snapshot, with teams, with channels and loading', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot, with teams, with channels and loading', async () => {
+        const {container} = await renderWithContext(
             <GroupTeamsAndChannels
                 {...defaultProps}
                 loading={true}
@@ -70,8 +70,8 @@ describe('components/admin_console/group_settings/group_details/GroupTeamsAndCha
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, with teams, with channels and loaded', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot, with teams, with channels and loaded', async () => {
+        const {container} = await renderWithContext(
             <GroupTeamsAndChannels
                 {...defaultProps}
                 loading={false}
@@ -80,8 +80,8 @@ describe('components/admin_console/group_settings/group_details/GroupTeamsAndCha
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, without teams, without channels and loading', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot, without teams, without channels and loading', async () => {
+        const {container} = await renderWithContext(
             <GroupTeamsAndChannels
                 {...defaultProps}
                 teams={[]}
@@ -92,8 +92,8 @@ describe('components/admin_console/group_settings/group_details/GroupTeamsAndCha
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, without teams, without channels and loaded', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot, without teams, without channels and loaded', async () => {
+        const {container} = await renderWithContext(
             <GroupTeamsAndChannels
                 {...defaultProps}
                 teams={[]}
@@ -105,7 +105,7 @@ describe('components/admin_console/group_settings/group_details/GroupTeamsAndCha
     });
 
     test('should toggle the collapse for an element', async () => {
-        renderWithContext(<GroupTeamsAndChannels {...defaultProps}/>);
+        await renderWithContext(<GroupTeamsAndChannels {...defaultProps}/>);
 
         // Team 1 has children (Channel 4), so it should have a caret icon
         // Initially not collapsed, so caret-down is shown and channel is visible
@@ -131,7 +131,7 @@ describe('components/admin_console/group_settings/group_details/GroupTeamsAndCha
 
     test('should invoke the onRemoveItem callback', async () => {
         const onRemoveItem = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <GroupTeamsAndChannels
                 {...defaultProps}
                 onChangeRoles={jest.fn()}
@@ -155,7 +155,7 @@ describe('components/admin_console/group_settings/group_details/GroupTeamsAndCha
 
     test('should invoke the onChangeRoles callback', async () => {
         const onChangeRoles = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <GroupTeamsAndChannels
                 {...defaultProps}
                 teams={[

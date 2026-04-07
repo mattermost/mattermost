@@ -28,12 +28,12 @@ import {
 } from './react_testing_utils';
 
 describe('renderWithContext', () => {
-    test('should be able to render anything', () => {
+    test('should be able to render anything', async () => {
         const TestComponent = () => {
             return <div>{'Anything'}</div>;
         };
 
-        renderWithContext(
+        await renderWithContext(
             <TestComponent/>,
             {},
         );
@@ -41,7 +41,7 @@ describe('renderWithContext', () => {
         expect(screen.getByText('Anything')).toBeInTheDocument();
     });
 
-    test('should be able to render react-intl components', () => {
+    test('should be able to render react-intl components', async () => {
         const TestComponent = () => {
             return (
                 <FormattedMessage
@@ -51,28 +51,28 @@ describe('renderWithContext', () => {
             );
         };
 
-        renderWithContext(
+        await renderWithContext(
             <TestComponent/>,
         );
 
         expect(screen.getByText('Build Number:')).toBeInTheDocument();
     });
 
-    test('should be able to render components using react-intl hooks', () => {
+    test('should be able to render components using react-intl hooks', async () => {
         const TestComponent = () => {
             const intl = useIntl();
 
             return <div>{intl.formatMessage({id: 'about.hash', defaultMessage: 'Build Hash:'})}</div>;
         };
 
-        renderWithContext(
+        await renderWithContext(
             <TestComponent/>,
         );
 
         expect(screen.getByText('Build Hash:')).toBeInTheDocument();
     });
 
-    test('should be able to render react-router components', () => {
+    test('should be able to render react-router components', async () => {
         const RouteComponent = () => {
             return <div>{'this is the route component'}</div>;
         };
@@ -88,7 +88,7 @@ describe('renderWithContext', () => {
             );
         };
 
-        renderWithContext(
+        await renderWithContext(
             <TestComponent/>,
         );
 
@@ -96,7 +96,7 @@ describe('renderWithContext', () => {
         expect(screen.getByRole('link', {name: 'Test Link'})).toBeInTheDocument();
     });
 
-    test('should be able to render components that use connect to access the Redux store', () => {
+    test('should be able to render components that use connect to access the Redux store', async () => {
         const UnconnectedTestComponent = (props: {numProfiles: number}) => {
             return <div>{`There are ${props.numProfiles} users loaded`}</div>;
         };
@@ -104,27 +104,27 @@ describe('renderWithContext', () => {
             numProfiles: Object.keys(state.entities.users.profiles).length,
         }))(UnconnectedTestComponent);
 
-        renderWithContext(
+        await renderWithContext(
             <TestComponent/>,
         );
 
         expect(screen.getByText('There are 0 users loaded')).toBeInTheDocument();
     });
 
-    test('should be able to render components that use hooks to access the Redux store', () => {
+    test('should be able to render components that use hooks to access the Redux store', async () => {
         const TestComponent = () => {
             const numProfiles = useSelector((state: GlobalState) => Object.keys(state.entities.users.profiles).length);
             return <div>{`There are ${numProfiles} users loaded`}</div>;
         };
 
-        renderWithContext(
+        await renderWithContext(
             <TestComponent/>,
         );
 
         expect(screen.getByText('There are 0 users loaded')).toBeInTheDocument();
     });
 
-    test('should be able to rerender components without losing context', () => {
+    test('should be able to rerender components without losing context', async () => {
         const TestComponent = (props: {appTitle: string}) => {
             return (
                 <FormattedMessage
@@ -137,7 +137,7 @@ describe('renderWithContext', () => {
             );
         };
 
-        const {rerender} = renderWithContext(
+        const {rerender} = await renderWithContext(
             <TestComponent appTitle='Mattermost'/>,
         );
 
@@ -150,7 +150,7 @@ describe('renderWithContext', () => {
         expect(screen.getByText('About Mattermots')).toBeInTheDocument();
     });
 
-    test('should be able to inject store state and replace it later', () => {
+    test('should be able to inject store state and replace it later', async () => {
         const initialState = {
             entities: {
                 users: {
@@ -169,7 +169,7 @@ describe('renderWithContext', () => {
             return <div>{`User1 is ${user1.username} and User2 is ${user2.username}!`}</div>;
         };
 
-        const {replaceStoreState} = renderWithContext(
+        const {replaceStoreState} = await renderWithContext(
             <TestComponent/>,
             initialState,
         );
@@ -202,7 +202,7 @@ describe('renderWithContext', () => {
         expect(screen.getByText('User1 is Alpha and User2 is Delta!')).toBeInTheDocument();
     });
 
-    test('should be able to update store state', () => {
+    test('should be able to update store state', async () => {
         const initialState = {
             entities: {
                 users: {
@@ -221,7 +221,7 @@ describe('renderWithContext', () => {
             return <div>{`User1 is ${user1.username} and User2 is ${user2.username}!`}</div>;
         };
 
-        const {updateStoreState} = renderWithContext(
+        const {updateStoreState} = await renderWithContext(
             <TestComponent/>,
             initialState,
         );
@@ -253,7 +253,7 @@ describe('renderWithContext', () => {
         expect(screen.getByText('User1 is Golf and User2 is Hotel!')).toBeInTheDocument();
     });
 
-    test('should be able to mix rerendering and updating store state', () => {
+    test('should be able to mix rerendering and updating store state', async () => {
         const initialState = {
             entities: {
                 users: {
@@ -270,7 +270,7 @@ describe('renderWithContext', () => {
             return <div>{`${props.greeting}, ${user1.username}!`}</div>;
         };
 
-        const {rerender, updateStoreState} = renderWithContext(
+        const {rerender, updateStoreState} = await renderWithContext(
             <TestComponent greeting='Hello'/>,
             initialState,
         );
@@ -332,7 +332,7 @@ describe('renderWithContext', () => {
             );
         };
 
-        renderWithContext(<TestComponent/>);
+        await renderWithContext(<TestComponent/>);
 
         expect(screen.getByText('User1 is NOT_LOADED!')).toBeInTheDocument();
 
@@ -367,7 +367,7 @@ describe('renderWithContext', () => {
             );
         };
 
-        renderWithContext(
+        await renderWithContext(
             <>
                 <TestComponent/>
                 <ModalController/>

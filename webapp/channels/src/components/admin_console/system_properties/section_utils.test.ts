@@ -34,7 +34,7 @@ function getBaseState(): DeepPartial<GlobalState> {
 
 describe('useOperationStatus', () => {
     it('should indicate loading true then false', async () => {
-        const {result, rerender} = renderHookWithContext(() => {
+        const {result, rerender} = await renderHookWithContext(() => {
             return useOperationStatus(true);
         }, getBaseState());
 
@@ -54,7 +54,7 @@ describe('useOperationStatus', () => {
     });
 
     it('should indicate loading true then false with error', async () => {
-        const {result, rerender} = renderHookWithContext(() => {
+        const {result, rerender} = await renderHookWithContext(() => {
             return useOperationStatus(true);
         }, getBaseState());
 
@@ -82,7 +82,7 @@ describe('useOperation', () => {
 
         const testResolvingAsyncAction = jest.fn().mockImplementation((responseValue) => new Promise((r) => setTimeout(() => r(responseValue), 1000)));
 
-        const {result, rerender} = renderHookWithContext(() => {
+        const {result, rerender} = await renderHookWithContext(() => {
             return useOperation(testResolvingAsyncAction, false);
         }, getBaseState());
 
@@ -119,7 +119,7 @@ describe('useOperation', () => {
 
         const testRejectingAsyncAction = jest.fn().mockImplementation(() => new Promise((resolve, reject) => setTimeout(() => reject(new Error('error somewhere')), 1000)));
 
-        const {result, rerender} = renderHookWithContext(() => {
+        const {result, rerender} = await renderHookWithContext(() => {
             return useOperation(testRejectingAsyncAction, false);
         }, getBaseState());
 

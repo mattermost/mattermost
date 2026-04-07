@@ -38,68 +38,68 @@ describe('components/emoji_picker/EmojiPicker', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {asFragment} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {asFragment} = await renderWithContext(
             <EmojiPicker {...baseProps}/>,
         );
 
         expect(asFragment()).toMatchSnapshot();
     });
 
-    test('Recent category should not exist if there are no recent emojis', () => {
-        renderWithContext(
+    test('Recent category should not exist if there are no recent emojis', async () => {
+        await renderWithContext(
             <EmojiPicker {...baseProps}/>,
         );
 
         expect(screen.queryByLabelText('Recent')).toBeNull();
     });
 
-    test('Recent category should exist if there are recent emojis', () => {
+    test('Recent category should exist if there are recent emojis', async () => {
         const props = {
             ...baseProps,
             recentEmojis: ['smile'],
         };
 
-        renderWithContext(
+        await renderWithContext(
             <EmojiPicker {...props}/>,
         );
 
         expect(screen.queryByLabelText('Recently Used')).not.toBeNull();
     });
 
-    test('First emoji should be selected on search', () => {
+    test('First emoji should be selected on search', async () => {
         const props = {
             ...baseProps,
             filter: 'wave',
         };
 
-        renderWithContext(
+        await renderWithContext(
             <EmojiPicker {...props}/>,
         );
 
         expect(screen.queryByText('Preview for wave emoji')).not.toBeNull();
     });
 
-    test('Categories should be hidden when filter has text', () => {
+    test('Categories should be hidden when filter has text', async () => {
         const props = {
             ...baseProps,
             filter: 'smile',
         };
 
-        renderWithContext(
+        await renderWithContext(
             <EmojiPicker {...props}/>,
         );
 
         expect(screen.queryByTestId('emojiPickerCategories')).toBeNull();
     });
 
-    test('Categories should be visible when filter is empty', () => {
+    test('Categories should be visible when filter is empty', async () => {
         const props = {
             ...baseProps,
             filter: '',
         };
 
-        renderWithContext(
+        await renderWithContext(
             <EmojiPicker {...props}/>,
         );
 

@@ -49,15 +49,15 @@ describe('admin_console/team_channel_settings/channel/ChannelMembers', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <ChannelMembers {...baseProps}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot loading no users', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot loading no users', async () => {
+        const {container} = await renderWithContext(
             <ChannelMembers
                 {...baseProps}
                 users={[]}

@@ -29,7 +29,7 @@ describe('components/ChannelHeaderMenu/MenuItems/ConvertGMtoPrivate', () => {
     const channel = TestHelper.getChannelMock();
 
     test('renders the component correctly, handle click event', async () => {
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <ConvertGMtoPrivate channel={channel}/>
             </WithTestMenuContext>, {},

@@ -110,7 +110,7 @@ describe('components/channel_banner', () => {
         },
     };
 
-    test('should not render when license is professional', () => {
+    test('should not render when license is professional', async () => {
         const nonEnterpriseLicenseState = {
             ...baseState,
             entities: {
@@ -124,14 +124,14 @@ describe('components/channel_banner', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ChannelBanner channelId={'channel_id_1'}/>,
             nonEnterpriseLicenseState,
         );
         expect(screen.queryByTestId('channel_banner_container')).not.toBeInTheDocument();
     });
 
-    test('should not render when license is enterprise', () => {
+    test('should not render when license is enterprise', async () => {
         const nonEnterpriseLicenseState = {
             ...baseState,
             entities: {
@@ -145,14 +145,14 @@ describe('components/channel_banner', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ChannelBanner channelId={'channel_id_1'}/>,
             nonEnterpriseLicenseState,
         );
         expect(screen.queryByTestId('channel_banner_container')).not.toBeInTheDocument();
     });
 
-    test('should not render when there is no license', () => {
+    test('should not render when there is no license', async () => {
         const noLicenseState = {
             ...baseState,
             entities: {
@@ -161,30 +161,30 @@ describe('components/channel_banner', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ChannelBanner channelId={'channel_id_1'}/>,
             noLicenseState,
         );
         expect(screen.queryByTestId('channel_banner_container')).not.toBeInTheDocument();
     });
 
-    test('should not render when banner is disabled', () => {
-        renderWithContext(
+    test('should not render when banner is disabled', async () => {
+        await renderWithContext(
             <ChannelBanner channelId={'channel_id_2'}/>,
             baseState,
         );
         expect(screen.queryByTestId('channel_banner_container')).not.toBeInTheDocument();
     });
 
-    test('should not render when channel has no banner', () => {
-        renderWithContext(
+    test('should not render when channel has no banner', async () => {
+        await renderWithContext(
             <ChannelBanner channelId={'non-existent-channel-id'}/>,
             baseState,
         );
         expect(screen.queryByTestId('channel_banner_container')).not.toBeInTheDocument();
     });
 
-    test('should not render when banner info is incomplete', () => {
+    test('should not render when banner info is incomplete', async () => {
         const channel = TestHelper.getChannelMock({
             id: 'channel_id_1',
             team_id: 'team_id',
@@ -212,15 +212,15 @@ describe('components/channel_banner', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ChannelBanner channelId={'channel_id_1'}/>,
             incompleteBannerInfoState,
         );
         expect(screen.queryByTestId('channel_banner_container')).not.toBeInTheDocument();
     });
 
-    test('should render banner with correct text and styling', () => {
-        renderWithContext(
+    test('should render banner with correct text and styling', async () => {
+        await renderWithContext(
             <ChannelBanner channelId={'channel_id_1'}/>,
             baseState,
         );
@@ -234,8 +234,8 @@ describe('components/channel_banner', () => {
         expect(bannerText.textContent).toBe('Test banner message');
     });
 
-    test('should render markdown in banner text', () => {
-        renderWithContext(
+    test('should render markdown in banner text', async () => {
+        await renderWithContext(
             <ChannelBanner channelId={'channel_id_3'}/>,
             baseState,
         );
@@ -253,8 +253,8 @@ describe('components/channel_banner', () => {
         expect(strongElement?.textContent).toBe('markdown');
     });
 
-    test('should render for private channels', () => {
-        renderWithContext(
+    test('should render for private channels', async () => {
+        await renderWithContext(
             <ChannelBanner channelId={'private_channel_id'}/>,
             baseState,
         );
@@ -268,8 +268,8 @@ describe('components/channel_banner', () => {
         expect(bannerText.textContent).toBe('Private Channel Banner');
     });
 
-    test('should not render for DM channels', () => {
-        renderWithContext(
+    test('should not render for DM channels', async () => {
+        await renderWithContext(
             <ChannelBanner channelId={'dm_channel_id'}/>,
             baseState,
         );
@@ -277,7 +277,7 @@ describe('components/channel_banner', () => {
         expect(screen.queryByTestId('channel_banner_container')).not.toBeInTheDocument();
     });
 
-    test('should apply contrasting text color based on dark background color', () => {
+    test('should apply contrasting text color based on dark background color', async () => {
         // dark background should have dark text
         const darkBgChannel = TestHelper.getChannelMock({
             id: 'light_bg_channel',
@@ -306,7 +306,7 @@ describe('components/channel_banner', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ChannelBanner channelId={'light_bg_channel'}/>,
             stateWithLightBgChannel,
         );
@@ -319,7 +319,7 @@ describe('components/channel_banner', () => {
         expect(darkBgBannerText).toHaveStyle('--channel-banner-text-color: #FFFFFF');
     });
 
-    test('should apply contrasting text color based on light background color', () => {
+    test('should apply contrasting text color based on light background color', async () => {
         // Light background should have dark text
         const lightBgChannel = TestHelper.getChannelMock({
             id: 'light_bg_channel',
@@ -348,7 +348,7 @@ describe('components/channel_banner', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ChannelBanner channelId={'light_bg_channel'}/>,
             stateWithLightBgChannel,
         );

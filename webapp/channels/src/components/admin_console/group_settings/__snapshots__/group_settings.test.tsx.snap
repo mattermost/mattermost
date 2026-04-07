@@ -118,11 +118,9 @@ For more information on Groups, please see
               id="groups-list--body"
             >
               <div
-                class="groups-list-loading"
+                class="groups-list-empty"
               >
-                <i
-                  class="fa fa-spinner fa-pulse fa-2x"
-                />
+                Failed to retrieve LDAP groups. Please check your logs for details.
               </div>
             </div>
           </div>

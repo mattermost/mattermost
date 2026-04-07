@@ -19,8 +19,8 @@ describe('Footer Component', () => {
     };
 
     describe('HelpButton visibility', () => {
-        it('should render HelpButton when not in edit mode', () => {
-            renderWithContext(
+        it('should render HelpButton when not in edit mode', async () => {
+            await renderWithContext(
                 <Footer
                     {...baseProps}
                     isInEditMode={false}
@@ -30,8 +30,8 @@ describe('Footer Component', () => {
             expect(screen.getByText('Help')).toBeInTheDocument();
         });
 
-        it('should not render HelpButton when in edit mode', () => {
-            renderWithContext(
+        it('should not render HelpButton when in edit mode', async () => {
+            await renderWithContext(
                 <Footer
                     {...baseProps}
                     isInEditMode={true}
@@ -41,8 +41,8 @@ describe('Footer Component', () => {
             expect(screen.queryByText('Help')).not.toBeInTheDocument();
         });
 
-        it('should render HelpButton as a button element with correct attributes', () => {
-            renderWithContext(
+        it('should render HelpButton as a button element with correct attributes', async () => {
+            await renderWithContext(
                 <Footer
                     {...baseProps}
                     isInEditMode={false}
@@ -57,8 +57,8 @@ describe('Footer Component', () => {
     });
 
     describe('Footer structure', () => {
-        it('should render the footer with correct id and role', () => {
-            const {container} = renderWithContext(
+        it('should render the footer with correct id and role', async () => {
+            const {container} = await renderWithContext(
                 <Footer {...baseProps}/>,
             );
 
@@ -67,8 +67,8 @@ describe('Footer Component', () => {
             expect(footer).toHaveAttribute('role', 'form');
         });
 
-        it('should render MsgTyping when not in edit mode', () => {
-            renderWithContext(
+        it('should render MsgTyping when not in edit mode', async () => {
+            await renderWithContext(
                 <Footer
                     {...baseProps}
                     isInEditMode={false}
@@ -80,8 +80,8 @@ describe('Footer Component', () => {
             expect(footer).toBeInTheDocument();
         });
 
-        it('should not render MsgTyping when in edit mode', () => {
-            const {container} = renderWithContext(
+        it('should not render MsgTyping when in edit mode', async () => {
+            const {container} = await renderWithContext(
                 <Footer
                     {...baseProps}
                     isInEditMode={true}

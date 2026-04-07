@@ -86,8 +86,8 @@ describe('components/widgets/users/Avatars', () => {
         (getMissingProfilesByIds as jest.Mock).mockClear();
     });
 
-    test('should support userIds', () => {
-        const {container} = renderWithContext(
+    test('should support userIds', async () => {
+        const {container} = await renderWithContext(
             <Avatars
                 size='xl'
                 userIds={[
@@ -105,8 +105,8 @@ describe('components/widgets/users/Avatars', () => {
         expect(container.querySelectorAll('img.Avatar')).toHaveLength(3);
     });
 
-    test('should properly count overflow', () => {
-        const {container} = renderWithContext(
+    test('should properly count overflow', async () => {
+        const {container} = await renderWithContext(
             <Avatars
                 size='xl'
                 userIds={[
@@ -131,8 +131,8 @@ describe('components/widgets/users/Avatars', () => {
         expect(container.querySelector('[data-content="+2"]')).toBeInTheDocument();
     });
 
-    test('should not duplicate displayed users in overflow tooltip', () => {
-        const {container} = renderWithContext(
+    test('should not duplicate displayed users in overflow tooltip', async () => {
+        const {container} = await renderWithContext(
             <Avatars
                 size='xl'
                 userIds={[
@@ -150,8 +150,8 @@ describe('components/widgets/users/Avatars', () => {
         expect(container.querySelector('[data-content="+2"]')).toBeInTheDocument();
     });
 
-    test('should fetch missing users', () => {
-        const {container} = renderWithContext(
+    test('should fetch missing users', async () => {
+        const {container} = await renderWithContext(
             <Avatars
                 size='xl'
                 userIds={[

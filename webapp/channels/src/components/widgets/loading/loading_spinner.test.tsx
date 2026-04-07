@@ -11,8 +11,8 @@ import LoadingSpinner from './loading_spinner';
 jest.unmock('react-intl');
 
 describe('components/widgets/loadingLoadingSpinner', () => {
-    test('showing spinner with text', () => {
-        renderWithContext(
+    test('showing spinner with text', async () => {
+        await renderWithContext(
             <LoadingSpinner
                 text='test text'
             />,
@@ -21,9 +21,9 @@ describe('components/widgets/loadingLoadingSpinner', () => {
         expect(screen.getByText('test text')).toBeVisible();
     });
 
-    test('showing spinner with translated text using a FormattedMessage', () => {
+    test('showing spinner with translated text using a FormattedMessage', async () => {
         const messageId = 'formattedText';
-        renderWithContext(
+        await renderWithContext(
             <LoadingSpinner
                 text={
                     // eslint-disable-next-line formatjs/enforce-default-message -- test uses dynamic ID
@@ -41,8 +41,8 @@ describe('components/widgets/loadingLoadingSpinner', () => {
         expect(screen.getByText('formatted message text')).toBeVisible();
     });
 
-    test('showing spinner with translated text using a MessageDescriptor', () => {
-        renderWithContext(
+    test('showing spinner with translated text using a MessageDescriptor', async () => {
+        await renderWithContext(
             <LoadingSpinner
                 text={{id: 'messageDescriptor'}}
             />,
@@ -57,8 +57,8 @@ describe('components/widgets/loadingLoadingSpinner', () => {
         expect(screen.getByText('message descriptor text')).toBeVisible();
     });
 
-    test('showing spinner without text', () => {
-        renderWithContext(
+    test('showing spinner without text', async () => {
+        await renderWithContext(
             <LoadingSpinner/>,
         );
 

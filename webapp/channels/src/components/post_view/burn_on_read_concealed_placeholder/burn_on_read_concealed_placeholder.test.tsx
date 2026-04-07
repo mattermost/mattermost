@@ -14,8 +14,8 @@ describe('BurnOnReadConcealedPlaceholder', () => {
         onReveal: jest.fn(),
     };
 
-    it('should render with concealed placeholder text', () => {
-        renderWithContext(
+    it('should render with concealed placeholder text', async () => {
+        await renderWithContext(
             <BurnOnReadConcealedPlaceholder {...baseProps}/>,
         );
 
@@ -25,7 +25,7 @@ describe('BurnOnReadConcealedPlaceholder', () => {
     });
 
     it('should call onReveal when clicked', async () => {
-        renderWithContext(
+        await renderWithContext(
             <BurnOnReadConcealedPlaceholder {...baseProps}/>,
         );
 
@@ -37,7 +37,7 @@ describe('BurnOnReadConcealedPlaceholder', () => {
     });
 
     it('should call onReveal when Enter key is pressed', async () => {
-        renderWithContext(
+        await renderWithContext(
             <BurnOnReadConcealedPlaceholder {...baseProps}/>,
         );
 
@@ -49,7 +49,7 @@ describe('BurnOnReadConcealedPlaceholder', () => {
     });
 
     it('should call onReveal when Space key is pressed', async () => {
-        renderWithContext(
+        await renderWithContext(
             <BurnOnReadConcealedPlaceholder {...baseProps}/>,
         );
 
@@ -61,7 +61,7 @@ describe('BurnOnReadConcealedPlaceholder', () => {
     });
 
     it('should not call onReveal when other keys are pressed', async () => {
-        renderWithContext(
+        await renderWithContext(
             <BurnOnReadConcealedPlaceholder {...baseProps}/>,
         );
 
@@ -72,8 +72,8 @@ describe('BurnOnReadConcealedPlaceholder', () => {
         expect(baseProps.onReveal).not.toHaveBeenCalled();
     });
 
-    it('should show loading spinner when loading', () => {
-        renderWithContext(
+    it('should show loading spinner when loading', async () => {
+        await renderWithContext(
             <BurnOnReadConcealedPlaceholder
                 {...baseProps}
                 loading={true}
@@ -85,7 +85,7 @@ describe('BurnOnReadConcealedPlaceholder', () => {
     });
 
     it('should not trigger onReveal when loading', async () => {
-        renderWithContext(
+        await renderWithContext(
             <BurnOnReadConcealedPlaceholder
                 {...baseProps}
                 loading={true}
@@ -98,9 +98,9 @@ describe('BurnOnReadConcealedPlaceholder', () => {
         expect(baseProps.onReveal).not.toHaveBeenCalled();
     });
 
-    it('should display error message when error is present', () => {
+    it('should display error message when error is present', async () => {
         const errorMessage = 'Failed to reveal message';
-        renderWithContext(
+        await renderWithContext(
             <BurnOnReadConcealedPlaceholder
                 {...baseProps}
                 error={errorMessage}
@@ -111,8 +111,8 @@ describe('BurnOnReadConcealedPlaceholder', () => {
         expect(screen.getByRole('alert')).toHaveClass('BurnOnReadConcealedPlaceholder--error');
     });
 
-    it('should have correct aria-label for accessibility', () => {
-        renderWithContext(
+    it('should have correct aria-label for accessibility', async () => {
+        await renderWithContext(
             <BurnOnReadConcealedPlaceholder {...baseProps}/>,
         );
 
@@ -120,8 +120,8 @@ describe('BurnOnReadConcealedPlaceholder', () => {
         expect(placeholder).toHaveAttribute('aria-label', 'Burn-on-read message from john.doe. Click to reveal content.');
     });
 
-    it('should be keyboard focusable', () => {
-        renderWithContext(
+    it('should be keyboard focusable', async () => {
+        await renderWithContext(
             <BurnOnReadConcealedPlaceholder {...baseProps}/>,
         );
 

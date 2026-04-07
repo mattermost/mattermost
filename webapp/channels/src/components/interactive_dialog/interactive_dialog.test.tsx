@@ -39,7 +39,7 @@ describe('components/interactive_dialog/InteractiveDialog', () => {
                     lookupInteractiveDialog: jest.fn(),
                 },
             };
-            renderWithContext(<InteractiveDialog {...props}/>);
+            await renderWithContext(<InteractiveDialog {...props}/>);
 
             const submitButton = screen.getByText('Yes');
             await userEvent.click(submitButton);
@@ -60,7 +60,7 @@ describe('components/interactive_dialog/InteractiveDialog', () => {
                     lookupInteractiveDialog: jest.fn(),
                 },
             };
-            renderWithContext(<InteractiveDialog {...props}/>);
+            await renderWithContext(<InteractiveDialog {...props}/>);
 
             const submitButton = screen.getByText('Yes');
             await userEvent.click(submitButton);
@@ -70,7 +70,7 @@ describe('components/interactive_dialog/InteractiveDialog', () => {
     });
 
     describe('default select element in Interactive Dialog', () => {
-        test('should be enabled by default', () => {
+        test('should be enabled by default', async () => {
             const selectElement: TDialogElement = {
                 data_source: '',
                 default: 'opt3',
@@ -95,7 +95,7 @@ describe('components/interactive_dialog/InteractiveDialog', () => {
                 elements: [selectElement],
             };
 
-            renderWithContext(<InteractiveDialog {...props}/>);
+            await renderWithContext(<InteractiveDialog {...props}/>);
 
             expect(screen.getByDisplayValue('Option3')).toBeInTheDocument();
         });
@@ -127,7 +127,7 @@ describe('components/interactive_dialog/InteractiveDialog', () => {
             {description: 'default of "TRUE"', default: 'TRUE', expectedChecked: true},
         ];
 
-        testCases.forEach((testCase) => test(`should interpret ${testCase.description}`, () => {
+        testCases.forEach((testCase) => test(`should interpret ${testCase.description}`, async () => {
             const testElement = {...element};
             if (testCase.default === undefined) {
                 delete (testElement as any).default;
@@ -140,7 +140,7 @@ describe('components/interactive_dialog/InteractiveDialog', () => {
                 elements: [testElement],
             };
 
-            renderWithContext(<InteractiveDialog {...props}/>);
+            await renderWithContext(<InteractiveDialog {...props}/>);
 
             const checkbox = screen.getByRole('checkbox');
             if (testCase.expectedChecked) {

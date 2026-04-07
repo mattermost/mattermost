@@ -21,8 +21,8 @@ describe('RemoveUserPropertyFieldModal', () => {
     const onCancel = jest.fn();
     const onExited = jest.fn();
 
-    it('renders with the correct field name', () => {
-        renderWithContext(
+    it('renders with the correct field name', async () => {
+        await renderWithContext(
             <RemoveUserPropertyFieldModal
                 name='Test Field'
                 onConfirm={onConfirm}
@@ -37,7 +37,7 @@ describe('RemoveUserPropertyFieldModal', () => {
     });
 
     it('calls onConfirm when confirm button is clicked', async () => {
-        renderWithContext(
+        await renderWithContext(
             <RemoveUserPropertyFieldModal
                 name='Test Field'
                 onConfirm={onConfirm}
@@ -51,7 +51,7 @@ describe('RemoveUserPropertyFieldModal', () => {
     });
 
     it('calls onCancel when cancel button is clicked', async () => {
-        renderWithContext(
+        await renderWithContext(
             <RemoveUserPropertyFieldModal
                 name='Test Field'
                 onConfirm={onConfirm}
@@ -86,8 +86,8 @@ describe('useUserPropertyFieldDelete', () => {
         },
     };
 
-    it('calls openModal with correct params when promptDelete is called', () => {
-        const {result} = renderHookWithContext(() => useUserPropertyFieldDelete());
+    it('calls openModal with correct params when promptDelete is called', async () => {
+        const {result} = await renderHookWithContext(() => useUserPropertyFieldDelete());
 
         result.current.promptDelete(baseField);
 
@@ -104,7 +104,7 @@ describe('useUserPropertyFieldDelete', () => {
     });
 
     it('returns a promise that resolves when onConfirm is called', async () => {
-        const {result} = renderHookWithContext(() => useUserPropertyFieldDelete());
+        const {result} = await renderHookWithContext(() => useUserPropertyFieldDelete());
 
         // Create a mock implementation that immediately calls the onConfirm callback
         (openModal as jest.Mock).mockImplementationOnce(({dialogProps}) => {

@@ -79,9 +79,9 @@ describe('components/FileUpload', () => {
         },
     };
 
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const ref = React.createRef<FileUploadClass>();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <FileUpload
                 {...baseProps}
                 ref={ref}
@@ -91,9 +91,9 @@ describe('components/FileUpload', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should call onClick when fileInput is clicked', () => {
+    test('should call onClick when fileInput is clicked', async () => {
         const ref = React.createRef<FileUploadClass>();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <FileUpload
                 {...baseProps}
                 ref={ref}
@@ -105,9 +105,9 @@ describe('components/FileUpload', () => {
         expect(baseProps.onClick).toHaveBeenCalledTimes(1);
     });
 
-    test('should prevent event default and progogation on call of onTouchEnd on fileInput', () => {
+    test('should prevent event default and progogation on call of onTouchEnd on fileInput', async () => {
         const ref = React.createRef<FileUploadClass>();
-        renderWithContext(
+        await renderWithContext(
             <FileUpload
                 {...baseProps}
                 ref={ref}
@@ -128,9 +128,9 @@ describe('components/FileUpload', () => {
         expect(instance.handleLocalFileUploaded).toHaveBeenCalled();
     });
 
-    test('should prevent event default and progogation on call of onClick on fileInput', () => {
+    test('should prevent event default and progogation on call of onClick on fileInput', async () => {
         const ref = React.createRef<FileUploadClass>();
-        renderWithContext(
+        await renderWithContext(
             <FileUpload
                 {...baseProps}
                 ref={ref}
@@ -151,9 +151,9 @@ describe('components/FileUpload', () => {
         expect(instance.handleLocalFileUploaded).toHaveBeenCalled();
     });
 
-    test('should match state and call handleMaxUploadReached or props.onClick on handleLocalFileUploaded', () => {
+    test('should match state and call handleMaxUploadReached or props.onClick on handleLocalFileUploaded', async () => {
         const ref = React.createRef<FileUploadClass>();
-        const {rerender} = renderWithContext(
+        const {rerender} = await renderWithContext(
             <FileUpload
                 {...baseProps}
                 ref={ref}
@@ -195,14 +195,14 @@ describe('components/FileUpload', () => {
         expect(instance.state.menuOpen).toEqual(false);
     });
 
-    test('should props.onFileUpload when fileUploadSuccess is called', () => {
+    test('should props.onFileUpload when fileUploadSuccess is called', async () => {
         const data = {
             file_infos: [{id: 'file_info1'} as FileInfo],
             client_ids: ['id1'],
         };
 
         const ref = React.createRef<FileUploadClass>();
-        renderWithContext(
+        await renderWithContext(
             <FileUpload
                 {...baseProps}
                 ref={ref}
@@ -217,7 +217,7 @@ describe('components/FileUpload', () => {
         expect(baseProps.onFileUpload).toHaveBeenCalledWith(data.file_infos, data.client_ids, 'channel_id', 'root_id');
     });
 
-    test('should props.onUploadError when fileUploadFail is called', () => {
+    test('should props.onUploadError when fileUploadFail is called', async () => {
         const params = {
             err: 'error_message',
             clientId: 'client_id',
@@ -226,7 +226,7 @@ describe('components/FileUpload', () => {
         };
 
         const ref = React.createRef<FileUploadClass>();
-        renderWithContext(
+        await renderWithContext(
             <FileUpload
                 {...baseProps}
                 ref={ref}
@@ -240,7 +240,7 @@ describe('components/FileUpload', () => {
         expect(baseProps.onUploadError).toHaveBeenCalledWith(params.err, params.clientId, params.channelId, params.rootId);
     });
 
-    test('should upload file on paste', () => {
+    test('should upload file on paste', async () => {
         const expectedFileName = 'test.png';
 
         const event = new Event('paste');
@@ -250,7 +250,7 @@ describe('components/FileUpload', () => {
         (event as any).clipboardData = {items: [file], types: ['image/png'], getData: () => {}};
 
         const ref = React.createRef<FileUploadClass>();
-        renderWithContext(
+        await renderWithContext(
             <FileUpload
                 {...baseProps}
                 ref={ref}
@@ -268,7 +268,7 @@ describe('components/FileUpload', () => {
         expect(baseProps.onFileUploadChange).toHaveBeenCalled();
     });
 
-    test('should not prevent paste event default if no file in clipboard', () => {
+    test('should not prevent paste event default if no file in clipboard', async () => {
         const event = new Event('paste');
         event.preventDefault = jest.fn();
         const getAsString = jest.fn();
@@ -279,7 +279,7 @@ describe('components/FileUpload', () => {
             }};
 
         const ref = React.createRef<FileUploadClass>();
-        renderWithContext(
+        await renderWithContext(
             <FileUpload
                 {...baseProps}
                 ref={ref}
@@ -294,11 +294,11 @@ describe('components/FileUpload', () => {
         expect(event.preventDefault).not.toHaveBeenCalled();
     });
 
-    test('should have props.functions when uploadFiles is called', () => {
+    test('should have props.functions when uploadFiles is called', async () => {
         const files = [{name: 'file1.pdf'} as File, {name: 'file2.jpg'} as File];
 
         const ref = React.createRef<FileUploadClass>();
-        renderWithContext(
+        await renderWithContext(
             <FileUpload
                 {...baseProps}
                 ref={ref}
@@ -320,13 +320,13 @@ describe('components/FileUpload', () => {
         expect(baseProps.onUploadError).toHaveBeenCalledWith(null);
     });
 
-    test('should error max upload files', () => {
+    test('should error max upload files', async () => {
         const fileCount = 10;
         const props = {...baseProps, fileCount};
         const files = [{name: 'file1.pdf'} as File, {name: 'file2.jpg'} as File];
 
         const ref = React.createRef<FileUploadClass>();
-        renderWithContext(
+        await renderWithContext(
             <FileUpload
                 {...props}
                 ref={ref}
@@ -344,13 +344,13 @@ describe('components/FileUpload', () => {
         expect(baseProps.onUploadError.mock.calls[0][0]).toEqual(null);
     });
 
-    test('should error max upload files', () => {
+    test('should error max upload files', async () => {
         const fileCount = 10;
         const props = {...baseProps, fileCount};
         const files = [{name: 'file1.pdf'} as File, {name: 'file2.jpg'} as File];
 
         const ref = React.createRef<FileUploadClass>();
-        renderWithContext(
+        await renderWithContext(
             <FileUpload
                 {...props}
                 ref={ref}
@@ -368,11 +368,11 @@ describe('components/FileUpload', () => {
         expect(baseProps.onUploadError.mock.calls[0][0]).toEqual(null);
     });
 
-    test('should error max too large files', () => {
+    test('should error max too large files', async () => {
         const files = [{name: 'file1.pdf', size: MaxFileSize + 1} as File];
 
         const ref = React.createRef<FileUploadClass>();
-        renderWithContext(
+        await renderWithContext(
             <FileUpload
                 {...baseProps}
                 ref={ref}
@@ -390,9 +390,9 @@ describe('components/FileUpload', () => {
         expect(baseProps.onUploadError.mock.calls[0][0]).toEqual(null);
     });
 
-    test('should functions when handleChange is called', () => {
+    test('should functions when handleChange is called', async () => {
         const ref = React.createRef<FileUploadClass>();
-        renderWithContext(
+        await renderWithContext(
             <FileUpload
                 {...baseProps}
                 ref={ref}
@@ -414,9 +414,9 @@ describe('components/FileUpload', () => {
         expect(baseProps.onFileUploadChange).toHaveBeenCalledWith();
     });
 
-    test('should functions when handleDrop is called', () => {
+    test('should functions when handleDrop is called', async () => {
         const ref = React.createRef<FileUploadClass>();
-        renderWithContext(
+        await renderWithContext(
             <FileUpload
                 {...baseProps}
                 ref={ref}
@@ -438,7 +438,7 @@ describe('components/FileUpload', () => {
         expect(baseProps.onFileUploadChange).toHaveBeenCalledWith();
     });
 
-    test('FilesWillUploadHook - should reject all files', () => {
+    test('FilesWillUploadHook - should reject all files', async () => {
         const pluginHook = () => {
             return {files: null};
         };
@@ -446,7 +446,7 @@ describe('components/FileUpload', () => {
         const files = [{name: 'file1.pdf'} as File, {name: 'file2.jpg'} as File];
 
         const ref = React.createRef<FileUploadClass>();
-        renderWithContext(
+        await renderWithContext(
             <FileUpload
                 {...props}
                 ref={ref}
@@ -464,7 +464,7 @@ describe('components/FileUpload', () => {
         expect(baseProps.onUploadError).toHaveBeenCalledWith(null);
     });
 
-    test('FilesWillUploadHook - should reject one file and allow one file', () => {
+    test('FilesWillUploadHook - should reject one file and allow one file', async () => {
         const pluginHook = (files: File[]) => {
             return {files: files.filter((f) => f.name === 'file1.pdf')};
         };
@@ -472,7 +472,7 @@ describe('components/FileUpload', () => {
         const files = [{name: 'file1.pdf'} as File, {name: 'file2.jpg'} as File];
 
         const ref = React.createRef<FileUploadClass>();
-        renderWithContext(
+        await renderWithContext(
             <FileUpload
                 {...props}
                 ref={ref}

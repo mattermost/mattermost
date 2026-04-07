@@ -65,7 +65,7 @@ describe('components/start_trial_form_modal/start_trial_form_modal', () => {
     };
 
     test('should match snapshot', async () => {
-        const wrapper = renderWithContext(
+        const wrapper = await renderWithContext(
             <BrowserRouter>
                 <StartTrialFormModal {...props}/>
             </BrowserRouter>,
@@ -78,7 +78,7 @@ describe('components/start_trial_form_modal/start_trial_form_modal', () => {
     });
 
     test('should pre-fill email', async () => {
-        renderWithContext(
+        await renderWithContext(
             <BrowserRouter>
                 <StartTrialFormModal {...props}/>
             </BrowserRouter>,
@@ -91,7 +91,7 @@ describe('components/start_trial_form_modal/start_trial_form_modal', () => {
     });
 
     test('Start trial button should be disabled on load', async () => {
-        renderWithContext(
+        await renderWithContext(
             <BrowserRouter>
                 <StartTrialFormModal {...props}/>
             </BrowserRouter>,

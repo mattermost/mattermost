@@ -72,15 +72,15 @@ describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <SidebarBaseChannel {...baseProps}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when shared channel', () => {
+    test('should match snapshot when shared channel', async () => {
         const props = {
             ...baseProps,
             channel: {
@@ -89,14 +89,14 @@ describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
             },
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SidebarBaseChannel {...props}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when private channel', () => {
+    test('should match snapshot when private channel', async () => {
         const props = {
             ...baseProps,
             channel: {
@@ -105,14 +105,14 @@ describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
             },
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SidebarBaseChannel {...props}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when shared private channel', () => {
+    test('should match snapshot when shared private channel', async () => {
         const props = {
             ...baseProps,
             channel: {
@@ -122,7 +122,7 @@ describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
             },
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SidebarBaseChannel {...props}/>,
         );
 
@@ -146,7 +146,7 @@ describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
             },
         };
 
-        renderWithContext(<SidebarBaseChannel {...props}/>);
+        await renderWithContext(<SidebarBaseChannel {...props}/>);
         const user = userEvent.setup();
 
         const optionsBtn = screen.getByRole('button', {name: /channel options/i});
@@ -174,7 +174,7 @@ describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
             },
         };
 
-        renderWithContext(<SidebarBaseChannel {...props}/>);
+        await renderWithContext(<SidebarBaseChannel {...props}/>);
         const user = userEvent.setup();
 
         const optionsBtn = screen.getByRole('button', {name: /channel options/i});

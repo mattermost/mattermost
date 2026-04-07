@@ -48,8 +48,8 @@ describe('QueryParamActionController', () => {
         jest.clearAllMocks();
     });
 
-    it('should dispatch openModal for INVITATION modal ID when passed valid open_invitation_modal action', () => {
-        renderWithContext(
+    it('should dispatch openModal for INVITATION modal ID when passed valid open_invitation_modal action', async () => {
+        await renderWithContext(
             <MemoryRouter initialEntries={['/?action=open_invitation_modal']}>
                 <Route
                     path='/'
@@ -66,8 +66,8 @@ describe('QueryParamActionController', () => {
         );
     });
 
-    it('should not dispatch any action when action query parameter is not present', () => {
-        renderWithContext(
+    it('should not dispatch any action when action query parameter is not present', async () => {
+        await renderWithContext(
             <MemoryRouter initialEntries={['/']}>
                 <Route
                     path='/'
@@ -79,8 +79,8 @@ describe('QueryParamActionController', () => {
         expect(mockDispatch).not.toHaveBeenCalled();
     });
 
-    it('should not dispatch any action when action query parameter is not in list', () => {
-        renderWithContext(
+    it('should not dispatch any action when action query parameter is not in list', async () => {
+        await renderWithContext(
             <MemoryRouter initialEntries={['/?action=invalid_action']}>
                 <Route
                     path='/'
@@ -92,8 +92,8 @@ describe('QueryParamActionController', () => {
         expect(mockDispatch).not.toHaveBeenCalled();
     });
 
-    it('should remove the action query parameter after dispatching the action', () => {
-        renderWithContext(
+    it('should remove the action query parameter after dispatching the action', async () => {
+        await renderWithContext(
             <MemoryRouter initialEntries={['/?action=open_invitation_modal']}>
                 <Route
                     path='/'

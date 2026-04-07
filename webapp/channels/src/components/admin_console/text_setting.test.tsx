@@ -8,8 +8,8 @@ import {renderWithContext, screen} from 'tests/react_testing_utils';
 import AdminTextSetting from './text_setting';
 
 describe('components/admin_console/TextSetting', () => {
-    test('render component with required props', () => {
-        renderWithContext(
+    test('render component with required props', async () => {
+        await renderWithContext(
             <AdminTextSetting
                 id='some.id'
                 label='some label'

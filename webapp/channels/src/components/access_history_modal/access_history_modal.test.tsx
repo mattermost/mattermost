@@ -29,15 +29,15 @@ describe('components/AccessHistoryModal', () => {
         currentUserId: '',
     };
 
-    test('should show loading screen when no audits exist', () => {
-        renderWithContext(<AccessHistoryModal {...baseProps}/>);
+    test('should show loading screen when no audits exist', async () => {
+        await renderWithContext(<AccessHistoryModal {...baseProps}/>);
 
         expect(screen.getByTestId('loading-screen')).toBeInTheDocument();
         expect(screen.queryByTestId('audit-table')).not.toBeInTheDocument();
     });
 
-    test('should show audit table when audits exist', () => {
-        renderWithContext(
+    test('should show audit table when audits exist', async () => {
+        await renderWithContext(
             <AccessHistoryModal
                 {...baseProps}
                 userAudits={['audit1', 'audit2'] as any}
@@ -48,24 +48,24 @@ describe('components/AccessHistoryModal', () => {
         expect(screen.getByTestId('audit-table')).toBeInTheDocument();
     });
 
-    test('should call getUserAudits on mount', () => {
+    test('should call getUserAudits on mount', async () => {
         const actions = {
             getUserAudits: jest.fn(),
         };
         const props = {...baseProps, actions};
 
-        renderWithContext(<AccessHistoryModal {...props}/>);
+        await renderWithContext(<AccessHistoryModal {...props}/>);
         expect(actions.getUserAudits).toHaveBeenCalledTimes(1);
         expect(actions.getUserAudits).toHaveBeenCalledWith('', 0, 200);
     });
 
-    test('should call getUserAudits again when currentUserId changes', () => {
+    test('should call getUserAudits again when currentUserId changes', async () => {
         const actions = {
             getUserAudits: jest.fn(),
         };
         const props = {...baseProps, actions};
 
-        const {rerender} = renderWithContext(<AccessHistoryModal {...props}/>);
+        const {rerender} = await renderWithContext(<AccessHistoryModal {...props}/>);
         expect(actions.getUserAudits).toHaveBeenCalledTimes(1);
 
         const newProps = {...props, currentUserId: 'foo'};
@@ -76,7 +76,7 @@ describe('components/AccessHistoryModal', () => {
 
     test('should call onHide when modal is closed', async () => {
         const onHide = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <AccessHistoryModal
                 {...baseProps}
                 onHide={onHide}

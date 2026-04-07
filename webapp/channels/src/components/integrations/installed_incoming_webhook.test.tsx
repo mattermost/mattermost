@@ -79,8 +79,8 @@ describe('components/integrations/InstalledIncomingWebhook', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <InstalledIncomingWebhook
                 {...baseProps}
                 canChange={true}
@@ -90,8 +90,8 @@ describe('components/integrations/InstalledIncomingWebhook', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should not have edit and delete actions if user does not have permissions to change', () => {
-        const {container} = renderWithContext(
+    test('should not have edit and delete actions if user does not have permissions to change', async () => {
+        const {container} = await renderWithContext(
             <InstalledIncomingWebhook
                 {...baseProps}
                 canChange={false}
@@ -101,8 +101,8 @@ describe('components/integrations/InstalledIncomingWebhook', () => {
         expect(container.querySelector('.item-actions')).toBeNull();
     });
 
-    test('should have edit and delete actions if user can change webhook', () => {
-        const {container} = renderWithContext(
+    test('should have edit and delete actions if user can change webhook', async () => {
+        const {container} = await renderWithContext(
             <InstalledIncomingWebhook
                 {...baseProps}
                 canChange={true}
@@ -114,8 +114,8 @@ describe('components/integrations/InstalledIncomingWebhook', () => {
         expect(screen.getByText('Delete')).toBeInTheDocument();
     });
 
-    test('Should have the same name and description on view as it has in incomingWebhook', () => {
-        const {container} = renderWithContext(
+    test('Should have the same name and description on view as it has in incomingWebhook', async () => {
+        const {container} = await renderWithContext(
             <InstalledIncomingWebhook
                 {...baseProps}
                 canChange={false}
@@ -127,9 +127,9 @@ describe('components/integrations/InstalledIncomingWebhook', () => {
         expect(container.querySelector('.item-details__name')!.textContent).toBe('build');
     });
 
-    test('Should not display description as it is null', () => {
+    test('Should not display description as it is null', async () => {
         const newIncomingWebhook: IncomingWebhook = {...incomingWebhook, description: ''};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <InstalledIncomingWebhook
                 {...baseProps}
                 incomingWebhook={newIncomingWebhook}
@@ -140,8 +140,8 @@ describe('components/integrations/InstalledIncomingWebhook', () => {
         expect(container.querySelector('.item-details__description')).toBeNull();
     });
 
-    test('Should not render any nodes as there are no filtered results', () => {
-        const {container} = renderWithContext(
+    test('Should not render any nodes as there are no filtered results', async () => {
+        const {container} = await renderWithContext(
             <InstalledIncomingWebhook
                 {...baseProps}
                 filter={'someLongText'}
@@ -152,8 +152,8 @@ describe('components/integrations/InstalledIncomingWebhook', () => {
         expect(container.firstChild).toBeNull();
     });
 
-    test('Should render a webhook item as filtered result is true', () => {
-        const {container} = renderWithContext(
+    test('Should render a webhook item as filtered result is true', async () => {
+        const {container} = await renderWithContext(
             <InstalledIncomingWebhook
                 {...baseProps}
                 filter={'buil'}

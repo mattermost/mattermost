@@ -8,8 +8,8 @@ import {renderWithContext} from 'tests/react_testing_utils';
 import AlertBanner from '.';
 
 describe('Components/AlertBanner', () => {
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <AlertBanner
                 mode='info'
                 message='message'
@@ -20,8 +20,8 @@ describe('Components/AlertBanner', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot for app variant', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot for app variant', async () => {
+        const {container} = await renderWithContext(
             <AlertBanner
                 mode='info'
                 message='message'
@@ -33,8 +33,8 @@ describe('Components/AlertBanner', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when icon disabled', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot when icon disabled', async () => {
+        const {container} = await renderWithContext(
             <AlertBanner
                 hideIcon={true}
                 mode='info'
@@ -47,8 +47,8 @@ describe('Components/AlertBanner', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when buttons are passed', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot when buttons are passed', async () => {
+        const {container} = await renderWithContext(
             <AlertBanner
                 hideIcon={true}
                 mode='info'

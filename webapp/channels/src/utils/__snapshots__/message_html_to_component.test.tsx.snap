@@ -218,7 +218,29 @@ exports[`messageHtmlToComponent html 1`] = `
         1
       </div>
       <code>
-        &lt;div&gt;This is a html div&lt;/div&gt;
+        <span
+          class="hljs-tag"
+        >
+          &lt;
+          <span
+            class="hljs-name"
+          >
+            div
+          </span>
+          &gt;
+        </span>
+        This is a html div
+        <span
+          class="hljs-tag"
+        >
+          &lt;/
+          <span
+            class="hljs-name"
+          >
+            div
+          </span>
+          &gt;
+        </span>
       </code>
     </div>
   </div>
@@ -262,7 +284,25 @@ exports[`messageHtmlToComponent latex 1`] = `
         1
       </div>
       <code>
-        x^2 + y^2 = z^2
+        x
+        <span
+          class="hljs-built_in"
+        >
+          ^
+        </span>
+        2 + y
+        <span
+          class="hljs-built_in"
+        >
+          ^
+        </span>
+        2 = z
+        <span
+          class="hljs-built_in"
+        >
+          ^
+        </span>
+        2
       </code>
     </div>
   </div>
@@ -296,7 +336,37 @@ exports[`messageHtmlToComponent latex 1`] = `
         1
       </div>
       <code>
-        F_m - 2 = F_0 F_1 \\dots F_{m-1}
+        F
+        <span
+          class="hljs-built_in"
+        >
+          _
+        </span>
+        m - 2 = F
+        <span
+          class="hljs-built_in"
+        >
+          _
+        </span>
+        0 F
+        <span
+          class="hljs-built_in"
+        >
+          _
+        </span>
+        1 
+        <span
+          class="hljs-keyword"
+        >
+          \\dots
+        </span>
+         F
+        <span
+          class="hljs-built_in"
+        >
+          _
+        </span>
+        {m-1}
       </code>
     </div>
   </div>
@@ -382,8 +452,41 @@ exports[`messageHtmlToComponent typescript 1`] = `
 3
       </div>
       <code>
-        const myFunction = () =&gt; {
-    console.log('This is a meaningful function');
+        <span
+          class="hljs-keyword"
+        >
+          const
+        </span>
+         
+        <span
+          class="hljs-title function_"
+        >
+          myFunction
+        </span>
+         = (
+        <span
+          class="hljs-params"
+        />
+        ) =&gt; {
+    
+        <span
+          class="hljs-variable language_"
+        >
+          console
+        </span>
+        .
+        <span
+          class="hljs-title function_"
+        >
+          log
+        </span>
+        (
+        <span
+          class="hljs-string"
+        >
+          'This is a meaningful function'
+        </span>
+        );
 };
       </code>
     </div>

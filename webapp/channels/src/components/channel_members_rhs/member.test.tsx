@@ -129,7 +129,7 @@ describe('components/channel_members_rhs/Member', () => {
         },
     };
 
-    test('should render local user without shared indicator', () => {
+    test('should render local user without shared indicator', async () => {
         const localMember = {
             ...baseMember,
             user: {
@@ -138,7 +138,7 @@ describe('components/channel_members_rhs/Member', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <Member
                 {...baseProps}
                 member={localMember}
@@ -150,7 +150,7 @@ describe('components/channel_members_rhs/Member', () => {
         expect(screen.queryByTestId('SharedChannelIcon')).not.toBeInTheDocument();
     });
 
-    test('should render remote user with shared indicator', () => {
+    test('should render remote user with shared indicator', async () => {
         const remoteMember = {
             ...baseMember,
             user: {
@@ -159,7 +159,7 @@ describe('components/channel_members_rhs/Member', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <Member
                 {...baseProps}
                 member={remoteMember}
@@ -185,7 +185,7 @@ describe('components/channel_members_rhs/Member', () => {
             remoteDisplayName: 'Remote Organization',
         };
 
-        renderWithContext(
+        await renderWithContext(
             <Member
                 {...baseProps}
                 member={remoteMember}
@@ -214,7 +214,7 @@ describe('components/channel_members_rhs/Member', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <Member
                 {...baseProps}
                 member={remoteMember}
@@ -232,7 +232,7 @@ describe('components/channel_members_rhs/Member', () => {
         });
     });
 
-    test('should render guest tag for guest user', () => {
+    test('should render guest tag for guest user', async () => {
         const guestMember = {
             ...baseMember,
             user: {
@@ -241,7 +241,7 @@ describe('components/channel_members_rhs/Member', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <Member
                 {...baseProps}
                 member={guestMember}

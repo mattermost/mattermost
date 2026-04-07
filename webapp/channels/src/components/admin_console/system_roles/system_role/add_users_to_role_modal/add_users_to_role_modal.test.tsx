@@ -9,6 +9,14 @@ import {TestHelper} from 'utils/test_helper';
 import AddUsersToRoleModal from './add_users_to_role_modal';
 
 describe('admin_console/add_users_to_role_modal', () => {
+    beforeEach(() => {
+        jest.spyOn(window, 'requestAnimationFrame').mockImplementation(() => 0);
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     const baseProps = {
         role: TestHelper.getRoleMock(),
         users: [TestHelper.getUserMock()],
@@ -22,48 +30,48 @@ describe('admin_console/add_users_to_role_modal', () => {
         },
     };
 
-    test('should have single passed value', () => {
-        const {baseElement} = renderWithContext(
+    test('should have single passed value', async () => {
+        const {baseElement} = await renderWithContext(
             <AddUsersToRoleModal
                 {...baseProps}
             />);
         expect(baseElement).toMatchSnapshot();
     });
 
-    test('should exclude user', () => {
+    test('should exclude user', async () => {
         const props = {...baseProps, excludeUsers: {user_id: TestHelper.getUserMock()}};
-        const {baseElement} = renderWithContext(
+        const {baseElement} = await renderWithContext(
             <AddUsersToRoleModal
                 {...props}
             />);
         expect(baseElement).toMatchSnapshot();
     });
 
-    test('should include additional user', () => {
-        const props = {...baseProps, includeUsers: {user_id1: TestHelper.getUserMock()}};
-        const {baseElement} = renderWithContext(
+    test('should include additional user', async () => {
+        const props = {...baseProps, includeUsers: {user_id1: TestHelper.getUserMock({id: 'user_id1'})}};
+        const {baseElement} = await renderWithContext(
             <AddUsersToRoleModal
                 {...props}
             />);
         expect(baseElement).toMatchSnapshot();
     });
 
-    test('should not include bot user', () => {
+    test('should not include bot user', async () => {
         const botUser = TestHelper.getUserMock({is_bot: true});
         const regularUser = TestHelper.getUserMock({id: 'regular_user'});
         const props = {...baseProps, users: [regularUser, botUser]};
-        const {baseElement} = renderWithContext(
+        const {baseElement} = await renderWithContext(
             <AddUsersToRoleModal
                 {...props}
             />);
         expect(baseElement).toMatchSnapshot();
     });
 
-    test('search should not include bot user', () => {
+    test('search should not include bot user', async () => {
         const botUser = TestHelper.getUserMock({is_bot: true});
         const regularUser = TestHelper.getUserMock({id: 'regular_user'});
         const props = {...baseProps, users: [regularUser, botUser]};
-        const {baseElement} = renderWithContext(
+        const {baseElement} = await renderWithContext(
             <AddUsersToRoleModal
                 {...props}
             />);

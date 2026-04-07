@@ -125,7 +125,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         mockSearchChannels.mockResolvedValue({data: {channels: [], total_count: 0}});
     });
 
-    test('should match snapshot with new policy', () => {
+    test('should match snapshot with new policy', async () => {
         // The ChannelList's Filter component has an existing prop type issue with TeamFilterDropdown
         // that only surfaces during full rendering (not shallow). Suppress for this test.
         const errorSpy = jest.spyOn(console, 'error').mockImplementation((...args: any[]) => {
@@ -138,13 +138,13 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
             ...defaultProps,
             policyId: '',
         };
-        const {container} = renderWithContext(<PolicyDetails {...props}/>);
+        const {container} = await renderWithContext(<PolicyDetails {...props}/>);
         expect(container).toMatchSnapshot();
 
         errorSpy.mockRestore();
     });
 
-    test('should match snapshot with existing policy', () => {
+    test('should match snapshot with existing policy', async () => {
         const props = {
             ...defaultProps,
             actions: {
@@ -160,7 +160,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
                 }),
             },
         };
-        const {container} = renderWithContext(<PolicyDetails {...props}/>);
+        const {container} = await renderWithContext(<PolicyDetails {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
@@ -174,7 +174,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
             },
         };
 
-        renderWithContext(<PolicyDetails {...props}/>);
+        await renderWithContext(<PolicyDetails {...props}/>);
 
         // Find and click the delete button
         await waitFor(() => {

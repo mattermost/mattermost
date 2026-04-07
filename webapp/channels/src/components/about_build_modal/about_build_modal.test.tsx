@@ -40,7 +40,7 @@ describe('components/AboutBuildModal', () => {
             connected: false,
             serverHostname: '',
         };
-        jest.restoreAllMocks();
+        jest.clearAllMocks();
     });
 
     beforeEach(() => {
@@ -72,7 +72,7 @@ describe('components/AboutBuildModal', () => {
         };
     });
 
-    test('should match snapshot for enterprise edition', () => {
+    test('should match snapshot for enterprise edition', async () => {
         renderAboutBuildModal({config, license, socketStatus});
         expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Server Version: 3.6.0');
         expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Database Schema Version: 77');
@@ -88,7 +88,7 @@ describe('components/AboutBuildModal', () => {
         expect(screen.getByRole('link', {name: 'mobile'})).toHaveAttribute('href', 'https://github.com/mattermost/mattermost-mobile/blob/master/NOTICE.txt');
     });
 
-    test('should match snapshot for team edition', () => {
+    test('should match snapshot for team edition', async () => {
         const teamConfig = {
             ...config,
             BuildEnterpriseReady: 'false',
@@ -110,12 +110,12 @@ describe('components/AboutBuildModal', () => {
         expect(screen.getByRole('link', {name: 'mobile'})).toHaveAttribute('href', 'https://github.com/mattermost/mattermost-mobile/blob/master/NOTICE.txt');
     });
 
-    test('should match snapshot for cloud edition', () => {
+    test('should match snapshot for cloud edition', async () => {
         if (license !== null) {
             license.Cloud = 'true';
         }
 
-        renderWithContext(
+        await renderWithContext(
             <AboutBuildModalCloud
                 config={config}
                 license={license}
@@ -134,7 +134,7 @@ describe('components/AboutBuildModal', () => {
         expect(screen.getByRole('link', {name: 'mobile'})).toHaveAttribute('href', 'https://github.com/mattermost/mattermost-mobile/blob/master/NOTICE.txt');
     });
 
-    test('should show n/a if this is a dev build', () => {
+    test('should show n/a if this is a dev build', async () => {
         const sameBuildConfig = {
             ...config,
             BuildEnterpriseReady: 'false',
@@ -176,7 +176,7 @@ describe('components/AboutBuildModal', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <AboutBuildModal
                 config={config}
                 license={license}
@@ -190,7 +190,7 @@ describe('components/AboutBuildModal', () => {
         expect(onExited).toHaveBeenCalledTimes(1);
     });
 
-    test('should show default tos and privacy policy links and not the config links', () => {
+    test('should show default tos and privacy policy links and not the config links', async () => {
         const state = {
             entities: {
                 general: {
@@ -204,7 +204,7 @@ describe('components/AboutBuildModal', () => {
                 },
             },
         };
-        renderWithContext(
+        await renderWithContext(
             <AboutBuildModal
                 config={config}
                 license={license}
@@ -270,7 +270,7 @@ describe('components/AboutBuildModal', () => {
         expect(screen.getByTestId('aboutModalVersionInfo')).not.toHaveTextContent('Load Metric:');
     });
 
-    test('should show FIPS indicator when IsFipsEnabled is true', () => {
+    test('should show FIPS indicator when IsFipsEnabled is true', async () => {
         const fipsConfig = {
             ...config,
             IsFipsEnabled: 'true',
@@ -281,7 +281,7 @@ describe('components/AboutBuildModal', () => {
         expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Server Version: 3.6.0 (FIPS)');
     });
 
-    test('should not show FIPS indicator when IsFipsEnabled is false', () => {
+    test('should not show FIPS indicator when IsFipsEnabled is false', async () => {
         const nonFipsConfig = {
             ...config,
             IsFipsEnabled: 'false',
@@ -293,7 +293,7 @@ describe('components/AboutBuildModal', () => {
         expect(screen.getByTestId('aboutModalVersionInfo')).not.toHaveTextContent('(FIPS)');
     });
 
-    test('should not show FIPS indicator when IsFipsEnabled is not set', () => {
+    test('should not show FIPS indicator when IsFipsEnabled is not set', async () => {
         const nonFipsConfig = {
             ...config,
         };
@@ -304,7 +304,7 @@ describe('components/AboutBuildModal', () => {
         expect(screen.getByTestId('aboutModalVersionInfo')).not.toHaveTextContent('(FIPS)');
     });
 
-    function renderAboutBuildModal(props = {}) {
+    async function renderAboutBuildModal(props = {}) {
         const onExited = jest.fn();
         const show = true;
 

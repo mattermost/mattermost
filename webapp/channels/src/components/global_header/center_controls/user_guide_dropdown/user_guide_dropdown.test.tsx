@@ -30,43 +30,43 @@ describe('components/channel_header/components/UserGuideDropdown', () => {
         fireEvent.click(button);
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <UserGuideDropdown {...baseProps}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot for false of enableAskCommunityLink', () => {
+    test('should match snapshot for false of enableAskCommunityLink', async () => {
         const props = {
             ...baseProps,
             enableAskCommunityLink: 'false',
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <UserGuideDropdown {...props}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when have plugin menu items', () => {
+    test('should match snapshot when have plugin menu items', async () => {
         const props = {
             ...baseProps,
             pluginMenuItems: [{id: 'testId', pluginId: 'testPluginId', text: 'Test Item', action: () => {}},
             ],
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <UserGuideDropdown {...props}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('Should render with buttonActive initially false', () => {
-        const {container} = renderWithContext(
+    test('Should render with buttonActive initially false', async () => {
+        const {container} = await renderWithContext(
             <UserGuideDropdown {...baseProps}/>,
         );
 
@@ -77,7 +77,7 @@ describe('components/channel_header/components/UserGuideDropdown', () => {
     });
 
     test('Should open keyboard shortcuts modal on click', async () => {
-        renderWithContext(
+        await renderWithContext(
             <UserGuideDropdown {...baseProps}/>,
         );
 
@@ -87,14 +87,14 @@ describe('components/channel_header/components/UserGuideDropdown', () => {
         expect(baseProps.actions.openModal).toHaveBeenCalled();
     });
 
-    test('should have plugin menu items appended to the menu', () => {
+    test('should have plugin menu items appended to the menu', async () => {
         const props = {
             ...baseProps,
             pluginMenuItems: [{id: 'testId', pluginId: 'testPluginId', text: 'Test Plugin Item', action: () => {}},
             ],
         };
 
-        renderWithContext(
+        await renderWithContext(
             <UserGuideDropdown {...props}/>,
         );
 
@@ -104,8 +104,8 @@ describe('components/channel_header/components/UserGuideDropdown', () => {
         expect(screen.getByText('Test Plugin Item')).toBeInTheDocument();
     });
 
-    test('should only render Report a Problem link when its value is non-empty', () => {
-        const {rerender} = renderWithContext(
+    test('should only render Report a Problem link when its value is non-empty', async () => {
+        const {rerender} = await renderWithContext(
             <UserGuideDropdown {...baseProps}/>,
         );
 

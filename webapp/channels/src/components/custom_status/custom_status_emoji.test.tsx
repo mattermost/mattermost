@@ -24,13 +24,13 @@ describe('components/custom_status/custom_status_emoji', () => {
         (CustomStatusSelectors.isCustomStatusExpired as jest.Mock).mockReturnValue(false);
     });
 
-    it('should match snapshot', () => {
-        const {container} = renderWithContext(<CustomStatusEmoji/>);
+    it('should match snapshot', async () => {
+        const {container} = await renderWithContext(<CustomStatusEmoji/>);
         expect(container).toMatchSnapshot();
     });
 
-    it('should match snapshot with props', () => {
-        const {container} = renderWithContext(
+    it('should match snapshot with props', async () => {
+        const {container} = await renderWithContext(
             <CustomStatusEmoji
                 emojiSize={34}
                 showTooltip={true}
@@ -40,17 +40,17 @@ describe('components/custom_status/custom_status_emoji', () => {
         expect(container).toMatchSnapshot();
     });
 
-    it('should not render when EnableCustomStatus in config is false', () => {
+    it('should not render when EnableCustomStatus in config is false', async () => {
         (CustomStatusSelectors.isCustomStatusEnabled as any as jest.Mock).mockReturnValue(false);
-        const {container} = renderWithContext(<CustomStatusEmoji/>);
+        const {container} = await renderWithContext(<CustomStatusEmoji/>);
 
         expect(container).toBeEmptyDOMElement();
     });
 
-    it('should not render when custom status is expired', () => {
+    it('should not render when custom status is expired', async () => {
         (CustomStatusSelectors.isCustomStatusEnabled as any as jest.Mock).mockReturnValue(true);
         (CustomStatusSelectors.isCustomStatusExpired as jest.Mock).mockReturnValue(true);
-        const {container} = renderWithContext(<CustomStatusEmoji/>);
+        const {container} = await renderWithContext(<CustomStatusEmoji/>);
 
         expect(container).toBeEmptyDOMElement();
     });

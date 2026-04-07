@@ -17,16 +17,16 @@ const mockedSendTestNotification = jest.mocked(sendTestNotification);
 
 describe('components/user_settings/notifications/send_test_notification_notice', () => {
     jest.useFakeTimers();
-    it('should match snapshot', () => {
-        const {container} = renderWithContext((<SendTestNotificationNotice/>));
+    it('should match snapshot', async () => {
+        const {container} = await renderWithContext((<SendTestNotificationNotice/>));
         expect(container).toMatchSnapshot();
     });
-    it('should not show on admin mode', () => {
-        const {container} = renderWithContext((<SendTestNotificationNotice adminMode={true}/>));
+    it('should not show on admin mode', async () => {
+        const {container} = await renderWithContext((<SendTestNotificationNotice adminMode={true}/>));
         expect(container).toBeEmptyDOMElement();
     });
     it('should send the notificaton when the send button is clicked', async () => {
-        renderWithContext((<SendTestNotificationNotice/>));
+        await renderWithContext((<SendTestNotificationNotice/>));
         expect(mockedSendTestNotification).not.toHaveBeenCalled();
         act(() => screen.getByText('Send a test notification').click());
         await waitFor(() => {
@@ -34,12 +34,12 @@ describe('components/user_settings/notifications/send_test_notification_notice',
             expect(screen.getByText('Test notification sent')).toBeInTheDocument();
         });
     });
-    it('should open link when the secondary button is clicked', () => {
+    it('should open link when the secondary button is clicked', async () => {
         const originalOpen = window.open;
         const mockedOpen = jest.fn();
         window.open = mockedOpen;
 
-        renderWithContext((<SendTestNotificationNotice/>));
+        await renderWithContext((<SendTestNotificationNotice/>));
         expect(mockedOpen).not.toHaveBeenCalled();
         act(() => screen.getByText('Troubleshooting docs').click());
         expect(mockedOpen).toHaveBeenCalled();
@@ -53,7 +53,7 @@ describe('components/user_settings/notifications/send_test_notification_notice',
         const mockedConsole = jest.fn();
         console.error = mockedConsole;
 
-        renderWithContext((<SendTestNotificationNotice/>));
+        await renderWithContext((<SendTestNotificationNotice/>));
         expect(mockedSendTestNotification).not.toHaveBeenCalled();
         act(() => screen.getByText('Send a test notification').click());
         await waitFor(() => {

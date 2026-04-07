@@ -54,15 +54,15 @@ jest.mock('mattermost-redux/selectors/entities/channels', () => ({
 }));
 
 describe('components/channel_header/ChannelHeaderTitle', () => {
-    test('should return null when no channel', () => {
+    test('should return null when no channel', async () => {
         (getCurrentChannel as jest.Mock).mockReturnValue(null);
 
-        const {container} = renderWithContext(<ChannelHeaderTitle/>);
+        const {container} = await renderWithContext(<ChannelHeaderTitle/>);
 
         expect(container.firstChild).toBeNull();
     });
 
-    test('should render bot layout for DM with bot user', () => {
+    test('should render bot layout for DM with bot user', async () => {
         const channel = TestHelper.getChannelMock({
             id: 'channel_id',
             type: 'D',
@@ -76,7 +76,7 @@ describe('components/channel_header/ChannelHeaderTitle', () => {
 
         (getCurrentChannel as jest.Mock).mockReturnValue(channel);
 
-        renderWithContext(<ChannelHeaderTitle dmUser={botUser}/>);
+        await renderWithContext(<ChannelHeaderTitle dmUser={botUser}/>);
 
         // Bot layout has distinct structure - no header menu, has BOT tag
         expect(document.querySelector('.channel-header__bot')).toBeInTheDocument();
@@ -84,7 +84,7 @@ describe('components/channel_header/ChannelHeaderTitle', () => {
         expect(document.querySelector('#mock-header-menu')).not.toBeInTheDocument();
     });
 
-    test('should render profile picture for DM channel', () => {
+    test('should render profile picture for DM channel', async () => {
         const channel = TestHelper.getChannelMock({
             id: 'channel_id',
             type: 'D',
@@ -97,13 +97,13 @@ describe('components/channel_header/ChannelHeaderTitle', () => {
 
         (getCurrentChannel as jest.Mock).mockReturnValue(channel);
 
-        renderWithContext(<ChannelHeaderTitle dmUser={dmUser}/>);
+        await renderWithContext(<ChannelHeaderTitle dmUser={dmUser}/>);
 
         // DM shows profile picture, public/GM channels don't
         expect(document.querySelector('#mock-profile-picture')).toBeInTheDocument();
     });
 
-    test('should not render profile picture for public channel', () => {
+    test('should not render profile picture for public channel', async () => {
         const channel = TestHelper.getChannelMock({
             id: 'channel_id',
             type: 'O',
@@ -112,7 +112,7 @@ describe('components/channel_header/ChannelHeaderTitle', () => {
 
         (getCurrentChannel as jest.Mock).mockReturnValue(channel);
 
-        renderWithContext(<ChannelHeaderTitle/>);
+        await renderWithContext(<ChannelHeaderTitle/>);
 
         // Public channel renders header menu and favorite, but no profile picture
         expect(document.querySelector('.channel-header__top')).toBeInTheDocument();
@@ -120,7 +120,7 @@ describe('components/channel_header/ChannelHeaderTitle', () => {
         expect(document.querySelector('#mock-profile-picture')).not.toBeInTheDocument();
     });
 
-    test('should render header menu for GM channel without profile picture', () => {
+    test('should render header menu for GM channel without profile picture', async () => {
         const channel = TestHelper.getChannelMock({
             id: 'channel_id',
             type: 'G',
@@ -133,7 +133,7 @@ describe('components/channel_header/ChannelHeaderTitle', () => {
 
         (getCurrentChannel as jest.Mock).mockReturnValue(channel);
 
-        renderWithContext(<ChannelHeaderTitle gmMembers={gmMembers}/>);
+        await renderWithContext(<ChannelHeaderTitle gmMembers={gmMembers}/>);
 
         // GM channel renders header menu but no profile picture (unlike DM)
         expect(document.querySelector('#mock-header-menu')).toBeInTheDocument();

@@ -32,7 +32,7 @@ describe('UserPropertyTypeMenu', () => {
 
     const updateField = jest.fn();
 
-    const renderComponent = (field: UserPropertyField = baseField) => {
+    const renderComponent = async (field: UserPropertyField = baseField) => {
         return renderWithContext(
             <SelectType
                 field={field}
@@ -41,14 +41,14 @@ describe('UserPropertyTypeMenu', () => {
         );
     };
 
-    it('renders with correct current type', () => {
+    it('renders with correct current type', async () => {
         renderComponent();
 
         // The menu button should show the current type
         expect(screen.getByText('Text')).toBeInTheDocument();
     });
 
-    it('renders legacy text field with no value_type in attrs', () => {
+    it('renders legacy text field with no value_type in attrs', async () => {
         const legacyField = {
             ...baseField,
             type: 'text' as const,
@@ -63,7 +63,7 @@ describe('UserPropertyTypeMenu', () => {
         expect(screen.getByText('Text')).toBeInTheDocument();
     });
 
-    it('disables menu button when field is marked for deletion', () => {
+    it('disables menu button when field is marked for deletion', async () => {
         const deletedField = {
             ...baseField,
             delete_at: 123456789,

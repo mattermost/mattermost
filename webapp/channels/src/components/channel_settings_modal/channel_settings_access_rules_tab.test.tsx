@@ -216,8 +216,8 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         jest.restoreAllMocks();
     });
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <ChannelSettingsAccessRulesTab {...baseProps}/>,
             initialState,
         );
@@ -225,8 +225,8 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         expect(container).toMatchSnapshot();
     });
 
-    test('should render access rules title and subtitle', () => {
-        renderWithContext(
+    test('should render access rules title and subtitle', async () => {
+        await renderWithContext(
             <ChannelSettingsAccessRulesTab {...baseProps}/>,
             initialState,
         );
@@ -235,8 +235,8 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         expect(screen.getByText('Select user attributes and values as rules to restrict channel membership')).toBeInTheDocument();
     });
 
-    test('should render with main container class', () => {
-        renderWithContext(
+    test('should render with main container class', async () => {
+        await renderWithContext(
             <ChannelSettingsAccessRulesTab {...baseProps}/>,
             initialState,
         );
@@ -244,23 +244,21 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         expect(screen.getByText('Access Rules').closest('.ChannelSettingsModal__accessRulesTab')).toBeInTheDocument();
     });
 
-    test('should handle missing optional props gracefully', () => {
+    test('should handle missing optional props gracefully', async () => {
         const minimalProps = {
             channel: baseProps.channel,
         };
 
-        expect(() => {
-            renderWithContext(
-                <ChannelSettingsAccessRulesTab {...minimalProps}/>,
-                initialState,
-            );
-        }).not.toThrow();
+        await renderWithContext(
+            <ChannelSettingsAccessRulesTab {...minimalProps}/>,
+            initialState,
+        );
 
         expect(screen.getByRole('heading', {name: 'Access Rules'})).toBeInTheDocument();
     });
 
-    test('should render header section with correct structure', () => {
-        renderWithContext(
+    test('should render header section with correct structure', async () => {
+        await renderWithContext(
             <ChannelSettingsAccessRulesTab {...baseProps}/>,
             initialState,
         );
@@ -276,7 +274,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         expect(header).toContainElement(subtitle);
     });
 
-    test('should render with different channel types', () => {
+    test('should render with different channel types', async () => {
         const publicChannel = TestHelper.getChannelMock({
             id: 'public_channel_id',
             name: 'public-channel',
@@ -289,7 +287,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             channel: publicChannel,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ChannelSettingsAccessRulesTab {...propsWithPublicChannel}/>,
             initialState,
         );
@@ -299,7 +297,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
     });
 
     test('should call useChannelAccessControlActions hook', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ChannelSettingsAccessRulesTab {...baseProps}/>,
             initialState,
         );
@@ -310,7 +308,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
     });
 
     test('should load user attributes on mount', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ChannelSettingsAccessRulesTab {...baseProps}/>,
             initialState,
         );
@@ -320,11 +318,11 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         });
     });
 
-    test('should not render TableEditor initially when attributes are loading', () => {
+    test('should not render TableEditor initially when attributes are loading', async () => {
         // Mock to return unresolved promise to simulate loading state
         mockActions.getAccessControlFields.mockReturnValue(new Promise(() => {}));
 
-        renderWithContext(
+        await renderWithContext(
             <ChannelSettingsAccessRulesTab {...baseProps}/>,
             initialState,
         );
@@ -334,7 +332,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
     });
 
     test('should render TableEditor when attributes are loaded', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ChannelSettingsAccessRulesTab {...baseProps}/>,
             initialState,
         );
@@ -347,7 +345,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
     });
 
     test('should pass correct props to TableEditor', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ChannelSettingsAccessRulesTab {...baseProps}/>,
             initialState,
         );
@@ -372,7 +370,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
     });
 
     test('should pass user self-exclusion props to TableEditor', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ChannelSettingsAccessRulesTab {...baseProps}/>,
             initialState,
         );
@@ -396,7 +394,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             setAreThereUnsavedChanges,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ChannelSettingsAccessRulesTab {...propsWithCallback}/>,
             initialState,
         );
@@ -422,7 +420,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             setAreThereUnsavedChanges: undefined,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ChannelSettingsAccessRulesTab {...propsWithoutCallback}/>,
             initialState,
         );
@@ -444,7 +442,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         const errorMessage = 'Failed to load attributes';
         mockActions.getAccessControlFields.mockRejectedValue(new Error(errorMessage));
 
-        renderWithContext(
+        await renderWithContext(
             <ChannelSettingsAccessRulesTab {...baseProps}/>,
             initialState,
         );
@@ -460,7 +458,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
     });
 
     test('should handle parse error from TableEditor', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ChannelSettingsAccessRulesTab {...baseProps}/>,
             initialState,
         );
@@ -479,8 +477,8 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
     });
 
     describe('Auto-sync members toggle', () => {
-        test('should render auto-sync checkbox', () => {
-            renderWithContext(
+        test('should render auto-sync checkbox', async () => {
+            await renderWithContext(
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,
                 initialState,
             );
@@ -490,8 +488,8 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             expect(checkbox).toHaveClass('ChannelSettingsModal__autoSyncCheckbox');
         });
 
-        test('should render auto-sync label and description', () => {
-            renderWithContext(
+        test('should render auto-sync label and description', async () => {
+            await renderWithContext(
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,
                 initialState,
             );
@@ -500,7 +498,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             expect(screen.getByText('Access rules will prevent unauthorized users from joining, but will not automatically add qualifying members.')).toBeInTheDocument();
         });
 
-        test('should show system policy applied message when policies exist but not forcing auto-sync', () => {
+        test('should show system policy applied message when policies exist but not forcing auto-sync', async () => {
             // Mock system policies applied but not active (not forcing auto-sync)
             mockUseChannelSystemPolicies.mockReturnValue({
                 policies: [
@@ -516,7 +514,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 error: null,
             });
 
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,
                 initialState,
             );
@@ -526,7 +524,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         });
 
         test('should toggle auto-sync checkbox when clicked', async () => {
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,
                 initialState,
             );
@@ -565,7 +563,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 setAreThereUnsavedChanges,
             };
 
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSettingsAccessRulesTab {...propsWithCallback}/>,
                 initialState,
             );
@@ -594,9 +592,9 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
     });
 
     describe('Edge Case Handling', () => {
-        test('should handle true empty state (no policies, no rules)', () => {
+        test('should handle true empty state (no policies, no rules)', async () => {
             // Default test setup: no policies, no rules
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,
                 initialState,
             );
@@ -608,7 +606,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             expect(checkbox).toBeDisabled();
         });
 
-        test('should handle system policy loading state', () => {
+        test('should handle system policy loading state', async () => {
             // Mock loading system policies
             mockUseChannelSystemPolicies.mockReturnValue({
                 policies: [],
@@ -616,7 +614,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 error: null,
             });
 
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,
                 initialState,
             );
@@ -644,7 +642,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 error: null,
             });
 
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,
                 initialState,
             );
@@ -706,7 +704,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 error: null,
             });
 
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,
                 initialState,
             );
@@ -751,7 +749,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 },
             });
 
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,
                 initialState,
             );
@@ -777,7 +775,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
     describe('SaveChangesPanel integration', () => {
         test('should not show SaveChangesPanel when there are no changes', async () => {
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,
                 initialState,
             );
@@ -790,7 +788,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         });
 
         test('should show SaveChangesPanel when expression changes', async () => {
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,
                 initialState,
             );
@@ -811,7 +809,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         });
 
         test('should show SaveChangesPanel when auto-sync is toggled', async () => {
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,
                 initialState,
             );
@@ -852,7 +850,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             });
             mockActions.getChannelMembers.mockResolvedValue({data: []});
 
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,
                 initialState,
             );
@@ -935,7 +933,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             });
             mockActions.getChannelMembers.mockResolvedValue({data: []});
 
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,
                 initialState,
             );
@@ -968,7 +966,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         });
 
         test('should reset changes when Reset button is clicked', async () => {
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,
                 initialState,
             );
@@ -1005,7 +1003,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         });
 
         test('should show error state when there is a form error', async () => {
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,
                 initialState,
             );
@@ -1034,7 +1032,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 showTabSwitchError: true,
             };
 
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSettingsAccessRulesTab {...propsWithError}/>,
                 initialState,
             );
@@ -1076,7 +1074,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 },
             });
 
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,
                 initialState,
             );
@@ -1126,7 +1124,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
     });
 
     describe('System policies integration', () => {
-        test('should show system policies indicator when policies are present', () => {
+        test('should show system policies indicator when policies are present', async () => {
             const mockPolicies = [
                 {
                     id: 'policy1',
@@ -1147,7 +1145,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 error: null,
             });
 
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,
                 initialState,
             );
@@ -1155,14 +1153,14 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             expect(document.querySelector('.ChannelSettingsModal__systemPolicies')).toBeInTheDocument();
         });
 
-        test('should not show system policies indicator when no policies', () => {
+        test('should not show system policies indicator when no policies', async () => {
             mockUseChannelSystemPolicies.mockReturnValue({
                 policies: [],
                 loading: false,
                 error: null,
             });
 
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,
                 initialState,
             );
@@ -1170,14 +1168,14 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             expect(document.querySelector('.ChannelSettingsModal__systemPolicies')).not.toBeInTheDocument();
         });
 
-        test('should not show system policies indicator while loading', () => {
+        test('should not show system policies indicator while loading', async () => {
             mockUseChannelSystemPolicies.mockReturnValue({
                 policies: [],
                 loading: true,
                 error: null,
             });
 
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,
                 initialState,
             );
@@ -1264,7 +1262,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 return Promise.resolve({data: {users: mockUsersMatchingOnlyChannel}});
             });
 
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,
                 initialState,
             );
@@ -1342,7 +1340,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 return Promise.resolve({data: {users: [{id: 'current_user_id'}]}});
             });
 
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,
                 stateWithCurrentUser,
             );
@@ -1397,7 +1395,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
             mockActions.searchUsers.mockResolvedValue({data: {users: mockUsersMatchingOnlyChannel}});
 
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,
                 initialState,
             );
@@ -1445,7 +1443,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         test('should handle system policies only when no channel expression', async () => {
             mockActions.searchUsers.mockResolvedValue({data: {users: mockUsersMatchingCombined}});
 
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,
                 initialState,
             );
@@ -1469,7 +1467,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         test('should properly format combined expressions with parentheses', async () => {
             mockActions.searchUsers.mockResolvedValue({data: {users: mockUsersMatchingCombined}});
 
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,
                 initialState,
             );
@@ -1524,7 +1522,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
             mockActions.searchUsers.mockResolvedValue({data: {users: []}});
 
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,
                 initialState,
             );
@@ -1578,7 +1576,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         // Mock getChannelMembers to return empty (no current members, so user1 will be added)
         mockActions.getChannelMembers.mockResolvedValue({data: []});
 
-        renderWithContext(
+        await renderWithContext(
             <ChannelSettingsAccessRulesTab {...baseProps}/>,
             stateWithMessages,
         );
@@ -1644,7 +1642,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         // Mock getChannelMembers to return empty (no current members, so all matching users will be added)
         mockActions.getChannelMembers.mockResolvedValue({data: []});
 
-        renderWithContext(
+        await renderWithContext(
             <ChannelSettingsAccessRulesTab {...baseProps}/>,
             initialState, // Use state with NO message history
         );
@@ -1716,7 +1714,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         });
         mockActions.getChannelMembers.mockResolvedValue({data: []}); // No current members
 
-        renderWithContext(
+        await renderWithContext(
             <ChannelSettingsAccessRulesTab {...baseProps}/>,
             stateWithMessages,
         );
@@ -1783,7 +1781,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             mockActions.searchUsers.mockResolvedValue({data: {users: []}});
             mockActions.getChannelMembers.mockResolvedValue({data: []});
 
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,
                 stateWithMessages,
             );
@@ -1842,7 +1840,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             });
             mockActions.getChannelMembers.mockResolvedValue({data: []});
 
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,
                 stateWithMessages,
             );
@@ -1901,7 +1899,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             });
             mockActions.getChannelMembers.mockResolvedValue({data: []});
 
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,
                 stateWithMessages,
             );
@@ -1964,7 +1962,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 data: [{user_id: 'user1'}], // user1 already a member
             });
 
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,
                 stateWithMessages,
             );
@@ -2019,7 +2017,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             });
             mockActions.getChannelMembers.mockResolvedValue({data: []});
 
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,
                 stateWithMessages,
             );
@@ -2090,7 +2088,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 data: [{user_id: 'user1'}],
             });
 
-            renderWithContext(
+            await renderWithContext(
                 <ChannelSettingsAccessRulesTab {...baseProps}/>,
                 stateWithMessages,
             );

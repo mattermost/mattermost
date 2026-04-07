@@ -97,9 +97,9 @@ jest.mock('react-dom', () => ({
 }));
 
 describe('useShowAdminLimitReached', () => {
-    it('opens cloud usage modal if admin has just logged in on a cloud instance, the instance has exceeded its message history limit, and the admin has not been shown the modal on log in before.', () => {
+    it('opens cloud usage modal if admin has just logged in on a cloud instance, the instance has exceeded its message history limit, and the admin has not been shown the modal on log in before.', async () => {
         const state = JSON.parse(JSON.stringify(openModalState));
-        renderWithContext(
+        await renderWithContext(
             <>
                 <div id='root-portal'/>
                 <ModalController/>
@@ -110,7 +110,7 @@ describe('useShowAdminLimitReached', () => {
         screen.getByText(modalRegex);
     });
 
-    it('does not open cloud usage modal if admin has already been shown the modal', () => {
+    it('does not open cloud usage modal if admin has already been shown the modal', async () => {
         const state = JSON.parse(JSON.stringify(openModalState));
         state.entities.preferences.myPreferences = TestHelper.getPreferencesMock(
             [
@@ -122,7 +122,7 @@ describe('useShowAdminLimitReached', () => {
             ],
             'admin',
         );
-        renderWithContext(
+        await renderWithContext(
             <>
                 <div id='root-portal'/>
                 <ModalController/>
@@ -133,10 +133,10 @@ describe('useShowAdminLimitReached', () => {
         expect(screen.queryByText(modalRegex)).not.toBeInTheDocument();
     });
 
-    it('does not open cloud usage modal if workspace has not exceeded limit', () => {
+    it('does not open cloud usage modal if workspace has not exceeded limit', async () => {
         const state = JSON.parse(JSON.stringify(openModalState));
         state.entities.usage.messages.history = 10000;
-        renderWithContext(
+        await renderWithContext(
             <>
                 <div id='root-portal'/>
                 <ModalController/>
@@ -147,10 +147,10 @@ describe('useShowAdminLimitReached', () => {
         expect(screen.queryByText(modalRegex)).not.toBeInTheDocument();
     });
 
-    it('does not open cloud usage modal if there is no message limit', () => {
+    it('does not open cloud usage modal if there is no message limit', async () => {
         const state = JSON.parse(JSON.stringify(openModalState));
         state.entities.cloud.limits = {};
-        renderWithContext(
+        await renderWithContext(
             <>
                 <div id='root-portal'/>
                 <ModalController/>
@@ -161,10 +161,10 @@ describe('useShowAdminLimitReached', () => {
         expect(screen.queryByText(modalRegex)).not.toBeInTheDocument();
     });
 
-    it('does not open cloud usage modal if there is no message limit', () => {
+    it('does not open cloud usage modal if there is no message limit', async () => {
         const state = JSON.parse(JSON.stringify(openModalState));
         state.entities.cloud.limits = {};
-        renderWithContext(
+        await renderWithContext(
             <>
                 <div id='root-portal'/>
                 <ModalController/>
@@ -175,10 +175,10 @@ describe('useShowAdminLimitReached', () => {
         expect(screen.queryByText(modalRegex)).not.toBeInTheDocument();
     });
 
-    it('does not open cloud usage modal if admin was already logged in', () => {
+    it('does not open cloud usage modal if admin was already logged in', async () => {
         const state = JSON.parse(JSON.stringify(openModalState));
         state.views.admin.needsLoggedInLimitReachedCheck = false;
-        renderWithContext(
+        await renderWithContext(
             <>
                 <div id='root-portal'/>
                 <ModalController/>
@@ -189,14 +189,14 @@ describe('useShowAdminLimitReached', () => {
         expect(screen.queryByText(modalRegex)).not.toBeInTheDocument();
     });
 
-    it('does not open cloud usage modal if limits are not yet loaded', () => {
+    it('does not open cloud usage modal if limits are not yet loaded', async () => {
         const state = JSON.parse(JSON.stringify(openModalState));
         state.entities.cloud.limits.limitsLoaded = false;
         jest.spyOn(useGetLimitsHook, 'default').mockImplementation(() => ([
             state.entities.cloud.limits.limits,
             false,
         ]));
-        renderWithContext(
+        await renderWithContext(
             <>
                 <div id='root-portal'/>
                 <ModalController/>
@@ -207,14 +207,14 @@ describe('useShowAdminLimitReached', () => {
         expect(screen.queryByText(modalRegex)).not.toBeInTheDocument();
     });
 
-    it('does not open cloud usage modal if usage is not yet loaded', () => {
+    it('does not open cloud usage modal if usage is not yet loaded', async () => {
         const state = JSON.parse(JSON.stringify(openModalState));
         state.entities.usage.messages = {
             history: 0,
             historyLoaded: false,
         };
         jest.spyOn(useGetUsageHook, 'default').mockImplementation(() => state.entities.usage);
-        renderWithContext(
+        await renderWithContext(
             <>
                 <div id='root-portal'/>
                 <ModalController/>

@@ -22,35 +22,35 @@ describe('components/SettingItemMax', () => {
         width: 'full',
     };
 
-    test('should match snapshot', () => {
-        const {asFragment} = renderWithContext(<SettingItemMax {...baseProps}/>);
+    test('should match snapshot', async () => {
+        const {asFragment} = await renderWithContext(<SettingItemMax {...baseProps}/>);
 
         expect(asFragment()).toMatchSnapshot();
     });
 
-    test('should match snapshot, without submit', () => {
+    test('should match snapshot, without submit', async () => {
         const props = {...baseProps, submit: null};
-        const {asFragment} = renderWithContext(<SettingItemMax {...props}/>);
+        const {asFragment} = await renderWithContext(<SettingItemMax {...props}/>);
 
         expect(asFragment()).toMatchSnapshot();
     });
 
-    test('should match snapshot, on clientError', () => {
+    test('should match snapshot, on clientError', async () => {
         const props = {...baseProps, clientError: 'clientError'};
-        const {asFragment} = renderWithContext(<SettingItemMax {...props}/>);
+        const {asFragment} = await renderWithContext(<SettingItemMax {...props}/>);
 
         expect(asFragment()).toMatchSnapshot();
     });
 
-    test('should match snapshot, on serverError', () => {
+    test('should match snapshot, on serverError', async () => {
         const props = {...baseProps, serverError: 'serverError'};
-        const {asFragment} = renderWithContext(<SettingItemMax {...props}/>);
+        const {asFragment} = await renderWithContext(<SettingItemMax {...props}/>);
 
         expect(asFragment()).toMatchSnapshot();
     });
 
     test('should have called updateSection on handleUpdateSection with section after clicking cancel button', async () => {
-        const {getByTestId} = renderWithContext(<SettingItemMax {...baseProps}/>);
+        const {getByTestId} = await renderWithContext(<SettingItemMax {...baseProps}/>);
 
         await userEvent.click(getByTestId('cancelButton'));
 
@@ -59,7 +59,7 @@ describe('components/SettingItemMax', () => {
     });
 
     test('should have called submit on handleSubmit with setting after clicking save button', async () => {
-        const {getByTestId} = renderWithContext(<SettingItemMax {...baseProps}/>);
+        const {getByTestId} = await renderWithContext(<SettingItemMax {...baseProps}/>);
 
         await userEvent.click(getByTestId('saveSetting'));
 
@@ -67,9 +67,9 @@ describe('components/SettingItemMax', () => {
         expect(baseProps.submit).toHaveBeenCalledWith(baseProps.setting);
     });
 
-    test('should match snapshot, with new saveTextButton', () => {
+    test('should match snapshot, with new saveTextButton', async () => {
         const props = {...baseProps, saveButtonText: 'CustomText'};
-        const {asFragment} = renderWithContext(<SettingItemMax {...props}/>);
+        const {asFragment} = await renderWithContext(<SettingItemMax {...props}/>);
 
         expect(asFragment()).toMatchSnapshot();
     });
@@ -89,7 +89,7 @@ describe('components/SettingItemMax', () => {
             ],
         };
 
-        const {getByRole, getByTestId} = renderWithContext(<SettingItemMax {...props}/>);
+        const {getByRole, getByTestId} = await renderWithContext(<SettingItemMax {...props}/>);
 
         await userEvent.click(getByTestId('select'));
 

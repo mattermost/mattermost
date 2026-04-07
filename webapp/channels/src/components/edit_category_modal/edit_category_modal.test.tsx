@@ -23,7 +23,7 @@ describe('components/EditCategoryModal', () => {
             ['Where is Jessica Hyde?', false],
             ['Some string with length more than 22', true],
         ])('when categoryName: %s, isConfirmDisabled should return %s', async (categoryName, expected) => {
-            renderWithContext(<EditCategoryModal {...requiredProps}/>);
+            await renderWithContext(<EditCategoryModal {...requiredProps}/>);
 
             const input = screen.getByPlaceholderText('Name your category');
 

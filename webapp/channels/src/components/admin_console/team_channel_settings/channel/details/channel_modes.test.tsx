@@ -8,8 +8,8 @@ import {renderWithContext} from 'tests/react_testing_utils';
 import {ChannelModes} from './channel_modes';
 
 describe('admin_console/team_channel_settings/channel/ChannelModes', () => {
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <ChannelModes
                 onToggle={jest.fn()}
                 isPublic={true}
@@ -24,8 +24,8 @@ describe('admin_console/team_channel_settings/channel/ChannelModes', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot - not licensed for Group', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot - not licensed for Group', async () => {
+        const {container} = await renderWithContext(
             <ChannelModes
                 onToggle={jest.fn()}
                 isPublic={true}

@@ -59,7 +59,7 @@ describe('channel_info_rhs/menu', () => {
         const props = {...defaultProps};
         props.actions.openNotificationSettings = jest.fn();
 
-        renderWithContext(
+        await renderWithContext(
             <Menu
                 {...props}
             />,
@@ -81,7 +81,7 @@ describe('channel_info_rhs/menu', () => {
             channel: {type: Constants.DM_CHANNEL} as Channel,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <Menu
                 {...props}
             />,
@@ -100,7 +100,7 @@ describe('channel_info_rhs/menu', () => {
             isArchived: true,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <Menu
                 {...props}
             />,
@@ -117,7 +117,7 @@ describe('channel_info_rhs/menu', () => {
         const props = {...defaultProps};
         props.actions.showChannelFiles = jest.fn();
 
-        renderWithContext(
+        await renderWithContext(
             <Menu
                 {...props}
             />,
@@ -139,7 +139,7 @@ describe('channel_info_rhs/menu', () => {
         const props = {...defaultProps};
         props.actions.showPinnedPosts = jest.fn();
 
-        renderWithContext(
+        await renderWithContext(
             <Menu
                 {...props}
             />,
@@ -161,7 +161,7 @@ describe('channel_info_rhs/menu', () => {
         const props = {...defaultProps};
         props.actions.showChannelMembers = jest.fn();
 
-        renderWithContext(
+        await renderWithContext(
             <Menu
                 {...props}
             />,
@@ -185,7 +185,7 @@ describe('channel_info_rhs/menu', () => {
             channel: {type: Constants.DM_CHANNEL} as Channel,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <Menu
                 {...props}
             />,
@@ -203,7 +203,7 @@ describe('channel_info_rhs/menu', () => {
         mockedCanAccessChannelSettings.mockReturnValue(true);
         const props = {...defaultProps};
 
-        renderWithContext(
+        await renderWithContext(
             <Menu
                 {...props}
             />,
@@ -231,7 +231,7 @@ describe('channel_info_rhs/menu', () => {
             channel: {type: Constants.DM_CHANNEL} as Channel,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <Menu
                 {...props}
             />,
@@ -247,7 +247,7 @@ describe('channel_info_rhs/menu', () => {
             channel: {type: Constants.GM_CHANNEL} as Channel,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <Menu
                 {...props}
             />,
@@ -263,7 +263,7 @@ describe('channel_info_rhs/menu', () => {
             isArchived: true,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <Menu
                 {...props}
             />,
@@ -276,7 +276,7 @@ describe('channel_info_rhs/menu', () => {
         mockedCanAccessChannelSettings.mockReturnValue(false);
         const props = {...defaultProps};
 
-        renderWithContext(
+        await renderWithContext(
             <Menu
                 {...props}
             />,

@@ -58,8 +58,8 @@ describe('components/recaps/Recaps', () => {
         mockSelectLhsItem.mockClear();
     });
 
-    test('selects Recaps in the LHS on mount', () => {
-        renderWithContext(
+    test('selects Recaps in the LHS on mount', async () => {
+        await renderWithContext(
             <MemoryRouter>
                 <Recaps/>
             </MemoryRouter>,

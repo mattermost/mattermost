@@ -78,36 +78,36 @@ describe('components/post_view/PostAddChannelMember', () => {
         generateMentionsSpy.mockRestore();
     });
 
-    test('should match snapshot, empty postId', () => {
+    test('should match snapshot, empty postId', async () => {
         const props: Props = {
             ...requiredProps,
             postId: '',
         };
-        const {container} = renderWithContext(<PostAddChannelMember {...props}/>);
+        const {container} = await renderWithContext(<PostAddChannelMember {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, empty channelType', () => {
+    test('should match snapshot, empty channelType', async () => {
         const props: Props = {
             ...requiredProps,
             channelType: '',
         };
-        const {container} = renderWithContext(<PostAddChannelMember {...props}/>);
+        const {container} = await renderWithContext(<PostAddChannelMember {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, public channel', () => {
-        const {container} = renderWithContext(<PostAddChannelMember {...requiredProps}/>);
+    test('should match snapshot, public channel', async () => {
+        const {container} = await renderWithContext(<PostAddChannelMember {...requiredProps}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, private channel', () => {
+    test('should match snapshot, private channel', async () => {
         const props: Props = {
             ...requiredProps,
             channelType: 'P',
         };
 
-        const {container} = renderWithContext(<PostAddChannelMember {...props}/>);
+        const {container} = await renderWithContext(<PostAddChannelMember {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
@@ -120,7 +120,7 @@ describe('components/post_view/PostAddChannelMember', () => {
             usernames,
         };
 
-        const {container} = renderWithContext(<PostAddChannelMember {...props}/>);
+        const {container} = await renderWithContext(<PostAddChannelMember {...props}/>);
         expect(container).toMatchSnapshot();
 
         const user = userEvent.setup();
@@ -138,7 +138,7 @@ describe('components/post_view/PostAddChannelMember', () => {
             addChannelMember: jest.fn(),
         };
         const props: Props = {...requiredProps, actions};
-        renderWithContext(
+        await renderWithContext(
             <PostAddChannelMember {...props}/>,
         );
 
@@ -165,7 +165,7 @@ describe('components/post_view/PostAddChannelMember', () => {
             addChannelMember: jest.fn(),
         };
         const props: Props = {...requiredProps, userIds, usernames, actions};
-        renderWithContext(
+        await renderWithContext(
             <PostAddChannelMember {...props}/>,
         );
 
@@ -178,44 +178,44 @@ describe('components/post_view/PostAddChannelMember', () => {
         expect(actions.addChannelMember).toHaveBeenCalledTimes(4);
     });
 
-    test('should match snapshot, with no-groups usernames', () => {
+    test('should match snapshot, with no-groups usernames', async () => {
         const props: Props = {
             ...requiredProps,
             noGroupsUsernames: ['user_id_2'],
         };
-        const {container} = renderWithContext(<PostAddChannelMember {...props}/>);
+        const {container} = await renderWithContext(<PostAddChannelMember {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, with ABAC policy enforced', () => {
+    test('should match snapshot, with ABAC policy enforced', async () => {
         const props: Props = {
             ...requiredProps,
             usernames: ['username_1', 'username_2', 'username_3'],
             isPolicyEnforced: true,
         };
-        const {container} = renderWithContext(<PostAddChannelMember {...props}/>);
+        const {container} = await renderWithContext(<PostAddChannelMember {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should never show invite links when policy is enforced (ABAC channels)', () => {
+    test('should never show invite links when policy is enforced (ABAC channels)', async () => {
         const props: Props = {
             ...requiredProps,
             usernames: ['username_1', 'username_2'],
             noGroupsUsernames: [],
             isPolicyEnforced: true,
         };
-        renderWithContext(<PostAddChannelMember {...props}/>);
+        await renderWithContext(<PostAddChannelMember {...props}/>);
         expect(screen.queryByRole('link', {name: /add them/i})).not.toBeInTheDocument();
     });
 
-    test('should show single consolidated message for ABAC channels regardless of user types', () => {
+    test('should show single consolidated message for ABAC channels regardless of user types', async () => {
         const props: Props = {
             ...requiredProps,
             usernames: ['user1', 'user2'],
             noGroupsUsernames: ['user3'],
             isPolicyEnforced: true,
         };
-        renderWithContext(<PostAddChannelMember {...props}/>);
+        await renderWithContext(<PostAddChannelMember {...props}/>);
 
         expect(screen.getByText('did not get notified by this mention because they are not in the channel.')).toBeInTheDocument();
         expect(screen.queryByRole('link', {name: /add them/i})).not.toBeInTheDocument();

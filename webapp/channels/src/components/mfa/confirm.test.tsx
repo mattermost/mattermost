@@ -21,20 +21,20 @@ describe('components/mfa/components/Confirm', () => {
         document.body.addEventListener = originalAddEventListener;
     });
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<Confirm/>);
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(<Confirm/>);
         expect(container).toMatchSnapshot();
     });
 
     test('should submit on form submit', async () => {
-        renderWithContext(<Confirm/>);
+        await renderWithContext(<Confirm/>);
 
         await userEvent.click(screen.getByRole('button', {name: 'Okay'}));
 
         expect(redirectUserToDefaultTeam).toHaveBeenCalled();
     });
 
-    test('should submit on enter', () => {
+    test('should submit on enter', async () => {
         const map: { [key: string]: any } = {
             keydown: null,
         };
@@ -42,7 +42,7 @@ describe('components/mfa/components/Confirm', () => {
             map[event] = callback;
         });
 
-        renderWithContext(<Confirm/>);
+        await renderWithContext(<Confirm/>);
 
         const event = {
             preventDefault: jest.fn(),

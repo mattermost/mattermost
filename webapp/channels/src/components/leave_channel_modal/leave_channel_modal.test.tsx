@@ -64,7 +64,7 @@ describe('components/LeaveChannelModal', () => {
         },
     };
 
-    test('should match snapshot, init', () => {
+    test('should match snapshot, init', async () => {
         const props = {
             channel: channels['town-square'],
             onExited: jest.fn(),
@@ -73,7 +73,7 @@ describe('components/LeaveChannelModal', () => {
             },
         };
 
-        const {baseElement} = renderWithContext(
+        const {baseElement} = await renderWithContext(
             <LeaveChannelModal {...props}/>,
         );
 
@@ -95,7 +95,7 @@ describe('components/LeaveChannelModal', () => {
             onExited: jest.fn(),
             callback: jest.fn(),
         };
-        renderWithContext(
+        await renderWithContext(
             <LeaveChannelModal
                 {...props}
             />,

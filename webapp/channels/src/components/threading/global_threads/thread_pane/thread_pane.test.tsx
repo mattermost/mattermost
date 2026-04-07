@@ -110,8 +110,8 @@ describe('components/threading/global_threads/thread_pane', () => {
         };
     });
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <ThreadPane {...props}/>,
             initialState,
         );
@@ -120,7 +120,7 @@ describe('components/threading/global_threads/thread_pane', () => {
 
     test('should support follow', async () => {
         props.thread.is_following = false;
-        renderWithContext(
+        await renderWithContext(
             <ThreadPane {...props}/>,
             initialState,
         );
@@ -130,7 +130,7 @@ describe('components/threading/global_threads/thread_pane', () => {
 
     test('should support unfollow', async () => {
         props.thread.is_following = true;
-        renderWithContext(
+        await renderWithContext(
             <ThreadPane {...props}/>,
             initialState,
         );
@@ -140,7 +140,7 @@ describe('components/threading/global_threads/thread_pane', () => {
     });
 
     test('should support openInChannel', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ThreadPane {...props}/>,
             initialState,
         );
@@ -150,7 +150,7 @@ describe('components/threading/global_threads/thread_pane', () => {
     });
 
     test('should support go back to list', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ThreadPane {...props}/>,
             initialState,
         );

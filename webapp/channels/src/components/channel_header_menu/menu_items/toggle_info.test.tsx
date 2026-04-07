@@ -32,7 +32,7 @@ describe('components/ChannelHeaderMenu/MenuItems/ToggleInfo', () => {
         };
         const channel = TestHelper.getChannelMock();
 
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <ToggleInfo channel={channel}/>
             </WithTestMenuContext>, state,
@@ -59,7 +59,7 @@ describe('components/ChannelHeaderMenu/MenuItems/ToggleInfo', () => {
 
         const channel = TestHelper.getChannelMock();
 
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <ToggleInfo channel={channel}/>
             </WithTestMenuContext>, state,

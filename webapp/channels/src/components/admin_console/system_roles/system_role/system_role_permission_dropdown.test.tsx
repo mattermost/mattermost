@@ -20,8 +20,8 @@ describe('admin_console/system_role_permission_dropdown', () => {
         isDisabled: false,
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <SystemRolePermissionDropdown
                 {...props}
             />,
@@ -30,8 +30,8 @@ describe('admin_console/system_role_permission_dropdown', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with isDisabledTrue', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with isDisabledTrue', async () => {
+        const {container} = await renderWithContext(
             <SystemRolePermissionDropdown
                 {...props}
                 isDisabled={true}

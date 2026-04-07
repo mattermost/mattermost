@@ -16,14 +16,14 @@ describe('components/custom_status/custom_status_text', () => {
         (CustomStatusSelectors.isCustomStatusEnabled as any as jest.Mock).mockReturnValue(true);
     });
 
-    it('should match snapshot', () => {
-        const {container} = renderWithContext(<CustomStatusText text='Available'/>);
+    it('should match snapshot', async () => {
+        const {container} = await renderWithContext(<CustomStatusText text='Available'/>);
 
         expect(container).toMatchSnapshot();
     });
 
-    it('should match snapshot with props', () => {
-        const {container} = renderWithContext(
+    it('should match snapshot with props', async () => {
+        const {container} = await renderWithContext(
             <CustomStatusText
                 text='In a meeting'
                 className='custom-class'
@@ -33,9 +33,9 @@ describe('components/custom_status/custom_status_text', () => {
         expect(container).toMatchSnapshot();
     });
 
-    it('should not render when EnableCustomStatus in config is false', () => {
+    it('should not render when EnableCustomStatus in config is false', async () => {
         (CustomStatusSelectors.isCustomStatusEnabled as any as jest.Mock).mockReturnValue(false);
-        const {container} = renderWithContext(<CustomStatusText/>);
+        const {container} = await renderWithContext(<CustomStatusText/>);
 
         expect(container).toBeEmptyDOMElement();
     });

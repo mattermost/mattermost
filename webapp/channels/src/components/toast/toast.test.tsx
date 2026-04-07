@@ -23,31 +23,31 @@ describe('components/Toast', () => {
         width: 1000,
     };
 
-    test('should match snapshot for showing toast', () => {
-        const {container} = renderWithContext(<Toast {...defaultProps}><span>{'child'}</span></Toast>);
+    test('should match snapshot for showing toast', async () => {
+        const {container} = await renderWithContext(<Toast {...defaultProps}><span>{'child'}</span></Toast>);
         expect(container).toMatchSnapshot();
         expect(screen.getByTestId('dismissToast')).toBeInTheDocument();
     });
 
-    test('should match snapshot for hiding toast', () => {
-        const {container} = renderWithContext(<Toast {...{...defaultProps, show: false}}><span>{'child'}</span></Toast>);
+    test('should match snapshot for hiding toast', async () => {
+        const {container} = await renderWithContext(<Toast {...{...defaultProps, show: false}}><span>{'child'}</span></Toast>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot for toast width less than 780px', () => {
-        const {container} = renderWithContext(<Toast {...{...defaultProps, width: 779}}><span>{'child'}</span></Toast>);
+    test('should match snapshot for toast width less than 780px', async () => {
+        const {container} = await renderWithContext(<Toast {...{...defaultProps, width: 779}}><span>{'child'}</span></Toast>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot to not have actions', () => {
-        const {container} = renderWithContext(<Toast {...{...defaultProps, showActions: false}}><span>{'child'}</span></Toast>);
+    test('should match snapshot to not have actions', async () => {
+        const {container} = await renderWithContext(<Toast {...{...defaultProps, showActions: false}}><span>{'child'}</span></Toast>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should dismiss', () => {
+    test('should dismiss', async () => {
         defaultProps.onDismiss = jest.fn();
 
-        renderWithContext(
+        await renderWithContext(
             <Toast {... defaultProps}>
                 <span>{'child'}</span>
             </Toast>,
@@ -58,8 +58,8 @@ describe('components/Toast', () => {
         expect(defaultProps.onDismiss).toHaveBeenCalledTimes(1);
     });
 
-    test('should match snapshot to have extraClasses', () => {
-        const {container} = renderWithContext(<Toast {...{...defaultProps, extraClasses: 'extraClasses'}}><span>{'child'}</span></Toast>);
+    test('should match snapshot to have extraClasses', async () => {
+        const {container} = await renderWithContext(<Toast {...{...defaultProps, extraClasses: 'extraClasses'}}><span>{'child'}</span></Toast>);
         expect(container).toMatchSnapshot();
     });
 });

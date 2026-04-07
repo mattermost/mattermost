@@ -40,6 +40,11 @@ describe('component/PDFPreview', () => {
     });
 
     test('should match snapshot, loading', () => {
+        // Use a never-resolving promise so no async state updates occur after render
+        mockGetDocument.mockReturnValueOnce({
+            promise: new Promise(() => {}),
+        });
+
         const {container} = render(
             <PDFPreview {...requiredProps}/>,
         );
@@ -53,7 +58,7 @@ describe('component/PDFPreview', () => {
         });
 
         // Use renderWithContext because FileInfoPreview requires Redux store
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PDFPreview {...requiredProps}/>,
         );
 

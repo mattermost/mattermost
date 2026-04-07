@@ -33,7 +33,7 @@ describe('ActionsMenu', () => {
             teamId: 'team_id_1',
         };
 
-        renderWithContext(
+        await renderWithContext(
             <>
                 <ActionsMenuTestWrapper {...baseProps}/>
                 <ModalController/>

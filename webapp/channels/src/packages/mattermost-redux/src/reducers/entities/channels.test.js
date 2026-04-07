@@ -933,8 +933,6 @@ describe('channels', () => {
                 ],
             });
 
-            console.log(nextState.channelMemberCountsByGroup.channel1);
-
             expect(nextState.channelMemberCountsByGroup.channel1['group-1'].channel_member_count).toEqual(1);
             expect(nextState.channelMemberCountsByGroup.channel1['group-1'].channel_member_timezones_count).toEqual(1);
 

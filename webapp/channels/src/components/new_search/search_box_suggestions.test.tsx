@@ -55,8 +55,8 @@ describe('components/new_search/SearchBoxSuggestions', () => {
         onSuggestionSelected: jest.fn(),
     };
 
-    test('should show the suggestions and the suggestion header on messages', () => {
-        renderWithContext(<SearchBoxSuggestions {...baseProps}/>);
+    test('should show the suggestions and the suggestion header on messages', async () => {
+        await renderWithContext(<SearchBoxSuggestions {...baseProps}/>);
         expect(screen.getByText('test-username1')).toBeInTheDocument();
         expect(screen.getByText('user1')).toBeInTheDocument();
         expect(screen.getByText('test-username2')).toBeInTheDocument();
@@ -64,21 +64,21 @@ describe('components/new_search/SearchBoxSuggestions', () => {
     });
 
     test('should call the onSuggestionSelected on click', async () => {
-        renderWithContext(<SearchBoxSuggestions {...baseProps}/>);
+        await renderWithContext(<SearchBoxSuggestions {...baseProps}/>);
         await userEvent.click(screen.getByText('test-username1'));
         expect(baseProps.onSuggestionSelected).toHaveBeenCalledWith('test-username1', '');
     });
 
     test('should call the onSuggestionSelected on click with matchedPretext and previous text', async () => {
         const props = {...baseProps, searchTerms: 'something from:test-user', results: {...baseProps.results, matchedPretext: 'test-user'}};
-        renderWithContext(<SearchBoxSuggestions {...props}/>);
+        await renderWithContext(<SearchBoxSuggestions {...props}/>);
         await userEvent.click(screen.getByText('test-username1'));
         expect(baseProps.onSuggestionSelected).toHaveBeenCalledWith('test-username1', 'test-user');
     });
 
-    test('should change the selected option on mousemove', () => {
+    test('should change the selected option on mousemove', async () => {
         const props = {...baseProps};
-        renderWithContext(<SearchBoxSuggestions {...props}/>);
+        await renderWithContext(<SearchBoxSuggestions {...props}/>);
 
         // Simulate mouse move to change selection - fireEvent used because userEvent.hover only triggers mouseEnter/mouseOver, not mouseMove
         fireEvent.mouseMove(screen.getByText('test-username2'));
@@ -88,9 +88,9 @@ describe('components/new_search/SearchBoxSuggestions', () => {
         expect(baseProps.setSelectedTerm).toHaveBeenCalledWith('user1');
     });
 
-    test('should not show the plugin suggestions without license', () => {
+    test('should not show the plugin suggestions without license', async () => {
         const props = {...baseProps, searchType: 'test-id', searchTerms: 'test-search-terms'};
-        renderWithContext(
+        await renderWithContext(
             <SearchBoxSuggestions {...props}/>,
             {
                 plugins: {components: {SearchSuggestions: [{component: TestPluginProviderComponent as React.ComponentType, pluginId: 'test-id'}]}},
@@ -101,9 +101,9 @@ describe('components/new_search/SearchBoxSuggestions', () => {
         expect(screen.queryByText('test-search-terms')).not.toBeInTheDocument();
     });
 
-    test('should show the plugin suggestions', () => {
+    test('should show the plugin suggestions', async () => {
         const props = {...baseProps, searchType: 'test-id', searchTerms: 'test-search-terms'};
-        renderWithContext(
+        await renderWithContext(
             <SearchBoxSuggestions {...props}/>,
             {
                 plugins: {components: {SearchSuggestions: [{component: TestPluginProviderComponent as React.ComponentType, pluginId: 'test-id'}]}},
@@ -114,9 +114,9 @@ describe('components/new_search/SearchBoxSuggestions', () => {
         expect(screen.getByText('test-search-terms')).toBeInTheDocument();
     });
 
-    test('should call the onSuggestionSelected on plugin search change', () => {
+    test('should call the onSuggestionSelected on plugin search change', async () => {
         const props = {...baseProps, searchType: 'test-id', searchTerms: 'something from:t'};
-        renderWithContext(
+        await renderWithContext(
             <SearchBoxSuggestions {...props}/>,
             {
                 plugins: {components: {SearchSuggestions: [{component: TestPluginProviderComponent as React.ComponentType, pluginId: 'test-id'}]}},
@@ -127,9 +127,9 @@ describe('components/new_search/SearchBoxSuggestions', () => {
         expect(baseProps.onSuggestionSelected).toHaveBeenCalledWith('test', 't');
     });
 
-    test('should run search whenver onRunSearch is executed', () => {
+    test('should run search whenver onRunSearch is executed', async () => {
         const props = {...baseProps, searchType: 'test-id', searchTerms: 'something from:t'};
-        renderWithContext(
+        await renderWithContext(
             <SearchBoxSuggestions {...props}/>,
             {
                 plugins: {components: {SearchSuggestions: [{component: TestPluginProviderComponent as React.ComponentType, pluginId: 'test-id'}]}},

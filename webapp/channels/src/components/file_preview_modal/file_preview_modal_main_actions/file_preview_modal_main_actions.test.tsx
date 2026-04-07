@@ -28,53 +28,53 @@ describe('components/file_preview_modal/file_preview_modal_main_actions/FilePrev
         };
     });
 
-    test('should match snapshot with public links disabled', () => {
+    test('should match snapshot with public links disabled', async () => {
         const props = {
             ...defaultProps,
             enablePublicLink: false,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <FilePreviewModalMainActions {...props}/>,
         );
 
         expect(screen.queryByLabelText('Get a public link')).not.toBeInTheDocument();
     });
 
-    test('should match snapshot with public links enabled', () => {
+    test('should match snapshot with public links enabled', async () => {
         const props = {
             ...defaultProps,
             enablePublicLink: true,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <FilePreviewModalMainActions {...props}/>,
         );
 
         expect(screen.queryByLabelText('Get a public link')).toBeInTheDocument();
     });
 
-    test('should not show public link button for external image with public links enabled', () => {
+    test('should not show public link button for external image with public links enabled', async () => {
         const props = {
             ...defaultProps,
             enablePublicLink: true,
             showPublicLink: false,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <FilePreviewModalMainActions {...props}/>,
         );
 
         expect(screen.queryByLabelText('Get a public link')).not.toBeInTheDocument();
     });
 
-    test('should show copy button when copy content is enabled', () => {
+    test('should show copy button when copy content is enabled', async () => {
         const props = {
             ...defaultProps,
             canCopyContent: true,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <FilePreviewModalMainActions {...props}/>,
         );
 
@@ -87,7 +87,7 @@ describe('components/file_preview_modal/file_preview_modal_main_actions/FilePrev
             ...defaultProps,
             enablePublicLink: true,
         };
-        renderWithContext(
+        await renderWithContext(
             <FilePreviewModalMainActions {...props}/>,
         );
 
@@ -100,7 +100,7 @@ describe('components/file_preview_modal/file_preview_modal_main_actions/FilePrev
 
     test('should not get public api when public links is disabled', async () => {
         const spy = jest.spyOn(fileActions, 'getFilePublicLink');
-        renderWithContext(
+        await renderWithContext(
             <FilePreviewModalMainActions {...defaultProps}/>,
         );
         expect(spy).toHaveBeenCalledTimes(0);
@@ -112,7 +112,7 @@ describe('components/file_preview_modal/file_preview_modal_main_actions/FilePrev
             ...defaultProps,
             enablePublicLink: true,
         };
-        renderWithContext(
+        await renderWithContext(
             <FilePreviewModalMainActions {...props}/>,
         );
         expect(spy).toHaveBeenCalledTimes(1);
@@ -124,7 +124,7 @@ describe('components/file_preview_modal/file_preview_modal_main_actions/FilePrev
             ...defaultProps,
             canCopyContent: true,
         };
-        renderWithContext(
+        await renderWithContext(
             <FilePreviewModalMainActions {...props}/>,
         );
         expect(spy).toHaveBeenCalledTimes(0);

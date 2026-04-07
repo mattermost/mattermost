@@ -5,7 +5,7 @@ import React from 'react';
 import type {InputActionMeta} from 'react-select';
 
 import {defaultIntl} from 'tests/helpers/intl-test-helper';
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, act} from 'tests/react_testing_utils';
 
 import {UsersEmailsInput} from './users_emails_input';
 
@@ -29,7 +29,7 @@ describe('components/widgets/inputs/UsersEmailsInput', () => {
     describe('delimiter handling on typed input', () => {
         it('should NOT treat space as a delimiter when typing', async () => {
             const ref = React.createRef<UsersEmailsInput>();
-            renderWithContext(
+            await renderWithContext(
                 <UsersEmailsInput
                     {...baseProps}
                     ref={ref}
@@ -41,14 +41,16 @@ describe('components/widgets/inputs/UsersEmailsInput', () => {
                 prevInputValue: 'john ',
             };
 
-            await ref.current!.handleInputChange('john s', action);
+            await act(async () => {
+                await ref.current!.handleInputChange('john s', action);
+            });
 
             expect(baseProps.onInputChange).toHaveBeenCalledWith('john s');
         });
 
         it('should treat comma as a delimiter when typing', async () => {
             const ref = React.createRef<UsersEmailsInput>();
-            renderWithContext(
+            await renderWithContext(
                 <UsersEmailsInput
                     {...baseProps}
                     ref={ref}
@@ -67,7 +69,7 @@ describe('components/widgets/inputs/UsersEmailsInput', () => {
 
         it('should treat semicolon as a delimiter when typing', async () => {
             const ref = React.createRef<UsersEmailsInput>();
-            renderWithContext(
+            await renderWithContext(
                 <UsersEmailsInput
                     {...baseProps}
                     ref={ref}
@@ -88,7 +90,7 @@ describe('components/widgets/inputs/UsersEmailsInput', () => {
     describe('edge cases', () => {
         it('should handle comma-then-space pattern without losing email', async () => {
             const ref = React.createRef<UsersEmailsInput>();
-            renderWithContext(
+            await renderWithContext(
                 <UsersEmailsInput
                     {...baseProps}
                     ref={ref}
@@ -105,7 +107,7 @@ describe('components/widgets/inputs/UsersEmailsInput', () => {
     describe('delimiter handling on paste', () => {
         it('should split pasted values on spaces', async () => {
             const ref = React.createRef<UsersEmailsInput>();
-            renderWithContext(
+            await renderWithContext(
                 <UsersEmailsInput
                     {...baseProps}
                     ref={ref}
@@ -122,7 +124,7 @@ describe('components/widgets/inputs/UsersEmailsInput', () => {
 
         it('should split pasted values on newlines', async () => {
             const ref = React.createRef<UsersEmailsInput>();
-            renderWithContext(
+            await renderWithContext(
                 <UsersEmailsInput
                     {...baseProps}
                     ref={ref}
@@ -137,7 +139,7 @@ describe('components/widgets/inputs/UsersEmailsInput', () => {
 
         it('should split pasted values on commas', async () => {
             const ref = React.createRef<UsersEmailsInput>();
-            renderWithContext(
+            await renderWithContext(
                 <UsersEmailsInput
                     {...baseProps}
                     ref={ref}

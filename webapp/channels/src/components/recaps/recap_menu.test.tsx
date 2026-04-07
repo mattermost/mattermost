@@ -57,21 +57,21 @@ describe('RecapMenu', () => {
         },
     ];
 
-    test('should render menu button', () => {
-        renderWithContext(<RecapMenu actions={mockActions}/>);
+    test('should render menu button', async () => {
+        await renderWithContext(<RecapMenu actions={mockActions}/>);
 
         expect(screen.getByTestId('menu-container')).toBeInTheDocument();
     });
 
-    test('should render all menu items', () => {
-        renderWithContext(<RecapMenu actions={mockActions}/>);
+    test('should render all menu items', async () => {
+        await renderWithContext(<RecapMenu actions={mockActions}/>);
 
         const menuItems = screen.getAllByTestId('menu-item');
         expect(menuItems).toHaveLength(2);
     });
 
-    test('should render menu item labels', () => {
-        renderWithContext(<RecapMenu actions={mockActions}/>);
+    test('should render menu item labels', async () => {
+        await renderWithContext(<RecapMenu actions={mockActions}/>);
 
         expect(screen.getByText('Mark as read')).toBeInTheDocument();
         expect(screen.getByText('Regenerate')).toBeInTheDocument();
@@ -79,7 +79,7 @@ describe('RecapMenu', () => {
 
     test('should call onClick when menu item is clicked', async () => {
         const user = userEvent.setup();
-        renderWithContext(<RecapMenu actions={mockActions}/>);
+        await renderWithContext(<RecapMenu actions={mockActions}/>);
 
         const menuItems = screen.getAllByTestId('menu-item');
         await user.click(menuItems[0]);
@@ -88,7 +88,7 @@ describe('RecapMenu', () => {
         expect(mockOnClick2).not.toHaveBeenCalled();
     });
 
-    test('should handle disabled menu items', () => {
+    test('should handle disabled menu items', async () => {
         const disabledActions: RecapMenuAction[] = [
             {
                 id: 'action1',
@@ -99,15 +99,15 @@ describe('RecapMenu', () => {
             },
         ];
 
-        renderWithContext(<RecapMenu actions={disabledActions}/>);
+        await renderWithContext(<RecapMenu actions={disabledActions}/>);
 
         const menuItem = screen.getByTestId('menu-item');
         expect(menuItem).toBeDisabled();
     });
 
-    test('should render with custom button className', () => {
+    test('should render with custom button className', async () => {
         const customClassName = 'custom-menu-button';
-        renderWithContext(
+        await renderWithContext(
             <RecapMenu
                 actions={mockActions}
                 buttonClassName={customClassName}
@@ -118,9 +118,9 @@ describe('RecapMenu', () => {
         expect(button).toHaveClass(customClassName);
     });
 
-    test('should use custom aria label when provided', () => {
+    test('should use custom aria label when provided', async () => {
         const customAriaLabel = 'Custom options menu';
-        renderWithContext(
+        await renderWithContext(
             <RecapMenu
                 actions={mockActions}
                 ariaLabel={customAriaLabel}
@@ -131,21 +131,21 @@ describe('RecapMenu', () => {
         expect(button).toHaveAttribute('aria-label', customAriaLabel);
     });
 
-    test('should use default aria label when not provided', () => {
-        renderWithContext(<RecapMenu actions={mockActions}/>);
+    test('should use default aria label when not provided', async () => {
+        await renderWithContext(<RecapMenu actions={mockActions}/>);
 
         const button = screen.getByTestId('menu-button');
         expect(button).toHaveAttribute('aria-label', 'Recap options');
     });
 
-    test('should handle empty actions array', () => {
-        renderWithContext(<RecapMenu actions={[]}/>);
+    test('should handle empty actions array', async () => {
+        await renderWithContext(<RecapMenu actions={[]}/>);
 
         const menuItems = screen.queryAllByTestId('menu-item');
         expect(menuItems).toHaveLength(0);
     });
 
-    test('should handle destructive menu items', () => {
+    test('should handle destructive menu items', async () => {
         const destructiveAction: RecapMenuAction[] = [
             {
                 id: 'delete',
@@ -156,7 +156,7 @@ describe('RecapMenu', () => {
             },
         ];
 
-        renderWithContext(<RecapMenu actions={destructiveAction}/>);
+        await renderWithContext(<RecapMenu actions={destructiveAction}/>);
 
         expect(screen.getByText('Delete')).toBeInTheDocument();
     });

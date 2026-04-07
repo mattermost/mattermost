@@ -41,8 +41,8 @@ describe('components/permissions_gates', () => {
     const CONTENT = 'The content inside the permission gate';
 
     describe('TeamPermissionGate', () => {
-        test('should show content when user have permission', () => {
-            renderWithContext(
+        test('should show content when user have permission', async () => {
+            await renderWithContext(
                 <TeamPermissionGate
                     teamId={'team_id'}
                     permissions={['test_team_permission']}
@@ -54,8 +54,8 @@ describe('components/permissions_gates', () => {
 
             expect(screen.queryByText(CONTENT)).toBeInTheDocument();
         });
-        test('should show content when user have at least on of the permissions', () => {
-            renderWithContext(
+        test('should show content when user have at least on of the permissions', async () => {
+            await renderWithContext(
                 <TeamPermissionGate
                     teamId={'team_id'}
                     permissions={['test_team_permission', 'not_existing_permission']}
@@ -67,8 +67,8 @@ describe('components/permissions_gates', () => {
 
             expect(screen.queryByText(CONTENT)).toBeInTheDocument();
         });
-        test('should NOT show content when user have permission and use invert', () => {
-            renderWithContext(
+        test('should NOT show content when user have permission and use invert', async () => {
+            await renderWithContext(
                 <TeamPermissionGate
                     teamId={'team_id'}
                     permissions={['test_team_permission']}
@@ -81,8 +81,8 @@ describe('components/permissions_gates', () => {
 
             expect(screen.queryByText(CONTENT)).not.toBeInTheDocument();
         });
-        test('should show content when user not have permission and use invert', () => {
-            renderWithContext(
+        test('should show content when user not have permission and use invert', async () => {
+            await renderWithContext(
                 <TeamPermissionGate
                     teamId={'team_id'}
                     permissions={['invalid_permission']}
@@ -95,8 +95,8 @@ describe('components/permissions_gates', () => {
 
             expect(screen.queryByText(CONTENT)).toBeInTheDocument();
         });
-        test('should NOT show content when user haven\'t permission', () => {
-            renderWithContext(
+        test('should NOT show content when user haven\'t permission', async () => {
+            await renderWithContext(
                 <TeamPermissionGate
                     teamId={'team_id'}
                     permissions={['invalid_permission']}
@@ -108,8 +108,8 @@ describe('components/permissions_gates', () => {
 
             expect(screen.queryByText(CONTENT)).not.toBeInTheDocument();
         });
-        test('should NOT show content when the team doesn\'t exists', () => {
-            renderWithContext(
+        test('should NOT show content when the team doesn\'t exists', async () => {
+            await renderWithContext(
                 <TeamPermissionGate
                     teamId={'invalid_id'}
                     permissions={['test_team_permission']}
@@ -121,8 +121,8 @@ describe('components/permissions_gates', () => {
 
             expect(screen.queryByText(CONTENT)).not.toBeInTheDocument();
         });
-        test('should show content when user have permission system wide', () => {
-            renderWithContext(
+        test('should show content when user have permission system wide', async () => {
+            await renderWithContext(
                 <TeamPermissionGate
                     teamId={'team_id'}
                     permissions={['test_system_permission']}

@@ -35,7 +35,7 @@ describe('admin_console/system_role_users', () => {
 
     test('should match snapshot', async () => {
         const props = getBaseProps();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SystemRoleUsers
                 {...props}
             />,
@@ -50,7 +50,7 @@ describe('admin_console/system_role_users', () => {
 
     test('should match snapshot with readOnly true', async () => {
         const props = getBaseProps();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SystemRoleUsers
                 {...props}
                 readOnly={true}

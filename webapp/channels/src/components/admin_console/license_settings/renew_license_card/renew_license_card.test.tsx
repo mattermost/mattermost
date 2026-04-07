@@ -54,8 +54,8 @@ describe('components/RenewalLicenseCard', () => {
         isDisabled: false,
     };
 
-    test('should show Contact sales button', () => {
-        renderWithContext(<RenewalLicenseCard {...props}/>, initialState);
+    test('should show Contact sales button', async () => {
+        await renderWithContext(<RenewalLicenseCard {...props}/>, initialState);
 
         const buttons = screen.getAllByRole('button');
         expect(buttons).toHaveLength(1);

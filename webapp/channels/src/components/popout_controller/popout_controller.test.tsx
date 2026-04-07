@@ -104,16 +104,16 @@ describe('PopoutController', () => {
         } as ActionResult<boolean>));
     });
 
-    it('should render modal controller', () => {
-        renderWithContext(
+    it('should render modal controller', async () => {
+        await renderWithContext(
             <PopoutController {...baseRouteProps}/>,
         );
 
         expect(screen.getByTestId('modal-controller')).toBeInTheDocument();
     });
 
-    it('should add popout classes to document body on mount', () => {
-        renderWithContext(
+    it('should add popout classes to document body on mount', async () => {
+        await renderWithContext(
             <PopoutController {...baseRouteProps}/>,
         );
 
@@ -121,16 +121,16 @@ describe('PopoutController', () => {
         expect(document.body.classList.contains('popout')).toBe(true);
     });
 
-    it('should dispatch getMe action on mount', () => {
-        renderWithContext(
+    it('should dispatch getMe action on mount', async () => {
+        await renderWithContext(
             <PopoutController {...baseRouteProps}/>,
         );
 
         expect(mockGetMe).toHaveBeenCalledTimes(1);
     });
 
-    it('should render thread popout for thread route', () => {
-        renderWithContext(
+    it('should render thread popout for thread route', async () => {
+        await renderWithContext(
             <MemoryRouter initialEntries={['/_popout/thread/test-team/post0000000000000000000123']}>
                 <PopoutController {...baseRouteProps}/>
             </MemoryRouter>,
@@ -139,8 +139,8 @@ describe('PopoutController', () => {
         expect(screen.getByTestId('thread-popout')).toBeInTheDocument();
     });
 
-    it('should render rhs popout for rhs route', () => {
-        renderWithContext(
+    it('should render rhs popout for rhs route', async () => {
+        await renderWithContext(
             <MemoryRouter initialEntries={['/_popout/rhs/test-team/channel-identifier']}>
                 <PopoutController {...baseRouteProps}/>
             </MemoryRouter>,
@@ -149,8 +149,8 @@ describe('PopoutController', () => {
         expect(screen.getByTestId('rhs-popout')).toBeInTheDocument();
     });
 
-    it('should maintain body classes on re-render', () => {
-        const {rerender} = renderWithContext(
+    it('should maintain body classes on re-render', async () => {
+        const {rerender} = await renderWithContext(
             <PopoutController {...baseRouteProps}/>,
         );
 
@@ -179,7 +179,7 @@ describe('PopoutController', () => {
         expect(document.body.classList.contains('popout')).toBe(true);
     });
 
-    it('should dispatch loadStatusesByIds with current user ID', () => {
+    it('should dispatch loadStatusesByIds with current user ID', async () => {
         const currentUserId = 'current-user-id-123';
         const initialState = {
             entities: {
@@ -189,7 +189,7 @@ describe('PopoutController', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <PopoutController {...baseRouteProps}/>,
             initialState,
         );
@@ -198,8 +198,8 @@ describe('PopoutController', () => {
         expect(mockLoadStatusesByIds).toHaveBeenCalledWith([currentUserId]);
     });
 
-    it('should render Pluggable for Root', () => {
-        renderWithContext(
+    it('should render Pluggable for Root', async () => {
+        await renderWithContext(
             <PopoutController {...baseRouteProps}/>,
         );
 

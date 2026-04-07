@@ -15,7 +15,7 @@ describe('/components/common/hocs/with_get_cloud_subcription', () => {
         TestComponent = () => <div/>;
     });
 
-    test('should call the getCloudSubscription when cloud license is being used and no subscription was fetched', () => {
+    test('should call the getCloudSubscription when cloud license is being used and no subscription was fetched', async () => {
         const EnhancedComponent = withGetCloudSubscription(TestComponent);
         const actions = {
             getCloudSubscription: () => {},
@@ -23,7 +23,7 @@ describe('/components/common/hocs/with_get_cloud_subcription', () => {
 
         const getCloudSubscriptionSpy = jest.spyOn(actions, 'getCloudSubscription');
 
-        renderWithContext(
+        await renderWithContext(
             <EnhancedComponent
                 isCloud={true}
                 actions={actions}
@@ -35,7 +35,7 @@ describe('/components/common/hocs/with_get_cloud_subcription', () => {
         expect(getCloudSubscriptionSpy).toHaveBeenCalledTimes(1);
     });
 
-    test('should NOT call the getCloudSubscription when NOT cloud licenced', () => {
+    test('should NOT call the getCloudSubscription when NOT cloud licenced', async () => {
         const EnhancedComponent = withGetCloudSubscription(TestComponent);
         const actions = {
             getCloudSubscription: () => {},
@@ -43,7 +43,7 @@ describe('/components/common/hocs/with_get_cloud_subcription', () => {
 
         const getCloudSubscriptionSpy = jest.spyOn(actions, 'getCloudSubscription');
 
-        renderWithContext(
+        await renderWithContext(
             <EnhancedComponent
                 isCloud={false}
                 actions={actions}
@@ -55,7 +55,7 @@ describe('/components/common/hocs/with_get_cloud_subcription', () => {
         expect(getCloudSubscriptionSpy).toHaveBeenCalledTimes(0);
     });
 
-    test('should NOT call the getCloudSubscription when user is NOT admin', () => {
+    test('should NOT call the getCloudSubscription when user is NOT admin', async () => {
         const EnhancedComponent = withGetCloudSubscription(TestComponent);
         const actions = {
             getCloudSubscription: () => {},
@@ -63,7 +63,7 @@ describe('/components/common/hocs/with_get_cloud_subcription', () => {
 
         const getCloudSubscriptionSpy = jest.spyOn(actions, 'getCloudSubscription');
 
-        renderWithContext(
+        await renderWithContext(
             <EnhancedComponent
                 isCloud={true}
                 actions={actions}

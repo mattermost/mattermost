@@ -113,11 +113,11 @@ describe('admin_console/system_user_detail/team_list/AbstractList', () => {
         defaultProps.actions.getTeamsData = jest.fn().mockResolvedValue([]);
     });
 
-    test('should match snapshot if loading', () => {
+    test('should match snapshot if loading', async () => {
         // Use a never-resolving promise so loading remains true
         defaultProps.actions.getTeamsData = jest.fn(() => new Promise(() => {}));
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <AbstractList {...defaultProps}/>,
         );
 
@@ -125,7 +125,7 @@ describe('admin_console/system_user_detail/team_list/AbstractList', () => {
     });
 
     test('should match snapshot no data', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <AbstractList {...defaultProps}/>,
         );
 
@@ -137,7 +137,7 @@ describe('admin_console/system_user_detail/team_list/AbstractList', () => {
     });
 
     test('should match snapshot with teams data populated', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <AbstractList
                 {...defaultProps}
                 data={teamsWithMemberships}
@@ -162,7 +162,7 @@ describe('admin_console/system_user_detail/team_list/AbstractList', () => {
             } as TeamWithMembership);
         }
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <AbstractList
                 {...defaultProps}
                 data={moreTeams}
@@ -187,7 +187,7 @@ describe('admin_console/system_user_detail/team_list/AbstractList', () => {
             } as TeamWithMembership);
         }
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <AbstractList
                 {...defaultProps}
                 data={moreTeams}

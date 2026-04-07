@@ -21,15 +21,15 @@ describe('UserAccountOutOfOfficeMenuItem', () => {
         };
     });
 
-    test('should not render if status is not out of office', () => {
+    test('should not render if status is not out of office', async () => {
         const props = {...defaultProps, isStatusOutOfOffice: false};
-        renderWithContext(<UserAccountOutOfOfficeMenuItem {...props}/>);
+        await renderWithContext(<UserAccountOutOfOfficeMenuItem {...props}/>);
 
         expect(screen.queryByText('Out of office')).not.toBeInTheDocument();
     });
 
-    test('should only render when status is out of office', () => {
-        renderWithContext(<UserAccountOutOfOfficeMenuItem {...defaultProps}/>);
+    test('should only render when status is out of office', async () => {
+        await renderWithContext(<UserAccountOutOfOfficeMenuItem {...defaultProps}/>);
 
         expect(screen.getAllByText(/Out of office/).length).toBe(1);
         expect(screen.getAllByText(/Automatic replies are enabled/).length).toBe(1);
@@ -48,7 +48,7 @@ describe('UserAccountOutOfOfficeMenuItem', () => {
             },
         };
         const props = {...defaultProps, shouldConfirmBeforeStatusChange: true};
-        renderWithContext(<UserAccountOutOfOfficeMenuItem {...props}/>, initialState);
+        await renderWithContext(<UserAccountOutOfOfficeMenuItem {...props}/>, initialState);
 
         await userEvent.click(screen.getByRole('menuitem'));
 

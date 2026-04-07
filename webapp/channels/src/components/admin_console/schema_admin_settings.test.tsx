@@ -246,8 +246,8 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         } as Partial<EnvironmentConfig>;
     });
 
-    test('should render settings from schema', () => {
-        renderWithContext(
+    test('should render settings from schema', async () => {
+        await renderWithContext(
             <SchemaAdminSettings
                 {...DefaultProps}
                 config={config}
@@ -269,8 +269,8 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         expect(screen.getByRole('textbox', {name: /label-a/i})).toBeInTheDocument();
     });
 
-    test('should render custom component from schema', () => {
-        renderWithContext(
+    test('should render custom component from schema', async () => {
+        await renderWithContext(
             <SchemaAdminSettings
                 {...DefaultProps}
                 config={config}
@@ -284,7 +284,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         expect(screen.getByText('Test')).toBeInTheDocument();
     });
 
-    test('should render header text with markdown links', () => {
+    test('should render header text with markdown links', async () => {
         const headerText = 'This is [a link](!https://example.com) in the header';
         const props = {
             ...DefaultProps,
@@ -297,7 +297,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
             patchConfig: jest.fn(),
         };
 
-        const {container} = renderWithContext(<SchemaAdminSettings {...props}/>);
+        const {container} = await renderWithContext(<SchemaAdminSettings {...props}/>);
 
         // Verify the markdown link is rendered as an anchor element with the correct text
         const link = screen.getByRole('link', {name: 'a link'});
@@ -309,7 +309,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         expect(container.textContent).toContain('in the header');
     });
 
-    test('should render footer text with markdown links', () => {
+    test('should render footer text with markdown links', async () => {
         const footerText = 'This is [a link](https://example.com) in the footer';
         const props = {
             ...DefaultProps,
@@ -322,7 +322,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
             patchConfig: jest.fn(),
         };
 
-        const {container} = renderWithContext(<SchemaAdminSettings {...props}/>);
+        const {container} = await renderWithContext(<SchemaAdminSettings {...props}/>);
 
         // Verify the markdown link is rendered as an anchor element with the correct text
         const link = screen.getByRole('link', {name: 'a link'});
@@ -334,7 +334,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         expect(container.textContent).toContain('in the footer');
     });
 
-    test('should render page not found', () => {
+    test('should render page not found', async () => {
         const props = {
             ...DefaultProps,
             config,
@@ -343,13 +343,13 @@ describe('components/admin_console/SchemaAdminSettings', () => {
             patchConfig: jest.fn(),
         };
 
-        renderWithContext(<SchemaAdminSettings {...props}/>);
+        await renderWithContext(<SchemaAdminSettings {...props}/>);
 
         // Verify the "Plugin Not Found" message is rendered
         expect(screen.getByText('Plugin Not Found')).toBeInTheDocument();
     });
 
-    test('should not try to validate when a setting does not contain a key', () => {
+    test('should not try to validate when a setting does not contain a key', async () => {
         const mockValidate = jest.fn(() => {
             return new ValidationResult(true, '');
         });
@@ -374,7 +374,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         };
 
         const ref = React.createRef<SchemaAdminSettingsClass>();
-        renderWithContext(
+        await renderWithContext(
             <SchemaAdminSettingsClass
                 ref={ref}
                 {...props}
@@ -385,7 +385,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         expect(mockValidate).not.toHaveBeenCalled();
     });
 
-    test('should validate when a setting contains a key and a validation method', () => {
+    test('should validate when a setting contains a key and a validation method', async () => {
         const mockValidate = jest.fn(() => {
             return new ValidationResult(true, '');
         });
@@ -409,7 +409,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         };
 
         const ref = React.createRef<SchemaAdminSettingsClass>();
-        renderWithContext(
+        await renderWithContext(
             <SchemaAdminSettingsClass
                 ref={ref}
                 {...props}
@@ -437,7 +437,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
             ],
         } as unknown as AdminDefinitionSubSectionSchema;
 
-        renderWithContext(
+        await renderWithContext(
             <SchemaAdminSettings
                 {...DefaultProps}
                 config={config}
@@ -460,7 +460,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
     });
 
     test('should toggle boolean settings', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SchemaAdminSettings
                 {...DefaultProps}
                 config={config}
@@ -489,7 +489,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         expect(falseRadio?.checked).toBe(false);
     });
 
-    test('should disable save button when validation fails', () => {
+    test('should disable save button when validation fails', async () => {
         const mockValidate = jest.fn(() => {
             return new ValidationResult(false, 'Validation error');
         });
@@ -514,7 +514,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         };
 
         const ref = React.createRef<SchemaAdminSettingsClass>();
-        renderWithContext(
+        await renderWithContext(
             <SchemaAdminSettingsClass
                 ref={ref}
                 {...props}
@@ -542,7 +542,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
             ],
         } as unknown as AdminDefinitionSubSectionSchema;
 
-        renderWithContext(
+        await renderWithContext(
             <SchemaAdminSettings
                 {...DefaultProps}
                 config={config}
@@ -567,8 +567,8 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         });
     });
 
-    test('should render dropdown setting', () => {
-        renderWithContext(
+    test('should render dropdown setting', async () => {
+        await renderWithContext(
             <SchemaAdminSettings
                 {...DefaultProps}
                 config={config}
@@ -586,8 +586,8 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         expect(dropdown).toBeInTheDocument();
     });
 
-    test('should render radio button setting', () => {
-        renderWithContext(
+    test('should render radio button setting', async () => {
+        await renderWithContext(
             <SchemaAdminSettings
                 {...DefaultProps}
                 config={config}
@@ -624,7 +624,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
             ],
         } as unknown as AdminDefinitionSubSectionSchema;
 
-        renderWithContext(
+        await renderWithContext(
             <SchemaAdminSettings
                 {...DefaultProps}
                 config={config}

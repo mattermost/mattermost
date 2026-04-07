@@ -8,8 +8,8 @@ import SpinnerButton from 'components/spinner_button';
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 describe('components/SpinnerButton', () => {
-    test('should match snapshot with required props', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with required props', async () => {
+        const {container} = await renderWithContext(
             <SpinnerButton
                 spinning={false}
                 spinningText='Test'
@@ -18,8 +18,8 @@ describe('components/SpinnerButton', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with spinning', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with spinning', async () => {
+        const {container} = await renderWithContext(
             <SpinnerButton
                 spinning={true}
                 spinningText='Test'
@@ -28,8 +28,8 @@ describe('components/SpinnerButton', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with children', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with children', async () => {
+        const {container} = await renderWithContext(
             <SpinnerButton
                 spinning={false}
                 spinningText='Test'
@@ -44,7 +44,7 @@ describe('components/SpinnerButton', () => {
     test('should handle onClick', async () => {
         const onClick = jest.fn();
 
-        renderWithContext(
+        await renderWithContext(
             <SpinnerButton
                 spinning={false}
                 onClick={onClick}
@@ -56,8 +56,8 @@ describe('components/SpinnerButton', () => {
         expect(onClick).toHaveBeenCalledTimes(1);
     });
 
-    test('should add properties to underlying button', () => {
-        renderWithContext(
+    test('should add properties to underlying button', async () => {
+        await renderWithContext(
             <SpinnerButton
                 id='my-button-id'
                 className='btn btn-success'

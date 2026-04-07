@@ -10,8 +10,8 @@ import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import Header from './header';
 
 describe('channel_info_rhs/header', () => {
-    test('renders the header title', () => {
-        renderWithContext(
+    test('renders the header title', async () => {
+        await renderWithContext(
             <Header
                 channel={{display_name: 'my channel title'} as Channel}
                 isMobile={false}
@@ -25,7 +25,7 @@ describe('channel_info_rhs/header', () => {
     test('should call onClose when clicking on the close icon', async () => {
         const onClose = jest.fn();
 
-        renderWithContext(
+        await renderWithContext(
             <Header
                 channel={{display_name: 'my channel title'} as Channel}
                 isMobile={false}
@@ -40,7 +40,7 @@ describe('channel_info_rhs/header', () => {
     test('should call onClose when clicking on the back icon', async () => {
         const onClose = jest.fn();
 
-        renderWithContext(
+        await renderWithContext(
             <Header
                 channel={{display_name: 'my channel title'} as Channel}
                 isMobile={true}

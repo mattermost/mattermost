@@ -57,11 +57,11 @@ describe('MenuItemOpenInNewWindow', () => {
         jest.mocked(isChannelPopoutWindow).mockReturnValue(false);
     });
 
-    test('should render nothing when already in a channel popout', () => {
+    test('should render nothing when already in a channel popout', async () => {
         jest.mocked(isChannelPopoutWindow).mockReturnValue(true);
         const channel = TestHelper.getChannelMock({type: 'O' as ChannelType, name: 'town-square'});
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <WithTestMenuContext>
                 <MenuItemOpenInNewWindow channel={channel}/>
             </WithTestMenuContext>,
@@ -74,7 +74,7 @@ describe('MenuItemOpenInNewWindow', () => {
     test('should call popoutChannel when clicked', async () => {
         const channel = TestHelper.getChannelMock({type: 'O' as ChannelType, name: 'town-square'});
 
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <MenuItemOpenInNewWindow channel={channel}/>
             </WithTestMenuContext>,

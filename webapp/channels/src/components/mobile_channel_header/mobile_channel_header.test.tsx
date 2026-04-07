@@ -30,8 +30,8 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
     };
 
     describe('components/ChannelHeaderMenu/MenuItem/ChannelHeaderMobile', () => {
-        test('renders the component correctly', () => {
-            renderWithContext(
+        test('renders the component correctly', async () => {
+            await renderWithContext(
                 <div
                     className='inner-wrap'
                     data-testid='wrapper'
@@ -61,8 +61,8 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
             expect(wrapper).toBeInTheDocument();
         });
 
-        test('renders the component correctly, global threads', () => {
-            renderWithContext(
+        test('renders the component correctly, global threads', async () => {
+            await renderWithContext(
                 <div
                     className='inner-wrap'
                     data-testid='wrapper'
@@ -81,8 +81,8 @@ describe('components/ChannelHeaderMobile/ChannelHeaderMobile', () => {
             expect(menuItem).toBeInTheDocument();
         });
 
-        test('renders the component correctly, in drafts', () => {
-            renderWithContext(
+        test('renders the component correctly, in drafts', async () => {
+            await renderWithContext(
                 <div
                     className='inner-wrap'
                     data-testid='wrapper'

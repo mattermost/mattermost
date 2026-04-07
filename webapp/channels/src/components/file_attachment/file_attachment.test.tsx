@@ -67,12 +67,12 @@ describe('FileAttachment', () => {
         },
     };
 
-    test('should match snapshot, regular file', () => {
-        const {container} = renderWithContext(<FileAttachment {...baseProps}/>);
+    test('should match snapshot, regular file', async () => {
+        const {container} = await renderWithContext(<FileAttachment {...baseProps}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('non archived file does not show archived elements', () => {
+    test('non archived file does not show archived elements', async () => {
         const reduxState: DeepPartial<GlobalState> = {
             entities: {
                 general: {
@@ -83,20 +83,20 @@ describe('FileAttachment', () => {
                 },
             },
         };
-        renderWithContext(<FileAttachment {...baseProps}/>, reduxState);
+        await renderWithContext(<FileAttachment {...baseProps}/>, reduxState);
 
         expect(screen.queryByTestId('archived-file-icon')).not.toBeInTheDocument();
         expect(screen.queryByText(/This file is archived/)).not.toBeInTheDocument();
     });
 
-    test('non archived file does not show archived elements in compact display mode', () => {
-        renderWithContext(<FileAttachment {...{...baseProps, compactDisplay: true}}/>);
+    test('non archived file does not show archived elements in compact display mode', async () => {
+        await renderWithContext(<FileAttachment {...{...baseProps, compactDisplay: true}}/>);
 
         expect(screen.queryByTestId('archived-file-icon')).not.toBeInTheDocument();
         expect(screen.queryByText(/archived/)).not.toBeInTheDocument();
     });
 
-    test('should match snapshot, regular image', () => {
+    test('should match snapshot, regular image', async () => {
         const fileInfo = {
             ...baseFileInfo,
             extension: 'png',
@@ -106,11 +106,11 @@ describe('FileAttachment', () => {
             size: 100,
         };
         const props = {...baseProps, fileInfo};
-        const {container} = renderWithContext(<FileAttachment {...props}/>);
+        const {container} = await renderWithContext(<FileAttachment {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, small image', () => {
+    test('should match snapshot, small image', async () => {
         const fileInfo = {
             ...baseFileInfo,
             extension: 'png',
@@ -120,11 +120,11 @@ describe('FileAttachment', () => {
             size: 100,
         };
         const props = {...baseProps, fileInfo};
-        const {container} = renderWithContext(<FileAttachment {...props}/>);
+        const {container} = await renderWithContext(<FileAttachment {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, svg image', () => {
+    test('should match snapshot, svg image', async () => {
         const fileInfo = {
             ...baseFileInfo,
             extension: 'svg',
@@ -134,11 +134,11 @@ describe('FileAttachment', () => {
             size: 100,
         };
         const props = {...baseProps, fileInfo};
-        const {container} = renderWithContext(<FileAttachment {...props}/>);
+        const {container} = await renderWithContext(<FileAttachment {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, after change from file to image', () => {
+    test('should match snapshot, after change from file to image', async () => {
         const fileInfo = {
             ...baseFileInfo,
             extension: 'png',
@@ -147,31 +147,31 @@ describe('FileAttachment', () => {
             height: 400,
             size: 100,
         };
-        const {rerender, container} = renderWithContext(<FileAttachment {...baseProps}/>);
+        const {rerender, container} = await renderWithContext(<FileAttachment {...baseProps}/>);
         rerender(<FileAttachment {...{...baseProps, fileInfo}}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, with compact display', () => {
+    test('should match snapshot, with compact display', async () => {
         const props = {...baseProps, compactDisplay: true};
-        const {container} = renderWithContext(<FileAttachment {...props}/>);
+        const {container} = await renderWithContext(<FileAttachment {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, without compact display and without can download', () => {
+    test('should match snapshot, without compact display and without can download', async () => {
         const props = {...baseProps, canDownloadFiles: false};
-        const {container} = renderWithContext(<FileAttachment {...props}/>);
+        const {container} = await renderWithContext(<FileAttachment {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, when file is not loaded', () => {
-        const {container} = renderWithContext(<FileAttachment {...{...baseProps, fileInfo: {...baseProps.fileInfo, id: 'noLoad', extension: 'jpg'}, enableSVGs: true}}/>);
+    test('should match snapshot, when file is not loaded', async () => {
+        const {container} = await renderWithContext(<FileAttachment {...{...baseProps, fileInfo: {...baseProps.fileInfo, id: 'noLoad', extension: 'jpg'}, enableSVGs: true}}/>);
         expect(container).toMatchSnapshot();
     });
 
     test('should blur file attachment link after click', async () => {
         const props = {...baseProps, compactDisplay: true};
-        renderWithContext(<FileAttachment {...props}/>);
+        await renderWithContext(<FileAttachment {...props}/>);
 
         const link = screen.getByText(baseProps.fileInfo.name);
         const blur = jest.spyOn(link, 'blur');
@@ -180,7 +180,7 @@ describe('FileAttachment', () => {
     });
 
     describe('archived file', () => {
-        test('shows archived image instead of real image and explanatory text in compact mode', () => {
+        test('shows archived image instead of real image and explanatory text in compact mode', async () => {
             const props = {
                 ...baseProps,
                 fileInfo: {
@@ -189,13 +189,13 @@ describe('FileAttachment', () => {
                 },
                 compactDisplay: true,
             };
-            renderWithContext(<FileAttachment {...props}/>);
+            await renderWithContext(<FileAttachment {...props}/>);
             screen.getByTestId('archived-file-icon');
             screen.getByText(baseProps.fileInfo.name);
             screen.getByText(/archived/);
         });
 
-        test('shows archived image instead of real image and explanatory text in full mode', () => {
+        test('shows archived image instead of real image and explanatory text in full mode', async () => {
             const props = {
                 ...baseProps,
                 fileInfo: {
@@ -204,14 +204,14 @@ describe('FileAttachment', () => {
                 },
                 compactDisplay: false,
             };
-            renderWithContext(<FileAttachment {...props}/>);
+            await renderWithContext(<FileAttachment {...props}/>);
             screen.getByTestId('archived-file-icon');
             screen.getByText(baseProps.fileInfo.name);
             screen.getByText(/This file is archived/);
         });
     });
 
-    test('should match snapshot when file is deleted', () => {
+    test('should match snapshot when file is deleted', async () => {
         const props = {
             ...baseProps,
             fileInfo: {
@@ -219,12 +219,12 @@ describe('FileAttachment', () => {
                 delete_at: 10000000,
             },
         };
-        const {container} = renderWithContext(<FileAttachment {...props}/>);
+        const {container} = await renderWithContext(<FileAttachment {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with thumbnail disabled', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with thumbnail disabled', async () => {
+        const {container} = await renderWithContext(
             <FileAttachment
                 {...baseProps}
                 disableThumbnail={true}
@@ -232,8 +232,8 @@ describe('FileAttachment', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should not render menu items when disable actions is set', () => {
-        const {container} = renderWithContext(
+    test('should not render menu items when disable actions is set', async () => {
+        const {container} = await renderWithContext(
             <FileAttachment
                 {...baseProps}
                 disableActions={true}

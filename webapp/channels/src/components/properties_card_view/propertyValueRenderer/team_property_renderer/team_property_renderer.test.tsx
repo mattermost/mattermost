@@ -31,11 +31,11 @@ describe('TeamPropertyRenderer', () => {
         metadata: {} as TeamFieldMetadata,
     };
 
-    test('should render team name and icon when team exists', () => {
+    test('should render team name and icon when team exists', async () => {
         const props = cloneDeep(defaultProps);
         props.metadata.team = mockTeam;
 
-        renderWithContext(<TeamPropertyRenderer {...props}/>, state);
+        await renderWithContext(<TeamPropertyRenderer {...props}/>, state);
 
         expect(screen.getByTestId('team-property')).toBeVisible();
         expect(screen.getByText('Test Team')).toBeVisible();
@@ -43,8 +43,8 @@ describe('TeamPropertyRenderer', () => {
         expect(screen.queryByTestId('teamIconInitial')).toBeVisible();
     });
 
-    test('should render deleted team message when team does not exist', () => {
-        renderWithContext(
+    test('should render deleted team message when team does not exist', async () => {
+        await renderWithContext(
             <TeamPropertyRenderer {...defaultProps}/>,
             state,
         );
@@ -54,7 +54,7 @@ describe('TeamPropertyRenderer', () => {
         expect(screen.queryByText('Test Team')).not.toBeInTheDocument();
     });
 
-    test('should handle empty team id', () => {
+    test('should handle empty team id', async () => {
         const propsWithEmptyId = {
             value: {
                 value: '',
@@ -69,7 +69,7 @@ describe('TeamPropertyRenderer', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <TeamPropertyRenderer {...propsWithEmptyId}/>,
             state,
         );
@@ -78,7 +78,7 @@ describe('TeamPropertyRenderer', () => {
         expect(screen.getByText(/Deleted team ID:/)).toBeInTheDocument();
     });
 
-    test('should handle null team id', () => {
+    test('should handle null team id', async () => {
         const propsWithNullId = {
             value: {
                 value: null,
@@ -93,7 +93,7 @@ describe('TeamPropertyRenderer', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <TeamPropertyRenderer {...propsWithNullId}/>,
             state,
         );

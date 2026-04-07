@@ -46,13 +46,13 @@ describe('CreateTeamForm - display_name step', () => {
         };
     });
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<CreateTeamForm {...defaultProps}/>, defaultState);
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(<CreateTeamForm {...defaultProps}/>, defaultState);
         expect(container).toMatchSnapshot();
     });
 
     test('should run updateParent function on next', async () => {
-        renderWithContext(<CreateTeamForm {...defaultProps}/>, defaultState);
+        await renderWithContext(<CreateTeamForm {...defaultProps}/>, defaultState);
 
         await userEvent.click(screen.getByRole('button', {name: /next/i}));
 
@@ -60,7 +60,7 @@ describe('CreateTeamForm - display_name step', () => {
     });
 
     test('should pass state to updateParent function', async () => {
-        renderWithContext(<CreateTeamForm {...defaultProps}/>, defaultState);
+        await renderWithContext(<CreateTeamForm {...defaultProps}/>, defaultState);
 
         await userEvent.click(screen.getByRole('button', {name: /next/i}));
 
@@ -73,7 +73,7 @@ describe('CreateTeamForm - display_name step', () => {
     });
 
     test('should pass updated team name to updateParent function', async () => {
-        renderWithContext(<CreateTeamForm {...defaultProps}/>, defaultState);
+        await renderWithContext(<CreateTeamForm {...defaultProps}/>, defaultState);
         const teamDisplayName = 'My Test Team';
 
         const input = screen.getByRole('textbox');
@@ -102,15 +102,15 @@ describe('CreateTeamForm - display_name step', () => {
             },
         };
 
-        test('should show Create button instead of Next', () => {
-            renderWithContext(<CreateTeamForm {...defaultProps}/>, anonymousURLState);
+        test('should show Create button instead of Next', async () => {
+            await renderWithContext(<CreateTeamForm {...defaultProps}/>, anonymousURLState);
 
             expect(screen.getByRole('button', {name: /create/i})).toBeInTheDocument();
             expect(screen.queryByRole('button', {name: /next/i})).not.toBeInTheDocument();
         });
 
         test('should create team directly without going to team_url step', async () => {
-            renderWithContext(<CreateTeamForm {...defaultProps}/>, anonymousURLState);
+            await renderWithContext(<CreateTeamForm {...defaultProps}/>, anonymousURLState);
 
             await userEvent.click(screen.getByRole('button', {name: /create/i}));
 
@@ -131,7 +131,7 @@ describe('CreateTeamForm - display_name step', () => {
                 createTeam: jest.fn().mockResolvedValue({data: {name: 'my-new-team'}}),
             };
 
-            renderWithContext(
+            await renderWithContext(
                 <CreateTeamForm
                     {...defaultProps}
                     actions={actions}
@@ -152,7 +152,7 @@ describe('CreateTeamForm - display_name step', () => {
                 createTeam: jest.fn().mockResolvedValue({error: {message: 'Team creation failed'}}),
             };
 
-            renderWithContext(
+            await renderWithContext(
                 <CreateTeamForm
                     {...defaultProps}
                     actions={actions}
@@ -180,7 +180,7 @@ describe('CreateTeamForm - display_name step', () => {
                 createTeam: jest.fn().mockReturnValue(createTeamPromise),
             };
 
-            renderWithContext(
+            await renderWithContext(
                 <CreateTeamForm
                     {...defaultProps}
                     actions={actions}
@@ -210,7 +210,7 @@ describe('CreateTeamForm - display_name step', () => {
                 },
             };
 
-            renderWithContext(<CreateTeamForm {...props}/>, anonymousURLState);
+            await renderWithContext(<CreateTeamForm {...props}/>, anonymousURLState);
 
             await userEvent.click(screen.getByRole('button', {name: /create/i}));
 
@@ -239,13 +239,13 @@ describe('CreateTeamForm - team_url step', () => {
         jest.clearAllMocks();
     });
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<CreateTeamForm {...defaultProps}/>, defaultState);
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(<CreateTeamForm {...defaultProps}/>, defaultState);
         expect(container).toMatchSnapshot();
     });
 
     test('should return to display_name page', async () => {
-        renderWithContext(<CreateTeamForm {...defaultProps}/>, defaultState);
+        await renderWithContext(<CreateTeamForm {...defaultProps}/>, defaultState);
 
         await userEvent.click(screen.getByText('Back to previous step'));
 
@@ -255,8 +255,8 @@ describe('CreateTeamForm - team_url step', () => {
         });
     });
 
-    test('should show Finish button on the team_url step', () => {
-        renderWithContext(<CreateTeamForm {...defaultProps}/>, defaultState);
+    test('should show Finish button on the team_url step', async () => {
+        await renderWithContext(<CreateTeamForm {...defaultProps}/>, defaultState);
 
         expect(screen.getByRole('button', {name: /finish/i})).toBeInTheDocument();
     });
@@ -269,7 +269,7 @@ describe('CreateTeamForm - team_url step', () => {
         const actions = {...defaultProps.actions, checkIfTeamExists};
         const props = {...defaultProps, actions};
 
-        renderWithContext(
+        await renderWithContext(
             <CreateTeamForm {...props}/>,
             defaultState,
         );
@@ -295,7 +295,7 @@ describe('CreateTeamForm - team_url step', () => {
     });
 
     test('should display isRequired error', async () => {
-        renderWithContext(
+        await renderWithContext(
             <CreateTeamForm {...defaultProps}/>,
             defaultState,
         );
@@ -315,7 +315,7 @@ describe('CreateTeamForm - team_url step', () => {
 
         const lengthError = `Name must be ${Constants.MIN_TEAMNAME_LENGTH} or more characters up to a maximum of ${Constants.MAX_TEAMNAME_LENGTH}`;
 
-        renderWithContext(
+        await renderWithContext(
             <CreateTeamForm {...props}/>,
             defaultState,
         );
@@ -337,7 +337,7 @@ describe('CreateTeamForm - team_url step', () => {
     });
 
     test('should display teamUrl regex error', async () => {
-        renderWithContext(
+        await renderWithContext(
             <CreateTeamForm {...defaultProps}/>,
             defaultState,
         );
@@ -349,7 +349,7 @@ describe('CreateTeamForm - team_url step', () => {
     });
 
     test('should display teamUrl taken error', async () => {
-        renderWithContext(
+        await renderWithContext(
             <CreateTeamForm {...defaultProps}/>,
             defaultState,
         );
@@ -361,7 +361,7 @@ describe('CreateTeamForm - team_url step', () => {
     });
 
     test('should focus input when validation error occurs', async () => {
-        renderWithContext(
+        await renderWithContext(
             <CreateTeamForm {...defaultProps}/>,
             defaultState,
         );

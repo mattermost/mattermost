@@ -19,7 +19,7 @@ const baseProps: Props = {
 };
 
 describe('properly use the correct icon', () => {
-    it('icon as a string', () => {
+    it('icon as a string', async () => {
         const iconTitle = 'Icon title';
         const icon = 'icon';
         const props: Props = {
@@ -31,7 +31,7 @@ describe('properly use the correct icon', () => {
                 uiName: 'Tab UI Name',
             }],
         };
-        renderWithContext(<SettingsSidebar {...props}/>);
+        await renderWithContext(<SettingsSidebar {...props}/>);
 
         const element = screen.queryByTitle(iconTitle);
         expect(element).toBeInTheDocument();
@@ -39,7 +39,7 @@ describe('properly use the correct icon', () => {
         expect(element!.className).toBe(icon);
     });
 
-    it('icon as an image', () => {
+    it('icon as an image', async () => {
         const iconTitle = 'Icon title';
         const url = 'icon_url';
         const props: Props = {
@@ -51,7 +51,7 @@ describe('properly use the correct icon', () => {
                 uiName: 'Tab UI Name',
             }],
         };
-        renderWithContext(<SettingsSidebar {...props}/>);
+        await renderWithContext(<SettingsSidebar {...props}/>);
 
         const element = screen.queryByAltText(iconTitle);
         expect(element).toBeInTheDocument();
@@ -61,7 +61,7 @@ describe('properly use the correct icon', () => {
 });
 
 describe('show PLUGIN PREFERENCES only when plugin tabs are added', () => {
-    it('not show when there are no plugin tabs', () => {
+    it('not show when there are no plugin tabs', async () => {
         const props: Props = {
             ...baseProps,
             tabs: [{
@@ -71,12 +71,12 @@ describe('show PLUGIN PREFERENCES only when plugin tabs are added', () => {
                 uiName: 'Tab UI Name',
             }],
         };
-        renderWithContext(<SettingsSidebar {...props}/>);
+        await renderWithContext(<SettingsSidebar {...props}/>);
 
         expect(screen.queryByText('PLUGIN PREFERENCES')).not.toBeInTheDocument();
     });
 
-    it('show when there are plugin tabs', () => {
+    it('show when there are plugin tabs', async () => {
         const props: Props = {
             ...baseProps,
             pluginTabs: [{
@@ -86,14 +86,14 @@ describe('show PLUGIN PREFERENCES only when plugin tabs are added', () => {
                 uiName: 'Tab UI Name',
             }],
         };
-        renderWithContext(<SettingsSidebar {...props}/>);
+        await renderWithContext(<SettingsSidebar {...props}/>);
 
         expect(screen.queryByText('PLUGIN PREFERENCES')).toBeInTheDocument();
     });
 });
 
 describe('tabs are properly rendered', () => {
-    it('plugin tabs are properly rendered', () => {
+    it('plugin tabs are properly rendered', async () => {
         const uiName1 = 'Tab UI Name 1';
         const uiName2 = 'Tab UI Name 2';
         const props: Props = {
@@ -114,7 +114,7 @@ describe('tabs are properly rendered', () => {
             ],
         };
 
-        renderWithContext(<SettingsSidebar {...props}/>);
+        await renderWithContext(<SettingsSidebar {...props}/>);
 
         expect(screen.queryByText(uiName1)).toBeInTheDocument();
         expect(screen.queryByText(uiName2)).toBeInTheDocument();

@@ -66,8 +66,8 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
         },
     };
 
-    test('should render user profile pill with avatar and display name', () => {
-        const {container} = renderWithContext(
+    test('should render user profile pill with avatar and display name', async () => {
+        const {container} = await renderWithContext(
             <MultiUserProfilePill {...baseProps}/>,
             initialState,
         );
@@ -75,8 +75,8 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
         expect(container).toMatchSnapshot();
     });
 
-    test('should render with correct user display name', () => {
-        const {container} = renderWithContext(
+    test('should render with correct user display name', async () => {
+        const {container} = await renderWithContext(
             <MultiUserProfilePill {...baseProps}/>,
             initialState,
         );
@@ -86,8 +86,8 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
         expect(pill).toHaveTextContent('Test User');
     });
 
-    test('should render Avatar component with correct props', () => {
-        const {container} = renderWithContext(
+    test('should render Avatar component with correct props', async () => {
+        const {container} = await renderWithContext(
             <MultiUserProfilePill {...baseProps}/>,
             initialState,
         );
@@ -96,8 +96,8 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
         expect(avatar).toBeInTheDocument();
     });
 
-    test('should render Remove component with close icon', () => {
-        const {container} = renderWithContext(
+    test('should render Remove component with close icon', async () => {
+        const {container} = await renderWithContext(
             <MultiUserProfilePill {...baseProps}/>,
             initialState,
         );
@@ -115,7 +115,7 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
             },
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <MultiUserProfilePill {...propsWithClick}/>,
             initialState,
         );
@@ -128,7 +128,7 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
         expect(mockOnClick).toHaveBeenCalledTimes(1);
     });
 
-    test('should handle user profile without username gracefully', () => {
+    test('should handle user profile without username gracefully', async () => {
         const propsWithoutUsername = {
             ...baseProps,
             data: {
@@ -140,7 +140,7 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
             },
         } as unknown as MultiValueProps<AutocompleteOptionType<UserProfile | Group | Team>, true>;
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <MultiUserProfilePill {...propsWithoutUsername}/>,
             initialState,
         );
@@ -149,7 +149,7 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
         expect(pill).toBeInTheDocument();
     });
 
-    test('should use different display name based on config', () => {
+    test('should use different display name based on config', async () => {
         const stateWithUsernameDisplay = {
             ...initialState,
             entities: {
@@ -162,7 +162,7 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
             },
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <MultiUserProfilePill {...baseProps}/>,
             stateWithUsernameDisplay,
         );
@@ -171,8 +171,8 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
         expect(pill).toBeInTheDocument();
     });
 
-    test('should apply correct CSS classes', () => {
-        const {container} = renderWithContext(
+    test('should apply correct CSS classes', async () => {
+        const {container} = await renderWithContext(
             <MultiUserProfilePill {...baseProps}/>,
             initialState,
         );

@@ -37,7 +37,7 @@ describe('UserPropertyDotMenu', () => {
     const deleteField = jest.fn();
     const createField = jest.fn();
 
-    const renderComponent = (field: UserPropertyField = baseField, dotMenuProps?: Partial<ComponentProps<typeof DotMenu>>) => {
+    const renderComponent = async (field: UserPropertyField = baseField, dotMenuProps?: Partial<ComponentProps<typeof DotMenu>>) => {
         return renderWithContext(
             (
                 <div>
@@ -55,14 +55,14 @@ describe('UserPropertyDotMenu', () => {
         );
     };
 
-    it('renders dot menu button', () => {
+    it('renders dot menu button', async () => {
         renderComponent();
 
         const menuButton = screen.getByTestId(`user-property-field_dotmenu-${baseField.id}`);
         expect(menuButton).toBeInTheDocument();
     });
 
-    it('disables menu button when field is marked for deletion', () => {
+    it('disables menu button when field is marked for deletion', async () => {
         const deletedField = {
             ...baseField,
             delete_at: 123456789,

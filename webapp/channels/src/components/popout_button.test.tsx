@@ -31,7 +31,7 @@ describe('PopoutButton', () => {
 
     it('should not render when cannot popout', async () => {
         mockCanPopout = false;
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PopoutButton {...defaultProps}/>,
         );
 
@@ -41,7 +41,7 @@ describe('PopoutButton', () => {
     });
 
     it('should render with correct button attributes', async () => {
-        renderWithContext(
+        await renderWithContext(
             <PopoutButton {...defaultProps}/>,
         );
 
@@ -57,7 +57,7 @@ describe('PopoutButton', () => {
     });
 
     it('should render with custom className', async () => {
-        renderWithContext(
+        await renderWithContext(
             <PopoutButton
                 {...defaultProps}
                 className='custom-class'
@@ -73,7 +73,7 @@ describe('PopoutButton', () => {
     it('should call onClick when clicked', async () => {
         const onClick = jest.fn();
 
-        renderWithContext(
+        await renderWithContext(
             <PopoutButton onClick={onClick}/>,
         );
 

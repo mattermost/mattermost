@@ -53,11 +53,11 @@ describe('components/global/PlanUpgradeButton', () => {
         },
     };
 
-    it('should show Upgrade button in global header for admin users, cloud free subscription', () => {
+    it('should show Upgrade button in global header for admin users, cloud free subscription', async () => {
         const cloudSubscriptionSpy = jest.spyOn(cloudActions, 'getCloudSubscription');
         const cloudProductsSpy = jest.spyOn(cloudActions, 'getCloudProducts');
 
-        renderWithContext(
+        await renderWithContext(
             <PlanUpgradeButton/>,
             initialState,
         );
@@ -67,7 +67,7 @@ describe('components/global/PlanUpgradeButton', () => {
         expect(screen.getByRole('button', {name: 'View plans'})).toBeInTheDocument();
     });
 
-    it('should show Upgrade button in global header for admin users, cloud and enterprise trial subscription', () => {
+    it('should show Upgrade button in global header for admin users, cloud and enterprise trial subscription', async () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.cloud = {
             subscription: {
@@ -83,7 +83,7 @@ describe('components/global/PlanUpgradeButton', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <PlanUpgradeButton/>,
             state,
         );
@@ -91,7 +91,7 @@ describe('components/global/PlanUpgradeButton', () => {
         expect(screen.getByRole('button', {name: 'View plans'})).toBeInTheDocument();
     });
 
-    it('should not show for cloud enterprise non-trial', () => {
+    it('should not show for cloud enterprise non-trial', async () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.cloud = {
             subscription: {
@@ -107,7 +107,7 @@ describe('components/global/PlanUpgradeButton', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <PlanUpgradeButton/>,
             state,
         );
@@ -115,7 +115,7 @@ describe('components/global/PlanUpgradeButton', () => {
         expect(screen.queryByRole('button', {name: 'View plans'})).not.toBeInTheDocument();
     });
 
-    it('should not show for cloud professional product', () => {
+    it('should not show for cloud professional product', async () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.cloud = {
             subscription: {
@@ -131,7 +131,7 @@ describe('components/global/PlanUpgradeButton', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <PlanUpgradeButton/>,
             state,
         );
@@ -139,7 +139,7 @@ describe('components/global/PlanUpgradeButton', () => {
         expect(screen.queryByRole('button', {name: 'View plans'})).not.toBeInTheDocument();
     });
 
-    it('should not show Upgrade button in global header for non admin cloud users', () => {
+    it('should not show Upgrade button in global header for non admin cloud users', async () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.users = {
             currentUserId: 'current_user_id',
@@ -148,7 +148,7 @@ describe('components/global/PlanUpgradeButton', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <PlanUpgradeButton/>,
             state,
         );
@@ -156,7 +156,7 @@ describe('components/global/PlanUpgradeButton', () => {
         expect(screen.queryByRole('button', {name: 'View plans'})).not.toBeInTheDocument();
     });
 
-    it('should not show Upgrade button in global header for non admin self hosted users', () => {
+    it('should not show Upgrade button in global header for non admin self hosted users', async () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.users = {
             currentUserId: 'current_user_id',
@@ -169,7 +169,7 @@ describe('components/global/PlanUpgradeButton', () => {
             Cloud: 'false',
         };
 
-        renderWithContext(
+        await renderWithContext(
             <PlanUpgradeButton/>,
             state,
         );
@@ -177,7 +177,7 @@ describe('components/global/PlanUpgradeButton', () => {
         expect(screen.queryByRole('button', {name: 'View plans'})).not.toBeInTheDocument();
     });
 
-    it('should not show Upgrade button in global header for non enterprise edition self hosted users', () => {
+    it('should not show Upgrade button in global header for non enterprise edition self hosted users', async () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.users = {
             currentUserId: 'current_user_id',
@@ -195,7 +195,7 @@ describe('components/global/PlanUpgradeButton', () => {
             BuildEnterpriseReady: 'false',
         };
 
-        renderWithContext(
+        await renderWithContext(
             <PlanUpgradeButton/>,
             state,
         );
@@ -203,7 +203,7 @@ describe('components/global/PlanUpgradeButton', () => {
         expect(screen.queryByRole('button', {name: 'View plans'})).not.toBeInTheDocument();
     });
 
-    it('should NOT show Upgrade button in global header for self hosted non trial and licensed', () => {
+    it('should NOT show Upgrade button in global header for self hosted non trial and licensed', async () => {
         const state = JSON.parse(JSON.stringify(initialState));
 
         state.entities.general.license = {
@@ -214,7 +214,7 @@ describe('components/global/PlanUpgradeButton', () => {
         const cloudSubscriptionSpy = jest.spyOn(cloudActions, 'getCloudSubscription');
         const cloudProductsSpy = jest.spyOn(cloudActions, 'getCloudProducts');
 
-        renderWithContext(
+        await renderWithContext(
             <PlanUpgradeButton/>,
             state,
         );

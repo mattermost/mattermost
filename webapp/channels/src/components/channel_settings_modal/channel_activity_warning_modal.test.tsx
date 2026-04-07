@@ -15,8 +15,8 @@ describe('ChannelActivityWarningModal', () => {
         channelName: 'test-channel',
     };
 
-    test('should render modal when isOpen is true', () => {
-        renderWithContext(
+    test('should render modal when isOpen is true', async () => {
+        await renderWithContext(
             <ChannelActivityWarningModal {...defaultProps}/>,
         );
 
@@ -25,8 +25,8 @@ describe('ChannelActivityWarningModal', () => {
         expect(screen.getByText(/I acknowledge this change will expose/)).toBeInTheDocument();
     });
 
-    test('should not render modal when isOpen is false', () => {
-        renderWithContext(
+    test('should not render modal when isOpen is false', async () => {
+        await renderWithContext(
             <ChannelActivityWarningModal
                 {...defaultProps}
                 isOpen={false}
@@ -36,8 +36,8 @@ describe('ChannelActivityWarningModal', () => {
         expect(screen.queryByText('Exposing channel history')).not.toBeInTheDocument();
     });
 
-    test('should have disabled Save button initially', () => {
-        renderWithContext(
+    test('should have disabled Save button initially', async () => {
+        await renderWithContext(
             <ChannelActivityWarningModal {...defaultProps}/>,
         );
 
@@ -47,7 +47,7 @@ describe('ChannelActivityWarningModal', () => {
 
     test('should enable Save button when checkbox is checked', async () => {
         const user = userEvent.setup();
-        renderWithContext(
+        await renderWithContext(
             <ChannelActivityWarningModal {...defaultProps}/>,
         );
 
@@ -64,7 +64,7 @@ describe('ChannelActivityWarningModal', () => {
     test('should call onConfirm when Save button is clicked with checkbox checked', async () => {
         const user = userEvent.setup();
         const mockOnConfirm = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <ChannelActivityWarningModal
                 {...defaultProps}
                 onConfirm={mockOnConfirm}
@@ -83,7 +83,7 @@ describe('ChannelActivityWarningModal', () => {
     test('should call onClose when Cancel button is clicked', async () => {
         const user = userEvent.setup();
         const mockOnClose = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <ChannelActivityWarningModal
                 {...defaultProps}
                 onClose={mockOnClose}
@@ -96,8 +96,8 @@ describe('ChannelActivityWarningModal', () => {
         expect(mockOnClose).toHaveBeenCalledTimes(1);
     });
 
-    test('should reset checkbox when modal opens', () => {
-        const {rerender} = renderWithContext(
+    test('should reset checkbox when modal opens', async () => {
+        const {rerender} = await renderWithContext(
             <ChannelActivityWarningModal
                 {...defaultProps}
                 isOpen={false}
@@ -119,7 +119,7 @@ describe('ChannelActivityWarningModal', () => {
     test('should not call onConfirm when Save button is clicked without checkbox checked', async () => {
         const user = userEvent.setup();
         const mockOnConfirm = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <ChannelActivityWarningModal
                 {...defaultProps}
                 onConfirm={mockOnConfirm}

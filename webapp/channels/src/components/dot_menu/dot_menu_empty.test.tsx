@@ -74,7 +74,7 @@ describe('components/dot_menu/DotMenu returning empty ("")', () => {
         },
     };
 
-    test('should match snapshot, return empty ("") on Center', () => {
+    test('should match snapshot, return empty ("") on Center', async () => {
         const baseProps = {
             post: TestHelper.getPostMock({id: 'post_id_1'}),
             isLicensed: false,
@@ -126,7 +126,7 @@ describe('components/dot_menu/DotMenu returning empty ("")', () => {
             isUnrevealedBurnOnReadPost: false,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <DotMenu {...baseProps}/>,
             initialState,
         );

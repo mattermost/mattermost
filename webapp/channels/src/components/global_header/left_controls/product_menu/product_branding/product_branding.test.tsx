@@ -26,39 +26,39 @@ jest.mock('@mattermost/compass-icons/components', () => {
 });
 
 describe('components/ProductBranding', () => {
-    test('should show correct icon glyph when we are on Channels', () => {
+    test('should show correct icon glyph when we are on Channels', async () => {
         const currentProductSpy = jest.spyOn(productUtils, 'useCurrentProduct');
         currentProductSpy.mockReturnValue(null);
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ProductBranding/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should show correct icon glyph when we are on Playbooks', () => {
+    test('should show correct icon glyph when we are on Playbooks', async () => {
         const currentProductSpy = jest.spyOn(productUtils, 'useCurrentProduct');
         currentProductSpy.mockReturnValue(TestHelper.makeProduct(TopLevelProducts.PLAYBOOKS));
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ProductBranding/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should show correct icon glyph when we are on Boards', () => {
+    test('should show correct icon glyph when we are on Boards', async () => {
         const currentProductSpy = jest.spyOn(productUtils, 'useCurrentProduct');
         currentProductSpy.mockReturnValue(TestHelper.makeProduct(TopLevelProducts.BOARDS));
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ProductBranding/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should render a React element icon when switcherIcon is a React node', () => {
+    test('should render a React element icon when switcherIcon is a React node', async () => {
         const currentProductSpy = jest.spyOn(productUtils, 'useCurrentProduct');
         const CustomIcon = (
             <svg data-testid='custom-icon'>
@@ -75,7 +75,7 @@ describe('components/ProductBranding', () => {
         };
         currentProductSpy.mockReturnValue(productWithReactIcon);
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ProductBranding/>,
         );
 
@@ -83,7 +83,7 @@ describe('components/ProductBranding', () => {
         expect(screen.getByTestId('custom-icon')).toBeInTheDocument();
     });
 
-    test('should fallback to ProductChannelsIcon when string icon name is not found in glyphMap', () => {
+    test('should fallback to ProductChannelsIcon when string icon name is not found in glyphMap', async () => {
         const currentProductSpy = jest.spyOn(productUtils, 'useCurrentProduct');
         const productWithInvalidIcon: ProductComponent = {
             ...TestHelper.makeProduct('InvalidProduct'),
@@ -91,7 +91,7 @@ describe('components/ProductBranding', () => {
         };
         currentProductSpy.mockReturnValue(productWithInvalidIcon);
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ProductBranding/>,
         );
 

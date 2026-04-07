@@ -126,8 +126,8 @@ describe('channel_info_rhs/about_area_channel', () => {
         },
     };
 
-    test('should display channel purpose', () => {
-        renderWithContext(
+    test('should display channel purpose', async () => {
+        await renderWithContext(
             <AboutAreaChannel
                 {...defaultProps}
             />,
@@ -137,8 +137,8 @@ describe('channel_info_rhs/about_area_channel', () => {
         expect(screen.getByText('my channel purpose')).toBeInTheDocument();
     });
 
-    test('should display channel header', () => {
-        renderWithContext(
+    test('should display channel header', async () => {
+        await renderWithContext(
             <AboutAreaChannel
                 {...defaultProps}
             />,
@@ -148,7 +148,7 @@ describe('channel_info_rhs/about_area_channel', () => {
         expect(screen.getByText('my channel header')).toBeInTheDocument();
     });
 
-    test('should trigger editChannelName when clicking channel display name', () => {
+    test('should trigger editChannelName when clicking channel display name', async () => {
         const props = {
             ...defaultProps,
             actions: {
@@ -157,7 +157,7 @@ describe('channel_info_rhs/about_area_channel', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <AboutAreaChannel
                 {...props}
             />,

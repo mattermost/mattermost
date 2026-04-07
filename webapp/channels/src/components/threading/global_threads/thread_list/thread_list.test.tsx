@@ -96,15 +96,15 @@ describe('components/threading/global_threads/thread_list', () => {
         mockDispatch.mockClear();
     });
 
-    test('should match snapshot', () => {
-        const {baseElement} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {baseElement} = await renderWithContext(
             <ThreadList {...props}/>,
         );
         expect(baseElement).toMatchSnapshot();
     });
 
     test('should support filter:all', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ThreadList {...props}/>,
         );
 
@@ -113,7 +113,7 @@ describe('components/threading/global_threads/thread_list', () => {
     });
 
     test('should support filter:unread', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ThreadList {...props}/>,
         );
 
@@ -122,7 +122,7 @@ describe('components/threading/global_threads/thread_list', () => {
     });
 
     test('should support openModal', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ThreadList {...props}/>,
         );
 
@@ -131,7 +131,7 @@ describe('components/threading/global_threads/thread_list', () => {
     });
 
     test('should support getThreads', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ThreadList {...props}/>,
         );
 

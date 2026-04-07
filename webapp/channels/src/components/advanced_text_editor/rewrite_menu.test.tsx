@@ -116,8 +116,8 @@ describe('RewriteMenu', () => {
         customPromptRef: React.createRef<HTMLInputElement>(),
     };
 
-    test('should not render agent dropdown when no agents', () => {
-        renderWithContext(
+    test('should not render agent dropdown when no agents', async () => {
+        await renderWithContext(
             <RewriteMenu
                 {...baseProps}
                 agents={[]}
@@ -126,13 +126,13 @@ describe('RewriteMenu', () => {
         expect(screen.queryByTestId('agent-dropdown')).not.toBeInTheDocument();
     });
 
-    test('should render prompt input', () => {
-        renderWithContext(<RewriteMenu {...baseProps}/>);
+    test('should render prompt input', async () => {
+        await renderWithContext(<RewriteMenu {...baseProps}/>);
         expect(screen.getByTestId('prompt-input')).toBeInTheDocument();
     });
 
-    test('should render menu items when not processing and draft message exists', () => {
-        renderWithContext(
+    test('should render menu items when not processing and draft message exists', async () => {
+        await renderWithContext(
             <RewriteMenu
                 {...baseProps}
                 draftMessage='Test message'
@@ -142,8 +142,8 @@ describe('RewriteMenu', () => {
         expect(menuItems.length).toBeGreaterThan(0);
     });
 
-    test('should not render menu items when processing', () => {
-        renderWithContext(
+    test('should not render menu items when processing', async () => {
+        await renderWithContext(
             <RewriteMenu
                 {...baseProps}
                 isProcessing={true}
@@ -153,8 +153,8 @@ describe('RewriteMenu', () => {
         expect(screen.queryByTestId('menu-item')).not.toBeInTheDocument();
     });
 
-    test('should not render menu items when draft message is empty', () => {
-        renderWithContext(
+    test('should not render menu items when draft message is empty', async () => {
+        await renderWithContext(
             <RewriteMenu
                 {...baseProps}
                 draftMessage=''
@@ -163,8 +163,8 @@ describe('RewriteMenu', () => {
         expect(screen.queryByTestId('menu-item')).not.toBeInTheDocument();
     });
 
-    test('should render stop generating button when processing', () => {
-        renderWithContext(
+    test('should render stop generating button when processing', async () => {
+        await renderWithContext(
             <RewriteMenu
                 {...baseProps}
                 isProcessing={true}
@@ -175,7 +175,7 @@ describe('RewriteMenu', () => {
 
     test('should call onCancelProcessing when stop generating button is clicked', async () => {
         const onCancelProcessing = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <RewriteMenu
                 {...baseProps}
                 isProcessing={true}
@@ -186,8 +186,8 @@ describe('RewriteMenu', () => {
         expect(onCancelProcessing).toHaveBeenCalled();
     });
 
-    test('should render discard and regenerate buttons when not processing and original message exists', () => {
-        renderWithContext(
+    test('should render discard and regenerate buttons when not processing and original message exists', async () => {
+        await renderWithContext(
             <RewriteMenu
                 {...baseProps}
                 isProcessing={false}
@@ -200,8 +200,8 @@ describe('RewriteMenu', () => {
         expect(screen.getByTestId('menu-footer')).toBeInTheDocument();
     });
 
-    test('should not render discard and regenerate buttons when processing', () => {
-        renderWithContext(
+    test('should not render discard and regenerate buttons when processing', async () => {
+        await renderWithContext(
             <RewriteMenu
                 {...baseProps}
                 isProcessing={true}
@@ -216,7 +216,7 @@ describe('RewriteMenu', () => {
 
     test('should call onUndoMessage when discard button is clicked', async () => {
         const onUndoMessage = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <RewriteMenu
                 {...baseProps}
                 isProcessing={false}
@@ -231,7 +231,7 @@ describe('RewriteMenu', () => {
 
     test('should call onRegenerateMessage when regenerate button is clicked', async () => {
         const onRegenerateMessage = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <RewriteMenu
                 {...baseProps}
                 isProcessing={false}
@@ -246,7 +246,7 @@ describe('RewriteMenu', () => {
 
     test('should call onMenuAction when menu item is clicked', async () => {
         const onMenuAction = jest.fn(() => () => {});
-        renderWithContext(
+        await renderWithContext(
             <RewriteMenu
                 {...baseProps}
                 onMenuAction={onMenuAction}
@@ -260,7 +260,7 @@ describe('RewriteMenu', () => {
 
     test('should call setPrompt when prompt input changes', async () => {
         const setPrompt = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <RewriteMenu
                 {...baseProps}
                 setPrompt={setPrompt}
@@ -274,7 +274,7 @@ describe('RewriteMenu', () => {
 
     test('should call onCustomPromptKeyDown when key is pressed in prompt input', async () => {
         const onCustomPromptKeyDown = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <RewriteMenu
                 {...baseProps}
                 onCustomPromptKeyDown={onCustomPromptKeyDown}
@@ -286,8 +286,8 @@ describe('RewriteMenu', () => {
         expect(onCustomPromptKeyDown).toHaveBeenCalled();
     });
 
-    test('should not render prompt input when processing', () => {
-        renderWithContext(
+    test('should not render prompt input when processing', async () => {
+        await renderWithContext(
             <RewriteMenu
                 {...baseProps}
                 isProcessing={true}
@@ -296,8 +296,8 @@ describe('RewriteMenu', () => {
         expect(screen.queryByTestId('prompt-input')).not.toBeInTheDocument();
     });
 
-    test('should show placeholder text based on state', () => {
-        const {rerender} = renderWithContext(
+    test('should show placeholder text based on state', async () => {
+        const {rerender} = await renderWithContext(
             <RewriteMenu
                 {...baseProps}
                 draftMessage='Test message'
@@ -329,8 +329,8 @@ describe('RewriteMenu', () => {
         expect(input).toHaveAttribute('data-label', 'What would you like AI to do next?');
     });
 
-    test('should not render agent dropdown when processing', () => {
-        renderWithContext(
+    test('should not render agent dropdown when processing', async () => {
+        await renderWithContext(
             <RewriteMenu
                 {...baseProps}
                 isProcessing={true}
@@ -341,7 +341,7 @@ describe('RewriteMenu', () => {
 
     test('should call setSelectedAgentId when agent is selected', async () => {
         const setSelectedAgentId = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <RewriteMenu
                 {...baseProps}
                 setSelectedAgentId={setSelectedAgentId}

@@ -9,7 +9,7 @@ import {TestHelper} from 'utils/test_helper';
 import UserList from './user_list';
 
 describe('components/UserList', () => {
-    test('should match default snapshot', () => {
+    test('should match default snapshot', async () => {
         const props = {
             actionProps: {
                 mfaEnabled: false,
@@ -23,13 +23,13 @@ describe('components/UserList', () => {
                 isDisabled: false,
             },
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <UserList {...props}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should match default snapshot when there are users', () => {
+    test('should match default snapshot when there are users', async () => {
         const User1 = TestHelper.getUserMock({id: 'id1'});
         const User2 = TestHelper.getUserMock({id: 'id2'});
         const props = {
@@ -51,7 +51,7 @@ describe('components/UserList', () => {
             },
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <UserList {...props}/>,
         );
         expect(container).toMatchSnapshot();

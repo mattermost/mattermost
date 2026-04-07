@@ -41,20 +41,20 @@ describe('components/terms_of_service/TermsOfService', () => {
 
     test('should match snapshot', async () => {
         const props = {...baseProps};
-        const {container} = renderWithContext(<TermsOfService {...props}/>);
+        const {container} = await renderWithContext(<TermsOfService {...props}/>);
         await waitFor(() => {
             expect(screen.getByTestId('termsOfService')).toBeInTheDocument();
         });
         expect(container).toMatchSnapshot();
     });
 
-    test('should call getTermsOfService on mount', () => {
+    test('should call getTermsOfService on mount', async () => {
         const props = {...baseProps};
-        renderWithContext(<TermsOfService {...props}/>);
+        await renderWithContext(<TermsOfService {...props}/>);
         expect(props.actions.getTermsOfService).toHaveBeenCalledTimes(1);
     });
 
-    test('should match snapshot on loading', () => {
+    test('should match snapshot on loading', async () => {
         const props = {
             ...baseProps,
             actions: {
@@ -62,7 +62,7 @@ describe('components/terms_of_service/TermsOfService', () => {
                 getTermsOfService: jest.fn().mockReturnValue(new Promise(() => {})),
             },
         };
-        const {container} = renderWithContext(<TermsOfService {...props}/>);
+        const {container} = await renderWithContext(<TermsOfService {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
@@ -74,7 +74,7 @@ describe('components/terms_of_service/TermsOfService', () => {
                 updateMyTermsOfServiceStatus: jest.fn().mockReturnValue(new Promise(() => {})),
             },
         };
-        const {container} = renderWithContext(<TermsOfService {...props}/>);
+        const {container} = await renderWithContext(<TermsOfService {...props}/>);
         await waitFor(() => {
             expect(screen.getByTestId('termsOfService')).toBeInTheDocument();
         });
@@ -90,7 +90,7 @@ describe('components/terms_of_service/TermsOfService', () => {
                 updateMyTermsOfServiceStatus: jest.fn().mockReturnValue(new Promise(() => {})),
             },
         };
-        const {container} = renderWithContext(<TermsOfService {...props}/>);
+        const {container} = await renderWithContext(<TermsOfService {...props}/>);
         await waitFor(() => {
             expect(screen.getByTestId('termsOfService')).toBeInTheDocument();
         });
@@ -99,7 +99,7 @@ describe('components/terms_of_service/TermsOfService', () => {
     });
 
     test('should call updateTermsOfServiceStatus on registerUserAction', async () => {
-        renderWithContext(<TermsOfService {...baseProps}/>);
+        await renderWithContext(<TermsOfService {...baseProps}/>);
         await waitFor(() => {
             expect(screen.getByTestId('termsOfService')).toBeInTheDocument();
         });
@@ -108,7 +108,7 @@ describe('components/terms_of_service/TermsOfService', () => {
     });
 
     test('should match state and call updateTermsOfServiceStatus on handleAcceptTerms', async () => {
-        renderWithContext(<TermsOfService {...baseProps}/>);
+        await renderWithContext(<TermsOfService {...baseProps}/>);
         await waitFor(() => {
             expect(screen.getByTestId('termsOfService')).toBeInTheDocument();
         });
@@ -117,7 +117,7 @@ describe('components/terms_of_service/TermsOfService', () => {
     });
 
     test('should match state and call updateTermsOfServiceStatus on handleRejectTerms', async () => {
-        renderWithContext(<TermsOfService {...baseProps}/>);
+        await renderWithContext(<TermsOfService {...baseProps}/>);
         await waitFor(() => {
             expect(screen.getByTestId('termsOfService')).toBeInTheDocument();
         });
@@ -126,7 +126,7 @@ describe('components/terms_of_service/TermsOfService', () => {
     });
 
     test('should call emitUserLoggedOutEvent on handleLogoutClick', async () => {
-        renderWithContext(<TermsOfService {...baseProps}/>);
+        await renderWithContext(<TermsOfService {...baseProps}/>);
         await waitFor(() => {
             expect(screen.getByTestId('termsOfService')).toBeInTheDocument();
         });

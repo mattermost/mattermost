@@ -30,8 +30,8 @@ describe('GroupOption', () => {
         addUserProfile: jest.fn(),
     };
 
-    test('should match snapshot', () => {
-        const wrapper = renderWithContext(
+    test('should match snapshot', async () => {
+        const wrapper = await renderWithContext(
             <GroupOption
                 {...props}
             />,
@@ -39,9 +39,9 @@ describe('GroupOption', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    it('should cleanup keydown event listener on unmount', () => {
+    it('should cleanup keydown event listener on unmount', async () => {
         const addUserProfileMock = jest.fn();
-        const wrapper = renderWithContext(
+        const wrapper = await renderWithContext(
             <GroupOption
                 group={mockGroup}
                 isSelected={false}
@@ -57,11 +57,11 @@ describe('GroupOption', () => {
         expect(addUserProfileMock).not.toHaveBeenCalled();
     });
 
-    it('should cleanup keydown event listener on unmount and dispatch event correctly before unmount', () => {
+    it('should cleanup keydown event listener on unmount and dispatch event correctly before unmount', async () => {
         const addUserProfileMock = jest.fn();
         props.isSelected = true;
 
-        const wrapper = renderWithContext(
+        const wrapper = await renderWithContext(
             <GroupOption
                 {...props}
                 addUserProfile={addUserProfileMock}

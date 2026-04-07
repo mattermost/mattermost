@@ -8,12 +8,12 @@ import EmojiPickerHeader from 'components/emoji_picker/components/emoji_picker_h
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 describe('components/emoji_picker/components/EmojiPickerHeader', () => {
-    test('should match snapshot, ', () => {
+    test('should match snapshot, ', async () => {
         const props = {
             handleEmojiPickerClose: jest.fn(),
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <EmojiPickerHeader {...props}/>,
         );
 
@@ -24,7 +24,7 @@ describe('components/emoji_picker/components/EmojiPickerHeader', () => {
             handleEmojiPickerClose: jest.fn(),
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <EmojiPickerHeader {...props}/>,
         );
 

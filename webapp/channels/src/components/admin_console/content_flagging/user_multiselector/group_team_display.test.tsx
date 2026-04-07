@@ -47,8 +47,8 @@ describe('GroupTeamDisplay', () => {
     };
 
     describe('team rendering', () => {
-        it('should render team badge with icon', () => {
-            const {container} = renderWithContext(
+        it('should render team badge with icon', async () => {
+            const {container} = await renderWithContext(
                 <GroupTeamDisplay
                     item={mockTeam}
                     variant='team'
@@ -63,8 +63,8 @@ describe('GroupTeamDisplay', () => {
             expect(icon).toBeInTheDocument();
         });
 
-        it('should render team display name', () => {
-            const {getByText} = renderWithContext(
+        it('should render team display name', async () => {
+            const {getByText} = await renderWithContext(
                 <GroupTeamDisplay
                     item={mockTeam}
                     variant='team'
@@ -74,9 +74,9 @@ describe('GroupTeamDisplay', () => {
             expect(getByText('Engineering Team')).toBeInTheDocument();
         });
 
-        it('should fallback to team name if display_name is empty', () => {
+        it('should fallback to team name if display_name is empty', async () => {
             const teamWithoutDisplayName = {...mockTeam, display_name: ''};
-            const {getByText} = renderWithContext(
+            const {getByText} = await renderWithContext(
                 <GroupTeamDisplay
                     item={teamWithoutDisplayName}
                     variant='team'
@@ -88,8 +88,8 @@ describe('GroupTeamDisplay', () => {
     });
 
     describe('group rendering', () => {
-        it('should render group badge with icon', () => {
-            const {container} = renderWithContext(
+        it('should render group badge with icon', async () => {
+            const {container} = await renderWithContext(
                 <GroupTeamDisplay
                     item={mockGroup}
                     variant='group'
@@ -104,8 +104,8 @@ describe('GroupTeamDisplay', () => {
             expect(icon).toBeInTheDocument();
         });
 
-        it('should render group display name', () => {
-            const {getByText} = renderWithContext(
+        it('should render group display name', async () => {
+            const {getByText} = await renderWithContext(
                 <GroupTeamDisplay
                     item={mockGroup}
                     variant='group'
@@ -115,9 +115,9 @@ describe('GroupTeamDisplay', () => {
             expect(getByText('Developers')).toBeInTheDocument();
         });
 
-        it('should fallback to group name if display_name is empty', () => {
+        it('should fallback to group name if display_name is empty', async () => {
             const groupWithoutDisplayName = {...mockGroup, display_name: ''};
-            const {getByText} = renderWithContext(
+            const {getByText} = await renderWithContext(
                 <GroupTeamDisplay
                     item={groupWithoutDisplayName}
                     variant='group'
@@ -129,8 +129,8 @@ describe('GroupTeamDisplay', () => {
     });
 
     describe('styling', () => {
-        it('should render GroupIcon with correct class', () => {
-            const {container} = renderWithContext(
+        it('should render GroupIcon with correct class', async () => {
+            const {container} = await renderWithContext(
                 <GroupTeamDisplay
                     item={mockGroup}
                     variant='group'
@@ -141,8 +141,8 @@ describe('GroupTeamDisplay', () => {
             expect(badge).toBeInTheDocument();
         });
 
-        it('should render GroupLabel with correct class', () => {
-            const {container} = renderWithContext(
+        it('should render GroupLabel with correct class', async () => {
+            const {container} = await renderWithContext(
                 <GroupTeamDisplay
                     item={mockGroup}
                     variant='group'

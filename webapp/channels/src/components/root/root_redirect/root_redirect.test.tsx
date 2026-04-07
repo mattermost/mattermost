@@ -57,8 +57,8 @@ describe('components/RootRedirect', () => {
         jest.clearAllMocks();
     });
 
-    test('should redirect to /login when currentUserId is empty', () => {
-        renderWithContext(<RootRedirect {...defaultProps}/>);
+    test('should redirect to /login when currentUserId is empty', async () => {
+        await renderWithContext(<RootRedirect {...defaultProps}/>);
 
         expect(Redirect).toHaveBeenCalledTimes(1);
         expect(Redirect).toHaveBeenCalledWith(
@@ -71,14 +71,14 @@ describe('components/RootRedirect', () => {
         );
     });
 
-    test('should call GlobalActions.redirectUserToDefaultTeam when user is logged in and not eligible for first admin onboarding', () => {
+    test('should call GlobalActions.redirectUserToDefaultTeam when user is logged in and not eligible for first admin onboarding', async () => {
         const props = {
             ...defaultProps,
             currentUserId: 'test-user-id',
             isElegibleForFirstAdmingOnboarding: false,
         };
 
-        renderWithContext(<RootRedirect {...props}/>);
+        await renderWithContext(<RootRedirect {...props}/>);
 
         expect(GlobalActions.redirectUserToDefaultTeam).toHaveBeenCalledTimes(1);
     });
@@ -97,7 +97,7 @@ describe('components/RootRedirect', () => {
             },
         };
 
-        renderWithContext(<RootRedirect {...props}/>, {}, {history});
+        await renderWithContext(<RootRedirect {...props}/>, {}, {history});
 
         expect(props.actions.getFirstAdminSetupComplete).toHaveBeenCalledTimes(1);
 
@@ -120,7 +120,7 @@ describe('components/RootRedirect', () => {
             },
         };
 
-        renderWithContext(<RootRedirect {...props}/>, {}, {history});
+        await renderWithContext(<RootRedirect {...props}/>, {}, {history});
 
         expect(props.actions.getFirstAdminSetupComplete).toHaveBeenCalledTimes(1);
 
@@ -141,7 +141,7 @@ describe('components/RootRedirect', () => {
             },
         };
 
-        renderWithContext(<RootRedirect {...props}/>);
+        await renderWithContext(<RootRedirect {...props}/>);
 
         expect(props.actions.getFirstAdminSetupComplete).toHaveBeenCalledTimes(1);
 
@@ -162,7 +162,7 @@ describe('components/RootRedirect', () => {
             },
         };
 
-        renderWithContext(<RootRedirect {...props}/>);
+        await renderWithContext(<RootRedirect {...props}/>);
 
         expect(props.actions.getFirstAdminSetupComplete).toHaveBeenCalledTimes(1);
 

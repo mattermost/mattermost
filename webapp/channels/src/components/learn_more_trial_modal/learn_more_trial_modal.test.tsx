@@ -58,16 +58,16 @@ describe('components/learn_more_trial_modal/learn_more_trial_modal', () => {
         onExited: jest.fn(),
     };
 
-    test('should match snapshot', () => {
-        const {baseElement} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {baseElement} = await renderWithContext(
             <LearnMoreTrialModal {...props}/>,
             state,
         );
         expect(baseElement).toMatchSnapshot();
     });
 
-    test('should show the learn more about trial modal carousel slides', () => {
-        renderWithContext(
+    test('should show the learn more about trial modal carousel slides', async () => {
+        await renderWithContext(
             <LearnMoreTrialModal {...props}/>,
             state,
         );
@@ -77,7 +77,7 @@ describe('components/learn_more_trial_modal/learn_more_trial_modal', () => {
     test('should call on close', async () => {
         const mockOnClose = jest.fn();
 
-        renderWithContext(
+        await renderWithContext(
             <LearnMoreTrialModal
                 {...props}
                 onClose={mockOnClose}
@@ -95,7 +95,7 @@ describe('components/learn_more_trial_modal/learn_more_trial_modal', () => {
     test('should call on exited', async () => {
         const mockOnExited = jest.fn();
 
-        renderWithContext(
+        await renderWithContext(
             <LearnMoreTrialModal
                 {...props}
                 onExited={mockOnExited}
@@ -111,7 +111,7 @@ describe('components/learn_more_trial_modal/learn_more_trial_modal', () => {
     });
 
     test('should move the slides when clicking carousel next and prev buttons', async () => {
-        renderWithContext(
+        await renderWithContext(
             <LearnMoreTrialModal
                 {...props}
             />,
@@ -140,7 +140,7 @@ describe('components/learn_more_trial_modal/learn_more_trial_modal', () => {
         expect(document.querySelector('.slide.active-anim #learnMoreTrialModalStep-ldap')).not.toBeNull();
     });
 
-    test('should have the self hosted request trial button cloud free is disabled', () => {
+    test('should have the self hosted request trial button cloud free is disabled', async () => {
         const nonCloudState = {
             ...state,
             entities: {
@@ -155,7 +155,7 @@ describe('components/learn_more_trial_modal/learn_more_trial_modal', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <LearnMoreTrialModal
                 {...props}
             />,

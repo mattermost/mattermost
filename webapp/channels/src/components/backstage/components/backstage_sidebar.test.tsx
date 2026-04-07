@@ -31,7 +31,7 @@ describe('components/backstage/components/BackstageSidebar', () => {
     };
 
     // Helper to render with router at integrations path to show children
-    const renderAtIntegrationsPath = (props: ComponentProps<typeof BackstageSidebar>) => {
+    const renderAtIntegrationsPath = async (props: ComponentProps<typeof BackstageSidebar>) => {
         return renderWithContext(
             <MemoryRouter initialEntries={['/team_name/integrations']}>
                 <BackstageSidebar {...props}/>

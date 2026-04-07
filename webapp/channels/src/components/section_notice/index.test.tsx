@@ -39,7 +39,7 @@ function getBaseProps(): Props {
 describe('PluginAction', () => {
     it('does show the correct information', async () => {
         const props = getBaseProps();
-        renderWithContext(<SectionNotice {...props}/>);
+        await renderWithContext(<SectionNotice {...props}/>);
         const primaryButton = screen.getByText(props.primaryButton!.text);
         const secondaryButton = screen.getByText(props.secondaryButton!.text);
         const tertiaryButton = screen.getByText(props.tertiaryButton!.text);
@@ -65,14 +65,14 @@ describe('PluginAction', () => {
         expect(props.onDismissClick).toHaveBeenCalledTimes(1);
     });
 
-    it('does not show the button if no button is passed', () => {
+    it('does not show the button if no button is passed', async () => {
         const props = getBaseProps();
         props.primaryButton = undefined;
         props.secondaryButton = undefined;
         props.tertiaryButton = undefined;
         props.linkButton = undefined;
         props.isDismissable = false;
-        renderWithContext(<SectionNotice {...props}/>);
+        await renderWithContext(<SectionNotice {...props}/>);
         expect(screen.queryByRole('button')).not.toBeInTheDocument();
     });
 });

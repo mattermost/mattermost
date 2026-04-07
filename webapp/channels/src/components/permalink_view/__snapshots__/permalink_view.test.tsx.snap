@@ -1,12 +1,5 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
-exports[`components/PermalinkView should match snapshot 1`] = `
-<div>
-  <div
-    class="app__content"
-    id="app-content"
-  />
-</div>
-`;
+exports[`components/PermalinkView should match snapshot 1`] = `<div />`;
 
 exports[`components/PermalinkView should match snapshot with archived channel 1`] = `<div />`;

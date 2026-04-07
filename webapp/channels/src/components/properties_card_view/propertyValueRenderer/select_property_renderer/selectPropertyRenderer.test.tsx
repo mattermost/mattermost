@@ -25,11 +25,11 @@ describe('SelectPropertyRenderer', () => {
         },
     } as SelectPropertyField;
 
-    it('should render select property with light_blue color', () => {
+    it('should render select property with light_blue color', async () => {
         const field = baseField;
         const value = {value: 'option1'} as PropertyValue<string>;
 
-        renderWithContext(
+        await renderWithContext(
             <SelectPropertyRenderer
                 field={field}
                 value={value}
@@ -47,11 +47,11 @@ describe('SelectPropertyRenderer', () => {
         });
     });
 
-    it('should render select property with dark_blue color', () => {
+    it('should render select property with dark_blue color', async () => {
         const field = baseField;
         const value = {value: 'option2'} as PropertyValue<string>;
 
-        renderWithContext(
+        await renderWithContext(
             <SelectPropertyRenderer
                 field={field}
                 value={value}
@@ -66,11 +66,11 @@ describe('SelectPropertyRenderer', () => {
         });
     });
 
-    it('should render select property with dark_red color', () => {
+    it('should render select property with dark_red color', async () => {
         const field = baseField;
         const value = {value: 'option3'} as PropertyValue<string>;
 
-        renderWithContext(
+        await renderWithContext(
             <SelectPropertyRenderer
                 field={field}
                 value={value}
@@ -85,11 +85,11 @@ describe('SelectPropertyRenderer', () => {
         });
     });
 
-    it('should render select property with default light_gray color', () => {
+    it('should render select property with default light_gray color', async () => {
         const field = baseField;
         const value = {value: 'option4'} as PropertyValue<string>;
 
-        renderWithContext(
+        await renderWithContext(
             <SelectPropertyRenderer
                 field={field}
                 value={value}
@@ -104,7 +104,7 @@ describe('SelectPropertyRenderer', () => {
         });
     });
 
-    it('should use default color when option color is not found', () => {
+    it('should use default color when option color is not found', async () => {
         const field: SelectPropertyField = {
             ...baseField,
             attrs: {
@@ -116,7 +116,7 @@ describe('SelectPropertyRenderer', () => {
         };
         const value = {value: 'option1'} as PropertyValue<string>;
 
-        renderWithContext(
+        await renderWithContext(
             <SelectPropertyRenderer
                 field={field}
                 value={value}
@@ -130,11 +130,11 @@ describe('SelectPropertyRenderer', () => {
         });
     });
 
-    it('should use default color when option is not found in field options', () => {
+    it('should use default color when option is not found in field options', async () => {
         const field = baseField;
         const value = {value: 'nonexistent_option'} as PropertyValue<string>;
 
-        renderWithContext(
+        await renderWithContext(
             <SelectPropertyRenderer
                 field={field}
                 value={value}
@@ -149,7 +149,7 @@ describe('SelectPropertyRenderer', () => {
         });
     });
 
-    it('should use default color when field has no options', () => {
+    it('should use default color when field has no options', async () => {
         const field: SelectPropertyField = {
             ...baseField,
             attrs: {
@@ -159,7 +159,7 @@ describe('SelectPropertyRenderer', () => {
         };
         const value = {value: 'some_value'} as PropertyValue<string>;
 
-        renderWithContext(
+        await renderWithContext(
             <SelectPropertyRenderer
                 field={field}
                 value={value}
@@ -174,7 +174,7 @@ describe('SelectPropertyRenderer', () => {
         });
     });
 
-    it('should use default color when field attrs is undefined', () => {
+    it('should use default color when field attrs is undefined', async () => {
         const field = {
             id: 'test-field',
             name: 'Test Field',
@@ -182,7 +182,7 @@ describe('SelectPropertyRenderer', () => {
         } as PropertyField;
         const value = {value: 'some_value'} as PropertyValue<string>;
 
-        renderWithContext(
+        await renderWithContext(
             <SelectPropertyRenderer
                 field={field}
                 value={value}

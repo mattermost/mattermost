@@ -31,8 +31,8 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
     const teamSchemeID = 'id';
     const teamSchemeDisplayName = 'dp';
 
-    test('Should match first Snapshot', () => {
-        const {container} = renderWithContext(
+    test('Should match first Snapshot', async () => {
+        const {container} = await renderWithContext(
             <ChannelModeration
                 channelPermissions={channelPermissions}
                 onChannelPermissionsChanged={onChannelPermissionsChanged}
@@ -46,8 +46,8 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
         expect(container).toMatchSnapshot();
     });
 
-    test('Should match second Snapshot', () => {
-        const {container} = renderWithContext(
+    test('Should match second Snapshot', async () => {
+        const {container} = await renderWithContext(
             <table>
                 <tbody>
                     <ChannelModerationTableRow
@@ -66,7 +66,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
         expect(container).toMatchSnapshot();
     });
 
-    test('Should match third Snapshot', () => {
+    test('Should match third Snapshot', async () => {
         const channelPermissionsCustom: ChannelPermissions[] = [
             {
                 name: 'create_post',
@@ -103,7 +103,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
                 },
             },
         ];
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelModeration
                 channelPermissions={channelPermissionsCustom}
                 onChannelPermissionsChanged={onChannelPermissionsChanged}
@@ -117,7 +117,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
         expect(container).toMatchSnapshot();
     });
 
-    test('Should match fourth Snapshot', () => {
+    test('Should match fourth Snapshot', async () => {
         const channelPermissionsCustom: ChannelPermissions[] = [
             {
                 name: 'create_post',
@@ -154,7 +154,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
                 },
             },
         ];
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelModeration
                 channelPermissions={channelPermissionsCustom}
                 onChannelPermissionsChanged={onChannelPermissionsChanged}
@@ -168,7 +168,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
         expect(container).toMatchSnapshot();
     });
 
-    test('Should match fifth Snapshot', () => {
+    test('Should match fifth Snapshot', async () => {
         const channelPermissionsCustom: ChannelPermissions[] = [
             {
                 name: 'create_post',
@@ -205,7 +205,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
                 },
             },
         ];
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelModeration
                 channelPermissions={channelPermissionsCustom}
                 onChannelPermissionsChanged={onChannelPermissionsChanged}
@@ -219,7 +219,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
         expect(container).toMatchSnapshot();
     });
 
-    test('Should match snapshot with create_post guests off and members on, private channel', () => {
+    test('Should match snapshot with create_post guests off and members on, private channel', async () => {
         const channelPermissionsCustom: ChannelPermissions[] = [
             {
                 name: 'create_post',
@@ -256,7 +256,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
                 },
             },
         ];
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelModeration
                 channelPermissions={channelPermissionsCustom}
                 onChannelPermissionsChanged={onChannelPermissionsChanged}
@@ -270,8 +270,8 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
         expect(container).toMatchSnapshot();
     });
 
-    test('Should match snapshot with no team scheme and guest accounts disabled', () => {
-        const {container} = renderWithContext(
+    test('Should match snapshot with no team scheme and guest accounts disabled', async () => {
+        const {container} = await renderWithContext(
             <ChannelModeration
                 channelPermissions={channelPermissions}
                 onChannelPermissionsChanged={onChannelPermissionsChanged}
@@ -285,8 +285,8 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
         expect(container).toMatchSnapshot();
     });
 
-    test('Should match snapshot for ChannelModerationTableRow with guest accounts disabled', () => {
-        const {container} = renderWithContext(
+    test('Should match snapshot for ChannelModerationTableRow with guest accounts disabled', async () => {
+        const {container} = await renderWithContext(
             <table>
                 <tbody>
                     <ChannelModerationTableRow
@@ -306,8 +306,8 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
     });
 
     describe('errorMessages function', () => {
-        test('Should not return any error messages', () => {
-            renderWithContext(
+        test('Should not return any error messages', async () => {
+            await renderWithContext(
                 <ChannelModeration
                     channelPermissions={channelPermissions}
                     onChannelPermissionsChanged={onChannelPermissionsChanged}
@@ -325,7 +325,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
             expect(screen.queryByTestId('admin-channel_settings-channel_moderation-createPosts-disabledBoth')).not.toBeInTheDocument();
         });
 
-        test('Should return error message when create_post guests disabled', () => {
+        test('Should return error message when create_post guests disabled', async () => {
             const channelPermissionsWithGuestsDisabled: ChannelPermissions[] = [{
                 name: 'create_post',
                 roles: {
@@ -344,7 +344,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
                 },
             }];
 
-            renderWithContext(
+            await renderWithContext(
                 <ChannelModeration
                     channelPermissions={channelPermissionsWithGuestsDisabled}
                     onChannelPermissionsChanged={onChannelPermissionsChanged}
@@ -359,7 +359,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
             expect(screen.getByTestId('admin-channel_settings-channel_moderation-createPosts-disabledGuest')).toBeInTheDocument();
         });
 
-        test('Should return error message when create_post members disabled', () => {
+        test('Should return error message when create_post members disabled', async () => {
             const channelPermissionsWithMembersDisabled: ChannelPermissions[] = [{
                 name: 'create_post',
                 roles: {
@@ -378,7 +378,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
                 },
             }];
 
-            renderWithContext(
+            await renderWithContext(
                 <ChannelModeration
                     channelPermissions={channelPermissionsWithMembersDisabled}
                     onChannelPermissionsChanged={onChannelPermissionsChanged}
@@ -393,7 +393,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
             expect(screen.getByTestId('admin-channel_settings-channel_moderation-createPosts-disabledMember')).toBeInTheDocument();
         });
 
-        test('Should return 1 error message when create_post members and guests disabled', () => {
+        test('Should return 1 error message when create_post members and guests disabled', async () => {
             const channelPermissionsWithBothDisabled: ChannelPermissions[] = [{
                 name: 'create_post',
                 roles: {
@@ -412,7 +412,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
                 },
             }];
 
-            renderWithContext(
+            await renderWithContext(
                 <ChannelModeration
                     channelPermissions={channelPermissionsWithBothDisabled}
                     onChannelPermissionsChanged={onChannelPermissionsChanged}
@@ -427,7 +427,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
             expect(screen.getByTestId('admin-channel_settings-channel_moderation-createPosts-disabledBoth')).toBeInTheDocument();
         });
 
-        test('Should not return error messages for use_channel_mentions', () => {
+        test('Should not return error messages for use_channel_mentions', async () => {
             const channelPermissionsCustom: ChannelPermissions[] = [
                 {
                     name: 'create_post',
@@ -465,7 +465,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
                 },
             ];
 
-            renderWithContext(
+            await renderWithContext(
                 <ChannelModeration
                     channelPermissions={channelPermissionsCustom}
                     onChannelPermissionsChanged={onChannelPermissionsChanged}
@@ -485,7 +485,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
             expect(screen.queryByTestId('admin-channel_settings-channel_moderation-channelMentions-disabledBothDueToCreatePosts')).not.toBeInTheDocument();
         });
 
-        test('Should return 2 error messages for use_channel_mentions when guests blocked by create_post and members disabled in scheme', () => {
+        test('Should return 2 error messages for use_channel_mentions when guests blocked by create_post and members disabled in scheme', async () => {
             const channelPermissionsCustom: ChannelPermissions[] = [
                 {
                     name: 'create_post',
@@ -523,7 +523,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
                 },
             ];
 
-            renderWithContext(
+            await renderWithContext(
                 <ChannelModeration
                     channelPermissions={channelPermissionsCustom}
                     onChannelPermissionsChanged={onChannelPermissionsChanged}
@@ -542,7 +542,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
             expect(screen.getByTestId('admin-channel_settings-channel_moderation-channelMentions-disabledMember')).toBeInTheDocument();
         });
 
-        test('Should return 1 error message for use_channel_mentions when both create_post off, public channel', () => {
+        test('Should return 1 error message for use_channel_mentions when both create_post off, public channel', async () => {
             const channelPermissionsCustom: ChannelPermissions[] = [
                 {
                     name: 'create_post',
@@ -580,7 +580,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
                 },
             ];
 
-            renderWithContext(
+            await renderWithContext(
                 <ChannelModeration
                     channelPermissions={channelPermissionsCustom}
                     onChannelPermissionsChanged={onChannelPermissionsChanged}
@@ -596,7 +596,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
             expect(screen.getByTestId('admin-channel_settings-channel_moderation-channelMentions-disabledBothDueToCreatePosts')).toBeInTheDocument();
         });
 
-        test('Should return 2 error messages for use_channel_mentions when members blocked by create_post and guests disabled in scheme', () => {
+        test('Should return 2 error messages for use_channel_mentions when members blocked by create_post and guests disabled in scheme', async () => {
             const channelPermissionsCustom: ChannelPermissions[] = [
                 {
                     name: 'create_post',
@@ -634,7 +634,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
                 },
             ];
 
-            renderWithContext(
+            await renderWithContext(
                 <ChannelModeration
                     channelPermissions={channelPermissionsCustom}
                     onChannelPermissionsChanged={onChannelPermissionsChanged}
@@ -653,7 +653,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
             expect(screen.getByTestId('admin-channel_settings-channel_moderation-channelMentions-disabledGuest')).toBeInTheDocument();
         });
 
-        test('Should return 1 error message for use_channel_mention when create_posts is checked and use_channel_mentions is disabled', () => {
+        test('Should return 1 error message for use_channel_mention when create_posts is checked and use_channel_mentions is disabled', async () => {
             const channelPermissionsCustom: ChannelPermissions[] = [
                 {
                     name: 'create_post',
@@ -691,7 +691,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
                 },
             ];
 
-            renderWithContext(
+            await renderWithContext(
                 <ChannelModeration
                     channelPermissions={channelPermissionsCustom}
                     onChannelPermissionsChanged={onChannelPermissionsChanged}

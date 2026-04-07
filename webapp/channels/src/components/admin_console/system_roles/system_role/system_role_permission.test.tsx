@@ -9,7 +9,7 @@ import SystemRolePermission from './system_role_permission';
 import {readAccess} from './types';
 
 describe('admin_console/system_role_permission', () => {
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const props = {
             readOnly: true,
             setSectionVisible: jest.fn(),
@@ -28,7 +28,7 @@ describe('admin_console/system_role_permission', () => {
             updatePermissions: jest.fn(),
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SystemRolePermission
                 {...props}
             />,

@@ -30,10 +30,10 @@ describe('channel_members_rhs/action_bar', () => {
         };
     });
 
-    test('should display the members count', () => {
+    test('should display the members count', async () => {
         const testProps: Props = {...actionBarDefaultProps};
 
-        renderWithContext(
+        await renderWithContext(
             <ActionBar
                 {...testProps}
             />,
@@ -45,7 +45,7 @@ describe('channel_members_rhs/action_bar', () => {
     test('should display Add button', async () => {
         const testProps: Props = {...actionBarDefaultProps};
 
-        renderWithContext(
+        await renderWithContext(
             <ActionBar
                 {...testProps}
             />,
@@ -56,10 +56,10 @@ describe('channel_members_rhs/action_bar', () => {
         expect(testProps.actions.inviteMembers).toHaveBeenCalled();
     });
 
-    test('should not display Add button to members', () => {
+    test('should not display Add button to members', async () => {
         const testProps: Props = {...actionBarDefaultProps, canManageMembers: false};
 
-        renderWithContext(
+        await renderWithContext(
             <ActionBar
                 {...testProps}
             />,
@@ -71,7 +71,7 @@ describe('channel_members_rhs/action_bar', () => {
     test('should display Manage', async () => {
         const testProps: Props = {...actionBarDefaultProps};
 
-        renderWithContext(
+        await renderWithContext(
             <ActionBar
                 {...testProps}
             />,
@@ -88,7 +88,7 @@ describe('channel_members_rhs/action_bar', () => {
             editing: true,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ActionBar
                 {...testProps}
             />,
@@ -99,10 +99,10 @@ describe('channel_members_rhs/action_bar', () => {
         expect(testProps.actions.stopEditing).toHaveBeenCalled();
     });
 
-    test('should not display manage button to members', () => {
+    test('should not display manage button to members', async () => {
         const testProps: Props = {...actionBarDefaultProps, canManageMembers: false};
 
-        renderWithContext(
+        await renderWithContext(
             <ActionBar
                 {...testProps}
             />,

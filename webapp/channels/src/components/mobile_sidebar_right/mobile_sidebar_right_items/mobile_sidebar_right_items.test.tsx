@@ -93,16 +93,16 @@ describe('MobileSidebarRightItems', () => {
         },
     };
 
-    test('should render basic menu items', () => {
-        renderWithContext(<MobileSidebarRightItems {...defaultProps}/>, defaultState);
+    test('should render basic menu items', async () => {
+        await renderWithContext(<MobileSidebarRightItems {...defaultProps}/>, defaultState);
         expect(screen.getByText('Recent Mentions')).toBeInTheDocument();
         expect(screen.getByText('Saved messages')).toBeInTheDocument();
         expect(screen.getByText('Profile')).toBeInTheDocument();
         expect(screen.getByText('Settings')).toBeInTheDocument();
     });
 
-    test('should show leave team option when primary team is not set', () => {
-        renderWithContext(
+    test('should show leave team option when primary team is not set', async () => {
+        await renderWithContext(
             <MobileSidebarRightItems
                 {...defaultProps}
                 teamIsGroupConstrained={false}
@@ -113,8 +113,8 @@ describe('MobileSidebarRightItems', () => {
         expect(screen.getByText('Leave Team')).toBeInTheDocument();
     });
 
-    test('should hide leave team option when team is group constrained', () => {
-        renderWithContext(
+    test('should hide leave team option when team is group constrained', async () => {
+        await renderWithContext(
             <MobileSidebarRightItems
                 {...defaultProps}
                 teamIsGroupConstrained={true}
@@ -124,12 +124,12 @@ describe('MobileSidebarRightItems', () => {
         expect(screen.queryByText('Leave Team')).not.toBeInTheDocument();
     });
 
-    test('should show create team option with proper permissions', () => {
-        renderWithContext(<MobileSidebarRightItems {...defaultProps}/>, defaultState);
+    test('should show create team option with proper permissions', async () => {
+        await renderWithContext(<MobileSidebarRightItems {...defaultProps}/>, defaultState);
         expect(screen.getByText('Create a Team')).toBeInTheDocument();
     });
 
-    test('should show plugins when provided', () => {
+    test('should show plugins when provided', async () => {
         const pluginMenuItems = [
             {
                 id: 'plugin-1',
@@ -139,7 +139,7 @@ describe('MobileSidebarRightItems', () => {
                 text: 'Plugin Item 1',
             },
         ];
-        renderWithContext(
+        await renderWithContext(
             <MobileSidebarRightItems
                 {...defaultProps}
                 pluginMenuItems={pluginMenuItems}
@@ -149,8 +149,8 @@ describe('MobileSidebarRightItems', () => {
         expect(screen.getByText('Plugin Item 1')).toBeInTheDocument();
     });
 
-    test('should show help link when provided', () => {
-        renderWithContext(
+    test('should show help link when provided', async () => {
+        await renderWithContext(
             <MobileSidebarRightItems
                 {...defaultProps}
                 helpLink='https://help.example.com'
@@ -160,8 +160,8 @@ describe('MobileSidebarRightItems', () => {
         expect(screen.getByText('Help')).toBeInTheDocument();
     });
 
-    test('should show report link when provided', () => {
-        renderWithContext(
+    test('should show report link when provided', async () => {
+        await renderWithContext(
             <MobileSidebarRightItems
                 {...defaultProps}
                 reportAProblemLink='https://report.example.com'

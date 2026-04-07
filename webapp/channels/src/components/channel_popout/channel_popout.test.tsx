@@ -85,7 +85,7 @@ describe('ChannelPopout', () => {
         },
     };
 
-    function renderPopout(url: string) {
+    async function renderPopout(url: string) {
         return renderWithContext(
             <MemoryRouter initialEntries={[url]}>
                 <Route path='/_popout/channel/:team/:path(channels|messages)/:identifier/:postid?'>
@@ -100,13 +100,13 @@ describe('ChannelPopout', () => {
         jest.clearAllMocks();
     });
 
-    test('should show loading screen when team is not found', () => {
+    test('should show loading screen when team is not found', async () => {
         jest.mocked(useTeamByName).mockReturnValue(undefined);
         renderPopout('/_popout/channel/test-team/channels/town-square');
         expect(screen.getByTestId('loading-screen')).toBeInTheDocument();
     });
 
-    test('should render ChannelIdentifierRouter and SidebarRight when team is resolved', () => {
+    test('should render ChannelIdentifierRouter and SidebarRight when team is resolved', async () => {
         jest.mocked(useTeamByName).mockReturnValue(team);
         renderPopout('/_popout/channel/test-team/channels/town-square');
 
@@ -135,14 +135,14 @@ describe('ChannelPopout', () => {
         });
     });
 
-    test('should apply rhs-open class when RHS is open', () => {
+    test('should apply rhs-open class when RHS is open', async () => {
         jest.mocked(useTeamByName).mockReturnValue(team);
         const stateWithRhsOpen = {
             ...baseState,
             views: {rhs: {isSidebarOpen: true}},
         };
 
-        renderWithContext(
+        await renderWithContext(
             <MemoryRouter initialEntries={['/_popout/channel/test-team/channels/town-square']}>
                 <Route path='/_popout/channel/:team/:path(channels|messages)/:identifier/:postid?'>
                     <ChannelPopout/>

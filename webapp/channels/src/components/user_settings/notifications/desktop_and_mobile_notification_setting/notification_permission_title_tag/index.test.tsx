@@ -16,55 +16,55 @@ describe('NotificationPermissionTitleTag', () => {
         jest.restoreAllMocks();
     });
 
-    test('should render "Not supported" tag when notifications are not supported', () => {
+    test('should render "Not supported" tag when notifications are not supported', async () => {
         jest.spyOn(utilsNotifications, 'isNotificationAPISupported').mockReturnValue(false);
 
-        renderWithContext(<NotificationPermissionTitleTag/>);
+        await renderWithContext(<NotificationPermissionTitleTag/>);
 
         expect(screen.queryByText('Not supported')).toBeInTheDocument();
     });
 
-    test('should render "Permission required" tag when permission is never granted yet', () => {
+    test('should render "Permission required" tag when permission is never granted yet', async () => {
         jest.spyOn(utilsNotifications, 'isNotificationAPISupported').mockReturnValue(true);
         jest.spyOn(utilsNotifications, 'getNotificationPermission').mockReturnValue(utilsNotifications.NotificationPermissionNeverGranted);
 
-        renderWithContext(<NotificationPermissionTitleTag/>);
+        await renderWithContext(<NotificationPermissionTitleTag/>);
 
         expect(screen.queryByText('Permission required')).toBeInTheDocument();
     });
 
-    test('should render "Permission required" tag when permission is denied', () => {
+    test('should render "Permission required" tag when permission is denied', async () => {
         jest.spyOn(utilsNotifications, 'isNotificationAPISupported').mockReturnValue(true);
         jest.spyOn(utilsNotifications, 'getNotificationPermission').mockReturnValue(utilsNotifications.NotificationPermissionDenied);
 
-        renderWithContext(<NotificationPermissionTitleTag/>);
+        await renderWithContext(<NotificationPermissionTitleTag/>);
 
         expect(screen.queryByText('Permission required')).toBeInTheDocument();
     });
 
-    test('should render nothing when permission is granted', () => {
+    test('should render nothing when permission is granted', async () => {
         jest.spyOn(utilsNotifications, 'isNotificationAPISupported').mockReturnValue(true);
         jest.spyOn(utilsNotifications, 'getNotificationPermission').mockReturnValue(utilsNotifications.NotificationPermissionGranted);
 
-        const {container} = renderWithContext(<NotificationPermissionTitleTag/>);
+        const {container} = await renderWithContext(<NotificationPermissionTitleTag/>);
 
         expect(container).toBeEmptyDOMElement();
     });
 
-    test('should render "Permission required" tag when desktop permission is denied', () => {
+    test('should render "Permission required" tag when desktop permission is denied', async () => {
         jest.spyOn(utilsNotifications, 'isNotificationAPISupported').mockReturnValue(true);
         jest.spyOn(useDesktopAppNotificationPermission, 'useDesktopAppNotificationPermission').mockReturnValue([utilsNotifications.NotificationPermissionDenied as DesktopNotificationPermission, jest.fn()]);
 
-        renderWithContext(<NotificationPermissionTitleTag/>);
+        await renderWithContext(<NotificationPermissionTitleTag/>);
 
         expect(screen.queryByText('Permission required')).toBeInTheDocument();
     });
 
-    test('should render nothing when desktop permission is granted', () => {
+    test('should render nothing when desktop permission is granted', async () => {
         jest.spyOn(utilsNotifications, 'isNotificationAPISupported').mockReturnValue(true);
         jest.spyOn(useDesktopAppNotificationPermission, 'useDesktopAppNotificationPermission').mockReturnValue([utilsNotifications.NotificationPermissionGranted as DesktopNotificationPermission, jest.fn()]);
 
-        const {container} = renderWithContext(<NotificationPermissionTitleTag/>);
+        const {container} = await renderWithContext(<NotificationPermissionTitleTag/>);
 
         expect(container).toBeEmptyDOMElement();
     });

@@ -20,8 +20,8 @@ describe('components/integrations/bots/AddBot', () => {
         updateUserRoles: jest.fn(),
     };
 
-    it('blank', () => {
-        const {container} = renderWithContext(
+    it('blank', async () => {
+        const {container} = await renderWithContext(
             <AddBot
                 maxFileSize={100}
                 team={team}
@@ -43,9 +43,9 @@ describe('components/integrations/bots/AddBot', () => {
         expect(container).toMatchSnapshot();
     });
 
-    it('edit bot', () => {
+    it('edit bot', async () => {
         const bot = TestHelper.getBotMock({});
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <AddBot
                 bot={bot}
                 maxFileSize={100}

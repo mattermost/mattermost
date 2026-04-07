@@ -24,10 +24,10 @@ describe('DataSpillageFooter', () => {
         jest.clearAllMocks();
     });
 
-    test('should render footer with view details button', () => {
+    test('should render footer with view details button', async () => {
         const post = TestHelper.getPostMock();
 
-        renderWithContext(
+        await renderWithContext(
             <DataSpillageFooter post={post}/>,
         );
 
@@ -42,7 +42,7 @@ describe('DataSpillageFooter', () => {
             message: 'test message',
         });
 
-        renderWithContext(
+        await renderWithContext(
             <DataSpillageFooter post={post}/>,
         );
 

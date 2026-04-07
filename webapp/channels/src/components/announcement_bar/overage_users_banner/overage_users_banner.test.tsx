@@ -118,13 +118,13 @@ describe('components/overage_users_banner', () => {
         windowSpy.mockRestore();
     });
 
-    it('should not render the banner because we are not on overage state', () => {
-        renderWithContext(<OverageUsersBanner/>);
+    it('should not render the banner because we are not on overage state', async () => {
+        await renderWithContext(<OverageUsersBanner/>);
 
         expect(screen.queryByText('(Only visible to admins) The user count exceeds the number of licensed seats by', {exact: false})).not.toBeInTheDocument();
     });
 
-    it('should not render the banner because we are not admins', () => {
+    it('should not render the banner because we are not admins', async () => {
         const store = JSON.parse(JSON.stringify(initialState));
 
         store.entities.users = {
@@ -138,12 +138,12 @@ describe('components/overage_users_banner', () => {
             },
         };
 
-        renderWithContext(<OverageUsersBanner/>, store);
+        await renderWithContext(<OverageUsersBanner/>, store);
 
         expect(screen.queryByText('Your workspace user count has exceeded your licensed seat count by', {exact: false})).not.toBeInTheDocument();
     });
 
-    it('should not render the banner because it\'s cloud licenese', () => {
+    it('should not render the banner because it\'s cloud licenese', async () => {
         const store = JSON.parse(JSON.stringify(initialState));
 
         store.entities.general.license = {
@@ -151,12 +151,12 @@ describe('components/overage_users_banner', () => {
             Cloud: 'true',
         };
 
-        renderWithContext(<OverageUsersBanner/>, store);
+        await renderWithContext(<OverageUsersBanner/>, store);
 
         expect(screen.queryByText('Your workspace user count has exceeded your licensed seat count by', {exact: false})).not.toBeInTheDocument();
     });
 
-    it('should not render the 5% banner because we have dissmised it', () => {
+    it('should not render the 5% banner because we have dissmised it', async () => {
         const store = JSON.parse(JSON.stringify(initialState));
 
         store.entities.preferences.myPreferences = TestHelper.getPreferencesMock(
@@ -176,12 +176,12 @@ describe('components/overage_users_banner', () => {
             },
         };
 
-        renderWithContext(<OverageUsersBanner/>, store);
+        await renderWithContext(<OverageUsersBanner/>, store);
 
         expect(screen.queryByText(text5PercentageState)).not.toBeInTheDocument();
     });
 
-    it('should render the banner because we are over 5% and we don\'t have any preferences', () => {
+    it('should render the banner because we are over 5% and we don\'t have any preferences', async () => {
         const store = JSON.parse(JSON.stringify(initialState));
 
         store.entities.cloud = {
@@ -195,7 +195,7 @@ describe('components/overage_users_banner', () => {
             },
         };
 
-        renderWithContext(<OverageUsersBanner/>, store);
+        await renderWithContext(<OverageUsersBanner/>, store);
 
         expect(screen.getByText(text5PercentageState)).toBeInTheDocument();
         expect(screen.getByText(contactSalesTextLink)).toBeInTheDocument();
@@ -215,7 +215,7 @@ describe('components/overage_users_banner', () => {
             },
         };
 
-        renderWithContext(<OverageUsersBanner/>, store);
+        await renderWithContext(<OverageUsersBanner/>, store);
 
         await userEvent.click(screen.getByText(contactSalesTextLink));
         expect(windowSpy).toHaveBeenCalledTimes(1);
@@ -225,7 +225,7 @@ describe('components/overage_users_banner', () => {
         expect(windowSpy).toHaveBeenCalledWith(salesLinkWithEncodedParams, '_blank');
     });
 
-    it('should render the banner because we are over 5% and we have preferences from one old banner', () => {
+    it('should render the banner because we are over 5% and we have preferences from one old banner', async () => {
         const store = JSON.parse(JSON.stringify(initialState));
 
         store.entities.cloud = {
@@ -249,7 +249,7 @@ describe('components/overage_users_banner', () => {
             },
         };
 
-        renderWithContext(<OverageUsersBanner/>, store);
+        await renderWithContext(<OverageUsersBanner/>, store);
 
         expect(screen.getByText(text5PercentageState)).toBeInTheDocument();
         expect(screen.getByText(contactSalesTextLink)).toBeInTheDocument();
@@ -265,7 +265,7 @@ describe('components/overage_users_banner', () => {
             },
         };
 
-        renderWithContext(<OverageUsersBanner/>, store);
+        await renderWithContext(<OverageUsersBanner/>, store);
 
         await userEvent.click(screen.getByRole('link'));
 
@@ -278,7 +278,7 @@ describe('components/overage_users_banner', () => {
         }]);
     });
 
-    it('should render the banner because we are over 10%', () => {
+    it('should render the banner because we are over 10%', async () => {
         const store = JSON.parse(JSON.stringify(initialState));
 
         store.entities.cloud = {
@@ -292,7 +292,7 @@ describe('components/overage_users_banner', () => {
             },
         };
 
-        renderWithContext(<OverageUsersBanner/>, store);
+        await renderWithContext(<OverageUsersBanner/>, store);
 
         expect(screen.getByText(text10PercentageState)).toBeInTheDocument();
         expect(screen.getByText(contactSalesTextLink)).toBeInTheDocument();
@@ -312,7 +312,7 @@ describe('components/overage_users_banner', () => {
             },
         };
 
-        renderWithContext(<OverageUsersBanner/>, store);
+        await renderWithContext(<OverageUsersBanner/>, store);
 
         await userEvent.click(screen.getByText(contactSalesTextLink));
         expect(windowSpy).toHaveBeenCalledTimes(1);

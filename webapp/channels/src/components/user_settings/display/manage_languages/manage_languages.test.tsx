@@ -7,7 +7,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {getAllLanguages} from 'i18n/i18n';
 import {defaultIntl} from 'tests/helpers/intl-test-helper';
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, act} from 'tests/react_testing_utils';
 
 import {ManageLanguage} from './manage_languages';
 
@@ -32,14 +32,16 @@ describe('components/user_settings/display/manage_languages/manage_languages', (
         const updateMe = jest.fn(() => Promise.resolve({data: true}));
         const props = {...requiredProps, actions: {...requiredProps.actions, updateMe}};
         const ref = React.createRef<ManageLanguage>();
-        renderWithContext(
+        await renderWithContext(
             <ManageLanguage
                 {...props}
                 ref={ref}
             />,
         );
 
-        await ref.current!.submitUser(requiredProps.user);
+        await act(async () => {
+            await ref.current!.submitUser(requiredProps.user);
+        });
 
         expect(props.actions.updateMe).toHaveBeenCalledTimes(1);
         expect(props.actions.updateMe).toHaveBeenCalledWith(requiredProps.user);

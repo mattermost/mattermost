@@ -25,7 +25,7 @@ jest.mock('plugins/pluggable', () => {
 });
 
 /** ShowMore uses scrollHeight > maxHeight; jsdom reports scrollHeight as 0, so overflow never triggers without this. */
-function stubShowMoreOverflowLayout(run: () => void) {
+async function stubShowMoreOverflowLayout(run: () => Promise<void>) {
     const scrollSpy = jest.spyOn(Element.prototype, 'scrollHeight', 'get').mockReturnValue(100);
     const raf = window.requestAnimationFrame;
     window.requestAnimationFrame = (cb: FrameRequestCallback) => {
@@ -33,7 +33,7 @@ function stubShowMoreOverflowLayout(run: () => void) {
         return 0;
     };
     try {
-        run();
+        await run();
     } finally {
         window.requestAnimationFrame = raf;
         scrollSpy.mockRestore();
@@ -61,8 +61,8 @@ describe('components/post_view/PostAttachment', () => {
         userLanguage: 'en',
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<PostMessageView {...baseProps}/>);
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(<PostMessageView {...baseProps}/>);
         expect(container).toMatchSnapshot();
     });
 
@@ -70,13 +70,14 @@ describe('components/post_view/PostAttachment', () => {
         // ShowMore sets isOverflow when textContainer.scrollHeight > maxHeight.
         // Default max height (600px) is never exceeded by the mocked short message; use a tiny maxHeight.
         let container: HTMLElement | undefined;
-        stubShowMoreOverflowLayout(() => {
-            container = renderWithContext(
+        await stubShowMoreOverflowLayout(async () => {
+            const result = await renderWithContext(
                 <PostMessageView
                     {...baseProps}
                     maxHeight={1}
                 />,
-            ).container;
+            );
+            container = result.container;
         });
 
         await waitFor(() => {
@@ -88,13 +89,14 @@ describe('components/post_view/PostAttachment', () => {
 
     test('should match snapshot, on Show Less', async () => {
         let container: HTMLElement | undefined;
-        stubShowMoreOverflowLayout(() => {
-            container = renderWithContext(
+        await stubShowMoreOverflowLayout(async () => {
+            const result = await renderWithContext(
                 <PostMessageView
                     {...baseProps}
                     maxHeight={1}
                 />,
-            ).container;
+            );
+            container = result.container;
         });
 
         await waitFor(() => {
@@ -109,9 +111,9 @@ describe('components/post_view/PostAttachment', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, on deleted post', () => {
+    test('should match snapshot, on deleted post', async () => {
         const props = {...baseProps, post: {...post, state: Posts.POST_DELETED as 'DELETED'}};
-        const {container} = renderWithContext(<PostMessageView {...props}/>);
+        const {container} = await renderWithContext(<PostMessageView {...props}/>);
 
         expect(container).toMatchSnapshot();
 
@@ -119,27 +121,27 @@ describe('components/post_view/PostAttachment', () => {
         expect(screen.getByText('(message deleted)')).toBeInTheDocument();
     });
 
-    test('should match snapshot, on edited post', () => {
+    test('should match snapshot, on edited post', async () => {
         const props = {...baseProps, post: {...post, edit_at: 1}};
-        const {container} = renderWithContext(<PostMessageView {...props}/>);
+        const {container} = await renderWithContext(<PostMessageView {...props}/>);
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, on ephemeral post', () => {
+    test('should match snapshot, on ephemeral post', async () => {
         const props = {...baseProps, post: {...post, type: Posts.POST_TYPES.EPHEMERAL as PostType}};
-        const {container} = renderWithContext(<PostMessageView {...props}/>);
+        const {container} = await renderWithContext(<PostMessageView {...props}/>);
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match checkOverflow state on handleHeightReceived change', () => {
+    test('should match checkOverflow state on handleHeightReceived change', async () => {
         // PostMarkdown is mocked, so we get imageProps from the mock calls.
         // Import the mocked PostMarkdown to access its calls.
         const PostMarkdown = jest.requireMock('components/post_markdown');
 
         PostMarkdown.mockClear();
-        renderWithContext(<PostMessageView {...baseProps}/>);
+        await renderWithContext(<PostMessageView {...baseProps}/>);
 
         // PostMarkdown should have been called with imageProps
         const postMarkdownCalls = PostMarkdown.mock.calls;

@@ -49,23 +49,23 @@ describe('components/integrations/InstalledOAuthApp', () => {
         fromApp: false,
     };
 
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const props = {...baseProps, team};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <InstalledOAuthApp {...props}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot from app', () => {
+    test('should match snapshot from app', async () => {
         const props = {...baseProps, team, fromApp: true};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <InstalledOAuthApp {...props}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, when oauthApp is without name and not trusted', () => {
+    test('should match snapshot, when oauthApp is without name and not trusted', async () => {
         const props = {
             ...baseProps,
             team,
@@ -75,16 +75,16 @@ describe('components/integrations/InstalledOAuthApp', () => {
                 is_trusted: false,
             },
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <InstalledOAuthApp {...props}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, on error', () => {
+    test('should match snapshot, on error', async () => {
         const onRegenerateSecret = jest.fn().mockResolvedValue({error: {message: 'error'}});
         const props = {...baseProps, team, onRegenerateSecret};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <InstalledOAuthApp {...props}/>,
         );
 
@@ -104,7 +104,7 @@ describe('components/integrations/InstalledOAuthApp', () => {
             onRegenerateSecret,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <InstalledOAuthApp {...props}/>,
         );
 
@@ -114,10 +114,10 @@ describe('components/integrations/InstalledOAuthApp', () => {
         expect(onRegenerateSecret).toHaveBeenCalledWith(oauthApp.id);
     });
 
-    test('should filter out OAuthApp', () => {
+    test('should filter out OAuthApp', async () => {
         const filter = 'filter';
         const props = {...baseProps, filter};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <InstalledOAuthApp {...props}/>,
         );
         expect(container).toMatchSnapshot();
@@ -125,7 +125,7 @@ describe('components/integrations/InstalledOAuthApp', () => {
 
     test('should match state on button clicks, both showSecretButton and hideSecretButton', async () => {
         const props = {...baseProps, team};
-        renderWithContext(
+        await renderWithContext(
             <InstalledOAuthApp {...props}/>,
         );
 
@@ -155,7 +155,7 @@ describe('components/integrations/InstalledOAuthApp', () => {
             onRegenerateSecret,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <InstalledOAuthApp {...props}/>,
         );
 
@@ -168,7 +168,7 @@ describe('components/integrations/InstalledOAuthApp', () => {
     test('should have called props.onDelete on handleDelete ', async () => {
         const newOnDelete = jest.fn();
         const props = {...baseProps, team, onDelete: newOnDelete};
-        renderWithContext(
+        await renderWithContext(
             <InstalledOAuthApp {...props}/>,
         );
 

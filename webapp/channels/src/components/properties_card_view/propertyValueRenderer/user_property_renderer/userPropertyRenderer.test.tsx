@@ -80,10 +80,10 @@ describe('UserPropertyRenderer', () => {
     } as PropertyValue<string>;
 
     describe('when field is not editable', () => {
-        it('should render user avatar and profile component', () => {
+        it('should render user avatar and profile component', async () => {
             const field = {...mockField, attrs: {editable: false}};
 
-            renderWithContext(
+            await renderWithContext(
                 <UserPropertyRenderer
                     field={field}
                     value={mockValue}
@@ -102,10 +102,10 @@ describe('UserPropertyRenderer', () => {
     });
 
     describe('when field is editable', () => {
-        it('should render selectable user property renderer', () => {
+        it('should render selectable user property renderer', async () => {
             const editableField = {...mockField, attrs: {editable: true}};
 
-            renderWithContext(
+            await renderWithContext(
                 <UserPropertyRenderer
                     field={editableField}
                 />,

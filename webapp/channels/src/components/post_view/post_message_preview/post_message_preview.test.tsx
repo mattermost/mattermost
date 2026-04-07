@@ -106,13 +106,13 @@ describe('PostMessagePreview', () => {
         },
     };
 
-    test('should render correctly', () => {
-        const {container} = renderWithContext(<PostMessagePreview {...baseProps}/>, baseState);
+    test('should render correctly', async () => {
+        const {container} = await renderWithContext(<PostMessagePreview {...baseProps}/>, baseState);
         expect(container).toMatchSnapshot();
     });
 
-    test('should render without preview', () => {
-        const {container} = renderWithContext(
+    test('should render without preview', async () => {
+        const {container} = await renderWithContext(
             <PostMessagePreview
                 {...baseProps}
                 previewPost={undefined}
@@ -123,9 +123,9 @@ describe('PostMessagePreview', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('show render without preview when preview posts becomes undefined after being defined', () => {
+    test('show render without preview when preview posts becomes undefined after being defined', async () => {
         const props = {...baseProps};
-        let renderResult = renderWithContext(
+        let renderResult = await renderWithContext(
             <PostMessagePreview
                 {...props}
             />,
@@ -140,7 +140,7 @@ describe('PostMessagePreview', () => {
         // previewed post is deleted.
         props.previewPost = undefined;
 
-        renderResult = renderWithContext(
+        renderResult = await renderWithContext(
             <PostMessagePreview
                 {...props}
             />,
@@ -151,7 +151,7 @@ describe('PostMessagePreview', () => {
         expect(permalink).not.toBeInTheDocument();
     });
 
-    test('should not render bot icon', () => {
+    test('should not render bot icon', async () => {
         const postProps = {
             override_icon_url: 'https://fakeicon.com/image.jpg',
             use_user_icon: 'false',
@@ -167,7 +167,7 @@ describe('PostMessagePreview', () => {
             ...baseProps,
             previewPost: postPreview,
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PostMessagePreview
                 {...props}
             />,
@@ -177,7 +177,7 @@ describe('PostMessagePreview', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should render bot icon', () => {
+    test('should render bot icon', async () => {
         const postProps = {
             override_icon_url: 'https://fakeicon.com/image.jpg',
             use_user_icon: false,
@@ -194,7 +194,7 @@ describe('PostMessagePreview', () => {
             previewPost: postPreview,
             enablePostIconOverride: true,
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PostMessagePreview
                 {...props}
             />,
@@ -217,7 +217,7 @@ describe('PostMessagePreview', () => {
             url: 'https://example.com',
         } as PostEmbed;
 
-        test('should render opengraph preview', () => {
+        test('should render opengraph preview', async () => {
             const postPreview = {
                 ...previewPost,
                 metadata: {
@@ -230,11 +230,11 @@ describe('PostMessagePreview', () => {
                 previewPost: postPreview,
             };
 
-            const {container} = renderWithContext(<PostMessagePreview {...props}/>, baseState);
+            const {container} = await renderWithContext(<PostMessagePreview {...props}/>, baseState);
             expect(container).toMatchSnapshot();
         });
 
-        test('should render file preview', () => {
+        test('should render file preview', async () => {
             const postPreview = {
                 ...previewPost,
                 ...files,
@@ -245,7 +245,7 @@ describe('PostMessagePreview', () => {
                 previewPost: postPreview,
             };
 
-            const {container} = renderWithContext(<PostMessagePreview {...props}/>, baseState);
+            const {container} = await renderWithContext(<PostMessagePreview {...props}/>, baseState);
             expect(container).toMatchSnapshot();
         });
     });
@@ -253,7 +253,7 @@ describe('PostMessagePreview', () => {
     describe('direct and group messages', () => {
         const channelTypes = [General.DM_CHANNEL, General.GM_CHANNEL] as ChannelType[];
 
-        test.each(channelTypes)('should render preview for %s message', (type) => {
+        test.each(channelTypes)('should render preview for %s message', async (type) => {
             const metadata = {
                 ...baseProps.metadata,
                 team_name: '',
@@ -266,7 +266,7 @@ describe('PostMessagePreview', () => {
                 metadata,
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <PostMessagePreview
                     {...props}
                 />,

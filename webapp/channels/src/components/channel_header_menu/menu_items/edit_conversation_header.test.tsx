@@ -26,7 +26,7 @@ describe('components/ChannelHeaderMenu/MenuItems/EditConversationHeader', () => 
     const channel = TestHelper.getChannelMock();
 
     test('renders the component correctly, handle click event', async () => {
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <EditConversationHeader channel={channel}/>
             </WithTestMenuContext>, {},

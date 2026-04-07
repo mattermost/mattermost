@@ -8,8 +8,8 @@ import {renderWithContext} from 'tests/react_testing_utils';
 import {MenuItemExternalLinkImpl} from './menu_item_external_link';
 
 describe('components/MenuItemExternalLink', () => {
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <MenuItemExternalLinkImpl
                 url='http://test.com'
                 text='Whatever'

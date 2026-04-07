@@ -70,7 +70,7 @@ const baseState: DeepPartial<GlobalState> = {
 };
 
 // Helper function to render the component with router
-const renderWithRouter = (state: any, initialEntries = ['/team1/channels/town-square']) => {
+const renderWithRouter = async (state: any, initialEntries = ['/team1/channels/town-square']) => {
     return renderWithContext(
         <MemoryRouter initialEntries={initialEntries}>
             <Route path='/:team'>
@@ -82,13 +82,13 @@ const renderWithRouter = (state: any, initialEntries = ['/team1/channels/town-sq
 };
 
 describe('components/drafts/drafts_link', () => {
-    it('should not render when no drafts or scheduled posts exist', () => {
+    it('should not render when no drafts or scheduled posts exist', async () => {
         renderWithRouter(baseState);
 
         expect(screen.queryByText('Drafts')).not.toBeInTheDocument();
     });
 
-    it('should render when drafts exist', () => {
+    it('should render when drafts exist', async () => {
         const state: DeepPartial<GlobalState> = {
             ...baseState,
             storage: {
@@ -104,7 +104,7 @@ describe('components/drafts/drafts_link', () => {
         expect(screen.getByTestId('draftIcon')).toBeInTheDocument();
     });
 
-    it('should render when scheduled posts exist', () => {
+    it('should render when scheduled posts exist', async () => {
         const state: DeepPartial<GlobalState> = {
             ...baseState,
             entities: {
@@ -123,7 +123,7 @@ describe('components/drafts/drafts_link', () => {
         expect(screen.getByTestId('scheduledPostIcon')).toBeInTheDocument();
     });
 
-    it('should not show scheduled posts badge when scheduled posts are disabled', () => {
+    it('should not show scheduled posts badge when scheduled posts are disabled', async () => {
         const state = {
             ...baseState,
             entities: {
@@ -146,7 +146,7 @@ describe('components/drafts/drafts_link', () => {
         expect(screen.queryByTestId('scheduledPostIcon')).not.toBeInTheDocument();
     });
 
-    it('should not show scheduled posts badge when not licensed', () => {
+    it('should not show scheduled posts badge when not licensed', async () => {
         const state = {
             ...baseState,
             entities: {
@@ -169,7 +169,7 @@ describe('components/drafts/drafts_link', () => {
         expect(screen.queryByTestId('scheduledPostIcon')).not.toBeInTheDocument();
     });
 
-    it('should show error indicator when scheduled posts have errors', () => {
+    it('should show error indicator when scheduled posts have errors', async () => {
         const state: DeepPartial<GlobalState> = {
             ...baseState,
             entities: {

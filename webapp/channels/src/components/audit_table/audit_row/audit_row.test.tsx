@@ -40,7 +40,7 @@ describe('components/audit_table/audit_row/AuditRow', () => {
         },
     };
 
-    const renderComponent = (props: Props) => {
+    const renderComponent = async (props: Props) => {
         return renderWithContext(
             <table>
                 <tbody>
@@ -51,14 +51,14 @@ describe('components/audit_table/audit_row/AuditRow', () => {
         );
     };
 
-    test('should match snapshot with no desc', () => {
-        const {container} = renderComponent(baseProps);
+    test('should match snapshot with no desc', async () => {
+        const {container} = await renderComponent(baseProps);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with desc', () => {
+    test('should match snapshot with desc', async () => {
         const props = {...baseProps, desc: 'Successfully authenticated'};
-        const {container} = renderComponent(props);
+        const {container} = await renderComponent(props);
         expect(container).toMatchSnapshot();
     });
 });

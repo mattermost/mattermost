@@ -102,8 +102,8 @@ describe('components/global/product_switcher_menu', () => {
         };
     });
 
-    test('should show with end user pre trial', () => {
-        const {container} = renderWithContext(<FeatureRestrictedModal {...defaultProps}/>);
+    test('should show with end user pre trial', async () => {
+        const {container} = await renderWithContext(<FeatureRestrictedModal {...defaultProps}/>);
 
         expect(screen.getByText(defaultProps.messageEndUser)).toBeInTheDocument();
         expect(container.querySelector('.FeatureRestrictedModal__terms')).not.toBeInTheDocument();
@@ -112,8 +112,8 @@ describe('components/global/product_switcher_menu', () => {
         expect(screen.queryByRole('button', {name: /try free/i})).not.toBeInTheDocument();
     });
 
-    test('should show with end user post trial', () => {
-        const {container} = renderWithContext(<FeatureRestrictedModal {...defaultProps}/>);
+    test('should show with end user post trial', async () => {
+        const {container} = await renderWithContext(<FeatureRestrictedModal {...defaultProps}/>);
 
         expect(screen.getByText(defaultProps.messageEndUser)).toBeInTheDocument();
         expect(container.querySelector('.FeatureRestrictedModal__terms')).not.toBeInTheDocument();
@@ -122,10 +122,10 @@ describe('components/global/product_switcher_menu', () => {
         expect(screen.queryByRole('button', {name: /try free/i})).not.toBeInTheDocument();
     });
 
-    test('should show with system admin pre trial for self hosted', () => {
+    test('should show with system admin pre trial for self hosted', async () => {
         mockState.entities.users.profiles.user1.roles = 'system_admin';
 
-        const {container} = renderWithContext(<FeatureRestrictedModal {...defaultProps}/>);
+        const {container} = await renderWithContext(<FeatureRestrictedModal {...defaultProps}/>);
 
         expect(screen.getByText(defaultProps.messageAdminPreTrial)).toBeInTheDocument();
         expect(container.querySelector('.FeatureRestrictedModal__terms')).toBeInTheDocument();

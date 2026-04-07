@@ -95,7 +95,7 @@ describe('TestResultsModal', () => {
     });
 
     it('should render modal with proper title and structure', async () => {
-        renderWithContext(<TestResultsModal {...defaultProps}/>);
+        await renderWithContext(<TestResultsModal {...defaultProps}/>);
 
         // Wait for the modal to appear
         await waitFor(() => {
@@ -110,7 +110,7 @@ describe('TestResultsModal', () => {
     });
 
     it('should fetch users on initial load', async () => {
-        renderWithContext(<TestResultsModal {...defaultProps}/>);
+        await renderWithContext(<TestResultsModal {...defaultProps}/>);
 
         await waitFor(() => {
             expect(mockSearchUsers).toHaveBeenCalledWith('', '', 50);
@@ -118,7 +118,7 @@ describe('TestResultsModal', () => {
     });
 
     it('should display users from search results', async () => {
-        renderWithContext(<TestResultsModal {...defaultProps}/>);
+        await renderWithContext(<TestResultsModal {...defaultProps}/>);
 
         await waitFor(() => {
             expect(screen.getByTestId('user-count')).toHaveTextContent('Showing 2 of 2 users');
@@ -132,7 +132,7 @@ describe('TestResultsModal', () => {
     });
 
     it('should handle search functionality', async () => {
-        renderWithContext(<TestResultsModal {...defaultProps}/>);
+        await renderWithContext(<TestResultsModal {...defaultProps}/>);
 
         await waitFor(() => {
             expect(screen.getByTestId('search-input')).toBeInTheDocument();
@@ -149,7 +149,7 @@ describe('TestResultsModal', () => {
     });
 
     it('should handle pagination', async () => {
-        renderWithContext(<TestResultsModal {...defaultProps}/>);
+        await renderWithContext(<TestResultsModal {...defaultProps}/>);
 
         // Wait for users to be loaded first
         await waitFor(() => {
@@ -182,7 +182,7 @@ describe('TestResultsModal', () => {
         // Mock loading state by not resolving the promise immediately
         mockSearchUsers.mockReturnValue(() => new Promise(() => {}));
 
-        renderWithContext(<TestResultsModal {...defaultProps}/>);
+        await renderWithContext(<TestResultsModal {...defaultProps}/>);
 
         await waitFor(() => {
             expect(screen.getByTestId('next-page-button')).toBeInTheDocument();
@@ -207,7 +207,7 @@ describe('TestResultsModal', () => {
             },
         }));
 
-        renderWithContext(<TestResultsModal {...defaultProps}/>);
+        await renderWithContext(<TestResultsModal {...defaultProps}/>);
 
         await waitFor(() => {
             expect(screen.getByTestId('user-count')).toHaveTextContent('Showing 0 of 0 users');
@@ -219,7 +219,7 @@ describe('TestResultsModal', () => {
             error: 'Search failed',
         }));
 
-        renderWithContext(<TestResultsModal {...defaultProps}/>);
+        await renderWithContext(<TestResultsModal {...defaultProps}/>);
 
         await waitFor(() => {
             expect(screen.getByTestId('user-count')).toHaveTextContent('Showing 0 of 0 users');
@@ -227,7 +227,7 @@ describe('TestResultsModal', () => {
     });
 
     it('should call onExited when modal is closed', async () => {
-        renderWithContext(<TestResultsModal {...defaultProps}/>);
+        await renderWithContext(<TestResultsModal {...defaultProps}/>);
 
         await waitFor(() => {
             expect(screen.getByRole('dialog')).toBeInTheDocument();
@@ -243,7 +243,7 @@ describe('TestResultsModal', () => {
     });
 
     it('should render with isStacked=true prop', async () => {
-        renderWithContext(
+        await renderWithContext(
             <TestResultsModal
                 {...defaultProps}
                 isStacked={true}
@@ -258,7 +258,7 @@ describe('TestResultsModal', () => {
     });
 
     it('should render with isStacked=false prop (default)', async () => {
-        renderWithContext(
+        await renderWithContext(
             <TestResultsModal
                 {...defaultProps}
                 isStacked={false}
@@ -288,7 +288,7 @@ describe('TestResultsModal', () => {
                 },
             }));
 
-        renderWithContext(<TestResultsModal {...defaultProps}/>);
+        await renderWithContext(<TestResultsModal {...defaultProps}/>);
 
         await waitFor(() => {
             expect(screen.getByTestId('search-input')).toBeInTheDocument();
@@ -313,7 +313,7 @@ describe('TestResultsModal', () => {
     });
 
     it('should pass correct props to SearchableUserList', async () => {
-        renderWithContext(<TestResultsModal {...defaultProps}/>);
+        await renderWithContext(<TestResultsModal {...defaultProps}/>);
 
         await waitFor(() => {
             expect(screen.getByTestId('users-per-page')).toHaveTextContent('10 users per page');
@@ -321,7 +321,7 @@ describe('TestResultsModal', () => {
     });
 
     it('should have proper accessibility attributes', async () => {
-        renderWithContext(<TestResultsModal {...defaultProps}/>);
+        await renderWithContext(<TestResultsModal {...defaultProps}/>);
 
         await waitFor(() => {
             const dialog = screen.getByRole('dialog');

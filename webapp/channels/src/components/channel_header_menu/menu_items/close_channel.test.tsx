@@ -21,7 +21,7 @@ describe('components/ChannelHeaderMenu/MenuItems/CloseChannel', () => {
     });
 
     test('renders the component correctly, handle click event', async () => {
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <CloseChannel/>
             </WithTestMenuContext>, {},

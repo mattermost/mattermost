@@ -67,7 +67,7 @@ describe('UserPropertiesTable', () => {
     const deleteField = jest.fn();
     const reorderField = jest.fn();
 
-    const renderComponent = (fields = baseFields) => {
+    const renderComponent = async (fields = baseFields) => {
         const collection = collectionFromArray(fields);
 
         return renderWithContext(
@@ -82,7 +82,7 @@ describe('UserPropertiesTable', () => {
         );
     };
 
-    it('renders table with correct attribute fields', () => {
+    it('renders table with correct attribute fields', async () => {
         renderComponent();
 
         // Check column headers
@@ -114,7 +114,7 @@ describe('UserPropertiesTable', () => {
         });
     });
 
-    it('shows type selection menu', () => {
+    it('shows type selection menu', async () => {
         renderComponent();
 
         // Check the type selectors exist
@@ -122,7 +122,7 @@ describe('UserPropertiesTable', () => {
         expect(screen.getByText('Select')).toBeInTheDocument();
     });
 
-    it('shows dot menu for actions', () => {
+    it('shows dot menu for actions', async () => {
         renderComponent();
 
         // Check that dot menus exist
@@ -130,7 +130,7 @@ describe('UserPropertiesTable', () => {
         expect(dotMenuButtons).toHaveLength(2);
     });
 
-    it('handles deleted fields correctly', () => {
+    it('handles deleted fields correctly', async () => {
         const deletedFields = [
             ...baseFields,
             {
@@ -157,7 +157,7 @@ describe('UserPropertiesTable', () => {
             field1: {name: 'user_properties.validation.name_required'},
         };
 
-        renderWithContext(
+        await renderWithContext(
             <UserPropertiesTable
                 data={collection}
                 canCreate={true}

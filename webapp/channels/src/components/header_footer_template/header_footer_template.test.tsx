@@ -64,13 +64,13 @@ describe('components/HeaderFooterTemplate', () => {
         global.Date = RealDate;
     });
 
-    test('should match snapshot without children', () => {
-        const {container} = renderWithContext(<HeaderFooterNotLoggedIn/>, initialState);
+    test('should match snapshot without children', async () => {
+        const {container} = await renderWithContext(<HeaderFooterNotLoggedIn/>, initialState);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with children', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with children', async () => {
+        const {container} = await renderWithContext(
             <HeaderFooterNotLoggedIn>
                 <p>{'test'}</p>
             </HeaderFooterNotLoggedIn>,
@@ -79,7 +79,7 @@ describe('components/HeaderFooterTemplate', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with help link', () => {
+    test('should match snapshot with help link', async () => {
         const state = mergeObjects(initialState, {
             entities: {
                 general: {
@@ -90,11 +90,11 @@ describe('components/HeaderFooterTemplate', () => {
             },
         });
 
-        const {container} = renderWithContext(<HeaderFooterNotLoggedIn/>, state);
+        const {container} = await renderWithContext(<HeaderFooterNotLoggedIn/>, state);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with term of service link', () => {
+    test('should match snapshot with term of service link', async () => {
         const state = mergeObjects(initialState, {
             entities: {
                 general: {
@@ -105,11 +105,11 @@ describe('components/HeaderFooterTemplate', () => {
             },
         });
 
-        const {container} = renderWithContext(<HeaderFooterNotLoggedIn/>, state);
+        const {container} = await renderWithContext(<HeaderFooterNotLoggedIn/>, state);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with privacy policy link', () => {
+    test('should match snapshot with privacy policy link', async () => {
         const state = mergeObjects(initialState, {
             entities: {
                 general: {
@@ -120,11 +120,11 @@ describe('components/HeaderFooterTemplate', () => {
             },
         });
 
-        const {container} = renderWithContext(<HeaderFooterNotLoggedIn/>, state);
+        const {container} = await renderWithContext(<HeaderFooterNotLoggedIn/>, state);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with about link', () => {
+    test('should match snapshot with about link', async () => {
         const state = mergeObjects(initialState, {
             entities: {
                 general: {
@@ -135,11 +135,11 @@ describe('components/HeaderFooterTemplate', () => {
             },
         });
 
-        const {container} = renderWithContext(<HeaderFooterNotLoggedIn/>, state);
+        const {container} = await renderWithContext(<HeaderFooterNotLoggedIn/>, state);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with all links', () => {
+    test('should match snapshot with all links', async () => {
         const state = mergeObjects(initialState, {
             entities: {
                 general: {
@@ -153,11 +153,11 @@ describe('components/HeaderFooterTemplate', () => {
             },
         });
 
-        const {container} = renderWithContext(<HeaderFooterNotLoggedIn/>, state);
+        const {container} = await renderWithContext(<HeaderFooterNotLoggedIn/>, state);
         expect(container).toMatchSnapshot();
     });
 
-    test('should set classes on body and #root on mount and unset on unmount', () => {
+    test('should set classes on body and #root on mount and unset on unmount', async () => {
         const state = mergeObjects(initialState, {
             entities: {
                 general: {
@@ -171,7 +171,7 @@ describe('components/HeaderFooterTemplate', () => {
             },
         });
         expect(document.body.classList.contains('sticky')).toBe(false);
-        const {container, unmount} = renderWithContext(<HeaderFooterNotLoggedIn/>, state);
+        const {container, unmount} = await renderWithContext(<HeaderFooterNotLoggedIn/>, state);
         expect(container).toMatchSnapshot();
         expect(document.body.classList.contains('sticky')).toBe(true);
 

@@ -151,29 +151,15 @@ exports[`components/AddGroupsToTeamModal should match snapshot 1`] = `
                 class="multi-select__wrapper"
               >
                 <div
-                  aria-hidden="true"
+                  class="no-channel-message"
+                  tabindex="0"
                 >
-                  <div
-                    class="loading-screen"
-                    style="position: absolute;"
+                  <p
+                    class="primary-message"
                   >
-                    <div
-                      class="loading__content"
-                    >
-                      <p>
-                        Loading
-                      </p>
-                      <div
-                        class="round round-1"
-                      />
-                      <div
-                        class="round round-2"
-                      />
-                      <div
-                        class="round round-3"
-                      />
-                    </div>
-                  </div>
+                    No results found matching 
+                    <b />
+                  </p>
                 </div>
               </div>
               <div

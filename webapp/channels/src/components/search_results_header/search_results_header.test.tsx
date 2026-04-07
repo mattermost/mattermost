@@ -36,8 +36,8 @@ describe('search_results_header', () => {
         mockIsPopoutWindow.mockReturnValue(false);
     });
 
-    test('should display back button when the parent is channel info', () => {
-        renderWithContext(
+    test('should display back button when the parent is channel info', async () => {
+        await renderWithContext(
             <SearchResultsHeader
                 previousRhsState={RHSStates.CHANNEL_INFO as RhsState}
                 canGoBack={true}
@@ -55,8 +55,8 @@ describe('search_results_header', () => {
 
         expect(screen.getByLabelText('Back Icon')).toBeInTheDocument();
     });
-    test('should NOT diplay expand when the parent is channel info', () => {
-        renderWithContext(
+    test('should NOT diplay expand when the parent is channel info', async () => {
+        await renderWithContext(
             <SearchResultsHeader
                 previousRhsState={RHSStates.CHANNEL_INFO as RhsState}
                 canGoBack={true}
@@ -74,8 +74,8 @@ describe('search_results_header', () => {
 
         expect(screen.queryByLabelText('Expand Sidebar Icon')).not.toBeInTheDocument();
     });
-    test('should diplay expand when the parent is NOT channel info', () => {
-        renderWithContext(
+    test('should diplay expand when the parent is NOT channel info', async () => {
+        await renderWithContext(
             <SearchResultsHeader
                 previousRhsState={RHSStates.FLAG as RhsState}
                 canGoBack={true}
@@ -94,10 +94,10 @@ describe('search_results_header', () => {
         expect(screen.getByLabelText('Expand Sidebar Icon')).toBeInTheDocument();
     });
 
-    test('should render popout button when newWindowHandler exists', () => {
+    test('should render popout button when newWindowHandler exists', async () => {
         const newWindowHandler = jest.fn();
 
-        renderWithContext(
+        await renderWithContext(
             <SearchResultsHeader
                 previousRhsState={RHSStates.FLAG as RhsState}
                 canGoBack={true}
@@ -118,10 +118,10 @@ describe('search_results_header', () => {
         expect(screen.getByLabelText('Open in new window')).toBeInTheDocument();
     });
 
-    test('should hide expand and close buttons when in popout window', () => {
+    test('should hide expand and close buttons when in popout window', async () => {
         mockIsPopoutWindow.mockReturnValue(true);
 
-        renderWithContext(
+        await renderWithContext(
             <SearchResultsHeader
                 previousRhsState={RHSStates.FLAG as RhsState}
                 canGoBack={true}

@@ -101,39 +101,39 @@ function setupState(setupOptions: SetupOptions): DeepPartial<GlobalState> {
 
 describe('Limits', () => {
     const defaultOptions = {};
-    test('message limit rendered in K', () => {
+    test('message limit rendered in K', async () => {
         const state = setupState(defaultOptions);
 
-        renderWithContext(<Limits/>, state);
+        await renderWithContext(<Limits/>, state);
         screen.getByText('Message history');
         screen.getByText(/of 10K/);
     });
 
-    test('storage limit rendered in GB', () => {
+    test('storage limit rendered in GB', async () => {
         const state = setupState(defaultOptions);
 
-        renderWithContext(<Limits/>, state);
+        await renderWithContext(<Limits/>, state);
         screen.getByText('File storage');
         screen.getByText(/of 1GB/);
     });
 
-    test('renders nothing if on enterprise', () => {
+    test('renders nothing if on enterprise', async () => {
         const mockGetLimits = jest.fn();
         jest.spyOn(cloudActions, 'getCloudLimits').mockImplementation(mockGetLimits);
         jest.spyOn(redux, 'useDispatch').mockImplementation(jest.fn(() => jest.fn()));
         const state = setupState({isEnterprise: true});
 
-        renderWithContext(<Limits/>, state);
+        await renderWithContext(<Limits/>, state);
         expect(screen.queryByTestId('limits-panel-title')).not.toBeInTheDocument();
     });
 
-    test('renders elements if not on enterprise', () => {
+    test('renders elements if not on enterprise', async () => {
         const mockGetLimits = jest.fn();
         jest.spyOn(cloudActions, 'getCloudLimits').mockImplementation(mockGetLimits);
         jest.spyOn(redux, 'useDispatch').mockImplementation(jest.fn(() => jest.fn()));
         const state = setupState(defaultOptions);
 
-        renderWithContext(<Limits/>, state);
+        await renderWithContext(<Limits/>, state);
         screen.getByTestId('limits-panel-title');
     });
 });

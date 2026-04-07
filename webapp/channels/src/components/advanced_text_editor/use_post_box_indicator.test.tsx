@@ -92,14 +92,14 @@ function getBaseState(): DeepPartial<GlobalState> {
 }
 
 describe('useTimePostBoxIndicator', () => {
-    it('should pass base case', () => {
+    it('should pass base case', async () => {
         const fakeLocal = DateTime.local(2025, 1, 1, 3, {
             zone: 'Asia/Kolkata',
         });
 
         DateTime.local = jest.fn(() => fakeLocal);
 
-        const {result: {current}} = renderHookWithContext(() => useTimePostBoxIndicator('dm_channel_id'), getBaseState());
+        const {result: {current}} = await renderHookWithContext(() => useTimePostBoxIndicator('dm_channel_id'), getBaseState());
 
         expect(current.isDM).toBe(true);
         expect(current.showDndWarning).toBe(false);
@@ -111,13 +111,13 @@ describe('useTimePostBoxIndicator', () => {
         expect(current.teammateTimezone.automaticTimezone).toBe('IST');
     });
 
-    it('should work for DM with bots', () => {
+    it('should work for DM with bots', async () => {
         const fakeLocal = DateTime.local(2025, 1, 1, 3, {
             zone: 'Asia/Kolkata',
         });
 
         DateTime.local = jest.fn(() => fakeLocal);
-        const {result: {current}} = renderHookWithContext(() => useTimePostBoxIndicator('bot_dm_channel_id'), getBaseState());
+        const {result: {current}} = await renderHookWithContext(() => useTimePostBoxIndicator('bot_dm_channel_id'), getBaseState());
 
         expect(current.isDM).toBe(true);
         expect(current.showDndWarning).toBe(false);
@@ -130,14 +130,14 @@ describe('useTimePostBoxIndicator', () => {
         expect(current.showRemoteUserHour).toBe(false);
     });
 
-    it('should handle teammate not loaded', () => {
+    it('should handle teammate not loaded', async () => {
         const fakeLocal = DateTime.local(2025, 1, 1, 1, {
             zone: 'Asia/Kolkata',
         });
 
         DateTime.local = jest.fn(() => fakeLocal);
 
-        const {result: {current}} = renderHookWithContext(() => useTimePostBoxIndicator('unknown_dm_channel_id'), getBaseState());
+        const {result: {current}} = await renderHookWithContext(() => useTimePostBoxIndicator('unknown_dm_channel_id'), getBaseState());
 
         expect(current.isDM).toBe(true);
         expect(current.showDndWarning).toBe(false);
@@ -149,7 +149,7 @@ describe('useTimePostBoxIndicator', () => {
         expect(current.teammateTimezone.automaticTimezone).toBe('IST');
     });
 
-    it('should not show remote hour indicator when a user becomes a bot', () => {
+    it('should not show remote hour indicator when a user becomes a bot', async () => {
         jest.useFakeTimers();
         jest.setSystemTime(new Date('2021-01-01T00:00:00Z').getTime());
         const initialState = getBaseState();
@@ -157,7 +157,7 @@ describe('useTimePostBoxIndicator', () => {
             const {isBot, showRemoteUserHour} = useTimePostBoxIndicator('dm_channel_id');
             return <div><div title='isBot'>{isBot.toString()}</div><div title='showRemoteUserHour'>{showRemoteUserHour.toString()}</div></div>;
         };
-        const {replaceStoreState} = renderWithContext(<TestComponent/>, initialState);
+        const {replaceStoreState} = await renderWithContext(<TestComponent/>, initialState);
 
         // Update the state to make the teammate a bot
         const updatedState = {
@@ -185,7 +185,7 @@ describe('useTimePostBoxIndicator', () => {
         expect(screen.queryByTitle('showRemoteUserHour')?.textContent).toBe('false');
     });
 
-    it('should properly update when a bot becomes a regular user', () => {
+    it('should properly update when a bot becomes a regular user', async () => {
         jest.useFakeTimers();
         jest.setSystemTime(new Date('2021-01-01T00:00:00Z').getTime());
         const initialState = getBaseState();
@@ -194,7 +194,7 @@ describe('useTimePostBoxIndicator', () => {
             return <div><div title='isBot'>{isBot.toString()}</div><div title='showRemoteUserHour'>{showRemoteUserHour.toString()}</div></div>;
         };
 
-        const {replaceStoreState} = renderWithContext(<TestComponent/>, initialState);
+        const {replaceStoreState} = await renderWithContext(<TestComponent/>, initialState);
 
         // Initially a bot
         expect(screen.queryByTitle('isBot')?.textContent).toBe('true');

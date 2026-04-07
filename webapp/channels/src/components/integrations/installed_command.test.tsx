@@ -51,8 +51,8 @@ describe('components/integrations/InstalledCommand', () => {
         canChange: false,
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <InstalledCommand {...requiredProps}/>,
             initialState,
         );
@@ -64,7 +64,7 @@ describe('components/integrations/InstalledCommand', () => {
         expect(container.querySelector('.item-details__description')?.textContent).toBe(command.description);
     });
 
-    test('should match snapshot, not autocomplete, no display_name/description/auto_complete_hint', () => {
+    test('should match snapshot, not autocomplete, no display_name/description/auto_complete_hint', async () => {
         const minCommand = TestHelper.getCommandMock({
             id: 'r5tpgt4iepf45jt768jz84djic',
             trigger: 'trigger',
@@ -74,7 +74,7 @@ describe('components/integrations/InstalledCommand', () => {
         });
         const props = {...requiredProps, command: minCommand};
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <InstalledCommand {...props}/>,
             initialState,
         );
@@ -89,7 +89,7 @@ describe('components/integrations/InstalledCommand', () => {
         const canChange = true;
         const props = {...requiredProps, onRegenToken, canChange};
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <InstalledCommand {...props}/>,
             initialState,
         );
@@ -105,7 +105,7 @@ describe('components/integrations/InstalledCommand', () => {
         const canChange = true;
         const props = {...requiredProps, onDelete, canChange};
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <InstalledCommand {...props}/>,
             initialState,
         );
@@ -117,11 +117,11 @@ describe('components/integrations/InstalledCommand', () => {
         expect(onDelete).toHaveBeenCalledWith(props.command);
     });
 
-    test('should filter out command', () => {
+    test('should filter out command', async () => {
         const filter = 'no_match';
         const props = {...requiredProps, filter};
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <InstalledCommand {...props}/>,
             initialState,
         );

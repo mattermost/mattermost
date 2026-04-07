@@ -89,8 +89,8 @@ describe('components/drafts/drafts_row', () => {
 
     };
 
-    it('should match snapshot for channel draft', () => {
-        const {container} = renderWithContext(
+    it('should match snapshot for channel draft', async () => {
+        const {container} = await renderWithContext(
             <DraftRow
                 {...baseProps}
             />,
@@ -99,7 +99,7 @@ describe('components/drafts/drafts_row', () => {
         expect(container).toMatchSnapshot();
     });
 
-    it('should match snapshot for thread draft', () => {
+    it('should match snapshot for thread draft', async () => {
         const props = {
             ...baseProps,
             item: {
@@ -108,7 +108,7 @@ describe('components/drafts/drafts_row', () => {
             } as PostDraft,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <DraftRow
                 {...props}
             />,

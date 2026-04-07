@@ -8,8 +8,8 @@ import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing
 import SharedChannelIndicator from './shared_channel_indicator';
 
 describe('components/SharedChannelIndicator', () => {
-    test('should render without tooltip', () => {
-        renderWithContext(
+    test('should render without tooltip', async () => {
+        await renderWithContext(
             <SharedChannelIndicator withTooltip={false}/>,
         );
 
@@ -19,7 +19,7 @@ describe('components/SharedChannelIndicator', () => {
     test('should render with default tooltip when no remote names', async () => {
         jest.useFakeTimers();
 
-        renderWithContext(
+        await renderWithContext(
             <SharedChannelIndicator withTooltip={true}/>,
         );
 
@@ -37,7 +37,7 @@ describe('components/SharedChannelIndicator', () => {
         jest.useFakeTimers();
 
         const remoteNames = ['Remote 1', 'Remote 2'];
-        renderWithContext(
+        await renderWithContext(
             <SharedChannelIndicator
                 withTooltip={true}
                 remoteNames={remoteNames}
@@ -58,7 +58,7 @@ describe('components/SharedChannelIndicator', () => {
         jest.useFakeTimers();
 
         const remoteNames = ['Remote 1', 'Remote 2', 'Remote 3', 'Remote 4', 'Remote 5'];
-        renderWithContext(
+        await renderWithContext(
             <SharedChannelIndicator
                 withTooltip={true}
                 remoteNames={remoteNames}
@@ -79,7 +79,7 @@ describe('components/SharedChannelIndicator', () => {
         jest.useFakeTimers();
 
         const remoteNames = ['A Very Very Very Very Very Long Organization Name That Needs Truncation', 'Remote 2'];
-        renderWithContext(
+        await renderWithContext(
             <SharedChannelIndicator
                 withTooltip={true}
                 remoteNames={remoteNames}
@@ -100,7 +100,7 @@ describe('components/SharedChannelIndicator', () => {
         jest.useFakeTimers();
 
         const remoteNames = ['Remote 1', 'Remote 2', 'Remote 3', 'Remote 4'];
-        renderWithContext(
+        await renderWithContext(
             <SharedChannelIndicator
                 withTooltip={true}
                 remoteNames={remoteNames}
@@ -130,7 +130,7 @@ describe('components/SharedChannelIndicator', () => {
             'Very Long Organization Name 6 That Exceeds Length Limits',
         ];
 
-        renderWithContext(
+        await renderWithContext(
             <SharedChannelIndicator
                 withTooltip={true}
                 remoteNames={longRemoteNames}

@@ -123,7 +123,7 @@ describe('components/admin_console/CustomPluginSettings', () => {
         };
     });
 
-    test('should match snapshot with settings and plugin', () => {
+    test('should match snapshot with settings and plugin', async () => {
         const settings = plugin.settings_schema!.settings.map((setting) => {
             const escapedPluginId = escapePathPart(plugin.id);
             return {
@@ -132,7 +132,7 @@ describe('components/admin_console/CustomPluginSettings', () => {
                 label: setting.display_name,
             } as AdminDefinitionSetting;
         });
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <CustomPluginSettings
                 {...baseProps}
                 config={config}
@@ -143,8 +143,8 @@ describe('components/admin_console/CustomPluginSettings', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with settings and no plugin', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with settings and no plugin', async () => {
+        const {container} = await renderWithContext(
             <CustomPluginSettings
                 {...baseProps}
                 config={config}
@@ -158,11 +158,11 @@ describe('components/admin_console/CustomPluginSettings', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with no settings and plugin', () => {
+    test('should match snapshot with no settings and plugin', async () => {
         const settings = plugin && plugin.settings_schema && plugin.settings_schema.settings && plugin.settings_schema.settings.map((setting) => {
             return {...setting, label: setting.display_name} as AdminDefinitionSetting;
         });
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <CustomPluginSettings
                 {...baseProps}
                 config={{
@@ -202,7 +202,7 @@ describe('custom plugin sections', () => {
         enterpriseReady: false,
     };
 
-    it('empty sections', () => {
+    it('empty sections', async () => {
         const schema = {
             id: 'testplugin',
             name: 'testplugin',
@@ -215,7 +215,7 @@ describe('custom plugin sections', () => {
             sections: [],
         };
 
-        renderWithContext(
+        await renderWithContext(
             <CustomPluginSettings
                 {...baseProps}
                 config={config}
@@ -226,7 +226,7 @@ describe('custom plugin sections', () => {
         expect(screen.getByText('testplugin')).toBeInTheDocument();
     });
 
-    it('render sections', () => {
+    it('render sections', async () => {
         const schema = {
             id: 'testplugin',
             name: 'testplugin',
@@ -265,7 +265,7 @@ describe('custom plugin sections', () => {
             ],
         };
 
-        renderWithContext(
+        await renderWithContext(
             <CustomPluginSettings
                 {...baseProps}
                 config={config}
@@ -289,7 +289,7 @@ describe('custom plugin sections', () => {
         expect(screen.queryByText('Section 3')).not.toBeInTheDocument();
     });
 
-    it('custom sections and settings', () => {
+    it('custom sections and settings', async () => {
         const schema = {
             id: 'testplugin',
             name: 'testplugin',
@@ -336,7 +336,7 @@ describe('custom plugin sections', () => {
             ],
         };
 
-        renderWithContext(
+        await renderWithContext(
             <CustomPluginSettings
                 {...baseProps}
                 config={config}

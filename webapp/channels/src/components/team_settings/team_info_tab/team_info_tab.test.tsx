@@ -37,7 +37,7 @@ describe('components/TeamSettings', () => {
     });
 
     test('should show an error when pdf file is uploaded', async () => {
-        renderWithContext(<InfoTab {...defaultProps}/>);
+        await renderWithContext(<InfoTab {...defaultProps}/>);
         const file = new File(['pdf'], 'pdf.pdf', {type: 'application/pdf'});
         const input = screen.getByTestId('uploadPicture');
         await userEvent.upload(input, file, {applyAccept: false});
@@ -48,7 +48,7 @@ describe('components/TeamSettings', () => {
     });
 
     test('should show an error when too large file is uploaded with 40mb', async () => {
-        renderWithContext(<InfoTab {...defaultProps}/>);
+        await renderWithContext(<InfoTab {...defaultProps}/>);
         const file = new File(['test'], 'test.png', {type: 'image/png'});
         Object.defineProperty(file, 'size', {value: defaultProps.maxFileSize + 1});
         const input = screen.getByTestId('uploadPicture');
@@ -60,7 +60,7 @@ describe('components/TeamSettings', () => {
     });
 
     test('should call setTeamIcon when an image is uploaded and saved', async () => {
-        renderWithContext(<InfoTab {...defaultProps}/>);
+        await renderWithContext(<InfoTab {...defaultProps}/>);
         const file = new File(['test'], 'test.png', {type: 'image/png'});
         const input = screen.getByTestId('uploadPicture');
         await userEvent.upload(input, file);
@@ -73,7 +73,7 @@ describe('components/TeamSettings', () => {
     });
 
     test('should call setTeamIcon when an image is removed', async () => {
-        renderWithContext(<InfoTab {...defaultProps}/>);
+        await renderWithContext(<InfoTab {...defaultProps}/>);
         const file = new File(['test'], 'test.png', {type: 'image/png'});
         const input = screen.getByTestId('uploadPicture');
         await userEvent.upload(input, file);
@@ -89,7 +89,7 @@ describe('components/TeamSettings', () => {
     });
 
     test('should show an error when team name is empty', async () => {
-        renderWithContext(<InfoTab {...defaultProps}/>);
+        await renderWithContext(<InfoTab {...defaultProps}/>);
         const input = screen.getByTestId('teamNameInput');
 
         await userEvent.clear(input);
@@ -102,7 +102,7 @@ describe('components/TeamSettings', () => {
     });
 
     test('should show an error when team name is too short', async () => {
-        renderWithContext(<InfoTab {...defaultProps}/>);
+        await renderWithContext(<InfoTab {...defaultProps}/>);
         const input = screen.getByTestId('teamNameInput');
         await userEvent.clear(input);
         await userEvent.type(input, 'a');
@@ -115,7 +115,7 @@ describe('components/TeamSettings', () => {
     });
 
     test('should call patchTeam when team name is changed and clicked saved', async () => {
-        renderWithContext(<InfoTab {...defaultProps}/>);
+        await renderWithContext(<InfoTab {...defaultProps}/>);
         const input = screen.getByTestId('teamNameInput');
         await userEvent.clear(input);
         await userEvent.type(input, 'new_team_name');
@@ -127,7 +127,7 @@ describe('components/TeamSettings', () => {
     });
 
     test('should call patchTeam when team description is changed and clicked saved', async () => {
-        renderWithContext(<InfoTab {...defaultProps}/>);
+        await renderWithContext(<InfoTab {...defaultProps}/>);
         const input = screen.getByTestId('teamDescriptionInput');
         await userEvent.clear(input);
         await userEvent.type(input, 'new_team_description');
@@ -139,7 +139,7 @@ describe('components/TeamSettings', () => {
     });
 
     test('should call patchTeam when team name and description are change and clicked saved', async () => {
-        renderWithContext(<InfoTab {...defaultProps}/>);
+        await renderWithContext(<InfoTab {...defaultProps}/>);
         const nameInput = screen.getByTestId('teamNameInput');
         const descriptionInput = screen.getByTestId('teamDescriptionInput');
         await userEvent.clear(nameInput);

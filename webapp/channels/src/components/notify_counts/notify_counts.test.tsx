@@ -12,26 +12,26 @@ import NotifyCounts from './';
 describe('components/notify_counts', () => {
     const getUnreadStatusInCurrentTeam = jest.spyOn(ChannelSelectors, 'getUnreadStatusInCurrentTeam');
 
-    test('should show unread mention count', () => {
+    test('should show unread mention count', async () => {
         getUnreadStatusInCurrentTeam.mockReturnValue(22);
 
-        const {container} = renderWithContext(<NotifyCounts/>);
+        const {container} = await renderWithContext(<NotifyCounts/>);
 
         expect(container.querySelector('.badge-notify')?.textContent).toBe('22');
     });
 
-    test('should show unread messages', () => {
+    test('should show unread messages', async () => {
         getUnreadStatusInCurrentTeam.mockReturnValue(true);
 
-        const {container} = renderWithContext(<NotifyCounts/>);
+        const {container} = await renderWithContext(<NotifyCounts/>);
 
         expect(container.querySelector('.badge-notify')?.textContent).toBe('•');
     });
 
-    test('should show not show unread indicator', () => {
+    test('should show not show unread indicator', async () => {
         getUnreadStatusInCurrentTeam.mockReturnValue(false);
 
-        const {container} = renderWithContext(<NotifyCounts/>);
+        const {container} = await renderWithContext(<NotifyCounts/>);
 
         expect(container.querySelector('.badge-notify')).toBeNull();
     });

@@ -38,8 +38,8 @@ describe('components/ChannelMembersModal', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {baseElement} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {baseElement} = await renderWithContext(
             <ChannelMembersModal {...baseProps}/>,
         );
 
@@ -47,7 +47,7 @@ describe('components/ChannelMembersModal', () => {
     });
 
     test('should hide the modal when close button is clicked', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ChannelMembersModal {...baseProps}/>,
         );
 
@@ -61,7 +61,7 @@ describe('components/ChannelMembersModal', () => {
     });
 
     test('should call openModal and hide modal when Add Members is clicked', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ChannelMembersModal {...baseProps}/>,
         );
 
@@ -74,34 +74,34 @@ describe('components/ChannelMembersModal', () => {
         });
     });
 
-    test('should match snapshot with archived channel', () => {
+    test('should match snapshot with archived channel', async () => {
         const props = {...baseProps, channel: {...baseProps.channel, delete_at: 1234}};
 
-        const {baseElement} = renderWithContext(
+        const {baseElement} = await renderWithContext(
             <ChannelMembersModal {...props}/>,
         );
 
         expect(baseElement).toMatchSnapshot();
     });
 
-    test('renders the channel display name', () => {
-        renderWithContext(
+    test('renders the channel display name', async () => {
+        await renderWithContext(
             <ChannelMembersModal {...baseProps}/>,
         );
         expect(screen.getByText(baseProps.channel.display_name)).toBeInTheDocument();
     });
 
-    test('should show the invite modal link if the user can manage channel members', () => {
+    test('should show the invite modal link if the user can manage channel members', async () => {
         const newProps = {...baseProps, canManageChannelMembers: true};
-        renderWithContext(
+        await renderWithContext(
             <ChannelMembersModal {...newProps}/>,
         );
         expect(document.querySelector('#showInviteModal')).toBeInTheDocument();
     });
 
-    test('should not show the invite modal link if the user can not manage channel members', () => {
+    test('should not show the invite modal link if the user can not manage channel members', async () => {
         const newProps = {...baseProps, canManageChannelMembers: false};
-        renderWithContext(
+        await renderWithContext(
             <ChannelMembersModal {...newProps}/>,
         );
         expect(document.querySelector('#showInviteModal')).not.toBeInTheDocument();
@@ -116,7 +116,7 @@ describe('components/ChannelMembersModal', () => {
                 openModal,
             },
         };
-        renderWithContext(
+        await renderWithContext(
             <ChannelMembersModal {...newProps}/>,
         );
         expect(openModal).not.toHaveBeenCalled();

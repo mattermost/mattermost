@@ -36,7 +36,7 @@ describe('UserPropertyValues', () => {
 
     const updateField = jest.fn();
 
-    const renderComponent = (field: UserPropertyField = baseField, autoFocus = false) => {
+    const renderComponent = async (field: UserPropertyField = baseField, autoFocus = false) => {
         return renderWithContext(
             <UserPropertyValues
                 field={field}
@@ -46,7 +46,7 @@ describe('UserPropertyValues', () => {
         );
     };
 
-    it('renders correctly for select/multiselect field types', () => {
+    it('renders correctly for select/multiselect field types', async () => {
         renderComponent();
 
         // Check that both options are displayed
@@ -54,7 +54,7 @@ describe('UserPropertyValues', () => {
         expect(screen.getByText('Option 2')).toBeInTheDocument();
     });
 
-    it('renders dash for non-select field types', () => {
+    it('renders dash for non-select field types', async () => {
         const textField = {
             ...baseField,
             type: 'text' as const,

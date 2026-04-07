@@ -23,15 +23,15 @@ describe('components/admin_console/permission_schemes_settings/permission_group'
         onChange: jest.fn(),
     };
 
-    test('should match snapshot on editable without permissions', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot on editable without permissions', async () => {
+        const {container} = await renderWithContext(
             <PermissionGroup {...defaultProps}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot on editable without every permission out of the scope', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot on editable without every permission out of the scope', async () => {
+        const {container} = await renderWithContext(
             <PermissionGroup
                 {...defaultProps}
                 scope={'system_scope'}
@@ -40,8 +40,8 @@ describe('components/admin_console/permission_schemes_settings/permission_group'
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot on editable with some permissions', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot on editable with some permissions', async () => {
+        const {container} = await renderWithContext(
             <PermissionGroup
                 {...defaultProps}
                 role={{permissions: ['invite_user']}}
@@ -50,8 +50,8 @@ describe('components/admin_console/permission_schemes_settings/permission_group'
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot on editable with all permissions', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot on editable with all permissions', async () => {
+        const {container} = await renderWithContext(
             <PermissionGroup
                 {...defaultProps}
                 role={{permissions: ['invite_user', 'add_user_to_team']}}
@@ -60,8 +60,8 @@ describe('components/admin_console/permission_schemes_settings/permission_group'
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot on editable without permissions and read-only', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot on editable without permissions and read-only', async () => {
+        const {container} = await renderWithContext(
             <PermissionGroup
                 {...defaultProps}
                 readOnly={true}
@@ -70,8 +70,8 @@ describe('components/admin_console/permission_schemes_settings/permission_group'
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot on editable with some permissions and read-only', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot on editable with some permissions and read-only', async () => {
+        const {container} = await renderWithContext(
             <PermissionGroup
                 {...defaultProps}
                 role={{permissions: ['invite_user']}}
@@ -81,8 +81,8 @@ describe('components/admin_console/permission_schemes_settings/permission_group'
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot on editable with all permissions and read-only', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot on editable with all permissions and read-only', async () => {
+        const {container} = await renderWithContext(
             <PermissionGroup
                 {...defaultProps}
                 role={{permissions: ['invite_user', 'add_user_to_team']}}
@@ -92,8 +92,8 @@ describe('components/admin_console/permission_schemes_settings/permission_group'
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot on editable with some permissions from parentRole', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot on editable with some permissions from parentRole', async () => {
+        const {container} = await renderWithContext(
             <PermissionGroup
                 {...defaultProps}
                 parentRole={{permissions: ['invite_user']}}
@@ -102,8 +102,8 @@ describe('components/admin_console/permission_schemes_settings/permission_group'
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot on editable with all permissions from parentRole', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot on editable with all permissions from parentRole', async () => {
+        const {container} = await renderWithContext(
             <PermissionGroup
                 {...defaultProps}
                 parentRole={{permissions: ['invite_user', 'add_user_to_team']}}
@@ -112,7 +112,7 @@ describe('components/admin_console/permission_schemes_settings/permission_group'
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with additional values', () => {
+    test('should match snapshot with additional values', async () => {
         const ADDITIONAL_VALUES = {
             edit_post: {
                 editTimeLimitButton: (
@@ -123,7 +123,7 @@ describe('components/admin_console/permission_schemes_settings/permission_group'
             },
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PermissionGroup
                 {...defaultProps}
                 additionalValues={ADDITIONAL_VALUES}
@@ -133,7 +133,7 @@ describe('components/admin_console/permission_schemes_settings/permission_group'
     });
 
     test('should expand and collapse correctly, expanded by default, collapsed and then expanded again', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PermissionGroup {...defaultProps}/>,
         );
 
@@ -152,7 +152,7 @@ describe('components/admin_console/permission_schemes_settings/permission_group'
 
     test('should call correctly onChange function on click without permissions', async () => {
         const onChange = jest.fn();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PermissionGroup
                 {...defaultProps}
                 onChange={onChange}
@@ -165,7 +165,7 @@ describe('components/admin_console/permission_schemes_settings/permission_group'
 
     test('should call correctly onChange function on click with some permissions', async () => {
         const onChange = jest.fn();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PermissionGroup
                 {...defaultProps}
                 role={{permissions: ['invite_user']}}
@@ -179,7 +179,7 @@ describe('components/admin_console/permission_schemes_settings/permission_group'
 
     test('should call correctly onChange function on click with all permissions', async () => {
         const onChange = jest.fn();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PermissionGroup
                 {...defaultProps}
                 role={{permissions: ['invite_user', 'add_user_to_team']}}
@@ -193,7 +193,7 @@ describe('components/admin_console/permission_schemes_settings/permission_group'
 
     test('shouldn\'t call onChange function on click when is read-only', async () => {
         const onChange = jest.fn();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PermissionGroup
                 {...defaultProps}
                 readOnly={true}
@@ -207,7 +207,7 @@ describe('components/admin_console/permission_schemes_settings/permission_group'
 
     test('should collapse when toggle to all permissions and expand otherwise', async () => {
         // Start with some permissions (intermediate state) -> clicking toggles to all -> should collapse
-        const {container, rerender} = renderWithContext(
+        const {container, rerender} = await renderWithContext(
             <PermissionGroup
                 {...defaultProps}
                 role={{permissions: ['invite_user']}}
@@ -240,7 +240,7 @@ describe('components/admin_console/permission_schemes_settings/permission_group'
         // Start with some permissions (intermediate) -> click toggles to all
         let onChange = jest.fn();
         const user = userEvent.setup();
-        const {container, rerender} = renderWithContext(
+        const {container, rerender} = await renderWithContext(
             <PermissionGroup
                 {...defaultProps}
                 role={{permissions: ['invite_user']}}

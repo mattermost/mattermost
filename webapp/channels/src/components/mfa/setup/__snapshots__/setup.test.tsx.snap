@@ -20,7 +20,7 @@ exports[`components/mfa/setup should match snapshot without required text 1`] = 
         >
           <img
             alt="qr code image"
-            src="data:image/png;base64,"
+            src="data:image/png;base64,qrcode"
             style="max-height: 170px;"
           />
         </div>
@@ -32,7 +32,7 @@ exports[`components/mfa/setup should match snapshot without required text 1`] = 
         <p
           class="col-sm-12"
         >
-          Secret: 
+          Secret: generated secret
         </p>
       </div>
       <p>

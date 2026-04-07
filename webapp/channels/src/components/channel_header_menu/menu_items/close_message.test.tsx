@@ -81,7 +81,7 @@ describe('components/ChannelHeaderMenu/MenuItems/CloseMessage', () => {
     });
 
     test('renders the component correctly for group channel', async () => {
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <CloseMessage
                     currentUserID='current_user_id'
@@ -105,7 +105,7 @@ describe('components/ChannelHeaderMenu/MenuItems/CloseMessage', () => {
     });
 
     test('renders the component correctly for direct channel', async () => {
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <CloseMessage
                     currentUserID='current_user_id'

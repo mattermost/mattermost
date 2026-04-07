@@ -16,31 +16,31 @@ describe('components/SettingItemMin', () => {
         describe: 'Test description',
     };
 
-    test('should render with default props', () => {
-        renderWithContext(<SettingItemMin {...baseProps}/>);
+    test('should render with default props', async () => {
+        await renderWithContext(<SettingItemMin {...baseProps}/>);
 
         expect(screen.getByText('Test Title')).toBeInTheDocument();
         expect(screen.getByText('Test description')).toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Test Title Edit'})).toBeInTheDocument();
     });
 
-    test('should render without edit button when disabled', () => {
+    test('should render without edit button when disabled', async () => {
         const props = {...baseProps, isDisabled: true};
-        renderWithContext(<SettingItemMin {...props}/>);
+        await renderWithContext(<SettingItemMin {...props}/>);
 
         expect(screen.getByText('Test Title')).toBeInTheDocument();
         expect(screen.getByText('Test description')).toBeInTheDocument();
         expect(screen.queryByRole('button')).not.toBeInTheDocument();
     });
 
-    test('should render custom disabled edit button when provided', () => {
+    test('should render custom disabled edit button when provided', async () => {
         const customEditButton = <span>{'Custom Edit Button'}</span>;
         const props = {
             ...baseProps,
             isDisabled: true,
             collapsedEditButtonWhenDisabled: customEditButton,
         };
-        renderWithContext(<SettingItemMin {...props}/>);
+        await renderWithContext(<SettingItemMin {...props}/>);
 
         expect(screen.getByText('Custom Edit Button')).toBeInTheDocument();
         expect(screen.queryByRole('button')).not.toBeInTheDocument();
@@ -49,7 +49,7 @@ describe('components/SettingItemMin', () => {
     test('should call updateSection when edit button is clicked', async () => {
         const updateSection = jest.fn();
         const props = {...baseProps, updateSection};
-        renderWithContext(<SettingItemMin {...props}/>);
+        await renderWithContext(<SettingItemMin {...props}/>);
 
         const editButton = screen.getByRole('button', {name: 'Test Title Edit'});
         await userEvent.click(editButton);
@@ -61,7 +61,7 @@ describe('components/SettingItemMin', () => {
     test('should call updateSection when container div is clicked', async () => {
         const updateSection = jest.fn();
         const props = {...baseProps, updateSection};
-        renderWithContext(<SettingItemMin {...props}/>);
+        await renderWithContext(<SettingItemMin {...props}/>);
 
         const container = screen.getByText('Test Title').closest('.section-min');
         await userEvent.click(container!);
@@ -73,7 +73,7 @@ describe('components/SettingItemMin', () => {
     test('should not call updateSection when disabled and edit button area is clicked', async () => {
         const updateSection = jest.fn();
         const props = {...baseProps, updateSection, isDisabled: true};
-        renderWithContext(<SettingItemMin {...props}/>);
+        await renderWithContext(<SettingItemMin {...props}/>);
 
         const container = screen.getByText('Test Title').closest('.section-min');
         await userEvent.click(container!);
@@ -81,8 +81,8 @@ describe('components/SettingItemMin', () => {
         expect(updateSection).not.toHaveBeenCalled();
     });
 
-    test('should have correct accessibility attributes', () => {
-        renderWithContext(<SettingItemMin {...baseProps}/>);
+    test('should have correct accessibility attributes', async () => {
+        await renderWithContext(<SettingItemMin {...baseProps}/>);
 
         const editButton = screen.getByRole('button', {name: 'Test Title Edit'});
         expect(editButton).toHaveAttribute('aria-expanded', 'false');
@@ -96,9 +96,9 @@ describe('components/SettingItemMin', () => {
         expect(description).toHaveAttribute('id', 'test-sectionDesc');
     });
 
-    test('should apply disabled styling when isDisabled is true', () => {
+    test('should apply disabled styling when isDisabled is true', async () => {
         const props = {...baseProps, isDisabled: true};
-        renderWithContext(<SettingItemMin {...props}/>);
+        await renderWithContext(<SettingItemMin {...props}/>);
 
         const container = screen.getByText('Test Title').closest('.section-min');
         const title = screen.getByText('Test Title');

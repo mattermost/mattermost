@@ -53,7 +53,7 @@ describe('components/ProfilePopoverPhone', () => {
         mockWindowOpen.mockClear();
     });
 
-    test('should not render when phone is missing', () => {
+    test('should not render when phone is missing', async () => {
         const props = {
             ...baseProps,
             userProfile: TestHelper.getUserMock({
@@ -61,11 +61,11 @@ describe('components/ProfilePopoverPhone', () => {
                 custom_profile_attributes: {},
             }),
         };
-        const {container} = renderWithContext(<ProfilePopoverPhone {...props}/>);
+        const {container} = await renderWithContext(<ProfilePopoverPhone {...props}/>);
         expect(container.firstChild).toBeNull();
     });
 
-    test('should not render when phone is empty', () => {
+    test('should not render when phone is empty', async () => {
         const props = {
             ...baseProps,
             userProfile: TestHelper.getUserMock({
@@ -75,12 +75,12 @@ describe('components/ProfilePopoverPhone', () => {
                 },
             }),
         };
-        const {container} = renderWithContext(<ProfilePopoverPhone {...props}/>);
+        const {container} = await renderWithContext(<ProfilePopoverPhone {...props}/>);
         expect(container.firstChild).toBeNull();
     });
 
-    test('should render phone with icon', () => {
-        renderWithContext(<ProfilePopoverPhone {...baseProps}/>);
+    test('should render phone with icon', async () => {
+        await renderWithContext(<ProfilePopoverPhone {...baseProps}/>);
 
         const phone = '+1 (555) 123-4567';
         const phoneLink = screen.getByText(phone);
@@ -90,7 +90,7 @@ describe('components/ProfilePopoverPhone', () => {
         expect(screen.getByLabelText('phone icon')).toBeInTheDocument();
     });
 
-    test('should handle international phone numbers', () => {
+    test('should handle international phone numbers', async () => {
         const props = {
             ...baseProps,
             userProfile: TestHelper.getUserMock({
@@ -100,7 +100,7 @@ describe('components/ProfilePopoverPhone', () => {
                 },
             }),
         };
-        renderWithContext(<ProfilePopoverPhone {...props}/>);
+        await renderWithContext(<ProfilePopoverPhone {...props}/>);
 
         const phone = '+44 20 7123 4567';
         const phoneLink = screen.getByText(phone);
@@ -109,7 +109,7 @@ describe('components/ProfilePopoverPhone', () => {
     });
 
     test('should open phone dialer when clicked', async () => {
-        renderWithContext(<ProfilePopoverPhone {...baseProps}/>);
+        await renderWithContext(<ProfilePopoverPhone {...baseProps}/>);
 
         const phone = '+1 (555) 123-4567';
         const phoneLink = screen.getByText(phone);
@@ -120,7 +120,7 @@ describe('components/ProfilePopoverPhone', () => {
     });
 
     test('should prevent default click behavior', async () => {
-        renderWithContext(<ProfilePopoverPhone {...baseProps}/>);
+        await renderWithContext(<ProfilePopoverPhone {...baseProps}/>);
 
         const phone = '+1 (555) 123-4567';
         const phoneLink = screen.getByText(phone);

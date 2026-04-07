@@ -22,7 +22,7 @@ describe('ResetToDefaultButton', () => {
         onClick: jest.fn(),
     };
 
-    test('should not show if section name is not valid', () => {
+    test('should not show if section name is not valid', async () => {
         // Mock console.error to suppress PropTypes warning
         const originalError = console.error;
         console.error = jest.fn();
@@ -32,19 +32,19 @@ describe('ResetToDefaultButton', () => {
             sectionName: 'invalidSectionName' as any,
         };
 
-        const {container} = renderWithContext(<ResetToDefaultButton {...props}/>);
+        const {container} = await renderWithContext(<ResetToDefaultButton {...props}/>);
         expect(container).toBeEmptyDOMElement();
 
         console.error = originalError;
     });
 
-    test('should render if section name is valid', () => {
-        const {container} = renderWithContext(<ResetToDefaultButton {...defaultProps}/>);
+    test('should render if section name is valid', async () => {
+        const {container} = await renderWithContext(<ResetToDefaultButton {...defaultProps}/>);
         expect(container).not.toBeEmptyDOMElement();
         expect(container).toMatchSnapshot();
     });
 
-    test('should not show if desktop notifications are same as default user notification settings', () => {
+    test('should not show if desktop notifications are same as default user notification settings', async () => {
         const props = {
             ...defaultProps,
             userNotifyProps: {
@@ -63,11 +63,11 @@ describe('ResetToDefaultButton', () => {
             },
         };
 
-        const {container} = renderWithContext(<ResetToDefaultButton {...props}/>);
+        const {container} = await renderWithContext(<ResetToDefaultButton {...props}/>);
         expect(container).toBeEmptyDOMElement();
     });
 
-    test('should show if desktop notifications are not same as user notification settings', () => {
+    test('should show if desktop notifications are not same as user notification settings', async () => {
         const props1 = {
             ...defaultProps,
             userNotifyProps: {
@@ -85,7 +85,7 @@ describe('ResetToDefaultButton', () => {
             },
         };
 
-        const {rerender} = renderWithContext(<ResetToDefaultButton {...props1}/>);
+        const {rerender} = await renderWithContext(<ResetToDefaultButton {...props1}/>);
         expect(screen.getByText('Reset to default')).toBeInTheDocument();
 
         const props2 = {
@@ -102,7 +102,7 @@ describe('ResetToDefaultButton', () => {
         expect(screen.getByText('Reset to default')).toBeInTheDocument();
     });
 
-    test('should not show if mobile notifications are same as default user notification settings', () => {
+    test('should not show if mobile notifications are same as default user notification settings', async () => {
         const props = {
             ...defaultProps,
             sectionName: SectionName.Mobile,
@@ -118,11 +118,11 @@ describe('ResetToDefaultButton', () => {
             },
         };
 
-        const {container} = renderWithContext(<ResetToDefaultButton {...props}/>);
+        const {container} = await renderWithContext(<ResetToDefaultButton {...props}/>);
         expect(container).toBeEmptyDOMElement();
     });
 
-    test('should show if mobile notifications are not same as user notification settings', () => {
+    test('should show if mobile notifications are not same as user notification settings', async () => {
         const props = {
             ...defaultProps,
             sectionName: SectionName.Mobile,
@@ -138,7 +138,7 @@ describe('ResetToDefaultButton', () => {
             },
         };
 
-        const {rerender} = renderWithContext(<ResetToDefaultButton {...props}/>);
+        const {rerender} = await renderWithContext(<ResetToDefaultButton {...props}/>);
         expect(screen.getByText('Reset to default')).toBeInTheDocument();
 
         const props2 = {

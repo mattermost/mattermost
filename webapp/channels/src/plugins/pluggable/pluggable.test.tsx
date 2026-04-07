@@ -47,9 +47,9 @@ describe('plugins/Pluggable', () => {
         };
     }
 
-    test('should match snapshot with extended component', () => {
+    test('should match snapshot with extended component', async () => {
         const state = getBaseState();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <Pluggable
                 {...baseProps}
                 pluggableName='RightHandSidebarComponent'
@@ -62,11 +62,11 @@ describe('plugins/Pluggable', () => {
         expect(screen.getByText('ProfilePopoverPlugin')).toBeInTheDocument();
     });
 
-    test('should return null if with pluggableName but no components', () => {
+    test('should return null if with pluggableName but no components', async () => {
         const state = getBaseState();
         state.plugins!.components!.RightHandSidebarComponent = [];
         const store = testConfigureStore(state);
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <Provider store={store}>
                 <Pluggable
                     {...baseProps}
@@ -79,10 +79,10 @@ describe('plugins/Pluggable', () => {
         expect(container).toBeEmptyDOMElement();
     });
 
-    test('should match snapshot with non-null pluggableId', () => {
+    test('should match snapshot with non-null pluggableId', async () => {
         const state = getBaseState();
         const store = testConfigureStore(state);
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <Provider store={store}>
                 <Pluggable
                     {...baseProps}
@@ -97,11 +97,11 @@ describe('plugins/Pluggable', () => {
         expect(container).toBeEmptyDOMElement();
     });
 
-    test('should match snapshot with valid pluggableId', () => {
+    test('should match snapshot with valid pluggableId', async () => {
         const state = getBaseState();
         state.plugins!.components!.RightHandSidebarComponent![0]!.id = 'pluggableId';
         const store = testConfigureStore(state);
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <Provider store={store}>
                 <Pluggable
                     {...baseProps}

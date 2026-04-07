@@ -15,14 +15,14 @@ describe('components/custom_status/expiry_menu', () => {
         handleDurationChange: jest.fn(),
     };
 
-    it('should match snapshot', () => {
-        const {container} = renderWithContext(<ExpiryMenu {...baseProps}/>);
+    it('should match snapshot', async () => {
+        const {container} = await renderWithContext(<ExpiryMenu {...baseProps}/>);
         expect(container).toMatchSnapshot();
     });
 
-    it('should match snapshot with different props', () => {
+    it('should match snapshot with different props', async () => {
         baseProps.duration = CustomStatusDuration.DATE_AND_TIME;
-        const {container} = renderWithContext(<ExpiryMenu {...baseProps}/>);
+        const {container} = await renderWithContext(<ExpiryMenu {...baseProps}/>);
         expect(container).toMatchSnapshot();
     });
 });

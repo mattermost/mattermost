@@ -31,22 +31,22 @@ describe('components/file_preview_modal/file_preview_modal_header/FilePreviewMod
         canCopyContent: true,
     };
 
-    test('should match snapshot the desktop view', () => {
+    test('should match snapshot the desktop view', async () => {
         const props = {
             ...defaultProps,
         };
 
-        const {container} = renderWithContext(<FilePreviewModalHeader {...props}/>);
+        const {container} = await renderWithContext(<FilePreviewModalHeader {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot the mobile view', () => {
+    test('should match snapshot the mobile view', async () => {
         const props = {
             ...defaultProps,
             isMobileView: true,
         };
 
-        const {container} = renderWithContext(<FilePreviewModalHeader {...props}/>);
+        const {container} = await renderWithContext(<FilePreviewModalHeader {...props}/>);
         expect(container).toMatchSnapshot();
     });
 });

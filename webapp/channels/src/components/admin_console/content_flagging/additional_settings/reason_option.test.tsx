@@ -31,27 +31,27 @@ describe('ReasonOption', () => {
         theme: {} as any,
     } as unknown as MultiValueProps<{label: string; value: string}, true>;
 
-    test('should render the reason option with correct label', () => {
-        renderWithContext(<ReasonOption {...mockProps}/>);
+    test('should render the reason option with correct label', async () => {
+        await renderWithContext(<ReasonOption {...mockProps}/>);
 
         expect(screen.getByText('Test Reason')).toBeInTheDocument();
     });
 
-    test('should render with ReasonOption class', () => {
-        const {container} = renderWithContext(<ReasonOption {...mockProps}/>);
+    test('should render with ReasonOption class', async () => {
+        const {container} = await renderWithContext(<ReasonOption {...mockProps}/>);
 
         expect(container.querySelector('.ReasonOption')).toBeInTheDocument();
     });
 
-    test('should render remove button with close icon', () => {
-        const {container} = renderWithContext(<ReasonOption {...mockProps}/>);
+    test('should render remove button with close icon', async () => {
+        const {container} = await renderWithContext(<ReasonOption {...mockProps}/>);
 
         const removeButton = container.querySelector('.Remove');
         expect(removeButton).toBeInTheDocument();
     });
 
     test('should call onClick when remove button is clicked', async () => {
-        const {container} = renderWithContext(<ReasonOption {...mockProps}/>);
+        const {container} = await renderWithContext(<ReasonOption {...mockProps}/>);
 
         const removeButton = container.querySelector('.Remove');
         await userEvent.click(removeButton!);
@@ -59,19 +59,19 @@ describe('ReasonOption', () => {
         expect(mockProps.removeProps.onClick).toHaveBeenCalledTimes(1);
     });
 
-    test('should render with different label', () => {
+    test('should render with different label', async () => {
         const propsWithDifferentLabel = {
             ...mockProps,
             data: {label: 'Another Reason', value: 'another_reason'},
         };
 
-        renderWithContext(<ReasonOption {...propsWithDifferentLabel}/>);
+        await renderWithContext(<ReasonOption {...propsWithDifferentLabel}/>);
 
         expect(screen.getByText('Another Reason')).toBeInTheDocument();
         expect(screen.queryByText('Test Reason')).not.toBeInTheDocument();
     });
 
-    test('should render custom children in remove button when provided', () => {
+    test('should render custom children in remove button when provided', async () => {
         const customChildren = <span>{'Custom Remove'}</span>;
         const mockRemoveProps = {
             ...mockProps.removeProps,
@@ -83,18 +83,18 @@ describe('ReasonOption', () => {
             removeProps: mockRemoveProps,
         };
 
-        renderWithContext(<ReasonOption {...propsWithCustomChildren}/>);
+        await renderWithContext(<ReasonOption {...propsWithCustomChildren}/>);
 
         expect(screen.getByText('Custom Remove')).toBeInTheDocument();
     });
 
-    test('should handle empty label gracefully', () => {
+    test('should handle empty label gracefully', async () => {
         const propsWithEmptyLabel = {
             ...mockProps,
             data: {label: '', value: 'empty_reason'},
         };
 
-        const {container} = renderWithContext(<ReasonOption {...propsWithEmptyLabel}/>);
+        const {container} = await renderWithContext(<ReasonOption {...propsWithEmptyLabel}/>);
 
         expect(container.querySelector('.ReasonOption')).toBeInTheDocument();
     });

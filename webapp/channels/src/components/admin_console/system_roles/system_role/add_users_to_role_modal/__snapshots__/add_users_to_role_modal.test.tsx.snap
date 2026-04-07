@@ -150,27 +150,125 @@ exports[`admin_console/add_users_to_role_modal search should not include bot use
                 class="multi-select__wrapper"
               >
                 <div
-                  aria-hidden="true"
+                  class="more-modal__list"
                 >
                   <div
-                    class="loading-screen"
-                    style="position: absolute;"
+                    aria-live="polite"
+                    class="sr-only"
+                    role="status"
+                  >
+                    2 results found for your search.
+                  </div>
+                  <div
+                    aria-atomic="true"
+                    aria-live="polite"
+                    class="sr-only"
+                  />
+                  <div
+                    class="more-modal__options"
+                    id="multiSelectList"
+                    role="presentation"
                   >
                     <div
-                      class="loading__content"
+                      class="more-modal__row clickable "
                     >
-                      <p>
-                        Loading
-                      </p>
+                      <span
+                        class="status-wrapper style--none"
+                      >
+                        <span
+                          class="profile-icon "
+                        >
+                          <img
+                            alt="user profile image"
+                            class="Avatar Avatar-md"
+                            loading="lazy"
+                            src="/api/v4/users/regular_user/image"
+                          />
+                        </span>
+                      </span>
                       <div
-                        class="round round-1"
-                      />
+                        class="more-modal__details"
+                      >
+                        <div
+                          class="more-modal__name"
+                        >
+                          <span
+                            id="displayedUserNamesome-user"
+                          >
+                            @some-user
+                            <span
+                              class="light"
+                            />
+                          </span>
+                        </div>
+                      </div>
                       <div
-                        class="round round-2"
-                      />
+                        class="more-modal__actions"
+                      >
+                        <button
+                          aria-label="Add users to role"
+                          class="more-modal__actions--round"
+                        >
+                          <i
+                            class="icon icon-plus"
+                          />
+                        </button>
+                      </div>
+                    </div>
+                    <div
+                      class="more-modal__row clickable "
+                    >
+                      <span
+                        class="status-wrapper style--none"
+                      >
+                        <span
+                          class="profile-icon "
+                        >
+                          <img
+                            alt="user profile image"
+                            class="Avatar Avatar-md"
+                            loading="lazy"
+                            src="/api/v4/users/user_id/image"
+                          />
+                        </span>
+                      </span>
                       <div
-                        class="round round-3"
-                      />
+                        class="more-modal__details"
+                      >
+                        <div
+                          class="more-modal__name"
+                        >
+                          <span
+                            id="displayedUserNamesome-user"
+                          >
+                            @some-user
+                            <span
+                              class="light"
+                            />
+                          </span>
+                          <div
+                            class="TagWrapper-kezsCu cA-dXXM Tag Tag--xs BotTag"
+                          >
+                            <span
+                              class="TagText-bWoQAI beIloY"
+                            >
+                              BOT
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        class="more-modal__actions"
+                      >
+                        <button
+                          aria-label="Add users to role"
+                          class="more-modal__actions--round"
+                        >
+                          <i
+                            class="icon icon-plus"
+                          />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -338,29 +436,15 @@ exports[`admin_console/add_users_to_role_modal should exclude user 1`] = `
                 class="multi-select__wrapper"
               >
                 <div
-                  aria-hidden="true"
+                  class="no-channel-message"
+                  tabindex="0"
                 >
-                  <div
-                    class="loading-screen"
-                    style="position: absolute;"
+                  <p
+                    class="primary-message"
                   >
-                    <div
-                      class="loading__content"
-                    >
-                      <p>
-                        Loading
-                      </p>
-                      <div
-                        class="round round-1"
-                      />
-                      <div
-                        class="round round-2"
-                      />
-                      <div
-                        class="round round-3"
-                      />
-                    </div>
-                  </div>
+                    No results found matching 
+                    <b />
+                  </p>
                 </div>
               </div>
               <div
@@ -526,27 +610,70 @@ exports[`admin_console/add_users_to_role_modal should have single passed value 1
                 class="multi-select__wrapper"
               >
                 <div
-                  aria-hidden="true"
+                  class="more-modal__list"
                 >
                   <div
-                    class="loading-screen"
-                    style="position: absolute;"
+                    aria-live="polite"
+                    class="sr-only"
+                    role="status"
+                  >
+                    1 result found for your search.
+                  </div>
+                  <div
+                    aria-atomic="true"
+                    aria-live="polite"
+                    class="sr-only"
+                  />
+                  <div
+                    class="more-modal__options"
+                    id="multiSelectList"
+                    role="presentation"
                   >
                     <div
-                      class="loading__content"
+                      class="more-modal__row clickable "
                     >
-                      <p>
-                        Loading
-                      </p>
+                      <span
+                        class="status-wrapper style--none"
+                      >
+                        <span
+                          class="profile-icon "
+                        >
+                          <img
+                            alt="user profile image"
+                            class="Avatar Avatar-md"
+                            loading="lazy"
+                            src="/api/v4/users/user_id/image"
+                          />
+                        </span>
+                      </span>
                       <div
-                        class="round round-1"
-                      />
+                        class="more-modal__details"
+                      >
+                        <div
+                          class="more-modal__name"
+                        >
+                          <span
+                            id="displayedUserNamesome-user"
+                          >
+                            @some-user
+                            <span
+                              class="light"
+                            />
+                          </span>
+                        </div>
+                      </div>
                       <div
-                        class="round round-2"
-                      />
-                      <div
-                        class="round round-3"
-                      />
+                        class="more-modal__actions"
+                      >
+                        <button
+                          aria-label="Add users to role"
+                          class="more-modal__actions--round"
+                        >
+                          <i
+                            class="icon icon-plus"
+                          />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -714,27 +841,116 @@ exports[`admin_console/add_users_to_role_modal should include additional user 1`
                 class="multi-select__wrapper"
               >
                 <div
-                  aria-hidden="true"
+                  class="more-modal__list"
                 >
                   <div
-                    class="loading-screen"
-                    style="position: absolute;"
+                    aria-live="polite"
+                    class="sr-only"
+                    role="status"
+                  >
+                    2 results found for your search.
+                  </div>
+                  <div
+                    aria-atomic="true"
+                    aria-live="polite"
+                    class="sr-only"
+                  />
+                  <div
+                    class="more-modal__options"
+                    id="multiSelectList"
+                    role="presentation"
                   >
                     <div
-                      class="loading__content"
+                      class="more-modal__row clickable "
                     >
-                      <p>
-                        Loading
-                      </p>
+                      <span
+                        class="status-wrapper style--none"
+                      >
+                        <span
+                          class="profile-icon "
+                        >
+                          <img
+                            alt="user profile image"
+                            class="Avatar Avatar-md"
+                            loading="lazy"
+                            src="/api/v4/users/user_id/image"
+                          />
+                        </span>
+                      </span>
                       <div
-                        class="round round-1"
-                      />
+                        class="more-modal__details"
+                      >
+                        <div
+                          class="more-modal__name"
+                        >
+                          <span
+                            id="displayedUserNamesome-user"
+                          >
+                            @some-user
+                            <span
+                              class="light"
+                            />
+                          </span>
+                        </div>
+                      </div>
                       <div
-                        class="round round-2"
-                      />
+                        class="more-modal__actions"
+                      >
+                        <button
+                          aria-label="Add users to role"
+                          class="more-modal__actions--round"
+                        >
+                          <i
+                            class="icon icon-plus"
+                          />
+                        </button>
+                      </div>
+                    </div>
+                    <div
+                      class="more-modal__row clickable "
+                    >
+                      <span
+                        class="status-wrapper style--none"
+                      >
+                        <span
+                          class="profile-icon "
+                        >
+                          <img
+                            alt="user profile image"
+                            class="Avatar Avatar-md"
+                            loading="lazy"
+                            src="/api/v4/users/user_id1/image"
+                          />
+                        </span>
+                      </span>
                       <div
-                        class="round round-3"
-                      />
+                        class="more-modal__details"
+                      >
+                        <div
+                          class="more-modal__name"
+                        >
+                          <span
+                            id="displayedUserNamesome-user"
+                          >
+                            @some-user
+                            <span
+                              class="light"
+                            />
+                          </span>
+                        </div>
+                      </div>
+                      <div
+                        class="more-modal__actions"
+                      >
+                        <button
+                          aria-label="Add users to role"
+                          class="more-modal__actions--round"
+                        >
+                          <i
+                            class="icon icon-plus"
+                          />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -902,27 +1118,125 @@ exports[`admin_console/add_users_to_role_modal should not include bot user 1`] =
                 class="multi-select__wrapper"
               >
                 <div
-                  aria-hidden="true"
+                  class="more-modal__list"
                 >
                   <div
-                    class="loading-screen"
-                    style="position: absolute;"
+                    aria-live="polite"
+                    class="sr-only"
+                    role="status"
+                  >
+                    2 results found for your search.
+                  </div>
+                  <div
+                    aria-atomic="true"
+                    aria-live="polite"
+                    class="sr-only"
+                  />
+                  <div
+                    class="more-modal__options"
+                    id="multiSelectList"
+                    role="presentation"
                   >
                     <div
-                      class="loading__content"
+                      class="more-modal__row clickable "
                     >
-                      <p>
-                        Loading
-                      </p>
+                      <span
+                        class="status-wrapper style--none"
+                      >
+                        <span
+                          class="profile-icon "
+                        >
+                          <img
+                            alt="user profile image"
+                            class="Avatar Avatar-md"
+                            loading="lazy"
+                            src="/api/v4/users/regular_user/image"
+                          />
+                        </span>
+                      </span>
                       <div
-                        class="round round-1"
-                      />
+                        class="more-modal__details"
+                      >
+                        <div
+                          class="more-modal__name"
+                        >
+                          <span
+                            id="displayedUserNamesome-user"
+                          >
+                            @some-user
+                            <span
+                              class="light"
+                            />
+                          </span>
+                        </div>
+                      </div>
                       <div
-                        class="round round-2"
-                      />
+                        class="more-modal__actions"
+                      >
+                        <button
+                          aria-label="Add users to role"
+                          class="more-modal__actions--round"
+                        >
+                          <i
+                            class="icon icon-plus"
+                          />
+                        </button>
+                      </div>
+                    </div>
+                    <div
+                      class="more-modal__row clickable "
+                    >
+                      <span
+                        class="status-wrapper style--none"
+                      >
+                        <span
+                          class="profile-icon "
+                        >
+                          <img
+                            alt="user profile image"
+                            class="Avatar Avatar-md"
+                            loading="lazy"
+                            src="/api/v4/users/user_id/image"
+                          />
+                        </span>
+                      </span>
                       <div
-                        class="round round-3"
-                      />
+                        class="more-modal__details"
+                      >
+                        <div
+                          class="more-modal__name"
+                        >
+                          <span
+                            id="displayedUserNamesome-user"
+                          >
+                            @some-user
+                            <span
+                              class="light"
+                            />
+                          </span>
+                          <div
+                            class="TagWrapper-kezsCu cA-dXXM Tag Tag--xs BotTag"
+                          >
+                            <span
+                              class="TagText-bWoQAI beIloY"
+                            >
+                              BOT
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        class="more-modal__actions"
+                      >
+                        <button
+                          aria-label="Add users to role"
+                          class="more-modal__actions--round"
+                        >
+                          <i
+                            class="icon icon-plus"
+                          />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>

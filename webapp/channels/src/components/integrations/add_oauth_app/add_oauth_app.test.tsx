@@ -17,8 +17,8 @@ describe('components/integrations/AddOAuthApp', () => {
         name: 'test',
     });
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <AddOAuthApp
                 team={team}
                 actions={{addOAuthApp: emptyFunction}}

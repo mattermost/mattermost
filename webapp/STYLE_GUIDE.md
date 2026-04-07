@@ -79,7 +79,7 @@ The following guidelines should be applied to both new and existing code. Howeve
 
 ### Testing
 
-- **Testing Framework**: Use React Testing Library (RTL) for all component tests. Don't use Enzyme as it is deprecated and we are working to remove it.
+- **Testing Framework**: Use React Testing Library (RTL) for all component tests.
 - **Helpers**: Import testing functions from `utils/react_testing_utils` instead of importing them directly from RTL. Use `renderWithContext` for any components that need access to Redux, I18n, or React Router context.
 - **Test Philosophy**: Prefer testing how a user would interact with and experience the component rather than testing implementation details. In other words, prefer to interact with the element by simulating user events (e.g. using `userEvent.click` instead of calling methods directly) and testing expected behavior by writing assertions about visible characteristics (e.g. asserting that an element is visible versus checking a component's internal `state`).
     - **No Snapshots**: As an extension of the above, don't use snapshot tests. Instead, be explicit about what is expected to be visible by using `expect(...).toBeVisible(...)` to ensure that others don't unintentionally break the component or its tests in the future.

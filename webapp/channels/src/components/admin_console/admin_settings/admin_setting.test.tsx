@@ -21,16 +21,16 @@ function getProps(): ComponentProps<typeof AdminSettings> {
 }
 
 describe('AdminSettings', () => {
-    it('should match snapshot', () => {
+    it('should match snapshot', async () => {
         const props = getProps();
-        const {container} = renderWithContext(<AdminSettings {...props}/>);
+        const {container} = await renderWithContext(<AdminSettings {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    it('save button should be disabled if there is no save needed', () => {
+    it('save button should be disabled if there is no save needed', async () => {
         const props = getProps();
         props.saveNeeded = false;
-        const {rerender} = renderWithContext(<AdminSettings {...props}/>);
+        const {rerender} = await renderWithContext(<AdminSettings {...props}/>);
 
         expect(screen.getByTestId('saveSetting')).toBeDisabled();
 
@@ -41,11 +41,11 @@ describe('AdminSettings', () => {
         expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
     });
 
-    it('save button should be disabled if the component is disabled', () => {
+    it('save button should be disabled if the component is disabled', async () => {
         const props = getProps();
         props.saveNeeded = true;
         props.isDisabled = true;
-        const {rerender} = renderWithContext(<AdminSettings {...props}/>);
+        const {rerender} = await renderWithContext(<AdminSettings {...props}/>);
 
         expect(screen.getByTestId('saveSetting')).toBeDisabled();
 
@@ -56,11 +56,11 @@ describe('AdminSettings', () => {
         expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
     });
 
-    it('should call doSubmit when the save button is pressed', () => {
+    it('should call doSubmit when the save button is pressed', async () => {
         const props = getProps();
         props.saveNeeded = true;
 
-        const {rerender} = renderWithContext(<AdminSettings {...props}/>);
+        const {rerender} = await renderWithContext(<AdminSettings {...props}/>);
 
         expect(props.doSubmit).not.toHaveBeenCalled();
         screen.getByTestId('saveSetting').click();
@@ -74,10 +74,10 @@ describe('AdminSettings', () => {
         expect(props.doSubmit).toHaveBeenCalled();
     });
 
-    it('show saving message while saving', () => {
+    it('show saving message while saving', async () => {
         const props = getProps();
         props.saving = true;
-        const {rerender} = renderWithContext(<AdminSettings {...props}/>);
+        const {rerender} = await renderWithContext(<AdminSettings {...props}/>);
 
         expect(screen.getByText('Saving Config...')).toBeInTheDocument();
 
@@ -88,24 +88,24 @@ describe('AdminSettings', () => {
         expect(screen.queryByText('Saving Config...')).not.toBeInTheDocument();
     });
 
-    it('should render the specified title and settings', () => {
+    it('should render the specified title and settings', async () => {
         const titleTestId = 'some test id for the title';
         const settingsTestId = 'some test id for the settings';
         const props = getProps();
         props.renderTitle = () => <span data-testid={titleTestId}>{'hello world'}</span>;
         props.renderSettings = () => <span data-testid={settingsTestId}>{'hello world'}</span>;
 
-        renderWithContext(<AdminSettings {...props}/>);
+        await renderWithContext(<AdminSettings {...props}/>);
 
         expect(screen.getByTestId(titleTestId)).toBeInTheDocument();
         expect(screen.getByTestId(settingsTestId)).toBeInTheDocument();
     });
 
-    it('should show the error message', () => {
+    it('should show the error message', async () => {
         const serverError = 'some error';
         const props = getProps();
         props.serverError = serverError;
-        const {rerender} = renderWithContext(<AdminSettings {...props}/>);
+        const {rerender} = await renderWithContext(<AdminSettings {...props}/>);
 
         expect(screen.getByText(serverError)).toBeInTheDocument();
 

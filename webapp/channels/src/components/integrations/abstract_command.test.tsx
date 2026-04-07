@@ -53,15 +53,15 @@ describe('components/integrations/AbstractCommand', () => {
         action,
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <AbstractCommand {...baseProps}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when header/footer/loading is a string', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot when header/footer/loading is a string', async () => {
+        const {container} = await renderWithContext(
             <AbstractCommand
                 {...baseProps}
                 header='Header as string'
@@ -75,7 +75,7 @@ describe('components/integrations/AbstractCommand', () => {
     test('should match snapshot, displays client error', async () => {
         const newSeverError = 'server error';
         const props = {...baseProps, serverError: newSeverError};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <AbstractCommand {...props}/>,
         );
 
@@ -97,7 +97,7 @@ describe('components/integrations/AbstractCommand', () => {
             },
         );
         const props = {...baseProps, action: newAction};
-        renderWithContext(
+        await renderWithContext(
             <AbstractCommand {...props}/>,
         );
 
@@ -110,8 +110,8 @@ describe('components/integrations/AbstractCommand', () => {
         expect(newAction).toHaveBeenCalled();
     });
 
-    test('should match object returned by getStateFromCommand', () => {
-        const {container} = renderWithContext(
+    test('should match object returned by getStateFromCommand', async () => {
+        const {container} = await renderWithContext(
             <AbstractCommand {...baseProps}/>,
         );
 
@@ -128,7 +128,7 @@ describe('components/integrations/AbstractCommand', () => {
     });
 
     test('should match state when method is called', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <AbstractCommand {...baseProps}/>,
         );
 
@@ -191,7 +191,7 @@ describe('components/integrations/AbstractCommand', () => {
             },
         );
         const props = {...baseProps, action: newAction};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <AbstractCommand {...props}/>,
         );
 

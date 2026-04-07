@@ -53,55 +53,55 @@ describe('components/sidebar/sidebar_channel', () => {
         isChannelSelected: false,
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <SidebarChannel {...baseProps}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when collapsed', () => {
+    test('should match snapshot when collapsed', async () => {
         const props = {
             ...baseProps,
             isCategoryCollapsed: true,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SidebarChannel {...props}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when unread', () => {
+    test('should match snapshot when unread', async () => {
         const props = {
             ...baseProps,
             isUnread: true,
             unreadMentions: 1,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SidebarChannel {...props}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when active', () => {
+    test('should match snapshot when active', async () => {
         const props = {
             ...baseProps,
             isCurrentChannel: true,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SidebarChannel {...props}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when DM channel', () => {
+    test('should match snapshot when DM channel', async () => {
         const props = {
             ...baseProps,
             channel: {
@@ -110,14 +110,14 @@ describe('components/sidebar/sidebar_channel', () => {
             },
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SidebarChannel {...props}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when GM channel', () => {
+    test('should match snapshot when GM channel', async () => {
         const props = {
             ...baseProps,
             channel: {
@@ -126,35 +126,35 @@ describe('components/sidebar/sidebar_channel', () => {
             },
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SidebarChannel {...props}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should not be collapsed when there are unread messages', () => {
+    test('should not be collapsed when there are unread messages', async () => {
         const props = {
             ...baseProps,
             isCategoryCollapsed: true,
             isUnread: true,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <SidebarChannel {...props}/>,
         );
 
         expect(screen.getByRole('listitem')).toHaveClass('expanded');
     });
 
-    test('should not be collapsed if channel is current channel', () => {
+    test('should not be collapsed if channel is current channel', async () => {
         const props = {
             ...baseProps,
             isCategoryCollapsed: true,
             isCurrentChannel: true,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <SidebarChannel {...props}/>,
         );
 

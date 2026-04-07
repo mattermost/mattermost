@@ -36,7 +36,7 @@ describe('components/multiselect/multiselect', () => {
         options: users,
     };
 
-    test('MultiSelectList should have selected item scrollIntoView to align at bottom of list', () => {
+    test('MultiSelectList should have selected item scrollIntoView to align at bottom of list', async () => {
         const renderOption: MultiSelectProps<Value>['optionRenderer'] = (option, isSelected, onAdd, onMouseMove) => {
             return (
                 <p
@@ -49,7 +49,7 @@ describe('components/multiselect/multiselect', () => {
             );
         };
 
-        renderWithContext(
+        await renderWithContext(
             <MultiSelectList
                 {...baseProps}
                 optionRenderer={renderOption}
@@ -68,7 +68,7 @@ describe('components/multiselect/multiselect', () => {
         expect(selectedItemRef.current.scrollIntoView).toHaveBeenCalledWith(false);
     });
 
-    test('MultiSelectList should have selected item scrollIntoView to align at top of list', () => {
+    test('MultiSelectList should have selected item scrollIntoView to align at top of list', async () => {
         const renderOption: MultiSelectProps<Value>['optionRenderer'] = (option, isSelected, onAdd, onMouseMove) => {
             return (
                 <p
@@ -81,7 +81,7 @@ describe('components/multiselect/multiselect', () => {
             );
         };
 
-        renderWithContext(
+        await renderWithContext(
             <MultiSelectList
                 {...baseProps}
                 optionRenderer={renderOption}

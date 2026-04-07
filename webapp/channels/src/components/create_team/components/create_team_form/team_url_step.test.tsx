@@ -27,8 +27,8 @@ describe('TeamUrlStep', () => {
         jest.clearAllMocks();
     });
 
-    test('should render with default props', () => {
-        const {container} = renderWithContext(<TeamUrlStep {...defaultProps}/>);
+    test('should render with default props', async () => {
+        const {container} = await renderWithContext(<TeamUrlStep {...defaultProps}/>);
 
         expect(screen.getByRole('textbox')).toHaveValue('my-team');
         expect(screen.getByRole('button', {name: /finish/i})).not.toBeDisabled();
@@ -40,8 +40,8 @@ describe('TeamUrlStep', () => {
         expect(container.querySelector('.form-group.has-error')).not.toBeInTheDocument();
     });
 
-    test('should disable button when isLoading is true', () => {
-        renderWithContext(
+    test('should disable button when isLoading is true', async () => {
+        await renderWithContext(
             <TeamUrlStep
                 {...defaultProps}
                 isLoading={true}
@@ -52,7 +52,7 @@ describe('TeamUrlStep', () => {
     });
 
     test('should call onTeamURLChange when input changes', async () => {
-        renderWithContext(<TeamUrlStep {...defaultProps}/>);
+        await renderWithContext(<TeamUrlStep {...defaultProps}/>);
 
         await userEvent.type(screen.getByRole('textbox'), 'a');
 
@@ -60,7 +60,7 @@ describe('TeamUrlStep', () => {
     });
 
     test('should call onSubmit when button is clicked', async () => {
-        renderWithContext(<TeamUrlStep {...defaultProps}/>);
+        await renderWithContext(<TeamUrlStep {...defaultProps}/>);
 
         await userEvent.click(screen.getByRole('button', {name: /finish/i}));
 
@@ -68,15 +68,15 @@ describe('TeamUrlStep', () => {
     });
 
     test('should call onBack when back link is clicked', async () => {
-        renderWithContext(<TeamUrlStep {...defaultProps}/>);
+        await renderWithContext(<TeamUrlStep {...defaultProps}/>);
 
         await userEvent.click(screen.getByText('Back to previous step'));
 
         expect(defaultProps.onBack).toHaveBeenCalledTimes(1);
     });
 
-    test('should display error with has-error class when nameError is provided', () => {
-        const {container} = renderWithContext(
+    test('should display error with has-error class when nameError is provided', async () => {
+        const {container} = await renderWithContext(
             <TeamUrlStep
                 {...defaultProps}
                 nameError='This URL is taken'
@@ -87,8 +87,8 @@ describe('TeamUrlStep', () => {
         expect(container.querySelector('.form-group.has-error')).toBeInTheDocument();
     });
 
-    test('should render with JSX element as nameError', () => {
-        renderWithContext(
+    test('should render with JSX element as nameError', async () => {
+        await renderWithContext(
             <TeamUrlStep
                 {...defaultProps}
                 nameError={<span>{'Custom JSX error'}</span>}
@@ -98,8 +98,8 @@ describe('TeamUrlStep', () => {
         expect(screen.getByText('Custom JSX error')).toBeInTheDocument();
     });
 
-    test('should call onFocus when input receives focus', () => {
-        renderWithContext(<TeamUrlStep {...defaultProps}/>);
+    test('should call onFocus when input receives focus', async () => {
+        await renderWithContext(<TeamUrlStep {...defaultProps}/>);
 
         const input = screen.getByRole('textbox');
 

@@ -70,8 +70,8 @@ describe('components/channel_invite_modal/team_warning_banner', () => {
         },
     };
 
-    test('should return empty snapshot', () => {
-        const {container} = renderWithContext(
+    test('should return empty snapshot', async () => {
+        const {container} = await renderWithContext(
             <TeamWarningBanner
                 teamId={teamId}
                 users={[]}
@@ -82,10 +82,10 @@ describe('components/channel_invite_modal/team_warning_banner', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot for team_warning_banner with > 10 profiles', () => {
+    test('should match snapshot for team_warning_banner with > 10 profiles', async () => {
         const users = createUsers(11);
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <TeamWarningBanner
                 teamId={teamId}
                 users={users}
@@ -96,10 +96,10 @@ describe('components/channel_invite_modal/team_warning_banner', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot for team_warning_banner with < 10 profiles', () => {
+    test('should match snapshot for team_warning_banner with < 10 profiles', async () => {
         const users = createUsers(2);
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <TeamWarningBanner
                 teamId={teamId}
                 users={users}
@@ -110,10 +110,10 @@ describe('components/channel_invite_modal/team_warning_banner', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot for team_warning_banner with > 10 guest profiles', () => {
+    test('should match snapshot for team_warning_banner with > 10 guest profiles', async () => {
         const guests = createUsers(11);
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <TeamWarningBanner
                 teamId={teamId}
                 users={[]}
@@ -124,10 +124,10 @@ describe('components/channel_invite_modal/team_warning_banner', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot for team_warning_banner with < 10 guest profiles', () => {
+    test('should match snapshot for team_warning_banner with < 10 guest profiles', async () => {
         const guests = createUsers(2);
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <TeamWarningBanner
                 teamId={teamId}
                 users={[]}

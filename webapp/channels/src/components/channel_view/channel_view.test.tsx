@@ -63,13 +63,13 @@ describe('components/channel_view', () => {
         restrictDirectMessage: false,
     };
 
-    it('Should match snapshot with base props', () => {
-        const {container} = renderWithContext(<ChannelView {...baseProps}/>);
+    it('Should match snapshot with base props', async () => {
+        const {container} = await renderWithContext(<ChannelView {...baseProps}/>);
         expect(container).toMatchSnapshot();
     });
 
-    it('Should match snapshot if channel is archived', () => {
-        const {container} = renderWithContext(
+    it('Should match snapshot if channel is archived', async () => {
+        const {container} = await renderWithContext(
             <ChannelView
                 {...baseProps}
                 channelIsArchived={true}
@@ -78,8 +78,8 @@ describe('components/channel_view', () => {
         expect(container).toMatchSnapshot();
     });
 
-    it('Should match snapshot if channel is deactivated', () => {
-        const {container} = renderWithContext(
+    it('Should match snapshot if channel is deactivated', async () => {
+        const {container} = await renderWithContext(
             <ChannelView
                 {...baseProps}
                 deactivatedChannel={true}
@@ -88,8 +88,8 @@ describe('components/channel_view', () => {
         expect(container).toMatchSnapshot();
     });
 
-    it('Should have focusedPostId state based on props', () => {
-        const {rerender} = renderWithContext(<ChannelView {...baseProps}/>);
+    it('Should have focusedPostId state based on props', async () => {
+        const {rerender} = await renderWithContext(<ChannelView {...baseProps}/>);
 
         // Initially no focusedPostId
         expect(screen.getByTestId('deferred-post-view')).not.toHaveAttribute('data-focused-post-id');
@@ -115,8 +115,8 @@ describe('components/channel_view', () => {
         expect(screen.getByTestId('deferred-post-view')).toHaveAttribute('data-focused-post-id', 'postid1');
     });
 
-    it('should call fetchRecentMentions on componentDidUpdate', () => {
-        const {rerender} = renderWithContext(
+    it('should call fetchRecentMentions on componentDidUpdate', async () => {
+        const {rerender} = await renderWithContext(
             <ChannelView
                 {...baseProps}
                 canRestrictDirectMessage={true}

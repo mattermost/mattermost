@@ -16,14 +16,14 @@ describe('components/PostPreHeader', () => {
         },
     };
 
-    test('should not render anything if the post is neither flagged nor pinned', () => {
+    test('should not render anything if the post is neither flagged nor pinned', async () => {
         const props = {
             ...baseProps,
             isFlagged: false,
             isPinned: false,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PostPreHeader {...props}/>,
         );
 
@@ -31,7 +31,7 @@ describe('components/PostPreHeader', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should not render anything if both skipFlagged and skipPinned are true', () => {
+    test('should not render anything if both skipFlagged and skipPinned are true', async () => {
         const props = {
             ...baseProps,
             isFlagged: true,
@@ -40,7 +40,7 @@ describe('components/PostPreHeader', () => {
             skipPinned: true,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PostPreHeader {...props}/>,
         );
 
@@ -48,14 +48,14 @@ describe('components/PostPreHeader', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should properly handle flagged posts (and not pinned)', () => {
+    test('should properly handle flagged posts (and not pinned)', async () => {
         const props = {
             ...baseProps,
             isFlagged: true,
             isPinned: false,
         };
 
-        const {container, rerender} = renderWithContext(
+        const {container, rerender} = await renderWithContext(
             <PostPreHeader {...props}/>,
         );
 
@@ -77,14 +77,14 @@ describe('components/PostPreHeader', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should properly handle pinned posts (and not flagged)', () => {
+    test('should properly handle pinned posts (and not flagged)', async () => {
         const props = {
             ...baseProps,
             isFlagged: false,
             isPinned: true,
         };
 
-        const {container, rerender} = renderWithContext(
+        const {container, rerender} = await renderWithContext(
             <PostPreHeader {...props}/>,
         );
 
@@ -107,14 +107,14 @@ describe('components/PostPreHeader', () => {
     });
 
     describe('should properly handle posts that are flagged and pinned', () => {
-        test('both skipFlagged and skipPinned are not true', () => {
+        test('both skipFlagged and skipPinned are not true', async () => {
             const props = {
                 ...baseProps,
                 isFlagged: true,
                 isPinned: true,
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <PostPreHeader {...props}/>,
             );
 
@@ -125,7 +125,7 @@ describe('components/PostPreHeader', () => {
             expect(container).toMatchSnapshot();
         });
 
-        test('skipFlagged is true', () => {
+        test('skipFlagged is true', async () => {
             const props = {
                 ...baseProps,
                 isFlagged: true,
@@ -133,7 +133,7 @@ describe('components/PostPreHeader', () => {
                 skipFlagged: true,
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <PostPreHeader {...props}/>,
             );
 
@@ -143,7 +143,7 @@ describe('components/PostPreHeader', () => {
             expect(container).toMatchSnapshot();
         });
 
-        test('skipPinned is true', () => {
+        test('skipPinned is true', async () => {
             const props = {
                 ...baseProps,
                 isFlagged: true,
@@ -151,7 +151,7 @@ describe('components/PostPreHeader', () => {
                 skipPinned: true,
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <PostPreHeader {...props}/>,
             );
 
@@ -169,7 +169,7 @@ describe('components/PostPreHeader', () => {
             isPinned: true,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PostPreHeader {...props}/>,
         );
 

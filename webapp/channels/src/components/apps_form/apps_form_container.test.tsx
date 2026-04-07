@@ -62,10 +62,10 @@ describe('components/apps_form/AppsFormContainer', () => {
         intl,
     };
 
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const props = baseProps;
 
-        const {baseElement} = renderWithContext(<RawAppsFormContainer {...props}/>);
+        const {baseElement} = await renderWithContext(<RawAppsFormContainer {...props}/>);
         expect(baseElement).toMatchSnapshot();
     });
 
@@ -86,7 +86,7 @@ describe('components/apps_form/AppsFormContainer', () => {
             };
 
             const ref = React.createRef<RawAppsFormContainer>();
-            renderWithContext(
+            await renderWithContext(
                 <RawAppsFormContainer
                     {...props}
                     ref={ref}
@@ -150,7 +150,7 @@ describe('components/apps_form/AppsFormContainer', () => {
             const form = props.form;
 
             const ref = React.createRef<RawAppsFormContainer>();
-            renderWithContext(
+            await renderWithContext(
                 <RawAppsFormContainer
                     {...props}
                     ref={ref}

@@ -29,9 +29,9 @@ describe('components/admin_console/data_retention_settings/custom_policy_form', 
         (console.error as jest.Mock).mockClear();
     });
 
-    test('should match snapshot with creating new policy', () => {
+    test('should match snapshot with creating new policy', async () => {
         const props = {...defaultProps};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <CustomPolicyForm {...props}/>,
             {},
             {useMockedStore: true},
@@ -44,10 +44,10 @@ describe('components/admin_console/data_retention_settings/custom_policy_form', 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with editing existing policy', () => {
+    test('should match snapshot with editing existing policy', async () => {
         const props = {...defaultProps};
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <CustomPolicyForm
                 {...props}
                 policyId='fsdgdsgdsgh'

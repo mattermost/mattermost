@@ -16,8 +16,8 @@ describe('components/error_page/ErrorLink', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <ErrorLink {...baseProps}/>,
             {
                 entities: {

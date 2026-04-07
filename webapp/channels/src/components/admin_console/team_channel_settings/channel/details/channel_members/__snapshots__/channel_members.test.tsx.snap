@@ -190,6 +190,11 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
         />
         <div
           class="DataGrid_cell"
+        >
+          Role
+        </div>
+        <div
+          class="DataGrid_cell"
         />
       </div>
       <div
@@ -197,19 +202,244 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
         style="min-height: 240px;"
       >
         <div
-          class="DataGrid_loading"
+          class="DataGrid_row"
         >
-          <span
-            class="LoadingSpinner"
-            data-testid="loadingSpinner"
-            id="loadingSpinner"
+          <div
+            class="DataGrid_cell"
+            style="flex-grow: 3;"
           >
-            <span
-              class="fa fa-spinner fa-fw fa-pulse spinner"
-              title="Loading Icon"
-            />
-          </span>
-          Loading
+            <div
+              class="UserGrid_nameRow"
+            >
+              <span
+                class="status-wrapper style--none"
+              >
+                <span
+                  class="profile-icon "
+                >
+                  <img
+                    alt="user profile image"
+                    class="Avatar Avatar-md"
+                    loading="lazy"
+                    src="/api/v4/users/user-1/image"
+                  />
+                </span>
+              </span>
+              <div
+                class="UserGrid_name"
+              >
+                <span>
+                  some-user -  
+                </span>
+                <span
+                  class="ug-email"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell"
+          />
+          <div
+            class="DataGrid_cell"
+            style="overflow: visible;"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="dropdown-toggle theme color--link style--none"
+                id="userGridRoleDropdown_some-user"
+                type="button"
+              >
+                <span>
+                  Member
+                   
+                </span>
+                <i
+                  class="fa fa-angle-down"
+                  title="Dropdown Icon"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell"
+            style="text-align: right;"
+          >
+            <div
+              class="UserGrid_removeRow"
+            >
+              <a
+                class=""
+                href="#"
+                role="button"
+              >
+                Remove
+              </a>
+            </div>
+          </div>
+        </div>
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+            style="flex-grow: 3;"
+          >
+            <div
+              class="UserGrid_nameRow"
+            >
+              <span
+                class="status-wrapper style--none"
+              >
+                <span
+                  class="profile-icon "
+                >
+                  <img
+                    alt="user profile image"
+                    class="Avatar Avatar-md"
+                    loading="lazy"
+                    src="/api/v4/users/user-2/image"
+                  />
+                </span>
+              </span>
+              <div
+                class="UserGrid_name"
+              >
+                <span>
+                  some-user -  
+                </span>
+                <span
+                  class="ug-email"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell"
+          />
+          <div
+            class="DataGrid_cell"
+            style="overflow: visible;"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="dropdown-toggle theme color--link style--none"
+                id="userGridRoleDropdown_some-user"
+                type="button"
+              >
+                <span>
+                  Member
+                   
+                </span>
+                <i
+                  class="fa fa-angle-down"
+                  title="Dropdown Icon"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell"
+            style="text-align: right;"
+          >
+            <div
+              class="UserGrid_removeRow"
+            >
+              <a
+                class=""
+                href="#"
+                role="button"
+              >
+                Remove
+              </a>
+            </div>
+          </div>
+        </div>
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+            style="flex-grow: 3;"
+          >
+            <div
+              class="UserGrid_nameRow"
+            >
+              <span
+                class="status-wrapper style--none"
+              >
+                <span
+                  class="profile-icon "
+                >
+                  <img
+                    alt="user profile image"
+                    class="Avatar Avatar-md"
+                    loading="lazy"
+                    src="/api/v4/users/user-3/image"
+                  />
+                </span>
+              </span>
+              <div
+                class="UserGrid_name"
+              >
+                <span>
+                  some-user -  
+                </span>
+                <span
+                  class="ug-email"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell"
+          />
+          <div
+            class="DataGrid_cell"
+            style="overflow: visible;"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="dropdown-toggle theme color--link style--none"
+                id="userGridRoleDropdown_some-user"
+                type="button"
+              >
+                <span>
+                  Member
+                   
+                </span>
+                <i
+                  class="fa fa-angle-down"
+                  title="Dropdown Icon"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell"
+            style="text-align: right;"
+          >
+            <div
+              class="UserGrid_removeRow"
+            >
+              <a
+                class=""
+                href="#"
+                role="button"
+              >
+                Remove
+              </a>
+            </div>
+          </div>
         </div>
       </div>
       <div
@@ -436,6 +666,11 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
         <div
           class="DataGrid_cell"
         />
+        <div
+          class="DataGrid_cell"
+        >
+          Role
+        </div>
         <div
           class="DataGrid_cell"
         />

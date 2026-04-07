@@ -40,8 +40,8 @@ describe('components/ChannelSelect', () => {
         selectDm: false,
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<ChannelSelect {...defaultProps}/>);
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(<ChannelSelect {...defaultProps}/>);
         expect(container).toMatchSnapshot();
     });
 });

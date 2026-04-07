@@ -101,8 +101,8 @@ describe('components/new_channel_modal', () => {
         },
     };
 
-    test('should match component state with given props', () => {
-        renderWithContext(
+    test('should match component state with given props', async () => {
+        await renderWithContext(
             <NewChannelModal/>,
             initialState,
         );
@@ -164,7 +164,7 @@ describe('components/new_channel_modal', () => {
     test('should handle display name change', async () => {
         const value = 'Channel name';
 
-        renderWithContext(
+        await renderWithContext(
             <NewChannelModal/>,
             initialState,
         );
@@ -189,7 +189,7 @@ describe('components/new_channel_modal', () => {
 
         const url = 'channel-name-new';
 
-        renderWithContext(
+        await renderWithContext(
             <NewChannelModal/>,
             initialState,
         );
@@ -229,7 +229,7 @@ describe('components/new_channel_modal', () => {
     });
 
     test('should handle type changes', async () => {
-        renderWithContext(
+        await renderWithContext(
             <NewChannelModal/>,
             initialState,
         );
@@ -256,7 +256,7 @@ describe('components/new_channel_modal', () => {
     test('should handle purpose changes', async () => {
         const value = 'Purpose';
 
-        renderWithContext(
+        await renderWithContext(
             <NewChannelModal/>,
             initialState,
         );
@@ -278,7 +278,7 @@ describe('components/new_channel_modal', () => {
     });
 
     test('should enable confirm button when having valid display name, url and type', async () => {
-        renderWithContext(
+        await renderWithContext(
             <NewChannelModal/>,
             initialState,
         );
@@ -306,7 +306,7 @@ describe('components/new_channel_modal', () => {
     });
 
     test('should disable confirm button when display name in error', async () => {
-        renderWithContext(
+        await renderWithContext(
             <NewChannelModal/>,
             initialState,
         );
@@ -336,7 +336,7 @@ describe('components/new_channel_modal', () => {
     });
 
     test('should disable confirm button when url in error', async () => {
-        renderWithContext(
+        await renderWithContext(
             <NewChannelModal/>,
             initialState,
         );
@@ -376,7 +376,7 @@ describe('components/new_channel_modal', () => {
         // Mock createChannel to return an error
         (createChannel as jest.Mock).mockReturnValue(() => Promise.resolve({error: {message: 'Something went wrong. Please try again.'}}));
 
-        renderWithContext(
+        await renderWithContext(
             <NewChannelModal/>,
             initialState,
         );
@@ -415,7 +415,7 @@ describe('components/new_channel_modal', () => {
     test('should request team creation on submit', async () => {
         const name = 'Channel name';
 
-        renderWithContext(
+        await renderWithContext(
             <NewChannelModal/>,
             initialState,
         );

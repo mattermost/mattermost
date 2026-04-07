@@ -48,7 +48,7 @@ describe('TeamReviewersSection', () => {
     });
 
     test('should render component with teams data', async () => {
-        renderWithContext(<TeamReviewersSection {...defaultProps}/>, {}, {useMockedStore: true});
+        await renderWithContext(<TeamReviewersSection {...defaultProps}/>, {}, {useMockedStore: true});
 
         await waitFor(() => {
             expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 0, per_page: 10});
@@ -70,7 +70,7 @@ describe('TeamReviewersSection', () => {
     });
 
     test('should call searchTeams on component mount', async () => {
-        renderWithContext(<TeamReviewersSection {...defaultProps}/>);
+        await renderWithContext(<TeamReviewersSection {...defaultProps}/>);
 
         await waitFor(() => {
             expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 0, per_page: 10});
@@ -78,7 +78,7 @@ describe('TeamReviewersSection', () => {
     });
 
     test('should handle search functionality', async () => {
-        renderWithContext(<TeamReviewersSection {...defaultProps}/>);
+        await renderWithContext(<TeamReviewersSection {...defaultProps}/>);
 
         await waitFor(() => {
             expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 0, per_page: 10});
@@ -101,7 +101,7 @@ describe('TeamReviewersSection', () => {
             },
         }));
 
-        renderWithContext(<TeamReviewersSection {...defaultProps}/>);
+        await renderWithContext(<TeamReviewersSection {...defaultProps}/>);
 
         await waitFor(() => {
             expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 0, per_page: 10});
@@ -133,7 +133,7 @@ describe('TeamReviewersSection', () => {
             },
         }));
 
-        renderWithContext(<TeamReviewersSection {...defaultProps}/>);
+        await renderWithContext(<TeamReviewersSection {...defaultProps}/>);
 
         await waitFor(() => {
             expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 0, per_page: 10});
@@ -168,7 +168,7 @@ describe('TeamReviewersSection', () => {
 
     test('should handle toggle functionality for enabling team reviewers', async () => {
         const onChange = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <TeamReviewersSection
                 {...defaultProps}
                 onChange={onChange}
@@ -209,7 +209,7 @@ describe('TeamReviewersSection', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <TeamReviewersSection
                 teamReviewersSetting={teamReviewersSetting}
                 onChange={onChange}
@@ -249,7 +249,7 @@ describe('TeamReviewersSection', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <TeamReviewersSection
                 teamReviewersSetting={teamReviewersSetting}
                 onChange={jest.fn()}
@@ -262,7 +262,7 @@ describe('TeamReviewersSection', () => {
     });
 
     test('should render disable all button', async () => {
-        renderWithContext(<TeamReviewersSection {...defaultProps}/>);
+        await renderWithContext(<TeamReviewersSection {...defaultProps}/>);
 
         await waitFor(() => {
             expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 0, per_page: 10});
@@ -284,7 +284,7 @@ describe('TeamReviewersSection', () => {
             },
         }));
 
-        renderWithContext(<TeamReviewersSection {...defaultProps}/>);
+        await renderWithContext(<TeamReviewersSection {...defaultProps}/>);
 
         await waitFor(() => {
             expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 0, per_page: 10});
@@ -306,7 +306,7 @@ describe('TeamReviewersSection', () => {
                 data: {teams: mockTeams, total_count: 5},
             }));
 
-        renderWithContext(<TeamReviewersSection {...defaultProps}/>);
+        await renderWithContext(<TeamReviewersSection {...defaultProps}/>);
 
         // Wait for initial load
         await waitFor(() => {
@@ -349,7 +349,7 @@ describe('TeamReviewersSection', () => {
             },
         }));
 
-        renderWithContext(<TeamReviewersSection {...defaultProps}/>);
+        await renderWithContext(<TeamReviewersSection {...defaultProps}/>);
 
         await waitFor(() => {
             expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 0, per_page: 10});
@@ -363,7 +363,7 @@ describe('TeamReviewersSection', () => {
 
     test('should handle multiple toggle clicks correctly', async () => {
         const onChange = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <TeamReviewersSection
                 {...defaultProps}
                 onChange={onChange}
@@ -406,7 +406,7 @@ describe('TeamReviewersSection', () => {
             onChange,
         };
 
-        renderWithContext(<TeamReviewersSection {...updatedProps}/>);
+        await renderWithContext(<TeamReviewersSection {...updatedProps}/>);
 
         await waitFor(() => {
             expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 0, per_page: 10});
@@ -440,7 +440,7 @@ describe('TeamReviewersSection', () => {
             onChange,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <TeamReviewersSection
                 {...props}
                 onChange={onChange}

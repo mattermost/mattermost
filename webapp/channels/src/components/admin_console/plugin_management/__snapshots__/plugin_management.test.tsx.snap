@@ -384,6 +384,251 @@ exports[`components/PluginManagement should match snapshot 1`] = `
                     Installed plugins on your Mattermost server.
                   </p>
                   <br />
+                  <div
+                    class="alert alert-transparent"
+                  >
+                    <div
+                      data-testid="plugin_0"
+                    >
+                      <div>
+                        <strong>
+                          Plugin 0
+                        </strong>
+                         (
+                        plugin_0
+                         - 
+                        0.1.0
+                        )
+                      </div>
+                      <div
+                        class="pt-2"
+                      >
+                        The plugin 0.
+                      </div>
+                      <div
+                        class="pt-2"
+                      >
+                        <a
+                          class=""
+                          data-plugin-id="plugin_0"
+                        >
+                          Enable
+                        </a>
+                        <span>
+                           - 
+                          <a
+                            class=""
+                            data-plugin-id="plugin_0"
+                          >
+                            Remove
+                          </a>
+                        </span>
+                        <span>
+                           - 
+                          <a
+                            href="/admin_console/plugins/plugin_plugin_0"
+                          >
+                            Settings
+                          </a>
+                        </span>
+                      </div>
+                      <div>
+                        <div
+                          class="alert alert-info"
+                        >
+                          <i
+                            class="fa fa-ban"
+                          />
+                          This plugin is not enabled.
+                        </div>
+                      </div>
+                      <div>
+                        <div
+                          class="pt-3 pb-3"
+                        >
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              <strong>
+                                Cluster Instance
+                              </strong>
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              <strong>
+                                Version
+                              </strong>
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              <strong>
+                                State
+                              </strong>
+                            </div>
+                          </div>
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              cluster_id_1
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              0.1.0
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              Not running
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <hr />
+                    </div>
+                    <div
+                      data-testid="plugin_1"
+                    >
+                      <div>
+                        <strong>
+                          Plugin 1
+                        </strong>
+                         (
+                        plugin_1
+                         - 
+                        0.0.1
+                        )
+                      </div>
+                      <div
+                        class="pt-2"
+                      >
+                        The plugin.
+                      </div>
+                      <div
+                        class="pt-2"
+                      >
+                        <a
+                          class="disabled"
+                          data-plugin-id="plugin_1"
+                        >
+                          Disabling...
+                        </a>
+                        <span>
+                           - 
+                          <a
+                            class=""
+                            data-plugin-id="plugin_1"
+                          >
+                            Remove
+                          </a>
+                        </span>
+                        <span>
+                           - 
+                          <a
+                            href="/admin_console/plugins/plugin_plugin_1"
+                          >
+                            Settings
+                          </a>
+                        </span>
+                      </div>
+                      <div>
+                        <div
+                          class="alert alert-warning"
+                        >
+                          <i
+                            class="fa fa-warning"
+                          />
+                          There are multiple versions of this plugin installed across your cluster. Re-install this plugin to ensure it works consistently.
+                        </div>
+                        <div
+                          class="alert alert-info"
+                        >
+                          <i
+                            class="fa fa-info"
+                          />
+                          This plugin is stopping.
+                        </div>
+                      </div>
+                      <div>
+                        <div
+                          class="pt-3 pb-3"
+                        >
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              <strong>
+                                Cluster Instance
+                              </strong>
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              <strong>
+                                Version
+                              </strong>
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              <strong>
+                                State
+                              </strong>
+                            </div>
+                          </div>
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              cluster_id_1
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              0.0.1
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              Not running
+                            </div>
+                          </div>
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              cluster_id_2
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              0.0.2
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              Running
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <hr />
+                    </div>
+                  </div>
                 </div>
               </fieldset>
             </div>
@@ -800,6 +1045,251 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
                     Installed plugins on your Mattermost server.
                   </p>
                   <br />
+                  <div
+                    class="alert alert-transparent"
+                  >
+                    <div
+                      data-testid="plugin_0"
+                    >
+                      <div>
+                        <strong>
+                          Plugin 0
+                        </strong>
+                         (
+                        plugin_0
+                         - 
+                        0.1.0
+                        )
+                      </div>
+                      <div
+                        class="pt-2"
+                      >
+                        The plugin 0.
+                      </div>
+                      <div
+                        class="pt-2"
+                      >
+                        <a
+                          class=""
+                          data-plugin-id="plugin_0"
+                        >
+                          Enable
+                        </a>
+                        <span>
+                           - 
+                          <a
+                            class=""
+                            data-plugin-id="plugin_0"
+                          >
+                            Remove
+                          </a>
+                        </span>
+                        <span>
+                           - 
+                          <a
+                            href="/admin_console/plugins/plugin_plugin_0"
+                          >
+                            Settings
+                          </a>
+                        </span>
+                      </div>
+                      <div>
+                        <div
+                          class="alert alert-info"
+                        >
+                          <i
+                            class="fa fa-ban"
+                          />
+                          This plugin is not enabled.
+                        </div>
+                      </div>
+                      <div>
+                        <div
+                          class="pt-3 pb-3"
+                        >
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              <strong>
+                                Cluster Instance
+                              </strong>
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              <strong>
+                                Version
+                              </strong>
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              <strong>
+                                State
+                              </strong>
+                            </div>
+                          </div>
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              cluster_id_1
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              0.1.0
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              Not running
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <hr />
+                    </div>
+                    <div
+                      data-testid="plugin_1"
+                    >
+                      <div>
+                        <strong>
+                          Plugin 1
+                        </strong>
+                         (
+                        plugin_1
+                         - 
+                        0.0.1
+                        )
+                      </div>
+                      <div
+                        class="pt-2"
+                      >
+                        The plugin.
+                      </div>
+                      <div
+                        class="pt-2"
+                      >
+                        <a
+                          class="disabled"
+                          data-plugin-id="plugin_1"
+                        >
+                          Disabling...
+                        </a>
+                        <span>
+                           - 
+                          <a
+                            class=""
+                            data-plugin-id="plugin_1"
+                          >
+                            Remove
+                          </a>
+                        </span>
+                        <span>
+                           - 
+                          <a
+                            href="/admin_console/plugins/plugin_plugin_1"
+                          >
+                            Settings
+                          </a>
+                        </span>
+                      </div>
+                      <div>
+                        <div
+                          class="alert alert-warning"
+                        >
+                          <i
+                            class="fa fa-warning"
+                          />
+                          There are multiple versions of this plugin installed across your cluster. Re-install this plugin to ensure it works consistently.
+                        </div>
+                        <div
+                          class="alert alert-info"
+                        >
+                          <i
+                            class="fa fa-info"
+                          />
+                          This plugin is stopping.
+                        </div>
+                      </div>
+                      <div>
+                        <div
+                          class="pt-3 pb-3"
+                        >
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              <strong>
+                                Cluster Instance
+                              </strong>
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              <strong>
+                                Version
+                              </strong>
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              <strong>
+                                State
+                              </strong>
+                            </div>
+                          </div>
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              cluster_id_1
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              0.0.1
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              Not running
+                            </div>
+                          </div>
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              cluster_id_2
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              0.0.2
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              Running
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <hr />
+                    </div>
+                  </div>
                 </div>
               </fieldset>
             </div>
@@ -872,6 +1362,251 @@ exports[`components/PluginManagement should match snapshot when \`Enable Plugins
                     Installed plugins on your Mattermost server.
                   </p>
                   <br />
+                  <div
+                    class="alert alert-transparent"
+                  >
+                    <div
+                      data-testid="plugin_0"
+                    >
+                      <div>
+                        <strong>
+                          Plugin 0
+                        </strong>
+                         (
+                        plugin_0
+                         - 
+                        0.1.0
+                        )
+                      </div>
+                      <div
+                        class="pt-2"
+                      >
+                        The plugin 0.
+                      </div>
+                      <div
+                        class="pt-2"
+                      >
+                        <a
+                          class=""
+                          data-plugin-id="plugin_0"
+                        >
+                          Enable
+                        </a>
+                        <span>
+                           - 
+                          <a
+                            class=""
+                            data-plugin-id="plugin_0"
+                          >
+                            Remove
+                          </a>
+                        </span>
+                        <span>
+                           - 
+                          <a
+                            href="/admin_console/plugins/plugin_plugin_0"
+                          >
+                            Settings
+                          </a>
+                        </span>
+                      </div>
+                      <div>
+                        <div
+                          class="alert alert-info"
+                        >
+                          <i
+                            class="fa fa-ban"
+                          />
+                          This plugin is not enabled.
+                        </div>
+                      </div>
+                      <div>
+                        <div
+                          class="pt-3 pb-3"
+                        >
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              <strong>
+                                Cluster Instance
+                              </strong>
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              <strong>
+                                Version
+                              </strong>
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              <strong>
+                                State
+                              </strong>
+                            </div>
+                          </div>
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              cluster_id_1
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              0.1.0
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              Not running
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <hr />
+                    </div>
+                    <div
+                      data-testid="plugin_1"
+                    >
+                      <div>
+                        <strong>
+                          Plugin 1
+                        </strong>
+                         (
+                        plugin_1
+                         - 
+                        0.0.1
+                        )
+                      </div>
+                      <div
+                        class="pt-2"
+                      >
+                        The plugin.
+                      </div>
+                      <div
+                        class="pt-2"
+                      >
+                        <a
+                          class="disabled"
+                          data-plugin-id="plugin_1"
+                        >
+                          Disabling...
+                        </a>
+                        <span>
+                           - 
+                          <a
+                            class=""
+                            data-plugin-id="plugin_1"
+                          >
+                            Remove
+                          </a>
+                        </span>
+                        <span>
+                           - 
+                          <a
+                            href="/admin_console/plugins/plugin_plugin_1"
+                          >
+                            Settings
+                          </a>
+                        </span>
+                      </div>
+                      <div>
+                        <div
+                          class="alert alert-warning"
+                        >
+                          <i
+                            class="fa fa-warning"
+                          />
+                          There are multiple versions of this plugin installed across your cluster. Re-install this plugin to ensure it works consistently.
+                        </div>
+                        <div
+                          class="alert alert-info"
+                        >
+                          <i
+                            class="fa fa-info"
+                          />
+                          This plugin is stopping.
+                        </div>
+                      </div>
+                      <div>
+                        <div
+                          class="pt-3 pb-3"
+                        >
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              <strong>
+                                Cluster Instance
+                              </strong>
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              <strong>
+                                Version
+                              </strong>
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              <strong>
+                                State
+                              </strong>
+                            </div>
+                          </div>
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              cluster_id_1
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              0.0.1
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              Not running
+                            </div>
+                          </div>
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              cluster_id_2
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              0.0.2
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              Running
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <hr />
+                    </div>
+                  </div>
                 </div>
               </fieldset>
             </div>
@@ -1286,6 +2021,251 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
                     Installed plugins on your Mattermost server.
                   </p>
                   <br />
+                  <div
+                    class="alert alert-transparent"
+                  >
+                    <div
+                      data-testid="plugin_0"
+                    >
+                      <div>
+                        <strong>
+                          Plugin 0
+                        </strong>
+                         (
+                        plugin_0
+                         - 
+                        0.1.0
+                        )
+                      </div>
+                      <div
+                        class="pt-2"
+                      >
+                        The plugin 0.
+                      </div>
+                      <div
+                        class="pt-2"
+                      >
+                        <a
+                          class=""
+                          data-plugin-id="plugin_0"
+                        >
+                          Enable
+                        </a>
+                        <span>
+                           - 
+                          <a
+                            class=""
+                            data-plugin-id="plugin_0"
+                          >
+                            Remove
+                          </a>
+                        </span>
+                        <span>
+                           - 
+                          <a
+                            href="/admin_console/plugins/plugin_plugin_0"
+                          >
+                            Settings
+                          </a>
+                        </span>
+                      </div>
+                      <div>
+                        <div
+                          class="alert alert-info"
+                        >
+                          <i
+                            class="fa fa-ban"
+                          />
+                          This plugin is not enabled.
+                        </div>
+                      </div>
+                      <div>
+                        <div
+                          class="pt-3 pb-3"
+                        >
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              <strong>
+                                Cluster Instance
+                              </strong>
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              <strong>
+                                Version
+                              </strong>
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              <strong>
+                                State
+                              </strong>
+                            </div>
+                          </div>
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              cluster_id_1
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              0.1.0
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              Not running
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <hr />
+                    </div>
+                    <div
+                      data-testid="plugin_1"
+                    >
+                      <div>
+                        <strong>
+                          Plugin 1
+                        </strong>
+                         (
+                        plugin_1
+                         - 
+                        0.0.1
+                        )
+                      </div>
+                      <div
+                        class="pt-2"
+                      >
+                        The plugin.
+                      </div>
+                      <div
+                        class="pt-2"
+                      >
+                        <a
+                          class="disabled"
+                          data-plugin-id="plugin_1"
+                        >
+                          Disabling...
+                        </a>
+                        <span>
+                           - 
+                          <a
+                            class=""
+                            data-plugin-id="plugin_1"
+                          >
+                            Remove
+                          </a>
+                        </span>
+                        <span>
+                           - 
+                          <a
+                            href="/admin_console/plugins/plugin_plugin_1"
+                          >
+                            Settings
+                          </a>
+                        </span>
+                      </div>
+                      <div>
+                        <div
+                          class="alert alert-warning"
+                        >
+                          <i
+                            class="fa fa-warning"
+                          />
+                          There are multiple versions of this plugin installed across your cluster. Re-install this plugin to ensure it works consistently.
+                        </div>
+                        <div
+                          class="alert alert-info"
+                        >
+                          <i
+                            class="fa fa-info"
+                          />
+                          This plugin is stopping.
+                        </div>
+                      </div>
+                      <div>
+                        <div
+                          class="pt-3 pb-3"
+                        >
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              <strong>
+                                Cluster Instance
+                              </strong>
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              <strong>
+                                Version
+                              </strong>
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              <strong>
+                                State
+                              </strong>
+                            </div>
+                          </div>
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              cluster_id_1
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              0.0.1
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              Not running
+                            </div>
+                          </div>
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              cluster_id_2
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              0.0.2
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              Running
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <hr />
+                    </div>
+                  </div>
                 </div>
               </fieldset>
             </div>
@@ -1701,6 +2681,251 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
                     Installed plugins on your Mattermost server.
                   </p>
                   <br />
+                  <div
+                    class="alert alert-transparent"
+                  >
+                    <div
+                      data-testid="plugin_0"
+                    >
+                      <div>
+                        <strong>
+                          Plugin 0
+                        </strong>
+                         (
+                        plugin_0
+                         - 
+                        0.1.0
+                        )
+                      </div>
+                      <div
+                        class="pt-2"
+                      >
+                        The plugin 0.
+                      </div>
+                      <div
+                        class="pt-2"
+                      >
+                        <a
+                          class=""
+                          data-plugin-id="plugin_0"
+                        >
+                          Enable
+                        </a>
+                        <span>
+                           - 
+                          <a
+                            class=""
+                            data-plugin-id="plugin_0"
+                          >
+                            Remove
+                          </a>
+                        </span>
+                        <span>
+                           - 
+                          <a
+                            href="/admin_console/plugins/plugin_plugin_0"
+                          >
+                            Settings
+                          </a>
+                        </span>
+                      </div>
+                      <div>
+                        <div
+                          class="alert alert-info"
+                        >
+                          <i
+                            class="fa fa-ban"
+                          />
+                          This plugin is not enabled.
+                        </div>
+                      </div>
+                      <div>
+                        <div
+                          class="pt-3 pb-3"
+                        >
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              <strong>
+                                Cluster Instance
+                              </strong>
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              <strong>
+                                Version
+                              </strong>
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              <strong>
+                                State
+                              </strong>
+                            </div>
+                          </div>
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              cluster_id_1
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              0.1.0
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              Not running
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <hr />
+                    </div>
+                    <div
+                      data-testid="plugin_1"
+                    >
+                      <div>
+                        <strong>
+                          Plugin 1
+                        </strong>
+                         (
+                        plugin_1
+                         - 
+                        0.0.1
+                        )
+                      </div>
+                      <div
+                        class="pt-2"
+                      >
+                        The plugin.
+                      </div>
+                      <div
+                        class="pt-2"
+                      >
+                        <a
+                          class="disabled"
+                          data-plugin-id="plugin_1"
+                        >
+                          Disabling...
+                        </a>
+                        <span>
+                           - 
+                          <a
+                            class=""
+                            data-plugin-id="plugin_1"
+                          >
+                            Remove
+                          </a>
+                        </span>
+                        <span>
+                           - 
+                          <a
+                            href="/admin_console/plugins/plugin_plugin_1"
+                          >
+                            Settings
+                          </a>
+                        </span>
+                      </div>
+                      <div>
+                        <div
+                          class="alert alert-warning"
+                        >
+                          <i
+                            class="fa fa-warning"
+                          />
+                          There are multiple versions of this plugin installed across your cluster. Re-install this plugin to ensure it works consistently.
+                        </div>
+                        <div
+                          class="alert alert-info"
+                        >
+                          <i
+                            class="fa fa-info"
+                          />
+                          This plugin is stopping.
+                        </div>
+                      </div>
+                      <div>
+                        <div
+                          class="pt-3 pb-3"
+                        >
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              <strong>
+                                Cluster Instance
+                              </strong>
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              <strong>
+                                Version
+                              </strong>
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              <strong>
+                                State
+                              </strong>
+                            </div>
+                          </div>
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              cluster_id_1
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              0.0.1
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              Not running
+                            </div>
+                          </div>
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              cluster_id_2
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              0.0.2
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              Running
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <hr />
+                    </div>
+                  </div>
                 </div>
               </fieldset>
             </div>
@@ -2528,6 +3753,251 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
                     Installed plugins on your Mattermost server.
                   </p>
                   <br />
+                  <div
+                    class="alert alert-transparent"
+                  >
+                    <div
+                      data-testid="plugin_0"
+                    >
+                      <div>
+                        <strong>
+                          Plugin 0
+                        </strong>
+                         (
+                        plugin_0
+                         - 
+                        0.1.0
+                        )
+                      </div>
+                      <div
+                        class="pt-2"
+                      >
+                        The plugin 0.
+                      </div>
+                      <div
+                        class="pt-2"
+                      >
+                        <a
+                          class=""
+                          data-plugin-id="plugin_0"
+                        >
+                          Enable
+                        </a>
+                        <span>
+                           - 
+                          <a
+                            class=""
+                            data-plugin-id="plugin_0"
+                          >
+                            Remove
+                          </a>
+                        </span>
+                        <span>
+                           - 
+                          <a
+                            href="/admin_console/plugins/plugin_plugin_0"
+                          >
+                            Settings
+                          </a>
+                        </span>
+                      </div>
+                      <div>
+                        <div
+                          class="alert alert-info"
+                        >
+                          <i
+                            class="fa fa-ban"
+                          />
+                          This plugin is not enabled.
+                        </div>
+                      </div>
+                      <div>
+                        <div
+                          class="pt-3 pb-3"
+                        >
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              <strong>
+                                Cluster Instance
+                              </strong>
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              <strong>
+                                Version
+                              </strong>
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              <strong>
+                                State
+                              </strong>
+                            </div>
+                          </div>
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              cluster_id_1
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              0.1.0
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              Not running
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <hr />
+                    </div>
+                    <div
+                      data-testid="plugin_1"
+                    >
+                      <div>
+                        <strong>
+                          Plugin 1
+                        </strong>
+                         (
+                        plugin_1
+                         - 
+                        0.0.1
+                        )
+                      </div>
+                      <div
+                        class="pt-2"
+                      >
+                        The plugin.
+                      </div>
+                      <div
+                        class="pt-2"
+                      >
+                        <a
+                          class="disabled"
+                          data-plugin-id="plugin_1"
+                        >
+                          Disabling...
+                        </a>
+                        <span>
+                           - 
+                          <a
+                            class=""
+                            data-plugin-id="plugin_1"
+                          >
+                            Remove
+                          </a>
+                        </span>
+                        <span>
+                           - 
+                          <a
+                            href="/admin_console/plugins/plugin_plugin_1"
+                          >
+                            Settings
+                          </a>
+                        </span>
+                      </div>
+                      <div>
+                        <div
+                          class="alert alert-warning"
+                        >
+                          <i
+                            class="fa fa-warning"
+                          />
+                          There are multiple versions of this plugin installed across your cluster. Re-install this plugin to ensure it works consistently.
+                        </div>
+                        <div
+                          class="alert alert-info"
+                        >
+                          <i
+                            class="fa fa-info"
+                          />
+                          This plugin is stopping.
+                        </div>
+                      </div>
+                      <div>
+                        <div
+                          class="pt-3 pb-3"
+                        >
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              <strong>
+                                Cluster Instance
+                              </strong>
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              <strong>
+                                Version
+                              </strong>
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              <strong>
+                                State
+                              </strong>
+                            </div>
+                          </div>
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              cluster_id_1
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              0.0.1
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              Not running
+                            </div>
+                          </div>
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              cluster_id_2
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              0.0.2
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              Running
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <hr />
+                    </div>
+                  </div>
                 </div>
               </fieldset>
             </div>
@@ -3350,6 +4820,251 @@ exports[`components/PluginManagement should match snapshot, text entered into th
                     Installed plugins on your Mattermost server.
                   </p>
                   <br />
+                  <div
+                    class="alert alert-transparent"
+                  >
+                    <div
+                      data-testid="plugin_0"
+                    >
+                      <div>
+                        <strong>
+                          Plugin 0
+                        </strong>
+                         (
+                        plugin_0
+                         - 
+                        0.1.0
+                        )
+                      </div>
+                      <div
+                        class="pt-2"
+                      >
+                        The plugin 0.
+                      </div>
+                      <div
+                        class="pt-2"
+                      >
+                        <a
+                          class=""
+                          data-plugin-id="plugin_0"
+                        >
+                          Enable
+                        </a>
+                        <span>
+                           - 
+                          <a
+                            class=""
+                            data-plugin-id="plugin_0"
+                          >
+                            Remove
+                          </a>
+                        </span>
+                        <span>
+                           - 
+                          <a
+                            href="/admin_console/plugins/plugin_plugin_0"
+                          >
+                            Settings
+                          </a>
+                        </span>
+                      </div>
+                      <div>
+                        <div
+                          class="alert alert-info"
+                        >
+                          <i
+                            class="fa fa-ban"
+                          />
+                          This plugin is not enabled.
+                        </div>
+                      </div>
+                      <div>
+                        <div
+                          class="pt-3 pb-3"
+                        >
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              <strong>
+                                Cluster Instance
+                              </strong>
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              <strong>
+                                Version
+                              </strong>
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              <strong>
+                                State
+                              </strong>
+                            </div>
+                          </div>
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              cluster_id_1
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              0.1.0
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              Not running
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <hr />
+                    </div>
+                    <div
+                      data-testid="plugin_1"
+                    >
+                      <div>
+                        <strong>
+                          Plugin 1
+                        </strong>
+                         (
+                        plugin_1
+                         - 
+                        0.0.1
+                        )
+                      </div>
+                      <div
+                        class="pt-2"
+                      >
+                        The plugin.
+                      </div>
+                      <div
+                        class="pt-2"
+                      >
+                        <a
+                          class="disabled"
+                          data-plugin-id="plugin_1"
+                        >
+                          Disabling...
+                        </a>
+                        <span>
+                           - 
+                          <a
+                            class=""
+                            data-plugin-id="plugin_1"
+                          >
+                            Remove
+                          </a>
+                        </span>
+                        <span>
+                           - 
+                          <a
+                            href="/admin_console/plugins/plugin_plugin_1"
+                          >
+                            Settings
+                          </a>
+                        </span>
+                      </div>
+                      <div>
+                        <div
+                          class="alert alert-warning"
+                        >
+                          <i
+                            class="fa fa-warning"
+                          />
+                          There are multiple versions of this plugin installed across your cluster. Re-install this plugin to ensure it works consistently.
+                        </div>
+                        <div
+                          class="alert alert-info"
+                        >
+                          <i
+                            class="fa fa-info"
+                          />
+                          This plugin is stopping.
+                        </div>
+                      </div>
+                      <div>
+                        <div
+                          class="pt-3 pb-3"
+                        >
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              <strong>
+                                Cluster Instance
+                              </strong>
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              <strong>
+                                Version
+                              </strong>
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              <strong>
+                                State
+                              </strong>
+                            </div>
+                          </div>
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              cluster_id_1
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              0.0.1
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              Not running
+                            </div>
+                          </div>
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              cluster_id_2
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              0.0.2
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              Running
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <hr />
+                    </div>
+                  </div>
                 </div>
               </fieldset>
             </div>
@@ -3777,6 +5492,251 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
                     Installed plugins on your Mattermost server.
                   </p>
                   <br />
+                  <div
+                    class="alert alert-transparent"
+                  >
+                    <div
+                      data-testid="plugin_0"
+                    >
+                      <div>
+                        <strong>
+                          Plugin 0
+                        </strong>
+                         (
+                        plugin_0
+                         - 
+                        0.1.0
+                        )
+                      </div>
+                      <div
+                        class="pt-2"
+                      >
+                        The plugin 0.
+                      </div>
+                      <div
+                        class="pt-2"
+                      >
+                        <a
+                          class=""
+                          data-plugin-id="plugin_0"
+                        >
+                          Enable
+                        </a>
+                        <span>
+                           - 
+                          <a
+                            class=""
+                            data-plugin-id="plugin_0"
+                          >
+                            Remove
+                          </a>
+                        </span>
+                        <span>
+                           - 
+                          <a
+                            href="/admin_console/plugins/plugin_plugin_0"
+                          >
+                            Settings
+                          </a>
+                        </span>
+                      </div>
+                      <div>
+                        <div
+                          class="alert alert-info"
+                        >
+                          <i
+                            class="fa fa-ban"
+                          />
+                          This plugin is not enabled.
+                        </div>
+                      </div>
+                      <div>
+                        <div
+                          class="pt-3 pb-3"
+                        >
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              <strong>
+                                Cluster Instance
+                              </strong>
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              <strong>
+                                Version
+                              </strong>
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              <strong>
+                                State
+                              </strong>
+                            </div>
+                          </div>
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              cluster_id_1
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              0.1.0
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              Not running
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <hr />
+                    </div>
+                    <div
+                      data-testid="plugin_1"
+                    >
+                      <div>
+                        <strong>
+                          Plugin 1
+                        </strong>
+                         (
+                        plugin_1
+                         - 
+                        0.0.1
+                        )
+                      </div>
+                      <div
+                        class="pt-2"
+                      >
+                        The plugin.
+                      </div>
+                      <div
+                        class="pt-2"
+                      >
+                        <a
+                          class="disabled"
+                          data-plugin-id="plugin_1"
+                        >
+                          Disabling...
+                        </a>
+                        <span>
+                           - 
+                          <a
+                            class=""
+                            data-plugin-id="plugin_1"
+                          >
+                            Remove
+                          </a>
+                        </span>
+                        <span>
+                           - 
+                          <a
+                            href="/admin_console/plugins/plugin_plugin_1"
+                          >
+                            Settings
+                          </a>
+                        </span>
+                      </div>
+                      <div>
+                        <div
+                          class="alert alert-warning"
+                        >
+                          <i
+                            class="fa fa-warning"
+                          />
+                          There are multiple versions of this plugin installed across your cluster. Re-install this plugin to ensure it works consistently.
+                        </div>
+                        <div
+                          class="alert alert-info"
+                        >
+                          <i
+                            class="fa fa-info"
+                          />
+                          This plugin is stopping.
+                        </div>
+                      </div>
+                      <div>
+                        <div
+                          class="pt-3 pb-3"
+                        >
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              <strong>
+                                Cluster Instance
+                              </strong>
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              <strong>
+                                Version
+                              </strong>
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              <strong>
+                                State
+                              </strong>
+                            </div>
+                          </div>
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              cluster_id_1
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              0.0.1
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              Not running
+                            </div>
+                          </div>
+                          <div
+                            class="row"
+                          >
+                            <div
+                              class="col-md-6"
+                            >
+                              cluster_id_2
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              0.0.2
+                            </div>
+                            <div
+                              class="col-md-3"
+                            >
+                              Running
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <hr />
+                    </div>
+                  </div>
                 </div>
               </fieldset>
             </div>

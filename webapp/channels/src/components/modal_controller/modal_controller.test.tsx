@@ -48,7 +48,7 @@ class TestModal extends React.PureComponent<TestModalProps, TestModalState> {
 describe('components/ModalController', () => {
     const modalId = 'test_modal';
 
-    test('component should match snapshot without any modals', () => {
+    test('component should match snapshot without any modals', async () => {
         const state = {
             views: {
                 modals: {
@@ -57,7 +57,7 @@ describe('components/ModalController', () => {
             },
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ModalController/>,
             state,
             {useMockedStore: true},
@@ -68,7 +68,7 @@ describe('components/ModalController', () => {
         expect(document.getElementsByClassName('modal-dialog').length).toBeFalsy();
     });
 
-    test('test model should be open', () => {
+    test('test model should be open', async () => {
         const state = {
             views: {
                 modals: {
@@ -83,7 +83,7 @@ describe('components/ModalController', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ModalController/>,
             state,
             {useMockedStore: true},
@@ -107,7 +107,7 @@ describe('components/ModalController', () => {
             },
         };
 
-        const {store} = renderWithContext(
+        const {store} = await renderWithContext(
             <ModalController/>,
             state,
             {useMockedStore: true},
@@ -149,7 +149,7 @@ describe('components/ModalController', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ModalController/>,
             state,
             {useMockedStore: true},

@@ -10,8 +10,8 @@ import {renderWithContext} from 'tests/react_testing_utils';
 import FileInfoPreview from './file_info_preview';
 
 describe('components/FileInfoPreview', () => {
-    test('should match snapshot, can download files', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot, can download files', async () => {
+        const {container} = await renderWithContext(
             <FileInfoPreview
                 fileUrl='https://pre-release.mattermost.com/api/v4/files/rqir81f7a7ft8m6j6ej7g1txuo'
                 fileInfo={{name: 'Test Image', size: 100, extension: 'jpg'} as FileInfo}
@@ -22,8 +22,8 @@ describe('components/FileInfoPreview', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, cannot download files', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot, cannot download files', async () => {
+        const {container} = await renderWithContext(
             <FileInfoPreview
                 fileUrl='https://pre-release.mattermost.com/api/v4/files/aasf9afshaskj1asf91jasf0a0'
                 fileInfo={{name: 'Test Image 2', size: 200, extension: 'png'} as FileInfo}

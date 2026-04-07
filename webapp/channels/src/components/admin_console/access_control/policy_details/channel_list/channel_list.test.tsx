@@ -51,7 +51,7 @@ describe('components/admin_console/access_control/channel_list', () => {
         mockOnAddCallback.mockReset();
     });
 
-    test('should match snapshot with no channels', () => {
+    test('should match snapshot with no channels', async () => {
         // The Filter component has an existing prop type issue with TeamFilterDropdown
         // that only surfaces during full rendering (not shallow). Suppress for this test.
         const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -63,14 +63,14 @@ describe('components/admin_console/access_control/channel_list', () => {
             policyId: '',
         };
         try {
-            const {container} = renderWithContext(<ChannelList {...props}/>);
+            const {container} = await renderWithContext(<ChannelList {...props}/>);
             expect(container).toMatchSnapshot();
         } finally {
             errorSpy.mockRestore();
         }
     });
 
-    test('should match snapshot with channels', () => {
+    test('should match snapshot with channels', async () => {
         const props = {
             ...defaultProps,
             totalCount: 2,
@@ -79,11 +79,11 @@ describe('components/admin_console/access_control/channel_list', () => {
                 ...defaultProps.actions,
             },
         };
-        const {container} = renderWithContext(<ChannelList {...props}/>);
+        const {container} = await renderWithContext(<ChannelList {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with channels to remove', () => {
+    test('should match snapshot with channels to remove', async () => {
         const props = {
             ...defaultProps,
             totalCount: 2,
@@ -92,18 +92,18 @@ describe('components/admin_console/access_control/channel_list', () => {
                 channel1: {id: 'channel1', name: 'Channel 1', display_name: 'Channel 1', team_display_name: 'Team 1', type: 'O'} as ChannelWithTeamData,
             },
         };
-        const {container} = renderWithContext(<ChannelList {...props}/>);
+        const {container} = await renderWithContext(<ChannelList {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with channels to add', () => {
+    test('should match snapshot with channels to add', async () => {
         const props = {
             ...defaultProps,
             channelsToAdd: {
                 channel3: {id: 'channel3', name: 'channel3', display_name: 'Channel 3', team_display_name: 'Team 1', type: 'O'} as ChannelWithTeamData,
             },
         };
-        const {container} = renderWithContext(<ChannelList {...props}/>);
+        const {container} = await renderWithContext(<ChannelList {...props}/>);
         expect(container).toMatchSnapshot();
     });
 });

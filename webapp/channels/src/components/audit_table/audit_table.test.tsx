@@ -22,15 +22,15 @@ describe('components/audit_table/AuditTable', () => {
         actions,
     };
 
-    test('should match snapshot with no audits', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with no audits', async () => {
+        const {container} = await renderWithContext(
             <AuditTable {...baseProps}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with audits', () => {
+    test('should match snapshot with audits', async () => {
         const audits = [
             {
                 action: '/api/v4/channels',
@@ -53,7 +53,7 @@ describe('components/audit_table/AuditTable', () => {
         ];
 
         const props = {...baseProps, audits};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <AuditTable {...props}/>,
         );
 

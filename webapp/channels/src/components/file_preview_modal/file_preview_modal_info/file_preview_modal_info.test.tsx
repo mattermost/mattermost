@@ -42,10 +42,10 @@ describe('components/FilePreviewModalInfo', () => {
             },
         } as GlobalState;
     });
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         mockState.entities.users.profiles = {user_id: mockedUser};
         mockState.entities.channels.channels = {channel_id: mockedChannel};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <FilePreviewModalInfo
                 {...baseProps}
             />,
@@ -53,11 +53,11 @@ describe('components/FilePreviewModalInfo', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot where post is missing and avoid crash', () => {
+    test('should match snapshot where post is missing and avoid crash', async () => {
         mockState.entities.users.profiles = {user_id: mockedUser};
         mockState.entities.channels.channels = {channel_id: mockedChannel};
         baseProps.post = undefined;
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <FilePreviewModalInfo
                 {...baseProps}
             />,

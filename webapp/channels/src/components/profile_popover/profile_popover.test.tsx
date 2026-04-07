@@ -126,7 +126,7 @@ jest.mock('./profile_popover_other_user_row', () => {
 
 type Props = ComponentProps<typeof ProfilePopover>;
 
-function renderWithPluginReducers(
+async function renderWithPluginReducers(
     c: Parameters<typeof renderWithContext>[0],
     s: Parameters<typeof renderWithContext>[1],
     o?: Parameters<typeof renderWithContext>[2],
@@ -273,7 +273,7 @@ describe('components/ProfilePopover', () => {
                 ExperimentalSharedChannels: 'true',
             };
 
-            const {unmount} = renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+            const {unmount} = await renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
             expect(await screen.findByLabelText('shared user')).toBeInTheDocument();
             unmount();
         }
@@ -301,7 +301,7 @@ describe('components/ProfilePopover', () => {
                 },
             };
 
-            const {unmount} = renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+            const {unmount} = await renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
 
             // Ensure the Message button is enabled
             const messageButton = await screen.findByText('Message');
@@ -332,7 +332,7 @@ describe('components/ProfilePopover', () => {
                 },
             };
 
-            renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+            await renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
 
             // Wait for the component to load
             await screen.findByText('user');
@@ -349,14 +349,14 @@ describe('components/ProfilePopover', () => {
         initialState.entities!.users!.profiles!.user1!.is_bot = true;
         initialState.entities!.users!.profiles!.user1!.bot_description = 'bot description';
 
-        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+        await renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
         expect(await screen.findByText('bot description')).toBeInTheDocument();
     });
 
     test('should show add-to-channel option if in a team', async () => {
         const [props, initialState] = getBasePropsAndState();
 
-        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+        await renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
         expect(await screen.findByLabelText('Add to a Channel')).toBeInTheDocument();
     });
 
@@ -364,7 +364,7 @@ describe('components/ProfilePopover', () => {
         const [props, initialState] = getBasePropsAndState();
         initialState.entities!.teams!.membersInTeam!.currentTeam = {};
 
-        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+        await renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
 
         // Use find to wait for the first re-render because of the calls fetch
         await screen.findByText('user');
@@ -388,7 +388,7 @@ describe('components/ProfilePopover', () => {
 
         initialState.plugins!.components!.PopoverUserAttributes = [{component: mockPluginComponent}];
 
-        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+        await renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
         expect(props.hide).toHaveBeenCalled();
         expect(await screen.findByText('offline user1')).toBeInTheDocument();
     });
@@ -408,7 +408,7 @@ describe('components/ProfilePopover', () => {
 
         initialState.plugins!.components!.PopoverUserActions = [{component: mockPluginComponent}];
 
-        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+        await renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
         expect(props.hide).toHaveBeenCalled();
         expect(await screen.findByText('offline user1')).toBeInTheDocument();
     });
@@ -416,14 +416,14 @@ describe('components/ProfilePopover', () => {
     test('should show custom status', async () => {
         const [props, initialState] = getBasePropsAndState();
 
-        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+        await renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
         expect(await screen.findByText('In a meeting')).toBeInTheDocument();
     });
 
     test('should show to set a status for the current user', async () => {
         const [props, initialState] = getBasePropsAndState();
         props.userId = initialState.entities!.users!.currentUserId!;
-        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+        await renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
         expect(await screen.findByText('Set a status')).toBeInTheDocument();
     });
 
@@ -438,7 +438,7 @@ describe('components/ProfilePopover', () => {
 
         initialState.entities!.users!.profiles!.user1!.props!.customStatus = customStatus;
 
-        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+        await renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
 
         // Use find to wait for the first re-render because of the calls fetch
         await screen.findByText('user');
@@ -449,7 +449,7 @@ describe('components/ProfilePopover', () => {
     test('should show last active display', async () => {
         const [props, initialState] = getBasePropsAndState();
 
-        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+        await renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
         expect(await screen.findByText('January 01, 1970')).toBeInTheDocument();
     });
 
@@ -457,7 +457,7 @@ describe('components/ProfilePopover', () => {
         const [props, initialState] = getBasePropsAndState();
         initialState.entities!.general!.config!.EnableLastActiveTime = 'false';
 
-        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+        await renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
 
         // Use find to wait for the first re-render because of the calls fetch
         await screen.findByText('user');
@@ -467,7 +467,7 @@ describe('components/ProfilePopover', () => {
     test('should show start a call button', async () => {
         const [props, initialState] = getBasePropsAndState();
 
-        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+        await renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
         expect(await screen.findByLabelText('Start Call')).toBeInTheDocument();
     });
 
@@ -475,7 +475,7 @@ describe('components/ProfilePopover', () => {
         const [props, initialState] = getBasePropsAndState();
         initialState.plugins!.plugins = {};
 
-        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+        await renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
         await act(async () => {
             expect(screen.queryByLabelText('Start Call')).not.toBeInTheDocument();
         });
@@ -493,7 +493,7 @@ describe('components/ProfilePopover', () => {
             };
         })['plugins-com.mattermost.calls'].sessions = {dmChannelId: {currentUser: {user_id: 'currentUser'}}};
 
-        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+        await renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
         const button = (await screen.findByLabelText('Call with user is ongoing')).closest('button');
         expect(button).toBeDisabled();
     });
@@ -510,7 +510,7 @@ describe('components/ProfilePopover', () => {
             };
         })['plugins-com.mattermost.calls'].channels = {dmChannelId: {enabled: false}};
 
-        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+        await renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
         await act(async () => {
             expect(await screen.queryByLabelText('Start Call')).not.toBeInTheDocument();
             expect(await screen.queryByLabelText('Call with user is ongoing')).not.toBeInTheDocument();
@@ -529,7 +529,7 @@ describe('components/ProfilePopover', () => {
             };
         })['plugins-com.mattermost.calls'].callsConfig = {DefaultEnabled: false};
 
-        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+        await renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
         await act(async () => {
             expect(await screen.queryByLabelText('Start Call')).not.toBeInTheDocument();
         });
@@ -556,7 +556,7 @@ describe('components/ProfilePopover', () => {
             };
         })['plugins-com.mattermost.calls'].channels = {dmChannelId: {enabled: true}};
 
-        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+        await renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
         await act(async () => {
             expect(await screen.queryByLabelText('Start Call')).toBeInTheDocument();
         });
@@ -584,7 +584,7 @@ describe('components/ProfilePopover', () => {
             },
         };
 
-        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+        await renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
         await act(async () => {
             expect(await screen.findByLabelText('Start Call')).toBeInTheDocument();
         });
@@ -610,7 +610,7 @@ describe('components/ProfilePopover', () => {
             789: {id: '789', name: 'Base', type: 'text'},
         };
 
-        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+        await renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
 
         expect(await screen.findByText('Private')).toBeInTheDocument();
         expect(await screen.findByText('CO')).toBeInTheDocument();
@@ -647,7 +647,7 @@ describe('components/ProfilePopover', () => {
             },
         };
 
-        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+        await renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
 
         expect(await screen.findByText('Engineering')).toBeInTheDocument();
         expect(screen.queryByText('opt1')).not.toBeInTheDocument();
@@ -680,7 +680,7 @@ describe('components/ProfilePopover', () => {
             },
         };
 
-        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+        await renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
 
         expect(await screen.findByText(/JavaScript/)).toBeInTheDocument();
         expect(await screen.findByText(/Python/)).toBeInTheDocument();
@@ -700,7 +700,7 @@ describe('components/ProfilePopover', () => {
         };
         (Client4.getUserCustomProfileAttributesValues as jest.Mock).mockImplementation(async () => ({}));
 
-        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+        await renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
         await act(async () => {
             expect(await screen.queryByText('Rank')).not.toBeInTheDocument();
             expect(await screen.queryByText('CO')).not.toBeInTheDocument();
@@ -726,7 +726,7 @@ describe('components/ProfilePopover', () => {
             456: {id: '456', name: 'CO', type: 'text'},
         };
 
-        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+        await renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
         await act(async () => {
             expect(await screen.queryByText('Rank')).not.toBeInTheDocument();
             expect(await screen.queryByText('CO')).not.toBeInTheDocument();
@@ -754,7 +754,7 @@ describe('components/ProfilePopover', () => {
             456: {id: '456', name: 'CO', type: 'text'},
         };
 
-        renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
+        await renderWithPluginReducers(<ProfilePopover {...props}/>, initialState);
 
         expect(await screen.findByText('Private')).toBeInTheDocument();
         expect(await screen.findByText('Seargent York')).toBeInTheDocument();

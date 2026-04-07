@@ -13,7 +13,7 @@ jest.mock('utils/user_agent', () => ({
 
 describe('WithTooltip', () => {
     test('renders children correctly', async () => {
-        renderWithContext(
+        await renderWithContext(
             <WithTooltip title='TooltipOfButton'>
                 <button>{'I am a button surrounded by a tooltip'}</button>
             </WithTooltip>,
@@ -25,7 +25,7 @@ describe('WithTooltip', () => {
     test('shows tooltip on hover', async () => {
         jest.useFakeTimers();
 
-        renderWithContext(
+        await renderWithContext(
             <WithTooltip title='Tooltip will appear on hover'>
                 <div>{'Hover Me'}</div>
             </WithTooltip>,
@@ -41,7 +41,7 @@ describe('WithTooltip', () => {
     test('shows tooltip on focus', async () => {
         jest.useFakeTimers();
 
-        renderWithContext(
+        await renderWithContext(
             <WithTooltip title='Tooltip will appear on hover'>
                 <button>{'Hover Me'}</button>
             </WithTooltip>,
@@ -63,7 +63,7 @@ describe('WithTooltip', () => {
 
         jest.useFakeTimers();
 
-        renderWithContext(
+        await renderWithContext(
             <WithTooltip
                 title='Tooltip will appear on hover'
                 onOpen={onOpen}

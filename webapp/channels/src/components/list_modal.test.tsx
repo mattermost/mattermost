@@ -49,7 +49,7 @@ describe('components/ListModal', () => {
     };
 
     it('should match snapshot', async () => {
-        const {baseElement} = renderWithContext(
+        const {baseElement} = await renderWithContext(
             <ListModal {...baseProps}/>,
         );
 
@@ -71,7 +71,7 @@ describe('components/ListModal', () => {
     it('should update numPerPage', async () => {
         const numPerPage = totalCount - 1; // numPerPage = 2
         const props = {...baseProps, numPerPage};
-        renderWithContext(
+        await renderWithContext(
             <ListModal {...props}/>,
         );
 
@@ -92,7 +92,7 @@ describe('components/ListModal', () => {
             titleBarButtonText: 'Add Foo',
             titleBarButtonOnClick: jest.fn(),
         };
-        const {baseElement} = renderWithContext(
+        const {baseElement} = await renderWithContext(
             <ListModal {...props}/>,
         );
 
@@ -110,7 +110,7 @@ describe('components/ListModal', () => {
     test('should have called onHide when handleExit is called', async () => {
         const onHide = jest.fn();
         const props = {...baseProps, onHide};
-        const {baseElement} = renderWithContext(
+        const {baseElement} = await renderWithContext(
             <ListModal {...props}/>,
         );
 
@@ -134,7 +134,7 @@ describe('components/ListModal', () => {
             ...baseProps,
             numPerPage: 2, // Set to 2 so Next button appears when we have 2 items
         };
-        renderWithContext(
+        await renderWithContext(
             <ListModal {...props}/>,
         );
 
@@ -173,7 +173,7 @@ describe('components/ListModal', () => {
     });
 
     test('search input', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ListModal {...baseProps}/>,
         );
 

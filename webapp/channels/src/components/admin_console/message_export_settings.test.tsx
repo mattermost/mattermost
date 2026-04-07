@@ -13,7 +13,7 @@ import {renderWithContext} from 'tests/react_testing_utils';
 import type {BaseProps} from './old_admin_settings';
 
 describe('components/MessageExportSettings', () => {
-    test('should match snapshot, disabled, actiance', () => {
+    test('should match snapshot, disabled, actiance', async () => {
         const config = {
             MessageExportSettings: {
                 EnableExport: false,
@@ -24,7 +24,7 @@ describe('components/MessageExportSettings', () => {
             },
         } as unknown as BaseProps['config'];
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <MessageExportSettingsDefault
                 config={config}
             />,
@@ -32,7 +32,7 @@ describe('components/MessageExportSettings', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, enabled, actiance', () => {
+    test('should match snapshot, enabled, actiance', async () => {
         const config = {
             MessageExportSettings: {
                 EnableExport: true,
@@ -43,7 +43,7 @@ describe('components/MessageExportSettings', () => {
             },
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <MessageExportSettingsDefault
                 config={config}
             />,
@@ -51,7 +51,7 @@ describe('components/MessageExportSettings', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, disabled, globalrelay', () => {
+    test('should match snapshot, disabled, globalrelay', async () => {
         const config = {
             MessageExportSettings: {
                 EnableExport: false,
@@ -70,7 +70,7 @@ describe('components/MessageExportSettings', () => {
             },
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <MessageExportSettingsDefault
                 config={config}
             />,
@@ -78,7 +78,7 @@ describe('components/MessageExportSettings', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, enabled, globalrelay', () => {
+    test('should match snapshot, enabled, globalrelay', async () => {
         const config = {
             MessageExportSettings: {
                 EnableExport: true,
@@ -97,7 +97,7 @@ describe('components/MessageExportSettings', () => {
             },
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <MessageExportSettingsDefault
                 config={config}
             />,
@@ -122,9 +122,9 @@ describe('components/MessageExportSettings/getJobDetails', () => {
 
     let ref: React.RefObject<MessageExportSettings>;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         ref = React.createRef<MessageExportSettings>();
-        renderWithContext(
+        await renderWithContext(
             <MessageExportSettings
                 {...baseProps}
                 ref={ref}

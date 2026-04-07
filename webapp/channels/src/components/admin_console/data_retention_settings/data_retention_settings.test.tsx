@@ -46,8 +46,8 @@ describe('components/admin_console/data_retention_settings/data_retention_settin
         },
     });
 
-    test('should match snapshot with no custom policies', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with no custom policies', async () => {
+        const {container} = await renderWithContext(
             <DataRetentionSettings
                 {...getBaseProps()}
             />,
@@ -55,7 +55,7 @@ describe('components/admin_console/data_retention_settings/data_retention_settin
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with custom policy', () => {
+    test('should match snapshot with custom policy', async () => {
         const props = getBaseProps();
         props.customPolicies = {
             1234567: {
@@ -67,7 +67,7 @@ describe('components/admin_console/data_retention_settings/data_retention_settin
             },
         };
         props.customPoliciesCount = 1;
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <DataRetentionSettings
                 {...props}
             />,
@@ -75,7 +75,7 @@ describe('components/admin_console/data_retention_settings/data_retention_settin
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with custom policy keep forever', () => {
+    test('should match snapshot with custom policy keep forever', async () => {
         const props = getBaseProps();
         props.customPolicies = {
             1234567: {
@@ -87,7 +87,7 @@ describe('components/admin_console/data_retention_settings/data_retention_settin
             },
         };
         props.customPoliciesCount = 1;
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <DataRetentionSettings
                 {...props}
             />,
@@ -95,11 +95,11 @@ describe('components/admin_console/data_retention_settings/data_retention_settin
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with Global Policies disabled', () => {
+    test('should match snapshot with Global Policies disabled', async () => {
         const props = getBaseProps();
         props.config.DataRetentionSettings.EnableMessageDeletion = false;
         props.config.DataRetentionSettings.EnableFileDeletion = false;
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <DataRetentionSettings
                 {...props}
             />,

@@ -139,7 +139,7 @@ describe('ThreadPopout', () => {
         jest.restoreAllMocks();
     });
 
-    it('should render nothing when thread is not available', () => {
+    it('should render nothing when thread is not available', async () => {
         const stateWithoutPost = {
             ...baseState,
             entities: {
@@ -150,7 +150,7 @@ describe('ThreadPopout', () => {
             },
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <MemoryRouter initialEntries={['/_popout/thread/test-team/post-123']}>
                 <ThreadPopout/>
             </MemoryRouter>,
@@ -160,8 +160,8 @@ describe('ThreadPopout', () => {
         expect(container.firstChild).toBeNull();
     });
 
-    it('should pass correct props to ThreadPane', () => {
-        renderWithContext(
+    it('should pass correct props to ThreadPane', async () => {
+        await renderWithContext(
             <MemoryRouter initialEntries={['/_popout/thread/test-team/post-123']}>
                 <Route
                     path='/_popout/thread/:team/:postId'
@@ -175,8 +175,8 @@ describe('ThreadPopout', () => {
         expect(threadPane).toHaveAttribute('data-thread-id', 'post-123');
     });
 
-    it('should pass correct props to ThreadViewer', () => {
-        renderWithContext(
+    it('should pass correct props to ThreadViewer', async () => {
+        await renderWithContext(
             <MemoryRouter initialEntries={['/_popout/thread/test-team/post-123']}>
                 <Route
                     path='/_popout/thread/:team/:postId'
@@ -192,7 +192,7 @@ describe('ThreadPopout', () => {
         expect(threadViewer).toHaveAttribute('data-is-thread-view', 'true');
     });
 
-    it('should handle missing post gracefully', () => {
+    it('should handle missing post gracefully', async () => {
         const stateWithoutPost = {
             ...baseState,
             entities: {
@@ -203,7 +203,7 @@ describe('ThreadPopout', () => {
             },
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <MemoryRouter initialEntries={['/_popout/thread/test-team/post-123']}>
                 <ThreadPopout/>
             </MemoryRouter>,
@@ -214,7 +214,7 @@ describe('ThreadPopout', () => {
     });
 
     describe('window focus and blur events', () => {
-        it('should set window.isActive to true and call markThreadAsRead on focus', () => {
+        it('should set window.isActive to true and call markThreadAsRead on focus', async () => {
             let focusHandler: (() => void) | undefined;
             (window.addEventListener as jest.Mock).mockImplementation((event, handler) => {
                 if (event === 'focus') {
@@ -222,7 +222,7 @@ describe('ThreadPopout', () => {
                 }
             });
 
-            renderWithContext(
+            await renderWithContext(
                 <MemoryRouter initialEntries={['/_popout/thread/test-team/post-123']}>
                     <Route
                         path='/_popout/thread/:team/:postId'
@@ -247,7 +247,7 @@ describe('ThreadPopout', () => {
             expect(mockMarkThreadAsRead).toHaveBeenCalledWith('post-123');
         });
 
-        it('should set window.isActive to false on blur', () => {
+        it('should set window.isActive to false on blur', async () => {
             let blurHandler: (() => void) | undefined;
             (window.addEventListener as jest.Mock).mockImplementation((event, handler) => {
                 if (event === 'blur') {
@@ -255,7 +255,7 @@ describe('ThreadPopout', () => {
                 }
             });
 
-            renderWithContext(
+            await renderWithContext(
                 <MemoryRouter initialEntries={['/_popout/thread/test-team/post-123']}>
                     <Route
                         path='/_popout/thread/:team/:postId'

@@ -352,7 +352,7 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
     });
 
     it('should render selected fields when not in RHS', async () => {
-        renderWithContext(
+        await renderWithContext(
             <DataSpillageReport
                 post={post}
                 isRHS={false}
@@ -389,7 +389,7 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
     });
 
     it('should render all fields when in RHS', async () => {
-        renderWithContext(
+        await renderWithContext(
             <DataSpillageReport
                 post={post}
                 isRHS={true}

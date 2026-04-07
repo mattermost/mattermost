@@ -96,8 +96,8 @@ describe('PostAttachmentOpenGraph', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <PostAttachmentOpenGraph {...baseProps}/>,
             initialState,
         );
@@ -105,8 +105,8 @@ describe('PostAttachmentOpenGraph', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should render nothing without any data', () => {
-        const {container} = renderWithContext(
+    test('should render nothing without any data', async () => {
+        const {container} = await renderWithContext(
             <PostAttachmentOpenGraph {...baseProps}/>,
             {
                 ...initialState,
@@ -123,8 +123,8 @@ describe('PostAttachmentOpenGraph', () => {
         expect(container).toBeEmptyDOMElement();
     });
 
-    test('should render nothing when link previews are disabled on the server', () => {
-        const {container} = renderWithContext(
+    test('should render nothing when link previews are disabled on the server', async () => {
+        const {container} = await renderWithContext(
             <PostAttachmentOpenGraph {...baseProps}/>,
             {
                 ...initialState,
@@ -144,8 +144,8 @@ describe('PostAttachmentOpenGraph', () => {
         expect(container).toBeEmptyDOMElement();
     });
 
-    test('should render nothing when link previews are disabled by the user', () => {
-        const {container} = renderWithContext(
+    test('should render nothing when link previews are disabled by the user', async () => {
+        const {container} = await renderWithContext(
             <PostAttachmentOpenGraph {...baseProps}/>,
             {
                 ...initialState,
@@ -174,13 +174,13 @@ describe('PostAttachmentOpenGraphBody', () => {
         isInPermalink: false,
     };
 
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const {container} = render(<PostAttachmentOpenGraphBody {...baseProps}/>);
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should not render without title', () => {
+    test('should not render without title', async () => {
         const props = {
             ...baseProps,
             title: '',
@@ -191,7 +191,7 @@ describe('PostAttachmentOpenGraphBody', () => {
         expect(container).toBeEmptyDOMElement();
     });
 
-    test('should add extra class for permalink view', () => {
+    test('should add extra class for permalink view', async () => {
         const props = {
             ...baseProps,
             isInPermalink: true,
@@ -203,7 +203,7 @@ describe('PostAttachmentOpenGraphBody', () => {
         expect(container.querySelector('.sitename')).not.toBeInTheDocument();
     });
 
-    test('should render without sitename', () => {
+    test('should render without sitename', async () => {
         const props = {
             ...baseProps,
             sitename: '',
@@ -216,7 +216,7 @@ describe('PostAttachmentOpenGraphBody', () => {
         expect(container.querySelector('.description')).toBeInTheDocument();
     });
 
-    test('should render without description', () => {
+    test('should render without description', async () => {
         const props = {
             ...baseProps,
             description: '',
@@ -229,7 +229,7 @@ describe('PostAttachmentOpenGraphBody', () => {
         expect(container.querySelector('.description')).not.toBeInTheDocument();
     });
 
-    test('should render with title only', () => {
+    test('should render with title only', async () => {
         const props = {
             ...baseProps,
             sitename: '',
@@ -253,8 +253,8 @@ describe('PostAttachmentOpenGraphImage', () => {
         title: 'test_image',
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <PostAttachmentOpenGraphImage {...baseProps}/>,
             initialState,
         );
@@ -262,13 +262,13 @@ describe('PostAttachmentOpenGraphImage', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should not render when used in Permalink', () => {
+    test('should not render when used in Permalink', async () => {
         const props = {
             ...baseProps,
             isInPermalink: true,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PostAttachmentOpenGraphImage {...props}/>,
             initialState,
         );
@@ -276,8 +276,8 @@ describe('PostAttachmentOpenGraphImage', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should render a large image with toggle', () => {
-        const {container} = renderWithContext(
+    test('should render a large image with toggle', async () => {
+        const {container} = await renderWithContext(
             <PostAttachmentOpenGraphImage {...baseProps}/>,
             initialState,
         );
@@ -287,7 +287,7 @@ describe('PostAttachmentOpenGraphImage', () => {
         expect(container.querySelector('.PostAttachmentOpenGraph__image .preview-toggle')).toBeInTheDocument();
     });
 
-    test('should render a small image without toggle', () => {
+    test('should render a small image without toggle', async () => {
         const props = {
             ...baseProps,
             imageMetadata: {
@@ -297,7 +297,7 @@ describe('PostAttachmentOpenGraphImage', () => {
             },
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PostAttachmentOpenGraphImage {...props}/>,
             initialState,
         );

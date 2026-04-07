@@ -164,7 +164,7 @@ describe('components/BrowseChannels', () => {
 
     test('should match snapshot and state', async () => {
         const props = {...baseProps, actions: {...baseProps.actions, getChannels: jest.fn(channelActions.getChannels)}};
-        const {baseElement} = renderWithContext(<BrowseChannels {...props}/>);
+        const {baseElement} = await renderWithContext(<BrowseChannels {...props}/>);
 
         // Wait for component to load
         await act(async () => {
@@ -181,7 +181,7 @@ describe('components/BrowseChannels', () => {
     test('should call closeModal on Close', async () => {
         const closeModal = jest.fn();
         const props = {...baseProps, actions: {...baseProps.actions, closeModal}};
-        renderWithContext(<BrowseChannels {...props}/>);
+        await renderWithContext(<BrowseChannels {...props}/>);
 
         // Wait for component to load
         await act(async () => {
@@ -200,7 +200,7 @@ describe('components/BrowseChannels', () => {
     test('should match state on onChange', async () => {
         const searchAllChannels = jest.fn().mockResolvedValue(searchResults);
         const props = {...baseProps, actions: {...baseProps.actions, searchAllChannels}};
-        renderWithContext(<BrowseChannels {...props}/>);
+        await renderWithContext(<BrowseChannels {...props}/>);
 
         // Wait for component to load
         await act(async () => {
@@ -237,7 +237,7 @@ describe('components/BrowseChannels', () => {
     test('should call props.getChannels on initial load', async () => {
         const getChannels = jest.fn(channelActions.getChannels);
         const props = {...baseProps, actions: {...baseProps.actions, getChannels}};
-        renderWithContext(<BrowseChannels {...props}/>);
+        await renderWithContext(<BrowseChannels {...props}/>);
 
         // Wait for component to load
         await act(async () => {
@@ -252,7 +252,7 @@ describe('components/BrowseChannels', () => {
     test('should be on loading state when searching', async () => {
         const searchAllChannels = jest.fn().mockImplementation(() => new Promise(() => {})); // Never resolves
         const props = {...baseProps, actions: {...baseProps.actions, searchAllChannels}};
-        renderWithContext(<BrowseChannels {...props}/>);
+        await renderWithContext(<BrowseChannels {...props}/>);
 
         // Wait for component to load
         await act(async () => {
@@ -275,7 +275,7 @@ describe('components/BrowseChannels', () => {
     test('should attempt to join the channel and fail', async () => {
         const joinChannel = jest.fn().mockResolvedValue({error: {message: 'error message'}});
         const props = {...baseProps, actions: {...baseProps.actions, joinChannel}};
-        renderWithContext(<BrowseChannels {...props}/>);
+        await renderWithContext(<BrowseChannels {...props}/>);
 
         // Wait for component to load
         await act(async () => {
@@ -298,7 +298,7 @@ describe('components/BrowseChannels', () => {
     test('should join the channel', async () => {
         const joinChannel = jest.fn().mockResolvedValue({data: true});
         const props = {...baseProps, actions: {...baseProps.actions, joinChannel}};
-        renderWithContext(<BrowseChannels {...props}/>);
+        await renderWithContext(<BrowseChannels {...props}/>);
 
         // Wait for component to load
         await act(async () => {
@@ -321,7 +321,7 @@ describe('components/BrowseChannels', () => {
     test('should not perform a search if term is empty', async () => {
         const searchAllChannels = jest.fn().mockResolvedValue(searchResults);
         const props = {...baseProps, actions: {...baseProps.actions, searchAllChannels}};
-        renderWithContext(<BrowseChannels {...props}/>);
+        await renderWithContext(<BrowseChannels {...props}/>);
 
         // Wait for component to load
         await act(async () => {
@@ -356,7 +356,7 @@ describe('components/BrowseChannels', () => {
     test('should handle a failed search', async () => {
         const searchAllChannels = jest.fn(channelActions.searchAllChannels);
         const props = {...baseProps, actions: {...baseProps.actions, searchAllChannels}};
-        renderWithContext(<BrowseChannels {...props}/>);
+        await renderWithContext(<BrowseChannels {...props}/>);
 
         // Wait for component to load
         await act(async () => {
@@ -387,7 +387,7 @@ describe('components/BrowseChannels', () => {
     test('should perform search and set the correct state', async () => {
         const searchAllChannels = jest.fn(channelActions.searchAllChannels);
         const props = {...baseProps, actions: {...baseProps.actions, searchAllChannels}};
-        renderWithContext(<BrowseChannels {...props}/>);
+        await renderWithContext(<BrowseChannels {...props}/>);
 
         // Wait for component to load
         await act(async () => {
@@ -417,7 +417,7 @@ describe('components/BrowseChannels', () => {
     test('should perform search on archived channels and set the correct state', async () => {
         const searchAllChannels = jest.fn(channelActions.searchAllChannels);
         const props = {...baseProps, actions: {...baseProps.actions, searchAllChannels}};
-        renderWithContext(<BrowseChannels {...props}/>);
+        await renderWithContext(<BrowseChannels {...props}/>);
 
         // Wait for component to load
         await act(async () => {
@@ -457,7 +457,7 @@ describe('components/BrowseChannels', () => {
     test('should perform search on private channels and set the correct state', async () => {
         const searchAllChannels = jest.fn(channelActions.searchAllChannels);
         const props = {...baseProps, actions: {...baseProps.actions, searchAllChannels}};
-        renderWithContext(<BrowseChannels {...props}/>);
+        await renderWithContext(<BrowseChannels {...props}/>);
 
         // Wait for component to load
         await act(async () => {
@@ -498,7 +498,7 @@ describe('components/BrowseChannels', () => {
     test('should perform search on public channels and set the correct state', async () => {
         const searchAllChannels = jest.fn(channelActions.searchAllChannels);
         const props = {...baseProps, actions: {...baseProps.actions, searchAllChannels}};
-        renderWithContext(<BrowseChannels {...props}/>);
+        await renderWithContext(<BrowseChannels {...props}/>);
 
         // Wait for component to load
         await act(async () => {
@@ -543,7 +543,7 @@ describe('components/BrowseChannels', () => {
             shouldHideJoinedChannels: true,
             actions: {...baseProps.actions, searchAllChannels},
         };
-        renderWithContext(<BrowseChannels {...props}/>);
+        await renderWithContext(<BrowseChannels {...props}/>);
 
         // Wait for component to load
         await act(async () => {
@@ -577,7 +577,7 @@ describe('components/BrowseChannels', () => {
             shouldHideJoinedChannels: true,
             actions: {...baseProps.actions, searchAllChannels},
         };
-        renderWithContext(<BrowseChannels {...props}/>);
+        await renderWithContext(<BrowseChannels {...props}/>);
 
         // Wait for component to load
         await act(async () => {
@@ -618,7 +618,7 @@ describe('components/BrowseChannels', () => {
     it('should perform search on all channels and should not show private channels that user is not a member of', async () => {
         const searchAllChannels = jest.fn(channelActions.searchAllChannels);
         const props = {...baseProps, actions: {...baseProps.actions, searchAllChannels}};
-        renderWithContext(<BrowseChannels {...props}/>);
+        await renderWithContext(<BrowseChannels {...props}/>);
 
         // Wait for component to load
         await act(async () => {

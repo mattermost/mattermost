@@ -27,8 +27,8 @@ describe('components/marketplace/marketplace_list', () => {
         installed_version: '',
     };
 
-    it('should render default', () => {
-        const {container} = renderWithContext(
+    it('should render default', async () => {
+        const {container} = await renderWithContext(
             <MarketplaceList
                 listing={[]}
                 page={0}
@@ -39,12 +39,12 @@ describe('components/marketplace/marketplace_list', () => {
         expect(container).toMatchSnapshot();
     });
 
-    it('should render page with ITEMS_PER_PAGE plugins', () => {
+    it('should render page with ITEMS_PER_PAGE plugins', async () => {
         // Suppress expected duplicate key warnings from using same plugin object multiple times
         const originalError = console.error;
         console.error = jest.fn();
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <MarketplaceList
                 listing={[
                     samplePlugin, samplePlugin, samplePlugin, samplePlugin, samplePlugin,
@@ -64,8 +64,8 @@ describe('components/marketplace/marketplace_list', () => {
         console.error = originalError;
     });
 
-    it('should render no results', () => {
-        const {container} = renderWithContext(
+    it('should render no results', async () => {
+        const {container} = await renderWithContext(
             <MarketplaceList
                 listing={[]}
                 page={0}

@@ -223,7 +223,7 @@ describe('components/dot_menu/DotMenu', () => {
             ...baseProps,
             canEdit: true,
         };
-        renderWithContext(
+        await renderWithContext(
             <DotMenu {...props}/>,
             initialState,
         );
@@ -244,7 +244,7 @@ describe('components/dot_menu/DotMenu', () => {
             canEdit: true,
             canDelete: true,
         };
-        renderWithContext(
+        await renderWithContext(
             <DotMenu {...props}/>,
             initialState,
         );
@@ -261,7 +261,7 @@ describe('components/dot_menu/DotMenu', () => {
             ...baseProps,
             canMove: true,
         };
-        renderWithContext(
+        await renderWithContext(
             <DotMenu {...props}/>,
             initialState,
         );
@@ -278,7 +278,7 @@ describe('components/dot_menu/DotMenu', () => {
             ...baseProps,
             canMove: false,
         };
-        renderWithContext(
+        await renderWithContext(
             <DotMenu {...props}/>,
             initialState,
         );
@@ -302,7 +302,7 @@ describe('components/dot_menu/DotMenu', () => {
             canMove: false, // BoR posts cannot be moved
             isBurnOnReadPost: true,
         };
-        renderWithContext(
+        await renderWithContext(
             <DotMenu {...props}/>,
             initialState,
         );
@@ -327,7 +327,7 @@ describe('components/dot_menu/DotMenu', () => {
             isBurnOnReadPost: true,
         };
 
-        renderWithContext(<DotMenuRoot {...props}/>, initialState);
+        await renderWithContext(<DotMenuRoot {...props}/>, initialState);
 
         const button = screen.getByTestId(`PostDotMenu-Button-${borPost.id}`);
         await userEvent.click(button);
@@ -347,7 +347,7 @@ describe('components/dot_menu/DotMenu', () => {
             ...baseProps,
             location: Locations.CENTER,
         };
-        renderWithContext(
+        await renderWithContext(
             <DotMenu {...props}/>,
             initialState,
         );
@@ -362,7 +362,7 @@ describe('components/dot_menu/DotMenu', () => {
             ...baseProps,
             channelIsArchived: true,
         };
-        renderWithContext(
+        await renderWithContext(
             <DotMenu {...props}/>,
             initialState,
         );
@@ -377,7 +377,7 @@ describe('components/dot_menu/DotMenu', () => {
             ...baseProps,
             location: Locations.SEARCH,
         };
-        renderWithContext(
+        await renderWithContext(
             <DotMenu {...props}/>,
             initialState,
         );
@@ -397,7 +397,7 @@ describe('components/dot_menu/DotMenu', () => {
                 ...baseProps,
                 ...caseProps,
             };
-            renderWithContext(
+            await renderWithContext(
                 <DotMenu {...props}/>,
                 initialState,
             );
@@ -421,7 +421,7 @@ describe('components/dot_menu/DotMenu', () => {
                 // canFollowThread should be false when collapsed threads is disabled or location is not CENTER/RHS
                 canFollowThread: false,
             };
-            renderWithContext(
+            await renderWithContext(
                 <DotMenu {...props}/>,
                 initialState,
             );
@@ -442,7 +442,7 @@ describe('components/dot_menu/DotMenu', () => {
                 ...caseProps,
                 location: Locations.RHS_ROOT,
             };
-            renderWithContext(
+            await renderWithContext(
                 <DotMenu {...props}/>,
                 initialState,
             );
@@ -459,7 +459,7 @@ describe('components/dot_menu/DotMenu', () => {
             ...baseProps,
             post: post1,
         };
-        renderWithContext(
+        await renderWithContext(
             <DotMenuRoot {...props}/>,
             initialState,
         );
@@ -476,7 +476,7 @@ describe('components/dot_menu/DotMenu', () => {
             ...baseProps,
             post: dmPost,
         };
-        renderWithContext(
+        await renderWithContext(
             <DotMenuRoot {...props}/>,
             initialState,
         );
@@ -493,7 +493,7 @@ describe('components/dot_menu/DotMenu', () => {
             ...baseProps,
             post: gmPost,
         };
-        renderWithContext(
+        await renderWithContext(
             <DotMenuRoot {...props}/>,
             initialState,
         );
@@ -514,7 +514,7 @@ describe('components/dot_menu/DotMenu', () => {
             ...baseProps,
             post: burnOnReadPost,
         };
-        renderWithContext(<DotMenuRoot {...props}/>, initialState);
+        await renderWithContext(<DotMenuRoot {...props}/>, initialState);
 
         const button = screen.getByTestId(`PostDotMenu-Button-${post1.id}`);
         await userEvent.click(button);
@@ -546,7 +546,7 @@ describe('components/dot_menu/DotMenu', () => {
                 },
             },
         };
-        renderWithContext(
+        await renderWithContext(
             <DotMenuRoot {...props}/>,
             stateWithBorPost,
         );
@@ -581,7 +581,7 @@ describe('components/dot_menu/DotMenu', () => {
                 },
             },
         };
-        renderWithContext(
+        await renderWithContext(
             <DotMenuRoot {...props}/>,
             stateWithBorPost,
         );
@@ -618,7 +618,7 @@ describe('components/dot_menu/DotMenu', () => {
             },
         };
 
-        renderWithContext(<DotMenuRoot {...props}/>, stateWithBorPost);
+        await renderWithContext(<DotMenuRoot {...props}/>, stateWithBorPost);
 
         const button = screen.getByTestId(`PostDotMenu-Button-${borPost.id}`);
         await userEvent.click(button);

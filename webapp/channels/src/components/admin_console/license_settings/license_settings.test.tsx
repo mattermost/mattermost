@@ -59,13 +59,13 @@ describe('components/admin_console/license_settings/LicenseSettings', () => {
         },
     };
 
-    test('should match snapshot enterprise build with license', () => {
-        const {container} = renderWithContext(<LicenseSettings {...defaultProps}/>);
+    test('should match snapshot enterprise build with license', async () => {
+        const {container} = await renderWithContext(<LicenseSettings {...defaultProps}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot enterprise build with license and isDisabled set to true', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot enterprise build with license and isDisabled set to true', async () => {
+        const {container} = await renderWithContext(
             <LicenseSettings
                 {...defaultProps}
                 isDisabled={true}
@@ -74,33 +74,33 @@ describe('components/admin_console/license_settings/LicenseSettings', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot enterprise build with license and upgraded from TE', () => {
+    test('should match snapshot enterprise build with license and upgraded from TE', async () => {
         const props = {...defaultProps, upgradedFromTE: true};
-        const {container} = renderWithContext(<LicenseSettings {...props}/>);
+        const {container} = await renderWithContext(<LicenseSettings {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot enterprise build without license', () => {
+    test('should match snapshot enterprise build without license', async () => {
         const props = {...defaultProps, license: {IsLicensed: 'false'}};
-        const {container} = renderWithContext(<LicenseSettings {...props}/>);
+        const {container} = await renderWithContext(<LicenseSettings {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot enterprise build without license and upgrade from TE', () => {
+    test('should match snapshot enterprise build without license and upgrade from TE', async () => {
         const props = {...defaultProps, license: {IsLicensed: 'false'}, upgradedFromTE: true};
-        const {container} = renderWithContext(<LicenseSettings {...props}/>);
+        const {container} = await renderWithContext(<LicenseSettings {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot team edition build without license', () => {
+    test('should match snapshot team edition build without license', async () => {
         const props = {...defaultProps, enterpriseReady: false, license: {IsLicensed: 'false'}};
-        const {container} = renderWithContext(<LicenseSettings {...props}/>);
+        const {container} = await renderWithContext(<LicenseSettings {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot team edition build with license', () => {
+    test('should match snapshot team edition build with license', async () => {
         const props = {...defaultProps, enterpriseReady: false};
-        const {container} = renderWithContext(<LicenseSettings {...props}/>);
+        const {container} = await renderWithContext(<LicenseSettings {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
@@ -114,7 +114,7 @@ describe('components/admin_console/license_settings/LicenseSettings', () => {
             isAllowedToUpgradeToEnterprise: jest.fn().mockImplementation(() => promise),
         };
         const props = {...defaultProps, enterpriseReady: false, actions};
-        renderWithContext(<LicenseSettings {...props}/>);
+        await renderWithContext(<LicenseSettings {...props}/>);
 
         await act(async () => {
             await promise;
@@ -141,7 +141,7 @@ describe('components/admin_console/license_settings/LicenseSettings', () => {
             upgradeToE0Status: jest.fn().mockImplementation(() => Promise.resolve({percentage: 42, error: null})),
         };
         const props = {...defaultProps, enterpriseReady: false, actions};
-        const {container} = renderWithContext(<LicenseSettings {...props}/>);
+        const {container} = await renderWithContext(<LicenseSettings {...props}/>);
         await act(async () => {
             await flushPromises();
         });
@@ -154,58 +154,58 @@ describe('components/admin_console/license_settings/LicenseSettings', () => {
             upgradeToE0Status: jest.fn().mockImplementation(() => Promise.resolve({percentage: 100, error: null})),
         };
         const props = {...defaultProps, enterpriseReady: false, actions};
-        const {container} = renderWithContext(<LicenseSettings {...props}/>);
+        const {container} = await renderWithContext(<LicenseSettings {...props}/>);
         await act(async () => {
             await flushPromises();
         });
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot enterprise build with trial license', () => {
+    test('should match snapshot enterprise build with trial license', async () => {
         const props = {...defaultProps, license: {IsLicensed: 'true', StartsAt: '1617714643650', IssuedAt: '1617714643650', ExpiresAt: '1620335443650'}};
-        const {container} = renderWithContext(<LicenseSettings {...props}/>);
+        const {container} = await renderWithContext(<LicenseSettings {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot team edition with expired trial in the past', () => {
+    test('should match snapshot team edition with expired trial in the past', async () => {
         const props = {...defaultProps, license: {IsLicensed: 'false'}, prevTrialLicense: {IsLicensed: 'true'}};
-        const {container} = renderWithContext(<LicenseSettings {...props}/>);
+        const {container} = await renderWithContext(<LicenseSettings {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot enterprise build with E20 license', () => {
+    test('should match snapshot enterprise build with E20 license', async () => {
         const props = {...defaultProps, license: {...defaultProps.license, SkuShortName: LicenseSkus.E20}};
-        const {container} = renderWithContext(<LicenseSettings {...props}/>);
+        const {container} = await renderWithContext(<LicenseSettings {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot enterprise build with E10 license', () => {
+    test('should match snapshot enterprise build with E10 license', async () => {
         const props = {...defaultProps, license: {...defaultProps.license, SkuShortName: LicenseSkus.E10}};
-        const {container} = renderWithContext(<LicenseSettings {...props}/>);
+        const {container} = await renderWithContext(<LicenseSettings {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot enterprise build with Enterprise license', () => {
+    test('should match snapshot enterprise build with Enterprise license', async () => {
         const props = {...defaultProps, license: {...defaultProps.license, SkuShortName: LicenseSkus.Enterprise}};
-        const {container} = renderWithContext(<LicenseSettings {...props}/>);
+        const {container} = await renderWithContext(<LicenseSettings {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with expiring license', () => {
+    test('should match snapshot with expiring license', async () => {
         // Set expiration date to 30 days from today
         const expiringDate = moment().add(30, 'days').valueOf();
 
         const props = {...defaultProps, license: {...defaultProps.license, ExpiresAt: expiringDate.toString()}};
-        const {container} = renderWithContext(<LicenseSettings {...props}/>);
+        const {container} = await renderWithContext(<LicenseSettings {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with cloud expiring license', () => {
+    test('should match snapshot with cloud expiring license', async () => {
         // Set expiration date to 30 days from today
         const expiringDate = moment().add(30, 'days').valueOf();
 
         const props = {...defaultProps, license: {...defaultProps.license, ExpiresAt: expiringDate.toString(), Cloud: 'true'}};
-        const {container} = renderWithContext(<LicenseSettings {...props}/>);
+        const {container} = await renderWithContext(<LicenseSettings {...props}/>);
         expect(container).toMatchSnapshot();
     });
 });

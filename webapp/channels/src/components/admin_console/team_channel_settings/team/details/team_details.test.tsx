@@ -57,8 +57,8 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <TeamDetails
                 {...baseProps}
             />,
@@ -66,7 +66,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with isLocalArchived true', () => {
+    test('should match snapshot with isLocalArchived true', async () => {
         const props = {
             ...baseProps,
             team: {
@@ -74,7 +74,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
                 delete_at: 16465313,
             },
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <TeamDetails
                 {...props}
             />,

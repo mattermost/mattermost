@@ -12,7 +12,7 @@ describe('Readout', () => {
     it('should render message and clear it after timeout', async () => {
         jest.useFakeTimers();
 
-        renderWithContext(<Readout/>, {
+        await renderWithContext(<Readout/>, {
             views: {
                 readout: {
                     message: 'Test message',

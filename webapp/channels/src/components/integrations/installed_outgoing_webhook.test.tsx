@@ -74,26 +74,26 @@ describe('components/integrations/InstalledOutgoingWebhook', () => {
         channel,
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <InstalledOutgoingWebhook {...baseProps}/>,
             initialState as GlobalState,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should not have edit and delete actions if user does not have permissions to change', () => {
+    test('should not have edit and delete actions if user does not have permissions to change', async () => {
         const newCanChange = false;
         const props = {...baseProps, canChange: newCanChange};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <InstalledOutgoingWebhook {...props}/>,
             initialState as GlobalState,
         );
         expect(container.querySelector('.item-actions')).not.toBeInTheDocument();
     });
 
-    test('should have edit and delete actions if user can change webhook', () => {
-        renderWithContext(
+    test('should have edit and delete actions if user can change webhook', async () => {
+        await renderWithContext(
             <InstalledOutgoingWebhook {...baseProps}/>,
             initialState as GlobalState,
         );
@@ -101,10 +101,10 @@ describe('components/integrations/InstalledOutgoingWebhook', () => {
         expect(screen.getByText('Delete')).toBeInTheDocument();
     });
 
-    test('Should have the same name and description on view as it has in outgoingWebhook', () => {
+    test('Should have the same name and description on view as it has in outgoingWebhook', async () => {
         const newCanChange = false;
         const props = {...baseProps, canChange: newCanChange};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <InstalledOutgoingWebhook {...props}/>,
             initialState as GlobalState,
         );
@@ -113,10 +113,10 @@ describe('components/integrations/InstalledOutgoingWebhook', () => {
         expect(container.querySelector('.item-details__name')).toHaveTextContent('build');
     });
 
-    test('Should not display description as it is null', () => {
+    test('Should not display description as it is null', async () => {
         const newOutgoingWebhook = TestHelper.getOutgoingWebhookMock({...outgoingWebhook, description: undefined});
         const props = {...baseProps, outgoingWebhook: newOutgoingWebhook};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <InstalledOutgoingWebhook {...props}/>,
             initialState as GlobalState,
         );
@@ -124,10 +124,10 @@ describe('components/integrations/InstalledOutgoingWebhook', () => {
         expect(container.querySelector('.item-details__description')).not.toBeInTheDocument();
     });
 
-    test('Should not render any nodes as there are no filtered results', () => {
+    test('Should not render any nodes as there are no filtered results', async () => {
         const newFilter = 'someLongText';
         const props = {...baseProps, filter: newFilter};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <InstalledOutgoingWebhook {...props}/>,
             initialState as GlobalState,
         );
@@ -135,10 +135,10 @@ describe('components/integrations/InstalledOutgoingWebhook', () => {
         expect(container.querySelector('.backstage-list__item')).not.toBeInTheDocument();
     });
 
-    test('Should render a webhook item as filtered result is true', () => {
+    test('Should render a webhook item as filtered result is true', async () => {
         const newFilter = 'buil';
         const props = {...baseProps, filter: newFilter};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <InstalledOutgoingWebhook {...props}/>,
             initialState as GlobalState,
         );
@@ -151,7 +151,7 @@ describe('components/integrations/InstalledOutgoingWebhook', () => {
         const newOnRegenToken = jest.fn();
         const props = {...baseProps, filter: newFilter, onRegenToken: newOnRegenToken};
 
-        renderWithContext(
+        await renderWithContext(
             <InstalledOutgoingWebhook {...props}/>,
             initialState as GlobalState,
         );
@@ -165,7 +165,7 @@ describe('components/integrations/InstalledOutgoingWebhook', () => {
         const newOnDelete = jest.fn();
         const props = {...baseProps, filter: newFilter, onDelete: newOnDelete};
 
-        renderWithContext(
+        await renderWithContext(
             <InstalledOutgoingWebhook {...props}/>,
             initialState as GlobalState,
         );
@@ -174,9 +174,9 @@ describe('components/integrations/InstalledOutgoingWebhook', () => {
         expect(newOnDelete).toHaveBeenCalledTimes(1);
     });
 
-    test('Should match snapshot of makeDisplayName', () => {
+    test('Should match snapshot of makeDisplayName', async () => {
         // Test with webhook display name
-        const {container: container1} = renderWithContext(
+        const {container: container1} = await renderWithContext(
             <InstalledOutgoingWebhook
                 {...baseProps}
                 outgoingWebhook={TestHelper.getOutgoingWebhookMock({...outgoingWebhook, display_name: 'hook display name'})}
@@ -186,7 +186,7 @@ describe('components/integrations/InstalledOutgoingWebhook', () => {
         expect(container1.querySelector('.item-details__name')).toMatchSnapshot();
 
         // Test with channel display name (no webhook display name)
-        const {container: container2} = renderWithContext(
+        const {container: container2} = await renderWithContext(
             <InstalledOutgoingWebhook
                 {...baseProps}
                 outgoingWebhook={TestHelper.getOutgoingWebhookMock({...outgoingWebhook, display_name: ''})}
@@ -197,7 +197,7 @@ describe('components/integrations/InstalledOutgoingWebhook', () => {
         expect(container2.querySelector('.item-details__name')).toMatchSnapshot();
 
         // Test with no display name and no channel - displays "A Private Webhook"
-        const {container: container3} = renderWithContext(
+        const {container: container3} = await renderWithContext(
             <InstalledOutgoingWebhook
                 {...baseProps}
                 outgoingWebhook={TestHelper.getOutgoingWebhookMock({...outgoingWebhook, display_name: ''})}

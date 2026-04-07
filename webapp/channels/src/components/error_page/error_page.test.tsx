@@ -12,8 +12,8 @@ import {TestHelper} from 'utils/test_helper';
 import ErrorPage from './error_page';
 
 describe('ErrorPage', () => {
-    it('displays cloud archived page correctly', () => {
-        renderWithContext(
+    it('displays cloud archived page correctly', async () => {
+        await renderWithContext(
             (
                 <ErrorPage
                     location={{

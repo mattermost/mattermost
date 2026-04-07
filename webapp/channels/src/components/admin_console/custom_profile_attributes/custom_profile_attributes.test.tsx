@@ -60,8 +60,8 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
 
     const initialState = createInitialState({attr1, attr2});
 
-    test('should not render anything when no attributes exist', () => {
-        const {container} = renderWithContext(
+    test('should not render anything when no attributes exist', async () => {
+        const {container} = await renderWithContext(
             <CustomProfileAttributes {...baseProps}/>,
         );
 
@@ -70,7 +70,7 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
 
     describe('LDAP attributes', () => {
         test('should render LDAP attributes with correct help text', async () => {
-            renderWithContext(
+            await renderWithContext(
                 <CustomProfileAttributes {...baseProps}/>,
                 initialState,
             );
@@ -94,7 +94,7 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
                 },
             });
 
-            renderWithContext(
+            await renderWithContext(
                 <CustomProfileAttributes {...baseProps}/>,
                 initialState,
             );
@@ -127,7 +127,7 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
             (Client4.getCustomProfileAttributeFields as jest.Mock).mockImplementation(async () => {
                 return [samlAttr];
             });
-            renderWithContext(
+            await renderWithContext(
                 <CustomProfileAttributes
                     {...baseProps}
                     id='SamlSettings.CustomProfileAttributes'
@@ -151,7 +151,7 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
                 },
             });
 
-            renderWithContext(
+            await renderWithContext(
                 <CustomProfileAttributes
                     {...baseProps}
                     id='SamlSettings.CustomProfileAttributes'
@@ -185,7 +185,7 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
         const selectAttr = {...attr1, type: 'select' as UserPropertyFieldType};
         const selectInitialState = createInitialState({selectAttr});
 
-        renderWithContext(
+        await renderWithContext(
             <CustomProfileAttributes {...baseProps}/>,
             selectInitialState,
         );
@@ -197,7 +197,7 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
     test('should handle save errors gracefully', async () => {
         jest.spyOn(Client4, 'patchCustomProfileAttributeField').mockRejectedValue(new Error('Network error'));
 
-        renderWithContext(
+        await renderWithContext(
             <CustomProfileAttributes {...baseProps}/>,
             initialState,
         );
@@ -218,7 +218,7 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
     });
 
     test('should respect disabled state', async () => {
-        renderWithContext(
+        await renderWithContext(
             <CustomProfileAttributes
                 {...baseProps}
                 isDisabled={true}
@@ -234,7 +234,7 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
         const emptyAttr = createAttribute('attr1', 'Department', {ldap: ''});
         const emptyInitialState = createInitialState({emptyAttr});
 
-        renderWithContext(
+        await renderWithContext(
             <CustomProfileAttributes {...baseProps}/>,
             emptyInitialState,
         );
@@ -244,7 +244,7 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
     });
 
     test('should cleanup on unmount', async () => {
-        const {unmount} = renderWithContext(
+        const {unmount} = await renderWithContext(
             <CustomProfileAttributes {...baseProps}/>,
             initialState,
         );
@@ -265,7 +265,7 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
         const invalidAttr = {...attr1, type: 'invalid_type' as any};
         const invalidInitialState = createInitialState({invalidAttr});
 
-        renderWithContext(
+        await renderWithContext(
             <CustomProfileAttributes {...baseProps}/>,
             invalidInitialState,
         );

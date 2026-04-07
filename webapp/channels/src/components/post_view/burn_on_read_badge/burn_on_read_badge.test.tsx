@@ -22,8 +22,8 @@ describe('BurnOnReadBadge', () => {
         revealed: false,
     };
 
-    it('should render flame icon for unrevealed recipient', () => {
-        renderWithContext(
+    it('should render flame icon for unrevealed recipient', async () => {
+        await renderWithContext(
             <BurnOnReadBadge {...baseProps}/>,
         );
 
@@ -32,8 +32,8 @@ describe('BurnOnReadBadge', () => {
         expect(badge.querySelector('svg')).toBeInTheDocument();
     });
 
-    it('should show burn-on-read tooltip for unrevealed recipient', () => {
-        renderWithContext(
+    it('should show burn-on-read tooltip for unrevealed recipient', async () => {
+        await renderWithContext(
             <BurnOnReadBadge {...baseProps}/>,
         );
 
@@ -41,8 +41,8 @@ describe('BurnOnReadBadge', () => {
         expect(badge).toHaveAttribute('aria-label', 'Burn-on-read message');
     });
 
-    it('should show delete tooltip for sender', () => {
-        renderWithContext(
+    it('should show delete tooltip for sender', async () => {
+        await renderWithContext(
             <BurnOnReadBadge
                 {...baseProps}
                 isSender={true}
@@ -53,8 +53,8 @@ describe('BurnOnReadBadge', () => {
         expect(badge.getAttribute('aria-label')).toContain('Click to delete message for everyone');
     });
 
-    it('should not render when revealed and no timer', () => {
-        const {container} = renderWithContext(
+    it('should not render when revealed and no timer', async () => {
+        const {container} = await renderWithContext(
             <BurnOnReadBadge
                 {...baseProps}
                 revealed={true}
@@ -64,8 +64,8 @@ describe('BurnOnReadBadge', () => {
         expect(container.firstChild).toBeNull();
     });
 
-    it('should render badge for sender when timer is not active (not all recipients revealed)', () => {
-        renderWithContext(
+    it('should render badge for sender when timer is not active (not all recipients revealed)', async () => {
+        await renderWithContext(
             <BurnOnReadBadge
                 {...baseProps}
                 isSender={true}
@@ -80,8 +80,8 @@ describe('BurnOnReadBadge', () => {
         expect(badge.getAttribute('aria-label')).toContain('Click to delete message for everyone');
     });
 
-    it('should NOT render badge for sender when timer is active (all recipients revealed)', () => {
-        renderWithContext(
+    it('should NOT render badge for sender when timer is active (all recipients revealed)', async () => {
+        await renderWithContext(
             <BurnOnReadBadge
                 {...baseProps}
                 isSender={true}
@@ -95,8 +95,8 @@ describe('BurnOnReadBadge', () => {
         expect(badge).not.toBeInTheDocument();
     });
 
-    it('should have correct CSS class for styling', () => {
-        renderWithContext(
+    it('should have correct CSS class for styling', async () => {
+        await renderWithContext(
             <BurnOnReadBadge {...baseProps}/>,
         );
 
@@ -106,7 +106,7 @@ describe('BurnOnReadBadge', () => {
 
     it('should call onSenderDelete when sender clicks badge', async () => {
         const onSenderDelete = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <BurnOnReadBadge
                 {...baseProps}
                 isSender={true}
@@ -123,7 +123,7 @@ describe('BurnOnReadBadge', () => {
     it('should not call onSenderDelete when recipient clicks badge', async () => {
         const onSenderDelete = jest.fn();
         const onReveal = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <BurnOnReadBadge
                 {...baseProps}
                 isSender={false}

@@ -58,11 +58,11 @@ describe('components/announcement_bar/CloudPreviewAnnouncementBar', () => {
         },
     };
 
-    it('should show banner when is_cloud_preview is true and isCloud is true', () => {
+    it('should show banner when is_cloud_preview is true and isCloud is true', async () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <CloudPreviewAnnouncementBar/>,
             initialState,
         );
@@ -71,7 +71,7 @@ describe('components/announcement_bar/CloudPreviewAnnouncementBar', () => {
         expect(container.textContent).toContain('This is your Mattermost preview environment');
     });
 
-    it('should not show banner when is_cloud_preview is false', () => {
+    it('should not show banner when is_cloud_preview is false', async () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.cloud.subscription = {
             ...baseSubscription,
@@ -81,7 +81,7 @@ describe('components/announcement_bar/CloudPreviewAnnouncementBar', () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <CloudPreviewAnnouncementBar/>,
             state,
         );
@@ -89,14 +89,14 @@ describe('components/announcement_bar/CloudPreviewAnnouncementBar', () => {
         expect(container.querySelector('.announcement-bar')).toBeNull();
     });
 
-    it('should not show banner when not cloud', () => {
+    it('should not show banner when not cloud', async () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.general.license.Cloud = 'false';
 
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <CloudPreviewAnnouncementBar/>,
             state,
         );
@@ -104,14 +104,14 @@ describe('components/announcement_bar/CloudPreviewAnnouncementBar', () => {
         expect(container.querySelector('.announcement-bar')).toBeNull();
     });
 
-    it('should not show banner when subscription is undefined', () => {
+    it('should not show banner when subscription is undefined', async () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.cloud.subscription = undefined;
 
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <CloudPreviewAnnouncementBar/>,
             state,
         );
@@ -119,11 +119,11 @@ describe('components/announcement_bar/CloudPreviewAnnouncementBar', () => {
         expect(container.querySelector('.announcement-bar')).toBeNull();
     });
 
-    it('should display time in correct format when less than a day', () => {
+    it('should display time in correct format when less than a day', async () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <CloudPreviewAnnouncementBar/>,
             initialState,
         );
@@ -132,7 +132,7 @@ describe('components/announcement_bar/CloudPreviewAnnouncementBar', () => {
         expect(container.textContent).toMatch(/Time left: \d{2}h \d{2}m/);
     });
 
-    it('should display time with days when more than a day', () => {
+    it('should display time with days when more than a day', async () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.cloud.subscription = {
             ...baseSubscription,
@@ -142,7 +142,7 @@ describe('components/announcement_bar/CloudPreviewAnnouncementBar', () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <CloudPreviewAnnouncementBar/>,
             state,
         );
@@ -151,7 +151,7 @@ describe('components/announcement_bar/CloudPreviewAnnouncementBar', () => {
         expect(container.textContent).toMatch(/Time left: 1d \d{2}h \d{2}m/);
     });
 
-    it('should display only minutes when less than an hour', () => {
+    it('should display only minutes when less than an hour', async () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.cloud.subscription = {
             ...baseSubscription,
@@ -161,7 +161,7 @@ describe('components/announcement_bar/CloudPreviewAnnouncementBar', () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <CloudPreviewAnnouncementBar/>,
             state,
         );
@@ -170,7 +170,7 @@ describe('components/announcement_bar/CloudPreviewAnnouncementBar', () => {
         expect(container.textContent).toMatch(/Time left: \d{2}m/);
     });
 
-    it('should display seconds when less than a minute', () => {
+    it('should display seconds when less than a minute', async () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.cloud.subscription = {
             ...baseSubscription,
@@ -180,7 +180,7 @@ describe('components/announcement_bar/CloudPreviewAnnouncementBar', () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <CloudPreviewAnnouncementBar/>,
             state,
         );
@@ -189,7 +189,7 @@ describe('components/announcement_bar/CloudPreviewAnnouncementBar', () => {
         expect(container.textContent).toMatch(/Time left: \d+s/);
     });
 
-    it('should display 00:00 when time has expired', () => {
+    it('should display 00:00 when time has expired', async () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.cloud.subscription = {
             ...baseSubscription,
@@ -199,7 +199,7 @@ describe('components/announcement_bar/CloudPreviewAnnouncementBar', () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <CloudPreviewAnnouncementBar/>,
             state,
         );
@@ -207,11 +207,11 @@ describe('components/announcement_bar/CloudPreviewAnnouncementBar', () => {
         expect(container.textContent).toContain('Time left: 00:00');
     });
 
-    it('should not be dismissable', () => {
+    it('should not be dismissable', async () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <CloudPreviewAnnouncementBar/>,
             initialState,
         );
@@ -220,11 +220,11 @@ describe('components/announcement_bar/CloudPreviewAnnouncementBar', () => {
         expect(container.querySelector('.announcement-bar__close')).toBeNull();
     });
 
-    it('should show contact sales button', () => {
+    it('should show contact sales button', async () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <CloudPreviewAnnouncementBar/>,
             initialState,
         );
@@ -232,11 +232,11 @@ describe('components/announcement_bar/CloudPreviewAnnouncementBar', () => {
         expect(container.textContent).toContain('Contact sales');
     });
 
-    it('should have advisor type', () => {
+    it('should have advisor type', async () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <CloudPreviewAnnouncementBar/>,
             initialState,
         );

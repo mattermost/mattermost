@@ -62,12 +62,12 @@ describe('ProductNoticesModal', () => {
                 getInProductNotices: jest.fn().mockReturnValue(new Promise(() => {})),
             },
         };
-        const {baseElement} = renderWithContext(<ProductNoticesModal {...props}/>);
+        const {baseElement} = await renderWithContext(<ProductNoticesModal {...props}/>);
         expect(baseElement).toMatchSnapshot();
     });
 
     test('Should match snapshot for system admin notice', async () => {
-        const {baseElement} = renderWithContext(<ProductNoticesModal {...baseProps}/>);
+        const {baseElement} = await renderWithContext(<ProductNoticesModal {...baseProps}/>);
         await waitFor(() => {
             expect(screen.getByText('for sysadmin')).toBeInTheDocument();
         });
@@ -76,7 +76,7 @@ describe('ProductNoticesModal', () => {
 
     test('Match snapshot for user notice', async () => {
         const ref = React.createRef<ProductNoticesModal>();
-        const {baseElement} = renderWithContext(
+        const {baseElement} = await renderWithContext(
             <ProductNoticesModal
                 ref={ref}
                 {...baseProps}
@@ -101,7 +101,7 @@ describe('ProductNoticesModal', () => {
                 getInProductNotices: jest.fn().mockResolvedValue({data: [noticesData[1]]}),
             },
         };
-        const {baseElement} = renderWithContext(<ProductNoticesModal {...singleNoticeProps}/>);
+        const {baseElement} = await renderWithContext(<ProductNoticesModal {...singleNoticeProps}/>);
         await waitFor(() => {
             expect(screen.getByText('title')).toBeInTheDocument();
         });
@@ -110,7 +110,7 @@ describe('ProductNoticesModal', () => {
 
     test('Should change the state of presentNoticeIndex on click of next, previous button', async () => {
         const ref = React.createRef<ProductNoticesModal>();
-        renderWithContext(
+        await renderWithContext(
             <ProductNoticesModal
                 ref={ref}
                 {...baseProps}
@@ -127,7 +127,7 @@ describe('ProductNoticesModal', () => {
     });
 
     test('Should not have previous button if there is only one notice', async () => {
-        renderWithContext(<ProductNoticesModal {...baseProps}/>);
+        await renderWithContext(<ProductNoticesModal {...baseProps}/>);
         await waitFor(() => {
             expect(screen.getByText('for sysadmin')).toBeInTheDocument();
         });
@@ -143,7 +143,7 @@ describe('ProductNoticesModal', () => {
                 getInProductNotices: jest.fn().mockResolvedValue({data: [noticesData[1]]}),
             },
         };
-        renderWithContext(<ProductNoticesModal {...singleNoticeProps}/>);
+        await renderWithContext(<ProductNoticesModal {...singleNoticeProps}/>);
         await waitFor(() => {
             expect(screen.getByText('title')).toBeInTheDocument();
         });
@@ -154,7 +154,7 @@ describe('ProductNoticesModal', () => {
     });
 
     test('Should call for getInProductNotices and updateNoticesAsViewed on mount', async () => {
-        renderWithContext(<ProductNoticesModal {...baseProps}/>);
+        await renderWithContext(<ProductNoticesModal {...baseProps}/>);
         expect(baseProps.actions.getInProductNotices).toHaveBeenCalledWith(baseProps.currentTeamId, 'web', baseProps.version);
         await waitFor(() => {
             expect(baseProps.actions.updateNoticesAsViewed).toHaveBeenCalledWith([noticesData[0].id]);
@@ -162,7 +162,7 @@ describe('ProductNoticesModal', () => {
     });
 
     test('Should call for updateNoticesAsViewed on click of next button', async () => {
-        renderWithContext(<ProductNoticesModal {...baseProps}/>);
+        await renderWithContext(<ProductNoticesModal {...baseProps}/>);
         await waitFor(() => {
             expect(screen.getByText('for sysadmin')).toBeInTheDocument();
         });
@@ -174,7 +174,7 @@ describe('ProductNoticesModal', () => {
     test('Should clear state on onExited with a timer', async () => {
         jest.useFakeTimers();
         const ref = React.createRef<ProductNoticesModal>();
-        renderWithContext(
+        await renderWithContext(
             <ProductNoticesModal
                 ref={ref}
                 {...baseProps}
@@ -196,7 +196,7 @@ describe('ProductNoticesModal', () => {
 
     test('Should call for getInProductNotices if socket reconnects for the first time in a day', async () => {
         const ref = React.createRef<ProductNoticesModal>();
-        const {rerender} = renderWithContext(
+        const {rerender} = await renderWithContext(
             <ProductNoticesModal
                 ref={ref}
                 {...baseProps}
@@ -235,16 +235,16 @@ describe('ProductNoticesModal', () => {
         expect(baseProps.actions.getInProductNotices).toHaveBeenCalledTimes(2);
     });
 
-    test('Should call for getInProductNotices with desktop as client if isDesktopApp returns true', () => {
+    test('Should call for getInProductNotices with desktop as client if isDesktopApp returns true', async () => {
         (getDesktopVersion as any).mockReturnValue('4.5.0');
         (isDesktopApp as any).mockReturnValue(true);
-        renderWithContext(<ProductNoticesModal {...baseProps}/>);
+        await renderWithContext(<ProductNoticesModal {...baseProps}/>);
         expect(baseProps.actions.getInProductNotices).toHaveBeenCalledWith(baseProps.currentTeamId, 'desktop', '4.5.0');
     });
 
     test('Should not call for getInProductNotices if socket reconnects on the same day', async () => {
         const ref = React.createRef<ProductNoticesModal>();
-        const {rerender} = renderWithContext(
+        const {rerender} = await renderWithContext(
             <ProductNoticesModal
                 ref={ref}
                 {...baseProps}

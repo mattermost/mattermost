@@ -34,8 +34,8 @@ describe('components/admin_console/permission_schemes_settings/guest_permissions
         },
     };
 
-    test('should render guest permissions tree with headers', () => {
-        const {container} = renderWithContext(<GuestPermissionsTree {...defaultProps}/>);
+    test('should render guest permissions tree with headers', async () => {
+        const {container} = await renderWithContext(<GuestPermissionsTree {...defaultProps}/>);
 
         expect(screen.getByText('Permission')).toBeInTheDocument();
         expect(screen.getByText('Description')).toBeInTheDocument();
@@ -43,8 +43,8 @@ describe('components/admin_console/permission_schemes_settings/guest_permissions
         expect(container.querySelector('.permissions-tree.guest')).toBeInTheDocument();
     });
 
-    test('should pass props correctly to PermissionGroup', () => {
-        renderWithContext(
+    test('should pass props correctly to PermissionGroup', async () => {
+        await renderWithContext(
             <GuestPermissionsTree
                 {...defaultProps}
                 readOnly={true}
@@ -90,8 +90,8 @@ describe('components/admin_console/permission_schemes_settings/guest_permissions
         };
 
         [LicenseSkus.Professional, LicenseSkus.Enterprise, LicenseSkus.EnterpriseAdvanced, LicenseSkus.Entry].forEach((sku) => {
-            test(`should include all default permissions with group mentions for ${sku}`, () => {
-                renderWithContext(
+            test(`should include all default permissions with group mentions for ${sku}`, async () => {
+                await renderWithContext(
                     <GuestPermissionsTree
                         {...defaultProps}
                         license={{
@@ -109,8 +109,8 @@ describe('components/admin_console/permission_schemes_settings/guest_permissions
         });
 
         [LicenseSkus.Starter, LicenseSkus.E10].forEach((sku) => {
-            test(`should include all default permissions without group mentions for ${sku}`, () => {
-                renderWithContext(
+            test(`should include all default permissions without group mentions for ${sku}`, async () => {
+                await renderWithContext(
                     <GuestPermissionsTree
                         {...defaultProps}
                         license={{
@@ -127,8 +127,8 @@ describe('components/admin_console/permission_schemes_settings/guest_permissions
             });
         });
 
-        test('should include all default permissions without group mentions for unlicensed', () => {
-            renderWithContext(
+        test('should include all default permissions without group mentions for unlicensed', async () => {
+            await renderWithContext(
                 <GuestPermissionsTree
                     {...defaultProps}
                     license={{
@@ -145,14 +145,14 @@ describe('components/admin_console/permission_schemes_settings/guest_permissions
         });
     });
 
-    test('should call onToggle when permissions are changed', () => {
+    test('should call onToggle when permissions are changed', async () => {
         const onToggle = jest.fn();
         const role = TestHelper.getRoleMock({
             name: 'guest_role',
             permissions: [],
         });
 
-        renderWithContext(
+        await renderWithContext(
             <GuestPermissionsTree
                 {...defaultProps}
                 role={role}

@@ -66,8 +66,8 @@ describe('components/ChannelHeaderMenu/MenuItems/ArchiveChannel', () => {
         jest.spyOn(require('react-redux'), 'useDispatch');
     });
 
-    test('renders the component correctly', () => {
-        renderWithContext(
+    test('renders the component correctly', async () => {
+        await renderWithContext(
             <ArchiveChannel channel={channel}/>, initialState,
         );
 
@@ -76,7 +76,7 @@ describe('components/ChannelHeaderMenu/MenuItems/ArchiveChannel', () => {
     });
 
     test('dispatches openModal action on click with default channel', async () => {
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <ArchiveChannel channel={channel}/>
             </WithTestMenuContext>, initialState,
@@ -97,14 +97,14 @@ describe('components/ChannelHeaderMenu/MenuItems/ArchiveChannel', () => {
         });
     });
 
-    test('renders ArchiveOutlineIcon for public channel', () => {
+    test('renders ArchiveOutlineIcon for public channel', async () => {
         const publicChannel = TestHelper.getChannelMock({
             id: 'public_channel',
             type: 'O',
             display_name: 'Public Channel',
         });
 
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <ArchiveChannel channel={publicChannel}/>
             </WithTestMenuContext>, initialState,
@@ -114,14 +114,14 @@ describe('components/ChannelHeaderMenu/MenuItems/ArchiveChannel', () => {
         expect(screen.getByText('Archive Channel')).toBeInTheDocument();
     });
 
-    test('renders ArchiveLockOutlineIcon for private channel', () => {
+    test('renders ArchiveLockOutlineIcon for private channel', async () => {
         const privateChannel = TestHelper.getChannelMock({
             id: 'private_channel',
             type: 'P',
             display_name: 'Private Channel',
         });
 
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <ArchiveChannel channel={privateChannel}/>
             </WithTestMenuContext>, initialState,

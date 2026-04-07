@@ -69,8 +69,8 @@ const exceededLimitsState = {
 };
 
 describe('CenterMessageLock', () => {
-    it('shows message when limits are exceeded', () => {
-        renderWithContext(
+    it('shows message when limits are exceeded', async () => {
+        await renderWithContext(
             <CenterMessageLock/>,
             exceededLimitsState,
         );
@@ -78,8 +78,8 @@ describe('CenterMessageLock', () => {
         screen.getByText('Full access to message history is included in');
     });
 
-    it('pricing link is clickable', () => {
-        renderWithContext(
+    it('pricing link is clickable', async () => {
+        await renderWithContext(
             <CenterMessageLock/>,
             exceededLimitsState,
         );

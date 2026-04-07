@@ -56,7 +56,7 @@ describe('identifyElementRegion', () => {
             ],
         });
 
-        renderWithContext(
+        await renderWithContext(
             <ChannelController shouldRenderCenterChannel={true}/>,
             {
                 entities: {

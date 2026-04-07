@@ -49,40 +49,40 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
         },
     };
 
-    test('should render modal with user name in title', () => {
-        renderWithContext(<ResetPasswordModal {...baseProps}/>);
+    test('should render modal with user name in title', async () => {
+        await renderWithContext(<ResetPasswordModal {...baseProps}/>);
 
         expect(screen.getByText(/Reset password for Test User/i)).toBeInTheDocument();
     });
 
-    test('should render null when there is no user', () => {
+    test('should render null when there is no user', async () => {
         const props = {...baseProps, user: undefined};
-        const {container} = renderWithContext(<ResetPasswordModal {...props}/>);
+        const {container} = await renderWithContext(<ResetPasswordModal {...props}/>);
 
         expect(container).toBeEmptyDOMElement();
     });
 
-    test('should show switch account title when user has auth_service', () => {
+    test('should show switch account title when user has auth_service', async () => {
         const authUser = TestHelper.getUserMock({
             ...user,
             auth_service: 'ldap',
         });
         const props = {...baseProps, user: authUser};
-        renderWithContext(<ResetPasswordModal {...props}/>);
+        await renderWithContext(<ResetPasswordModal {...props}/>);
 
         expect(screen.getByText(/Switch account to Email\/Password/i)).toBeInTheDocument();
     });
 
-    test('should show current password field when resetting own password', () => {
-        renderWithContext(<ResetPasswordModal {...baseProps}/>);
+    test('should show current password field when resetting own password', async () => {
+        await renderWithContext(<ResetPasswordModal {...baseProps}/>);
 
         expect(screen.getByPlaceholderText(/Current password/i)).toBeInTheDocument();
         expect(screen.getByPlaceholderText(/New password/i)).toBeInTheDocument();
     });
 
-    test('should not show current password field when resetting another user password', () => {
+    test('should not show current password field when resetting another user password', async () => {
         const props = {...baseProps, currentUserId: 'different_user_id'};
-        renderWithContext(<ResetPasswordModal {...props}/>);
+        await renderWithContext(<ResetPasswordModal {...props}/>);
 
         expect(screen.queryByPlaceholderText(/Current password/i)).not.toBeInTheDocument();
         expect(screen.getByPlaceholderText(/New password/i)).toBeInTheDocument();
@@ -91,7 +91,7 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
     test('should call updateUserPassword with both passwords when resetting own password', async () => {
         const updateUserPassword = jest.fn(() => Promise.resolve({data: ''}));
         const props = {...baseProps, actions: {updateUserPassword}};
-        renderWithContext(<ResetPasswordModal {...props}/>);
+        await renderWithContext(<ResetPasswordModal {...props}/>);
 
         const currentPasswordInput = screen.getByPlaceholderText(/Current password/i);
         const newPasswordInput = screen.getByPlaceholderText(/New password/i);
@@ -113,7 +113,7 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
     test('should not call updateUserPassword when the current password is not provided', async () => {
         const updateUserPassword = jest.fn(() => Promise.resolve({data: ''}));
         const props = {...baseProps, actions: {updateUserPassword}};
-        renderWithContext(<ResetPasswordModal {...props}/>);
+        await renderWithContext(<ResetPasswordModal {...props}/>);
 
         const newPasswordInput = screen.getByPlaceholderText(/New password/i);
         await userEvent.type(newPasswordInput, 'newPassword123!');
@@ -128,7 +128,7 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
     test('should call updateUserPassword without current password when resetting another user', async () => {
         const updateUserPassword = jest.fn(() => Promise.resolve({data: ''}));
         const props = {...baseProps, currentUserId: 'different_user_id', actions: {updateUserPassword}};
-        renderWithContext(<ResetPasswordModal {...props}/>);
+        await renderWithContext(<ResetPasswordModal {...props}/>);
 
         const newPasswordInput = screen.getByPlaceholderText(/New password/i);
         await userEvent.type(newPasswordInput, 'Password123!');
@@ -147,7 +147,7 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
     test('should show error when password does not meet requirements', async () => {
         const updateUserPassword = jest.fn(() => Promise.resolve({data: ''}));
         const props = {...baseProps, currentUserId: 'different_user_id', actions: {updateUserPassword}};
-        renderWithContext(<ResetPasswordModal {...props}/>);
+        await renderWithContext(<ResetPasswordModal {...props}/>);
 
         const newPasswordInput = screen.getByPlaceholderText(/New password/i);
         await userEvent.type(newPasswordInput, 'weak');

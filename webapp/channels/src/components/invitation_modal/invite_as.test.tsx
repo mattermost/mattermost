@@ -62,8 +62,8 @@ describe('components/cloud_start_trial_btn/cloud_start_trial_btn', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <InviteAs {...props}/>,
             state,
             {useMockedStore: true},
@@ -71,8 +71,8 @@ describe('components/cloud_start_trial_btn/cloud_start_trial_btn', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('shows the radio buttons', () => {
-        renderWithContext(
+    test('shows the radio buttons', async () => {
+        await renderWithContext(
             <InviteAs {...props}/>,
             state,
             {useMockedStore: true},
@@ -80,7 +80,7 @@ describe('components/cloud_start_trial_btn/cloud_start_trial_btn', () => {
         expect(screen.getAllByRole('radio')).toHaveLength(2);
     });
 
-    test('guest radio-button is disabled and shows the badge guest restricted feature to invite guest when is NOT free trial for cloud', () => {
+    test('guest radio-button is disabled and shows the badge guest restricted feature to invite guest when is NOT free trial for cloud', async () => {
         const testState = {
             entities: {
                 admin: {
@@ -119,7 +119,7 @@ describe('components/cloud_start_trial_btn/cloud_start_trial_btn', () => {
                 },
             },
         };
-        renderWithContext(
+        await renderWithContext(
             <InviteAs {...props}/>,
             testState,
             {useMockedStore: true},
@@ -131,7 +131,7 @@ describe('components/cloud_start_trial_btn/cloud_start_trial_btn', () => {
         expect(screen.getByText('Professional feature- try it out free')).toBeInTheDocument();
     });
 
-    test('restricted badge shows "Upgrade" for cloud post trial', () => {
+    test('restricted badge shows "Upgrade" for cloud post trial', async () => {
         const testState = {
             entities: {
                 admin: {
@@ -170,7 +170,7 @@ describe('components/cloud_start_trial_btn/cloud_start_trial_btn', () => {
                 },
             },
         };
-        renderWithContext(
+        await renderWithContext(
             <InviteAs {...props}/>,
             testState,
             {useMockedStore: true},
@@ -182,7 +182,7 @@ describe('components/cloud_start_trial_btn/cloud_start_trial_btn', () => {
         expect(screen.getByText('Upgrade')).toBeInTheDocument();
     });
 
-    test('guest radio-button is disabled and shows the badge guest restricted feature to invite guest when is NOT free trial for self hosted starter', () => {
+    test('guest radio-button is disabled and shows the badge guest restricted feature to invite guest when is NOT free trial for self hosted starter', async () => {
         const testState = {
             entities: {
                 admin: {
@@ -207,7 +207,7 @@ describe('components/cloud_start_trial_btn/cloud_start_trial_btn', () => {
                 },
             },
         };
-        renderWithContext(
+        await renderWithContext(
             <InviteAs {...props}/>,
             testState,
             {useMockedStore: true},
@@ -219,7 +219,7 @@ describe('components/cloud_start_trial_btn/cloud_start_trial_btn', () => {
         expect(screen.getByText('Professional feature- try it out free')).toBeInTheDocument();
     });
 
-    test('restricted badge shows "Upgrade" for self hosted starter post trial', () => {
+    test('restricted badge shows "Upgrade" for self hosted starter post trial', async () => {
         const testState = {
             entities: {
                 admin: {
@@ -244,7 +244,7 @@ describe('components/cloud_start_trial_btn/cloud_start_trial_btn', () => {
                 },
             },
         };
-        renderWithContext(
+        await renderWithContext(
             <InviteAs {...props}/>,
             testState,
             {useMockedStore: true},
@@ -256,7 +256,7 @@ describe('components/cloud_start_trial_btn/cloud_start_trial_btn', () => {
         expect(screen.getByText('Upgrade')).toBeInTheDocument();
     });
 
-    test('shows the badge guest highligh feature to invite guest when IS FREE trial for cloud', () => {
+    test('shows the badge guest highligh feature to invite guest when IS FREE trial for cloud', async () => {
         const testState = {
             entities: {
                 admin: {
@@ -288,7 +288,7 @@ describe('components/cloud_start_trial_btn/cloud_start_trial_btn', () => {
                 },
             },
         };
-        renderWithContext(
+        await renderWithContext(
             <InviteAs {...props}/>,
             testState,
             {useMockedStore: true},
@@ -300,7 +300,7 @@ describe('components/cloud_start_trial_btn/cloud_start_trial_btn', () => {
         expect(screen.getByText('Professional feature')).toBeInTheDocument();
     });
 
-    test('shows the badge guest highligh feature to invite guest when IS FREE trial for self hosted starter', () => {
+    test('shows the badge guest highligh feature to invite guest when IS FREE trial for self hosted starter', async () => {
         const testState = {
             entities: {
                 admin: {
@@ -326,7 +326,7 @@ describe('components/cloud_start_trial_btn/cloud_start_trial_btn', () => {
                 },
             },
         };
-        renderWithContext(
+        await renderWithContext(
             <InviteAs {...props}/>,
             testState,
             {useMockedStore: true},
@@ -338,7 +338,7 @@ describe('components/cloud_start_trial_btn/cloud_start_trial_btn', () => {
         expect(screen.getByText('Professional feature')).toBeInTheDocument();
     });
 
-    test('guest radio-button is disabled when canInviteGuests prop is false', () => {
+    test('guest radio-button is disabled when canInviteGuests prop is false', async () => {
         const propsWithCanInviteGuestsFalse = {
             ...props,
             canInviteGuests: false,
@@ -383,7 +383,7 @@ describe('components/cloud_start_trial_btn/cloud_start_trial_btn', () => {
                 },
             },
         };
-        renderWithContext(
+        await renderWithContext(
             <InviteAs {...propsWithCanInviteGuestsFalse}/>,
             paidState,
             {useMockedStore: true},
@@ -393,7 +393,7 @@ describe('components/cloud_start_trial_btn/cloud_start_trial_btn', () => {
         expect(guestRadioButton).toBeDisabled();
     });
 
-    test('guest radio-button is enabled when canInviteGuests prop is true and other conditions allow it', () => {
+    test('guest radio-button is enabled when canInviteGuests prop is true and other conditions allow it', async () => {
         const propsWithCanInviteGuestsTrue = {
             ...props,
             canInviteGuests: true,
@@ -438,7 +438,7 @@ describe('components/cloud_start_trial_btn/cloud_start_trial_btn', () => {
                 },
             },
         };
-        renderWithContext(
+        await renderWithContext(
             <InviteAs {...propsWithCanInviteGuestsTrue}/>,
             paidState,
             {useMockedStore: true},
@@ -448,7 +448,7 @@ describe('components/cloud_start_trial_btn/cloud_start_trial_btn', () => {
         expect(guestRadioButton).not.toBeDisabled();
     });
 
-    test('guest radio-button is disabled when canInviteGuests prop is undefined and defaults to system behavior', () => {
+    test('guest radio-button is disabled when canInviteGuests prop is undefined and defaults to system behavior', async () => {
         // Test with starter plan where guests should be disabled by default
         const testState = {
             entities: {
@@ -488,7 +488,7 @@ describe('components/cloud_start_trial_btn/cloud_start_trial_btn', () => {
                 },
             },
         };
-        renderWithContext(
+        await renderWithContext(
             <InviteAs {...props}/>,
             testState,
             {useMockedStore: true},

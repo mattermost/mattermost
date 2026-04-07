@@ -79,8 +79,8 @@ describe('components/ChannelHeaderMenu/ChannelHeaderGroupMenu', () => {
         isChannelAutotranslated: false,
     };
 
-    it('shows Channel Settings when RestrictDMAndGMAutotranslation is not enabled', () => {
-        renderWithContext(
+    it('shows Channel Settings when RestrictDMAndGMAutotranslation is not enabled', async () => {
+        await renderWithContext(
             <WithTestMenuContext>
                 <ChannelHeaderGroupMenu {...defaultProps}/>
             </WithTestMenuContext>,
@@ -91,8 +91,8 @@ describe('components/ChannelHeaderMenu/ChannelHeaderGroupMenu', () => {
         expect(screen.queryByText('Edit Header')).not.toBeInTheDocument();
     });
 
-    it('shows Settings submenu when RestrictDMAndGMAutotranslation is enabled', () => {
-        renderWithContext(
+    it('shows Settings submenu when RestrictDMAndGMAutotranslation is enabled', async () => {
+        await renderWithContext(
             <WithTestMenuContext>
                 <ChannelHeaderGroupMenu {...defaultProps}/>
             </WithTestMenuContext>,
@@ -102,8 +102,8 @@ describe('components/ChannelHeaderMenu/ChannelHeaderGroupMenu', () => {
         expect(screen.getByText('Settings')).toBeInTheDocument();
     });
 
-    it('shows Auto-translation menu when isChannelAutotranslated is true', () => {
-        renderWithContext(
+    it('shows Auto-translation menu when isChannelAutotranslated is true', async () => {
+        await renderWithContext(
             <WithTestMenuContext>
                 <ChannelHeaderGroupMenu
                     {...defaultProps}
@@ -116,8 +116,8 @@ describe('components/ChannelHeaderMenu/ChannelHeaderGroupMenu', () => {
         expect(screen.getByText(/Auto-translation/i)).toBeInTheDocument();
     });
 
-    it('does not show Auto-translation menu when isChannelAutotranslated is false', () => {
-        renderWithContext(
+    it('does not show Auto-translation menu when isChannelAutotranslated is false', async () => {
+        await renderWithContext(
             <WithTestMenuContext>
                 <ChannelHeaderGroupMenu
                     {...defaultProps}
@@ -130,7 +130,7 @@ describe('components/ChannelHeaderMenu/ChannelHeaderGroupMenu', () => {
         expect(screen.queryByText(/Auto-translation/i)).not.toBeInTheDocument();
     });
 
-    it('does not show Channel Settings when the channel is archived', () => {
+    it('does not show Channel Settings when the channel is archived', async () => {
         const archivedChannel = TestHelper.getChannelMock({
             ...channel,
             delete_at: 1234567890,
@@ -138,7 +138,7 @@ describe('components/ChannelHeaderMenu/ChannelHeaderGroupMenu', () => {
         const archivedChannelState = getBaseState();
         archivedChannelState.entities!.channels!.channels![GM_CHANNEL_ID]!.delete_at = 1234567890;
 
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <ChannelHeaderGroupMenu
                     {...defaultProps}
@@ -151,7 +151,7 @@ describe('components/ChannelHeaderMenu/ChannelHeaderGroupMenu', () => {
         expect(screen.queryByText('Channel Settings')).not.toBeInTheDocument();
     });
 
-    it('does not show Settings submenu when the channel is archived', () => {
+    it('does not show Settings submenu when the channel is archived', async () => {
         const archivedChannel = TestHelper.getChannelMock({
             ...channel,
             delete_at: 1234567890,
@@ -162,7 +162,7 @@ describe('components/ChannelHeaderMenu/ChannelHeaderGroupMenu', () => {
             delete_at: 1234567890,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <ChannelHeaderGroupMenu
                     {...defaultProps}

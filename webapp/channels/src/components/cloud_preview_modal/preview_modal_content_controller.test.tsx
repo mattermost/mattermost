@@ -66,7 +66,7 @@ describe('PreviewModalController', () => {
         mockOnClose.mockClear();
     });
 
-    const renderComponent = (props = {}) => {
+    const renderComponent = async (props = {}) => {
         return renderWithContext(
             <PreviewModalController
                 show={true}
@@ -77,20 +77,20 @@ describe('PreviewModalController', () => {
         );
     };
 
-    it('should render when show is true', () => {
+    it('should render when show is true', async () => {
         renderComponent();
 
         // Look for the modal content instead of a mocked test id
         expect(screen.getByText('First Slide')).toBeInTheDocument();
     });
 
-    it('should not render when show is false', () => {
+    it('should not render when show is false', async () => {
         renderComponent({show: false});
         expect(screen.queryByText('First Slide')).not.toBeInTheDocument();
     });
 
-    it('should use default content when contentData is not provided', () => {
-        renderWithContext(
+    it('should use default content when contentData is not provided', async () => {
+        await renderWithContext(
             <PreviewModalController
                 show={true}
                 onClose={mockOnClose}
@@ -101,13 +101,13 @@ describe('PreviewModalController', () => {
         expect(screen.getByText('Welcome to your Mattermost preview')).toBeInTheDocument();
     });
 
-    it('should render first slide initially', () => {
+    it('should render first slide initially', async () => {
         renderComponent();
         expect(screen.getByText('First Slide')).toBeInTheDocument();
         expect(screen.queryByText('Second Slide')).not.toBeInTheDocument();
     });
 
-    it('should render pagination dots', () => {
+    it('should render pagination dots', async () => {
         renderComponent();
 
         // Find dots by their container and check children
@@ -115,7 +115,7 @@ describe('PreviewModalController', () => {
         expect(dotsContainer.children).toHaveLength(3);
     });
 
-    it('should render page counter', () => {
+    it('should render page counter', async () => {
         renderComponent();
         expect(screen.getByText('1/3')).toBeInTheDocument();
     });
@@ -170,7 +170,7 @@ describe('PreviewModalController', () => {
         expect(screen.queryByText('Skip for now')).not.toBeInTheDocument();
     });
 
-    it('should not show Previous button on first slide', () => {
+    it('should not show Previous button on first slide', async () => {
         renderComponent();
         expect(screen.queryByText('Previous')).not.toBeInTheDocument();
     });

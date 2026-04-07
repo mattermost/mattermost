@@ -93,24 +93,20 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
                 </div>
                 <div
                   class="DataGrid_header"
-                />
+                >
+                  <div
+                    class="DataGrid_cell"
+                  >
+                    Name
+                  </div>
+                </div>
                 <div
                   class="DataGrid_rows"
                 >
                   <div
-                    class="DataGrid_loading"
+                    class="DataGrid_empty"
                   >
-                    <span
-                      class="LoadingSpinner"
-                      data-testid="loadingSpinner"
-                      id="loadingSpinner"
-                    >
-                      <span
-                        class="fa fa-spinner fa-fw fa-pulse spinner"
-                        title="Loading Icon"
-                      />
-                    </span>
-                    Loading
+                    No users found
                   </div>
                 </div>
               </div>

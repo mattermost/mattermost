@@ -32,15 +32,15 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
         onChange: jest.fn(),
     };
 
-    test('should render section title and description', () => {
-        renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
+    test('should render section title and description', async () => {
+        await renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
 
         expect(screen.getByText('Notification Settings')).toBeInTheDocument();
         expect(screen.getByText('Choose who receives notifications from the System bot when content is quarantined and reviewed')).toBeInTheDocument();
     });
 
-    test('should render all notification setting sections', () => {
-        renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
+    test('should render all notification setting sections', async () => {
+        await renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
 
         expect(screen.getByText('Notify when content is quarantined')).toBeInTheDocument();
         expect(screen.getByText('Notify when a reviewer is assigned')).toBeInTheDocument();
@@ -48,8 +48,8 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
         expect(screen.getByText('Notify when quarantine is dismissed')).toBeInTheDocument();
     });
 
-    test('should render all checkbox labels', () => {
-        renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
+    test('should render all checkbox labels', async () => {
+        await renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
 
         // Should have multiple instances of these labels across different sections
         expect(screen.getAllByText('Reviewer(s)')).toHaveLength(4);
@@ -57,8 +57,8 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
         expect(screen.getAllByText('Reporter')).toHaveLength(2);
     });
 
-    test('should set correct default checked values for checkboxes', () => {
-        renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
+    test('should set correct default checked values for checkboxes', async () => {
+        await renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
 
         expect(screen.getByTestId('flagged_reviewers')).toBeChecked();
         expect(screen.getByTestId('flagged_author')).not.toBeChecked();
@@ -78,7 +78,7 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
     });
 
     test('should handle checkbox change when adding a target', async () => {
-        renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
+        await renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
 
         const flaggedAuthorsCheckbox = screen.getByTestId('flagged_author');
         await userEvent.click(flaggedAuthorsCheckbox);
@@ -94,7 +94,7 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
     });
 
     test('should handle checkbox change when removing a target', async () => {
-        renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
+        await renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
 
         const removedAuthorCheckbox = screen.getByTestId('removed_author');
         await userEvent.click(removedAuthorCheckbox);
@@ -109,15 +109,15 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
         });
     });
 
-    test('should disable flagged_reviewers checkbox', () => {
-        renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
+    test('should disable flagged_reviewers checkbox', async () => {
+        await renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
 
         const flaggedReviewersCheckbox = screen.getByTestId('flagged_reviewers');
         expect(flaggedReviewersCheckbox).toBeDisabled();
     });
 
-    test('should not disable other checkboxes', () => {
-        renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
+    test('should not disable other checkboxes', async () => {
+        await renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
 
         expect(screen.getByTestId('flagged_author')).not.toBeDisabled();
         expect(screen.getByTestId('assigned_reviewers')).not.toBeDisabled();
@@ -129,13 +129,13 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
         expect(screen.getByTestId('dismissed_reporter')).not.toBeDisabled();
     });
 
-    test('should initialize EventTargetMapping if not present', () => {
+    test('should initialize EventTargetMapping if not present', async () => {
         const propsWithoutMapping = {
             ...defaultProps,
             value: {} as ContentFlaggingNotificationSettings,
         };
 
-        renderWithContext(<ContentFlaggingNotificationSettingsSection {...propsWithoutMapping}/>);
+        await renderWithContext(<ContentFlaggingNotificationSettingsSection {...propsWithoutMapping}/>);
 
         // Use fireEvent.click to test defensive coding in handler (checkbox is disabled)
         const flaggedReviewersCheckbox = screen.getByTestId('flagged_reviewers');
@@ -163,7 +163,7 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
             } as ContentFlaggingNotificationSettings,
         };
 
-        renderWithContext(<ContentFlaggingNotificationSettingsSection {...propsWithPartialMapping}/>);
+        await renderWithContext(<ContentFlaggingNotificationSettingsSection {...propsWithPartialMapping}/>);
 
         const assignedReviewersCheckbox = screen.getByTestId('assigned_reviewers');
         await userEvent.click(assignedReviewersCheckbox);
@@ -176,8 +176,8 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
         });
     });
 
-    test('should not add duplicate targets', () => {
-        renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
+    test('should not add duplicate targets', async () => {
+        await renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
 
         // Use fireEvent.click to test defensive coding in handler (checkbox is disabled)
         // Try to add 'reviewers' to flagged again (it's already there)
@@ -196,7 +196,7 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
     });
 
     test('should handle multiple checkbox changes correctly', async () => {
-        renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
+        await renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
 
         // First change: add author to flagged
         const flaggedAuthorsCheckbox = screen.getByTestId('flagged_author');
@@ -228,7 +228,7 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
     });
 
     test('should handle unchecking and rechecking the same checkbox', async () => {
-        renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
+        await renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
 
         const removedAuthorCheckbox = screen.getByTestId('removed_author');
 
@@ -257,7 +257,7 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
         expect(defaultProps.onChange).toHaveBeenCalledTimes(2);
     });
 
-    test('should handle empty EventTargetMapping arrays', () => {
+    test('should handle empty EventTargetMapping arrays', async () => {
         const propsWithEmptyArrays = {
             ...defaultProps,
             value: {
@@ -270,7 +270,7 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
             } as unknown as ContentFlaggingNotificationSettings,
         };
 
-        renderWithContext(<ContentFlaggingNotificationSettingsSection {...propsWithEmptyArrays}/>);
+        await renderWithContext(<ContentFlaggingNotificationSettingsSection {...propsWithEmptyArrays}/>);
 
         // All checkboxes should be unchecked
         expect(screen.getByTestId('flagged_reviewers')).not.toBeChecked();

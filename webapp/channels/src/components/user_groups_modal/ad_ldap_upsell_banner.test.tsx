@@ -37,8 +37,8 @@ describe('component/user_groups_modal/ad_ldap_upsell_banner', () => {
         },
     };
 
-    test('should display for admin users on professional with option to start trial if no self-hosted trial before', () => {
-        renderWithContext(
+    test('should display for admin users on professional with option to start trial if no self-hosted trial before', async () => {
+        await renderWithContext(
             <ADLDAPUpsellBanner/>,
             initState as any,
         );
@@ -47,11 +47,11 @@ describe('component/user_groups_modal/ad_ldap_upsell_banner', () => {
         expect(screen.getByText('Start trial')).toBeInTheDocument();
     });
 
-    test('should display for admin users on professional with option to contact sales if self-hosted trialed before', () => {
+    test('should display for admin users on professional with option to contact sales if self-hosted trialed before', async () => {
         const state = JSON.parse(JSON.stringify(initState));
         state.entities.admin.prevTrialLicense.IsLicensed = 'true';
 
-        renderWithContext(
+        await renderWithContext(
             <ADLDAPUpsellBanner/>,
             state,
         );
@@ -81,7 +81,7 @@ describe('component/user_groups_modal/ad_ldap_upsell_banner', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ADLDAPUpsellBanner/>,
             state,
         );
@@ -90,11 +90,11 @@ describe('component/user_groups_modal/ad_ldap_upsell_banner', () => {
         expect(screen.getByText('Contact sales to use')).toBeInTheDocument();
     });
 
-    test('should not display for non admin users', () => {
+    test('should not display for non admin users', async () => {
         const state = JSON.parse(JSON.stringify(initState));
         state.entities.users.profiles.user1.roles = 'system_user';
 
-        renderWithContext(
+        await renderWithContext(
             <ADLDAPUpsellBanner/>,
             state,
         );
@@ -102,11 +102,11 @@ describe('component/user_groups_modal/ad_ldap_upsell_banner', () => {
         expect(screen.queryByText('AD/LDAP group sync creates groups faster')).not.toBeInTheDocument();
     });
 
-    test('should not display for non self-hosted professional users', () => {
+    test('should not display for non self-hosted professional users', async () => {
         const state = JSON.parse(JSON.stringify(initState));
         state.entities.general.license.SkuShortName = LicenseSkus.Enterprise;
 
-        renderWithContext(
+        await renderWithContext(
             <ADLDAPUpsellBanner/>,
             state,
         );
@@ -135,7 +135,7 @@ describe('component/user_groups_modal/ad_ldap_upsell_banner', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ADLDAPUpsellBanner/>,
             state,
         );

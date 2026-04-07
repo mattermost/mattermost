@@ -182,20 +182,6 @@ exports[`components/apps_form/AppsFormContainer should match snapshot 1`] = `
                       <div
                         class="react-select-auto react-select__indicators css-1wy0on6"
                       >
-                        <div
-                          aria-hidden="true"
-                          class="react-select-auto react-select__indicator react-select-auto react-select__loading-indicator css-pogzpp-loadingIndicator"
-                        >
-                          <span
-                            class="css-1icxkl9-LoadingDot"
-                          />
-                          <span
-                            class="css-1oazjx7-LoadingDot"
-                          />
-                          <span
-                            class="css-1wonz24-LoadingDot"
-                          />
-                        </div>
                         <span
                           class="react-select-auto react-select__indicator-separator css-1u9des2-indicatorSeparator"
                         />

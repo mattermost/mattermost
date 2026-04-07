@@ -96,7 +96,7 @@ describe('SuggestionBox', () => {
         const provider = new TestProvider();
         const providerSpy = jest.spyOn(provider, 'handlePretextChanged');
 
-        renderWithContext(
+        await renderWithContext(
             <TestWrapper
                 {...makeBaseProps()}
                 providers={[provider]}
@@ -141,7 +141,7 @@ describe('SuggestionBox', () => {
     test('should hide suggestions on pressing escape', async () => {
         const provider = new TestProvider();
 
-        renderWithContext(
+        await renderWithContext(
             <TestWrapper
                 {...makeBaseProps()}
                 providers={[provider]}
@@ -168,7 +168,7 @@ describe('SuggestionBox', () => {
     test('should autocomplete suggestions by pressing enter', async () => {
         const provider = new TestProvider();
 
-        renderWithContext(
+        await renderWithContext(
             <TestWrapper
                 {...makeBaseProps()}
                 providers={[provider]}
@@ -198,7 +198,7 @@ describe('SuggestionBox', () => {
         const provider = new TestProvider(true);
         const onSuggestionsReceived = jest.fn();
 
-        renderWithContext(
+        await renderWithContext(
             <TestWrapper
                 {...makeBaseProps()}
                 providers={[provider]}
@@ -269,7 +269,7 @@ describe('SuggestionBox', () => {
             useChannelMentions: false,
         });
 
-        renderWithContext(
+        await renderWithContext(
             <TestWrapper
                 {...makeBaseProps()}
                 providers={[provider]}

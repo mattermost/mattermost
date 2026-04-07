@@ -8,21 +8,21 @@ import {renderWithContext} from 'tests/react_testing_utils';
 import AppsFormHeader from './apps_form_header';
 
 describe('components/apps_form/AppsFormHeader', () => {
-    test('should render message with supported values', () => {
+    test('should render message with supported values', async () => {
         const props = {
             id: 'testsupported',
             value: '**bold** *italic* [link](https://mattermost.com/) <br/> [link target blank](!https://mattermost.com/)',
         };
-        const {container} = renderWithContext(<AppsFormHeader {...props}/>);
+        const {container} = await renderWithContext(<AppsFormHeader {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should not fail on empty value', () => {
+    test('should not fail on empty value', async () => {
         const props = {
             id: 'testblankvalue',
             value: '',
         };
-        const {container} = renderWithContext(<AppsFormHeader {...props}/>);
+        const {container} = await renderWithContext(<AppsFormHeader {...props}/>);
         expect(container).toMatchSnapshot();
     });
 });

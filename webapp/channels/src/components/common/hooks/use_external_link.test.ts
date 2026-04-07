@@ -31,23 +31,23 @@ function getBaseState(): DeepPartial<GlobalState> {
 }
 
 describe('useExternalLink', () => {
-    it('keep non mattermost links untouched', () => {
+    it('keep non mattermost links untouched', async () => {
         const url = 'https://www.someLink.com/something?query1=2#anchor';
-        const {result: {current: [href, queryParams]}} = renderHookWithContext(() => useExternalLink(url, 'some location', {utm_source: 'something'}), getBaseState());
+        const {result: {current: [href, queryParams]}} = await renderHookWithContext(() => useExternalLink(url, 'some location', {utm_source: 'something'}), getBaseState());
         expect(href).toEqual(url);
         expect(queryParams).toEqual({});
     });
 
-    it('mailto links are untouched even if to mattermost emails', () => {
+    it('mailto links are untouched even if to mattermost emails', async () => {
         const mailtoURL = 'mailto:example@mattermost.com?subject=123&body=456';
-        const {result: {current: [mailtoHref, mailtoQueryParams]}} = renderHookWithContext(() => useExternalLink(mailtoURL), getBaseState());
+        const {result: {current: [mailtoHref, mailtoQueryParams]}} = await renderHookWithContext(() => useExternalLink(mailtoURL), getBaseState());
         expect(mailtoHref).toEqual(mailtoURL);
         expect(mailtoQueryParams).toEqual({});
     });
 
-    it('all base queries are set correctly', () => {
+    it('all base queries are set correctly', async () => {
         const url = 'https://www.mattermost.com/some/url';
-        const {result: {current: [href, queryParams]}} = renderHookWithContext(() => useExternalLink(url), getBaseState());
+        const {result: {current: [href, queryParams]}} = await renderHookWithContext(() => useExternalLink(url), getBaseState());
         const parsedLink = new URL(href);
         expect(parsedLink.searchParams.get('utm_source')).toBe('mattermost');
         expect(parsedLink.searchParams.get('utm_medium')).toBe('in-product-cloud');
@@ -62,46 +62,46 @@ describe('useExternalLink', () => {
         expect(href.split('?')[0]).toBe(url);
     });
 
-    it('provided location is added to the params', () => {
+    it('provided location is added to the params', async () => {
         const url = 'https://www.mattermost.com/some/url';
         const location = 'someLocation';
-        const {result: {current: [href, queryParams]}} = renderHookWithContext(() => useExternalLink(url, location), getBaseState());
+        const {result: {current: [href, queryParams]}} = await renderHookWithContext(() => useExternalLink(url, location), getBaseState());
         const parsedLink = new URL(href);
         expect(parsedLink.searchParams.get('utm_content')).toBe(location);
         expect(queryParams.utm_content).toBe(location);
     });
 
-    it('non cloud environments set the proper utm medium', () => {
+    it('non cloud environments set the proper utm medium', async () => {
         const url = 'https://www.mattermost.com/some/url';
         const state = getBaseState();
         state.entities!.general!.license!.Cloud = 'false';
-        const {result: {current: [href, queryParams]}} = renderHookWithContext(() => useExternalLink(url), state);
+        const {result: {current: [href, queryParams]}} = await renderHookWithContext(() => useExternalLink(url), state);
         const parsedLink = new URL(href);
         expect(parsedLink.searchParams.get('utm_medium')).toBe('in-product');
         expect(queryParams.utm_medium).toBe('in-product');
     });
 
-    it('keep existing query parameters untouched', () => {
+    it('keep existing query parameters untouched', async () => {
         const url = 'https://www.mattermost.com/some/url?myParameter=true';
-        const {result: {current: [href, queryParams]}} = renderHookWithContext(() => useExternalLink(url), getBaseState());
+        const {result: {current: [href, queryParams]}} = await renderHookWithContext(() => useExternalLink(url), getBaseState());
         const parsedLink = new URL(href);
         expect(parsedLink.searchParams.get('myParameter')).toBe('true');
         expect(queryParams.myParameter).toBe('true');
     });
 
-    it('keep anchors untouched', () => {
+    it('keep anchors untouched', async () => {
         const url = 'https://www.mattermost.com/some/url?myParameter=true#myAnchor';
-        const {result: {current: [href]}} = renderHookWithContext(() => useExternalLink(url), getBaseState());
+        const {result: {current: [href]}} = await renderHookWithContext(() => useExternalLink(url), getBaseState());
         const parsedLink = new URL(href);
         expect(parsedLink.hash).toBe('#myAnchor');
     });
 
-    it('overwriting params gets preference over default params', () => {
+    it('overwriting params gets preference over default params', async () => {
         const url = 'https://www.mattermost.com/some/url';
         const location = 'someLocation';
         const expectedContent = 'someOtherLocation';
         const expectedSource = 'someOtherSource';
-        const {result: {current: [href, queryParams]}} = renderHookWithContext(() => useExternalLink(url, location, {utm_content: expectedContent, utm_source: expectedSource}), getBaseState());
+        const {result: {current: [href, queryParams]}} = await renderHookWithContext(() => useExternalLink(url, location, {utm_content: expectedContent, utm_source: expectedSource}), getBaseState());
         const parsedLink = new URL(href);
         expect(parsedLink.searchParams.get('utm_content')).toBe(expectedContent);
         expect(queryParams.utm_content).toBe(expectedContent);
@@ -109,7 +109,7 @@ describe('useExternalLink', () => {
         expect(queryParams.utm_source).toBe(expectedSource);
     });
 
-    it('existing params gets preference over default and overwritten params', () => {
+    it('existing params gets preference over default and overwritten params', async () => {
         const location = 'someLocation';
         const overwrittenContent = 'someOtherLocation';
         const overwrittenSource = 'someOtherSource';
@@ -117,7 +117,7 @@ describe('useExternalLink', () => {
         const expectedSource = 'differentSource';
         const url = `https://www.mattermost.com/some/url?utm_content=${expectedContent}&utm_source=${expectedSource}`;
 
-        const {result: {current: [href, queryParams]}} = renderHookWithContext(() => useExternalLink(url, location, {utm_content: overwrittenContent, utm_source: overwrittenSource}), getBaseState());
+        const {result: {current: [href, queryParams]}} = await renderHookWithContext(() => useExternalLink(url, location, {utm_content: overwrittenContent, utm_source: overwrittenSource}), getBaseState());
         const parsedLink = new URL(href);
         expect(parsedLink.searchParams.get('utm_content')).toBe(expectedContent);
         expect(queryParams.utm_content).toBe(expectedContent);
@@ -125,11 +125,11 @@ describe('useExternalLink', () => {
         expect(queryParams.utm_source).toBe(expectedSource);
     });
 
-    it('results are stable between re-renders', () => {
+    it('results are stable between re-renders', async () => {
         const url = 'https://www.mattermost.com/some/url';
         const overwriteQueryParams = {utm_content: 'overwrittenContent', utm_source: 'overwrittenSource'};
 
-        const {result, rerender} = renderHookWithContext(() => useExternalLink(url, 'someLocation', overwriteQueryParams), getBaseState());
+        const {result, rerender} = await renderHookWithContext(() => useExternalLink(url, 'someLocation', overwriteQueryParams), getBaseState());
         const [firstHref, firstParams] = result.current;
         rerender();
         const [secondHref, secondParams] = result.current;
@@ -137,29 +137,29 @@ describe('useExternalLink', () => {
         expect(firstParams).toBe(secondParams);
     });
 
-    it('do not substitute %20 on query params', () => {
+    it('do not substitute %20 on query params', async () => {
         const url = 'https://www.mattermost.com/some/url?subject=hello%20world';
-        const {result: {current: [href]}} = renderHookWithContext(() => useExternalLink(url), getBaseState());
+        const {result: {current: [href]}} = await renderHookWithContext(() => useExternalLink(url), getBaseState());
         expect(href).toContain('subject=hello%20world');
     });
 
-    it('do not error on invalid URLs', () => {
+    it('do not error on invalid URLs', async () => {
         const invalidUrl = 'not a valid url';
-        const {result: {current: [href, queryParams]}} = renderHookWithContext(() => useExternalLink(invalidUrl), getBaseState());
+        const {result: {current: [href, queryParams]}} = await renderHookWithContext(() => useExternalLink(invalidUrl), getBaseState());
         expect(href).toBe(invalidUrl);
         expect(queryParams).toEqual({});
     });
 
-    it('do not modify arbitrary links that happen to include mattermost.com', () => {
+    it('do not modify arbitrary links that happen to include mattermost.com', async () => {
         const invalidUrl = 'https://example.com/mattermost.com';
-        const {result: {current: [href, queryParams]}} = renderHookWithContext(() => useExternalLink(invalidUrl), getBaseState());
+        const {result: {current: [href, queryParams]}} = await renderHookWithContext(() => useExternalLink(invalidUrl), getBaseState());
         expect(href).toBe(invalidUrl);
         expect(queryParams).toEqual({});
     });
 
-    it('do not modify mailto links on mattermost.com', () => {
+    it('do not modify mailto links on mattermost.com', async () => {
         const mailtoUrl = 'mailto:support@mattermost.com';
-        const {result: {current: [href, queryParams]}} = renderHookWithContext(() => useExternalLink(mailtoUrl), getBaseState());
+        const {result: {current: [href, queryParams]}} = await renderHookWithContext(() => useExternalLink(mailtoUrl), getBaseState());
         expect(href).toBe(mailtoUrl);
         expect(queryParams).toEqual({});
     });

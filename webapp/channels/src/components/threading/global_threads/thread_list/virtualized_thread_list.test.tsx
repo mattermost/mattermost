@@ -44,8 +44,8 @@ describe('components/threading/global_threads/thread_list/virtualized_thread_lis
         };
     });
 
-    test('should match snapshot', () => {
-        const {baseElement} = renderWithContext(<VirtualizedThreadList {...props}/>);
+    test('should match snapshot', async () => {
+        const {baseElement} = await renderWithContext(<VirtualizedThreadList {...props}/>);
         expect(baseElement).toMatchSnapshot();
     });
 });

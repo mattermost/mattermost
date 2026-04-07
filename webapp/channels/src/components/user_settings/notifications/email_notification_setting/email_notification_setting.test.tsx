@@ -32,8 +32,8 @@ describe('components/user_settings/notifications/EmailNotificationSetting', () =
         },
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<EmailNotificationSetting {...requiredProps}/>);
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(<EmailNotificationSetting {...requiredProps}/>);
 
         expect(container).toMatchSnapshot();
         expect(document.getElementById('emailNotificationImmediately')).toBeInTheDocument();
@@ -42,93 +42,93 @@ describe('components/user_settings/notifications/EmailNotificationSetting', () =
         expect(document.getElementById('emailNotificationHour')).not.toBeInTheDocument();
     });
 
-    test('should match snapshot, enabled email batching', () => {
+    test('should match snapshot, enabled email batching', async () => {
         const props = {
             ...requiredProps,
             enableEmailBatching: true,
         };
-        const {container} = renderWithContext(<EmailNotificationSetting {...props}/>);
+        const {container} = await renderWithContext(<EmailNotificationSetting {...props}/>);
 
         expect(container).toMatchSnapshot();
         expect(document.getElementById('emailNotificationMinutes')).toBeInTheDocument();
         expect(document.getElementById('emailNotificationHour')).toBeInTheDocument();
     });
 
-    test('should match snapshot, not send email notifications', () => {
+    test('should match snapshot, not send email notifications', async () => {
         const props = {
             ...requiredProps,
             sendEmailNotifications: false,
         };
-        const {container} = renderWithContext(<EmailNotificationSetting {...props}/>);
+        const {container} = await renderWithContext(<EmailNotificationSetting {...props}/>);
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, active section != email and SendEmailNotifications !== true', () => {
+    test('should match snapshot, active section != email and SendEmailNotifications !== true', async () => {
         const props = {
             ...requiredProps,
             sendEmailNotifications: false,
             active: false,
         };
-        const {container} = renderWithContext(<EmailNotificationSetting {...props}/>);
+        const {container} = await renderWithContext(<EmailNotificationSetting {...props}/>);
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, active section != email and SendEmailNotifications = true', () => {
+    test('should match snapshot, active section != email and SendEmailNotifications = true', async () => {
         const props = {
             ...requiredProps,
             sendEmailNotifications: true,
             active: false,
         };
-        const {container} = renderWithContext(<EmailNotificationSetting {...props}/>);
+        const {container} = await renderWithContext(<EmailNotificationSetting {...props}/>);
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, active section != email, SendEmailNotifications = true and enableEmail = true', () => {
+    test('should match snapshot, active section != email, SendEmailNotifications = true and enableEmail = true', async () => {
         const props = {
             ...requiredProps,
             sendEmailNotifications: true,
             active: false,
             enableEmail: true,
         };
-        const {container} = renderWithContext(<EmailNotificationSetting {...props}/>);
+        const {container} = await renderWithContext(<EmailNotificationSetting {...props}/>);
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, on serverError', () => {
+    test('should match snapshot, on serverError', async () => {
         const newServerError = 'serverError';
         const props = {...requiredProps, error: newServerError};
-        const {container} = renderWithContext(<EmailNotificationSetting {...props}/>);
+        const {container} = await renderWithContext(<EmailNotificationSetting {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, when CRT on and email set to immediately', () => {
+    test('should match snapshot, when CRT on and email set to immediately', async () => {
         const props = {
             ...requiredProps,
             enableEmail: true,
             isCollapsedThreadsEnabled: true,
         };
-        const {container} = renderWithContext(<EmailNotificationSetting {...props}/>);
+        const {container} = await renderWithContext(<EmailNotificationSetting {...props}/>);
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, when CRT on and email set to never', () => {
+    test('should match snapshot, when CRT on and email set to never', async () => {
         const props = {
             ...requiredProps,
             enableEmail: false,
             isCollapsedThreadsEnabled: true,
         };
-        const {container} = renderWithContext(<EmailNotificationSetting {...props}/>);
+        const {container} = await renderWithContext(<EmailNotificationSetting {...props}/>);
 
         expect(container).toMatchSnapshot();
     });
 
     test('should pass handleChange', async () => {
-        renderWithContext(<EmailNotificationSetting {...requiredProps}/>);
+        await renderWithContext(<EmailNotificationSetting {...requiredProps}/>);
 
         await userEvent.click(document.getElementById('emailNotificationImmediately')!);
 
@@ -146,7 +146,7 @@ describe('components/user_settings/notifications/EmailNotificationSetting', () =
             actions: {savePreferences: newSavePreference},
         };
 
-        renderWithContext(<EmailNotificationSetting {...props}/>);
+        await renderWithContext(<EmailNotificationSetting {...props}/>);
 
         // Submit with default state (never)
         await userEvent.click(screen.getByText('Save'));
@@ -182,7 +182,7 @@ describe('components/user_settings/notifications/EmailNotificationSetting', () =
         const newUpdateSection = jest.fn();
         const newOnCancel = jest.fn();
         const props = {...requiredProps, updateSection: newUpdateSection, onCancel: newOnCancel};
-        renderWithContext(<EmailNotificationSetting {...props}/>);
+        await renderWithContext(<EmailNotificationSetting {...props}/>);
 
         // Click Cancel to trigger handleUpdateSection without section arg
         await userEvent.click(screen.getByText('Cancel'));
@@ -191,8 +191,8 @@ describe('components/user_settings/notifications/EmailNotificationSetting', () =
         expect(newOnCancel).toHaveBeenCalled();
     });
 
-    test('should derived state from props', () => {
-        const {container, rerender} = renderWithContext(<EmailNotificationSetting {...requiredProps}/>);
+    test('should derived state from props', async () => {
+        const {container, rerender} = await renderWithContext(<EmailNotificationSetting {...requiredProps}/>);
 
         // Verify initial render matches props
         expect(container).toBeTruthy();

@@ -112,33 +112,33 @@ describe('components/AdminSidebar', () => {
         });
     });
 
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const props = {...defaultProps};
-        const {container} = renderWithContext(<AdminSidebar {...props}/>);
+        const {container} = await renderWithContext(<AdminSidebar {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with workspace optimization dashboard enabled', () => {
+    test('should match snapshot with workspace optimization dashboard enabled', async () => {
         const props = {
             ...defaultProps,
             config: {
                 ...defaultProps.config,
             },
         };
-        const {container} = renderWithContext(<AdminSidebar {...props}/>);
+        const {container} = await renderWithContext(<AdminSidebar {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, no access', () => {
+    test('should match snapshot, no access', async () => {
         const props = {
             ...defaultProps,
             consoleAccess: {read: {}, write: {}},
         };
-        const {container} = renderWithContext(<AdminSidebar {...props}/>);
+        const {container} = await renderWithContext(<AdminSidebar {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, render plugins without any settings as well', () => {
+    test('should match snapshot, render plugins without any settings as well', async () => {
         const props: Props = {
             license: {},
             config: {
@@ -180,11 +180,11 @@ describe('components/AdminSidebar', () => {
             showTaskList: false,
         };
 
-        const {container} = renderWithContext(<AdminSidebar {...props}/>);
+        const {container} = await renderWithContext(<AdminSidebar {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, not prevent the console from loading when empty settings_schema provided', () => {
+    test('should match snapshot, not prevent the console from loading when empty settings_schema provided', async () => {
         const props: Props = {
             license: {},
             config: {
@@ -226,11 +226,11 @@ describe('components/AdminSidebar', () => {
             showTaskList: false,
         };
 
-        const {container} = renderWithContext(<AdminSidebar {...props}/>);
+        const {container} = await renderWithContext(<AdminSidebar {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, with license (without any explicit feature)', () => {
+    test('should match snapshot, with license (without any explicit feature)', async () => {
         const props: Props = {
             license: {
                 IsLicensed: 'true',
@@ -274,11 +274,11 @@ describe('components/AdminSidebar', () => {
             showTaskList: false,
         };
 
-        const {container} = renderWithContext(<AdminSidebar {...props}/>);
+        const {container} = await renderWithContext(<AdminSidebar {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, with license (with all feature)', () => {
+    test('should match snapshot, with license (with all feature)', async () => {
         const props: Props = {
             license: {
                 IsLicensed: 'true',
@@ -350,11 +350,11 @@ describe('components/AdminSidebar', () => {
             showTaskList: false,
         };
 
-        const {container} = renderWithContext(<AdminSidebar {...props}/>);
+        const {container} = await renderWithContext(<AdminSidebar {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with license with enterprise SKU', () => {
+    test('should match snapshot with license with enterprise SKU', async () => {
         const props: Props = {
             license: {
                 IsLicensed: 'true',
@@ -422,11 +422,11 @@ describe('components/AdminSidebar', () => {
             showTaskList: false,
         };
 
-        const {container} = renderWithContext(<AdminSidebar {...props}/>);
+        const {container} = await renderWithContext(<AdminSidebar {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with license with professional SKU', () => {
+    test('should match snapshot with license with professional SKU', async () => {
         const props: Props = {
             license: {
                 IsLicensed: 'true',
@@ -486,11 +486,11 @@ describe('components/AdminSidebar', () => {
             showTaskList: false,
         };
 
-        const {container} = renderWithContext(<AdminSidebar {...props}/>);
+        const {container} = await renderWithContext(<AdminSidebar {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with license with enterprise advanced SKU', () => {
+    test('should match snapshot with license with enterprise advanced SKU', async () => {
         const props: Props = {
             license: {
                 IsLicensed: 'true',
@@ -558,7 +558,7 @@ describe('components/AdminSidebar', () => {
             showTaskList: false,
         };
 
-        const {container} = renderWithContext(<AdminSidebar {...props}/>);
+        const {container} = await renderWithContext(<AdminSidebar {...props}/>);
         expect(container).toMatchSnapshot();
     });
 
@@ -600,7 +600,7 @@ describe('components/AdminSidebar', () => {
             const idx = {search: jest.fn().mockReturnValue([])};
             (generateIndex as jest.Mock).mockReturnValue(idx);
 
-            const {container, rerender} = renderWithContext(<AdminSidebar {...props}/>);
+            const {container, rerender} = await renderWithContext(<AdminSidebar {...props}/>);
 
             // Trigger a search to initialize idx (lazy initialization)
             const filterInput = container.querySelector('#adminSidebarFilter') as HTMLInputElement;
@@ -631,10 +631,10 @@ describe('components/AdminSidebar', () => {
             expect(generateIndex).toHaveBeenCalledTimes(2);
         });
 
-        test('should not call the generate index in case of idx is not already present', () => {
+        test('should not call the generate index in case of idx is not already present', async () => {
             (generateIndex as jest.Mock).mockReturnValue(['mocked-index']);
 
-            const {rerender} = renderWithContext(<AdminSidebar {...props}/>);
+            const {rerender} = await renderWithContext(<AdminSidebar {...props}/>);
 
             expect(generateIndex).toHaveBeenCalledTimes(0);
 
@@ -660,7 +660,7 @@ describe('components/AdminSidebar', () => {
             const idx = {search: jest.fn().mockReturnValue([])};
             (generateIndex as jest.Mock).mockReturnValue(idx);
 
-            const {container, rerender} = renderWithContext(<AdminSidebar {...props}/>);
+            const {container, rerender} = await renderWithContext(<AdminSidebar {...props}/>);
 
             // Trigger a search to initialize idx
             const filterInput = container.querySelector('#adminSidebarFilter') as HTMLInputElement;
@@ -737,8 +737,8 @@ describe('components/AdminSidebar', () => {
             showTaskList: false,
         };
 
-        test('should match snapshot', () => {
-            const {container} = renderWithContext(<AdminSidebar {...props}/>);
+        test('should match snapshot', async () => {
+            const {container} = await renderWithContext(<AdminSidebar {...props}/>);
 
             expect(container).toMatchSnapshot();
         });
@@ -746,7 +746,7 @@ describe('components/AdminSidebar', () => {
         test('should filter plugins', async () => {
             idx.search.mockReturnValue(['plugin_mattermost-autolink']);
 
-            const {container} = renderWithContext(<AdminSidebar {...props}/>);
+            const {container} = await renderWithContext(<AdminSidebar {...props}/>);
 
             const filterInput = container.querySelector('#adminSidebarFilter') as HTMLInputElement;
             await userEvent.clear(filterInput);

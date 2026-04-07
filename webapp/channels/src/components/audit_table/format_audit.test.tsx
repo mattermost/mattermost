@@ -44,7 +44,7 @@ describe('components/audit_table/audit_row/AuditRow', () => {
         },
     };
 
-    const renderComponent = (props: Props) => {
+    const renderComponent = async (props: Props) => {
         return renderWithContext(
             <table>
                 <tbody>
@@ -54,7 +54,7 @@ describe('components/audit_table/audit_row/AuditRow', () => {
             state,
         );
     };
-    test('should match snapshot with channel audit', () => {
+    test('should match snapshot with channel audit', async () => {
         const audit: Audit = {
             action: '/api/v4/channels',
             create_at: 50778112674,
@@ -66,11 +66,11 @@ describe('components/audit_table/audit_row/AuditRow', () => {
         };
         const props = {...baseProps, audit};
 
-        const {container} = renderComponent(props);
+        const {container} = await renderComponent(props);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with user audit', () => {
+    test('should match snapshot with user audit', async () => {
         const audit: Audit = {
             action: '/api/v4/users/login',
             create_at: 51053522355,
@@ -81,11 +81,11 @@ describe('components/audit_table/audit_row/AuditRow', () => {
             user_id: userId,
         };
         const props = {...baseProps, audit};
-        const {container} = renderComponent(props);
+        const {container} = await renderComponent(props);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with user audit', () => {
+    test('should match snapshot with user audit', async () => {
         const audit: Audit = {
             action: '/api/v4/oauth/register',
             create_at: 51053522355,
@@ -96,7 +96,7 @@ describe('components/audit_table/audit_row/AuditRow', () => {
             user_id: userId,
         };
         const props = {...baseProps, audit};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <table>
                 <tbody>
                     <FormatAudit {...props}/>

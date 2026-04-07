@@ -18,7 +18,7 @@ jest.mock('actions/admin_actions.jsx', () => {
 });
 
 describe('components/ElasticSearchSettings', () => {
-    test('should match snapshot, disabled', () => {
+    test('should match snapshot, disabled', async () => {
         const config = {
             ElasticsearchSettings: {
                 ConnectionURL: 'test',
@@ -37,7 +37,7 @@ describe('components/ElasticSearchSettings', () => {
                 IgnoredPurgeIndexes: '',
             },
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ElasticSearchSettings
                 config={config as AdminConfig}
                 isDisabled={false}
@@ -46,7 +46,7 @@ describe('components/ElasticSearchSettings', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, enabled', () => {
+    test('should match snapshot, enabled', async () => {
         const config = {
             ElasticsearchSettings: {
                 ConnectionURL: 'test',
@@ -65,7 +65,7 @@ describe('components/ElasticSearchSettings', () => {
                 IgnoredPurgeIndexes: '',
             },
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ElasticSearchSettings
                 config={config as AdminConfig}
                 isDisabled={false}
@@ -93,7 +93,7 @@ describe('components/ElasticSearchSettings', () => {
                 IgnoredPurgeIndexes: '',
             },
         };
-        renderWithContext(
+        await renderWithContext(
             <ElasticSearchSettings
                 config={config as AdminConfig}
                 isDisabled={false}

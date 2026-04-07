@@ -26,8 +26,8 @@ describe('components/threading/hooks', () => {
     };
 
     describe('useThreadRouting', () => {
-        test('should indicate current team and user', () => {
-            const {result} = renderHookWithContext(() => useThreadRouting(), mockState);
+        test('should indicate current team and user', async () => {
+            const {result} = await renderHookWithContext(() => useThreadRouting(), mockState);
 
             expect(result.current.currentUserId).toBe(mockUser.id);
             expect(result.current.currentTeamId).toBe(mockTeam.id);

@@ -15,7 +15,7 @@ describe('ConfirmModalRedux', () => {
     };
 
     test('should call closeModal after confirming', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ConfirmModalRedux
                 {...baseProps}
             />,
@@ -31,7 +31,7 @@ describe('ConfirmModalRedux', () => {
     });
 
     test('should call onExited after cancelling', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ConfirmModalRedux
                 {...baseProps}
             />,

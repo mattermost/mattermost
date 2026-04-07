@@ -24,65 +24,65 @@ describe('MfaSection', () => {
     };
 
     describe('rendering', () => {
-        test('should render nothing when MFA is not available', () => {
+        test('should render nothing when MFA is not available', async () => {
             const props = {
                 ...baseProps,
                 mfaAvailable: false,
             };
-            const {container} = renderWithContext(<MfaSection {...props}/>);
+            const {container} = await renderWithContext(<MfaSection {...props}/>);
 
             expect(container).toMatchSnapshot();
         });
 
-        test('when section is collapsed and MFA is not active', () => {
+        test('when section is collapsed and MFA is not active', async () => {
             const props = {
                 ...baseProps,
                 active: false,
                 mfaActive: false,
             };
-            const {container} = renderWithContext(<MfaSection {...props}/>);
+            const {container} = await renderWithContext(<MfaSection {...props}/>);
 
             expect(container).toMatchSnapshot();
         });
 
-        test('when section is collapsed and MFA is active', () => {
+        test('when section is collapsed and MFA is active', async () => {
             const props = {
                 ...baseProps,
                 active: false,
                 mfaActive: true,
             };
-            const {container} = renderWithContext(<MfaSection {...props}/>);
+            const {container} = await renderWithContext(<MfaSection {...props}/>);
 
             expect(container).toMatchSnapshot();
         });
 
-        test('when section is expanded and MFA is not active', () => {
+        test('when section is expanded and MFA is not active', async () => {
             const props = {
                 ...baseProps,
                 mfaActive: false,
             };
-            const {container} = renderWithContext(<MfaSection {...props}/>);
+            const {container} = await renderWithContext(<MfaSection {...props}/>);
 
             expect(container).toMatchSnapshot();
         });
 
-        test('when section is expanded and MFA is active but not enforced', () => {
+        test('when section is expanded and MFA is active but not enforced', async () => {
             const props = {
                 ...baseProps,
                 mfaActive: true,
             };
-            const {container} = renderWithContext(<MfaSection {...props}/>);
+            const {container} = await renderWithContext(<MfaSection {...props}/>);
 
             expect(container).toMatchSnapshot();
         });
 
-        test('when section is expanded and MFA is active and enforced', () => {
+        test('when section is expanded and MFA is active and enforced', async () => {
             const props = {
                 ...baseProps,
                 mfaActive: true,
                 mfaEnforced: true,
             };
-            const {container} = renderWithContext(<MfaSection {...props}/>);
+            const {container} = await renderWithContext(<MfaSection {...props}/>);
 
             expect(container).toMatchSnapshot();
         });
@@ -95,7 +95,7 @@ describe('MfaSection', () => {
                     deactivateMfa: jest.fn(() => Promise.resolve({error: {message: 'An error has occurred'}})),
                 },
             };
-            renderWithContext(<MfaSection {...props}/>);
+            await renderWithContext(<MfaSection {...props}/>);
 
             await userEvent.click(screen.getByText('Remove MFA from Account'));
 
@@ -109,7 +109,7 @@ describe('MfaSection', () => {
 
     describe('setupMfa', () => {
         it('should send to setup page', async () => {
-            renderWithContext(<MfaSection {...baseProps}/>);
+            await renderWithContext(<MfaSection {...baseProps}/>);
 
             await userEvent.click(screen.getByText('Add MFA to Account'));
 
@@ -124,7 +124,7 @@ describe('MfaSection', () => {
                 mfaActive: true,
             };
 
-            renderWithContext(<MfaSection {...props}/>);
+            await renderWithContext(<MfaSection {...props}/>);
 
             await userEvent.click(screen.getByText('Remove MFA from Account'));
 
@@ -142,7 +142,7 @@ describe('MfaSection', () => {
                 mfaEnforced: true,
             };
 
-            renderWithContext(<MfaSection {...props}/>);
+            await renderWithContext(<MfaSection {...props}/>);
 
             await userEvent.click(screen.getByText('Reset MFA on Account'));
 
@@ -163,7 +163,7 @@ describe('MfaSection', () => {
                 },
             };
 
-            renderWithContext(<MfaSection {...props}/>);
+            await renderWithContext(<MfaSection {...props}/>);
 
             await userEvent.click(screen.getByText('Remove MFA from Account'));
 

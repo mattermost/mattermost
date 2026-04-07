@@ -22,8 +22,8 @@ describe('admin_console/system_role_permissions', () => {
         role: TestHelper.getRoleMock(),
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <SystemRolePermissions
                 {...props}
             />,
@@ -32,8 +32,8 @@ describe('admin_console/system_role_permissions', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with isLicensedForCloud = true', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with isLicensedForCloud = true', async () => {
+        const {container} = await renderWithContext(
             <SystemRolePermissions
                 {...props}
                 isLicensedForCloud={true}
@@ -43,8 +43,8 @@ describe('admin_console/system_role_permissions', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('ensure that when you change a prop and component is re-rendered, SystemRolePermission is not being deleted due to isLicensedForCloud being false (test for bug MM-31403)', () => {
-        const {rerender} = renderWithContext(
+    test('ensure that when you change a prop and component is re-rendered, SystemRolePermission is not being deleted due to isLicensedForCloud being false (test for bug MM-31403)', async () => {
+        const {rerender} = await renderWithContext(
             <SystemRolePermissions
                 {...props}
             />,

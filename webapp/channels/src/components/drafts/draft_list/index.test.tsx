@@ -59,8 +59,8 @@ describe('components/drafts/draft_list', () => {
         },
     };
 
-    test('should render empty draft list when no drafts are provided', () => {
-        renderWithContext(
+    test('should render empty draft list when no drafts are provided', async () => {
+        await renderWithContext(
             <DraftList
                 drafts={[]}
                 currentUser={currentUser}
@@ -73,8 +73,8 @@ describe('components/drafts/draft_list', () => {
         expect(screen.getByText('No drafts at the moment')).toBeInTheDocument();
     });
 
-    test('should handle undefined drafts', () => {
-        renderWithContext(
+    test('should handle undefined drafts', async () => {
+        await renderWithContext(
             <DraftList
                 drafts={[]}
                 currentUser={currentUser}
@@ -87,8 +87,8 @@ describe('components/drafts/draft_list', () => {
         expect(screen.getByText('No drafts at the moment')).toBeInTheDocument();
     });
 
-    test('should render virtualized draft list when drafts are provided', () => {
-        renderWithContext(
+    test('should render virtualized draft list when drafts are provided', async () => {
+        await renderWithContext(
             <DraftList
                 drafts={mockDrafts}
                 currentUser={currentUser}

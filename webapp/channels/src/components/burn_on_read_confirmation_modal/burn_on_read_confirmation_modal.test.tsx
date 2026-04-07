@@ -14,15 +14,15 @@ describe('BurnOnReadConfirmationModal', () => {
         onCancel: jest.fn(),
     };
 
-    it('should render receiver delete message when show is true and isSenderDelete is false', () => {
-        renderWithContext(<BurnOnReadConfirmationModal {...baseProps}/>);
+    it('should render receiver delete message when show is true and isSenderDelete is false', async () => {
+        await renderWithContext(<BurnOnReadConfirmationModal {...baseProps}/>);
 
         expect(screen.getByText('Delete Message Now?')).toBeInTheDocument();
         expect(screen.getByText(/This message will be permanently deleted for you right away/)).toBeInTheDocument();
     });
 
-    it('should render sender delete message when show is true and isSenderDelete is true', () => {
-        renderWithContext(
+    it('should render sender delete message when show is true and isSenderDelete is true', async () => {
+        await renderWithContext(
             <BurnOnReadConfirmationModal
                 {...baseProps}
                 isSenderDelete={true}
@@ -33,8 +33,8 @@ describe('BurnOnReadConfirmationModal', () => {
         expect(screen.getByText(/This message will be permanently deleted for all recipients right away/)).toBeInTheDocument();
     });
 
-    it('should not render when show is false', () => {
-        renderWithContext(
+    it('should not render when show is false', async () => {
+        await renderWithContext(
             <BurnOnReadConfirmationModal
                 {...baseProps}
                 show={false}
@@ -46,7 +46,7 @@ describe('BurnOnReadConfirmationModal', () => {
 
     it('should call onCancel when Cancel button is clicked', async () => {
         const onCancel = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <BurnOnReadConfirmationModal
                 {...baseProps}
                 onCancel={onCancel}
@@ -61,7 +61,7 @@ describe('BurnOnReadConfirmationModal', () => {
 
     it('should call onConfirm with false when Delete Now button is clicked without checkbox', async () => {
         const onConfirm = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <BurnOnReadConfirmationModal
                 {...baseProps}
                 onConfirm={onConfirm}
@@ -74,8 +74,8 @@ describe('BurnOnReadConfirmationModal', () => {
         expect(onConfirm).toHaveBeenCalledWith(false);
     });
 
-    it('should show checkbox when showCheckbox prop is true', () => {
-        renderWithContext(
+    it('should show checkbox when showCheckbox prop is true', async () => {
+        await renderWithContext(
             <BurnOnReadConfirmationModal
                 {...baseProps}
                 showCheckbox={true}
@@ -86,8 +86,8 @@ describe('BurnOnReadConfirmationModal', () => {
         expect(screen.getByRole('checkbox')).toBeInTheDocument();
     });
 
-    it('should not show checkbox when showCheckbox prop is false', () => {
-        renderWithContext(
+    it('should not show checkbox when showCheckbox prop is false', async () => {
+        await renderWithContext(
             <BurnOnReadConfirmationModal
                 {...baseProps}
                 showCheckbox={false}
@@ -100,7 +100,7 @@ describe('BurnOnReadConfirmationModal', () => {
 
     it('should call onConfirm with true when checkbox is checked', async () => {
         const onConfirm = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <BurnOnReadConfirmationModal
                 {...baseProps}
                 onConfirm={onConfirm}
@@ -117,8 +117,8 @@ describe('BurnOnReadConfirmationModal', () => {
         expect(onConfirm).toHaveBeenCalledWith(true);
     });
 
-    it('should disable confirm button and show loading text when loading', () => {
-        renderWithContext(
+    it('should disable confirm button and show loading text when loading', async () => {
+        await renderWithContext(
             <BurnOnReadConfirmationModal
                 {...baseProps}
                 loading={true}
@@ -130,8 +130,8 @@ describe('BurnOnReadConfirmationModal', () => {
         expect(screen.getByText('Deleting...')).toBeInTheDocument();
     });
 
-    it('should autofocus Delete Now button', () => {
-        renderWithContext(<BurnOnReadConfirmationModal {...baseProps}/>);
+    it('should autofocus Delete Now button', async () => {
+        await renderWithContext(<BurnOnReadConfirmationModal {...baseProps}/>);
 
         const confirmButton = screen.getByText('Delete Now');
         expect(confirmButton).toHaveFocus();

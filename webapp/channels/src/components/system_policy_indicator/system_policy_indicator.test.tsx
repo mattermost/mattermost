@@ -77,8 +77,8 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
         ],
     };
 
-    test('should render nothing when no policies are provided', () => {
-        const {container} = renderWithContext(
+    test('should render nothing when no policies are provided', async () => {
+        const {container} = await renderWithContext(
             <SystemPolicyIndicator policies={[]}/>,
             initialState,
         );
@@ -86,8 +86,8 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
         expect(container.firstChild).toBeNull();
     });
 
-    test('should render single policy indicator with detailed variant', () => {
-        renderWithContext(
+    test('should render single policy indicator with detailed variant', async () => {
+        await renderWithContext(
             <SystemPolicyIndicator policies={[mockPolicy1]}/>,
             initialState,
         );
@@ -101,8 +101,8 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
         expect(screen.getByTestId('system-policy-indicator')).toHaveClass('AlertBanner');
     });
 
-    test('should render multiple policies indicator', () => {
-        renderWithContext(
+    test('should render multiple policies indicator', async () => {
+        await renderWithContext(
             <SystemPolicyIndicator policies={[mockPolicy1, mockPolicy2]}/>,
             initialState,
         );
@@ -117,8 +117,8 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
         expect(description).toBeInTheDocument();
     });
 
-    test('should render policy names as strong text for all users', () => {
-        renderWithContext(
+    test('should render policy names as strong text for all users', async () => {
+        await renderWithContext(
             <SystemPolicyIndicator policies={[mockPolicy1]}/>,
             initialState,
         );
@@ -128,7 +128,7 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
         expect(policyName.tagName).toBe('STRONG');
     });
 
-    test('should render more than two policies with "more" button', () => {
+    test('should render more than two policies with "more" button', async () => {
         const mockPolicy3: AccessControlPolicy = {
             id: 'policy3',
             name: 'Test Policy 3',
@@ -153,7 +153,7 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
             rules: [],
         };
 
-        renderWithContext(
+        await renderWithContext(
             <SystemPolicyIndicator policies={[mockPolicy1, mockPolicy2, mockPolicy3, mockPolicy4]}/>,
             initialState,
         );
@@ -169,8 +169,8 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
         expect(moreButton).toHaveClass('system-policy-indicator__more-link');
     });
 
-    test('should render compact variant', () => {
-        renderWithContext(
+    test('should render compact variant', async () => {
+        await renderWithContext(
             <SystemPolicyIndicator
                 policies={[mockPolicy1, mockPolicy2]}
                 variant='compact'
@@ -184,8 +184,8 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
         expect(screen.queryByText(/System access policy applied to this channel/)).not.toBeInTheDocument();
     });
 
-    test('should handle different resource types in compact variant', () => {
-        renderWithContext(
+    test('should handle different resource types in compact variant', async () => {
+        await renderWithContext(
             <SystemPolicyIndicator
                 policies={[mockPolicy1]}
                 resourceType='team'
@@ -197,8 +197,8 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
         expect(screen.getByText(/This team has system-level access policy applied/)).toBeInTheDocument();
     });
 
-    test('should handle file resource type in compact variant', () => {
-        renderWithContext(
+    test('should handle file resource type in compact variant', async () => {
+        await renderWithContext(
             <SystemPolicyIndicator
                 policies={[mockPolicy1]}
                 resourceType='file'
@@ -210,8 +210,8 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
         expect(screen.getByText(/This file has system-level access policy applied/)).toBeInTheDocument();
     });
 
-    test('should not show policy names when showPolicyNames is false', () => {
-        renderWithContext(
+    test('should not show policy names when showPolicyNames is false', async () => {
+        await renderWithContext(
             <SystemPolicyIndicator
                 policies={[mockPolicy1]}
                 showPolicyNames={false}
@@ -239,7 +239,7 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
 
         const onMorePoliciesClick = jest.fn();
 
-        renderWithContext(
+        await renderWithContext(
             <SystemPolicyIndicator
                 policies={[mockPolicy1, mockPolicy2, mockPolicy3]}
                 onMorePoliciesClick={onMorePoliciesClick}
@@ -268,7 +268,7 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
 
         const onMorePoliciesClick = jest.fn();
 
-        renderWithContext(
+        await renderWithContext(
             <SystemPolicyIndicator
                 policies={[mockPolicy1, mockPolicy2, mockPolicy3]}
                 onMorePoliciesClick={onMorePoliciesClick}
@@ -284,8 +284,8 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
     });
 
     // Error handling and edge cases
-    test('should handle null policies gracefully', () => {
-        const {container} = renderWithContext(
+    test('should handle null policies gracefully', async () => {
+        const {container} = await renderWithContext(
             <SystemPolicyIndicator policies={null as unknown as AccessControlPolicy[]}/>,
             initialState,
         );
@@ -293,8 +293,8 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
         expect(container.firstChild).toBeNull();
     });
 
-    test('should handle undefined policies gracefully', () => {
-        const {container} = renderWithContext(
+    test('should handle undefined policies gracefully', async () => {
+        const {container} = await renderWithContext(
             <SystemPolicyIndicator policies={undefined as unknown as AccessControlPolicy[]}/>,
             initialState,
         );
@@ -302,13 +302,13 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
         expect(container.firstChild).toBeNull();
     });
 
-    test('should display policy ID when policy has no name', () => {
+    test('should display policy ID when policy has no name', async () => {
         const policyWithIdOnly: AccessControlPolicy = {
             ...mockPolicy1,
             name: undefined as unknown as string,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <SystemPolicyIndicator policies={[policyWithIdOnly]}/>,
             initialState,
         );
@@ -331,7 +331,7 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
 
         const onMorePoliciesClick = jest.fn();
 
-        renderWithContext(
+        await renderWithContext(
             <SystemPolicyIndicator
                 policies={[mockPolicy1, mockPolicy2, mockPolicy3]}
                 onMorePoliciesClick={onMorePoliciesClick}

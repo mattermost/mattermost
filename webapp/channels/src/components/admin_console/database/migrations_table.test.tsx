@@ -34,7 +34,7 @@ describe('components/MigrationsTable', () => {
     };
 
     test('should match snapshot when there are no migrations', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <MigrationsTable
                 {...baseProps}
             />,
@@ -61,7 +61,7 @@ describe('components/MigrationsTable', () => {
             },
         };
 
-        const view = renderWithContext(<MigrationsTable {...withDataProps}/>);
+        const view = await renderWithContext(<MigrationsTable {...withDataProps}/>);
 
         await waitFor(() => {
             expect(withDataProps.actions.getAppliedSchemaMigrations).toHaveBeenCalledTimes(1);

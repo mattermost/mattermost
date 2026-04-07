@@ -21,8 +21,8 @@ describe('EnableSectionContent', () => {
         setFilterToggle,
     };
 
-    test('renders the component', () => {
-        renderWithContext(
+    test('renders the component', async () => {
+        await renderWithContext(
             <EnableSectionContent
                 {...baseProps}
             />,
@@ -35,7 +35,7 @@ describe('EnableSectionContent', () => {
     });
 
     test('clicking the toggle calls setFilterToggle', async () => {
-        renderWithContext(
+        await renderWithContext(
             <EnableSectionContent
                 {...baseProps}
             />,
@@ -47,8 +47,8 @@ describe('EnableSectionContent', () => {
         expect(setFilterToggle).toHaveBeenCalledWith(false);
     });
 
-    test('renders the component, with toggle not pressed if filterToggle is false', () => {
-        renderWithContext(
+    test('renders the component, with toggle not pressed if filterToggle is false', async () => {
+        await renderWithContext(
             <EnableSectionContent
                 {...baseProps}
                 filterToggle={false}

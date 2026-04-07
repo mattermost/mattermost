@@ -21,10 +21,10 @@ describe('components/integrations/bots/Bot', () => {
         disableUserAccessToken: jest.fn(),
     };
 
-    it('regular bot', () => {
+    it('regular bot', async () => {
         const bot = UtilsTestHelper.getBotMock({user_id: '1'});
         const user = UtilsTestHelper.getUserMock({id: bot.user_id});
-        renderWithContext(
+        await renderWithContext(
             <Bot
                 bot={bot}
                 user={user}
@@ -46,10 +46,10 @@ describe('components/integrations/bots/Bot', () => {
         expect(screen.queryByText(/^Enable$/)).not.toBeInTheDocument();
     });
 
-    it('app bot', () => {
+    it('app bot', async () => {
         const bot = UtilsTestHelper.getBotMock({user_id: '1'});
         const user = UtilsTestHelper.getUserMock({id: bot.user_id});
-        renderWithContext(
+        await renderWithContext(
             <Bot
                 bot={bot}
                 user={user}
@@ -71,11 +71,11 @@ describe('components/integrations/bots/Bot', () => {
         expect(screen.queryByText(/^Enable$/)).not.toBeInTheDocument();
     });
 
-    it('disabled bot', () => {
+    it('disabled bot', async () => {
         const bot = UtilsTestHelper.getBotMock({user_id: '1'});
         bot.delete_at = 100; // disabled
         const user = UtilsTestHelper.getUserMock({id: bot.user_id});
-        renderWithContext(
+        await renderWithContext(
             <Bot
                 bot={bot}
                 user={user}
@@ -94,11 +94,11 @@ describe('components/integrations/bots/Bot', () => {
         expect(screen.getByText('Enable')).toBeInTheDocument();
     });
 
-    it('bot with owner', () => {
+    it('bot with owner', async () => {
         const bot = UtilsTestHelper.getBotMock({user_id: '1', owner_id: '1'});
         const owner = UtilsTestHelper.getUserMock({id: bot.owner_id});
         const user = UtilsTestHelper.getUserMock({id: bot.user_id});
-        renderWithContext(
+        await renderWithContext(
             <Bot
                 bot={bot}
                 owner={owner}
@@ -118,7 +118,7 @@ describe('components/integrations/bots/Bot', () => {
         expect(screen.getByText('Disable')).toBeInTheDocument();
     });
 
-    it('bot with access tokens', () => {
+    it('bot with access tokens', async () => {
         const bot = UtilsTestHelper.getBotMock({user_id: '1'});
         const tokenId = generateId();
         const user = UtilsTestHelper.getUserMock({id: bot.user_id});
@@ -129,7 +129,7 @@ describe('components/integrations/bots/Bot', () => {
             }),
         };
 
-        renderWithContext(
+        await renderWithContext(
             <Bot
                 bot={bot}
                 owner={undefined}
@@ -146,7 +146,7 @@ describe('components/integrations/bots/Bot', () => {
         expect(screen.queryByText(/^Enable$/)).not.toBeInTheDocument();
     });
 
-    it('bot with disabled access tokens', () => {
+    it('bot with disabled access tokens', async () => {
         const bot = UtilsTestHelper.getBotMock({user_id: '1'});
         const tokenId = generateId();
         const user = UtilsTestHelper.getUserMock({id: bot.user_id});
@@ -159,7 +159,7 @@ describe('components/integrations/bots/Bot', () => {
             }),
         };
 
-        renderWithContext(
+        await renderWithContext(
             <Bot
                 bot={bot}
                 owner={undefined}

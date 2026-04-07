@@ -69,8 +69,8 @@ describe('AppsFormComponent', () => {
         },
     };
 
-    test('should render form with title, header, fields and initial values', () => {
-        renderWithContext(
+    test('should render form with title, header, fields and initial values', async () => {
+        await renderWithContext(
             <AppsForm
                 {...baseProps}
             />,
@@ -98,7 +98,7 @@ describe('AppsFormComponent', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <AppsForm
                 {...props}
             />,
@@ -131,7 +131,7 @@ describe('AppsFormComponent', () => {
                     }),
                 },
             };
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             const submitButton = screen.getByRole('button', {name: /submit/i});
             await userEvent.click(submitButton);
@@ -142,7 +142,7 @@ describe('AppsFormComponent', () => {
         });
 
         test('should not appear when submit does not return an error', async () => {
-            renderWithContext(<AppsForm {...baseProps}/>);
+            await renderWithContext(<AppsForm {...baseProps}/>);
 
             const submitButton = screen.getByRole('button', {name: /submit/i});
             await userEvent.click(submitButton);
@@ -154,7 +154,7 @@ describe('AppsFormComponent', () => {
     });
 
     describe('default select element', () => {
-        test('should be enabled by default', () => {
+        test('should be enabled by default', async () => {
             const selectField = {
                 type: 'static_select',
                 value: {label: 'Option3', value: 'opt3'},
@@ -182,7 +182,7 @@ describe('AppsFormComponent', () => {
                 },
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             // Verify the selected option is displayed
             expect(screen.getByText('Option3')).toBeInTheDocument();
@@ -210,7 +210,7 @@ describe('AppsFormComponent', () => {
                 },
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             // Find and click submit button
             const submitButton = screen.getByRole('button', {name: /submit/i});
@@ -244,7 +244,7 @@ describe('AppsFormComponent', () => {
                 },
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             // Find and click submit button
             const submitButton = screen.getByRole('button', {name: /submit/i});
@@ -271,7 +271,7 @@ describe('AppsFormComponent', () => {
                 },
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             // Submit the form successfully
             const submitButton = screen.getByRole('button', {name: /submit/i});
@@ -285,7 +285,7 @@ describe('AppsFormComponent', () => {
     });
 
     describe('Lookup Functionality', () => {
-        test('should configure lookup functionality correctly', () => {
+        test('should configure lookup functionality correctly', async () => {
             const mockLookup = jest.fn().mockResolvedValue({
                 data: {
                     type: 'ok',
@@ -306,14 +306,14 @@ describe('AppsFormComponent', () => {
                 },
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             // Verify form renders with lookup functionality
             expect(screen.getByRole('button', {name: /submit/i})).toBeInTheDocument();
             expect(props.actions.performLookupCall).toBe(mockLookup);
         });
 
-        test('should handle lookup error responses', () => {
+        test('should handle lookup error responses', async () => {
             const mockLookup = jest.fn().mockResolvedValue({
                 error: {
                     text: 'Lookup failed',
@@ -328,21 +328,21 @@ describe('AppsFormComponent', () => {
                 },
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             // Verify form renders with error handling configured
             expect(screen.getByRole('button', {name: /submit/i})).toBeInTheDocument();
             expect(props.actions.performLookupCall).toBe(mockLookup);
         });
 
-        test('should render form without lookup fields', () => {
-            renderWithContext(<AppsForm {...baseProps}/>);
+        test('should render form without lookup fields', async () => {
+            await renderWithContext(<AppsForm {...baseProps}/>);
 
             // Verify form renders without errors
             expect(screen.getByRole('button', {name: /submit/i})).toBeInTheDocument();
         });
 
-        test('should handle unexpected lookup response types', () => {
+        test('should handle unexpected lookup response types', async () => {
             const mockLookup = jest.fn().mockResolvedValue({
                 data: {
                     type: 'form', // Unexpected type
@@ -357,7 +357,7 @@ describe('AppsFormComponent', () => {
                 },
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             // Verify form renders with proper error handling
             expect(screen.getByRole('button', {name: /submit/i})).toBeInTheDocument();
@@ -366,20 +366,20 @@ describe('AppsFormComponent', () => {
     });
 
     describe('Modal vs Embedded Rendering', () => {
-        test('should render as modal by default', () => {
-            renderWithContext(<AppsForm {...baseProps}/>);
+        test('should render as modal by default', async () => {
+            await renderWithContext(<AppsForm {...baseProps}/>);
 
             // Modal should be rendered (look for modal-specific elements)
             expect(screen.getByRole('dialog')).toBeInTheDocument();
         });
 
-        test('should render as embedded when isEmbedded is true', () => {
+        test('should render as embedded when isEmbedded is true', async () => {
             const props = {
                 ...baseProps,
                 isEmbedded: true,
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             // Embedded form should not have modal wrapper
             expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
@@ -388,7 +388,7 @@ describe('AppsFormComponent', () => {
     });
 
     describe('Submit Button Variations', () => {
-        test('should configure custom submit buttons correctly', () => {
+        test('should configure custom submit buttons correctly', async () => {
             const formWithCustomButtons = {
                 ...baseProps.form,
                 submit_buttons: 'action_buttons',
@@ -409,7 +409,7 @@ describe('AppsFormComponent', () => {
                 form: formWithCustomButtons,
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             // Verify form renders with custom submit buttons (Save and multiple Cancel buttons)
             expect(screen.getByRole('button', {name: /save/i})).toBeInTheDocument();
@@ -430,7 +430,7 @@ describe('AppsFormComponent', () => {
                 },
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             const submitButton = screen.getByRole('button', {name: /submit/i});
             await userEvent.click(submitButton);
@@ -442,7 +442,7 @@ describe('AppsFormComponent', () => {
     });
 
     describe('Form State Updates', () => {
-        test('should update form when props change', () => {
+        test('should update form when props change', async () => {
             const newForm = {
                 title: 'New Form',
                 fields: [
@@ -459,7 +459,7 @@ describe('AppsFormComponent', () => {
                 form: newForm,
             };
 
-            const {rerender} = renderWithContext(<AppsForm {...baseProps}/>);
+            const {rerender} = await renderWithContext(<AppsForm {...baseProps}/>);
 
             // Re-render with new form
             rerender(<AppsForm {...newProps}/>);
@@ -469,8 +469,8 @@ describe('AppsFormComponent', () => {
             expect(screen.getByText('New Form')).toBeInTheDocument();
         });
 
-        test('should not update state if form has not changed', () => {
-            const {rerender} = renderWithContext(<AppsForm {...baseProps}/>);
+        test('should not update state if form has not changed', async () => {
+            const {rerender} = await renderWithContext(<AppsForm {...baseProps}/>);
 
             // Initial form content should be present
             expect(screen.getByDisplayValue('initial text')).toBeInTheDocument();
@@ -503,7 +503,7 @@ describe('AppsFormComponent', () => {
                 },
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             const submitButton = screen.getByRole('button', {name: /submit/i});
             await userEvent.click(submitButton);
@@ -528,7 +528,7 @@ describe('AppsFormComponent', () => {
                 },
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             const submitButton = screen.getByRole('button', {name: /submit/i});
             await userEvent.click(submitButton);
@@ -553,7 +553,7 @@ describe('AppsFormComponent', () => {
                 },
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             const submitButton = screen.getByRole('button', {name: /submit/i});
             await userEvent.click(submitButton);
@@ -563,8 +563,8 @@ describe('AppsFormComponent', () => {
             });
         });
 
-        test('should handle missing field during onChange', () => {
-            renderWithContext(<AppsForm {...baseProps}/>);
+        test('should handle missing field during onChange', async () => {
+            await renderWithContext(<AppsForm {...baseProps}/>);
 
             // Form should render without errors even with missing field handling
             expect(screen.getByDisplayValue('initial text')).toBeInTheDocument();
@@ -573,7 +573,7 @@ describe('AppsFormComponent', () => {
     });
 
     describe('Component Lifecycle and State Management', () => {
-        test('should initialize form values correctly from form fields', () => {
+        test('should initialize form values correctly from form fields', async () => {
             const formWithComplexFields = {
                 ...baseProps.form,
                 fields: [
@@ -611,7 +611,7 @@ describe('AppsFormComponent', () => {
                 form: formWithComplexFields,
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             // Verify that text field shows its initial value
             expect(screen.getByDisplayValue('initial text value')).toBeInTheDocument();
@@ -620,7 +620,7 @@ describe('AppsFormComponent', () => {
             expect(screen.getByRole('button', {name: /submit/i})).toBeInTheDocument();
         });
 
-        test('should update state when form prop changes via getDerivedStateFromProps', () => {
+        test('should update state when form prop changes via getDerivedStateFromProps', async () => {
             const initialForm = {
                 title: 'Initial Form',
                 fields: [
@@ -656,7 +656,7 @@ describe('AppsFormComponent', () => {
                 form: initialForm,
             };
 
-            const {rerender} = renderWithContext(<AppsForm {...props}/>);
+            const {rerender} = await renderWithContext(<AppsForm {...props}/>);
 
             // Verify initial state
             expect(screen.getByDisplayValue('initial value')).toBeInTheDocument();
@@ -670,10 +670,10 @@ describe('AppsFormComponent', () => {
             expect(screen.getByText('Updated Form')).toBeInTheDocument();
         });
 
-        test('should not update state when form prop is the same object', () => {
+        test('should not update state when form prop is the same object', async () => {
             const sameForm = baseProps.form;
 
-            const {rerender} = renderWithContext(<AppsForm {...baseProps}/>);
+            const {rerender} = await renderWithContext(<AppsForm {...baseProps}/>);
 
             // Re-render with the same form object
             rerender(<AppsForm {...{...baseProps, form: sameForm}}/>);
@@ -705,7 +705,7 @@ describe('AppsFormComponent', () => {
                 },
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             const submitButton = screen.getByRole('button', {name: /submit/i});
             await userEvent.click(submitButton);
@@ -737,7 +737,7 @@ describe('AppsFormComponent', () => {
                 },
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             const submitButton = screen.getByRole('button', {name: /submit/i});
             await userEvent.click(submitButton);
@@ -768,7 +768,7 @@ describe('AppsFormComponent', () => {
                 },
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             const submitButton = screen.getByRole('button', {name: /submit/i});
             await userEvent.click(submitButton);
@@ -808,7 +808,7 @@ describe('AppsFormComponent', () => {
                 },
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             const submitButton = screen.getByRole('button', {name: /submit/i});
 
@@ -859,7 +859,7 @@ describe('AppsFormComponent', () => {
                 },
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             const submitButton = screen.getByRole('button', {name: /submit/i});
             await userEvent.click(submitButton);
@@ -897,7 +897,7 @@ describe('AppsFormComponent', () => {
                 },
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             const submitButton = screen.getByRole('button', {name: /submit/i});
             await userEvent.click(submitButton);
@@ -950,7 +950,7 @@ describe('AppsFormComponent', () => {
                 },
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             // Form should render with refresh capability
             expect(screen.getByRole('button', {name: /submit/i})).toBeInTheDocument();
@@ -992,7 +992,7 @@ describe('AppsFormComponent', () => {
                 },
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             // Form should render and handle refresh errors
             expect(screen.getByRole('button', {name: /submit/i})).toBeInTheDocument();
@@ -1029,7 +1029,7 @@ describe('AppsFormComponent', () => {
                 },
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             // Form should render and handle unexpected response types
             expect(screen.getByRole('button', {name: /submit/i})).toBeInTheDocument();
@@ -1037,7 +1037,7 @@ describe('AppsFormComponent', () => {
     });
 
     describe('Form Header and Footer Rendering', () => {
-        test('should render form header when provided', () => {
+        test('should render form header when provided', async () => {
             const formWithHeader = {
                 ...baseProps.form,
                 header: '**Bold header** with markdown',
@@ -1048,13 +1048,13 @@ describe('AppsFormComponent', () => {
                 form: formWithHeader,
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             // Should render header content
             expect(screen.getByText('Bold header')).toBeInTheDocument();
         });
 
-        test('should render form without header when not provided', () => {
+        test('should render form without header when not provided', async () => {
             const formWithoutHeader = {
                 ...baseProps.form,
                 header: undefined,
@@ -1065,14 +1065,14 @@ describe('AppsFormComponent', () => {
                 form: formWithoutHeader,
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             // Should still render the form
             expect(screen.getByText('Title')).toBeInTheDocument();
             expect(screen.getByRole('button', {name: /submit/i})).toBeInTheDocument();
         });
 
-        test('should render form icon when provided', () => {
+        test('should render form icon when provided', async () => {
             const formWithIcon = {
                 ...baseProps.form,
                 icon: 'http://example.com/icon.png',
@@ -1083,7 +1083,7 @@ describe('AppsFormComponent', () => {
                 form: formWithIcon,
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             // Should render icon
             const icon = screen.getByAltText('modal title icon');
@@ -1091,7 +1091,7 @@ describe('AppsFormComponent', () => {
             expect(icon).toHaveAttribute('src', 'http://example.com/icon.png');
         });
 
-        test('should render form without icon when not provided', () => {
+        test('should render form without icon when not provided', async () => {
             const formWithoutIcon = {
                 ...baseProps.form,
                 icon: undefined,
@@ -1102,7 +1102,7 @@ describe('AppsFormComponent', () => {
                 form: formWithoutIcon,
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             // Should not render icon
             expect(screen.queryByAltText('modal title icon')).not.toBeInTheDocument();
@@ -1119,7 +1119,7 @@ describe('AppsFormComponent', () => {
                 onHide: mockOnHide,
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             const cancelButton = screen.getByRole('button', {name: /cancel/i});
             await userEvent.click(cancelButton);
@@ -1127,24 +1127,20 @@ describe('AppsFormComponent', () => {
             expect(mockOnHide).toHaveBeenCalled();
         });
 
-        test('should handle onHide when prop is not provided', () => {
+        test('should handle onHide when prop is not provided', async () => {
             const props = {
                 ...baseProps,
                 onHide: undefined,
             };
 
             // Should not throw error
-            expect(() => {
-                renderWithContext(<AppsForm {...props}/>);
-            }).not.toThrow();
+            await renderWithContext(<AppsForm {...props}/>);
 
             const cancelButton = screen.getByRole('button', {name: /cancel/i});
-            expect(async () => {
-                await userEvent.click(cancelButton);
-            }).not.toThrow();
+            await userEvent.click(cancelButton);
         });
 
-        test('should handle submit_on_cancel form option', () => {
+        test('should handle submit_on_cancel form option', async () => {
             const formWithSubmitOnCancel = {
                 ...baseProps.form,
                 submit_on_cancel: true,
@@ -1155,7 +1151,7 @@ describe('AppsFormComponent', () => {
                 form: formWithSubmitOnCancel,
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             // Should render cancel button correctly
             const cancelButton = screen.getByRole('button', {name: /cancel/i});
@@ -1169,7 +1165,7 @@ describe('AppsFormComponent', () => {
     });
 
     describe('Form Field Filtering and Submit Buttons', () => {
-        test('should filter out submit_buttons field from rendered elements', () => {
+        test('should filter out submit_buttons field from rendered elements', async () => {
             const formWithSubmitButtons = {
                 ...baseProps.form,
                 submit_buttons: 'action_buttons',
@@ -1197,7 +1193,7 @@ describe('AppsFormComponent', () => {
                 form: formWithSubmitButtons,
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             // Should render regular field
             expect(screen.getByDisplayValue('regular value')).toBeInTheDocument();
@@ -1210,7 +1206,7 @@ describe('AppsFormComponent', () => {
             expect(screen.queryByLabelText(/action_buttons/i)).not.toBeInTheDocument();
         });
 
-        test('should handle form without fields', () => {
+        test('should handle form without fields', async () => {
             const formWithoutFields = {
                 ...baseProps.form,
                 fields: undefined,
@@ -1221,14 +1217,14 @@ describe('AppsFormComponent', () => {
                 form: formWithoutFields,
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             // Should still render title and submit button
             expect(screen.getByText('Title')).toBeInTheDocument();
             expect(screen.getByRole('button', {name: /submit/i})).toBeInTheDocument();
         });
 
-        test('should handle form with empty fields array', () => {
+        test('should handle form with empty fields array', async () => {
             const formWithEmptyFields = {
                 ...baseProps.form,
                 fields: [],
@@ -1239,7 +1235,7 @@ describe('AppsFormComponent', () => {
                 form: formWithEmptyFields,
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             // Should still render title and submit button
             expect(screen.getByText('Title')).toBeInTheDocument();
@@ -1248,7 +1244,7 @@ describe('AppsFormComponent', () => {
     });
 
     describe('Custom Submit Label', () => {
-        test('should use custom submit_label when provided', () => {
+        test('should use custom submit_label when provided', async () => {
             const formWithCustomSubmitLabel = {
                 ...baseProps.form,
                 submit_label: 'Custom Submit Text',
@@ -1259,13 +1255,13 @@ describe('AppsFormComponent', () => {
                 form: formWithCustomSubmitLabel,
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             // Should render custom submit button text
             expect(screen.getByRole('button', {name: /custom submit text/i})).toBeInTheDocument();
         });
 
-        test('should use default Submit when submit_label is not provided', () => {
+        test('should use default Submit when submit_label is not provided', async () => {
             const formWithoutSubmitLabel = {
                 ...baseProps.form,
                 submit_label: undefined,
@@ -1276,13 +1272,13 @@ describe('AppsFormComponent', () => {
                 form: formWithoutSubmitLabel,
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             // Should render default submit button text
             expect(screen.getByRole('button', {name: /^submit$/i})).toBeInTheDocument();
         });
 
-        test('should prioritize submit_buttons over submit_label when both are provided', () => {
+        test('should prioritize submit_buttons over submit_label when both are provided', async () => {
             const formWithBothSubmitOptions = {
                 ...baseProps.form,
                 submit_label: 'Should Not Show',
@@ -1305,7 +1301,7 @@ describe('AppsFormComponent', () => {
                 form: formWithBothSubmitOptions,
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             // Should render custom submit buttons, not the submit_label
             expect(screen.getByRole('button', {name: /custom action/i})).toBeInTheDocument();
@@ -1315,7 +1311,7 @@ describe('AppsFormComponent', () => {
     });
 
     describe('Field Configuration Validation', () => {
-        it('should validate required fields', () => {
+        it('should validate required fields', async () => {
             const formWithRequiredField = {
                 ...baseProps.form,
                 fields: [
@@ -1333,13 +1329,13 @@ describe('AppsFormComponent', () => {
                 form: formWithRequiredField,
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             // Field validation happens during initialization but doesn't block rendering
             expect(screen.getByText(/Required Field/)).toBeInTheDocument();
         });
 
-        it('should validate datetime fields with time constraints', () => {
+        it('should validate datetime fields with time constraints', async () => {
             const formWithDateTimeField = {
                 ...baseProps.form,
                 fields: [
@@ -1360,13 +1356,13 @@ describe('AppsFormComponent', () => {
                 form: formWithDateTimeField,
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             // DateTime field should render with validation applied
             expect(screen.getByText('Meeting Time')).toBeInTheDocument();
         });
 
-        it('should handle invalid field configurations gracefully', () => {
+        it('should handle invalid field configurations gracefully', async () => {
             const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
             const formWithInvalidField = {
                 ...baseProps.form,
@@ -1387,12 +1383,12 @@ describe('AppsFormComponent', () => {
             };
 
             // Should not throw error, validation is non-blocking
-            expect(() => renderWithContext(<AppsForm {...props}/>)).not.toThrow();
+            await renderWithContext(<AppsForm {...props}/>);
             expect(screen.getByText('Invalid Field')).toBeInTheDocument();
             consoleSpy.mockRestore();
         });
 
-        it('should initialize required datetime fields with default values', () => {
+        it('should initialize required datetime fields with default values', async () => {
             const formWithRequiredDateTime = {
                 ...baseProps.form,
                 fields: [
@@ -1411,7 +1407,7 @@ describe('AppsFormComponent', () => {
                 form: formWithRequiredDateTime,
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             // Required datetime field should be present and initialized
             expect(screen.getByText('Required DateTime')).toBeInTheDocument();
@@ -1419,10 +1415,10 @@ describe('AppsFormComponent', () => {
     });
 
     describe('DateTime Field Validation - time_interval', () => {
-        it('should accept valid time_interval divisors of 1440', () => {
+        it('should accept valid time_interval divisors of 1440', async () => {
             const validIntervals = [1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 24, 30, 40, 60, 72, 90, 120, 180, 240, 360, 480, 720, 1440];
 
-            validIntervals.forEach((interval) => {
+            for (const interval of validIntervals) {
                 const formWithValidInterval = {
                     ...baseProps.form,
                     fields: [
@@ -1441,15 +1437,16 @@ describe('AppsFormComponent', () => {
                 };
 
                 // Should not throw error for valid divisors
-                expect(() => renderWithContext(<AppsForm {...props}/>)).not.toThrow();
-            });
+                // eslint-disable-next-line no-await-in-loop
+                await renderWithContext(<AppsForm {...props}/>);
+            }
         });
 
-        it('should log warnings for invalid time_interval non-divisors of 1440', () => {
+        it('should log warnings for invalid time_interval non-divisors of 1440', async () => {
             const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
             const invalidIntervals = [7, 11, 13, 17, 23, 25, 33, 37, 50, 55, 70, 100, 300, 500, 729, 1000];
 
-            invalidIntervals.forEach((interval) => {
+            for (const interval of invalidIntervals) {
                 const formWithInvalidInterval = {
                     ...baseProps.form,
                     fields: [
@@ -1467,7 +1464,8 @@ describe('AppsFormComponent', () => {
                     form: formWithInvalidInterval,
                 };
 
-                renderWithContext(<AppsForm {...props}/>);
+                // eslint-disable-next-line no-await-in-loop
+                await renderWithContext(<AppsForm {...props}/>);
 
                 // Should log warning for invalid divisors
                 expect(consoleSpy).toHaveBeenCalledWith(
@@ -1478,16 +1476,16 @@ describe('AppsFormComponent', () => {
                 );
 
                 consoleSpy.mockClear();
-            });
+            }
 
             consoleSpy.mockRestore();
         });
 
-        it('should log warnings for time_interval out of valid range', () => {
+        it('should log warnings for time_interval out of valid range', async () => {
             const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
             const outOfRangeIntervals = [0, -5, 1441, 2000];
 
-            outOfRangeIntervals.forEach((interval) => {
+            for (const interval of outOfRangeIntervals) {
                 const formWithOutOfRangeInterval = {
                     ...baseProps.form,
                     fields: [
@@ -1505,7 +1503,8 @@ describe('AppsFormComponent', () => {
                     form: formWithOutOfRangeInterval,
                 };
 
-                renderWithContext(<AppsForm {...props}/>);
+                // eslint-disable-next-line no-await-in-loop
+                await renderWithContext(<AppsForm {...props}/>);
 
                 // Should log warning for out of range values
                 expect(consoleSpy).toHaveBeenCalledWith(
@@ -1516,16 +1515,16 @@ describe('AppsFormComponent', () => {
                 );
 
                 consoleSpy.mockClear();
-            });
+            }
 
             consoleSpy.mockRestore();
         });
 
-        it('should log warnings for non-numeric time_interval values', () => {
+        it('should log warnings for non-numeric time_interval values', async () => {
             const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
             const nonNumericIntervals = ['30', null, undefined, true, {}, []];
 
-            nonNumericIntervals.forEach((interval) => {
+            for (const interval of nonNumericIntervals) {
                 const formWithNonNumericInterval = {
                     ...baseProps.form,
                     fields: [
@@ -1543,7 +1542,8 @@ describe('AppsFormComponent', () => {
                     form: formWithNonNumericInterval,
                 };
 
-                renderWithContext(<AppsForm {...props}/>);
+                // eslint-disable-next-line no-await-in-loop
+                await renderWithContext(<AppsForm {...props}/>);
 
                 // Should log warning for non-numeric values (unless undefined)
                 if (interval !== undefined) {
@@ -1556,12 +1556,12 @@ describe('AppsFormComponent', () => {
                 }
 
                 consoleSpy.mockClear();
-            });
+            }
 
             consoleSpy.mockRestore();
         });
 
-        it('should not validate time_interval for non-datetime field types', () => {
+        it('should not validate time_interval for non-datetime field types', async () => {
             const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
             const formWithNonDateTimeField = {
@@ -1587,7 +1587,7 @@ describe('AppsFormComponent', () => {
                 form: formWithNonDateTimeField,
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             // Should not log warnings for non-datetime fields
             expect(consoleSpy).not.toHaveBeenCalled();
@@ -1595,7 +1595,7 @@ describe('AppsFormComponent', () => {
             consoleSpy.mockRestore();
         });
 
-        it('should validate min_date and max_date formats for date and datetime fields', () => {
+        it('should validate min_date and max_date formats for date and datetime fields', async () => {
             const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
             const formWithInvalidDates = {
@@ -1616,7 +1616,7 @@ describe('AppsFormComponent', () => {
                 form: formWithInvalidDates,
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             // Should log warnings for invalid date formats
             expect(consoleSpy).toHaveBeenCalledWith(
@@ -1630,7 +1630,7 @@ describe('AppsFormComponent', () => {
             consoleSpy.mockRestore();
         });
 
-        it('should validate date range when min_date is after max_date', () => {
+        it('should validate date range when min_date is after max_date', async () => {
             const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
             const formWithInvalidDateRange = {
@@ -1651,7 +1651,7 @@ describe('AppsFormComponent', () => {
                 form: formWithInvalidDateRange,
             };
 
-            renderWithContext(<AppsForm {...props}/>);
+            await renderWithContext(<AppsForm {...props}/>);
 
             // Should log warning for invalid date range
             expect(consoleSpy).toHaveBeenCalledWith(

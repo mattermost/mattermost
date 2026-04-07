@@ -23,101 +23,101 @@ describe('components/MarketplaceItemApp', () => {
             },
         };
 
-        test('should render', () => {
-            const {container} = renderWithContext(
+        test('should render', async () => {
+            const {container} = await renderWithContext(
                 <MarketplaceItemApp {...baseProps}/>,
             );
 
             expect(container).toMatchSnapshot();
         });
 
-        test('should render with no plugin description', () => {
+        test('should render with no plugin description', async () => {
             const props = {...baseProps};
             delete props.description;
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <MarketplaceItemApp {...props}/>,
             );
 
             expect(container).toMatchSnapshot();
         });
 
-        test('should render with no homepage url', () => {
+        test('should render with no homepage url', async () => {
             const props = {...baseProps};
             delete props.homepageUrl;
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <MarketplaceItemApp {...props}/>,
             );
 
             expect(container).toMatchSnapshot();
         });
 
-        test('should render with server error', () => {
+        test('should render with server error', async () => {
             const props = {
                 ...baseProps,
                 error: 'An error occurred.',
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <MarketplaceItemApp {...props}/>,
             );
 
             expect(container).toMatchSnapshot();
         });
 
-        it('when installing', () => {
+        it('when installing', async () => {
             const props = {
                 ...baseProps,
                 isInstalling: true,
             };
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <MarketplaceItemApp {...props}/>,
             );
 
             expect(container).toMatchSnapshot();
         });
 
-        test('should render installed app', () => {
+        test('should render installed app', async () => {
             const props = {
                 ...baseProps,
                 installed: true,
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <MarketplaceItemApp {...props}/>,
             );
 
             expect(container).toMatchSnapshot();
         });
 
-        test('should render with icon', () => {
+        test('should render with icon', async () => {
             const props: MarketplaceItemAppProps = {
                 ...baseProps,
                 iconURL: 'http://localhost:8065/plugins/com.mattermost.apps/apps/com.mattermost.servicenow/static/now-mobile-icon.png',
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <MarketplaceItemApp {...props}/>,
             );
 
             expect(container).toMatchSnapshot();
         });
 
-        test('should render with empty list of labels', () => {
+        test('should render with empty list of labels', async () => {
             const props = {
                 ...baseProps,
                 labels: [],
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <MarketplaceItemApp {...props}/>,
             );
 
             expect(container).toMatchSnapshot();
         });
 
-        test('should render with one labels', () => {
+        test('should render with one labels', async () => {
             // Suppress known React ref warning from WithTooltip wrapping Tag (function component)
             const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -132,7 +132,7 @@ describe('components/MarketplaceItemApp', () => {
                 ],
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <MarketplaceItemApp {...props}/>,
             );
 
@@ -141,7 +141,7 @@ describe('components/MarketplaceItemApp', () => {
             expect(container).toMatchSnapshot();
         });
 
-        test('should render with two labels', () => {
+        test('should render with two labels', async () => {
             const props = {
                 ...baseProps,
                 labels: [
@@ -157,7 +157,7 @@ describe('components/MarketplaceItemApp', () => {
                 ],
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <MarketplaceItemApp {...props}/>,
             );
 
@@ -170,7 +170,7 @@ describe('components/MarketplaceItemApp', () => {
                 isDefaultMarketplace: true,
             };
 
-            renderWithContext(
+            await renderWithContext(
                 <MarketplaceItemApp {...props}/>,
             );
 

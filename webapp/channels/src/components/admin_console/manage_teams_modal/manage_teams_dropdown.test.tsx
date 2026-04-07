@@ -30,8 +30,8 @@ describe('ManageTeamsDropdown', () => {
         handleRemoveUserFromTeam: jest.fn(),
     };
 
-    test('should match snapshot for team member', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot for team member', async () => {
+        const {container} = await renderWithContext(
             <ManageTeamsDropdown {...baseProps}/>,
         );
 
@@ -39,7 +39,7 @@ describe('ManageTeamsDropdown', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot for system admin', () => {
+    test('should match snapshot for system admin', async () => {
         const user = {
             ...baseProps.user,
             roles: 'system_admin',
@@ -50,7 +50,7 @@ describe('ManageTeamsDropdown', () => {
             user,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ManageTeamsDropdown {...props}/>,
         );
 
@@ -58,7 +58,7 @@ describe('ManageTeamsDropdown', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot for team admin', () => {
+    test('should match snapshot for team admin', async () => {
         const user = {
             ...baseProps.user,
             roles: 'system_user',
@@ -75,7 +75,7 @@ describe('ManageTeamsDropdown', () => {
             teamMember,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ManageTeamsDropdown {...props}/>,
         );
 
@@ -83,7 +83,7 @@ describe('ManageTeamsDropdown', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot for guest', () => {
+    test('should match snapshot for guest', async () => {
         const user = {
             ...baseProps.user,
             roles: 'system_guest',
@@ -99,7 +99,7 @@ describe('ManageTeamsDropdown', () => {
             teamMember,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ManageTeamsDropdown {...props}/>,
         );
 

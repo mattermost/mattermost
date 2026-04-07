@@ -35,13 +35,13 @@ describe('admin_console/team_channel_settings/group/GroupList', () => {
         actions,
     };
 
-    test('should match snapshot with no members', () => {
-        const {container} = renderWithContext(<MemberListGroup {...baseProps}/>);
+    test('should match snapshot with no members', async () => {
+        const {container} = await renderWithContext(<MemberListGroup {...baseProps}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with members', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with members', async () => {
+        const {container} = await renderWithContext(
             <MemberListGroup
                 {...baseProps}
                 users={users}

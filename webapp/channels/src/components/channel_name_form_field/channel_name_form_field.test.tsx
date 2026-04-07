@@ -38,8 +38,8 @@ const makeState = (UseAnonymousURLs: string) => ({
 });
 
 describe('ChannelNameFormField - URL editor visibility', () => {
-    test('should show URL editor when UseAnonymousURLs is false and creating a new channel', () => {
-        renderWithContext(
+    test('should show URL editor when UseAnonymousURLs is false and creating a new channel', async () => {
+        await renderWithContext(
             <ChannelNameFormField {...baseProps}/>,
             makeState('false'),
         );
@@ -47,8 +47,8 @@ describe('ChannelNameFormField - URL editor visibility', () => {
         expect(screen.getByTestId('urlInputLabel')).toBeVisible();
     });
 
-    test('should show URL editor when UseAnonymousURLs is false and editing an existing channel', () => {
-        renderWithContext(
+    test('should show URL editor when UseAnonymousURLs is false and editing an existing channel', async () => {
+        await renderWithContext(
             <ChannelNameFormField
                 {...baseProps}
                 isEditingExistingChannel={true}
@@ -59,8 +59,8 @@ describe('ChannelNameFormField - URL editor visibility', () => {
         expect(screen.getByTestId('urlInputLabel')).toBeVisible();
     });
 
-    test('should not show URL editor when UseAnonymousURLs is true and creating a new channel', () => {
-        renderWithContext(
+    test('should not show URL editor when UseAnonymousURLs is true and creating a new channel', async () => {
+        await renderWithContext(
             <ChannelNameFormField {...baseProps}/>,
             makeState('true'),
         );
@@ -68,8 +68,8 @@ describe('ChannelNameFormField - URL editor visibility', () => {
         expect(screen.queryByTestId('urlInputLabel')).not.toBeInTheDocument();
     });
 
-    test('should show URL editor when UseAnonymousURLs is true and editing an existing channel', () => {
-        renderWithContext(
+    test('should show URL editor when UseAnonymousURLs is true and editing an existing channel', async () => {
+        await renderWithContext(
             <ChannelNameFormField
                 {...baseProps}
                 isEditingExistingChannel={true}

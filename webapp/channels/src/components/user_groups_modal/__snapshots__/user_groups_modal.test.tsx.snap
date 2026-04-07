@@ -146,7 +146,7 @@ exports[`component/user_groups_modal should match snapshot with groups 1`] = `
                     style="position: relative; height: 156px; width: 100%; overflow: auto; -webkit-overflow-scrolling: touch; will-change: transform; direction: ltr;"
                   >
                     <div
-                      style="height: 208px; width: 100%;"
+                      style="height: 156px; width: 100%;"
                     >
                       <button
                         aria-label="Group 0 group"

@@ -52,15 +52,15 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
         PermissionGroup.mockClear();
     });
 
-    test('should match snapshot on default data', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot on default data', async () => {
+        const {container} = await renderWithContext(
             <PermissionsTree {...defaultProps}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot on read only', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot on read only', async () => {
+        const {container} = await renderWithContext(
             <PermissionsTree
                 {...defaultProps}
                 readOnly={true}
@@ -69,8 +69,8 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot on team scope', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot on team scope', async () => {
+        const {container} = await renderWithContext(
             <PermissionsTree
                 {...defaultProps}
                 scope={'team_scope'}
@@ -79,8 +79,8 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot on system scope', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot on system scope', async () => {
+        const {container} = await renderWithContext(
             <PermissionsTree
                 {...defaultProps}
                 scope={'system_scope'}
@@ -89,8 +89,8 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot on license without LDAPGroups', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot on license without LDAPGroups', async () => {
+        const {container} = await renderWithContext(
             <PermissionsTree
                 {...defaultProps}
                 license={{}}
@@ -99,8 +99,8 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with parentRole with permissions', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with parentRole with permissions', async () => {
+        const {container} = await renderWithContext(
             <PermissionsTree
                 {...defaultProps}
                 parentRole={{permissions: ['invite_user']}}
@@ -110,9 +110,9 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
         expect(container).toMatchSnapshot();
     });
 
-    test('should ask to toggle on row toggle', () => {
+    test('should ask to toggle on row toggle', async () => {
         const onToggle = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <PermissionsTree
                 {...defaultProps}
                 onToggle={onToggle}
@@ -130,8 +130,8 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
         {roleName: GeneralConstants.CHANNEL_ADMIN_ROLE, shouldSeeConvertPrivateToPublic: false},
         {roleName: GeneralConstants.SYSTEM_USER_ROLE, shouldSeeConvertPrivateToPublic: false},
         {roleName: GeneralConstants.SYSTEM_GUEST_ROLE, shouldSeeConvertPrivateToPublic: false},
-    ])('should show convert private channel to public for $roleName: $shouldSeeConvertPrivateToPublic', ({roleName, shouldSeeConvertPrivateToPublic}) => {
-        renderWithContext(
+    ])('should show convert private channel to public for $roleName: $shouldSeeConvertPrivateToPublic', async ({roleName, shouldSeeConvertPrivateToPublic}) => {
+        await renderWithContext(
             <PermissionsTree
                 {...defaultProps}
                 role={{name: roleName}}
@@ -145,8 +145,8 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
         }
     });
 
-    test('should hide disabbled integration options', () => {
-        const {container} = renderWithContext(
+    test('should hide disabbled integration options', async () => {
+        const {container} = await renderWithContext(
             <PermissionsTree
                 {...defaultProps}
                 config={{
@@ -160,8 +160,8 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
         expect(container).toMatchSnapshot();
     });
 
-    test('should map groups in the correct order', () => {
-        renderWithContext(
+    test('should map groups in the correct order', async () => {
+        await renderWithContext(
             <PermissionsTree
                 {...defaultProps}
             />,
@@ -177,7 +177,7 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
 
     describe('should show playbook permissions', () => {
         describe('for non-enterprise license', () => {
-            ['', LicenseSkus.E10, LicenseSkus.Starter, LicenseSkus.Professional].forEach((licenseSku) => test(licenseSku, () => {
+            ['', LicenseSkus.E10, LicenseSkus.Starter, LicenseSkus.Professional].forEach((licenseSku) => test(licenseSku, async () => {
                 const props = {
                     ...defaultProps,
                     license: {
@@ -186,7 +186,7 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
                     },
                 };
 
-                renderWithContext(
+                await renderWithContext(
                     <PermissionsTree
                         {...props}
                     />,
@@ -199,7 +199,7 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
         });
 
         describe('for enterprise license', () => {
-            [LicenseSkus.E20, LicenseSkus.Enterprise].forEach((licenseSku) => test(licenseSku, () => {
+            [LicenseSkus.E20, LicenseSkus.Enterprise].forEach((licenseSku) => test(licenseSku, async () => {
                 const props = {
                     ...defaultProps,
                     license: {
@@ -208,7 +208,7 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
                     },
                 };
 
-                renderWithContext(
+                await renderWithContext(
                     <PermissionsTree
                         {...props}
                     />,
@@ -224,7 +224,7 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
 
     describe('should show auto translation permissions', () => {
         describe('for non-enterprise-advanced license', () => {
-            ['', LicenseSkus.E10, LicenseSkus.Starter, LicenseSkus.Professional, LicenseSkus.Enterprise, LicenseSkus.E20].forEach((licenseSku) => test(licenseSku, () => {
+            ['', LicenseSkus.E10, LicenseSkus.Starter, LicenseSkus.Professional, LicenseSkus.Enterprise, LicenseSkus.E20].forEach((licenseSku) => test(licenseSku, async () => {
                 const props = {
                     ...defaultProps,
                     license: {
@@ -233,7 +233,7 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
                     },
                 };
 
-                renderWithContext(
+                await renderWithContext(
                     <PermissionsTree
                         {...props}
                     />,
@@ -247,7 +247,7 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
         });
 
         describe('for enterprise-advanced license', () => {
-            [LicenseSkus.Entry, LicenseSkus.EnterpriseAdvanced].forEach((licenseSku) => test(licenseSku, () => {
+            [LicenseSkus.Entry, LicenseSkus.EnterpriseAdvanced].forEach((licenseSku) => test(licenseSku, async () => {
                 const props = {
                     ...defaultProps,
                     license: {
@@ -256,7 +256,7 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
                     },
                 };
 
-                renderWithContext(
+                await renderWithContext(
                     <PermissionsTree
                         {...props}
                     />,

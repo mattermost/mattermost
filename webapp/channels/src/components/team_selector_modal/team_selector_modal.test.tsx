@@ -66,7 +66,7 @@ describe('components/TeamSelectorModal', () => {
     };
 
     test('should render available teams excluding already selected and deleted teams', async () => {
-        renderWithContext(<TeamSelectorModal {...defaultProps}/>);
+        await renderWithContext(<TeamSelectorModal {...defaultProps}/>);
 
         // Wait for all expected teams to be visible (Team 1 is already selected, Team 2 is deleted)
         await waitFor(() => {
@@ -81,7 +81,7 @@ describe('components/TeamSelectorModal', () => {
     });
 
     test('should hide group constrained teams when excludeGroupConstrained is true', async () => {
-        renderWithContext(
+        await renderWithContext(
             <TeamSelectorModal
                 {...defaultProps}
                 excludeGroupConstrained={true}

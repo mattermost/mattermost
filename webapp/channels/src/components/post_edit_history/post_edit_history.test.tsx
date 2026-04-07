@@ -6,7 +6,7 @@ import type {ComponentProps} from 'react';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {renderWithContext, screen, waitForElementToBeRemoved} from 'tests/react_testing_utils';
+import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import PostEditHistory from './post_edit_history';
@@ -39,9 +39,11 @@ describe('components/post_edit_history', () => {
         ];
         mock.mockResolvedValue(data);
 
-        const wrapper = renderWithContext(<PostEditHistory {...baseProps}/>);
+        const wrapper = await renderWithContext(<PostEditHistory {...baseProps}/>);
 
-        await waitForElementToBeRemoved(() => screen.queryByText('Loading'));
+        await waitFor(() => {
+            expect(screen.queryByText('Loading')).not.toBeInTheDocument();
+        });
 
         expect(wrapper.container).toMatchSnapshot();
         expect(mock).toHaveBeenCalledWith(baseProps.originalPost.id);
@@ -51,9 +53,11 @@ describe('components/post_edit_history', () => {
         const error = new Error('An example error');
         mock.mockRejectedValue(error);
 
-        const wrapper = renderWithContext(<PostEditHistory {...baseProps}/>);
+        const wrapper = await renderWithContext(<PostEditHistory {...baseProps}/>);
 
-        await waitForElementToBeRemoved(() => screen.queryByText('Loading'));
+        await waitFor(() => {
+            expect(screen.queryByText('Loading')).not.toBeInTheDocument();
+        });
 
         expect(wrapper.container).toMatchSnapshot();
         expect(mock).toHaveBeenCalledWith(baseProps.originalPost.id);

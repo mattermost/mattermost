@@ -11,7 +11,7 @@ import {renderWithContext} from 'tests/react_testing_utils';
 import {ChannelGroups} from './channel_groups';
 
 describe('admin_console/team_channel_settings/channel/ChannelGroups', () => {
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const groups: Group[] = [{
             id: '123',
             display_name: 'DN',
@@ -25,7 +25,7 @@ describe('admin_console/team_channel_settings/channel/ChannelGroups', () => {
             group_constrained: false,
             name: 'DN',
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ChannelGroups
                 synced={true}
                 onAddCallback={jest.fn()}

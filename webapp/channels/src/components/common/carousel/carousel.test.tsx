@@ -41,20 +41,20 @@ describe('/components/common/Carousel', () => {
         ],
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<Carousel {...baseProps}/>);
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(<Carousel {...baseProps}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('test carouse slides lenght is as expected', () => {
-        const {container} = renderWithContext(<Carousel {...baseProps}/>);
+    test('test carouse slides lenght is as expected', async () => {
+        const {container} = await renderWithContext(<Carousel {...baseProps}/>);
         const slides = container.querySelectorAll('p.slide');
 
         expect(slides.length).toBe(3);
     });
 
-    test('test carousel shows next and previous button', () => {
-        const {container} = renderWithContext(<Carousel {...baseProps}/>);
+    test('test carousel shows next and previous button', async () => {
+        const {container} = await renderWithContext(<Carousel {...baseProps}/>);
         const buttonNext = container.querySelector('a.next');
         const buttonPrev = container.querySelector('a.prev');
 
@@ -62,8 +62,8 @@ describe('/components/common/Carousel', () => {
         expect(buttonPrev).toBeInTheDocument();
     });
 
-    test('test carousel shows next and previous chevrons when this option is sent', () => {
-        const {container} = renderWithContext(
+    test('test carousel shows next and previous chevrons when this option is sent', async () => {
+        const {container} = await renderWithContext(
             <Carousel
                 {...baseProps}
                 btnsStyle={BtnStyle.CHEVRON}
@@ -76,8 +76,8 @@ describe('/components/common/Carousel', () => {
         expect(prevButton).toBeInTheDocument();
     });
 
-    test('test carousel shows first slide as active', () => {
-        const {container} = renderWithContext(<Carousel {...baseProps}/>);
+    test('test carousel shows first slide as active', async () => {
+        const {container} = await renderWithContext(<Carousel {...baseProps}/>);
         const activeSlide = container.querySelector('div.active-anim');
 
         const slideText = activeSlide!.querySelector('p.slide')!.textContent;
@@ -85,7 +85,7 @@ describe('/components/common/Carousel', () => {
     });
 
     test('test carousel moves slides when clicking buttons', async () => {
-        const {container} = renderWithContext(<Carousel {...baseProps}/>);
+        const {container} = await renderWithContext(<Carousel {...baseProps}/>);
         const activeSlide = container.querySelector('div.active-anim');
 
         const slide1Text = activeSlide!.querySelector('p.slide')!.textContent;
@@ -110,7 +110,7 @@ describe('/components/common/Carousel', () => {
             onPrevSlideClick,
             onNextSlideClick};
 
-        const {container} = renderWithContext(<Carousel {...props}/>);
+        const {container} = await renderWithContext(<Carousel {...props}/>);
         const buttonNext = container.querySelector('a.next') as HTMLElement;
         const buttonPrev = container.querySelector('a.prev') as HTMLElement;
 

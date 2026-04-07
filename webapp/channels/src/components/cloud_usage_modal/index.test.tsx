@@ -94,13 +94,13 @@ describe('CloudUsageModal', () => {
         };
     });
 
-    test('renders text elements', () => {
+    test('renders text elements', async () => {
         const state = setupState(true);
 
         props.title = 'very important title';
         props.description = 'very important description';
 
-        renderWithContext(
+        await renderWithContext(
             <CloudUsageModal
                 {...props}
             />,
@@ -118,7 +118,7 @@ describe('CloudUsageModal', () => {
             onClick: jest.fn(),
         };
 
-        renderWithContext(
+        await renderWithContext(
             <CloudUsageModal
                 {...props}
             />,
@@ -136,7 +136,7 @@ describe('CloudUsageModal', () => {
             message: 'secondary action',
         };
 
-        renderWithContext(
+        await renderWithContext(
             <CloudUsageModal
                 {...props}
             />,
@@ -147,10 +147,10 @@ describe('CloudUsageModal', () => {
         expect(props.onClose).toHaveBeenCalled();
     });
 
-    test('hides footer when there are no actions', () => {
+    test('hides footer when there are no actions', async () => {
         const state = setupState(true);
 
-        renderWithContext(
+        await renderWithContext(
             <CloudUsageModal
                 {...props}
             />,

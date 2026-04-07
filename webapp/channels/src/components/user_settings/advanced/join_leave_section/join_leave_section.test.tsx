@@ -30,8 +30,8 @@ describe('components/user_settings/advanced/JoinLeaveSection', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {container, rerender} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container, rerender} = await renderWithContext(
             <JoinLeaveSection {...defaultProps}/>,
         );
 
@@ -50,7 +50,7 @@ describe('components/user_settings/advanced/JoinLeaveSection', () => {
     });
 
     test('should match state on handleOnChange', async () => {
-        renderWithContext(
+        await renderWithContext(
             <JoinLeaveSection
                 {...defaultProps}
                 active={true}
@@ -72,7 +72,7 @@ describe('components/user_settings/advanced/JoinLeaveSection', () => {
             savePreferences: jest.fn().mockImplementation(() => Promise.resolve({data: true})),
         };
         const onUpdateSection = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <JoinLeaveSection
                 {...defaultProps}
                 active={true}
@@ -104,7 +104,7 @@ describe('components/user_settings/advanced/JoinLeaveSection', () => {
 
     test('should match state and call props.onUpdateSection on handleUpdateSection', async () => {
         const onUpdateSection = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <JoinLeaveSection
                 {...defaultProps}
                 active={true}

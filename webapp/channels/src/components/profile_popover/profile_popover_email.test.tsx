@@ -25,21 +25,21 @@ describe('components/ProfilePopoverEmail', () => {
         mockWindowOpen.mockClear();
     });
 
-    test('should not render when email is empty', () => {
+    test('should not render when email is empty', async () => {
         const props = {
             ...baseProps,
             email: '',
         };
-        const {container} = renderWithContext(<ProfilePopoverEmail {...props}/>);
+        const {container} = await renderWithContext(<ProfilePopoverEmail {...props}/>);
         expect(container.firstChild).toBeNull();
     });
 
-    test('should handle different email formats', () => {
+    test('should handle different email formats', async () => {
         const props = {
             ...baseProps,
             email: 'user.name+tag@domain.co.uk',
         };
-        renderWithContext(<ProfilePopoverEmail {...props}/>);
+        await renderWithContext(<ProfilePopoverEmail {...props}/>);
 
         const email = 'user.name+tag@domain.co.uk';
         const emailLink = screen.getByText(email);
@@ -48,7 +48,7 @@ describe('components/ProfilePopoverEmail', () => {
     });
 
     test('should open email client when clicked', async () => {
-        renderWithContext(<ProfilePopoverEmail {...baseProps}/>);
+        await renderWithContext(<ProfilePopoverEmail {...baseProps}/>);
 
         const email = 'test@example.com';
         const emailLink = screen.getByText(email);
@@ -59,7 +59,7 @@ describe('components/ProfilePopoverEmail', () => {
     });
 
     test('should prevent default click behavior', async () => {
-        renderWithContext(<ProfilePopoverEmail {...baseProps}/>);
+        await renderWithContext(<ProfilePopoverEmail {...baseProps}/>);
 
         const email = 'test@example.com';
         const emailLink = screen.getByText(email);

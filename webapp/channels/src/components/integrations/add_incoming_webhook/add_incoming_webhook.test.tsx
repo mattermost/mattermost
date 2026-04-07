@@ -56,8 +56,8 @@ describe('components/integrations/AddIncomingWebhook', () => {
         actions: {createIncomingHook},
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<AddIncomingWebhook {...props}/>, initialState as GlobalState);
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(<AddIncomingWebhook {...props}/>, initialState as GlobalState);
         expect(container).toMatchSnapshot();
     });
 
@@ -73,7 +73,7 @@ describe('components/integrations/AddIncomingWebhook', () => {
             update_at: 0,
             id: '',
         });
-        renderWithContext(<AddIncomingWebhook {...props}/>, initialState as GlobalState);
+        await renderWithContext(<AddIncomingWebhook {...props}/>, initialState as GlobalState);
 
         await userEvent.selectOptions(screen.getByRole('combobox'), [hook.channel_id]);
         await userEvent.type(screen.getByRole('textbox', {name: 'Title'}), hook.display_name);

@@ -31,16 +31,16 @@ describe('components/QuickSwitchModal', () => {
         },
     };
 
-    it('should match snapshot', () => {
-        const {container} = renderWithContext(<QuickSwitchModal {...baseProps}/>);
+    it('should match snapshot', async () => {
+        const {container} = await renderWithContext(<QuickSwitchModal {...baseProps}/>);
         expect(container).toMatchSnapshot();
     });
 
     describe('handleSubmit', () => {
-        it('should do nothing if nothing selected', () => {
+        it('should do nothing if nothing selected', async () => {
             const props = {...baseProps};
             const ref = React.createRef<QuickSwitchModalClass>();
-            renderWithContext(
+            await renderWithContext(
                 <QuickSwitchModalWithRef
                     {...props}
                     ref={ref}
@@ -53,10 +53,10 @@ describe('components/QuickSwitchModal', () => {
             expect(props.actions.switchToChannel).not.toHaveBeenCalled();
         });
 
-        it('should fail to switch to a channel', (done) => {
+        it('should fail to switch to a channel', async () => {
             const props = {...baseProps};
             const ref = React.createRef<QuickSwitchModalClass>();
-            renderWithContext(
+            await renderWithContext(
                 <QuickSwitchModalWithRef
                     {...props}
                     ref={ref}
@@ -68,13 +68,11 @@ describe('components/QuickSwitchModal', () => {
             instance.handleSubmit({channel});
             expect(props.actions.switchToChannel).toHaveBeenCalledWith(channel);
 
-            process.nextTick(() => {
-                expect(props.onExited).not.toHaveBeenCalled();
-                done();
-            });
+            await new Promise(process.nextTick);
+            expect(props.onExited).not.toHaveBeenCalled();
         });
 
-        it('should switch to a channel', (done) => {
+        it('should switch to a channel', async () => {
             const props = {
                 ...baseProps,
                 actions: {
@@ -87,7 +85,7 @@ describe('components/QuickSwitchModal', () => {
             };
 
             const ref = React.createRef<QuickSwitchModalClass>();
-            renderWithContext(
+            await renderWithContext(
                 <QuickSwitchModalWithRef
                     {...props}
                     ref={ref}
@@ -99,13 +97,11 @@ describe('components/QuickSwitchModal', () => {
             instance.handleSubmit({channel});
             expect(props.actions.switchToChannel).toHaveBeenCalledWith(channel);
 
-            process.nextTick(() => {
-                expect(props.onExited).toHaveBeenCalled();
-                done();
-            });
+            await new Promise(process.nextTick);
+            expect(props.onExited).toHaveBeenCalled();
         });
 
-        it('should join the channel before switching', (done) => {
+        it('should join the channel before switching', async () => {
             const props = {
                 ...baseProps,
                 actions: {
@@ -118,7 +114,7 @@ describe('components/QuickSwitchModal', () => {
             };
 
             const ref = React.createRef<QuickSwitchModalClass>();
-            renderWithContext(
+            await renderWithContext(
                 <QuickSwitchModalWithRef
                     {...props}
                     ref={ref}
@@ -135,13 +131,11 @@ describe('components/QuickSwitchModal', () => {
             instance.handleSubmit(selected);
             expect(props.actions.joinChannelById).toHaveBeenCalledWith(channel.id);
 
-            process.nextTick(() => {
-                expect(props.actions.switchToChannel).toHaveBeenCalledWith(channel);
-                done();
-            });
+            await new Promise(process.nextTick);
+            expect(props.actions.switchToChannel).toHaveBeenCalledWith(channel);
         });
 
-        it('should not join the channel before switching if channel is DM', (done) => {
+        it('should not join the channel before switching if channel is DM', async () => {
             const props = {
                 ...baseProps,
                 actions: {
@@ -154,7 +148,7 @@ describe('components/QuickSwitchModal', () => {
             };
 
             const ref = React.createRef<QuickSwitchModalClass>();
-            renderWithContext(
+            await renderWithContext(
                 <QuickSwitchModalWithRef
                     {...props}
                     ref={ref}
@@ -172,10 +166,8 @@ describe('components/QuickSwitchModal', () => {
             expect(props.actions.joinChannelById).not.toHaveBeenCalled();
             expect(props.actions.switchToChannel).toHaveBeenCalledWith(channel);
 
-            process.nextTick(() => {
-                expect(props.onExited).toHaveBeenCalled();
-                done();
-            });
+            await new Promise(process.nextTick);
+            expect(props.onExited).toHaveBeenCalled();
         });
     });
 
@@ -190,7 +182,7 @@ describe('components/QuickSwitchModal', () => {
                 },
             };
 
-            renderWithContext(
+            await renderWithContext(
                 <IntlProvider locale='en'>
                     <>
                         <ChannelNavigator {...channelNavigatorProps}/>

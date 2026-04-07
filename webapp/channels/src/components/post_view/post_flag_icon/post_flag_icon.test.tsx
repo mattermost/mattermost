@@ -18,7 +18,7 @@ describe('components/post_view/PostFlagIcon', () => {
     };
 
     test('should match snapshot', async () => {
-        const {container, rerender} = renderWithContext(<PostFlagIcon {...baseProps}/>);
+        const {container, rerender} = await renderWithContext(<PostFlagIcon {...baseProps}/>);
 
         // for unflagged icon
         expect(container).toMatchSnapshot();

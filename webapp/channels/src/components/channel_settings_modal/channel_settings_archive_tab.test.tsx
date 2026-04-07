@@ -56,8 +56,8 @@ describe('ChannelSettingsArchiveTab', () => {
         (getHistory as jest.Mock).mockReturnValue({push: historyPush});
     });
 
-    it('should render the archive button', () => {
-        renderWithContext(<ChannelSettingsArchiveTab {...baseProps}/>);
+    it('should render the archive button', async () => {
+        await renderWithContext(<ChannelSettingsArchiveTab {...baseProps}/>);
 
         // Check that the archive button is rendered
         const archiveButton = screen.getByText('Archive this channel');
@@ -66,7 +66,7 @@ describe('ChannelSettingsArchiveTab', () => {
     });
 
     it('should show confirmation modal when archive button is clicked', async () => {
-        renderWithContext(<ChannelSettingsArchiveTab {...baseProps}/>);
+        await renderWithContext(<ChannelSettingsArchiveTab {...baseProps}/>);
 
         // Click the archive button
         await userEvent.click(screen.getByText('Archive this channel'));
@@ -79,7 +79,7 @@ describe('ChannelSettingsArchiveTab', () => {
     it('should call deleteChannel and onHide when confirmed', async () => {
         const onHide = jest.fn();
 
-        renderWithContext(<ChannelSettingsArchiveTab {...{...baseProps, onHide}}/>);
+        await renderWithContext(<ChannelSettingsArchiveTab {...{...baseProps, onHide}}/>);
 
         // Click the archive button
         await userEvent.click(screen.getByText('Archive this channel'));
@@ -95,7 +95,7 @@ describe('ChannelSettingsArchiveTab', () => {
     });
 
     it('should close the confirmation modal when canceled', async () => {
-        renderWithContext(<ChannelSettingsArchiveTab {...baseProps}/>);
+        await renderWithContext(<ChannelSettingsArchiveTab {...baseProps}/>);
 
         // Click the archive button
         await userEvent.click(screen.getByText('Archive this channel'));
@@ -122,7 +122,7 @@ describe('ChannelSettingsArchiveTab', () => {
             };
         });
 
-        renderWithContext(<ChannelSettingsArchiveTab {...baseProps}/>);
+        await renderWithContext(<ChannelSettingsArchiveTab {...baseProps}/>);
 
         // Click the archive button
         await userEvent.click(screen.getByText('Archive this channel'));
@@ -138,7 +138,7 @@ describe('ChannelSettingsArchiveTab', () => {
     });
 
     it('should show correct message when archived channels cannot be viewed', async () => {
-        renderWithContext(<ChannelSettingsArchiveTab {...baseProps}/>);
+        await renderWithContext(<ChannelSettingsArchiveTab {...baseProps}/>);
 
         // Click the archive button
         await userEvent.click(screen.getByText('Archive this channel'));
@@ -170,7 +170,7 @@ describe('ChannelSettingsArchiveTab', () => {
             };
         });
 
-        renderWithContext(<ChannelSettingsArchiveTab {...{...baseProps, channel: invalidChannel}}/>);
+        await renderWithContext(<ChannelSettingsArchiveTab {...{...baseProps, channel: invalidChannel}}/>);
 
         // Click the archive button
         await userEvent.click(screen.getByText('Archive this channel'));
@@ -189,7 +189,7 @@ describe('ChannelSettingsArchiveTab', () => {
         document.body.appendChild(mockBackdrop);
 
         try {
-            renderWithContext(<ChannelSettingsArchiveTab {...baseProps}/>);
+            await renderWithContext(<ChannelSettingsArchiveTab {...baseProps}/>);
 
             // Click the archive button to open the confirmation modal
             await userEvent.click(screen.getByText('Archive this channel'));

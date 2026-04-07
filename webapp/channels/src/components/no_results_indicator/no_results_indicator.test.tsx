@@ -10,16 +10,16 @@ import {renderWithContext} from 'tests/react_testing_utils';
 import {NoResultsVariant, NoResultsLayout} from './types';
 
 describe('components/no_results_indicator', () => {
-    test('should match snapshot with default props', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with default props', async () => {
+        const {container} = await renderWithContext(
             <NoResultsIndicator/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with variant ChannelSearch', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with variant ChannelSearch', async () => {
+        const {container} = await renderWithContext(
             <NoResultsIndicator
                 iconGraphic={<div>{'Test'}</div>}
                 variant={NoResultsVariant.ChannelSearch}
@@ -30,8 +30,8 @@ describe('components/no_results_indicator', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with variant Mentions', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with variant Mentions', async () => {
+        const {container} = await renderWithContext(
             <NoResultsIndicator
                 iconGraphic={<div>{'Test'}</div>}
                 variant={NoResultsVariant.Mentions}
@@ -41,8 +41,8 @@ describe('components/no_results_indicator', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with variant FlaggedPosts', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with variant FlaggedPosts', async () => {
+        const {container} = await renderWithContext(
             <NoResultsIndicator
                 iconGraphic={<div>{'Test'}</div>}
                 variant={NoResultsVariant.FlaggedPosts}
@@ -53,8 +53,8 @@ describe('components/no_results_indicator', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with variant PinnedPosts', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with variant PinnedPosts', async () => {
+        const {container} = await renderWithContext(
             <NoResultsIndicator
                 iconGraphic={<div>{'Test'}</div>}
                 variant={NoResultsVariant.PinnedPosts}
@@ -65,8 +65,8 @@ describe('components/no_results_indicator', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with variant ChannelFiles', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with variant ChannelFiles', async () => {
+        const {container} = await renderWithContext(
             <NoResultsIndicator
                 iconGraphic={<div>{'Test'}</div>}
                 variant={NoResultsVariant.ChannelFiles}
@@ -76,8 +76,8 @@ describe('components/no_results_indicator', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with variant ChannelFilesFiltered', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with variant ChannelFilesFiltered', async () => {
+        const {container} = await renderWithContext(
             <NoResultsIndicator
                 iconGraphic={<div>{'Test'}</div>}
                 variant={NoResultsVariant.ChannelFilesFiltered}
@@ -87,8 +87,8 @@ describe('components/no_results_indicator', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when expanded', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot when expanded', async () => {
+        const {container} = await renderWithContext(
             <NoResultsIndicator
                 variant={NoResultsVariant.Search}
                 expanded={true}
@@ -99,8 +99,8 @@ describe('components/no_results_indicator', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with horizontal layout', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with horizontal layout', async () => {
+        const {container} = await renderWithContext(
             <NoResultsIndicator
                 iconGraphic={<div>{'Test'}</div>}
                 title={'Test'}

@@ -46,14 +46,14 @@ describe('UserAccountNameMenuItem', () => {
         jest.resetAllMocks();
     });
 
-    test('should render with both first and last name along with username', () => {
-        renderWithContext(<UserAccountNameMenuItem/>, initialState);
+    test('should render with both first and last name along with username', async () => {
+        await renderWithContext(<UserAccountNameMenuItem/>, initialState);
 
         expect(screen.getByText('sampleFirstName sampleLastName')).toBeInTheDocument();
         expect(screen.getByText('@sampleUsername')).toBeInTheDocument();
     });
 
-    test('should render with only username', () => {
+    test('should render with only username', async () => {
         const state = {
             entities: {
                 users: {
@@ -68,7 +68,7 @@ describe('UserAccountNameMenuItem', () => {
             },
         } as GlobalState;
 
-        renderWithContext(<UserAccountNameMenuItem/>, state);
+        await renderWithContext(<UserAccountNameMenuItem/>, state);
 
         expect(screen.queryByText('sampleFirstName sampleLastName')).not.toBeInTheDocument();
         expect(screen.getByText('@sampleUsername')).toBeInTheDocument();
@@ -77,15 +77,15 @@ describe('UserAccountNameMenuItem', () => {
     test('should try to open user settings modal', async () => {
         jest.spyOn(reactRedux, 'useDispatch').mockReturnValue(jest.fn());
 
-        renderWithContext(<UserAccountNameMenuItem/>, initialState);
+        await renderWithContext(<UserAccountNameMenuItem/>, initialState);
 
         await userEvent.click(screen.getByRole('menuitem'));
 
         expect(reactRedux.useDispatch).toHaveBeenCalledTimes(1);
     });
 
-    test('should not break if no props are passed', () => {
-        const {container} = renderWithContext(<UserAccountNameMenuItem/>);
+    test('should not break if no props are passed', async () => {
+        const {container} = await renderWithContext(<UserAccountNameMenuItem/>);
 
         expect(container).toMatchSnapshot();
     });

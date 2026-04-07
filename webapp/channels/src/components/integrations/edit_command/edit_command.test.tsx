@@ -66,7 +66,7 @@ describe('components/integrations/EditCommand', () => {
     };
 
     test('should match snapshot', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <EditCommand {...baseProps}/>,
         );
 
@@ -81,8 +81,8 @@ describe('components/integrations/EditCommand', () => {
         expect(baseProps.actions.getCustomTeamCommands).toHaveBeenCalledWith(team.id);
     });
 
-    test('should match snapshot, loading', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot, loading', async () => {
+        const {container} = await renderWithContext(
             <EditCommand {...baseProps}/>,
         );
 
@@ -90,13 +90,13 @@ describe('components/integrations/EditCommand', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when EnableCommands is false', () => {
+    test('should match snapshot when EnableCommands is false', async () => {
         const actions = {
             getCustomTeamCommands: jest.fn(),
             editCommand: jest.fn(),
         };
         const props = {...baseProps, actions, enableCommands: false};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <EditCommand {...props}/>,
         );
 
@@ -113,7 +113,7 @@ describe('components/integrations/EditCommand', () => {
                 editCommand: jest.fn(),
             },
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <EditCommand {...props}/>,
         );
 
@@ -150,7 +150,7 @@ describe('components/integrations/EditCommand', () => {
                 editCommand: jest.fn(),
             },
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <EditCommand {...props}/>,
         );
 
@@ -191,7 +191,7 @@ describe('components/integrations/EditCommand', () => {
                 editCommand: jest.fn(),
             },
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <EditCommand {...props}/>,
         );
 
@@ -215,7 +215,7 @@ describe('components/integrations/EditCommand', () => {
                 editCommand,
             },
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <EditCommand {...props}/>,
         );
 

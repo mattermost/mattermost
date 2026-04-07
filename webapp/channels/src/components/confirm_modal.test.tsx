@@ -23,7 +23,7 @@ describe('ConfirmModal', () => {
             confirmButtonText: 'Confirm',
         };
 
-        const {getByRole} = renderWithContext(<ConfirmModal {...props}/>);
+        const {getByRole} = await renderWithContext(<ConfirmModal {...props}/>);
 
         // Wait for component to be fully rendered
         await waitFor(() => {
@@ -57,7 +57,7 @@ describe('ConfirmModal', () => {
             cancelButtonText: 'Cancel',
         };
 
-        const {getByRole} = renderWithContext(<ConfirmModal {...props}/>);
+        const {getByRole} = await renderWithContext(<ConfirmModal {...props}/>);
 
         // Wait for component to be fully rendered
         await waitFor(() => {
@@ -83,40 +83,40 @@ describe('ConfirmModal', () => {
         expect(props.onCancel).toHaveBeenCalledWith(true);
     });
 
-    test('should disable confirm button when confirmDisabled is true', () => {
+    test('should disable confirm button when confirmDisabled is true', async () => {
         const props = {
             ...baseProps,
             confirmDisabled: true,
             confirmButtonText: 'Confirm',
         };
 
-        const {getByRole} = renderWithContext(<ConfirmModal {...props}/>);
+        const {getByRole} = await renderWithContext(<ConfirmModal {...props}/>);
         const confirmButton = getByRole('button', {name: 'Confirm'});
 
         expect(confirmButton).toBeDisabled();
     });
 
-    test('should enable confirm button when confirmDisabled is false', () => {
+    test('should enable confirm button when confirmDisabled is false', async () => {
         const props = {
             ...baseProps,
             confirmDisabled: false,
             confirmButtonText: 'Confirm',
         };
 
-        const {getByRole} = renderWithContext(<ConfirmModal {...props}/>);
+        const {getByRole} = await renderWithContext(<ConfirmModal {...props}/>);
         const confirmButton = getByRole('button', {name: 'Confirm'});
 
         expect(confirmButton).not.toBeDisabled();
     });
 
-    test('should use custom checkbox class when provided', () => {
+    test('should use custom checkbox class when provided', async () => {
         const props = {
             ...baseProps,
             showCheckbox: true,
             checkboxClass: 'custom-checkbox-class',
         };
 
-        renderWithContext(<ConfirmModal {...props}/>);
+        await renderWithContext(<ConfirmModal {...props}/>);
         const checkboxContainer = document.querySelector('.custom-checkbox-class');
 
         expect(checkboxContainer).toBeInTheDocument();
@@ -131,7 +131,7 @@ describe('ConfirmModal', () => {
             onCheckboxChange: mockOnCheckboxChange,
         };
 
-        const {getByRole} = renderWithContext(<ConfirmModal {...props}/>);
+        const {getByRole} = await renderWithContext(<ConfirmModal {...props}/>);
 
         // Wait for component to be fully rendered
         await waitFor(() => {

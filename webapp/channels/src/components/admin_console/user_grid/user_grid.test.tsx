@@ -59,8 +59,8 @@ describe('components/admin_console/user_grid/UserGrid', () => {
         },
     };
 
-    test('should match snapshot with 2 users', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with 2 users', async () => {
+        const {container} = await renderWithContext(
             <UserGrid
                 {...baseProps}
             />,
@@ -68,8 +68,8 @@ describe('components/admin_console/user_grid/UserGrid', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with 2 users and 1 added included', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with 2 users and 1 added included', async () => {
+        const {container} = await renderWithContext(
             <UserGrid
                 {...baseProps}
                 includeUsers={{[notSavedUser.id]: notSavedUser}}
@@ -78,8 +78,8 @@ describe('components/admin_console/user_grid/UserGrid', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with 2 users and 1 removed user', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with 2 users and 1 removed user', async () => {
+        const {container} = await renderWithContext(
             <UserGrid
                 {...baseProps}
                 excludeUsers={{[user1.id]: user1}}
@@ -88,9 +88,9 @@ describe('components/admin_console/user_grid/UserGrid', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should return pagination props while taking into account added or removed users when getPaginationProps is called', () => {
+    test('should return pagination props while taking into account added or removed users when getPaginationProps is called', async () => {
         // Test initial state: 2 users should show "1 - 2 of 2"
-        const {rerender} = renderWithContext(
+        const {rerender} = await renderWithContext(
             <UserGrid {...baseProps}/>,
         );
 

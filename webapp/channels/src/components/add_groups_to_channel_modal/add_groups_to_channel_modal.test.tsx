@@ -40,16 +40,16 @@ describe('components/AddGroupsToChannelModal', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {baseElement} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {baseElement} = await renderWithContext(
             <AddGroupsToChannelModal {...baseProps}/>,
         );
         expect(baseElement).toMatchSnapshot();
     });
 
-    test('should match state when handleResponse is called', () => {
+    test('should match state when handleResponse is called', async () => {
         const ref = React.createRef<AddGroupsToChannelModalClass>();
-        renderWithContext(
+        await renderWithContext(
             <AddGroupsToChannelModal
                 {...baseProps}
                 ref={ref}
@@ -83,7 +83,7 @@ describe('components/AddGroupsToChannelModal', () => {
         const actions = {...baseProps.actions, linkGroupSyncable};
         const props = {...baseProps, actions};
         const ref = React.createRef<AddGroupsToChannelModalClass>();
-        renderWithContext(
+        await renderWithContext(
             <AddGroupsToChannelModal
                 {...props}
                 ref={ref}
@@ -119,9 +119,9 @@ describe('components/AddGroupsToChannelModal', () => {
         expect(instance.state.saving).toEqual(true);
     });
 
-    test('should match state when addValue is called', () => {
+    test('should match state when addValue is called', async () => {
         const ref = React.createRef<AddGroupsToChannelModalClass>();
-        renderWithContext(
+        await renderWithContext(
             <AddGroupsToChannelModal
                 {...baseProps}
                 ref={ref}
@@ -149,9 +149,9 @@ describe('components/AddGroupsToChannelModal', () => {
         expect(instance.state.values).toEqual([value1]);
     });
 
-    test('should match state when handlePageChange is called', () => {
+    test('should match state when handlePageChange is called', async () => {
         const ref = React.createRef<AddGroupsToChannelModalClass>();
-        renderWithContext(
+        await renderWithContext(
             <AddGroupsToChannelModal
                 {...baseProps}
                 ref={ref}
@@ -178,9 +178,9 @@ describe('components/AddGroupsToChannelModal', () => {
         expect(baseProps.actions.getGroupsNotAssociatedToChannel).toHaveBeenCalledTimes(2);
     });
 
-    test('should match state when search is called', () => {
+    test('should match state when search is called', async () => {
         const ref = React.createRef<AddGroupsToChannelModalClass>();
-        renderWithContext(
+        await renderWithContext(
             <AddGroupsToChannelModal
                 {...baseProps}
                 ref={ref}
@@ -198,14 +198,13 @@ describe('components/AddGroupsToChannelModal', () => {
         act(() => {
             instance.search(searchTerm);
         });
-        expect(instance.state.loadingGroups).toEqual(true);
         expect(baseProps.actions.setModalSearchTerm).toHaveBeenCalledTimes(2);
         expect(baseProps.actions.setModalSearchTerm).toHaveBeenCalledWith(searchTerm);
     });
 
-    test('should match state when handleDelete is called', () => {
+    test('should match state when handleDelete is called', async () => {
         const ref = React.createRef<AddGroupsToChannelModalClass>();
-        renderWithContext(
+        await renderWithContext(
             <AddGroupsToChannelModal
                 {...baseProps}
                 ref={ref}
@@ -227,9 +226,9 @@ describe('components/AddGroupsToChannelModal', () => {
         expect(instance.state.values).toEqual(newValues);
     });
 
-    test('should match when renderOption is called', () => {
+    test('should match when renderOption is called', async () => {
         const ref = React.createRef<AddGroupsToChannelModalClass>();
-        renderWithContext(
+        await renderWithContext(
             <AddGroupsToChannelModal
                 {...baseProps}
                 ref={ref}
@@ -250,9 +249,9 @@ describe('components/AddGroupsToChannelModal', () => {
         expect(instance.renderOption(optionBot, isSelected, onAdd)).toMatchSnapshot();
     });
 
-    test('should match when renderValue is called', () => {
+    test('should match when renderValue is called', async () => {
         const ref = React.createRef<AddGroupsToChannelModalClass>();
-        renderWithContext(
+        await renderWithContext(
             <AddGroupsToChannelModal
                 {...baseProps}
                 ref={ref}

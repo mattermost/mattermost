@@ -30,7 +30,7 @@ describe('admin_console/filter/team_filter_dropdown/TeamFilterDropdown', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <TeamFilterDropdown
                 {...props}
                 option={option}
@@ -55,7 +55,7 @@ describe('admin_console/filter/team_filter_dropdown/TeamFilterDropdown', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <TeamFilterDropdown
                 {...props}
                 option={option}
@@ -77,7 +77,7 @@ describe('admin_console/filter/team_filter_dropdown/TeamFilterDropdown', () => {
             values: {},
         };
 
-        renderWithContext(
+        await renderWithContext(
             <TeamFilterDropdown
                 {...props}
                 option={option}
@@ -103,7 +103,7 @@ describe('admin_console/filter/team_filter_dropdown/TeamFilterDropdown', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <TeamFilterDropdown
                 {...props}
                 option={option}

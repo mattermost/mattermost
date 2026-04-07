@@ -48,16 +48,15 @@ describe('components/UnreadsStatusHandler', () => {
         inScheduledPosts: false,
     };
 
-    test('set correctly the title when needed', () => {
+    test('set correctly the title when needed', async () => {
         // Render with slightly different prop to trigger componentDidUpdate on first rerender
-        const {rerender} = renderWithContext(
+        const {rerender} = await renderWithContext(
             <UnreadsStatusHandler
                 {...defaultProps}
                 unreadStatus={true}
             />,
         );
 
-        // Track cumulative props like Enzyme's setProps
         let currentProps: any = {...defaultProps};
 
         rerender(<UnreadsStatusHandler {...currentProps}/>);
@@ -124,13 +123,13 @@ describe('components/UnreadsStatusHandler', () => {
         expect(document.title).toBe('(10) Drafts - Test team display name');
     });
 
-    test('should set correct title on mentions on safari', () => {
+    test('should set correct title on mentions on safari', async () => {
         // in safari browser, modification of favicon is not
         // supported, hence we need to show * in title on mentions
         (isFirefox as jest.Mock).mockImplementation(() => false);
         (isChrome as jest.Mock).mockImplementation(() => false);
 
-        const {rerender} = renderWithContext(
+        const {rerender} = await renderWithContext(
             <UnreadsStatusHandler {...defaultProps}/>,
         );
 
@@ -145,7 +144,7 @@ describe('components/UnreadsStatusHandler', () => {
         expect(document.title).toBe('(3) * teammate - Test team display name');
     });
 
-    test('should display correct favicon', () => {
+    test('should display correct favicon', async () => {
         const sizes = ['16x16', '24x24', '32x32', '64x64', '96x96'];
         sizes.forEach((size) => {
             const link = document.createElement('link');
@@ -160,7 +159,7 @@ describe('components/UnreadsStatusHandler', () => {
         // (updateFavicon is an arrow function so we can't spy on it directly)
         const getBadgeStatusSpy = jest.spyOn(UnreadsStatusHandlerClass.prototype, 'getBadgeStatus');
 
-        const {rerender} = renderWithContext(
+        const {rerender} = await renderWithContext(
             <UnreadsStatusHandler {...defaultProps}/>,
         );
 
@@ -199,8 +198,8 @@ describe('components/UnreadsStatusHandler', () => {
         });
     });
 
-    test('should display correct title when in drafts', () => {
-        const {rerender} = renderWithContext(
+    test('should display correct title when in drafts', async () => {
+        const {rerender} = await renderWithContext(
             <UnreadsStatusHandler {...defaultProps}/>,
         );
 
@@ -216,8 +215,8 @@ describe('components/UnreadsStatusHandler', () => {
         expect(document.title).toBe('Drafts - Test team display name');
     });
 
-    test('should display correct title when in scheduled posts tab', () => {
-        const {rerender} = renderWithContext(
+    test('should display correct title when in scheduled posts tab', async () => {
+        const {rerender} = await renderWithContext(
             <UnreadsStatusHandler {...defaultProps}/>,
         );
 

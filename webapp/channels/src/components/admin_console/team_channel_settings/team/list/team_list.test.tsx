@@ -23,7 +23,7 @@ describe('admin_console/team_channel_settings/team/TeamList', () => {
             searchTeams: jest.fn().mockResolvedValue(testTeams),
         };
 
-        renderWithContext(
+        await renderWithContext(
             <TeamList
                 data={testTeams}
                 total={testTeams.length}
@@ -56,7 +56,7 @@ describe('admin_console/team_channel_settings/team/TeamList', () => {
             searchTeams: jest.fn().mockResolvedValue(testTeams),
         };
 
-        renderWithContext(
+        await renderWithContext(
             <TeamList
                 data={testTeams}
                 total={30}
@@ -94,7 +94,7 @@ describe('admin_console/team_channel_settings/team/TeamList', () => {
             searchTeams: jest.fn().mockResolvedValue({data: {teams: searchResults, total_count: 1}}),
         };
 
-        renderWithContext(
+        await renderWithContext(
             <TeamList
                 data={testTeams}
                 total={testTeams.length}
@@ -138,7 +138,7 @@ describe('admin_console/team_channel_settings/team/TeamList', () => {
             searchTeams: jest.fn().mockResolvedValue(testTeams),
         };
 
-        renderWithContext(
+        await renderWithContext(
             <TeamList
                 data={testTeams}
                 total={30}
@@ -178,7 +178,7 @@ describe('admin_console/team_channel_settings/team/TeamList', () => {
             searchTeams: jest.fn().mockResolvedValue(testTeams),
         };
 
-        const {rerender} = renderWithContext(
+        const {rerender} = await renderWithContext(
             <TeamList
                 data={testTeams}
                 total={30}
@@ -239,7 +239,7 @@ describe('admin_console/team_channel_settings/team/TeamList', () => {
             searchTeams: jest.fn().mockResolvedValue(testTeams),
         };
 
-        renderWithContext(
+        await renderWithContext(
             <TeamList
                 data={testTeams}
                 total={testTeams.length}
@@ -276,7 +276,7 @@ describe('admin_console/team_channel_settings/team/TeamList', () => {
             searchTeams: jest.fn().mockResolvedValue(testTeams),
         };
 
-        renderWithContext(
+        await renderWithContext(
             <TeamList
                 data={testTeams}
                 total={testTeams.length}

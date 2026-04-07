@@ -29,15 +29,15 @@ describe('component/create_team', () => {
         intl: {formatMessage: jest.fn()},
     } as any;
 
-    test('should match snapshot default', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot default', async () => {
+        const {container} = await renderWithContext(
             <CreateTeam {...baseProps}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should show title and message when cloud and team limit reached', () => {
+    test('should show title and message when cloud and team limit reached', async () => {
         const props = {
             ...baseProps,
             isCloud: true,
@@ -49,7 +49,7 @@ describe('component/create_team', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <CreateTeam {...props}/>,
         );
 
@@ -57,7 +57,7 @@ describe('component/create_team', () => {
         expect(screen.getByText('Your workspace plan has reached the limit on the number of teams. Create unlimited teams with a free 30-day trial. Contact your System Administrator.')).toBeInTheDocument();
     });
 
-    test('should not render team_url route when UseAnonymousURLs is true', () => {
+    test('should not render team_url route when UseAnonymousURLs is true', async () => {
         const history = createMemoryHistory({
             initialEntries: ['/create_team/team_url'],
         });
@@ -67,14 +67,14 @@ describe('component/create_team', () => {
             useAnonymousURLs: true,
         };
 
-        renderWithContext(<CreateTeam {...props}/>, {}, {history});
+        await renderWithContext(<CreateTeam {...props}/>, {}, {history});
 
         // With UseAnonymousURLs=true the team_url route is not registered,
         // so navigating to it should redirect to display_name
         expect(history.location.pathname).toBe('/create_team/display_name');
     });
 
-    test('should render team_url route when UseAnonymousURLs is false', () => {
+    test('should render team_url route when UseAnonymousURLs is false', async () => {
         const history = createMemoryHistory({
             initialEntries: ['/create_team/team_url'],
         });
@@ -84,7 +84,7 @@ describe('component/create_team', () => {
             useAnonymousURLs: false,
         };
 
-        renderWithContext(<CreateTeam {...props}/>, {}, {history});
+        await renderWithContext(<CreateTeam {...props}/>, {}, {history});
 
         // With UseAnonymousURLs=false the team_url route is available
         expect(history.location.pathname).toBe('/create_team/team_url');

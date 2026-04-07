@@ -15,16 +15,16 @@ describe('components/RemoveFromChannelModal', () => {
         onExited: jest.fn(),
     };
 
-    test('should match snapshot', () => {
-        const {baseElement} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {baseElement} = await renderWithContext(
             <RemovedFromChannelModal {...baseProps}/>,
         );
 
         expect(baseElement).toMatchSnapshot();
     });
 
-    test('should have state "show" equals true on mount', () => {
-        renderWithContext(
+    test('should have state "show" equals true on mount', async () => {
+        await renderWithContext(
             <RemovedFromChannelModal {...baseProps}/>,
         );
 
@@ -32,8 +32,8 @@ describe('components/RemoveFromChannelModal', () => {
         expect(screen.getByRole('dialog')).toBeInTheDocument();
     });
 
-    test('should display correct props on Modal.Title and Modal.Body', () => {
-        renderWithContext(
+    test('should display correct props on Modal.Title and Modal.Body', async () => {
+        await renderWithContext(
             <RemovedFromChannelModal {...baseProps}/>,
         );
 
@@ -42,14 +42,14 @@ describe('components/RemoveFromChannelModal', () => {
         expect(screen.getByText(/Administrator removed you from test-channel/)).toBeInTheDocument();
     });
 
-    test('should fallback to default text on Modal.Body', () => {
+    test('should fallback to default text on Modal.Body', async () => {
         const props = {
             ...baseProps,
             channelName: '',
             remover: '',
         };
 
-        renderWithContext(
+        await renderWithContext(
             <RemovedFromChannelModal {...props}/>,
         );
 

@@ -10,8 +10,8 @@ import {renderWithContext} from 'tests/react_testing_utils';
 import ChannelsInput from './channels_input';
 
 describe('components/widgets/inputs/ChannelsInput', () => {
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <ChannelsInput
                 placeholder='test'
                 ariaLabel='test'

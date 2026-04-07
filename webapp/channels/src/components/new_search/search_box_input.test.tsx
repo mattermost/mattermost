@@ -20,33 +20,33 @@ describe('components/new_search/SearchBoxInput', () => {
         focus: jest.fn(),
     };
 
-    test('should show the right placeholder for messages', () => {
-        renderWithContext(<SearchBoxInput {...baseProps}/>);
+    test('should show the right placeholder for messages', async () => {
+        await renderWithContext(<SearchBoxInput {...baseProps}/>);
         expect(screen.getByPlaceholderText('Search messages')).toBeInTheDocument();
     });
 
-    test('should show the right placeholder for files', () => {
+    test('should show the right placeholder for files', async () => {
         const props = {...baseProps, searchType: 'files'};
-        renderWithContext(<SearchBoxInput {...props}/>);
+        await renderWithContext(<SearchBoxInput {...props}/>);
         expect(screen.getByPlaceholderText('Search files')).toBeInTheDocument();
     });
 
-    test('should show the right placeholder for plugins', () => {
+    test('should show the right placeholder for plugins', async () => {
         const props = {...baseProps, searchType: 'plugin-id'};
-        renderWithContext(<SearchBoxInput {...props}/>);
+        await renderWithContext(<SearchBoxInput {...props}/>);
         expect(screen.getByPlaceholderText('Search')).toBeInTheDocument();
     });
 
-    test('should show the right value when the searchTerms are set', () => {
+    test('should show the right value when the searchTerms are set', async () => {
         const props = {...baseProps, searchTerms: 'test-value'};
-        renderWithContext(<SearchBoxInput {...props}/>);
+        await renderWithContext(<SearchBoxInput {...props}/>);
         expect(screen.getByPlaceholderText('Search messages')).toBeInTheDocument();
         expect(screen.getByPlaceholderText('Search messages')).toHaveValue('test-value');
     });
 
     test('should call on key down when there is a key down event on the input field', async () => {
         const props = {...baseProps};
-        renderWithContext(<SearchBoxInput {...props}/>);
+        await renderWithContext(<SearchBoxInput {...props}/>);
         const input = screen.getByPlaceholderText('Search messages');
         input.focus();
         await userEvent.keyboard('{Enter}');
@@ -55,7 +55,7 @@ describe('components/new_search/SearchBoxInput', () => {
 
     test('should call on key down when there is a key down event on the input field with Escape', async () => {
         const props = {...baseProps};
-        renderWithContext(<SearchBoxInput {...props}/>);
+        await renderWithContext(<SearchBoxInput {...props}/>);
         const input = screen.getByPlaceholderText('Search messages');
         input.focus();
         await userEvent.keyboard('{Escape}');
@@ -64,7 +64,7 @@ describe('components/new_search/SearchBoxInput', () => {
 
     test('should update the search term on change', async () => {
         const props = {...baseProps};
-        renderWithContext(<SearchBoxInput {...props}/>);
+        await renderWithContext(<SearchBoxInput {...props}/>);
         const input = screen.getByPlaceholderText('Search messages');
         await userEvent.clear(input);
         await userEvent.type(input, 'new-value');
@@ -73,7 +73,7 @@ describe('components/new_search/SearchBoxInput', () => {
 
     test('should clear the terms and focus in the input whenever click the clear button', async () => {
         const props = {...baseProps, searchTerms: 'test-value'};
-        renderWithContext(<SearchBoxInput {...props}/>);
+        await renderWithContext(<SearchBoxInput {...props}/>);
         await userEvent.click(screen.getByText('Clear'));
         expect(props.setSearchTerms).toHaveBeenCalledWith('');
         expect(props.focus).toHaveBeenCalledWith(0);

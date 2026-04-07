@@ -17,8 +17,8 @@ describe('TextPropertyRenderer', () => {
         } as PropertyValue<string>,
     };
 
-    test('should render text property value', () => {
-        renderWithContext(<TextPropertyRenderer {...baseProps}/>);
+    test('should render text property value', async () => {
+        await renderWithContext(<TextPropertyRenderer {...baseProps}/>);
 
         const textElement = screen.getByTestId('text-property');
         expect(textElement).toBeVisible();
@@ -26,14 +26,14 @@ describe('TextPropertyRenderer', () => {
         expect(textElement).toHaveClass('TextProperty');
     });
 
-    test('should render empty string value', () => {
+    test('should render empty string value', async () => {
         const props = {
             value: {
                 value: '',
             } as PropertyValue<string>,
         };
 
-        renderWithContext(<TextPropertyRenderer {...props}/>);
+        await renderWithContext(<TextPropertyRenderer {...props}/>);
 
         const textElement = screen.getByTestId('text-property');
         expect(textElement).toBeVisible();
@@ -41,14 +41,14 @@ describe('TextPropertyRenderer', () => {
         expect(textElement).toHaveClass('TextProperty');
     });
 
-    test('should render numeric value as string', () => {
+    test('should render numeric value as string', async () => {
         const props = {
             value: {
                 value: 123,
             } as PropertyValue<number>,
         };
 
-        renderWithContext(<TextPropertyRenderer {...props}/>);
+        await renderWithContext(<TextPropertyRenderer {...props}/>);
 
         const textElement = screen.getByTestId('text-property');
         expect(textElement).toBeVisible();
@@ -56,14 +56,14 @@ describe('TextPropertyRenderer', () => {
         expect(textElement).toHaveClass('TextProperty');
     });
 
-    test('should render null value', () => {
+    test('should render null value', async () => {
         const props = {
             value: {
                 value: null,
             } as PropertyValue<null>,
         };
 
-        renderWithContext(<TextPropertyRenderer {...props}/>);
+        await renderWithContext(<TextPropertyRenderer {...props}/>);
 
         const textElement = screen.getByTestId('text-property');
         expect(textElement).toBeVisible();
@@ -71,14 +71,14 @@ describe('TextPropertyRenderer', () => {
         expect(textElement).toHaveClass('TextProperty');
     });
 
-    test('should render undefined value', () => {
+    test('should render undefined value', async () => {
         const props = {
             value: {
                 value: undefined,
             } as PropertyValue<undefined>,
         };
 
-        renderWithContext(<TextPropertyRenderer {...props}/>);
+        await renderWithContext(<TextPropertyRenderer {...props}/>);
 
         const textElement = screen.getByTestId('text-property');
         expect(textElement).toBeVisible();
@@ -86,14 +86,14 @@ describe('TextPropertyRenderer', () => {
         expect(textElement).toHaveClass('TextProperty');
     });
 
-    test('should render special characters', () => {
+    test('should render special characters', async () => {
         const props = {
             value: {
                 value: '!@#$%^&*()_+-=[]{}|;:,.<>?',
             } as PropertyValue<string>,
         };
 
-        renderWithContext(<TextPropertyRenderer {...props}/>);
+        await renderWithContext(<TextPropertyRenderer {...props}/>);
 
         const textElement = screen.getByTestId('text-property');
         expect(textElement).toBeVisible();

@@ -50,8 +50,8 @@ describe('components/ProfilePopoverSelectAttribute', () => {
         }),
     };
 
-    test('should render select option name', () => {
-        renderWithContext(<ProfilePopoverSelectAttribute {...baseProps}/>);
+    test('should render select option name', async () => {
+        await renderWithContext(<ProfilePopoverSelectAttribute {...baseProps}/>);
 
         const textElement = screen.getByText('Option 1');
         expect(textElement).toBeInTheDocument();
@@ -59,7 +59,7 @@ describe('components/ProfilePopoverSelectAttribute', () => {
         expect(textElement).toHaveAttribute('aria-labelledby', 'user-popover__custom_attributes-title-select_attribute_id');
     });
 
-    test('should render multiple selected options for multiselect', () => {
+    test('should render multiple selected options for multiselect', async () => {
         const props = {
             ...baseProps,
             attribute: {
@@ -73,13 +73,13 @@ describe('components/ProfilePopoverSelectAttribute', () => {
                 },
             }),
         };
-        renderWithContext(<ProfilePopoverSelectAttribute {...props}/>);
+        await renderWithContext(<ProfilePopoverSelectAttribute {...props}/>);
 
         const textElement = screen.getByText('Option 1, Option 2');
         expect(textElement).toBeInTheDocument();
     });
 
-    test('should not render when attribute value is missing', () => {
+    test('should not render when attribute value is missing', async () => {
         const props = {
             ...baseProps,
             userProfile: TestHelper.getUserMock({
@@ -87,11 +87,11 @@ describe('components/ProfilePopoverSelectAttribute', () => {
                 custom_profile_attributes: {},
             }),
         };
-        const {container} = renderWithContext(<ProfilePopoverSelectAttribute {...props}/>);
+        const {container} = await renderWithContext(<ProfilePopoverSelectAttribute {...props}/>);
         expect(container.firstChild).toBeNull();
     });
 
-    test('should not render when options are missing', () => {
+    test('should not render when options are missing', async () => {
         const props = {
             ...baseProps,
             attribute: {
@@ -102,11 +102,11 @@ describe('components/ProfilePopoverSelectAttribute', () => {
                 },
             },
         };
-        const {container} = renderWithContext(<ProfilePopoverSelectAttribute {...props}/>);
+        const {container} = await renderWithContext(<ProfilePopoverSelectAttribute {...props}/>);
         expect(container.firstChild).toBeNull();
     });
 
-    test('should not render when option is not found', () => {
+    test('should not render when option is not found', async () => {
         const props = {
             ...baseProps,
             userProfile: TestHelper.getUserMock({
@@ -116,7 +116,7 @@ describe('components/ProfilePopoverSelectAttribute', () => {
                 },
             }),
         };
-        const {container} = renderWithContext(<ProfilePopoverSelectAttribute {...props}/>);
+        const {container} = await renderWithContext(<ProfilePopoverSelectAttribute {...props}/>);
         expect(container.firstChild).toBeNull();
     });
 });

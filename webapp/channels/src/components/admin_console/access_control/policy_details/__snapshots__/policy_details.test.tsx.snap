@@ -56,6 +56,42 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
           </div>
         </div>
         <div
+          class="admin-console__warning-notice"
+        >
+          <div
+            class="sectionNoticeContainer warning"
+          >
+            <div
+              class="sectionNoticeContent"
+            >
+              <i
+                class="icon sectionNoticeIcon icon-alert-outline warning"
+              />
+              <div
+                class="sectionNoticeBody"
+              >
+                <h4
+                  class="sectionNoticeTitle"
+                >
+                  Please add user attributes and values to use Attribute-Based Access Control
+                </h4>
+                <p>
+                  You havent configured any user attributes yet. Attribute-Based Access Control requires user attributes that are either synced from an external system (like LDAP or SAML) or manually configured and enabled on this server. To start using attribute based access, please configure user attributes in System Attributes.
+                </p>
+                <div
+                  class="sectionNoticeActions"
+                >
+                  <button
+                    class="btn btn-sm sectionNoticeButton btn-primary"
+                  >
+                    Configure user attributes
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
           class="Card console expanded"
         >
           <div
@@ -75,6 +111,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
             </div>
             <button
               class="btn btn-primary"
+              disabled=""
             >
               Switch to Advanced Mode
             </button>
@@ -421,19 +458,9 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
                   class="DataGrid_rows"
                 >
                   <div
-                    class="DataGrid_loading"
+                    class="DataGrid_empty"
                   >
-                    <span
-                      class="LoadingSpinner"
-                      data-testid="loadingSpinner"
-                      id="loadingSpinner"
-                    >
-                      <span
-                        class="fa fa-spinner fa-fw fa-pulse spinner"
-                        title="Loading Icon"
-                      />
-                    </span>
-                    Loading
+                    No items found
                   </div>
                 </div>
               </div>
@@ -551,6 +578,42 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
           </div>
         </div>
         <div
+          class="admin-console__warning-notice"
+        >
+          <div
+            class="sectionNoticeContainer warning"
+          >
+            <div
+              class="sectionNoticeContent"
+            >
+              <i
+                class="icon sectionNoticeIcon icon-alert-outline warning"
+              />
+              <div
+                class="sectionNoticeBody"
+              >
+                <h4
+                  class="sectionNoticeTitle"
+                >
+                  Please add user attributes and values to use Attribute-Based Access Control
+                </h4>
+                <p>
+                  You havent configured any user attributes yet. Attribute-Based Access Control requires user attributes that are either synced from an external system (like LDAP or SAML) or manually configured and enabled on this server. To start using attribute based access, please configure user attributes in System Attributes.
+                </p>
+                <div
+                  class="sectionNoticeActions"
+                >
+                  <button
+                    class="btn btn-sm sectionNoticeButton btn-primary"
+                  >
+                    Configure user attributes
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
           class="Card console expanded"
         >
           <div
@@ -570,6 +633,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
             </div>
             <button
               class="btn btn-primary"
+              disabled=""
             >
               Switch to Advanced Mode
             </button>

@@ -11,8 +11,8 @@ describe('usePropertyCardViewChannelLoader', () => {
     const channel2 = TestHelper.getChannelMock({id: 'channel2'});
 
     describe('with store channel loading', () => {
-        test('should return the channel from store when available and no getChannel provided', () => {
-            const {result} = renderHookWithContext(
+        test('should return the channel from store when available and no getChannel provided', async () => {
+            const {result} = await renderHookWithContext(
                 () => usePropertyCardViewChannelLoader('channel1'),
                 {
                     entities: {
@@ -28,16 +28,16 @@ describe('usePropertyCardViewChannelLoader', () => {
             expect(result.current).toBe(channel1);
         });
 
-        test('should return undefined when channel not in store and no getChannel provided', () => {
-            const {result} = renderHookWithContext(
+        test('should return undefined when channel not in store and no getChannel provided', async () => {
+            const {result} = await renderHookWithContext(
                 () => usePropertyCardViewChannelLoader('channel1'),
             );
 
             expect(result.current).toBe(undefined);
         });
 
-        test('should return undefined when no channelId provided', () => {
-            const {result} = renderHookWithContext(
+        test('should return undefined when no channelId provided', async () => {
+            const {result} = await renderHookWithContext(
                 () => usePropertyCardViewChannelLoader(),
             );
 
@@ -49,11 +49,10 @@ describe('usePropertyCardViewChannelLoader', () => {
         test('should use getChannel when provided and channel not in store', async () => {
             const getChannelMock = jest.fn().mockResolvedValue(channel1);
 
-            const {result} = renderHookWithContext(
+            const {result} = await renderHookWithContext(
                 () => usePropertyCardViewChannelLoader('channel1', getChannelMock),
             );
 
-            expect(result.current).toBe(undefined);
             expect(getChannelMock).toHaveBeenCalledWith('channel1');
 
             await waitFor(() => {
@@ -65,7 +64,7 @@ describe('usePropertyCardViewChannelLoader', () => {
             const mockedChannel1 = TestHelper.getChannelMock({id: 'channel1', display_name: 'Mocked Channel'});
             const getChannelMock = jest.fn().mockResolvedValue(mockedChannel1);
 
-            const {result} = renderHookWithContext(
+            const {result} = await renderHookWithContext(
                 () => usePropertyCardViewChannelLoader('channel1', getChannelMock),
                 {
                     entities: {
@@ -89,7 +88,7 @@ describe('usePropertyCardViewChannelLoader', () => {
             const getChannelMock = jest.fn().mockRejectedValue(new Error('Network error'));
             const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
-            const {result} = renderHookWithContext(
+            const {result} = await renderHookWithContext(
                 () => usePropertyCardViewChannelLoader('channel1', getChannelMock),
             );
 
@@ -109,7 +108,7 @@ describe('usePropertyCardViewChannelLoader', () => {
         test('should only call getChannel once per channelId', async () => {
             const getChannelMock = jest.fn().mockResolvedValue(channel1);
 
-            const {result, rerender} = renderHookWithContext(
+            const {result, rerender} = await renderHookWithContext(
                 () => usePropertyCardViewChannelLoader('channel1', getChannelMock),
             );
 
@@ -133,7 +132,7 @@ describe('usePropertyCardViewChannelLoader', () => {
                 mockResolvedValueOnce(channel2);
 
             let channelId = 'channel1';
-            const {result, rerender} = renderHookWithContext(
+            const {result, rerender} = await renderHookWithContext(
                 () => usePropertyCardViewChannelLoader(channelId, getChannelMock),
             );
 
@@ -156,10 +155,10 @@ describe('usePropertyCardViewChannelLoader', () => {
             expect(getChannelMock).toHaveBeenCalledTimes(2);
         });
 
-        test('should not call getChannel when channelId is empty', () => {
+        test('should not call getChannel when channelId is empty', async () => {
             const getChannelMock = jest.fn();
 
-            const {result} = renderHookWithContext(
+            const {result} = await renderHookWithContext(
                 () => usePropertyCardViewChannelLoader('', getChannelMock),
             );
 

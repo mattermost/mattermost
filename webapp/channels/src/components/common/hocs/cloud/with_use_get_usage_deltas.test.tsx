@@ -17,10 +17,10 @@ jest.mock('components/common/hooks/useGetUsageDeltas', () => jest.fn(() => ({
 describe('/components/common/hocs/cloud/with_use_get_usage_deltas', () => {
     const TestComponent: ComponentType = jest.fn(() => <div/>);
 
-    test('should pass the useGetUsageDeltas', () => {
+    test('should pass the useGetUsageDeltas', async () => {
         const WrappedComponent = withUseGetUsageDeltas(TestComponent);
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <WrappedComponent/>,
         );
 

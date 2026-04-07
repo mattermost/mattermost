@@ -22,8 +22,8 @@ const TestModal = () => (
 );
 
 describe('components/ToggleModalButton', () => {
-    test('component should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('component should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <ToggleModalButton
                 ariaLabel={'Delete Channel'}
                 id='channelDelete'

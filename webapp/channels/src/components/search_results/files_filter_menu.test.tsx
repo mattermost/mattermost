@@ -10,8 +10,8 @@ import {renderWithContext} from 'tests/react_testing_utils';
 describe('components/search_results/FilesFilterMenu', () => {
     const filters = ['all', 'documents', 'spreadsheets', 'presentations', 'code', 'images', 'audio', 'video'];
     for (const filter of filters) {
-        test(`should match snapshot, on ${filter} filter selected`, () => {
-            const {container} = renderWithContext(
+        test(`should match snapshot, on ${filter} filter selected`, async () => {
+            const {container} = await renderWithContext(
                 <FilesFilterMenu
                     selectedFilter={filter}
                     onFilter={jest.fn()}

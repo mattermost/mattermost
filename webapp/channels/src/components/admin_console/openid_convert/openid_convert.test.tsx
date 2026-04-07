@@ -14,8 +14,8 @@ describe('components/OpenIdConvert', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <OpenIdConvert {...baseProps}/>,
         );
 

@@ -38,16 +38,16 @@ describe('components/datetime_input/DateTimeInput', () => {
         jest.restoreAllMocks();
     });
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <DateTimeInput {...baseProps}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should render date and time selectors', () => {
-        renderWithContext(
+    test('should render date and time selectors', async () => {
+        await renderWithContext(
             <DateTimeInput {...baseProps}/>,
         );
 
@@ -55,7 +55,7 @@ describe('components/datetime_input/DateTimeInput', () => {
         expect(screen.getByLabelText('Time')).toBeInTheDocument();
     });
 
-    test('should not infinitely loop on DST', () => {
+    test('should not infinitely loop on DST', async () => {
         const timezone = 'Europe/Paris';
         const time = '2024-03-31T02:00:00+0100';
 
@@ -72,7 +72,7 @@ describe('components/datetime_input/DateTimeInput', () => {
                 setIsInteracting: mockSetIsInteracting,
             };
 
-            renderWithContext(<DateTimeInput {...props}/>);
+            await renderWithContext(<DateTimeInput {...props}/>);
 
             const dateButton = screen.getByText('Date').closest('.date-time-input');
 
@@ -88,7 +88,7 @@ describe('components/datetime_input/DateTimeInput', () => {
                 setIsInteracting: mockSetIsInteracting,
             };
 
-            renderWithContext(<DateTimeInput {...props}/>);
+            await renderWithContext(<DateTimeInput {...props}/>);
 
             const timeButton = screen.getByLabelText('Time');
 
@@ -104,7 +104,7 @@ describe('components/datetime_input/DateTimeInput', () => {
                 setIsInteracting: mockSetIsInteracting,
             };
 
-            renderWithContext(<DateTimeInput {...props}/>);
+            await renderWithContext(<DateTimeInput {...props}/>);
 
             // Open date picker first
             const dateButton = screen.getByText('Date').closest('.date-time-input');
@@ -123,7 +123,7 @@ describe('components/datetime_input/DateTimeInput', () => {
             mockGetCurrentMomentForTimezone.mockReturnValue(moment('2025-06-08T08:00:00Z'));
             mockIsBeforeTime.mockReturnValue(true);
 
-            renderWithContext(<DateTimeInput {...baseProps}/>);
+            await renderWithContext(<DateTimeInput {...baseProps}/>);
 
             const dateButton = screen.getByText('Date').closest('.date-time-input');
 
@@ -140,7 +140,7 @@ describe('components/datetime_input/DateTimeInput', () => {
         test('should handle day selection for future date', async () => {
             mockGetCurrentMomentForTimezone.mockReturnValue(moment('2025-06-08T08:00:00Z'));
 
-            renderWithContext(<DateTimeInput {...baseProps}/>);
+            await renderWithContext(<DateTimeInput {...baseProps}/>);
 
             const dateButton = screen.getByText('Date').closest('.date-time-input');
 
@@ -156,44 +156,44 @@ describe('components/datetime_input/DateTimeInput', () => {
     });
 
     describe('timezone handling', () => {
-        test('should handle timezone prop', () => {
+        test('should handle timezone prop', async () => {
             const props = {
                 ...baseProps,
                 timezone: 'America/New_York',
             };
 
-            renderWithContext(<DateTimeInput {...props}/>);
+            await renderWithContext(<DateTimeInput {...props}/>);
 
             expect(mockGetCurrentMomentForTimezone).toHaveBeenCalledWith('America/New_York');
         });
     });
 
     describe('custom configuration', () => {
-        test('should accept custom time picker interval', () => {
+        test('should accept custom time picker interval', async () => {
             const props = {
                 ...baseProps,
                 timePickerInterval: 15,
             };
 
-            renderWithContext(<DateTimeInput {...props}/>);
+            await renderWithContext(<DateTimeInput {...props}/>);
 
             // Component should render without errors with custom interval
             expect(screen.getByLabelText('Time')).toBeInTheDocument();
         });
 
-        test('should handle relative date formatting', () => {
+        test('should handle relative date formatting', async () => {
             const props = {
                 ...baseProps,
                 relativeDate: true,
             };
 
-            renderWithContext(<DateTimeInput {...props}/>);
+            await renderWithContext(<DateTimeInput {...props}/>);
 
             // Component should render without errors with relative formatting
             expect(screen.getByText('Date')).toBeInTheDocument();
         });
 
-        test('should allow past dates and all times when allowPastDates is true', () => {
+        test('should allow past dates and all times when allowPastDates is true', async () => {
             // Test the core time generation logic directly
             const selectedDate = moment('2025-06-08T15:00:00Z'); // 3 PM
 
@@ -209,7 +209,7 @@ describe('components/datetime_input/DateTimeInput', () => {
             expect(timeOptions.length).toBe(48); // 24 hours * 2 (30-min intervals)
         });
 
-        test('should restrict past dates and times when allowPastDates is false (default)', () => {
+        test('should restrict past dates and times when allowPastDates is false (default)', async () => {
             // Test the core time generation logic for restricted past times
             const currentTime = moment('2025-06-08T15:30:00Z'); // 3:30 PM
             const roundedTime = getRoundedTime(currentTime, 30); // Should round to 3:30 PM
@@ -229,41 +229,41 @@ describe('components/datetime_input/DateTimeInput', () => {
     });
 
     describe('user preference handling', () => {
-        it('should use user locale for date formatting', () => {
-            renderWithContext(<DateTimeInput {...baseProps}/>);
+        it('should use user locale for date formatting', async () => {
+            await renderWithContext(<DateTimeInput {...baseProps}/>);
 
             // Date should be formatted using formatDateForDisplay utility
             // which uses user's locale from getCurrentLocale selector
             expect(screen.getByText('Date')).toBeInTheDocument();
         });
 
-        it('should respect military time (24-hour) preference', () => {
+        it('should respect military time (24-hour) preference', async () => {
             const mockIsUseMilitaryTime = require('selectors/preferences').isUseMilitaryTime;
             mockIsUseMilitaryTime.mockReturnValue(true);
 
-            renderWithContext(<DateTimeInput {...baseProps}/>);
+            await renderWithContext(<DateTimeInput {...baseProps}/>);
 
             // Timestamp component should receive useTime prop with hourCycle: 'h23'
             // This is tested indirectly - times would show as 14:00 instead of 2:00 PM
             expect(mockIsUseMilitaryTime).toHaveBeenCalled();
         });
 
-        it('should respect 12-hour time preference', () => {
+        it('should respect 12-hour time preference', async () => {
             const mockIsUseMilitaryTime = require('selectors/preferences').isUseMilitaryTime;
             mockIsUseMilitaryTime.mockReturnValue(false);
 
-            renderWithContext(<DateTimeInput {...baseProps}/>);
+            await renderWithContext(<DateTimeInput {...baseProps}/>);
 
             // Timestamp component should receive useTime prop with hour12: true
             // This is tested indirectly - times would show as 2:00 PM instead of 14:00
             expect(mockIsUseMilitaryTime).toHaveBeenCalled();
         });
 
-        it('should format dates consistently (not browser default)', () => {
+        it('should format dates consistently (not browser default)', async () => {
             const testDate = moment('2025-06-15T12:00:00Z');
             const props = {...baseProps, time: testDate};
 
-            renderWithContext(<DateTimeInput {...props}/>);
+            await renderWithContext(<DateTimeInput {...props}/>);
 
             // Date should use Intl.DateTimeFormat(locale, {month: 'short', ...})
             // Not DateTime.fromJSDate().toLocaleString() which varies by browser
@@ -273,11 +273,11 @@ describe('components/datetime_input/DateTimeInput', () => {
     });
 
     describe('auto-rounding behavior', () => {
-        it('should auto-round time to interval boundary on mount', () => {
+        it('should auto-round time to interval boundary on mount', async () => {
             const handleChange = jest.fn();
             const unroundedTime = moment('2025-06-08T14:17:00Z'); // 14:17 - not on 30-min boundary
 
-            renderWithContext(
+            await renderWithContext(
                 <DateTimeInput
                     time={unroundedTime}
                     handleChange={handleChange}
@@ -291,11 +291,11 @@ describe('components/datetime_input/DateTimeInput', () => {
             expect(roundedTime.minute()).toBe(30);
         });
 
-        it('should not call handleChange if time is already rounded', () => {
+        it('should not call handleChange if time is already rounded', async () => {
             const handleChange = jest.fn();
             const roundedTime = moment('2025-06-08T14:30:00Z'); // Already on 30-min boundary
 
-            renderWithContext(
+            await renderWithContext(
                 <DateTimeInput
                     time={roundedTime}
                     handleChange={handleChange}
@@ -307,11 +307,11 @@ describe('components/datetime_input/DateTimeInput', () => {
             expect(handleChange).not.toHaveBeenCalled();
         });
 
-        it('should use 30-minute default interval when prop not provided', () => {
+        it('should use 30-minute default interval when prop not provided', async () => {
             const handleChange = jest.fn();
             const unroundedTime = moment('2025-06-08T14:17:00Z');
 
-            renderWithContext(
+            await renderWithContext(
                 <DateTimeInput
                     time={unroundedTime}
                     handleChange={handleChange}

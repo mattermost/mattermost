@@ -92,8 +92,8 @@ describe('components/ChannelHeaderMenu/MenuItems/MobileChannelHeaderPlugins, wit
         },
     };
 
-    test('renders the component correctly', () => {
-        const {container} = renderWithContext(
+    test('renders the component correctly', async () => {
+        const {container} = await renderWithContext(
             <WithTestMenuContext>
                 <MobileChannelHeaderPlugins
                     channel={channel}
@@ -105,7 +105,7 @@ describe('components/ChannelHeaderMenu/MenuItems/MobileChannelHeaderPlugins, wit
     });
 
     test('renders the component correctly, with one extended component, and handle click event', async () => {
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <MobileChannelHeaderPlugins
                     channel={channel}
@@ -119,7 +119,7 @@ describe('components/ChannelHeaderMenu/MenuItems/MobileChannelHeaderPlugins, wit
         expect(action).toHaveBeenCalledTimes(1);
     });
 
-    test('renders the component correctly, with two extended component', () => {
+    test('renders the component correctly, with two extended component', async () => {
         const testState = {
             ...pluginState,
             plugins: {
@@ -140,7 +140,7 @@ describe('components/ChannelHeaderMenu/MenuItems/MobileChannelHeaderPlugins, wit
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <MobileChannelHeaderPlugins
                     channel={channel}
@@ -154,7 +154,7 @@ describe('components/ChannelHeaderMenu/MenuItems/MobileChannelHeaderPlugins, wit
         expect(menuItem2).toBeInTheDocument();
     });
 
-    test('renders the component correctly, with two extended bindings', () => {
+    test('renders the component correctly, with two extended bindings', async () => {
         const testState = cloneDeep(bindingState);
         testState.entities.apps.main.bindings[0].bindings.push({
             app_id: 'app2',
@@ -167,7 +167,7 @@ describe('components/ChannelHeaderMenu/MenuItems/MobileChannelHeaderPlugins, wit
             },
         });
 
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <MobileChannelHeaderPlugins
                     channel={channel}
@@ -193,7 +193,7 @@ describe('components/ChannelHeaderMenu/MenuItems/MobileChannelHeaderPlugins, wit
             });
         });
 
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <MobileChannelHeaderPlugins
                     channel={channel}
@@ -227,7 +227,7 @@ describe('components/ChannelHeaderMenu/MenuItems/MobileChannelHeaderPlugins, wit
             });
         });
 
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <MobileChannelHeaderPlugins
                     channel={channel}
@@ -257,7 +257,7 @@ describe('components/ChannelHeaderMenu/MenuItems/MobileChannelHeaderPlugins, wit
             });
         });
 
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <MobileChannelHeaderPlugins
                     channel={channel}
@@ -295,7 +295,7 @@ describe('components/ChannelHeaderMenu/MenuItems/MobileChannelHeaderPlugins, wit
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <MobileChannelHeaderPlugins
                     channel={channel}
@@ -318,7 +318,7 @@ describe('components/ChannelHeaderMenu/MenuItems/MobileChannelHeaderPlugins, wit
             });
         });
 
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <MobileChannelHeaderPlugins
                     channel={channel}
@@ -334,7 +334,7 @@ describe('components/ChannelHeaderMenu/MenuItems/MobileChannelHeaderPlugins, wit
         });
     });
 
-    test('renders noting if multiple appbindings or components isDropDown false', () => {
+    test('renders noting if multiple appbindings or components isDropDown false', async () => {
         const pluginState = {
             plugins: {
                 components: {
@@ -355,7 +355,7 @@ describe('components/ChannelHeaderMenu/MenuItems/MobileChannelHeaderPlugins, wit
             ...pluginState,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <MobileChannelHeaderPlugins
                     channel={channel}

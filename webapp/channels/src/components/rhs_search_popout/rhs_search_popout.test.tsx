@@ -83,7 +83,7 @@ describe('RhsSearchPopout', () => {
         jest.clearAllMocks();
     });
 
-    function renderPopout(search: string, rhsState?: string) {
+    async function renderPopout(search: string, rhsState?: string) {
         const state = rhsState ? {
             ...baseState,
             views: {rhs: {...baseState.views.rhs, rhsState}},
@@ -100,7 +100,7 @@ describe('RhsSearchPopout', () => {
         );
     }
 
-    test('should render SearchResults component', () => {
+    test('should render SearchResults component', async () => {
         renderPopout('?q=test&type=messages&mode=search');
         expect(screen.getByTestId('search-results')).toBeInTheDocument();
     });
@@ -186,7 +186,7 @@ describe('RhsSearchPopout', () => {
         });
     });
 
-    test('should not dispatch actions when teamId is not yet available', () => {
+    test('should not dispatch actions when teamId is not yet available', async () => {
         const noTeamState = {
             ...baseState,
             entities: {
@@ -195,7 +195,7 @@ describe('RhsSearchPopout', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <MemoryRouter initialEntries={['/_popout/rhs/test-team/search?q=test&type=messages&mode=search']}>
                 <Route
                     path='/_popout/rhs/:team/search'

@@ -20,15 +20,15 @@ describe('components/custom_status/custom_status_emoji', () => {
         handleClear: jest.fn(),
     };
 
-    it('should match snapshot', () => {
-        const {container} = renderWithContext(
+    it('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <CustomStatusSuggestion {...baseProps}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    it('should match snapshot with duration', () => {
+    it('should match snapshot with duration', async () => {
         const props = {
             ...baseProps,
             status: {
@@ -36,7 +36,7 @@ describe('components/custom_status/custom_status_emoji', () => {
                 duration: CustomStatusDuration.TODAY,
             },
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <CustomStatusSuggestion {...props}/>,
         );
 
@@ -48,7 +48,7 @@ describe('components/custom_status/custom_status_emoji', () => {
         const originalError = console.error;
         console.error = jest.fn();
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <CustomStatusSuggestion {...baseProps}/>,
         );
 
@@ -63,7 +63,7 @@ describe('components/custom_status/custom_status_emoji', () => {
         const originalError = console.error;
         console.error = jest.fn();
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <CustomStatusSuggestion {...baseProps}/>,
         );
 

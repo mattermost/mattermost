@@ -18,8 +18,8 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
         theme: Preferences.THEMES.denim as unknown as Theme,
     };
 
-    test('should match default component state with given props', () => {
-        renderWithContext(<ActionButton {...baseProps}/>);
+    test('should match default component state with given props', async () => {
+        await renderWithContext(<ActionButton {...baseProps}/>);
 
         const button = screen.getByRole('button');
         expect(button).toHaveAttribute('data-action-cookie', 'cookie-contents');
@@ -30,7 +30,7 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
     });
 
     test('should call handleAction on click', async () => {
-        renderWithContext(<ActionButton {...baseProps}/>);
+        await renderWithContext(<ActionButton {...baseProps}/>);
 
         const button = screen.getByRole('button');
 
@@ -39,13 +39,13 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
         expect(baseProps.handleAction).toHaveBeenCalledTimes(1);
     });
 
-    test('should have correct styles when provided color from theme', () => {
+    test('should have correct styles when provided color from theme', async () => {
         const props = {
             ...baseProps,
             action: {...baseProps.action, style: 'onlineIndicator'},
         };
 
-        renderWithContext(<ActionButton {...props}/>);
+        await renderWithContext(<ActionButton {...props}/>);
 
         const button = screen.getByRole('button');
 
@@ -53,14 +53,14 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
         expect(button).toHaveStyle(`color: ${Preferences.THEMES.denim.onlineIndicator}`);
     });
 
-    test('should have correct styles when provided color from not default theme', () => {
+    test('should have correct styles when provided color from not default theme', async () => {
         const props = {
             ...baseProps,
             theme: Preferences.THEMES.indigo as unknown as Theme,
             action: {...baseProps.action, style: 'danger'},
         };
 
-        renderWithContext(<ActionButton {...props}/>);
+        await renderWithContext(<ActionButton {...props}/>);
 
         const button = screen.getByRole('button');
 
@@ -68,51 +68,51 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
         expect(button).toHaveStyle(`color: ${Preferences.THEMES.indigo.errorTextColor}`);
     });
 
-    test('should have correct styles when provided status color', () => {
+    test('should have correct styles when provided status color', async () => {
         const props = {
             ...baseProps,
             action: {...baseProps.action, style: 'success'},
         };
 
-        renderWithContext(<ActionButton {...props}/>);
+        await renderWithContext(<ActionButton {...props}/>);
         const button = screen.getByRole('button');
 
         expect(button).toHaveStyle(`background-color: ${changeOpacity('#339970', 0.08)}`);
         expect(button).toHaveStyle(`color: ${'#339970'}`);
     });
 
-    test('should have correct styles when provided hex color', () => {
+    test('should have correct styles when provided hex color', async () => {
         const props = {
             ...baseProps,
             action: {...baseProps.action, style: '#28a745'},
         };
 
-        renderWithContext(<ActionButton {...props}/>);
+        await renderWithContext(<ActionButton {...props}/>);
         const button = screen.getByRole('button');
 
         expect(button).toHaveStyle(`background-color: ${changeOpacity(props.action.style, 0.08)}`);
         expect(button).toHaveStyle(`color: ${props.action.style}`);
     });
 
-    test('should have no styles when provided invalid hex color', () => {
+    test('should have no styles when provided invalid hex color', async () => {
         const props = {
             ...baseProps,
             action: {...baseProps.action, style: '#wrong'},
         };
 
-        renderWithContext(<ActionButton {...props}/>);
+        await renderWithContext(<ActionButton {...props}/>);
         const button = screen.getByRole('button');
 
         expect(button.style.length).toBe(0);
     });
 
-    test('should have no styles when provided undefined', () => {
+    test('should have no styles when provided undefined', async () => {
         const props = {
             ...baseProps,
             action: {...baseProps.action, style: undefined},
         };
 
-        renderWithContext(<ActionButton {...props}/>);
+        await renderWithContext(<ActionButton {...props}/>);
         const button = screen.getByRole('button');
 
         expect(button.style.length).toBe(0);
@@ -124,7 +124,7 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
             action: {...baseProps.action, tooltip: undefined},
         };
 
-        renderWithContext(<ActionButton {...props}/>);
+        await renderWithContext(<ActionButton {...props}/>);
         const button = screen.getByRole('button');
 
         // Hover over the button
@@ -140,7 +140,7 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
             action: {...baseProps.action, tooltip: ''},
         };
 
-        renderWithContext(<ActionButton {...props}/>);
+        await renderWithContext(<ActionButton {...props}/>);
         const button = screen.getByRole('button');
 
         // Hover over the button
@@ -156,7 +156,7 @@ describe('components/post_view/message_attachments/action_button.jsx', () => {
             action: {...baseProps.action, tooltip: 'This is a tooltip'},
         };
 
-        renderWithContext(<ActionButton {...props}/>);
+        await renderWithContext(<ActionButton {...props}/>);
         const button = screen.getByRole('button');
 
         // Hover over the button

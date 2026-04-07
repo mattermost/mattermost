@@ -40,14 +40,14 @@ describe('components/admin_console/server_logs/Logs', () => {
 
     beforeEach(async () => {
         // Mount server log screen
-        container = renderWithContext(
+        container = (await renderWithContext(
             <Logs
                 logs={logs}
                 plainLogs={[]}
                 isPlainLogs={false}
-                actions={{getLogs: jest.fn(), getPlainLogs: jest.fn()}}
+                actions={{getLogs: jest.fn().mockResolvedValue(undefined), getPlainLogs: jest.fn().mockResolvedValue(undefined)}}
             />,
-        ).container;
+        )).container;
 
         // Wait for the logs to be displayed
         await waitFor(() => {
@@ -58,7 +58,7 @@ describe('components/admin_console/server_logs/Logs', () => {
         });
     });
 
-    test('should display the logs correctly after loading', () => {
+    test('should display the logs correctly after loading', async () => {
         expect(container).toMatchSnapshot();
     });
 

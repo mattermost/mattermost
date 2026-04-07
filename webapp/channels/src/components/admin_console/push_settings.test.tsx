@@ -12,7 +12,7 @@ import {defaultIntl} from 'tests/helpers/intl-test-helper';
 import {renderWithContext} from 'tests/react_testing_utils';
 
 describe('components/PushSettings', () => {
-    test('should match snapshot, licensed', () => {
+    test('should match snapshot, licensed', async () => {
         const config = {
             EmailSettings: {
                 PushNotificationServer: 'https://global.push.mattermost.com',
@@ -34,7 +34,7 @@ describe('components/PushSettings', () => {
         };
 
         const ref = React.createRef<InstanceType<typeof PushSettings>>();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PushSettings
                 {...props}
                 ref={ref}
@@ -47,7 +47,7 @@ describe('components/PushSettings', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, unlicensed', () => {
+    test('should match snapshot, unlicensed', async () => {
         const config = {
             EmailSettings: {
                 PushNotificationServer: 'https://global.push.mattermost.com',
@@ -65,7 +65,7 @@ describe('components/PushSettings', () => {
             license: {},
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PushSettings {...props}/>,
         );
         expect(container).toMatchSnapshot();

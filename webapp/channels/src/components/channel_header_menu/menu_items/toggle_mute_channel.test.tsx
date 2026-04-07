@@ -24,7 +24,7 @@ describe('components/ChannelHeaderMenu/MenuItems/ToggleMuteChannel', () => {
     });
 
     test('renders the component correctly, public channel, not muted', async () => {
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <ToggleMuteChannel
                     channel={channel}
@@ -48,7 +48,7 @@ describe('components/ChannelHeaderMenu/MenuItems/ToggleMuteChannel', () => {
     });
 
     test('renders the component correctly, public channel, muted', async () => {
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <ToggleMuteChannel
                     channel={channel}
@@ -73,7 +73,7 @@ describe('components/ChannelHeaderMenu/MenuItems/ToggleMuteChannel', () => {
 
     test('renders the component correctly, dm channel, not muted', async () => {
         const channel = TestHelper.getChannelMock({type: 'D'});
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <ToggleMuteChannel
                     channel={channel}
@@ -97,7 +97,7 @@ describe('components/ChannelHeaderMenu/MenuItems/ToggleMuteChannel', () => {
     });
     test('renders the component correctly, dm channel, muted', async () => {
         const channel = TestHelper.getChannelMock({type: 'D'});
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <ToggleMuteChannel
                     channel={channel}

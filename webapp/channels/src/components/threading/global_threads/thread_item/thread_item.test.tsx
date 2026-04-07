@@ -203,41 +203,41 @@ describe('components/threading/global_threads/thread_item', () => {
         mockRouting.goToInChannel.mockClear();
     });
 
-    test('should report total number of replies', () => {
+    test('should report total number of replies', async () => {
         mockThread.reply_count = 9;
-        const {baseElement} = renderWithContext(<ThreadItem {...props}/>);
+        const {baseElement} = await renderWithContext(<ThreadItem {...props}/>);
         expect(baseElement).toMatchSnapshot();
         expect(screen.getByText('9 replies')).toBeInTheDocument();
     });
 
-    test('should report unread messages', () => {
+    test('should report unread messages', async () => {
         mockThread.reply_count = 11;
         mockThread.unread_replies = 2;
 
-        const {baseElement, container} = renderWithContext(<ThreadItem {...props}/>);
+        const {baseElement, container} = await renderWithContext(<ThreadItem {...props}/>);
         expect(baseElement).toMatchSnapshot();
         expect(container.querySelector('.dot-unreads')).toBeInTheDocument();
         expect(screen.getByText('2 new replies')).toBeInTheDocument();
     });
 
-    test('should report unread mentions', () => {
+    test('should report unread mentions', async () => {
         mockThread.reply_count = 16;
         mockThread.unread_replies = 5;
         mockThread.unread_mentions = 2;
 
-        const {baseElement, container} = renderWithContext(<ThreadItem {...props}/>);
+        const {baseElement, container} = await renderWithContext(<ThreadItem {...props}/>);
         expect(baseElement).toMatchSnapshot();
         expect(container.querySelector('.dot-mentions')?.textContent).toBe('2');
         expect(screen.getByText('5 new replies')).toBeInTheDocument();
     });
 
-    test('should show channel name', () => {
-        renderWithContext(<ThreadItem {...props}/>);
+    test('should show channel name', async () => {
+        await renderWithContext(<ThreadItem {...props}/>);
         expect(screen.getByText('Team name')).toBeInTheDocument();
     });
 
-    test('should pass required props to ThreadMenu', () => {
-        renderWithContext(<ThreadItem {...props}/>);
+    test('should pass required props to ThreadMenu', async () => {
+        await renderWithContext(<ThreadItem {...props}/>);
 
         expect(capturedThreadMenuProps).toHaveProperty('hasUnreads', Boolean(mockThread.unread_replies));
         expect(capturedThreadMenuProps).toHaveProperty('threadId', mockThread.id);
@@ -246,15 +246,15 @@ describe('components/threading/global_threads/thread_item', () => {
     });
 
     test('should call Utils.handleFormattedTextClick on click', async () => {
-        const {container} = renderWithContext(<ThreadItem {...props}/>);
+        const {container} = await renderWithContext(<ThreadItem {...props}/>);
         const spy = jest.spyOn(Utils, 'handleFormattedTextClick').mockImplementationOnce(jest.fn());
         await userEvent.click(container.querySelector('.preview')!);
 
         expect(spy).toHaveBeenCalledWith(expect.anything(), '/tname');
     });
 
-    test('should allow marking as unread on alt + click', () => {
-        const {container} = renderWithContext(<ThreadItem {...props}/>);
+    test('should allow marking as unread on alt + click', async () => {
+        const {container} = await renderWithContext(<ThreadItem {...props}/>);
         fireEvent.click(container.querySelector('div.ThreadItem')!, {altKey: true});
         expect(updateThreadRead).not.toHaveBeenCalled();
         expect(markLastPostInThreadAsUnread).toHaveBeenCalledWith('user_id', 'tid', '1y8hpek81byspd4enyk9mp1ncw');
@@ -262,8 +262,8 @@ describe('components/threading/global_threads/thread_item', () => {
         expect(mockDispatch).toHaveBeenCalledTimes(2);
     });
 
-    test('should set article tabIndex to -1 when thread is selected', () => {
-        const {container} = renderWithContext(
+    test('should set article tabIndex to -1 when thread is selected', async () => {
+        const {container} = await renderWithContext(
             <ThreadItem
                 {...props}
                 isSelected={true}
@@ -272,8 +272,8 @@ describe('components/threading/global_threads/thread_item', () => {
         expect(container.querySelector('div.ThreadItem')?.getAttribute('tabindex')).toBe('-1');
     });
 
-    test('should set article tabIndex to 0 when thread is not selected', () => {
-        const {container} = renderWithContext(
+    test('should set article tabIndex to 0 when thread is not selected', async () => {
+        const {container} = await renderWithContext(
             <ThreadItem
                 {...props}
                 isSelected={false}

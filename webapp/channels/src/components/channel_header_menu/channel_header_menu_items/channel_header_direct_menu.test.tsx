@@ -63,8 +63,8 @@ describe('components/ChannelHeaderMenu/ChannelHeaderDirectMenu', () => {
         isChannelAutotranslated: false,
     };
 
-    it('shows Channel Settings when RestrictDMAndGMAutotranslation is not enabled', () => {
-        renderWithContext(
+    it('shows Channel Settings when RestrictDMAndGMAutotranslation is not enabled', async () => {
+        await renderWithContext(
             <WithTestMenuContext>
                 <ChannelHeaderDirectMenu {...defaultProps}/>
             </WithTestMenuContext>,
@@ -75,8 +75,8 @@ describe('components/ChannelHeaderMenu/ChannelHeaderDirectMenu', () => {
         expect(screen.queryByText('Edit Header')).not.toBeInTheDocument();
     });
 
-    it('shows Edit Header when RestrictDMAndGMAutotranslation is enabled', () => {
-        renderWithContext(
+    it('shows Edit Header when RestrictDMAndGMAutotranslation is enabled', async () => {
+        await renderWithContext(
             <WithTestMenuContext>
                 <ChannelHeaderDirectMenu {...defaultProps}/>
             </WithTestMenuContext>,
@@ -87,8 +87,8 @@ describe('components/ChannelHeaderMenu/ChannelHeaderDirectMenu', () => {
         expect(screen.queryByText('Channel Settings')).not.toBeInTheDocument();
     });
 
-    it('shows Auto-translation menu when isChannelAutotranslated is true', () => {
-        renderWithContext(
+    it('shows Auto-translation menu when isChannelAutotranslated is true', async () => {
+        await renderWithContext(
             <WithTestMenuContext>
                 <ChannelHeaderDirectMenu
                     {...defaultProps}
@@ -101,8 +101,8 @@ describe('components/ChannelHeaderMenu/ChannelHeaderDirectMenu', () => {
         expect(screen.getByText(/Auto-translation/i)).toBeInTheDocument();
     });
 
-    it('does not show Auto-translation menu when isChannelAutotranslated is false', () => {
-        renderWithContext(
+    it('does not show Auto-translation menu when isChannelAutotranslated is false', async () => {
+        await renderWithContext(
             <WithTestMenuContext>
                 <ChannelHeaderDirectMenu
                     {...defaultProps}

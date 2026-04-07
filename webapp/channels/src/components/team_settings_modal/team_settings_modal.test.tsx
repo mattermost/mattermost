@@ -63,7 +63,7 @@ describe('components/team_settings_modal', () => {
     };
 
     test('should hide the modal when the close button is clicked', async () => {
-        renderWithContext(
+        await renderWithContext(
             <TeamSettingsModal
                 {...baseProps}
             />,
@@ -80,7 +80,7 @@ describe('components/team_settings_modal', () => {
     });
 
     test('should display access tab when can invite users', async () => {
-        renderWithContext(
+        await renderWithContext(
             <TeamSettingsModal
                 {...baseProps}
             />,
@@ -107,7 +107,7 @@ describe('components/team_settings_modal', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <TeamSettingsModal
                 {...baseProps}
             />,
@@ -120,7 +120,7 @@ describe('components/team_settings_modal', () => {
     });
 
     test('should warn on first close attempt with unsaved changes and stay open', async () => {
-        renderWithContext(
+        await renderWithContext(
             <TeamSettingsModal
                 {...baseProps}
             />,
@@ -151,7 +151,7 @@ describe('components/team_settings_modal', () => {
     });
 
     test('should allow close on second attempt with unsaved changes (warn-once behavior)', async () => {
-        renderWithContext(
+        await renderWithContext(
             <TeamSettingsModal
                 {...baseProps}
             />,
@@ -181,7 +181,7 @@ describe('components/team_settings_modal', () => {
     });
 
     test('should close modal normally when no unsaved changes', async () => {
-        renderWithContext(
+        await renderWithContext(
             <TeamSettingsModal
                 {...baseProps}
             />,
@@ -202,7 +202,7 @@ describe('components/team_settings_modal', () => {
     });
 
     test('should reset warning state when changes are saved', async () => {
-        renderWithContext(
+        await renderWithContext(
             <TeamSettingsModal
                 {...baseProps}
             />,

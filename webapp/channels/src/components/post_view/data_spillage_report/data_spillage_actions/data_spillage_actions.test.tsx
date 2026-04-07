@@ -10,11 +10,11 @@ import {TestHelper} from 'utils/test_helper';
 import DataSpillageAction from './data_spillage_actions';
 
 describe('DataSpillageAction', () => {
-    test('should render both action buttons', () => {
+    test('should render both action buttons', async () => {
         const flaggedPost = TestHelper.getPostMock();
         const reportingUser = TestHelper.getUserMock();
 
-        renderWithContext(
+        await renderWithContext(
             <DataSpillageAction
                 flaggedPost={flaggedPost}
                 reportingUser={reportingUser}

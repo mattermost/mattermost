@@ -56,8 +56,8 @@ describe('SystemUsersListAction Component', () => {
         jest.clearAllMocks();
     });
 
-    const renderComponent = (authServiceUser: UserProfile) => {
-        renderWithContext(
+    const renderComponent = async (authServiceUser: UserProfile) => {
+        await renderWithContext(
             <SystemUsersListAction
                 user={authServiceUser}
                 currentUser={currentUser}

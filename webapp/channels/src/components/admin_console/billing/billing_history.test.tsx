@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import {Client4} from 'mattermost-redux/client';
+
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {CloudLinks, HostedCustomerLinks} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
@@ -65,6 +67,16 @@ const invoiceB = TestHelper.getInvoiceMock({
 });
 
 describe('components/admin_console/billing/billing_history', () => {
+    beforeEach(() => {
+        jest.spyOn(Client4, 'getInvoices').mockResolvedValue(
+            [invoiceA, invoiceB],
+        );
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     // required state to mount using the provider
     const state = {
         entities: {
@@ -94,8 +106,8 @@ describe('components/admin_console/billing/billing_history', () => {
         views: {},
     };
 
-    test('should match the default state of the component with given props', () => {
-        renderWithContext(
+    test('should match the default state of the component with given props', async () => {
+        await renderWithContext(
             <BillingHistory/>,
             state,
         );
@@ -110,12 +122,13 @@ describe('components/admin_console/billing/billing_history', () => {
         expect(screen.getByTestId(invoiceB.id)).toHaveTextContent('Paid');
     });
 
-    test('Billing history section shows template when no invoices have been emitted yet', () => {
+    test('Billing history section shows template when no invoices have been emitted yet', async () => {
+        jest.spyOn(Client4, 'getInvoices').mockResolvedValue([]);
         const noBillingHistoryState = {
             ...state,
             entities: {...state.entities, cloud: {invoices: {}, errors: {}}},
         };
-        renderWithContext(
+        await renderWithContext(
             <BillingHistory/>,
             noBillingHistoryState,
         );
@@ -136,8 +149,8 @@ describe('components/admin_console/billing/billing_history', () => {
         expect(screen.getByTestId('no-invoices')).toHaveTextContent(NO_INVOICES_LEGEND);
     });
 
-    test('Billing history section shows two invoices to download', () => {
-        renderWithContext(
+    test('Billing history section shows two invoices to download', async () => {
+        await renderWithContext(
             <BillingHistory/>,
             state,
         );
@@ -150,8 +163,8 @@ describe('components/admin_console/billing/billing_history', () => {
         expect(screen.getAllByTestId('billingHistoryTableRow')).toHaveLength(2);
     });
 
-    test('Billing history section download button has the target property set as _self so it works well in desktop app', () => {
-        renderWithContext(
+    test('Billing history section download button has the target property set as _self so it works well in desktop app', async () => {
+        await renderWithContext(
             <BillingHistory/>,
             state,
         );
@@ -165,16 +178,16 @@ describe('components/admin_console/billing/billing_history', () => {
 
 describe('NoBillingHistorySection', () => {
     const state = {entities: {users: {}, general: {config: {}, license: {}}}} as any;
-    test('goes to cloud docs on cloud', () => {
-        renderWithContext(
+    test('goes to cloud docs on cloud', async () => {
+        await renderWithContext(
             <NoBillingHistorySection selfHosted={false}/>,
             state,
         );
         expect((screen.getByRole('link') as HTMLAnchorElement).href).toContain(CloudLinks.BILLING_DOCS);
     });
 
-    test('goes to self-hosted docs on self-hosted', () => {
-        renderWithContext(
+    test('goes to self-hosted docs on self-hosted', async () => {
+        await renderWithContext(
             <NoBillingHistorySection selfHosted={true}/>,
             state,
         );

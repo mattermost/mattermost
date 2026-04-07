@@ -53,8 +53,8 @@ describe('components/integrations/AbstractOAuthApp', () => {
         action: jest.fn(),
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <AbstractOAuthApp {...baseProps}/>,
         );
         expect(container).toMatchSnapshot();
@@ -63,7 +63,7 @@ describe('components/integrations/AbstractOAuthApp', () => {
     test('should match snapshot, displays client error', async () => {
         const newServerError = 'serverError';
         const props = {...baseProps, serverError: newServerError};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <AbstractOAuthApp {...props}/>,
         );
 
@@ -79,7 +79,7 @@ describe('components/integrations/AbstractOAuthApp', () => {
 
     test('should call action function', async () => {
         const props = {...baseProps, action};
-        renderWithContext(
+        await renderWithContext(
             <AbstractOAuthApp {...props}/>,
         );
 
@@ -95,7 +95,7 @@ describe('components/integrations/AbstractOAuthApp', () => {
 
     test('should have correct state when updateName is called', async () => {
         const props = {...baseProps, action};
-        renderWithContext(
+        await renderWithContext(
             <AbstractOAuthApp {...props}/>,
         );
 
@@ -111,7 +111,7 @@ describe('components/integrations/AbstractOAuthApp', () => {
 
     test('should have correct state when updateTrusted is called', async () => {
         const props = {...baseProps, action};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <AbstractOAuthApp {...props}/>,
         );
 
@@ -128,7 +128,7 @@ describe('components/integrations/AbstractOAuthApp', () => {
 
     test('should have correct state when updateDescription is called', async () => {
         const props = {...baseProps, action};
-        renderWithContext(
+        await renderWithContext(
             <AbstractOAuthApp {...props}/>,
         );
 
@@ -144,7 +144,7 @@ describe('components/integrations/AbstractOAuthApp', () => {
 
     test('should have correct state when updateHomepage is called', async () => {
         const props = {...baseProps, action};
-        renderWithContext(
+        await renderWithContext(
             <AbstractOAuthApp {...props}/>,
         );
 
@@ -160,7 +160,7 @@ describe('components/integrations/AbstractOAuthApp', () => {
 
     test('should have correct state when updateIconUrl is called', async () => {
         const props = {...baseProps, action};
-        renderWithContext(
+        await renderWithContext(
             <AbstractOAuthApp {...props}/>,
         );
 
@@ -176,7 +176,7 @@ describe('components/integrations/AbstractOAuthApp', () => {
 
     test('should have correct state when handleSubmit is called', async () => {
         const props = {...baseProps, action};
-        renderWithContext(
+        await renderWithContext(
             <AbstractOAuthApp {...props}/>,
         );
 
@@ -209,7 +209,7 @@ describe('components/integrations/AbstractOAuthApp', () => {
             is_dynamically_registered: true,
         };
         const props = {...baseProps, action, initialApp: dynamicApp};
-        renderWithContext(
+        await renderWithContext(
             <AbstractOAuthApp {...props}/>,
         );
 
@@ -237,7 +237,7 @@ describe('components/integrations/AbstractOAuthApp', () => {
             is_dynamically_registered: false,
         };
         const props = {...baseProps, action, initialApp: regularApp};
-        renderWithContext(
+        await renderWithContext(
             <AbstractOAuthApp {...props}/>,
         );
 

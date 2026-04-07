@@ -34,14 +34,14 @@ describe('RecapConfiguration', () => {
     };
 
     describe('Recap Name Input', () => {
-        it('should render name input field', () => {
-            renderWithContext(<RecapConfiguration {...defaultProps}/>);
+        it('should render name input field', async () => {
+            await renderWithContext(<RecapConfiguration {...defaultProps}/>);
 
             expect(screen.getByPlaceholderText('Give your recap a name')).toBeInTheDocument();
         });
 
-        it('should display current recap name value', () => {
-            renderWithContext(
+        it('should display current recap name value', async () => {
+            await renderWithContext(
                 <RecapConfiguration
                     {...defaultProps}
                     recapName='My Test Recap'
@@ -54,7 +54,7 @@ describe('RecapConfiguration', () => {
 
         it('should call setRecapName when name is changed', async () => {
             const setRecapName = jest.fn();
-            renderWithContext(
+            await renderWithContext(
                 <RecapConfiguration
                     {...defaultProps}
                     setRecapName={setRecapName}
@@ -67,8 +67,8 @@ describe('RecapConfiguration', () => {
             expect(setRecapName).toHaveBeenCalled();
         });
 
-        it('should enforce maxLength of 100 characters', () => {
-            renderWithContext(<RecapConfiguration {...defaultProps}/>);
+        it('should enforce maxLength of 100 characters', async () => {
+            await renderWithContext(<RecapConfiguration {...defaultProps}/>);
 
             const input = screen.getByPlaceholderText('Give your recap a name') as HTMLInputElement;
             expect(input.maxLength).toBe(100);
@@ -76,8 +76,8 @@ describe('RecapConfiguration', () => {
     });
 
     describe('Recap Type Selection', () => {
-        it('should render both recap type options', () => {
-            renderWithContext(<RecapConfiguration {...defaultProps}/>);
+        it('should render both recap type options', async () => {
+            await renderWithContext(<RecapConfiguration {...defaultProps}/>);
 
             expect(screen.getByText('Recap selected channels')).toBeInTheDocument();
             expect(screen.getByText('Recap all my unreads')).toBeInTheDocument();
@@ -85,7 +85,7 @@ describe('RecapConfiguration', () => {
 
         it('should call setRecapType when selected channels option is clicked', async () => {
             const setRecapType = jest.fn();
-            renderWithContext(
+            await renderWithContext(
                 <RecapConfiguration
                     {...defaultProps}
                     setRecapType={setRecapType}
@@ -100,7 +100,7 @@ describe('RecapConfiguration', () => {
 
         it('should call setRecapType when all unreads option is clicked', async () => {
             const setRecapType = jest.fn();
-            renderWithContext(
+            await renderWithContext(
                 <RecapConfiguration
                     {...defaultProps}
                     setRecapType={setRecapType}
@@ -113,8 +113,8 @@ describe('RecapConfiguration', () => {
             expect(setRecapType).toHaveBeenCalledWith('all_unreads');
         });
 
-        it('should show selected state for selected channels option', () => {
-            renderWithContext(
+        it('should show selected state for selected channels option', async () => {
+            await renderWithContext(
                 <RecapConfiguration
                     {...defaultProps}
                     recapType='selected'
@@ -125,8 +125,8 @@ describe('RecapConfiguration', () => {
             expect(selectedButton).toHaveClass('selected');
         });
 
-        it('should show selected state for all unreads option', () => {
-            renderWithContext(
+        it('should show selected state for all unreads option', async () => {
+            await renderWithContext(
                 <RecapConfiguration
                     {...defaultProps}
                     recapType='all_unreads'
@@ -137,8 +137,8 @@ describe('RecapConfiguration', () => {
             expect(allUnreadsButton).toHaveClass('selected');
         });
 
-        it('should show check icon when selected channels is selected', () => {
-            renderWithContext(
+        it('should show check icon when selected channels is selected', async () => {
+            await renderWithContext(
                 <RecapConfiguration
                     {...defaultProps}
                     recapType='selected'
@@ -150,8 +150,8 @@ describe('RecapConfiguration', () => {
             expect(checkIcon).toBeInTheDocument();
         });
 
-        it('should show check icon when all unreads is selected', () => {
-            renderWithContext(
+        it('should show check icon when all unreads is selected', async () => {
+            await renderWithContext(
                 <RecapConfiguration
                     {...defaultProps}
                     recapType='all_unreads'
@@ -165,8 +165,8 @@ describe('RecapConfiguration', () => {
     });
 
     describe('Unread Channels Handling', () => {
-        it('should disable all unreads option when no unread channels', () => {
-            renderWithContext(
+        it('should disable all unreads option when no unread channels', async () => {
+            await renderWithContext(
                 <RecapConfiguration
                     {...defaultProps}
                     unreadChannels={[]}
@@ -178,8 +178,8 @@ describe('RecapConfiguration', () => {
             expect(allUnreadsButton).toHaveClass('disabled');
         });
 
-        it('should enable all unreads option when unread channels exist', () => {
-            renderWithContext(<RecapConfiguration {...defaultProps}/>);
+        it('should enable all unreads option when unread channels exist', async () => {
+            await renderWithContext(<RecapConfiguration {...defaultProps}/>);
 
             const allUnreadsButton = screen.getByText('Recap all my unreads').closest('button');
             expect(allUnreadsButton).not.toBeDisabled();
@@ -188,7 +188,7 @@ describe('RecapConfiguration', () => {
 
         it('should not call setRecapType when all unreads is clicked with no unread channels', async () => {
             const setRecapType = jest.fn();
-            renderWithContext(
+            await renderWithContext(
                 <RecapConfiguration
                     {...defaultProps}
                     setRecapType={setRecapType}
@@ -202,8 +202,8 @@ describe('RecapConfiguration', () => {
             expect(setRecapType).not.toHaveBeenCalled();
         });
 
-        it('should show tooltip when all unreads option is disabled', () => {
-            renderWithContext(
+        it('should show tooltip when all unreads option is disabled', async () => {
+            await renderWithContext(
                 <RecapConfiguration
                     {...defaultProps}
                     unreadChannels={[]}
@@ -216,8 +216,8 @@ describe('RecapConfiguration', () => {
     });
 
     describe('Auto-focus', () => {
-        it('should auto-focus the name input on mount', () => {
-            renderWithContext(<RecapConfiguration {...defaultProps}/>);
+        it('should auto-focus the name input on mount', async () => {
+            await renderWithContext(<RecapConfiguration {...defaultProps}/>);
 
             const input = screen.getByPlaceholderText('Give your recap a name');
             expect(input).toHaveFocus();
@@ -225,14 +225,14 @@ describe('RecapConfiguration', () => {
     });
 
     describe('Name Validation', () => {
-        it('should not show error before input is blurred', () => {
-            renderWithContext(<RecapConfiguration {...defaultProps}/>);
+        it('should not show error before input is blurred', async () => {
+            await renderWithContext(<RecapConfiguration {...defaultProps}/>);
 
             expect(screen.queryByText('This field is required')).not.toBeInTheDocument();
         });
 
         it('should show error message when input is blurred with empty name', async () => {
-            renderWithContext(<RecapConfiguration {...defaultProps}/>);
+            await renderWithContext(<RecapConfiguration {...defaultProps}/>);
 
             const input = screen.getByPlaceholderText('Give your recap a name');
             await userEvent.click(input);
@@ -242,7 +242,7 @@ describe('RecapConfiguration', () => {
         });
 
         it('should not show error when blurred with a valid name', async () => {
-            renderWithContext(
+            await renderWithContext(
                 <RecapConfiguration
                     {...defaultProps}
                     recapName='My Recap'
@@ -257,7 +257,7 @@ describe('RecapConfiguration', () => {
         });
 
         it('should add input-error class when error is shown', async () => {
-            renderWithContext(<RecapConfiguration {...defaultProps}/>);
+            await renderWithContext(<RecapConfiguration {...defaultProps}/>);
 
             const input = screen.getByPlaceholderText('Give your recap a name');
             await userEvent.click(input);
@@ -267,7 +267,7 @@ describe('RecapConfiguration', () => {
         });
 
         it('should set aria-invalid when error is shown', async () => {
-            renderWithContext(<RecapConfiguration {...defaultProps}/>);
+            await renderWithContext(<RecapConfiguration {...defaultProps}/>);
 
             const input = screen.getByPlaceholderText('Give your recap a name');
             await userEvent.click(input);
@@ -278,28 +278,28 @@ describe('RecapConfiguration', () => {
     });
 
     describe('Form Labels', () => {
-        it('should display name label', () => {
-            renderWithContext(<RecapConfiguration {...defaultProps}/>);
+        it('should display name label', async () => {
+            await renderWithContext(<RecapConfiguration {...defaultProps}/>);
 
             expect(screen.getByText('Give your recap a name')).toBeInTheDocument();
         });
 
-        it('should display type selection label', () => {
-            renderWithContext(<RecapConfiguration {...defaultProps}/>);
+        it('should display type selection label', async () => {
+            await renderWithContext(<RecapConfiguration {...defaultProps}/>);
 
             expect(screen.getByText('What type of recap would you like?')).toBeInTheDocument();
         });
     });
 
     describe('Type Descriptions', () => {
-        it('should show description for selected channels option', () => {
-            renderWithContext(<RecapConfiguration {...defaultProps}/>);
+        it('should show description for selected channels option', async () => {
+            await renderWithContext(<RecapConfiguration {...defaultProps}/>);
 
             expect(screen.getByText('Choose the channels you would like included in your recap')).toBeInTheDocument();
         });
 
-        it('should show description for all unreads option', () => {
-            renderWithContext(<RecapConfiguration {...defaultProps}/>);
+        it('should show description for all unreads option', async () => {
+            await renderWithContext(<RecapConfiguration {...defaultProps}/>);
 
             expect(screen.getByText('Create a recap of all unread messages across your channels.')).toBeInTheDocument();
         });

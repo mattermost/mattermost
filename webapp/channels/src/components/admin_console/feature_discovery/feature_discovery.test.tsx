@@ -22,7 +22,7 @@ describe('components/feature_discovery', () => {
             const getCloudSubscription = jest.fn();
             const openModal = jest.fn();
 
-            renderWithContext(
+            await renderWithContext(
                 <FeatureDiscovery
                     featureName='test'
                     minimumSKURequiredForFeature={LicenseSkus.Professional}
@@ -81,8 +81,8 @@ describe('components/feature_discovery', () => {
             const getCloudSubscription = jest.fn();
             const openModal = jest.fn();
 
-            await waitFor(() => {
-                renderWithContext(
+            await waitFor(async () => {
+                await renderWithContext(
                     <FeatureDiscovery
                         featureName='test'
                         minimumSKURequiredForFeature={LicenseSkus.Professional}
@@ -138,12 +138,12 @@ describe('components/feature_discovery', () => {
             expect(screen.queryByRole('button', {name: 'Start trial'})).not.toBeInTheDocument();
         });
 
-        test('should match component state when is cloud environment and subscription is not loaded yet in redux store', () => {
+        test('should match component state when is cloud environment and subscription is not loaded yet in redux store', async () => {
             const getPrevTrialLicense = jest.fn();
             const getCloudSubscription = jest.fn();
             const openModal = jest.fn();
 
-            renderWithContext(
+            await renderWithContext(
                 <FeatureDiscovery
                     featureName='test'
                     minimumSKURequiredForFeature={LicenseSkus.Professional}
@@ -192,12 +192,12 @@ describe('components/feature_discovery', () => {
             expect(screen.queryByRole('button', {name: 'Start trial'})).not.toBeInTheDocument();
         });
 
-        test('should show Contact Sales when isEnterpriseReady is false (Team Edition)', () => {
+        test('should show Contact Sales when isEnterpriseReady is false (Team Edition)', async () => {
             const getPrevTrialLicense = jest.fn();
             const getCloudSubscription = jest.fn();
             const openModal = jest.fn();
 
-            renderWithContext(
+            await renderWithContext(
                 <FeatureDiscovery
                     featureName='test'
                     minimumSKURequiredForFeature={LicenseSkus.Professional}
@@ -245,12 +245,12 @@ describe('components/feature_discovery', () => {
             expect(openModal).not.toHaveBeenCalled();
         });
 
-        test('should show Contact Sales when previous trial license exists', () => {
+        test('should show Contact Sales when previous trial license exists', async () => {
             const getPrevTrialLicense = jest.fn();
             const getCloudSubscription = jest.fn();
             const openModal = jest.fn();
 
-            renderWithContext(
+            await renderWithContext(
                 <FeatureDiscovery
                     featureName='test'
                     minimumSKURequiredForFeature={LicenseSkus.Professional}
@@ -298,12 +298,12 @@ describe('components/feature_discovery', () => {
             expect(openModal).not.toHaveBeenCalled();
         });
 
-        test('should show Start Trial when isEnterpriseReady is true and no previous trial license', () => {
+        test('should show Start Trial when isEnterpriseReady is true and no previous trial license', async () => {
             const getPrevTrialLicense = jest.fn();
             const getCloudSubscription = jest.fn();
             const openModal = jest.fn();
 
-            renderWithContext(
+            await renderWithContext(
                 <FeatureDiscovery
                     featureName='test'
                     minimumSKURequiredForFeature={LicenseSkus.Professional}

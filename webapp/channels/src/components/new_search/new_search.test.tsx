@@ -22,7 +22,7 @@ jest.mock('react-redux', () => ({
 
 describe('components/new_search/NewSearch', () => {
     test('should open the search box on click search', async () => {
-        renderWithContext(<NewSearch/>);
+        await renderWithContext(<NewSearch/>);
         expect(screen.queryByText('Messages')).not.toBeInTheDocument();
 
         await userEvent.click(screen.getByText('Search'));
@@ -31,7 +31,7 @@ describe('components/new_search/NewSearch', () => {
     });
 
     test('should open the search box when pressing any key differnt than tab', async () => {
-        renderWithContext(<NewSearch/>);
+        await renderWithContext(<NewSearch/>);
         expect(screen.queryByText('Messages')).not.toBeInTheDocument();
 
         act(() => {
@@ -46,7 +46,7 @@ describe('components/new_search/NewSearch', () => {
     });
 
     test('should close the search box on click outside the searchbox', async () => {
-        renderWithContext(<div><NewSearch/>{'Outside'}</div>);
+        await renderWithContext(<div><NewSearch/>{'Outside'}</div>);
 
         expect(screen.queryByText('Messages')).not.toBeInTheDocument();
 
@@ -60,7 +60,7 @@ describe('components/new_search/NewSearch', () => {
     });
 
     test('should close the search box on Esc key is pressed', async () => {
-        renderWithContext(<NewSearch/>);
+        await renderWithContext(<NewSearch/>);
 
         expect(screen.queryByText('Messages')).not.toBeInTheDocument();
 
@@ -74,7 +74,7 @@ describe('components/new_search/NewSearch', () => {
     });
 
     test('should close on search after calling dispatch', async () => {
-        renderWithContext(<NewSearch/>);
+        await renderWithContext(<NewSearch/>);
 
         expect(screen.queryByText('Messages')).not.toBeInTheDocument();
 
@@ -92,7 +92,7 @@ describe('components/new_search/NewSearch', () => {
     });
 
     test('should open the search ctrl+shift+f is press on web app', async () => {
-        renderWithContext(<div><NewSearch/>{'Outside'}</div>);
+        await renderWithContext(<div><NewSearch/>{'Outside'}</div>);
 
         expect(screen.queryByText('Messages')).not.toBeInTheDocument();
 

@@ -63,8 +63,8 @@ describe('components/global/product_switcher', () => {
         },
     };
 
-    it('should match snapshot', () => {
-        const {container} = renderWithContext(
+    it('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <ProductMenu/>,
             baseState,
         );
@@ -72,7 +72,7 @@ describe('components/global/product_switcher', () => {
         expect(container).toMatchSnapshot();
     });
 
-    it('should match snapshot without license', () => {
+    it('should match snapshot without license', async () => {
         const state = {
             ...baseState,
             entities: {
@@ -86,7 +86,7 @@ describe('components/global/product_switcher', () => {
             },
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ProductMenu/>,
             state,
         );
@@ -94,7 +94,7 @@ describe('components/global/product_switcher', () => {
         expect(container).toMatchSnapshot();
     });
 
-    it('should render once when there are no top level products available', () => {
+    it('should render once when there are no top level products available', async () => {
         const state = {
             ...baseState,
             views: {
@@ -105,7 +105,7 @@ describe('components/global/product_switcher', () => {
             },
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ProductMenu/>,
             state,
         );
@@ -119,7 +119,7 @@ describe('components/global/product_switcher', () => {
         expect(container).toMatchSnapshot();
     });
 
-    it('should render the correct amount of times when there are products available', () => {
+    it('should render the correct amount of times when there are products available', async () => {
         const state = {
             ...baseState,
             views: {
@@ -138,7 +138,7 @@ describe('components/global/product_switcher', () => {
         const spyProducts = jest.spyOn(productUtils, 'useProducts');
         spyProducts.mockReturnValue(products);
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ProductMenu/>,
             state,
         );
@@ -148,7 +148,7 @@ describe('components/global/product_switcher', () => {
         expect(container).toMatchSnapshot();
     });
 
-    it('should have an active button state when the switcher menu is open', () => {
+    it('should have an active button state when the switcher menu is open', async () => {
         const state = {
             ...baseState,
             views: {
@@ -159,7 +159,7 @@ describe('components/global/product_switcher', () => {
             },
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ProductMenu/>,
             state,
         );
@@ -169,7 +169,7 @@ describe('components/global/product_switcher', () => {
         expect(container).toMatchSnapshot();
     });
 
-    it('should match snapshot with product switcher menu', () => {
+    it('should match snapshot with product switcher menu', async () => {
         const state = {
             ...baseState,
             views: {
@@ -180,7 +180,7 @@ describe('components/global/product_switcher', () => {
             },
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ProductMenu/>,
             state,
         );
@@ -189,7 +189,7 @@ describe('components/global/product_switcher', () => {
         expect(container).toMatchSnapshot();
     });
 
-    it('should render ProductBrandingFreeEdition for Entry license', () => {
+    it('should render ProductBrandingFreeEdition for Entry license', async () => {
         const state = {
             ...baseState,
             entities: {
@@ -204,7 +204,7 @@ describe('components/global/product_switcher', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ProductMenu/>,
             state,
         );
@@ -213,7 +213,7 @@ describe('components/global/product_switcher', () => {
         expect(screen.queryByTestId('product-branding')).not.toBeInTheDocument();
     });
 
-    it('should render ProductBrandingFreeEdition for unlicensed', () => {
+    it('should render ProductBrandingFreeEdition for unlicensed', async () => {
         const state = {
             ...baseState,
             entities: {
@@ -227,7 +227,7 @@ describe('components/global/product_switcher', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ProductMenu/>,
             state,
         );
@@ -236,7 +236,7 @@ describe('components/global/product_switcher', () => {
         expect(screen.queryByTestId('product-branding')).not.toBeInTheDocument();
     });
 
-    it('should render ProductBranding for Professional license', () => {
+    it('should render ProductBranding for Professional license', async () => {
         const state = {
             ...baseState,
             entities: {
@@ -251,7 +251,7 @@ describe('components/global/product_switcher', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ProductMenu/>,
             state,
         );
@@ -260,7 +260,7 @@ describe('components/global/product_switcher', () => {
         expect(screen.queryByTestId('product-branding-free-edition')).not.toBeInTheDocument();
     });
 
-    it('should render ProductBranding for Enterprise license', () => {
+    it('should render ProductBranding for Enterprise license', async () => {
         const state = {
             ...baseState,
             entities: {
@@ -275,7 +275,7 @@ describe('components/global/product_switcher', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ProductMenu/>,
             state,
         );
@@ -284,7 +284,7 @@ describe('components/global/product_switcher', () => {
         expect(screen.queryByTestId('product-branding-free-edition')).not.toBeInTheDocument();
     });
 
-    it('should match snapshot for Entry license', () => {
+    it('should match snapshot for Entry license', async () => {
         const state = {
             ...baseState,
             entities: {
@@ -299,7 +299,7 @@ describe('components/global/product_switcher', () => {
             },
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ProductMenu/>,
             state,
         );

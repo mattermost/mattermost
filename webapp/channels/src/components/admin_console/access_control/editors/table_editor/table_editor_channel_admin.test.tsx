@@ -81,7 +81,7 @@ describe('TableEditor - User Self-Exclusion', () => {
             validateExpressionAgainstRequester: mockValidateExpression,
         };
 
-        renderWithContext(<TableEditor {...props}/>, {});
+        await renderWithContext(<TableEditor {...props}/>, {});
 
         // Wait for component to load and validate
         await waitFor(() => {
@@ -104,7 +104,7 @@ describe('TableEditor - User Self-Exclusion', () => {
             validateExpressionAgainstRequester: mockValidateExpression,
         };
 
-        renderWithContext(<TableEditor {...props}/>, {});
+        await renderWithContext(<TableEditor {...props}/>, {});
 
         // Wait for validation to complete
         await waitFor(() => {
@@ -130,7 +130,7 @@ describe('TableEditor - User Self-Exclusion', () => {
             validateExpressionAgainstRequester: mockValidateExpression,
         };
 
-        renderWithContext(<TableEditor {...props}/>, {});
+        await renderWithContext(<TableEditor {...props}/>, {});
 
         // Wait for component to load
         await waitFor(() => {
@@ -156,7 +156,7 @@ describe('TableEditor - User Self-Exclusion', () => {
             validateExpressionAgainstRequester: mockValidateExpression,
         };
 
-        renderWithContext(<TableEditor {...props}/>, {});
+        await renderWithContext(<TableEditor {...props}/>, {});
 
         // Wait for validation to complete
         await waitFor(() => {
@@ -177,7 +177,7 @@ describe('TableEditor - User Self-Exclusion', () => {
             validateExpressionAgainstRequester: mockValidateExpression,
         };
 
-        renderWithContext(<TableEditor {...props}/>, {});
+        await renderWithContext(<TableEditor {...props}/>, {});
 
         // Wait for validation attempt
         await waitFor(() => {
@@ -199,7 +199,7 @@ describe('TableEditor - User Self-Exclusion', () => {
             validateExpressionAgainstRequester: mockValidateExpression,
         };
 
-        renderWithContext(<TableEditor {...props}/>, {});
+        await renderWithContext(<TableEditor {...props}/>, {});
 
         // Wait for component to render
         await waitFor(() => {
@@ -222,7 +222,7 @@ describe('TableEditor - User Self-Exclusion', () => {
             // validateExpressionAgainstRequester not provided
         };
 
-        renderWithContext(<TableEditor {...props}/>, {});
+        await renderWithContext(<TableEditor {...props}/>, {});
 
         // Wait for component to render
         await waitFor(() => {
@@ -245,7 +245,7 @@ describe('TableEditor - User Self-Exclusion', () => {
             validateExpressionAgainstRequester: mockValidateExpression,
         };
 
-        const {rerender} = renderWithContext(<TableEditor {...props}/>, {});
+        const {rerender} = await renderWithContext(<TableEditor {...props}/>, {});
 
         // Wait for initial validation
         await waitFor(() => {

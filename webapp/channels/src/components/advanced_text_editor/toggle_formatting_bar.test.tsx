@@ -12,8 +12,8 @@ jest.mock('components/with_tooltip', () => {
 });
 
 describe('ToggleFormattingBar Component', () => {
-    it('should render correctly with default props', () => {
-        renderWithContext(
+    it('should render correctly with default props', async () => {
+        await renderWithContext(
             <ToggleFormattingBar
                 onClick={jest.fn()}
                 active={false}
@@ -26,7 +26,7 @@ describe('ToggleFormattingBar Component', () => {
 
     it('should call onClick handler when clicked', async () => {
         const onClick = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <ToggleFormattingBar
                 onClick={onClick}
                 active={false}
@@ -38,9 +38,9 @@ describe('ToggleFormattingBar Component', () => {
         expect(onClick).toHaveBeenCalledTimes(1);
     });
 
-    it('should not be clickable when disabled', () => {
+    it('should not be clickable when disabled', async () => {
         const onClick = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <ToggleFormattingBar
                 onClick={onClick}
                 active={false}
@@ -53,8 +53,8 @@ describe('ToggleFormattingBar Component', () => {
         expect(onClick).not.toHaveBeenCalled();
     });
 
-    it('should have the correct id based on active prop', () => {
-        renderWithContext(
+    it('should have the correct id based on active prop', async () => {
+        await renderWithContext(
             <ToggleFormattingBar
                 onClick={jest.fn()}
                 active={true}

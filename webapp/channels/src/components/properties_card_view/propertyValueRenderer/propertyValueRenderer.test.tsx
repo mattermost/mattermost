@@ -55,7 +55,7 @@ jest.mock('./timestamp_property_renderer/timestamp_property_renderer', () => {
 
 describe('PropertyValueRenderer', () => {
     describe('text field type', () => {
-        it('should render TextPropertyRenderer for text subtype', () => {
+        it('should render TextPropertyRenderer for text subtype', async () => {
             const field = {
                 id: 'field-1',
                 name: 'Text Field',
@@ -69,7 +69,7 @@ describe('PropertyValueRenderer', () => {
                 value: 'test text',
             } as PropertyValue<string>;
 
-            renderWithContext(
+            await renderWithContext(
                 <PropertyValueRenderer
                     field={field}
                     value={value}
@@ -80,7 +80,7 @@ describe('PropertyValueRenderer', () => {
             expect(screen.getByText('test text')).toBeInTheDocument();
         });
 
-        it('should render TextPropertyRenderer for text field without subType', () => {
+        it('should render TextPropertyRenderer for text field without subType', async () => {
             const field = {
                 id: 'field-1',
                 name: 'Text Field',
@@ -92,7 +92,7 @@ describe('PropertyValueRenderer', () => {
                 value: 'test text',
             } as PropertyValue<string>;
 
-            renderWithContext(
+            await renderWithContext(
                 <PropertyValueRenderer
                     field={field}
                     value={value}
@@ -103,7 +103,7 @@ describe('PropertyValueRenderer', () => {
             expect(screen.getByText('test text')).toBeInTheDocument();
         });
 
-        it('should render PostPreviewPropertyRenderer for post subtype', () => {
+        it('should render PostPreviewPropertyRenderer for post subtype', async () => {
             const field = {
                 id: 'field-1',
                 name: 'Post Field',
@@ -117,7 +117,7 @@ describe('PropertyValueRenderer', () => {
                 value: 'post-id-123',
             } as PropertyValue<string>;
 
-            renderWithContext(
+            await renderWithContext(
                 <PropertyValueRenderer
                     field={field}
                     value={value}
@@ -128,7 +128,7 @@ describe('PropertyValueRenderer', () => {
             expect(screen.getByText('post-id-123')).toBeInTheDocument();
         });
 
-        it('should render ChannelPropertyRenderer for channel subtype', () => {
+        it('should render ChannelPropertyRenderer for channel subtype', async () => {
             const field = {
                 id: 'field-1',
                 name: 'Channel Field',
@@ -142,7 +142,7 @@ describe('PropertyValueRenderer', () => {
                 value: 'channel-id-123',
             } as PropertyValue<string>;
 
-            renderWithContext(
+            await renderWithContext(
                 <PropertyValueRenderer
                     field={field}
                     value={value}
@@ -153,7 +153,7 @@ describe('PropertyValueRenderer', () => {
             expect(screen.getByText('channel-id-123')).toBeInTheDocument();
         });
 
-        it('should render TeamPropertyRenderer for team subtype', () => {
+        it('should render TeamPropertyRenderer for team subtype', async () => {
             const field = {
                 id: 'field-1',
                 name: 'Team Field',
@@ -167,7 +167,7 @@ describe('PropertyValueRenderer', () => {
                 value: 'team-id-123',
             } as PropertyValue<string>;
 
-            renderWithContext(
+            await renderWithContext(
                 <PropertyValueRenderer
                     field={field}
                     value={value}
@@ -178,7 +178,7 @@ describe('PropertyValueRenderer', () => {
             expect(screen.getByText('team-id-123')).toBeInTheDocument();
         });
 
-        it('should render TimestampPropertyRenderer for timestamp subtype', () => {
+        it('should render TimestampPropertyRenderer for timestamp subtype', async () => {
             const field = {
                 id: 'field-1',
                 name: 'Timestamp Field',
@@ -192,7 +192,7 @@ describe('PropertyValueRenderer', () => {
                 value: 1642694400000,
             } as PropertyValue<number>;
 
-            renderWithContext(
+            await renderWithContext(
                 <PropertyValueRenderer
                     field={field}
                     value={value}
@@ -203,7 +203,7 @@ describe('PropertyValueRenderer', () => {
             expect(screen.getByText('1642694400000')).toBeInTheDocument();
         });
 
-        it('should return null for unknown text subtype', () => {
+        it('should return null for unknown text subtype', async () => {
             const field = {
                 id: 'field-1',
                 name: 'Unknown Field',
@@ -217,7 +217,7 @@ describe('PropertyValueRenderer', () => {
                 value: 'test value',
             } as PropertyValue<string>;
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <PropertyValueRenderer
                     field={field}
                     value={value}
@@ -229,7 +229,7 @@ describe('PropertyValueRenderer', () => {
     });
 
     describe('user field type', () => {
-        it('should render UserPropertyRenderer for user field', () => {
+        it('should render UserPropertyRenderer for user field', async () => {
             const field = {
                 id: 'field-1',
                 name: 'User Field',
@@ -241,7 +241,7 @@ describe('PropertyValueRenderer', () => {
                 value: 'user-id-123',
             } as PropertyValue<string>;
 
-            renderWithContext(
+            await renderWithContext(
                 <PropertyValueRenderer
                     field={field}
                     value={value}
@@ -254,7 +254,7 @@ describe('PropertyValueRenderer', () => {
     });
 
     describe('select field type', () => {
-        it('should render SelectPropertyRenderer for select field', () => {
+        it('should render SelectPropertyRenderer for select field', async () => {
             const field = {
                 id: 'field-1',
                 name: 'Select Field',
@@ -270,7 +270,7 @@ describe('PropertyValueRenderer', () => {
                 value: 'option1',
             } as PropertyValue<string>;
 
-            renderWithContext(
+            await renderWithContext(
                 <PropertyValueRenderer
                     field={field}
                     value={value}
@@ -283,7 +283,7 @@ describe('PropertyValueRenderer', () => {
     });
 
     describe('unsupported field types', () => {
-        it('should return null for unsupported field type', () => {
+        it('should return null for unsupported field type', async () => {
             const field = {
                 id: 'field-1',
                 name: 'Unsupported Field',
@@ -295,7 +295,7 @@ describe('PropertyValueRenderer', () => {
                 value: 'test value',
             } as PropertyValue<string>;
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <PropertyValueRenderer
                     field={field}
                     value={value}
@@ -305,7 +305,7 @@ describe('PropertyValueRenderer', () => {
             expect(container.firstChild).toBeNull();
         });
 
-        it('should return null for multiselect field type', () => {
+        it('should return null for multiselect field type', async () => {
             const field = {
                 id: 'field-1',
                 name: 'Multiselect Field',
@@ -317,7 +317,7 @@ describe('PropertyValueRenderer', () => {
                 value: ['option1', 'option2'],
             } as PropertyValue<string[]>;
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <PropertyValueRenderer
                     field={field}
                     value={value}
@@ -327,7 +327,7 @@ describe('PropertyValueRenderer', () => {
             expect(container.firstChild).toBeNull();
         });
 
-        it('should return null for date field type', () => {
+        it('should return null for date field type', async () => {
             const field = {
                 id: 'field-1',
                 name: 'Date Field',
@@ -339,7 +339,7 @@ describe('PropertyValueRenderer', () => {
                 value: 1642694400000,
             } as PropertyValue<number>;
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <PropertyValueRenderer
                     field={field}
                     value={value}
@@ -351,7 +351,7 @@ describe('PropertyValueRenderer', () => {
     });
 
     describe('edge cases', () => {
-        it('should handle text field without attrs', () => {
+        it('should handle text field without attrs', async () => {
             const field = {
                 id: 'field-1',
                 name: 'Text Field',
@@ -362,7 +362,7 @@ describe('PropertyValueRenderer', () => {
                 value: 'test text',
             } as PropertyValue<string>;
 
-            renderWithContext(
+            await renderWithContext(
                 <PropertyValueRenderer
                     field={field}
                     value={value}
@@ -373,7 +373,7 @@ describe('PropertyValueRenderer', () => {
             expect(screen.getByText('test text')).toBeInTheDocument();
         });
 
-        it('should handle empty string value', () => {
+        it('should handle empty string value', async () => {
             const field = {
                 id: 'field-1',
                 name: 'Text Field',
@@ -385,7 +385,7 @@ describe('PropertyValueRenderer', () => {
                 value: '',
             } as PropertyValue<string>;
 
-            renderWithContext(
+            await renderWithContext(
                 <PropertyValueRenderer
                     field={field}
                     value={value}
@@ -396,7 +396,7 @@ describe('PropertyValueRenderer', () => {
             expect(screen.getByTestId('mock-text-property')).toHaveTextContent('');
         });
 
-        it('should handle null value', () => {
+        it('should handle null value', async () => {
             const field = {
                 id: 'field-1',
                 name: 'Text Field',
@@ -407,7 +407,7 @@ describe('PropertyValueRenderer', () => {
                 value: null,
             } as PropertyValue<null>;
 
-            renderWithContext(
+            await renderWithContext(
                 <PropertyValueRenderer
                     field={field}
                     value={value}
@@ -418,7 +418,7 @@ describe('PropertyValueRenderer', () => {
             expect(screen.getByText('null')).toBeInTheDocument();
         });
 
-        it('should handle undefined value', () => {
+        it('should handle undefined value', async () => {
             const field = {
                 id: 'field-1',
                 name: 'Text Field',
@@ -430,7 +430,7 @@ describe('PropertyValueRenderer', () => {
                 value: undefined,
             } as PropertyValue<unknown>;
 
-            renderWithContext(
+            await renderWithContext(
                 <PropertyValueRenderer
                     field={field}
                     value={value}

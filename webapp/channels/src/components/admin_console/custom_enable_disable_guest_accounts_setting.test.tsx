@@ -27,8 +27,8 @@ describe('components/AdminConsole/CustomEnableDisableGuestAccountsSetting', () =
     );
 
     describe('renders correctly', () => {
-        test('when enabled', () => {
-            const {container} = renderWithContext(
+        test('when enabled', async () => {
+            const {container} = await renderWithContext(
                 <CustomEnableDisableGuestAccountsSetting
                     {...baseProps}
                     value={true}
@@ -37,8 +37,8 @@ describe('components/AdminConsole/CustomEnableDisableGuestAccountsSetting', () =
             expect(container).toMatchSnapshot();
         });
 
-        test('when disabled', () => {
-            const {container} = renderWithContext(
+        test('when disabled', async () => {
+            const {container} = await renderWithContext(
                 <CustomEnableDisableGuestAccountsSetting
                     {...baseProps}
                     value={false}
@@ -55,7 +55,7 @@ describe('components/AdminConsole/CustomEnableDisableGuestAccountsSetting', () =
                 onChange: jest.fn(),
             };
 
-            renderWithContext(
+            await renderWithContext(
                 <CustomEnableDisableGuestAccountsSetting
                     {...baseProps}
                     {...props}
@@ -75,7 +75,7 @@ describe('components/AdminConsole/CustomEnableDisableGuestAccountsSetting', () =
                 onChange: jest.fn(),
             };
 
-            renderWithContext(
+            await renderWithContext(
                 <CustomEnableDisableGuestAccountsSetting
                     {...baseProps}
                     {...props}
@@ -95,7 +95,7 @@ describe('components/AdminConsole/CustomEnableDisableGuestAccountsSetting', () =
                 showConfirm: true,
             };
 
-            renderWithContext(
+            await renderWithContext(
                 <CustomEnableDisableGuestAccountsSetting
                     {...props}
                 />,

@@ -45,13 +45,13 @@ describe('PluginTextbox', () => {
         useChannelMentions: true,
     };
 
-    test('should rename suggestionListStyle to suggestionListPosition', () => {
+    test('should rename suggestionListStyle to suggestionListPosition', async () => {
         const props = {
             ...baseProps,
             suggestionListStyle: 'bottom' as const,
         };
 
-        renderWithContext(<PluginTextbox {...props}/>);
+        await renderWithContext(<PluginTextbox {...props}/>);
 
         expect(mockTextboxProps).toHaveBeenCalledWith(
             expect.objectContaining({suggestionListPosition: 'bottom'}),

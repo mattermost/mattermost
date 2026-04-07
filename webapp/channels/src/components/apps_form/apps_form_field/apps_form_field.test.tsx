@@ -29,7 +29,7 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
     };
 
     describe('Required field indicators', () => {
-        it('should render required field with red asterisk', () => {
+        it('should render required field with red asterisk', async () => {
             const requiredField: AppField = {
                 name: 'required-field',
                 type: AppFieldTypes.TEXT,
@@ -37,7 +37,7 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
                 is_required: true,
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <AppsFormField
                     {...baseProps}
                     field={requiredField}
@@ -50,7 +50,7 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
             expect(errorText).toHaveTextContent('*');
         });
 
-        it('should render optional field with (optional) text', () => {
+        it('should render optional field with (optional) text', async () => {
             const optionalField: AppField = {
                 name: 'optional-field',
                 type: AppFieldTypes.TEXT,
@@ -58,7 +58,7 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
                 is_required: false,
             };
 
-            const {getByText} = renderWithContext(
+            const {getByText} = await renderWithContext(
                 <AppsFormField
                     {...baseProps}
                     field={optionalField}
@@ -68,7 +68,7 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
             expect(getByText('(optional)')).toBeInTheDocument();
         });
 
-        it('should use modal_label over label when present', () => {
+        it('should use modal_label over label when present', async () => {
             const fieldWithModalLabel: AppField = {
                 name: 'modal-label-field',
                 type: AppFieldTypes.TEXT,
@@ -77,7 +77,7 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
                 is_required: true,
             };
 
-            const {getByText} = renderWithContext(
+            const {getByText} = await renderWithContext(
                 <AppsFormField
                     {...baseProps}
                     field={fieldWithModalLabel}
@@ -89,7 +89,7 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
     });
 
     describe('Radio field support', () => {
-        it('should render radio field correctly', () => {
+        it('should render radio field correctly', async () => {
             const radioField: AppField = {
                 name: 'radio-field',
                 type: AppFieldTypes.RADIO,
@@ -102,7 +102,7 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
                 is_required: true,
             };
 
-            const {getByText} = renderWithContext(
+            const {getByText} = await renderWithContext(
                 <AppsFormField
                     {...baseProps}
                     field={radioField}
@@ -115,7 +115,7 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
             expect(getByText('Option 3')).toBeInTheDocument();
         });
 
-        it('should handle radio field without options', () => {
+        it('should handle radio field without options', async () => {
             const radioFieldNoOptions: AppField = {
                 name: 'radio-field-no-options',
                 type: AppFieldTypes.RADIO,
@@ -123,7 +123,7 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
                 is_required: false,
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <AppsFormField
                     {...baseProps}
                     field={radioFieldNoOptions}
@@ -136,7 +136,7 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
     });
 
     describe('Field type handling', () => {
-        it('should render text field', () => {
+        it('should render text field', async () => {
             const textField: AppField = {
                 name: 'text-field',
                 type: AppFieldTypes.TEXT,
@@ -144,7 +144,7 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
                 max_length: 100,
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <AppsFormField
                     {...baseProps}
                     field={textField}
@@ -155,7 +155,7 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
             expect(input).toBeInTheDocument();
         });
 
-        it('should render textarea field', () => {
+        it('should render textarea field', async () => {
             const textareaField: AppField = {
                 name: 'textarea-field',
                 type: AppFieldTypes.TEXT,
@@ -164,7 +164,7 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
                 max_length: 500,
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <AppsFormField
                     {...baseProps}
                     field={textareaField}
@@ -175,14 +175,14 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
             expect(textarea).toBeInTheDocument();
         });
 
-        it('should render boolean field', () => {
+        it('should render boolean field', async () => {
             const boolField: AppField = {
                 name: 'bool-field',
                 type: AppFieldTypes.BOOL,
                 label: 'Boolean Field',
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <AppsFormField
                     {...baseProps}
                     field={boolField}
@@ -194,7 +194,7 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
             expect(checkbox).toBeInTheDocument();
         });
 
-        it('should render static select field', () => {
+        it('should render static select field', async () => {
             const selectField: AppField = {
                 name: 'select-field',
                 type: AppFieldTypes.STATIC_SELECT,
@@ -205,7 +205,7 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
                 ],
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <AppsFormField
                     {...baseProps}
                     field={selectField}
@@ -217,14 +217,14 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
             expect(reactSelect).toBeInTheDocument();
         });
 
-        it('should render user select field', () => {
+        it('should render user select field', async () => {
             const userField: AppField = {
                 name: 'user-field',
                 type: AppFieldTypes.USER,
                 label: 'User Field',
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <AppsFormField
                     {...baseProps}
                     field={userField}
@@ -235,14 +235,14 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
             expect(reactSelect).toBeInTheDocument();
         });
 
-        it('should render channel select field', () => {
+        it('should render channel select field', async () => {
             const channelField: AppField = {
                 name: 'channel-field',
                 type: AppFieldTypes.CHANNEL,
                 label: 'Channel Field',
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <AppsFormField
                     {...baseProps}
                     field={channelField}
@@ -253,14 +253,14 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
             expect(reactSelect).toBeInTheDocument();
         });
 
-        it('should render dynamic select field', () => {
+        it('should render dynamic select field', async () => {
             const dynamicSelectField: AppField = {
                 name: 'dynamic-select-field',
                 type: AppFieldTypes.DYNAMIC_SELECT,
                 label: 'Dynamic Select Field',
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <AppsFormField
                     {...baseProps}
                     field={dynamicSelectField}
@@ -271,14 +271,14 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
             expect(reactSelect).toBeInTheDocument();
         });
 
-        it('should render markdown field', () => {
+        it('should render markdown field', async () => {
             const markdownField: AppField = {
                 name: 'markdown-field',
                 type: AppFieldTypes.MARKDOWN,
                 description: '**Bold text** and *italic text*',
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <AppsFormField
                     {...baseProps}
                     field={markdownField}
@@ -291,14 +291,14 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
     });
 
     describe('Error handling', () => {
-        it('should display error text when provided', () => {
+        it('should display error text when provided', async () => {
             const fieldWithError: AppField = {
                 name: 'error-field',
                 type: AppFieldTypes.TEXT,
                 label: 'Field with Error',
             };
 
-            const {getByText} = renderWithContext(
+            const {getByText} = await renderWithContext(
                 <AppsFormField
                     {...baseProps}
                     field={fieldWithError}
@@ -309,7 +309,7 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
             expect(getByText('This field has an error')).toBeInTheDocument();
         });
 
-        it('should render help text alongside error text', () => {
+        it('should render help text alongside error text', async () => {
             const fieldWithHelp: AppField = {
                 name: 'help-field',
                 type: AppFieldTypes.TEXT,
@@ -317,7 +317,7 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
                 description: 'This is help text',
             };
 
-            const {getByText} = renderWithContext(
+            const {getByText} = await renderWithContext(
                 <AppsFormField
                     {...baseProps}
                     field={fieldWithHelp}
@@ -331,7 +331,7 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
     });
 
     describe('handleSelected method', () => {
-        it('should handle single selection', () => {
+        it('should handle single selection', async () => {
             const mockOnChange = jest.fn();
             const selectField: AppField = {
                 name: 'select-field',
@@ -343,7 +343,7 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
                 ],
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <AppsFormField
                     {...baseProps}
                     field={selectField}
@@ -356,7 +356,7 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
             expect(container).toBeInTheDocument();
         });
 
-        it('should handle array selection for multiselect', () => {
+        it('should handle array selection for multiselect', async () => {
             const mockOnChange = jest.fn();
             const multiselectField: AppField = {
                 name: 'multiselect-field',
@@ -369,7 +369,7 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
                 ],
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <AppsFormField
                     {...baseProps}
                     field={multiselectField}

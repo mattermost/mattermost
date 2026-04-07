@@ -18,8 +18,8 @@ describe('components/post_view/CommentedOn', () => {
         message: 'text message',
     });
 
-    test("should render the root post's message and author", () => {
-        renderWithContext(
+    test("should render the root post's message and author", async () => {
+        await renderWithContext(
             <CommentedOn rootId={post1.id}/>,
             {
                 entities: {
@@ -40,8 +40,8 @@ describe('components/post_view/CommentedOn', () => {
         expect(screen.getByText(textInChildren("Commented on some-user's message: text message"))).toBeInTheDocument();
     });
 
-    test("should render a placeholder name when the post's author isn't loaded", () => {
-        renderWithContext(
+    test("should render a placeholder name when the post's author isn't loaded", async () => {
+        await renderWithContext(
             <CommentedOn rootId={post1.id}/>,
             {
                 entities: {
@@ -57,19 +57,19 @@ describe('components/post_view/CommentedOn', () => {
         expect(screen.getByText(textInChildren("Commented on Someone's message: text message"))).toBeInTheDocument();
     });
 
-    test("should render a placeholder when the post isn't loaded", () => {
-        renderWithContext(
+    test("should render a placeholder when the post isn't loaded", async () => {
+        await renderWithContext(
             <CommentedOn rootId={post1.id}/>,
         );
 
         expect(screen.getByText(textInChildren("Commented on Someone's message: Loading…"))).toBeInTheDocument();
     });
 
-    test("should render the root post's file attachments when it has no message", () => {
+    test("should render the root post's file attachments when it has no message", async () => {
         const file1 = TestHelper.getFileInfoMock({id: 'file1', create_at: 1000, name: 'image.png'});
         const file2 = TestHelper.getFileInfoMock({id: 'file2', create_at: 1001, name: 'contract.doc'});
 
-        renderWithContext(
+        await renderWithContext(
             <CommentedOn rootId={post1.id}/>,
             {
                 entities: {
@@ -103,8 +103,8 @@ describe('components/post_view/CommentedOn', () => {
         expect(screen.getByText(textInChildren("Commented on some-user's message: image.png plus 1 other file"))).toBeInTheDocument();
     });
 
-    test("should render the root post's props.pretext as message", () => {
-        renderWithContext(
+    test("should render the root post's props.pretext as message", async () => {
+        await renderWithContext(
             <CommentedOn rootId={post1.id}/>,
             {
                 entities: {
@@ -141,8 +141,8 @@ describe('components/post_view/CommentedOn', () => {
         expect(screen.getByText(textInChildren("Commented on some-user's message: This is a pretext"))).toBeInTheDocument();
     });
 
-    test("should render the root post's props.title as message", () => {
-        renderWithContext(
+    test("should render the root post's props.title as message", async () => {
+        await renderWithContext(
             <CommentedOn rootId={post1.id}/>,
             {
                 entities: {
@@ -179,8 +179,8 @@ describe('components/post_view/CommentedOn', () => {
         expect(screen.getByText(textInChildren("Commented on some-user's message: This is a title"))).toBeInTheDocument();
     });
 
-    test("should render the root post's props.text as message", () => {
-        renderWithContext(
+    test("should render the root post's props.text as message", async () => {
+        await renderWithContext(
             <CommentedOn rootId={post1.id}/>,
             {
                 entities: {
@@ -217,8 +217,8 @@ describe('components/post_view/CommentedOn', () => {
         expect(screen.getByText(textInChildren("Commented on some-user's message: This is a text"))).toBeInTheDocument();
     });
 
-    test("should render the root post's props.fallback as message", () => {
-        renderWithContext(
+    test("should render the root post's props.fallback as message", async () => {
+        await renderWithContext(
             <CommentedOn rootId={post1.id}/>,
             {
                 entities: {
@@ -255,9 +255,9 @@ describe('components/post_view/CommentedOn', () => {
         expect(screen.getByText(textInChildren("Commented on some-user's message: This is fallback message"))).toBeInTheDocument();
     });
 
-    test('should call onCommentClick on click of text message', () => {
+    test('should call onCommentClick on click of text message', async () => {
         const onCommentClick = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <CommentedOn
                 onCommentClick={onCommentClick}
                 rootId={post1.id}
@@ -283,7 +283,7 @@ describe('components/post_view/CommentedOn', () => {
         expect(onCommentClick).toHaveBeenCalledTimes(1);
     });
 
-    test("should render the root post's overwritten username", () => {
+    test("should render the root post's overwritten username", async () => {
         const webhookPost = TestHelper.getPostMock({
             id: 'webhook_post_id',
             user_id: user1.id,
@@ -301,7 +301,7 @@ describe('components/post_view/CommentedOn', () => {
             root_id: webhookPost.id,
         });
 
-        renderWithContext(
+        await renderWithContext(
             <CommentedOn
                 rootId={webhookPost.id}
                 enablePostUsernameOverride={true}
@@ -326,7 +326,7 @@ describe('components/post_view/CommentedOn', () => {
         expect(screen.getByText(textInChildren("Commented on overridden_username's message: text message"))).toBeInTheDocument();
     });
 
-    test("should not render the root post's overwritten username if post is not from webhook", () => {
+    test("should not render the root post's overwritten username if post is not from webhook", async () => {
         const webhookPost = TestHelper.getPostMock({
             id: 'webhook_post_id',
             user_id: user1.id,
@@ -343,7 +343,7 @@ describe('components/post_view/CommentedOn', () => {
             root_id: webhookPost.id,
         });
 
-        renderWithContext(
+        await renderWithContext(
             <CommentedOn
                 rootId={webhookPost.id}
                 enablePostUsernameOverride={true}

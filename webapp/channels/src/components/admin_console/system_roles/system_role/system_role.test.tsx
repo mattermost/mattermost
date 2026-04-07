@@ -35,8 +35,8 @@ describe('admin_console/system_role', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <SystemRole
                 {...props}
             />,
@@ -45,8 +45,8 @@ describe('admin_console/system_role', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with isLicensedForCloud = true', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with isLicensedForCloud = true', async () => {
+        const {container} = await renderWithContext(
             <SystemRole
                 {...props}
                 isLicensedForCloud={true}

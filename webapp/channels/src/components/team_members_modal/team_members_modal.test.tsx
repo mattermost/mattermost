@@ -21,8 +21,8 @@ describe('components/TeamMembersModal', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {baseElement} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {baseElement} = await renderWithContext(
             <TeamMembersModal
                 {...baseProps}
             />,
@@ -32,7 +32,7 @@ describe('components/TeamMembersModal', () => {
     });
 
     test('should call onHide on Modal\'s onExited', async () => {
-        renderWithContext(
+        await renderWithContext(
             <TeamMembersModal
                 {...baseProps}
             />,

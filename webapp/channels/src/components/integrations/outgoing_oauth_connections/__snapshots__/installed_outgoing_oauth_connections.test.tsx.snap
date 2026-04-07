@@ -63,24 +63,179 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
       class="backstage-list"
     >
       <div
-        class="loading-screen"
-        style="position: relative;"
+        class="backstage-list__item"
       >
         <div
-          class="loading__content"
+          class="item-details"
         >
-          <p>
-            Loading
-          </p>
           <div
-            class="round round-1"
-          />
+            class="item-details__row d-flex flex-column flex-md-row justify-content-between"
+          >
+            <strong
+              class="item-details__name"
+            >
+              firstConnection
+            </strong>
+            <div
+              class="item-actions"
+            >
+              <a
+                href="/test/integrations/outgoing-oauth2-connections/edit?id=facxd9wpzpbpfp8pad78xj75pr"
+              >
+                Edit
+              </a>
+               - 
+              <button
+                class="color--link style--none"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
           <div
-            class="round round-2"
-          />
+            class="item-details__row"
+          >
+            <span
+              class="item-details__token"
+            >
+              Client ID: 
+              <strong>
+                <code>
+                  client1
+                </code>
+              </strong>
+            </span>
+          </div>
           <div
-            class="round round-3"
-          />
+            class="item-details__row"
+          >
+            <span
+              class="item-details__token"
+            >
+              Client Secret: ********
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__url word-break--all"
+            >
+              Audience URLs: 
+              <code>
+                https://mysite.com/api, https://myothersite.com/api/v2
+              </code>
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__url word-break--all"
+            >
+              Token URL: 
+              <code>
+                https://oauthtoken1.com/oauth/token
+              </code>
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__creation"
+            >
+              Created by  on Saturday, July 29, 2017
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="backstage-list__item"
+      >
+        <div
+          class="item-details"
+        >
+          <div
+            class="item-details__row d-flex flex-column flex-md-row justify-content-between"
+          >
+            <strong
+              class="item-details__name"
+            >
+              secondConnection
+            </strong>
+            <div
+              class="item-actions"
+            >
+              <a
+                href="/test/integrations/outgoing-oauth2-connections/edit?id=fzcxd9wpzpbpfp8pad78xj75pr"
+              >
+                Edit
+              </a>
+               - 
+              <button
+                class="color--link style--none"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__token"
+            >
+              Client ID: 
+              <strong>
+                <code>
+                  client2
+                </code>
+              </strong>
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__token"
+            >
+              Client Secret: ********
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__url word-break--all"
+            >
+              Audience URLs: 
+              <code>
+                https://myaudience.com/api
+              </code>
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__url word-break--all"
+            >
+              Token URL: 
+              <code>
+                https://oauthtoken2.com/oauth/token
+              </code>
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__creation"
+            >
+              Created by  on Saturday, July 29, 2017
+            </span>
+          </div>
         </div>
       </div>
     </div>
@@ -90,7 +245,7 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
       <div
         class="backstage-footer__cell"
       >
-        0 - 0 of 0
+        1 - 2 of 2
         <button
           aria-label="Previous"
           class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"

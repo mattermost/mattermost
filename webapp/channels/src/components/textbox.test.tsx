@@ -90,7 +90,7 @@ describe('components/TextBox', () => {
         characterLimit: 0,
     };
 
-    test('should match snapshot with required props', () => {
+    test('should match snapshot with required props', async () => {
         const emptyFunction = jest.fn();
         const props = {
             ...baseProps,
@@ -103,13 +103,13 @@ describe('components/TextBox', () => {
             supportsCommands: false,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <Textbox {...props}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with additional, optional props', () => {
+    test('should match snapshot with additional, optional props', async () => {
         const emptyFunction = jest.fn();
         const props = {
             ...baseProps,
@@ -136,13 +136,13 @@ describe('components/TextBox', () => {
             openWhenEmpty: true,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <Textbox {...props}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should throw error when value is too long', () => {
+    test('should throw error when value is too long', async () => {
         const emptyFunction = jest.fn();
 
         // this mock function should be called when the textbox value is too long
@@ -163,7 +163,7 @@ describe('components/TextBox', () => {
             handlePostError,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <Textbox {...props}/>,
         );
 
@@ -171,7 +171,7 @@ describe('components/TextBox', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should throw error when new property is too long', () => {
+    test('should throw error when new property is too long', async () => {
         const emptyFunction = jest.fn();
 
         // this mock function should be called when the textbox value is too long
@@ -192,7 +192,7 @@ describe('components/TextBox', () => {
             handlePostError,
         };
 
-        const {container, rerender} = renderWithContext(
+        const {container, rerender} = await renderWithContext(
             <Textbox {...props}/>,
         );
 

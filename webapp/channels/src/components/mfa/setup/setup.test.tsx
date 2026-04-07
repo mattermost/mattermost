@@ -30,7 +30,7 @@ describe('components/mfa/setup', () => {
     };
 
     test('should match snapshot without required text', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <Setup {...baseProps}/>,
         );
         expect(container).toMatchSnapshot();
@@ -44,7 +44,7 @@ describe('components/mfa/setup', () => {
             enforceMultifactorAuthentication: true,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <Setup {...props}/>,
         );
         const requiredText = screen.queryByText(/Multi-factor authentication is required/);
@@ -52,7 +52,7 @@ describe('components/mfa/setup', () => {
     });
 
     test('should set state after calling component did mount', async () => {
-        renderWithContext(
+        await renderWithContext(
             <Setup {...baseProps}/>,
         );
         expect(generateMfaSecret).toHaveBeenCalled();
@@ -63,7 +63,7 @@ describe('components/mfa/setup', () => {
     });
 
     test('should call activateMfa on submission', async () => {
-        renderWithContext(
+        await renderWithContext(
             <Setup {...baseProps}/>,
         );
 
@@ -77,7 +77,7 @@ describe('components/mfa/setup', () => {
     });
 
     test('should focus input when code is empty', async () => {
-        renderWithContext(
+        await renderWithContext(
             <Setup {...baseProps}/>,
         );
         const input = screen.getByPlaceholderText('MFA Code');
@@ -103,7 +103,7 @@ describe('components/mfa/setup', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <Setup {...props}/>,
         );
         const input = screen.getByPlaceholderText('MFA Code');

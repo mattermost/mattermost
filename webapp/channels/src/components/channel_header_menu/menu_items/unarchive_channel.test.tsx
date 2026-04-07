@@ -24,7 +24,7 @@ describe('components/ChannelHeaderMenu/MenuItems/UnarchiveChannel', () => {
     test('renders the component correctly, handle click event', async () => {
         const channel = TestHelper.getChannelMock();
 
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <UnarchiveChannel channel={channel}/>
             </WithTestMenuContext>, {},

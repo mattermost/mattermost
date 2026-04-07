@@ -96,7 +96,7 @@ const users = {
 const id = 'menuItemCloudLimit';
 
 describe('components/widgets/menu/menu_items/menu_item_cloud_limit', () => {
-    test('Does not render if not cloud', () => {
+    test('Does not render if not cloud', async () => {
         const state = {
             entities: {
                 general: {
@@ -115,11 +115,11 @@ describe('components/widgets/menu/menu_items/menu_item_cloud_limit', () => {
                 usage: usageWarnMessages,
             },
         };
-        const {container} = renderWithContext(<MenuItemCloudLimit id={id}/>, state);
+        const {container} = await renderWithContext(<MenuItemCloudLimit id={id}/>, state);
         expect(container.querySelector('li')).toBeNull();
     });
 
-    test('Does not render if free trial', () => {
+    test('Does not render if free trial', async () => {
         const state = {
             entities: {
                 general,
@@ -133,11 +133,11 @@ describe('components/widgets/menu/menu_items/menu_item_cloud_limit', () => {
                 usage: usageWarnMessages,
             },
         };
-        const {container} = renderWithContext(<MenuItemCloudLimit id={id}/>, state);
+        const {container} = await renderWithContext(<MenuItemCloudLimit id={id}/>, state);
         expect(container.querySelector('li')).toBeNull();
     });
 
-    test('Does not render if no highest limit', () => {
+    test('Does not render if no highest limit', async () => {
         const state = {
             entities: {
                 general,
@@ -149,12 +149,12 @@ describe('components/widgets/menu/menu_items/menu_item_cloud_limit', () => {
                 usage: zeroUsage,
             },
         };
-        const {container} = renderWithContext(<MenuItemCloudLimit id={id}/>, state);
+        const {container} = await renderWithContext(<MenuItemCloudLimit id={id}/>, state);
 
         expect(container.querySelector('li')).toBeNull();
     });
 
-    test('renders when a limit needs attention', () => {
+    test('renders when a limit needs attention', async () => {
         const state = {
             entities: {
                 general,
@@ -166,11 +166,11 @@ describe('components/widgets/menu/menu_items/menu_item_cloud_limit', () => {
                 usage: usageWarnMessages,
             },
         };
-        const {container} = renderWithContext(<MenuItemCloudLimit id={id}/>, state);
+        const {container} = await renderWithContext(<MenuItemCloudLimit id={id}/>, state);
         expect(container.querySelector('li')).not.toBeNull();
     });
 
-    test('shows more attention grabbing UI and notify admin CTA if a limit is very close for non admin users', () => {
+    test('shows more attention grabbing UI and notify admin CTA if a limit is very close for non admin users', async () => {
         const state = {
             entities: {
                 general,
@@ -185,12 +185,12 @@ describe('components/widgets/menu/menu_items/menu_item_cloud_limit', () => {
                 },
             },
         };
-        const {container} = renderWithContext(<MenuItemCloudLimit id={id}/>, state);
+        const {container} = await renderWithContext(<MenuItemCloudLimit id={id}/>, state);
         expect(container.querySelector('li')?.className).toContain('critical');
         expect(container).toMatchSnapshot();
     });
 
-    test('shows more attention grabbing UI if a limit is very close for admins', () => {
+    test('shows more attention grabbing UI if a limit is very close for admins', async () => {
         const state = {
             entities: {
                 general,
@@ -210,7 +210,7 @@ describe('components/widgets/menu/menu_items/menu_item_cloud_limit', () => {
                 },
             },
         };
-        const {container} = renderWithContext(<MenuItemCloudLimit id={id}/>, state);
+        const {container} = await renderWithContext(<MenuItemCloudLimit id={id}/>, state);
         expect(container.querySelector('li')?.className).toContain('critical');
         const link = container.querySelector('a');
         expect(link).not.toBeNull();

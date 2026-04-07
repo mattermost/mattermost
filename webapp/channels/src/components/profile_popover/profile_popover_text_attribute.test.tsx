@@ -43,8 +43,8 @@ describe('components/ProfilePopoverTextAttribute', () => {
         }),
     };
 
-    test('should render text attribute value', () => {
-        renderWithContext(<ProfilePopoverTextAttribute {...baseProps}/>);
+    test('should render text attribute value', async () => {
+        await renderWithContext(<ProfilePopoverTextAttribute {...baseProps}/>);
 
         const textElement = screen.getByText('text value');
         expect(textElement).toBeInTheDocument();
@@ -52,7 +52,7 @@ describe('components/ProfilePopoverTextAttribute', () => {
         expect(textElement).toHaveAttribute('aria-labelledby', 'user-popover__custom_attributes-title-text_attribute_id');
     });
 
-    test('should not render when attribute value is missing', () => {
+    test('should not render when attribute value is missing', async () => {
         const props = {
             ...baseProps,
             userProfile: TestHelper.getUserMock({
@@ -60,11 +60,11 @@ describe('components/ProfilePopoverTextAttribute', () => {
                 custom_profile_attributes: {},
             }),
         };
-        const {container} = renderWithContext(<ProfilePopoverTextAttribute {...props}/>);
+        const {container} = await renderWithContext(<ProfilePopoverTextAttribute {...props}/>);
         expect(container.firstChild).toBeNull();
     });
 
-    test('should not render when attribute value is empty', () => {
+    test('should not render when attribute value is empty', async () => {
         const props = {
             ...baseProps,
             userProfile: TestHelper.getUserMock({
@@ -74,7 +74,7 @@ describe('components/ProfilePopoverTextAttribute', () => {
                 },
             }),
         };
-        const {container} = renderWithContext(<ProfilePopoverTextAttribute {...props}/>);
+        const {container} = await renderWithContext(<ProfilePopoverTextAttribute {...props}/>);
         expect(container.firstChild).toBeNull();
     });
 });

@@ -41,8 +41,8 @@ describe('components/permissions_gates', () => {
     const CONTENT = 'The content inside the permission gate';
 
     describe('SystemPermissionGate', () => {
-        test('should show content when user have permission', () => {
-            renderWithContext(
+        test('should show content when user have permission', async () => {
+            await renderWithContext(
                 <SystemPermissionGate permissions={['test_system_permission']}>
                     <p>{CONTENT}</p>
                 </SystemPermissionGate>,
@@ -51,8 +51,8 @@ describe('components/permissions_gates', () => {
 
             expect(screen.queryByText(CONTENT)).toBeInTheDocument();
         });
-        test('should show content when user have at least on of the permissions', () => {
-            renderWithContext(
+        test('should show content when user have at least on of the permissions', async () => {
+            await renderWithContext(
                 <SystemPermissionGate permissions={['test_system_permission', 'not_existing_permission']}>
                     <p>{CONTENT}</p>
                 </SystemPermissionGate>,
@@ -61,8 +61,8 @@ describe('components/permissions_gates', () => {
 
             expect(screen.queryByText(CONTENT)).toBeInTheDocument();
         });
-        test('should NOT show content when user have permission and use invert', () => {
-            renderWithContext(
+        test('should NOT show content when user have permission and use invert', async () => {
+            await renderWithContext(
                 <SystemPermissionGate
                     permissions={['test_system_permission']}
                     invert={true}
@@ -74,8 +74,8 @@ describe('components/permissions_gates', () => {
 
             expect(screen.queryByText(CONTENT)).not.toBeInTheDocument();
         });
-        test('should show content when user not have permission and use invert', () => {
-            renderWithContext(
+        test('should show content when user not have permission and use invert', async () => {
+            await renderWithContext(
                 <SystemPermissionGate
                     permissions={['invalid_permission']}
                     invert={true}
@@ -87,8 +87,8 @@ describe('components/permissions_gates', () => {
 
             expect(screen.queryByText(CONTENT)).toBeInTheDocument();
         });
-        test('should NOT show content when user haven\'t permission', () => {
-            renderWithContext(
+        test('should NOT show content when user haven\'t permission', async () => {
+            await renderWithContext(
                 <SystemPermissionGate permissions={['invalid_permission']}>
                     <p>{CONTENT}</p>
                 </SystemPermissionGate>,

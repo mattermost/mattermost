@@ -54,8 +54,8 @@ describe('components/CommercialSupportModal', () => {
         ],
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<CommercialSupportModal {...baseProps}/>);
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(<CommercialSupportModal {...baseProps}/>);
         expect(container).toMatchSnapshot();
     });
 
@@ -74,7 +74,7 @@ describe('components/CommercialSupportModal', () => {
             }),
         );
 
-        renderWithContext(<CommercialSupportModal {...baseProps}/>);
+        await renderWithContext(<CommercialSupportModal {...baseProps}/>);
 
         const user = userEvent.setup();
         const downloadLink = screen.getByText('Download Support Packet').closest('a');
@@ -98,7 +98,7 @@ describe('components/CommercialSupportModal', () => {
         );
 
         const ref = React.createRef<CommercialSupportModal>();
-        renderWithContext(
+        await renderWithContext(
             <CommercialSupportModal
                 {...baseProps}
                 ref={ref}

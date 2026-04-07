@@ -28,8 +28,8 @@ describe('SaveConfirmationModal', () => {
         buttonText,
     };
 
-    test('renders the title and subtitle', () => {
-        const {getByText} = renderWithContext(
+    test('renders the title and subtitle', async () => {
+        const {getByText} = await renderWithContext(
             <SaveConfirmationModal
                 {...baseProps}
             />,
@@ -39,8 +39,8 @@ describe('SaveConfirmationModal', () => {
         expect(getByText(subtitle)).toBeInTheDocument();
     });
 
-    test('renders the disclaimer if includeDisclaimer is true', () => {
-        const {getByText} = renderWithContext(
+    test('renders the disclaimer if includeDisclaimer is true', async () => {
+        const {getByText} = await renderWithContext(
             <SaveConfirmationModal
                 {...baseProps}
                 includeDisclaimer={true}
@@ -51,7 +51,7 @@ describe('SaveConfirmationModal', () => {
     });
 
     test('calls onClose when the cancel button is clicked', async () => {
-        const {getByText} = renderWithContext(
+        const {getByText} = await renderWithContext(
             <SaveConfirmationModal
                 {...baseProps}
             />,
@@ -63,7 +63,7 @@ describe('SaveConfirmationModal', () => {
     });
 
     test('calls onConfirm when the confirm button is clicked', async () => {
-        const {getByText} = renderWithContext(
+        const {getByText} = await renderWithContext(
             <SaveConfirmationModal
                 {...baseProps}
             />,

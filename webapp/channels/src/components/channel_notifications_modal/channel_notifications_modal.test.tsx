@@ -52,7 +52,7 @@ describe('ChannelNotificationsModal', () => {
     };
 
     test('should not show other settings if channel is mute', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ChannelNotificationsModal {...baseProps}/>,
         );
 
@@ -90,7 +90,7 @@ describe('ChannelNotificationsModal', () => {
     });
 
     test('should save correctly for \'Ignore mentions for @channel, @here and @all\'', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ChannelNotificationsModal {...baseProps}/>,
         );
 
@@ -122,7 +122,7 @@ describe('ChannelNotificationsModal', () => {
     });
 
     test('should check the options in the desktop notifications', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ChannelNotificationsModal {...baseProps}/>,
         );
 
@@ -175,7 +175,7 @@ describe('ChannelNotificationsModal', () => {
     });
 
     test('should disable message notification sound if option is unchecked', async () => {
-        renderWithContext(<ChannelNotificationsModal {...baseProps}/>);
+        await renderWithContext(<ChannelNotificationsModal {...baseProps}/>);
 
         // Since the default value is checked, we will uncheck the checkbox
         await userEvent.click(screen.getByTestId('desktopNotificationSoundsCheckbox'));
@@ -202,7 +202,7 @@ describe('ChannelNotificationsModal', () => {
     });
 
     test('should default to user desktop notification sound if reset to default is clicked', async () => {
-        renderWithContext(<ChannelNotificationsModal {...baseProps}/>);
+        await renderWithContext(<ChannelNotificationsModal {...baseProps}/>);
 
         // Since the default value is on, we will uncheck the checkbox
         await userEvent.click(screen.getByTestId('desktopNotificationSoundsCheckbox'));
@@ -216,7 +216,7 @@ describe('ChannelNotificationsModal', () => {
     });
 
     test('should save the options exactly same as Desktop for mobile if use same as desktop checkbox is checked', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ChannelNotificationsModal {...baseProps}/>,
         );
 
@@ -262,7 +262,7 @@ describe('ChannelNotificationsModal', () => {
                 },
             } as unknown as ChannelMembership,
         };
-        renderWithContext(
+        await renderWithContext(
             <ChannelNotificationsModal {...props}/>,
         );
 
@@ -314,7 +314,7 @@ describe('ChannelNotificationsModal', () => {
             ...baseProps,
             collapsedReplyThreads: false,
         };
-        renderWithContext(
+        await renderWithContext(
             <ChannelNotificationsModal {...props}/>,
         );
 

@@ -34,8 +34,8 @@ describe('components/admin_console/permission_schemes_settings/permissions_schem
         },
     } as any;
 
-    test('should match snapshot on default data', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot on default data', async () => {
+        const {container} = await renderWithContext(
             <PermissionsSchemeSummary {...defaultProps}/>,
         );
         expect(container).toMatchSnapshot();
@@ -48,8 +48,8 @@ describe('components/admin_console/permission_schemes_settings/permissions_schem
         expect(screen.getByText('Delete')).toBeInTheDocument();
     });
 
-    test('should match snapshot on more than eight teams', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot on more than eight teams', async () => {
+        const {container} = await renderWithContext(
             <PermissionsSchemeSummary
                 {...defaultProps}
                 teams={[
@@ -82,8 +82,8 @@ describe('components/admin_console/permission_schemes_settings/permissions_schem
         expect(screen.getByText('+2 more')).toBeInTheDocument();
     });
 
-    test('should match snapshot on no teams', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot on no teams', async () => {
+        const {container} = await renderWithContext(
             <PermissionsSchemeSummary
                 {...defaultProps}
                 teams={[]}
@@ -97,7 +97,7 @@ describe('components/admin_console/permission_schemes_settings/permissions_schem
 
     test('should ask to toggle on row toggle', async () => {
         const deleteScheme = jest.fn().mockResolvedValue({data: true});
-        renderWithContext(
+        await renderWithContext(
             <PermissionsSchemeSummary
                 {...defaultProps}
                 actions={{

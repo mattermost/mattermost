@@ -45,7 +45,7 @@ const initialState = {
 
 describe('components/RenewalLink', () => {
     test('should show Contact sales button', async () => {
-        renderWithContext(<RenewalLink/>, initialState);
+        await renderWithContext(<RenewalLink/>, initialState);
 
         expect(screen.getByRole('button', {name: 'Contact sales'})).toBeInTheDocument();
     });

@@ -17,13 +17,13 @@ describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
     };
 
     describe('initial state', () => {
-        test('with no items', () => {
+        test('with no items', async () => {
             const props = {
                 ...baseProps,
                 value: [],
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <CustomURLSchemesSetting {...props}/>,
             );
             expect(container).toMatchSnapshot();
@@ -32,13 +32,13 @@ describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
             expect(input.value).toEqual('');
         });
 
-        test('with one item', () => {
+        test('with one item', async () => {
             const props = {
                 ...baseProps,
                 value: ['git'],
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <CustomURLSchemesSetting {...props}/>,
             );
             expect(container).toMatchSnapshot();
@@ -47,13 +47,13 @@ describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
             expect(input.value).toEqual('git');
         });
 
-        test('with multiple items', () => {
+        test('with multiple items', async () => {
             const props = {
                 ...baseProps,
                 value: ['git', 'smtp', 'steam'],
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <CustomURLSchemesSetting {...props}/>,
             );
             expect(container).toMatchSnapshot();
@@ -70,7 +70,7 @@ describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
                 onChange: jest.fn(),
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <CustomURLSchemesSetting {...props}/>,
             );
 
@@ -86,7 +86,7 @@ describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
                 onChange: jest.fn(),
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <CustomURLSchemesSetting {...props}/>,
             );
 
@@ -103,7 +103,7 @@ describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
                 onChange: jest.fn(),
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <CustomURLSchemesSetting {...props}/>,
             );
 
@@ -120,7 +120,7 @@ describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
                 onChange: jest.fn(),
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <CustomURLSchemesSetting {...props}/>,
             );
 
@@ -137,7 +137,7 @@ describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
                 onChange: jest.fn(),
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <CustomURLSchemesSetting {...props}/>,
             );
 
@@ -149,25 +149,25 @@ describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
         });
     });
 
-    test('renders properly when disabled', () => {
+    test('renders properly when disabled', async () => {
         const props = {
             ...baseProps,
             disabled: true,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <CustomURLSchemesSetting {...props}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('renders properly when set by environment variable', () => {
+    test('renders properly when set by environment variable', async () => {
         const props = {
             ...baseProps,
             setByEnv: true,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <CustomURLSchemesSetting {...props}/>,
         );
         expect(container).toMatchSnapshot();

@@ -8,22 +8,22 @@ import PermissionCheckbox from 'components/admin_console/permission_schemes_sett
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 describe('components/admin_console/permission_schemes_settings/permission_checkbox', () => {
-    test('should match snapshot on no value', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot on no value', async () => {
+        const {container} = await renderWithContext(
             <PermissionCheckbox/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot on value "checked" and no id', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot on value "checked" and no id', async () => {
+        const {container} = await renderWithContext(
             <PermissionCheckbox value='checked'/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot on value "checked"', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot on value "checked"', async () => {
+        const {container} = await renderWithContext(
             <PermissionCheckbox
                 value='checked'
                 id='uniqId-checked'
@@ -33,8 +33,8 @@ describe('components/admin_console/permission_schemes_settings/permission_checkb
         expect(screen.getByTestId('uniqId-checked')).toHaveClass('checked');
     });
 
-    test('should match snapshot on value "intermediate"', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot on value "intermediate"', async () => {
+        const {container} = await renderWithContext(
             <PermissionCheckbox
                 value='intermediate'
                 id='uniqId-checked'
@@ -44,8 +44,8 @@ describe('components/admin_console/permission_schemes_settings/permission_checkb
         expect(screen.getByTestId('uniqId-checked')).toHaveClass('intermediate');
     });
 
-    test('should match snapshot on other value', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot on other value', async () => {
+        const {container} = await renderWithContext(
             <PermissionCheckbox
                 value='other'
                 id='uniqId-checked'

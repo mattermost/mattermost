@@ -148,11 +148,11 @@ describe('CloudPreviewModal', () => {
         },
     };
 
-    it('should show modal when in cloud preview and modal has not been shown before', () => {
+    it('should show modal when in cloud preview and modal has not been shown before', async () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        renderWithContext(
+        await renderWithContext(
             <CloudPreviewModal/>,
             initialState,
         );
@@ -161,7 +161,7 @@ describe('CloudPreviewModal', () => {
         expect(screen.queryByTestId('cloud-preview-fab')).not.toBeInTheDocument();
     });
 
-    it('should not show modal when not in cloud preview', () => {
+    it('should not show modal when not in cloud preview', async () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.cloud.subscription = {
             ...baseSubscription,
@@ -171,7 +171,7 @@ describe('CloudPreviewModal', () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        renderWithContext(
+        await renderWithContext(
             <CloudPreviewModal/>,
             state,
         );
@@ -179,14 +179,14 @@ describe('CloudPreviewModal', () => {
         expect(screen.queryByTestId('preview-modal-controller')).not.toBeInTheDocument();
     });
 
-    it('should not show modal when not cloud', () => {
+    it('should not show modal when not cloud', async () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.general.license.Cloud = 'false';
 
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        renderWithContext(
+        await renderWithContext(
             <CloudPreviewModal/>,
             state,
         );
@@ -194,7 +194,7 @@ describe('CloudPreviewModal', () => {
         expect(screen.queryByTestId('preview-modal-controller')).not.toBeInTheDocument();
     });
 
-    it('should not show modal when modal has been shown before', () => {
+    it('should not show modal when modal has been shown before', async () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.preferences.myPreferences = {
             'cloud_preview_modal_shown--cloud_preview_modal_shown': {
@@ -207,7 +207,7 @@ describe('CloudPreviewModal', () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        renderWithContext(
+        await renderWithContext(
             <CloudPreviewModal/>,
             stateWithModalShown,
         );
@@ -215,11 +215,11 @@ describe('CloudPreviewModal', () => {
         expect(screen.queryByTestId('preview-modal-controller')).not.toBeInTheDocument();
     });
 
-    it('should show FAB when modal has been shown before and modal is not open', () => {
+    it('should show FAB when modal has been shown before and modal is not open', async () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        renderWithContext(
+        await renderWithContext(
             <CloudPreviewModal/>,
             stateWithModalShown,
         );
@@ -228,11 +228,11 @@ describe('CloudPreviewModal', () => {
         expect(screen.queryByTestId('preview-modal-controller')).not.toBeInTheDocument();
     });
 
-    it('should not show FAB when modal has not been shown before', () => {
+    it('should not show FAB when modal has not been shown before', async () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        renderWithContext(
+        await renderWithContext(
             <CloudPreviewModal/>,
             initialState,
         );
@@ -245,7 +245,7 @@ describe('CloudPreviewModal', () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        renderWithContext(
+        await renderWithContext(
             <CloudPreviewModal/>,
             initialState,
         );
@@ -267,7 +267,7 @@ describe('CloudPreviewModal', () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        renderWithContext(
+        await renderWithContext(
             <CloudPreviewModal/>,
             stateWithModalShown,
         );
@@ -285,14 +285,14 @@ describe('CloudPreviewModal', () => {
         expect(dummyDispatch).toHaveBeenCalled();
     });
 
-    it('should not render anything when subscription is undefined', () => {
+    it('should not render anything when subscription is undefined', async () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.cloud.subscription = undefined;
 
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        renderWithContext(
+        await renderWithContext(
             <CloudPreviewModal/>,
             state,
         );
@@ -301,11 +301,11 @@ describe('CloudPreviewModal', () => {
         expect(screen.queryByTestId('cloud-preview-fab')).not.toBeInTheDocument();
     });
 
-    it('should have proper tooltip on FAB button', () => {
+    it('should have proper tooltip on FAB button', async () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        renderWithContext(
+        await renderWithContext(
             <CloudPreviewModal/>,
             stateWithModalShown,
         );
@@ -314,11 +314,11 @@ describe('CloudPreviewModal', () => {
         expect(tooltip).toHaveAttribute('title', 'Open overview');
     });
 
-    it('should have proper accessibility attributes on FAB button', () => {
+    it('should have proper accessibility attributes on FAB button', async () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        renderWithContext(
+        await renderWithContext(
             <CloudPreviewModal/>,
             stateWithModalShown,
         );
@@ -328,7 +328,7 @@ describe('CloudPreviewModal', () => {
         expect(fabButton).toHaveClass('cloud-preview-modal-fab__button');
     });
 
-    it('should use dynamic content when available', () => {
+    it('should use dynamic content when available', async () => {
         const dynamicContent: PreviewModalContentData[] = [
             {
                 skuLabel: {
@@ -358,7 +358,7 @@ describe('CloudPreviewModal', () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        renderWithContext(
+        await renderWithContext(
             <CloudPreviewModal/>,
             initialState,
         );
@@ -369,7 +369,7 @@ describe('CloudPreviewModal', () => {
         expect(lastContentData[0].title.defaultMessage).toBe('Dynamic Title');
     });
 
-    it('should fallback to hardcoded content when dynamic content is not available', () => {
+    it('should fallback to hardcoded content when dynamic content is not available', async () => {
         mockUseGetCloudPreviewModalContent.mockReturnValue({
             data: null,
             loading: false,
@@ -379,7 +379,7 @@ describe('CloudPreviewModal', () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        renderWithContext(
+        await renderWithContext(
             <CloudPreviewModal/>,
             initialState,
         );
@@ -390,7 +390,7 @@ describe('CloudPreviewModal', () => {
         expect(lastContentData[0].title.defaultMessage).toBe('Welcome to your Mattermost preview');
     });
 
-    it('should fallback to hardcoded content when dynamic content is empty', () => {
+    it('should fallback to hardcoded content when dynamic content is empty', async () => {
         mockUseGetCloudPreviewModalContent.mockReturnValue({
             data: [],
             loading: false,
@@ -400,7 +400,7 @@ describe('CloudPreviewModal', () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        renderWithContext(
+        await renderWithContext(
             <CloudPreviewModal/>,
             initialState,
         );
@@ -411,7 +411,7 @@ describe('CloudPreviewModal', () => {
         expect(lastContentData[0].title.defaultMessage).toBe('Welcome to your Mattermost preview');
     });
 
-    it('should not show modal when content is loading', () => {
+    it('should not show modal when content is loading', async () => {
         mockUseGetCloudPreviewModalContent.mockReturnValue({
             data: null,
             loading: true,
@@ -421,7 +421,7 @@ describe('CloudPreviewModal', () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        renderWithContext(
+        await renderWithContext(
             <CloudPreviewModal/>,
             initialState,
         );
@@ -429,7 +429,7 @@ describe('CloudPreviewModal', () => {
         expect(screen.queryByTestId('preview-modal-controller')).not.toBeInTheDocument();
     });
 
-    it('should fallback to hardcoded content when there is an error fetching dynamic content', () => {
+    it('should fallback to hardcoded content when there is an error fetching dynamic content', async () => {
         mockUseGetCloudPreviewModalContent.mockReturnValue({
             data: null,
             loading: false,
@@ -439,7 +439,7 @@ describe('CloudPreviewModal', () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        renderWithContext(
+        await renderWithContext(
             <CloudPreviewModal/>,
             initialState,
         );

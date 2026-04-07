@@ -63,7 +63,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
     };
 
     test('should match snapshot and contain correct buttons', async () => {
-        const {baseElement} = renderWithContext(
+        const {baseElement} = await renderWithContext(
             <SidebarChannelMenu {...baseProps}/>,
         );
 
@@ -84,7 +84,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
             isUnread: true,
         };
 
-        const {baseElement} = renderWithContext(
+        const {baseElement} = await renderWithContext(
             <SidebarChannelMenu {...props}/>,
         );
 
@@ -100,7 +100,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
             isUnread: false,
         };
 
-        const {baseElement} = renderWithContext(
+        const {baseElement} = await renderWithContext(
             <SidebarChannelMenu {...props}/>,
         );
 
@@ -116,7 +116,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
             isFavorite: true,
         };
 
-        const {baseElement} = renderWithContext(
+        const {baseElement} = await renderWithContext(
             <SidebarChannelMenu {...props}/>,
         );
 
@@ -133,7 +133,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
             isMuted: true,
         };
 
-        const {baseElement} = renderWithContext(
+        const {baseElement} = await renderWithContext(
             <SidebarChannelMenu {...props}/>,
         );
 
@@ -153,7 +153,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
             },
         };
 
-        const {baseElement} = renderWithContext(
+        const {baseElement} = await renderWithContext(
             <SidebarChannelMenu {...props}/>,
         );
 
@@ -171,7 +171,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
             },
         };
 
-        const {baseElement} = renderWithContext(
+        const {baseElement} = await renderWithContext(
             <SidebarChannelMenu {...props}/>,
         );
 
@@ -191,7 +191,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
             },
         };
 
-        const {baseElement} = renderWithContext(
+        const {baseElement} = await renderWithContext(
             <SidebarChannelMenu {...props}/>,
         );
 
@@ -221,7 +221,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
             ],
         };
 
-        const {baseElement} = renderWithContext(
+        const {baseElement} = await renderWithContext(
             <SidebarChannelMenu {...props}/>,
         );
 
@@ -253,7 +253,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
             ],
         };
 
-        renderWithContext(
+        await renderWithContext(
             <SidebarChannelMenu {...props}/>,
         );
 

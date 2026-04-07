@@ -115,7 +115,7 @@ describe('useRewrite', () => {
         };
     }
 
-    function renderHookWithProps(draft: PostDraft = mockDraft, overrides?: Partial<typeof mockDraft>) {
+    async function renderHookWithProps(draft: PostDraft = mockDraft, overrides?: Partial<typeof mockDraft>) {
         return renderHookWithContext(
             () => useRewrite(
                 {...draft, ...overrides},
@@ -129,24 +129,24 @@ describe('useRewrite', () => {
     }
 
     describe('initialization', () => {
-        it('should dispatch getAgents action on mount', () => {
-            renderHookWithProps();
+        it('should dispatch getAgents action on mount', async () => {
+            await renderHookWithProps();
             expect(getAgentsAction).toHaveBeenCalledTimes(1);
         });
 
-        it('should return isProcessing state', () => {
-            const {result} = renderHookWithProps();
+        it('should return isProcessing state', async () => {
+            const {result} = await renderHookWithProps();
             expect(result.current.isProcessing).toBe(false);
         });
 
-        it('should return additionalControl component', () => {
-            const {result} = renderHookWithProps();
+        it('should return additionalControl component', async () => {
+            const {result} = await renderHookWithProps();
             expect(result.current.additionalControl).toBeDefined();
             expect(React.isValidElement(result.current.additionalControl)).toBe(true);
         });
 
-        it('should set default selected agent when agents are available', () => {
-            const {result} = renderHookWithProps();
+        it('should set default selected agent when agents are available', async () => {
+            const {result} = await renderHookWithProps();
             render(result.current.additionalControl);
             expect(MockedRewriteMenu).toHaveBeenCalled();
             const props = MockedRewriteMenu.mock.calls[0][0];
@@ -156,7 +156,7 @@ describe('useRewrite', () => {
 
     describe('handleRewrite', () => {
         it('should successfully rewrite message', async () => {
-            const {result} = renderHookWithProps();
+            const {result} = await renderHookWithProps();
             render(result.current.additionalControl);
             const props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
             const actionHandler = props.onMenuAction(RewriteAction.SHORTEN);
@@ -185,7 +185,7 @@ describe('useRewrite', () => {
         });
 
         it('should handle rewrite with custom prompt', async () => {
-            const {result, rerender} = renderHookWithProps();
+            const {result, rerender} = await renderHookWithProps();
             const rewritePromise = Client4.getAIRewrittenMessage as jest.Mock;
             rewritePromise.mockResolvedValue('Custom rewritten message');
 
@@ -217,7 +217,7 @@ describe('useRewrite', () => {
         });
 
         it('should not rewrite if already processing', async () => {
-            const {result, rerender} = renderHookWithProps();
+            const {result, rerender} = await renderHookWithProps();
             const rewritePromise = Client4.getAIRewrittenMessage as jest.Mock;
             rewritePromise.mockImplementation(() => new Promise((resolve) => setTimeout(() => resolve('Response'), 100)));
 
@@ -243,7 +243,7 @@ describe('useRewrite', () => {
             const error = new Error('Rewrite failed');
             (Client4.getAIRewrittenMessage as jest.Mock).mockRejectedValue(error);
 
-            const {result} = renderHookWithProps();
+            const {result} = await renderHookWithProps();
             render(result.current.additionalControl);
             const props = MockedRewriteMenu.mock.calls[0][0];
             const actionHandler = props.onMenuAction(RewriteAction.SHORTEN);
@@ -261,7 +261,7 @@ describe('useRewrite', () => {
         it('should ignore stale promise responses', async () => {
             mockHandleDraftChange.mockClear();
 
-            const {result, rerender} = renderHookWithProps();
+            const {result, rerender} = await renderHookWithProps();
 
             let resolveFirst: (value: string) => void;
             const rewritePromise1 = new Promise<string>((resolve) => {
@@ -321,7 +321,7 @@ describe('useRewrite', () => {
 
     describe('undoMessage', () => {
         it('should restore original message and focus textbox', async () => {
-            const {result} = renderHookWithProps();
+            const {result} = await renderHookWithProps();
             render(result.current.additionalControl);
             let props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
             const actionHandler = props.onMenuAction(RewriteAction.SHORTEN);
@@ -347,7 +347,7 @@ describe('useRewrite', () => {
 
     describe('regenerateMessage', () => {
         it('should regenerate message with last action', async () => {
-            const {result} = renderHookWithProps();
+            const {result} = await renderHookWithProps();
             render(result.current.additionalControl);
             let props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
             const actionHandler = props.onMenuAction(RewriteAction.SHORTEN);
@@ -375,7 +375,7 @@ describe('useRewrite', () => {
         });
 
         it('should regenerate with custom prompt if last action was custom', async () => {
-            const {result, rerender} = renderHookWithProps();
+            const {result, rerender} = await renderHookWithProps();
             render(result.current.additionalControl);
             let props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
             props.setPrompt('Custom prompt');
@@ -416,7 +416,7 @@ describe('useRewrite', () => {
 
     describe('cancelProcessing', () => {
         it('should cancel processing and reset state', async () => {
-            const {result, rerender} = renderHookWithProps();
+            const {result, rerender} = await renderHookWithProps();
             const slowPromise = new Promise<string>((resolve) => {
                 setTimeout(() => resolve('Slow response'), 1000);
             });
@@ -449,8 +449,8 @@ describe('useRewrite', () => {
     });
 
     describe('handleCustomPromptKeyDown', () => {
-        it('should stop propagation for space key', () => {
-            const {result} = renderHookWithProps();
+        it('should stop propagation for space key', async () => {
+            const {result} = await renderHookWithProps();
             render(result.current.additionalControl);
             const props = MockedRewriteMenu.mock.calls[0][0];
             const mockEvent = {
@@ -465,7 +465,7 @@ describe('useRewrite', () => {
         });
 
         it('should trigger rewrite on Enter key', async () => {
-            const {result, rerender} = renderHookWithProps();
+            const {result, rerender} = await renderHookWithProps();
             render(result.current.additionalControl);
             let props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
             props.setPrompt('Custom prompt');
@@ -493,8 +493,8 @@ describe('useRewrite', () => {
             });
         });
 
-        it('should not trigger rewrite on Enter key during IME composition', () => {
-            const {result, rerender} = renderHookWithProps();
+        it('should not trigger rewrite on Enter key during IME composition', async () => {
+            const {result, rerender} = await renderHookWithProps();
             render(result.current.additionalControl);
             let props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
             props.setPrompt('Custom prompt');
@@ -517,7 +517,7 @@ describe('useRewrite', () => {
 
     describe('handleMenuAction', () => {
         it('should return function that calls handleRewrite with action', async () => {
-            const {result} = renderHookWithProps();
+            const {result} = await renderHookWithProps();
             render(result.current.additionalControl);
             const props = MockedRewriteMenu.mock.calls[0][0];
             const actionHandler = props.onMenuAction(RewriteAction.IMPROVE_WRITING);
@@ -537,7 +537,7 @@ describe('useRewrite', () => {
 
     describe('effects', () => {
         it('should add overlay when processing', async () => {
-            const {result} = renderHookWithProps();
+            const {result} = await renderHookWithProps();
             const slowPromise = new Promise<string>((resolve) => {
                 setTimeout(() => resolve('Response'), 100);
             });
@@ -561,7 +561,7 @@ describe('useRewrite', () => {
         });
 
         it('should remove overlay when processing stops', async () => {
-            const {result} = renderHookWithProps();
+            const {result} = await renderHookWithProps();
             render(result.current.additionalControl);
             const props = MockedRewriteMenu.mock.calls[0][0];
             const actionHandler = props.onMenuAction(RewriteAction.SHORTEN);
@@ -576,7 +576,7 @@ describe('useRewrite', () => {
         });
 
         it('should reset state when draft message becomes empty', async () => {
-            const {result, rerender} = renderHookWithProps(mockDraft);
+            const {result, rerender} = await renderHookWithProps(mockDraft);
             render(result.current.additionalControl);
             let props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
             const actionHandler = props.onMenuAction(RewriteAction.SHORTEN);
@@ -592,7 +592,7 @@ describe('useRewrite', () => {
             props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
             expect(props.originalMessage).toBe('Test message');
 
-            const {result: result2} = renderHookWithProps({...mockDraft, message: ''});
+            const {result: result2} = await renderHookWithProps({...mockDraft, message: ''});
             render(result2.current.additionalControl);
             props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
             expect(props.originalMessage).toBe('');

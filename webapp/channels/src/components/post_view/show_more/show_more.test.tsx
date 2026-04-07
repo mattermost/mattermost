@@ -19,14 +19,14 @@ describe('components/post_view/ShowMore', () => {
         compactDisplay: false,
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<ShowMore {...baseProps}>{children}</ShowMore>);
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(<ShowMore {...baseProps}>{children}</ShowMore>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, PostMessageView on collapsed view', () => {
+    test('should match snapshot, PostMessageView on collapsed view', async () => {
         const ref = React.createRef<ShowMore>();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ShowMore
                 {...baseProps}
                 ref={ref}
@@ -38,9 +38,9 @@ describe('components/post_view/ShowMore', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, PostMessageView on expanded view', () => {
+    test('should match snapshot, PostMessageView on expanded view', async () => {
         const ref = React.createRef<ShowMore>();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ShowMore
                 {...baseProps}
                 ref={ref}
@@ -52,9 +52,9 @@ describe('components/post_view/ShowMore', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, PostAttachment on collapsed view', () => {
+    test('should match snapshot, PostAttachment on collapsed view', async () => {
         const ref = React.createRef<ShowMore>();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ShowMore
                 {...baseProps}
                 isAttachmentText={true}
@@ -67,9 +67,9 @@ describe('components/post_view/ShowMore', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, PostAttachment on expanded view', () => {
+    test('should match snapshot, PostAttachment on expanded view', async () => {
         const ref = React.createRef<ShowMore>();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ShowMore
                 {...baseProps}
                 isAttachmentText={true}
@@ -82,9 +82,9 @@ describe('components/post_view/ShowMore', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, PostMessageView on expanded view with compactDisplay', () => {
+    test('should match snapshot, PostMessageView on expanded view with compactDisplay', async () => {
         const ref = React.createRef<ShowMore>();
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ShowMore
                 {...baseProps}
                 compactDisplay={true}
@@ -97,9 +97,9 @@ describe('components/post_view/ShowMore', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should call checkTextOverflow', () => {
+    test('should call checkTextOverflow', async () => {
         const ref = React.createRef<ShowMore>();
-        const {rerender} = renderWithContext(
+        const {rerender} = await renderWithContext(
             <ShowMore
                 {...baseProps}
                 ref={ref}

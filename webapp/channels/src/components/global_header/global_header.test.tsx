@@ -23,11 +23,11 @@ jest.mock('./right_controls/right_controls', () => ({productId}: {productId?: st
 ));
 
 describe('components/global/global_header', () => {
-    test('should not render when user is not logged in', () => {
+    test('should not render when user is not logged in', async () => {
         jest.spyOn(hooks, 'useIsLoggedIn').mockReturnValue(false);
         jest.spyOn(productUtils, 'useCurrentProductId').mockReturnValue(null);
 
-        const {container} = renderWithContext(<GlobalHeader/>);
+        const {container} = await renderWithContext(<GlobalHeader/>);
 
         expect(container.firstChild).toBeNull();
     });
@@ -38,16 +38,16 @@ describe('components/global/global_header', () => {
             jest.spyOn(productUtils, 'useCurrentProductId').mockReturnValue(null);
         });
 
-        test('should render header', () => {
-            renderWithContext(<GlobalHeader/>);
+        test('should render header', async () => {
+            await renderWithContext(<GlobalHeader/>);
 
             expect(screen.getByRole('banner')).toBeInTheDocument();
         });
 
-        test('should pass product id to child components', () => {
+        test('should pass product id to child components', async () => {
             jest.spyOn(productUtils, 'useCurrentProductId').mockReturnValue('product_id');
 
-            renderWithContext(<GlobalHeader/>);
+            await renderWithContext(<GlobalHeader/>);
 
             expect(screen.getByRole('banner')).toBeInTheDocument();
 

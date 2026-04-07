@@ -28,47 +28,47 @@ describe('components/SearchHint', () => {
         },
     };
 
-    test('should match snapshot, with title', () => {
+    test('should match snapshot, with title', async () => {
         const props = {
             ...baseProps,
             withTitle: true,
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SearchHint {...props}/>,
             initialState,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, without title', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot, without title', async () => {
+        const {container} = await renderWithContext(
             <SearchHint {...baseProps}/>,
             initialState,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, without searchType', () => {
+    test('should match snapshot, without searchType', async () => {
         const props = {
             ...baseProps,
             withTitle: true,
             onSearchTypeSelected: jest.fn(),
             searchType: '' as 'files' | 'messages' | '',
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SearchHint {...props}/>,
             initialState,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, with searchType', () => {
+    test('should match snapshot, with searchType', async () => {
         const props = {
             ...baseProps,
             onSearchTypeSelected: jest.fn(),
             searchType: 'files' as 'files' | 'messages' | '',
         };
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SearchHint {...props}/>,
             initialState,
         );

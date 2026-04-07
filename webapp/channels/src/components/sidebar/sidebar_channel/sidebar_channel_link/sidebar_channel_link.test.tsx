@@ -63,26 +63,26 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <SidebarChannelLink {...baseProps}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot for desktop', () => {
+    test('should match snapshot for desktop', async () => {
         const userAgentMock = jest.requireMock('utils/user_agent');
         userAgentMock.isDesktopApp.mockImplementation(() => false);
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SidebarChannelLink {...baseProps}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when tooltip is enabled', () => {
+    test('should match snapshot when tooltip is enabled', async () => {
         const props = {
             ...baseProps,
             label: 'a'.repeat(200), // Long label to trigger tooltip
@@ -92,7 +92,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
         Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {configurable: true, value: 50});
         Object.defineProperty(HTMLElement.prototype, 'scrollWidth', {configurable: true, value: 200});
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SidebarChannelLink {...props}/>,
         );
 
@@ -103,7 +103,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
         Object.defineProperty(HTMLElement.prototype, 'scrollWidth', {configurable: true, value: 0});
     });
 
-    test('should match snapshot with aria label prefix and unread mentions', () => {
+    test('should match snapshot with aria label prefix and unread mentions', async () => {
         const props = {
             ...baseProps,
             isUnread: true,
@@ -111,19 +111,19 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
             ariaLabelPrefix: 'aria_label_prefix_',
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SidebarChannelLink {...props}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should enable tooltip when needed', () => {
+    test('should enable tooltip when needed', async () => {
         // Mock offsetWidth < scrollWidth to trigger tooltip
         Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {configurable: true, value: 50});
         Object.defineProperty(HTMLElement.prototype, 'scrollWidth', {configurable: true, value: 60});
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SidebarChannelLink {...baseProps}/>,
         );
 
@@ -136,13 +136,13 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
         Object.defineProperty(HTMLElement.prototype, 'scrollWidth', {configurable: true, value: 0});
     });
 
-    test('should not fetch shared channels for non-shared channels', () => {
+    test('should not fetch shared channels for non-shared channels', async () => {
         const props = {
             ...baseProps,
             isSharedChannel: false,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SidebarChannelLink {...props}/>,
         );
 
@@ -150,14 +150,14 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
         expect(props.actions.fetchChannelRemotes).not.toHaveBeenCalled();
     });
 
-    test('should fetch shared channels data when channel is shared', () => {
+    test('should fetch shared channels data when channel is shared', async () => {
         const props = {
             ...baseProps,
             isSharedChannel: true,
             remoteNames: [],
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SidebarChannelLink {...props}/>,
         );
 
@@ -165,14 +165,14 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
         expect(props.actions.fetchChannelRemotes).toHaveBeenCalledWith('channel_id');
     });
 
-    test('should not fetch shared channels data when data already exists', () => {
+    test('should not fetch shared channels data when data already exists', async () => {
         const props = {
             ...baseProps,
             isSharedChannel: true,
             remoteNames: ['Remote 1', 'Remote 2'],
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SidebarChannelLink {...props}/>,
         );
 
@@ -180,14 +180,14 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
         expect(props.actions.fetchChannelRemotes).not.toHaveBeenCalled();
     });
 
-    test('should refetch when channel changes', () => {
+    test('should refetch when channel changes', async () => {
         const props = {
             ...baseProps,
             isSharedChannel: true,
             remoteNames: [],
         };
 
-        const {rerender} = renderWithContext(
+        const {rerender} = await renderWithContext(
             <SidebarChannelLink {...props}/>,
         );
 

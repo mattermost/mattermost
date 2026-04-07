@@ -9,7 +9,7 @@ import {TestHelper} from 'utils/test_helper';
 import {TeamGroups} from './team_groups';
 
 describe('admin_console/team_channel_settings/team/TeamGroups', () => {
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const groups = [TestHelper.getGroupMock({
             id: '123',
             display_name: 'DN',
@@ -23,7 +23,7 @@ describe('admin_console/team_channel_settings/team/TeamGroups', () => {
             group_constrained: false,
             display_name: 'team',
         });
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <TeamGroups
                 syncChecked={true}
                 onAddCallback={jest.fn()}

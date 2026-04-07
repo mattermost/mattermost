@@ -46,8 +46,8 @@ describe('components/ProfilePopoverOtherUserRow', () => {
         },
     } as unknown as GlobalState;
 
-    test('should show message button for regular users', () => {
-        renderWithContext(
+    test('should show message button for regular users', async () => {
+        await renderWithContext(
             <ProfilePopoverOtherUserRow
                 {...baseProps}
             />,
@@ -77,7 +77,7 @@ describe('components/ProfilePopoverOtherUserRow', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ProfilePopoverOtherUserRow
                 {...baseProps}
                 user={remoteUser}
@@ -91,7 +91,7 @@ describe('components/ProfilePopoverOtherUserRow', () => {
         expect(mockCanUserDirectMessage).toHaveBeenCalledWith('currentUser', 'user1');
     });
 
-    test('should hide message button for remote users when EnableSharedChannelsDMs is disabled', () => {
+    test('should hide message button for remote users when EnableSharedChannelsDMs is disabled', async () => {
         const remoteUser = {
             ...baseProps.user,
             remote_id: 'remote1',
@@ -111,7 +111,7 @@ describe('components/ProfilePopoverOtherUserRow', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ProfilePopoverOtherUserRow
                 {...baseProps}
                 user={remoteUser}
@@ -123,7 +123,7 @@ describe('components/ProfilePopoverOtherUserRow', () => {
         expect(mockCanUserDirectMessage).not.toHaveBeenCalled();
     });
 
-    test('should show message button for local users when EnableSharedChannelsDMs is disabled', () => {
+    test('should show message button for local users when EnableSharedChannelsDMs is disabled', async () => {
         const state = {
             ...initialState,
             entities: {
@@ -138,7 +138,7 @@ describe('components/ProfilePopoverOtherUserRow', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ProfilePopoverOtherUserRow
                 {...baseProps}
             />,

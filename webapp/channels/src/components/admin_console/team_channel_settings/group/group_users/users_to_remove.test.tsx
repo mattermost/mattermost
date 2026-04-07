@@ -33,7 +33,7 @@ describe('components/admin_console/team_channel_settings/group/UsersToRemove', (
     };
 
     test('should match snapshot with 2 users', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <UsersToRemove
                 {...baseProps}
             />,
@@ -47,7 +47,7 @@ describe('components/admin_console/team_channel_settings/group/UsersToRemove', (
     });
 
     test('should match snapshot with guests disabled', async () => {
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <UsersToRemove
                 {...baseProps}
                 enableGuestAccounts={false}
@@ -61,7 +61,7 @@ describe('components/admin_console/team_channel_settings/group/UsersToRemove', (
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot loading', () => {
+    test('should match snapshot loading', async () => {
         const props = {
             ...baseProps,
             actions: {
@@ -71,7 +71,7 @@ describe('components/admin_console/team_channel_settings/group/UsersToRemove', (
             },
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <UsersToRemove
                 {...props}
             />,

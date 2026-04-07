@@ -44,7 +44,9 @@ describe('do first render to avoid other testing issues', () => {
     // For some reason, the first time we render, the modal does not
     // completly renders. This makes it so further tests go properly
     // through.
-    renderWithContext(<UserSettingsModal {...baseProps}/>, baseState);
+    it('should render without errors on first render', async () => {
+        await renderWithContext(<UserSettingsModal {...baseProps}/>, baseState);
+    });
 });
 
 describe('plugin tabs are only rendered on content product settings', () => {
@@ -68,7 +70,7 @@ describe('plugin tabs are only rendered on content product settings', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <UserSettingsModal
                 {...baseProps}
                 isContentProductSettings={false}
@@ -102,7 +104,7 @@ describe('tabs are properly rendered', () => {
             },
         };
 
-        renderWithContext(<UserSettingsModal {...baseProps}/>, mergeObjects(baseState, state));
+        await renderWithContext(<UserSettingsModal {...baseProps}/>, mergeObjects(baseState, state));
 
         expect(screen.queryByText(uiName1)).toBeInTheDocument();
         expect(screen.queryByText(uiName2)).toBeInTheDocument();
@@ -146,7 +148,7 @@ describe('tabs are properly rendered', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <UserSettingsModal
                 {...baseProps}
                 activeTab='plugin_b'
@@ -162,7 +164,7 @@ describe('tabs are properly rendered', () => {
 });
 
 describe('plugin tabs use the correct icon', () => {
-    it('use power plug when no icon', () => {
+    it('use power plug when no icon', async () => {
         const uiName = 'plugin_a';
         const state: DeepPartial<GlobalState> = {
             plugins: {
@@ -176,7 +178,7 @@ describe('plugin tabs use the correct icon', () => {
             },
         };
 
-        renderWithContext(<UserSettingsModal {...baseProps}/>, mergeObjects(baseState, state));
+        await renderWithContext(<UserSettingsModal {...baseProps}/>, mergeObjects(baseState, state));
 
         const element = screen.queryByTitle(uiName);
         expect(element).toBeInTheDocument();
@@ -184,7 +186,7 @@ describe('plugin tabs use the correct icon', () => {
         expect(element?.className).toBe('icon icon-power-plug-outline');
     });
 
-    it('use image when icon URL provided', () => {
+    it('use image when icon URL provided', async () => {
         const uiName = 'plugin_a';
         const icon = 'http://localhost:8065/plugins/com.mattermost.plugin_a/public/icon.svg';
         const state: DeepPartial<GlobalState> = {
@@ -199,7 +201,7 @@ describe('plugin tabs use the correct icon', () => {
                 },
             },
         };
-        renderWithContext(<UserSettingsModal {...baseProps}/>, mergeObjects(baseState, state));
+        await renderWithContext(<UserSettingsModal {...baseProps}/>, mergeObjects(baseState, state));
 
         const element = screen.queryByAltText(uiName);
         expect(element).toBeInTheDocument();
@@ -207,7 +209,7 @@ describe('plugin tabs use the correct icon', () => {
         expect(element!.getAttribute('src')).toBe(icon);
     });
 
-    it('use image when icon path provided', () => {
+    it('use image when icon path provided', async () => {
         const uiName = 'plugin_a';
         const icon = '/plugins/com.mattermost.plugin_a/public/icon.svg';
         const state: DeepPartial<GlobalState> = {
@@ -222,7 +224,7 @@ describe('plugin tabs use the correct icon', () => {
                 },
             },
         };
-        renderWithContext(<UserSettingsModal {...baseProps}/>, mergeObjects(baseState, state));
+        await renderWithContext(<UserSettingsModal {...baseProps}/>, mergeObjects(baseState, state));
 
         const element = screen.queryByAltText(uiName);
         expect(element).toBeInTheDocument();
@@ -230,7 +232,7 @@ describe('plugin tabs use the correct icon', () => {
         expect(element!.getAttribute('src')).toBe(icon);
     });
 
-    it('use class name when icon name provided', () => {
+    it('use class name when icon name provided', async () => {
         const uiName = 'plugin_a';
         const icon = 'icon-phone-in-talk';
         const state: DeepPartial<GlobalState> = {
@@ -246,7 +248,7 @@ describe('plugin tabs use the correct icon', () => {
             },
         };
 
-        renderWithContext(<UserSettingsModal {...baseProps}/>, mergeObjects(baseState, state));
+        await renderWithContext(<UserSettingsModal {...baseProps}/>, mergeObjects(baseState, state));
 
         const element = screen.queryByTitle(uiName);
         expect(element).toBeInTheDocument();

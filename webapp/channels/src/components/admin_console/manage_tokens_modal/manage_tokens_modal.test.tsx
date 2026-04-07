@@ -20,8 +20,8 @@ describe('components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx',
         onExited: jest.fn(),
     };
 
-    test('initial call should match snapshot', () => {
-        const {baseElement} = renderWithContext(
+    test('initial call should match snapshot', async () => {
+        const {baseElement} = await renderWithContext(
             <ManageTokensModal {...baseProps}/>,
         );
         expect(baseProps.actions.getUserAccessTokensForUser).toHaveBeenCalledTimes(1);
@@ -30,8 +30,8 @@ describe('components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx',
         expect(baseElement).toMatchSnapshot();
     });
 
-    test('should replace loading screen on update', () => {
-        const {baseElement, rerender} = renderWithContext(
+    test('should replace loading screen on update', async () => {
+        const {baseElement, rerender} = await renderWithContext(
             <ManageTokensModal {...baseProps}/>,
         );
 
@@ -53,7 +53,7 @@ describe('components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx',
         expect(baseElement).toMatchSnapshot();
     });
 
-    test('should display list of tokens', () => {
+    test('should display list of tokens', async () => {
         const userAccessTokens = {
             id1: {
                 id: 'id1',
@@ -69,7 +69,7 @@ describe('components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx',
             },
         };
 
-        const {baseElement} = renderWithContext(
+        const {baseElement} = await renderWithContext(
             <ManageTokensModal
                 {...baseProps}
                 userAccessTokens={userAccessTokens}

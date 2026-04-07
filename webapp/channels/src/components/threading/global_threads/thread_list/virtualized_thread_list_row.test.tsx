@@ -39,13 +39,13 @@ describe('components/threading/global_threads/thread_list/virtualized_thread_lis
         };
     });
 
-    test('should match snapshot', () => {
-        const {baseElement} = renderWithContext(<Row {...props}/>);
+    test('should match snapshot', async () => {
+        const {baseElement} = await renderWithContext(<Row {...props}/>);
         expect(baseElement).toMatchSnapshot();
     });
 
-    test('should support item loading indicator', () => {
-        const {baseElement} = renderWithContext(
+    test('should support item loading indicator', async () => {
+        const {baseElement} = await renderWithContext(
             <Row
                 {...props}
                 data={{ids: [...props.data.ids, Constants.THREADS_LOADING_INDICATOR_ITEM_ID], selectedThreadId: undefined}}
@@ -55,8 +55,8 @@ describe('components/threading/global_threads/thread_list/virtualized_thread_lis
         expect(baseElement).toMatchSnapshot();
     });
 
-    test('should support item search guidance ', () => {
-        const {baseElement} = renderWithContext(
+    test('should support item search guidance ', async () => {
+        const {baseElement} = await renderWithContext(
             <Row
                 {...props}
                 data={{ids: [...props.data.ids, Constants.THREADS_NO_RESULTS_ITEM_ID], selectedThreadId: undefined}}

@@ -9,34 +9,34 @@ import {LicenseSkus} from 'utils/constants';
 import LicenseSkuBadge from './license_sku_badge';
 
 describe('components/widgets/badges/LicenseSkuBadge', () => {
-    test('renders Enterprise Advanced label', () => {
-        renderWithContext(<LicenseSkuBadge sku={LicenseSkus.EnterpriseAdvanced}/>);
+    test('renders Enterprise Advanced label', async () => {
+        await renderWithContext(<LicenseSkuBadge sku={LicenseSkus.EnterpriseAdvanced}/>);
         expect(screen.getByText('Enterprise Advanced')).toBeInTheDocument();
     });
 
-    test('renders Enterprise label', () => {
-        renderWithContext(<LicenseSkuBadge sku={LicenseSkus.Enterprise}/>);
+    test('renders Enterprise label', async () => {
+        await renderWithContext(<LicenseSkuBadge sku={LicenseSkus.Enterprise}/>);
         expect(screen.getByText('Enterprise')).toBeInTheDocument();
     });
 
-    test('renders Professional label', () => {
-        renderWithContext(<LicenseSkuBadge sku={LicenseSkus.Professional}/>);
+    test('renders Professional label', async () => {
+        await renderWithContext(<LicenseSkuBadge sku={LicenseSkus.Professional}/>);
         expect(screen.getByText('Professional')).toBeInTheDocument();
     });
 
-    test('renders Starter label', () => {
-        renderWithContext(<LicenseSkuBadge sku={LicenseSkus.Starter}/>);
+    test('renders Starter label', async () => {
+        await renderWithContext(<LicenseSkuBadge sku={LicenseSkus.Starter}/>);
         expect(screen.getByText('Starter')).toBeInTheDocument();
     });
 
-    test('has accessible label', () => {
-        renderWithContext(<LicenseSkuBadge sku={LicenseSkus.EnterpriseAdvanced}/>);
+    test('has accessible label', async () => {
+        await renderWithContext(<LicenseSkuBadge sku={LicenseSkus.EnterpriseAdvanced}/>);
         const badge = screen.getByLabelText('Requires Enterprise Advanced license');
         expect(badge).toBeInTheDocument();
     });
 
-    test('renders custom SKU as-is', () => {
-        renderWithContext(<LicenseSkuBadge sku='CustomSKU'/>);
+    test('renders custom SKU as-is', async () => {
+        await renderWithContext(<LicenseSkuBadge sku='CustomSKU'/>);
         expect(screen.getByText('CustomSKU')).toBeInTheDocument();
     });
 });

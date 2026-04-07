@@ -7,7 +7,7 @@ import type {ChannelType} from '@mattermost/types/channels';
 
 import {loadProfilesForSidebar} from 'actions/user_actions';
 
-import {renderWithContext, runPostRenderAct} from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import DataPrefetch from './data_prefetch';
@@ -76,7 +76,7 @@ describe('/components/data_prefetch', () => {
 
     test('should fetch posts for current channel on first channel load', async () => {
         const props = {...defaultProps};
-        const {rerender} = renderWithContext(
+        const {rerender} = await renderWithContext(
             <DataPrefetch {...props}/>,
         );
 
@@ -87,7 +87,6 @@ describe('/components/data_prefetch', () => {
                 currentChannelId='currentChannelId'
             />,
         );
-        await runPostRenderAct();
 
         expect(mockQueue).toHaveLength(1);
 
@@ -102,7 +101,7 @@ describe('/components/data_prefetch', () => {
             ...defaultProps,
             sidebarLoaded: false,
         };
-        const {rerender} = renderWithContext(
+        const {rerender} = await renderWithContext(
             <DataPrefetch {...props}/>,
         );
 
@@ -115,7 +114,6 @@ describe('/components/data_prefetch', () => {
                 sidebarLoaded={true}
             />,
         );
-        await runPostRenderAct();
 
         expect(loadProfilesForSidebar).toHaveBeenCalledTimes(1);
 
@@ -140,7 +138,7 @@ describe('/components/data_prefetch', () => {
                 3: [],
             },
         };
-        const {rerender} = renderWithContext(
+        const {rerender} = await renderWithContext(
             <DataPrefetch {...props}/>,
         );
 
@@ -150,7 +148,6 @@ describe('/components/data_prefetch', () => {
                 currentChannelId='currentChannelId'
             />,
         );
-        await runPostRenderAct();
 
         expect(mockQueue).toHaveLength(5); // current channel, mentioned channels, unread channels
 
@@ -183,7 +180,7 @@ describe('/components/data_prefetch', () => {
                 2: ['unreadChannel0', 'unreadChannel1', 'unreadChannel2'],
             },
         };
-        const {rerender} = renderWithContext(
+        const {rerender} = await renderWithContext(
             <DataPrefetch {...props}/>,
         );
 
@@ -193,7 +190,6 @@ describe('/components/data_prefetch', () => {
                 currentChannelId='currentChannelId'
             />,
         );
-        await runPostRenderAct();
 
         expect(mockQueue).toHaveLength(4);
 
@@ -252,7 +248,7 @@ describe('/components/data_prefetch', () => {
                 unreadChannel: 'success',
             },
         };
-        const {rerender} = renderWithContext(
+        const {rerender} = await renderWithContext(
             <DataPrefetch {...props}/>,
         );
 
@@ -262,7 +258,6 @@ describe('/components/data_prefetch', () => {
                 currentChannelId='currentChannelId'
             />,
         );
-        await runPostRenderAct();
 
         expect(mockQueue).toHaveLength(2);
 
@@ -302,7 +297,7 @@ describe('/components/data_prefetch', () => {
                 last_root_post_at: 12345,
             }],
         };
-        const {rerender} = renderWithContext(
+        const {rerender} = await renderWithContext(
             <DataPrefetch {...props}/>,
         );
 
@@ -312,7 +307,6 @@ describe('/components/data_prefetch', () => {
                 currentChannelId='currentChannelId'
             />,
         );
-        await runPostRenderAct();
 
         expect(mockQueue).toHaveLength(2);
 
@@ -354,7 +348,7 @@ describe('/components/data_prefetch', () => {
                 last_root_post_at: 12345,
             }],
         };
-        const {rerender} = renderWithContext(
+        const {rerender} = await renderWithContext(
             <DataPrefetch {...props}/>,
         );
 
@@ -364,7 +358,6 @@ describe('/components/data_prefetch', () => {
                 currentChannelId='currentChannelId'
             />,
         );
-        await runPostRenderAct();
 
         expect(mockQueue).toHaveLength(2);
 
@@ -379,14 +372,14 @@ describe('/components/data_prefetch', () => {
         expect(props.actions.prefetchChannelPosts).toHaveBeenCalledWith('mentionChannel', undefined);
     });
 
-    test('should load profiles once the sidebar is loaded irrespective of the current channel', () => {
+    test('should load profiles once the sidebar is loaded irrespective of the current channel', async () => {
         const props = {
             ...defaultProps,
             currentChannelId: '',
             sidebarLoaded: false,
         };
 
-        const {rerender, unmount} = renderWithContext(
+        const {rerender, unmount} = await renderWithContext(
             <DataPrefetch {...props}/>,
         );
 
@@ -398,7 +391,7 @@ describe('/components/data_prefetch', () => {
         unmount();
 
         // With current channel loaded first
-        const {rerender: rerender2} = renderWithContext(
+        const {rerender: rerender2} = await renderWithContext(
             <DataPrefetch {...props}/>,
         );
         rerender2(

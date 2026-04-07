@@ -25,7 +25,7 @@ describe('components/channel_header/components/HeaderIconWrapper', () => {
     };
 
     test('should be accessible', async () => {
-        renderWithContext(
+        await renderWithContext(
             <HeaderIconWrapper
                 {...baseProps}
             />,
@@ -42,7 +42,7 @@ describe('components/channel_header/components/HeaderIconWrapper', () => {
     });
 
     test('should show the shortcut in its tooltip', async () => {
-        renderWithContext(
+        await renderWithContext(
             <HeaderIconWrapper
                 {...baseProps}
                 tooltipShortcut={{default: ['a', 'b', 'c']}}

@@ -86,17 +86,17 @@ describe('components/post_view/MessageAttachment', () => {
         } as Record<string, PostImage>,
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<MessageAttachment {...baseProps}/>);
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(<MessageAttachment {...baseProps}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should change checkOverflow state on handleHeightReceived change', () => {
+    test('should change checkOverflow state on handleHeightReceived change', async () => {
         // Mock Markdown to capture imageProps
         const MarkdownMock = jest.requireMock('components/markdown');
         MarkdownMock.mockClear();
 
-        renderWithContext(<MessageAttachment {...baseProps}/>);
+        await renderWithContext(<MessageAttachment {...baseProps}/>);
 
         // Find the Markdown call that has imageProps (the attachment text one)
         const callWithImageProps = MarkdownMock.mock.calls.find(
@@ -125,9 +125,9 @@ describe('components/post_view/MessageAttachment', () => {
         expect(MarkdownMock.mock.calls.length).toEqual(callCountAfter);
     });
 
-    test('should match value on renderPostActions', () => {
+    test('should match value on renderPostActions', async () => {
         // Without actions - no action buttons should render
-        const {container, unmount} = renderWithContext(<MessageAttachment {...baseProps}/>);
+        const {container, unmount} = await renderWithContext(<MessageAttachment {...baseProps}/>);
         expect(container.querySelector('.attachment-actions')).not.toBeInTheDocument();
 
         unmount();
@@ -143,7 +143,7 @@ describe('components/post_view/MessageAttachment', () => {
         };
 
         const props = {...baseProps, attachment: newAttachment};
-        const {container: container2} = renderWithContext(<MessageAttachment {...props}/>);
+        const {container: container2} = await renderWithContext(<MessageAttachment {...props}/>);
 
         // Should render action buttons and action menu
         expect(container2.querySelector('.attachment-actions')).toBeInTheDocument();
@@ -162,7 +162,7 @@ describe('components/post_view/MessageAttachment', () => {
             actions: [{id: actionId, name: 'action_name_1', cookie: 'cookie-contents'}] as PostAction[],
         };
         const props = {...baseProps, actions: {doPostActionWithCookie, openModal}, attachment: newAttachment};
-        const {container} = renderWithContext(<MessageAttachment {...props}/>);
+        const {container} = await renderWithContext(<MessageAttachment {...props}/>);
         expect(container).toMatchSnapshot();
 
         const {userEvent} = await import('tests/react_testing_utils');
@@ -184,7 +184,7 @@ describe('components/post_view/MessageAttachment', () => {
                 'https://example.com/image.png': {height: 200, width: 200} as PostImage,
             },
         };
-        renderWithContext(<MessageAttachment {...props}/>);
+        await renderWithContext(<MessageAttachment {...props}/>);
 
         // Click on the image to trigger showModal
         const {userEvent} = await import('tests/react_testing_utils');
@@ -196,9 +196,9 @@ describe('components/post_view/MessageAttachment', () => {
         expect(props.actions.openModal).toHaveBeenCalledTimes(1);
     });
 
-    test('should match value on getFieldsTable', () => {
+    test('should match value on getFieldsTable', async () => {
         // Without fields - no field table should render
-        const {container, unmount} = renderWithContext(<MessageAttachment {...baseProps}/>);
+        const {container, unmount} = await renderWithContext(<MessageAttachment {...baseProps}/>);
         expect(container.querySelector('.attachment-fields')).not.toBeInTheDocument();
 
         unmount();
@@ -213,14 +213,14 @@ describe('components/post_view/MessageAttachment', () => {
         };
 
         const props = {...baseProps, attachment: newAttachment};
-        const {container: container2} = renderWithContext(<MessageAttachment {...props}/>);
+        const {container: container2} = await renderWithContext(<MessageAttachment {...props}/>);
 
         const fieldTables = container2.querySelectorAll('.attachment-fields');
         expect(fieldTables.length).toBeGreaterThan(0);
         expect(container2.querySelector('.attachment-fields')!.parentElement).toMatchSnapshot();
     });
 
-    test('should use ExternalImage for images', () => {
+    test('should use ExternalImage for images', async () => {
         const ExternalImageMock = jest.requireMock('components/external_image');
         ExternalImageMock.mockClear();
 
@@ -237,7 +237,7 @@ describe('components/post_view/MessageAttachment', () => {
             } as MessageAttachmentType,
         };
 
-        renderWithContext(<MessageAttachment {...props}/>);
+        await renderWithContext(<MessageAttachment {...props}/>);
 
         // ExternalImage should have been called 4 times
         expect(ExternalImageMock).toHaveBeenCalledTimes(4);
@@ -249,7 +249,7 @@ describe('components/post_view/MessageAttachment', () => {
         expect(srcValues).toContain(props.attachment.thumb_url);
     });
 
-    test('should match snapshot when the attachment has an emoji in the title', () => {
+    test('should match snapshot when the attachment has an emoji in the title', async () => {
         const props = {
             ...baseProps,
             attachment: {
@@ -257,12 +257,12 @@ describe('components/post_view/MessageAttachment', () => {
             } as MessageAttachmentType,
         };
 
-        const {container} = renderWithContext(<MessageAttachment {...props}/>);
+        const {container} = await renderWithContext(<MessageAttachment {...props}/>);
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when the attachment hasn\'t any emojis in the title', () => {
+    test('should match snapshot when the attachment hasn\'t any emojis in the title', async () => {
         const props = {
             ...baseProps,
             attachment: {
@@ -270,12 +270,12 @@ describe('components/post_view/MessageAttachment', () => {
             } as MessageAttachmentType,
         };
 
-        const {container} = renderWithContext(<MessageAttachment {...props}/>);
+        const {container} = await renderWithContext(<MessageAttachment {...props}/>);
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when the attachment has a link in the title', () => {
+    test('should match snapshot when the attachment has a link in the title', async () => {
         const props = {
             ...baseProps,
             attachment: {
@@ -283,12 +283,12 @@ describe('components/post_view/MessageAttachment', () => {
             } as MessageAttachmentType,
         };
 
-        const {container} = renderWithContext(<MessageAttachment {...props}/>);
+        const {container} = await renderWithContext(<MessageAttachment {...props}/>);
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when no footer is provided (even if footer_icon is provided)', () => {
+    test('should match snapshot when no footer is provided (even if footer_icon is provided)', async () => {
         const props = {
             ...baseProps,
             attachment: {
@@ -297,12 +297,12 @@ describe('components/post_view/MessageAttachment', () => {
             } as MessageAttachmentType,
         };
 
-        const {container} = renderWithContext(<MessageAttachment {...props}/>);
+        const {container} = await renderWithContext(<MessageAttachment {...props}/>);
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when the footer is truncated', () => {
+    test('should match snapshot when the footer is truncated', async () => {
         const props = {
             ...baseProps,
             attachment: {
@@ -311,12 +311,12 @@ describe('components/post_view/MessageAttachment', () => {
             } as MessageAttachmentType,
         };
 
-        const {container} = renderWithContext(<MessageAttachment {...props}/>);
+        const {container} = await renderWithContext(<MessageAttachment {...props}/>);
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot and render a field with a number value', () => {
+    test('should match snapshot and render a field with a number value', async () => {
         const props = {
             ...baseProps,
             attachment: {
@@ -330,12 +330,12 @@ describe('components/post_view/MessageAttachment', () => {
             } as MessageAttachmentType,
         };
 
-        const {container} = renderWithContext(<MessageAttachment {...props}/>);
+        const {container} = await renderWithContext(<MessageAttachment {...props}/>);
 
         expect(container.querySelector('.attachment-field')).toMatchSnapshot();
     });
 
-    test('should not render content box if there is no content', () => {
+    test('should not render content box if there is no content', async () => {
         const props = {
             ...baseProps,
             attachment: {
@@ -343,7 +343,7 @@ describe('components/post_view/MessageAttachment', () => {
             } as MessageAttachmentType,
         };
 
-        const {container} = renderWithContext(<MessageAttachment {...props}/>);
+        const {container} = await renderWithContext(<MessageAttachment {...props}/>);
         expect(container.querySelector('.attachment')).toMatchSnapshot();
     });
 
@@ -358,7 +358,7 @@ describe('components/post_view/MessageAttachment', () => {
             actions: [{id: actionId, name: 'action_name_1', cookie: 'cookie-contents'}] as PostAction[],
         };
         const props = {...baseProps, actions: {doPostActionWithCookie, openModal: jest.fn()}, attachment: newAttachment};
-        const {container} = renderWithContext(<MessageAttachment {...props}/>);
+        const {container} = await renderWithContext(<MessageAttachment {...props}/>);
 
         // Initially no error should be shown
         expect(container.querySelector('.has-error')).not.toBeInTheDocument();
@@ -383,7 +383,7 @@ describe('components/post_view/MessageAttachment', () => {
             actions: [{id: actionId, name: 'action_name_1', cookie: 'cookie-contents'}] as PostAction[],
         };
         const props = {...baseProps, actions: {doPostActionWithCookie, openModal: jest.fn()}, attachment: newAttachment};
-        const {container} = renderWithContext(<MessageAttachment {...props}/>);
+        const {container} = await renderWithContext(<MessageAttachment {...props}/>);
 
         // Initially no error should be shown
         expect(container.querySelector('.has-error')).not.toBeInTheDocument();
@@ -409,7 +409,7 @@ describe('components/post_view/MessageAttachment', () => {
             actions: [{id: actionId, name: 'action_name_1', cookie: 'cookie-contents'}] as PostAction[],
         };
         const props = {...baseProps, actions: {doPostActionWithCookie, openModal: jest.fn()}, attachment: newAttachment};
-        const {container} = renderWithContext(<MessageAttachment {...props}/>);
+        const {container} = await renderWithContext(<MessageAttachment {...props}/>);
 
         // Trigger first action that causes an error
         const {userEvent} = await import('tests/react_testing_utils');
@@ -439,7 +439,7 @@ describe('components/post_view/MessageAttachment', () => {
             actions: [{id: actionId, name: 'action_name_1', cookie: 'cookie-contents'}] as PostAction[],
         };
         const props = {...baseProps, actions: {doPostActionWithCookie, openModal: jest.fn()}, attachment: newAttachment};
-        renderWithContext(<MessageAttachment {...props}/>);
+        await renderWithContext(<MessageAttachment {...props}/>);
 
         // Trigger action
         const {userEvent} = await import('tests/react_testing_utils');

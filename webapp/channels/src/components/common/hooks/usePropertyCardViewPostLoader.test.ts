@@ -13,7 +13,7 @@ describe('usePropertyCardViewPostLoader', () => {
 
     describe('with store post loading', () => {
         test('should return the post from store when available and not deleted', async () => {
-            const {result} = renderHookWithContext(
+            const {result} = await renderHookWithContext(
                 () => usePropertyCardViewPostLoader('post1', undefined, false),
                 {
                     entities: {
@@ -31,8 +31,8 @@ describe('usePropertyCardViewPostLoader', () => {
             });
         });
 
-        test('should return undefined when post not in store and no getPost provided', () => {
-            const {result} = renderHookWithContext(
+        test('should return undefined when post not in store and no getPost provided', async () => {
+            const {result} = await renderHookWithContext(
                 () => usePropertyCardViewPostLoader('post1'),
             );
 
@@ -40,7 +40,7 @@ describe('usePropertyCardViewPostLoader', () => {
         });
 
         test('should return deleted post from store', async () => {
-            const {result} = renderHookWithContext(
+            const {result} = await renderHookWithContext(
                 () => usePropertyCardViewPostLoader('post2', undefined, false),
                 {
                     entities: {
@@ -63,11 +63,10 @@ describe('usePropertyCardViewPostLoader', () => {
         test('should use getPost when provided and post not in store', async () => {
             const getPostMock = jest.fn().mockResolvedValue(post1);
 
-            const {result} = renderHookWithContext(
+            const {result} = await renderHookWithContext(
                 () => usePropertyCardViewPostLoader('post1', getPostMock),
             );
 
-            expect(result.current).toBe(undefined);
             expect(getPostMock).toHaveBeenCalledWith('post1');
 
             await waitFor(() => {
@@ -79,7 +78,7 @@ describe('usePropertyCardViewPostLoader', () => {
             const mockedPost1 = TestHelper.getPostMock({id: 'post1', delete_at: 0, message: 'Mocked post1'});
             const getPostMock = jest.fn().mockResolvedValue(mockedPost1);
 
-            const {result} = renderHookWithContext(
+            const {result} = await renderHookWithContext(
                 () => usePropertyCardViewPostLoader('post1', getPostMock),
                 {
                     entities: {
@@ -102,7 +101,7 @@ describe('usePropertyCardViewPostLoader', () => {
             const getPostMock = jest.fn().mockRejectedValue(new Error('Network error'));
             const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
-            const {result} = renderHookWithContext(
+            const {result} = await renderHookWithContext(
                 () => usePropertyCardViewPostLoader('post1', getPostMock),
             );
 
@@ -122,7 +121,7 @@ describe('usePropertyCardViewPostLoader', () => {
         test('should only call getPost once per postId', async () => {
             const getPostMock = jest.fn().mockResolvedValue(post1);
 
-            const {result, rerender} = renderHookWithContext(
+            const {result, rerender} = await renderHookWithContext(
                 () => usePropertyCardViewPostLoader('post1', getPostMock),
             );
 
@@ -146,7 +145,7 @@ describe('usePropertyCardViewPostLoader', () => {
                 mockResolvedValueOnce(post2);
 
             let postId = 'post1';
-            const {result, rerender} = renderHookWithContext(
+            const {result, rerender} = await renderHookWithContext(
                 () => usePropertyCardViewPostLoader(postId, getPostMock),
             );
 

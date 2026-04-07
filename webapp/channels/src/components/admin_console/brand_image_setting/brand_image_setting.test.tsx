@@ -5,7 +5,7 @@ import React from 'react';
 
 import {uploadBrandImage, deleteBrandImage} from 'actions/admin_actions.jsx';
 
-import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import BrandImageSetting from './brand_image_setting';
 
@@ -38,7 +38,7 @@ describe('components/admin_console/brand_image_setting', () => {
             saveAction = fn;
         });
 
-        const {container, unmount} = renderWithContext(
+        const {container, unmount} = await renderWithContext(
             <BrandImageSetting
                 {...baseProps}
                 registerSaveAction={registerSaveAction}
@@ -58,7 +58,9 @@ describe('components/admin_console/brand_image_setting', () => {
         await userEvent.upload(fileInput as HTMLInputElement, file);
 
         // Now call save - should call uploadBrandImage
-        await saveAction!();
+        await act(async () => {
+            await saveAction!();
+        });
         expect(deleteBrandImage).toHaveBeenCalledTimes(0);
         expect(uploadBrandImage).toHaveBeenCalledTimes(1);
 
@@ -72,7 +74,7 @@ describe('components/admin_console/brand_image_setting', () => {
             saveAction2 = fn;
         });
 
-        renderWithContext(
+        await renderWithContext(
             <BrandImageSetting
                 {...baseProps}
                 registerSaveAction={registerSaveAction2}
@@ -95,7 +97,9 @@ describe('components/admin_console/brand_image_setting', () => {
             expect(screen.getByText('No brand image uploaded')).toBeInTheDocument();
         });
 
-        await saveAction2!();
+        await act(async () => {
+            await saveAction2!();
+        });
         expect(deleteBrandImage).toHaveBeenCalledTimes(1);
         expect(uploadBrandImage).toHaveBeenCalledTimes(0);
     });

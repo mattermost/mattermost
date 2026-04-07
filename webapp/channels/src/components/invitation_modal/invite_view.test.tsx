@@ -127,7 +127,7 @@ describe('InviteView', () => {
     });
 
     it('shows InviteAs component when user can choose to invite guests or users', async () => {
-        renderWithContext(
+        await renderWithContext(
             <InviteView {...props}/>,
             state,
         );
@@ -140,7 +140,7 @@ describe('InviteView', () => {
             canAddUsers: false,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <InviteView {...props}/>,
             state,
         );
@@ -154,7 +154,7 @@ describe('InviteView', () => {
             canInviteGuests: false,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <InviteView {...props}/>,
             state,
         );
@@ -168,7 +168,7 @@ describe('InviteView', () => {
             canInviteGuestsWithMagicLink: true,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <InviteView {...props}/>,
             state,
         );
@@ -183,7 +183,7 @@ describe('InviteView', () => {
             canInviteGuestsWithMagicLink: true,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <InviteView {...props}/>,
             state,
         );
@@ -198,7 +198,7 @@ describe('InviteView', () => {
             canInviteGuestsWithMagicLink: false,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <InviteView {...props}/>,
             state,
         );
@@ -215,7 +215,7 @@ describe('InviteView', () => {
             toggleGuestMagicLink,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <InviteView {...props}/>,
             state,
         );

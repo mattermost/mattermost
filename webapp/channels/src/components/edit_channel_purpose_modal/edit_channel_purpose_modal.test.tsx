@@ -17,8 +17,8 @@ describe('comoponents/EditChannelPurposeModal', () => {
         purpose: 'testPurpose',
     });
 
-    it('should match on init', () => {
-        const {container} = renderWithContext(
+    it('should match on init', async () => {
+        const {container} = await renderWithContext(
             <EditChannelPurposeModal
                 channel={channel}
                 ctrlSend={true}
@@ -30,13 +30,13 @@ describe('comoponents/EditChannelPurposeModal', () => {
         expect(container).toMatchSnapshot();
     });
 
-    it('should match with display name', () => {
+    it('should match with display name', async () => {
         const channelWithDisplayName = {
             ...channel,
             display_name: 'channel name',
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <EditChannelPurposeModal
                 channel={channelWithDisplayName}
                 ctrlSend={true}
@@ -48,13 +48,13 @@ describe('comoponents/EditChannelPurposeModal', () => {
         expect(container).toMatchSnapshot();
     });
 
-    it('should match for private channel', () => {
+    it('should match for private channel', async () => {
         const privateChannel: Channel = {
             ...channel,
             type: 'P',
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <EditChannelPurposeModal
                 channel={privateChannel}
                 ctrlSend={true}
@@ -66,8 +66,8 @@ describe('comoponents/EditChannelPurposeModal', () => {
         expect(container).toMatchSnapshot();
     });
 
-    it('should match submitted', () => {
-        const {container} = renderWithContext(
+    it('should match submitted', async () => {
+        const {container} = await renderWithContext(
             <EditChannelPurposeModal
                 channel={channel}
                 ctrlSend={true}
@@ -85,7 +85,7 @@ describe('comoponents/EditChannelPurposeModal', () => {
             message: 'error',
         };
 
-        renderWithContext(
+        await renderWithContext(
             <EditChannelPurposeModal
                 channel={channel}
                 ctrlSend={false}
@@ -106,7 +106,7 @@ describe('comoponents/EditChannelPurposeModal', () => {
             message: 'error',
         };
 
-        renderWithContext(
+        await renderWithContext(
             <EditChannelPurposeModal
                 channel={channel}
                 ctrlSend={false}
@@ -127,7 +127,7 @@ describe('comoponents/EditChannelPurposeModal', () => {
             message: 'error',
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <EditChannelPurposeModal
                 channel={channel}
                 ctrlSend={false}
@@ -146,7 +146,7 @@ describe('comoponents/EditChannelPurposeModal', () => {
     });
 
     it('update purpose state', async () => {
-        renderWithContext(
+        await renderWithContext(
             <EditChannelPurposeModal
                 channel={channel}
                 ctrlSend={true}
@@ -165,7 +165,7 @@ describe('comoponents/EditChannelPurposeModal', () => {
     it('hide on success', async () => {
         const onExited = jest.fn();
 
-        renderWithContext(
+        await renderWithContext(
             <EditChannelPurposeModal
                 channel={channel}
                 ctrlSend={true}
@@ -186,7 +186,7 @@ describe('comoponents/EditChannelPurposeModal', () => {
     it('submit on save button click', async () => {
         const patchChannel = jest.fn().mockResolvedValue({data: true});
 
-        renderWithContext(
+        await renderWithContext(
             <EditChannelPurposeModal
                 channel={channel}
                 ctrlSend={true}
@@ -201,10 +201,10 @@ describe('comoponents/EditChannelPurposeModal', () => {
         expect(patchChannel).toHaveBeenCalledWith('channel_id', {purpose: 'testPurpose'});
     });
 
-    it('submit on ctrl + enter', () => {
+    it('submit on ctrl + enter', async () => {
         const patchChannel = jest.fn().mockResolvedValue({data: true});
 
-        renderWithContext(
+        await renderWithContext(
             <EditChannelPurposeModal
                 channel={channel}
                 ctrlSend={true}
@@ -224,10 +224,10 @@ describe('comoponents/EditChannelPurposeModal', () => {
         expect(patchChannel).toHaveBeenCalledWith('channel_id', {purpose: 'testPurpose'});
     });
 
-    it('submit on enter', () => {
+    it('submit on enter', async () => {
         const patchChannel = jest.fn().mockResolvedValue({data: true});
 
-        renderWithContext(
+        await renderWithContext(
             <EditChannelPurposeModal
                 channel={channel}
                 ctrlSend={false}

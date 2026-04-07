@@ -35,8 +35,8 @@ describe('components/file_attachment/FilenameOverlay', () => {
         canDownload: true,
     };
 
-    test('should match snapshot, standard display', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot, standard display', async () => {
+        const {container} = await renderWithContext(
             <FilenameOverlay {...baseProps}/>,
         );
 
@@ -46,7 +46,7 @@ describe('components/file_attachment/FilenameOverlay', () => {
     test('should match snapshot, compact display', async () => {
         const handleImageClick = jest.fn();
         const props = {...baseProps, compactDisplay: true, handleImageClick};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <FilenameOverlay {...props}/>,
         );
 
@@ -57,9 +57,9 @@ describe('components/file_attachment/FilenameOverlay', () => {
         expect(handleImageClick).toHaveBeenCalledTimes(1);
     });
 
-    test('should match snapshot, with Download icon as children', () => {
+    test('should match snapshot, with Download icon as children', async () => {
         const props = {...baseProps, canDownload: true};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <FilenameOverlay {...props}>
                 <AttachmentIcon/>
             </FilenameOverlay>,

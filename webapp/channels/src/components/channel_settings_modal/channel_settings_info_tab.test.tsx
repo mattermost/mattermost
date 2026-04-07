@@ -131,8 +131,8 @@ describe('ChannelSettingsInfoTab', () => {
         mockConvertToPrivatePermission = true;
     });
 
-    it('should render with the correct initial values', () => {
-        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+    it('should render with the correct initial values', async () => {
+        await renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
 
         // Check that the channel name field has the correct value.
         expect(screen.getByRole('textbox', {name: 'Channel name'})).toHaveValue('Test Channel');
@@ -148,7 +148,7 @@ describe('ChannelSettingsInfoTab', () => {
     });
 
     it('should show SaveChangesPanel when changes are made', async () => {
-        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+        await renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
 
         // Initially, SaveChangesPanel should not be visible.
         expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
@@ -172,7 +172,7 @@ describe('ChannelSettingsInfoTab', () => {
         const {patchChannel} = require('mattermost-redux/actions/channels');
         patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
 
-        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+        await renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
 
         // Wrap all user interactions in act to handle state updates properly
         await act(async () => {
@@ -211,7 +211,7 @@ describe('ChannelSettingsInfoTab', () => {
         const {patchChannel} = require('mattermost-redux/actions/channels');
         patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
 
-        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+        await renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
 
         // Add whitespace to the channel fields
         await act(async () => {
@@ -259,7 +259,7 @@ describe('ChannelSettingsInfoTab', () => {
         const {patchChannel} = require('mattermost-redux/actions/channels');
         patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
 
-        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+        await renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
 
         // Initially, SaveChangesPanel should not be visible
         expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
@@ -285,7 +285,7 @@ describe('ChannelSettingsInfoTab', () => {
     });
 
     it('should reset form when Reset button is clicked', async () => {
-        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+        await renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
 
         // Wrap the interaction in act to handle state updates properly
         await act(async () => {
@@ -315,7 +315,7 @@ describe('ChannelSettingsInfoTab', () => {
         const {patchChannel} = require('mattermost-redux/actions/channels');
         patchChannel.mockReturnValue({type: 'MOCK_ACTION', error: {message: 'Error saving channel'}});
 
-        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+        await renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
 
         // Wrap the interaction in act to handle state updates properly
         await act(async () => {
@@ -340,7 +340,7 @@ describe('ChannelSettingsInfoTab', () => {
     // Instead of clicking a non-existent element to trigger a channel name error,
     // simulate an invalid input by clearing the channel name (which is required).
     it('should show error when channel name field has an error', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ChannelSettingsInfoTab
                 {...baseProps}
             />,
@@ -366,7 +366,7 @@ describe('ChannelSettingsInfoTab', () => {
     });
 
     it('should show error when purpose exceeds character limit', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ChannelSettingsInfoTab
                 {...baseProps}
             />,
@@ -392,7 +392,7 @@ describe('ChannelSettingsInfoTab', () => {
     });
 
     it('should show error when header exceeds character limit', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ChannelSettingsInfoTab
                 {...baseProps}
             />,
@@ -417,10 +417,10 @@ describe('ChannelSettingsInfoTab', () => {
         expect(errorPanel).toHaveClass('error');
     });
 
-    it('should render ChannelNameFormField and AdvancedTextbox as readOnly when user does not have permission', () => {
+    it('should render ChannelNameFormField and AdvancedTextbox as readOnly when user does not have permission', async () => {
         mockChannelPropertiesPermission = false;
 
-        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+        await renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
 
         // Check that the name input is disabled
         const nameInput = screen.getByRole('textbox', {name: 'Channel name'});
@@ -430,10 +430,10 @@ describe('ChannelSettingsInfoTab', () => {
         expect(screen.queryByTestId('mock-show-format')).not.toBeInTheDocument();
     });
 
-    it('should render ChannelNameFormField and AdvancedTextbox as not readOnly when user has permission', () => {
+    it('should render ChannelNameFormField and AdvancedTextbox as not readOnly when user has permission', async () => {
         mockChannelPropertiesPermission = true;
 
-        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+        await renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
 
         // Check that the name input is not disabled
         const nameInput = screen.getByRole('textbox', {name: 'Channel name'});
@@ -449,7 +449,7 @@ describe('ChannelSettingsInfoTab', () => {
         mockConvertToPublicPermission = false;
         mockConvertToPrivatePermission = false;
 
-        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+        await renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
 
         // Private channel button should be disabled
         const privateButton = screen.getByRole('button', {name: /Private Channel/});
@@ -461,7 +461,7 @@ describe('ChannelSettingsInfoTab', () => {
         mockConvertToPrivatePermission = true;
         mockConvertToPublicPermission = true;
 
-        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+        await renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
 
         // Private channel button should not be disabled
         const privateButton = screen.getByRole('button', {name: /Private Channel/});
@@ -484,7 +484,7 @@ describe('ChannelSettingsInfoTab', () => {
             type: 'P' as ChannelType,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ChannelSettingsInfoTab
                 {...baseProps}
                 channel={privateChannel}
@@ -503,7 +503,7 @@ describe('ChannelSettingsInfoTab', () => {
     it('should show ConvertConfirmModal when converting from public to private', async () => {
         mockConvertToPrivatePermission = true;
 
-        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+        await renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
 
         // Change to private channel
         const privateButton = screen.getByRole('button', {name: /Private Channel/});
@@ -522,7 +522,7 @@ describe('ChannelSettingsInfoTab', () => {
         const {updateChannelPrivacy} = require('mattermost-redux/actions/channels');
         updateChannelPrivacy.mockReturnValue({type: 'MOCK_ACTION', data: {}});
 
-        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+        await renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
 
         // Change to private channel
         const privateButton = screen.getByRole('button', {name: /Private Channel/});
@@ -544,7 +544,7 @@ describe('ChannelSettingsInfoTab', () => {
         const {updateChannelPrivacy} = require('mattermost-redux/actions/channels');
         updateChannelPrivacy.mockReturnValue({type: 'MOCK_ACTION', data: {}});
 
-        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+        await renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
 
         // Change to private channel
         const privateButton = screen.getByRole('button', {name: /Private Channel/});
@@ -569,7 +569,7 @@ describe('ChannelSettingsInfoTab', () => {
             error: {message: 'Error changing privacy'},
         });
 
-        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+        await renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
 
         // Change to private channel
         const privateButton = screen.getByRole('button', {name: /Private Channel/});

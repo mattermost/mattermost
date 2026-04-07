@@ -112,8 +112,8 @@ describe('components/login/Login', () => {
         LocalStorageStore.setWasLoggedIn(false);
     });
 
-    it('should match snapshot', () => {
-        renderWithContext(
+    it('should match snapshot', async () => {
+        await renderWithContext(
             <Login/>,
             baseState,
         );
@@ -122,7 +122,7 @@ describe('components/login/Login', () => {
         expect(screen.queryByText('Log in to your account')).not.toBeInTheDocument();
     });
 
-    it('should match snapshot with base login', () => {
+    it('should match snapshot with base login', async () => {
         const state = mergeObjects(baseState, {
             entities: {
                 general: {
@@ -133,7 +133,7 @@ describe('components/login/Login', () => {
             },
         });
 
-        renderWithContext(
+        await renderWithContext(
             <Login/>,
             state,
         );
@@ -156,7 +156,7 @@ describe('components/login/Login', () => {
             },
         });
 
-        renderWithContext(
+        await renderWithContext(
             <Login/>,
             state,
         );
@@ -169,7 +169,7 @@ describe('components/login/Login', () => {
         expect(screen.queryByText('Your session has expired. Please log in again.')).not.toBeInTheDocument();
     });
 
-    it('should call the correct function to show the session expired notification on Desktop App', () => {
+    it('should call the correct function to show the session expired notification on Desktop App', async () => {
         (isDesktopApp as jest.Mock).mockReturnValue(true);
         LocalStorageStore.setWasLoggedIn(true);
         const state = mergeObjects(baseState, {
@@ -182,7 +182,7 @@ describe('components/login/Login', () => {
             },
         });
 
-        renderWithContext(
+        await renderWithContext(
             <Login/>,
             state,
         );
@@ -192,7 +192,7 @@ describe('components/login/Login', () => {
         expect(DesktopApp.setSessionExpired).toHaveBeenCalledWith(true);
     });
 
-    it('should handle initializing when logout status success', () => {
+    it('should handle initializing when logout status success', async () => {
         const state = mergeObjects(baseState, {
             requests: {
                 users: {
@@ -203,7 +203,7 @@ describe('components/login/Login', () => {
             },
         });
 
-        renderWithContext(
+        await renderWithContext(
             <Login/>,
             state,
         );
@@ -211,14 +211,14 @@ describe('components/login/Login', () => {
         expect(screen.getByText('Loading')).toBeVisible();
     });
 
-    it('should handle initializing when storage not initalized', () => {
+    it('should handle initializing when storage not initalized', async () => {
         const state = mergeObjects(baseState, {
             storage: {
                 initialized: false,
             },
         });
 
-        renderWithContext(
+        await renderWithContext(
             <Login/>,
             state,
         );
@@ -245,7 +245,7 @@ describe('components/login/Login', () => {
             },
         });
 
-        renderWithContext(
+        await renderWithContext(
             <Login/>,
             state,
             {
@@ -275,7 +275,7 @@ describe('components/login/Login', () => {
             },
         });
 
-        renderWithContext(
+        await renderWithContext(
             <Login/>,
             state,
         );
@@ -293,7 +293,7 @@ describe('components/login/Login', () => {
         expect(screen.queryByText('Your session has expired. Please log in again.')).not.toBeInTheDocument();
     });
 
-    it('should handle gitlab text and color props', () => {
+    it('should handle gitlab text and color props', async () => {
         const state = mergeObjects(baseState, {
             entities: {
                 general: {
@@ -307,7 +307,7 @@ describe('components/login/Login', () => {
             },
         });
 
-        renderWithContext(
+        await renderWithContext(
             <Login/>,
             state,
         );
@@ -329,7 +329,7 @@ describe('components/login/Login', () => {
             },
         });
 
-        renderWithContext(
+        await renderWithContext(
             <Login/>,
             state,
             {
@@ -347,7 +347,7 @@ describe('components/login/Login', () => {
         expect(usernameInput).toHaveFocus();
     });
 
-    it('should handle openid text and color props', () => {
+    it('should handle openid text and color props', async () => {
         const state = mergeObjects(baseState, {
             entities: {
                 general: {
@@ -361,7 +361,7 @@ describe('components/login/Login', () => {
             },
         });
 
-        renderWithContext(
+        await renderWithContext(
             <Login/>,
             state,
         );
@@ -397,7 +397,7 @@ describe('components/login/Login', () => {
             },
         });
 
-        renderWithContext(
+        await renderWithContext(
             <Login/>,
             state,
             {
@@ -421,7 +421,7 @@ describe('components/login/Login', () => {
                 },
             });
 
-            renderWithContext(
+            await renderWithContext(
                 <Login/>,
                 state,
             );
@@ -442,7 +442,7 @@ describe('components/login/Login', () => {
                 },
             });
 
-            renderWithContext(
+            await renderWithContext(
                 <Login/>,
                 state,
             );
@@ -472,7 +472,7 @@ describe('components/login/Login', () => {
             }));
             jest.spyOn(loginActions, 'getUserLoginType').mockImplementation(mockGetUserLoginType);
 
-            renderWithContext(
+            await renderWithContext(
                 <Login/>,
                 state,
             );
@@ -509,7 +509,7 @@ describe('components/login/Login', () => {
             }));
             jest.spyOn(loginActions, 'getUserLoginType').mockImplementation(mockGetUserLoginType);
 
-            renderWithContext(
+            await renderWithContext(
                 <Login/>,
                 state,
             );
@@ -547,7 +547,7 @@ describe('components/login/Login', () => {
             }));
             jest.spyOn(loginActions, 'getUserLoginType').mockImplementation(mockGetUserLoginType);
 
-            renderWithContext(
+            await renderWithContext(
                 <Login/>,
                 state,
             );
@@ -582,7 +582,7 @@ describe('components/login/Login', () => {
             }));
             jest.spyOn(loginActions, 'getUserLoginType').mockImplementation(mockGetUserLoginType);
 
-            renderWithContext(
+            await renderWithContext(
                 <Login/>,
                 state,
             );
@@ -626,7 +626,7 @@ describe('components/login/Login', () => {
             }));
             jest.spyOn(loginActions, 'login').mockImplementation(mockLogin);
 
-            renderWithContext(
+            await renderWithContext(
                 <Login/>,
                 state,
             );
@@ -660,7 +660,7 @@ describe('components/login/Login', () => {
                 },
             });
 
-            renderWithContext(
+            await renderWithContext(
                 <Login/>,
                 state,
             );
@@ -690,7 +690,7 @@ describe('components/login/Login', () => {
             }));
             jest.spyOn(loginActions, 'getUserLoginType').mockImplementation(mockGetUserLoginType);
 
-            renderWithContext(
+            await renderWithContext(
                 <Login/>,
                 state,
             );
@@ -726,7 +726,7 @@ describe('components/login/Login', () => {
             }));
             jest.spyOn(loginActions, 'getUserLoginType').mockImplementation(mockGetUserLoginType);
 
-            renderWithContext(
+            await renderWithContext(
                 <Login/>,
                 state,
             );

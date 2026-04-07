@@ -74,9 +74,9 @@ function nonAdminUser(state: DeepPartial<GlobalState>) {
 }
 
 describe('CloudEffectsWrapper', () => {
-    it('short circuits if not cloud', () => {
+    it('short circuits if not cloud', async () => {
         const initialState = adminUser(nonCloudLicense({}));
-        renderWithContext(
+        await renderWithContext(
             <CloudEffectsWrapper/>,
             initialState,
         );
@@ -84,9 +84,9 @@ describe('CloudEffectsWrapper', () => {
         expect(spy).not.toHaveBeenCalled();
     });
 
-    it('short circuits if user not logged in', () => {
+    it('short circuits if user not logged in', async () => {
         const initialState = stubUsers(cloudLicense({}));
-        renderWithContext(
+        await renderWithContext(
             <CloudEffectsWrapper/>,
             initialState,
         );
@@ -94,9 +94,9 @@ describe('CloudEffectsWrapper', () => {
         expect(spy).not.toHaveBeenCalled();
     });
 
-    it('short circuits if user is not admin', () => {
+    it('short circuits if user is not admin', async () => {
         const initialState = nonAdminUser(cloudLicense({}));
-        renderWithContext(
+        await renderWithContext(
             <CloudEffectsWrapper/>,
             initialState,
         );
@@ -104,10 +104,10 @@ describe('CloudEffectsWrapper', () => {
         expect(spy).not.toHaveBeenCalled();
     });
 
-    it('calls effects if user is admin of a cloud instance', () => {
+    it('calls effects if user is admin of a cloud instance', async () => {
         const initialState = adminUser(cloudLicense({}));
         const spy = jest.spyOn(useShowAdminLimitReachedHook, 'default').mockImplementation(jest.fn());
-        renderWithContext(
+        await renderWithContext(
             <CloudEffectsWrapper/>,
             initialState,
         );

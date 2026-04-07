@@ -46,8 +46,8 @@ describe('component/create_user_groups_modal', () => {
         },
     };
 
-    test('should match snapshot with back button', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot with back button', async () => {
+        const {container} = await renderWithContext(
             <CreateUserGroupsModal
                 {...baseProps}
             />,
@@ -55,8 +55,8 @@ describe('component/create_user_groups_modal', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot without back button', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot without back button', async () => {
+        const {container} = await renderWithContext(
             <CreateUserGroupsModal
                 {...baseProps}
                 backButtonCallback={undefined}
@@ -67,7 +67,7 @@ describe('component/create_user_groups_modal', () => {
 
     test('should create group', async () => {
         const ref = React.createRef<CreateUserGroupsModal>();
-        renderWithContext(
+        await renderWithContext(
             <CreateUserGroupsModal
                 {...baseProps}
                 ref={ref}
@@ -87,7 +87,7 @@ describe('component/create_user_groups_modal', () => {
 
     test('mention regex error', async () => {
         const ref = React.createRef<CreateUserGroupsModal>();
-        renderWithContext(
+        await renderWithContext(
             <CreateUserGroupsModal
                 {...baseProps}
                 ref={ref}
@@ -107,7 +107,7 @@ describe('component/create_user_groups_modal', () => {
 
     test('create a mention with special characters', async () => {
         const ref = React.createRef<CreateUserGroupsModal>();
-        renderWithContext(
+        await renderWithContext(
             <CreateUserGroupsModal
                 {...baseProps}
                 ref={ref}
@@ -127,7 +127,7 @@ describe('component/create_user_groups_modal', () => {
 
     test('fail to create with empty name', async () => {
         const ref = React.createRef<CreateUserGroupsModal>();
-        renderWithContext(
+        await renderWithContext(
             <CreateUserGroupsModal
                 {...baseProps}
                 ref={ref}
@@ -147,7 +147,7 @@ describe('component/create_user_groups_modal', () => {
 
     test('fail to create with empty mention', async () => {
         const ref = React.createRef<CreateUserGroupsModal>();
-        renderWithContext(
+        await renderWithContext(
             <CreateUserGroupsModal
                 {...baseProps}
                 ref={ref}
@@ -167,7 +167,7 @@ describe('component/create_user_groups_modal', () => {
 
     test('should create when mention begins with @', async () => {
         const ref = React.createRef<CreateUserGroupsModal>();
-        renderWithContext(
+        await renderWithContext(
             <CreateUserGroupsModal
                 {...baseProps}
                 ref={ref}
@@ -190,7 +190,7 @@ describe('component/create_user_groups_modal', () => {
         const createGroupWithUserIds = jest.fn().mockImplementation(() => Promise.resolve({error: {message: 'test error', server_error_id: 'insert_error'}}));
 
         const ref = React.createRef<CreateUserGroupsModal>();
-        renderWithContext(
+        await renderWithContext(
             <CreateUserGroupsModal
                 {...baseProps}
                 actions={{
@@ -217,7 +217,7 @@ describe('component/create_user_groups_modal', () => {
         const createGroupWithUserIds = jest.fn().mockImplementation(() => Promise.resolve({error: {message: 'test error', server_error_id: 'app.custom_group.unique_name'}}));
 
         const ref = React.createRef<CreateUserGroupsModal>();
-        renderWithContext(
+        await renderWithContext(
             <CreateUserGroupsModal
                 {...baseProps}
                 actions={{
@@ -242,7 +242,7 @@ describe('component/create_user_groups_modal', () => {
 
     test('fail to create with reserved word for mention', async () => {
         const ref = React.createRef<CreateUserGroupsModal>();
-        renderWithContext(
+        await renderWithContext(
             <CreateUserGroupsModal
                 {...baseProps}
                 ref={ref}
@@ -286,7 +286,7 @@ describe('component/create_user_groups_modal', () => {
         const createGroupWithUserIds = jest.fn().mockImplementation(() => Promise.resolve({error: {message: 'test error', server_error_id: 'app.group.username_conflict'}}));
 
         const ref = React.createRef<CreateUserGroupsModal>();
-        renderWithContext(
+        await renderWithContext(
             <CreateUserGroupsModal
                 {...baseProps}
                 actions={{

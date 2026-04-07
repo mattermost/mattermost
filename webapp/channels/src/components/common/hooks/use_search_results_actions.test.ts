@@ -60,7 +60,7 @@ describe('useSearchResultsActions', () => {
         jest.clearAllMocks();
     });
 
-    function callAction(
+    async function callAction(
         callback: (actions: ReturnType<typeof useSearchResultsActions>) => void,
         rhsState?: string,
     ) {
@@ -73,66 +73,66 @@ describe('useSearchResultsActions', () => {
                 },
             },
         };
-        const {result} = renderHookWithContext(() => useSearchResultsActions(), state);
+        const {result} = await renderHookWithContext(() => useSearchResultsActions(), state);
         act(() => callback(result.current));
         return result;
     }
 
-    test('getMorePostsForSearch should dispatch with search team', () => {
-        callAction((a) => a.getMorePostsForSearch());
+    test('getMorePostsForSearch should dispatch with search team', async () => {
+        await callAction((a) => a.getMorePostsForSearch());
         expect(jest.mocked(getMorePostsForSearch)).toHaveBeenCalledWith('team1');
     });
 
-    test('getMorePostsForSearch should dispatch with empty team for mention search', () => {
-        callAction((a) => a.getMorePostsForSearch(), 'mention');
+    test('getMorePostsForSearch should dispatch with empty team for mention search', async () => {
+        await callAction((a) => a.getMorePostsForSearch(), 'mention');
         expect(jest.mocked(getMorePostsForSearch)).toHaveBeenCalledWith('');
     });
 
-    test('getMoreFilesForSearch should dispatch with search team', () => {
-        callAction((a) => a.getMoreFilesForSearch());
+    test('getMoreFilesForSearch should dispatch with search team', async () => {
+        await callAction((a) => a.getMoreFilesForSearch());
         expect(jest.mocked(getMoreFilesForSearch)).toHaveBeenCalledWith('team1');
     });
 
-    test('setSearchFilterType should dispatch filter and trigger search results', () => {
-        callAction((a) => a.setSearchFilterType('documents'));
+    test('setSearchFilterType should dispatch filter and trigger search results', async () => {
+        await callAction((a) => a.setSearchFilterType('documents'));
         expect(jest.mocked(filterFilesSearchByExt)).toHaveBeenCalledWith(['doc', 'pdf', 'docx', 'odt', 'rtf', 'txt']);
         expect(jest.mocked(showSearchResults)).toHaveBeenCalledWith(false);
     });
 
-    test('setSearchFilterType should dispatch showChannelFiles when in channel files mode', () => {
-        callAction((a) => a.setSearchFilterType('images'), 'channel-files');
+    test('setSearchFilterType should dispatch showChannelFiles when in channel files mode', async () => {
+        await callAction((a) => a.setSearchFilterType('images'), 'channel-files');
         expect(jest.mocked(filterFilesSearchByExt)).toHaveBeenCalledWith(['png', 'jpg', 'jpeg', 'bmp', 'tiff', 'svg', 'xcf']);
         expect(jest.mocked(showChannelFiles)).toHaveBeenCalledWith(channel.id);
     });
 
-    test('setSearchFilterType "all" should dispatch empty extension array', () => {
-        callAction((a) => a.setSearchFilterType('all'));
+    test('setSearchFilterType "all" should dispatch empty extension array', async () => {
+        await callAction((a) => a.setSearchFilterType('all'));
         expect(jest.mocked(filterFilesSearchByExt)).toHaveBeenCalledWith([]);
     });
 
-    test('updateSearchTerms should append term replacing last word', () => {
-        callAction((a) => a.updateSearchTerms('From:'));
+    test('updateSearchTerms should append term replacing last word', async () => {
+        await callAction((a) => a.updateSearchTerms('From:'));
         expect(jest.mocked(updateSearchTermsAction)).toHaveBeenCalledWith('hello from:');
     });
 
-    test('setSearchType should dispatch updateSearchType', () => {
-        callAction((a) => a.setSearchType('files'));
+    test('setSearchType should dispatch updateSearchType', async () => {
+        await callAction((a) => a.setSearchType('files'));
         expect(jest.mocked(updateSearchTypeAction)).toHaveBeenCalledWith('files');
     });
 
-    test('updateSearchTeam should dispatch team update and re-search', () => {
-        callAction((a) => a.updateSearchTeam('team2'));
+    test('updateSearchTeam should dispatch team update and re-search', async () => {
+        await callAction((a) => a.updateSearchTeam('team2'));
         expect(jest.mocked(updateSearchTeamAction)).toHaveBeenCalledWith('team2');
         expect(jest.mocked(showSearchResults)).toHaveBeenCalledWith(false);
     });
 
-    test('updateSearchTeam should strip in: and from: filters from terms', () => {
-        function callWithTerms(terms: string) {
+    test('updateSearchTeam should strip in: and from: filters from terms', async () => {
+        async function callWithTerms(terms: string) {
             const state = {
                 ...initialState,
                 views: {rhs: {...initialState.views.rhs, searchTerms: terms}},
             };
-            const {result} = renderHookWithContext(() => useSearchResultsActions(), state);
+            const {result} = await renderHookWithContext(() => useSearchResultsActions(), state);
             let cleaned = '';
             act(() => {
                 cleaned = result.current.updateSearchTeam('team2');
@@ -140,14 +140,14 @@ describe('useSearchResultsActions', () => {
             return cleaned;
         }
 
-        expect(callWithTerms('hello in:town-square from:user1')).toBe('hello');
-        expect(callWithTerms('hello world')).toBe('hello world');
+        expect(await callWithTerms('hello in:town-square from:user1')).toBe('hello');
+        expect(await callWithTerms('hello world')).toBe('hello world');
         expect(jest.mocked(updateSearchTermsAction)).toHaveBeenCalledTimes(1);
     });
 
-    test('updateSearchTeam should return cleaned terms', () => {
+    test('updateSearchTeam should return cleaned terms', async () => {
         let result = '';
-        callAction((a) => {
+        await callAction((a) => {
             result = a.updateSearchTeam('team2');
         });
         expect(result).toBe('hello world');

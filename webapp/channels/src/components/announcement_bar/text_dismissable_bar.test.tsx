@@ -19,37 +19,37 @@ describe('components/TextDismissableBar', () => {
         localStorage.clear();
     });
 
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const props = baseProps;
-        const {container} = renderWithContext(<TextDismissableBar {...props}/>);
+        const {container} = await renderWithContext(<TextDismissableBar {...props}/>);
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, with link but without siteURL', () => {
+    test('should match snapshot, with link but without siteURL', async () => {
         const props = {...baseProps, text: 'A [link](http://testurl.com/admin_console/)'};
-        const {container} = renderWithContext(<TextDismissableBar {...props}/>);
+        const {container} = await renderWithContext(<TextDismissableBar {...props}/>);
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, with an internal url', () => {
+    test('should match snapshot, with an internal url', async () => {
         const props = {...baseProps, text: 'A [link](http://testurl.com/admin_console/) with an internal url', siteURL: 'http://testurl.com'};
-        const {container} = renderWithContext(<TextDismissableBar {...props}/>);
+        const {container} = await renderWithContext(<TextDismissableBar {...props}/>);
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, with ean external url', () => {
+    test('should match snapshot, with ean external url', async () => {
         const props = {...baseProps, text: 'A [link](http://otherurl.com/admin_console/) with an external url', siteURL: 'http://testurl.com'};
-        const {container} = renderWithContext(<TextDismissableBar {...props}/>);
+        const {container} = await renderWithContext(<TextDismissableBar {...props}/>);
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, with an internal and an external link', () => {
+    test('should match snapshot, with an internal and an external link', async () => {
         const props = {...baseProps, text: 'A [link](http://testurl.com/admin_console/) with an internal url and a [link](http://other-url.com/admin_console/) with an external url', siteURL: 'http://testurl.com'};
-        const {container} = renderWithContext(<TextDismissableBar {...props}/>);
+        const {container} = await renderWithContext(<TextDismissableBar {...props}/>);
 
         expect(container).toMatchSnapshot();
     });

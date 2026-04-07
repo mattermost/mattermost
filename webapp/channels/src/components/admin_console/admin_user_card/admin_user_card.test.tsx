@@ -20,9 +20,9 @@ describe('components/admin_console/admin_user_card/admin_user_card', () => {
         user,
     } as any;
 
-    test('should match default snapshot', () => {
+    test('should match default snapshot', async () => {
         const props = defaultProps;
-        const {container} = renderWithContext(<AdminUserCard {...props}/>);
+        const {container} = await renderWithContext(<AdminUserCard {...props}/>);
         screen.getByText(props.user.first_name, {exact: false});
         screen.getByText(props.user.last_name, {exact: false});
         screen.getByText(props.user.nickname, {exact: false});
@@ -30,7 +30,7 @@ describe('components/admin_console/admin_user_card/admin_user_card', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot if no nickname is defined', () => {
+    test('should match snapshot if no nickname is defined', async () => {
         const props = {
             ...defaultProps,
             user: {
@@ -38,7 +38,7 @@ describe('components/admin_console/admin_user_card/admin_user_card', () => {
                 nickname: null,
             },
         };
-        const {container} = renderWithContext(<AdminUserCard {...props}/>);
+        const {container} = await renderWithContext(<AdminUserCard {...props}/>);
         screen.getByText(props.user.first_name, {exact: false});
         screen.getByText(props.user.last_name, {exact: false});
         expect(screen.queryByText(defaultProps.user.nickname)).not.toBeInTheDocument();
@@ -46,7 +46,7 @@ describe('components/admin_console/admin_user_card/admin_user_card', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot if no first/last name is defined', () => {
+    test('should match snapshot if no first/last name is defined', async () => {
         const props = {
             ...defaultProps,
             user: {
@@ -55,7 +55,7 @@ describe('components/admin_console/admin_user_card/admin_user_card', () => {
                 last_name: null,
             },
         };
-        const {container} = renderWithContext(<AdminUserCard {...props}/>);
+        const {container} = await renderWithContext(<AdminUserCard {...props}/>);
         expect(screen.queryByText(defaultProps.user.first_name)).not.toBeInTheDocument();
         expect(screen.queryByText(defaultProps.user.last_name)).not.toBeInTheDocument();
         screen.getByText(props.user.nickname, {exact: false});
@@ -63,7 +63,7 @@ describe('components/admin_console/admin_user_card/admin_user_card', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot if no first/last name or nickname is defined', () => {
+    test('should match snapshot if no first/last name or nickname is defined', async () => {
         const props = {
             ...defaultProps,
             user: {
@@ -73,7 +73,7 @@ describe('components/admin_console/admin_user_card/admin_user_card', () => {
                 nickname: null,
             },
         };
-        const {container} = renderWithContext(<AdminUserCard {...props}/>);
+        const {container} = await renderWithContext(<AdminUserCard {...props}/>);
         expect(screen.queryByText(defaultProps.user.first_name)).not.toBeInTheDocument();
         expect(screen.queryByText(defaultProps.user.last_name)).not.toBeInTheDocument();
         expect(screen.queryByText(defaultProps.user.nickname)).not.toBeInTheDocument();

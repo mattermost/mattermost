@@ -21,8 +21,8 @@ describe('ContentFlaggingAdditionalSettingsSection', () => {
         } as ContentFlaggingAdditionalSettings,
     };
 
-    test('should render with initial values', () => {
-        renderWithContext(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
+    test('should render with initial values', async () => {
+        await renderWithContext(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
 
         expect(screen.getByText('Additional Settings')).toBeInTheDocument();
         expect(screen.getByText('Configure how you want the quarantine to behave')).toBeInTheDocument();
@@ -32,15 +32,15 @@ describe('ContentFlaggingAdditionalSettingsSection', () => {
         expect(screen.getByText('Hide message from channel while it is being reviewed')).toBeInTheDocument();
     });
 
-    test('should render initial reason options', () => {
-        renderWithContext(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
+    test('should render initial reason options', async () => {
+        await renderWithContext(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
 
         expect(screen.getByText('Spam')).toBeInTheDocument();
         expect(screen.getByText('Inappropriate')).toBeInTheDocument();
     });
 
-    test('should have correct initial radio button states', () => {
-        renderWithContext(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
+    test('should have correct initial radio button states', async () => {
+        await renderWithContext(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
 
         // Reporter comment required - should be false
         expect(screen.getByTestId('requireReporterComment_false')).toBeChecked();
@@ -56,7 +56,7 @@ describe('ContentFlaggingAdditionalSettingsSection', () => {
     });
 
     test('should call onChange when reporter comment requirement changes', async () => {
-        renderWithContext(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
+        await renderWithContext(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
 
         await userEvent.click(screen.getByTestId('requireReporterComment_true'));
 
@@ -67,7 +67,7 @@ describe('ContentFlaggingAdditionalSettingsSection', () => {
     });
 
     test('should call onChange when reviewer comment requirement changes', async () => {
-        renderWithContext(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
+        await renderWithContext(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
 
         await userEvent.click(screen.getByTestId('requireReviewerComment_false'));
 
@@ -78,7 +78,7 @@ describe('ContentFlaggingAdditionalSettingsSection', () => {
     });
 
     test('should call onChange when hide flagged content setting changes', async () => {
-        renderWithContext(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
+        await renderWithContext(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
 
         await userEvent.click(screen.getByTestId('hideFlaggedPosts_true'));
 
@@ -88,7 +88,7 @@ describe('ContentFlaggingAdditionalSettingsSection', () => {
         });
     });
 
-    test('should handle empty reasons array', () => {
+    test('should handle empty reasons array', async () => {
         const propsWithEmptyReasons = {
             ...defaultProps,
             value: {
@@ -97,14 +97,14 @@ describe('ContentFlaggingAdditionalSettingsSection', () => {
             },
         };
 
-        renderWithContext(<ContentFlaggingAdditionalSettingsSection {...propsWithEmptyReasons}/>);
+        await renderWithContext(<ContentFlaggingAdditionalSettingsSection {...propsWithEmptyReasons}/>);
 
         expect(screen.getByText('Reasons for quarantine')).toBeInTheDocument();
         expect(screen.queryByText('Spam')).not.toBeInTheDocument();
         expect(screen.queryByText('Inappropriate')).not.toBeInTheDocument();
     });
 
-    test('should handle all boolean settings as true', () => {
+    test('should handle all boolean settings as true', async () => {
         const propsAllTrue = {
             ...defaultProps,
             value: {
@@ -115,14 +115,14 @@ describe('ContentFlaggingAdditionalSettingsSection', () => {
             },
         };
 
-        renderWithContext(<ContentFlaggingAdditionalSettingsSection {...propsAllTrue}/>);
+        await renderWithContext(<ContentFlaggingAdditionalSettingsSection {...propsAllTrue}/>);
 
         expect(screen.getByTestId('requireReporterComment_true')).toBeChecked();
         expect(screen.getByTestId('requireReviewerComment_true')).toBeChecked();
         expect(screen.getByTestId('hideFlaggedPosts_true')).toBeChecked();
     });
 
-    test('should handle all boolean settings as false', () => {
+    test('should handle all boolean settings as false', async () => {
         const propsAllFalse = {
             ...defaultProps,
             value: {
@@ -133,15 +133,15 @@ describe('ContentFlaggingAdditionalSettingsSection', () => {
             },
         };
 
-        renderWithContext(<ContentFlaggingAdditionalSettingsSection {...propsAllFalse}/>);
+        await renderWithContext(<ContentFlaggingAdditionalSettingsSection {...propsAllFalse}/>);
 
         expect(screen.getByTestId('requireReporterComment_false')).toBeChecked();
         expect(screen.getByTestId('requireReviewerComment_false')).toBeChecked();
         expect(screen.getByTestId('setHideFlaggedPosts_false')).toBeChecked();
     });
 
-    test('should render CreatableReactSelect with correct props', () => {
-        renderWithContext(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
+    test('should render CreatableReactSelect with correct props', async () => {
+        await renderWithContext(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
 
         const selectInput = screen.getByRole('combobox');
         expect(selectInput).toBeInTheDocument();
@@ -149,7 +149,7 @@ describe('ContentFlaggingAdditionalSettingsSection', () => {
     });
 
     test('should maintain state consistency across multiple changes', async () => {
-        renderWithContext(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
+        await renderWithContext(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
 
         // Change reporter comment requirement
         await userEvent.click(screen.getByTestId('requireReporterComment_true'));

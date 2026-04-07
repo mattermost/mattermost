@@ -47,7 +47,7 @@ describe('channel_info_rhs/top_buttons', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <TopButtons
                 {...testProps}
             />,
@@ -60,7 +60,7 @@ describe('channel_info_rhs/top_buttons', () => {
         // Favorited to Favorite
         toggleFavorite.mockReset();
         testProps.isFavorite = true;
-        renderWithContext(
+        await renderWithContext(
             <TopButtons
                 {...testProps}
             />,
@@ -83,7 +83,7 @@ describe('channel_info_rhs/top_buttons', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <TopButtons
                 {...testProps}
             />,
@@ -96,7 +96,7 @@ describe('channel_info_rhs/top_buttons', () => {
         // Muted to Mute
         toggleMute.mockReset();
         testProps.isMuted = true;
-        renderWithContext(
+        await renderWithContext(
             <TopButtons
                 {...testProps}
             />,
@@ -118,7 +118,7 @@ describe('channel_info_rhs/top_buttons', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <TopButtons
                 {...testProps}
             />,
@@ -128,13 +128,13 @@ describe('channel_info_rhs/top_buttons', () => {
         await userEvent.click(screen.getByText('Add People'));
         expect(addPeople).toHaveBeenCalled();
     });
-    test('should not Add People in DM', () => {
+    test('should not Add People in DM', async () => {
         const testProps: Props = {
             ...topButtonDefaultProps,
             channelType: Constants.DM_CHANNEL,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <TopButtons
                 {...testProps}
             />,
@@ -143,13 +143,13 @@ describe('channel_info_rhs/top_buttons', () => {
         expect(screen.queryByText('Add People')).not.toBeInTheDocument();
     });
 
-    test('should not Add People without permission', () => {
+    test('should not Add People without permission', async () => {
         const testProps: Props = {
             ...topButtonDefaultProps,
             canAddPeople: false,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <TopButtons
                 {...testProps}
             />,
@@ -159,7 +159,7 @@ describe('channel_info_rhs/top_buttons', () => {
     });
 
     test('can copy link', async () => {
-        renderWithContext(
+        await renderWithContext(
             <TopButtons
                 {...topButtonDefaultProps}
             />,
@@ -170,22 +170,20 @@ describe('channel_info_rhs/top_buttons', () => {
         expect(mockOnCopyTextClick).toHaveBeenCalled();
     });
 
-    test('cannot copy link in DM or GM', () => {
-        [
-            Constants.GM_CHANNEL,
-            Constants.DM_CHANNEL,
-        ].forEach((channelType) => {
+    test('cannot copy link in DM or GM', async () => {
+        for (const channelType of [Constants.GM_CHANNEL, Constants.DM_CHANNEL]) {
             const localProps: Props = {
                 ...topButtonDefaultProps,
                 channelType,
             };
-            renderWithContext(
+            // eslint-disable-next-line no-await-in-loop
+            await renderWithContext(
                 <TopButtons
                     {...localProps}
                 />,
             );
 
             expect(screen.queryByText('Copy Link')).not.toBeInTheDocument();
-        });
+        }
     });
 });

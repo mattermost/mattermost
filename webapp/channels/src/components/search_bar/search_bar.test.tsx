@@ -39,22 +39,22 @@ describe('components/search_bar/SearchBar', () => {
         handleBlur: jest.fn(),
     };
 
-    it('should match snapshot without search', () => {
-        const {container} = renderWithContext(
+    it('should match snapshot without search', async () => {
+        const {container} = await renderWithContext(
             <SearchBar {...baseProps}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    it('should match snapshot without search, without searchType', () => {
-        const {container} = renderWithContext(
+    it('should match snapshot without search, without searchType', async () => {
+        const {container} = await renderWithContext(
             <SearchBar {...baseProps}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    it('should match snapshot without search, with searchType', () => {
-        const {container} = renderWithContext(
+    it('should match snapshot without search, with searchType', async () => {
+        const {container} = await renderWithContext(
             <SearchBar
                 {...baseProps}
                 searchType='files'
@@ -63,8 +63,8 @@ describe('components/search_bar/SearchBar', () => {
         expect(container).toMatchSnapshot();
     });
 
-    it('should match snapshot with search, with searchType', () => {
-        const {container} = renderWithContext(
+    it('should match snapshot with search, with searchType', async () => {
+        const {container} = await renderWithContext(
             <SearchBar
                 {...baseProps}
                 searchTerms={'test'}
@@ -74,8 +74,8 @@ describe('components/search_bar/SearchBar', () => {
         expect(container).toMatchSnapshot();
     });
 
-    it('should match snapshot with search', () => {
-        const {container} = renderWithContext(
+    it('should match snapshot with search', async () => {
+        const {container} = await renderWithContext(
             <SearchBar
                 {...baseProps}
                 searchTerms={'test'}

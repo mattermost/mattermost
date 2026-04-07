@@ -31,8 +31,8 @@ describe('components/card/card', () => {
     </div>,
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <Card {...baseProps}>
                 <Card.Header>{'Header Test'}</Card.Header>
                 <Card.Body>{'Body Test'}</Card.Body>
@@ -42,13 +42,13 @@ describe('components/card/card', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when expanded', () => {
+    test('should match snapshot when expanded', async () => {
         const props = {
             ...baseProps,
             expanded: true,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <Card {...props}>
                 <Card.Header>{'Header Test'}</Card.Header>
                 <Card.Body>{'Body Test'}</Card.Body>
@@ -58,14 +58,14 @@ describe('components/card/card', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when using header content and no button', () => {
+    test('should match snapshot when using header content and no button', async () => {
         const props = {
             ...baseProps,
             expanded: true,
             className: 'console',
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <Card {...props}>
                 <Card.Header>
                     <TitleAndButtonCardHeader
@@ -79,7 +79,7 @@ describe('components/card/card', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when using header content and a button', () => {
+    test('should match snapshot when using header content and a button', async () => {
         const props = {
             ...baseProps,
             expanded: true,
@@ -97,7 +97,7 @@ describe('components/card/card', () => {
             ,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <Card {...props}>
                 <Card.Header>
                     <TitleAndButtonCardHeader

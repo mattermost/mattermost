@@ -157,8 +157,8 @@ describe('components/threading/channel_threads/thread_footer', () => {
         resetFakeDate();
     });
 
-    test('should report total number of replies', () => {
-        const {baseElement, container} = renderWithContext(
+    test('should report total number of replies', async () => {
+        const {baseElement, container} = await renderWithContext(
             <ThreadFooter
                 {...props}
             />,
@@ -170,10 +170,10 @@ describe('components/threading/channel_threads/thread_footer', () => {
         expect(screen.getByText('9 replies')).toBeInTheDocument();
     });
 
-    test('should show unread indicator', () => {
+    test('should show unread indicator', async () => {
         thread.unread_replies = 2;
 
-        const {baseElement, container} = renderWithContext(
+        const {baseElement, container} = await renderWithContext(
             <ThreadFooter
                 {...props}
             />,
@@ -185,11 +185,11 @@ describe('components/threading/channel_threads/thread_footer', () => {
         expect(container.querySelector('.dot-unreads')).toBeInTheDocument();
     });
 
-    test('should not show unread indicator if not following', () => {
+    test('should not show unread indicator if not following', async () => {
         thread.unread_replies = 2;
         thread.is_following = false;
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ThreadFooter
                 {...props}
             />,
@@ -200,8 +200,8 @@ describe('components/threading/channel_threads/thread_footer', () => {
         expect(container.querySelector('.dot-unreads')).not.toBeInTheDocument();
     });
 
-    test('should have avatars', () => {
-        renderWithContext(
+    test('should have avatars', async () => {
+        await renderWithContext(
             <ThreadFooter
                 {...props}
             />,
@@ -211,8 +211,8 @@ describe('components/threading/channel_threads/thread_footer', () => {
         expect(capturedAvatarsProps).toHaveProperty('userIds', ['5', '4', '3', '2', '1']);
     });
 
-    test('should have a timestamp', () => {
-        renderWithContext(
+    test('should have a timestamp', async () => {
+        await renderWithContext(
             <ThreadFooter
                 {...props}
             />,
@@ -223,7 +223,7 @@ describe('components/threading/channel_threads/thread_footer', () => {
     });
 
     test('should have a reply button', async () => {
-        const {container, store} = renderWithContext(
+        const {container, store} = await renderWithContext(
             <ThreadFooter
                 {...props}
             />,
@@ -244,7 +244,7 @@ describe('components/threading/channel_threads/thread_footer', () => {
     test('should have a follow button', async () => {
         thread.is_following = false;
 
-        const {container, store} = renderWithContext(
+        const {container, store} = await renderWithContext(
             <ThreadFooter
                 {...props}
             />,
@@ -273,7 +273,7 @@ describe('components/threading/channel_threads/thread_footer', () => {
 
     test('should have an unfollow button', async () => {
         thread.is_following = true;
-        const {container, store} = renderWithContext(
+        const {container, store} = await renderWithContext(
             <ThreadFooter
                 {...props}
             />,
@@ -299,8 +299,8 @@ describe('components/threading/channel_threads/thread_footer', () => {
         );
     });
 
-    test('should match snapshot when a single message is followed', () => {
-        const {baseElement} = renderWithContext(
+    test('should match snapshot when a single message is followed', async () => {
+        const {baseElement} = await renderWithContext(
             <ThreadFooter
                 threadId='singlemessageid'
             />,

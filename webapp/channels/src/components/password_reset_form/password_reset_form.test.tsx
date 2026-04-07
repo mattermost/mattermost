@@ -18,8 +18,8 @@ describe('components/PasswordResetForm', () => {
         },
     };
 
-    it('should match snapshot', () => {
-        const {container} = renderWithContext(<PasswordResetForm {...baseProps}/>);
+    it('should match snapshot', async () => {
+        const {container} = await renderWithContext(<PasswordResetForm {...baseProps}/>);
         expect(container).toMatchSnapshot();
     });
 
@@ -31,7 +31,7 @@ describe('components/PasswordResetForm', () => {
             },
         };
 
-        renderWithContext(<PasswordResetForm {...props}/>);
+        await renderWithContext(<PasswordResetForm {...props}/>);
 
         const passwordInput = screen.getByPlaceholderText('Password');
         await userEvent.type(passwordInput, 'PASSWORD');

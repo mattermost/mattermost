@@ -39,15 +39,15 @@ describe('components/delete_channel_modal', () => {
         onExited: jest.fn(),
     };
 
-    test('should match snapshot for delete_channel_modal', () => {
-        const {baseElement} = renderWithContext(
+    test('should match snapshot for delete_channel_modal', async () => {
+        const {baseElement} = await renderWithContext(
             <DeleteChannelModal {...baseProps}/>,
         );
         expect(baseElement).toMatchSnapshot();
     });
 
     test('should hide on Cancel', async () => {
-        renderWithContext(
+        await renderWithContext(
             <DeleteChannelModal {...baseProps}/>,
         );
 
@@ -66,7 +66,7 @@ describe('components/delete_channel_modal', () => {
     test('should have called actions.deleteChannel on Archive', async () => {
         const actions = {deleteChannel: jest.fn()};
         const props = {...baseProps, actions};
-        renderWithContext(
+        await renderWithContext(
             <DeleteChannelModal {...props}/>,
         );
 
@@ -87,7 +87,7 @@ describe('components/delete_channel_modal', () => {
 
     test('should have called props.onExited when Modal.onExited is called', async () => {
         const onExited = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <DeleteChannelModal
                 {...baseProps}
                 onExited={onExited}

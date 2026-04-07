@@ -17,8 +17,8 @@ describe('components/post_view/FailedPostOptions', () => {
         },
     };
 
-    test('should match default component state', () => {
-        renderWithContext(<FailedPostOptions {...baseProps}/>);
+    test('should match default component state', async () => {
+        await renderWithContext(<FailedPostOptions {...baseProps}/>);
 
         const retryLink = screen.getByText('Retry');
         const cancelLink = screen.getByText('Cancel');
@@ -43,7 +43,7 @@ describe('components/post_view/FailedPostOptions', () => {
             },
         };
 
-        renderWithContext(<FailedPostOptions {...props}/>);
+        await renderWithContext(<FailedPostOptions {...props}/>);
 
         const retryLink = screen.getByText('Retry');
 
@@ -65,7 +65,7 @@ describe('components/post_view/FailedPostOptions', () => {
             },
         };
 
-        renderWithContext(<FailedPostOptions {...props}/>);
+        await renderWithContext(<FailedPostOptions {...props}/>);
 
         const cancelLink = screen.getByText('Cancel');
 

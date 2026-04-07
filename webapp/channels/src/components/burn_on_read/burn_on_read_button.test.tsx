@@ -19,8 +19,8 @@ describe('BurnOnReadButton', () => {
         durationMinutes: 10,
     };
 
-    it('should render correctly when disabled', () => {
-        renderWithContext(
+    it('should render correctly when disabled', async () => {
+        await renderWithContext(
             <BurnOnReadButton {...defaultProps}/>,
         );
 
@@ -29,8 +29,8 @@ describe('BurnOnReadButton', () => {
         expect(button).toHaveAttribute('id', 'burnOnReadButton');
     });
 
-    it('should render correctly when enabled', () => {
-        renderWithContext(
+    it('should render correctly when enabled', async () => {
+        await renderWithContext(
             <BurnOnReadButton
                 {...defaultProps}
                 enabled={true}
@@ -44,7 +44,7 @@ describe('BurnOnReadButton', () => {
 
     it('should call onToggle with true when clicked while disabled', async () => {
         const onToggle = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <BurnOnReadButton
                 {...defaultProps}
                 enabled={false}
@@ -61,7 +61,7 @@ describe('BurnOnReadButton', () => {
 
     it('should call onToggle with false when clicked while enabled', async () => {
         const onToggle = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <BurnOnReadButton
                 {...defaultProps}
                 enabled={true}
@@ -76,9 +76,9 @@ describe('BurnOnReadButton', () => {
         expect(onToggle).toHaveBeenCalledWith(false);
     });
 
-    it('should not be clickable when disabled prop is true', () => {
+    it('should not be clickable when disabled prop is true', async () => {
         const onToggle = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <BurnOnReadButton
                 {...defaultProps}
                 disabled={true}
@@ -90,8 +90,8 @@ describe('BurnOnReadButton', () => {
         expect(button).toBeDisabled();
     });
 
-    it('should display correct duration in tooltip', () => {
-        renderWithContext(
+    it('should display correct duration in tooltip', async () => {
+        await renderWithContext(
             <BurnOnReadButton
                 {...defaultProps}
                 durationMinutes={15}

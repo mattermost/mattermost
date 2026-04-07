@@ -100,7 +100,7 @@ describe('ScheduledPostActions Component', () => {
         jest.restoreAllMocks();
     });
 
-    function renderComponent(props = defaultProps, state = initialState) {
+    async function renderComponent(props = defaultProps, state = initialState) {
         return renderWithContext(
             <ScheduledPostActions
                 {...defaultProps}

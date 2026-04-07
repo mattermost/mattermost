@@ -63,16 +63,16 @@ describe('components/SearchableChannelList', () => {
         },
     };
 
-    test('should match init snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match init snapshot', async () => {
+        const {container} = await renderWithContext(
             <SearchableChannelList {...baseProps}/>,
             initialState,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should set page to 0 when starting search', () => {
-        const {rerender} = renderWithContext(
+    test('should set page to 0 when starting search', async () => {
+        const {rerender} = await renderWithContext(
             <SearchableChannelList {...baseProps}/>,
             initialState,
         );
@@ -91,7 +91,7 @@ describe('components/SearchableChannelList', () => {
         expect(baseProps.search).toBeDefined();
     });
 
-    test('should render ArchiveOutlineIcon for archived public channels', () => {
+    test('should render ArchiveOutlineIcon for archived public channels', async () => {
         const channels = [
             {
                 id: 'channel1',
@@ -104,7 +104,7 @@ describe('components/SearchableChannelList', () => {
             } as Channel,
         ];
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SearchableChannelList
                 {...baseProps}
                 channels={channels}
@@ -119,7 +119,7 @@ describe('components/SearchableChannelList', () => {
         expect(container.querySelector('[data-testid="archiveLockOutlineIcon"]')).not.toBeInTheDocument();
     });
 
-    test('should render ArchiveLockOutlineIcon for archived private channels', () => {
+    test('should render ArchiveLockOutlineIcon for archived private channels', async () => {
         const channels = [
             {
                 id: 'channel2',
@@ -132,7 +132,7 @@ describe('components/SearchableChannelList', () => {
             } as Channel,
         ];
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SearchableChannelList
                 {...baseProps}
                 channels={channels}

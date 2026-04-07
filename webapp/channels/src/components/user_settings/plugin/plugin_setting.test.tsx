@@ -71,24 +71,24 @@ function CustomSettingThrows() {
 }
 
 describe('plugin setting', () => {
-    it('default is properly set', () => {
+    it('default is properly set', async () => {
         const props = getBaseProps();
         props.section.settings[0].default = '1';
-        renderWithContext(<PluginSetting {...props}/>);
+        await renderWithContext(<PluginSetting {...props}/>);
         expect(screen.queryByText(OPTION_1_TEXT)).toBeInTheDocument();
     });
 
     it('isDisabled is respected', async () => {
         const props = getBaseProps();
         props.section.disabled = true;
-        renderWithContext(<PluginSetting {...props}/>);
+        await renderWithContext(<PluginSetting {...props}/>);
         expect(screen.queryByText('Edit')).not.toBeInTheDocument();
         expect(screen.queryByText(SECTION_TITLE)).toBeInTheDocument();
         await userEvent.click(screen.getByText(SECTION_TITLE));
         expect(screen.queryByText(OPTION_1_TEXT)).not.toBeInTheDocument();
     });
 
-    it('properly take the current value from the preferences', () => {
+    it('properly take the current value from the preferences', async () => {
         const category = getPluginPreferenceKey(PLUGIN_ID);
         const prefKey = getPreferenceKey(category, SETTING_1_NAME);
         const state: DeepPartial<GlobalState> = {
@@ -105,7 +105,7 @@ describe('plugin setting', () => {
                 },
             },
         };
-        renderWithContext(<PluginSetting {...getBaseProps()}/>, state);
+        await renderWithContext(<PluginSetting {...getBaseProps()}/>, state);
         expect(screen.queryByText(OPTION_1_TEXT)).toBeInTheDocument();
     });
 
@@ -128,7 +128,7 @@ describe('plugin setting', () => {
             ],
             type: 'radio',
         });
-        renderWithContext(<PluginSetting {...props}/>);
+        await renderWithContext(<PluginSetting {...props}/>);
         await userEvent.click(screen.getByText(OPTION_1_TEXT));
         await userEvent.click(screen.getByText(OPTION_3_TEXT));
         await userEvent.click(screen.getByText(SAVE_TEXT));
@@ -153,7 +153,7 @@ describe('plugin setting', () => {
         const mockSavePreferences = jest.spyOn(preferencesActions, 'savePreferences');
         const props = getBaseProps();
         props.activeSection = SECTION_TITLE;
-        renderWithContext(<PluginSetting {...props}/>);
+        await renderWithContext(<PluginSetting {...props}/>);
         await userEvent.click(screen.getByText(SAVE_TEXT));
         expect(props.section.onSubmit).not.toHaveBeenCalled();
         expect(props.updateSection).toHaveBeenCalledWith('');
@@ -164,7 +164,7 @@ describe('plugin setting', () => {
         const mockSavePreferences = jest.spyOn(preferencesActions, 'savePreferences');
         const props = getBaseProps();
         props.activeSection = SECTION_TITLE;
-        const {rerender} = renderWithContext(<PluginSetting {...props}/>);
+        const {rerender} = await renderWithContext(<PluginSetting {...props}/>);
         await userEvent.click(screen.getByText(OPTION_1_TEXT));
         props.activeSection = '';
         rerender(<PluginSetting {...props}/>);
@@ -187,21 +187,21 @@ describe('plugin setting', () => {
         expect(mockSavePreferences).not.toHaveBeenCalled();
     });
 
-    it('custom setting component', () => {
+    it('custom setting component', async () => {
         const props = getBaseProps();
         props.section.settings = [{
             name: 'custom_input',
             type: 'custom',
             component: CustomSetting,
         }];
-        renderWithContext(<PluginSetting {...props}/>);
+        await renderWithContext(<PluginSetting {...props}/>);
         expect(screen.queryByText(CUSTOM_INPUT_TEXT)).not.toBeInTheDocument();
         props.activeSection = props.section.title;
-        renderWithContext(<PluginSetting {...props}/>);
+        await renderWithContext(<PluginSetting {...props}/>);
         expect(screen.queryByText(CUSTOM_INPUT_TEXT)).toBeInTheDocument();
     });
 
-    it('custom setting component throws', () => {
+    it('custom setting component throws', async () => {
         const consoleError = console.error;
         console.error = jest.fn();
 
@@ -213,7 +213,7 @@ describe('plugin setting', () => {
         }];
         props.activeSection = props.section.title;
 
-        renderWithContext(<PluginSetting {...props}/>);
+        await renderWithContext(<PluginSetting {...props}/>);
         expect(screen.queryByText(CUSTOM_INPUT_TEXT)).not.toBeInTheDocument();
         expect(screen.queryByText('An error occurred in the pluginId plugin.')).toBeInTheDocument();
         expect(screen.queryByText('Refresh?')).toBeInTheDocument();

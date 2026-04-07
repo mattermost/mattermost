@@ -67,31 +67,31 @@ describe('PaymentAnnouncementBar', () => {
         },
     };
 
-    it('when most recent payment failed, shows that', () => {
-        renderWithContext(<PaymentAnnouncementBar/>, happyPathStore);
+    it('when most recent payment failed, shows that', async () => {
+        await renderWithContext(<PaymentAnnouncementBar/>, happyPathStore);
         screen.getByText('Your most recent payment failed');
     });
 
-    it('when card is expired, shows that', () => {
+    it('when card is expired, shows that', async () => {
         const store = JSON.parse(JSON.stringify(happyPathStore));
         store.entities.cloud.customer.payment_method.exp_year = (new Date()).getFullYear() - 1;
         store.entities.cloud.subscription.last_invoice.status = 'success';
-        renderWithContext(<PaymentAnnouncementBar/>, store);
+        await renderWithContext(<PaymentAnnouncementBar/>, store);
         screen.getByText('Your credit card has expired', {exact: false});
     });
 
-    it('when needed, fetches, customer', () => {
+    it('when needed, fetches, customer', async () => {
         const store = JSON.parse(JSON.stringify(happyPathStore));
         store.entities.cloud.customer = null;
         store.entities.cloud.subscription.last_invoice.status = 'success';
-        renderWithContext(<PaymentAnnouncementBar/>, store);
+        await renderWithContext(<PaymentAnnouncementBar/>, store);
         expect(cloudActions.getCloudCustomer).toHaveBeenCalled();
     });
 
-    it('when not an admin, does not fetch customer', () => {
+    it('when not an admin, does not fetch customer', async () => {
         const store = JSON.parse(JSON.stringify(happyPathStore));
         store.entities.users.profiles.me.roles = '';
-        renderWithContext(<PaymentAnnouncementBar/>, store);
+        await renderWithContext(<PaymentAnnouncementBar/>, store);
         expect(cloudActions.getCloudCustomer).not.toHaveBeenCalled();
     });
 });

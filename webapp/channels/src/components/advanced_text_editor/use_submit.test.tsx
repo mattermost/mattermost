@@ -82,7 +82,7 @@ describe('useSubmit', () => {
     }
 
     it('should check priority on non-edit mode', async () => {
-        const {result} = renderHookWithContext(() => useSubmit(
+        const {result} = await renderHookWithContext(() => useSubmit(
             mockDraft,
             mockPostError,
             'channel_id',
@@ -110,7 +110,7 @@ describe('useSubmit', () => {
     });
 
     it('should not check priority on edit mode', async () => {
-        const {result} = renderHookWithContext(() => useSubmit(
+        const {result} = await renderHookWithContext(() => useSubmit(
             mockDraft,
             mockPostError,
             'channel_id',
@@ -142,7 +142,7 @@ describe('useSubmit', () => {
         baseState.entities!.channels!.stats!.channel_id!.member_count = 10;
 
         const draft = {...mockDraft, message: '@all'};
-        const {result} = renderHookWithContext(() => useSubmit(
+        const {result} = await renderHookWithContext(() => useSubmit(
             draft,
             mockPostError,
             'channel_id',
@@ -175,7 +175,7 @@ describe('useSubmit', () => {
         const baseState = getBaseState();
         baseState.entities!.channels!.stats!.channel_id!.member_count = 10;
         const draft = {...mockDraft, message: '@all'};
-        const {result} = renderHookWithContext(() => useSubmit(
+        const {result} = await renderHookWithContext(() => useSubmit(
             draft,
             mockPostError,
             'channel_id',
@@ -206,7 +206,7 @@ describe('useSubmit', () => {
 
     it('should handle commands if not in edit mode', async () => {
         const draft = {...mockDraft, message: '/header'};
-        const {result} = renderHookWithContext(() => useSubmit(
+        const {result} = await renderHookWithContext(() => useSubmit(
             draft,
             mockPostError,
             'channel_id',
@@ -237,7 +237,7 @@ describe('useSubmit', () => {
 
     it('should not handle commands if in edit mode', async () => {
         const draft = {...mockDraft, message: '/header'};
-        const {result} = renderHookWithContext(() => useSubmit(
+        const {result} = await renderHookWithContext(() => useSubmit(
             draft,
             mockPostError,
             'channel_id',

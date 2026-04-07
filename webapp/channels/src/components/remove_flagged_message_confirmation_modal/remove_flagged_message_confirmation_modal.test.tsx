@@ -68,8 +68,8 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
     });
 
     describe('remove action', () => {
-        test('should render modal with remove action content', () => {
-            renderWithContext(
+        test('should render modal with remove action content', async () => {
+            await renderWithContext(
                 <KeepRemoveFlaggedMessageConfirmationModal
                     action='remove'
                     onExited={onExited}
@@ -83,13 +83,13 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
             expect(screen.getByRole('button', {name: 'Remove message'})).toBeVisible();
         });
 
-        test('should show notification subtext when notify_reporter_on_removal is true', () => {
+        test('should show notification subtext when notify_reporter_on_removal is true', async () => {
             mockedUseContentFlaggingConfig.mockReturnValue({
                 ...defaultContentFlaggingConfig,
                 notify_reporter_on_removal: true,
             });
 
-            renderWithContext(
+            await renderWithContext(
                 <KeepRemoveFlaggedMessageConfirmationModal
                     action='remove'
                     onExited={onExited}
@@ -103,8 +103,8 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
             expect(subtext).toHaveTextContent(/a notification will be sent to the reporter/);
         });
 
-        test('should show no notification subtext when notify_reporter_on_removal is false', () => {
-            renderWithContext(
+        test('should show no notification subtext when notify_reporter_on_removal is false', async () => {
+            await renderWithContext(
                 <KeepRemoveFlaggedMessageConfirmationModal
                     action='remove'
                     onExited={onExited}
@@ -119,7 +119,7 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
         });
 
         test('should call Client4.removeFlaggedPost on confirm', async () => {
-            renderWithContext(
+            await renderWithContext(
                 <KeepRemoveFlaggedMessageConfirmationModal
                     action='remove'
                     onExited={onExited}
@@ -139,8 +139,8 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
     });
 
     describe('keep action', () => {
-        test('should render modal with keep action content', () => {
-            renderWithContext(
+        test('should render modal with keep action content', async () => {
+            await renderWithContext(
                 <KeepRemoveFlaggedMessageConfirmationModal
                     action='keep'
                     onExited={onExited}
@@ -153,13 +153,13 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
             expect(screen.getByRole('button', {name: 'Keep message'})).toBeVisible();
         });
 
-        test('should show notification subtext when notify_reporter_on_dismissal is true', () => {
+        test('should show notification subtext when notify_reporter_on_dismissal is true', async () => {
             mockedUseContentFlaggingConfig.mockReturnValue({
                 ...defaultContentFlaggingConfig,
                 notify_reporter_on_dismissal: true,
             });
 
-            renderWithContext(
+            await renderWithContext(
                 <KeepRemoveFlaggedMessageConfirmationModal
                     action='keep'
                     onExited={onExited}
@@ -173,8 +173,8 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
             expect(subtext).toHaveTextContent(/a notification will be sent to the reporter/);
         });
 
-        test('should show no notification subtext when notify_reporter_on_dismissal is false', () => {
-            renderWithContext(
+        test('should show no notification subtext when notify_reporter_on_dismissal is false', async () => {
+            await renderWithContext(
                 <KeepRemoveFlaggedMessageConfirmationModal
                     action='keep'
                     onExited={onExited}
@@ -189,7 +189,7 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
         });
 
         test('should call Client4.keepFlaggedPost on confirm', async () => {
-            renderWithContext(
+            await renderWithContext(
                 <KeepRemoveFlaggedMessageConfirmationModal
                     action='keep'
                     onExited={onExited}
@@ -209,8 +209,8 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
     });
 
     describe('comment section', () => {
-        test('should show optional comment label when reviewer_comment_required is false', () => {
-            renderWithContext(
+        test('should show optional comment label when reviewer_comment_required is false', async () => {
+            await renderWithContext(
                 <KeepRemoveFlaggedMessageConfirmationModal
                     action='remove'
                     onExited={onExited}
@@ -224,13 +224,13 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
             expect(commentTitle).toHaveTextContent('Comment (optional)');
         });
 
-        test('should show required comment label when reviewer_comment_required is true', () => {
+        test('should show required comment label when reviewer_comment_required is true', async () => {
             mockedUseContentFlaggingConfig.mockReturnValue({
                 ...defaultContentFlaggingConfig,
                 reviewer_comment_required: true,
             });
 
-            renderWithContext(
+            await renderWithContext(
                 <KeepRemoveFlaggedMessageConfirmationModal
                     action='remove'
                     onExited={onExited}
@@ -250,7 +250,7 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
                 reviewer_comment_required: true,
             });
 
-            renderWithContext(
+            await renderWithContext(
                 <KeepRemoveFlaggedMessageConfirmationModal
                     action='remove'
                     onExited={onExited}
@@ -275,7 +275,7 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
             const errorMessage = 'Failed to remove flagged post';
             Client4.removeFlaggedPost = jest.fn().mockRejectedValue({message: errorMessage});
 
-            renderWithContext(
+            await renderWithContext(
                 <KeepRemoveFlaggedMessageConfirmationModal
                     action='remove'
                     onExited={onExited}

@@ -110,8 +110,8 @@ describe('components/post_view/embedded_bindings/select_binding', () => {
         mockOnSelected = undefined;
     });
 
-    test('should start with nothing selected', () => {
-        renderWithContext(<SelectBinding {...baseProps}/>, initialState);
+    test('should start with nothing selected', async () => {
+        await renderWithContext(<SelectBinding {...baseProps}/>, initialState);
 
         const selector = screen.getByTestId('autoCompleteSelector');
         expect(selector).toBeInTheDocument();
@@ -146,7 +146,7 @@ describe('components/post_view/embedded_bindings/select_binding', () => {
                 },
             };
 
-            renderWithContext(<SelectBinding {...props}/>, initialState);
+            await renderWithContext(<SelectBinding {...props}/>, initialState);
 
             await act(async () => {
                 mockOnSelected!({
@@ -205,7 +205,7 @@ describe('components/post_view/embedded_bindings/select_binding', () => {
             },
         };
 
-        renderWithContext(<SelectBinding {...props}/>, initialState);
+        await renderWithContext(<SelectBinding {...props}/>, initialState);
 
         await act(async () => {
             mockOnSelected!({

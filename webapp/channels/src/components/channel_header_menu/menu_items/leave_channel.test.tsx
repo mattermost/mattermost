@@ -28,7 +28,7 @@ describe('components/ChannelHeaderMenu/MenuItems/LeaveChannelTest', () => {
     test('renders the component correctly, handle click event correctly for Public Channel', async () => {
         const channel = TestHelper.getChannelMock();
 
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <LeaveChannel channel={channel}/>
             </WithTestMenuContext>, {},
@@ -46,7 +46,7 @@ describe('components/ChannelHeaderMenu/MenuItems/LeaveChannelTest', () => {
     test('renders the component correctly, handle click event for manage groups', async () => {
         const channel = TestHelper.getChannelMock({type: 'P'});
 
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <LeaveChannel channel={channel}/>
             </WithTestMenuContext>, {},

@@ -36,20 +36,20 @@ describe('components/ActivityLogModal', () => {
         locale: General.DEFAULT_LOCALE,
     };
 
-    test('should render empty state when no sessions exist', () => {
-        renderWithContext(<ActivityLogModal {...baseProps}/>);
+    test('should render empty state when no sessions exist', async () => {
+        await renderWithContext(<ActivityLogModal {...baseProps}/>);
 
         expect(screen.getByText('Active Sessions')).toBeInTheDocument();
         expect(screen.queryByTestId('activity-log')).not.toBeInTheDocument();
     });
 
-    test('should render sessions when they exist', () => {
+    test('should render sessions when they exist', async () => {
         const sessions = [
             {id: 'session1', props: {type: 'Web'}},
             {id: 'session2', props: {type: 'Web'}},
         ] as any;
 
-        renderWithContext(
+        await renderWithContext(
             <ActivityLogModal
                 {...baseProps}
                 sessions={sessions}
@@ -59,13 +59,13 @@ describe('components/ActivityLogModal', () => {
         expect(screen.getAllByTestId('activity-log')).toHaveLength(2);
     });
 
-    test('should filter out UserAccessToken sessions', () => {
+    test('should filter out UserAccessToken sessions', async () => {
         const sessions = [
             {id: 'session1', props: {type: 'Web'}},
             {id: 'session2', props: {type: 'UserAccessToken'}},
         ] as any;
 
-        renderWithContext(
+        await renderWithContext(
             <ActivityLogModal
                 {...baseProps}
                 sessions={sessions}
@@ -75,14 +75,14 @@ describe('components/ActivityLogModal', () => {
         expect(screen.getAllByTestId('activity-log')).toHaveLength(1);
     });
 
-    test('should call getSessions on mount', () => {
+    test('should call getSessions on mount', async () => {
         const actions = {
             getSessions: jest.fn(),
             revokeSession: jest.fn(),
         };
         const props = {...baseProps, actions};
 
-        renderWithContext(<ActivityLogModal {...props}/>);
+        await renderWithContext(<ActivityLogModal {...props}/>);
         expect(actions.getSessions).toHaveBeenCalledTimes(1);
         expect(actions.getSessions).toHaveBeenCalledWith('');
     });
@@ -105,7 +105,7 @@ describe('components/ActivityLogModal', () => {
             {id: 'session1', props: {type: 'Web'}},
         ] as any;
 
-        renderWithContext(
+        await renderWithContext(
             <ActivityLogModal
                 {...baseProps}
                 sessions={sessions}
@@ -128,7 +128,7 @@ describe('components/ActivityLogModal', () => {
 
     test('should call onHide when modal is closed', async () => {
         const onHide = jest.fn();
-        renderWithContext(
+        await renderWithContext(
             <ActivityLogModal
                 {...baseProps}
                 onHide={onHide}

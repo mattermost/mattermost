@@ -26,23 +26,23 @@ describe('components/admin_console/reset_email_modal/reset_email_modal.tsx', () 
         onExited: jest.fn(),
     };
 
-    test('should render modal with user name in title', () => {
-        renderWithContext(<ResetEmailModal {...baseProps}/>);
+    test('should render modal with user name in title', async () => {
+        await renderWithContext(<ResetEmailModal {...baseProps}/>);
 
         expect(screen.getByText(/Update email for Arvin Darmawan/i)).toBeInTheDocument();
         expect(screen.getByRole('textbox')).toBeInTheDocument();
     });
 
-    test('should render null when there is no user', () => {
+    test('should render null when there is no user', async () => {
         const props = {...baseProps, user: undefined};
-        const {container} = renderWithContext(<ResetEmailModal {...props}/>);
+        const {container} = await renderWithContext(<ResetEmailModal {...props}/>);
 
         expect(container).toBeEmptyDOMElement();
     });
 
-    test('should show password field when updating own email', () => {
+    test('should show password field when updating own email', async () => {
         const props = {...baseProps, currentUserId: user.id};
-        renderWithContext(<ResetEmailModal {...props}/>);
+        await renderWithContext(<ResetEmailModal {...props}/>);
 
         // Should have both email and password inputs
         const inputs = screen.getAllByRole('textbox');
@@ -53,7 +53,7 @@ describe('components/admin_console/reset_email_modal/reset_email_modal.tsx', () 
     });
 
     test('should not update email since the email is empty', async () => {
-        renderWithContext(<ResetEmailModal {...baseProps}/>);
+        await renderWithContext(<ResetEmailModal {...baseProps}/>);
 
         // Click submit without entering email
         await userEvent.click(screen.getByRole('button', {name: /Update/i}));
@@ -65,7 +65,7 @@ describe('components/admin_console/reset_email_modal/reset_email_modal.tsx', () 
     });
 
     test('should not update email since the email is invalid', async () => {
-        renderWithContext(<ResetEmailModal {...baseProps}/>);
+        await renderWithContext(<ResetEmailModal {...baseProps}/>);
 
         const emailInput = screen.getByPlaceholderText(/Enter new email address/i);
         await userEvent.type(emailInput, 'invalid-email');
@@ -79,7 +79,7 @@ describe('components/admin_console/reset_email_modal/reset_email_modal.tsx', () 
 
     test('should require password when updating email of the current user', async () => {
         const props = {...baseProps, currentUserId: user.id};
-        renderWithContext(<ResetEmailModal {...props}/>);
+        await renderWithContext(<ResetEmailModal {...props}/>);
 
         const emailInput = screen.getByPlaceholderText(/Enter new email address/i);
         await userEvent.type(emailInput, 'currentUser@test.com');
@@ -94,7 +94,7 @@ describe('components/admin_console/reset_email_modal/reset_email_modal.tsx', () 
     test('should update email since the email is valid for another user', async () => {
         const patchUser = jest.fn(() => Promise.resolve({}));
         const props = {...baseProps, actions: {patchUser}};
-        renderWithContext(<ResetEmailModal {...props}/>);
+        await renderWithContext(<ResetEmailModal {...props}/>);
 
         const emailInput = screen.getByPlaceholderText(/Enter new email address/i);
         await userEvent.type(emailInput, 'user@test.com');
@@ -111,7 +111,7 @@ describe('components/admin_console/reset_email_modal/reset_email_modal.tsx', () 
     test('should update email since the email is valid for the current user', async () => {
         const patchUser = jest.fn(() => Promise.resolve({}));
         const props = {...baseProps, currentUserId: user.id, actions: {patchUser}};
-        renderWithContext(<ResetEmailModal {...props}/>);
+        await renderWithContext(<ResetEmailModal {...props}/>);
 
         const emailInput = screen.getByPlaceholderText(/Enter new email address/i);
         await userEvent.type(emailInput, 'currentUser@test.com');

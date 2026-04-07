@@ -8,8 +8,8 @@ import {renderWithContext} from 'tests/react_testing_utils';
 import LineChart from './line_chart';
 
 describe('components/analytics/line_chart.tsx', () => {
-    test('should match snapshot, on loading', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot, on loading', async () => {
+        const {container} = await renderWithContext(
             <LineChart
                 id='test'
                 title='Test'
@@ -21,13 +21,13 @@ describe('components/analytics/line_chart.tsx', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, loaded without data', () => {
+    test('should match snapshot, loaded without data', async () => {
         const data = {
             datasets: [],
             labels: [],
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <LineChart
                 id='test'
                 title='Test'
@@ -40,7 +40,7 @@ describe('components/analytics/line_chart.tsx', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, loaded with data', () => {
+    test('should match snapshot, loaded with data', async () => {
         const data = {
             datasets: [
                 {data: [1, 2, 3]},
@@ -48,7 +48,7 @@ describe('components/analytics/line_chart.tsx', () => {
             labels: ['test1', 'test2', 'test3'],
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <LineChart
                 id='test'
                 title='Test'

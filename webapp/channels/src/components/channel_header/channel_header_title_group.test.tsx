@@ -50,7 +50,7 @@ describe('components/ChannelHeaderTitleGroup', () => {
         currentUserId: 'user_id',
     };
 
-    test('should render the guest tags on gms', () => {
+    test('should render the guest tags on gms', async () => {
         const state = {
             entities: {
                 channels,
@@ -71,14 +71,14 @@ describe('components/ChannelHeaderTitleGroup', () => {
             }),
         ];
 
-        const wrapper = renderWithContext(
+        const wrapper = await renderWithContext(
             <ChannelHeaderTitleGroup gmMembers={gmMembers}/>,
             state,
         );
         expect(wrapper.queryAllByText('GUEST').length).toBe(1);
     });
 
-    test('should not render the guest tags on gms when no guest is in it', () => {
+    test('should not render the guest tags on gms when no guest is in it', async () => {
         const state = {
             entities: {
                 channels: channelsWithoutGuests,
@@ -99,7 +99,7 @@ describe('components/ChannelHeaderTitleGroup', () => {
             }),
         ];
 
-        const wrapper = renderWithContext(
+        const wrapper = await renderWithContext(
             <ChannelHeaderTitleGroup gmMembers={gmMembers}/>,
             state,
         );

@@ -41,18 +41,18 @@ describe('components/Markdown', () => {
         metadata: {},
     };
 
-    test('should render properly', () => {
-        const {container} = renderWithContext(<Markdown {...baseProps}/>);
+    test('should render properly', async () => {
+        const {container} = await renderWithContext(<Markdown {...baseProps}/>);
         expect(container).toMatchSnapshot();
     });
 
-    test('should not render markdown when formatting is disabled', () => {
+    test('should not render markdown when formatting is disabled', async () => {
         const props = {
             ...baseProps,
             enableFormatting: false,
         };
 
-        const {container} = renderWithContext(<Markdown {...props}/>);
+        const {container} = await renderWithContext(<Markdown {...props}/>);
         expect(container).toMatchSnapshot();
     });
 });

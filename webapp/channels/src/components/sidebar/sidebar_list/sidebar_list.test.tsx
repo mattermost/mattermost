@@ -159,8 +159,8 @@ describe('SidebarList', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <SidebarListComponent
                 {...baseProps}
                 intl={intl}
@@ -175,8 +175,8 @@ describe('SidebarList', () => {
         expect(droppable).toMatchSnapshot();
     });
 
-    test('should close sidebar on mobile when channel is selected (ie. changed)', () => {
-        const {rerender} = renderWithContext(
+    test('should close sidebar on mobile when channel is selected (ie. changed)', async () => {
+        const {rerender} = await renderWithContext(
             <SidebarListComponent
                 {...baseProps}
                 intl={intl}
@@ -193,9 +193,9 @@ describe('SidebarList', () => {
         expect(baseProps.actions.close).toHaveBeenCalled();
     });
 
-    test('should scroll to top when team changes', () => {
+    test('should scroll to top when team changes', async () => {
         const sidebarListRef = React.createRef<SidebarListComponent>();
-        const {rerender} = renderWithContext(
+        const {rerender} = await renderWithContext(
             <SidebarListComponent
                 {...baseProps}
                 intl={intl}
@@ -226,9 +226,9 @@ describe('SidebarList', () => {
         expect(instance.scrollbar.current!.scrollTo).toHaveBeenCalledWith({top: 0});
     });
 
-    test('should display unread scroll indicator when channels appear outside visible area', () => {
+    test('should display unread scroll indicator when channels appear outside visible area', async () => {
         const sidebarListRef = React.createRef<SidebarListComponent>();
-        renderWithContext(
+        await renderWithContext(
             <SidebarListComponent
                 {...baseProps}
                 intl={intl}
@@ -265,9 +265,9 @@ describe('SidebarList', () => {
         expect(instance.state.showBottomUnread).toBe(true);
     });
 
-    test('should scroll to correct position when scrolling to channel', () => {
+    test('should scroll to correct position when scrolling to channel', async () => {
         const sidebarListRef = React.createRef<SidebarListComponent>();
-        renderWithContext(
+        await renderWithContext(
             <SidebarListComponent
                 {...baseProps}
                 intl={intl}
@@ -295,13 +295,13 @@ describe('SidebarList', () => {
         expect(instance.scrollToPosition).toHaveBeenCalledWith(8); // includes margin and category header height
     });
 
-    test('should set the dragging state based on type', () => {
+    test('should set the dragging state based on type', async () => {
         const querySpy = jest.spyOn(document, 'querySelectorAll').mockReturnValue([{
             style: {},
         }] as any);
 
         const sidebarListRef = React.createRef<SidebarListComponent>();
-        renderWithContext(
+        await renderWithContext(
             <SidebarListComponent
                 {...baseProps}
                 intl={intl}
@@ -340,9 +340,9 @@ describe('SidebarList', () => {
         querySpy.mockRestore();
     });
 
-    test('should call correct action on dropping item', () => {
+    test('should call correct action on dropping item', async () => {
         const sidebarListRef = React.createRef<SidebarListComponent>();
-        renderWithContext(
+        await renderWithContext(
             <SidebarListComponent
                 {...baseProps}
                 intl={intl}

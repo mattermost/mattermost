@@ -23,7 +23,7 @@ describe('components/ChannelHeaderMenu/MenuItems/ToggleFavoriteChannel', () => {
     });
 
     test('renders the component correctly, handles correct click event, is favorite false', async () => {
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <ToggleFavoriteChannel
                     channelID={channel.id}
@@ -42,7 +42,7 @@ describe('components/ChannelHeaderMenu/MenuItems/ToggleFavoriteChannel', () => {
     });
 
     test('renders the component correctly, handles correct click event, is favorite true', async () => {
-        renderWithContext(
+        await renderWithContext(
             <WithTestMenuContext>
                 <ToggleFavoriteChannel
                     channelID={channel.id}

@@ -18,15 +18,15 @@ describe('AudioVideoPreview', () => {
         isMobileView: false,
     };
 
-    test('should match snapshot without children', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot without children', async () => {
+        const {container} = await renderWithContext(
             <AudioVideoPreview {...baseProps}/>,
         );
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, cannot play', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot, cannot play', async () => {
+        const {container} = await renderWithContext(
             <AudioVideoPreview {...baseProps}/>,
         );
 

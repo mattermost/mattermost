@@ -7,15 +7,8 @@ import {General} from 'mattermost-redux/constants';
 
 import ManageTeamsModal from 'components/admin_console/manage_teams_modal/manage_teams_modal';
 
-import {renderWithContext, runPostRenderAct, screen, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
-
-/**
- * `runPostRenderAct` rounds (each `await Promise.resolve()`): (1) passive effects run so `useEffect`
- * starts `loadTeamsAndTeamMembers`; (2) mocked `actions.getTeamMembersForUser` resolves →
- * `getTeamMembers` → `setTeamMembers`; (3) mocked `actions.getTeamsForUser` resolves → `setTeams`.
- */
-const MANAGE_TEAMS_MODAL_ASYNC_ROUNDS = 3;
 
 describe('ManageTeamsModal', () => {
     const baseProps = {
@@ -42,11 +35,9 @@ describe('ManageTeamsModal', () => {
     });
 
     test('should match snapshot init', async () => {
-        const {baseElement} = renderWithContext(
+        const {baseElement} = await renderWithContext(
             <ManageTeamsModal {...baseProps}/>,
         );
-
-        await runPostRenderAct(MANAGE_TEAMS_MODAL_ASYNC_ROUNDS);
 
         expect(baseProps.actions.getTeamMembersForUser).toHaveBeenCalledTimes(1);
         expect(baseProps.actions.getTeamsForUser).toHaveBeenCalledTimes(1);
@@ -59,10 +50,9 @@ describe('ManageTeamsModal', () => {
     });
 
     test('should call api calls on mount', async () => {
-        renderWithContext(
+        await renderWithContext(
             <ManageTeamsModal {...baseProps}/>,
         );
-        await runPostRenderAct(MANAGE_TEAMS_MODAL_ASYNC_ROUNDS);
 
         expect(baseProps.actions.getTeamMembersForUser).toHaveBeenCalledTimes(1);
         expect(baseProps.actions.getTeamMembersForUser).toHaveBeenCalledWith(baseProps.user.id);
@@ -90,7 +80,7 @@ describe('ManageTeamsModal', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ManageTeamsModal {...props}/>,
         );
 

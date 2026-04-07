@@ -22,15 +22,15 @@ describe('components/ProductMenuItem', () => {
         jest.clearAllMocks();
     });
 
-    test('should render menu item with correct text', () => {
-        renderWithContext(<ProductMenuItem {...defaultProps}/>);
+    test('should render menu item with correct text', async () => {
+        await renderWithContext(<ProductMenuItem {...defaultProps}/>);
 
         expect(screen.getByRole('menuitem')).toBeInTheDocument();
         expect(screen.getByText('Test Product')).toBeInTheDocument();
     });
 
-    test('should render with string icon from glyphMap', () => {
-        renderWithContext(<ProductMenuItem {...defaultProps}/>);
+    test('should render with string icon from glyphMap', async () => {
+        await renderWithContext(<ProductMenuItem {...defaultProps}/>);
 
         // When icon is a string, the component looks up the glyph from glyphMap
         // The icon should be rendered with proper styling
@@ -42,7 +42,7 @@ describe('components/ProductMenuItem', () => {
         expect(menuItem.querySelector('svg')).toBeInTheDocument();
     });
 
-    test('should render with React element icon', () => {
+    test('should render with React element icon', async () => {
         const CustomIcon = (
             <svg data-testid='custom-svg-icon'>
                 <rect
@@ -56,18 +56,18 @@ describe('components/ProductMenuItem', () => {
             icon: CustomIcon,
         };
 
-        renderWithContext(<ProductMenuItem {...props}/>);
+        await renderWithContext(<ProductMenuItem {...props}/>);
 
         expect(screen.getByTestId('custom-svg-icon')).toBeInTheDocument();
     });
 
-    test('should show check icon when active is true', () => {
+    test('should show check icon when active is true', async () => {
         const props: ProductMenuItemProps = {
             ...defaultProps,
             active: true,
         };
 
-        renderWithContext(<ProductMenuItem {...props}/>);
+        await renderWithContext(<ProductMenuItem {...props}/>);
 
         const menuItem = screen.getByRole('menuitem');
 
@@ -76,19 +76,19 @@ describe('components/ProductMenuItem', () => {
         expect(svgElements.length).toBe(2);
     });
 
-    test('should show open in new tab button when active is false', () => {
-        renderWithContext(<ProductMenuItem {...defaultProps}/>);
+    test('should show open in new tab button when active is false', async () => {
+        await renderWithContext(<ProductMenuItem {...defaultProps}/>);
 
         expect(screen.getByLabelText('Open in new tab')).toBeInTheDocument();
     });
 
-    test('should not show open in new tab button when active is true', () => {
+    test('should not show open in new tab button when active is true', async () => {
         const props: ProductMenuItemProps = {
             ...defaultProps,
             active: true,
         };
 
-        renderWithContext(<ProductMenuItem {...props}/>);
+        await renderWithContext(<ProductMenuItem {...props}/>);
 
         expect(screen.queryByLabelText('Open in new tab')).not.toBeInTheDocument();
     });
@@ -100,7 +100,7 @@ describe('components/ProductMenuItem', () => {
             onClick,
         };
 
-        renderWithContext(<ProductMenuItem {...props}/>);
+        await renderWithContext(<ProductMenuItem {...props}/>);
 
         await userEvent.click(screen.getByRole('menuitem'));
 
@@ -115,7 +115,7 @@ describe('components/ProductMenuItem', () => {
             onClick,
         };
 
-        renderWithContext(<ProductMenuItem {...props}/>);
+        await renderWithContext(<ProductMenuItem {...props}/>);
 
         await userEvent.click(screen.getByLabelText('Open in new tab'), {pointerEventsCheck: 0});
 
@@ -125,7 +125,7 @@ describe('components/ProductMenuItem', () => {
         windowOpenSpy.mockRestore();
     });
 
-    test('should render tour tip when provided', () => {
+    test('should render tour tip when provided', async () => {
         const tourTipContent = 'Tour tip content';
         const TourTip = <div data-testid='tour-tip'>{tourTipContent}</div>;
         const props: ProductMenuItemProps = {
@@ -133,31 +133,31 @@ describe('components/ProductMenuItem', () => {
             tourTip: TourTip,
         };
 
-        renderWithContext(<ProductMenuItem {...props}/>);
+        await renderWithContext(<ProductMenuItem {...props}/>);
 
         expect(screen.getByTestId('tour-tip')).toBeInTheDocument();
         expect(screen.getByText(tourTipContent)).toBeInTheDocument();
     });
 
-    test('should pass correct id to menu item', () => {
+    test('should pass correct id to menu item', async () => {
         const props: ProductMenuItemProps = {
             ...defaultProps,
             id: 'test-menu-item-id',
         };
 
-        renderWithContext(<ProductMenuItem {...props}/>);
+        await renderWithContext(<ProductMenuItem {...props}/>);
 
         expect(screen.getByRole('menuitem')).toHaveAttribute('id', 'test-menu-item-id');
     });
 
-    test('should render with correct destination link', () => {
-        renderWithContext(<ProductMenuItem {...defaultProps}/>);
+    test('should render with correct destination link', async () => {
+        await renderWithContext(<ProductMenuItem {...defaultProps}/>);
 
         const menuItem = screen.getByRole('menuitem');
         expect(menuItem).toHaveAttribute('href', '/test-destination');
     });
 
-    test('should render custom React component as icon', () => {
+    test('should render custom React component as icon', async () => {
         const customIconText = 'Custom Icon';
         const CustomIconComponent = () => <span data-testid='custom-component-icon'>{customIconText}</span>;
         const props: ProductMenuItemProps = {
@@ -165,7 +165,7 @@ describe('components/ProductMenuItem', () => {
             icon: <CustomIconComponent/>,
         };
 
-        renderWithContext(<ProductMenuItem {...props}/>);
+        await renderWithContext(<ProductMenuItem {...props}/>);
 
         expect(screen.getByTestId('custom-component-icon')).toBeInTheDocument();
         expect(screen.getByText(customIconText)).toBeInTheDocument();

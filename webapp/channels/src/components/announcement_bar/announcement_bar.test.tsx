@@ -40,36 +40,36 @@ describe('components/AnnouncementBar', () => {
         baseProps.actions.decrementAnnouncementBarCount.mockClear();
     });
 
-    test('should match snapshot, bar showing', () => {
+    test('should match snapshot, bar showing', async () => {
         const props = baseProps;
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <AnnouncementBar {...props}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, bar not showing', () => {
+    test('should match snapshot, bar not showing', async () => {
         const props = {...baseProps, enableBanner: false};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <AnnouncementBar {...props}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, bar showing, no dismissal', () => {
+    test('should match snapshot, bar showing, no dismissal', async () => {
         const props = {...baseProps, allowBannerDismissal: false};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <AnnouncementBar {...props}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, props change', () => {
+    test('should match snapshot, props change', async () => {
         const props = baseProps;
-        const {container, rerender} = renderWithContext(
+        const {container, rerender} = await renderWithContext(
             <AnnouncementBar {...props}/>,
         );
 
@@ -94,9 +94,9 @@ describe('components/AnnouncementBar', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, dismissal', () => {
+    test('should match snapshot, dismissal', async () => {
         const props = baseProps;
-        const {container, rerender} = renderWithContext(
+        const {container, rerender} = await renderWithContext(
             <AnnouncementBar {...props}/>,
         );
 
@@ -118,9 +118,9 @@ describe('components/AnnouncementBar', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, admin configured bar', () => {
+    test('should match snapshot, admin configured bar', async () => {
         const props = {...baseProps, enableBanner: true, bannerText: 'Banner text'};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <div>
                 <AnnouncementBar {...props}/>
                 <AnnouncementBar
@@ -151,18 +151,18 @@ describe('components/AnnouncementBar', () => {
             jest.restoreAllMocks();
         });
 
-        test('should set CSS custom property and add class on mount', () => {
+        test('should set CSS custom property and add class on mount', async () => {
             const props = {...baseProps, announcementBarCount: 0};
-            renderWithContext(<AnnouncementBar {...props}/>);
+            await renderWithContext(<AnnouncementBar {...props}/>);
 
             expect(setPropertySpy).toHaveBeenCalledWith('--announcement-bar-count', '1');
             expect(addClassSpy).toHaveBeenCalledWith('announcement-bar--fixed');
             expect(props.actions.incrementAnnouncementBarCount).toHaveBeenCalled();
         });
 
-        test('should update CSS custom property when announcement bar count changes', () => {
+        test('should update CSS custom property when announcement bar count changes', async () => {
             const props = {...baseProps, announcementBarCount: 1};
-            const {rerender} = renderWithContext(<AnnouncementBar {...props}/>);
+            const {rerender} = await renderWithContext(<AnnouncementBar {...props}/>);
 
             // Reset spies after mount
             setPropertySpy.mockClear();
@@ -176,9 +176,9 @@ describe('components/AnnouncementBar', () => {
             expect(addClassSpy).toHaveBeenCalledWith('announcement-bar--fixed');
         });
 
-        test('should remove class and custom property when count reaches 0', () => {
+        test('should remove class and custom property when count reaches 0', async () => {
             const props = {...baseProps, announcementBarCount: 1};
-            const {rerender} = renderWithContext(<AnnouncementBar {...props}/>);
+            const {rerender} = await renderWithContext(<AnnouncementBar {...props}/>);
 
             // Reset spies after mount
             setPropertySpy.mockClear();
@@ -191,9 +191,9 @@ describe('components/AnnouncementBar', () => {
             expect(removeClassSpy).toHaveBeenCalledWith('announcement-bar--fixed');
         });
 
-        test('should maintain class when count is greater than 0', () => {
+        test('should maintain class when count is greater than 0', async () => {
             const props = {...baseProps, announcementBarCount: 2};
-            const {rerender} = renderWithContext(<AnnouncementBar {...props}/>);
+            const {rerender} = await renderWithContext(<AnnouncementBar {...props}/>);
 
             // Reset spies after mount
             setPropertySpy.mockClear();
@@ -209,9 +209,9 @@ describe('components/AnnouncementBar', () => {
             expect(removeClassSpy).not.toHaveBeenCalled();
         });
 
-        test('should properly clean up on unmount when last bar', () => {
+        test('should properly clean up on unmount when last bar', async () => {
             const props = {...baseProps, announcementBarCount: 1};
-            const {unmount} = renderWithContext(<AnnouncementBar {...props}/>);
+            const {unmount} = await renderWithContext(<AnnouncementBar {...props}/>);
 
             // Reset spies after mount
             removeClassSpy.mockClear();
@@ -224,9 +224,9 @@ describe('components/AnnouncementBar', () => {
             expect(removePropertySpy).toHaveBeenCalledWith('--announcement-bar-count');
         });
 
-        test('should update count but maintain class on unmount when other bars remain', () => {
+        test('should update count but maintain class on unmount when other bars remain', async () => {
             const props = {...baseProps, announcementBarCount: 2};
-            const {unmount} = renderWithContext(<AnnouncementBar {...props}/>);
+            const {unmount} = await renderWithContext(<AnnouncementBar {...props}/>);
 
             // Reset spies after mount
             setPropertySpy.mockClear();
@@ -241,9 +241,9 @@ describe('components/AnnouncementBar', () => {
             expect(removePropertySpy).not.toHaveBeenCalled();
         });
 
-        test('should handle undefined announcement bar count gracefully', () => {
+        test('should handle undefined announcement bar count gracefully', async () => {
             const props = {...baseProps, announcementBarCount: undefined};
-            const {unmount} = renderWithContext(<AnnouncementBar {...props}/>);
+            const {unmount} = await renderWithContext(<AnnouncementBar {...props}/>);
 
             expect(setPropertySpy).toHaveBeenCalledWith('--announcement-bar-count', '1');
             expect(addClassSpy).toHaveBeenCalledWith('announcement-bar--fixed');

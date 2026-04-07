@@ -24,8 +24,8 @@ describe('components/drafts/panel/panel_header', () => {
         error: undefined,
     };
 
-    it('should match snapshot', () => {
-        const {container} = renderWithContext(
+    it('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <PanelHeader
                 {...baseProps}
             />,
@@ -36,13 +36,13 @@ describe('components/drafts/panel/panel_header', () => {
         expect(container).toMatchSnapshot();
     });
 
-    it('should show sync icon when draft is from server', () => {
+    it('should show sync icon when draft is from server', async () => {
         const props = {
             ...baseProps,
             remote: true,
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PanelHeader
                 {...props}
             />,

@@ -76,8 +76,8 @@ describe('components/drafts/panel/panel_body', () => {
         },
     };
 
-    it('should match snapshot', () => {
-        const {container} = renderWithContext(
+    it('should match snapshot', async () => {
+        const {container} = await renderWithContext(
             <PanelBody
                 {...baseProps}
             />,
@@ -86,8 +86,8 @@ describe('components/drafts/panel/panel_body', () => {
         expect(container).toMatchSnapshot();
     });
 
-    it('should match snapshot for requested_ack', () => {
-        const {container} = renderWithContext(
+    it('should match snapshot for requested_ack', async () => {
+        const {container} = await renderWithContext(
             <PanelBody
                 {...baseProps}
                 priority={{
@@ -100,8 +100,8 @@ describe('components/drafts/panel/panel_body', () => {
         expect(container).toMatchSnapshot();
     });
 
-    it('should match snapshot for priority', () => {
-        const {container} = renderWithContext(
+    it('should match snapshot for priority', async () => {
+        const {container} = await renderWithContext(
             <PanelBody
                 {...baseProps}
                 priority={{
@@ -114,10 +114,10 @@ describe('components/drafts/panel/panel_body', () => {
         expect(container).toMatchSnapshot();
     });
 
-    it('should have called handleFormattedTextClick', () => {
+    it('should have called handleFormattedTextClick', async () => {
         const handleClickSpy = jest.spyOn(utils, 'handleFormattedTextClick');
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <PanelBody
                 {...baseProps}
             />,

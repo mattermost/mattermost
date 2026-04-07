@@ -11,7 +11,7 @@ import ProductBrandingFreeEdition from './product_branding_free_edition';
 describe('ProductBrandingFreeEdition', () => {
     const baseProps = {};
 
-    test('should show ENTRY EDITION for Entry license', () => {
+    test('should show ENTRY EDITION for Entry license', async () => {
         const state = {
             entities: {
                 general: {
@@ -23,7 +23,7 @@ describe('ProductBrandingFreeEdition', () => {
             },
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ProductBrandingFreeEdition {...baseProps}/>,
             state,
         );
@@ -33,7 +33,7 @@ describe('ProductBrandingFreeEdition', () => {
         expect(logoElement).toBeInTheDocument();
     });
 
-    test('should show TEAM EDITION for unlicensed', () => {
+    test('should show TEAM EDITION for unlicensed', async () => {
         const state = {
             entities: {
                 general: {
@@ -45,7 +45,7 @@ describe('ProductBrandingFreeEdition', () => {
             },
         };
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <ProductBrandingFreeEdition {...baseProps}/>,
             state,
         );
@@ -55,7 +55,7 @@ describe('ProductBrandingFreeEdition', () => {
         expect(logoElement).toBeInTheDocument();
     });
 
-    test('should show empty badge for Professional license', () => {
+    test('should show empty badge for Professional license', async () => {
         const state = {
             entities: {
                 general: {
@@ -67,7 +67,7 @@ describe('ProductBrandingFreeEdition', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ProductBrandingFreeEdition {...baseProps}/>,
             state,
         );
@@ -78,7 +78,7 @@ describe('ProductBrandingFreeEdition', () => {
         expect(screen.queryByText('PROFESSIONAL EDITION')).not.toBeInTheDocument();
     });
 
-    test('should show empty badge for Enterprise license', () => {
+    test('should show empty badge for Enterprise license', async () => {
         const state = {
             entities: {
                 general: {
@@ -90,7 +90,7 @@ describe('ProductBrandingFreeEdition', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ProductBrandingFreeEdition {...baseProps}/>,
             state,
         );
@@ -101,7 +101,7 @@ describe('ProductBrandingFreeEdition', () => {
         expect(screen.queryByText('ENTERPRISE EDITION')).not.toBeInTheDocument();
     });
 
-    test('should show empty badge when no license object', () => {
+    test('should show empty badge when no license object', async () => {
         const state = {
             entities: {
                 general: {
@@ -110,7 +110,7 @@ describe('ProductBrandingFreeEdition', () => {
             },
         };
 
-        renderWithContext(
+        await renderWithContext(
             <ProductBrandingFreeEdition {...baseProps}/>,
             state,
         );

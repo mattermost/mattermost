@@ -45,14 +45,14 @@ const initialState: DeepPartial<GlobalState> = {
 };
 
 describe('components/integrations/AddOutgoingWebhook', () => {
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const emptyFunction = jest.fn();
         const team = TestHelper.getTeamMock({
             id: 'testteamid',
             name: 'test',
         });
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <AddOutgoingWebhook
                 team={team}
                 actions={{createOutgoingHook: emptyFunction}}

@@ -8,8 +8,8 @@ import {renderWithContext, screen} from 'tests/react_testing_utils';
 import StatisticCount from './statistic_count';
 
 describe('components/analytics/statistic_count.tsx', () => {
-    test('should match snapshot, on loading', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot, on loading', async () => {
+        const {container} = await renderWithContext(
             <StatisticCount
                 title='Test'
                 icon='test-icon'
@@ -19,8 +19,8 @@ describe('components/analytics/statistic_count.tsx', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, loaded', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot, loaded', async () => {
+        const {container} = await renderWithContext(
             <StatisticCount
                 title='Test'
                 icon='test-icon'
@@ -31,8 +31,8 @@ describe('components/analytics/statistic_count.tsx', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, loaded with zero value', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot, loaded with zero value', async () => {
+        const {container} = await renderWithContext(
             <StatisticCount
                 title='Test Zero'
                 icon='test-icon'
@@ -43,9 +43,9 @@ describe('components/analytics/statistic_count.tsx', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should apply formatter function when provided', () => {
+    test('should apply formatter function when provided', async () => {
         const mockFormatter = (value: number) => `${value}%`;
-        renderWithContext(
+        await renderWithContext(
             <StatisticCount
                 title='Test'
                 icon='test-icon'

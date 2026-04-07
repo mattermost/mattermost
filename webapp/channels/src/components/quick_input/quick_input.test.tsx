@@ -14,8 +14,8 @@ describe('components/QuickInput', () => {
         ['when no onClear callback', {value: 'value', clearable: true}],
         ['when value undefined', {clearable: true, onClear: () => {}}],
         ['when value empty', {value: '', clearable: true, onClear: () => {}}],
-    ])('should not render clear button', (_description, props) => {
-        renderWithContext(
+    ])('should not render clear button', async (_description, props) => {
+        await renderWithContext(
             <QuickInput {...props}/>,
         );
 
@@ -23,8 +23,8 @@ describe('components/QuickInput', () => {
     });
 
     describe('should render clear button', () => {
-        test('with default tooltip text', () => {
-            renderWithContext(
+        test('with default tooltip text', async () => {
+            await renderWithContext(
                 <QuickInput
                     value='mock'
                     clearable={true}
@@ -35,8 +35,8 @@ describe('components/QuickInput', () => {
             expect(screen.queryByTestId('input-clear')).toBeInTheDocument();
         });
 
-        test('with customized tooltip text', () => {
-            renderWithContext(
+        test('with customized tooltip text', async () => {
+            await renderWithContext(
                 <QuickInput
                     value='mock'
                     clearable={true}
@@ -48,8 +48,8 @@ describe('components/QuickInput', () => {
             expect(screen.queryByTestId('input-clear')).toBeInTheDocument();
         });
 
-        test('with customized tooltip component', () => {
-            renderWithContext(
+        test('with customized tooltip component', async () => {
+            await renderWithContext(
                 <QuickInput
                     value='mock'
                     clearable={true}
@@ -72,7 +72,7 @@ describe('components/QuickInput', () => {
                 return <div/>;
             }
         }
-        const {rerender} = renderWithContext(
+        const {rerender} = await renderWithContext(
             <QuickInput
                 value='mock'
                 clearable={true}

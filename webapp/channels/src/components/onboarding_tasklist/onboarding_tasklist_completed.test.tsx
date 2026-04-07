@@ -48,18 +48,18 @@ describe('components/onboarding_tasklist/onboarding_tasklist_completed.tsx', () 
         },
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<Completed {...props}/>, initialState);
+    test('should match snapshot', async () => {
+        const {container} = await renderWithContext(<Completed {...props}/>, initialState);
         expect(container).toMatchSnapshot();
     });
 
-    test('finds the completed subtitle', () => {
-        const {container} = renderWithContext(<Completed {...props}/>, initialState);
+    test('finds the completed subtitle', async () => {
+        const {container} = await renderWithContext(<Completed {...props}/>, initialState);
         expect(container.querySelectorAll('.completed-subtitle')).toHaveLength(1);
     });
 
     test('displays the no thanks option to close the onboarding list', async () => {
-        const {container} = renderWithContext(<Completed {...props}/>, initialState);
+        const {container} = await renderWithContext(<Completed {...props}/>, initialState);
         const noThanksLink = container.querySelectorAll('.no-thanks-link');
         expect(noThanksLink).toHaveLength(1);
 

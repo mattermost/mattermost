@@ -35,7 +35,7 @@ describe('components/admin_console/permission_schemes_settings/permissions_tree_
 
     describe('should show playbook permissions', () => {
         describe('for non-enterprise license', () => {
-            ['', LicenseSkus.E10, LicenseSkus.Starter, LicenseSkus.Professional].forEach((licenseSku) => test(licenseSku, () => {
+            ['', LicenseSkus.E10, LicenseSkus.Starter, LicenseSkus.Professional].forEach((licenseSku) => test(licenseSku, async () => {
                 const props = {
                     ...defaultProps,
                     license: {
@@ -44,7 +44,7 @@ describe('components/admin_console/permission_schemes_settings/permissions_tree_
                     },
                 };
 
-                renderWithContext(
+                await renderWithContext(
                     <PermissionsTreePlaybooks {...props}/>,
                 );
 
@@ -56,7 +56,7 @@ describe('components/admin_console/permission_schemes_settings/permissions_tree_
         });
 
         describe('for enterprise license', () => {
-            [LicenseSkus.E20, LicenseSkus.Enterprise].forEach((licenseSku) => test(licenseSku, () => {
+            [LicenseSkus.E20, LicenseSkus.Enterprise].forEach((licenseSku) => test(licenseSku, async () => {
                 const props = {
                     ...defaultProps,
                     license: {
@@ -65,7 +65,7 @@ describe('components/admin_console/permission_schemes_settings/permissions_tree_
                     },
                 };
 
-                renderWithContext(
+                await renderWithContext(
                     <PermissionsTreePlaybooks {...props}/>,
                 );
 

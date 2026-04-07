@@ -86,7 +86,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
 
     describe('Basic Rendering and Conversion', () => {
         test('should render AppsFormContainer with correct basic props', async () => {
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...baseProps}/>,
             );
 
@@ -120,7 +120,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 elements: [textElement],
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -158,7 +158,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 elements: [selectElement],
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -198,7 +198,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 elements: [multiselectElement],
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -223,7 +223,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 introductionText: maliciousIntro,
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -241,7 +241,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 introductionText: introWithCode,
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -279,7 +279,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 elements: [maliciousElement],
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -315,7 +315,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 elements: [invalidElement],
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -352,7 +352,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 },
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -393,7 +393,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 },
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -430,7 +430,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 },
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -472,7 +472,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 // Default mode (enhanced: false)
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -510,7 +510,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 // Default mode (enhanced: false)
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -548,7 +548,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 // Default mode (enhanced: false)
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -589,8 +589,9 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 {default: 'invalid', expected: false, name: 'invalid'},
             ];
 
-            // Test all boolean conversions in parallel to avoid await-in-loop
-            const testPromises = booleanTests.map(async (test) => {
+            // Test boolean conversions sequentially to avoid DOM corruption
+            // from concurrent renderWithContext calls
+            for (const test of booleanTests) {
                 const boolElement: DialogElement = {
                     name: `test-bool-${test.name}`,
                     type: 'bool',
@@ -611,16 +612,16 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                     elements: [boolElement],
                 };
 
-                const {getByTestId} = renderWithContext(
+                // eslint-disable-next-line no-await-in-loop
+                const {getByTestId} = await renderWithContext(
                     <InteractiveDialogAdapter {...props}/>,
                 );
 
+                // eslint-disable-next-line no-await-in-loop
                 await waitFor(() => {
                     expect(getByTestId(`field-value-test-bool-${test.name}`)).toHaveTextContent(String(test.expected));
                 });
-            });
-
-            await Promise.all(testPromises);
+            }
         });
 
         test('should handle numeric subtype conversion', async () => {
@@ -644,7 +645,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 elements: [numericElement],
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -674,7 +675,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 elements: [emptyDefaultElement],
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -711,7 +712,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 },
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -735,8 +736,8 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 },
             };
 
-            expect(() => {
-                renderWithContext(
+            expect(async () => {
+                await renderWithContext(
                     <InteractiveDialogAdapter {...minimalProps}/>,
                 );
             }).not.toThrow();
@@ -748,7 +749,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 elements: [],
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -763,7 +764,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 elements: undefined,
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -803,7 +804,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 },
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -840,7 +841,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 },
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -877,7 +878,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 },
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -908,7 +909,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 },
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -945,7 +946,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 },
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -981,7 +982,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 },
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -1012,7 +1013,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 },
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -1115,7 +1116,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 },
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -1183,7 +1184,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 },
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -1258,7 +1259,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 },
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -1343,7 +1344,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 },
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -1385,7 +1386,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
         test('should handle lazy loading with React Suspense', async () => {
             // With React.lazy, the component should load asynchronously
             // but the test environment with mocking should handle it synchronously
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...baseProps}/>,
             );
 
@@ -1465,7 +1466,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 },
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -1504,7 +1505,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 // Default mode (enhanced: false)
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -1555,7 +1556,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 elements: [userSelectorElement, channelSelectorElement],
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -1603,7 +1604,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 elements: [multiselectUserElement, multiselectChannelElement],
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -1642,7 +1643,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 elements: [textareaElement],
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -1703,7 +1704,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 elements: textElements,
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -1731,7 +1732,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 },
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -1783,7 +1784,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 },
             };
 
-            const {container} = renderWithContext(
+            const {container} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -1825,7 +1826,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 elements: [multiselectElement],
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -1865,7 +1866,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 elements: [dynamicDataSourceElement],
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -1914,7 +1915,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 },
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -1996,7 +1997,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 },
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -2057,7 +2058,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 },
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -2105,7 +2106,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 },
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -2157,7 +2158,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 },
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...propsWithInsecureUrl}/>,
             );
 
@@ -2207,7 +2208,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 },
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 
@@ -2282,7 +2283,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 },
             };
 
-            const {getByTestId} = renderWithContext(
+            const {getByTestId} = await renderWithContext(
                 <InteractiveDialogAdapter {...props}/>,
             );
 

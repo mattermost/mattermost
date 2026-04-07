@@ -104,8 +104,8 @@ describe('rhs_header_post', () => {
         setThreadFollow: jest.fn(),
     };
 
-    test('should not crash when no root', () => {
-        renderWithContext(
+    test('should not crash when no root', async () => {
+        await renderWithContext(
             <RhsHeaderPost
                 {...baseProps}
                 rootPostId='41'
@@ -113,8 +113,8 @@ describe('rhs_header_post', () => {
         expect(screen.getByRole('button', {name: 'Follow'})).toBeInTheDocument();
     });
 
-    test('should not show following when no replies and not mentioned', () => {
-        renderWithContext(
+    test('should not show following when no replies and not mentioned', async () => {
+        await renderWithContext(
             <RhsHeaderPost
                 {...baseProps}
                 rootPostId='43'
@@ -122,8 +122,8 @@ describe('rhs_header_post', () => {
         expect(screen.getByRole('button', {name: 'Follow'})).toBeInTheDocument();
     });
 
-    test('should show following when no replies but user is  mentioned', () => {
-        renderWithContext(
+    test('should show following when no replies but user is  mentioned', async () => {
+        await renderWithContext(
             <RhsHeaderPost
                 {...baseProps}
                 rootPostId='42'

@@ -36,62 +36,62 @@ describe('components/SettingItemMin', () => {
         type: 'image/jpeg',
     });
 
-    test('should match snapshot, profile picture on source', () => {
-        const {container} = renderWithContext(
+    test('should match snapshot, profile picture on source', async () => {
+        const {container} = await renderWithContext(
             <SettingPicture {...baseProps}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, profile picture on file', () => {
+    test('should match snapshot, profile picture on file', async () => {
         const props = {...baseProps, file: mockFile, src: ''};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SettingPicture {...props}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, user icon on source', () => {
+    test('should match snapshot, user icon on source', async () => {
         const props = {...baseProps, onSetDefault: jest.fn()};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SettingPicture {...props}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, team icon on source', () => {
+    test('should match snapshot, team icon on source', async () => {
         const props = {...baseProps, onRemove: jest.fn(), imageContext: 'team'};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SettingPicture {...props}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, team icon on file', () => {
+    test('should match snapshot, team icon on file', async () => {
         const props = {...baseProps, onRemove: jest.fn(), imageContext: 'team', file: mockFile, src: ''};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SettingPicture {...props}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, on loading picture', () => {
+    test('should match snapshot, on loading picture', async () => {
         const props = {...baseProps, loadingPicture: true};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SettingPicture {...props}/>,
         );
 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with active Save button', () => {
+    test('should match snapshot with active Save button', async () => {
         const props = {...baseProps, submitActive: true};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SettingPicture {...props}/>,
         );
 
@@ -100,7 +100,7 @@ describe('components/SettingItemMin', () => {
 
     test('should match snapshot with removeSrc state active', async () => {
         const props = {...baseProps, onRemove: jest.fn()};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SettingPicture {...props}/>,
         );
 
@@ -113,7 +113,7 @@ describe('components/SettingItemMin', () => {
 
     test('should match state and call props.updateSection on handleCancel', async () => {
         const props = {...baseProps, updateSection: jest.fn(), onRemove: jest.fn()};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SettingPicture {...props}/>,
         );
 
@@ -133,7 +133,7 @@ describe('components/SettingItemMin', () => {
 
     test('should call props.onRemove on handleSave', async () => {
         const props = {...baseProps, onRemove: jest.fn()};
-        renderWithContext(
+        await renderWithContext(
             <SettingPicture {...props}/>,
         );
 
@@ -150,7 +150,7 @@ describe('components/SettingItemMin', () => {
 
     test('should call props.onSetDefault on handleSave', async () => {
         const props = {...baseProps, onSetDefault: jest.fn()};
-        renderWithContext(
+        await renderWithContext(
             <SettingPicture {...props}/>,
         );
 
@@ -167,7 +167,7 @@ describe('components/SettingItemMin', () => {
 
     test('should match state and call props.onSubmit on handleSave', async () => {
         const props = {...baseProps, onSubmit: jest.fn(), submitActive: true};
-        renderWithContext(
+        await renderWithContext(
             <SettingPicture {...props}/>,
         );
 
@@ -179,7 +179,7 @@ describe('components/SettingItemMin', () => {
 
     test('should match state on handleRemoveSrc', async () => {
         const props = {...baseProps, onRemove: jest.fn()};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SettingPicture {...props}/>,
         );
 
@@ -196,7 +196,7 @@ describe('components/SettingItemMin', () => {
 
     test('should match state and call props.onFileChange on handleFileChange', async () => {
         const props = {...baseProps, onFileChange: jest.fn(), onRemove: jest.fn()};
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <SettingPicture {...props}/>,
         );
 

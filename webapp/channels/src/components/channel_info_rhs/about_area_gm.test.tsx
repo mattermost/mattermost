@@ -139,8 +139,8 @@ describe('channel_info_rhs/about_area_gm', () => {
         },
     };
 
-    test('should display users avatar', () => {
-        renderWithContext(
+    test('should display users avatar', async () => {
+        await renderWithContext(
             <AboutAreaGM
                 {...defaultProps}
             />,
@@ -151,8 +151,8 @@ describe('channel_info_rhs/about_area_gm', () => {
         expect(screen.getByAltText('my username2 profile image')).toBeInTheDocument();
     });
 
-    test('should display user names', () => {
-        renderWithContext(
+    test('should display user names', async () => {
+        await renderWithContext(
             <AboutAreaGM
                 {...defaultProps}
             />,
@@ -162,8 +162,8 @@ describe('channel_info_rhs/about_area_gm', () => {
         expect(screen.getByText('my username')).toBeInTheDocument();
     });
 
-    test('should display channel header', () => {
-        renderWithContext(
+    test('should display channel header', async () => {
+        await renderWithContext(
             <AboutAreaGM
                 {...defaultProps}
             />,

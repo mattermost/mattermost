@@ -35,8 +35,8 @@ describe('plugins/ChannelHeaderPlug', () => {
         };
     }
 
-    test('should not render anything with no extended component', () => {
-        const {container} = renderWithContext(
+    test('should not render anything with no extended component', async () => {
+        const {container} = await renderWithContext(
             <ChannelHeaderPlug
                 {...baseProps}
             />,
@@ -45,8 +45,8 @@ describe('plugins/ChannelHeaderPlug', () => {
         expect(container).toBeEmptyDOMElement();
     });
 
-    test('should render a single plug', () => {
-        renderWithContext(
+    test('should render a single plug', async () => {
+        await renderWithContext(
             <ChannelHeaderPlug
                 {...baseProps}
                 components={[makeTestPlug()]}
@@ -56,13 +56,13 @@ describe('plugins/ChannelHeaderPlug', () => {
         expect(screen.getByLabelText('some tooltip text 1')).toBeInTheDocument();
     });
 
-    test(`should render ${maxComponentsBeforeDropdown} plugs in the header`, () => {
+    test(`should render ${maxComponentsBeforeDropdown} plugs in the header`, async () => {
         const components = [];
         for (let i = 0; i < maxComponentsBeforeDropdown; i++) {
             components.push(makeTestPlug(i));
         }
 
-        renderWithContext(
+        await renderWithContext(
             <ChannelHeaderPlug
                 {...baseProps}
                 components={components}
@@ -74,13 +74,13 @@ describe('plugins/ChannelHeaderPlug', () => {
         }
     });
 
-    test(`should render more than ${maxComponentsBeforeDropdown} plugs in a dropdown`, () => {
+    test(`should render more than ${maxComponentsBeforeDropdown} plugs in a dropdown`, async () => {
         const components = [];
         for (let i = 0; i < maxComponentsBeforeDropdown + 1; i++) {
             components.push(makeTestPlug(i));
         }
 
-        renderWithContext(
+        await renderWithContext(
             <ChannelHeaderPlug
                 {...baseProps}
                 components={components}
@@ -96,8 +96,8 @@ describe('plugins/ChannelHeaderPlug', () => {
         expect(screen.getByRole('button', {name: components.length.toString()})).toBeVisible();
     });
 
-    test('should not render anything when the App Bar is visible', () => {
-        const {container} = renderWithContext(
+    test('should not render anything when the App Bar is visible', async () => {
+        const {container} = await renderWithContext(
             <ChannelHeaderPlug
                 {...baseProps}
                 components={[

@@ -9,11 +9,11 @@ import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/integrations/AddCommand', () => {
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const emptyFunction = jest.fn();
         const team = TestHelper.getTeamMock({name: 'test'});
 
-        const {container} = renderWithContext(
+        const {container} = await renderWithContext(
             <AddCommand
                 team={team}
                 actions={{addCommand: emptyFunction}}

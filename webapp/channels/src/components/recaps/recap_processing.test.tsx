@@ -25,32 +25,32 @@ describe('RecapProcessing', () => {
         total_message_count: 0,
     };
 
-    test('should render recap title', () => {
-        renderWithContext(<RecapProcessing recap={mockRecap}/>);
+    test('should render recap title', async () => {
+        await renderWithContext(<RecapProcessing recap={mockRecap}/>);
 
         expect(screen.getByText('Daily Standup Recap')).toBeInTheDocument();
     });
 
-    test('should render processing subtitle message', () => {
-        renderWithContext(<RecapProcessing recap={mockRecap}/>);
+    test('should render processing subtitle message', async () => {
+        await renderWithContext(<RecapProcessing recap={mockRecap}/>);
 
         expect(screen.getByText("Recap created. You'll receive a summary shortly")).toBeInTheDocument();
     });
 
-    test('should render processing message', () => {
-        renderWithContext(<RecapProcessing recap={mockRecap}/>);
+    test('should render processing message', async () => {
+        await renderWithContext(<RecapProcessing recap={mockRecap}/>);
 
         expect(screen.getByText("We're working on your recap. Check back shortly")).toBeInTheDocument();
     });
 
-    test('should render spinner', () => {
-        const {container} = renderWithContext(<RecapProcessing recap={mockRecap}/>);
+    test('should render spinner', async () => {
+        const {container} = await renderWithContext(<RecapProcessing recap={mockRecap}/>);
 
         expect(container.querySelector('.spinner-large')).toBeInTheDocument();
     });
 
-    test('should have correct CSS classes', () => {
-        const {container} = renderWithContext(<RecapProcessing recap={mockRecap}/>);
+    test('should have correct CSS classes', async () => {
+        const {container} = await renderWithContext(<RecapProcessing recap={mockRecap}/>);
 
         expect(container.querySelector('.recap-processing')).toBeInTheDocument();
         expect(container.querySelector('.recap-processing-header')).toBeInTheDocument();

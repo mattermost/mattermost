@@ -197,7 +197,7 @@ const baseProps = {
 describe('components/avanced_text_editor/advanced_text_editor', () => {
     describe('keyDown behavior', () => {
         it('ESC should blur the input', async () => {
-            renderWithContext(
+            await renderWithContext(
                 <AdvancedTextEditor
                     {...baseProps}
                 />,
@@ -225,7 +225,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 ...baseProps,
                 isInEditMode: true,
             };
-            renderWithContext(
+            await renderWithContext(
                 <AdvancedTextEditor
                     {...props}
                 />,
@@ -253,7 +253,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
     });
 
     it('should set the textbox value to an existing draft on mount and when changing channels', async () => {
-        const {rerender} = renderWithContext(
+        const {rerender} = await renderWithContext(
             <AdvancedTextEditor
                 {...baseProps}
             />,
@@ -288,7 +288,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
     });
 
     it('should save a new draft when changing channels', async () => {
-        const {rerender} = renderWithContext(
+        const {rerender} = await renderWithContext(
             <AdvancedTextEditor
                 {...baseProps}
             />,
@@ -314,7 +314,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
     });
 
     it('MM-60541 should not save an unmodified draft when changing channels', async () => {
-        const {rerender} = renderWithContext(
+        const {rerender} = await renderWithContext(
             <AdvancedTextEditor
                 {...baseProps}
             />,
@@ -344,7 +344,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
     });
 
     it('should save an updated draft when changing channels', async () => {
-        const {rerender} = renderWithContext(
+        const {rerender} = await renderWithContext(
             <AdvancedTextEditor
                 {...baseProps}
             />,
@@ -380,7 +380,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
     });
 
     it('should deleted a deleted draft when changing channels', async () => {
-        const {rerender} = renderWithContext(
+        const {rerender} = await renderWithContext(
             <AdvancedTextEditor
                 {...baseProps}
             />,
@@ -414,7 +414,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
     });
 
     it('MM-60541 should not attempt to delete a non-existent draft when changing channels', async () => {
-        const {rerender} = renderWithContext(
+        const {rerender} = await renderWithContext(
             <AdvancedTextEditor
                 {...baseProps}
             />,
@@ -435,14 +435,14 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         expect(mockedUpdateDraft).not.toHaveBeenCalled();
     });
 
-    it('should show @mention warning when a mention exists in the message', () => {
+    it('should show @mention warning when a mention exists in the message', async () => {
         const props = {
             ...baseProps,
             rootId: 'post_id_1',
             isInEditMode: true,
         };
 
-        renderWithContext(
+        await renderWithContext(
             <AdvancedTextEditor
                 {...props}
             />,
@@ -462,12 +462,12 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         expect(screen.getByText('Editing this message with an \'@mention\' will not notify the recipient.')).toBeVisible();
     });
 
-    it('should have file upload overlay', () => {
+    it('should have file upload overlay', async () => {
         const props: Props = {
             ...baseProps,
         };
 
-        const {container, rerender} = renderWithContext(
+        const {container, rerender} = await renderWithContext(
             <AdvancedTextEditor
                 {...props}
             />,
@@ -506,7 +506,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         });
 
         it('should add emojis to the end of the text', async () => {
-            renderWithContext(
+            await renderWithContext(
                 <AdvancedTextEditor
                     {...baseProps}
                 />,
@@ -537,7 +537,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         });
 
         it('should add a space after the existing text if needed', async () => {
-            renderWithContext(
+            await renderWithContext(
                 <AdvancedTextEditor {...baseProps}/>,
                 testState,
             );
@@ -559,7 +559,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         });
 
         it('should be able to add an emoji in the middle of the text', async () => {
-            renderWithContext(
+            await renderWithContext(
                 <AdvancedTextEditor {...baseProps}/>,
                 testState,
             );
@@ -585,7 +585,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         });
 
         it('should be able to add an emoji in the middle of the text without adding an extra space', async () => {
-            renderWithContext(
+            await renderWithContext(
                 <AdvancedTextEditor {...baseProps}/>,
                 testState,
             );

@@ -68,7 +68,7 @@ describe('RhsPopout', () => {
         jest.clearAllMocks();
     });
 
-    function renderPopout(path: string, state = baseState) {
+    async function renderPopout(path: string, state = baseState) {
         return renderWithContext(
             <MemoryRouter initialEntries={[path]}>
                 <Route
@@ -81,7 +81,7 @@ describe('RhsPopout', () => {
     }
 
     it('should dispatch selectTeam and fetchChannelsAndMembers when team is available', async () => {
-        renderPopout('/_popout/rhs/team1/search?q=test');
+        await renderPopout('/_popout/rhs/team1/search?q=test');
 
         await waitFor(() => {
             expect(jest.mocked(selectTeam)).toHaveBeenCalledWith(team1.id);
@@ -90,7 +90,7 @@ describe('RhsPopout', () => {
     });
 
     it('should dispatch selectChannel and getChannelMembers when channel is in query params', async () => {
-        renderPopout('/_popout/rhs/team1/search?channel=channel1');
+        await renderPopout('/_popout/rhs/team1/search?channel=channel1');
 
         await waitFor(() => {
             expect(jest.mocked(selectChannel)).toHaveBeenCalledWith(channel1.id);
@@ -98,8 +98,8 @@ describe('RhsPopout', () => {
         });
     });
 
-    it('should render the correct structure', () => {
-        const {container} = renderPopout('/_popout/rhs/team1/search?q=test');
+    it('should render the correct structure', async () => {
+        const {container} = await renderPopout('/_popout/rhs/team1/search?q=test');
 
         expect(container.querySelector('[data-testid="unreads-status-handler"]')).toBeInTheDocument();
         expect(container.querySelector('.main-wrapper.rhs-popout')).toBeInTheDocument();
@@ -107,18 +107,18 @@ describe('RhsPopout', () => {
         expect(container.querySelector('.sidebar-right__body')).toBeInTheDocument();
     });
 
-    it('should render RhsSearchPopout for search route', () => {
-        renderPopout('/_popout/rhs/team1/search?q=test');
+    it('should render RhsSearchPopout for search route', async () => {
+        await renderPopout('/_popout/rhs/team1/search?q=test');
         expect(screen.getByTestId('rhs-search-popout')).toBeInTheDocument();
     });
 
-    it('should render RhsPluginPopout for plugin route', () => {
-        renderPopout('/_popout/rhs/team1/plugin/test-plugin');
+    it('should render RhsPluginPopout for plugin route', async () => {
+        await renderPopout('/_popout/rhs/team1/plugin/test-plugin');
         expect(screen.getByTestId('rhs-plugin-popout')).toBeInTheDocument();
     });
 
     it('should not dispatch channel actions when no channel in query params', async () => {
-        renderPopout('/_popout/rhs/team1/search?q=test');
+        await renderPopout('/_popout/rhs/team1/search?q=test');
 
         await waitFor(() => {
             expect(jest.mocked(selectTeam)).toHaveBeenCalledWith(team1.id);
