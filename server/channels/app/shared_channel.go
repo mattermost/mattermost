@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"slices"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -244,6 +243,8 @@ func (a *App) SendSharedChannelSyncMsg(rctx request.CTX, pluginID string, msg *m
 }
 
 // SendSharedChannelAttachmentSyncMsg receives a file attachment from a plugin remote.
+// The server constructs the file path — the plugin provides the FileInfo metadata and
+// raw file bytes, but does not control where the file is stored.
 func (a *App) SendSharedChannelAttachmentSyncMsg(rctx request.CTX, pluginID string, channelID string, fi *model.FileInfo, data io.Reader) (*model.FileInfo, error) {
 	rc, err := a.Srv().Store().RemoteCluster().GetByPluginID(pluginID)
 	if err != nil {
@@ -259,55 +260,26 @@ func (a *App) SendSharedChannelAttachmentSyncMsg(rctx request.CTX, pluginID stri
 		return nil, fmt.Errorf("channel %s is not shared with remote %s", channelID, rc.RemoteId)
 	}
 
-	// Validate file attachments are enabled
-	if !*a.Config().FileSettings.EnableFileAttachments {
-		return nil, model.NewAppError("SendSharedChannelAttachmentSyncMsg",
-			"api.file.attachments.disabled.app_error", nil, "", http.StatusNotImplemented)
+	// Create an upload session — this constructs the file path server-side
+	us := &model.UploadSession{
+		Id:        model.NewId(),
+		Type:      model.UploadTypeAttachment,
+		UserId:    fi.CreatorId,
+		ChannelId: channelID,
+		Filename:  fi.Name,
+		FileSize:  fi.Size,
+		RemoteId:  rc.RemoteId,
 	}
 
-	// Read the file data
-	buf := &bytes.Buffer{}
-	if _, err := io.Copy(buf, data); err != nil {
-		return nil, fmt.Errorf("error reading attachment data: %w", err)
+	us, appErr := a.CreateUploadSession(rctx, us)
+	if appErr != nil {
+		return nil, fmt.Errorf("error creating upload session: %w", appErr)
 	}
 
-	// Validate file size
-	if a.Config().FileSettings.MaxFileSize != nil && int64(buf.Len()) > *a.Config().FileSettings.MaxFileSize {
-		return nil, model.NewAppError("SendSharedChannelAttachmentSyncMsg",
-			"api.upload.create.upload_too_large.app_error",
-			map[string]any{"channelId": channelID}, "", http.StatusRequestEntityTooLarge)
-	}
-
-	// Set the remote ID on the FileInfo
-	fi.RemoteId = model.NewPointer(rc.RemoteId)
-
-	if fi.Path == "" {
-		return nil, fmt.Errorf("FileInfo.Path must be set")
-	}
-
-	// Write the file to the filestore
-	if _, err := a.WriteFile(buf, fi.Path); err != nil {
-		return nil, fmt.Errorf("error writing attachment file: %w", err)
-	}
-
-	// Save the FileInfo record
-	saved, storeErr := a.Srv().Store().FileInfo().Save(rctx, fi)
-	if storeErr != nil {
-		return nil, fmt.Errorf("error saving file info: %w", storeErr)
-	}
-
-	// Update the post's FileIds to include the new file
-	if fi.PostId != "" {
-		post, postErr := a.Srv().Store().Post().GetSingle(rctx, fi.PostId, true)
-		if postErr != nil {
-			return saved, fmt.Errorf("error fetching post for attachment: %w", postErr)
-		}
-		if !slices.Contains(post.FileIds, saved.Id) {
-			post.FileIds = append(post.FileIds, saved.Id)
-			if _, updateErr := a.Srv().Store().Post().Update(rctx, post, post); updateErr != nil {
-				return saved, fmt.Errorf("error updating post with file id: %w", updateErr)
-			}
-		}
+	// Upload the file data through the standard upload path
+	saved, appErr := a.UploadData(rctx, us, data)
+	if appErr != nil {
+		return nil, fmt.Errorf("error uploading attachment data: %w", appErr)
 	}
 
 	// Save a SharedChannelAttachment record for cursor tracking

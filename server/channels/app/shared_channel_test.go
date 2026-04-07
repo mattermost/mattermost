@@ -995,7 +995,7 @@ func TestPluginAPISendSharedChannelAttachmentSyncMsg(t *testing.T) {
 
 	t.Run("unregistered plugin returns error", func(t *testing.T) {
 		badAPI := NewPluginAPI(th.App, th.Context, &model.Manifest{Id: "com.nonexistent.plugin"})
-		fi := &model.FileInfo{Id: model.NewId(), Name: "test.txt", Path: "some/path.txt"}
+		fi := &model.FileInfo{Name: "test.txt", Size: 4, CreatorId: th.BasicUser.Id}
 		_, err := badAPI.SendSharedChannelAttachmentSyncMsg(channel.Id, fi, bytes.NewReader([]byte("data")))
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "not registered")
@@ -1003,50 +1003,37 @@ func TestPluginAPISendSharedChannelAttachmentSyncMsg(t *testing.T) {
 
 	t.Run("channel not shared with remote returns error", func(t *testing.T) {
 		otherChannel := th.CreateChannel(t, th.BasicTeam)
-		fi := &model.FileInfo{Id: model.NewId(), Name: "test.txt", Path: "some/path.txt"}
+		fi := &model.FileInfo{Name: "test.txt", Size: 4, CreatorId: th.BasicUser.Id}
 		_, err := api.SendSharedChannelAttachmentSyncMsg(otherChannel.Id, fi, bytes.NewReader([]byte("data")))
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "not shared")
 	})
 
-	t.Run("empty Path returns error", func(t *testing.T) {
-		fi := &model.FileInfo{Id: model.NewId(), Name: "test.txt", Path: ""}
-		_, err := api.SendSharedChannelAttachmentSyncMsg(channel.Id, fi, bytes.NewReader([]byte("data")))
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "Path must be set")
-	})
-
 	t.Run("syncs an attachment and verifies FileInfo and SharedChannelAttachment in database", func(t *testing.T) {
-		fileID := model.NewId()
-		filePath := "20260101/teams/noteam/channels/" + channel.Id + "/users/" + th.BasicUser.Id + "/" + fileID + "/hello.txt"
 		fi := &model.FileInfo{
-			Id:        fileID,
 			CreatorId: th.BasicUser.Id,
 			Name:      "hello.txt",
-			Path:      filePath,
 			Size:      13,
-			MimeType:  "text/plain",
-			CreateAt:  model.GetMillis(),
-			UpdateAt:  model.GetMillis(),
 		}
 
 		saved, err := api.SendSharedChannelAttachmentSyncMsg(channel.Id, fi, bytes.NewReader([]byte("hello, world!")))
 		require.NoError(t, err)
 		require.NotNil(t, saved)
-		assert.Equal(t, fileID, saved.Id)
+		assert.NotEmpty(t, saved.Id)
 		assert.Equal(t, rc.RemoteId, *saved.RemoteId)
 
-		// Verify the FileInfo was persisted
-		storedFI, appErr := th.App.GetFileInfo(th.Context, fileID)
+		// Verify the FileInfo was persisted with a server-constructed path
+		storedFI, appErr := th.App.GetFileInfo(th.Context, saved.Id)
 		require.Nil(t, appErr)
 		assert.Equal(t, "hello.txt", storedFI.Name)
-		assert.Equal(t, filePath, storedFI.Path)
+		assert.NotEmpty(t, storedFI.Path)
+		assert.Contains(t, storedFI.Path, "hello.txt")
 		assert.Equal(t, rc.RemoteId, *storedFI.RemoteId)
 
 		// Verify SharedChannelAttachment record was created for cursor tracking
-		sca, scaErr := th.App.Srv().Store().SharedChannel().GetAttachment(fileID, rc.RemoteId)
+		sca, scaErr := th.App.Srv().Store().SharedChannel().GetAttachment(saved.Id, rc.RemoteId)
 		require.NoError(t, scaErr)
-		assert.Equal(t, fileID, sca.FileId)
+		assert.Equal(t, saved.Id, sca.FileId)
 		assert.Equal(t, rc.RemoteId, sca.RemoteId)
 	})
 }
@@ -1169,7 +1156,6 @@ func TestPluginRPCSharedChannelSync(t *testing.T) {
 	// IDs the plugin will use to create content
 	syncUserID := model.NewId()
 	syncPostID := model.NewId()
-	syncFileID := model.NewId()
 
 	// Compile and activate plugin from template — OnActivate runs through full RPC
 	activatePluginFromTemplate(t, th, pluginID, "shared_channel_sync_plugin_test.go.tmpl", struct {
@@ -1177,13 +1163,11 @@ func TestPluginRPCSharedChannelSync(t *testing.T) {
 		RemoteID   string
 		SyncUserID string
 		SyncPostID string
-		SyncFileID string
 	}{
 		ChannelID:  channel.Id,
 		RemoteID:   rc.RemoteId,
 		SyncUserID: syncUserID,
 		SyncPostID: syncPostID,
-		SyncFileID: syncFileID,
 	})
 
 	// --- Post-activation verification: check everything landed in the DB ---
@@ -1201,16 +1185,11 @@ func TestPluginRPCSharedChannelSync(t *testing.T) {
 	assert.Equal(t, channel.Id, post.ChannelId)
 	assert.Equal(t, syncUserID, post.UserId)
 
-	// Verify synced file attachment
-	storedFI, appErr := th.App.GetFileInfo(th.Context, syncFileID)
-	require.Nil(t, appErr, "synced FileInfo should exist in DB")
-	assert.Equal(t, "test.txt", storedFI.Name)
-	assert.Equal(t, rc.RemoteId, *storedFI.RemoteId)
-
-	// Verify SharedChannelAttachment cursor-tracking record
-	sca, err := th.App.Srv().Store().SharedChannel().GetAttachment(syncFileID, rc.RemoteId)
-	require.NoError(t, err, "SharedChannelAttachment record should exist")
-	assert.Equal(t, syncFileID, sca.FileId)
+	// The attachment was verified inside the plugin's OnActivate (it would have returned
+	// an error if SendSharedChannelAttachmentSyncMsg failed). The file ID is assigned
+	// server-side by the upload session, so we can't look it up by a pre-known ID here.
+	// The direct PluginAPI test (TestPluginAPISendSharedChannelAttachmentSyncMsg) does
+	// the detailed DB verification for attachment persistence.
 
 	// Verify profile image was saved for the synced user
 	updatedUser, err := th.App.Srv().Store().User().Get(context.Background(), syncUserID)

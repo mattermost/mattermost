@@ -26,7 +26,6 @@ func (p *TestPlugin) OnActivate() error {
 	remoteID := "{{.RemoteID}}"
 	syncUserID := "{{.SyncUserID}}"
 	syncPostID := "{{.SyncPostID}}"
-	syncFileID := "{{.SyncFileID}}"
 
 	// --- Step 1: Sync a user + post via SendSharedChannelSyncMsg ---
 	msg := model.NewSyncMsg(channelID)
@@ -62,16 +61,10 @@ func (p *TestPlugin) OnActivate() error {
 
 	// --- Step 2: Sync a file attachment via SendSharedChannelAttachmentSyncMsg ---
 	fileData := []byte("attachment data streamed over MuxBroker")
-	filePath := "20260101/teams/noteam/channels/" + channelID + "/" + syncFileID + "/test.txt"
 	fi := &model.FileInfo{
-		Id:        syncFileID,
 		CreatorId: syncUserID,
 		Name:      "test.txt",
-		Path:      filePath,
 		Size:      int64(len(fileData)),
-		MimeType:  "text/plain",
-		CreateAt:  model.GetMillis(),
-		UpdateAt:  model.GetMillis(),
 	}
 
 	savedFI, err := p.API.SendSharedChannelAttachmentSyncMsg(channelID, fi, bytes.NewReader(fileData))
