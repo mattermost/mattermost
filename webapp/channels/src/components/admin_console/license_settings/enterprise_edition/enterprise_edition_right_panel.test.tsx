@@ -94,12 +94,12 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
         expect(wrapper.find('.upgrade-title').text()).toEqual('Upgrade to Enterprise Advanced');
 
         const subtitleList = wrapper.find('.upgrade-subtitle').find('.item');
-        expect(subtitleList.at(0).text()).toEqual('Attribute-based access control');
-        expect(subtitleList.at(1).text()).toEqual('Channel warning banners');
-        expect(subtitleList.at(2).text()).toEqual('AD/LDAP group sync');
-        expect(subtitleList.at(3).text()).toEqual('Advanced workflows with Playbooks');
-        expect(subtitleList.at(4).text()).toEqual('High availability');
-        expect(subtitleList.at(5).text()).toEqual('Advanced compliance');
+        expect(subtitleList.at(0).text()).toEqual('Dynamic attribute-based access controls');
+        expect(subtitleList.at(1).text()).toEqual('Data spillage handling');
+        expect(subtitleList.at(2).text()).toEqual('Burn-on-read messages');
+        expect(subtitleList.at(3).text()).toEqual('Mobile biometrics & advanced security');
+        expect(subtitleList.at(4).text()).toEqual('Automatic channel translations');
+        expect(subtitleList.at(5).text()).toEqual('Channel banners');
         expect(subtitleList.at(6).text()).toEqual('And more...');
     });
 
