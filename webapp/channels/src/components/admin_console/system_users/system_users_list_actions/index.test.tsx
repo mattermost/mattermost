@@ -85,7 +85,7 @@ describe('SystemUsersListAction Component', () => {
     };
 
     test('Deactivate button is disabled and contains the Managed by LDAP text when user authmethod is LDAP', async () => {
-        renderComponent(ldapUser);
+        await renderComponent(ldapUser);
 
         const deactivateMenuItem = await openMenuAndFindItem('Member', /deactivate/i);
 
@@ -94,7 +94,7 @@ describe('SystemUsersListAction Component', () => {
     });
 
     test('Activate button is disabled and contains the Managed by LDAP text when user authmethod is LDAP', async () => {
-        renderComponent(deactivatedLDAPUser);
+        await renderComponent(deactivatedLDAPUser);
 
         const activateMenuItem = await openMenuAndFindItem('Deactivated', /activate/i);
 
@@ -103,7 +103,7 @@ describe('SystemUsersListAction Component', () => {
     });
 
     test('element is enabled and does NOT contain the Managed by LDAP text when user authmethod is NOT LDAP', async () => {
-        renderComponent(user);
+        await renderComponent(user);
 
         const deactivateMenuItem = await openMenuAndFindItem('Member', /deactivate/i);
 

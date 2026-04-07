@@ -73,7 +73,7 @@ describe('components/AboutBuildModal', () => {
     });
 
     test('should match snapshot for enterprise edition', async () => {
-        renderAboutBuildModal({config, license, socketStatus});
+        await renderAboutBuildModal({config, license, socketStatus});
         expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Server Version: 3.6.0');
         expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Database Schema Version: 77');
         expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Build Number: 123456');
@@ -95,7 +95,7 @@ describe('components/AboutBuildModal', () => {
             BuildHashEnterprise: '',
         };
 
-        renderAboutBuildModal({config: teamConfig, license: {}, socketStatus: {connected: false}});
+        await renderAboutBuildModal({config: teamConfig, license: {}, socketStatus: {connected: false}});
         expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Server Version: 3.6.0');
         expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Database Schema Version: 77');
         expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Build Number: 123456');
@@ -144,7 +144,7 @@ describe('components/AboutBuildModal', () => {
             BuildNumber: 'dev',
         };
 
-        renderAboutBuildModal({config: sameBuildConfig, license: {}, socketStatus: {connected: true}});
+        await renderAboutBuildModal({config: sameBuildConfig, license: {}, socketStatus: {connected: true}});
 
         expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Server Version: dev');
         expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Database Schema Version: 77');
@@ -226,7 +226,7 @@ describe('components/AboutBuildModal', () => {
         // Override the global mock for this specific test
         jest.spyOn(Client4, 'getLicenseLoadMetric').mockResolvedValue({load: 75});
 
-        renderAboutBuildModal({
+        await renderAboutBuildModal({
             license: {
                 IsLicensed: 'true',
                 Company: 'Mattermost Inc',
@@ -241,7 +241,7 @@ describe('components/AboutBuildModal', () => {
 
     test('should not show load metric when API returns zero', async () => {
         // This uses the mock set in beforeEach that returns load: 0
-        renderAboutBuildModal();
+        await renderAboutBuildModal();
 
         // Wait for any async operations to complete
         await waitFor(() => {
@@ -258,7 +258,7 @@ describe('components/AboutBuildModal', () => {
         // Mock the API call to throw an error
         jest.spyOn(Client4, 'getLicenseLoadMetric').mockRejectedValue(new Error('API error'));
 
-        renderAboutBuildModal();
+        await renderAboutBuildModal();
 
         // Wait for the API call to be made
         await waitFor(() => {
@@ -276,7 +276,7 @@ describe('components/AboutBuildModal', () => {
             IsFipsEnabled: 'true',
         };
 
-        renderAboutBuildModal({config: fipsConfig});
+        await renderAboutBuildModal({config: fipsConfig});
 
         expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Server Version: 3.6.0 (FIPS)');
     });
@@ -287,7 +287,7 @@ describe('components/AboutBuildModal', () => {
             IsFipsEnabled: 'false',
         };
 
-        renderAboutBuildModal({config: nonFipsConfig});
+        await renderAboutBuildModal({config: nonFipsConfig});
 
         expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Server Version: 3.6.0');
         expect(screen.getByTestId('aboutModalVersionInfo')).not.toHaveTextContent('(FIPS)');
@@ -298,7 +298,7 @@ describe('components/AboutBuildModal', () => {
             ...config,
         };
 
-        renderAboutBuildModal({config: nonFipsConfig});
+        await renderAboutBuildModal({config: nonFipsConfig});
 
         expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Server Version: 3.6.0');
         expect(screen.getByTestId('aboutModalVersionInfo')).not.toHaveTextContent('(FIPS)');

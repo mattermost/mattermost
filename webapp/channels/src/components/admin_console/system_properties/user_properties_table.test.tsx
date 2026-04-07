@@ -83,7 +83,7 @@ describe('UserPropertiesTable', () => {
     };
 
     it('renders table with correct attribute fields', async () => {
-        renderComponent();
+        await renderComponent();
 
         // Check column headers
         expect(screen.getByText('Attribute')).toBeInTheDocument();
@@ -99,7 +99,7 @@ describe('UserPropertiesTable', () => {
     });
 
     it('allows editing field names', async () => {
-        renderComponent();
+        await renderComponent();
 
         const field1Input = screen.getByDisplayValue('Field 1');
         await userEvent.clear(field1Input);
@@ -115,7 +115,7 @@ describe('UserPropertiesTable', () => {
     });
 
     it('shows type selection menu', async () => {
-        renderComponent();
+        await renderComponent();
 
         // Check the type selectors exist
         expect(screen.getByText('Text')).toBeInTheDocument();
@@ -123,7 +123,7 @@ describe('UserPropertiesTable', () => {
     });
 
     it('shows dot menu for actions', async () => {
-        renderComponent();
+        await renderComponent();
 
         // Check that dot menus exist
         const dotMenuButtons = screen.getAllByTestId(/user-property-field_dotmenu-/);
@@ -141,7 +141,7 @@ describe('UserPropertiesTable', () => {
             },
         ];
 
-        renderComponent(deletedFields);
+        await renderComponent(deletedFields);
 
         // Deleted field should still be in the table but have disabled inputs
         const deletedInput = screen.getByDisplayValue('Deleted Field');
@@ -174,7 +174,7 @@ describe('UserPropertiesTable', () => {
         });
     });
 
-    it('autofocuses name input for new text field', () => {
+    it('autofocuses name input for new text field', async () => {
         const pendingTextField: UserPropertyField = {
             id: 'pending-text',
             name: '',
@@ -195,14 +195,14 @@ describe('UserPropertiesTable', () => {
             },
         };
 
-        renderComponent([...baseFields, pendingTextField]);
+        await renderComponent([...baseFields, pendingTextField]);
 
         // The name input for the new text field should be autofocused
         const nameInputs = screen.getAllByTestId('property-field-input');
         expect(document.activeElement).toBe(nameInputs[2]);
     });
 
-    it('autofocuses values input for new select field', () => {
+    it('autofocuses values input for new select field', async () => {
         const pendingSelectField: UserPropertyField = {
             id: 'pending-select',
             name: 'New Select',
@@ -224,14 +224,14 @@ describe('UserPropertiesTable', () => {
             },
         };
 
-        renderComponent([...baseFields, pendingSelectField]);
+        await renderComponent([...baseFields, pendingSelectField]);
 
         // The values input (combobox) for the new select field should be autofocused
         const comboboxes = screen.getAllByRole('combobox');
         expect(document.activeElement).toBe(comboboxes[comboboxes.length - 1]);
     });
 
-    it('autofocuses values input for new multiselect field', () => {
+    it('autofocuses values input for new multiselect field', async () => {
         const pendingMultiselectField: UserPropertyField = {
             id: 'pending-multiselect',
             name: 'New Multiselect',
@@ -253,7 +253,7 @@ describe('UserPropertiesTable', () => {
             },
         };
 
-        renderComponent([...baseFields, pendingMultiselectField]);
+        await renderComponent([...baseFields, pendingMultiselectField]);
 
         // The values input (combobox) for the new multiselect field should be autofocused
         const comboboxes = screen.getAllByRole('combobox');

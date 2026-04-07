@@ -79,34 +79,34 @@ describe('CoreMenuOptions Component', () => {
         jest.setSystemTime(mockDate);
     }
 
-    it('should render tomorrow option on Sunday', () => {
+    it('should render tomorrow option on Sunday', async () => {
         setMockDate(7); // Sunday
 
-        renderComponent();
+        await renderComponent();
 
         expect(screen.getByText(/Tomorrow at/)).toBeInTheDocument();
         expect(screen.queryByText(/Monday at/)).not.toBeInTheDocument();
     });
 
-    it('should render tomorrow and next Monday options on Monday', () => {
+    it('should render tomorrow and next Monday options on Monday', async () => {
         setMockDate(1); // Monday
 
-        renderComponent();
+        await renderComponent();
 
         expect(screen.getByText(/Tomorrow at/)).toBeInTheDocument();
         expect(screen.getByText(/Next Monday at/)).toBeInTheDocument();
     });
 
-    it('should render Monday option on Friday', () => {
+    it('should render Monday option on Friday', async () => {
         setMockDate(5); // Friday
 
-        renderComponent();
+        await renderComponent();
 
         expect(screen.getByText(/Monday at/)).toBeInTheDocument();
         expect(screen.queryByText(/Tomorrow at/)).not.toBeInTheDocument();
     });
 
-    it('should include trailing element when isDM true', () => {
+    it('should include trailing element when isDM true', async () => {
         setMockDate(2); // Tuesday
 
         mockedUseTimePostBoxIndicator.mockReturnValue({
@@ -116,16 +116,16 @@ describe('CoreMenuOptions Component', () => {
             isBot: false,
         });
 
-        renderComponent();
+        await renderComponent();
 
         // Check the trailing element is rendered in the component
         expect(screen.getAllByText(/John Doe/)[0]).toBeInTheDocument();
     });
 
-    it('should NOT include trailing element when isDM false', () => {
+    it('should NOT include trailing element when isDM false', async () => {
         setMockDate(2); // Tuesday
 
-        renderComponent();
+        await renderComponent();
 
         expect(screen.queryByText(/John Doe/)).not.toBeInTheDocument();
     });
@@ -149,7 +149,7 @@ describe('CoreMenuOptions Component', () => {
         expect(handleOnSelect).toHaveBeenCalledWith(expect.anything(), expectedTimestamp);
     });
 
-    it('should NOT include trailing element when isDM and isBot are true', () => {
+    it('should NOT include trailing element when isDM and isBot are true', async () => {
         setMockDate(2); // Tuesday
 
         mockedUseTimePostBoxIndicator.mockReturnValue({
@@ -159,13 +159,13 @@ describe('CoreMenuOptions Component', () => {
             isBot: true,
         });
 
-        renderComponent();
+        await renderComponent();
 
         // Check the trailing element is NOT rendered in the component as this is a bot
         expect(screen.queryByText(/John Doe/)).toBeNull();
     });
 
-    it('should NOT include trailing element when the DM is with oneself', () => {
+    it('should NOT include trailing element when the DM is with oneself', async () => {
         setMockDate(2); // Tuesday
 
         mockedUseTimePostBoxIndicator.mockReturnValue({
@@ -175,13 +175,13 @@ describe('CoreMenuOptions Component', () => {
             isBot: false,
         });
 
-        renderComponent();
+        await renderComponent();
 
         // Check the trailing element is NOT rendered in the component as this is a bot
         expect(screen.queryByText(/John Doe/)).toBeNull();
     });
 
-    it('should format teammate time according to user locale', () => {
+    it('should format teammate time according to user locale', async () => {
         setMockDate(2); // Tuesday
 
         const stateWithFrenchLocale = {
@@ -206,7 +206,7 @@ describe('CoreMenuOptions Component', () => {
             isBot: false,
         });
 
-        renderComponent(stateWithFrenchLocale);
+        await renderComponent(stateWithFrenchLocale);
 
         // Verify French format (no AM/PM)
         const timeTexts = screen.getAllByText(/\d{2}:\d{2}(?!\s*[AP]M)/);

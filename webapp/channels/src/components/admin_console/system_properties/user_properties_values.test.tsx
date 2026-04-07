@@ -47,7 +47,7 @@ describe('UserPropertyValues', () => {
     };
 
     it('renders correctly for select/multiselect field types', async () => {
-        renderComponent();
+        await renderComponent();
 
         // Check that both options are displayed
         expect(screen.getByText('Option 1')).toBeInTheDocument();
@@ -60,13 +60,13 @@ describe('UserPropertyValues', () => {
             type: 'text' as const,
         };
 
-        renderComponent(textField);
+        await renderComponent(textField);
 
         expect(screen.getByText('-')).toBeInTheDocument();
     });
 
     it('adds a new option when typing and pressing Enter', async () => {
-        renderComponent();
+        await renderComponent();
 
         const input = screen.getByRole('combobox');
         await userEvent.clear(input);
@@ -86,7 +86,7 @@ describe('UserPropertyValues', () => {
     });
 
     it('adds a new option when typing and blurring', async () => {
-        renderComponent();
+        await renderComponent();
 
         const input = screen.getByRole('combobox');
         await userEvent.clear(input);
@@ -108,7 +108,7 @@ describe('UserPropertyValues', () => {
     });
 
     it('removes an option when clicking the remove button', async () => {
-        renderComponent();
+        await renderComponent();
 
         // Find and click the first remove button (x)
         const removeButtons = screen.getAllByRole('button');
@@ -124,7 +124,7 @@ describe('UserPropertyValues', () => {
     });
 
     it('shows validation error when trying to add a duplicate option', async () => {
-        renderComponent();
+        await renderComponent();
 
         const input = screen.getByRole('combobox');
         await userEvent.clear(input);
@@ -138,19 +138,19 @@ describe('UserPropertyValues', () => {
         expect(updateField).not.toHaveBeenCalled();
     });
 
-    it('is disabled when the field is marked for deletion', () => {
+    it('is disabled when the field is marked for deletion', async () => {
         const deletedField = {
             ...baseField,
             delete_at: 123456789,
         };
 
-        renderComponent(deletedField);
+        await renderComponent(deletedField);
 
         const option = screen.getByText('Option 1');
         expect(option.closest('div[aria-disabled]')).toBeInTheDocument();
     });
 
-    it('shows LDAP sync information when field has LDAP attribute', () => {
+    it('shows LDAP sync information when field has LDAP attribute', async () => {
         const ldapField = {
             ...baseField,
             attrs: {
@@ -159,7 +159,7 @@ describe('UserPropertyValues', () => {
             },
         };
 
-        renderComponent(ldapField);
+        await renderComponent(ldapField);
 
         // Check that the sync info is displayed
         expect(screen.getByText(/Synced with:/)).toBeInTheDocument();
@@ -171,7 +171,7 @@ describe('UserPropertyValues', () => {
         expect(linkElement).toBeInTheDocument();
     });
 
-    it('shows SAML sync information when field has SAML attribute', () => {
+    it('shows SAML sync information when field has SAML attribute', async () => {
         const samlField = {
             ...baseField,
             attrs: {
@@ -180,7 +180,7 @@ describe('UserPropertyValues', () => {
             },
         };
 
-        renderComponent(samlField);
+        await renderComponent(samlField);
 
         // Check that the sync info is displayed
         expect(screen.getByText(/Synced with:/)).toBeInTheDocument();
@@ -192,7 +192,7 @@ describe('UserPropertyValues', () => {
         expect(linkElement).toBeInTheDocument();
     });
 
-    it('shows both LDAP and SAML sync information when field has both attributes', () => {
+    it('shows both LDAP and SAML sync information when field has both attributes', async () => {
         const syncedField = {
             ...baseField,
             attrs: {
@@ -202,7 +202,7 @@ describe('UserPropertyValues', () => {
             },
         };
 
-        renderComponent(syncedField);
+        await renderComponent(syncedField);
 
         // Check that the sync info is displayed
         expect(screen.getByText(/Synced with:/)).toBeInTheDocument();
@@ -221,15 +221,15 @@ describe('UserPropertyValues', () => {
         expect(samlLinkElement).toBeInTheDocument();
     });
 
-    it('applies autoFocus when prop is true', () => {
-        renderComponent(baseField, true);
+    it('applies autoFocus when prop is true', async () => {
+        await renderComponent(baseField, true);
 
         const input = screen.getByRole('combobox');
         expect(document.activeElement).toBe(input);
     });
 
-    it('does not autoFocus when prop is false', () => {
-        renderComponent(baseField, false);
+    it('does not autoFocus when prop is false', async () => {
+        await renderComponent(baseField, false);
 
         const input = screen.getByRole('combobox');
         expect(document.activeElement).not.toBe(input);

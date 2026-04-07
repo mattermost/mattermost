@@ -74,7 +74,7 @@ describe('components/admin_console/group_settings/group_details/GroupTeamsAndCha
 
     test('should call onToggleCollapse on caret click', async () => {
         const onToggleCollapse = jest.fn();
-        renderInTable(
+        await renderInTable(
             <GroupTeamsAndChannelsRow
                 id='xxxxxxxxxxxxxxxxxxxxxxxxxx'
                 type='public-team'
@@ -94,7 +94,7 @@ describe('components/admin_console/group_settings/group_details/GroupTeamsAndCha
 
     test('should call onRemoveItem on remove link click', async () => {
         const onRemoveItem = jest.fn();
-        renderInTable(
+        await renderInTable(
             <GroupTeamsAndChannelsRow
                 id='xxxxxxxxxxxxxxxxxxxxxxxxxx'
                 type='public-team'

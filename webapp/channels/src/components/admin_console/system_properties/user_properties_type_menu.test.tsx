@@ -42,7 +42,7 @@ describe('UserPropertyTypeMenu', () => {
     };
 
     it('renders with correct current type', async () => {
-        renderComponent();
+        await renderComponent();
 
         // The menu button should show the current type
         expect(screen.getByText('Text')).toBeInTheDocument();
@@ -57,7 +57,7 @@ describe('UserPropertyTypeMenu', () => {
             },
         };
 
-        renderComponent(legacyField as UserPropertyField);
+        await renderComponent(legacyField as UserPropertyField);
 
         // The menu button should show the current type
         expect(screen.getByText('Text')).toBeInTheDocument();
@@ -69,7 +69,7 @@ describe('UserPropertyTypeMenu', () => {
             delete_at: 123456789,
         };
 
-        renderComponent(deletedField);
+        await renderComponent(deletedField);
 
         // Find button and verify it's disabled
         const menuButton = screen.getByTestId('fieldTypeSelectorMenuButton');
@@ -77,7 +77,7 @@ describe('UserPropertyTypeMenu', () => {
     });
 
     it('changes field type when a new type is selected', async () => {
-        renderComponent();
+        await renderComponent();
 
         // Open the menu
         await userEvent.click(screen.getByText('Text'));
@@ -97,7 +97,7 @@ describe('UserPropertyTypeMenu', () => {
     });
 
     it('filters options when searching', async () => {
-        renderComponent();
+        await renderComponent();
 
         // Open the menu
         await userEvent.click(screen.getByText('Text'));
@@ -113,7 +113,7 @@ describe('UserPropertyTypeMenu', () => {
     });
 
     it('disables non-supported options when ldap-linked', async () => {
-        renderComponent({...baseField, attrs: {...baseField.attrs, ldap: 'ldapPropName'}});
+        await renderComponent({...baseField, attrs: {...baseField.attrs, ldap: 'ldapPropName'}});
 
         // Open the menu
         await userEvent.click(screen.getByText('Text'));
@@ -127,7 +127,7 @@ describe('UserPropertyTypeMenu', () => {
     });
 
     it('disables non-supported options when saml-linked', async () => {
-        renderComponent({...baseField, attrs: {...baseField.attrs, saml: 'samlPropName'}});
+        await renderComponent({...baseField, attrs: {...baseField.attrs, saml: 'samlPropName'}});
 
         // Open the menu
         await userEvent.click(screen.getByText('Text'));
@@ -150,7 +150,7 @@ describe('UserPropertyTypeMenu', () => {
             },
         };
 
-        renderComponent(selectField);
+        await renderComponent(selectField);
 
         // Open the menu
         await userEvent.click(screen.getByText('Select'));

@@ -56,7 +56,7 @@ describe('UserPropertyDotMenu', () => {
     };
 
     it('renders dot menu button', async () => {
-        renderComponent();
+        await renderComponent();
 
         const menuButton = screen.getByTestId(`user-property-field_dotmenu-${baseField.id}`);
         expect(menuButton).toBeInTheDocument();
@@ -68,14 +68,14 @@ describe('UserPropertyDotMenu', () => {
             delete_at: 123456789,
         };
 
-        renderComponent(deletedField);
+        await renderComponent(deletedField);
 
         const menuButton = screen.getByTestId(`user-property-field_dotmenu-${baseField.id}`);
         expect(menuButton).toBeDisabled();
     });
 
     it('shows correct visibility option based on field setting', async () => {
-        renderComponent();
+        await renderComponent();
 
         // Open the menu
         const menuButton = screen.getByTestId(`user-property-field_dotmenu-${baseField.id}`);
@@ -86,7 +86,7 @@ describe('UserPropertyDotMenu', () => {
     });
 
     it('updates visibility when selecting a different option', async () => {
-        renderComponent();
+        await renderComponent();
 
         // Open the menu
         const menuButton = screen.getByTestId(`user-property-field_dotmenu-${baseField.id}`);
@@ -111,7 +111,7 @@ describe('UserPropertyDotMenu', () => {
     });
 
     it('displays LDAP and SAML link menu options for existing fields', async () => {
-        renderComponent();
+        await renderComponent();
 
         // Open the menu
         const menuButton = screen.getByTestId(`user-property-field_dotmenu-${baseField.id}`);
@@ -128,7 +128,7 @@ describe('UserPropertyDotMenu', () => {
             create_at: 0, // Mark as pending creation
         };
 
-        renderComponent(pendingField);
+        await renderComponent(pendingField);
 
         // Open the menu
         const menuButton = screen.getByTestId(`user-property-field_dotmenu-${pendingField.id}`);
@@ -148,7 +148,7 @@ describe('UserPropertyDotMenu', () => {
             },
         };
 
-        renderComponent(linkedField);
+        await renderComponent(linkedField);
 
         // Open the menu
         const menuButton = screen.getByTestId(`user-property-field_dotmenu-${linkedField.id}`);
@@ -167,7 +167,7 @@ describe('UserPropertyDotMenu', () => {
             },
         };
 
-        renderComponent(linkedField);
+        await renderComponent(linkedField);
 
         // Open the menu
         const menuButton = screen.getByTestId(`user-property-field_dotmenu-${linkedField.id}`);
@@ -178,7 +178,7 @@ describe('UserPropertyDotMenu', () => {
     });
 
     it('handles field duplication', async () => {
-        renderComponent();
+        await renderComponent();
 
         // Open the menu
         const menuButton = screen.getByTestId(`user-property-field_dotmenu-${baseField.id}`);
@@ -198,7 +198,7 @@ describe('UserPropertyDotMenu', () => {
     });
 
     it('hides field duplication when at field limit', async () => {
-        renderComponent(undefined, {canCreate: false});
+        await renderComponent(undefined, {canCreate: false});
 
         // Open the menu
         const menuButton = screen.getByTestId(`user-property-field_dotmenu-${baseField.id}`);
@@ -209,7 +209,7 @@ describe('UserPropertyDotMenu', () => {
     });
 
     it('handles field deletion with confirmation when field exists in DB', async () => {
-        renderComponent();
+        await renderComponent();
 
         // Open the menu
         const menuButton = screen.getByTestId(`user-property-field_dotmenu-${baseField.id}`);
@@ -241,7 +241,7 @@ describe('UserPropertyDotMenu', () => {
             create_at: 0, // Mark as pending creation
         };
 
-        renderComponent(pendingField);
+        await renderComponent(pendingField);
 
         // Open the menu
         const menuButton = screen.getByTestId(`user-property-field_dotmenu-${pendingField.id}`);

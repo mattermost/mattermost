@@ -9,7 +9,6 @@ import {
     renderWithContext,
     screen,
     userEvent,
-    waitFor,
 } from 'tests/react_testing_utils';
 import {AboutLinks, LicenseSkus} from 'utils/constants';
 
@@ -81,38 +80,36 @@ describe('components/feature_discovery', () => {
             const getCloudSubscription = jest.fn();
             const openModal = jest.fn();
 
-            await waitFor(async () => {
-                await renderWithContext(
-                    <FeatureDiscovery
-                        featureName='test'
-                        minimumSKURequiredForFeature={LicenseSkus.Professional}
-                        title={{
-                            id: 'translation.test.title',
-                            defaultMessage: 'Foo',
-                        }}
-                        copy={{
-                            id: 'translation.test.copy',
-                            defaultMessage: 'Bar',
-                        }}
-                        learnMoreURL='https://test.mattermost.com/secondary/'
-                        featureDiscoveryImage={<GroupsSVG/>}
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
-                        stats={{TOTAL_USERS: 20}}
-                        prevTrialLicense={{IsLicensed: 'false'}}
-                        isCloud={true}
-                        isCloudTrial={false}
-                        hadPrevCloudTrial={false}
-                        isPaidSubscription={false}
-                        isSubscriptionLoaded={true}
-                        isEnterpriseReady={true}
-                        actions={{
-                            getPrevTrialLicense,
-                            getCloudSubscription,
-                            openModal,
-                        }}
-                    />,
-                );
-            });
+            await renderWithContext(
+                <FeatureDiscovery
+                    featureName='test'
+                    minimumSKURequiredForFeature={LicenseSkus.Professional}
+                    title={{
+                        id: 'translation.test.title',
+                        defaultMessage: 'Foo',
+                    }}
+                    copy={{
+                        id: 'translation.test.copy',
+                        defaultMessage: 'Bar',
+                    }}
+                    learnMoreURL='https://test.mattermost.com/secondary/'
+                    featureDiscoveryImage={<GroupsSVG/>}
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    stats={{TOTAL_USERS: 20}}
+                    prevTrialLicense={{IsLicensed: 'false'}}
+                    isCloud={true}
+                    isCloudTrial={false}
+                    hadPrevCloudTrial={false}
+                    isPaidSubscription={false}
+                    isSubscriptionLoaded={true}
+                    isEnterpriseReady={true}
+                    actions={{
+                        getPrevTrialLicense,
+                        getCloudSubscription,
+                        openModal,
+                    }}
+                />,
+            );
 
             // subscription is loaded, so loadingSpinner should not be visible
             expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();

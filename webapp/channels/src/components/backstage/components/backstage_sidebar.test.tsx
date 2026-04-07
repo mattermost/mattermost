@@ -48,13 +48,13 @@ describe('components/backstage/components/BackstageSidebar', () => {
         ];
 
         testCases.forEach((testCase) => {
-            it(`when custom emoji is ${testCase.enableCustomEmoji} and can create/delete is ${testCase.canCreateOrDeleteCustomEmoji}`, () => {
+            it(`when custom emoji is ${testCase.enableCustomEmoji} and can create/delete is ${testCase.canCreateOrDeleteCustomEmoji}`, async () => {
                 const props = {
                     ...defaultProps,
                     enableCustomEmoji: testCase.enableCustomEmoji,
                     canCreateOrDeleteCustomEmoji: testCase.canCreateOrDeleteCustomEmoji,
                 };
-                renderAtIntegrationsPath(props);
+                await renderAtIntegrationsPath(props);
 
                 if (testCase.expectedResult) {
                     expect(screen.getByText('Custom Emoji')).toBeInTheDocument();
@@ -74,13 +74,13 @@ describe('components/backstage/components/BackstageSidebar', () => {
         ];
 
         testCases.forEach((testCase) => {
-            it(`when incoming webhooks is ${testCase.enableIncomingWebhooks} and can manage integrations is ${testCase.canManageIntegrations}`, () => {
+            it(`when incoming webhooks is ${testCase.enableIncomingWebhooks} and can manage integrations is ${testCase.canManageIntegrations}`, async () => {
                 const props = {
                     ...defaultProps,
                     enableIncomingWebhooks: testCase.enableIncomingWebhooks,
                     canManageIntegrations: testCase.canManageIntegrations,
                 };
-                renderAtIntegrationsPath(props);
+                await renderAtIntegrationsPath(props);
 
                 if (testCase.expectedResult) {
                     expect(screen.getByText('Incoming Webhooks')).toBeInTheDocument();
@@ -100,13 +100,13 @@ describe('components/backstage/components/BackstageSidebar', () => {
         ];
 
         testCases.forEach((testCase) => {
-            it(`when outgoing webhooks is ${testCase.enableOutgoingWebhooks} and can manage integrations is ${testCase.canManageIntegrations}`, () => {
+            it(`when outgoing webhooks is ${testCase.enableOutgoingWebhooks} and can manage integrations is ${testCase.canManageIntegrations}`, async () => {
                 const props = {
                     ...defaultProps,
                     enableOutgoingWebhooks: testCase.enableOutgoingWebhooks,
                     canManageIntegrations: testCase.canManageIntegrations,
                 };
-                renderAtIntegrationsPath(props);
+                await renderAtIntegrationsPath(props);
 
                 if (testCase.expectedResult) {
                     expect(screen.getByText('Outgoing Webhooks')).toBeInTheDocument();
@@ -126,13 +126,13 @@ describe('components/backstage/components/BackstageSidebar', () => {
         ];
 
         testCases.forEach((testCase) => {
-            it(`when commands is ${testCase.enableCommands} and can manage integrations is ${testCase.canManageIntegrations}`, () => {
+            it(`when commands is ${testCase.enableCommands} and can manage integrations is ${testCase.canManageIntegrations}`, async () => {
                 const props = {
                     ...defaultProps,
                     enableCommands: testCase.enableCommands,
                     canManageIntegrations: testCase.canManageIntegrations,
                 };
-                renderAtIntegrationsPath(props);
+                await renderAtIntegrationsPath(props);
 
                 if (testCase.expectedResult) {
                     expect(screen.getByText('Slash Commands')).toBeInTheDocument();
@@ -152,13 +152,13 @@ describe('components/backstage/components/BackstageSidebar', () => {
         ];
 
         testCases.forEach((testCase) => {
-            it(`when oauth2 apps is ${testCase.enableOAuthServiceProvider} and can manage integrations is ${testCase.canManageIntegrations}`, () => {
+            it(`when oauth2 apps is ${testCase.enableOAuthServiceProvider} and can manage integrations is ${testCase.canManageIntegrations}`, async () => {
                 const props = {
                     ...defaultProps,
                     enableOAuthServiceProvider: testCase.enableOAuthServiceProvider,
                     canManageIntegrations: testCase.canManageIntegrations,
                 };
-                renderAtIntegrationsPath(props);
+                await renderAtIntegrationsPath(props);
 
                 if (testCase.expectedResult) {
                     expect(screen.getByText('OAuth 2.0 Applications')).toBeInTheDocument();
@@ -178,13 +178,13 @@ describe('components/backstage/components/BackstageSidebar', () => {
         ];
 
         testCases.forEach((testCase) => {
-            it(`when outgoing oauth connections is ${testCase.enableOutgoingOAuthConnections} and can manage integrations is ${testCase.canManageIntegrations}`, () => {
+            it(`when outgoing oauth connections is ${testCase.enableOutgoingOAuthConnections} and can manage integrations is ${testCase.canManageIntegrations}`, async () => {
                 const props = {
                     ...defaultProps,
                     enableOutgoingOAuthConnections: testCase.enableOutgoingOAuthConnections,
                     canManageIntegrations: testCase.canManageIntegrations,
                 };
-                renderAtIntegrationsPath(props);
+                await renderAtIntegrationsPath(props);
 
                 if (testCase.expectedResult) {
                     expect(screen.getByText('Outgoing OAuth 2.0 Connections')).toBeInTheDocument();
@@ -202,12 +202,12 @@ describe('components/backstage/components/BackstageSidebar', () => {
         ];
 
         testCases.forEach((testCase) => {
-            it(`when can manage integrations is ${testCase.canManageIntegrations}`, () => {
+            it(`when can manage integrations is ${testCase.canManageIntegrations}`, async () => {
                 const props = {
                     ...defaultProps,
                     canManageIntegrations: testCase.canManageIntegrations,
                 };
-                renderAtIntegrationsPath(props);
+                await renderAtIntegrationsPath(props);
 
                 if (testCase.expectedResult) {
                     expect(screen.getByText('Bot Accounts')).toBeInTheDocument();
@@ -219,7 +219,7 @@ describe('components/backstage/components/BackstageSidebar', () => {
     });
 
     describe('all integrations', () => {
-        it('can manage integrations', () => {
+        it('can manage integrations', async () => {
             const props = {
                 ...defaultProps,
                 enableIncomingWebhooks: true,
@@ -229,7 +229,7 @@ describe('components/backstage/components/BackstageSidebar', () => {
                 canManageIntegrations: true,
                 enableOutgoingOAuthConnections: true,
             };
-            renderAtIntegrationsPath(props);
+            await renderAtIntegrationsPath(props);
 
             expect(screen.getByText('Incoming Webhooks')).toBeInTheDocument();
             expect(screen.getByText('Outgoing Webhooks')).toBeInTheDocument();
@@ -239,7 +239,7 @@ describe('components/backstage/components/BackstageSidebar', () => {
             expect(screen.getByText('Bot Accounts')).toBeInTheDocument();
         });
 
-        it('cannot manage integrations', () => {
+        it('cannot manage integrations', async () => {
             const props = {
                 ...defaultProps,
                 enableIncomingWebhooks: true,
@@ -249,7 +249,7 @@ describe('components/backstage/components/BackstageSidebar', () => {
                 enableOutgoingOAuthConnections: true,
                 canManageIntegrations: false,
             };
-            renderAtIntegrationsPath(props);
+            await renderAtIntegrationsPath(props);
 
             expect(screen.queryByText('Incoming Webhooks')).not.toBeInTheDocument();
             expect(screen.queryByText('Outgoing Webhooks')).not.toBeInTheDocument();
