@@ -96,7 +96,6 @@
     "zen-observable": "0.10.0"
   },
   "devDependencies": {
-    "@cfaester/enzyme-adapter-react-18": "0.8.0",
     "@deanwhillier/jest-matchmedia-mock": "1.2.0",
     "@mattermost/calls-common": "0.27.0",
     "@mattermost/eslint-plugin": "*",
@@ -106,7 +105,6 @@
     "@testing-library/react": "16.3.0",
     "@testing-library/user-event": "14.6.1",
     "@types/country-list": "2.1.0",
-    "@types/enzyme": "3.10.11",
     "@types/jest": "30.0.0",
     "@types/katex": "0.11.0",
     "@types/lodash": "4.14.202",
@@ -138,8 +136,6 @@
     "emoji-datasource": "6.1.1",
     "emoji-datasource-apple": "6.1.1",
     "emoji-datasource-google": "6.1.1",
-    "enzyme": "3.11.0",
-    "enzyme-to-json": "3.6.2",
     "eslint-plugin-no-only-tests": "3.1.0",
     "external-remotes-plugin": "1.0.0",
     "html-loader": "5.1.0",
@@ -156,7 +152,6 @@
     "nock": "13.2.8",
     "node-fetch": "2.7.0",
     "prettier": "2.3.2",
-    "react-router-enzyme-context": "1.2.0",
     "redux-mock-store": "1.5.4",
     "redux-persist-node-storage": "2.0.0",
     "stylelint": "16.10.0",
