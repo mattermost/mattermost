@@ -521,7 +521,7 @@ function ChannelSettingsInfoTab({
             />
 
             {/* SaveChangesPanel for unsaved changes */}
-            {(canManageChannelProperties && shouldShowPanel) && (
+            {((canManageChannelProperties || canManageChannelRoles) && shouldShowPanel) && (
                 <SaveChangesPanel
                     handleSubmit={handleSaveChanges}
                     handleCancel={handleCancel}

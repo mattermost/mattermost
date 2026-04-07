@@ -479,10 +479,16 @@ export function areManagedCategoriesEnabled(state: GlobalState): boolean {
 }
 
 export function getManagedCategoryMappings(state: GlobalState, teamId: string): Record<string, string> | undefined {
+    if (!areManagedCategoriesEnabled(state)) {
+        return undefined;
+    }
     return state.entities.channelCategories.managedCategoryMappings?.[teamId];
 }
 
 export function isChannelInManagedCategory(state: GlobalState, channelId: string): boolean {
+    if (!areManagedCategoriesEnabled(state)) {
+        return false;
+    }
     const channel = getChannel(state, channelId);
     if (!channel) {
         return false;
@@ -495,6 +501,9 @@ export function isChannelInManagedCategory(state: GlobalState, channelId: string
 }
 
 export function getChannelManagedCategoryName(state: GlobalState, channelId: string): string | undefined {
+    if (!areManagedCategoriesEnabled(state)) {
+        return undefined;
+    }
     const channel = getChannel(state, channelId);
     if (!channel?.team_id) {
         return undefined;
