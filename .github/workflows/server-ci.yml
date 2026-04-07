@@ -293,6 +293,21 @@ jobs:
             server/prev-gotestsum.json
           key: server-test-timing-master-${{ github.run_id }}
 
+  test-elasticsearch-v8:
+    name: Elasticsearch v8 Compatibility
+    needs: go
+    uses: ./.github/workflows/server-test-template.yml
+    secrets: inherit
+    with:
+      name: Elasticsearch v8 Compatibility
+      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      drivername: postgres
+      logsartifact: elasticsearch-v8-server-test-logs
+      go-version: ${{ needs.go.outputs.version }}
+      fips-enabled: false
+      elasticsearch-version: "8.9.0"
+      test-target: "test-server-elasticsearch"
+
   test-postgres-normal-fips:
     # FIPS compile check already runs in enterprise CI for PRs.
     # Only run full FIPS tests on pushes to the default branch.

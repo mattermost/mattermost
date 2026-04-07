@@ -59,6 +59,8 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile.elasticsearch
+      args:
+        ELASTICSEARCH_VERSION: ${ELASTICSEARCH_VERSION:-9.0.0}
     networks:
       - mm-test
     environment:
