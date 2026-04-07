@@ -109,6 +109,11 @@
                 type:
                   type: string
                   description: "'O' for a public channel, 'P' for a private channel"
+                managed_category_name:
+                  type: string
+                  description: The name of the managed category to assign this channel to.
+                    Requires an Enterprise license and the `EnableManagedChannelCategories`
+                    config setting to be enabled.
         description: Channel object to be created
         required: true
       responses:
@@ -674,6 +679,11 @@
                     channels by server configuration.
                 banner_info:
                   $ref: "#/components/schemas/ChannelBanner"
+                managed_category_name:
+                  type: string
+                  description: The name of the managed category to assign this channel to.
+                    Set to an empty string to clear. Requires an Enterprise license and
+                    the `EnableManagedChannelCategories` config setting to be enabled.
         description: Channel patch object; include only the fields to update. At least
           one field must be provided.
         required: true
