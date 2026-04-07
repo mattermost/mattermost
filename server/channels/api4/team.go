@@ -1641,7 +1641,7 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	license := c.App.Channels().License()
-	guestEnabled := license != nil && *license.Features.GuestAccounts
+	guestEnabled := license != nil && license.Features != nil && license.Features.GuestAccounts != nil && *license.Features.GuestAccounts
 
 	if !guestEnabled {
 		c.Err = model.NewAppError("Api4.InviteGuestsToChannels", "api.team.invite_guests_to_channels.disabled.error", nil, "", http.StatusForbidden)

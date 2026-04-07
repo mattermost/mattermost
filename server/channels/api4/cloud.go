@@ -65,8 +65,7 @@ func ensureCloudInterface(c *Context, where string) bool {
 	return true
 }
 
-func getPreviewSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
-	license := c.App.Channels().License()
+func getPreviewSubscription(c *Context, w http.ResponseWriter, r *http.Request, license *model.License) {
 	subscription := &model.Subscription{
 		ID:             "cloud-preview",
 		ProductID:      license.SkuName,
@@ -92,7 +91,7 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Preview subscription is a special case for cloud preview licenses.
 	license := c.App.Channels().License()
 	if license != nil && license.IsCloudPreview() {
-		getPreviewSubscription(c, w, r)
+		getPreviewSubscription(c, w, r, license)
 		return
 	}
 

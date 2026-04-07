@@ -3188,7 +3188,7 @@ func demoteUserToGuest(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	license := c.App.Channels().License()
-	guestEnabled := license != nil && *license.Features.GuestAccounts
+	guestEnabled := license != nil && license.Features != nil && license.Features.GuestAccounts != nil && *license.Features.GuestAccounts
 
 	if !guestEnabled {
 		c.Err = model.NewAppError("Api4.demoteUserToGuest", "api.team.invite_guests_to_channels.disabled.error", nil, "", http.StatusForbidden)
@@ -3484,7 +3484,7 @@ func migrateAuthToLDAP(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	license := c.App.Channels().License()
-	if license == nil || !*license.Features.LDAP {
+	if license == nil || license.Features == nil || license.Features.LDAP == nil || !*license.Features.LDAP {
 		c.Err = model.NewAppError("api.migrateAuthToLDAP", "api.admin.ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -3544,7 +3544,7 @@ func migrateAuthToSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	license := c.App.Channels().License()
-	if license == nil || !*license.Features.SAML {
+	if license == nil || license.Features == nil || license.Features.SAML == nil || !*license.Features.SAML {
 		c.Err = model.NewAppError("api.migrateAuthToSaml", "api.admin.saml.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
