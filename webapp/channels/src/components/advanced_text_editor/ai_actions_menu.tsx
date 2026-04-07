@@ -93,12 +93,19 @@ const AIActionsMenu = ({
         };
     }, []);
 
+    const handleActionClick = useCallback((action: NonNullable<AIActionMenuItemComponent['action']>) => {
+        return () => {
+            action({draft, getSelectedText, updateText, channelId, isRHS});
+            handleToggle(false);
+        };
+    }, [draft, getSelectedText, updateText, channelId, isRHS, handleToggle]);
+
     if (!hasItems) {
         return <></>;
     }
 
     const isRewriteSubmenu = activeSubmenu === '__rewrite__';
-    const activePluginItem = activeSubmenu && !isRewriteSubmenu ? sortedItems.find((item) => item.id === activeSubmenu) : null;
+    const activePluginItem = activeSubmenu && !isRewriteSubmenu ? sortedItems.find((item) => item.id === activeSubmenu && item.component) : null;
     const hasActiveSubmenu = Boolean(activeSubmenu) && (isRewriteSubmenu || Boolean(activePluginItem));
 
     const submenuClassName = classNames(
@@ -158,20 +165,37 @@ const AIActionsMenu = ({
                     horizontal: 'left',
                 }}
             >
-                {sortedItems.map((item) => (
-                    <Menu.Item
-                        key={item.id}
-                        id={`ai-action-${item.id}`}
-                        role='menuitem'
-                        aria-haspopup='menu'
-                        aria-expanded={activeSubmenu === item.id}
-                        leadingElement={item.icon}
-                        labels={<span>{item.text}</span>}
-                        trailingElements={<ChevronRightIcon size={18}/>}
-                        onMouseEnter={handleItemHover(item.id)}
-                        onKeyDown={handleItemKeyDown(item.id)}
-                    />
-                ))}
+                {sortedItems.map((item) => {
+                    if (item.component) {
+                        return (
+                            <Menu.Item
+                                key={item.id}
+                                id={`ai-action-${item.id}`}
+                                role='menuitem'
+                                aria-haspopup='menu'
+                                aria-expanded={activeSubmenu === item.id}
+                                leadingElement={item.icon}
+                                labels={<span>{item.text}</span>}
+                                trailingElements={<ChevronRightIcon size={18}/>}
+                                onMouseEnter={handleItemHover(item.id)}
+                                onKeyDown={handleItemKeyDown(item.id)}
+                            />
+                        );
+                    }
+                    if (item.action) {
+                        return (
+                            <Menu.Item
+                                key={item.id}
+                                id={`ai-action-${item.id}`}
+                                role='menuitem'
+                                leadingElement={item.icon}
+                                labels={<span>{item.text}</span>}
+                                onClick={handleActionClick(item.action)}
+                            />
+                        );
+                    }
+                    return null;
+                })}
                 {aiRewriteEnabled && rewriteMenuProps && sortedItems.length > 0 && (
                     <Menu.Separator/>
                 )}
@@ -250,15 +274,18 @@ const AIActionsMenu = ({
                                 />
                             </>
                         )}
-                        {activePluginItem && (
-                            <activePluginItem.component
-                                draft={draft}
-                                getSelectedText={getSelectedText}
-                                updateText={updateText}
-                                channelId={channelId}
-                                isRHS={isRHS}
-                            />
-                        )}
+                        {activePluginItem?.component && (() => {
+                            const PluginComponent = activePluginItem.component;
+                            return (
+                                <PluginComponent
+                                    draft={draft}
+                                    getSelectedText={getSelectedText}
+                                    updateText={updateText}
+                                    channelId={channelId}
+                                    isRHS={isRHS}
+                                />
+                            );
+                        })()}
                     </div>
                 </MuiPopover>
             )}

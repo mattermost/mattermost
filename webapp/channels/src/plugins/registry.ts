@@ -605,12 +605,14 @@ export default class PluginRegistry {
      * - icon - React element to use as the menu item's icon
      * - text - A string or React element to display in the menu item
      * - sortOrder - Numeric sort order for positioning in the menu
-     * - component - React component rendered as a submenu on hover
+     * - component - React component rendered as a submenu on hover (mutually exclusive with action)
+     * - action - Callback invoked on click (mutually exclusive with component)
+     * Provide either component or action, not both.
      * Returns a unique identifier.
      */
     registerAIActionMenuItemComponent = reArg(
-        ['icon', 'text', 'sortOrder', 'component'],
-        ({icon, text, sortOrder, component}: {icon: React.ReactNode; text: PluggableText; sortOrder: number; component: AIActionMenuItemComponent['component']}) => {
+        ['icon', 'text', 'sortOrder', 'component', 'action'],
+        ({icon, text, sortOrder, component, action}: {icon: React.ReactNode; text: PluggableText; sortOrder: number; component?: AIActionMenuItemComponent['component']; action?: AIActionMenuItemComponent['action']}) => {
             const id = generateId();
 
             dispatchPluginComponentWithData('AIActionMenuItem', {
@@ -620,6 +622,7 @@ export default class PluginRegistry {
                 text: resolveReactElement(text),
                 sortOrder,
                 component,
+                action,
             });
 
             return id;
