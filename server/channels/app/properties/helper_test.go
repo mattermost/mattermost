@@ -47,10 +47,6 @@ func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
 	})
 	require.NoError(tb, err)
 
-	// Create and wire the PropertyAccessService
-	pas := NewPropertyAccessService(service, nil)
-	service.SetPropertyAccessService(pas)
-
 	tb.Cleanup(func() {
 		s.Close()
 	})
@@ -69,10 +65,13 @@ func RequestContextWithCallerID(rctx request.CTX, callerID string) request.CTX {
 }
 
 func (th *TestHelper) RegisterCPAPropertyGroup(tb testing.TB) *TestHelper {
-	// Register the CPA group so requiresAccessControl can always look it up
 	group, groupErr := th.service.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
 	require.NoError(tb, groupErr)
 	th.CPAGroupID = group.ID
+
+	// Create and register the access control hook now that the group ID is known
+	hook := NewAccessControlHook(th.service, nil, group.ID)
+	th.service.AddHook(hook)
 
 	return th
 }

@@ -253,23 +253,28 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to create properties service")
 	}
 
-	propertyAccessService := properties.NewPropertyAccessService(s.propertyService, func(pluginID string) bool {
-		if s.ch == nil {
-			return false
-		}
-
-		_, err := s.ch.GetPluginStatus(pluginID)
-		return err == nil
-	})
-	s.propertyService.SetPropertyAccessService(propertyAccessService)
-
-	// Register builtin property groups after fully initializing the propertyService
+	// Register builtin property groups before creating hooks that reference them
 	if err = s.propertyService.RegisterBuiltinGroups([]*model.PropertyGroup{
 		{Name: model.CustomProfileAttributesPropertyGroupName},
 		{Name: model.ContentFlaggingGroupName},
 	}); err != nil {
 		return nil, errors.Wrap(err, "failed to register builtin property groups")
 	}
+
+	cpaGroup, err := s.propertyService.Group(model.CustomProfileAttributesPropertyGroupName)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to look up CPA property group")
+	}
+
+	accessControlHook := properties.NewAccessControlHook(s.propertyService, func(pluginID string) bool {
+		if s.ch == nil {
+			return false
+		}
+
+		_, err := s.ch.GetPluginStatus(pluginID)
+		return err == nil
+	}, cpaGroup.ID)
+	s.propertyService.AddHook(accessControlHook)
 
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.

@@ -12,63 +12,37 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestRequiresAccessControlFailsClosed(t *testing.T) {
-	th := Setup(t)
+func TestHooksOnlyScopeToManagedGroups(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
 	rctx := th.Context
 
-	// Use an unregistered group — this means any call to
-	// requiresAccessControl will fail to look up the group.
-	// The service must return an error rather than silently bypassing
-	// access control.
-	unregisteredGroupID := model.NewId()
+	// Operations on an unmanaged group should bypass the access control
+	// hook entirely and proceed directly to the store layer.
+	unmanagedGroup, err := th.service.RegisterPropertyGroup("unmanaged-group")
+	require.NoError(t, err)
 
-	t.Run("CreatePropertyField returns error when group lookup fails", func(t *testing.T) {
+	t.Run("CreatePropertyField on unmanaged group bypasses hooks", func(t *testing.T) {
 		field := &model.PropertyField{
-			GroupID:    unregisteredGroupID,
-			Name:       "test-field",
+			GroupID:    unmanagedGroup.ID,
+			Name:       "test-field-" + model.NewId(),
 			Type:       model.PropertyFieldTypeText,
 			TargetType: "user",
 		}
-		_, err := th.service.CreatePropertyField(rctx, field)
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "failed to check access control")
+		result, err := th.service.CreatePropertyField(rctx, field)
+		require.NoError(t, err)
+		assert.NotEmpty(t, result.ID)
 	})
 
-	t.Run("GetPropertyField returns error when group lookup fails", func(t *testing.T) {
-		_, err := th.service.GetPropertyField(rctx, unregisteredGroupID, model.NewId())
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "failed to check access control")
-	})
-
-	t.Run("GetPropertyFields returns error when group lookup fails", func(t *testing.T) {
-		_, err := th.service.GetPropertyFields(rctx, unregisteredGroupID, []string{model.NewId()})
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "failed to check access control")
-	})
-
-	t.Run("UpdatePropertyField returns error when group lookup fails", func(t *testing.T) {
-		field := &model.PropertyField{
-			ID:         model.NewId(),
-			GroupID:    unregisteredGroupID,
-			Name:       "test-field",
+	t.Run("GetPropertyField on unmanaged group bypasses hooks", func(t *testing.T) {
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    unmanagedGroup.ID,
+			Name:       "get-field-" + model.NewId(),
 			Type:       model.PropertyFieldTypeText,
 			TargetType: "user",
-		}
-		_, err := th.service.UpdatePropertyField(rctx, unregisteredGroupID, field)
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "failed to check access control")
-	})
-
-	t.Run("DeletePropertyField returns error when group lookup fails", func(t *testing.T) {
-		err := th.service.DeletePropertyField(rctx, unregisteredGroupID, model.NewId())
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "failed to check access control")
-	})
-
-	t.Run("SearchPropertyFields returns error when group lookup fails", func(t *testing.T) {
-		_, err := th.service.SearchPropertyFields(rctx, unregisteredGroupID, model.PropertyFieldSearchOpts{})
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "failed to check access control")
+		})
+		result, err := th.service.GetPropertyField(rctx, unmanagedGroup.ID, field.ID)
+		require.NoError(t, err)
+		assert.Equal(t, field.ID, result.ID)
 	})
 }
 

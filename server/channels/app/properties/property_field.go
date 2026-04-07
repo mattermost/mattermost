@@ -165,167 +165,92 @@ func (ps *PropertyService) deletePropertyField(groupID, id string) error {
 	return ps.fieldStore.Delete(groupID, id)
 }
 
-// Public routing methods
+// Public methods
 
 func (ps *PropertyService) CreatePropertyField(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
-	requiresAC, err := ps.requiresAccessControl(field.GroupID)
+	field, err := ps.runPreCreatePropertyField(rctx, field)
 	if err != nil {
 		return nil, fmt.Errorf("CreatePropertyField: %w", err)
-	}
-
-	if requiresAC {
-		callerID := ps.extractCallerID(rctx)
-		return ps.propertyAccess.CreatePropertyField(callerID, field)
 	}
 
 	return ps.createPropertyField(field)
 }
 
 func (ps *PropertyService) GetPropertyField(rctx request.CTX, groupID, id string) (*model.PropertyField, error) {
-	requiresAC, err := ps.requiresAccessControl(groupID)
+	field, err := ps.getPropertyField(groupID, id)
 	if err != nil {
 		return nil, fmt.Errorf("GetPropertyField: %w", err)
 	}
 
-	if requiresAC {
-		callerID := ps.extractCallerID(rctx)
-		return ps.propertyAccess.GetPropertyField(callerID, groupID, id)
-	}
-
-	return ps.getPropertyField(groupID, id)
+	return ps.runPostGetPropertyField(rctx, field)
 }
 
 func (ps *PropertyService) GetPropertyFields(rctx request.CTX, groupID string, ids []string) ([]*model.PropertyField, error) {
-	requiresAC, err := ps.requiresAccessControl(groupID)
+	fields, err := ps.getPropertyFields(groupID, ids)
 	if err != nil {
 		return nil, fmt.Errorf("GetPropertyFields: %w", err)
 	}
 
-	if requiresAC {
-		callerID := ps.extractCallerID(rctx)
-		return ps.propertyAccess.GetPropertyFields(callerID, groupID, ids)
-	}
-
-	return ps.getPropertyFields(groupID, ids)
+	return ps.runPostGetPropertyFields(rctx, fields)
 }
 
 func (ps *PropertyService) GetPropertyFieldByName(rctx request.CTX, groupID, targetID, name string) (*model.PropertyField, error) {
-	requiresAC, err := ps.requiresAccessControl(groupID)
+	field, err := ps.getPropertyFieldByName(groupID, targetID, name)
 	if err != nil {
 		return nil, fmt.Errorf("GetPropertyFieldByName: %w", err)
 	}
 
-	if requiresAC {
-		callerID := ps.extractCallerID(rctx)
-		return ps.propertyAccess.GetPropertyFieldByName(callerID, groupID, targetID, name)
-	}
-
-	return ps.getPropertyFieldByName(groupID, targetID, name)
+	return ps.runPostGetPropertyField(rctx, field)
 }
 
-func (ps *PropertyService) CountActivePropertyFieldsForGroup(rctx request.CTX, groupID string) (int64, error) {
-	requiresAC, err := ps.requiresAccessControl(groupID)
-	if err != nil {
-		return 0, fmt.Errorf("CountActivePropertyFieldsForGroup: %w", err)
-	}
+// Count methods bypass hooks — they don't require access control filtering.
 
-	if requiresAC {
-		return ps.propertyAccess.CountActivePropertyFieldsForGroup(groupID)
-	}
-
+func (ps *PropertyService) CountActivePropertyFieldsForGroup(_ request.CTX, groupID string) (int64, error) {
 	return ps.countActivePropertyFieldsForGroup(groupID)
 }
 
-func (ps *PropertyService) CountAllPropertyFieldsForGroup(rctx request.CTX, groupID string) (int64, error) {
-	requiresAC, err := ps.requiresAccessControl(groupID)
-	if err != nil {
-		return 0, fmt.Errorf("CountAllPropertyFieldsForGroup: %w", err)
-	}
-
-	if requiresAC {
-		return ps.propertyAccess.CountAllPropertyFieldsForGroup(groupID)
-	}
-
+func (ps *PropertyService) CountAllPropertyFieldsForGroup(_ request.CTX, groupID string) (int64, error) {
 	return ps.countAllPropertyFieldsForGroup(groupID)
 }
 
-func (ps *PropertyService) CountActivePropertyFieldsForTarget(rctx request.CTX, groupID, targetType, targetID string) (int64, error) {
-	requiresAC, err := ps.requiresAccessControl(groupID)
-	if err != nil {
-		return 0, fmt.Errorf("CountActivePropertyFieldsForTarget: %w", err)
-	}
-
-	if requiresAC {
-		return ps.propertyAccess.CountActivePropertyFieldsForTarget(groupID, targetType, targetID)
-	}
-
+func (ps *PropertyService) CountActivePropertyFieldsForTarget(_ request.CTX, groupID, targetType, targetID string) (int64, error) {
 	return ps.countActivePropertyFieldsForTarget(groupID, targetType, targetID)
 }
 
-func (ps *PropertyService) CountAllPropertyFieldsForTarget(rctx request.CTX, groupID, targetType, targetID string) (int64, error) {
-	requiresAC, err := ps.requiresAccessControl(groupID)
-	if err != nil {
-		return 0, fmt.Errorf("CountAllPropertyFieldsForTarget: %w", err)
-	}
-
-	if requiresAC {
-		return ps.propertyAccess.CountAllPropertyFieldsForTarget(groupID, targetType, targetID)
-	}
-
+func (ps *PropertyService) CountAllPropertyFieldsForTarget(_ request.CTX, groupID, targetType, targetID string) (int64, error) {
 	return ps.countAllPropertyFieldsForTarget(groupID, targetType, targetID)
 }
 
 func (ps *PropertyService) SearchPropertyFields(rctx request.CTX, groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
-	requiresAC, err := ps.requiresAccessControl(groupID)
+	fields, err := ps.searchPropertyFields(groupID, opts)
 	if err != nil {
 		return nil, fmt.Errorf("SearchPropertyFields: %w", err)
 	}
 
-	if requiresAC {
-		callerID := ps.extractCallerID(rctx)
-		return ps.propertyAccess.SearchPropertyFields(callerID, groupID, opts)
-	}
-
-	return ps.searchPropertyFields(groupID, opts)
+	return ps.runPostGetPropertyFields(rctx, fields)
 }
 
 func (ps *PropertyService) UpdatePropertyField(rctx request.CTX, groupID string, field *model.PropertyField) (*model.PropertyField, error) {
-	requiresAC, err := ps.requiresAccessControl(groupID)
+	field, err := ps.runPreUpdatePropertyField(rctx, groupID, field)
 	if err != nil {
 		return nil, fmt.Errorf("UpdatePropertyField: %w", err)
-	}
-
-	if requiresAC {
-		callerID := ps.extractCallerID(rctx)
-		return ps.propertyAccess.UpdatePropertyField(callerID, groupID, field)
 	}
 
 	return ps.updatePropertyField(groupID, field)
 }
 
 func (ps *PropertyService) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
-	requiresAC, err := ps.requiresAccessControl(groupID)
+	fields, err := ps.runPreUpdatePropertyFields(rctx, groupID, fields)
 	if err != nil {
 		return nil, fmt.Errorf("UpdatePropertyFields: %w", err)
-	}
-
-	if requiresAC {
-		callerID := ps.extractCallerID(rctx)
-		return ps.propertyAccess.UpdatePropertyFields(callerID, groupID, fields)
 	}
 
 	return ps.updatePropertyFields(groupID, fields)
 }
 
 func (ps *PropertyService) DeletePropertyField(rctx request.CTX, groupID, id string) error {
-	requiresAC, err := ps.requiresAccessControl(groupID)
-	if err != nil {
+	if err := ps.runPreDeletePropertyField(rctx, groupID, id); err != nil {
 		return fmt.Errorf("DeletePropertyField: %w", err)
-	}
-
-	if requiresAC {
-		callerID := ps.extractCallerID(rctx)
-		return ps.propertyAccess.DeletePropertyField(callerID, groupID, id)
 	}
 
 	return ps.deletePropertyField(groupID, id)

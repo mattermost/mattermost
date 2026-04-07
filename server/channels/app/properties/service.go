@@ -5,10 +5,8 @@ package properties
 
 import (
 	"errors"
-	"fmt"
 	"sync"
 
-	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
@@ -21,7 +19,7 @@ type PropertyService struct {
 	groupStore        store.PropertyGroupStore
 	fieldStore        store.PropertyFieldStore
 	valueStore        store.PropertyValueStore
-	propertyAccess    *PropertyAccessService
+	hooks             []PropertyHook
 	callerIDExtractor CallerIDExtractor
 	groupCache        sync.Map // name -> *model.PropertyGroup
 }
@@ -43,7 +41,6 @@ func New(c ServiceConfig) (*PropertyService, error) {
 		fieldStore:        c.PropertyFieldStore,
 		valueStore:        c.PropertyValueStore,
 		callerIDExtractor: c.CallerIDExtractor,
-		propertyAccess:    nil,
 	}, nil
 }
 
@@ -54,31 +51,19 @@ func (c *ServiceConfig) validate() error {
 	return nil
 }
 
-func (ps *PropertyService) SetPropertyAccessService(pas *PropertyAccessService) {
-	ps.propertyAccess = pas
-}
-
-// requiresAccessControl checks if a group ID requires access control enforcement.
-// Currently, only the CPA group requires access control, but this may change in the future.
-func (ps *PropertyService) requiresAccessControl(groupID string) (bool, error) {
-	group, err := ps.Group(model.CustomProfileAttributesPropertyGroupName)
-	if err != nil {
-		return false, fmt.Errorf("failed to check access control for group %q: %w", groupID, err)
-	}
-	return groupID == group.ID, nil
-}
-
-// setPluginCheckerForTests sets the plugin checker on the underlying PropertyAccessService.
-func (ps *PropertyService) setPluginCheckerForTests(pluginChecker PluginChecker) {
-	if ps.propertyAccess != nil {
-		ps.propertyAccess.setPluginCheckerForTests(pluginChecker)
-	}
-}
-
 // extractCallerID gets the caller ID from a request context using the configured extractor.
 func (ps *PropertyService) extractCallerID(rctx request.CTX) string {
 	if ps.callerIDExtractor == nil || rctx == nil {
 		return ""
 	}
 	return ps.callerIDExtractor(rctx)
+}
+
+// setPluginCheckerForTests sets the plugin checker on the AccessControlHook for testing.
+func (ps *PropertyService) setPluginCheckerForTests(pluginChecker PluginChecker) {
+	for _, hook := range ps.hooks {
+		if ach, ok := hook.(*AccessControlHook); ok {
+			ach.setPluginCheckerForTests(pluginChecker)
+		}
+	}
 }

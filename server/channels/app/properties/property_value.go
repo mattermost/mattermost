@@ -73,21 +73,16 @@ func (ps *PropertyService) deletePropertyValuesForField(groupID, fieldID string)
 	return ps.valueStore.DeleteForField(groupID, fieldID)
 }
 
-// Public routing methods
+// Public methods
 
 func (ps *PropertyService) CreatePropertyValue(rctx request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
 	if value == nil {
 		return nil, fmt.Errorf("CreatePropertyValue: value cannot be nil")
 	}
 
-	requiresAC, err := ps.requiresAccessControl(value.GroupID)
+	value, err := ps.runPreCreatePropertyValue(rctx, value)
 	if err != nil {
 		return nil, fmt.Errorf("CreatePropertyValue: %w", err)
-	}
-
-	if requiresAC {
-		callerID := ps.extractCallerID(rctx)
-		return ps.propertyAccess.CreatePropertyValue(callerID, value)
 	}
 
 	return ps.createPropertyValue(value)
@@ -107,84 +102,54 @@ func (ps *PropertyService) CreatePropertyValues(rctx request.CTX, values []*mode
 		}
 	}
 
-	requiresAC, err := ps.requiresAccessControl(values[0].GroupID)
+	values, err := ps.runPreCreatePropertyValues(rctx, values)
 	if err != nil {
 		return nil, fmt.Errorf("CreatePropertyValues: %w", err)
-	}
-
-	if requiresAC {
-		callerID := ps.extractCallerID(rctx)
-		return ps.propertyAccess.CreatePropertyValues(callerID, values)
 	}
 
 	return ps.createPropertyValues(values)
 }
 
 func (ps *PropertyService) GetPropertyValue(rctx request.CTX, groupID, id string) (*model.PropertyValue, error) {
-	requiresAC, err := ps.requiresAccessControl(groupID)
+	value, err := ps.getPropertyValue(groupID, id)
 	if err != nil {
 		return nil, fmt.Errorf("GetPropertyValue: %w", err)
 	}
 
-	if requiresAC {
-		callerID := ps.extractCallerID(rctx)
-		return ps.propertyAccess.GetPropertyValue(callerID, groupID, id)
-	}
-
-	return ps.getPropertyValue(groupID, id)
+	return ps.runPostGetPropertyValue(rctx, value)
 }
 
 func (ps *PropertyService) GetPropertyValues(rctx request.CTX, groupID string, ids []string) ([]*model.PropertyValue, error) {
-	requiresAC, err := ps.requiresAccessControl(groupID)
+	values, err := ps.getPropertyValues(groupID, ids)
 	if err != nil {
 		return nil, fmt.Errorf("GetPropertyValues: %w", err)
 	}
 
-	if requiresAC {
-		callerID := ps.extractCallerID(rctx)
-		return ps.propertyAccess.GetPropertyValues(callerID, groupID, ids)
-	}
-
-	return ps.getPropertyValues(groupID, ids)
+	return ps.runPostGetPropertyValues(rctx, values)
 }
 
 func (ps *PropertyService) SearchPropertyValues(rctx request.CTX, groupID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
-	requiresAC, err := ps.requiresAccessControl(groupID)
+	values, err := ps.searchPropertyValues(groupID, opts)
 	if err != nil {
 		return nil, fmt.Errorf("SearchPropertyValues: %w", err)
 	}
 
-	if requiresAC {
-		callerID := ps.extractCallerID(rctx)
-		return ps.propertyAccess.SearchPropertyValues(callerID, groupID, opts)
-	}
-
-	return ps.searchPropertyValues(groupID, opts)
+	return ps.runPostGetPropertyValues(rctx, values)
 }
 
 func (ps *PropertyService) UpdatePropertyValue(rctx request.CTX, groupID string, value *model.PropertyValue) (*model.PropertyValue, error) {
-	requiresAC, err := ps.requiresAccessControl(groupID)
+	value, err := ps.runPreUpdatePropertyValue(rctx, groupID, value)
 	if err != nil {
 		return nil, fmt.Errorf("UpdatePropertyValue: %w", err)
-	}
-
-	if requiresAC {
-		callerID := ps.extractCallerID(rctx)
-		return ps.propertyAccess.UpdatePropertyValue(callerID, groupID, value)
 	}
 
 	return ps.updatePropertyValue(groupID, value)
 }
 
 func (ps *PropertyService) UpdatePropertyValues(rctx request.CTX, groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
-	requiresAC, err := ps.requiresAccessControl(groupID)
+	values, err := ps.runPreUpdatePropertyValues(rctx, groupID, values)
 	if err != nil {
 		return nil, fmt.Errorf("UpdatePropertyValues: %w", err)
-	}
-
-	if requiresAC {
-		callerID := ps.extractCallerID(rctx)
-		return ps.propertyAccess.UpdatePropertyValues(callerID, groupID, values)
 	}
 
 	return ps.updatePropertyValues(groupID, values)
@@ -195,14 +160,9 @@ func (ps *PropertyService) UpsertPropertyValue(rctx request.CTX, value *model.Pr
 		return nil, fmt.Errorf("UpsertPropertyValue: value cannot be nil")
 	}
 
-	requiresAC, err := ps.requiresAccessControl(value.GroupID)
+	value, err := ps.runPreUpsertPropertyValue(rctx, value)
 	if err != nil {
 		return nil, fmt.Errorf("UpsertPropertyValue: %w", err)
-	}
-
-	if requiresAC {
-		callerID := ps.extractCallerID(rctx)
-		return ps.propertyAccess.UpsertPropertyValue(callerID, value)
 	}
 
 	return ps.upsertPropertyValue(value)
@@ -222,56 +182,33 @@ func (ps *PropertyService) UpsertPropertyValues(rctx request.CTX, values []*mode
 		}
 	}
 
-	requiresAC, err := ps.requiresAccessControl(values[0].GroupID)
+	values, err := ps.runPreUpsertPropertyValues(rctx, values)
 	if err != nil {
 		return nil, fmt.Errorf("UpsertPropertyValues: %w", err)
-	}
-
-	if requiresAC {
-		callerID := ps.extractCallerID(rctx)
-		return ps.propertyAccess.UpsertPropertyValues(callerID, values)
 	}
 
 	return ps.upsertPropertyValues(values)
 }
 
 func (ps *PropertyService) DeletePropertyValue(rctx request.CTX, groupID, id string) error {
-	requiresAC, err := ps.requiresAccessControl(groupID)
-	if err != nil {
+	if err := ps.runPreDeletePropertyValue(rctx, groupID, id); err != nil {
 		return fmt.Errorf("DeletePropertyValue: %w", err)
-	}
-
-	if requiresAC {
-		callerID := ps.extractCallerID(rctx)
-		return ps.propertyAccess.DeletePropertyValue(callerID, groupID, id)
 	}
 
 	return ps.deletePropertyValue(groupID, id)
 }
 
 func (ps *PropertyService) DeletePropertyValuesForTarget(rctx request.CTX, groupID string, targetType string, targetID string) error {
-	requiresAC, err := ps.requiresAccessControl(groupID)
-	if err != nil {
+	if err := ps.runPreDeletePropertyValuesForTarget(rctx, groupID, targetType, targetID); err != nil {
 		return fmt.Errorf("DeletePropertyValuesForTarget: %w", err)
-	}
-
-	if requiresAC {
-		callerID := ps.extractCallerID(rctx)
-		return ps.propertyAccess.DeletePropertyValuesForTarget(callerID, groupID, targetType, targetID)
 	}
 
 	return ps.deletePropertyValuesForTarget(groupID, targetType, targetID)
 }
 
 func (ps *PropertyService) DeletePropertyValuesForField(rctx request.CTX, groupID, fieldID string) error {
-	requiresAC, err := ps.requiresAccessControl(groupID)
-	if err != nil {
+	if err := ps.runPreDeletePropertyValuesForField(rctx, groupID, fieldID); err != nil {
 		return fmt.Errorf("DeletePropertyValuesForField: %w", err)
-	}
-
-	if requiresAC {
-		callerID := ps.extractCallerID(rctx)
-		return ps.propertyAccess.DeletePropertyValuesForField(callerID, groupID, fieldID)
 	}
 
 	return ps.deletePropertyValuesForField(groupID, fieldID)
