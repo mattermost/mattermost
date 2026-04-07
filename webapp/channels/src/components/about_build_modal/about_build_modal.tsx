@@ -325,6 +325,32 @@ export default function AboutBuildModal(props: Props) {
                 </Modal.Title>
             </Modal.Header>
             <Modal.Body>
+                <div
+                    className='about-modal__notice form-group'
+                    data-testid='aboutModalAgplNotice'
+                >
+                    <p>
+                        <strong>{'Modified build notice.'}</strong>{' '}
+                        {'This is a modified build based on Mattermost\u00ae. '}
+                        {'It is not produced, endorsed, supported, or affiliated with Mattermost, Inc. '}
+                        {'Mattermost\u00ae is a trademark of Mattermost, Inc. '}
+                        {'The source code for this build, including all local modifications, is licensed under the '}
+                        <ExternalLink
+                            location='about_build_modal'
+                            href='https://www.gnu.org/licenses/agpl-3.0.html'
+                        >
+                            {'GNU Affero General Public License v3'}
+                        </ExternalLink>
+                        {' and is available for download at '}
+                        <a
+                            href='/static/source.tar.gz'
+                            download='mattermost-source.tar.gz'
+                        >
+                            {'/static/source.tar.gz'}
+                        </a>
+                        {' (build hash '}{config.BuildHash}{').'}
+                    </p>
+                </div>
                 <div className='about-modal__content'>
                     <div className='about-modal__logo'>
                         <MattermostLogo/>
