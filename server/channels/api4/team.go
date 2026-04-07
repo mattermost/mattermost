@@ -745,6 +745,13 @@ func getTeamMembersForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	currentUserId := c.AppContext.Session().UserId
+	for _, m := range members {
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), m.TeamId, model.PermissionManageTeamRoles) {
+			m.SanitizeRoleData(currentUserId)
+		}
+	}
+
 	js, err := json.Marshal(members)
 	if err != nil {
 		c.Err = model.NewAppError("getTeamMembersForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)

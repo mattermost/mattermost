@@ -4798,3 +4798,57 @@ func TestAddTeamMembersRoleDataSanitization(t *testing.T) {
 		assertRoleDataSanitized(t, members[0])
 	})
 }
+
+func TestGetTeamMembersForUserRoleDataSanitization(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	teamAdminClient := setupTeamWithAdminAndMember(t, th)
+
+	t.Run("user sees own role data", func(t *testing.T) {
+		members, _, err := th.Client.GetTeamMembersForUser(context.Background(), th.BasicUser.Id, "")
+		require.NoError(t, err)
+		require.NotEmpty(t, members)
+		for _, m := range members {
+			assert.True(t, m.SchemeUser)
+		}
+	})
+
+	t.Run("non-admin cannot see role data of another user", func(t *testing.T) {
+		defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+		th.AddPermissionToRole(t, model.PermissionReadOtherUsersTeams.Id, model.SystemUserRoleId)
+
+		members, _, err := th.Client.GetTeamMembersForUser(context.Background(), th.BasicUser2.Id, "")
+		require.NoError(t, err)
+		require.NotEmpty(t, members)
+		for _, m := range members {
+			assertRoleDataSanitized(t, m)
+		}
+	})
+
+	t.Run("team admin sees full role data for managed team", func(t *testing.T) {
+		members, _, err := teamAdminClient.GetTeamMembersForUser(context.Background(), th.BasicUser2.Id, "")
+		require.NoError(t, err)
+		require.NotEmpty(t, members)
+		for _, m := range members {
+			if m.TeamId == th.BasicTeam.Id {
+				assert.True(t, m.SchemeAdmin)
+				return
+			}
+		}
+		t.Fatal("basic team membership not found")
+	})
+
+	t.Run("system admin sees full role data", func(t *testing.T) {
+		members, _, err := th.SystemAdminClient.GetTeamMembersForUser(context.Background(), th.BasicUser2.Id, "")
+		require.NoError(t, err)
+		require.NotEmpty(t, members)
+		for _, m := range members {
+			if m.TeamId == th.BasicTeam.Id {
+				assert.True(t, m.SchemeAdmin)
+				return
+			}
+		}
+		t.Fatal("basic team membership not found")
+	})
+}
