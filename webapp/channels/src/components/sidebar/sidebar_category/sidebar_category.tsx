@@ -51,6 +51,7 @@ type Props = {
 
 type State = {
     isMenuOpen: boolean;
+    isManagedCategoryCollapsed: boolean;
 }
 
 export default class SidebarCategory extends React.PureComponent<Props, State> {
@@ -67,6 +68,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
 
         this.state = {
             isMenuOpen: false,
+            isManagedCategoryCollapsed: false,
         };
 
         this.a11yKeyDownRegistered = false;
@@ -121,7 +123,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                 channelId={channelId}
                 isDraggable={!isManaged}
                 setChannelRef={setChannelRef}
-                isCategoryCollapsed={category.collapsed}
+                isCategoryCollapsed={isManaged ? this.state.isManagedCategoryCollapsed : category.collapsed}
                 isCategoryDragged={draggingState.type === DraggingStateTypes.CATEGORY && draggingState.id === category.id}
                 isAutoSortedCategory={isManaged || category.sorting === CategorySorting.Alphabetical || category.sorting === CategorySorting.Recency}
             />
@@ -130,6 +132,11 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
 
     handleCollapse = () => {
         const {category} = this.props;
+
+        if (category.type === CategoryTypes.MANAGED) {
+            this.setState({isManagedCategoryCollapsed: !this.state.isManagedCategoryCollapsed});
+            return;
+        }
 
         this.props.actions.setCategoryCollapsed(category.id, !category.collapsed);
     };
@@ -313,7 +320,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                 <div
                     className={classNames('SidebarChannelGroup a11y__section', {
                         menuIsOpen: this.state.isMenuOpen,
-                        isCollapsed: category.collapsed,
+                        isCollapsed: this.state.isManagedCategoryCollapsed,
                     })}
                 >
                     <div>
@@ -321,10 +328,11 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                             ref={this.categoryTitleRef}
                             displayName={displayName}
                             dragHandleProps={undefined}
-                            isCollapsed={category.collapsed}
+                            isCollapsed={this.state.isManagedCategoryCollapsed}
                             isCollapsible={isCollapsible}
                             isDragging={false}
                             isDraggingOver={false}
+                            isManaged={true}
                             muted={category.muted}
                             onClick={this.handleCollapse}
                         />

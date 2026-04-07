@@ -127,14 +127,6 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if channel.ManagedCategoryName != "" {
-		if model.MinimumEnterpriseLicense(license) && *c.App.Config().TeamSettings.EnableManagedChannelCategories {
-			if appErr = c.App.SetChannelManagedCategory(c.AppContext, sc.Id, channel.ManagedCategoryName); appErr != nil {
-				c.Logger.Warn("Failed to set managed category on channel create", mlog.String("channel_id", sc.Id), mlog.Err(appErr))
-			}
-		}
-	}
-
 	auditRec.Success()
 	auditRec.AddEventResultState(sc)
 	auditRec.AddEventObjectType("channel")

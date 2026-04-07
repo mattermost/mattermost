@@ -302,6 +302,16 @@ func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember 
 		a.Srv().Platform().InvalidateChannelCacheForUser(channel.CreatorId)
 	}
 
+	if channel.ManagedCategoryName != "" {
+		if !model.MinimumEnterpriseLicense(a.Channels().License()) || !model.SafeDereference(a.Config().TeamSettings.EnableManagedChannelCategories) {
+			rctx.Logger().Warn("Managed category update ignored: feature not available")
+		} else {
+			if appErr := a.SetChannelManagedCategory(rctx, sc.Id, channel.ManagedCategoryName); appErr != nil {
+				return nil, appErr
+			}
+		}
+	}
+
 	a.Srv().Go(func() {
 		pluginContext := pluginContext(rctx)
 		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {

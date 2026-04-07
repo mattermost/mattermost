@@ -732,6 +732,13 @@ $sidebarOpacityAnimationDuration: 0.15s;
                 padding-left: 0;
             }
         }
+
+        i.icon-folder-outline {
+            font-size: 14px;
+            +.SidebarChannelGroupHeader_text {
+                padding-left: 4px;
+            }
+        }
     }
 
     .SidebarChannelGroupHeader--static {
