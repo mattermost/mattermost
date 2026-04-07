@@ -6844,7 +6844,6 @@ func TestGetManagedCategories(t *testing.T) {
 
 	t.Run("should return 403 without enterprise license", func(t *testing.T) {
 		resp, err := client.DoAPIGet(context.Background(), fmt.Sprintf("/teams/%s/channels/managed_categories", th.BasicTeam.Id), "")
-		defer resp.Body.Close()
 		require.Error(t, err)
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
 	})
@@ -6858,7 +6857,6 @@ func TestGetManagedCategories(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableManagedChannelCategories = false })
 
 		resp, err := client.DoAPIGet(context.Background(), fmt.Sprintf("/teams/%s/channels/managed_categories", th.BasicTeam.Id), "")
-		defer resp.Body.Close()
 		require.Error(t, err)
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
 	})
