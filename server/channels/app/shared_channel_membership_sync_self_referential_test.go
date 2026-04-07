@@ -48,11 +48,6 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 	if rcService != nil {
 		_ = rcService.Start()
 
-		// Force the service to be active in test environment
-		if rc, ok := rcService.(*remotecluster.Service); ok {
-			rc.SetActive(true)
-		}
-
 		// Wait for remote cluster service to be active
 		require.Eventually(t, func() bool {
 			return rcService.Active()
