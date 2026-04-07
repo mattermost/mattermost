@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
+import {render} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 
 import SidebarChannelIcon from './sidebar_channel_icon';
@@ -12,20 +12,20 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_icon', () => {
     const baseIcon = <i className='icon icon-globe'/>;
 
     test('should render the provided icon when channel is not deleted', () => {
-        const wrapper = shallow(
+        const {container} = render(
             <SidebarChannelIcon
                 isDeleted={false}
                 icon={baseIcon}
             />,
         );
 
-        expect(wrapper.find('.icon-globe')).toHaveLength(1);
-        expect(wrapper.find('.icon-archive-outline')).toHaveLength(0);
-        expect(wrapper.find('.icon-archive-lock-outline')).toHaveLength(0);
+        expect(container.querySelector('.icon-globe')).toBeInTheDocument();
+        expect(container.querySelector('.icon-archive-outline')).not.toBeInTheDocument();
+        expect(container.querySelector('.icon-archive-lock-outline')).not.toBeInTheDocument();
     });
 
     test('should render archive icon for deleted public channel', () => {
-        const wrapper = shallow(
+        const {container} = render(
             <SidebarChannelIcon
                 isDeleted={true}
                 icon={baseIcon}
@@ -33,12 +33,12 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_icon', () => {
             />,
         );
 
-        expect(wrapper.find('.icon-archive-outline')).toHaveLength(1);
-        expect(wrapper.find('.icon-archive-lock-outline')).toHaveLength(0);
+        expect(container.querySelector('.icon-archive-outline')).toBeInTheDocument();
+        expect(container.querySelector('.icon-archive-lock-outline')).not.toBeInTheDocument();
     });
 
     test('should render archive-lock icon for deleted private channel', () => {
-        const wrapper = shallow(
+        const {container} = render(
             <SidebarChannelIcon
                 isDeleted={true}
                 icon={baseIcon}
@@ -46,19 +46,19 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_icon', () => {
             />,
         );
 
-        expect(wrapper.find('.icon-archive-lock-outline')).toHaveLength(1);
-        expect(wrapper.find('.icon-archive-outline')).toHaveLength(0);
+        expect(container.querySelector('.icon-archive-lock-outline')).toBeInTheDocument();
+        expect(container.querySelector('.icon-archive-outline')).not.toBeInTheDocument();
     });
 
     test('should render regular archive icon when channelType is not provided', () => {
-        const wrapper = shallow(
+        const {container} = render(
             <SidebarChannelIcon
                 isDeleted={true}
                 icon={baseIcon}
             />,
         );
 
-        expect(wrapper.find('.icon-archive-outline')).toHaveLength(1);
-        expect(wrapper.find('.icon-archive-lock-outline')).toHaveLength(0);
+        expect(container.querySelector('.icon-archive-outline')).toBeInTheDocument();
+        expect(container.querySelector('.icon-archive-lock-outline')).not.toBeInTheDocument();
     });
 });
