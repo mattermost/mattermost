@@ -21,6 +21,10 @@ export default class ChannelsPostCreate {
     readonly suggestionList;
     readonly filePreview;
 
+    // Burn-on-Read elements
+    readonly burnOnReadButton;
+    readonly burnOnReadLabel;
+
     constructor(container: Locator, isRHS = false) {
         this.container = container;
 
@@ -37,6 +41,11 @@ export default class ChannelsPostCreate {
         this.priorityButton = container.getByLabel('Message priority');
         this.suggestionList = container.getByRole('listbox', {name: 'Suggestions'});
         this.filePreview = container.locator('.file-preview__container');
+
+        // Burn-on-Read elements
+        // Use a flexible locator that matches the aria-label pattern
+        this.burnOnReadButton = container.getByRole('button', {name: /Burn-on-read/i});
+        this.burnOnReadLabel = container.locator('.BurnOnReadLabel');
     }
 
     async toBeVisible() {
@@ -127,5 +136,21 @@ export default class ChannelsPostCreate {
             },
             {timeout},
         );
+    }
+
+    /**
+     * Toggle the burn-on-read feature for the message
+     */
+    async toggleBurnOnRead() {
+        await expect(this.burnOnReadButton).toBeVisible();
+        await this.burnOnReadButton.click();
+    }
+
+    /**
+     * Check if burn-on-read is currently enabled
+     * BoR is considered enabled if the label is visible above the input
+     */
+    async isBurnOnReadEnabled(): Promise<boolean> {
+        return await this.burnOnReadLabel.isVisible();
     }
 }
