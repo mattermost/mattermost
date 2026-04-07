@@ -1484,10 +1484,6 @@
     "translation": "Erro ao iniciar o servidor, err:%v"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "O usuário com email {{.Email}} e senha {{.Password}} da Integração/Slack Bot foi importado.\r\n"
-  },
-  {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "Não é possível importar o usuário {{.Username}} da Integração/Slack Bot.\r\n"
   },
@@ -1510,10 +1506,6 @@
   {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\r\nUsuários criados:\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "O usuário Slack com e-mail {{.Email}} e a senha {{.Password}} foi importado.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
@@ -8352,10 +8344,6 @@
     "translation": "Portal indisponível para registro auto-hospedado."
   },
   {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "O Servidor CWS não está disponível."
-  },
-  {
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "Serviço disponível apenas na edição Mattermost Enterprise"
   },
@@ -9564,10 +9552,6 @@
     "translation": "Não foi possível criar um diretório para imagens de emoji personalizadas"
   },
   {
-    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
-    "translation": "As funções do usuário não são consistentes com o status de convidado."
-  },
-  {
     "id": "ent.elasticsearch.create_client.ca_cert_missing",
     "translation": "Não foi possível abrir o arquivo CA para {{.Backend}}"
   },
@@ -9822,10 +9806,6 @@
   {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
     "translation": "Não é possível registrar o grupo de propriedades Custom Profile Attributes"
-  },
-  {
-    "id": "app.custom_profile_attributes.create_property_field.app_error",
-    "translation": "Não é possível criar o campo Atributo de perfil personalizado"
   },
   {
     "id": "app.custom_profile_attributes.get_property_field.app_error",

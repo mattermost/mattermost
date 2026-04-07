@@ -1480,10 +1480,6 @@
     "translation": "Errore nel avvio del server, err:%v"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "L'Integrazione/Slack-Bot-User con email {{.Email}} e password {{.Password}} è stata importata.\r\n"
-  },
-  {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "Impossibile importare l'Integrazione/Slack-Bot-user {{.Username}}.\r\n"
   },
@@ -1506,10 +1502,6 @@
   {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\r\nUtente creato:\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "L'utente Slack con email {{.Email}} e password {{.Password}} è stato importato.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
@@ -6941,7 +6933,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.subject",
-    "translation": " "
+    "translation": "Congratulazioni!"
   },
   {
     "id": "api.command_share.missing_action",
@@ -7833,7 +7825,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": " "
+    "translation": "Il tuo spazio di lavoro è pronto !"
   },
   {
     "id": "app.teams.analytics_teams_count.app_error",

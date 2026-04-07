@@ -4488,10 +4488,6 @@
     "translation": "Xác nhận Email"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Tài khoản người dùng dạng Tích hợp/Slack Bot với email {{.Email}} và password {{.Password}} đã được lưu trữ.\n"
-  },
-  {
     "id": "api.user.check_user_password.invalid.app_error",
     "translation": "Đăng nhập thất bại vì mật khẩu không hợp lệ"
   },
@@ -4764,10 +4760,6 @@
   {
     "id": "model.token.is_valid.size",
     "translation": "Token không hợp lệ."
-  },
-  {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Tài khoản Slack với email {{.Email}} và password {{.Password}} đã được lưu nhập.\n"
   },
   {
     "id": "app.import.validate_reply_import_data.message_missing.error",
@@ -5784,10 +5776,6 @@
   {
     "id": "api.roles.patch_roles.not_allowed_permission.error",
     "translation": "Một hoặc nhiều quyền sau đây mà bạn đang cố gắng thêm hoặc xóa không được phép"
-  },
-  {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "Máy chủ CWS không khả dụng."
   },
   {
     "id": "api.server.cws.needs_enterprise_edition",

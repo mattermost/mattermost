@@ -375,7 +375,107 @@ func TestUserLoginAudit(t *testing.T) {
 	require.NotEmpty(t, data)
 
 	// ensure we are auditing the user_id and session_id
-	require.Contains(t, string(data), fmt.Sprintf("\"event_name\":\"login\",\"status\":\"success\",\"actor\":{\"user_id\":\"%s\",\"session_id\":\"%s\"", user.Id, sess[0].Id))
+	entry := FindAuditEntry(string(data), "login", user.Id)
+	require.NotNil(t, entry, "should find a login audit entry for user %s", user.Id)
+	assert.Equal(t, "success", entry.Status)
+	assert.Equal(t, user.Id, entry.UserID)
+	assert.Equal(t, sess[0].Id, entry.SessionID)
+}
+
+func TestLogoutAuditAuthStatus(t *testing.T) {
+	logFile, err := os.CreateTemp("", "logout_audit.log")
+	require.NoError(t, err)
+	defer os.Remove(logFile.Name())
+
+	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED", "true")
+	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME", logFile.Name())
+	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED")
+	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME")
+
+	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
+	th := SetupWithServerOptions(t, options)
+
+	t.Run("authenticated logout has auth_status=authenticated and user_id", func(t *testing.T) {
+		require.NoError(t, logFile.Truncate(0))
+		_, err := logFile.Seek(0, 0)
+		require.NoError(t, err)
+
+		// Login first to get a valid session
+		user, resp, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		// Logout with valid token
+		_, err = th.Client.Logout(context.Background())
+		require.NoError(t, err)
+
+		err = th.Server.Audit.Flush()
+		require.NoError(t, err)
+		require.NoError(t, logFile.Sync())
+
+		data, err := io.ReadAll(logFile)
+		require.NoError(t, err)
+		require.NotEmpty(t, data)
+
+		// Find the logout event for this specific user
+		entry := FindAuditEntry(string(data), "logout", user.Id)
+		require.NotNil(t, entry, "should find a logout audit entry for user %s", user.Id)
+		assert.Equal(t, "authenticated", entry.Parameters["auth_status"],
+			"logout event for user %s should have auth_status=authenticated", user.Id)
+	})
+
+	t.Run("invalid token logout has auth_status=token_invalid", func(t *testing.T) {
+		require.NoError(t, logFile.Truncate(0))
+		_, err := logFile.Seek(0, 0)
+		require.NoError(t, err)
+
+		// Create a client with an invalid token
+		invalidClient := model.NewAPIv4Client(th.Client.URL)
+		invalidClient.SetToken("invalid_token_12345")
+
+		// Logout with invalid token - should still return OK (idempotent)
+		_, err = invalidClient.Logout(context.Background())
+		require.NoError(t, err)
+
+		err = th.Server.Audit.Flush()
+		require.NoError(t, err)
+		require.NoError(t, logFile.Sync())
+
+		data, err := io.ReadAll(logFile)
+		require.NoError(t, err)
+		require.NotEmpty(t, data)
+
+		// Find the logout event (no user ID for invalid token)
+		entry := FindAuditEntry(string(data), "logout", "")
+		require.NotNil(t, entry, "should find a logout audit entry")
+		assert.Equal(t, "token_invalid", entry.Parameters["auth_status"])
+	})
+
+	t.Run("no token logout has auth_status=no_token", func(t *testing.T) {
+		require.NoError(t, logFile.Truncate(0))
+		_, err := logFile.Seek(0, 0)
+		require.NoError(t, err)
+
+		// Create a client with no token
+		noTokenClient := model.NewAPIv4Client(th.Client.URL)
+
+		// Logout with no token - should still return OK (idempotent)
+		_, err = noTokenClient.Logout(context.Background())
+		require.NoError(t, err)
+
+		err = th.Server.Audit.Flush()
+		require.NoError(t, err)
+		require.NoError(t, logFile.Sync())
+
+		data, err := io.ReadAll(logFile)
+		require.NoError(t, err)
+		require.NotEmpty(t, data)
+
+		// Find the logout event (no user ID for no token)
+		entry := FindAuditEntry(string(data), "logout", "")
+		require.NotNil(t, entry, "should find a logout audit entry")
+		assert.Equal(t, "no_token", entry.Parameters["auth_status"])
+	})
 }
 
 func TestCreateUserInputFilter(t *testing.T) {
@@ -8524,15 +8624,34 @@ func TestLoginWithDesktopToken(t *testing.T) {
 	})
 }
 
+func TestLoginSSOCodeExchangeDeprecated(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.MobileSSOCodeExchange = false
+	}).InitBasic(t)
+
+	props := map[string]string{
+		"login_code":    "test_code",
+		"code_verifier": "test_verifier",
+		"state":         "test_state",
+	}
+
+	resp, err := th.Client.DoAPIPost(context.Background(), "/users/login/sso/code-exchange", model.MapToJSON(props))
+	require.Error(t, err)
+	require.Equal(t, http.StatusGone, resp.StatusCode)
+	assert.Equal(t, "true", resp.Header.Get("Deprecation"))
+}
+
+// TestLoginSSOCodeExchange tests the code-exchange endpoint when enabled via feature flag.
+// Note: This endpoint is deprecated and disabled by default. These tests verify behavior
+// when explicitly enabled via feature flag (for backwards compatibility during rollout).
 func TestLoginSSOCodeExchange(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.MobileSSOCodeExchange = true
+	}).InitBasic(t)
 
 	t.Run("wrong token type cannot be used for code exchange", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.FeatureFlags.MobileSSOCodeExchange = true
-		})
-
 		token := model.NewToken(model.TokenTypeOAuth, "extra-data")
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 		defer func() {
@@ -8551,10 +8670,6 @@ func TestLoginSSOCodeExchange(t *testing.T) {
 	})
 
 	t.Run("successful code exchange with S256 challenge", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.FeatureFlags.MobileSSOCodeExchange = true
-		})
-
 		samlUser := th.CreateUserWithAuth(t, model.UserAuthServiceSaml)
 
 		codeVerifier := "test_code_verifier_123456789"

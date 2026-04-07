@@ -32,10 +32,10 @@ const maxMultipartFormDataBytes = 10 * 1024 // 10Kb
 
 func (api *API) InitFile() {
 	api.BaseRoutes.Files.Handle("", api.APISessionRequired(uploadFileStream, handlerParamFileAPI)).Methods(http.MethodPost)
-	api.BaseRoutes.File.Handle("", api.APISessionRequiredTrustRequester(getFile)).Methods(http.MethodGet)
-	api.BaseRoutes.File.Handle("/thumbnail", api.APISessionRequiredTrustRequester(getFileThumbnail)).Methods(http.MethodGet)
+	api.BaseRoutes.File.Handle("", api.APISessionRequiredTrustRequester(getFile)).Methods(http.MethodGet, http.MethodHead)
+	api.BaseRoutes.File.Handle("/thumbnail", api.APISessionRequiredTrustRequester(getFileThumbnail)).Methods(http.MethodGet, http.MethodHead)
 	api.BaseRoutes.File.Handle("/link", api.APISessionRequired(getFileLink)).Methods(http.MethodGet)
-	api.BaseRoutes.File.Handle("/preview", api.APISessionRequiredTrustRequester(getFilePreview)).Methods(http.MethodGet)
+	api.BaseRoutes.File.Handle("/preview", api.APISessionRequiredTrustRequester(getFilePreview)).Methods(http.MethodGet, http.MethodHead)
 	api.BaseRoutes.File.Handle("/info", api.APISessionRequired(getFileInfo)).Methods(http.MethodGet)
 
 	api.BaseRoutes.Team.Handle("/files/search", api.APISessionRequiredDisableWhenBusy(searchFilesInTeam)).Methods(http.MethodPost)
@@ -583,7 +583,18 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Run plugin hook before file download
+	rejectionReason := c.App.RunFileWillBeDownloadedHook(c.AppContext, fileInfo, c.AppContext.Session().UserId, r.Header.Get(model.ConnectionId), model.FileDownloadTypeFile)
+
+	if rejectionReason != "" {
+		w.Header().Set(model.HeaderRejectReason, rejectionReason)
+		c.Err = model.NewAppError("getFile", "api.file.get_file.rejected_by_plugin",
+			map[string]any{"Reason": rejectionReason}, "", http.StatusForbidden)
+		return
+	}
+
 	fileReader, err := c.App.FileReader(fileInfo.Path)
+
 	if err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
@@ -627,6 +638,16 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	} else if info.CreatorId != c.AppContext.Session().UserId && !perm {
 		c.SetPermissionError(model.PermissionReadChannelContent)
+		return
+	}
+
+	// Run plugin hook before file thumbnail download
+	rejectionReason := c.App.RunFileWillBeDownloadedHook(c.AppContext, info, c.AppContext.Session().UserId, r.Header.Get(model.ConnectionId), model.FileDownloadTypeThumbnail)
+
+	if rejectionReason != "" {
+		w.Header().Set(model.HeaderRejectReason, rejectionReason)
+		c.Err = model.NewAppError("getFileThumbnail", "api.file.get_file_thumbnail.rejected_by_plugin",
+			map[string]any{"Reason": rejectionReason}, "", http.StatusForbidden)
 		return
 	}
 
@@ -741,8 +762,19 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check if preview exists before running hook (no point in running hook if there's no preview)
 	if info.PreviewPath == "" {
 		c.Err = model.NewAppError("getFilePreview", "api.file.get_file_preview.no_preview.app_error", nil, "file_id="+info.Id, http.StatusBadRequest)
+		return
+	}
+
+	// Run plugin hook before file preview download
+	rejectionReason := c.App.RunFileWillBeDownloadedHook(c.AppContext, info, c.AppContext.Session().UserId, r.Header.Get(model.ConnectionId), model.FileDownloadTypePreview)
+
+	if rejectionReason != "" {
+		w.Header().Set(model.HeaderRejectReason, rejectionReason)
+		c.Err = model.NewAppError("getFilePreview", "api.file.get_file_preview.rejected_by_plugin",
+			map[string]any{"Reason": rejectionReason}, "", http.StatusForbidden)
 		return
 	}
 
@@ -835,6 +867,17 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if subtle.ConstantTimeCompare([]byte(hash), []byte(app.GeneratePublicLinkHash(info.Id, *c.App.Config().FileSettings.PublicLinkSalt))) != 1 {
 		c.Err = model.NewAppError("getPublicFile", "api.file.get_file.public_invalid.app_error", nil, "", http.StatusBadRequest)
+		utils.RenderWebAppError(c.App.Config(), w, r, c.Err, c.App.AsymmetricSigningKey())
+		return
+	}
+
+	// Run plugin hook before public file download (no user session for public files)
+	rejectionReason := c.App.RunFileWillBeDownloadedHook(c.AppContext, info, "", r.Header.Get(model.ConnectionId), model.FileDownloadTypePublic)
+
+	if rejectionReason != "" {
+		w.Header().Set(model.HeaderRejectReason, rejectionReason)
+		c.Err = model.NewAppError("getPublicFile", "api.file.get_public_file.rejected_by_plugin",
+			map[string]any{"Reason": rejectionReason}, "", http.StatusForbidden)
 		utils.RenderWebAppError(c.App.Config(), w, r, c.Err, c.App.AsymmetricSigningKey())
 		return
 	}

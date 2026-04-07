@@ -102,6 +102,36 @@ func (_m *ChannelMemberHistoryStore) GetChannelsWithActivityDuring(startTime int
 	return r0, r1
 }
 
+// GetMembershipChanges provides a mock function with given fields: channelID, since, limit
+func (_m *ChannelMemberHistoryStore) GetMembershipChanges(channelID string, since int64, limit int) ([]*model.ChannelMemberHistory, error) {
+	ret := _m.Called(channelID, since, limit)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetMembershipChanges")
+	}
+
+	var r0 []*model.ChannelMemberHistory
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, int64, int) ([]*model.ChannelMemberHistory, error)); ok {
+		return rf(channelID, since, limit)
+	}
+	if rf, ok := ret.Get(0).(func(string, int64, int) []*model.ChannelMemberHistory); ok {
+		r0 = rf(channelID, since, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.ChannelMemberHistory)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, int64, int) error); ok {
+		r1 = rf(channelID, since, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetUsersInChannelDuring provides a mock function with given fields: startTime, endTime, channelID
 func (_m *ChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, endTime int64, channelID []string) ([]*model.ChannelMemberHistoryResult, error) {
 	ret := _m.Called(startTime, endTime, channelID)

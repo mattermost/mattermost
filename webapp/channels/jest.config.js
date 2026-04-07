@@ -4,7 +4,6 @@
 /** @type {import('jest').Config} */
 
 const config = {
-    snapshotSerializers: ['enzyme-to-json/serializer'],
     testPathIgnorePatterns: ['/node_modules/'],
     clearMocks: true,
     collectCoverageFrom: [
@@ -32,10 +31,6 @@ const config = {
     },
     moduleDirectories: ['src', 'node_modules'],
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
-    reporters: [
-        'default',
-        ['jest-junit', {outputDirectory: 'build', outputName: 'test-results.xml'}],
-    ],
     transformIgnorePatterns: [
         'node_modules/(?!react-native|react-router|pdfjs-dist|p-queue|p-timeout|@mattermost/compass-icons|cidr-regex|ip-regex|serialize-error)',
     ],

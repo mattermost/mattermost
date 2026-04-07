@@ -267,6 +267,9 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                             id='teamSettings'
                             modalId={ModalIdentifiers.TEAM_SETTINGS}
                             dialogType={TeamSettingsModal}
+                            dialogProps={{
+                                isOpen: true,
+                            }}
                             text={formatMessage({id: 'navbar_dropdown.teamSettings', defaultMessage: 'Team Settings'})}
                             icon={
                                 <i

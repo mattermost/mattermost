@@ -151,15 +151,29 @@ export type ThreadFollowedChanged = BaseWebSocketMessage<WebSocketEvents.ThreadF
     reply_count: number;
 }>;
 
-export type ThreadReadChanged = BaseWebSocketMessage<WebSocketEvents.ThreadReadChanged, {
-    thread_id?: string;
-    timestamp: number;
-    unread_mentions?: number;
-    unread_replies?: number;
-    previous_unread_mentions?: number;
-    previous_unread_replies?: number;
-    channel_id?: string;
-}>;
+export type ThreadReadChanged = BaseWebSocketMessage<WebSocketEvents.ThreadReadChanged, (
+
+    // App.UpdateThreadsReadForUser
+    Record<string, never>
+) | (
+
+    // App.MarkChannelsAsViewed
+    {
+        timestamp: number;
+    }
+) | (
+
+    // App.UpdateThreadReadForUser
+    {
+        thread_id: string;
+        timestamp: number;
+        unread_mentions: number;
+        unread_replies: number;
+        previous_unread_mentions: number;
+        previous_unread_replies: number;
+        channel_id: string;
+    }
+)>;
 
 // Channel and channel member messages
 
@@ -178,6 +192,10 @@ export type ChannelUpdated = BaseWebSocketMessage<WebSocketEvents.ChannelUpdated
 }>;
 
 export type ChannelConverted = BaseWebSocketMessage<WebSocketEvents.ChannelConverted, {
+    channel_id: string;
+}>;
+
+export type SharedChannelRemoteUpdated = BaseWebSocketMessage<WebSocketEvents.SharedChannelRemoteUpdated, {
     channel_id: string;
 }>;
 
@@ -420,6 +438,18 @@ export type RecapUpdated = BaseWebSocketMessage<WebSocketEvents.RecapUpdated, {
     recap_id: string;
 }>;
 
+// Post translation messages
+
+export type PostTranslationUpdated = BaseWebSocketMessage<WebSocketEvents.PostTranslationUpdated, {
+    object_id: string;
+    translations: Record<string, {
+        state: 'ready' | 'skipped' | 'processing' | 'unavailable';
+        translation?: string;
+        translation_type?: string;
+        src_lang?: string;
+    }>;
+}>;
+
 // Plugin and integration messages
 
 export type Plugin = BaseWebSocketMessage<WebSocketEvents.PluginEnabled | WebSocketEvents.PluginDisabled, {
@@ -432,6 +462,20 @@ export type PluginStatusesChanged = BaseWebSocketMessage<WebSocketEvents.PluginS
 
 export type OpenDialog = BaseWebSocketMessage<WebSocketEvents.OpenDialog, {
     dialog: JsonEncodedValue<OpenDialogRequest>;
+}>;
+
+export type FileDownloadRejected = BaseWebSocketMessage<WebSocketEvents.FileDownloadRejected, {
+    file_id: string;
+    file_name: string;
+    rejection_reason: string;
+    channel_id: string;
+    post_id: string;
+    download_type: string;
+}>;
+
+export type ShowToast = BaseWebSocketMessage<WebSocketEvents.ShowToast, {
+    message: string;
+    position?: string;
 }>;
 
 /**

@@ -18,6 +18,7 @@ import {
 import TextSetting from 'components/admin_console/text_setting';
 import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridgeEnabled';
 import Toggle from 'components/toggle';
+import BetaTag from 'components/widgets/tag/beta_tag';
 
 import * as I18n from 'i18n/i18n.jsx';
 
@@ -26,8 +27,9 @@ import AutoTranslationInfo from './auto_translation_info';
 import LibreTranslateSettings from './libreTranslate_settings';
 
 import type {SystemConsoleCustomSettingsComponentProps} from '../schema_admin_settings';
-import './localization.scss';
 import type {SearchableStrings} from '../types';
+
+import './localization.scss';
 
 const locales = I18n.getAllLanguages();
 
@@ -153,6 +155,9 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
                     <hgroup>
                         <h1 className='localization-section-title'>
                             <FormattedMessage {...messages.enableAutoTranslationTitle}/>
+                            <BetaTag
+                                variant='default'
+                            />
                         </h1>
                         <h5 className='localization-section-description'>
                             <FormattedMessage {...messages.enableAutoTranslationDescription}/>

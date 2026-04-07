@@ -297,6 +297,66 @@ describe('posts', () => {
         });
     });
 
+    describe('preserving CRT thread metadata', () => {
+        it('should preserve participants, last_reply_at, and is_following when incoming post has null/zero values', () => {
+            const state = deepFreeze({
+                post1: {
+                    id: 'post1',
+                    message: 'hello',
+                    update_at: 1000,
+                    participants: [{id: 'user1'}],
+                    last_reply_at: 1234567,
+                    is_following: true,
+                },
+            });
+
+            const nextState = reducers.handlePosts(state, {
+                type: PostTypes.RECEIVED_POST,
+                data: {
+                    id: 'post1',
+                    message: 'hello',
+                    update_at: 1000,
+                    participants: null,
+                    last_reply_at: 0,
+                    is_following: undefined,
+                },
+            });
+
+            expect(nextState.post1.participants).toEqual([{id: 'user1'}]);
+            expect(nextState.post1.last_reply_at).toBe(1234567);
+            expect(nextState.post1.is_following).toBe(true);
+        });
+
+        it('should allow overwriting CRT fields with real values', () => {
+            const state = deepFreeze({
+                post1: {
+                    id: 'post1',
+                    message: 'hello',
+                    update_at: 1000,
+                    participants: [{id: 'user1'}],
+                    last_reply_at: 1234567,
+                    is_following: true,
+                },
+            });
+
+            const nextState = reducers.handlePosts(state, {
+                type: PostTypes.RECEIVED_POST,
+                data: {
+                    id: 'post1',
+                    message: 'hello',
+                    update_at: 1001,
+                    participants: [{id: 'user1'}, {id: 'user2'}],
+                    last_reply_at: 2000000,
+                    is_following: false,
+                },
+            });
+
+            expect(nextState.post1.participants).toEqual([{id: 'user1'}, {id: 'user2'}]);
+            expect(nextState.post1.last_reply_at).toBe(2000000);
+            expect(nextState.post1.is_following).toBe(false);
+        });
+    });
+
     describe(`deleting a post (${PostTypes.POST_DELETED})`, () => {
         it('should mark the post as deleted and remove the rest of the thread', () => {
             const state = deepFreeze({
