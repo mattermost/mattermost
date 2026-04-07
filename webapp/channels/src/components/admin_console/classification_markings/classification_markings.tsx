@@ -50,6 +50,94 @@ type Props = {
     disabled?: boolean;
 };
 
+function detectPreset(levels: ClassificationLevel[]): string {
+    for (const preset of presets) {
+        if (preset.levels.length !== levels.length) {
+            continue;
+        }
+        const matches = preset.levels.every((presetLevel, i) => {
+            const level = levels[i];
+            return presetLevel.name === level.name && presetLevel.color.toUpperCase() === level.color.toUpperCase() && presetLevel.rank === level.rank;
+        });
+        if (matches) {
+            return preset.id;
+        }
+    }
+    return PRESET_CUSTOM;
+}
+
+function optionsToLevels(options: PropertyFieldOption[]): ClassificationLevel[] {
+    return options.map((opt, i) => ({
+        id: opt.id,
+        name: opt.name,
+        color: opt.color || '#000000',
+        rank: opt.rank ?? (i + 1),
+    })).sort((a, b) => a.rank - b.rank);
+}
+
+function levelsToOptions(levels: ClassificationLevel[]): Array<{id: string; name: string; color: string; rank: number}> {
+    return levels.map((level) => ({
+        id: level.id.startsWith('pending_') ? '' : level.id,
+        name: level.name,
+        color: level.color,
+        rank: level.rank,
+    }));
+}
+
+async function fetchClassificationField(): Promise<PropertyField | undefined> {
+    const maxItems = 500;
+    let fetched = 0;
+    let cursorId: string | undefined;
+    let cursorCreateAt: number | undefined;
+
+    while (fetched < maxItems) {
+        const fields = await Client4.getPropertyFields(GROUP_NAME, OBJECT_TYPE, TARGET_TYPE, TARGET_ID, {cursorId, cursorCreateAt}); // eslint-disable-line no-await-in-loop
+        const found = fields.find((f: PropertyField) => f.name === FIELD_NAME && f.delete_at === 0);
+        if (found || fields.length === 0) {
+            return found;
+        }
+
+        fetched += fields.length;
+        const last = fields[fields.length - 1];
+        cursorId = last.id;
+        cursorCreateAt = last.create_at;
+    }
+
+    return undefined;
+}
+
+function processClassificationField(field: PropertyField): {levels: ClassificationLevel[]; presetId: string} {
+    const options = (field.attrs?.options as PropertyFieldOption[]) || [];
+    const levels = optionsToLevels(options);
+    const presetId = detectPreset(levels);
+    return {levels, presetId};
+}
+
+async function saveCreateField(levels: ClassificationLevel[]): Promise<PropertyField> {
+    const options = levelsToOptions(levels);
+    return Client4.createPropertyField(GROUP_NAME, OBJECT_TYPE, {
+        name: FIELD_NAME,
+        type: 'select' as PropertyField['type'],
+        target_type: TARGET_TYPE,
+        target_id: TARGET_ID,
+        attrs: {options, managed: 'admin'},
+        permission_field: 'sysadmin',
+        permission_values: 'sysadmin',
+        permission_options: 'sysadmin',
+    });
+}
+
+async function saveDeleteField(fieldId: string): Promise<void> {
+    await Client4.deletePropertyField(GROUP_NAME, OBJECT_TYPE, fieldId);
+}
+
+async function savePatchField(fieldId: string, levels: ClassificationLevel[]): Promise<PropertyField> {
+    const options = levelsToOptions(levels);
+    return Client4.patchPropertyField(GROUP_NAME, OBJECT_TYPE, fieldId, {
+        attrs: {options},
+    } as Partial<PropertyField>);
+}
+
 export default function ClassificationMarkings({disabled}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
@@ -95,51 +183,20 @@ export default function ClassificationMarkings({disabled}: Props) {
         dispatch(setNavigationBlocked(hasChanges));
     }, [hasChanges, dispatch]);
 
-    // Load existing field on mount, paginating through all results
+    // Load existing field on mount
     useEffect(() => {
-        const loadField = async () => {
+        (async () => {
             try {
-                const maxItems = 500;
-                let fetched = 0;
-                let classificationField: PropertyField | undefined;
-                let cursorId: string | undefined;
-                let cursorCreateAt: number | undefined;
-
-                // Paginate through property fields until we find the classification field or exhaust all pages
-                while (fetched < maxItems) {
-                    const fields = await Client4.getPropertyFields(GROUP_NAME, OBJECT_TYPE, TARGET_TYPE, TARGET_ID, {cursorId, cursorCreateAt}); // eslint-disable-line no-await-in-loop
-                    classificationField = fields.find((f: PropertyField) => f.name === FIELD_NAME && f.delete_at === 0);
-                    if (classificationField || fields.length === 0) {
-                        break;
-                    }
-
-                    fetched += fields.length;
-
-                    // Set cursor from the last item for the next page
-                    const last = fields[fields.length - 1];
-                    cursorId = last.id;
-                    cursorCreateAt = last.create_at;
-                }
-
-                if (classificationField) {
-                    setExistingField(classificationField);
+                const field = await fetchClassificationField();
+                if (field) {
+                    const result = processClassificationField(field);
+                    setExistingField(field);
                     setEnabled(true);
                     setInitialEnabled(true);
-
-                    const options = (classificationField.attrs?.options as PropertyFieldOption[]) || [];
-                    const loadedLevels = options.map((opt, i) => ({
-                        id: opt.id,
-                        name: opt.name,
-                        color: opt.color || '#000000',
-                        rank: opt.rank ?? (i + 1),
-                    })).sort((a, b) => a.rank - b.rank);
-                    setLevels(loadedLevels);
-                    setInitialLevels(loadedLevels);
-
-                    // Detect which preset matches
-                    const matchingPreset = detectPreset(loadedLevels);
-                    setPresetId(matchingPreset);
-                    setInitialPresetId(matchingPreset);
+                    setLevels(result.levels);
+                    setInitialLevels(result.levels);
+                    setPresetId(result.presetId);
+                    setInitialPresetId(result.presetId);
                 }
             } catch (err: unknown) {
                 const isNotFound = (err as ClientError).status_code === 404;
@@ -150,9 +207,7 @@ export default function ClassificationMarkings({disabled}: Props) {
             } finally {
                 setLoading(false);
             }
-        };
-
-        loadField();
+        })();
     }, []);
 
     const handleToggleEnabled = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -249,6 +304,35 @@ export default function ClassificationMarkings({disabled}: Props) {
         return null;
     }, [enabled, levels, formatMessage]);
 
+    const handleSaveCreate = useCallback(async () => {
+        const created = await saveCreateField(levels);
+        const result = processClassificationField(created);
+        setExistingField(created);
+        setLevels(result.levels);
+        setInitialLevels(result.levels);
+        setInitialEnabled(true);
+        setInitialPresetId(presetId);
+    }, [levels, presetId]);
+
+    const handleSaveDelete = useCallback(async () => {
+        await saveDeleteField(existingField!.id);
+        setExistingField(null);
+        setInitialEnabled(false);
+        setInitialLevels([]);
+        setLevels([]);
+        setPresetId(PRESET_CUSTOM);
+        setInitialPresetId(PRESET_CUSTOM);
+    }, [existingField]);
+
+    const handleSavePatch = useCallback(async () => {
+        const patched = await savePatchField(existingField!.id, levels);
+        const result = processClassificationField(patched);
+        setExistingField(patched);
+        setLevels(result.levels);
+        setInitialLevels(result.levels);
+        setInitialPresetId(presetId);
+    }, [existingField, levels, presetId]);
+
     const handleSave = useCallback(async () => {
         setSaveError(undefined);
 
@@ -262,66 +346,11 @@ export default function ClassificationMarkings({disabled}: Props) {
 
         try {
             if (enabled && !initialEnabled) {
-                // Create new field
-                const options = levels.map((level) => ({
-                    id: level.id.startsWith('pending_') ? '' : level.id,
-                    name: level.name,
-                    color: level.color,
-                    rank: level.rank,
-                }));
-                const created = await Client4.createPropertyField(GROUP_NAME, OBJECT_TYPE, {
-                    name: FIELD_NAME,
-                    type: 'select' as PropertyField['type'],
-                    target_type: TARGET_TYPE,
-                    target_id: TARGET_ID,
-                    attrs: {options, managed: 'admin'},
-                    permission_field: 'sysadmin',
-                    permission_values: 'sysadmin',
-                    permission_options: 'sysadmin',
-                });
-                setExistingField(created);
-                const createdOptions = (created.attrs?.options as PropertyFieldOption[]) || [];
-                const newLevels = createdOptions.map((opt, i) => ({
-                    id: opt.id,
-                    name: opt.name,
-                    color: opt.color || '#000000',
-                    rank: opt.rank ?? (i + 1),
-                })).sort((a, b) => a.rank - b.rank);
-                setLevels(newLevels);
-                setInitialLevels(newLevels);
-                setInitialEnabled(true);
-                setInitialPresetId(presetId);
+                await handleSaveCreate();
             } else if (!enabled && initialEnabled && existingField) {
-                // Delete field
-                await Client4.deletePropertyField(GROUP_NAME, OBJECT_TYPE, existingField.id);
-                setExistingField(null);
-                setInitialEnabled(false);
-                setInitialLevels([]);
-                setLevels([]);
-                setPresetId(PRESET_CUSTOM);
-                setInitialPresetId(PRESET_CUSTOM);
+                await handleSaveDelete();
             } else if (enabled && initialEnabled && existingField) {
-                // Patch existing field options
-                const options = levels.map((level) => ({
-                    id: level.id.startsWith('pending_') ? '' : level.id,
-                    name: level.name,
-                    color: level.color,
-                    rank: level.rank,
-                }));
-                const patched = await Client4.patchPropertyField(GROUP_NAME, OBJECT_TYPE, existingField.id, {
-                    attrs: {options},
-                } as Partial<PropertyField>);
-                setExistingField(patched);
-                const patchedOptions = (patched.attrs?.options as PropertyFieldOption[]) || [];
-                const newLevels = patchedOptions.map((opt, i) => ({
-                    id: opt.id,
-                    name: opt.name,
-                    color: opt.color || '#000000',
-                    rank: opt.rank ?? (i + 1),
-                })).sort((a, b) => a.rank - b.rank);
-                setLevels(newLevels);
-                setInitialLevels(newLevels);
-                setInitialPresetId(presetId);
+                await handleSavePatch();
             }
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : 'An error occurred while saving';
@@ -329,7 +358,7 @@ export default function ClassificationMarkings({disabled}: Props) {
         } finally {
             setSaving(false);
         }
-    }, [enabled, initialEnabled, existingField, levels, presetId, validate]);
+    }, [enabled, initialEnabled, existingField, validate, handleSaveCreate, handleSaveDelete, handleSavePatch]);
 
     const handleCancel = useCallback(() => {
         setEnabled(initialEnabled);
@@ -507,22 +536,6 @@ export default function ClassificationMarkings({disabled}: Props) {
             />
         </div>
     );
-}
-
-function detectPreset(levels: ClassificationLevel[]): string {
-    for (const preset of presets) {
-        if (preset.levels.length !== levels.length) {
-            continue;
-        }
-        const matches = preset.levels.every((presetLevel, i) => {
-            const level = levels[i];
-            return presetLevel.name === level.name && presetLevel.color.toUpperCase() === level.color.toUpperCase() && presetLevel.rank === level.rank;
-        });
-        if (matches) {
-            return preset.id;
-        }
-    }
-    return PRESET_CUSTOM;
 }
 
 // Classification Levels Table
