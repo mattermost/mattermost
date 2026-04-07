@@ -9,6 +9,9 @@ import ManagedCategorySelector from './managed_category_selector';
 
 const baseState = {
     entities: {
+        general: {
+            config: {EnableManagedChannelCategories: 'true'},
+        },
         teams: {
             currentTeamId: 'team1',
         },
