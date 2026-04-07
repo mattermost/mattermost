@@ -6960,7 +6960,7 @@
   },
   {
     "id": "app.managed_category.search.app_error",
-    "translation": "Failed to search for managed category on channel."
+    "translation": "Failed to search for managed category for channel."
   },
   {
     "id": "app.managed_category.set.app_error",
