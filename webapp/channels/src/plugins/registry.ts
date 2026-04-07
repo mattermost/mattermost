@@ -606,12 +606,11 @@ export default class PluginRegistry {
      * - text - A string or React element to display in the menu item
      * - sortOrder - Numeric sort order for positioning in the menu
      * - component - React component rendered as a submenu on hover
-     * - subMenuHeader - Optional React component rendered as the submenu header
      * Returns a unique identifier.
      */
     registerAIActionMenuItemComponent = reArg(
-        ['icon', 'text', 'sortOrder', 'component', 'subMenuHeader'],
-        ({icon, text, sortOrder, component, subMenuHeader}: {icon: React.ReactNode; text: PluggableText; sortOrder: number; component: AIActionMenuItemComponent['component']; subMenuHeader?: AIActionMenuItemComponent['subMenuHeader']}) => {
+        ['icon', 'text', 'sortOrder', 'component'],
+        ({icon, text, sortOrder, component}: {icon: React.ReactNode; text: PluggableText; sortOrder: number; component: AIActionMenuItemComponent['component']}) => {
             const id = generateId();
 
             dispatchPluginComponentWithData('AIActionMenuItem', {
@@ -621,7 +620,6 @@ export default class PluginRegistry {
                 text: resolveReactElement(text),
                 sortOrder,
                 component,
-                subMenuHeader,
             });
 
             return id;

@@ -29,6 +29,7 @@ interface AIActionsMenuProps {
     getSelectedText: () => {start: number; end: number};
     updateText: (message: string) => void;
     channelId: string;
+    isRHS: boolean;
     rewriteMenuProps?: RewriteMenuProps;
     aiRewriteEnabled?: boolean;
 }
@@ -38,6 +39,7 @@ const AIActionsMenu = ({
     getSelectedText,
     updateText,
     channelId,
+    isRHS,
     rewriteMenuProps,
     aiRewriteEnabled,
 }: AIActionsMenuProps): JSX.Element => {
@@ -248,32 +250,15 @@ const AIActionsMenu = ({
                                 />
                             </>
                         )}
-                        {activePluginItem && (() => {
-                            const PluginComponent = activePluginItem.component;
-                            const SubMenuHeader = activePluginItem.subMenuHeader;
-                            return (
-                                <>
-                                    {SubMenuHeader && (
-                                        <SubMenuHeader
-                                            draft={draft}
-                                            getSelectedText={getSelectedText}
-                                            updateText={updateText}
-                                            channelId={channelId}
-                                        />
-                                    )}
-                                    <MuiMenuList
-                                        sx={{py: 0}}
-                                    >
-                                        <PluginComponent
-                                            draft={draft}
-                                            getSelectedText={getSelectedText}
-                                            updateText={updateText}
-                                            channelId={channelId}
-                                        />
-                                    </MuiMenuList>
-                                </>
-                            );
-                        })()}
+                        {activePluginItem && (
+                            <activePluginItem.component
+                                draft={draft}
+                                getSelectedText={getSelectedText}
+                                updateText={updateText}
+                                channelId={channelId}
+                                isRHS={isRHS}
+                            />
+                        )}
                     </div>
                 </MuiPopover>
             )}

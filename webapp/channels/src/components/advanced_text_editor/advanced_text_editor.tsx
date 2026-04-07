@@ -713,11 +713,12 @@ const AdvancedTextEditor = ({
                 getSelectedText={getSelectedText}
                 updateText={updateText}
                 channelId={channelId}
+                isRHS={location === Locations.RHS_COMMENT}
                 rewriteMenuProps={rewriteMenuProps}
                 aiRewriteEnabled={aiRewriteEnabled}
             />
         );
-    }, [draft, getSelectedText, updateText, channelId, rewriteMenuProps, aiRewriteEnabled]);
+    }, [draft, getSelectedText, updateText, channelId, location, rewriteMenuProps, aiRewriteEnabled]);
 
     const formattingBar = (
         <AutoHeightSwitcher

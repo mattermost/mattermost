@@ -442,6 +442,7 @@ export type AIActionMenuItemProps = {
     getSelectedText: () => {start: number; end: number};
     updateText: (message: string) => void;
     channelId: string;
+    isRHS: boolean;
 };
 
 export type AIActionMenuItemComponent = PluginComponent & {
@@ -449,7 +450,6 @@ export type AIActionMenuItemComponent = PluginComponent & {
     icon: React.ReactNode;
     text: React.ReactNode;
     sortOrder: number;
-    subMenuHeader?: React.ComponentType<AIActionMenuItemProps>;
 };
 
 export type CodeBlockActionComponent = PluginComponent & {

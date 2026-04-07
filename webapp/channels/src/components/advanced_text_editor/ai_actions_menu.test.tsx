@@ -62,6 +62,7 @@ function getBaseProps() {
         getSelectedText: jest.fn(() => ({start: 0, end: 0})),
         updateText: jest.fn(),
         channelId: 'channel1',
+        isRHS: false,
     };
 }
 
