@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {test, expect} from '@mattermost/playwright-lib';
+
 import {setupDemoPlugin} from '../../helpers';
 
 test('should crash plugin via /crash command and verify recovery', async ({pw}) => {

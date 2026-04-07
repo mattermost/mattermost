@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect} from '@mattermost/playwright-lib';
 import {Client4} from '@mattermost/client';
+
+import {expect} from '@mattermost/playwright-lib';
 
 const DEMO_PLUGIN_ID = 'com.mattermost.demo-plugin';
 const DEMO_PLUGIN_URL =
@@ -10,7 +11,10 @@ const DEMO_PLUGIN_URL =
 
 export async function setupDemoPlugin(
     adminClient: Client4,
-    pw: {installAndEnablePlugin: Function; isPluginActive: Function},
+    pw: {
+        installAndEnablePlugin: (client: Client4, pluginUrl: string, pluginId: string) => Promise<void>;
+        isPluginActive: (client: Client4, pluginId: string) => Promise<boolean>;
+    },
 ) {
     await adminClient.patchConfig({
         FileSettings: {EnablePublicLink: true},
