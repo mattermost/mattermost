@@ -764,14 +764,7 @@ function createFavoriteButton(isFavorite: boolean, toggleFavorite: () => void, d
                     />
                 }
             >
-                <div
-                    tabIndex={0}
-                    role='button'
-                    aria-disabled={true}
-                    aria-label={'Favorite'}
-                >
-                    {button}
-                </div>
+                {button}
             </WithTooltip>
         );
     }
