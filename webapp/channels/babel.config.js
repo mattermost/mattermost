@@ -11,7 +11,7 @@ const config = {
                 chrome: 110,
                 firefox: 102,
                 edge: 110,
-                safari: 16.2,
+                safari: '16.2',
             },
             corejs: corejsVersion,
             useBuiltIns: 'usage',
