@@ -5,16 +5,22 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
+	"text/template"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/plugin/utils"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 )
@@ -1102,4 +1108,116 @@ func TestPluginAPISendSharedChannelProfileImageSyncMsg(t *testing.T) {
 		require.Nil(t, appErr)
 		assert.NotEmpty(t, imgBytes)
 	})
+}
+
+// activatePluginFromTemplate compiles a Go plugin from a .go.tmpl template file located
+// in the tests/ directory, executes the template with the provided data, activates it in
+// a real plugin environment with full RPC, and returns the environment. The plugin's
+// OnActivate hook runs through the real apiRPCClient → gob → apiRPCServer → PluginAPI
+// path. If OnActivate returns an error, the test fails.
+func activatePluginFromTemplate(t *testing.T, th *TestHelper, pluginID, templateFile string, data any) *plugin.Environment {
+	t.Helper()
+
+	testsDir, found := fileutils.FindDir("tests")
+	require.True(t, found, "tests directory not found")
+
+	tmplPath := filepath.Join(testsDir, templateFile)
+	tmplBytes, err := os.ReadFile(tmplPath)
+	require.NoError(t, err, "failed to read plugin template %s", tmplPath)
+
+	tmpl, err := template.New(filepath.Base(templateFile)).Parse(string(tmplBytes))
+	require.NoError(t, err, "failed to parse plugin template")
+
+	var buf strings.Builder
+	err = tmpl.Execute(&buf, data)
+	require.NoError(t, err, "failed to execute plugin template")
+
+	pluginDir := t.TempDir()
+	webappPluginDir := t.TempDir()
+
+	newPluginAPI := func(manifest *model.Manifest) plugin.API {
+		return th.App.NewPluginAPI(th.Context, manifest)
+	}
+	env, err := plugin.NewEnvironment(newPluginAPI, NewDriverImpl(th.App.Srv()), pluginDir, webappPluginDir, th.App.Log(), nil)
+	require.NoError(t, err)
+
+	th.App.ch.SetPluginsEnvironment(env)
+
+	backend := filepath.Join(pluginDir, pluginID, "backend.exe")
+	utils.CompileGo(t, buf.String(), backend)
+
+	manifestJSON := `{"id": "` + pluginID + `", "server": {"executable": "backend.exe"}}`
+	err = os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(manifestJSON), 0600)
+	require.NoError(t, err)
+
+	manifest, activated, reterr := env.Activate(pluginID)
+	require.NoError(t, reterr, "plugin OnActivate failed")
+	require.NotNil(t, manifest)
+	require.True(t, activated)
+
+	return env
+}
+
+func TestPluginRPCSharedChannelSync(t *testing.T) {
+	th := setupSharedChannels(t).InitBasic(t)
+
+	// Pre-setup: create and share a channel, register the plugin as a remote, invite it
+	channel := th.CreateChannel(t, th.BasicTeam)
+	pluginID := "testplugin"
+	rc := registerPluginRemoteForTest(t, th, pluginID, channel)
+
+	// IDs the plugin will use to create content
+	syncUserID := model.NewId()
+	syncPostID := model.NewId()
+	syncFileID := model.NewId()
+
+	// Compile and activate plugin from template — OnActivate runs through full RPC
+	activatePluginFromTemplate(t, th, pluginID, "shared_channel_sync_plugin_test.go.tmpl", struct {
+		ChannelID  string
+		RemoteID   string
+		SyncUserID string
+		SyncPostID string
+		SyncFileID string
+	}{
+		ChannelID:  channel.Id,
+		RemoteID:   rc.RemoteId,
+		SyncUserID: syncUserID,
+		SyncPostID: syncPostID,
+		SyncFileID: syncFileID,
+	})
+
+	// --- Post-activation verification: check everything landed in the DB ---
+
+	// Verify synced user
+	user, appErr := th.App.GetUser(syncUserID)
+	require.Nil(t, appErr, "synced user should exist in DB")
+	assert.Contains(t, user.Username, "rpc-synced-user")
+	assert.Equal(t, rc.RemoteId, user.GetRemoteID())
+
+	// Verify synced post
+	post, appErr := th.App.GetSinglePost(th.Context, syncPostID, false)
+	require.Nil(t, appErr, "synced post should exist in DB")
+	assert.Equal(t, "hello from plugin over RPC", post.Message)
+	assert.Equal(t, channel.Id, post.ChannelId)
+	assert.Equal(t, syncUserID, post.UserId)
+
+	// Verify synced file attachment
+	storedFI, appErr := th.App.GetFileInfo(th.Context, syncFileID)
+	require.Nil(t, appErr, "synced FileInfo should exist in DB")
+	assert.Equal(t, "test.txt", storedFI.Name)
+	assert.Equal(t, rc.RemoteId, *storedFI.RemoteId)
+
+	// Verify SharedChannelAttachment cursor-tracking record
+	sca, err := th.App.Srv().Store().SharedChannel().GetAttachment(syncFileID, rc.RemoteId)
+	require.NoError(t, err, "SharedChannelAttachment record should exist")
+	assert.Equal(t, syncFileID, sca.FileId)
+
+	// Verify profile image was saved for the synced user
+	updatedUser, err := th.App.Srv().Store().User().Get(context.Background(), syncUserID)
+	require.NoError(t, err)
+	assert.Greater(t, updatedUser.LastPictureUpdate, int64(0), "LastPictureUpdate should be set after profile image sync")
+
+	imgBytes, _, appErr := th.App.GetProfileImage(updatedUser)
+	require.Nil(t, appErr)
+	assert.NotEmpty(t, imgBytes, "profile image bytes should be readable")
 }
