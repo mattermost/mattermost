@@ -307,7 +307,10 @@ func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember 
 			rctx.Logger().Warn("Managed category update ignored: feature not available")
 		} else {
 			if appErr := a.SetChannelManagedCategory(rctx, sc.Id, channel.ManagedCategoryName); appErr != nil {
-				return nil, appErr
+				rctx.Logger().Error("Failed to set managed category on new channel",
+					mlog.String("channel_id", sc.Id),
+					mlog.String("category_name", channel.ManagedCategoryName),
+					mlog.Err(appErr))
 			}
 		}
 	}
