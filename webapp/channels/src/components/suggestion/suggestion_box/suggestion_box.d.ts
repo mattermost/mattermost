@@ -5,7 +5,7 @@ import type React from 'react';
 
 import type Provider from 'components/suggestion/provider';
 
-export type SuggestionBoxElement = SuggestionBoxElement;
+export type SuggestionBoxElement = HTMLInputElement | HTMLTextAreaElement;
 
 /* eslint-disable react/no-unused-prop-types */
 

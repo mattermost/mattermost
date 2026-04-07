@@ -253,7 +253,7 @@ export default class Textbox extends React.PureComponent<Props> {
     };
 
     getInputBox = () => {
-        return this.message.current!.getTextbox();
+        return this.message.current?.getTextbox();
     };
 
     focus = () => {

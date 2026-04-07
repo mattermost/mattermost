@@ -28,7 +28,7 @@ type Props = {
     updateHighlightedSearchHint: (indexDelta: number, changedViaKeyPress?: boolean) => void;
     handleChange: (e: ChangeEvent<SuggestionBoxElement>) => void;
     handleSubmit: (e: FormEvent<HTMLFormElement>) => void;
-    handleEnterKey: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+    handleEnterKey: (e: React.KeyboardEvent<SuggestionBoxElement>) => void;
     handleClear: () => void;
     handleFocus: () => void;
     handleBlur: () => void;
@@ -72,7 +72,7 @@ const SearchBar: React.FunctionComponent<Props> = (props: Props): JSX.Element =>
         }
     }, [searchTerms]);
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
+    const handleKeyDown = (e: React.KeyboardEvent<SuggestionBoxElement>): void => {
         if (Keyboard.isKeyPressed(e, KeyCodes.ESCAPE)) {
             searchRef.current?.blur();
             e.stopPropagation();

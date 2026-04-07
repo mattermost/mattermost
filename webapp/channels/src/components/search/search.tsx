@@ -279,7 +279,7 @@ const Search = ({
         setIndexChangedViaKeyPress(changedViaKeyPress);
     };
 
-    const handleEnterKey = (e: React.KeyboardEvent<HTMLInputElement>): void => {
+    const handleEnterKey = (e: React.KeyboardEvent<SuggestionBoxElement>): void => {
         e.preventDefault();
 
         if (indexChangedViaKeyPress) {
