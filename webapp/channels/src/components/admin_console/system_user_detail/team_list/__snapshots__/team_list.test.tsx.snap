@@ -1,142 +1,99 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`admin_console/system_user_detail/team_list/TeamList should match snapshot when no teams are found 1`] = `
-<Fragment>
+<div>
   <div />
-  <AbstractList
-    actions={
-      Object {
-        "getTeamMembersForUser": [Function],
-        "getTeamsData": [Function],
-        "removeUserFromTeam": [MockFunction],
-        "updateTeamMemberSchemeRoles": [MockFunction],
-      }
-    }
-    data={Array []}
-    emptyList={
-      Object {
-        "defaultMessage": "No teams found",
-        "id": "admin.team_settings.team_list.no_teams_found",
-      }
-    }
-    headerLabels={
-      Array [
-        Object {
-          "label": Object {
-            "defaultMessage": "Name",
-            "id": "admin.systemUserDetail.teamList.header.name",
-          },
-          "style": Object {
-            "flexGrow": 1,
-            "marginLeft": "16px",
-            "minWidth": "284px",
-          },
-        },
-        Object {
-          "label": Object {
-            "defaultMessage": "Type",
-            "id": "admin.systemUserDetail.teamList.header.type",
-          },
-          "style": Object {
-            "width": "150px",
-          },
-        },
-        Object {
-          "label": Object {
-            "defaultMessage": "Role",
-            "id": "admin.systemUserDetail.teamList.header.role",
-          },
-          "style": Object {
-            "width": "150px",
-          },
-        },
-        Object {
-          "style": Object {
-            "width": "150px",
-          },
-        },
-      ]
-    }
-    renderRow={[Function]}
-    total={0}
-    userId="1234"
-  />
-</Fragment>
+  <div
+    class="AbstractList"
+  >
+    <div
+      class="AbstractList__body"
+    >
+      <div
+        class="AbstractList__empty"
+      >
+        No teams found
+      </div>
+    </div>
+  </div>
+</div>
 `;
 
 exports[`admin_console/system_user_detail/team_list/TeamList should match snapshot with teams populated 1`] = `
-<Fragment>
+<div>
   <div />
-  <AbstractList
-    actions={
-      Object {
-        "getTeamMembersForUser": [Function],
-        "getTeamsData": [Function],
-        "removeUserFromTeam": [MockFunction],
-        "updateTeamMemberSchemeRoles": [MockFunction],
-      }
-    }
-    data={
-      Array [
-        Object {
-          "description": "Team 1 description",
-          "display_name": "Team 1",
-          "id": "id1",
-        },
-        Object {
-          "description": "The 2 description",
-          "display_name": "Team 2",
-          "id": "id2",
-        },
-      ]
-    }
-    emptyList={
-      Object {
-        "defaultMessage": "No teams found",
-        "id": "admin.team_settings.team_list.no_teams_found",
-      }
-    }
-    headerLabels={
-      Array [
-        Object {
-          "label": Object {
-            "defaultMessage": "Name",
-            "id": "admin.systemUserDetail.teamList.header.name",
-          },
-          "style": Object {
-            "flexGrow": 1,
-            "marginLeft": "16px",
-            "minWidth": "284px",
-          },
-        },
-        Object {
-          "label": Object {
-            "defaultMessage": "Type",
-            "id": "admin.systemUserDetail.teamList.header.type",
-          },
-          "style": Object {
-            "width": "150px",
-          },
-        },
-        Object {
-          "label": Object {
-            "defaultMessage": "Role",
-            "id": "admin.systemUserDetail.teamList.header.role",
-          },
-          "style": Object {
-            "width": "150px",
-          },
-        },
-        Object {
-          "style": Object {
-            "width": "150px",
-          },
-        },
-      ]
-    }
-    renderRow={[Function]}
-    total={2}
-    userId="1234"
-  />
-</Fragment>
+  <div
+    class="AbstractList"
+  >
+    <div
+      class="AbstractList__header"
+    >
+      <div
+        class="AbstractList__header-label"
+        style="flex-grow: 1; min-width: 284px; margin-left: 16px;"
+      >
+        Name
+      </div>
+      <div
+        class="AbstractList__header-label"
+        style="width: 150px;"
+      >
+        Type
+      </div>
+      <div
+        class="AbstractList__header-label"
+        style="width: 150px;"
+      >
+        Role
+      </div>
+      <div
+        class="AbstractList__header-label"
+        style="width: 150px;"
+      />
+    </div>
+    <div
+      class="AbstractList__body"
+    >
+      <div
+        data-testid="team-row-id1"
+      >
+        Team 1
+      </div>
+      <div
+        data-testid="team-row-id2"
+      >
+        Team 2
+      </div>
+    </div>
+    <div
+      class="AbstractList__footer"
+    >
+      <div
+        class="counter"
+      >
+        1 - 2 of 2
+      </div>
+      <button
+        class="btn btn-tertiary prev disabled"
+        disabled=""
+        type="button"
+      >
+        <i
+          class="icon icon-chevron-left"
+          title="Previous Icon"
+        />
+      </button>
+      <button
+        class="btn btn-tertiary next disabled"
+        disabled=""
+        type="button"
+      >
+        <i
+          class="icon icon-chevron-right"
+          title="Next Icon"
+        />
+      </button>
+    </div>
+  </div>
+</div>
 `;

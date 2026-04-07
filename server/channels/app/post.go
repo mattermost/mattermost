@@ -18,7 +18,6 @@ import (
 	"maps"
 	"slices"
 
-	agentclient "github.com/mattermost/mattermost-plugin-ai/public/bridgeclient"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
@@ -301,8 +300,8 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		return nil, false, err
 	}
 
-	// Temporary fix so old plugins don't clobber new fields in SlackAttachment struct, see MM-13088
-	if attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment); ok {
+	// Temporary fix so old plugins don't clobber new fields in MessageAttachment struct, see MM-13088
+	if attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment); ok {
 		jsonAttachments, err := json.Marshal(attachments)
 		if err == nil {
 			attachmentsInterface := []any{}
@@ -1208,6 +1207,35 @@ func (a *App) GetPostsPage(rctx request.CTX, options model.GetPostsOptions) (*mo
 	}
 
 	// The postList is sorted as only rootPosts Order is included
+	if appErr = a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
+		return nil, appErr
+	}
+
+	a.applyPostsWillBeConsumedHook(postList.Posts)
+
+	return postList, nil
+}
+
+// GetPostsForView returns posts for a specific view. Currently returns all channel posts.
+// TODO: In the future, this will filter posts based on the view's configuration (e.g., property values, sort order).
+func (a *App) GetPostsForView(rctx request.CTX, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+	postList, err := a.Srv().Store().Post().GetPosts(rctx, options, false, a.Config().GetSanitizeOptions())
+	if err != nil {
+		var invErr *store.ErrInvalidInput
+		switch {
+		case errors.As(err, &invErr):
+			return nil, model.NewAppError("GetPostsForView", "app.post.get_posts.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		default:
+			return nil, model.NewAppError("GetPostsForView", "app.post.get_posts_for_view.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	var appErr *model.AppError
+	postList, appErr = a.revealBurnOnReadPostsForUser(rctx, postList, options.UserId)
+	if appErr != nil {
+		return nil, appErr
+	}
+
 	if appErr = a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
@@ -3201,11 +3229,9 @@ func (a *App) RewriteMessage(
 	if rootID != "" {
 		context, appErr := a.buildThreadContextForRewrite(rctx, rootID)
 		if appErr != nil {
-			// Log error but continue without context rather than failing the rewrite
-			rctx.Logger().Warn("Failed to build thread context for rewrite", mlog.String("root_id", rootID), mlog.Err(appErr))
-		} else {
-			threadContext = context
+			return nil, appErr
 		}
+		threadContext = context
 	}
 
 	userPrompt := getRewritePromptForAction(action, message, customPrompt, threadContext)
@@ -3225,16 +3251,23 @@ func (a *App) RewriteMessage(
 
 	systemPrompt := buildRewriteSystemPrompt(userLocale)
 
-	// Prepare completion request in the format expected by the client
-	client := a.GetBridgeClient(rctx.Session().UserId)
-	completionRequest := agentclient.CompletionRequest{
-		Posts: []agentclient.Post{
+	sessionUserID := ""
+	if session := rctx.Session(); session != nil {
+		sessionUserID = session.UserId
+	}
+
+	completionRequest := BridgeCompletionRequest{
+		Operation:       BridgeOperationRewrite,
+		ClientOperation: "message_rewrite",
+		Messages: []BridgeMessage{
 			{Role: "system", Message: systemPrompt},
 			{Role: "user", Message: userPrompt},
 		},
+		OperationSubType: normalizeRewriteAction(action),
+		UserID:           sessionUserID,
 	}
 
-	completion, err := client.AgentCompletion(agentID, completionRequest)
+	completion, err := a.ch.agentsBridge.AgentCompletion(sessionUserID, agentID, completionRequest)
 	if err != nil {
 		return nil, model.NewAppError("RewriteMessage", "app.post.rewrite.agent_call_failed", nil, err.Error(), 500)
 	}
@@ -3255,8 +3288,17 @@ func (a *App) RewriteMessage(
 func (a *App) buildThreadContextForRewrite(rctx request.CTX, rootID string) (string, *model.AppError) {
 	const maxContextPosts = 10
 
-	// Get the thread posts
-	postList, appErr := a.GetPostThread(rctx, rootID, model.GetPostsOptions{}, rctx.Session().UserId)
+	anchorPost, appErr, _ := a.GetPostIfAuthorized(rctx, rootID, rctx.Session(), false)
+	if appErr != nil {
+		return "", appErr
+	}
+	threadRootID := anchorPost.RootId
+	if threadRootID == "" {
+		threadRootID = anchorPost.Id
+	}
+
+	// Get the thread posts (only after confirming the session may read the anchor post's channel)
+	postList, appErr := a.GetPostThread(rctx, anchorPost.Id, model.GetPostsOptions{}, rctx.Session().UserId)
 	if appErr != nil {
 		return "", appErr
 	}
@@ -3266,7 +3308,7 @@ func (a *App) buildThreadContextForRewrite(rctx request.CTX, rootID string) (str
 	}
 
 	// Get root post
-	rootPost, ok := postList.Posts[rootID]
+	rootPost, ok := postList.Posts[threadRootID]
 	if !ok {
 		return "", nil
 	}
@@ -3279,7 +3321,7 @@ func (a *App) buildThreadContextForRewrite(rctx request.CTX, rootID string) (str
 	// Collect reply posts, filtering out system posts and deleted posts
 	var replies []*model.Post
 	for _, postID := range postList.Order {
-		if postID == rootID {
+		if postID == threadRootID {
 			continue // Skip root post
 		}
 		post, ok := postList.Posts[postID]
@@ -3345,6 +3387,23 @@ func (a *App) buildThreadContextForRewrite(rctx request.CTX, rootID string) (str
 	}
 
 	return contextBuilder.String(), nil
+}
+
+// normalizeRewriteAction maps a RewriteAction to a known subtype string for
+// operation tracking. Unknown actions are mapped to "unknown".
+func normalizeRewriteAction(action model.RewriteAction) string {
+	switch action {
+	case model.RewriteActionCustom,
+		model.RewriteActionShorten,
+		model.RewriteActionElaborate,
+		model.RewriteActionImproveWriting,
+		model.RewriteActionFixSpelling,
+		model.RewriteActionSimplify,
+		model.RewriteActionSummarize:
+		return string(action)
+	default:
+		return "unknown"
+	}
 }
 
 // getRewritePromptForAction returns the appropriate prompt and system prompt for the given rewrite action
