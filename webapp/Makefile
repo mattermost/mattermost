@@ -76,10 +76,25 @@ i18n-extract-check: node_modules ## Checks if en.json is in sync with code
 	npm run i18n-extract:check
 
 .PHONY: dist
-dist: node_modules ## Builds all web app packages
+dist: node_modules source-tarball ## Builds all web app packages
 	@echo Packaging Mattermost Web App
 
 	npm run build
+	@# Re-generate the source tarball inside dist/ since `npm run build` may
+	@# recreate channels/dist/ from scratch.
+	$(MAKE) channels/dist/source.tar.gz
+
+.PHONY: source-tarball
+source-tarball: channels/dist/source.tar.gz ## AGPL §13: build a tarball of the corresponding source to be served on /static/source.tar.gz
+
+channels/dist/source.tar.gz:
+	@echo "Generating AGPL corresponding-source tarball"
+	@mkdir -p channels/dist
+	@cd .. && git archive \
+		--format=tar.gz \
+		--prefix=mattermost-$$(git rev-parse --short HEAD)/ \
+		-o webapp/channels/dist/source.tar.gz \
+		HEAD
 
 node_modules: package.json $(wildcard package-lock.json)
 	@echo Getting dependencies using npm
