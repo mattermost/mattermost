@@ -1452,6 +1452,9 @@ describe('makeGetChannelsByCategory', () => {
 describe('isChannelInManagedCategory', () => {
     const state = {
         entities: {
+            general: {
+                config: {EnableManagedChannelCategories: 'true'},
+            },
             channels: {
                 channels: {
                     channel1: {id: 'channel1', team_id: 'team1'},
@@ -1487,6 +1490,9 @@ describe('isChannelInManagedCategory', () => {
 describe('getChannelManagedCategoryName', () => {
     const state = {
         entities: {
+            general: {
+                config: {EnableManagedChannelCategories: 'true'},
+            },
             channels: {
                 channels: {
                     channel1: {id: 'channel1', team_id: 'team1'},
@@ -1520,6 +1526,9 @@ describe('makeGetManagedCategoriesForTeam', () => {
 
         const state = {
             entities: {
+                general: {
+                    config: {EnableManagedChannelCategories: 'true'},
+                },
                 channelCategories: {
                     managedCategoryMappings: {},
                 },
@@ -1537,6 +1546,9 @@ describe('makeGetManagedCategoriesForTeam', () => {
 
         const state = {
             entities: {
+                general: {
+                    config: {EnableManagedChannelCategories: 'true'},
+                },
                 channelCategories: {
                     managedCategoryMappings: {
                         team1: {
@@ -1597,6 +1609,9 @@ describe('makeGetCategoriesForTeam (merged)', () => {
 
         const state = {
             entities: {
+                general: {
+                    config: {EnableManagedChannelCategories: 'true'},
+                },
                 channelCategories: {
                     byId: {favorites1: userCategory1, channels1: userCategory2},
                     orderByTeam: {team1: ['favorites1', 'channels1']},
@@ -1617,6 +1632,9 @@ describe('makeGetCategoriesForTeam (merged)', () => {
 
         const state = {
             entities: {
+                general: {
+                    config: {EnableManagedChannelCategories: 'true'},
+                },
                 channelCategories: {
                     byId: {favorites1: userCategory1, channels1: userCategory2},
                     orderByTeam: {team1: ['favorites1', 'channels1']},
@@ -1653,6 +1671,9 @@ describe('makeGetCategoriesForTeam (merged)', () => {
 
         const state = {
             entities: {
+                general: {
+                    config: {EnableManagedChannelCategories: 'true'},
+                },
                 channelCategories: {
                     byId: {favorites1: userCategory1, channels1: userCategory2},
                     orderByTeam: {team1: ['favorites1', 'channels1']},
