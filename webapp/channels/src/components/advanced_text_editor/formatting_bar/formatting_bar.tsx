@@ -4,7 +4,7 @@
 import {useFloating, offset, useClick, useDismiss, useInteractions} from '@floating-ui/react';
 import type {Editor} from '@tiptap/react';
 import classNames from 'classnames';
-import React, {memo, useCallback, useEffect, useMemo, useState, useReducer} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState, useReducer} from 'react';
 import {useIntl} from 'react-intl';
 import {CSSTransition} from 'react-transition-group';
 import styled from 'styled-components';
@@ -17,6 +17,7 @@ import type {ApplyMarkdownOptions, MarkdownMode} from 'utils/markdown/apply_mark
 
 import FormattingIcon, {IconContainer} from './formatting_icon';
 import {LayoutModes, useFormattingBarControls} from './hooks';
+import LinkPopover from './link_popover';
 import TextStyleDropdown from './text_style_dropdown';
 
 export const Separator = styled.div`
@@ -188,24 +189,8 @@ function applyWysiwygCommand(editor: Editor, mode: MarkdownMode): boolean {
     case 'ol':
         editor.chain().focus().toggleOrderedList().run();
         return true;
-    case 'link': {
-        if (editor.isActive('link')) {
-            editor.chain().focus().unsetLink().run();
-            return true;
-        }
-        const {from, to} = editor.state.selection;
-        const selectedText = editor.state.doc.textBetween(from, to, '');
-        const url = window.prompt('Enter URL:', 'https://');
-        if (url) {
-            if (selectedText) {
-                editor.chain().focus().setLink({href: url}).run();
-            } else {
-                const linkText = window.prompt('Enter link text:', '') || url;
-                editor.chain().focus().insertContent(`<a href="${url}">${linkText}</a>`).run();
-            }
-        }
-        return true;
-    }
+    case 'link':
+        return false;
     default:
         return false;
     }
@@ -222,6 +207,8 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
         getWysiwygEditor,
     } = props;
     const [showHiddenControls, setShowHiddenControls] = useState(false);
+    const [linkPopoverEditor, setLinkPopoverEditor] = useState<Editor | null>(null);
+    const linkButtonRef = useRef<HTMLElement | null>(null);
 
     const additionalControlsCount = useMemo(() => {
         return Array.isArray(additionalControls) ? additionalControls.filter(Boolean).length : 0;
@@ -234,7 +221,7 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
     useEffect(() => {
         const editor = getWysiwygEditor?.();
         if (!editor || editor.isDestroyed) {
-            return;
+            return undefined;
         }
 
         editor.on('selectionUpdate', forceUpdate);
@@ -284,6 +271,10 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
 
         const wysiwygEditor = getWysiwygEditor?.();
         if (wysiwygEditor && !wysiwygEditor.isDestroyed) {
+            if (mode === 'link') {
+                setLinkPopoverEditor(wysiwygEditor);
+                return;
+            }
             applyWysiwygCommand(wysiwygEditor, mode);
             if (showHiddenControls) {
                 setShowHiddenControls(true);
@@ -342,13 +333,25 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
                 const wysiwygEditor = getWysiwygEditor?.();
                 return (
                     <React.Fragment key={mode}>
-                        <FormattingIcon
-                            mode={mode}
-                            className='control'
-                            onClick={makeFormattingHandler(mode)}
-                            disabled={disableControls}
-                            isActive={wysiwygEditor ? isWysiwygMarkActive(wysiwygEditor, mode) : undefined}
-                        />
+                        {mode === 'link' && getWysiwygEditor ? (
+                            <span ref={(el) => { linkButtonRef.current = el; }}>
+                                <FormattingIcon
+                                    mode={mode}
+                                    className='control'
+                                    onClick={makeFormattingHandler(mode)}
+                                    disabled={disableControls}
+                                    isActive={wysiwygEditor ? isWysiwygMarkActive(wysiwygEditor, mode) : undefined}
+                                />
+                            </span>
+                        ) : (
+                            <FormattingIcon
+                                mode={mode}
+                                className='control'
+                                onClick={makeFormattingHandler(mode)}
+                                disabled={disableControls}
+                                isActive={wysiwygEditor ? isWysiwygMarkActive(wysiwygEditor, mode) : undefined}
+                            />
+                        )}
                         {mode === 'heading' && showSeparators && <Separator/>}
                     </React.Fragment>
                 );
@@ -415,6 +418,14 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
                     })}
                 </HiddenControlsContainer>
             </CSSTransition>
+
+            {linkPopoverEditor && !linkPopoverEditor.isDestroyed && (
+                <LinkPopover
+                    editor={linkPopoverEditor}
+                    anchorEl={linkButtonRef.current}
+                    onClose={() => setLinkPopoverEditor(null)}
+                />
+            )}
         </FormattingBarContainer>
     );
 };

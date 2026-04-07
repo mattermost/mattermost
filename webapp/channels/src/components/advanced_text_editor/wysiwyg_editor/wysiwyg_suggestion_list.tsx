@@ -6,13 +6,13 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useSelector} from 'react-redux';
 
 import Permissions from 'mattermost-redux/constants/permissions';
+import {getDefaultAgent} from 'mattermost-redux/selectors/entities/agents';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getAssociatedGroupsForReference} from 'mattermost-redux/selectors/entities/groups';
 import {makeGetProfilesForThread} from 'mattermost-redux/selectors/entities/posts';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {getDefaultAgent} from 'mattermost-redux/selectors/entities/agents';
 
 import {autocompleteChannels} from 'actions/channel_actions';
 import {autocompleteUsersInChannel} from 'actions/views/channel';
@@ -63,11 +63,12 @@ const WysiwygSuggestionList = ({editor, channelId, rootId}: Props) => {
     const defaultAgent = useSelector(getDefaultAgent);
 
     const useGroupMentions = license?.IsLicensed === 'true' && license?.LDAPGroups === 'true';
-    const autocompleteGroups = useSelector((state: GlobalState) =>
-        (useGroupMentions && haveIChannelPermission(state, currentTeamId, channelId, Permissions.USE_GROUP_MENTIONS)) ?
-            getAssociatedGroupsForReference(state, currentTeamId, channelId) :
-            null,
-    );
+    const autocompleteGroups = useSelector((state: GlobalState) => {
+        if (useGroupMentions && haveIChannelPermission(state, currentTeamId, channelId, Permissions.USE_GROUP_MENTIONS)) {
+            return getAssociatedGroupsForReference(state, currentTeamId, channelId);
+        }
+        return null;
+    });
 
     const getProfilesForThread = useMemo(makeGetProfilesForThread, []);
     const priorityProfiles = useSelector((state: GlobalState) => getProfilesForThread(state, rootId ?? ''));
@@ -115,7 +116,7 @@ const WysiwygSuggestionList = ({editor, channelId, rootId}: Props) => {
 
     useEffect(() => {
         if (!editor || editor.isDestroyed) {
-            return;
+            return undefined;
         }
 
         const handleUpdate = () => {
@@ -194,7 +195,7 @@ const WysiwygSuggestionList = ({editor, channelId, rootId}: Props) => {
 
     useEffect(() => {
         if (!editor || editor.isDestroyed) {
-            return;
+            return undefined;
         }
 
         const editorElement = editor.view.dom;

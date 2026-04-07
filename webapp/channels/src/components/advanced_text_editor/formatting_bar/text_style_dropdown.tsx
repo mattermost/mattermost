@@ -58,8 +58,8 @@ const MenuItem = styled.button<{$active?: boolean}>`
     width: 100%;
     padding: 6px 20px;
     border: none;
-    background: ${({$active}) => $active ? 'rgba(var(--button-bg-rgb), 0.08)' : 'transparent'};
-    color: ${({$active}) => $active ? 'var(--button-bg)' : 'var(--center-channel-color)'};
+    background: ${({$active}) => ($active ? 'rgba(var(--button-bg-rgb), 0.08)' : 'transparent')};
+    color: ${({$active}) => ($active ? 'var(--button-bg)' : 'var(--center-channel-color)')};
     font-size: 14px;
     text-align: left;
     cursor: pointer;
