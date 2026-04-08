@@ -14,7 +14,7 @@ USAGE
 
 up()
 {
-    docker compose --profile postgres --profile minio --profile inbucket --profile openldap --profile elasticsearch --profile opensearch --profile redis up --wait --wait-timeout 300
+    docker compose up --wait --wait-timeout 300 postgres minio inbucket openldap elasticsearch opensearch redis
 
     docker compose exec openldap bash -c 'echo -e "dn: ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: organizationalunit" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest'
     docker compose exec openldap bash -c 'echo -e "dn: uid=test.one,ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: iNetOrgPerson\nsn: User\ncn: Test1\nmail: success+testone@simulator.amazonses.com" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest'

@@ -1,67 +1,54 @@
 services:
   postgres:
-    profiles: [postgres]
     extends:
         file: docker-compose.common.yml
         service: postgres
     tmpfs: /var/lib/postgresql/data
   minio:
-    profiles: [minio]
     extends:
         file: docker-compose.common.yml
         service: minio
   inbucket:
-    profiles: [inbucket]
     extends:
         file: docker-compose.common.yml
         service: inbucket
   openldap:
-    profiles: [openldap]
     extends:
         file: docker-compose.common.yml
         service: openldap
   elasticsearch:
-    profiles: [elasticsearch]
     extends:
         file: docker-compose.common.yml
         service: elasticsearch
   opensearch:
-    profiles: [opensearch]
     extends:
         file: docker-compose.common.yml
         service: opensearch
   redis:
-    profiles: [redis]
     extends:
         file: docker-compose.common.yml
         service: redis
   dejavu:
-    profiles: [dejavu]
     extends:
         file: docker-compose.common.yml
         service: dejavu
   keycloak:
-    profiles: [keycloak]
     extends:
         file: docker-compose.common.yml
         service: keycloak
   prometheus:
-    profiles: [prometheus]
     extends:
         file: docker-compose.common.yml
         service: prometheus
   grafana:
-    profiles: [grafana]
     extends:
         file: docker-compose.common.yml
         service: grafana
   loki:
-    profiles: [loki]
     extends:
         file: docker-compose.common.yml
         service: loki
   otel-collector:
-    profiles: [otel-collector]
     extends:
         file: docker-compose.common.yml
         service: otel-collector
