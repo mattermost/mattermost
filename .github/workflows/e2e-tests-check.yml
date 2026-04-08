@@ -50,7 +50,7 @@ jobs:
         working-directory: e2e-tests
         run: make check-shell
 
-      # E2E-only check and trigger
+      # E2E test-only check and trigger
       - name: ci/check-e2e-test-only
         id: check
         uses: ./.github/actions/check-e2e-test-only

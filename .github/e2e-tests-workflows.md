@@ -6,7 +6,7 @@ Three automated E2E test pipelines cover different stages of the development lif
 
 | Pipeline | Trigger | Editions Tested | Image Source |
 |----------|---------|----------------|--------------|
-| **PR** (`e2e-tests-ci.yml`) | Argo Events on `Enterprise CI/docker-image` status | enterprise | `mattermostdevelopment/**` |
+| **PR** (`e2e-tests-ci.yml`) | `pull_request`, `Enterprise CI/docker-image` status, slash command, label | enterprise | `mattermostdevelopment/**` |
 | **Merge to master/release** (`e2e-tests-on-merge.yml`) | Platform delivery after docker build (`delivery-platform/.github/workflows/mattermost-platform-delivery.yaml`) | enterprise, fips | `mattermostdevelopment/**` |
 | **Release cut** (`e2e-tests-on-release.yml`) | Platform release after docker build (`delivery-platform/.github/workflows/release-mattermost-platform.yml`) | enterprise, fips, team (future) | `mattermost/**` |
 
@@ -22,31 +22,45 @@ All pipelines follow the **smoke-then-full** pattern: smoke tests run first, ful
 ├── e2e-tests-cypress.yml               # Shared wrapper: cypress smoke -> full
 ├── e2e-tests-playwright.yml            # Shared wrapper: playwright smoke -> full
 ├── e2e-tests-cypress-template.yml      # Template: actual cypress test execution
-└── e2e-tests-playwright-template.yml   # Template: actual playwright test execution
+├── e2e-tests-playwright-template.yml   # Template: actual playwright test execution
+├── e2e-tests-check.yml                 # PR lint/typecheck for e2e test files
+├── e2e-tests-verified-label.yml        # Override failed E2E statuses (dispatched by label-dispatch)
+├── e2e-tests-override-status.yml       # Manual override of failed E2E statuses
+├── slash-command-dispatch.yml          # Catch-all dispatcher for PR slash commands
+└── label-dispatch.yml                  # Catch-all dispatcher for PR labels
 ```
 
 ### Call hierarchy
 
 ```
-e2e-tests-ci.yml ─────────────────┐
-e2e-tests-on-merge.yml ───────────┤──► e2e-tests-cypress.yml ──► e2e-tests-cypress-template.yml
-e2e-tests-on-release.yml ─────────┘    e2e-tests-playwright.yml ──► e2e-tests-playwright-template.yml
+slash-command-dispatch.yml ──► e2e-tests-ci.yml ──────────┐
+label-dispatch.yml ──────────► e2e-tests-ci.yml           │
+                               e2e-tests-on-merge.yml ────┤──► e2e-tests-cypress.yml ──► e2e-tests-cypress-template.yml
+                               e2e-tests-on-release.yml ──┘    e2e-tests-playwright.yml ──► e2e-tests-playwright-template.yml
+
+label-dispatch.yml ──────────► e2e-tests-verified-label.yml
+slash-command-dispatch.yml ──► pr-test-analysis-override.yml
 ```
 
 ---
 
 ## Pipeline 1: PR (`e2e-tests-ci.yml`)
 
-Runs E2E tests for every PR commit after the enterprise docker image is built. Fails if the commit is not associated with an open PR.
+Runs E2E tests for PR commits. Uses early decision-making to avoid unnecessary waits.
 
-**Trigger chain:**
+**Trigger paths:**
 ```
-PR commit ─► Enterprise CI builds docker image
-           ─► Argo Events detects "Enterprise CI/docker-image" status
-           ─► dispatches e2e-tests-ci.yml
+PR open/sync/reopen ─► check file changes and image_tag
+  ├─ should_run=false ─► post skip statuses immediately (no wait for Enterprise CI)
+  ├─ image_tag=master/release-* ─► run tests immediately with existing image
+  └─ image_tag=<sha> ─► exit (wait for Enterprise CI)
+
+Enterprise CI builds docker image
+  ─► sets "Enterprise CI/docker-image" commit status to "success"
+  ─► GitHub fires status event ─► run tests with commit-specific image
 ```
 
-For PRs from forks, `body.branches` may be empty so the workflow falls back to `master` for workflow files (trusted code), while `commit_sha` still points to the fork's commit.
+The `pull_request` event checks for E2E test-relevant changes and whether the PR is E2E test-only (can reuse a branch image). The `status` event handles the case where a commit-specific docker image is needed.
 
 **Jobs:** 2 (cypress + playwright), each does smoke -> full
 
@@ -67,18 +81,55 @@ gh workflow run e2e-tests-ci.yml \
 ```
 
 **Manual trigger (GitHub UI):**
-1. Go to **Actions** > **E2E Tests (smoke-then-full)**
+1. Go to **Actions** > **E2E Tests (pull request)**
 2. Click **Run workflow**
 3. Fill in `pr_number` (e.g., `35171`)
 4. Click **Run workflow**
 
 ### On-demand testing
 
-For on-demand E2E testing, the existing triggers still work:
-- **Comment triggers**: `/e2e-test`, `/e2e-test fips`, or with `MM_ENV` parameters
-- **Label trigger**: `E2E/Run`
+On-demand E2E testing can be triggered via slash commands or labels:
 
-These are separate from the automated workflow and can be used for custom test configurations or re-runs.
+| Trigger | Action |
+|---------|--------|
+| `/e2e-test` comment on PR | Dispatches `e2e-tests-ci.yml` via `slash-command-dispatch.yml` |
+| `E2E Tests/run` label on PR | Dispatches `e2e-tests-ci.yml` via `label-dispatch.yml` (label auto-removed) |
+
+Both require write permission to `mattermost/mattermost`.
+
+---
+
+## Slash Command Dispatch (`slash-command-dispatch.yml`)
+
+Single `issue_comment` listener that catches all `/` commands on PRs and dispatches to the appropriate workflow. Reduces skipped checks by consolidating all slash command handling into one workflow.
+
+**Supported commands:**
+
+| Command | Target Workflow |
+|---------|----------------|
+| `/e2e-test` | `e2e-tests-ci.yml` |
+| `/test-analysis-override <reason>` | `pr-test-analysis-override.yml` |
+
+**Permission model (two layers):**
+1. **Job `if` (free, no runner):** `author_association` check filters out external contributors
+2. **API check (first step):** Verifies write permission to `mattermost/mattermost` via `gh api repos/mattermost/mattermost/collaborators/{user}/permission`
+
+Unknown commands are silently ignored (no reaction, no error).
+
+---
+
+## Label Dispatch (`label-dispatch.yml`)
+
+Single `pull_request: [labeled]` listener that catches label events and dispatches to the appropriate workflow. Same consolidation pattern as slash commands.
+
+**Supported labels:**
+
+| Label | Target Workflow |
+|-------|----------------|
+| `E2E Tests/run` | `e2e-tests-ci.yml` (label auto-removed after dispatch) |
+| `E2E Tests/verified` | `e2e-tests-verified-label.yml` |
+
+**Permission model:** Same two-layer check as slash command dispatch — `startsWith` pre-filter in job `if`, then API permission check as first step.
 
 ---
 
@@ -200,6 +251,7 @@ Where `<phase>` is `cypress-smoke`, `cypress-full`, `playwright-smoke`, or `play
 - All passed: `100% passed (<count>), <specs> specs, image_tag:<tag>[ (<aliases>)]`
 - With failures: `<rate>% passed (<passed>/<total>), <failed> failed, <specs> specs, image_tag:<tag>[ (<aliases>)]`
 - Pending: `tests running, image_tag:<tag>[ (<aliases>)]`
+- Skipped: `No E2E test-relevant changes - skipped`
 
 - Pass rate: `100%` if all pass, otherwise one decimal (e.g., `99.5%`)
 - Aliases only present for release cuts
@@ -210,6 +262,7 @@ Where `<phase>` is `cypress-smoke`, `cypress-full`, `playwright-smoke`, or `play
 2. **Full test fails**: Full commit status shows failure with pass rate
 3. **Both pass**: Both smoke and full commit statuses show success
 4. **No PR found** (PR pipeline only): Workflow fails immediately
+5. **No relevant changes** (PR pipeline only): Skip statuses posted immediately
 
 ---
 

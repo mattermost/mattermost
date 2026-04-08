@@ -2,36 +2,37 @@
 name: "E2E Tests/verified"
 
 on:
-  pull_request:
-    types: [labeled]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "PR number"
+        type: string
+        required: true
+      commit_sha:
+        description: "PR head commit SHA"
+        type: string
+        required: true
+      sender:
+        description: "GitHub username (optional, defaults to workflow triggering actor)"
+        type: string
+        required: false
+
+permissions:
+  statuses: write
 
 env:
   REPORT_WEBHOOK_URL: ${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}
+  SENDER: ${{ inputs.sender || github.actor }}
 
 jobs:
   approve-e2e:
-    if: github.event.label.name == 'E2E Tests/verified'
     runs-on: ubuntu-24.04
     steps:
-      - name: ci/check-user-permission
-        id: check-permission
-        env:
-          GH_TOKEN: ${{ github.token }}
-          LABEL_AUTHOR: ${{ github.event.sender.login }}
-        run: |
-          # Check if user has write permission to the repository
-          PERMISSION=$(gh api repos/${{ github.repository }}/collaborators/${LABEL_AUTHOR}/permission --jq '.permission' 2>/dev/null || echo "none")
-          if [[ "$PERMISSION" != "admin" && "$PERMISSION" != "write" ]]; then
-            echo "User ${LABEL_AUTHOR} doesn't have write permission to the repository (permission: ${PERMISSION})"
-            exit 1
-          fi
-          echo "User ${LABEL_AUTHOR} has ${PERMISSION} permission to the repository"
-
       - name: ci/override-failed-statuses
         id: override
         env:
           GH_TOKEN: ${{ github.token }}
-          COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
+          COMMIT_SHA: ${{ inputs.commit_sha }}
         run: |
           # Only full tests can be overridden (smoke tests must pass)
           FULL_TEST_CONTEXTS=("e2e-test/playwright-full/enterprise" "e2e-test/cypress-full/enterprise")
@@ -62,12 +63,12 @@ jobs:
               continue
             fi
 
-          # Prefix existing description
-          if [ -n "$CURRENT_DESC" ]; then
-            NEW_MSG="(verified) ${CURRENT_DESC}"
-          else
-            NEW_MSG="(verified)"
-          fi
+            # Prefix existing description
+            if [ -n "$CURRENT_DESC" ]; then
+              NEW_MSG="(verified) ${CURRENT_DESC}"
+            else
+              NEW_MSG="(verified)"
+            fi
 
             echo "  New: $NEW_MSG"
 
@@ -133,10 +134,10 @@ jobs:
         env:
           REPORT_WEBHOOK_URL: ${{ env.REPORT_WEBHOOK_URL }}
           MESSAGE_TEXT: ${{ steps.webhook-message.outputs.message_text }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          PR_URL: ${{ github.event.pull_request.html_url }}
-          COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
-          SENDER: ${{ github.event.sender.login }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          PR_URL: ${{ github.server_url }}/${{ github.repository }}/pull/${{ inputs.pr_number }}
+          COMMIT_SHA: ${{ inputs.commit_sha }}
+          SENDER: ${{ env.SENDER }}
         run: |
           PAYLOAD=$(cat <<EOF
           {

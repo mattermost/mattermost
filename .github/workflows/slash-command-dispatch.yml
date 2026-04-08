@@ -1,0 +1,103 @@
+---
+name: Slash Command Dispatch
+
+# Supported commands:
+#   /e2e-test                          → dispatches e2e-tests-ci.yml
+#   /test-analysis-override <reason>   → dispatches pr-test-analysis-override.yml
+
+on:
+  issue_comment:
+    types: [created]
+
+# Required to dispatch other workflows via gh workflow run
+permissions:
+  actions: write
+
+env:
+  CMD_E2E_TEST: e2e-test
+  CMD_TEST_ANALYSIS_OVERRIDE: test-analysis-override
+
+jobs:
+  dispatch:
+    # Pre-filter: skip runner for non-PR comments, non-slash, or outside contributors.
+    # author_association is a cheap gate; real permission check happens in ci/check-user-permission.
+    if: >-
+      github.repository == 'mattermost/mattermost' &&
+      github.event.issue.pull_request &&
+      startsWith(github.event.comment.body, '/') &&
+      contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
+    runs-on: ubuntu-24.04
+    steps:
+      - name: ci/check-user-permission
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SENDER: ${{ github.event.comment.user.login }}
+        run: |
+          PERMISSION=$(gh api repos/mattermost/mattermost/collaborators/${SENDER}/permission --jq '.permission' 2>/dev/null || echo "none")
+          if [[ "$PERMISSION" != "admin" && "$PERMISSION" != "write" ]]; then
+            echo "::error::User ${SENDER} doesn't have write permission to mattermost/mattermost (permission: ${PERMISSION})"
+            exit 1
+          fi
+          echo "User ${SENDER} has ${PERMISSION} permission"
+
+      - name: ci/parse-command
+        id: parse
+        env:
+          COMMENT_BODY: ${{ github.event.comment.body }}
+        run: |
+          # Extract command name (first word after /)
+          COMMAND=$(echo "$COMMENT_BODY" | head -1 | awk '{print $1}' | sed 's|^/||')
+          ARGS=$(echo "$COMMENT_BODY" | head -1 | sed 's|^/[^ ]* *||')
+
+          # Match against known commands
+          case "$COMMAND" in
+            "$CMD_E2E_TEST"|"$CMD_TEST_ANALYSIS_OVERRIDE")
+              echo "known=true" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "Unknown command: /${COMMAND} — ignoring"
+              echo "known=false" >> $GITHUB_OUTPUT
+              ;;
+          esac
+
+          echo "command=${COMMAND}" >> $GITHUB_OUTPUT
+          echo "args=${ARGS}" >> $GITHUB_OUTPUT
+
+      - name: ci/ack-reaction
+        if: steps.parse.outputs.known == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMMENT_ID: ${{ github.event.comment.id }}
+        run: |
+          gh api repos/mattermost/mattermost/issues/comments/${COMMENT_ID}/reactions \
+            -f content='+1' 2>/dev/null || true
+
+      - name: ci/dispatch-e2e-test
+        if: steps.parse.outputs.command == env.CMD_E2E_TEST
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh workflow run e2e-tests-ci.yml \
+            --repo "mattermost/mattermost" \
+            --field pr_number="${PR_NUMBER}"
+          echo "Dispatched e2e-tests-ci.yml for PR #${PR_NUMBER}"
+
+      - name: ci/dispatch-test-analysis-override
+        if: steps.parse.outputs.command == env.CMD_TEST_ANALYSIS_OVERRIDE
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          REASON: ${{ steps.parse.outputs.args }}
+          SENDER: ${{ github.event.comment.user.login }}
+        run: |
+          if [ -z "$REASON" ]; then
+            echo "::error::No reason provided. Usage: /test-analysis-override <reason>"
+            exit 1
+          fi
+          gh workflow run pr-test-analysis-override.yml \
+            --repo "mattermost/mattermost" \
+            --field pr_number="${PR_NUMBER}" \
+            --field reason="${REASON}" \
+            --field sender="${SENDER}"
+          echo "Dispatched pr-test-analysis-override.yml for PR #${PR_NUMBER}"

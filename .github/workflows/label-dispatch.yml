@@ -1,0 +1,74 @@
+---
+name: Label Dispatch
+
+# Supported labels:
+#   E2E Tests/run       → dispatches e2e-tests-ci.yml
+#   E2E Tests/verified  → dispatches e2e-tests-verified-label.yml
+
+on:
+  pull_request:
+    types: [labeled]
+
+# Required to dispatch other workflows via gh workflow run
+permissions:
+  actions: write
+
+env:
+  LABEL_E2E_RUN: "E2E Tests/run"
+  LABEL_E2E_VERIFIED: "E2E Tests/verified"
+
+jobs:
+  dispatch:
+    # Only run for known labels from users with write permission
+    if: >-
+      github.repository == 'mattermost/mattermost' &&
+      startsWith(github.event.label.name, 'E2E Tests/')
+    runs-on: ubuntu-24.04
+    steps:
+      - name: ci/check-user-permission
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SENDER: ${{ github.event.sender.login }}
+        run: |
+          PERMISSION=$(gh api repos/mattermost/mattermost/collaborators/${SENDER}/permission --jq '.permission' 2>/dev/null || echo "none")
+          if [[ "$PERMISSION" != "admin" && "$PERMISSION" != "write" ]]; then
+            echo "::error::User ${SENDER} doesn't have write permission to mattermost/mattermost (permission: ${PERMISSION})"
+            exit 1
+          fi
+          echo "User ${SENDER} has ${PERMISSION} permission"
+
+      - name: ci/dispatch-e2e-run
+        if: github.event.label.name == env.LABEL_E2E_RUN
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          gh workflow run e2e-tests-ci.yml \
+            --repo "mattermost/mattermost" \
+            --field pr_number="${PR_NUMBER}"
+          echo "Dispatched e2e-tests-ci.yml for PR #${PR_NUMBER}"
+
+      - name: ci/dispatch-e2e-verified
+        if: github.event.label.name == env.LABEL_E2E_VERIFIED
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
+          SENDER: ${{ github.event.sender.login }}
+        run: |
+          gh workflow run e2e-tests-verified-label.yml \
+            --repo "mattermost/mattermost" \
+            --field pr_number="${PR_NUMBER}" \
+            --field commit_sha="${COMMIT_SHA}" \
+            --field sender="${SENDER}"
+          echo "Dispatched e2e-tests-verified-label.yml for PR #${PR_NUMBER}"
+
+      - name: ci/remove-label
+        if: github.event.label.name == env.LABEL_E2E_RUN
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          gh pr edit "$PR_NUMBER" \
+            --repo "mattermost/mattermost" \
+            --remove-label "$LABEL_E2E_RUN" 2>/dev/null || true

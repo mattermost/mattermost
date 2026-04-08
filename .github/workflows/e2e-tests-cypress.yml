@@ -157,7 +157,7 @@ jobs:
           gh api repos/${{ github.repository }}/statuses/${COMMIT_SHA} \
             -f state=success \
             -f context="${CONTEXT_NAME}" \
-            -f description="No E2E-relevant changes - skipped" \
+            -f description="No E2E test-relevant changes - skipped" \
             -f target_url="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           echo "Posted success for ${CONTEXT_NAME}"
 
