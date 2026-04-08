@@ -28,7 +28,11 @@ name: docs/needed — Open Docs PR
 
 on:
   pull_request_target:
-    types: [labeled, synchronize]
+    types: [labeled, synchronize, issues]
+
+permissions:
+  contents: read
+  pull-requests: write
  
 # One run at a time per dev PR — prevents a race if the label bounces.
 concurrency:
