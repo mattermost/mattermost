@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"database/sql"
 	"errors"
 	"fmt"
 	"io"
@@ -239,7 +240,10 @@ func (a *App) SendSharedChannelSyncMsg(rctx request.CTX, pluginID string, msg *m
 
 	rc, err := a.Srv().Store().RemoteCluster().GetByPluginID(pluginID)
 	if err != nil {
-		return model.SyncResponse{}, fmt.Errorf("plugin %s is not registered for shared channels: %w", pluginID, err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return model.SyncResponse{}, fmt.Errorf("plugin %s is not registered for shared channels: %w", pluginID, err)
+		}
+		return model.SyncResponse{}, fmt.Errorf("error looking up plugin %s registration: %w", pluginID, err)
 	}
 
 	return scService.ProcessSyncMessage(rctx, msg, rc)
@@ -272,7 +276,10 @@ func (a *App) SendSharedChannelAttachmentSyncMsg(rctx request.CTX, pluginID stri
 
 	rc, err := a.Srv().Store().RemoteCluster().GetByPluginID(pluginID)
 	if err != nil {
-		return nil, fmt.Errorf("plugin %s is not registered for shared channels: %w", pluginID, err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("plugin %s is not registered for shared channels: %w", pluginID, err)
+		}
+		return nil, fmt.Errorf("error looking up plugin %s registration: %w", pluginID, err)
 	}
 
 	// Validate channel is shared with this remote
@@ -341,13 +348,20 @@ func (a *App) SendSharedChannelProfileImageSyncMsg(rctx request.CTX, pluginID st
 
 	rc, err := a.Srv().Store().RemoteCluster().GetByPluginID(pluginID)
 	if err != nil {
-		return fmt.Errorf("plugin %s is not registered for shared channels: %w", pluginID, err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("plugin %s is not registered for shared channels: %w", pluginID, err)
+		}
+		return fmt.Errorf("error looking up plugin %s registration: %w", pluginID, err)
 	}
 
 	// Validate user exists and belongs to this remote
 	user, userErr := a.Srv().Store().User().Get(rctx.Context(), userID)
 	if userErr != nil {
-		return fmt.Errorf("user %s not found: %w", userID, userErr)
+		var nfErr *store.ErrNotFound
+		if errors.As(userErr, &nfErr) {
+			return fmt.Errorf("user %s not found: %w", userID, userErr)
+		}
+		return fmt.Errorf("error looking up user %s: %w", userID, userErr)
 	}
 	if user.GetRemoteID() != rc.RemoteId {
 		return fmt.Errorf("user %s does not belong to remote %s", userID, rc.RemoteId)
