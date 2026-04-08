@@ -367,6 +367,12 @@ func (a *App) SendSharedChannelProfileImageSyncMsg(rctx request.CTX, pluginID st
 		return fmt.Errorf("user %s does not belong to remote %s", userID, rc.RemoteId)
 	}
 
+	// Validate image size
+	if a.Config().FileSettings.MaxFileSize != nil && int64(len(image)) > *a.Config().FileSettings.MaxFileSize {
+		return model.NewAppError("SendSharedChannelProfileImageSyncMsg",
+			"api.user.upload_profile_user.too_large.app_error", nil, "", http.StatusRequestEntityTooLarge)
+	}
+
 	// Save profile image
 	if appErr := a.SetProfileImageFromFile(rctx, userID, bytes.NewReader(image)); appErr != nil {
 		return fmt.Errorf("error setting profile image: %w", appErr)
