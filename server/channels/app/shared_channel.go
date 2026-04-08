@@ -228,14 +228,14 @@ func (a *App) SyncSharedChannel(channelID string) error {
 
 // SendSharedChannelSyncMsg processes an inbound sync message from a plugin remote.
 func (a *App) SendSharedChannelSyncMsg(rctx request.CTX, pluginID string, msg *model.SyncMsg) (model.SyncResponse, error) {
-	rc, err := a.Srv().Store().RemoteCluster().GetByPluginID(pluginID)
-	if err != nil {
-		return model.SyncResponse{}, fmt.Errorf("plugin %s is not registered for shared channels: %w", pluginID, err)
-	}
-
 	scService, err := a.getSharedChannelsService(true)
 	if err != nil {
 		return model.SyncResponse{}, err
+	}
+
+	rc, err := a.Srv().Store().RemoteCluster().GetByPluginID(pluginID)
+	if err != nil {
+		return model.SyncResponse{}, fmt.Errorf("plugin %s is not registered for shared channels: %w", pluginID, err)
 	}
 
 	return scService.ProcessSyncMessage(rctx, msg, rc)
@@ -245,6 +245,23 @@ func (a *App) SendSharedChannelSyncMsg(rctx request.CTX, pluginID string, msg *m
 // The server constructs the file path — the plugin provides the FileInfo metadata and
 // raw file bytes, but does not control where the file is stored.
 func (a *App) SendSharedChannelAttachmentSyncMsg(rctx request.CTX, pluginID string, channelID string, fi *model.FileInfo, data io.Reader) (*model.FileInfo, error) {
+	if fi == nil {
+		return nil, model.NewAppError("SendSharedChannelAttachmentSyncMsg",
+			"api.shared_channel.attachment.file_info_required.app_error", nil, "", http.StatusBadRequest)
+	}
+	if data == nil {
+		return nil, model.NewAppError("SendSharedChannelAttachmentSyncMsg",
+			"api.shared_channel.attachment.data_required.app_error", nil, "", http.StatusBadRequest)
+	}
+	if fi.CreatorId == "" {
+		return nil, model.NewAppError("SendSharedChannelAttachmentSyncMsg",
+			"api.shared_channel.attachment.creator_id_required.app_error", nil, "", http.StatusBadRequest)
+	}
+	if fi.Name == "" {
+		return nil, model.NewAppError("SendSharedChannelAttachmentSyncMsg",
+			"api.shared_channel.attachment.filename_required.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if _, err := a.getSharedChannelsService(true); err != nil {
 		return nil, err
 	}

@@ -1008,6 +1008,33 @@ func TestPluginAPISendSharedChannelAttachmentSyncMsg(t *testing.T) {
 		assert.Contains(t, err.Error(), "not shared")
 	})
 
+	t.Run("nil FileInfo returns error", func(t *testing.T) {
+		_, err := api.SendSharedChannelAttachmentSyncMsg(channel.Id, nil, bytes.NewReader([]byte("data")))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "file_info_required")
+	})
+
+	t.Run("nil data returns error", func(t *testing.T) {
+		fi := &model.FileInfo{Name: "test.txt", Size: 4, CreatorId: th.BasicUser.Id}
+		_, err := api.SendSharedChannelAttachmentSyncMsg(channel.Id, fi, nil)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "data_required")
+	})
+
+	t.Run("empty CreatorId returns error", func(t *testing.T) {
+		fi := &model.FileInfo{Name: "test.txt", Size: 4}
+		_, err := api.SendSharedChannelAttachmentSyncMsg(channel.Id, fi, bytes.NewReader([]byte("data")))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "creator_id_required")
+	})
+
+	t.Run("empty Name returns error", func(t *testing.T) {
+		fi := &model.FileInfo{Size: 4, CreatorId: th.BasicUser.Id}
+		_, err := api.SendSharedChannelAttachmentSyncMsg(channel.Id, fi, bytes.NewReader([]byte("data")))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "filename_required")
+	})
+
 	t.Run("syncs an attachment and verifies FileInfo and SharedChannelAttachment in database", func(t *testing.T) {
 		fi := &model.FileInfo{
 			CreatorId: th.BasicUser.Id,
