@@ -87,6 +87,7 @@ services:
     healthcheck:
       <<: *default-healthcheck
       test: ["CMD-SHELL", "nc -z localhost 9200"]
+      retries: 150
   opensearch:
     build:
       context: .
@@ -107,6 +108,7 @@ services:
     healthcheck:
       <<: *default-healthcheck
       test: ["CMD-SHELL", "nc -z localhost 9201"]
+      retries: 150
   redis:
     image: "redis:7.4.0"
     logging: *default-logging
@@ -141,6 +143,7 @@ services:
     healthcheck:
       <<: *default-healthcheck
       test: ["CMD-SHELL", "bash -c ': </dev/tcp/localhost/8080'"]
+      retries: 150
   prometheus:
     image: "prom/prometheus:v2.46.0"
     logging: *default-logging
