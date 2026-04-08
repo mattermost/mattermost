@@ -1,0 +1,31 @@
+.post-image__column--redacted {
+    padding: 0 16px;
+    border-style: dashed;
+    background: rgba(var(--center-channel-color-rgb), 0.04);
+    cursor: default;
+    gap: 12px;
+
+    &:hover,
+    &:focus-within {
+        box-shadow: none;
+    }
+
+    svg {
+        flex-shrink: 0;
+    }
+}
+
+.post-image__redacted-details {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    align-items: center;
+}
+
+.post-image__redacted-message {
+    overflow: hidden;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+    font-size: 12px;
+    line-height: 16px;
+    text-overflow: ellipsis;
+}

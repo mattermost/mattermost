@@ -465,6 +465,7 @@ func (a *App) sanitizeFileAttachmentsForUser(rctx request.CTX, post *model.Post,
 			mlog.String("channel_id", post.ChannelId),
 			mlog.Int("files_removed", len(post.Metadata.Files)),
 		)
+		post.Metadata.RedactedFileCount = len(post.Metadata.Files)
 		post.Metadata.Files = nil
 		post.FileIds = model.StringArray{}
 	}

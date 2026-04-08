@@ -36,6 +36,7 @@ import PostMessageContainer from 'components/post_view/post_message_view';
 import PostPreHeader from 'components/post_view/post_pre_header';
 import PostTime from 'components/post_view/post_time';
 import ReactionList from 'components/post_view/reaction_list';
+import RedactedFilesPlaceholder from 'components/redacted_files_placeholder';
 import ThreadFooter from 'components/threading/channel_threads/thread_footer';
 import type {Props as TimestampProps} from 'components/timestamp/timestamp';
 import InfoSmallIcon from 'components/widgets/icons/info_small_icon';
@@ -722,6 +723,7 @@ function PostComponent(props: Props) {
 
     // Don't show file attachments for concealed burn-on-read posts (attachments only fetched after reveal)
     const showFileAttachments = post.file_ids && post.file_ids.length > 0 && !props.isPostBeingEdited && !showConcealedPlaceholder;
+    const redactedFileCount = post.metadata?.redacted_file_count ?? 0;
 
     return (
         <>
@@ -886,6 +888,9 @@ function PostComponent(props: Props) {
                                     handleFileDropdownOpened={handleFileDropdownOpened}
                                 />
                             }
+                            {redactedFileCount > 0 && !showFileAttachments && (
+                                <RedactedFilesPlaceholder count={redactedFileCount}/>
+                            )}
                             <div className='post__body-reactions-acks'>
                                 {props.isPostAcknowledgementsEnabled && post.metadata?.priority?.requested_ack && (
                                     <PostAcknowledgements
