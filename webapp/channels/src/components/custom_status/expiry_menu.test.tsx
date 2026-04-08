@@ -5,7 +5,7 @@ import React from 'react';
 
 import {CustomStatusDuration} from '@mattermost/types/users';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import ExpiryMenu from './expiry_menu';
 
@@ -16,13 +16,13 @@ describe('components/custom_status/expiry_menu', () => {
     };
 
     it('should match snapshot', () => {
-        const wrapper = mountWithIntl(<ExpiryMenu {...baseProps}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<ExpiryMenu {...baseProps}/>);
+        expect(container).toMatchSnapshot();
     });
 
     it('should match snapshot with different props', () => {
         baseProps.duration = CustomStatusDuration.DATE_AND_TIME;
-        const wrapper = mountWithIntl(<ExpiryMenu {...baseProps}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<ExpiryMenu {...baseProps}/>);
+        expect(container).toMatchSnapshot();
     });
 });

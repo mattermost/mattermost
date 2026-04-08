@@ -245,19 +245,21 @@ func (s *SqlPostStore) SaveMultiple(rctx request.CTX, posts []*model.Post) ([]*m
 		}
 	}
 
-	builder := s.getQueryBuilder().Insert("Posts").Columns(postSliceColumns()...)
-	for _, post := range posts {
-		builder = builder.Values(postToSlice(post)...)
-	}
-
 	transaction, err := s.GetMaster().Beginx()
 	if err != nil {
 		return posts, -1, errors.Wrap(err, "begin_transaction")
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	if _, err = transaction.ExecBuilder(builder); err != nil {
-		return nil, -1, errors.Wrap(err, "failed to save Post")
+	chunks := chunkSlice(posts, len(postSliceColumns()), s.SqlStore.getMaxInsertParams())
+	for _, chunk := range chunks {
+		builder := s.getQueryBuilder().Insert("Posts").Columns(postSliceColumns()...)
+		for _, post := range chunk {
+			builder = builder.Values(postToSlice(post)...)
+		}
+		if _, err = transaction.ExecBuilder(builder); err != nil {
+			return nil, -1, errors.Wrap(err, "failed to save Post")
+		}
 	}
 
 	if err = s.updateThreadsFromPosts(transaction, posts); err != nil {
@@ -345,36 +347,44 @@ func (s *SqlPostStore) Save(rctx request.CTX, post *model.Post) (*model.Post, er
 }
 
 func (s *SqlPostStore) populateReplyCount(posts []*model.Post) error {
-	rootIds := []string{}
+	// Deduplicate root IDs, skipping any root posts (RootId == "").
+	seen := make(map[string]struct{}, len(posts))
+	var rootIds []string
 	for _, post := range posts {
-		rootIds = append(rootIds, post.RootId)
-	}
-	countList := []struct {
-		RootId string
-		Count  int64
-	}{}
-	query := s.getQueryBuilder().
-		Select("RootId, COUNT(Id) AS Count").
-		From("Posts").
-		Where(sq.Eq{"RootId": rootIds}).
-		Where(sq.Eq{"Posts.DeleteAt": 0}).
-		GroupBy("RootId")
-
-	if err := s.GetMaster().SelectBuilder(&countList, query); err != nil {
-		return errors.Wrap(err, "failed to count Posts")
-	}
-
-	counts := map[string]int64{}
-	for _, count := range countList {
-		counts[count.RootId] = count.Count
-	}
-
-	for _, post := range posts {
-		count, ok := counts[post.RootId]
-		if !ok {
-			post.ReplyCount = 0
+		if post.RootId == "" {
+			continue
 		}
-		post.ReplyCount = count
+		if _, ok := seen[post.RootId]; !ok {
+			seen[post.RootId] = struct{}{}
+			rootIds = append(rootIds, post.RootId)
+		}
+	}
+
+	// Query in chunks — each root ID uses 1 parameter in the WHERE IN clause.
+	counts := map[string]int64{}
+	idChunks := chunkSlice(rootIds, 1, s.SqlStore.getMaxInsertParams())
+	for _, idChunk := range idChunks {
+		countList := []struct {
+			RootId string
+			Count  int64
+		}{}
+		query := s.getQueryBuilder().
+			Select("RootId, COUNT(Id) AS Count").
+			From("Posts").
+			Where(sq.Eq{"RootId": idChunk}).
+			Where(sq.Eq{"Posts.DeleteAt": 0}).
+			GroupBy("RootId")
+
+		if err := s.GetMaster().SelectBuilder(&countList, query); err != nil {
+			return errors.Wrap(err, "failed to count Posts")
+		}
+		for _, c := range countList {
+			counts[c.RootId] = c.Count
+		}
+	}
+
+	for _, post := range posts {
+		post.ReplyCount = counts[post.RootId]
 	}
 
 	return nil
@@ -3056,33 +3066,45 @@ func (s *SqlPostStore) savePostsPersistentNotifications(transaction *sqlxTxWrapp
 
 func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts []*model.Post) error {
 	postsByRoot := map[string][]*model.Post{}
-	var rootIds []string
 	for _, post := range posts {
 		// skip if post is not a part of a thread
 		if post.RootId == "" {
 			continue
 		}
-		rootIds = append(rootIds, post.RootId)
 		postsByRoot[post.RootId] = append(postsByRoot[post.RootId], post)
 	}
-	if len(rootIds) == 0 {
+	if len(postsByRoot) == 0 {
 		return nil
 	}
-	query := s.getQueryBuilder().
-		Select(
-			"Threads.PostId",
-			"Threads.ChannelId",
-			"Threads.ReplyCount",
-			"Threads.LastReplyAt",
-			"Threads.Participants",
-			"COALESCE(Threads.ThreadDeleteAt, 0) AS DeleteAt",
-		).
-		From("Threads").
-		Where(sq.Eq{"Threads.PostId": rootIds})
 
+	// Deduplicated root IDs from map keys.
+	rootIds := make([]string, 0, len(postsByRoot))
+	for rootId := range postsByRoot {
+		rootIds = append(rootIds, rootId)
+	}
+
+	// Query existing threads in chunks to stay under the parameter limit.
+	// Each root ID uses 1 parameter in the WHERE IN clause.
 	threadsByRoots := []*model.Thread{}
-	if err := transaction.SelectBuilder(&threadsByRoots, query); err != nil {
-		return err
+	idChunks := chunkSlice(rootIds, 1, s.SqlStore.getMaxInsertParams())
+	for _, idChunk := range idChunks {
+		query := s.getQueryBuilder().
+			Select(
+				"Threads.PostId",
+				"Threads.ChannelId",
+				"Threads.ReplyCount",
+				"Threads.LastReplyAt",
+				"Threads.Participants",
+				"COALESCE(Threads.ThreadDeleteAt, 0) AS DeleteAt",
+			).
+			From("Threads").
+			Where(sq.Eq{"Threads.PostId": idChunk})
+
+		var batch []*model.Thread
+		if err := transaction.SelectBuilder(&batch, query); err != nil {
+			return err
+		}
+		threadsByRoots = append(threadsByRoots, batch...)
 	}
 
 	threadByRoot := map[string]*model.Thread{}

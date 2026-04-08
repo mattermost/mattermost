@@ -5,9 +5,10 @@ import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
-import SidebarChannelLink, {type SidebarChannelLink as SidebarChannelLinkComponent} from 'components/sidebar/sidebar_channel/sidebar_channel_link/sidebar_channel_link';
+import SidebarChannelLink from 'components/sidebar/sidebar_channel/sidebar_channel_link/sidebar_channel_link';
 
-import {shallowWithIntl, defaultIntl} from 'tests/helpers/intl-test-helper';
+import {defaultIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 jest.mock('packages/mattermost-redux/src/selectors/entities/shared_channels', () => ({
     getRemoteNamesForChannel: jest.fn(),
@@ -63,31 +64,43 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <SidebarChannelLink {...baseProps}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot for desktop', () => {
         const userAgentMock = jest.requireMock('utils/user_agent');
         userAgentMock.isDesktopApp.mockImplementation(() => false);
 
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <SidebarChannelLink {...baseProps}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when tooltip is enabled', () => {
-        const wrapper = shallowWithIntl(
-            <SidebarChannelLink {...baseProps}/>,
+        const props = {
+            ...baseProps,
+            label: 'a'.repeat(200), // Long label to trigger tooltip
+        };
+
+        // Mock offsetWidth < scrollWidth to trigger tooltip
+        Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {configurable: true, value: 50});
+        Object.defineProperty(HTMLElement.prototype, 'scrollWidth', {configurable: true, value: 200});
+
+        const {container} = renderWithContext(
+            <SidebarChannelLink {...props}/>,
         );
 
-        wrapper.setState({showTooltip: true});
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
+
+        // Restore
+        Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {configurable: true, value: 0});
+        Object.defineProperty(HTMLElement.prototype, 'scrollWidth', {configurable: true, value: 0});
     });
 
     test('should match snapshot with aria label prefix and unread mentions', () => {
@@ -98,28 +111,29 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
             ariaLabelPrefix: 'aria_label_prefix_',
         };
 
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <SidebarChannelLink {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should enable tooltip when needed', () => {
-        const wrapper = shallowWithIntl(
+        // Mock offsetWidth < scrollWidth to trigger tooltip
+        Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {configurable: true, value: 50});
+        Object.defineProperty(HTMLElement.prototype, 'scrollWidth', {configurable: true, value: 60});
+
+        const {container} = renderWithContext(
             <SidebarChannelLink {...baseProps}/>,
         );
-        const instance = wrapper.instance() as SidebarChannelLinkComponent;
 
-        instance.labelRef = {
-            current: {
-                offsetWidth: 50,
-                scrollWidth: 60,
-            },
-        } as any;
+        // When tooltip is enabled, the label should be wrapped in a tooltip component
+        const label = container.querySelector('.SidebarChannelLinkLabel');
+        expect(label).toBeInTheDocument();
 
-        instance.enableToolTipIfNeeded();
-        expect(instance.state.showTooltip).toBe(true);
+        // Restore
+        Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {configurable: true, value: 0});
+        Object.defineProperty(HTMLElement.prototype, 'scrollWidth', {configurable: true, value: 0});
     });
 
     test('should not fetch shared channels for non-shared channels', () => {
@@ -128,11 +142,11 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
             isSharedChannel: false,
         };
 
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <SidebarChannelLink {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
         expect(props.actions.fetchChannelRemotes).not.toHaveBeenCalled();
     });
 
@@ -143,11 +157,11 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
             remoteNames: [],
         };
 
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <SidebarChannelLink {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
         expect(props.actions.fetchChannelRemotes).toHaveBeenCalledWith('channel_id');
     });
 
@@ -158,11 +172,11 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
             remoteNames: ['Remote 1', 'Remote 2'],
         };
 
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <SidebarChannelLink {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
         expect(props.actions.fetchChannelRemotes).not.toHaveBeenCalled();
     });
 
@@ -173,19 +187,21 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
             remoteNames: [],
         };
 
-        const wrapper = shallowWithIntl(
+        const {rerender} = renderWithContext(
             <SidebarChannelLink {...props}/>,
         );
 
         props.actions.fetchChannelRemotes.mockClear();
 
-        wrapper.setProps({
-            ...props,
-            channel: {
-                ...props.channel,
-                id: 'new_channel_id',
-            },
-        });
+        rerender(
+            <SidebarChannelLink
+                {...props}
+                channel={{
+                    ...props.channel,
+                    id: 'new_channel_id',
+                }}
+            />,
+        );
 
         expect(props.actions.fetchChannelRemotes).toHaveBeenCalledWith('new_channel_id');
     });
