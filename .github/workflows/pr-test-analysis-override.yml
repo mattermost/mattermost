@@ -30,5 +30,5 @@ jobs:
       comment_id: ${{ github.event.comment.id }}
       sender: ${{ github.event.comment.user.login }}
     secrets:
-      GH_TOKEN: ${{ github.token }}
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
       WEBHOOK_URL: ${{ secrets.WEBHOOK_URL_TEST_PR_ANALYSIS_HUB }}
