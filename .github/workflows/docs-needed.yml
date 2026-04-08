@@ -29,6 +29,15 @@ name: docs/needed — Open Docs PR
 on:
   pull_request:
     types: [labeled]
+
+on:
+  pull_request_target:
+    types: [labeled, synchronize]
+
+jobs:
+  check_docs:
+    if: contains(github.event.pull_request.labels.*.name, 'Docs/Needed')
+    # ... rest of job, do NOT checkout fork code
  
 # One run at a time per dev PR — prevents a race if the label bounces.
 concurrency:
@@ -122,10 +131,11 @@ jobs:
               exit 0
             fi
  
-            MM_MILESTONE=$(gh api repos/mattermost/mattermost/milestones \
-              --paginate \
-              --jq ".[] | select(.due_on == \"$MILESTONE_DUE\") | .title" \
-              | head -1)
+            MILESTONE_DATE="${MILESTONE_DUE%%T*}"
+            MM_MILESTONE=$(gh api "repos/mattermost/mattermost/milestones?state=all&per_page=100" \
+               --paginate \
+              --jq ".[] | select((.due_on // \"\") | startswith(\"$MILESTONE_DATE\")) | .title" \
+               | head -1)
  
             if [ -z "$MM_MILESTONE" ]; then
               echo "::warning::No mattermost/mattermost milestone found with due date '${MILESTONE_DUE}' to match '${MILESTONE_TITLE}'. Targeting master."
@@ -272,12 +282,14 @@ jobs:
               }]
             }')
  
-          curl -sf https://api.anthropic.com/v1/messages \
+          RESPONSE=$(curl -sf https://api.anthropic.com/v1/messages \
             -H "x-api-key: $ANTHROPIC_API_KEY" \
             -H "anthropic-version: 2023-06-01" \
             -H "content-type: application/json" \
-            -d "$PAYLOAD" \
-            | jq -r '.content[0].text' > /tmp/generated-docs.md
+            -d "$PAYLOAD")
+
+          jq -er '.content[]? | select(.type=="text") | .text' <<<"$RESPONSE" > /tmp/generated-docs.md
+          test -s /tmp/generated-docs.md || exit 1
  
       # ── 6. Write docs file ────────────────────────────────────────────────
       - name: Write docs file
@@ -292,16 +304,13 @@ jobs:
           mkdir -p "$(dirname "$DOCS_FILE")"
  
           # Overwrite the file on every run so a re-trigger regenerates cleanly
-          cat > "$DOCS_FILE" <<HEADER
-# ${PR_TITLE}
- 
-> **Status:** Draft — auto-generated. Requires editorial review before publishing.
-> **Source:** [${SOURCE_REPO}#${PR_NUMBER}](https://github.com/${SOURCE_REPO}/pull/${PR_NUMBER})
-> **Dev reviewer:** @${PR_AUTHOR}
- 
----
- 
-HEADER
+          {
+            printf '# %s\n\n' "$PR_TITLE"
+            printf '> **Status:** Draft — auto-generated. Requires editorial review before publishing.\n'
+            printf '> **Source:** [%s#%s](https://github.com/%s/pull/%s)\n' "$SOURCE_REPO" "$PR_NUMBER" "$SOURCE_REPO" "$PR_NUMBER"
+            printf '> **Dev reviewer:** @%s\n\n' "$PR_AUTHOR"
+            printf -- '---\n\n'
+          } > "$DOCS_FILE"
  
           cat /tmp/generated-docs.md >> "$DOCS_FILE"
  
