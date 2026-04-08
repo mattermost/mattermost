@@ -240,26 +240,8 @@ ifneq ($(DOCKER_SERVICES_OVERRIDE),true)
   ENABLED_DOCKER_SERVICES:=$(ENABLED_DOCKER_SERVICES) $(TEMP_DOCKER_SERVICES)
 endif
 
-# Port used by each docker service (for the wait-for-dependency command)
-DOCKER_SERVICE_PORT_postgres       = 5432
-DOCKER_SERVICE_PORT_minio          = 9000
-DOCKER_SERVICE_PORT_inbucket       = 9001
-DOCKER_SERVICE_PORT_openldap       = 389
-DOCKER_SERVICE_PORT_elasticsearch  = 9200
-DOCKER_SERVICE_PORT_opensearch     = 9201
-DOCKER_SERVICE_PORT_redis          = 6379
-DOCKER_SERVICE_PORT_dejavu         = 1358
-DOCKER_SERVICE_PORT_keycloak       = 8080
-DOCKER_SERVICE_PORT_prometheus     = 9090
-DOCKER_SERVICE_PORT_grafana        = 3000
-DOCKER_SERVICE_PORT_loki           = 3100
-DOCKER_SERVICE_PORT_otel-collector = 13133
-
 # Convert ENABLED_DOCKER_SERVICES into --profile flags for docker compose
 DOCKER_PROFILES = $(addprefix --profile ,$(ENABLED_DOCKER_SERVICES))
-
-# Build "service:port ..." wait arguments from ENABLED_DOCKER_SERVICES
-DOCKER_WAIT_ARGS = $(foreach svc,$(ENABLED_DOCKER_SERVICES),$(svc):$(DOCKER_SERVICE_PORT_$(svc)))
 
 start-docker: setup-go-work ## Starts the docker containers for local development.
 ifneq ($(IS_CI),false)
@@ -273,8 +255,7 @@ ifeq ($(MM_USE_PGVECTOR),true)
 endif
 
 	mkdir -p logs
-	docker compose -f docker-compose.makefile.yml $(DOCKER_PROFILES) $(DOCKER_COMPOSE_OVERRIDE) up -d
-	docker compose -f docker-compose.makefile.yml $(DOCKER_COMPOSE_OVERRIDE) run -T --rm start_dependencies $(DOCKER_WAIT_ARGS)
+	docker compose -f docker-compose.makefile.yml $(DOCKER_PROFILES) $(DOCKER_COMPOSE_OVERRIDE) up --wait
   ifneq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
 	cat tests/custom-schema-objectID.ldif | docker compose -f docker-compose.makefile.yml $(DOCKER_COMPOSE_OVERRIDE) exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true';
 	cat tests/custom-schema-cpa.ldif | docker compose -f docker-compose.makefile.yml ${DOCKER_COMPOSE_OVERRIDE} exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true';

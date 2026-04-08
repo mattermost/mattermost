@@ -20,7 +20,7 @@ services:
      - "./docker/postgres.conf:/etc/postgresql/postgresql.conf:Z"
      - "./docker/postgres_node_database.sql:/docker-entrypoint-initdb.d/postgres_node_database.sql:Z"
     healthcheck:
-      test: [ "CMD", "pg_isready", "-h", "localhost" ]
+      test: ["CMD", "pg_isready", "-h", "localhost"]
       interval: 5s
       timeout: 10s
       retries: 3
@@ -34,6 +34,11 @@ services:
       MINIO_ROOT_USER: minioaccesskey
       MINIO_ROOT_PASSWORD: miniosecretkey
       MINIO_KMS_SECRET_KEY: my-minio-key:OSMM+vkKUTCvQs9YL/CVMIMt43HFhkUpqJxTmGl6rYw=
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   inbucket:
     image: "inbucket/inbucket:3.1.1"
     logging: *default-logging
@@ -44,6 +49,11 @@ services:
       INBUCKET_SMTP_ADDR: "0.0.0.0:10025"
     networks:
       - mm-test
+    healthcheck:
+      test: ["CMD", "wget", "-O", "/dev/null", "-q", "http://localhost:9001/"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   openldap:
     image: "osixia/openldap:1.4.0"
     logging: *default-logging
@@ -55,6 +65,11 @@ services:
       LDAP_ORGANISATION: "Mattermost Test"
       LDAP_DOMAIN: "mm.test.com"
       LDAP_ADMIN_PASSWORD: "mostest"
+    healthcheck:
+      test: ["CMD-SHELL", "ldapsearch -x -H ldap://localhost -b '' -s base > /dev/null 2>&1"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
   elasticsearch:
     build:
       context: .
@@ -72,6 +87,12 @@ services:
       xpack.security.enabled: "false"
       action.destructive_requires_name: "false"
       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health | grep -qE '\"status\":\"(green|yellow)\"'"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
   opensearch:
     build:
       context: .
@@ -89,16 +110,32 @@ services:
       discovery.type: single-node
       plugins.security.disabled: "true"
       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9201/_cluster/health | grep -qE '\"status\":\"(green|yellow)\"'"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
   redis:
     image: "redis:7.4.0"
     logging: *default-logging
     networks:
       - mm-test
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   dejavu:
     image: "appbaseio/dejavu:3.4.2"
     logging: *default-logging
     networks:
       - mm-test
+    healthcheck:
+      test: ["CMD", "wget", "-O", "/dev/null", "-q", "http://localhost:1358/"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   keycloak:
     image: "quay.io/keycloak/keycloak:23.0.7"
     logging: *default-logging
@@ -114,6 +151,12 @@ services:
       KC_HTTP_ENABLED: 'true'
     volumes:
      - "./docker/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:Z"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/health/ready || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 15
+      start_period: 60s
   prometheus:
     image: "prom/prometheus:v2.46.0"
     logging: *default-logging
@@ -125,6 +168,11 @@ services:
       - mm-test
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "wget", "-O", "/dev/null", "-q", "http://localhost:9090/-/healthy"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   grafana:
     image: "grafana/grafana:10.4.2"
     logging: *default-logging
@@ -134,6 +182,11 @@ services:
       - "./docker/grafana/dashboards:/var/lib/grafana/dashboards:Z"
     networks:
       - mm-test
+    healthcheck:
+      test: ["CMD", "wget", "-O", "/dev/null", "-q", "http://localhost:3000/api/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   loki:
     image: "grafana/loki:3.0.0"
     logging: *default-logging
@@ -141,6 +194,11 @@ services:
       - "./docker/loki/loki-config.yaml:/etc/loki/local-config.yaml:Z"
     networks:
       - mm-test
+    healthcheck:
+      test: ["CMD", "wget", "-O", "/dev/null", "-q", "http://localhost:3100/ready"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   otel-collector:
     image: "otel/opentelemetry-collector-contrib:0.145.0"
     logging: *default-logging
@@ -153,3 +211,8 @@ services:
     command: ["--config=/etc/otelcol-contrib/config.yaml"]
     networks:
       - mm-test
+    healthcheck:
+      test: ["CMD", "wget", "-O", "/dev/null", "-q", "http://localhost:13133"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
