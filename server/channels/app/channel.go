@@ -816,6 +816,7 @@ func (a *App) UpdateChannelPrivacy(rctx request.CTX, oldChannel *model.Channel, 
 
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelConverted, channel.TeamId, "", "", nil, "")
 	messageWs.Add("channel_id", channel.Id)
+	messageWs.Add("channel_type", string(channel.Type))
 	a.Publish(messageWs)
 
 	return channel, nil
