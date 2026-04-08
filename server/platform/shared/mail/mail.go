@@ -13,10 +13,9 @@ import (
 	"net/mail"
 	"net/smtp"
 	"slices"
-	"strings"
 	"time"
 
-	"code.sajari.com/docconv/v2"
+	html2text "github.com/jaytaylor/html2text"
 	"github.com/pkg/errors"
 	gomail "gopkg.in/mail.v2"
 
@@ -290,11 +289,17 @@ func sendMailUsingConfigAdvanced(mail mailData, config *SMTPConfig) error {
 
 const SendGridXSMTPAPIHeader = "X-SMTPAPI"
 
+func convertHTMLToText(htmlMessage string) (string, error) {
+	return html2text.FromString(htmlMessage, html2text.Options{
+		PrettyTables: false,
+	})
+}
+
 func sendMail(c smtpClient, mail mailData, date time.Time, config *SMTPConfig) error {
 	mlog.Info("sending mail", mlog.String("to", mail.smtpTo), mlog.String("subject", mail.subject))
 
 	htmlMessage := mail.htmlBody
-	text, _, err := docconv.ConvertHTML(strings.NewReader(htmlMessage), true)
+	text, err := convertHTMLToText(htmlMessage)
 	if err != nil {
 		mlog.Warn("Unable to convert html body to text", mlog.Err(err))
 		text = ""
