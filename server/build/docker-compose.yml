@@ -1,56 +1,56 @@
 services:
   postgres:
     extends:
-        file: docker-compose.common.yml
+        file: ../docker-compose.yml
         service: postgres
     tmpfs: /var/lib/postgresql/data
   minio:
     extends:
-        file: docker-compose.common.yml
+        file: ../docker-compose.yml
         service: minio
   inbucket:
     extends:
-        file: docker-compose.common.yml
+        file: ../docker-compose.yml
         service: inbucket
   openldap:
     extends:
-        file: docker-compose.common.yml
+        file: ../docker-compose.yml
         service: openldap
   elasticsearch:
     extends:
-        file: docker-compose.common.yml
+        file: ../docker-compose.yml
         service: elasticsearch
   opensearch:
     extends:
-        file: docker-compose.common.yml
+        file: ../docker-compose.yml
         service: opensearch
   redis:
     extends:
-        file: docker-compose.common.yml
+        file: ../docker-compose.yml
         service: redis
   dejavu:
     extends:
-        file: docker-compose.common.yml
+        file: ../docker-compose.yml
         service: dejavu
   keycloak:
     extends:
-        file: docker-compose.common.yml
+        file: ../docker-compose.yml
         service: keycloak
   prometheus:
     extends:
-        file: docker-compose.common.yml
+        file: ../docker-compose.yml
         service: prometheus
   grafana:
     extends:
-        file: docker-compose.common.yml
+        file: ../docker-compose.yml
         service: grafana
   loki:
     extends:
-        file: docker-compose.common.yml
+        file: ../docker-compose.yml
         service: loki
   otel-collector:
     extends:
-        file: docker-compose.common.yml
+        file: ../docker-compose.yml
         service: otel-collector
 
   start_dependencies:

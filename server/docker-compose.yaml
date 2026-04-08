@@ -4,14 +4,14 @@ services:
     ports:
       - "5432:5432"
     extends:
-        file: build/docker-compose.common.yml
+        file: docker-compose.yml
         service: postgres
   minio:
     container_name: mattermost-minio
     ports:
       - "9000:9000"
     extends:
-        file: build/docker-compose.common.yml
+        file: docker-compose.yml
         service: minio
   inbucket:
     container_name: mattermost-inbucket
@@ -20,7 +20,7 @@ services:
       - "10025:10025"
       - "10110:10110"
     extends:
-        file: build/docker-compose.common.yml
+        file: docker-compose.yml
         service: inbucket
   openldap:
     container_name: mattermost-openldap
@@ -28,7 +28,7 @@ services:
       - "389:389"
       - "636:636"
     extends:
-        file: build/docker-compose.common.yml
+        file: docker-compose.yml
         service: openldap
   elasticsearch:
     container_name: mattermost-elasticsearch
@@ -36,61 +36,61 @@ services:
       - "9200:9200"
       - "9300:9300"
     extends:
-        file: build/docker-compose.common.yml
+        file: docker-compose.yml
         service: elasticsearch
   opensearch:
     container_name: mattermost-opensearch
     ports:
       - "9201:9201"
     extends:
-        file: build/docker-compose.common.yml
+        file: docker-compose.yml
         service: opensearch
   redis:
     container_name: mattermost-redis
     ports:
       - "6379:6379"
     extends:
-        file: build/docker-compose.common.yml
+        file: docker-compose.yml
         service: redis
   dejavu:
     container_name: mattermost-dejavu
     ports:
       - "1358:1358"
     extends:
-        file: build/docker-compose.common.yml
+        file: docker-compose.yml
         service: dejavu
   keycloak:
     container_name: mattermost-saml
     ports:
       - "8484:8080"
     extends:
-        file: build/docker-compose.common.yml
+        file: docker-compose.yml
         service: keycloak
   prometheus:
     container_name: mattermost-prometheus
     ports:
       - "9090:9090"
     extends:
-        file: build/docker-compose.common.yml
+        file: docker-compose.yml
         service: prometheus
   grafana:
     container_name: mattermost-grafana
     ports:
       - "3000:3000"
     extends:
-        file: build/docker-compose.common.yml
+        file: docker-compose.yml
         service: grafana
   loki:
     container_name: mattermost-loki
     ports:
       - "3100:3100"
     extends:
-        file: build/docker-compose.common.yml
+        file: docker-compose.yml
         service: loki
   otel-collector:
     container_name: mattermost-otel-collector
     extends:
-        file: build/docker-compose.common.yml
+        file: docker-compose.yml
         service: otel-collector
 
   start_dependencies:

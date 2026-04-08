@@ -87,7 +87,7 @@ $(if mme2e_is_token_in_list "postgres" "$ENABLED_DOCKER_SERVICES"; then
     network_mode: host
     networks: !reset []
     extends:
-        file: ../../server/build/docker-compose.common.yml
+        file: ../../server/docker-compose.yml
         service: postgres'
   fi)
 
@@ -98,7 +98,7 @@ $(if mme2e_is_token_in_list "inbucket" "$ENABLED_DOCKER_SERVICES"; then
     networks: !reset []
     restart: "no"
     extends:
-        file: ../../server/build/docker-compose.common.yml
+        file: ../../server/docker-compose.yml
         service: inbucket
     healthcheck:
       test: [ "CMD", "nc", "-z", "-w1", "127.0.0.1", "10025" ]
@@ -114,7 +114,7 @@ $(if mme2e_is_token_in_list "minio" "$ENABLED_DOCKER_SERVICES"; then
     networks: !reset []
     restart: "no"
     extends:
-      file: ../../server/build/docker-compose.common.yml
+      file: ../../server/docker-compose.yml
       service: minio
     healthcheck:
       test: [ "CMD", "curl", "-f", "127.0.0.1:9000/minio/health/live" ]
@@ -130,7 +130,7 @@ $(if mme2e_is_token_in_list "openldap" "$ENABLED_DOCKER_SERVICES"; then
     networks: !reset []
     restart: "no"
     extends:
-        file: ../../server/build/docker-compose.common.yml
+        file: ../../server/docker-compose.yml
         service: openldap
     healthcheck:
       test: [ "CMD", "bash", "-o", "pipefail", "-c", "ss -ltn \"sport = :636\" | grep -qE \"^LISTEN\"" ]
@@ -149,7 +149,7 @@ $(if mme2e_is_token_in_list "elasticsearch" "$ENABLED_DOCKER_SERVICES"; then
         xpack.security.enabled: "false"
         action.destructive_requires_name: "false"
     extends:
-        file: ../../server/build/docker-compose.common.yml
+        file: ../../server/docker-compose.yml
         service: elasticsearch
     healthcheck:
       test: [ "CMD", "curl", "-fsS", "localhost:9200/_cluster/health?wait_for_status=green&timeout=5s" ]
@@ -172,7 +172,7 @@ $(if mme2e_is_token_in_list "opensearch" "$ENABLED_DOCKER_SERVICES"; then
     environment:
         http.port: 9200
     extends:
-        file: ../../server/build/docker-compose.common.yml
+        file: ../../server/docker-compose.yml
         service: opensearch
     healthcheck:
       test: [ "CMD", "curl", "-fsS", "localhost:9200/_cluster/health?wait_for_status=green&timeout=5s" ]
@@ -188,7 +188,7 @@ $(if mme2e_is_token_in_list "redis" "$ENABLED_DOCKER_SERVICES"; then
     network_mode: host
     networks: !reset []
     extends:
-        file: ../../server/build/docker-compose.common.yml
+        file: ../../server/docker-compose.yml
         service: redis
     healthcheck:
       test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
@@ -209,7 +209,7 @@ $(if mme2e_is_token_in_list "keycloak" "$ENABLED_DOCKER_SERVICES"; then
      - "../../server/build/docker/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json"
      - "../../server/build/docker/keycloak/kc-healthcheck.sh:/usr/local/bin/kc-healthcheck.sh"
     extends:
-        file: ../../server/build/docker-compose.common.yml
+        file: ../../server/docker-compose.yml
         service: keycloak
     healthcheck:
       # We cannot use a simple curl --silent localhost:9990/health | grep -q \"status\":\"UP\" because theres no curl in the image: https://www.keycloak.org/server/health#_using_the_health_checks

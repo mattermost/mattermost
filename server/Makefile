@@ -255,18 +255,18 @@ ifeq ($(MM_USE_PGVECTOR),true)
 endif
 
 	mkdir -p logs
-	docker compose -f docker-compose.makefile.yml $(DOCKER_PROFILES) $(DOCKER_COMPOSE_OVERRIDE) up --wait
+	docker compose $(DOCKER_PROFILES) $(DOCKER_COMPOSE_OVERRIDE) up --wait
   ifneq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
-	cat tests/custom-schema-objectID.ldif | docker compose -f docker-compose.makefile.yml $(DOCKER_COMPOSE_OVERRIDE) exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true';
-	cat tests/custom-schema-cpa.ldif | docker compose -f docker-compose.makefile.yml ${DOCKER_COMPOSE_OVERRIDE} exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true';
-	cat tests/${LDAP_DATA}-data.ldif | docker compose -f docker-compose.makefile.yml ${DOCKER_COMPOSE_OVERRIDE} exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
+	cat tests/custom-schema-objectID.ldif | docker compose $(DOCKER_COMPOSE_OVERRIDE) exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true';
+	cat tests/custom-schema-cpa.ldif | docker compose ${DOCKER_COMPOSE_OVERRIDE} exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true';
+	cat tests/${LDAP_DATA}-data.ldif | docker compose ${DOCKER_COMPOSE_OVERRIDE} exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
   endif
 endif
 
 update-docker: setup-go-work stop-docker ## Updates the docker containers for local development.
 	@echo Updating docker containers
 
-	docker compose -f docker-compose.makefile.yml $(DOCKER_PROFILES) $(DOCKER_COMPOSE_OVERRIDE) up --no-start
+	docker compose $(DOCKER_PROFILES) $(DOCKER_COMPOSE_OVERRIDE) up --no-start
 
 run-haserver:
 ifeq ($(BUILD_ENTERPRISE_READY),true)
