@@ -175,10 +175,12 @@ func (*MobileLogsProvider) DoCommand(a *app.App, rctx request.CTX, args *model.C
 			Text:         args.T("api.command_mobile_logs.status_off", map[string]any{"User": targetDisplayName}),
 			ResponseType: model.CommandResponseTypeEphemeral,
 		}
-	}
 
-	return &model.CommandResponse{
-		Text:         args.T("api.command_mobile_logs.usage"),
-		ResponseType: model.CommandResponseTypeEphemeral,
+	default:
+		// Defensive: action is already validated to be "on", "off", or "status" above.
+		return &model.CommandResponse{
+			Text:         args.T("api.command_mobile_logs.usage"),
+			ResponseType: model.CommandResponseTypeEphemeral,
+		}
 	}
 }
