@@ -8,20 +8,13 @@
  * including creating, editing, deleting, and configuring attribute fields.
  *
  * Related: MM-62558 / PR #30722 (Profile Popup CPA tests pattern reference)
- *
- * LOCATOR NOTE:
- * Playwright locators are lazy and re-evaluate on every action. A value-based
- * selector like input[value="Foo"] becomes stale after fill() changes the value,
- * causing subsequent calls (blur, click, etc.) to time out. Use a stable locator
- * (data-testid + nth) for any input you plan to mutate; value-based selectors are
- * fine for read-only assertions (toBeVisible, toHaveValue, etc.).
  */
 
-import {UserProfile} from '@mattermost/types/users';
 import {Client4} from '@mattermost/client';
 import {UserPropertyField} from '@mattermost/types/properties';
 
 import {expect, test, SystemConsolePage} from '@mattermost/playwright-lib';
+import type {PlaywrightExtended} from '@mattermost/playwright-lib';
 
 import {
     setupCustomProfileAttributeFields,
@@ -29,518 +22,601 @@ import {
     CustomProfileAttribute,
 } from '../../channels/custom_profile_attributes/helpers';
 
-const USER_ATTRIBUTES_URL = '/admin_console/system_attributes/user_attributes';
+type FieldsMap = Record<string, UserPropertyField>;
 
-let adminUser: UserProfile;
-let adminClient: Client4;
-let systemConsolePage: SystemConsolePage;
-let attributeFieldsMap: Record<string, UserPropertyField>;
+interface TestContext {
+    adminClient: Client4;
+    systemConsolePage: SystemConsolePage;
+}
 
-async function refreshFieldsMap(client: Client4): Promise<void> {
+async function setupTest(pw: PlaywrightExtended): Promise<TestContext> {
+    await pw.ensureLicense();
+    await pw.skipIfNoLicense();
+
+    const {adminUser, adminClient} = await pw.initSetup();
+
+    // # Clean up any pre-existing CPA fields to start with a blank slate
+    try {
+        const existing = await adminClient.getCustomProfileAttributeFields();
+        if (existing?.length) {
+            const existingMap: FieldsMap = {};
+            for (const f of existing) {
+                existingMap[f.id] = f;
+            }
+            await deleteCustomProfileAttributes(adminClient, existingMap);
+        }
+    } catch {
+        // No fields to clean up
+    }
+
+    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+    await systemConsolePage.goto();
+    await systemConsolePage.toBeVisible();
+
+    return {adminClient, systemConsolePage};
+}
+
+async function getFieldsMap(client: Client4): Promise<FieldsMap> {
     const fields: UserPropertyField[] = await client.getCustomProfileAttributeFields();
-    attributeFieldsMap = {};
+    const map: FieldsMap = {};
     for (const field of fields) {
-        attributeFieldsMap[field.id] = field;
+        map[field.id] = field;
+    }
+    return map;
+}
+
+async function cleanupFields(client: Client4, fieldsMap: FieldsMap): Promise<void> {
+    if (Object.keys(fieldsMap).length > 0) {
+        await deleteCustomProfileAttributes(client, fieldsMap);
     }
 }
 
-async function saveAndWaitForSettled(): Promise<void> {
-    const saveButton = systemConsolePage.page.getByTestId('saveSetting');
-    await expect(saveButton).toBeEnabled();
-    await saveButton.click();
-    await systemConsolePage.page.waitForLoadState('networkidle');
-    await expect(saveButton).toBeDisabled({timeout: 10000});
-}
-
 test.describe('System Console - User Attributes Management', () => {
-    test.beforeEach(async ({pw}) => {
-        await pw.ensureLicense();
-        await pw.skipIfNoLicense();
+    /**
+     * @objective Verify that navigating to the User Attributes page shows the empty state
+     * with the Add attribute button and a disabled Save button.
+     */
+    test('navigates to user attributes page and displays empty state', {tag: '@user_attributes'}, async ({pw}) => {
+        const {systemConsolePage} = await setupTest(pw);
+        const sp = systemConsolePage.systemProperties;
 
-        ({adminUser, adminClient} = await pw.initSetup());
-
-        // Clean up any pre-existing CPA fields to start with a blank slate
-        try {
-            const existing = await adminClient.getCustomProfileAttributeFields();
-            if (existing?.length) {
-                const existingMap: Record<string, UserPropertyField> = {};
-                for (const f of existing) {
-                    existingMap[f.id] = f;
-                }
-                await deleteCustomProfileAttributes(adminClient, existingMap);
-            }
-        } catch {
-            // No fields to clean up
-        }
-
-        attributeFieldsMap = {};
-
-        ({systemConsolePage} = await pw.testBrowser.login(adminUser));
-        await systemConsolePage.goto();
-        await systemConsolePage.toBeVisible();
-    });
-
-    test.afterEach(async ({pw}) => {
-        if (attributeFieldsMap && Object.keys(attributeFieldsMap).length > 0) {
-            const {adminClient: cleanupClient} = await pw.getAdminClient();
-            await deleteCustomProfileAttributes(cleanupClient, attributeFieldsMap);
-        }
-    });
-
-    test('Should navigate to User Attributes page and display empty state', async () => {
         // # Navigate to User Attributes via sidebar
         await systemConsolePage.sidebar.systemAttributes.userAttributes.click();
 
-        // * Verify the URL and page loaded
-        await systemConsolePage.page.waitForURL(`**${USER_ATTRIBUTES_URL}`);
-        const pageContainer = systemConsolePage.page.getByTestId('systemProperties');
-        await expect(pageContainer).toBeVisible();
+        // * Verify the page loaded
+        await sp.toBeVisible();
 
         // * Verify the "Add attribute" link button is visible
-        const addButton = systemConsolePage.page.getByRole('button', {name: 'Add attribute'});
-        await expect(addButton).toBeVisible();
+        await expect(sp.addAttributeButton).toBeVisible();
 
         // * Verify Save button is present but disabled (no changes)
-        const saveButton = systemConsolePage.page.getByTestId('saveSetting');
-        await expect(saveButton).toBeVisible();
-        await expect(saveButton).toBeDisabled();
+        await expect(sp.saveButton).toBeVisible();
+        await expect(sp.saveButton).toBeDisabled();
     });
 
-    test('Should display pre-existing attributes in the table', async () => {
+    /**
+     * @objective Verify that attributes created via API are displayed in the table
+     * when the User Attributes page loads.
+     *
+     * @precondition
+     * Two custom profile attributes (Department, Role) exist via API setup.
+     */
+    test('displays pre-existing attributes in the table', {tag: '@user_attributes'}, async ({pw}) => {
+        const {adminClient, systemConsolePage} = await setupTest(pw);
+        const sp = systemConsolePage.systemProperties;
+
         // # Set up attributes via API
         const attributes: CustomProfileAttribute[] = [
             {name: 'Department', type: 'text'},
             {name: 'Role', type: 'text', attrs: {value_type: 'url'}},
         ];
-        attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, attributes);
+        const fieldsMap = await setupCustomProfileAttributeFields(adminClient, attributes);
 
         // # Navigate to User Attributes page
-        await systemConsolePage.page.goto(USER_ATTRIBUTES_URL);
-        await systemConsolePage.page.waitForLoadState('networkidle');
+        await sp.goto();
 
         // * Verify attributes appear in the table
-        const deptInput = systemConsolePage.page.locator('input[value="Department"]');
-        await expect(deptInput).toBeVisible();
+        await expect(sp.nameInputByValue('Department')).toBeVisible();
+        await expect(sp.nameInputByValue('Role')).toBeVisible();
 
-        const roleInput = systemConsolePage.page.locator('input[value="Role"]');
-        await expect(roleInput).toBeVisible();
+        await cleanupFields(adminClient, fieldsMap);
     });
 
-    test('Should create a new text attribute and save', async () => {
+    /**
+     * @objective Verify creating a new text attribute via the UI and saving it
+     * persists the field to the server.
+     */
+    test('creates a new text attribute and saves', {tag: '@user_attributes'}, async ({pw}) => {
+        const {adminClient, systemConsolePage} = await setupTest(pw);
+        const sp = systemConsolePage.systemProperties;
+
         // # Navigate to User Attributes page
-        await systemConsolePage.page.goto(USER_ATTRIBUTES_URL);
-        await systemConsolePage.page.waitForLoadState('networkidle');
+        await sp.goto();
 
         // # Click "Add attribute"
-        const addButton = systemConsolePage.page.getByRole('button', {name: 'Add attribute'});
-        await addButton.click();
+        await sp.addAttribute();
 
         // * Verify a new row with an input appears in the table
-        const nameInputs = systemConsolePage.page.locator('input[data-testid="property-field-input"]');
-        await expect(nameInputs.first()).toBeVisible();
+        const nameInput = sp.nameInput(0);
+        await expect(nameInput).toBeVisible();
 
         // # Type attribute name
-        await nameInputs.first().fill('Test Department');
-        await nameInputs.first().blur();
+        await nameInput.fill('Test Department');
+        await nameInput.blur();
 
-        await saveAndWaitForSettled();
+        await sp.saveAndWaitForSettled();
 
         // * Verify the field was created by fetching from API
-        await refreshFieldsMap(adminClient);
-        const createdField = Object.values(attributeFieldsMap).find((f) => f.name === 'Test Department');
+        const fieldsMap = await getFieldsMap(adminClient);
+        const createdField = Object.values(fieldsMap).find((f) => f.name === 'Test Department');
         expect(createdField).toBeDefined();
         expect(createdField!.type).toBe('text');
+
+        await cleanupFields(adminClient, fieldsMap);
     });
 
-    test('Should create a select attribute with options and save', async () => {
+    /**
+     * @objective Verify creating a select attribute with multiple options saves
+     * the field and its options to the server.
+     */
+    test('creates a select attribute with options and saves', {tag: '@user_attributes'}, async ({pw}) => {
+        const {adminClient, systemConsolePage} = await setupTest(pw);
+        const sp = systemConsolePage.systemProperties;
+
         // # Navigate to User Attributes page
-        await systemConsolePage.page.goto(USER_ATTRIBUTES_URL);
-        await systemConsolePage.page.waitForLoadState('networkidle');
+        await sp.goto();
 
         // # Click "Add attribute"
-        await systemConsolePage.page.getByRole('button', {name: 'Add attribute'}).click();
+        await sp.addAttribute();
 
         // # Type attribute name
-        const nameInput = systemConsolePage.page.locator('input[data-testid="property-field-input"]').first();
+        const nameInput = sp.nameInput(0);
         await nameInput.fill('Office Location');
         await nameInput.blur();
 
-        // # Change type to Select via type selector menu
-        const typeButton = systemConsolePage.page.getByTestId('fieldTypeSelectorMenuButton').first();
-        await typeButton.click();
+        // # Change type to Select
+        await sp.selectType(0, 'Select');
 
-        const selectOption = systemConsolePage.page.locator('#select');
-        await selectOption.click();
+        // # Add options
+        await sp.addOptions(0, ['Remote', 'Office', 'Hybrid']);
 
-        // # Add options to the select field via the CreatableSelect input
-        const valuesInput = systemConsolePage.page.locator('input[id^="react-select-"]').first();
-        await valuesInput.fill('Remote');
-        await valuesInput.press('Enter');
-        await valuesInput.fill('Office');
-        await valuesInput.press('Enter');
-        await valuesInput.fill('Hybrid');
-        await valuesInput.press('Enter');
-
-        await saveAndWaitForSettled();
+        await sp.saveAndWaitForSettled();
 
         // * Verify field was created with correct type via API
-        await refreshFieldsMap(adminClient);
-        const createdField = Object.values(attributeFieldsMap).find((f) => f.name === 'Office Location');
+        const fieldsMap = await getFieldsMap(adminClient);
+        const createdField = Object.values(fieldsMap).find((f) => f.name === 'Office Location');
         expect(createdField).toBeDefined();
         expect(createdField!.type).toBe('select');
         expect(createdField!.attrs.options).toBeDefined();
         expect(createdField!.attrs.options!.length).toBe(3);
+
+        await cleanupFields(adminClient, fieldsMap);
     });
 
-    test('Should edit an existing attribute name and save', async () => {
+    /**
+     * @objective Verify editing an existing attribute name and saving persists
+     * the rename to the server.
+     *
+     * @precondition
+     * A custom profile attribute named "Old Name" exists via API setup.
+     */
+    test('edits an existing attribute name and saves', {tag: '@user_attributes'}, async ({pw}) => {
+        const {adminClient, systemConsolePage} = await setupTest(pw);
+        const sp = systemConsolePage.systemProperties;
+
         // # Create an attribute via API
         const attributes: CustomProfileAttribute[] = [{name: 'Old Name', type: 'text'}];
-        attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, attributes);
+        const fieldsMap = await setupCustomProfileAttributeFields(adminClient, attributes);
 
         // # Navigate to User Attributes page
-        await systemConsolePage.page.goto(USER_ATTRIBUTES_URL);
-        await systemConsolePage.page.waitForLoadState('networkidle');
+        await sp.goto();
 
-        // # Find the attribute name input and edit it (see LOCATOR NOTE at top of file)
-        const nameInput = systemConsolePage.page.locator('input[data-testid="property-field-input"]').first();
+        // # Find the attribute name input and edit it
+        const nameInput = sp.nameInput(0);
         await expect(nameInput).toHaveValue('Old Name');
         await nameInput.fill('New Name');
         await nameInput.blur();
 
-        await saveAndWaitForSettled();
+        await sp.saveAndWaitForSettled();
 
         // * Verify field was updated via API
-        await refreshFieldsMap(adminClient);
-        const updatedField = Object.values(attributeFieldsMap).find((f) => f.name === 'New Name');
-        expect(updatedField).toBeDefined();
+        const updatedMap = await getFieldsMap(adminClient);
+        expect(Object.values(updatedMap).find((f) => f.name === 'New Name')).toBeDefined();
+
+        await cleanupFields(adminClient, {...fieldsMap, ...updatedMap});
     });
 
-    test('Should delete an attribute via dot menu', async () => {
+    /**
+     * @objective Verify deleting a saved attribute via the dot menu removes it
+     * from the server after confirmation and save.
+     *
+     * @precondition
+     * A custom profile attribute named "To Delete" exists via API setup.
+     */
+    test('deletes an attribute via dot menu', {tag: '@user_attributes'}, async ({pw}) => {
+        const {adminClient, systemConsolePage} = await setupTest(pw);
+        const sp = systemConsolePage.systemProperties;
+
         // # Create an attribute via API
         const attributes: CustomProfileAttribute[] = [{name: 'To Delete', type: 'text'}];
-        attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, attributes);
-        const fieldId = Object.keys(attributeFieldsMap)[0];
+        const fieldsMap = await setupCustomProfileAttributeFields(adminClient, attributes);
+        const fieldId = Object.keys(fieldsMap)[0];
 
         // # Navigate to User Attributes page
-        await systemConsolePage.page.goto(USER_ATTRIBUTES_URL);
-        await systemConsolePage.page.waitForLoadState('networkidle');
+        await sp.goto();
 
         // * Verify the attribute exists
-        await expect(systemConsolePage.page.locator('input[value="To Delete"]')).toBeVisible();
+        await expect(sp.nameInputByValue('To Delete')).toBeVisible();
 
         // # Open dot menu for the field
-        const dotMenuButton = systemConsolePage.page.getByTestId(`user-property-field_dotmenu-${fieldId}`);
-        await dotMenuButton.click();
+        await sp.openDotMenu(fieldId);
 
         // # Click "Delete attribute"
-        const deleteMenuItem = systemConsolePage.page.locator('#user-property-field_dotmenu_delete');
-        await deleteMenuItem.click();
+        await sp.deleteAttribute();
 
         // # Confirm deletion in modal
-        const confirmButton = systemConsolePage.page.getByRole('button', {name: 'Delete'});
-        await confirmButton.click();
+        await sp.confirmDeletion();
 
-        await saveAndWaitForSettled();
+        await sp.saveAndWaitForSettled();
 
         // * Verify field was deleted via API
-        await refreshFieldsMap(adminClient);
-        const deletedField = Object.values(attributeFieldsMap).find((f) => f.name === 'To Delete');
-        expect(deletedField).toBeUndefined();
+        const updatedMap = await getFieldsMap(adminClient);
+        expect(Object.values(updatedMap).find((f) => f.name === 'To Delete')).toBeUndefined();
+
+        await cleanupFields(adminClient, updatedMap);
     });
 
-    test('Should duplicate an attribute via dot menu', async () => {
+    /**
+     * @objective Verify duplicating an attribute via the dot menu creates a copy
+     * with "(copy)" suffix that persists after save.
+     *
+     * @precondition
+     * A custom profile attribute named "Original" exists via API setup.
+     */
+    test('duplicates an attribute via dot menu', {tag: '@user_attributes'}, async ({pw}) => {
+        const {adminClient, systemConsolePage} = await setupTest(pw);
+        const sp = systemConsolePage.systemProperties;
+
         // # Create an attribute via API
         const attributes: CustomProfileAttribute[] = [{name: 'Original', type: 'text'}];
-        attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, attributes);
-        const fieldId = Object.keys(attributeFieldsMap)[0];
+        const fieldsMap = await setupCustomProfileAttributeFields(adminClient, attributes);
+        const fieldId = Object.keys(fieldsMap)[0];
 
         // # Navigate to User Attributes page
-        await systemConsolePage.page.goto(USER_ATTRIBUTES_URL);
-        await systemConsolePage.page.waitForLoadState('networkidle');
+        await sp.goto();
 
         // # Open dot menu for the field
-        const dotMenuButton = systemConsolePage.page.getByTestId(`user-property-field_dotmenu-${fieldId}`);
-        await dotMenuButton.click();
+        await sp.openDotMenu(fieldId);
 
         // # Click "Duplicate attribute"
-        const duplicateMenuItem = systemConsolePage.page.locator('#user-property-field_dotmenu_duplicate');
-        await duplicateMenuItem.click();
+        await sp.duplicateAttribute();
 
         // * Verify a copy row appeared with "(copy)" in the name
-        const copyInput = systemConsolePage.page.locator('input[value="Original (copy)"]');
-        await expect(copyInput).toBeVisible();
+        await expect(sp.nameInputByValue('Original (copy)')).toBeVisible();
 
-        await saveAndWaitForSettled();
+        await sp.saveAndWaitForSettled();
 
         // * Verify both fields exist via API
-        await refreshFieldsMap(adminClient);
-        expect(Object.values(attributeFieldsMap).find((f) => f.name === 'Original')).toBeDefined();
-        expect(Object.values(attributeFieldsMap).find((f) => f.name === 'Original (copy)')).toBeDefined();
+        const updatedMap = await getFieldsMap(adminClient);
+        expect(Object.values(updatedMap).find((f) => f.name === 'Original')).toBeDefined();
+        expect(Object.values(updatedMap).find((f) => f.name === 'Original (copy)')).toBeDefined();
+
+        await cleanupFields(adminClient, updatedMap);
     });
 
-    test('Should change attribute visibility via dot menu', async () => {
+    /**
+     * @objective Verify changing attribute visibility to "Always hide" via the
+     * dot menu persists the hidden state to the server.
+     *
+     * @precondition
+     * A custom profile attribute named "Visibility Test" exists via API setup.
+     */
+    test('changes attribute visibility via dot menu', {tag: '@user_attributes'}, async ({pw}) => {
+        const {adminClient, systemConsolePage} = await setupTest(pw);
+        const sp = systemConsolePage.systemProperties;
+
         // # Create an attribute via API
         const attributes: CustomProfileAttribute[] = [{name: 'Visibility Test', type: 'text'}];
-        attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, attributes);
-        const fieldId = Object.keys(attributeFieldsMap)[0];
+        const fieldsMap = await setupCustomProfileAttributeFields(adminClient, attributes);
+        const fieldId = Object.keys(fieldsMap)[0];
 
         // # Navigate to User Attributes page
-        await systemConsolePage.page.goto(USER_ATTRIBUTES_URL);
-        await systemConsolePage.page.waitForLoadState('networkidle');
+        await sp.goto();
 
         // # Open dot menu
-        const dotMenuButton = systemConsolePage.page.getByTestId(`user-property-field_dotmenu-${fieldId}`);
-        await dotMenuButton.click();
+        await sp.openDotMenu(fieldId);
 
-        // # Hover on Visibility submenu to open it
-        const visibilitySubmenu = systemConsolePage.page.locator(`#user-property-field_dotmenu-${fieldId}-visibility`);
-        await visibilitySubmenu.hover();
+        // # Select "Always hide" visibility
+        await sp.setVisibility('Always hide');
 
-        // # Select "Always hide" — use force:true since submenu items may detach/reattach during open animation
-        const alwaysHideOption = systemConsolePage.page.locator('#user-property-field_dotmenu_visibility-hidden');
-        await expect(alwaysHideOption).toBeAttached();
-        await alwaysHideOption.click({force: true});
-
-        await saveAndWaitForSettled();
+        await sp.saveAndWaitForSettled();
 
         // * Verify visibility was updated via API
-        await refreshFieldsMap(adminClient);
-        const updatedField = Object.values(attributeFieldsMap).find((f) => f.name === 'Visibility Test');
+        const updatedMap = await getFieldsMap(adminClient);
+        const updatedField = Object.values(updatedMap).find((f) => f.name === 'Visibility Test');
         expect(updatedField).toBeDefined();
         expect(updatedField!.attrs.visibility).toBe('hidden');
+
+        await cleanupFields(adminClient, updatedMap);
     });
 
-    test('Should toggle editable by users via dot menu', async () => {
+    /**
+     * @objective Verify toggling "Editable by users" off via the dot menu sets
+     * the attribute to admin-managed on the server.
+     *
+     * @precondition
+     * A custom profile attribute named "Editable Test" exists via API setup.
+     */
+    test('toggles editable by users off via dot menu', {tag: '@user_attributes'}, async ({pw}) => {
+        const {adminClient, systemConsolePage} = await setupTest(pw);
+        const sp = systemConsolePage.systemProperties;
+
         // # Create an attribute via API
         const attributes: CustomProfileAttribute[] = [{name: 'Editable Test', type: 'text'}];
-        attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, attributes);
-        const fieldId = Object.keys(attributeFieldsMap)[0];
+        const fieldsMap = await setupCustomProfileAttributeFields(adminClient, attributes);
+        const fieldId = Object.keys(fieldsMap)[0];
 
         // # Navigate to User Attributes page
-        await systemConsolePage.page.goto(USER_ATTRIBUTES_URL);
-        await systemConsolePage.page.waitForLoadState('networkidle');
+        await sp.goto();
 
         // # Open dot menu
-        const dotMenuButton = systemConsolePage.page.getByTestId(`user-property-field_dotmenu-${fieldId}`);
-        await dotMenuButton.click();
+        await sp.openDotMenu(fieldId);
 
         // # Click "Editable by users" toggle
-        const editableItem = systemConsolePage.page.locator('#user-property-field_dotmenu_editable-by-users');
-        await editableItem.click();
+        await sp.toggleEditableByUsers();
 
         // # Close the dot menu — it stays open after toggling; backdrop would block Save click
-        await systemConsolePage.page.keyboard.press('Escape');
+        await sp.dismissMenu();
 
-        await saveAndWaitForSettled();
+        await sp.saveAndWaitForSettled();
 
         // * Verify managed was set to 'admin' (not editable by users) via API
-        await refreshFieldsMap(adminClient);
-        const updatedField = Object.values(attributeFieldsMap).find((f) => f.name === 'Editable Test');
+        const updatedMap = await getFieldsMap(adminClient);
+        const updatedField = Object.values(updatedMap).find((f) => f.name === 'Editable Test');
         expect(updatedField).toBeDefined();
         expect(updatedField!.attrs.managed).toBe('admin');
+
+        await cleanupFields(adminClient, updatedMap);
     });
 
-    test('Should show validation warning for empty attribute name', async () => {
+    /**
+     * @objective Verify that leaving an attribute name empty shows a validation
+     * warning and disables the Save button.
+     */
+    test('shows validation warning for empty attribute name', {tag: '@user_attributes'}, async ({pw}) => {
+        const {systemConsolePage} = await setupTest(pw);
+        const sp = systemConsolePage.systemProperties;
+
         // # Navigate to User Attributes page
-        await systemConsolePage.page.goto(USER_ATTRIBUTES_URL);
-        await systemConsolePage.page.waitForLoadState('networkidle');
+        await sp.goto();
 
         // # Add a new attribute
-        await systemConsolePage.page.getByRole('button', {name: 'Add attribute'}).click();
+        await sp.addAttribute();
 
         // # Clear the auto-focused name input (leave it empty)
-        const nameInput = systemConsolePage.page.locator('input[data-testid="property-field-input"]').first();
+        const nameInput = sp.nameInput(0);
         await nameInput.clear();
         await nameInput.blur();
 
         // * Verify validation warning about empty name is shown
-        const warning = systemConsolePage.page.getByText('Please enter an attribute name.');
-        await expect(warning).toBeVisible();
+        await expect(sp.validationMessage('Please enter an attribute name.')).toBeVisible();
 
         // * Verify Save button is disabled due to validation error
-        const saveButton = systemConsolePage.page.getByTestId('saveSetting');
-        await expect(saveButton).toBeDisabled();
+        await expect(sp.saveButton).toBeDisabled();
     });
 
-    test('Should show validation warning for duplicate attribute names', async () => {
+    /**
+     * @objective Verify that entering a duplicate attribute name shows a "must be
+     * unique" warning and disables the Save button.
+     *
+     * @precondition
+     * A custom profile attribute named "Unique Name" exists via API setup.
+     */
+    test('shows validation warning for duplicate attribute names', {tag: '@user_attributes'}, async ({pw}) => {
+        const {adminClient, systemConsolePage} = await setupTest(pw);
+        const sp = systemConsolePage.systemProperties;
+
         // # Create an attribute via API
         const attributes: CustomProfileAttribute[] = [{name: 'Unique Name', type: 'text'}];
-        attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, attributes);
+        const fieldsMap = await setupCustomProfileAttributeFields(adminClient, attributes);
 
         // # Navigate to User Attributes page
-        await systemConsolePage.page.goto(USER_ATTRIBUTES_URL);
-        await systemConsolePage.page.waitForLoadState('networkidle');
+        await sp.goto();
 
         // # Add a new attribute with the same name
-        await systemConsolePage.page.getByRole('button', {name: 'Add attribute'}).click();
+        await sp.addAttribute();
 
-        const newNameInput = systemConsolePage.page.locator('input[data-testid="property-field-input"]').last();
+        const newNameInput = sp.nameInput(1);
         await newNameInput.clear();
         await newNameInput.fill('Unique Name');
         await newNameInput.blur();
 
         // * Verify validation warning about duplicate name is shown
-        // Both fields exist in pending state simultaneously → "must be unique" (not "already taken")
-        const warning = systemConsolePage.page.getByText('Attribute names must be unique.');
-        await expect(warning.first()).toBeVisible();
+        await expect(sp.validationMessage('Attribute names must be unique.').first()).toBeVisible();
 
         // * Verify Save button is disabled
-        const saveButton = systemConsolePage.page.getByTestId('saveSetting');
-        await expect(saveButton).toBeDisabled();
+        await expect(sp.saveButton).toBeDisabled();
+
+        await cleanupFields(adminClient, fieldsMap);
     });
 
-    test('Should change attribute type from Text to Phone', async () => {
+    /**
+     * @objective Verify changing an attribute type from Text to Phone via the type
+     * selector saves the updated value_type to the server.
+     *
+     * @precondition
+     * A text attribute named "Contact Number" exists via API setup.
+     */
+    test('changes attribute type from text to phone', {tag: '@user_attributes'}, async ({pw}) => {
+        const {adminClient, systemConsolePage} = await setupTest(pw);
+        const sp = systemConsolePage.systemProperties;
+
         // # Create a text attribute via API
         const attributes: CustomProfileAttribute[] = [{name: 'Contact Number', type: 'text'}];
-        attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, attributes);
+        await setupCustomProfileAttributeFields(adminClient, attributes);
 
         // # Navigate to User Attributes page
-        await systemConsolePage.page.goto(USER_ATTRIBUTES_URL);
-        await systemConsolePage.page.waitForLoadState('networkidle');
-
-        // # Click the type selector for the field
-        const typeButton = systemConsolePage.page.getByTestId('fieldTypeSelectorMenuButton').first();
-        await typeButton.click();
+        await sp.goto();
 
         // # Select "Phone" type
-        const phoneOption = systemConsolePage.page.locator('#phone');
-        await phoneOption.click();
+        await sp.selectType(0, 'Phone');
 
-        await saveAndWaitForSettled();
+        await sp.saveAndWaitForSettled();
 
         // * Verify field type was updated via API
-        await refreshFieldsMap(adminClient);
-        const updatedField = Object.values(attributeFieldsMap).find((f) => f.name === 'Contact Number');
+        const updatedMap = await getFieldsMap(adminClient);
+        const updatedField = Object.values(updatedMap).find((f) => f.name === 'Contact Number');
         expect(updatedField).toBeDefined();
         expect(updatedField!.type).toBe('text');
         expect(updatedField!.attrs.value_type).toBe('phone');
+
+        await cleanupFields(adminClient, updatedMap);
     });
 
-    test('Should create a multiselect attribute with options and save', async () => {
+    /**
+     * @objective Verify creating a multiselect attribute with options saves
+     * the field and its options to the server.
+     */
+    test('creates a multiselect attribute with options and saves', {tag: '@user_attributes'}, async ({pw}) => {
+        const {adminClient, systemConsolePage} = await setupTest(pw);
+        const sp = systemConsolePage.systemProperties;
+
         // # Navigate to User Attributes page
-        await systemConsolePage.page.goto(USER_ATTRIBUTES_URL);
-        await systemConsolePage.page.waitForLoadState('networkidle');
+        await sp.goto();
 
         // # Click "Add attribute"
-        await systemConsolePage.page.getByRole('button', {name: 'Add attribute'}).click();
+        await sp.addAttribute();
 
         // # Type attribute name
-        const nameInput = systemConsolePage.page.locator('input[data-testid="property-field-input"]').first();
+        const nameInput = sp.nameInput(0);
         await nameInput.fill('Skills');
         await nameInput.blur();
 
         // # Change type to Multi-select
-        const typeButton = systemConsolePage.page.getByTestId('fieldTypeSelectorMenuButton').first();
-        await typeButton.click();
+        await sp.selectType(0, 'Multi-select');
 
-        const multiselectOption = systemConsolePage.page.locator('#multiselect');
-        await multiselectOption.click();
+        // # Add options
+        await sp.addOptions(0, ['JavaScript', 'Python', 'Go']);
 
-        // # Add options via the CreatableSelect input
-        const valuesInput = systemConsolePage.page.locator('input[id^="react-select-"]').first();
-        await valuesInput.fill('JavaScript');
-        await valuesInput.press('Enter');
-        await valuesInput.fill('Python');
-        await valuesInput.press('Enter');
-        await valuesInput.fill('Go');
-        await valuesInput.press('Enter');
-
-        await saveAndWaitForSettled();
+        await sp.saveAndWaitForSettled();
 
         // * Verify field was created with correct type via API
-        await refreshFieldsMap(adminClient);
-        const createdField = Object.values(attributeFieldsMap).find((f) => f.name === 'Skills');
+        const fieldsMap = await getFieldsMap(adminClient);
+        const createdField = Object.values(fieldsMap).find((f) => f.name === 'Skills');
         expect(createdField).toBeDefined();
         expect(createdField!.type).toBe('multiselect');
         expect(createdField!.attrs.options).toBeDefined();
         expect(createdField!.attrs.options!.length).toBe(3);
+
+        await cleanupFields(adminClient, fieldsMap);
     });
 
-    test('Should create multiple text attributes and save all at once', async () => {
+    /**
+     * @objective Verify creating multiple text attributes in a single session
+     * and saving them all at once persists both to the server.
+     */
+    test('creates multiple text attributes and saves all at once', {tag: '@user_attributes'}, async ({pw}) => {
+        const {adminClient, systemConsolePage} = await setupTest(pw);
+        const sp = systemConsolePage.systemProperties;
+
         // # Navigate to User Attributes page
-        await systemConsolePage.page.goto(USER_ATTRIBUTES_URL);
-        await systemConsolePage.page.waitForLoadState('networkidle');
+        await sp.goto();
 
         // # Create first attribute (text)
-        await systemConsolePage.page.getByRole('button', {name: 'Add attribute'}).click();
-        const firstInput = systemConsolePage.page.locator('input[data-testid="property-field-input"]').nth(0);
+        await sp.addAttribute();
+        const firstInput = sp.nameInput(0);
         await firstInput.fill('Job Title');
         await firstInput.blur();
 
         // # Create second attribute (text)
-        await systemConsolePage.page.getByRole('button', {name: 'Add attribute'}).click();
-        const secondInput = systemConsolePage.page.locator('input[data-testid="property-field-input"]').nth(1);
+        await sp.addAttribute();
+        const secondInput = sp.nameInput(1);
         await secondInput.fill('Team Name');
         await secondInput.blur();
 
-        await saveAndWaitForSettled();
+        await sp.saveAndWaitForSettled();
 
         // * Verify both fields were created via API
-        await refreshFieldsMap(adminClient);
-        expect(Object.values(attributeFieldsMap).find((f) => f.name === 'Job Title')).toBeDefined();
-        expect(Object.values(attributeFieldsMap).find((f) => f.name === 'Team Name')).toBeDefined();
+        const fieldsMap = await getFieldsMap(adminClient);
+        expect(Object.values(fieldsMap).find((f) => f.name === 'Job Title')).toBeDefined();
+        expect(Object.values(fieldsMap).find((f) => f.name === 'Team Name')).toBeDefined();
+
+        await cleanupFields(adminClient, fieldsMap);
     });
 
-    test('Should persist attribute changes after page reload', async () => {
+    /**
+     * @objective Verify that renaming an attribute and saving persists the change
+     * after a full page reload.
+     *
+     * @precondition
+     * A custom profile attribute named "Persistent Field" exists via API setup.
+     */
+    test('persists attribute changes after page reload', {tag: '@user_attributes'}, async ({pw}) => {
+        const {adminClient, systemConsolePage} = await setupTest(pw);
+        const sp = systemConsolePage.systemProperties;
+
         // # Create an attribute via API
-        const attributes: CustomProfileAttribute[] = [{name: 'Persistent Field', type: 'text'}];
-        attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, attributes);
+        await setupCustomProfileAttributeFields(adminClient, [{name: 'Persistent Field', type: 'text'}]);
 
         // # Navigate to User Attributes page
-        await systemConsolePage.page.goto(USER_ATTRIBUTES_URL);
-        await systemConsolePage.page.waitForLoadState('networkidle');
+        await sp.goto();
 
         // * Verify attribute exists
-        await expect(systemConsolePage.page.locator('input[value="Persistent Field"]')).toBeVisible();
+        await expect(sp.nameInputByValue('Persistent Field')).toBeVisible();
 
-        // # Edit the name (see LOCATOR NOTE at top of file)
-        const nameInput = systemConsolePage.page.locator('input[data-testid="property-field-input"]').first();
+        // # Edit the name
+        const nameInput = sp.nameInput(0);
         await expect(nameInput).toHaveValue('Persistent Field');
         await nameInput.fill('Updated Persistent');
         await nameInput.blur();
 
-        await saveAndWaitForSettled();
+        await sp.saveAndWaitForSettled();
 
         // # Reload the page
-        await systemConsolePage.page.goto(USER_ATTRIBUTES_URL);
-        await systemConsolePage.page.waitForLoadState('networkidle');
+        await sp.goto();
 
         // * Verify the updated name persisted
-        await expect(systemConsolePage.page.locator('input[value="Updated Persistent"]')).toBeVisible();
+        await expect(sp.nameInputByValue('Updated Persistent')).toBeVisible();
 
-        // Update cleanup map
-        await refreshFieldsMap(adminClient);
+        await cleanupFields(adminClient, await getFieldsMap(adminClient));
     });
 
-    test('Should delete a newly added (unsaved) attribute without confirmation modal', async () => {
-        // # Navigate to User Attributes page
-        await systemConsolePage.page.goto(USER_ATTRIBUTES_URL);
-        await systemConsolePage.page.waitForLoadState('networkidle');
+    /**
+     * @objective Verify that deleting a newly added (unsaved) attribute removes
+     * the row without a confirmation modal.
+     */
+    test(
+        'deletes a newly added unsaved attribute without confirmation modal',
+        {tag: '@user_attributes'},
+        async ({pw}) => {
+            const {systemConsolePage} = await setupTest(pw);
+            const sp = systemConsolePage.systemProperties;
 
-        // # Add a new attribute
-        await systemConsolePage.page.getByRole('button', {name: 'Add attribute'}).click();
+            // # Navigate to User Attributes page
+            await sp.goto();
 
-        // # Type a name
-        const nameInput = systemConsolePage.page.locator('input[data-testid="property-field-input"]').first();
-        await nameInput.fill('Temporary');
-        await nameInput.blur();
+            // # Add a new attribute
+            await sp.addAttribute();
 
-        // # Open dot menu for the new (pending) field and click delete
-        const dotMenuButtons = systemConsolePage.page.locator('.user-property-field-dotmenu-menu-button');
-        await dotMenuButtons.last().click();
+            // # Type a name
+            const nameInput = sp.nameInput(0);
+            await nameInput.fill('Temporary');
+            await nameInput.blur();
 
-        const deleteMenuItem = systemConsolePage.page.locator('#user-property-field_dotmenu_delete');
-        await deleteMenuItem.click();
+            // # Open dot menu for the new (pending) field
+            await sp.openDotMenuForUnsaved();
 
-        // * Verify the row is removed (no confirmation modal for unsaved fields)
-        await expect(systemConsolePage.page.locator('input[value="Temporary"]')).not.toBeVisible();
+            await sp.deleteAttribute();
 
-        // * Verify Save button returns to disabled state (no net changes).
-        //   BUG: the app does not reset dirty state after removing an unsaved row,
-        //   so Save stays enabled. test.fail() lets CI pass while the bug exists
-        //   and will alert us when the fix lands (the test will unexpectedly pass).
-        test.fail();
-        const saveButton = systemConsolePage.page.getByTestId('saveSetting');
-        await expect(saveButton).toBeDisabled({timeout: 10000});
-    });
+            // * Verify the row is removed (no confirmation modal for unsaved fields)
+            await expect(sp.nameInputByValue('Temporary')).not.toBeVisible();
+
+            // * Verify Save button returns to disabled state (no net changes).
+            //   BUG: the app does not reset dirty state after removing an unsaved row,
+            //   so Save stays enabled. test.fail() lets CI pass while the bug exists
+            //   and will alert us when the fix lands (the test will unexpectedly pass).
+            test.fail();
+            await expect(sp.saveButton).toBeDisabled({timeout: 10000});
+        },
+    );
 });
