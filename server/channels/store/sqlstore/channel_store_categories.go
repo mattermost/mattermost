@@ -454,6 +454,30 @@ func (s SqlChannelStore) GetSidebarCategory(categoryId string) (*model.SidebarCa
 	return s.getSidebarCategoryT(s.GetReplica(), categoryId)
 }
 
+func (s SqlChannelStore) GetSidebarChannelsCategoryForTeamForUser(userID, teamID string) (*model.SidebarCategoryWithChannels, error) {
+	query := s.sidebarCategorySelectQuery.
+		Where(sq.And{
+			sq.Eq{"SidebarCategories.UserId": userID},
+			sq.Eq{"SidebarCategories.TeamId": teamID},
+			sq.Eq{"SidebarCategories.Type": model.SidebarCategoryChannels},
+		})
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "sidebar_category_tosql")
+	}
+
+	var category model.SidebarCategory
+	if err = s.GetReplica().Get(&category, sql, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to get Channels sidebar category")
+	}
+
+	return &model.SidebarCategoryWithChannels{
+		SidebarCategory: category,
+		Channels:        []string{},
+	}, nil
+}
+
 func (s SqlChannelStore) getSidebarCategoryT(db sqlxExecutor, categoryId string) (*model.SidebarCategoryWithChannels, error) {
 	query := s.sidebarCategorySelectQuery.
 		Columns("SidebarChannels.ChannelId").

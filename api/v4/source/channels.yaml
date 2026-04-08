@@ -2236,6 +2236,17 @@
           required: true
           schema:
             type: string
+        - name: exclude_managed_categories
+          in: query
+          description: >
+            When `true`, omits synthetic managed sidebar categories from the response.
+            Clients that load managed categories via the dedicated API should set this.
+            When omitted or `false`, and managed channel categories are enabled on the server,
+            managed categories are merged into this response for backwards compatibility.
+          required: false
+          schema:
+            type: boolean
+            default: false
       responses:
         "200":
           description: Category retrieval successful

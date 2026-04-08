@@ -2073,7 +2073,7 @@ export default class Client4 {
 
     getChannelCategories = (userId: string, teamId: string) => {
         return this.doFetch<OrderedChannelCategories>(
-            `${this.getChannelCategoriesRoute(userId, teamId)}`,
+            `${this.getChannelCategoriesRoute(userId, teamId)}?exclude_managed_categories=true`,
             {method: 'get'},
         );
     };

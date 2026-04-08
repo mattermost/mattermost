@@ -2297,6 +2297,22 @@ func (s *TimerLayerChannelStore) GetSidebarCategory(categoryID string) (*model.S
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) GetSidebarChannelsCategoryForTeamForUser(userID string, teamID string) (*model.SidebarCategoryWithChannels, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.GetSidebarChannelsCategoryForTeamForUser(userID, teamID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetSidebarChannelsCategoryForTeamForUser", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) GetSidebarCategoryOrder(userID string, teamID string) ([]string, error) {
 	start := time.Now()
 

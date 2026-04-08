@@ -4,9 +4,12 @@
 package app
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"net/http"
+	"sort"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -313,6 +316,8 @@ func (a *App) SetChannelManagedCategory(rctx request.CTX, channelID, categoryNam
 		return model.NewAppError("SetChannelManagedCategory", "app.managed_category.set.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
+	a.publishManagedCategorySidebarUpdated(channel.TeamId, channelID, categoryName)
+
 	return nil
 }
 
@@ -334,13 +339,24 @@ func (a *App) ClearChannelManagedCategory(rctx request.CTX, channelID string) *m
 		return model.NewAppError("ClearChannelManagedCategory", "app.managed_category.clear.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
+	ch, chErr := a.GetChannel(rctx, channelID)
+	if chErr == nil {
+		a.publishManagedCategorySidebarUpdated(ch.TeamId, channelID, "")
+	}
+
 	return nil
 }
 
 // GetVisibleManagedCategoryMappings returns a map of channelID -> categoryName for all channels
 // the user is a member of (within the given team) that have a managed category assigned.
 func (a *App) GetVisibleManagedCategoryMappings(rctx request.CTX, teamID string) (map[string]string, *model.AppError) {
-	channels, appErr := a.GetChannelsForTeamForUser(rctx, teamID, rctx.Session().UserId, &model.ChannelSearchOpts{})
+	return a.GetVisibleManagedCategoryMappingsForUser(rctx, rctx.Session().UserId, teamID)
+}
+
+// GetVisibleManagedCategoryMappingsForUser is like GetVisibleManagedCategoryMappings but uses an explicit userID
+// (e.g. when loading another user's sidebar with EditOtherUsers).
+func (a *App) GetVisibleManagedCategoryMappingsForUser(rctx request.CTX, userID, teamID string) (map[string]string, *model.AppError) {
+	channels, appErr := a.GetChannelsForTeamForUser(rctx, teamID, userID, &model.ChannelSearchOpts{})
 	if appErr != nil {
 		if appErr.StatusCode == http.StatusNotFound {
 			return map[string]string{}, nil
@@ -363,7 +379,7 @@ func (a *App) GetVisibleManagedCategoryMappings(rctx request.CTX, teamID string)
 		PerPage:   len(channelIDs),
 	})
 	if appErr != nil {
-		return nil, model.NewAppError("GetVisibleManagedCategoryMappings", "app.managed_category.get_mappings.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+		return nil, model.NewAppError("GetVisibleManagedCategoryMappingsForUser", "app.managed_category.get_mappings.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
 	result := make(map[string]string, len(values))
@@ -380,4 +396,130 @@ func (a *App) GetVisibleManagedCategoryMappings(rctx request.CTX, teamID string)
 	}
 
 	return result, nil
+}
+
+// GetSidebarCategoriesWithManagedForTeamForUser returns sidebar categories merged with synthetic managed categories
+// for clients that do not use the dedicated managed_categories API (e.g. older mobile apps).
+//
+// Channels are intentionally left in their original user categories AND included in managed
+// categories. The mobile client uses a composite CategoryChannel key (teamId_channelId) that
+// allows only one category per channel; by placing managed categories after user categories
+// in the array, the mobile's "last writer wins" dedup assigns the channel to the managed
+// category. Leaving the channel in user categories prevents the mobile's prune logic from
+// deleting the CategoryChannel record (prune only deletes channels missing from the remote
+// category's channel_ids list).
+func (a *App) GetSidebarCategoriesWithManagedForTeamForUser(rctx request.CTX, userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError) {
+	base, appErr := a.GetSidebarCategoriesForTeamForUser(rctx, userID, teamID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	mappings, appErr := a.GetVisibleManagedCategoryMappingsForUser(rctx, userID, teamID)
+	if appErr != nil {
+		return nil, appErr
+	}
+	if len(mappings) == 0 {
+		return base, nil
+	}
+
+	managed := a.buildManagedSidebarCategories(userID, teamID, mappings)
+	if len(managed) == 0 {
+		return base, nil
+	}
+
+	managedOrder := make([]string, 0, len(managed))
+	for _, mc := range managed {
+		managedOrder = append(managedOrder, mc.Id)
+	}
+
+	// Managed categories go AFTER user categories in the array so the mobile's
+	// CategoryChannel dedup (last writer wins) assigns the channel to the managed category.
+	// Managed category IDs go BEFORE user category IDs in the order for display priority.
+	out := &model.OrderedSidebarCategories{
+		Categories: append(append([]*model.SidebarCategoryWithChannels{}, base.Categories...), managed...),
+		Order:      append(append([]string{}, managedOrder...), base.Order...),
+	}
+
+	return out, nil
+}
+
+// managedCategorySyntheticID returns a stable 26-char ID for a managed sidebar row so clients
+// (e.g. mobile WatermelonDB) do not thrash on every GET. It must match model.IsValidId.
+func managedCategorySyntheticID(teamID, displayName string) string {
+	sum := sha256.Sum256([]byte(teamID + "\x00" + displayName))
+	// SHA-256 hex is 64 chars; take first 26 (letters + digits) for SidebarCategory.Id shape.
+	return hex.EncodeToString(sum[:])[:26]
+}
+
+func (a *App) buildManagedSidebarCategories(userID, teamID string, mappings map[string]string) []*model.SidebarCategoryWithChannels {
+	channelsByName := make(map[string][]string)
+	for channelID, name := range mappings {
+		channelsByName[name] = append(channelsByName[name], channelID)
+	}
+	names := make([]string, 0, len(channelsByName))
+	for name := range channelsByName {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+
+	out := make([]*model.SidebarCategoryWithChannels, 0, len(names))
+	for i, name := range names {
+		chIDs := channelsByName[name]
+		sort.Strings(chIDs)
+		sortOrder := int64(model.DefaultSidebarSortOrderFavorites - model.MinimalSidebarSortDistance*(len(names)-i))
+		out = append(out, &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				Id:          managedCategorySyntheticID(teamID, name),
+				UserId:      userID,
+				TeamId:      teamID,
+				SortOrder:   sortOrder,
+				Sorting:     model.SidebarCategorySortAlphabetical,
+				Type:        model.SidebarCategoryManaged,
+				DisplayName: name,
+				Muted:       false,
+				Collapsed:   false,
+			},
+			Channels: chIDs,
+		})
+	}
+	return out
+}
+
+// publishManagedCategorySidebarUpdated sends a sidebar_category_updated WS event.
+//
+// When channelID and categoryName are provided (Set path), the event carries valid JSON
+// in updatedCategories so the mobile client takes the addOrUpdateCategories path (no prune,
+// no DELETE/UPDATE race in WatermelonDB).
+//
+// When channelID is provided but categoryName is empty (Clear path), a broadcast hook
+// resolves each recipient's "Channels" category and populates updatedCategories per-user
+// so the channel moves back into the default category via addOrUpdateCategories.
+func (a *App) publishManagedCategorySidebarUpdated(teamID, channelID, categoryName string) {
+	message := model.NewWebSocketEvent(model.WebsocketEventSidebarCategoryUpdated, teamID, "", "", nil, "")
+
+	if channelID != "" && categoryName != "" {
+		cat := &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				Id:          managedCategorySyntheticID(teamID, categoryName),
+				TeamId:      teamID,
+				SortOrder:   int64(model.DefaultSidebarSortOrderFavorites - model.MinimalSidebarSortDistance),
+				Sorting:     model.SidebarCategorySortAlphabetical,
+				Type:        model.SidebarCategoryManaged,
+				DisplayName: categoryName,
+			},
+			Channels: []string{channelID},
+		}
+
+		if data, jsonErr := json.Marshal([]*model.SidebarCategoryWithChannels{cat}); jsonErr == nil {
+			message.Add("updatedCategories", string(data))
+			a.Publish(message)
+			return
+		}
+	}
+
+	if channelID != "" {
+		useManagedCategoryClearHook(message, teamID, channelID)
+	}
+
+	a.Publish(message)
 }

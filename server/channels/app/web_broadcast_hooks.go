@@ -16,24 +16,26 @@ import (
 )
 
 const (
-	broadcastAddMentions        = "add_mentions"
-	broadcastAddFollowers       = "add_followers"
-	broadcastPostedAck          = "posted_ack"
-	broadcastPermalink          = "permalink"
-	broadcastChannelMentions    = "channel_mentions"
-	broadcastBurnOnRead         = "burn_on_read"
-	broadcastBurnOnReadReaction = "burn_on_read_reaction"
+	broadcastAddMentions          = "add_mentions"
+	broadcastAddFollowers         = "add_followers"
+	broadcastPostedAck            = "posted_ack"
+	broadcastPermalink            = "permalink"
+	broadcastChannelMentions      = "channel_mentions"
+	broadcastBurnOnRead           = "burn_on_read"
+	broadcastBurnOnReadReaction   = "burn_on_read_reaction"
+	broadcastManagedCategoryClear = "managed_category_clear"
 )
 
 func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
 	return map[string]platform.BroadcastHook{
-		broadcastAddMentions:        &addMentionsBroadcastHook{},
-		broadcastAddFollowers:       &addFollowersBroadcastHook{},
-		broadcastPostedAck:          &postedAckBroadcastHook{},
-		broadcastPermalink:          &permalinkBroadcastHook{},
-		broadcastChannelMentions:    &channelMentionsBroadcastHook{},
-		broadcastBurnOnRead:         &burnOnReadBroadcastHook{},
-		broadcastBurnOnReadReaction: &burnOnReadReactionBroadcastHook{},
+		broadcastAddMentions:          &addMentionsBroadcastHook{},
+		broadcastAddFollowers:         &addFollowersBroadcastHook{},
+		broadcastPostedAck:            &postedAckBroadcastHook{},
+		broadcastPermalink:            &permalinkBroadcastHook{},
+		broadcastChannelMentions:      &channelMentionsBroadcastHook{},
+		broadcastBurnOnRead:           &burnOnReadBroadcastHook{},
+		broadcastBurnOnReadReaction:   &burnOnReadReactionBroadcastHook{},
+		broadcastManagedCategoryClear: &managedCategoryClearBroadcastHook{},
 	}
 }
 
@@ -371,6 +373,45 @@ func useBurnOnReadReactionHook(message *model.WebSocketEvent, authorID, postID s
 	message.GetBroadcast().AddHook(broadcastBurnOnReadReaction, map[string]any{
 		"author_id": authorID,
 		"post_id":   postID,
+	})
+}
+
+type managedCategoryClearBroadcastHook struct{}
+
+func (h *managedCategoryClearBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
+	teamID, err := getTypedArg[string](args, "team_id")
+	if err != nil {
+		return errors.Wrap(err, "Invalid team_id in managedCategoryClearBroadcastHook")
+	}
+
+	channelID, err := getTypedArg[string](args, "channel_id")
+	if err != nil {
+		return errors.Wrap(err, "Invalid channel_id in managedCategoryClearBroadcastHook")
+	}
+
+	channelsCat, storeErr := webConn.Platform.Store.Channel().GetSidebarChannelsCategoryForTeamForUser(webConn.UserId, teamID)
+	if storeErr != nil {
+		return errors.Wrap(storeErr, "Failed to get channels category in managedCategoryClearBroadcastHook")
+	}
+
+	update := &model.SidebarCategoryWithChannels{
+		SidebarCategory: channelsCat.SidebarCategory,
+		Channels:        []string{channelID},
+	}
+
+	data, jsonErr := json.Marshal([]*model.SidebarCategoryWithChannels{update})
+	if jsonErr != nil {
+		return errors.Wrap(jsonErr, "Failed to marshal categories in managedCategoryClearBroadcastHook")
+	}
+
+	msg.Add("updatedCategories", string(data))
+	return nil
+}
+
+func useManagedCategoryClearHook(message *model.WebSocketEvent, teamID, channelID string) {
+	message.GetBroadcast().AddHook(broadcastManagedCategoryClear, map[string]any{
+		"team_id":    teamID,
+		"channel_id": channelID,
 	})
 }
 

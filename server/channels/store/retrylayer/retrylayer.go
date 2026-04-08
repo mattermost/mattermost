@@ -2745,6 +2745,27 @@ func (s *RetryLayerChannelStore) GetSidebarCategory(categoryID string) (*model.S
 
 }
 
+func (s *RetryLayerChannelStore) GetSidebarChannelsCategoryForTeamForUser(userID string, teamID string) (*model.SidebarCategoryWithChannels, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetSidebarChannelsCategoryForTeamForUser(userID, teamID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerChannelStore) GetSidebarCategoryOrder(userID string, teamID string) ([]string, error) {
 
 	tries := 0

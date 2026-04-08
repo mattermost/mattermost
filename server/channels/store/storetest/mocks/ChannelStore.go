@@ -2055,6 +2055,36 @@ func (_m *ChannelStore) GetSidebarCategory(categoryID string) (*model.SidebarCat
 	return r0, r1
 }
 
+// GetSidebarChannelsCategoryForTeamForUser provides a mock function with given fields: userID, teamID
+func (_m *ChannelStore) GetSidebarChannelsCategoryForTeamForUser(userID string, teamID string) (*model.SidebarCategoryWithChannels, error) {
+	ret := _m.Called(userID, teamID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSidebarChannelsCategoryForTeamForUser")
+	}
+
+	var r0 *model.SidebarCategoryWithChannels
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string) (*model.SidebarCategoryWithChannels, error)); ok {
+		return rf(userID, teamID)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) *model.SidebarCategoryWithChannels); ok {
+		r0 = rf(userID, teamID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.SidebarCategoryWithChannels)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(userID, teamID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetSidebarCategoryOrder provides a mock function with given fields: userID, teamID
 func (_m *ChannelStore) GetSidebarCategoryOrder(userID string, teamID string) ([]string, error) {
 	ret := _m.Called(userID, teamID)

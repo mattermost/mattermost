@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -27,7 +28,14 @@ func getCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	categories, appErr := c.App.GetSidebarCategoriesForTeamForUser(c.AppContext, c.Params.UserId, c.Params.TeamId)
+	excludeManaged, _ := strconv.ParseBool(r.URL.Query().Get("exclude_managed_categories"))
+	var categories *model.OrderedSidebarCategories
+	var appErr *model.AppError
+	if !excludeManaged && model.MinimumEnterpriseLicense(c.App.Channels().License()) && model.SafeDereference(c.App.Config().TeamSettings.EnableManagedChannelCategories) {
+		categories, appErr = c.App.GetSidebarCategoriesWithManagedForTeamForUser(c.AppContext, c.Params.UserId, c.Params.TeamId)
+	} else {
+		categories, appErr = c.App.GetSidebarCategoriesForTeamForUser(c.AppContext, c.Params.UserId, c.Params.TeamId)
+	}
 	if appErr != nil {
 		c.Err = appErr
 		return
