@@ -228,6 +228,10 @@ func (a *App) SyncSharedChannel(channelID string) error {
 
 // SendSharedChannelSyncMsg processes an inbound sync message from a plugin remote.
 func (a *App) SendSharedChannelSyncMsg(rctx request.CTX, pluginID string, msg *model.SyncMsg) (model.SyncResponse, error) {
+	if msg == nil {
+		return model.SyncResponse{}, fmt.Errorf("SyncMsg must not be nil")
+	}
+
 	scService, err := a.getSharedChannelsService(true)
 	if err != nil {
 		return model.SyncResponse{}, err

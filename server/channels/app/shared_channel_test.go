@@ -899,6 +899,12 @@ func TestPluginAPISendSharedChannelSyncMsg(t *testing.T) {
 
 	api := NewPluginAPI(th.App, th.Context, &model.Manifest{Id: pluginID})
 
+	t.Run("nil msg returns error", func(t *testing.T) {
+		_, err := api.SendSharedChannelSyncMsg(nil)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "must not be nil")
+	})
+
 	t.Run("unregistered plugin returns error", func(t *testing.T) {
 		badAPI := NewPluginAPI(th.App, th.Context, &model.Manifest{Id: "com.nonexistent.plugin"})
 		msg := model.NewSyncMsg(channel.Id)
