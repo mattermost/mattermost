@@ -24,6 +24,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	oauthgitlab "github.com/mattermost/mattermost/server/v8/channels/app/oauthproviders/gitlab"
+	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
@@ -267,6 +268,41 @@ func TestUpdateUser(t *testing.T) {
 		require.NotNil(t, updatedUser)
 		require.Equal(t, updatedUser.LastPictureUpdate, iLastPictureUpdate)
 	})
+}
+
+func TestUpdateUserNilUpdateResult(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupWithStoreMock(t)
+
+	fakeUserID := model.NewId()
+	mockUser := &model.User{
+		Id:       fakeUserID,
+		Username: "testuser",
+		Email:    "test@example.com",
+	}
+
+	mockUserStore := storemocks.UserStore{}
+	mockUserStore.On("Get", mock.Anything, mock.Anything).Return(mockUser, nil)
+	// Simulate a store that returns (nil, nil) — no error but no result
+	mockUserStore.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil, nil)
+
+	mockSessionStore := storemocks.SessionStore{}
+	mockOAuthStore := storemocks.OAuthStore{}
+
+	var err error
+	th.App.ch.srv.userService, err = users.New(users.ServiceConfig{
+		UserStore:    &mockUserStore,
+		SessionStore: &mockSessionStore,
+		OAuthStore:   &mockOAuthStore,
+		ConfigFn:     th.App.ch.srv.platform.Config,
+		LicenseFn:    th.App.ch.srv.License,
+	})
+	require.NoError(t, err)
+
+	updatedUser, appErr := th.App.UpdateUser(th.Context, mockUser, false)
+	require.Nil(t, updatedUser, "expected nil user when store returns nil update")
+	require.NotNil(t, appErr, "expected error when store returns nil update")
+	require.Equal(t, "app.user.update.find.app_error", appErr.Id)
 }
 
 func TestUpdateUserMissingFields(t *testing.T) {

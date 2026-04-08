@@ -9808,10 +9808,6 @@
     "translation": "Não é possível registrar o grupo de propriedades Custom Profile Attributes"
   },
   {
-    "id": "app.custom_profile_attributes.create_property_field.app_error",
-    "translation": "Não é possível criar o campo Atributo de perfil personalizado"
-  },
-  {
     "id": "app.custom_profile_attributes.get_property_field.app_error",
     "translation": "Não é possível obter o campo Atributo de perfil personalizado"
   },

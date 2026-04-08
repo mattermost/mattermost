@@ -16,7 +16,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/blang/semver/v4"
+	"github.com/Masterminds/semver/v3"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 
@@ -1923,16 +1923,17 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord(model.AuditEventResetPassword, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	c.LogAudit("attempt - token=" + token)
+	tokenPrefix := token[:5]
+	c.LogAudit("attempt - token_prefix=" + tokenPrefix)
 
 	if err := c.App.ResetPasswordFromToken(c.AppContext, token, newPassword); err != nil {
-		c.LogAudit("fail - token=" + token)
+		c.LogAudit("fail - token_prefix=" + tokenPrefix)
 		c.Err = err
 		return
 	}
 
 	auditRec.Success()
-	c.LogAudit("success - token=" + token)
+	c.LogAudit("success - token_prefix=" + tokenPrefix)
 
 	ReturnStatusOK(w)
 }
@@ -2538,7 +2539,7 @@ func handleDeviceProps(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	mobileVersion := receivedProps[model.SessionPropMobileVersion]
 	if mobileVersion != "" {
-		if _, err := semver.Parse(mobileVersion); err != nil {
+		if _, err := semver.StrictNewVersion(mobileVersion); err != nil {
 			c.SetInvalidParam(model.SessionPropMobileVersion)
 			return
 		}
