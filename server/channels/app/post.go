@@ -1034,8 +1034,43 @@ func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, m
 		}
 	}
 
+	a.setupBroadcastHookForAbacFiles(post, message)
+
 	a.Publish(message)
 	return nil
+}
+
+// setupBroadcastHookForAbacFiles registers a per-recipient broadcast hook that strips file
+// metadata from the post for users denied the download_file_attachment action by ABAC policies.
+func (a *App) setupBroadcastHookForAbacFiles(post *model.Post, message *model.WebSocketEvent) {
+	if a.Srv().Channels().AccessControl == nil {
+		return
+	}
+
+	cfg := a.Config().AccessControlSettings.EnableAttributeBasedAccessControl
+	if cfg == nil || !*cfg {
+		return
+	}
+
+	// Burn-on-read posts handle file visibility through their own broadcast hook.
+	// The burn_on_read hook already clears FileIds at the publishWebsocketEventForPost
+	// entry point; registering the ABAC hook would interact incorrectly with that path.
+	if post.Type == model.PostTypeBurnOnRead {
+		return
+	}
+
+	// Derive file count from FileIds or Metadata.Files — whichever is populated.
+	// The serialized post JSON always contains Metadata.Files when PreparePostForClient
+	// has been called, so we use that as the authoritative source for the hook payload.
+	fileCount := len(post.FileIds)
+	if fileCount == 0 && post.Metadata != nil {
+		fileCount = len(post.Metadata.Files)
+	}
+	if fileCount == 0 {
+		return
+	}
+
+	useAbacFilesHook(message, post.ChannelId, fileCount)
 }
 
 func (a *App) setupBroadcastHookForPermalink(rctx request.CTX, post *model.Post, message *model.WebSocketEvent, permalinkPreviewedPost *model.PreviewPost, previewProp string) *model.AppError {

@@ -1,7 +1,10 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 .post-image__column--redacted {
     padding: 0 16px;
     border-style: dashed;
-    background: rgba(var(--center-channel-color-rgb), 0.04);
+    background: var(--center-channel-color-04, rgba(63, 67, 80, 0.04));
     cursor: default;
     gap: 12px;
 
@@ -12,6 +15,13 @@
 
     svg {
         flex-shrink: 0;
+    }
+
+    &-compact {
+        // Compact variant mirrors the archived file compact layout in file_attachment.tsx
+        display: flex;
+        align-items: center;
+        gap: 6px;
     }
 }
 
@@ -24,7 +34,7 @@
 
 .post-image__redacted-message {
     overflow: hidden;
-    color: rgba(var(--center-channel-color-rgb), 0.64);
+    color: var(--center-channel-color-64, rgba(63, 67, 80, 0.64));
     font-size: 12px;
     line-height: 16px;
     text-overflow: ellipsis;

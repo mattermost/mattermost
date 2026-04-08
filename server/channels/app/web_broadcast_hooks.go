@@ -9,6 +9,7 @@ import (
 	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -23,6 +24,7 @@ const (
 	broadcastChannelMentions    = "channel_mentions"
 	broadcastBurnOnRead         = "burn_on_read"
 	broadcastBurnOnReadReaction = "burn_on_read_reaction"
+	broadcastAbacFiles          = "abac_files"
 )
 
 func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
@@ -34,6 +36,7 @@ func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
 		broadcastChannelMentions:    &channelMentionsBroadcastHook{},
 		broadcastBurnOnRead:         &burnOnReadBroadcastHook{},
 		broadcastBurnOnReadReaction: &burnOnReadReactionBroadcastHook{},
+		broadcastAbacFiles:          &abacFilesBroadcastHook{},
 	}
 }
 
@@ -372,6 +375,122 @@ func useBurnOnReadReactionHook(message *model.WebSocketEvent, authorID, postID s
 		"author_id": authorID,
 		"post_id":   postID,
 	})
+}
+
+type abacFilesBroadcastHook struct{}
+
+func useAbacFilesHook(message *model.WebSocketEvent, channelID string, fileCount int) {
+	message.GetBroadcast().AddHook(broadcastAbacFiles, map[string]any{
+		"channel_id": channelID,
+		"file_count": fileCount,
+	})
+}
+
+// Process strips file metadata from the post for users who are denied the download_file_attachment
+// action by ABAC permission policies, and sets the redacted file count so the client can show a
+// placeholder. For users with permission, the post is left unchanged (files are already in it).
+//
+// Security contract: once the permission check determines the user is denied, all subsequent
+// errors strip files defensively rather than leaving them intact. Only errors that occur before
+// the permission check (arg parsing, missing session) allow pass-through, since no security
+// decision has been made at that point.
+func (h *abacFilesBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
+	channelID, err := getTypedArg[string](args, "channel_id")
+	if err != nil {
+		return errors.Wrap(err, "Invalid channel_id value passed to abacFilesBroadcastHook")
+	}
+
+	fileCount, err := getTypedArg[int](args, "file_count")
+	if err != nil {
+		return errors.Wrap(err, "Invalid file_count value passed to abacFilesBroadcastHook")
+	}
+
+	// Get the user's session from the WebSocket connection.
+	// The session must be attached to the request context because the ABAC permission policy
+	// evaluator (resolveSystemRole) derives the user's role from rctx.Session(), not from
+	// the Subject.Role field we pass to HasPermissionToFileAction.
+	session := webConn.GetSession()
+	if session == nil {
+		// No session means we can't evaluate — allow by default to avoid blocking legitimate users.
+		return nil
+	}
+
+	rctx := request.EmptyContext(webConn.Platform.Log()).WithSession(session)
+
+	if webConn.Suite.HasPermissionToFileAction(rctx, webConn.UserId, session.Roles, channelID, model.AccessControlPolicyActionDownloadFileAttachment) {
+		// User is allowed — post already contains files, nothing to do.
+		return nil
+	}
+
+	// User is denied. From this point, strip files defensively on any error rather than
+	// returning the error (which would leave the original event with full file metadata intact).
+	post, postErr := getPostFromMessage(msg)
+	if postErr != nil {
+		mlog.Warn("abacFilesBroadcastHook: failed to get post from message, stripping files defensively",
+			mlog.String("user_id", webConn.UserId),
+			mlog.Err(postErr),
+		)
+		// Cannot reconstruct post — deny by stripping with a count derived from registered args.
+		return h.stripFilesFromMessage(msg, fileCount)
+	}
+
+	if post.Metadata == nil {
+		post.Metadata = &model.PostMetadata{}
+	}
+
+	// Use the actual file count from the deserialized post; fall back to the registered arg.
+	// Note: Metadata.Images holds external/inline image dimensions, not file attachment data,
+	// so it is intentionally left untouched.
+	actualCount := len(post.Metadata.Files)
+	if actualCount == 0 {
+		actualCount = len(post.FileIds)
+	}
+	if actualCount == 0 {
+		// Hook was registered with fileCount > 0; if the post now has no files it may have been
+		// modified by a prior hook. Use the registered count as the authoritative value.
+		actualCount = fileCount
+	}
+
+	post.Metadata.RedactedFileCount = actualCount
+	post.Metadata.Files = nil
+	post.FileIds = model.StringArray{}
+
+	updatedPostJSON, jsonErr := post.ToJSON()
+	if jsonErr != nil {
+		mlog.Warn("abacFilesBroadcastHook: failed to marshal post, stripping files defensively",
+			mlog.String("user_id", webConn.UserId),
+			mlog.Err(jsonErr),
+		)
+		return h.stripFilesFromMessage(msg, actualCount)
+	}
+
+	msg.Add("post", updatedPostJSON)
+	return nil
+}
+
+// stripFilesFromMessage is a best-effort defensive strip used when the hook cannot fully
+// reconstruct the post JSON. It replaces the post data in the message with a minimal
+// representation that includes only the redacted file count, preventing file metadata leakage.
+func (h *abacFilesBroadcastHook) stripFilesFromMessage(msg *platform.HookedWebSocketEvent, redactedCount int) error {
+	post, err := getPostFromMessage(msg)
+	if err != nil {
+		// If we truly cannot read the post at all, we must reject the event entirely
+		// to avoid sending unknown content to a denied user.
+		msg.Event().Reject()
+		return nil
+	}
+	if post.Metadata == nil {
+		post.Metadata = &model.PostMetadata{}
+	}
+	post.Metadata.RedactedFileCount = redactedCount
+	post.Metadata.Files = nil
+	post.FileIds = model.StringArray{}
+	if postJSON, jsonErr := post.ToJSON(); jsonErr == nil {
+		msg.Add("post", postJSON)
+	} else {
+		msg.Event().Reject()
+	}
+	return nil
 }
 
 func incrementWebsocketCounter(wc *platform.WebConn) {

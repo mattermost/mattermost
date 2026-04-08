@@ -64,14 +64,15 @@ func (p *PostMetadata) Auditable() map[string]any {
 	}
 
 	return map[string]any{
-		"embeds":           embeds,
-		"emojis":           p.Emojis,
-		"files":            p.Files,
-		"images":           p.Images,
-		"reactions":        p.Reactions,
-		"priority":         p.Priority,
-		"acknowledgements": p.Acknowledgements,
-		"translations":     p.Translations,
+		"embeds":              embeds,
+		"emojis":              p.Emojis,
+		"files":               p.Files,
+		"images":              p.Images,
+		"reactions":           p.Reactions,
+		"priority":            p.Priority,
+		"acknowledgements":    p.Acknowledgements,
+		"translations":        p.Translations,
+		"redacted_file_count": p.RedactedFileCount,
 	}
 }
 

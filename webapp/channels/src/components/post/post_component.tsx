@@ -36,7 +36,7 @@ import PostMessageContainer from 'components/post_view/post_message_view';
 import PostPreHeader from 'components/post_view/post_pre_header';
 import PostTime from 'components/post_view/post_time';
 import ReactionList from 'components/post_view/reaction_list';
-import RedactedFilesPlaceholder from 'components/redacted_files_placeholder';
+import RedactedFilesPlaceholder from 'components/post_view/redacted_files_placeholder';
 import ThreadFooter from 'components/threading/channel_threads/thread_footer';
 import type {Props as TimestampProps} from 'components/timestamp/timestamp';
 import InfoSmallIcon from 'components/widgets/icons/info_small_icon';
@@ -888,8 +888,11 @@ function PostComponent(props: Props) {
                                     handleFileDropdownOpened={handleFileDropdownOpened}
                                 />
                             }
-                            {redactedFileCount > 0 && !showFileAttachments && (
-                                <RedactedFilesPlaceholder count={redactedFileCount}/>
+                            {redactedFileCount > 0 && !props.isPostBeingEdited && !showConcealedPlaceholder && post.state !== Posts.POST_DELETED && (
+                                <RedactedFilesPlaceholder
+                                    count={redactedFileCount}
+                                    compactDisplay={props.compactDisplay}
+                                />
                             )}
                             <div className='post__body-reactions-acks'>
                                 {props.isPostAcknowledgementsEnabled && post.metadata?.priority?.requested_ack && (
