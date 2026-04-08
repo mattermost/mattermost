@@ -240,6 +240,9 @@ ifneq ($(DOCKER_SERVICES_OVERRIDE),true)
   ENABLED_DOCKER_SERVICES:=$(ENABLED_DOCKER_SERVICES) $(TEMP_DOCKER_SERVICES)
 endif
 
+# Convert ENABLED_DOCKER_SERVICES into --profile flags for docker compose
+DOCKER_PROFILES = $(addprefix --profile ,$(ENABLED_DOCKER_SERVICES))
+
 start-docker: setup-go-work ## Starts the docker containers for local development.
 ifneq ($(IS_CI),false)
 	@echo CI Build: skipping docker start
@@ -252,8 +255,7 @@ ifeq ($(MM_USE_PGVECTOR),true)
 endif
 
 	mkdir -p logs
-	docker compose rm start_dependencies
-	$(GO) run ./build/docker-compose-generator/main.go $(ENABLED_DOCKER_SERVICES) | docker compose -f docker-compose.makefile.yml -f /dev/stdin $(DOCKER_COMPOSE_OVERRIDE) run -T --rm start_dependencies
+	docker compose -f docker-compose.makefile.yml $(DOCKER_PROFILES) $(DOCKER_COMPOSE_OVERRIDE) up --wait --wait-timeout 30
   ifneq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
 	cat tests/custom-schema-objectID.ldif | docker compose -f docker-compose.makefile.yml $(DOCKER_COMPOSE_OVERRIDE) exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true';
 	cat tests/custom-schema-cpa.ldif | docker compose -f docker-compose.makefile.yml ${DOCKER_COMPOSE_OVERRIDE} exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true';
@@ -264,7 +266,7 @@ endif
 update-docker: setup-go-work stop-docker ## Updates the docker containers for local development.
 	@echo Updating docker containers
 
-	$(GO) run ./build/docker-compose-generator/main.go $(ENABLED_DOCKER_SERVICES) | docker compose -f docker-compose.makefile.yml -f /dev/stdin $(DOCKER_COMPOSE_OVERRIDE) up --no-start
+	docker compose -f docker-compose.makefile.yml $(DOCKER_PROFILES) $(DOCKER_COMPOSE_OVERRIDE) up --no-start
 
 run-haserver:
 ifeq ($(BUILD_ENTERPRISE_READY),true)
