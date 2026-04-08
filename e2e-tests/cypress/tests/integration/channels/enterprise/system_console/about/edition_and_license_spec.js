@@ -62,12 +62,12 @@ describe('System console', () => {
                 cy.get('.upgrade-title').should('have.text', 'Upgrade to Enterprise Advanced');
 
                 // Check the advantages list
-                cy.findByText('Attribute-based access control');
-                cy.findByText('Channel warning banners');
-                cy.findByText('AD/LDAP group sync');
-                cy.findByText('Advanced workflows with Playbooks');
-                cy.findByText('High availability');
-                cy.findByText('Advanced compliance');
+                cy.findByText('Dynamic attribute-based access controls');
+                cy.findByText('Data spillage handling');
+                cy.findByText('Burn-on-read messages');
+                cy.findByText('Mobile biometrics & advanced security');
+                cy.findByText('Automatic channel translations');
+                cy.findByText('Channel banners');
                 cy.findByText('And more...');
                 cy.findByRole('button', {name: 'Contact Sales'});
             });
