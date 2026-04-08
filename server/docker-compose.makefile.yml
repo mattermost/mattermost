@@ -2,6 +2,7 @@ services:
   postgres:
     restart: 'no'
     container_name: mattermost-postgres
+    profiles: [postgres]
     ports:
       - "5432:5432"
     volumes:
@@ -12,6 +13,7 @@ services:
   minio:
     restart: 'no'
     container_name: mattermost-minio
+    profiles: [minio]
     ports:
       - "9000:9000"
       - "9002:9002"
@@ -21,6 +23,7 @@ services:
   inbucket:
     restart: 'no'
     container_name: mattermost-inbucket
+    profiles: [inbucket]
     ports:
       - "9001:9001"
       - "10025:10025"
@@ -31,6 +34,7 @@ services:
   openldap:
     restart: 'no'
     container_name: mattermost-openldap
+    profiles: [openldap]
     ports:
       - "389:389"
       - "636:636"
@@ -40,6 +44,7 @@ services:
   elasticsearch:
     restart: 'no'
     container_name: mattermost-elasticsearch
+    profiles: [elasticsearch]
     ports:
       - "9200:9200"
       - "9300:9300"
@@ -48,6 +53,7 @@ services:
         service: elasticsearch
   opensearch:
     container_name: mattermost-opensearch
+    profiles: [opensearch]
     ports:
       - "9201:9201"
     extends:
@@ -55,6 +61,7 @@ services:
         service: opensearch
   redis:
     container_name: mattermost-redis
+    profiles: [redis]
     ports:
       - "6379:6379"
     extends:
@@ -63,6 +70,7 @@ services:
   dejavu:
     restart: 'no'
     container_name: mattermost-dejavu
+    profiles: [dejavu]
     ports:
       - "1358:1358"
     extends:
@@ -71,6 +79,7 @@ services:
   keycloak:
     restart: 'no'
     container_name: mattermost-saml
+    profiles: [keycloak]
     ports:
       - "8484:8080"
     extends:
@@ -79,6 +88,7 @@ services:
   prometheus:
     restart: 'no'
     container_name: mattermost-prometheus
+    profiles: [prometheus]
     ports:
       - "9090:9090"
     extends:
@@ -87,6 +97,7 @@ services:
   grafana:
     restart: 'no'
     container_name: mattermost-grafana
+    profiles: [grafana]
     ports:
       - "3000:3000"
     extends:
@@ -94,6 +105,7 @@ services:
         service: grafana
   loki:
     container_name: mattermost-loki
+    profiles: [loki]
     ports:
       - "3100:3100"
     extends:
@@ -101,11 +113,17 @@ services:
         service: loki
   otel-collector:
     container_name: mattermost-otel-collector
+    profiles: [otel-collector]
     ports:
       - "13133:13133"
     extends:
         file: build/docker-compose.common.yml
         service: otel-collector
+
+  start_dependencies:
+    image: mattermost/mattermost-wait-for-dep:latest
+    networks:
+      - mm-test
 
 networks:
   mm-test:
