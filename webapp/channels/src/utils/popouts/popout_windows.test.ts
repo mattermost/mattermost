@@ -116,6 +116,7 @@ describe('popout_windows', () => {
             expect(mockOnFocusPost).toHaveBeenCalledWith('post-123', '/team/pl/post-123');
 
             messageListeners.forEach((listener) => listener(POPOUT_BLURRED));
+            expect(getFocusedPopoutInfo()).toBeNull();
         });
 
         it('should include subpath in popout URL when basename is set', async () => {
