@@ -315,6 +315,7 @@ describe('fetchMyCategories', () => {
 
         nock(Client4.getBaseRoute()).
             get(`/users/${currentUserId}/teams/${teamId}/channels/categories`).
+            query({exclude_managed_categories: 'true'}).
             reply(200, {categories, order: categories.map((category) => category.id)});
 
         await store.dispatch(Actions.fetchMyCategories(teamId));
@@ -358,6 +359,7 @@ describe('fetchMyCategories', () => {
 
         nock(Client4.getBaseRoute()).
             get(`/users/${currentUserId}/teams/${teamId}/channels/categories`).
+            query({exclude_managed_categories: 'true'}).
             reply(200, {categories, order: categories.map((category) => category.id)});
         await store.dispatch(Actions.fetchMyCategories(teamId, isWebSocket));
         const categoriesById = getAllCategoriesByIds(store.getState());
@@ -398,6 +400,7 @@ describe('fetchMyCategories', () => {
             }});
         nock(Client4.getBaseRoute()).
             get(`/users/${currentUserId}/teams/${teamId}/channels/categories`).
+            query({exclude_managed_categories: 'true'}).
             reply(200, {categories, order: categories.map((category) => category.id)});
 
         await store.dispatch(Actions.fetchMyCategories(teamId, isWebSocket));
