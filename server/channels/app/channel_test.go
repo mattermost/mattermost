@@ -518,6 +518,51 @@ func TestUpdateChannelPrivacy(t *testing.T) {
 	assert.Equal(t, publicChannel.Type, model.ChannelTypeOpen)
 }
 
+func TestUpdateChannelPrivacyWebSocketEvent(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	t.Run("private to public includes channel_type O in WS event", func(t *testing.T) {
+		privateChannel := th.createChannel(t, th.BasicTeam, model.ChannelTypePrivate)
+
+		wsMessages, closeWS := connectFakeWebSocket(t, th, th.BasicUser.Id, "", []model.WebsocketEventType{model.WebsocketEventChannelConverted})
+		defer closeWS()
+
+		privateChannel.Type = model.ChannelTypeOpen
+		_, appErr := th.App.UpdateChannelPrivacy(th.Context, privateChannel, th.BasicUser)
+		require.Nil(t, appErr)
+
+		select {
+		case received := <-wsMessages:
+			data := received.GetData()
+			assert.Equal(t, privateChannel.Id, data["channel_id"])
+			assert.Equal(t, string(model.ChannelTypeOpen), data["channel_type"])
+		case <-time.After(10 * time.Second):
+			require.Fail(t, "Did not receive channel_converted websocket event")
+		}
+	})
+
+	t.Run("public to private includes channel_type P in WS event", func(t *testing.T) {
+		publicChannel := th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen)
+
+		wsMessages, closeWS := connectFakeWebSocket(t, th, th.BasicUser.Id, "", []model.WebsocketEventType{model.WebsocketEventChannelConverted})
+		defer closeWS()
+
+		publicChannel.Type = model.ChannelTypePrivate
+		_, appErr := th.App.UpdateChannelPrivacy(th.Context, publicChannel, th.BasicUser)
+		require.Nil(t, appErr)
+
+		select {
+		case received := <-wsMessages:
+			data := received.GetData()
+			assert.Equal(t, publicChannel.Id, data["channel_id"])
+			assert.Equal(t, string(model.ChannelTypePrivate), data["channel_type"])
+		case <-time.After(10 * time.Second):
+			require.Fail(t, "Did not receive channel_converted websocket event")
+		}
+	})
+}
+
 func TestGetOrCreateDirectChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

@@ -1581,3 +1581,143 @@ describe('handleCustomAttributeCRUD', () => {
         });
     });
 });
+
+describe('handleChannelConvertedEvent', () => {
+    const channelId = 'converted-channel';
+
+    beforeEach(() => {
+        store.dispatch.mockClear();
+        mockState = {
+            ...mockState,
+            entities: {
+                ...mockState.entities,
+                channels: {
+                    ...mockState.entities.channels,
+                    channels: {
+                        ...mockState.entities.channels.channels,
+                        [channelId]: {
+                            id: channelId,
+                            team_id: 'currentTeamId',
+                            type: 'P',
+                            name: 'test-channel',
+                        },
+                    },
+                },
+            },
+        };
+    });
+
+    test('should update channel type from private to public when channel_type is O', () => {
+        const msg = {
+            event: 'channel_converted',
+            data: {
+                channel_id: channelId,
+                channel_type: 'O',
+            },
+        };
+
+        handleEvent(msg);
+
+        expect(store.dispatch).toHaveBeenCalledWith({
+            type: 'RECEIVED_CHANNEL',
+            data: expect.objectContaining({
+                id: channelId,
+                type: 'O',
+            }),
+        });
+    });
+
+    test('should update channel type from public to private when channel_type is P', () => {
+        mockState.entities.channels.channels[channelId].type = 'O';
+
+        const msg = {
+            event: 'channel_converted',
+            data: {
+                channel_id: channelId,
+                channel_type: 'P',
+            },
+        };
+
+        handleEvent(msg);
+
+        expect(store.dispatch).toHaveBeenCalledWith({
+            type: 'RECEIVED_CHANNEL',
+            data: expect.objectContaining({
+                id: channelId,
+                type: 'P',
+            }),
+        });
+    });
+
+    test('should fall back to private when channel_type is not present (backwards compat)', () => {
+        mockState.entities.channels.channels[channelId].type = 'O';
+
+        const msg = {
+            event: 'channel_converted',
+            data: {
+                channel_id: channelId,
+            },
+        };
+
+        handleEvent(msg);
+
+        expect(store.dispatch).toHaveBeenCalledWith({
+            type: 'RECEIVED_CHANNEL',
+            data: expect.objectContaining({
+                id: channelId,
+                type: 'P',
+            }),
+        });
+    });
+
+    test('should not dispatch when channel is not in state', () => {
+        const msg = {
+            event: 'channel_converted',
+            data: {
+                channel_id: 'nonexistent-channel',
+                channel_type: 'O',
+            },
+        };
+
+        handleEvent(msg);
+
+        expect(store.dispatch).not.toHaveBeenCalledWith(
+            expect.objectContaining({type: 'RECEIVED_CHANNEL'}),
+        );
+    });
+
+    test('should not dispatch when channel_id is missing', () => {
+        const msg = {
+            event: 'channel_converted',
+            data: {},
+        };
+
+        handleEvent(msg);
+
+        expect(store.dispatch).not.toHaveBeenCalledWith(
+            expect.objectContaining({type: 'RECEIVED_CHANNEL'}),
+        );
+    });
+
+    test('should preserve other channel properties when updating type', () => {
+        const msg = {
+            event: 'channel_converted',
+            data: {
+                channel_id: channelId,
+                channel_type: 'O',
+            },
+        };
+
+        handleEvent(msg);
+
+        expect(store.dispatch).toHaveBeenCalledWith({
+            type: 'RECEIVED_CHANNEL',
+            data: {
+                id: channelId,
+                team_id: 'currentTeamId',
+                type: 'O',
+                name: 'test-channel',
+            },
+        });
+    });
+});
