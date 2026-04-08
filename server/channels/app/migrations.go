@@ -22,8 +22,8 @@ const (
 	GuestRolesCreationMigrationKey                  = "GuestRolesCreationMigrationComplete"
 	SystemConsoleRolesCreationMigrationKey          = "SystemConsoleRolesCreationMigrationComplete"
 	CustomGroupAdminRoleCreationMigrationKey        = "CustomGroupAdminRoleCreationMigrationComplete"
-	SharedChannelManagerRoleCreationMigrationKey    = "SharedChannelManagerRoleCreationMigrationComplete"
-	SecureConnectionManagerRoleCreationMigrationKey = "SecureConnectionManagerRoleCreationMigrationComplete"
+	SharedChannelManagerRoleCreationMigrationKey    = "SystemSharedChannelManagerRoleCreationMigrationComplete"
+	SecureConnectionManagerRoleCreationMigrationKey = "SystemSecureConnectionManagerRoleCreationMigrationComplete"
 	ContentExtractionConfigDefaultTrueMigrationKey  = "ContentExtractionConfigDefaultTrueMigrationComplete"
 	PlaybookRolesCreationMigrationKey               = "PlaybookRolesCreationMigrationComplete"
 	FirstAdminSetupCompleteKey                      = model.SystemFirstAdminSetupComplete
