@@ -308,22 +308,6 @@ jobs:
       logsartifact: postgres-server-test-logs
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: true
-  test-coverage:
-    name: Generate Test Coverage
-    # Disabled: Running out of memory and causing spurious failures.
-    # Old condition: ${{ github.event_name != 'pull_request' || !startsWith(github.event.pull_request.base.ref, 'release-') }}
-    if: false
-    needs: go
-    uses: ./.github/workflows/server-test-template.yml
-    secrets: inherit
-    with:
-      name: Generate Test Coverage
-      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
-      drivername: postgres
-      logsartifact: coverage-server-test-logs
-      fullyparallel: true
-      enablecoverage: true
-      go-version: ${{ needs.go.outputs.version }}
   test-mmctl:
     name: Run mmctl tests
     needs: go
