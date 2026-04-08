@@ -9,6 +9,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import Setting from 'components/admin_console/setting';
 import GenericUserProvider from 'components/suggestion/generic_user_provider';
 import SuggestionBox from 'components/suggestion/suggestion_box';
+import type {SuggestionBoxElement} from 'components/suggestion/suggestion_box/suggestion_box';
 import SuggestionList from 'components/suggestion/suggestion_list';
 
 export type Props = {
@@ -27,7 +28,7 @@ export type Props = {
 const UserAutocompleteSetting = ({id, label, placeholder, helpText, value, onChange, disabled, actions}: Props) => {
     const userSuggestionProvidersRef = useRef([new GenericUserProvider(actions.autocompleteUsers)]);
 
-    const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = useCallback((e: React.ChangeEvent<SuggestionBoxElement>) => {
         onChange(id, e.target.value);
     }, [onChange, id]);
 

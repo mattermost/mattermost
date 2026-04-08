@@ -387,8 +387,8 @@ const (
 	SystemReadOnlyAdminRoleId     = "system_read_only_admin"
 	SystemManagerRoleId           = "system_manager"
 	SystemCustomGroupAdminRoleId  = "system_custom_group_admin"
-	SharedChannelManagerRoleId    = "shared_channel_manager"
-	SecureConnectionManagerRoleId = "secure_connection_manager"
+	SharedChannelManagerRoleId    = "system_shared_channel_manager"
+	SecureConnectionManagerRoleId = "system_secure_connection_manager"
 
 	TeamGuestRoleId         = "team_guest"
 	TeamUserRoleId          = "team_user"
@@ -1195,8 +1195,8 @@ func MakeDefaultRoles() map[string]*Role {
 
 	roles[SharedChannelManagerRoleId] = &Role{
 		Name:          SharedChannelManagerRoleId,
-		DisplayName:   "authentication.roles.shared_channel_manager.name",
-		Description:   "authentication.roles.shared_channel_manager.description",
+		DisplayName:   "authentication.roles.system_shared_channel_manager.name",
+		Description:   "authentication.roles.system_shared_channel_manager.description",
 		Permissions:   SharedChannelManagerDefaultPermissions,
 		SchemeManaged: false,
 		BuiltIn:       true,
@@ -1204,8 +1204,8 @@ func MakeDefaultRoles() map[string]*Role {
 
 	roles[SecureConnectionManagerRoleId] = &Role{
 		Name:          SecureConnectionManagerRoleId,
-		DisplayName:   "authentication.roles.secure_connection_manager.name",
-		Description:   "authentication.roles.secure_connection_manager.description",
+		DisplayName:   "authentication.roles.system_secure_connection_manager.name",
+		Description:   "authentication.roles.system_secure_connection_manager.description",
 		Permissions:   SecureConnectionManagerDefaultPermissions,
 		SchemeManaged: false,
 		BuiltIn:       true,
