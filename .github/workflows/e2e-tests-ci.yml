@@ -1,31 +1,39 @@
 ---
 name: E2E Tests (pull request)
 on:
-  # Argo Events Trigger (automated):
-  #   - Triggered by: Enterprise CI/docker-image status check (success)
-  #   - Payload: { ref: "<branch>", inputs: { commit_sha: "<sha>" } }
-  #   - Uses commit-specific docker image
-  #   - Checks for relevant file changes before running tests
+  # Pull Request Trigger (early decision):
+  #   - Runs on every PR open/sync/reopen
+  #   - If no E2E test-relevant file changes: posts skip statuses immediately
+  #   - If E2E test-only changes (image_tag is branch ref): runs tests immediately with existing image
+  #   - If mixed changes (image_tag is commit SHA): exits and waits for status event
   #
-  # Manual Trigger:
-  #   - Enter PR number only - commit SHA is resolved automatically from PR head
-  #   - Uses commit-specific docker image
+  # Status Event Trigger (after Enterprise CI builds docker image):
+  #   - Fires when "Enterprise CI/docker-image" commit status is set to "success"
+  #   - Runs tests with commit-specific docker image
+  #
+  # Manual Trigger (workflow_dispatch):
+  #   - Enter PR number - commit SHA is resolved automatically from PR head
   #   - E2E tests always run (no file change check)
   #
+  pull_request:
+    types: [opened, synchronize, reopened]
+  status:
   workflow_dispatch:
     inputs:
       pr_number:
         description: "PR number to test (for manual triggers)"
         type: string
-        required: false
-      commit_sha:
-        description: "Commit SHA to test (for Argo Events)"
-        type: string
-        required: false
+        required: true
 
 jobs:
   resolve-pr:
     runs-on: ubuntu-24.04
+    if: >-
+      github.event_name == 'pull_request' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'status' &&
+       github.event.state == 'success' &&
+       github.event.context == 'Enterprise CI/docker-image')
     outputs:
       PR_NUMBER: "${{ steps.resolve.outputs.PR_NUMBER }}"
       COMMIT_SHA: "${{ steps.resolve.outputs.COMMIT_SHA }}"
@@ -40,17 +48,24 @@ jobs:
         id: resolve
         env:
           GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          PR_EVENT_NUMBER: ${{ github.event.pull_request.number }}
+          PR_EVENT_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          STATUS_EVENT_SHA: ${{ github.event.sha }}
           INPUT_PR_NUMBER: ${{ inputs.pr_number }}
-          INPUT_COMMIT_SHA: ${{ inputs.commit_sha }}
         run: |
           # Validate inputs
           if [ -n "$INPUT_PR_NUMBER" ] && ! [[ "$INPUT_PR_NUMBER" =~ ^[0-9]+$ ]]; then
             echo "::error::Invalid PR number format. Must be numeric."
             exit 1
           fi
-          if [ -n "$INPUT_COMMIT_SHA" ] && ! [[ "$INPUT_COMMIT_SHA" =~ ^[a-f0-9]{7,40}$ ]]; then
-            echo "::error::Invalid commit SHA format. Must be 7-40 hex characters."
-            exit 1
+
+          # Pull request event: get PR info directly from event context
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            echo "Pull request trigger: PR #${PR_EVENT_NUMBER}, commit ${PR_EVENT_HEAD_SHA}"
+            echo "PR_NUMBER=${PR_EVENT_NUMBER}" >> $GITHUB_OUTPUT
+            echo "COMMIT_SHA=${PR_EVENT_HEAD_SHA}" >> $GITHUB_OUTPUT
+            exit 0
           fi
 
           # Manual trigger: PR number provided, resolve commit SHA from PR head
@@ -69,40 +84,41 @@ jobs:
             exit 0
           fi
 
-          # Argo Events trigger: commit SHA provided, resolve PR number
-          if [ -n "$INPUT_COMMIT_SHA" ]; then
-            echo "Automated trigger: resolving PR number from commit ${INPUT_COMMIT_SHA}"
-            PR_DATA=$(gh api "repos/${{ github.repository }}/commits/${INPUT_COMMIT_SHA}/pulls" \
-              --jq '.[0] // empty' 2>/dev/null || echo "")
-            PR_NUMBER=$(echo "$PR_DATA" | jq -r '.number // empty' 2>/dev/null || echo "")
-            if [ -z "$PR_NUMBER" ]; then
-              echo "::error::No PR found for commit ${INPUT_COMMIT_SHA}. This workflow is for PRs only."
-              exit 1
-            fi
+          # Status event: get commit SHA from event
+          if [ "$EVENT_NAME" != "status" ]; then
+            echo "::error::Unexpected event: ${EVENT_NAME}"
+            exit 1
+          fi
+          COMMIT_SHA="$STATUS_EVENT_SHA"
+          echo "Status event trigger: using commit ${COMMIT_SHA}"
 
-            echo "Found PR #${PR_NUMBER} for commit ${INPUT_COMMIT_SHA}"
-
-            # Skip if PR is already merged to master or a release branch.
-            # The e2e-tests-on-merge workflow handles post-merge E2E tests.
-            PR_MERGED=$(echo "$PR_DATA" | jq -r '.merged_at // empty' 2>/dev/null || echo "")
-            PR_BASE_REF=$(echo "$PR_DATA" | jq -r '.base.ref // empty' 2>/dev/null || echo "")
-            if [ -n "$PR_MERGED" ]; then
-              if [ "$PR_BASE_REF" = "master" ] || [[ "$PR_BASE_REF" =~ ^release-[0-9]+\.[0-9]+$ ]]; then
-                echo "PR #${PR_NUMBER} is already merged to ${PR_BASE_REF}. Skipping - handled by e2e-tests-on-merge workflow."
-                echo "PR_NUMBER=" >> $GITHUB_OUTPUT
-                echo "COMMIT_SHA=" >> $GITHUB_OUTPUT
-                exit 0
-              fi
-            fi
-
-            echo "PR_NUMBER=${PR_NUMBER}" >> $GITHUB_OUTPUT
-            echo "COMMIT_SHA=${INPUT_COMMIT_SHA}" >> $GITHUB_OUTPUT
-            exit 0
+          # Resolve PR number from commit SHA
+          echo "Resolving PR number from commit ${COMMIT_SHA}"
+          PR_DATA=$(gh api "repos/${{ github.repository }}/commits/${COMMIT_SHA}/pulls" \
+            --jq '.[0] // empty' 2>/dev/null || echo "")
+          PR_NUMBER=$(echo "$PR_DATA" | jq -r '.number // empty' 2>/dev/null || echo "")
+          if [ -z "$PR_NUMBER" ]; then
+            echo "::error::No PR found for commit ${COMMIT_SHA}. This workflow is for PRs only."
+            exit 1
           fi
 
-          # Neither provided
-          echo "::error::Either pr_number or commit_sha must be provided"
-          exit 1
+          echo "Found PR #${PR_NUMBER} for commit ${COMMIT_SHA}"
+
+          # Skip if PR is already merged to master or a release branch.
+          # The e2e-tests-on-merge workflow handles post-merge E2E tests.
+          PR_MERGED=$(echo "$PR_DATA" | jq -r '.merged_at // empty' 2>/dev/null || echo "")
+          PR_BASE_REF=$(echo "$PR_DATA" | jq -r '.base.ref // empty' 2>/dev/null || echo "")
+          if [ -n "$PR_MERGED" ]; then
+            if [ "$PR_BASE_REF" = "master" ] || [[ "$PR_BASE_REF" =~ ^release-[0-9]+\.[0-9]+$ ]]; then
+              echo "PR #${PR_NUMBER} is already merged to ${PR_BASE_REF}. Skipping - handled by e2e-tests-on-merge workflow."
+              echo "PR_NUMBER=" >> $GITHUB_OUTPUT
+              echo "COMMIT_SHA=" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+          fi
+
+          echo "PR_NUMBER=${PR_NUMBER}" >> $GITHUB_OUTPUT
+          echo "COMMIT_SHA=${COMMIT_SHA}" >> $GITHUB_OUTPUT
 
       - name: ci/check-e2e-test-only
         if: steps.resolve.outputs.PR_NUMBER != ''
@@ -118,9 +134,12 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       should_run: "${{ steps.check.outputs.should_run }}"
+      image_ready: "${{ steps.image-check.outputs.image_ready }}"
+    permissions:
+      pull-requests: write
     steps:
       - name: ci/checkout-repo
-        if: inputs.commit_sha != ''
+        if: github.event_name == 'pull_request' || github.event_name == 'status'
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ needs.resolve-pr.outputs.COMMIT_SHA }}
@@ -132,15 +151,16 @@ jobs:
           PR_NUMBER: ${{ needs.resolve-pr.outputs.PR_NUMBER }}
           COMMIT_SHA: ${{ needs.resolve-pr.outputs.COMMIT_SHA }}
           INPUT_PR_NUMBER: ${{ inputs.pr_number }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
-          # Manual trigger (pr_number provided): always run E2E tests
-          if [ -n "$INPUT_PR_NUMBER" ]; then
+          # Manual trigger (pr_number provided via workflow_dispatch): always run E2E tests
+          if [ "$EVENT_NAME" = "workflow_dispatch" ] && [ -n "$INPUT_PR_NUMBER" ]; then
             echo "Manual trigger detected - skipping file change check"
             echo "should_run=true" >> $GITHUB_OUTPUT
             exit 0
           fi
 
-          # Automated trigger (commit_sha provided): check for relevant file changes
+          # Automated trigger (pull_request or status event): check for relevant file changes
           echo "Automated trigger detected - checking for relevant file changes"
 
           # Get the base branch of the PR
@@ -182,11 +202,58 @@ jobs:
           echo "should_run=${SHOULD_RUN}" >> $GITHUB_OUTPUT
           echo "Should run E2E tests: ${SHOULD_RUN}"
 
+      - name: ci/check-docker-image-ready
+        id: image-check
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMMIT_SHA: ${{ needs.resolve-pr.outputs.COMMIT_SHA }}
+          SERVER_IMAGE_TAG: ${{ needs.resolve-pr.outputs.SERVER_IMAGE_TAG }}
+          PR_NUMBER: ${{ needs.resolve-pr.outputs.PR_NUMBER }}
+        run: |
+          # Branch ref images (master, release-*) are always available
+          if [ "$SERVER_IMAGE_TAG" = "master" ] || [[ "$SERVER_IMAGE_TAG" =~ ^release- ]]; then
+            echo "Image tag is a branch ref (${SERVER_IMAGE_TAG}) - image available"
+            echo "image_ready=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Commit SHA image: check if Enterprise CI has built it
+          STATUS=$(gh api "repos/mattermost/mattermost/commits/${COMMIT_SHA}/statuses" \
+            --jq '[.[] | select(.context == "Enterprise CI/docker-image")] | first | .state // empty' 2>/dev/null || echo "")
+
+          if [ "$STATUS" = "success" ]; then
+            echo "Docker image for ${SERVER_IMAGE_TAG} is ready (Enterprise CI/docker-image: success)"
+            echo "image_ready=true" >> $GITHUB_OUTPUT
+          else
+            echo "Docker image for ${SERVER_IMAGE_TAG} is not ready (Enterprise CI/docker-image: ${STATUS:-not found})"
+            echo "image_ready=false" >> $GITHUB_OUTPUT
+
+            COMMENT="**E2E tests not started** — Docker image \`mattermostdevelopment/mattermost-enterprise-edition:${SERVER_IMAGE_TAG}\` is not yet available."
+            COMMENT="${COMMENT} The \`Enterprise CI/docker-image\` commit status is \`${STATUS:-not found}\`."
+            COMMENT="${COMMENT} Please retry after the image build completes, or wait for the automated \`status\` event trigger."
+            gh pr comment "$PR_NUMBER" --repo "mattermost/mattermost" --body "$COMMENT"
+          fi
+
   e2e-cypress:
     needs:
       - resolve-pr
       - check-changes
-    if: needs.resolve-pr.outputs.PR_NUMBER != ''
+    # Run when:
+    # - status event or workflow_dispatch: always (should_run is passed through to downstream)
+    # - pull_request with should_run=false: immediately post skip statuses
+    # - pull_request with image_tag as branch ref: run tests immediately with existing image
+    # - pull_request with image_tag as commit SHA: skip (wait for status event)
+    # - workflow_dispatch with image not ready: skip (comment posted on PR)
+    if: >-
+      needs.resolve-pr.outputs.PR_NUMBER != '' &&
+      needs.check-changes.outputs.image_ready != 'false' &&
+      (
+        github.event_name != 'pull_request' ||
+        needs.check-changes.outputs.should_run == 'false' ||
+        needs.resolve-pr.outputs.SERVER_IMAGE_TAG == 'master' ||
+        startsWith(needs.resolve-pr.outputs.SERVER_IMAGE_TAG, 'release-')
+      )
     permissions:
       statuses: write
     uses: ./.github/workflows/e2e-tests-cypress.yml
@@ -211,7 +278,16 @@ jobs:
     needs:
       - resolve-pr
       - check-changes
-    if: needs.resolve-pr.outputs.PR_NUMBER != ''
+    # Same gating logic as e2e-cypress (see comment above)
+    if: >-
+      needs.resolve-pr.outputs.PR_NUMBER != '' &&
+      needs.check-changes.outputs.image_ready != 'false' &&
+      (
+        github.event_name != 'pull_request' ||
+        needs.check-changes.outputs.should_run == 'false' ||
+        needs.resolve-pr.outputs.SERVER_IMAGE_TAG == 'master' ||
+        startsWith(needs.resolve-pr.outputs.SERVER_IMAGE_TAG, 'release-')
+      )
     permissions:
       statuses: write
     uses: ./.github/workflows/e2e-tests-playwright.yml

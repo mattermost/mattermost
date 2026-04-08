@@ -18,7 +18,7 @@ outputs:
     description: Whether the PR contains only E2E test changes (true/false)
     value: ${{ steps.check.outputs.e2e_test_only }}
   image_tag:
-    description: Docker image tag to use (base branch ref for E2E-only, short SHA for mixed)
+    description: Docker image tag to use (base branch ref for E2E test-only, short SHA for mixed)
     value: ${{ steps.check.outputs.image_tag }}
 
 runs:
@@ -70,7 +70,7 @@ runs:
           gh api "repos/${{ github.repository }}/pulls/${INPUT_PR_NUMBER}/files" --jq '.[].filename' 2>/dev/null || echo "")
 
         if [ -z "$CHANGED_FILES" ]; then
-          echo "::warning::Could not determine changed files, assuming not E2E-only"
+          echo "::warning::Could not determine changed files, assuming not E2E test-only"
           echo "e2e_test_only=false" >> $GITHUB_OUTPUT
           echo "image_tag=${SHORT_SHA}" >> $GITHUB_OUTPUT
           exit 0
