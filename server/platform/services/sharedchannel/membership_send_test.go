@@ -128,7 +128,7 @@ func TestFetchMembershipsForSync_DeduplicatesJoinLeaveRejoin(t *testing.T) {
 }
 
 func TestFetchMembershipsForSync_DeduplicatesJoinThenLeave(t *testing.T) {
-	scs, _, mockCMHStore, _, _, _ := setupSendTest(t, true)
+	scs, _, mockCMHStore, _, mockUserStore, _ := setupSendTest(t, true)
 
 	channelID := model.NewId()
 	remoteID := model.NewId()
@@ -139,6 +139,9 @@ func TestFetchMembershipsForSync_DeduplicatesJoinThenLeave(t *testing.T) {
 		Return([]*model.ChannelMemberHistory{
 			{ChannelId: channelID, UserId: userID, JoinTime: 1000, LeaveTime: model.NewPointer(int64(2000))},
 		}, nil)
+
+	// User profile needed for remote-origin filtering
+	mockUserStore.On("Get", mock.Anything, userID).Return(&model.User{Id: userID}, nil)
 
 	sd := &syncData{
 		task:  syncTask{channelID: channelID},
@@ -172,11 +175,15 @@ func TestFetchMembershipsForSync_MultipleUsers(t *testing.T) {
 			{ChannelId: channelID, UserId: user3, JoinTime: 4000, LeaveTime: nil},                           // joined, still member
 		}, nil)
 
-	// User profiles for adds (user1 and user3) — users are local (no RemoteId)
-	// so shouldUserSync won't filter them out for the target remote
-	for _, uid := range []string{user1, user3} {
+	// User profiles for all users — needed for remote-origin filtering
+	for _, uid := range []string{user1, user2, user3} {
 		u := &model.User{Id: uid}
 		mockUserStore.On("Get", mock.Anything, uid).Return(u, nil)
+	}
+
+	// shouldUserSync mocks for adds (user1 and user3) — users are local (no RemoteId)
+	// so shouldUserSync won't filter them out for the target remote
+	for _, uid := range []string{user1, user3} {
 		mockSCStore.On("GetSingleUser", uid, channelID, remoteID).Return(nil, &notFoundError{})
 		mockSCStore.On("SaveUser", mock.MatchedBy(func(scu *model.SharedChannelUser) bool { return scu.UserId == uid })).
 			Return(&model.SharedChannelUser{}, nil)
@@ -353,6 +360,44 @@ func TestFetchMembershipsForSync_RepeatedTimestampsAtBoundary(t *testing.T) {
 	// handles duplicate user IDs across batches
 	assert.Len(t, sd2.membershipChanges, 4, "should include re-fetched boundary rows and new row")
 	assert.Equal(t, boundaryTime+1, sd2.resultNextMembershipCursor, "cursor should advance past boundary")
+}
+
+func TestFetchMembershipsForSync_SkipsUsersFromTargetRemote(t *testing.T) {
+	scs, _, mockCMHStore, mockSCStore, mockUserStore, _ := setupSendTest(t, true)
+
+	channelID := model.NewId()
+	remoteID := model.NewId()
+	localUser := model.NewId()        // local to sender, will be synced
+	targetRemoteUser := model.NewId() // originated from target remote, should be skipped
+
+	mockCMHStore.On("GetMembershipChanges", channelID, int64(0), mock.AnythingOfType("int")).
+		Return([]*model.ChannelMemberHistory{
+			{ChannelId: channelID, UserId: localUser, JoinTime: 1000, LeaveTime: nil},
+			{ChannelId: channelID, UserId: targetRemoteUser, JoinTime: 2000, LeaveTime: nil},
+		}, nil)
+
+	// Local user — no RemoteId, should pass the filter
+	mockUserStore.On("Get", mock.Anything, localUser).Return(&model.User{Id: localUser}, nil)
+	mockSCStore.On("GetSingleUser", localUser, channelID, remoteID).Return(nil, &notFoundError{})
+	mockSCStore.On("SaveUser", mock.MatchedBy(func(scu *model.SharedChannelUser) bool { return scu.UserId == localUser })).
+		Return(&model.SharedChannelUser{}, nil)
+
+	// User from target remote — should be filtered out
+	mockUserStore.On("Get", mock.Anything, targetRemoteUser).Return(&model.User{Id: targetRemoteUser, RemoteId: &remoteID}, nil)
+
+	sd := &syncData{
+		task:  syncTask{channelID: channelID},
+		rc:    &model.RemoteCluster{RemoteId: remoteID},
+		scr:   &model.SharedChannelRemote{LastMembersSyncAt: 0},
+		users: make(map[string]*model.User),
+	}
+
+	err := scs.fetchMembershipsForSync(sd)
+	require.NoError(t, err)
+
+	require.Len(t, sd.membershipChanges, 1, "should only include local user, not user from target remote")
+	assert.Equal(t, localUser, sd.membershipChanges[0].UserId)
+	assert.True(t, sd.membershipChanges[0].IsAdd)
 }
 
 // notFoundError implements the errNotFound interface used by the sharedchannel package

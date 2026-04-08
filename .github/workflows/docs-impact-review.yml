@@ -274,10 +274,14 @@ jobs:
                 });
               }
             } else if (existing) {
-              await github.rest.issues.deleteComment({
+              const staleBody = `${marker}\n<details>\n<summary>Documentation Impact Analysis — no longer needed</summary>\n\n` +
+                `A previous automated documentation impact comment exists, but the latest analysis determined that no documentation changes are needed.\n\n` +
+                `The \`Docs/Needed\` label may still be present from the earlier analysis. A maintainer can remove it after confirming no docs updates are required.\n</details>`;
+              await github.rest.issues.updateComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 comment_id: existing.id,
+                body: staleBody,
               });
             }
 
