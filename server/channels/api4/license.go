@@ -137,7 +137,7 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	license := c.App.Channels().License()
+	license = c.App.Channels().License()
 	if license != nil && license.IsCloud() {
 		// If cloud, invalidate the caches when a new license is loaded
 		defer func() {
