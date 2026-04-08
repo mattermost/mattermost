@@ -1111,6 +1111,10 @@ func TestPluginAPISendSharedChannelProfileImageSyncMsg(t *testing.T) {
 
 		lastPictureBefore := remoteUser.LastPictureUpdate
 
+		// Capture profile image before sync (default/empty for new user)
+		preImgBytes, _, appErr := th.App.GetProfileImage(remoteUser)
+		require.Nil(t, appErr)
+
 		pngData, err := os.ReadFile("tests/test.png")
 		require.NoError(t, err, "Failed to load tests/test.png")
 
@@ -1120,12 +1124,13 @@ func TestPluginAPISendSharedChannelProfileImageSyncMsg(t *testing.T) {
 		// Verify the user's LastPictureUpdate was bumped
 		updatedUser, appErr := th.App.GetUser(remoteUser.Id)
 		require.Nil(t, appErr)
-		assert.GreaterOrEqual(t, updatedUser.LastPictureUpdate, lastPictureBefore)
+		assert.Greater(t, updatedUser.LastPictureUpdate, lastPictureBefore)
 
-		// Verify the image bytes can be read back
-		imgBytes, _, appErr := th.App.GetProfileImage(updatedUser)
+		// Verify the image bytes changed and are non-empty
+		postImgBytes, _, appErr := th.App.GetProfileImage(updatedUser)
 		require.Nil(t, appErr)
-		assert.NotEmpty(t, imgBytes)
+		assert.NotEmpty(t, postImgBytes)
+		assert.NotEqual(t, preImgBytes, postImgBytes, "profile image should differ after sync")
 	})
 }
 
