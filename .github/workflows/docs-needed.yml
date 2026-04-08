@@ -28,7 +28,7 @@ name: docs/needed — Open Docs PR
 
 on:
   pull_request_target:
-    types: [labeled, synchronize, issues]
+    types: [labeled, synchronize, milestoned]
 
 permissions:
   contents: read
@@ -43,7 +43,9 @@ jobs:
   open-docs-pr:
     name: Open docs PR for ${{ github.repository }}#${{ github.event.pull_request.number }}
     runs-on: ubuntu-latest
-    if: github.event.label.name == 'Docs/Needed'
+    if: >-
+      (github.event.action == 'labeled' && github.event.label.name == 'Docs/Needed') ||
+      (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'Docs/Needed'))
  
     steps:
       # ── 0. Guard: milestone is required ──────────────────────────────────
