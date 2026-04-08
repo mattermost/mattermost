@@ -236,6 +236,7 @@ function ChannelSettingsConfigurationTab({
                 initialRemotes.map((r) => r.remote_id || r.name).sort().join(','),
             );
             setWorkspaceRemotes(initialRemotes.map((r) => ({...r})));
+            initialSharingEnabled.current = initialRemotes.length > 0;
             if (initialRemotes.length > 0) {
                 setSharingEnabled(true);
             }
