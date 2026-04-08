@@ -107,7 +107,7 @@ func TestCreateRemoteClusterWithSecureConnectionManagerRole(t *testing.T) {
 			Name:          "test-from-scm",
 			DefaultTeamId: th.BasicTeam.Id,
 		},
-		Password: "mysupersecret",
+		Password: model.NewTestPassword(),
 	}
 
 	t.Run("regular user should be denied", func(t *testing.T) {
@@ -144,7 +144,7 @@ func TestCreateRemoteClusterDeniedForSharedChannelManagerRole(t *testing.T) {
 				Name:          "test-from-scm",
 				DefaultTeamId: th.BasicTeam.Id,
 			},
-			Password: "mysupersecret",
+			Password: model.NewTestPassword(),
 		}
 		_, resp, err := scmClient.CreateRemoteCluster(context.Background(), rcPayload)
 		CheckForbiddenStatus(t, resp)
@@ -328,7 +328,7 @@ func TestCreateRemoteCluster(t *testing.T) {
 			DefaultTeamId: model.NewId(),
 			Token:         model.NewId(),
 		},
-		Password: "mysupersecret",
+		Password: model.NewTestPassword(),
 	}
 
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
@@ -436,7 +436,7 @@ func TestRemoteClusterAcceptinvite(t *testing.T) {
 	rcAcceptInvite := &model.RemoteClusterAcceptInvite{
 		Name:          "remotecluster",
 		Invite:        "myinvitecode",
-		Password:      "mysupersecret",
+		Password:      model.NewTestPassword(),
 		DefaultTeamId: "",
 	}
 
@@ -459,8 +459,7 @@ func TestRemoteClusterAcceptinvite(t *testing.T) {
 		SiteURL:  "http://localhost:8065",
 		Token:    "token",
 	}
-	password := "mysupersecret"
-	encrypted, err := invite.Encrypt(password)
+	encrypted, err := invite.Encrypt(rcAcceptInvite.Password)
 	require.NoError(t, err)
 	encoded := base64.URLEncoding.EncodeToString(encrypted)
 	rcAcceptInvite.Invite = encoded
@@ -530,7 +529,7 @@ func TestRemoteClusterAcceptinvite(t *testing.T) {
 
 func TestGenerateRemoteClusterInvite(t *testing.T) {
 	mainHelper.Parallel(t)
-	password := "mysupersecret"
+	password := model.NewTestPassword()
 
 	newRC := &model.RemoteCluster{
 		Name:    "remotecluster",
