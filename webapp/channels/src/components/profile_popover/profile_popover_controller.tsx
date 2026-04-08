@@ -120,6 +120,8 @@ export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>
     }, []);
 
     const TriggerComponent = props.triggerComponentAs ?? 'span';
+    const triggerProps = getReferenceProps();
+    const buttonTypeProps = TriggerComponent === 'button' ? {type: 'button' as const} : {};
 
     return (
         <>
@@ -128,7 +130,8 @@ export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>
                 ref={refs.setReference}
                 className={props.triggerComponentClass}
                 style={props.triggerComponentStyle}
-                {...getReferenceProps()}
+                {...buttonTypeProps}
+                {...triggerProps}
             >
                 {props.children}
             </TriggerComponent>
