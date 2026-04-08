@@ -195,6 +195,10 @@ export type ChannelConverted = BaseWebSocketMessage<WebSocketEvents.ChannelConve
     channel_id: string;
 }>;
 
+export type SharedChannelRemoteUpdated = BaseWebSocketMessage<WebSocketEvents.SharedChannelRemoteUpdated, {
+    channel_id: string;
+}>;
+
 export type ChannelSchemeUpdated = BaseWebSocketMessage<WebSocketEvents.ChannelSchemeUpdated>;
 
 export type ChannelDeleted = BaseWebSocketMessage<WebSocketEvents.ChannelDeleted, {

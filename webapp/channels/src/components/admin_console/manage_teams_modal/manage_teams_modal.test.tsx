@@ -7,8 +7,15 @@ import {General} from 'mattermost-redux/constants';
 
 import ManageTeamsModal from 'components/admin_console/manage_teams_modal/manage_teams_modal';
 
-import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, runPostRenderAct, screen, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
+
+/**
+ * `runPostRenderAct` rounds (each `await Promise.resolve()`): (1) passive effects run so `useEffect`
+ * starts `loadTeamsAndTeamMembers`; (2) mocked `actions.getTeamMembersForUser` resolves →
+ * `getTeamMembers` → `setTeamMembers`; (3) mocked `actions.getTeamsForUser` resolves → `setTeams`.
+ */
+const MANAGE_TEAMS_MODAL_ASYNC_ROUNDS = 3;
 
 describe('ManageTeamsModal', () => {
     const baseProps = {
@@ -35,31 +42,35 @@ describe('ManageTeamsModal', () => {
     });
 
     test('should match snapshot init', async () => {
-        const {baseElement} = renderWithContext(<ManageTeamsModal {...baseProps}/>);
+        const {baseElement} = renderWithContext(
+            <ManageTeamsModal {...baseProps}/>,
+        );
 
-        await waitFor(() => {
-            expect(baseProps.actions.getTeamMembersForUser).toHaveBeenCalledTimes(1);
-            expect(baseProps.actions.getTeamsForUser).toHaveBeenCalledTimes(1);
-        });
+        await runPostRenderAct(MANAGE_TEAMS_MODAL_ASYNC_ROUNDS);
+
+        expect(baseProps.actions.getTeamMembersForUser).toHaveBeenCalledTimes(1);
+        expect(baseProps.actions.getTeamsForUser).toHaveBeenCalledTimes(1);
 
         expect(screen.getByText('Manage Teams')).toBeInTheDocument();
         expect(screen.getByText('@currentUsername')).toBeInTheDocument();
         expect(screen.getByText('currentUser@test.com')).toBeInTheDocument();
+
         expect(baseElement).toMatchSnapshot();
     });
 
     test('should call api calls on mount', async () => {
-        renderWithContext(<ManageTeamsModal {...baseProps}/>);
+        renderWithContext(
+            <ManageTeamsModal {...baseProps}/>,
+        );
+        await runPostRenderAct(MANAGE_TEAMS_MODAL_ASYNC_ROUNDS);
 
-        await waitFor(() => {
-            expect(baseProps.actions.getTeamMembersForUser).toHaveBeenCalledTimes(1);
-            expect(baseProps.actions.getTeamMembersForUser).toHaveBeenCalledWith(baseProps.user.id);
-            expect(baseProps.actions.getTeamsForUser).toHaveBeenCalledTimes(1);
-            expect(baseProps.actions.getTeamsForUser).toHaveBeenCalledWith(baseProps.user.id);
-        });
+        expect(baseProps.actions.getTeamMembersForUser).toHaveBeenCalledTimes(1);
+        expect(baseProps.actions.getTeamMembersForUser).toHaveBeenCalledWith(baseProps.user.id);
+        expect(baseProps.actions.getTeamsForUser).toHaveBeenCalledTimes(1);
+        expect(baseProps.actions.getTeamsForUser).toHaveBeenCalledWith(baseProps.user.id);
     });
 
-    test('should save data in state from api calls', async () => {
+    test('should show team from api data after load', async () => {
         const mockTeamData = TestHelper.getTeamMock({
             id: '123test',
             name: 'testTeam',
@@ -79,10 +90,15 @@ describe('ManageTeamsModal', () => {
             },
         };
 
-        renderWithContext(<ManageTeamsModal {...props}/>);
+        renderWithContext(
+            <ManageTeamsModal {...props}/>,
+        );
 
         await waitFor(() => {
             expect(screen.getByText(mockTeamData.display_name)).toBeInTheDocument();
         });
+
+        // Non-system-admin users get ManageTeamsDropdown; default role label for plain membership.
+        expect(screen.getByText('Team Member')).toBeInTheDocument();
     });
 });

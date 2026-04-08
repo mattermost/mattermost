@@ -526,10 +526,6 @@ describe('PostUtils.postMessageOnKeyPress', () => {
         name: 'no override: empty message',
         input: {event: {keyCode: 13}, message: '', sendMessageOnCtrlEnter: false, sendCodeBlockOnCtrlEnter: false},
         expected: {allowSending: true},
-    }, {
-        name: 'no override: empty message on ctrl + enter',
-        input: {event: {keyCode: 13}, message: '', sendMessageOnCtrlEnter: true, sendCodeBlockOnCtrlEnter: false},
-        expected: {allowSending: true},
     }];
 
     for (const testCase of noOverrideCases) {
@@ -550,6 +546,18 @@ describe('PostUtils.postMessageOnKeyPress', () => {
 
     // on sending of message on Ctrl + Enter
     const sendMessageOnCtrlEnterCases = [{
+        name: 'sendMessageOnCtrlEnter: Test for empty message on CTRL+ENTER setting, no ctrlKey|metaKey - should not allow sending (attachment-only messages)',
+        input: {event: {keyCode: 13}, message: '', sendMessageOnCtrlEnter: true, sendCodeBlockOnCtrlEnter: false},
+        expected: {allowSending: false},
+    }, {
+        name: 'sendMessageOnCtrlEnter: Test for empty message on CTRL+ENTER setting, with ctrlKey - should allow sending',
+        input: {event: {keyCode: 13, ctrlKey: true}, message: '', sendMessageOnCtrlEnter: true, sendCodeBlockOnCtrlEnter: false},
+        expected: {allowSending: true},
+    }, {
+        name: 'sendMessageOnCtrlEnter: Test for empty message on CTRL+ENTER setting, with metaKey - should allow sending',
+        input: {event: {keyCode: 13, metaKey: true}, message: '', sendMessageOnCtrlEnter: true, sendCodeBlockOnCtrlEnter: false},
+        expected: {allowSending: true},
+    }, {
         name: 'sendMessageOnCtrlEnter: Test for overriding sending of message on CTRL+ENTER, no ctrlKey|metaKey',
         input: {event: {keyCode: 13}, message: 'message', sendMessageOnCtrlEnter: true, sendCodeBlockOnCtrlEnter: false},
         expected: {allowSending: false},

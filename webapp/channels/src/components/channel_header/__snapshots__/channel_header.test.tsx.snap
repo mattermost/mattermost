@@ -1,3740 +1,1515 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/ChannelHeader should match snapshot with last active display 1`] = `
-<div
-  aria-label="channel header region"
-  className="channel-header alt a11y__region"
-  data-a11y-sort-order="8"
-  data-channelid="channel_id"
-  id="channel-header"
-  role="banner"
-  tabIndex={-1}
->
+<div>
   <div
-    className="flex-parent"
+    aria-label="channel header region"
+    class="channel-header alt a11y__region"
+    data-a11y-sort-order="8"
+    data-channelid="channel_id"
+    id="channel-header"
+    role="banner"
+    tabindex="-1"
   >
     <div
-      className="flex-child"
+      class="flex-parent"
     >
       <div
-        className="channel-header__info"
-        id="channelHeaderInfo"
+        class="flex-child"
       >
         <div
-          className="channel-header__title dropdown"
+          class="channel-header__info"
+          id="channelHeaderInfo"
         >
-          <Memo(ChannelHeaderTitle)
-            dmUser={
-              Object {
-                "auth_service": "",
-                "bot_description": "",
-                "create_at": 0,
-                "delete_at": 0,
-                "email": "",
-                "first_name": "",
-                "id": "user_id",
-                "is_bot": false,
-                "last_activity_at": 0,
-                "last_name": "",
-                "last_password_update": 0,
-                "last_picture_update": 0,
-                "locale": "",
-                "mfa_active": false,
-                "nickname": "",
-                "notify_props": Object {
-                  "calls_desktop_sound": "true",
-                  "channel": "false",
-                  "comments": "never",
-                  "desktop": "default",
-                  "desktop_sound": "false",
-                  "email": "false",
-                  "first_name": "false",
-                  "highlight_keys": "",
-                  "mark_unread": "mention",
-                  "mention_keys": "",
-                  "push": "none",
-                  "push_status": "offline",
-                },
-                "password": "",
-                "position": "",
-                "props": Object {
-                  "show_last_active": "true",
-                },
-                "roles": "",
-                "terms_of_service_create_at": 0,
-                "terms_of_service_id": "",
-                "update_at": 0,
-                "username": "some-user",
-              }
-            }
-            remoteNames={Array []}
-          />
           <div
-            className="channel-header__icons"
+            class="channel-header__title dropdown"
           >
-            <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
-              buttonId="channelHeaderFilesButton"
-              onClick={[Function]}
-              tooltip="Channel files"
+            <div
+              class="channel-header__icons"
             >
-              <i
-                className="icon icon-file-text-outline"
-              />
-            </HeaderIconWrapper>
-            <Pluggable
-              channel={
-                Object {
-                  "create_at": 0,
-                  "creator_id": "id",
-                  "delete_at": 0,
-                  "display_name": "name",
-                  "group_constrained": false,
-                  "header": "not the bot description",
-                  "id": "channel_id",
-                  "last_post_at": 0,
-                  "last_root_post_at": 0,
-                  "name": "DN",
-                  "purpose": "purpose",
-                  "scheme_id": "id",
-                  "status": "offline",
-                  "team_id": "team_id",
-                  "type": "D",
-                  "update_at": 0,
-                }
-              }
-              channelMember={
-                Object {
-                  "channel_id": "channel_id",
-                  "last_update_at": 0,
-                  "last_viewed_at": 0,
-                  "mention_count": 0,
-                  "mention_count_root": 0,
-                  "msg_count": 0,
-                  "msg_count_root": 0,
-                  "notify_props": Object {
-                    "channel_auto_follow_threads": "off",
-                    "desktop": "default",
-                    "email": "default",
-                    "ignore_channel_mentions": "default",
-                    "mark_unread": "all",
-                    "push": "default",
-                  },
-                  "roles": "channel_user",
-                  "scheme_admin": false,
-                  "scheme_user": true,
-                  "urgent_mention_count": 0,
-                  "user_id": "user_id",
-                }
-              }
-              pluggableName="ChannelHeaderIcon"
-            />
-          </div>
-          <div
-            className="channel-header__description"
-            id="channelHeaderDescription"
-          >
-            <span
-              className="header-status__text"
+              <button
+                aria-label="Channel files"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                id="channelHeaderFilesButton"
+              >
+                <i
+                  class="icon icon-file-text-outline"
+                />
+              </button>
+            </div>
+            <div
+              class="channel-header__description"
+              id="channelHeaderDescription"
             >
               <span
-                className="last-active__text"
+                class="header-status__text"
               >
-                <MemoizedFormattedMessage
-                  defaultMessage="Last online {timestamp}"
-                  id="channel_header.lastActive"
-                  values={
-                    Object {
-                      "timestamp": <Memo(Connect(injectIntl(Timestamp)))
-                        style="short"
-                        units={
-                          Array [
-                            "now",
-                            "minute",
-                            "hour",
-                          ]
-                        }
-                        useTime={false}
-                        value={1632146562846}
-                      />,
-                    }
-                  }
-                />
+                <span
+                  class="last-active__text"
+                >
+                  Last online 
+                  <time
+                    datetime="2021-09-20T14:02:42.846"
+                  >
+                    September 20, 2021
+                  </time>
+                </span>
               </span>
-            </span>
-            <ChannelHeaderText
-              channel={
-                Object {
-                  "create_at": 0,
-                  "creator_id": "id",
-                  "delete_at": 0,
-                  "display_name": "name",
-                  "group_constrained": false,
-                  "header": "not the bot description",
-                  "id": "channel_id",
-                  "last_post_at": 0,
-                  "last_root_post_at": 0,
-                  "name": "DN",
-                  "purpose": "purpose",
-                  "scheme_id": "id",
-                  "status": "offline",
-                  "team_id": "team_id",
-                  "type": "D",
-                  "update_at": 0,
-                }
-              }
-              dmUser={
-                Object {
-                  "auth_service": "",
-                  "bot_description": "",
-                  "create_at": 0,
-                  "delete_at": 0,
-                  "email": "",
-                  "first_name": "",
-                  "id": "user_id",
-                  "is_bot": false,
-                  "last_activity_at": 0,
-                  "last_name": "",
-                  "last_password_update": 0,
-                  "last_picture_update": 0,
-                  "locale": "",
-                  "mfa_active": false,
-                  "nickname": "",
-                  "notify_props": Object {
-                    "calls_desktop_sound": "true",
-                    "channel": "false",
-                    "comments": "never",
-                    "desktop": "default",
-                    "desktop_sound": "false",
-                    "email": "false",
-                    "first_name": "false",
-                    "highlight_keys": "",
-                    "mark_unread": "mention",
-                    "mention_keys": "",
-                    "push": "none",
-                    "push_status": "offline",
-                  },
-                  "password": "",
-                  "position": "",
-                  "props": Object {
-                    "show_last_active": "true",
-                  },
-                  "roles": "",
-                  "terms_of_service_create_at": 0,
-                  "terms_of_service_id": "",
-                  "update_at": 0,
-                  "username": "some-user",
-                }
-              }
-              teamId="team_id"
-            />
+              <div
+                class="header-description__text"
+              >
+                <p
+                  class="markdown__paragraph-inline"
+                >
+                  not the bot description
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+      <button
+        aria-label="Open in new window"
+        class="btn btn-icon btn-sm PopoutButton channel-header__icon"
+        type="button"
+      >
+        <i
+          aria-hidden="true"
+          class="icon icon-dock-window"
+        />
+      </button>
+      <button
+        aria-label="View Info"
+        class="channel-header__icon"
+        id="channel-info-btn"
+      >
+        <i
+          class="Icon-esDcos cHAVtG icon-information-outline"
+        />
+      </button>
     </div>
-    <Connect(injectIntl(ChannelHeaderPlug))
-      channel={
-        Object {
-          "create_at": 0,
-          "creator_id": "id",
-          "delete_at": 0,
-          "display_name": "name",
-          "group_constrained": false,
-          "header": "not the bot description",
-          "id": "channel_id",
-          "last_post_at": 0,
-          "last_root_post_at": 0,
-          "name": "DN",
-          "purpose": "purpose",
-          "scheme_id": "id",
-          "status": "offline",
-          "team_id": "team_id",
-          "type": "D",
-          "update_at": 0,
-        }
-      }
-      channelMember={
-        Object {
-          "channel_id": "channel_id",
-          "last_update_at": 0,
-          "last_viewed_at": 0,
-          "mention_count": 0,
-          "mention_count_root": 0,
-          "msg_count": 0,
-          "msg_count_root": 0,
-          "notify_props": Object {
-            "channel_auto_follow_threads": "off",
-            "desktop": "default",
-            "email": "default",
-            "ignore_channel_mentions": "default",
-            "mark_unread": "all",
-            "push": "default",
-          },
-          "roles": "channel_user",
-          "scheme_admin": false,
-          "scheme_user": true,
-          "urgent_mention_count": 0,
-          "user_id": "user_id",
-        }
-      }
-    />
-    <Connect(CallButton) />
-    <PopoutButton
-      className="channel-header__icon"
-      onClick={[Function]}
-    />
-    <ChannelInfoButton
-      channel={
-        Object {
-          "create_at": 0,
-          "creator_id": "id",
-          "delete_at": 0,
-          "display_name": "name",
-          "group_constrained": false,
-          "header": "not the bot description",
-          "id": "channel_id",
-          "last_post_at": 0,
-          "last_root_post_at": 0,
-          "name": "DN",
-          "purpose": "purpose",
-          "scheme_id": "id",
-          "status": "offline",
-          "team_id": "team_id",
-          "type": "D",
-          "update_at": 0,
-        }
-      }
-    />
   </div>
 </div>
 `;
 
 exports[`components/ChannelHeader should match snapshot with no last active display because it is disabled 1`] = `
-<div
-  aria-label="channel header region"
-  className="channel-header alt a11y__region"
-  data-a11y-sort-order="8"
-  data-channelid="channel_id"
-  id="channel-header"
-  role="banner"
-  tabIndex={-1}
->
+<div>
   <div
-    className="flex-parent"
+    aria-label="channel header region"
+    class="channel-header alt a11y__region"
+    data-a11y-sort-order="8"
+    data-channelid="channel_id"
+    id="channel-header"
+    role="banner"
+    tabindex="-1"
   >
     <div
-      className="flex-child"
+      class="flex-parent"
     >
       <div
-        className="channel-header__info"
-        id="channelHeaderInfo"
+        class="flex-child"
       >
         <div
-          className="channel-header__title dropdown"
+          class="channel-header__info"
+          id="channelHeaderInfo"
         >
-          <Memo(ChannelHeaderTitle)
-            dmUser={
-              Object {
-                "auth_service": "",
-                "bot_description": "",
-                "create_at": 0,
-                "delete_at": 0,
-                "email": "",
-                "first_name": "",
-                "id": "user_id",
-                "is_bot": false,
-                "last_activity_at": 0,
-                "last_name": "",
-                "last_password_update": 0,
-                "last_picture_update": 0,
-                "locale": "",
-                "mfa_active": false,
-                "nickname": "",
-                "notify_props": Object {
-                  "calls_desktop_sound": "true",
-                  "channel": "false",
-                  "comments": "never",
-                  "desktop": "default",
-                  "desktop_sound": "false",
-                  "email": "false",
-                  "first_name": "false",
-                  "highlight_keys": "",
-                  "mark_unread": "mention",
-                  "mention_keys": "",
-                  "push": "none",
-                  "push_status": "offline",
-                },
-                "password": "",
-                "position": "",
-                "props": Object {
-                  "show_last_active": "false",
-                },
-                "roles": "",
-                "terms_of_service_create_at": 0,
-                "terms_of_service_id": "",
-                "update_at": 0,
-                "username": "some-user",
-              }
-            }
-            remoteNames={Array []}
-          />
           <div
-            className="channel-header__icons"
+            class="channel-header__title dropdown"
           >
-            <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
-              buttonId="channelHeaderFilesButton"
-              onClick={[Function]}
-              tooltip="Channel files"
+            <div
+              class="channel-header__icons"
             >
-              <i
-                className="icon icon-file-text-outline"
+              <button
+                aria-label="Channel files"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                id="channelHeaderFilesButton"
+              >
+                <i
+                  class="icon icon-file-text-outline"
+                />
+              </button>
+            </div>
+            <div
+              class="channel-header__description"
+              id="channelHeaderDescription"
+            >
+              <span
+                class="header-status__text"
               />
-            </HeaderIconWrapper>
-            <Pluggable
-              channel={
-                Object {
-                  "create_at": 0,
-                  "creator_id": "id",
-                  "delete_at": 0,
-                  "display_name": "name",
-                  "group_constrained": false,
-                  "header": "not the bot description",
-                  "id": "channel_id",
-                  "last_post_at": 0,
-                  "last_root_post_at": 0,
-                  "name": "DN",
-                  "purpose": "purpose",
-                  "scheme_id": "id",
-                  "status": "offline",
-                  "team_id": "team_id",
-                  "type": "D",
-                  "update_at": 0,
-                }
-              }
-              channelMember={
-                Object {
-                  "channel_id": "channel_id",
-                  "last_update_at": 0,
-                  "last_viewed_at": 0,
-                  "mention_count": 0,
-                  "mention_count_root": 0,
-                  "msg_count": 0,
-                  "msg_count_root": 0,
-                  "notify_props": Object {
-                    "channel_auto_follow_threads": "off",
-                    "desktop": "default",
-                    "email": "default",
-                    "ignore_channel_mentions": "default",
-                    "mark_unread": "all",
-                    "push": "default",
-                  },
-                  "roles": "channel_user",
-                  "scheme_admin": false,
-                  "scheme_user": true,
-                  "urgent_mention_count": 0,
-                  "user_id": "user_id",
-                }
-              }
-              pluggableName="ChannelHeaderIcon"
-            />
-          </div>
-          <div
-            className="channel-header__description"
-            id="channelHeaderDescription"
-          >
-            <span
-              className="header-status__text"
-            />
-            <ChannelHeaderText
-              channel={
-                Object {
-                  "create_at": 0,
-                  "creator_id": "id",
-                  "delete_at": 0,
-                  "display_name": "name",
-                  "group_constrained": false,
-                  "header": "not the bot description",
-                  "id": "channel_id",
-                  "last_post_at": 0,
-                  "last_root_post_at": 0,
-                  "name": "DN",
-                  "purpose": "purpose",
-                  "scheme_id": "id",
-                  "status": "offline",
-                  "team_id": "team_id",
-                  "type": "D",
-                  "update_at": 0,
-                }
-              }
-              dmUser={
-                Object {
-                  "auth_service": "",
-                  "bot_description": "",
-                  "create_at": 0,
-                  "delete_at": 0,
-                  "email": "",
-                  "first_name": "",
-                  "id": "user_id",
-                  "is_bot": false,
-                  "last_activity_at": 0,
-                  "last_name": "",
-                  "last_password_update": 0,
-                  "last_picture_update": 0,
-                  "locale": "",
-                  "mfa_active": false,
-                  "nickname": "",
-                  "notify_props": Object {
-                    "calls_desktop_sound": "true",
-                    "channel": "false",
-                    "comments": "never",
-                    "desktop": "default",
-                    "desktop_sound": "false",
-                    "email": "false",
-                    "first_name": "false",
-                    "highlight_keys": "",
-                    "mark_unread": "mention",
-                    "mention_keys": "",
-                    "push": "none",
-                    "push_status": "offline",
-                  },
-                  "password": "",
-                  "position": "",
-                  "props": Object {
-                    "show_last_active": "false",
-                  },
-                  "roles": "",
-                  "terms_of_service_create_at": 0,
-                  "terms_of_service_id": "",
-                  "update_at": 0,
-                  "username": "some-user",
-                }
-              }
-              teamId="team_id"
-            />
+              <div
+                class="header-description__text"
+              >
+                <p
+                  class="markdown__paragraph-inline"
+                >
+                  not the bot description
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+      <button
+        aria-label="Open in new window"
+        class="btn btn-icon btn-sm PopoutButton channel-header__icon"
+        type="button"
+      >
+        <i
+          aria-hidden="true"
+          class="icon icon-dock-window"
+        />
+      </button>
+      <button
+        aria-label="View Info"
+        class="channel-header__icon"
+        id="channel-info-btn"
+      >
+        <i
+          class="Icon-esDcos cHAVtG icon-information-outline"
+        />
+      </button>
     </div>
-    <Connect(injectIntl(ChannelHeaderPlug))
-      channel={
-        Object {
-          "create_at": 0,
-          "creator_id": "id",
-          "delete_at": 0,
-          "display_name": "name",
-          "group_constrained": false,
-          "header": "not the bot description",
-          "id": "channel_id",
-          "last_post_at": 0,
-          "last_root_post_at": 0,
-          "name": "DN",
-          "purpose": "purpose",
-          "scheme_id": "id",
-          "status": "offline",
-          "team_id": "team_id",
-          "type": "D",
-          "update_at": 0,
-        }
-      }
-      channelMember={
-        Object {
-          "channel_id": "channel_id",
-          "last_update_at": 0,
-          "last_viewed_at": 0,
-          "mention_count": 0,
-          "mention_count_root": 0,
-          "msg_count": 0,
-          "msg_count_root": 0,
-          "notify_props": Object {
-            "channel_auto_follow_threads": "off",
-            "desktop": "default",
-            "email": "default",
-            "ignore_channel_mentions": "default",
-            "mark_unread": "all",
-            "push": "default",
-          },
-          "roles": "channel_user",
-          "scheme_admin": false,
-          "scheme_user": true,
-          "urgent_mention_count": 0,
-          "user_id": "user_id",
-        }
-      }
-    />
-    <Connect(CallButton) />
-    <PopoutButton
-      className="channel-header__icon"
-      onClick={[Function]}
-    />
-    <ChannelInfoButton
-      channel={
-        Object {
-          "create_at": 0,
-          "creator_id": "id",
-          "delete_at": 0,
-          "display_name": "name",
-          "group_constrained": false,
-          "header": "not the bot description",
-          "id": "channel_id",
-          "last_post_at": 0,
-          "last_root_post_at": 0,
-          "name": "DN",
-          "purpose": "purpose",
-          "scheme_id": "id",
-          "status": "offline",
-          "team_id": "team_id",
-          "type": "D",
-          "update_at": 0,
-        }
-      }
-    />
   </div>
 </div>
 `;
 
 exports[`components/ChannelHeader should render active channel files 1`] = `
-<div
-  aria-label="channel header region"
-  className="channel-header alt a11y__region"
-  data-a11y-sort-order="8"
-  data-channelid="channel_id"
-  id="channel-header"
-  role="banner"
-  tabIndex={-1}
->
+<div>
   <div
-    className="flex-parent"
+    aria-label="channel header region"
+    class="channel-header alt a11y__region"
+    data-a11y-sort-order="8"
+    data-channelid="channel_id"
+    id="channel-header"
+    role="banner"
+    tabindex="-1"
   >
     <div
-      className="flex-child"
+      class="flex-parent"
     >
       <div
-        className="channel-header__info"
-        id="channelHeaderInfo"
+        class="flex-child"
       >
         <div
-          className="channel-header__title dropdown"
+          class="channel-header__info"
+          id="channelHeaderInfo"
         >
-          <Memo(ChannelHeaderTitle)
-            remoteNames={Array []}
-          />
           <div
-            className="channel-header__icons"
+            class="channel-header__title dropdown"
           >
-            <HeaderIconWrapper
-              buttonClass="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="member_rhs"
-              onClick={[Function]}
-              tooltip="Members"
+            <div
+              class="channel-header__icons"
             >
-              <i
-                aria-hidden="true"
-                className="icon icon-account-outline channel-header__members"
-              />
-              <span
-                className="icon__text"
-                id="channelMemberCountText"
+              <button
+                aria-label="Members"
+                class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                id="member_rhs"
               >
-                2
-              </span>
-            </HeaderIconWrapper>
-            <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs  channel-header__icon--active"
-              buttonId="channelHeaderFilesButton"
-              onClick={[Function]}
-              tooltip="Channel files"
+                <i
+                  aria-hidden="true"
+                  class="icon icon-account-outline channel-header__members"
+                />
+                <span
+                  class="icon__text"
+                  id="channelMemberCountText"
+                >
+                  2
+                </span>
+              </button>
+              <button
+                aria-label="Channel files"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs  channel-header__icon--active"
+                id="channelHeaderFilesButton"
+              >
+                <i
+                  class="icon icon-file-text-outline"
+                />
+              </button>
+            </div>
+            <div
+              class="channel-header__description"
+              id="channelHeaderDescription"
             >
-              <i
-                className="icon icon-file-text-outline"
-              />
-            </HeaderIconWrapper>
-            <Pluggable
-              channel={
-                Object {
-                  "create_at": 0,
-                  "creator_id": "id",
-                  "delete_at": 0,
-                  "display_name": "name",
-                  "group_constrained": false,
-                  "header": "header",
-                  "id": "channel_id",
-                  "last_post_at": 0,
-                  "last_root_post_at": 0,
-                  "name": "Test",
-                  "purpose": "purpose",
-                  "scheme_id": "id",
-                  "team_id": "team_id",
-                  "type": "O",
-                  "update_at": 0,
-                }
-              }
-              channelMember={
-                Object {
-                  "channel_id": "channel_id",
-                  "last_update_at": 0,
-                  "last_viewed_at": 0,
-                  "mention_count": 0,
-                  "mention_count_root": 0,
-                  "msg_count": 0,
-                  "msg_count_root": 0,
-                  "notify_props": Object {
-                    "channel_auto_follow_threads": "off",
-                    "desktop": "default",
-                    "email": "default",
-                    "ignore_channel_mentions": "default",
-                    "mark_unread": "all",
-                    "push": "default",
-                  },
-                  "roles": "channel_user",
-                  "scheme_admin": false,
-                  "scheme_user": true,
-                  "urgent_mention_count": 0,
-                  "user_id": "user_id",
-                }
-              }
-              pluggableName="ChannelHeaderIcon"
-            />
-          </div>
-          <div
-            className="channel-header__description"
-            id="channelHeaderDescription"
-          >
-            <ChannelHeaderText
-              channel={
-                Object {
-                  "create_at": 0,
-                  "creator_id": "id",
-                  "delete_at": 0,
-                  "display_name": "name",
-                  "group_constrained": false,
-                  "header": "header",
-                  "id": "channel_id",
-                  "last_post_at": 0,
-                  "last_root_post_at": 0,
-                  "name": "Test",
-                  "purpose": "purpose",
-                  "scheme_id": "id",
-                  "team_id": "team_id",
-                  "type": "O",
-                  "update_at": 0,
-                }
-              }
-              teamId="team_id"
-            />
+              <div
+                class="header-description__text"
+              >
+                <p
+                  class="markdown__paragraph-inline"
+                >
+                  header
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+      <button
+        aria-label="Open in new window"
+        class="btn btn-icon btn-sm PopoutButton channel-header__icon"
+        type="button"
+      >
+        <i
+          aria-hidden="true"
+          class="icon icon-dock-window"
+        />
+      </button>
+      <button
+        aria-label="View Info"
+        class="channel-header__icon"
+        id="channel-info-btn"
+      >
+        <i
+          class="Icon-esDcos cHAVtG icon-information-outline"
+        />
+      </button>
     </div>
-    <Connect(injectIntl(ChannelHeaderPlug))
-      channel={
-        Object {
-          "create_at": 0,
-          "creator_id": "id",
-          "delete_at": 0,
-          "display_name": "name",
-          "group_constrained": false,
-          "header": "header",
-          "id": "channel_id",
-          "last_post_at": 0,
-          "last_root_post_at": 0,
-          "name": "Test",
-          "purpose": "purpose",
-          "scheme_id": "id",
-          "team_id": "team_id",
-          "type": "O",
-          "update_at": 0,
-        }
-      }
-      channelMember={
-        Object {
-          "channel_id": "channel_id",
-          "last_update_at": 0,
-          "last_viewed_at": 0,
-          "mention_count": 0,
-          "mention_count_root": 0,
-          "msg_count": 0,
-          "msg_count_root": 0,
-          "notify_props": Object {
-            "channel_auto_follow_threads": "off",
-            "desktop": "default",
-            "email": "default",
-            "ignore_channel_mentions": "default",
-            "mark_unread": "all",
-            "push": "default",
-          },
-          "roles": "channel_user",
-          "scheme_admin": false,
-          "scheme_user": true,
-          "urgent_mention_count": 0,
-          "user_id": "user_id",
-        }
-      }
-    />
-    <Connect(CallButton) />
-    <PopoutButton
-      className="channel-header__icon"
-      onClick={[Function]}
-    />
-    <ChannelInfoButton
-      channel={
-        Object {
-          "create_at": 0,
-          "creator_id": "id",
-          "delete_at": 0,
-          "display_name": "name",
-          "group_constrained": false,
-          "header": "header",
-          "id": "channel_id",
-          "last_post_at": 0,
-          "last_root_post_at": 0,
-          "name": "Test",
-          "purpose": "purpose",
-          "scheme_id": "id",
-          "team_id": "team_id",
-          "type": "O",
-          "update_at": 0,
-        }
-      }
-    />
   </div>
 </div>
 `;
 
 exports[`components/ChannelHeader should render active flagged posts 1`] = `
-<div
-  aria-label="channel header region"
-  className="channel-header alt a11y__region"
-  data-a11y-sort-order="8"
-  data-channelid="channel_id"
-  id="channel-header"
-  role="banner"
-  tabIndex={-1}
->
+<div>
   <div
-    className="flex-parent"
+    aria-label="channel header region"
+    class="channel-header alt a11y__region"
+    data-a11y-sort-order="8"
+    data-channelid="channel_id"
+    id="channel-header"
+    role="banner"
+    tabindex="-1"
   >
     <div
-      className="flex-child"
+      class="flex-parent"
     >
       <div
-        className="channel-header__info"
-        id="channelHeaderInfo"
+        class="flex-child"
       >
         <div
-          className="channel-header__title dropdown"
+          class="channel-header__info"
+          id="channelHeaderInfo"
         >
-          <Memo(ChannelHeaderTitle)
-            remoteNames={Array []}
-          />
           <div
-            className="channel-header__icons"
+            class="channel-header__title dropdown"
           >
-            <HeaderIconWrapper
-              buttonClass="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="member_rhs"
-              onClick={[Function]}
-              tooltip="Members"
+            <div
+              class="channel-header__icons"
             >
-              <i
-                aria-hidden="true"
-                className="icon icon-account-outline channel-header__members"
-              />
-              <span
-                className="icon__text"
-                id="channelMemberCountText"
+              <button
+                aria-label="Members"
+                class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                id="member_rhs"
               >
-                2
-              </span>
-            </HeaderIconWrapper>
-            <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
-              buttonId="channelHeaderFilesButton"
-              onClick={[Function]}
-              tooltip="Channel files"
+                <i
+                  aria-hidden="true"
+                  class="icon icon-account-outline channel-header__members"
+                />
+                <span
+                  class="icon__text"
+                  id="channelMemberCountText"
+                >
+                  2
+                </span>
+              </button>
+              <button
+                aria-label="Channel files"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                id="channelHeaderFilesButton"
+              >
+                <i
+                  class="icon icon-file-text-outline"
+                />
+              </button>
+            </div>
+            <div
+              class="channel-header__description"
+              id="channelHeaderDescription"
             >
-              <i
-                className="icon icon-file-text-outline"
-              />
-            </HeaderIconWrapper>
-            <Pluggable
-              channel={
-                Object {
-                  "create_at": 0,
-                  "creator_id": "id",
-                  "delete_at": 0,
-                  "display_name": "name",
-                  "group_constrained": false,
-                  "header": "header",
-                  "id": "channel_id",
-                  "last_post_at": 0,
-                  "last_root_post_at": 0,
-                  "name": "Test",
-                  "purpose": "purpose",
-                  "scheme_id": "id",
-                  "team_id": "team_id",
-                  "type": "O",
-                  "update_at": 0,
-                }
-              }
-              channelMember={
-                Object {
-                  "channel_id": "channel_id",
-                  "last_update_at": 0,
-                  "last_viewed_at": 0,
-                  "mention_count": 0,
-                  "mention_count_root": 0,
-                  "msg_count": 0,
-                  "msg_count_root": 0,
-                  "notify_props": Object {
-                    "channel_auto_follow_threads": "off",
-                    "desktop": "default",
-                    "email": "default",
-                    "ignore_channel_mentions": "default",
-                    "mark_unread": "all",
-                    "push": "default",
-                  },
-                  "roles": "channel_user",
-                  "scheme_admin": false,
-                  "scheme_user": true,
-                  "urgent_mention_count": 0,
-                  "user_id": "user_id",
-                }
-              }
-              pluggableName="ChannelHeaderIcon"
-            />
-          </div>
-          <div
-            className="channel-header__description"
-            id="channelHeaderDescription"
-          >
-            <ChannelHeaderText
-              channel={
-                Object {
-                  "create_at": 0,
-                  "creator_id": "id",
-                  "delete_at": 0,
-                  "display_name": "name",
-                  "group_constrained": false,
-                  "header": "header",
-                  "id": "channel_id",
-                  "last_post_at": 0,
-                  "last_root_post_at": 0,
-                  "name": "Test",
-                  "purpose": "purpose",
-                  "scheme_id": "id",
-                  "team_id": "team_id",
-                  "type": "O",
-                  "update_at": 0,
-                }
-              }
-              teamId="team_id"
-            />
+              <div
+                class="header-description__text"
+              >
+                <p
+                  class="markdown__paragraph-inline"
+                >
+                  header
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+      <button
+        aria-label="Open in new window"
+        class="btn btn-icon btn-sm PopoutButton channel-header__icon"
+        type="button"
+      >
+        <i
+          aria-hidden="true"
+          class="icon icon-dock-window"
+        />
+      </button>
+      <button
+        aria-label="View Info"
+        class="channel-header__icon"
+        id="channel-info-btn"
+      >
+        <i
+          class="Icon-esDcos cHAVtG icon-information-outline"
+        />
+      </button>
     </div>
-    <Connect(injectIntl(ChannelHeaderPlug))
-      channel={
-        Object {
-          "create_at": 0,
-          "creator_id": "id",
-          "delete_at": 0,
-          "display_name": "name",
-          "group_constrained": false,
-          "header": "header",
-          "id": "channel_id",
-          "last_post_at": 0,
-          "last_root_post_at": 0,
-          "name": "Test",
-          "purpose": "purpose",
-          "scheme_id": "id",
-          "team_id": "team_id",
-          "type": "O",
-          "update_at": 0,
-        }
-      }
-      channelMember={
-        Object {
-          "channel_id": "channel_id",
-          "last_update_at": 0,
-          "last_viewed_at": 0,
-          "mention_count": 0,
-          "mention_count_root": 0,
-          "msg_count": 0,
-          "msg_count_root": 0,
-          "notify_props": Object {
-            "channel_auto_follow_threads": "off",
-            "desktop": "default",
-            "email": "default",
-            "ignore_channel_mentions": "default",
-            "mark_unread": "all",
-            "push": "default",
-          },
-          "roles": "channel_user",
-          "scheme_admin": false,
-          "scheme_user": true,
-          "urgent_mention_count": 0,
-          "user_id": "user_id",
-        }
-      }
-    />
-    <Connect(CallButton) />
-    <PopoutButton
-      className="channel-header__icon"
-      onClick={[Function]}
-    />
-    <ChannelInfoButton
-      channel={
-        Object {
-          "create_at": 0,
-          "creator_id": "id",
-          "delete_at": 0,
-          "display_name": "name",
-          "group_constrained": false,
-          "header": "header",
-          "id": "channel_id",
-          "last_post_at": 0,
-          "last_root_post_at": 0,
-          "name": "Test",
-          "purpose": "purpose",
-          "scheme_id": "id",
-          "team_id": "team_id",
-          "type": "O",
-          "update_at": 0,
-        }
-      }
-    />
   </div>
 </div>
 `;
 
 exports[`components/ChannelHeader should render active mentions posts 1`] = `
-<div
-  aria-label="channel header region"
-  className="channel-header alt a11y__region"
-  data-a11y-sort-order="8"
-  data-channelid="channel_id"
-  id="channel-header"
-  role="banner"
-  tabIndex={-1}
->
+<div>
   <div
-    className="flex-parent"
+    aria-label="channel header region"
+    class="channel-header alt a11y__region"
+    data-a11y-sort-order="8"
+    data-channelid="channel_id"
+    id="channel-header"
+    role="banner"
+    tabindex="-1"
   >
     <div
-      className="flex-child"
+      class="flex-parent"
     >
       <div
-        className="channel-header__info"
-        id="channelHeaderInfo"
+        class="flex-child"
       >
         <div
-          className="channel-header__title dropdown"
+          class="channel-header__info"
+          id="channelHeaderInfo"
         >
-          <Memo(ChannelHeaderTitle)
-            remoteNames={Array []}
-          />
           <div
-            className="channel-header__icons"
+            class="channel-header__title dropdown"
           >
-            <HeaderIconWrapper
-              buttonClass="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="member_rhs"
-              onClick={[Function]}
-              tooltip="Members"
+            <div
+              class="channel-header__icons"
             >
-              <i
-                aria-hidden="true"
-                className="icon icon-account-outline channel-header__members"
-              />
-              <span
-                className="icon__text"
-                id="channelMemberCountText"
+              <button
+                aria-label="Members"
+                class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                id="member_rhs"
               >
-                2
-              </span>
-            </HeaderIconWrapper>
-            <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
-              buttonId="channelHeaderFilesButton"
-              onClick={[Function]}
-              tooltip="Channel files"
+                <i
+                  aria-hidden="true"
+                  class="icon icon-account-outline channel-header__members"
+                />
+                <span
+                  class="icon__text"
+                  id="channelMemberCountText"
+                >
+                  2
+                </span>
+              </button>
+              <button
+                aria-label="Channel files"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                id="channelHeaderFilesButton"
+              >
+                <i
+                  class="icon icon-file-text-outline"
+                />
+              </button>
+            </div>
+            <div
+              class="channel-header__description"
+              id="channelHeaderDescription"
             >
-              <i
-                className="icon icon-file-text-outline"
-              />
-            </HeaderIconWrapper>
-            <Pluggable
-              channel={
-                Object {
-                  "create_at": 0,
-                  "creator_id": "id",
-                  "delete_at": 0,
-                  "display_name": "name",
-                  "group_constrained": false,
-                  "header": "header",
-                  "id": "channel_id",
-                  "last_post_at": 0,
-                  "last_root_post_at": 0,
-                  "name": "Test",
-                  "purpose": "purpose",
-                  "scheme_id": "id",
-                  "team_id": "team_id",
-                  "type": "O",
-                  "update_at": 0,
-                }
-              }
-              channelMember={
-                Object {
-                  "channel_id": "channel_id",
-                  "last_update_at": 0,
-                  "last_viewed_at": 0,
-                  "mention_count": 0,
-                  "mention_count_root": 0,
-                  "msg_count": 0,
-                  "msg_count_root": 0,
-                  "notify_props": Object {
-                    "channel_auto_follow_threads": "off",
-                    "desktop": "default",
-                    "email": "default",
-                    "ignore_channel_mentions": "default",
-                    "mark_unread": "all",
-                    "push": "default",
-                  },
-                  "roles": "channel_user",
-                  "scheme_admin": false,
-                  "scheme_user": true,
-                  "urgent_mention_count": 0,
-                  "user_id": "user_id",
-                }
-              }
-              pluggableName="ChannelHeaderIcon"
-            />
-          </div>
-          <div
-            className="channel-header__description"
-            id="channelHeaderDescription"
-          >
-            <ChannelHeaderText
-              channel={
-                Object {
-                  "create_at": 0,
-                  "creator_id": "id",
-                  "delete_at": 0,
-                  "display_name": "name",
-                  "group_constrained": false,
-                  "header": "header",
-                  "id": "channel_id",
-                  "last_post_at": 0,
-                  "last_root_post_at": 0,
-                  "name": "Test",
-                  "purpose": "purpose",
-                  "scheme_id": "id",
-                  "team_id": "team_id",
-                  "type": "O",
-                  "update_at": 0,
-                }
-              }
-              teamId="team_id"
-            />
+              <div
+                class="header-description__text"
+              >
+                <p
+                  class="markdown__paragraph-inline"
+                >
+                  header
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+      <button
+        aria-label="Open in new window"
+        class="btn btn-icon btn-sm PopoutButton channel-header__icon"
+        type="button"
+      >
+        <i
+          aria-hidden="true"
+          class="icon icon-dock-window"
+        />
+      </button>
+      <button
+        aria-label="View Info"
+        class="channel-header__icon"
+        id="channel-info-btn"
+      >
+        <i
+          class="Icon-esDcos cHAVtG icon-information-outline"
+        />
+      </button>
     </div>
-    <Connect(injectIntl(ChannelHeaderPlug))
-      channel={
-        Object {
-          "create_at": 0,
-          "creator_id": "id",
-          "delete_at": 0,
-          "display_name": "name",
-          "group_constrained": false,
-          "header": "header",
-          "id": "channel_id",
-          "last_post_at": 0,
-          "last_root_post_at": 0,
-          "name": "Test",
-          "purpose": "purpose",
-          "scheme_id": "id",
-          "team_id": "team_id",
-          "type": "O",
-          "update_at": 0,
-        }
-      }
-      channelMember={
-        Object {
-          "channel_id": "channel_id",
-          "last_update_at": 0,
-          "last_viewed_at": 0,
-          "mention_count": 0,
-          "mention_count_root": 0,
-          "msg_count": 0,
-          "msg_count_root": 0,
-          "notify_props": Object {
-            "channel_auto_follow_threads": "off",
-            "desktop": "default",
-            "email": "default",
-            "ignore_channel_mentions": "default",
-            "mark_unread": "all",
-            "push": "default",
-          },
-          "roles": "channel_user",
-          "scheme_admin": false,
-          "scheme_user": true,
-          "urgent_mention_count": 0,
-          "user_id": "user_id",
-        }
-      }
-    />
-    <Connect(CallButton) />
-    <PopoutButton
-      className="channel-header__icon"
-      onClick={[Function]}
-    />
-    <ChannelInfoButton
-      channel={
-        Object {
-          "create_at": 0,
-          "creator_id": "id",
-          "delete_at": 0,
-          "display_name": "name",
-          "group_constrained": false,
-          "header": "header",
-          "id": "channel_id",
-          "last_post_at": 0,
-          "last_root_post_at": 0,
-          "name": "Test",
-          "purpose": "purpose",
-          "scheme_id": "id",
-          "team_id": "team_id",
-          "type": "O",
-          "update_at": 0,
-        }
-      }
-    />
   </div>
 </div>
 `;
 
 exports[`components/ChannelHeader should render active pinned posts 1`] = `
-<div
-  aria-label="channel header region"
-  className="channel-header alt a11y__region"
-  data-a11y-sort-order="8"
-  data-channelid="channel_id"
-  id="channel-header"
-  role="banner"
-  tabIndex={-1}
->
+<div>
   <div
-    className="flex-parent"
+    aria-label="channel header region"
+    class="channel-header alt a11y__region"
+    data-a11y-sort-order="8"
+    data-channelid="channel_id"
+    id="channel-header"
+    role="banner"
+    tabindex="-1"
   >
     <div
-      className="flex-child"
+      class="flex-parent"
     >
       <div
-        className="channel-header__info"
-        id="channelHeaderInfo"
+        class="flex-child"
       >
         <div
-          className="channel-header__title dropdown"
+          class="channel-header__info"
+          id="channelHeaderInfo"
         >
-          <Memo(ChannelHeaderTitle)
-            remoteNames={Array []}
-          />
           <div
-            className="channel-header__icons"
+            class="channel-header__title dropdown"
           >
-            <HeaderIconWrapper
-              buttonClass="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="member_rhs"
-              onClick={[Function]}
-              tooltip="Members"
+            <div
+              class="channel-header__icons"
             >
-              <i
-                aria-hidden="true"
-                className="icon icon-account-outline channel-header__members"
-              />
-              <span
-                className="icon__text"
-                id="channelMemberCountText"
+              <button
+                aria-label="Members"
+                class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                id="member_rhs"
               >
-                2
-              </span>
-            </HeaderIconWrapper>
-            <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
-              buttonId="channelHeaderFilesButton"
-              onClick={[Function]}
-              tooltip="Channel files"
+                <i
+                  aria-hidden="true"
+                  class="icon icon-account-outline channel-header__members"
+                />
+                <span
+                  class="icon__text"
+                  id="channelMemberCountText"
+                >
+                  2
+                </span>
+              </button>
+              <button
+                aria-label="Channel files"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                id="channelHeaderFilesButton"
+              >
+                <i
+                  class="icon icon-file-text-outline"
+                />
+              </button>
+            </div>
+            <div
+              class="channel-header__description"
+              id="channelHeaderDescription"
             >
-              <i
-                className="icon icon-file-text-outline"
-              />
-            </HeaderIconWrapper>
-            <Pluggable
-              channel={
-                Object {
-                  "create_at": 0,
-                  "creator_id": "id",
-                  "delete_at": 0,
-                  "display_name": "name",
-                  "group_constrained": false,
-                  "header": "header",
-                  "id": "channel_id",
-                  "last_post_at": 0,
-                  "last_root_post_at": 0,
-                  "name": "Test",
-                  "purpose": "purpose",
-                  "scheme_id": "id",
-                  "team_id": "team_id",
-                  "type": "O",
-                  "update_at": 0,
-                }
-              }
-              channelMember={
-                Object {
-                  "channel_id": "channel_id",
-                  "last_update_at": 0,
-                  "last_viewed_at": 0,
-                  "mention_count": 0,
-                  "mention_count_root": 0,
-                  "msg_count": 0,
-                  "msg_count_root": 0,
-                  "notify_props": Object {
-                    "channel_auto_follow_threads": "off",
-                    "desktop": "default",
-                    "email": "default",
-                    "ignore_channel_mentions": "default",
-                    "mark_unread": "all",
-                    "push": "default",
-                  },
-                  "roles": "channel_user",
-                  "scheme_admin": false,
-                  "scheme_user": true,
-                  "urgent_mention_count": 0,
-                  "user_id": "user_id",
-                }
-              }
-              pluggableName="ChannelHeaderIcon"
-            />
-          </div>
-          <div
-            className="channel-header__description"
-            id="channelHeaderDescription"
-          >
-            <ChannelHeaderText
-              channel={
-                Object {
-                  "create_at": 0,
-                  "creator_id": "id",
-                  "delete_at": 0,
-                  "display_name": "name",
-                  "group_constrained": false,
-                  "header": "header",
-                  "id": "channel_id",
-                  "last_post_at": 0,
-                  "last_root_post_at": 0,
-                  "name": "Test",
-                  "purpose": "purpose",
-                  "scheme_id": "id",
-                  "team_id": "team_id",
-                  "type": "O",
-                  "update_at": 0,
-                }
-              }
-              teamId="team_id"
-            />
+              <div
+                class="header-description__text"
+              >
+                <p
+                  class="markdown__paragraph-inline"
+                >
+                  header
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+      <button
+        aria-label="Open in new window"
+        class="btn btn-icon btn-sm PopoutButton channel-header__icon"
+        type="button"
+      >
+        <i
+          aria-hidden="true"
+          class="icon icon-dock-window"
+        />
+      </button>
+      <button
+        aria-label="View Info"
+        class="channel-header__icon"
+        id="channel-info-btn"
+      >
+        <i
+          class="Icon-esDcos cHAVtG icon-information-outline"
+        />
+      </button>
     </div>
-    <Connect(injectIntl(ChannelHeaderPlug))
-      channel={
-        Object {
-          "create_at": 0,
-          "creator_id": "id",
-          "delete_at": 0,
-          "display_name": "name",
-          "group_constrained": false,
-          "header": "header",
-          "id": "channel_id",
-          "last_post_at": 0,
-          "last_root_post_at": 0,
-          "name": "Test",
-          "purpose": "purpose",
-          "scheme_id": "id",
-          "team_id": "team_id",
-          "type": "O",
-          "update_at": 0,
-        }
-      }
-      channelMember={
-        Object {
-          "channel_id": "channel_id",
-          "last_update_at": 0,
-          "last_viewed_at": 0,
-          "mention_count": 0,
-          "mention_count_root": 0,
-          "msg_count": 0,
-          "msg_count_root": 0,
-          "notify_props": Object {
-            "channel_auto_follow_threads": "off",
-            "desktop": "default",
-            "email": "default",
-            "ignore_channel_mentions": "default",
-            "mark_unread": "all",
-            "push": "default",
-          },
-          "roles": "channel_user",
-          "scheme_admin": false,
-          "scheme_user": true,
-          "urgent_mention_count": 0,
-          "user_id": "user_id",
-        }
-      }
-    />
-    <Connect(CallButton) />
-    <PopoutButton
-      className="channel-header__icon"
-      onClick={[Function]}
-    />
-    <ChannelInfoButton
-      channel={
-        Object {
-          "create_at": 0,
-          "creator_id": "id",
-          "delete_at": 0,
-          "display_name": "name",
-          "group_constrained": false,
-          "header": "header",
-          "id": "channel_id",
-          "last_post_at": 0,
-          "last_root_post_at": 0,
-          "name": "Test",
-          "purpose": "purpose",
-          "scheme_id": "id",
-          "team_id": "team_id",
-          "type": "O",
-          "update_at": 0,
-        }
-      }
-    />
   </div>
 </div>
 `;
 
 exports[`components/ChannelHeader should render archived view 1`] = `
-<div
-  aria-label="channel header region"
-  className="channel-header alt a11y__region"
-  data-a11y-sort-order="8"
-  data-channelid="channel_id"
-  id="channel-header"
-  role="banner"
-  tabIndex={-1}
->
+<div>
   <div
-    className="flex-parent"
+    aria-label="channel header region"
+    class="channel-header alt a11y__region"
+    data-a11y-sort-order="8"
+    data-channelid="channel_id"
+    id="channel-header"
+    role="banner"
+    tabindex="-1"
   >
     <div
-      className="flex-child"
+      class="flex-parent"
     >
       <div
-        className="channel-header__info"
-        id="channelHeaderInfo"
+        class="flex-child"
       >
         <div
-          className="channel-header__title dropdown"
+          class="channel-header__info"
+          id="channelHeaderInfo"
         >
-          <Memo(ChannelHeaderTitle)
-            remoteNames={Array []}
-          />
           <div
-            className="channel-header__icons"
+            class="channel-header__title dropdown"
           >
-            <HeaderIconWrapper
-              buttonClass="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="member_rhs"
-              onClick={[Function]}
-              tooltip="Members"
+            <div
+              class="channel-header__icons"
             >
-              <i
-                aria-hidden="true"
-                className="icon icon-account-outline channel-header__members"
-              />
-              <span
-                className="icon__text"
-                id="channelMemberCountText"
+              <button
+                aria-label="Members"
+                class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                id="member_rhs"
               >
-                2
-              </span>
-            </HeaderIconWrapper>
-            <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
-              buttonId="channelHeaderFilesButton"
-              onClick={[Function]}
-              tooltip="Channel files"
+                <i
+                  aria-hidden="true"
+                  class="icon icon-account-outline channel-header__members"
+                />
+                <span
+                  class="icon__text"
+                  id="channelMemberCountText"
+                >
+                  2
+                </span>
+              </button>
+              <button
+                aria-label="Channel files"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                id="channelHeaderFilesButton"
+              >
+                <i
+                  class="icon icon-file-text-outline"
+                />
+              </button>
+            </div>
+            <div
+              class="channel-header__description"
+              id="channelHeaderDescription"
             >
-              <i
-                className="icon icon-file-text-outline"
-              />
-            </HeaderIconWrapper>
-            <Pluggable
-              channel={
-                Object {
-                  "create_at": 0,
-                  "creator_id": "id",
-                  "delete_at": 1234,
-                  "display_name": "name",
-                  "group_constrained": false,
-                  "header": "header",
-                  "id": "channel_id",
-                  "last_post_at": 0,
-                  "last_root_post_at": 0,
-                  "name": "Test",
-                  "purpose": "purpose",
-                  "scheme_id": "id",
-                  "team_id": "team_id",
-                  "type": "O",
-                  "update_at": 0,
-                }
-              }
-              channelMember={
-                Object {
-                  "channel_id": "channel_id",
-                  "last_update_at": 0,
-                  "last_viewed_at": 0,
-                  "mention_count": 0,
-                  "mention_count_root": 0,
-                  "msg_count": 0,
-                  "msg_count_root": 0,
-                  "notify_props": Object {
-                    "channel_auto_follow_threads": "off",
-                    "desktop": "default",
-                    "email": "default",
-                    "ignore_channel_mentions": "default",
-                    "mark_unread": "all",
-                    "push": "default",
-                  },
-                  "roles": "channel_user",
-                  "scheme_admin": false,
-                  "scheme_user": true,
-                  "urgent_mention_count": 0,
-                  "user_id": "user_id",
-                }
-              }
-              pluggableName="ChannelHeaderIcon"
-            />
-          </div>
-          <div
-            className="channel-header__description"
-            id="channelHeaderDescription"
-          >
-            <ChannelHeaderText
-              channel={
-                Object {
-                  "create_at": 0,
-                  "creator_id": "id",
-                  "delete_at": 1234,
-                  "display_name": "name",
-                  "group_constrained": false,
-                  "header": "header",
-                  "id": "channel_id",
-                  "last_post_at": 0,
-                  "last_root_post_at": 0,
-                  "name": "Test",
-                  "purpose": "purpose",
-                  "scheme_id": "id",
-                  "team_id": "team_id",
-                  "type": "O",
-                  "update_at": 0,
-                }
-              }
-              teamId="team_id"
-            />
+              <div
+                class="header-description__text"
+              >
+                <p
+                  class="markdown__paragraph-inline"
+                >
+                  header
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+      <button
+        aria-label="Open in new window"
+        class="btn btn-icon btn-sm PopoutButton channel-header__icon"
+        type="button"
+      >
+        <i
+          aria-hidden="true"
+          class="icon icon-dock-window"
+        />
+      </button>
+      <button
+        aria-label="View Info"
+        class="channel-header__icon"
+        id="channel-info-btn"
+      >
+        <i
+          class="Icon-esDcos cHAVtG icon-information-outline"
+        />
+      </button>
     </div>
-    <Connect(injectIntl(ChannelHeaderPlug))
-      channel={
-        Object {
-          "create_at": 0,
-          "creator_id": "id",
-          "delete_at": 1234,
-          "display_name": "name",
-          "group_constrained": false,
-          "header": "header",
-          "id": "channel_id",
-          "last_post_at": 0,
-          "last_root_post_at": 0,
-          "name": "Test",
-          "purpose": "purpose",
-          "scheme_id": "id",
-          "team_id": "team_id",
-          "type": "O",
-          "update_at": 0,
-        }
-      }
-      channelMember={
-        Object {
-          "channel_id": "channel_id",
-          "last_update_at": 0,
-          "last_viewed_at": 0,
-          "mention_count": 0,
-          "mention_count_root": 0,
-          "msg_count": 0,
-          "msg_count_root": 0,
-          "notify_props": Object {
-            "channel_auto_follow_threads": "off",
-            "desktop": "default",
-            "email": "default",
-            "ignore_channel_mentions": "default",
-            "mark_unread": "all",
-            "push": "default",
-          },
-          "roles": "channel_user",
-          "scheme_admin": false,
-          "scheme_user": true,
-          "urgent_mention_count": 0,
-          "user_id": "user_id",
-        }
-      }
-    />
-    <Connect(CallButton) />
-    <PopoutButton
-      className="channel-header__icon"
-      onClick={[Function]}
-    />
-    <ChannelInfoButton
-      channel={
-        Object {
-          "create_at": 0,
-          "creator_id": "id",
-          "delete_at": 1234,
-          "display_name": "name",
-          "group_constrained": false,
-          "header": "header",
-          "id": "channel_id",
-          "last_post_at": 0,
-          "last_root_post_at": 0,
-          "name": "Test",
-          "purpose": "purpose",
-          "scheme_id": "id",
-          "team_id": "team_id",
-          "type": "O",
-          "update_at": 0,
-        }
-      }
-    />
   </div>
 </div>
 `;
 
 exports[`components/ChannelHeader should render correct menu when muted 1`] = `
-<div
-  aria-label="channel header region"
-  className="channel-header alt a11y__region"
-  data-a11y-sort-order="8"
-  data-channelid="channel_id"
-  id="channel-header"
-  role="banner"
-  tabIndex={-1}
->
+<div>
   <div
-    className="flex-parent"
+    aria-label="channel header region"
+    class="channel-header alt a11y__region"
+    data-a11y-sort-order="8"
+    data-channelid="channel_id"
+    id="channel-header"
+    role="banner"
+    tabindex="-1"
   >
     <div
-      className="flex-child"
+      class="flex-parent"
     >
       <div
-        className="channel-header__info"
-        id="channelHeaderInfo"
+        class="flex-child"
       >
         <div
-          className="channel-header__title dropdown"
+          class="channel-header__info"
+          id="channelHeaderInfo"
         >
-          <Memo(ChannelHeaderTitle)
-            remoteNames={Array []}
-          />
           <div
-            className="channel-header__icons"
+            class="channel-header__title dropdown"
           >
-            <WithTooltip
-              title={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Unmute"
-                  id="channelHeader.unmute"
-                />
-              }
+            <div
+              class="channel-header__icons"
             >
               <button
                 aria-label="Unmute"
-                className="channel-header__mute inactive btn btn-icon btn-xs"
+                class="channel-header__mute inactive btn btn-icon btn-xs"
                 id="toggleMute"
-                onClick={[Function]}
               >
                 <i
-                  aria-hidden={true}
-                  className="icon icon-bell-off-outline"
+                  aria-hidden="true"
+                  class="icon icon-bell-off-outline"
                 />
               </button>
-            </WithTooltip>
-            <HeaderIconWrapper
-              buttonClass="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="member_rhs"
-              onClick={[Function]}
-              tooltip="Members"
-            >
-              <i
-                aria-hidden="true"
-                className="icon icon-account-outline channel-header__members"
-              />
-              <span
-                className="icon__text"
-                id="channelMemberCountText"
+              <button
+                aria-label="Members"
+                class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                id="member_rhs"
               >
-                2
-              </span>
-            </HeaderIconWrapper>
-            <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
-              buttonId="channelHeaderFilesButton"
-              onClick={[Function]}
-              tooltip="Channel files"
+                <i
+                  aria-hidden="true"
+                  class="icon icon-account-outline channel-header__members"
+                />
+                <span
+                  class="icon__text"
+                  id="channelMemberCountText"
+                >
+                  2
+                </span>
+              </button>
+              <button
+                aria-label="Channel files"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                id="channelHeaderFilesButton"
+              >
+                <i
+                  class="icon icon-file-text-outline"
+                />
+              </button>
+            </div>
+            <div
+              class="channel-header__description"
+              id="channelHeaderDescription"
             >
-              <i
-                className="icon icon-file-text-outline"
-              />
-            </HeaderIconWrapper>
-            <Pluggable
-              channel={
-                Object {
-                  "create_at": 0,
-                  "creator_id": "id",
-                  "delete_at": 0,
-                  "display_name": "name",
-                  "group_constrained": false,
-                  "header": "header",
-                  "id": "channel_id",
-                  "last_post_at": 0,
-                  "last_root_post_at": 0,
-                  "name": "Test",
-                  "purpose": "purpose",
-                  "scheme_id": "id",
-                  "team_id": "team_id",
-                  "type": "O",
-                  "update_at": 0,
-                }
-              }
-              channelMember={
-                Object {
-                  "channel_id": "channel_id",
-                  "last_update_at": 0,
-                  "last_viewed_at": 0,
-                  "mention_count": 0,
-                  "mention_count_root": 0,
-                  "msg_count": 0,
-                  "msg_count_root": 0,
-                  "notify_props": Object {
-                    "channel_auto_follow_threads": "off",
-                    "desktop": "default",
-                    "email": "default",
-                    "ignore_channel_mentions": "default",
-                    "mark_unread": "all",
-                    "push": "default",
-                  },
-                  "roles": "channel_user",
-                  "scheme_admin": false,
-                  "scheme_user": true,
-                  "urgent_mention_count": 0,
-                  "user_id": "user_id",
-                }
-              }
-              pluggableName="ChannelHeaderIcon"
-            />
-          </div>
-          <div
-            className="channel-header__description"
-            id="channelHeaderDescription"
-          >
-            <ChannelHeaderText
-              channel={
-                Object {
-                  "create_at": 0,
-                  "creator_id": "id",
-                  "delete_at": 0,
-                  "display_name": "name",
-                  "group_constrained": false,
-                  "header": "header",
-                  "id": "channel_id",
-                  "last_post_at": 0,
-                  "last_root_post_at": 0,
-                  "name": "Test",
-                  "purpose": "purpose",
-                  "scheme_id": "id",
-                  "team_id": "team_id",
-                  "type": "O",
-                  "update_at": 0,
-                }
-              }
-              teamId="team_id"
-            />
+              <div
+                class="header-description__text"
+              >
+                <p
+                  class="markdown__paragraph-inline"
+                >
+                  header
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+      <button
+        aria-label="Open in new window"
+        class="btn btn-icon btn-sm PopoutButton channel-header__icon"
+        type="button"
+      >
+        <i
+          aria-hidden="true"
+          class="icon icon-dock-window"
+        />
+      </button>
+      <button
+        aria-label="View Info"
+        class="channel-header__icon"
+        id="channel-info-btn"
+      >
+        <i
+          class="Icon-esDcos cHAVtG icon-information-outline"
+        />
+      </button>
     </div>
-    <Connect(injectIntl(ChannelHeaderPlug))
-      channel={
-        Object {
-          "create_at": 0,
-          "creator_id": "id",
-          "delete_at": 0,
-          "display_name": "name",
-          "group_constrained": false,
-          "header": "header",
-          "id": "channel_id",
-          "last_post_at": 0,
-          "last_root_post_at": 0,
-          "name": "Test",
-          "purpose": "purpose",
-          "scheme_id": "id",
-          "team_id": "team_id",
-          "type": "O",
-          "update_at": 0,
-        }
-      }
-      channelMember={
-        Object {
-          "channel_id": "channel_id",
-          "last_update_at": 0,
-          "last_viewed_at": 0,
-          "mention_count": 0,
-          "mention_count_root": 0,
-          "msg_count": 0,
-          "msg_count_root": 0,
-          "notify_props": Object {
-            "channel_auto_follow_threads": "off",
-            "desktop": "default",
-            "email": "default",
-            "ignore_channel_mentions": "default",
-            "mark_unread": "all",
-            "push": "default",
-          },
-          "roles": "channel_user",
-          "scheme_admin": false,
-          "scheme_user": true,
-          "urgent_mention_count": 0,
-          "user_id": "user_id",
-        }
-      }
-    />
-    <Connect(CallButton) />
-    <PopoutButton
-      className="channel-header__icon"
-      onClick={[Function]}
-    />
-    <ChannelInfoButton
-      channel={
-        Object {
-          "create_at": 0,
-          "creator_id": "id",
-          "delete_at": 0,
-          "display_name": "name",
-          "group_constrained": false,
-          "header": "header",
-          "id": "channel_id",
-          "last_post_at": 0,
-          "last_root_post_at": 0,
-          "name": "Test",
-          "purpose": "purpose",
-          "scheme_id": "id",
-          "team_id": "team_id",
-          "type": "O",
-          "update_at": 0,
-        }
-      }
-    />
   </div>
 </div>
 `;
 
 exports[`components/ChannelHeader should render not active channel files 1`] = `
-<div
-  aria-label="channel header region"
-  className="channel-header alt a11y__region"
-  data-a11y-sort-order="8"
-  data-channelid="channel_id"
-  id="channel-header"
-  role="banner"
-  tabIndex={-1}
->
+<div>
   <div
-    className="flex-parent"
+    aria-label="channel header region"
+    class="channel-header alt a11y__region"
+    data-a11y-sort-order="8"
+    data-channelid="channel_id"
+    id="channel-header"
+    role="banner"
+    tabindex="-1"
   >
     <div
-      className="flex-child"
+      class="flex-parent"
     >
       <div
-        className="channel-header__info"
-        id="channelHeaderInfo"
+        class="flex-child"
       >
         <div
-          className="channel-header__title dropdown"
+          class="channel-header__info"
+          id="channelHeaderInfo"
         >
-          <Memo(ChannelHeaderTitle)
-            remoteNames={Array []}
-          />
           <div
-            className="channel-header__icons"
+            class="channel-header__title dropdown"
           >
-            <HeaderIconWrapper
-              buttonClass="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="member_rhs"
-              onClick={[Function]}
-              tooltip="Members"
+            <div
+              class="channel-header__icons"
             >
-              <i
-                aria-hidden="true"
-                className="icon icon-account-outline channel-header__members"
-              />
-              <span
-                className="icon__text"
-                id="channelMemberCountText"
+              <button
+                aria-label="Members"
+                class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                id="member_rhs"
               >
-                2
-              </span>
-            </HeaderIconWrapper>
-            <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
-              buttonId="channelHeaderFilesButton"
-              onClick={[Function]}
-              tooltip="Channel files"
+                <i
+                  aria-hidden="true"
+                  class="icon icon-account-outline channel-header__members"
+                />
+                <span
+                  class="icon__text"
+                  id="channelMemberCountText"
+                >
+                  2
+                </span>
+              </button>
+              <button
+                aria-label="Channel files"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                id="channelHeaderFilesButton"
+              >
+                <i
+                  class="icon icon-file-text-outline"
+                />
+              </button>
+            </div>
+            <div
+              class="channel-header__description"
+              id="channelHeaderDescription"
             >
-              <i
-                className="icon icon-file-text-outline"
-              />
-            </HeaderIconWrapper>
-            <Pluggable
-              channel={
-                Object {
-                  "create_at": 0,
-                  "creator_id": "id",
-                  "delete_at": 0,
-                  "display_name": "name",
-                  "group_constrained": false,
-                  "header": "header",
-                  "id": "channel_id",
-                  "last_post_at": 0,
-                  "last_root_post_at": 0,
-                  "name": "Test",
-                  "purpose": "purpose",
-                  "scheme_id": "id",
-                  "team_id": "team_id",
-                  "type": "O",
-                  "update_at": 0,
-                }
-              }
-              channelMember={
-                Object {
-                  "channel_id": "channel_id",
-                  "last_update_at": 0,
-                  "last_viewed_at": 0,
-                  "mention_count": 0,
-                  "mention_count_root": 0,
-                  "msg_count": 0,
-                  "msg_count_root": 0,
-                  "notify_props": Object {
-                    "channel_auto_follow_threads": "off",
-                    "desktop": "default",
-                    "email": "default",
-                    "ignore_channel_mentions": "default",
-                    "mark_unread": "all",
-                    "push": "default",
-                  },
-                  "roles": "channel_user",
-                  "scheme_admin": false,
-                  "scheme_user": true,
-                  "urgent_mention_count": 0,
-                  "user_id": "user_id",
-                }
-              }
-              pluggableName="ChannelHeaderIcon"
-            />
-          </div>
-          <div
-            className="channel-header__description"
-            id="channelHeaderDescription"
-          >
-            <ChannelHeaderText
-              channel={
-                Object {
-                  "create_at": 0,
-                  "creator_id": "id",
-                  "delete_at": 0,
-                  "display_name": "name",
-                  "group_constrained": false,
-                  "header": "header",
-                  "id": "channel_id",
-                  "last_post_at": 0,
-                  "last_root_post_at": 0,
-                  "name": "Test",
-                  "purpose": "purpose",
-                  "scheme_id": "id",
-                  "team_id": "team_id",
-                  "type": "O",
-                  "update_at": 0,
-                }
-              }
-              teamId="team_id"
-            />
+              <div
+                class="header-description__text"
+              >
+                <p
+                  class="markdown__paragraph-inline"
+                >
+                  header
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+      <button
+        aria-label="Open in new window"
+        class="btn btn-icon btn-sm PopoutButton channel-header__icon"
+        type="button"
+      >
+        <i
+          aria-hidden="true"
+          class="icon icon-dock-window"
+        />
+      </button>
+      <button
+        aria-label="View Info"
+        class="channel-header__icon"
+        id="channel-info-btn"
+      >
+        <i
+          class="Icon-esDcos cHAVtG icon-information-outline"
+        />
+      </button>
     </div>
-    <Connect(injectIntl(ChannelHeaderPlug))
-      channel={
-        Object {
-          "create_at": 0,
-          "creator_id": "id",
-          "delete_at": 0,
-          "display_name": "name",
-          "group_constrained": false,
-          "header": "header",
-          "id": "channel_id",
-          "last_post_at": 0,
-          "last_root_post_at": 0,
-          "name": "Test",
-          "purpose": "purpose",
-          "scheme_id": "id",
-          "team_id": "team_id",
-          "type": "O",
-          "update_at": 0,
-        }
-      }
-      channelMember={
-        Object {
-          "channel_id": "channel_id",
-          "last_update_at": 0,
-          "last_viewed_at": 0,
-          "mention_count": 0,
-          "mention_count_root": 0,
-          "msg_count": 0,
-          "msg_count_root": 0,
-          "notify_props": Object {
-            "channel_auto_follow_threads": "off",
-            "desktop": "default",
-            "email": "default",
-            "ignore_channel_mentions": "default",
-            "mark_unread": "all",
-            "push": "default",
-          },
-          "roles": "channel_user",
-          "scheme_admin": false,
-          "scheme_user": true,
-          "urgent_mention_count": 0,
-          "user_id": "user_id",
-        }
-      }
-    />
-    <Connect(CallButton) />
-    <PopoutButton
-      className="channel-header__icon"
-      onClick={[Function]}
-    />
-    <ChannelInfoButton
-      channel={
-        Object {
-          "create_at": 0,
-          "creator_id": "id",
-          "delete_at": 0,
-          "display_name": "name",
-          "group_constrained": false,
-          "header": "header",
-          "id": "channel_id",
-          "last_post_at": 0,
-          "last_root_post_at": 0,
-          "name": "Test",
-          "purpose": "purpose",
-          "scheme_id": "id",
-          "team_id": "team_id",
-          "type": "O",
-          "update_at": 0,
-        }
-      }
-    />
   </div>
 </div>
 `;
 
 exports[`components/ChannelHeader should render properly when custom status is expired 1`] = `
-<div
-  aria-label="channel header region"
-  className="channel-header alt a11y__region"
-  data-a11y-sort-order="8"
-  data-channelid="channel_id"
-  id="channel-header"
-  role="banner"
-  tabIndex={-1}
->
+<div>
   <div
-    className="flex-parent"
+    aria-label="channel header region"
+    class="channel-header alt a11y__region"
+    data-a11y-sort-order="8"
+    data-channelid="channel_id"
+    id="channel-header"
+    role="banner"
+    tabindex="-1"
   >
     <div
-      className="flex-child"
+      class="flex-parent"
     >
       <div
-        className="channel-header__info"
-        id="channelHeaderInfo"
+        class="flex-child"
       >
         <div
-          className="channel-header__title dropdown"
+          class="channel-header__info"
+          id="channelHeaderInfo"
         >
-          <Memo(ChannelHeaderTitle)
-            dmUser={
-              Object {
-                "auth_service": "",
-                "bot_description": "",
-                "create_at": 0,
-                "delete_at": 0,
-                "email": "",
-                "first_name": "",
-                "id": "user_id",
-                "is_bot": false,
-                "last_activity_at": 0,
-                "last_name": "",
-                "last_password_update": 0,
-                "last_picture_update": 0,
-                "locale": "",
-                "mfa_active": false,
-                "nickname": "",
-                "notify_props": Object {
-                  "calls_desktop_sound": "true",
-                  "channel": "false",
-                  "comments": "never",
-                  "desktop": "default",
-                  "desktop_sound": "false",
-                  "email": "false",
-                  "first_name": "false",
-                  "highlight_keys": "",
-                  "mark_unread": "mention",
-                  "mention_keys": "",
-                  "push": "none",
-                  "push_status": "offline",
-                },
-                "password": "",
-                "position": "",
-                "props": Object {},
-                "roles": "",
-                "terms_of_service_create_at": 0,
-                "terms_of_service_id": "",
-                "update_at": 0,
-                "username": "some-user",
-              }
-            }
-            remoteNames={Array []}
-          />
           <div
-            className="channel-header__icons"
+            class="channel-header__title dropdown"
           >
-            <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
-              buttonId="channelHeaderFilesButton"
-              onClick={[Function]}
-              tooltip="Channel files"
+            <div
+              class="channel-header__icons"
             >
-              <i
-                className="icon icon-file-text-outline"
-              />
-            </HeaderIconWrapper>
-            <Pluggable
-              channel={
-                Object {
-                  "create_at": 0,
-                  "creator_id": "id",
-                  "delete_at": 0,
-                  "display_name": "name",
-                  "group_constrained": false,
-                  "header": "not the bot description",
-                  "id": "channel_id",
-                  "last_post_at": 0,
-                  "last_root_post_at": 0,
-                  "name": "DN",
-                  "purpose": "purpose",
-                  "scheme_id": "id",
-                  "status": "offline",
-                  "team_id": "team_id",
-                  "type": "D",
-                  "update_at": 0,
-                }
-              }
-              channelMember={
-                Object {
-                  "channel_id": "channel_id",
-                  "last_update_at": 0,
-                  "last_viewed_at": 0,
-                  "mention_count": 0,
-                  "mention_count_root": 0,
-                  "msg_count": 0,
-                  "msg_count_root": 0,
-                  "notify_props": Object {
-                    "channel_auto_follow_threads": "off",
-                    "desktop": "default",
-                    "email": "default",
-                    "ignore_channel_mentions": "default",
-                    "mark_unread": "all",
-                    "push": "default",
-                  },
-                  "roles": "channel_user",
-                  "scheme_admin": false,
-                  "scheme_user": true,
-                  "urgent_mention_count": 0,
-                  "user_id": "user_id",
-                }
-              }
-              pluggableName="ChannelHeaderIcon"
-            />
-          </div>
-          <div
-            className="channel-header__description"
-            id="channelHeaderDescription"
-          >
-            <span
-              className="header-status__text"
+              <button
+                aria-label="Channel files"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                id="channelHeaderFilesButton"
+              >
+                <i
+                  class="icon icon-file-text-outline"
+                />
+              </button>
+            </div>
+            <div
+              class="channel-header__description"
+              id="channelHeaderDescription"
             >
               <span
-                className="last-active__text"
+                class="header-status__text"
               >
-                <MemoizedFormattedMessage
-                  defaultMessage="Last online {timestamp}"
-                  id="channel_header.lastActive"
-                  values={
-                    Object {
-                      "timestamp": <Memo(Connect(injectIntl(Timestamp)))
-                        style="short"
-                        units={
-                          Array [
-                            "now",
-                            "minute",
-                            "hour",
-                          ]
-                        }
-                        useTime={false}
-                        value={1632146562846}
-                      />,
-                    }
-                  }
-                />
+                <span
+                  class="last-active__text"
+                >
+                  Last online 
+                  <time
+                    datetime="2021-09-20T14:02:42.846"
+                  >
+                    September 20, 2021
+                  </time>
+                </span>
               </span>
-            </span>
-            <ChannelHeaderText
-              channel={
-                Object {
-                  "create_at": 0,
-                  "creator_id": "id",
-                  "delete_at": 0,
-                  "display_name": "name",
-                  "group_constrained": false,
-                  "header": "not the bot description",
-                  "id": "channel_id",
-                  "last_post_at": 0,
-                  "last_root_post_at": 0,
-                  "name": "DN",
-                  "purpose": "purpose",
-                  "scheme_id": "id",
-                  "status": "offline",
-                  "team_id": "team_id",
-                  "type": "D",
-                  "update_at": 0,
-                }
-              }
-              dmUser={
-                Object {
-                  "auth_service": "",
-                  "bot_description": "",
-                  "create_at": 0,
-                  "delete_at": 0,
-                  "email": "",
-                  "first_name": "",
-                  "id": "user_id",
-                  "is_bot": false,
-                  "last_activity_at": 0,
-                  "last_name": "",
-                  "last_password_update": 0,
-                  "last_picture_update": 0,
-                  "locale": "",
-                  "mfa_active": false,
-                  "nickname": "",
-                  "notify_props": Object {
-                    "calls_desktop_sound": "true",
-                    "channel": "false",
-                    "comments": "never",
-                    "desktop": "default",
-                    "desktop_sound": "false",
-                    "email": "false",
-                    "first_name": "false",
-                    "highlight_keys": "",
-                    "mark_unread": "mention",
-                    "mention_keys": "",
-                    "push": "none",
-                    "push_status": "offline",
-                  },
-                  "password": "",
-                  "position": "",
-                  "props": Object {},
-                  "roles": "",
-                  "terms_of_service_create_at": 0,
-                  "terms_of_service_id": "",
-                  "update_at": 0,
-                  "username": "some-user",
-                }
-              }
-              teamId="team_id"
-            />
+              <div
+                class="header-description__text"
+              >
+                <p
+                  class="markdown__paragraph-inline"
+                >
+                  not the bot description
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+      <button
+        aria-label="Open in new window"
+        class="btn btn-icon btn-sm PopoutButton channel-header__icon"
+        type="button"
+      >
+        <i
+          aria-hidden="true"
+          class="icon icon-dock-window"
+        />
+      </button>
+      <button
+        aria-label="View Info"
+        class="channel-header__icon"
+        id="channel-info-btn"
+      >
+        <i
+          class="Icon-esDcos cHAVtG icon-information-outline"
+        />
+      </button>
     </div>
-    <Connect(injectIntl(ChannelHeaderPlug))
-      channel={
-        Object {
-          "create_at": 0,
-          "creator_id": "id",
-          "delete_at": 0,
-          "display_name": "name",
-          "group_constrained": false,
-          "header": "not the bot description",
-          "id": "channel_id",
-          "last_post_at": 0,
-          "last_root_post_at": 0,
-          "name": "DN",
-          "purpose": "purpose",
-          "scheme_id": "id",
-          "status": "offline",
-          "team_id": "team_id",
-          "type": "D",
-          "update_at": 0,
-        }
-      }
-      channelMember={
-        Object {
-          "channel_id": "channel_id",
-          "last_update_at": 0,
-          "last_viewed_at": 0,
-          "mention_count": 0,
-          "mention_count_root": 0,
-          "msg_count": 0,
-          "msg_count_root": 0,
-          "notify_props": Object {
-            "channel_auto_follow_threads": "off",
-            "desktop": "default",
-            "email": "default",
-            "ignore_channel_mentions": "default",
-            "mark_unread": "all",
-            "push": "default",
-          },
-          "roles": "channel_user",
-          "scheme_admin": false,
-          "scheme_user": true,
-          "urgent_mention_count": 0,
-          "user_id": "user_id",
-        }
-      }
-    />
-    <Connect(CallButton) />
-    <PopoutButton
-      className="channel-header__icon"
-      onClick={[Function]}
-    />
-    <ChannelInfoButton
-      channel={
-        Object {
-          "create_at": 0,
-          "creator_id": "id",
-          "delete_at": 0,
-          "display_name": "name",
-          "group_constrained": false,
-          "header": "not the bot description",
-          "id": "channel_id",
-          "last_post_at": 0,
-          "last_root_post_at": 0,
-          "name": "DN",
-          "purpose": "purpose",
-          "scheme_id": "id",
-          "status": "offline",
-          "team_id": "team_id",
-          "type": "D",
-          "update_at": 0,
-        }
-      }
-    />
   </div>
 </div>
 `;
 
 exports[`components/ChannelHeader should render properly when custom status is set 1`] = `
-<div
-  aria-label="channel header region"
-  className="channel-header alt a11y__region"
-  data-a11y-sort-order="8"
-  data-channelid="channel_id"
-  id="channel-header"
-  role="banner"
-  tabIndex={-1}
->
+<div>
   <div
-    className="flex-parent"
+    aria-label="channel header region"
+    class="channel-header alt a11y__region"
+    data-a11y-sort-order="8"
+    data-channelid="channel_id"
+    id="channel-header"
+    role="banner"
+    tabindex="-1"
   >
     <div
-      className="flex-child"
+      class="flex-parent"
     >
       <div
-        className="channel-header__info"
-        id="channelHeaderInfo"
+        class="flex-child"
       >
         <div
-          className="channel-header__title dropdown"
+          class="channel-header__info"
+          id="channelHeaderInfo"
         >
-          <Memo(ChannelHeaderTitle)
-            dmUser={
-              Object {
-                "auth_service": "",
-                "bot_description": "",
-                "create_at": 0,
-                "delete_at": 0,
-                "email": "",
-                "first_name": "",
-                "id": "user_id",
-                "is_bot": false,
-                "last_activity_at": 0,
-                "last_name": "",
-                "last_password_update": 0,
-                "last_picture_update": 0,
-                "locale": "",
-                "mfa_active": false,
-                "nickname": "",
-                "notify_props": Object {
-                  "calls_desktop_sound": "true",
-                  "channel": "false",
-                  "comments": "never",
-                  "desktop": "default",
-                  "desktop_sound": "false",
-                  "email": "false",
-                  "first_name": "false",
-                  "highlight_keys": "",
-                  "mark_unread": "mention",
-                  "mention_keys": "",
-                  "push": "none",
-                  "push_status": "offline",
-                },
-                "password": "",
-                "position": "",
-                "props": Object {},
-                "roles": "",
-                "terms_of_service_create_at": 0,
-                "terms_of_service_id": "",
-                "update_at": 0,
-                "username": "some-user",
-              }
-            }
-            remoteNames={Array []}
-          />
           <div
-            className="channel-header__icons"
+            class="channel-header__title dropdown"
           >
-            <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
-              buttonId="channelHeaderFilesButton"
-              onClick={[Function]}
-              tooltip="Channel files"
+            <div
+              class="channel-header__icons"
             >
-              <i
-                className="icon icon-file-text-outline"
-              />
-            </HeaderIconWrapper>
-            <Pluggable
-              channel={
-                Object {
-                  "create_at": 0,
-                  "creator_id": "id",
-                  "delete_at": 0,
-                  "display_name": "name",
-                  "group_constrained": false,
-                  "header": "not the bot description",
-                  "id": "channel_id",
-                  "last_post_at": 0,
-                  "last_root_post_at": 0,
-                  "name": "DN",
-                  "purpose": "purpose",
-                  "scheme_id": "id",
-                  "status": "offline",
-                  "team_id": "team_id",
-                  "type": "D",
-                  "update_at": 0,
-                }
-              }
-              channelMember={
-                Object {
-                  "channel_id": "channel_id",
-                  "last_update_at": 0,
-                  "last_viewed_at": 0,
-                  "mention_count": 0,
-                  "mention_count_root": 0,
-                  "msg_count": 0,
-                  "msg_count_root": 0,
-                  "notify_props": Object {
-                    "channel_auto_follow_threads": "off",
-                    "desktop": "default",
-                    "email": "default",
-                    "ignore_channel_mentions": "default",
-                    "mark_unread": "all",
-                    "push": "default",
-                  },
-                  "roles": "channel_user",
-                  "scheme_admin": false,
-                  "scheme_user": true,
-                  "urgent_mention_count": 0,
-                  "user_id": "user_id",
-                }
-              }
-              pluggableName="ChannelHeaderIcon"
-            />
-          </div>
-          <div
-            className="channel-header__description"
-            id="channelHeaderDescription"
-          >
-            <span
-              className="header-status__text"
+              <button
+                aria-label="Channel files"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                id="channelHeaderFilesButton"
+              >
+                <i
+                  class="icon icon-file-text-outline"
+                />
+              </button>
+            </div>
+            <div
+              class="channel-header__description"
+              id="channelHeaderDescription"
             >
               <span
-                className="last-active__text"
+                class="header-status__text"
               >
-                <MemoizedFormattedMessage
-                  defaultMessage="Last online {timestamp}"
-                  id="channel_header.lastActive"
-                  values={
-                    Object {
-                      "timestamp": <Memo(Connect(injectIntl(Timestamp)))
-                        style="short"
-                        units={
-                          Array [
-                            "now",
-                            "minute",
-                            "hour",
-                          ]
-                        }
-                        useTime={false}
-                        value={1632146562846}
-                      />,
-                    }
-                  }
+                <span
+                  class="last-active__text"
+                >
+                  Last online 
+                  <time
+                    datetime="2021-09-20T14:02:42.846"
+                  >
+                    September 20, 2021
+                  </time>
+                </span>
+                <div
+                  class="custom-emoji__wrapper"
                 />
               </span>
               <div
-                className="custom-emoji__wrapper"
+                class="header-description__text"
               >
-                <Memo(CustomStatusEmoji)
-                  emojiStyle={
-                    Object {
-                      "margin": "0 4px 1px",
-                      "verticalAlign": "top",
-                    }
-                  }
-                  showTooltip={true}
-                  userID="user_id"
-                />
-                <CustomStatusText
-                  className="custom-emoji__text"
-                  text="In a meeting"
-                />
+                <p
+                  class="markdown__paragraph-inline"
+                >
+                  not the bot description
+                </p>
               </div>
-            </span>
-            <ChannelHeaderText
-              channel={
-                Object {
-                  "create_at": 0,
-                  "creator_id": "id",
-                  "delete_at": 0,
-                  "display_name": "name",
-                  "group_constrained": false,
-                  "header": "not the bot description",
-                  "id": "channel_id",
-                  "last_post_at": 0,
-                  "last_root_post_at": 0,
-                  "name": "DN",
-                  "purpose": "purpose",
-                  "scheme_id": "id",
-                  "status": "offline",
-                  "team_id": "team_id",
-                  "type": "D",
-                  "update_at": 0,
-                }
-              }
-              dmUser={
-                Object {
-                  "auth_service": "",
-                  "bot_description": "",
-                  "create_at": 0,
-                  "delete_at": 0,
-                  "email": "",
-                  "first_name": "",
-                  "id": "user_id",
-                  "is_bot": false,
-                  "last_activity_at": 0,
-                  "last_name": "",
-                  "last_password_update": 0,
-                  "last_picture_update": 0,
-                  "locale": "",
-                  "mfa_active": false,
-                  "nickname": "",
-                  "notify_props": Object {
-                    "calls_desktop_sound": "true",
-                    "channel": "false",
-                    "comments": "never",
-                    "desktop": "default",
-                    "desktop_sound": "false",
-                    "email": "false",
-                    "first_name": "false",
-                    "highlight_keys": "",
-                    "mark_unread": "mention",
-                    "mention_keys": "",
-                    "push": "none",
-                    "push_status": "offline",
-                  },
-                  "password": "",
-                  "position": "",
-                  "props": Object {},
-                  "roles": "",
-                  "terms_of_service_create_at": 0,
-                  "terms_of_service_id": "",
-                  "update_at": 0,
-                  "username": "some-user",
-                }
-              }
-              teamId="team_id"
-            />
+            </div>
           </div>
         </div>
       </div>
+      <button
+        aria-label="Open in new window"
+        class="btn btn-icon btn-sm PopoutButton channel-header__icon"
+        type="button"
+      >
+        <i
+          aria-hidden="true"
+          class="icon icon-dock-window"
+        />
+      </button>
+      <button
+        aria-label="View Info"
+        class="channel-header__icon"
+        id="channel-info-btn"
+      >
+        <i
+          class="Icon-esDcos cHAVtG icon-information-outline"
+        />
+      </button>
     </div>
-    <Connect(injectIntl(ChannelHeaderPlug))
-      channel={
-        Object {
-          "create_at": 0,
-          "creator_id": "id",
-          "delete_at": 0,
-          "display_name": "name",
-          "group_constrained": false,
-          "header": "not the bot description",
-          "id": "channel_id",
-          "last_post_at": 0,
-          "last_root_post_at": 0,
-          "name": "DN",
-          "purpose": "purpose",
-          "scheme_id": "id",
-          "status": "offline",
-          "team_id": "team_id",
-          "type": "D",
-          "update_at": 0,
-        }
-      }
-      channelMember={
-        Object {
-          "channel_id": "channel_id",
-          "last_update_at": 0,
-          "last_viewed_at": 0,
-          "mention_count": 0,
-          "mention_count_root": 0,
-          "msg_count": 0,
-          "msg_count_root": 0,
-          "notify_props": Object {
-            "channel_auto_follow_threads": "off",
-            "desktop": "default",
-            "email": "default",
-            "ignore_channel_mentions": "default",
-            "mark_unread": "all",
-            "push": "default",
-          },
-          "roles": "channel_user",
-          "scheme_admin": false,
-          "scheme_user": true,
-          "urgent_mention_count": 0,
-          "user_id": "user_id",
-        }
-      }
-    />
-    <Connect(CallButton) />
-    <PopoutButton
-      className="channel-header__icon"
-      onClick={[Function]}
-    />
-    <ChannelInfoButton
-      channel={
-        Object {
-          "create_at": 0,
-          "creator_id": "id",
-          "delete_at": 0,
-          "display_name": "name",
-          "group_constrained": false,
-          "header": "not the bot description",
-          "id": "channel_id",
-          "last_post_at": 0,
-          "last_root_post_at": 0,
-          "name": "DN",
-          "purpose": "purpose",
-          "scheme_id": "id",
-          "status": "offline",
-          "team_id": "team_id",
-          "type": "D",
-          "update_at": 0,
-        }
-      }
-    />
   </div>
 </div>
 `;
 
 exports[`components/ChannelHeader should render properly when empty 1`] = `
-<div
-  aria-label="channel header region"
-  className="channel-header alt a11y__region"
-  data-a11y-sort-order="8"
-  data-channelid="channel_id"
-  id="channel-header"
-  role="banner"
-  tabIndex={-1}
->
+<div>
   <div
-    className="flex-parent"
+    aria-label="channel header region"
+    class="channel-header alt a11y__region"
+    data-a11y-sort-order="8"
+    data-channelid="channel_id"
+    id="channel-header"
+    role="banner"
+    tabindex="-1"
   >
     <div
-      className="flex-child"
+      class="flex-parent"
     >
       <div
-        className="channel-header__info"
-        id="channelHeaderInfo"
+        class="flex-child"
       >
         <div
-          className="channel-header__title dropdown"
+          class="channel-header__info"
+          id="channelHeaderInfo"
         >
-          <Memo(ChannelHeaderTitle)
-            remoteNames={Array []}
-          />
           <div
-            className="channel-header__icons"
+            class="channel-header__title dropdown"
           >
-            <HeaderIconWrapper
-              buttonClass="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="member_rhs"
-              onClick={[Function]}
-              tooltip="Members"
+            <div
+              class="channel-header__icons"
             >
-              <i
-                aria-hidden="true"
-                className="icon icon-account-outline channel-header__members"
-              />
-              <span
-                className="icon__text"
-                id="channelMemberCountText"
+              <button
+                aria-label="Members"
+                class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                id="member_rhs"
               >
-                2
-              </span>
-            </HeaderIconWrapper>
-            <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
-              buttonId="channelHeaderFilesButton"
-              onClick={[Function]}
-              tooltip="Channel files"
+                <i
+                  aria-hidden="true"
+                  class="icon icon-account-outline channel-header__members"
+                />
+                <span
+                  class="icon__text"
+                  id="channelMemberCountText"
+                >
+                  2
+                </span>
+              </button>
+              <button
+                aria-label="Channel files"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                id="channelHeaderFilesButton"
+              >
+                <i
+                  class="icon icon-file-text-outline"
+                />
+              </button>
+            </div>
+            <div
+              class="channel-header__description"
+              id="channelHeaderDescription"
             >
-              <i
-                className="icon icon-file-text-outline"
-              />
-            </HeaderIconWrapper>
-            <Pluggable
-              channel={
-                Object {
-                  "create_at": 0,
-                  "creator_id": "id",
-                  "delete_at": 0,
-                  "display_name": "name",
-                  "group_constrained": false,
-                  "header": "header",
-                  "id": "channel_id",
-                  "last_post_at": 0,
-                  "last_root_post_at": 0,
-                  "name": "DN",
-                  "purpose": "purpose",
-                  "scheme_id": "id",
-                  "team_id": "team_id",
-                  "type": "O",
-                  "update_at": 0,
-                }
-              }
-              channelMember={
-                Object {
-                  "channel_id": "channel_id",
-                  "last_update_at": 0,
-                  "last_viewed_at": 0,
-                  "mention_count": 0,
-                  "mention_count_root": 0,
-                  "msg_count": 0,
-                  "msg_count_root": 0,
-                  "notify_props": Object {
-                    "channel_auto_follow_threads": "off",
-                    "desktop": "default",
-                    "email": "default",
-                    "ignore_channel_mentions": "default",
-                    "mark_unread": "all",
-                    "push": "default",
-                  },
-                  "roles": "channel_user",
-                  "scheme_admin": false,
-                  "scheme_user": true,
-                  "urgent_mention_count": 0,
-                  "user_id": "user_id",
-                }
-              }
-              pluggableName="ChannelHeaderIcon"
-            />
-          </div>
-          <div
-            className="channel-header__description"
-            id="channelHeaderDescription"
-          >
-            <ChannelHeaderText
-              channel={
-                Object {
-                  "create_at": 0,
-                  "creator_id": "id",
-                  "delete_at": 0,
-                  "display_name": "name",
-                  "group_constrained": false,
-                  "header": "header",
-                  "id": "channel_id",
-                  "last_post_at": 0,
-                  "last_root_post_at": 0,
-                  "name": "DN",
-                  "purpose": "purpose",
-                  "scheme_id": "id",
-                  "team_id": "team_id",
-                  "type": "O",
-                  "update_at": 0,
-                }
-              }
-              teamId="team_id"
-            />
+              <div
+                class="header-description__text"
+              >
+                <p
+                  class="markdown__paragraph-inline"
+                >
+                  header
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+      <button
+        aria-label="Open in new window"
+        class="btn btn-icon btn-sm PopoutButton channel-header__icon"
+        type="button"
+      >
+        <i
+          aria-hidden="true"
+          class="icon icon-dock-window"
+        />
+      </button>
+      <button
+        aria-label="View Info"
+        class="channel-header__icon"
+        id="channel-info-btn"
+      >
+        <i
+          class="Icon-esDcos cHAVtG icon-information-outline"
+        />
+      </button>
     </div>
-    <Connect(injectIntl(ChannelHeaderPlug))
-      channel={
-        Object {
-          "create_at": 0,
-          "creator_id": "id",
-          "delete_at": 0,
-          "display_name": "name",
-          "group_constrained": false,
-          "header": "header",
-          "id": "channel_id",
-          "last_post_at": 0,
-          "last_root_post_at": 0,
-          "name": "DN",
-          "purpose": "purpose",
-          "scheme_id": "id",
-          "team_id": "team_id",
-          "type": "O",
-          "update_at": 0,
-        }
-      }
-      channelMember={
-        Object {
-          "channel_id": "channel_id",
-          "last_update_at": 0,
-          "last_viewed_at": 0,
-          "mention_count": 0,
-          "mention_count_root": 0,
-          "msg_count": 0,
-          "msg_count_root": 0,
-          "notify_props": Object {
-            "channel_auto_follow_threads": "off",
-            "desktop": "default",
-            "email": "default",
-            "ignore_channel_mentions": "default",
-            "mark_unread": "all",
-            "push": "default",
-          },
-          "roles": "channel_user",
-          "scheme_admin": false,
-          "scheme_user": true,
-          "urgent_mention_count": 0,
-          "user_id": "user_id",
-        }
-      }
-    />
-    <Connect(CallButton) />
-    <PopoutButton
-      className="channel-header__icon"
-      onClick={[Function]}
-    />
-    <ChannelInfoButton
-      channel={
-        Object {
-          "create_at": 0,
-          "creator_id": "id",
-          "delete_at": 0,
-          "display_name": "name",
-          "group_constrained": false,
-          "header": "header",
-          "id": "channel_id",
-          "last_post_at": 0,
-          "last_root_post_at": 0,
-          "name": "DN",
-          "purpose": "purpose",
-          "scheme_id": "id",
-          "team_id": "team_id",
-          "type": "O",
-          "update_at": 0,
-        }
-      }
-    />
   </div>
 </div>
 `;
 
 exports[`components/ChannelHeader should render properly when populated 1`] = `
-<div
-  aria-label="channel header region"
-  className="channel-header alt a11y__region"
-  data-a11y-sort-order="8"
-  data-channelid="channel_id"
-  id="channel-header"
-  role="banner"
-  tabIndex={-1}
->
+<div>
   <div
-    className="flex-parent"
+    aria-label="channel header region"
+    class="channel-header alt a11y__region"
+    data-a11y-sort-order="8"
+    data-channelid="channel_id"
+    id="channel-header"
+    role="banner"
+    tabindex="-1"
   >
     <div
-      className="flex-child"
+      class="flex-parent"
     >
       <div
-        className="channel-header__info"
-        id="channelHeaderInfo"
+        class="flex-child"
       >
         <div
-          className="channel-header__title dropdown"
+          class="channel-header__info"
+          id="channelHeaderInfo"
         >
-          <Memo(ChannelHeaderTitle)
-            remoteNames={Array []}
-          />
           <div
-            className="channel-header__icons"
+            class="channel-header__title dropdown"
           >
-            <HeaderIconWrapper
-              buttonClass="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="member_rhs"
-              onClick={[Function]}
-              tooltip="Members"
+            <div
+              class="channel-header__icons"
             >
-              <i
-                aria-hidden="true"
-                className="icon icon-account-outline channel-header__members"
-              />
-              <span
-                className="icon__text"
-                id="channelMemberCountText"
+              <button
+                aria-label="Members"
+                class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                id="member_rhs"
               >
-                2
-              </span>
-            </HeaderIconWrapper>
-            <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
-              buttonId="channelHeaderFilesButton"
-              onClick={[Function]}
-              tooltip="Channel files"
+                <i
+                  aria-hidden="true"
+                  class="icon icon-account-outline channel-header__members"
+                />
+                <span
+                  class="icon__text"
+                  id="channelMemberCountText"
+                >
+                  2
+                </span>
+              </button>
+              <button
+                aria-label="Channel files"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                id="channelHeaderFilesButton"
+              >
+                <i
+                  class="icon icon-file-text-outline"
+                />
+              </button>
+            </div>
+            <div
+              class="channel-header__description"
+              id="channelHeaderDescription"
             >
-              <i
-                className="icon icon-file-text-outline"
-              />
-            </HeaderIconWrapper>
-            <Pluggable
-              channel={
-                Object {
-                  "create_at": 0,
-                  "creator_id": "id",
-                  "delete_at": 0,
-                  "display_name": "name",
-                  "group_constrained": false,
-                  "header": "header",
-                  "id": "channel_id",
-                  "last_post_at": 0,
-                  "last_root_post_at": 0,
-                  "name": "Test",
-                  "purpose": "purpose",
-                  "scheme_id": "id",
-                  "team_id": "team_id",
-                  "type": "O",
-                  "update_at": 0,
-                }
-              }
-              channelMember={
-                Object {
-                  "channel_id": "channel_id",
-                  "last_update_at": 0,
-                  "last_viewed_at": 0,
-                  "mention_count": 0,
-                  "mention_count_root": 0,
-                  "msg_count": 0,
-                  "msg_count_root": 0,
-                  "notify_props": Object {
-                    "channel_auto_follow_threads": "off",
-                    "desktop": "default",
-                    "email": "default",
-                    "ignore_channel_mentions": "default",
-                    "mark_unread": "all",
-                    "push": "default",
-                  },
-                  "roles": "channel_user",
-                  "scheme_admin": false,
-                  "scheme_user": true,
-                  "urgent_mention_count": 0,
-                  "user_id": "user_id",
-                }
-              }
-              pluggableName="ChannelHeaderIcon"
-            />
-          </div>
-          <div
-            className="channel-header__description"
-            id="channelHeaderDescription"
-          >
-            <ChannelHeaderText
-              channel={
-                Object {
-                  "create_at": 0,
-                  "creator_id": "id",
-                  "delete_at": 0,
-                  "display_name": "name",
-                  "group_constrained": false,
-                  "header": "header",
-                  "id": "channel_id",
-                  "last_post_at": 0,
-                  "last_root_post_at": 0,
-                  "name": "Test",
-                  "purpose": "purpose",
-                  "scheme_id": "id",
-                  "team_id": "team_id",
-                  "type": "O",
-                  "update_at": 0,
-                }
-              }
-              teamId="team_id"
-            />
+              <div
+                class="header-description__text"
+              >
+                <p
+                  class="markdown__paragraph-inline"
+                >
+                  header
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+      <button
+        aria-label="Open in new window"
+        class="btn btn-icon btn-sm PopoutButton channel-header__icon"
+        type="button"
+      >
+        <i
+          aria-hidden="true"
+          class="icon icon-dock-window"
+        />
+      </button>
+      <button
+        aria-label="View Info"
+        class="channel-header__icon"
+        id="channel-info-btn"
+      >
+        <i
+          class="Icon-esDcos cHAVtG icon-information-outline"
+        />
+      </button>
     </div>
-    <Connect(injectIntl(ChannelHeaderPlug))
-      channel={
-        Object {
-          "create_at": 0,
-          "creator_id": "id",
-          "delete_at": 0,
-          "display_name": "name",
-          "group_constrained": false,
-          "header": "header",
-          "id": "channel_id",
-          "last_post_at": 0,
-          "last_root_post_at": 0,
-          "name": "Test",
-          "purpose": "purpose",
-          "scheme_id": "id",
-          "team_id": "team_id",
-          "type": "O",
-          "update_at": 0,
-        }
-      }
-      channelMember={
-        Object {
-          "channel_id": "channel_id",
-          "last_update_at": 0,
-          "last_viewed_at": 0,
-          "mention_count": 0,
-          "mention_count_root": 0,
-          "msg_count": 0,
-          "msg_count_root": 0,
-          "notify_props": Object {
-            "channel_auto_follow_threads": "off",
-            "desktop": "default",
-            "email": "default",
-            "ignore_channel_mentions": "default",
-            "mark_unread": "all",
-            "push": "default",
-          },
-          "roles": "channel_user",
-          "scheme_admin": false,
-          "scheme_user": true,
-          "urgent_mention_count": 0,
-          "user_id": "user_id",
-        }
-      }
-    />
-    <Connect(CallButton) />
-    <PopoutButton
-      className="channel-header__icon"
-      onClick={[Function]}
-    />
-    <ChannelInfoButton
-      channel={
-        Object {
-          "create_at": 0,
-          "creator_id": "id",
-          "delete_at": 0,
-          "display_name": "name",
-          "group_constrained": false,
-          "header": "header",
-          "id": "channel_id",
-          "last_post_at": 0,
-          "last_root_post_at": 0,
-          "name": "Test",
-          "purpose": "purpose",
-          "scheme_id": "id",
-          "team_id": "team_id",
-          "type": "O",
-          "update_at": 0,
-        }
-      }
-    />
   </div>
 </div>
 `;
 
 exports[`components/ChannelHeader should render properly when populated with channel props 1`] = `
-<div
-  aria-label="channel header region"
-  className="channel-header alt a11y__region"
-  data-a11y-sort-order="8"
-  data-channelid="channel_id"
-  id="channel-header"
-  role="banner"
-  tabIndex={-1}
->
+<div>
   <div
-    className="flex-parent"
+    aria-label="channel header region"
+    class="channel-header alt a11y__region"
+    data-a11y-sort-order="8"
+    data-channelid="channel_id"
+    id="channel-header"
+    role="banner"
+    tabindex="-1"
   >
     <div
-      className="flex-child"
+      class="flex-parent"
     >
       <div
-        className="channel-header__info"
-        id="channelHeaderInfo"
+        class="flex-child"
       >
         <div
-          className="channel-header__title dropdown"
+          class="channel-header__info"
+          id="channelHeaderInfo"
         >
-          <Memo(ChannelHeaderTitle)
-            remoteNames={Array []}
-          />
           <div
-            className="channel-header__icons"
+            class="channel-header__title dropdown"
           >
-            <HeaderIconWrapper
-              buttonClass="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="member_rhs"
-              onClick={[Function]}
-              tooltip="Members"
+            <div
+              class="channel-header__icons"
             >
-              <i
-                aria-hidden="true"
-                className="icon icon-account-outline channel-header__members"
-              />
-              <span
-                className="icon__text"
-                id="channelMemberCountText"
+              <button
+                aria-label="Members"
+                class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                id="member_rhs"
               >
-                2
-              </span>
-            </HeaderIconWrapper>
-            <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
-              buttonId="channelHeaderFilesButton"
-              onClick={[Function]}
-              tooltip="Channel files"
+                <i
+                  aria-hidden="true"
+                  class="icon icon-account-outline channel-header__members"
+                />
+                <span
+                  class="icon__text"
+                  id="channelMemberCountText"
+                >
+                  2
+                </span>
+              </button>
+              <button
+                aria-label="Channel files"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                id="channelHeaderFilesButton"
+              >
+                <i
+                  class="icon icon-file-text-outline"
+                />
+              </button>
+            </div>
+            <div
+              class="channel-header__description"
+              id="channelHeaderDescription"
             >
-              <i
-                className="icon icon-file-text-outline"
-              />
-            </HeaderIconWrapper>
-            <Pluggable
-              channel={
-                Object {
-                  "create_at": 0,
-                  "creator_id": "id",
-                  "delete_at": 0,
-                  "display_name": "name",
-                  "group_constrained": false,
-                  "header": "See ~test",
-                  "id": "channel_id",
-                  "last_post_at": 0,
-                  "last_root_post_at": 0,
-                  "name": "Test",
-                  "props": Object {
-                    "channel_mentions": Object {
-                      "test": Object {
-                        "display_name": "Test",
-                      },
-                    },
-                  },
-                  "purpose": "purpose",
-                  "scheme_id": "id",
-                  "team_id": "team_id",
-                  "type": "O",
-                  "update_at": 0,
-                }
-              }
-              channelMember={
-                Object {
-                  "channel_id": "channel_id",
-                  "last_update_at": 0,
-                  "last_viewed_at": 0,
-                  "mention_count": 0,
-                  "mention_count_root": 0,
-                  "msg_count": 0,
-                  "msg_count_root": 0,
-                  "notify_props": Object {
-                    "channel_auto_follow_threads": "off",
-                    "desktop": "default",
-                    "email": "default",
-                    "ignore_channel_mentions": "default",
-                    "mark_unread": "all",
-                    "push": "default",
-                  },
-                  "roles": "channel_user",
-                  "scheme_admin": false,
-                  "scheme_user": true,
-                  "urgent_mention_count": 0,
-                  "user_id": "user_id",
-                }
-              }
-              pluggableName="ChannelHeaderIcon"
-            />
-          </div>
-          <div
-            className="channel-header__description"
-            id="channelHeaderDescription"
-          >
-            <ChannelHeaderText
-              channel={
-                Object {
-                  "create_at": 0,
-                  "creator_id": "id",
-                  "delete_at": 0,
-                  "display_name": "name",
-                  "group_constrained": false,
-                  "header": "See ~test",
-                  "id": "channel_id",
-                  "last_post_at": 0,
-                  "last_root_post_at": 0,
-                  "name": "Test",
-                  "props": Object {
-                    "channel_mentions": Object {
-                      "test": Object {
-                        "display_name": "Test",
-                      },
-                    },
-                  },
-                  "purpose": "purpose",
-                  "scheme_id": "id",
-                  "team_id": "team_id",
-                  "type": "O",
-                  "update_at": 0,
-                }
-              }
-              teamId="team_id"
-            />
+              <div
+                class="header-description__text"
+              >
+                <p
+                  class="markdown__paragraph-inline"
+                >
+                  See $MM_CHANNELMENTION0$
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+      <button
+        aria-label="Open in new window"
+        class="btn btn-icon btn-sm PopoutButton channel-header__icon"
+        type="button"
+      >
+        <i
+          aria-hidden="true"
+          class="icon icon-dock-window"
+        />
+      </button>
+      <button
+        aria-label="View Info"
+        class="channel-header__icon"
+        id="channel-info-btn"
+      >
+        <i
+          class="Icon-esDcos cHAVtG icon-information-outline"
+        />
+      </button>
     </div>
-    <Connect(injectIntl(ChannelHeaderPlug))
-      channel={
-        Object {
-          "create_at": 0,
-          "creator_id": "id",
-          "delete_at": 0,
-          "display_name": "name",
-          "group_constrained": false,
-          "header": "See ~test",
-          "id": "channel_id",
-          "last_post_at": 0,
-          "last_root_post_at": 0,
-          "name": "Test",
-          "props": Object {
-            "channel_mentions": Object {
-              "test": Object {
-                "display_name": "Test",
-              },
-            },
-          },
-          "purpose": "purpose",
-          "scheme_id": "id",
-          "team_id": "team_id",
-          "type": "O",
-          "update_at": 0,
-        }
-      }
-      channelMember={
-        Object {
-          "channel_id": "channel_id",
-          "last_update_at": 0,
-          "last_viewed_at": 0,
-          "mention_count": 0,
-          "mention_count_root": 0,
-          "msg_count": 0,
-          "msg_count_root": 0,
-          "notify_props": Object {
-            "channel_auto_follow_threads": "off",
-            "desktop": "default",
-            "email": "default",
-            "ignore_channel_mentions": "default",
-            "mark_unread": "all",
-            "push": "default",
-          },
-          "roles": "channel_user",
-          "scheme_admin": false,
-          "scheme_user": true,
-          "urgent_mention_count": 0,
-          "user_id": "user_id",
-        }
-      }
-    />
-    <Connect(CallButton) />
-    <PopoutButton
-      className="channel-header__icon"
-      onClick={[Function]}
-    />
-    <ChannelInfoButton
-      channel={
-        Object {
-          "create_at": 0,
-          "creator_id": "id",
-          "delete_at": 0,
-          "display_name": "name",
-          "group_constrained": false,
-          "header": "See ~test",
-          "id": "channel_id",
-          "last_post_at": 0,
-          "last_root_post_at": 0,
-          "name": "Test",
-          "props": Object {
-            "channel_mentions": Object {
-              "test": Object {
-                "display_name": "Test",
-              },
-            },
-          },
-          "purpose": "purpose",
-          "scheme_id": "id",
-          "team_id": "team_id",
-          "type": "O",
-          "update_at": 0,
-        }
-      }
-    />
   </div>
 </div>
 `;
 
 exports[`components/ChannelHeader should render shared view 1`] = `
-<div
-  aria-label="channel header region"
-  className="channel-header alt a11y__region"
-  data-a11y-sort-order="8"
-  data-channelid="channel_id"
-  id="channel-header"
-  role="banner"
-  tabIndex={-1}
->
+<div>
   <div
-    className="flex-parent"
+    aria-label="channel header region"
+    class="channel-header alt a11y__region"
+    data-a11y-sort-order="8"
+    data-channelid="channel_id"
+    id="channel-header"
+    role="banner"
+    tabindex="-1"
   >
     <div
-      className="flex-child"
+      class="flex-parent"
     >
       <div
-        className="channel-header__info"
-        id="channelHeaderInfo"
+        class="flex-child"
       >
         <div
-          className="channel-header__title dropdown"
+          class="channel-header__info"
+          id="channelHeaderInfo"
         >
-          <Memo(ChannelHeaderTitle)
-            remoteNames={Array []}
-          />
           <div
-            className="channel-header__icons"
+            class="channel-header__title dropdown"
           >
-            <HeaderIconWrapper
-              buttonClass="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="member_rhs"
-              onClick={[Function]}
-              tooltip="Members"
+            <div
+              class="channel-header__icons"
             >
-              <i
-                aria-hidden="true"
-                className="icon icon-account-outline channel-header__members"
-              />
-              <span
-                className="icon__text"
-                id="channelMemberCountText"
+              <button
+                aria-label="Members"
+                class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                id="member_rhs"
               >
-                2
-              </span>
-            </HeaderIconWrapper>
-            <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
-              buttonId="channelHeaderFilesButton"
-              onClick={[Function]}
-              tooltip="Channel files"
+                <i
+                  aria-hidden="true"
+                  class="icon icon-account-outline channel-header__members"
+                />
+                <span
+                  class="icon__text"
+                  id="channelMemberCountText"
+                >
+                  2
+                </span>
+              </button>
+              <button
+                aria-label="Channel files"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                id="channelHeaderFilesButton"
+              >
+                <i
+                  class="icon icon-file-text-outline"
+                />
+              </button>
+            </div>
+            <div
+              class="channel-header__description"
+              id="channelHeaderDescription"
             >
-              <i
-                className="icon icon-file-text-outline"
-              />
-            </HeaderIconWrapper>
-            <Pluggable
-              channel={
-                Object {
-                  "create_at": 0,
-                  "creator_id": "id",
-                  "delete_at": 0,
-                  "display_name": "name",
-                  "group_constrained": false,
-                  "header": "header",
-                  "id": "channel_id",
-                  "last_post_at": 0,
-                  "last_root_post_at": 0,
-                  "name": "Test",
-                  "purpose": "purpose",
-                  "scheme_id": "id",
-                  "shared": true,
-                  "team_id": "team_id",
-                  "type": "O",
-                  "update_at": 0,
-                }
-              }
-              channelMember={
-                Object {
-                  "channel_id": "channel_id",
-                  "last_update_at": 0,
-                  "last_viewed_at": 0,
-                  "mention_count": 0,
-                  "mention_count_root": 0,
-                  "msg_count": 0,
-                  "msg_count_root": 0,
-                  "notify_props": Object {
-                    "channel_auto_follow_threads": "off",
-                    "desktop": "default",
-                    "email": "default",
-                    "ignore_channel_mentions": "default",
-                    "mark_unread": "all",
-                    "push": "default",
-                  },
-                  "roles": "channel_user",
-                  "scheme_admin": false,
-                  "scheme_user": true,
-                  "urgent_mention_count": 0,
-                  "user_id": "user_id",
-                }
-              }
-              pluggableName="ChannelHeaderIcon"
-            />
-          </div>
-          <div
-            className="channel-header__description"
-            id="channelHeaderDescription"
-          >
-            <ChannelHeaderText
-              channel={
-                Object {
-                  "create_at": 0,
-                  "creator_id": "id",
-                  "delete_at": 0,
-                  "display_name": "name",
-                  "group_constrained": false,
-                  "header": "header",
-                  "id": "channel_id",
-                  "last_post_at": 0,
-                  "last_root_post_at": 0,
-                  "name": "Test",
-                  "purpose": "purpose",
-                  "scheme_id": "id",
-                  "shared": true,
-                  "team_id": "team_id",
-                  "type": "O",
-                  "update_at": 0,
-                }
-              }
-              teamId="team_id"
-            />
+              <div
+                class="header-description__text"
+              >
+                <p
+                  class="markdown__paragraph-inline"
+                >
+                  header
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+      <button
+        aria-label="Open in new window"
+        class="btn btn-icon btn-sm PopoutButton channel-header__icon"
+        type="button"
+      >
+        <i
+          aria-hidden="true"
+          class="icon icon-dock-window"
+        />
+      </button>
+      <button
+        aria-label="View Info"
+        class="channel-header__icon"
+        id="channel-info-btn"
+      >
+        <i
+          class="Icon-esDcos cHAVtG icon-information-outline"
+        />
+      </button>
     </div>
-    <PopoutButton
-      className="channel-header__icon"
-      onClick={[Function]}
-    />
-    <ChannelInfoButton
-      channel={
-        Object {
-          "create_at": 0,
-          "creator_id": "id",
-          "delete_at": 0,
-          "display_name": "name",
-          "group_constrained": false,
-          "header": "header",
-          "id": "channel_id",
-          "last_post_at": 0,
-          "last_root_post_at": 0,
-          "name": "Test",
-          "purpose": "purpose",
-          "scheme_id": "id",
-          "shared": true,
-          "team_id": "team_id",
-          "type": "O",
-          "update_at": 0,
-        }
-      }
-    />
   </div>
 </div>
 `;
 
 exports[`components/ChannelHeader should render the pinned icon with the pinned posts count 1`] = `
-<div
-  aria-label="channel header region"
-  className="channel-header alt a11y__region"
-  data-a11y-sort-order="8"
-  data-channelid="channel_id"
-  id="channel-header"
-  role="banner"
-  tabIndex={-1}
->
+<div>
   <div
-    className="flex-parent"
+    aria-label="channel header region"
+    class="channel-header alt a11y__region"
+    data-a11y-sort-order="8"
+    data-channelid="channel_id"
+    id="channel-header"
+    role="banner"
+    tabindex="-1"
   >
     <div
-      className="flex-child"
+      class="flex-parent"
     >
       <div
-        className="channel-header__info"
-        id="channelHeaderInfo"
+        class="flex-child"
       >
         <div
-          className="channel-header__title dropdown"
+          class="channel-header__info"
+          id="channelHeaderInfo"
         >
-          <Memo(ChannelHeaderTitle)
-            remoteNames={Array []}
-          />
           <div
-            className="channel-header__icons"
+            class="channel-header__title dropdown"
           >
-            <HeaderIconWrapper
-              buttonClass="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="member_rhs"
-              onClick={[Function]}
-              tooltip="Members"
+            <div
+              class="channel-header__icons"
             >
-              <i
-                aria-hidden="true"
-                className="icon icon-account-outline channel-header__members"
-              />
-              <span
-                className="icon__text"
-                id="channelMemberCountText"
+              <button
+                aria-label="Members"
+                class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                id="member_rhs"
               >
-                2
-              </span>
-            </HeaderIconWrapper>
-            <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
-              buttonId="channelHeaderPinButton"
-              onClick={[Function]}
-              tooltip="Pinned messages"
-            >
-              <i
-                aria-hidden="true"
-                className="icon icon-pin-outline channel-header__pin"
-              />
-              <span
-                className="icon__text"
-                id="channelPinnedPostCountText"
+                <i
+                  aria-hidden="true"
+                  class="icon icon-account-outline channel-header__members"
+                />
+                <span
+                  class="icon__text"
+                  id="channelMemberCountText"
+                >
+                  2
+                </span>
+              </button>
+              <button
+                aria-label="Pinned messages"
+                class="channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                id="channelHeaderPinButton"
               >
-                2
-              </span>
-            </HeaderIconWrapper>
-            <HeaderIconWrapper
-              buttonClass="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
-              buttonId="channelHeaderFilesButton"
-              onClick={[Function]}
-              tooltip="Channel files"
+                <i
+                  aria-hidden="true"
+                  class="icon icon-pin-outline channel-header__pin"
+                />
+                <span
+                  class="icon__text"
+                  id="channelPinnedPostCountText"
+                >
+                  2
+                </span>
+              </button>
+              <button
+                aria-label="Channel files"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                id="channelHeaderFilesButton"
+              >
+                <i
+                  class="icon icon-file-text-outline"
+                />
+              </button>
+            </div>
+            <div
+              class="channel-header__description"
+              id="channelHeaderDescription"
             >
-              <i
-                className="icon icon-file-text-outline"
-              />
-            </HeaderIconWrapper>
-            <Pluggable
-              channel={
-                Object {
-                  "create_at": 0,
-                  "creator_id": "id",
-                  "delete_at": 0,
-                  "display_name": "name",
-                  "group_constrained": false,
-                  "header": "header",
-                  "id": "channel_id",
-                  "last_post_at": 0,
-                  "last_root_post_at": 0,
-                  "name": "Test",
-                  "purpose": "purpose",
-                  "scheme_id": "id",
-                  "team_id": "team_id",
-                  "type": "O",
-                  "update_at": 0,
-                }
-              }
-              channelMember={
-                Object {
-                  "channel_id": "channel_id",
-                  "last_update_at": 0,
-                  "last_viewed_at": 0,
-                  "mention_count": 0,
-                  "mention_count_root": 0,
-                  "msg_count": 0,
-                  "msg_count_root": 0,
-                  "notify_props": Object {
-                    "channel_auto_follow_threads": "off",
-                    "desktop": "default",
-                    "email": "default",
-                    "ignore_channel_mentions": "default",
-                    "mark_unread": "all",
-                    "push": "default",
-                  },
-                  "roles": "channel_user",
-                  "scheme_admin": false,
-                  "scheme_user": true,
-                  "urgent_mention_count": 0,
-                  "user_id": "user_id",
-                }
-              }
-              pluggableName="ChannelHeaderIcon"
-            />
-          </div>
-          <div
-            className="channel-header__description"
-            id="channelHeaderDescription"
-          >
-            <ChannelHeaderText
-              channel={
-                Object {
-                  "create_at": 0,
-                  "creator_id": "id",
-                  "delete_at": 0,
-                  "display_name": "name",
-                  "group_constrained": false,
-                  "header": "header",
-                  "id": "channel_id",
-                  "last_post_at": 0,
-                  "last_root_post_at": 0,
-                  "name": "Test",
-                  "purpose": "purpose",
-                  "scheme_id": "id",
-                  "team_id": "team_id",
-                  "type": "O",
-                  "update_at": 0,
-                }
-              }
-              teamId="team_id"
-            />
+              <div
+                class="header-description__text"
+              >
+                <p
+                  class="markdown__paragraph-inline"
+                >
+                  header
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+      <button
+        aria-label="Open in new window"
+        class="btn btn-icon btn-sm PopoutButton channel-header__icon"
+        type="button"
+      >
+        <i
+          aria-hidden="true"
+          class="icon icon-dock-window"
+        />
+      </button>
+      <button
+        aria-label="View Info"
+        class="channel-header__icon"
+        id="channel-info-btn"
+      >
+        <i
+          class="Icon-esDcos cHAVtG icon-information-outline"
+        />
+      </button>
     </div>
-    <Connect(injectIntl(ChannelHeaderPlug))
-      channel={
-        Object {
-          "create_at": 0,
-          "creator_id": "id",
-          "delete_at": 0,
-          "display_name": "name",
-          "group_constrained": false,
-          "header": "header",
-          "id": "channel_id",
-          "last_post_at": 0,
-          "last_root_post_at": 0,
-          "name": "Test",
-          "purpose": "purpose",
-          "scheme_id": "id",
-          "team_id": "team_id",
-          "type": "O",
-          "update_at": 0,
-        }
-      }
-      channelMember={
-        Object {
-          "channel_id": "channel_id",
-          "last_update_at": 0,
-          "last_viewed_at": 0,
-          "mention_count": 0,
-          "mention_count_root": 0,
-          "msg_count": 0,
-          "msg_count_root": 0,
-          "notify_props": Object {
-            "channel_auto_follow_threads": "off",
-            "desktop": "default",
-            "email": "default",
-            "ignore_channel_mentions": "default",
-            "mark_unread": "all",
-            "push": "default",
-          },
-          "roles": "channel_user",
-          "scheme_admin": false,
-          "scheme_user": true,
-          "urgent_mention_count": 0,
-          "user_id": "user_id",
-        }
-      }
-    />
-    <Connect(CallButton) />
-    <PopoutButton
-      className="channel-header__icon"
-      onClick={[Function]}
-    />
-    <ChannelInfoButton
-      channel={
-        Object {
-          "create_at": 0,
-          "creator_id": "id",
-          "delete_at": 0,
-          "display_name": "name",
-          "group_constrained": false,
-          "header": "header",
-          "id": "channel_id",
-          "last_post_at": 0,
-          "last_root_post_at": 0,
-          "name": "Test",
-          "purpose": "purpose",
-          "scheme_id": "id",
-          "team_id": "team_id",
-          "type": "O",
-          "update_at": 0,
-        }
-      }
-    />
   </div>
 </div>
 `;
