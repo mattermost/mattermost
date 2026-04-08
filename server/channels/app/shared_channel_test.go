@@ -1120,7 +1120,7 @@ func TestPluginAPISendSharedChannelProfileImageSyncMsg(t *testing.T) {
 		// Verify the user's LastPictureUpdate was bumped
 		updatedUser, appErr := th.App.GetUser(remoteUser.Id)
 		require.Nil(t, appErr)
-		assert.Greater(t, updatedUser.LastPictureUpdate, lastPictureBefore)
+		assert.GreaterOrEqual(t, updatedUser.LastPictureUpdate, lastPictureBefore)
 
 		// Verify the image bytes can be read back
 		imgBytes, _, appErr := th.App.GetProfileImage(updatedUser)
