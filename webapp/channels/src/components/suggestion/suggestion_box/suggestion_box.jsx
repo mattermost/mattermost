@@ -24,6 +24,7 @@ const EXECUTE_CURRENT_COMMAND_ITEM_ID = Constants.Integrations.EXECUTE_CURRENT_C
 const OPEN_COMMAND_IN_MODAL_ITEM_ID = Constants.Integrations.OPEN_COMMAND_IN_MODAL_ITEM_ID;
 const KeyCodes = Constants.KeyCodes;
 
+/** @extends {React.PureComponent<import('./suggestion_box').SuggestionBoxProps>} */
 export default class SuggestionBox extends React.PureComponent {
     static propTypes = {
 

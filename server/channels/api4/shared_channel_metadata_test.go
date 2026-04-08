@@ -13,7 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 )
 
@@ -54,9 +53,6 @@ func setupTestEnvironment(t *testing.T) (*TestHelper, *sharedchannel.Service) {
 	rcService := th.App.Srv().GetRemoteClusterService()
 	if rcService != nil {
 		_ = rcService.Start()
-		if rc, ok := rcService.(*remotecluster.Service); ok {
-			rc.SetActive(true)
-		}
 		require.True(t, rcService.Active(), "RemoteClusterService should be active")
 	}
 
