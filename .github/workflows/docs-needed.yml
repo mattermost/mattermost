@@ -429,10 +429,11 @@ jobs:
             ACTION="opened at"
           fi
  
+          COMMENT_BODY=$(printf '%s\n\n%s\n\n%s' \
+            "📝 A documentation draft has been ${ACTION} [mattermost/docs#${DOCS_PR_NUMBER}](${DOCS_PR_URL})." \
+            "Please review the auto-generated content and update it as needed before the docs PR is merged." \
+            "> The \`Docs/Needed\` label was applied automatically by the Documentation Impact Review. It will be replaced with \`Docs/Done\` once the docs PR is merged or closed.")
+
           gh pr comment "$PR_NUMBER" \
             --repo "$SOURCE_REPO" \
-            --body "📝 A documentation draft has been ${ACTION} [mattermost/docs#${DOCS_PR_NUMBER}](${DOCS_PR_URL}).
- 
-Please review the auto-generated content and update it as needed before the docs PR is merged.
- 
-> The \`Docs/Needed\` label was applied automatically by the Documentation Impact Review. It will be replaced with \`Docs/Done\` once the docs PR is merged or closed."
+            --body "$COMMENT_BODY"
