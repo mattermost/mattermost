@@ -14,8 +14,10 @@ test(
         const channel = await adminClient.createChannel(
             pw.random.channel({
                 teamId: team.id,
+                name: 'privacy-ws-test',
                 displayName: 'Privacy WS Test',
                 type: 'O',
+                unique: true,
             }),
         );
         await adminClient.addToChannel(user.id, channel.id);
@@ -51,8 +53,10 @@ test(
         const channel = await adminClient.createChannel(
             pw.random.channel({
                 teamId: team.id,
+                name: 'privacy-ws-test-p2o',
                 displayName: 'Privacy WS Test P2O',
                 type: 'P',
+                unique: true,
             }),
         );
         await adminClient.addToChannel(user.id, channel.id);
