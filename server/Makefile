@@ -255,7 +255,7 @@ ifeq ($(MM_USE_PGVECTOR),true)
 endif
 
 	mkdir -p logs
-	docker compose -f docker-compose.makefile.yml $(DOCKER_PROFILES) $(DOCKER_COMPOSE_OVERRIDE) up --wait --wait-timeout 30
+	docker compose -f docker-compose.makefile.yml $(DOCKER_PROFILES) $(DOCKER_COMPOSE_OVERRIDE) up --wait --wait-timeout 300
   ifneq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
 	cat tests/custom-schema-objectID.ldif | docker compose -f docker-compose.makefile.yml $(DOCKER_COMPOSE_OVERRIDE) exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true';
 	cat tests/custom-schema-cpa.ldif | docker compose -f docker-compose.makefile.yml ${DOCKER_COMPOSE_OVERRIDE} exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true';
