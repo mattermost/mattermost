@@ -186,7 +186,9 @@ jobs:
     needs:
       - resolve-pr
       - check-changes
-    if: needs.resolve-pr.outputs.PR_NUMBER != ''
+    if: |
+      needs.resolve-pr.outputs.PR_NUMBER != '' &&
+      (github.event_name != 'pull_request' || needs.check-changes.outputs.should_run == 'false')
     permissions:
       statuses: write
     uses: ./.github/workflows/e2e-tests-cypress.yml
@@ -211,7 +213,9 @@ jobs:
     needs:
       - resolve-pr
       - check-changes
-    if: needs.resolve-pr.outputs.PR_NUMBER != ''
+    if: |
+      needs.resolve-pr.outputs.PR_NUMBER != '' &&
+      (github.event_name != 'pull_request' || needs.check-changes.outputs.should_run == 'false')
     permissions:
       statuses: write
     uses: ./.github/workflows/e2e-tests-playwright.yml
