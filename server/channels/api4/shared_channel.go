@@ -291,7 +291,7 @@ func getSharedChannelRemotes(c *Context, w http.ResponseWriter, r *http.Request)
 			// If we can't find the detailed info, create a basic RemoteClusterInfo from the status
 			remoteInfos = append(remoteInfos, &model.RemoteClusterInfo{
 				RemoteId:    status.RemoteId,
-				Name:        status.RemoteId,
+				Name:        status.DisplayName,
 				DisplayName: status.DisplayName,
 				LastPingAt:  status.LastPingAt,
 				SiteURL:     status.SiteURL,

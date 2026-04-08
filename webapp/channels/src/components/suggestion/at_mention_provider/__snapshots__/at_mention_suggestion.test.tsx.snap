@@ -1,233 +1,100 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`at mention suggestion should display nick name of non signed in user 1`] = `
-<AtMentionSuggestion
-  id="test-suggestion-1"
-  isSelection={false}
-  item={
-    Object {
-      "first_name": "a",
-      "id": "userid2",
-      "last_name": "b",
-      "nickname": "c",
-      "username": "user2",
-    }
-  }
-  matchedPretext="@"
-  onClick={[MockFunction]}
-  onMouseMove={[MockFunction]}
-  term="@user"
->
-  <SuggestionContainer
+<div>
+  <li
     aria-describedby="test-suggestion-1-description test-suggestion-1-youElement test-suggestion-1-status test-suggestion-1-botTag test-suggestion-1-sharedIcon test-suggestion-1-guestTag test-suggestion-1-groupMembers"
     aria-labelledby="test-suggestion-1-atMention"
-    className=""
+    class="suggestion-list__item"
     data-testid="mentionSuggestion_user2"
     id="test-suggestion-1"
-    isSelection={false}
-    item={
-      Object {
-        "first_name": "a",
-        "id": "userid2",
-        "last_name": "b",
-        "nickname": "c",
-        "username": "user2",
-      }
-    }
-    matchedPretext="@"
-    onClick={[MockFunction]}
-    onMouseMove={[MockFunction]}
-    term="@user"
+    role="option"
+    tabindex="-1"
   >
-    <li
-      aria-describedby="test-suggestion-1-description test-suggestion-1-youElement test-suggestion-1-status test-suggestion-1-botTag test-suggestion-1-sharedIcon test-suggestion-1-guestTag test-suggestion-1-groupMembers"
-      aria-labelledby="test-suggestion-1-atMention"
-      className="suggestion-list__item"
-      data-testid="mentionSuggestion_user2"
-      id="test-suggestion-1"
-      onClick={[Function]}
-      onMouseMove={[Function]}
-      role="option"
-      tabIndex={-1}
+    <span
+      class="status-wrapper style--none"
     >
       <span
-        className="status-wrapper style--none"
+        class="profile-icon"
       >
-        <span
-          className="profile-icon"
-        >
-          <Avatar
-            alt=""
-            size="sm"
-            url="/api/v4/users/userid2/image?_=0"
-            username="user2"
-          >
-            <img
-              alt=""
-              className="Avatar Avatar-sm"
-              loading="lazy"
-              onError={[Function]}
-              src="/api/v4/users/userid2/image?_=0"
-            />
-          </Avatar>
-        </span>
-        <Memo(StatusIcon)
-          id="test-suggestion-1-status"
+        <img
+          alt=""
+          class="Avatar Avatar-sm"
+          loading="lazy"
+          src="/api/v4/users/userid2/image?_=0"
         />
       </span>
+    </span>
+    <span
+      class="suggestion-list__ellipsis"
+    >
       <span
-        className="suggestion-list__ellipsis"
+        class="suggestion-list__main"
+        id="test-suggestion-1-atMention"
       >
-        <span
-          className="suggestion-list__main"
-          id="test-suggestion-1-atMention"
-        >
-          @user2
-        </span>
-        <span
-          id="test-suggestion-1-description"
-        >
-          <span>
-            a b (c)
-          </span>
-        </span>
-        <Component
-          emojiSize={15}
-          emojiStyle={
-            Object {
-              "margin": "0 4px 4px",
-            }
-          }
-          showTooltip={true}
-          userID="userid2"
-        >
-          <div />
-        </Component>
+        @user2
       </span>
-    </li>
-  </SuggestionContainer>
-</AtMentionSuggestion>
+      <span
+        id="test-suggestion-1-description"
+      >
+        <span>
+          a b (c)
+        </span>
+      </span>
+      <div />
+    </span>
+  </li>
+</div>
 `;
 
 exports[`at mention suggestion should not display nick name of the signed in user 1`] = `
-<AtMentionSuggestion
-  id="test-suggestion-1"
-  isSelection={false}
-  item={
-    Object {
-      "first_name": "a",
-      "id": "userid1",
-      "isCurrentUser": true,
-      "last_name": "b",
-      "nickname": "c",
-      "username": "user",
-    }
-  }
-  matchedPretext="@"
-  onClick={[MockFunction]}
-  onMouseMove={[MockFunction]}
-  term="@user"
->
-  <SuggestionContainer
+<div>
+  <li
     aria-describedby="test-suggestion-1-description test-suggestion-1-youElement test-suggestion-1-status test-suggestion-1-botTag test-suggestion-1-sharedIcon test-suggestion-1-guestTag test-suggestion-1-groupMembers"
     aria-labelledby="test-suggestion-1-atMention"
-    className=""
+    class="suggestion-list__item"
     data-testid="mentionSuggestion_user"
     id="test-suggestion-1"
-    isSelection={false}
-    item={
-      Object {
-        "first_name": "a",
-        "id": "userid1",
-        "isCurrentUser": true,
-        "last_name": "b",
-        "nickname": "c",
-        "username": "user",
-      }
-    }
-    matchedPretext="@"
-    onClick={[MockFunction]}
-    onMouseMove={[MockFunction]}
-    term="@user"
+    role="option"
+    tabindex="-1"
   >
-    <li
-      aria-describedby="test-suggestion-1-description test-suggestion-1-youElement test-suggestion-1-status test-suggestion-1-botTag test-suggestion-1-sharedIcon test-suggestion-1-guestTag test-suggestion-1-groupMembers"
-      aria-labelledby="test-suggestion-1-atMention"
-      className="suggestion-list__item"
-      data-testid="mentionSuggestion_user"
-      id="test-suggestion-1"
-      onClick={[Function]}
-      onMouseMove={[Function]}
-      role="option"
-      tabIndex={-1}
+    <span
+      class="status-wrapper style--none"
     >
       <span
-        className="status-wrapper style--none"
+        class="profile-icon"
       >
-        <span
-          className="profile-icon"
-        >
-          <Avatar
-            alt=""
-            size="sm"
-            url="/api/v4/users/userid1/image?_=0"
-            username="user"
-          >
-            <img
-              alt=""
-              className="Avatar Avatar-sm"
-              loading="lazy"
-              onError={[Function]}
-              src="/api/v4/users/userid1/image?_=0"
-            />
-          </Avatar>
-        </span>
-        <Memo(StatusIcon)
-          id="test-suggestion-1-status"
+        <img
+          alt=""
+          class="Avatar Avatar-sm"
+          loading="lazy"
+          src="/api/v4/users/userid1/image?_=0"
         />
       </span>
+    </span>
+    <span
+      class="suggestion-list__ellipsis"
+    >
       <span
-        className="suggestion-list__ellipsis"
+        class="suggestion-list__main"
+        id="test-suggestion-1-atMention"
       >
-        <span
-          className="suggestion-list__main"
-          id="test-suggestion-1-atMention"
-        >
-          @user
-        </span>
-        <span
-          id="test-suggestion-1-description"
-        >
-          <span>
-            a b
-          </span>
-        </span>
-        <span
-          id="test-suggestion-1-youElement"
-        >
-          <FormattedMessage
-            defaultMessage="(you)"
-            id="suggestion.user.isCurrent"
-          >
-            <span>
-              (you)
-            </span>
-          </FormattedMessage>
-        </span>
-        <Component
-          emojiSize={15}
-          emojiStyle={
-            Object {
-              "margin": "0 4px 4px",
-            }
-          }
-          showTooltip={true}
-          userID="userid1"
-        >
-          <div />
-        </Component>
+        @user
       </span>
-    </li>
-  </SuggestionContainer>
-</AtMentionSuggestion>
+      <span
+        id="test-suggestion-1-description"
+      >
+        <span>
+          a b
+        </span>
+      </span>
+      <span
+        id="test-suggestion-1-youElement"
+      >
+        (you)
+      </span>
+      <div />
+    </span>
+  </li>
+</div>
 `;

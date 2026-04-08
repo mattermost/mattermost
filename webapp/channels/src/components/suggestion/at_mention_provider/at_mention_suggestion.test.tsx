@@ -3,7 +3,6 @@
 
 import React from 'react';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
@@ -40,30 +39,32 @@ describe('at mention suggestion', () => {
     };
 
     test('should not display nick name of the signed in user', () => {
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <AtMentionSuggestion
                 {...baseProps}
                 item={userid1}
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        expect(wrapper.find('.suggestion-list__ellipsis').text()).toContain('a b');
-        expect(wrapper.find('.suggestion-list__ellipsis').text()).not.toContain('a b (c)');
+        const ellipsis = container.querySelector('.suggestion-list__ellipsis');
+        expect(ellipsis?.textContent).toContain('a b');
+        expect(ellipsis?.textContent).not.toContain('a b (c)');
     });
 
     test('should display nick name of non signed in user', () => {
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <AtMentionSuggestion
                 {...baseProps}
                 item={userid2}
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        expect(wrapper.find('.suggestion-list__ellipsis').text()).toContain('a b (c)');
+        const ellipsis = container.querySelector('.suggestion-list__ellipsis');
+        expect(ellipsis?.textContent).toContain('a b (c)');
     });
 
     describe('accessible text', () => {

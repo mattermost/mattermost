@@ -203,6 +203,13 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 		}
 
 		scs.NotifyChannelChanged(sc.ChannelId)
+
+		// Notify clients that shared channel remotes have been updated so the UI
+		// can refresh its cached remote names for this channel.
+		messageWs := model.NewWebSocketEvent(model.WebsocketEventSharedChannelRemoteUpdated, "", sc.ChannelId, "", nil, "")
+		messageWs.Add("channel_id", sc.ChannelId)
+		scs.app.Publish(messageWs)
+
 		scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("`%s` has been added to channel.", rc.DisplayName))
 
 		// Trigger membership sync via the normal sync pipeline (reads from ChannelMemberHistory)
@@ -290,7 +297,7 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 			// unless the remote is compromised AND has knowledge of the local user ids.
 			// Another possibility would be an actual user ID collision between two servers, where the likelihood is
 			// infinitesimally small
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Channel invite failed - channel created/fetched with wrong id",
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Channel invite failed - channel created/fetched with wrong id",
 				mlog.String("remote", rc.DisplayName),
 				mlog.String("channel_id", invite.ChannelId),
 				mlog.String("channel_type", invite.Type),
@@ -498,7 +505,7 @@ func (scs *Service) createDirectChannel(invite channelInviteMsg, rc *model.Remot
 	// ensure remote user is allowed to DM the local user
 	canSee, appErr := scs.app.UserCanSeeOtherUser(request.EmptyContext(scs.server.Log()), userRemote.Id, userLocal.Id)
 	if appErr != nil {
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "cannot check user visibility for DM creation",
+		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "cannot check user visibility for DM creation",
 			mlog.String("user_remote", userRemote.Id),
 			mlog.String("user_local", userLocal.Id),
 			mlog.String("channel_id", invite.ChannelId),

@@ -2,19 +2,17 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Provider} from 'react-redux';
 
 import type {Team} from '@mattermost/types/teams';
 
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {SelfHostedProducts} from 'utils/constants';
 import {TestHelper as TH} from 'utils/test_helper';
 import {generateId} from 'utils/utils';
 
-import InviteAs, {InviteType} from './invite_as';
+import {InviteType} from './invite_as';
 import InviteView from './invite_view';
 import type {Props} from './invite_view';
 
@@ -124,19 +122,16 @@ describe('InviteView', () => {
         },
     };
 
-    const store = mockStore(state);
-
     beforeEach(() => {
         props = defaultProps;
     });
 
     it('shows InviteAs component when user can choose to invite guests or users', async () => {
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <InviteView {...props}/>
-            </Provider>,
+        renderWithContext(
+            <InviteView {...props}/>,
+            state,
         );
-        expect(wrapper.find(InviteAs).length).toBe(1);
+        expect(screen.getByText('Invite as')).toBeInTheDocument();
     });
 
     it('hides InviteAs component when user can not choose members option', async () => {
@@ -145,13 +140,12 @@ describe('InviteView', () => {
             canAddUsers: false,
         };
 
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <InviteView {...props}/>
-            </Provider>,
+        renderWithContext(
+            <InviteView {...props}/>,
+            state,
         );
 
-        expect(wrapper.find(InviteAs).length).toBe(0);
+        expect(screen.queryByText('Invite as')).not.toBeInTheDocument();
     });
 
     it('hides InviteAs component when user can not choose guests option', async () => {
@@ -160,12 +154,11 @@ describe('InviteView', () => {
             canInviteGuests: false,
         };
 
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <InviteView {...props}/>
-            </Provider>,
+        renderWithContext(
+            <InviteView {...props}/>,
+            state,
         );
-        expect(wrapper.find(InviteAs).length).toBe(0);
+        expect(screen.queryByText('Invite as')).not.toBeInTheDocument();
     });
 
     it('shows guest magic link checkbox when inviting guests and guest magic link is enabled', async () => {
@@ -175,14 +168,12 @@ describe('InviteView', () => {
             canInviteGuestsWithMagicLink: true,
         };
 
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <InviteView {...props}/>
-            </Provider>,
+        renderWithContext(
+            <InviteView {...props}/>,
+            state,
         );
 
-        const checkbox = wrapper.find('[data-testid="InviteView__guestMagicLinkCheckbox"]');
-        expect(checkbox.length).toBe(1);
+        expect(screen.getByTestId('InviteView__guestMagicLinkCheckbox')).toBeInTheDocument();
     });
 
     it('hides guest magic link checkbox when inviting members', async () => {
@@ -192,14 +183,12 @@ describe('InviteView', () => {
             canInviteGuestsWithMagicLink: true,
         };
 
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <InviteView {...props}/>
-            </Provider>,
+        renderWithContext(
+            <InviteView {...props}/>,
+            state,
         );
 
-        const checkbox = wrapper.find('[data-testid="InviteView__guestMagicLinkCheckbox"]');
-        expect(checkbox.length).toBe(0);
+        expect(screen.queryByTestId('InviteView__guestMagicLinkCheckbox')).not.toBeInTheDocument();
     });
 
     it('hides guest magic link checkbox when guest magic link is not enabled', async () => {
@@ -209,14 +198,12 @@ describe('InviteView', () => {
             canInviteGuestsWithMagicLink: false,
         };
 
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <InviteView {...props}/>
-            </Provider>,
+        renderWithContext(
+            <InviteView {...props}/>,
+            state,
         );
 
-        const checkbox = wrapper.find('[data-testid="InviteView__guestMagicLinkCheckbox"]');
-        expect(checkbox.length).toBe(0);
+        expect(screen.queryByTestId('InviteView__guestMagicLinkCheckbox')).not.toBeInTheDocument();
     });
 
     it('calls toggleGuestMagicLink when checkbox is clicked', async () => {
@@ -228,14 +215,13 @@ describe('InviteView', () => {
             toggleGuestMagicLink,
         };
 
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <InviteView {...props}/>
-            </Provider>,
+        renderWithContext(
+            <InviteView {...props}/>,
+            state,
         );
 
-        const checkbox = wrapper.find('[data-testid="InviteView__guestMagicLinkCheckbox"]');
-        checkbox.simulate('change');
+        const checkbox = screen.getByTestId('InviteView__guestMagicLinkCheckbox');
+        await userEvent.click(checkbox);
 
         expect(toggleGuestMagicLink).toHaveBeenCalledTimes(1);
     });
