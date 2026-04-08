@@ -7,7 +7,7 @@ import React from 'react';
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {renderWithContext, act} from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import UserGroupPopover from './user_group_popover';
@@ -84,44 +84,35 @@ describe('component/user_group_popover', () => {
         returnFocus: jest.fn(),
     };
 
-    test('should match snapshot', async () => {
-        let baseElement: HTMLElement;
-        await act(async () => {
-            ({baseElement} = renderWithContext(
-                <UserGroupPopover
-                    {...baseProps}
-                />,
-                initialState as any,
-            ));
-        });
-        expect(baseElement!).toMatchSnapshot();
+    test('should match snapshot', () => {
+        const {baseElement} = renderWithContext(
+            <UserGroupPopover
+                {...baseProps}
+            />,
+            initialState as any,
+        );
+        expect(baseElement).toMatchSnapshot();
     });
 
     test('should not show search bar', async () => {
-        let container: HTMLElement;
-        await act(async () => {
-            ({container} = renderWithContext(
-                <UserGroupPopover
-                    {...baseProps}
-                    group={group2}
-                />,
-                initialState as any,
-            ));
-        });
+        const {container} = renderWithContext(
+            <UserGroupPopover
+                {...baseProps}
+                group={group2}
+            />,
+            initialState as any,
+        );
 
-        expect(container!.querySelector('.user-group-popover_search-bar')).not.toBeInTheDocument();
+        expect(container.querySelector('.user-group-popover_search-bar')).not.toBeInTheDocument();
     });
 
     test('should show users', async () => {
-        let container: HTMLElement;
-        await act(async () => {
-            ({container} = renderWithContext(
-                <UserGroupPopover
-                    {...baseProps}
-                />,
-                initialState as any,
-            ));
-        });
-        expect(container!.querySelectorAll('.group-member-list_item').length).toBeGreaterThan(0);
+        const {container} = renderWithContext(
+            <UserGroupPopover
+                {...baseProps}
+            />,
+            initialState as any,
+        );
+        expect(container.querySelectorAll('.group-member-list_item').length).toBeGreaterThan(0);
     });
 });

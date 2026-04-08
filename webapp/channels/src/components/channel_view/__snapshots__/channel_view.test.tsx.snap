@@ -1,144 +1,118 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/channel_view Should match snapshot if channel is archived 1`] = `
-<div
-  className="app__content"
-  id="app-content"
->
-  <FileUploadOverlay
-    id="centerChannelFileDropOverlay"
-    overlayType="center"
-  />
-  <ChannelHeader />
-  <ChannelBanner
-    channelId="channelId"
-  />
-  <ChannelTabs
-    activeTab="messages"
-    channelId="channelId"
-    onTabChange={[Function]}
-  />
-  <ChannelTabPanel
-    activeTab="messages"
-    channelId="channelId"
-    createPost={
+<div>
+  <div
+    class="app__content"
+    id="app-content"
+  >
+    <div
+      data-testid="FileUploadOverlay"
+    />
+    <div
+      data-testid="ChannelHeader"
+    />
+    <div
+      data-testid="ChannelBanner"
+    />
+    <div
+      data-channel-id="channelId"
+      data-testid="deferred-post-view"
+    />
+    <div
+      class="post-create__container"
+      id="post-create"
+    >
       <div
-        className="post-create__container"
-        id="post-create"
+        class="channel-archived__message"
+        id="channelArchivedMessage"
       >
-        <div
-          className="channel-archived__message"
-          id="channelArchivedMessage"
+        You are viewing an 
+        <b>
+          archived channel
+        </b>
+        . New messages cannot be posted.
+        <button
+          class="btn btn-primary channel-archived__close-btn"
         >
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="You are viewing an <b>archived channel</b>. New messages cannot be posted."
-            id="channelView.archivedChannel"
-            values={
-              Object {
-                "b": [Function],
-              }
-            }
-          />
-          <button
-            className="btn btn-primary channel-archived__close-btn"
-            onClick={[Function]}
-          >
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Close Channel"
-              id="center_panel.archived.closeChannel"
-            />
-          </button>
-        </div>
+          Close Channel
+        </button>
       </div>
-    }
-  />
+    </div>
+  </div>
 </div>
 `;
 
 exports[`components/channel_view Should match snapshot if channel is deactivated 1`] = `
-<div
-  className="app__content"
-  id="app-content"
->
-  <FileUploadOverlay
-    id="centerChannelFileDropOverlay"
-    overlayType="center"
-  />
-  <ChannelHeader />
-  <ChannelBanner
-    channelId="channelId"
-  />
-  <ChannelTabs
-    activeTab="messages"
-    channelId="channelId"
-    onTabChange={[Function]}
-  />
-  <ChannelTabPanel
-    activeTab="messages"
-    channelId="channelId"
-    createPost={
+<div>
+  <div
+    class="app__content"
+    id="app-content"
+  >
+    <div
+      data-testid="FileUploadOverlay"
+    />
+    <div
+      data-testid="ChannelHeader"
+    />
+    <div
+      data-testid="ChannelBanner"
+    />
+    <div
+      data-channel-id="channelId"
+      data-testid="deferred-post-view"
+    />
+    <div
+      class="post-create__container AdvancedTextEditor__ctr"
+      id="post-create"
+    >
       <div
-        className="post-create__container AdvancedTextEditor__ctr"
-        id="post-create"
+        class="channel-archived__message"
       >
-        <div
-          className="channel-archived__message"
+        You are viewing an archived channel with a 
+        <b>
+          deactivated user
+        </b>
+        . New messages cannot be posted.
+        <button
+          class="btn btn-primary channel-archived__close-btn"
         >
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="You are viewing an archived channel with a <b>deactivated user</b>. New messages cannot be posted."
-            id="channelView.archivedChannelWithDeactivatedUser"
-            values={
-              Object {
-                "b": [Function],
-              }
-            }
-          />
-          <button
-            className="btn btn-primary channel-archived__close-btn"
-            onClick={[Function]}
-          >
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Close Channel"
-              id="center_panel.archived.closeChannel"
-            />
-          </button>
-        </div>
+          Close Channel
+        </button>
       </div>
-    }
-  />
+    </div>
+  </div>
 </div>
 `;
 
 exports[`components/channel_view Should match snapshot with base props 1`] = `
-<div
-  className="app__content"
-  id="app-content"
->
-  <FileUploadOverlay
-    id="centerChannelFileDropOverlay"
-    overlayType="center"
-  />
-  <ChannelHeader />
-  <ChannelBanner
-    channelId="channelId"
-  />
-  <ChannelTabs
-    activeTab="messages"
-    channelId="channelId"
-    onTabChange={[Function]}
-  />
-  <ChannelTabPanel
-    activeTab="messages"
-    channelId="channelId"
-    createPost={
+<div>
+  <div
+    class="app__content"
+    id="app-content"
+  >
+    <div
+      data-testid="FileUploadOverlay"
+    />
+    <div
+      data-testid="ChannelHeader"
+    />
+    <div
+      data-testid="ChannelBanner"
+    />
+    <div
+      data-channel-id="channelId"
+      data-testid="deferred-post-view"
+    />
+    <div
+      class="post-create__container AdvancedTextEditor__ctr"
+      data-testid="post-create"
+      id="post-create"
+    >
       <div
-        className="post-create__container AdvancedTextEditor__ctr"
-        data-testid="post-create"
-        id="post-create"
-      >
-        <AdvancedCreatePost />
-      </div>
-    }
-  />
+        data-testid="AdvancedCreatePost"
+      />
+    </div>
+  </div>
 </div>
 `;
