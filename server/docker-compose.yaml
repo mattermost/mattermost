@@ -93,23 +93,6 @@ services:
         file: build/docker-compose.common.yml
         service: otel-collector
 
-  start_dependencies:
-    image: mattermost/mattermost-wait-for-dep:latest
-    networks:
-      - mm-test
-    depends_on:
-      - postgres
-      - minio
-      - inbucket
-      - openldap
-      - elasticsearch
-      - opensearch
-      - prometheus
-      - grafana
-      - loki
-      - otel-collector
-    command: postgres:5432 minio:9000 inbucket:9001 openldap:389 elasticsearch:9200 opensearch:9201 prometheus:9090 grafana:3000 loki:3100 otel-collector:13133
-
   leader:
     build:
       context: .
@@ -126,7 +109,24 @@ services:
     networks:
       - mm-test
     depends_on:
-      - start_dependencies
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      inbucket:
+        condition: service_healthy
+      openldap:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      opensearch:
+        condition: service_healthy
+      prometheus:
+        condition: service_healthy
+      grafana:
+        condition: service_healthy
+      loki:
+        condition: service_healthy
     volumes:
       - './../:/home/mattermost-server'
       - './../../enterprise:/home/enterprise'
