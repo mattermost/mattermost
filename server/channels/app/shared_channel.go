@@ -19,6 +19,16 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
+// isNotFoundError returns true if the error represents a not-found condition,
+// checking both sql.ErrNoRows and store.ErrNotFound.
+func isNotFoundError(err error) bool {
+	if errors.Is(err, sql.ErrNoRows) {
+		return true
+	}
+	var nfErr *store.ErrNotFound
+	return errors.As(err, &nfErr)
+}
+
 func (a *App) getSharedChannelsService(ensureIsActive bool) (SharedChannelServiceIFace, error) {
 	scService := a.Srv().GetSharedChannelSyncService()
 	if scService == nil {
@@ -156,13 +166,10 @@ func (a *App) HasRemote(channelID string, remoteID string) (bool, error) {
 func (a *App) GetRemoteClusterForUser(remoteID string, userID string, includeDeleted bool) (*model.RemoteCluster, *model.AppError) {
 	rc, err := a.Srv().Store().SharedChannel().GetRemoteForUser(remoteID, userID, includeDeleted)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if isNotFoundError(err) {
 			return nil, model.NewAppError("GetRemoteClusterForUser", "api.context.remote_id_invalid.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetRemoteClusterForUser", "api.context.remote_id_invalid.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetRemoteClusterForUser", "api.context.remote_id_invalid.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return rc, nil
 }
@@ -240,7 +247,7 @@ func (a *App) SendSharedChannelSyncMsg(rctx request.CTX, pluginID string, msg *m
 
 	rc, err := a.Srv().Store().RemoteCluster().GetByPluginID(pluginID)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if isNotFoundError(err) {
 			return model.SyncResponse{}, fmt.Errorf("plugin %s is not registered for shared channels: %w", pluginID, err)
 		}
 		return model.SyncResponse{}, fmt.Errorf("error looking up plugin %s registration: %w", pluginID, err)
@@ -276,7 +283,7 @@ func (a *App) SendSharedChannelAttachmentSyncMsg(rctx request.CTX, pluginID stri
 
 	rc, err := a.Srv().Store().RemoteCluster().GetByPluginID(pluginID)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if isNotFoundError(err) {
 			return nil, fmt.Errorf("plugin %s is not registered for shared channels: %w", pluginID, err)
 		}
 		return nil, fmt.Errorf("error looking up plugin %s registration: %w", pluginID, err)
@@ -289,6 +296,18 @@ func (a *App) SendSharedChannelAttachmentSyncMsg(rctx request.CTX, pluginID stri
 	}
 	if !exists {
 		return nil, fmt.Errorf("channel %s is not shared with remote %s", channelID, rc.RemoteId)
+	}
+
+	// Validate the file creator belongs to this remote
+	creator, creatorErr := a.Srv().Store().User().Get(rctx.Context(), fi.CreatorId)
+	if creatorErr != nil {
+		if isNotFoundError(creatorErr) {
+			return nil, fmt.Errorf("creator %s not found: %w", fi.CreatorId, creatorErr)
+		}
+		return nil, fmt.Errorf("error looking up creator %s: %w", fi.CreatorId, creatorErr)
+	}
+	if creator.GetRemoteID() != rc.RemoteId {
+		return nil, fmt.Errorf("creator %s does not belong to remote %s", fi.CreatorId, rc.RemoteId)
 	}
 
 	// Validate file attachments are enabled and size is within limits
@@ -348,7 +367,7 @@ func (a *App) SendSharedChannelProfileImageSyncMsg(rctx request.CTX, pluginID st
 
 	rc, err := a.Srv().Store().RemoteCluster().GetByPluginID(pluginID)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if isNotFoundError(err) {
 			return fmt.Errorf("plugin %s is not registered for shared channels: %w", pluginID, err)
 		}
 		return fmt.Errorf("error looking up plugin %s registration: %w", pluginID, err)
@@ -357,8 +376,7 @@ func (a *App) SendSharedChannelProfileImageSyncMsg(rctx request.CTX, pluginID st
 	// Validate user exists and belongs to this remote
 	user, userErr := a.Srv().Store().User().Get(rctx.Context(), userID)
 	if userErr != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(userErr, &nfErr) {
+		if isNotFoundError(userErr) {
 			return fmt.Errorf("user %s not found: %w", userID, userErr)
 		}
 		return fmt.Errorf("error looking up user %s: %w", userID, userErr)

@@ -1041,9 +1041,26 @@ func TestPluginAPISendSharedChannelAttachmentSyncMsg(t *testing.T) {
 		assert.Contains(t, err.Error(), "Name is required")
 	})
 
+	t.Run("local user as creator returns error", func(t *testing.T) {
+		fi := &model.FileInfo{Name: "test.txt", Size: 4, CreatorId: th.BasicUser.Id}
+		_, err := api.SendSharedChannelAttachmentSyncMsg(channel.Id, fi, bytes.NewReader([]byte("data")))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "does not belong to remote")
+	})
+
 	t.Run("syncs an attachment and verifies FileInfo and SharedChannelAttachment in database", func(t *testing.T) {
+		// Create a remote user belonging to this plugin's remote
+		remoteUser := &model.User{
+			Email:    model.NewId() + "@remote.test",
+			Username: "remote-attach-" + model.NewId()[:8],
+			Password: "Password1!",
+			RemoteId: model.NewPointer(rc.RemoteId),
+		}
+		remoteUser, appErr := th.App.CreateUser(th.Context, remoteUser)
+		require.Nil(t, appErr)
+
 		fi := &model.FileInfo{
-			CreatorId: th.BasicUser.Id,
+			CreatorId: remoteUser.Id,
 			Name:      "hello.txt",
 			Size:      13,
 		}
