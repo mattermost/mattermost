@@ -406,6 +406,44 @@ func NewRandomString(length int) string {
 	return encoding.EncodeToString(data)[:length]
 }
 
+// NewTestPassword generates a password that meets complexity requirements
+// (uppercase, lowercase, number, special character) with a minimum length of 14.
+// The passwords are not cryptographically random. Use only in tests.
+func NewTestPassword() string {
+	const (
+		lowers   = LowercaseLetters
+		uppers   = UppercaseLetters
+		digits   = NUMBERS
+		specials = "!%^&*(),."
+		all      = lowers + uppers + digits + specials
+		minLen   = PasswordFIPSMinimumLength
+	)
+
+	// Read all randomness in one call for performance.
+	// We need minLen bytes for character selection + minLen bytes for shuffle indices.
+	entropy := make([]byte, 2*minLen)
+	if _, err := rand.Read(entropy); err != nil {
+		panic(err)
+	}
+
+	pw := make([]byte, minLen)
+	pw[0] = uppers[int(entropy[0])%len(uppers)]
+	pw[1] = lowers[int(entropy[1])%len(lowers)]
+	pw[2] = digits[int(entropy[2])%len(digits)]
+	pw[3] = specials[int(entropy[3])%len(specials)]
+	for i := 4; i < minLen; i++ {
+		pw[i] = all[int(entropy[i])%len(all)]
+	}
+
+	// Shuffle to avoid predictable prefix using remaining entropy.
+	for i := len(pw) - 1; i > 0; i-- {
+		j := int(entropy[minLen+i]) % (i + 1)
+		pw[i], pw[j] = pw[j], pw[i]
+	}
+
+	return string(pw)
+}
+
 // GetMillis is a convenience method to get milliseconds since epoch.
 func GetMillis() int64 {
 	return GetMillisForTime(time.Now())
