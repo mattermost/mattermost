@@ -17,6 +17,7 @@ jobs:
       contents: read
       issues: write
     if: >-
+      github.repository == 'mattermost/mattermost' &&
       github.event.issue.pull_request &&
       startsWith(github.event.comment.body, '/test-analysis-override') &&
       contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
