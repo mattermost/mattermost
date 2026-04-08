@@ -245,6 +245,10 @@ func (a *App) SendSharedChannelSyncMsg(rctx request.CTX, pluginID string, msg *m
 // The server constructs the file path — the plugin provides the FileInfo metadata and
 // raw file bytes, but does not control where the file is stored.
 func (a *App) SendSharedChannelAttachmentSyncMsg(rctx request.CTX, pluginID string, channelID string, fi *model.FileInfo, data io.Reader) (*model.FileInfo, error) {
+	if _, err := a.getSharedChannelsService(true); err != nil {
+		return nil, err
+	}
+
 	rc, err := a.Srv().Store().RemoteCluster().GetByPluginID(pluginID)
 	if err != nil {
 		return nil, fmt.Errorf("plugin %s is not registered for shared channels: %w", pluginID, err)
@@ -310,6 +314,10 @@ func (a *App) SendSharedChannelAttachmentSyncMsg(rctx request.CTX, pluginID stri
 
 // SendSharedChannelProfileImageSyncMsg receives a profile image from a plugin remote.
 func (a *App) SendSharedChannelProfileImageSyncMsg(rctx request.CTX, pluginID string, userID string, image []byte) error {
+	if _, err := a.getSharedChannelsService(true); err != nil {
+		return err
+	}
+
 	rc, err := a.Srv().Store().RemoteCluster().GetByPluginID(pluginID)
 	if err != nil {
 		return fmt.Errorf("plugin %s is not registered for shared channels: %w", pluginID, err)

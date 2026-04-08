@@ -1312,7 +1312,9 @@ type API interface {
 	UninviteRemoteFromChannel(channelID string, remoteID string) error
 
 	// SendSharedChannelSyncMsg processes a sync message from this plugin, creating or updating
-	// posts, reactions, users, statuses, and membership changes in the specified shared channel.
+	// posts, reactions, users, statuses, acknowledgements, and membership changes.
+	// When msg.ChannelId is set, content is synced into that shared channel.
+	// When msg.ChannelId is empty and only Users are present, a global user sync is performed.
 	// This is the inbound counterpart of the OnSharedChannelsSyncMsg hook.
 	// The plugin's RemoteCluster is automatically resolved from the plugin ID — entities in the
 	// SyncMsg will have their RemoteId set to match this plugin's remote.
