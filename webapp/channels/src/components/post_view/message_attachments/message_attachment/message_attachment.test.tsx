@@ -259,9 +259,10 @@ describe('components/post_view/MessageAttachment', () => {
             } as MessageAttachmentType,
         };
 
-        const wrapper = shallow(<MessageAttachment {...props}/>);
-        const titleLink = wrapper.find('.attachment__title-link');
-        expect(titleLink.children().text()).toBe('Meeting (Q1 Review) & Planning');
+        const {container} = renderWithContext(<MessageAttachment {...props}/>);
+        const titleLink = container.querySelector('.attachment__title-link');
+        expect(titleLink).toBeInTheDocument();
+        expect(titleLink).toHaveTextContent('Meeting (Q1 Review) & Planning');
     });
 
     test('should decode HTML entities in author_name', () => {
@@ -275,9 +276,10 @@ describe('components/post_view/MessageAttachment', () => {
             } as unknown as MessageAttachmentType,
         };
 
-        const wrapper = shallow(<MessageAttachment {...props}/>);
-        const authorName = wrapper.find('.attachment__author-name');
-        expect(authorName.text()).toBe('Bot (v2)');
+        const {container} = renderWithContext(<MessageAttachment {...props}/>);
+        const authorName = container.querySelector('.attachment__author-name');
+        expect(authorName).toBeInTheDocument();
+        expect(authorName).toHaveTextContent('Bot (v2)');
     });
 
     test('should match snapshot when the attachment has an emoji in the title', () => {

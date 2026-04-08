@@ -45,12 +45,14 @@ test.describe('Message attachment special character decoding', () => {
 
             // # Post a webhook payload with HTML-encoded entities in title and author_name
             await postToWebhook(webhook.id, {
-                attachments: [{
-                    author_name: 'Bot &#40;v2.1&#41; &amp; Integrations',
-                    title: 'Future Plan for Plugins &#40;3rd party &amp; core&#41;',
-                    title_link: 'https://example.com',
-                    text: 'Attachment body text',
-                }],
+                attachments: [
+                    {
+                        author_name: 'Bot &#40;v2.1&#41; &amp; Integrations',
+                        title: 'Future Plan for Plugins &#40;3rd party &amp; core&#41;',
+                        title_link: 'https://example.com',
+                        text: 'Attachment body text',
+                    },
+                ],
             });
 
             // # Log in and navigate to the channel
@@ -91,11 +93,13 @@ test.describe('Message attachment special character decoding', () => {
 
             // # Post with numeric entities: &#34; ("), &#39; ('), &#58; (:), &#91; ([), &#93; (])
             await postToWebhook(webhook.id, {
-                attachments: [{
-                    title: '&#34;All Hands&#34; Meeting &#91;Q1&#93; &#45; 9&#58;00',
-                    title_link: 'https://example.com',
-                    text: 'Some body text',
-                }],
+                attachments: [
+                    {
+                        title: '&#34;All Hands&#34; Meeting &#91;Q1&#93; &#45; 9&#58;00',
+                        title_link: 'https://example.com',
+                        text: 'Some body text',
+                    },
+                ],
             });
 
             const {channelsPage} = await pw.testBrowser.login(user);
@@ -129,10 +133,12 @@ test.describe('Message attachment special character decoding', () => {
             });
 
             await postToWebhook(webhook.id, {
-                attachments: [{
-                    author_name: 'CI &lt;Build&gt; &quot;System&quot;',
-                    text: 'Build results',
-                }],
+                attachments: [
+                    {
+                        author_name: 'CI &lt;Build&gt; &quot;System&quot; &apos;Owner&apos;',
+                        text: 'Build results',
+                    },
+                ],
             });
 
             const {channelsPage} = await pw.testBrowser.login(user);
@@ -144,7 +150,7 @@ test.describe('Message attachment special character decoding', () => {
 
             // * Verify named entities are decoded in the author name
             const authorName = lastPost.container.locator('.attachment__author-name');
-            await expect(authorName).toHaveText('CI <Build> "System"');
+            await expect(authorName).toHaveText('CI <Build> "System" \'Owner\'');
         },
     );
 
@@ -167,12 +173,14 @@ test.describe('Message attachment special character decoding', () => {
 
             // &amp;lt; should decode only one level: &amp; → &, leaving &lt; as literal text
             await postToWebhook(webhook.id, {
-                attachments: [{
-                    author_name: '&amp;lt;safe&amp;gt;',
-                    title: '&amp;lt;safe&amp;gt;',
-                    title_link: 'https://example.com',
-                    text: 'Testing double-encoding safety',
-                }],
+                attachments: [
+                    {
+                        author_name: '&amp;lt;safe&amp;gt;',
+                        title: '&amp;lt;safe&amp;gt;',
+                        title_link: 'https://example.com',
+                        text: 'Testing double-encoding safety',
+                    },
+                ],
             });
 
             const {channelsPage} = await pw.testBrowser.login(user);
@@ -209,12 +217,14 @@ test.describe('Message attachment special character decoding', () => {
             });
 
             await postToWebhook(webhook.id, {
-                attachments: [{
-                    author_name: 'Simple Bot Name',
-                    title: 'A normal title with no special chars',
-                    title_link: 'https://example.com',
-                    text: 'Regular body',
-                }],
+                attachments: [
+                    {
+                        author_name: 'Simple Bot Name',
+                        title: 'A normal title with no special chars',
+                        title_link: 'https://example.com',
+                        text: 'Regular body',
+                    },
+                ],
             });
 
             const {channelsPage} = await pw.testBrowser.login(user);
@@ -252,12 +262,14 @@ test.describe('Message attachment special character decoding', () => {
 
             // Realistic payload from a Google Calendar-like plugin
             await postToWebhook(webhook.id, {
-                attachments: [{
-                    author_name: 'Google Calendar &#124; via Plugin &#40;v1.0&#41;',
-                    title: 'Team Standup &#40;Daily&#41; &#45; 9&#58;00 AM',
-                    title_link: 'https://calendar.example.com/event/123',
-                    text: 'You have an upcoming event',
-                }],
+                attachments: [
+                    {
+                        author_name: 'Google Calendar &#124; via Plugin &#40;v1.0&#41;',
+                        title: 'Team Standup &#40;Daily&#41; &#45; 9&#58;00 AM',
+                        title_link: 'https://calendar.example.com/event/123',
+                        text: 'You have an upcoming event',
+                    },
+                ],
             });
 
             const {channelsPage} = await pw.testBrowser.login(user);
