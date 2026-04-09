@@ -22,6 +22,10 @@ on:
         required: false
         type: boolean
         default: false
+      allow-failure:
+        required: false
+        type: boolean
+        default: false
       enablecoverage:
         required: false
         type: boolean
@@ -222,6 +226,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           disable_search: true
           files: server/cover.out
+          flags: server
 
       - name: Stop docker compose
         run: |

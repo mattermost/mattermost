@@ -271,22 +271,27 @@ jobs:
       artifact-name: postgres-server-fips-test-logs
 
   test-coverage:
-    name: Generate Test Coverage
-    # Disabled: Running out of memory and causing spurious failures.
-    # Old condition: ${{ github.event_name != 'pull_request' || !startsWith(github.event.pull_request.base.ref, 'release-') }}
-    if: false
+    name: "Coverage (shard ${{ matrix.shard }})"
+    if: ${{ github.event_name != 'pull_request' || !startsWith(github.event.pull_request.base.ref, 'release-') }}
     needs: go
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
     uses: ./.github/workflows/server-test-template.yml
     secrets: inherit
     with:
-      name: Generate Test Coverage
+      name: "Coverage (shard ${{ matrix.shard }})"
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
-      logsartifact: coverage-server-test-logs
+      logsartifact: "coverage-server-test-logs-shard-${{ matrix.shard }}"
       fullyparallel: true
       allow-failure: true
       enablecoverage: true
       go-version: ${{ needs.go.outputs.version }}
+      fips-enabled: false
+      shard-index: ${{ matrix.shard }}
+      shard-total: 4
   test-mmctl:
     name: Run mmctl tests
     needs: go
