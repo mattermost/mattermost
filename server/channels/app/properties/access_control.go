@@ -230,6 +230,9 @@ func (h *AccessControlHook) PreDeletePropertyField(rctx request.CTX, groupID str
 
 // PostGetPropertyField applies read access control to a single field.
 func (h *AccessControlHook) PostGetPropertyField(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
+	if field == nil {
+		return nil, nil
+	}
 	if !h.isGroupManaged(field.GroupID) {
 		return field, nil
 	}
@@ -519,6 +522,9 @@ func (h *AccessControlHook) PreDeletePropertyValuesForField(rctx request.CTX, gr
 // PostGetPropertyValue applies read access control to a single value.
 // Returns nil if the caller doesn't have access.
 func (h *AccessControlHook) PostGetPropertyValue(rctx request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
+	if value == nil {
+		return nil, nil
+	}
 	if !h.isGroupManaged(value.GroupID) {
 		return value, nil
 	}

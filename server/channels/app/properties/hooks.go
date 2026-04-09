@@ -4,9 +4,16 @@
 package properties
 
 import (
+	"errors"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
+
+// errNilHookResult is returned when a pre-hook returns a nil result without an
+// error. This catches buggy hook implementations early rather than letting a
+// nil propagate into the store layer.
+var errNilHookResult = errors.New("property hook returned nil result")
 
 // PropertyHook defines an interface for hooks that run before and after property
 // service operations. Hooks can inspect and modify inputs (pre-hooks) or filter
@@ -128,6 +135,9 @@ func (ps *PropertyService) runPreCreatePropertyField(rctx request.CTX, field *mo
 		if err != nil {
 			return nil, err
 		}
+		if field == nil {
+			return nil, errNilHookResult
+		}
 	}
 	return field, nil
 }
@@ -140,6 +150,9 @@ func (ps *PropertyService) runPreUpdatePropertyField(rctx request.CTX, groupID s
 		if err != nil {
 			return nil, err
 		}
+		if field == nil {
+			return nil, errNilHookResult
+		}
 	}
 	return field, nil
 }
@@ -151,6 +164,9 @@ func (ps *PropertyService) runPreUpdatePropertyFields(rctx request.CTX, groupID 
 		fields, err = hook.PreUpdatePropertyFields(rctx, groupID, fields)
 		if err != nil {
 			return nil, err
+		}
+		if fields == nil {
+			return nil, errNilHookResult
 		}
 	}
 	return fields, nil
@@ -204,6 +220,9 @@ func (ps *PropertyService) runPreCreatePropertyValue(rctx request.CTX, value *mo
 		if err != nil {
 			return nil, err
 		}
+		if value == nil {
+			return nil, errNilHookResult
+		}
 	}
 	return value, nil
 }
@@ -215,6 +234,9 @@ func (ps *PropertyService) runPreCreatePropertyValues(rctx request.CTX, values [
 		values, err = hook.PreCreatePropertyValues(rctx, values)
 		if err != nil {
 			return nil, err
+		}
+		if values == nil {
+			return nil, errNilHookResult
 		}
 	}
 	return values, nil
@@ -228,6 +250,9 @@ func (ps *PropertyService) runPreUpdatePropertyValue(rctx request.CTX, groupID s
 		if err != nil {
 			return nil, err
 		}
+		if value == nil {
+			return nil, errNilHookResult
+		}
 	}
 	return value, nil
 }
@@ -239,6 +264,9 @@ func (ps *PropertyService) runPreUpdatePropertyValues(rctx request.CTX, groupID 
 		values, err = hook.PreUpdatePropertyValues(rctx, groupID, values)
 		if err != nil {
 			return nil, err
+		}
+		if values == nil {
+			return nil, errNilHookResult
 		}
 	}
 	return values, nil
@@ -252,6 +280,9 @@ func (ps *PropertyService) runPreUpsertPropertyValue(rctx request.CTX, value *mo
 		if err != nil {
 			return nil, err
 		}
+		if value == nil {
+			return nil, errNilHookResult
+		}
 	}
 	return value, nil
 }
@@ -263,6 +294,9 @@ func (ps *PropertyService) runPreUpsertPropertyValues(rctx request.CTX, values [
 		values, err = hook.PreUpsertPropertyValues(rctx, values)
 		if err != nil {
 			return nil, err
+		}
+		if values == nil {
+			return nil, errNilHookResult
 		}
 	}
 	return values, nil
