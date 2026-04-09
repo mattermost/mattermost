@@ -814,16 +814,6 @@ func decodeJSON[T any](tb testing.TB, o any, result *T) *T {
 	return result
 }
 
-func (th *TestHelper) SetUserRemoteID(tb testing.TB, userID, remoteID string) *model.User {
-	tb.Helper()
-	err := testlib.SetUserRemoteID(th.GetSqlStore(), userID, remoteID)
-	require.NoError(tb, err)
-	th.App.InvalidateCacheForUser(userID)
-	user, appErr := th.App.GetUser(userID)
-	require.Nil(tb, appErr)
-	return user
-}
-
 func (th *TestHelper) Parallel(t *testing.T) {
 	mainHelper.Parallel(t)
 }
