@@ -12,11 +12,12 @@ import type {UserProfile} from '@mattermost/types/users';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
+import {newTestPassword} from '@mattermost/playwright-lib';
+
 import {
     CustomProfileAttribute,
     setupCustomProfileAttributeValuesForUser,
 } from '../../channels/custom_profile_attributes/helpers';
-import {newTestPassword} from '@mattermost/playwright-lib';
 
 /**
  * Verify policy exists with better waiting and retry logic

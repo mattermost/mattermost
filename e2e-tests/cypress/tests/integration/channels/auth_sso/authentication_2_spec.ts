@@ -27,7 +27,7 @@ describe('Authentication', () => {
         cy.uiSave();
 
         // * Ensure error appears when saving a password outside of the limits
-        cy.findByText('Minimum password length must be a whole number greater than or equal to 14 and less than or equal to 72.', {timeout: TIMEOUTS.ONE_MIN}).
+        cy.findByText('Minimum password length must be a whole number greater than or equal to 5 and less than or equal to 72.', {timeout: TIMEOUTS.ONE_MIN}).
             should('exist').
             and('be.visible');
 
@@ -36,7 +36,7 @@ describe('Authentication', () => {
         cy.uiSave();
 
         // * Ensure error appears when saving a password outside of the limits
-        cy.findByText('Minimum password length must be a whole number greater than or equal to 14 and less than or equal to 72.', {timeout: TIMEOUTS.ONE_MIN}).
+        cy.findByText('Minimum password length must be a whole number greater than or equal to 5 and less than or equal to 72.', {timeout: TIMEOUTS.ONE_MIN}).
             should('exist').
             and('be.visible');
     });
@@ -93,8 +93,8 @@ describe('Authentication', () => {
 
         cy.uiSave();
 
-        // * Ensure it resets to the FIPS default of 14
-        cy.findByPlaceholderText('E.g.: "5"').invoke('val').should('equal', '14');
+        // * Ensure it resets to the default of 5
+        cy.findByPlaceholderText('E.g.: "5"').invoke('val').should('equal', '5');
     });
 
     it('MM-T1774 - Select all Password Requirements, verify help text and error on bad password', () => {

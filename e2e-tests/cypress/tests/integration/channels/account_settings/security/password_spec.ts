@@ -86,7 +86,7 @@ describe('Profile', () => {
     });
 
     it('MM-T2084 Password: Cancel out of password changes causes no changes to be made', () => {
-        const newPassword = newTestPassword();
+        const newPassword = 'Changed4Testing!';
 
         // # Enter new valid passwords
         enterPasswords(testUser.password, newPassword, newPassword);

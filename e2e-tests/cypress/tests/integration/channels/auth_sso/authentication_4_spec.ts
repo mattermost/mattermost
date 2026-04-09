@@ -119,7 +119,7 @@ describe('Authentication', () => {
 
             // * Ensure password has the default minimum length and no password requirements are checked
             cy.apiGetConfig().then(({config: {PasswordSettings}}) => {
-                expect(PasswordSettings.MinimumLength).equal(14);
+                expect(PasswordSettings.MinimumLength).equal(8);
                 expect(PasswordSettings.Lowercase).equal(false);
                 expect(PasswordSettings.Number).equal(false);
                 expect(PasswordSettings.Uppercase).equal(false);
@@ -129,7 +129,7 @@ describe('Authentication', () => {
             cy.visit('/admin_console/authentication/password');
             cy.get('.admin-console__header').should('be.visible').and('have.text', 'Password');
 
-            cy.findByTestId('passwordMinimumLengthinput').should('be.visible').and('have.value', '14');
+            cy.findByTestId('passwordMinimumLengthinput').should('be.visible').and('have.value', '8');
             cy.findByText('At least one lowercase letter').siblings().should('not.be.checked');
             cy.findByText('At least one uppercase letter').siblings().should('not.be.checked');
             cy.findByText('At least one number').siblings().should('not.be.checked');
