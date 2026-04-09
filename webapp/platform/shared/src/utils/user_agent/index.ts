@@ -74,15 +74,7 @@ export function isChromebook(): boolean {
     return userAgent().indexOf('CrOS') !== -1;
 }
 
-export function isInternetExplorer(): boolean {
-    return userAgent().indexOf('Trident') !== -1;
-}
-
 export function isEdge(): boolean {
-    return userAgent().indexOf('Edge') !== -1;
-}
-
-export function isChromiumEdge(): boolean {
     return userAgent().indexOf('Edg') !== -1 && userAgent().indexOf('Edge') === -1;
 }
 
