@@ -318,17 +318,17 @@ func (_m *ServiceInterface) SendInviteEmailsToTeamAndChannels(rctx request.CTX, 
 	return r0, r1
 }
 
-// SendLicenseUpForRenewalEmail provides a mock function with given fields: _a0, name, locale, siteURL, ctaTitle, ctaLink, ctaText, daysToExpiration
-func (_m *ServiceInterface) SendLicenseUpForRenewalEmail(_a0 string, name string, locale string, siteURL string, ctaTitle string, ctaLink string, ctaText string, daysToExpiration int) error {
-	ret := _m.Called(_a0, name, locale, siteURL, ctaTitle, ctaLink, ctaText, daysToExpiration)
+// SendLicenseUpForRenewalEmail provides a mock function with given fields: _a0, locale, daysToExpiration
+func (_m *ServiceInterface) SendLicenseUpForRenewalEmail(_a0 string, locale string, daysToExpiration int) error {
+	ret := _m.Called(_a0, locale, daysToExpiration)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SendLicenseUpForRenewalEmail")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, string, string, string, string, string, int) error); ok {
-		r0 = rf(_a0, name, locale, siteURL, ctaTitle, ctaLink, ctaText, daysToExpiration)
+	if rf, ok := ret.Get(0).(func(string, string, int) error); ok {
+		r0 = rf(_a0, locale, daysToExpiration)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -454,17 +454,17 @@ func (_m *ServiceInterface) SendPasswordResetEmail(_a0 string, token *model.Toke
 	return r0, r1
 }
 
-// SendRemoveExpiredLicenseEmail provides a mock function with given fields: ctaText, ctaLink, _a2, locale, siteURL
-func (_m *ServiceInterface) SendRemoveExpiredLicenseEmail(ctaText string, ctaLink string, _a2 string, locale string, siteURL string) error {
-	ret := _m.Called(ctaText, ctaLink, _a2, locale, siteURL)
+// SendRemoveExpiredLicenseEmail provides a mock function with given fields: _a0, locale
+func (_m *ServiceInterface) SendRemoveExpiredLicenseEmail(_a0 string, locale string) error {
+	ret := _m.Called(_a0, locale)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SendRemoveExpiredLicenseEmail")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, string, string, string) error); ok {
-		r0 = rf(ctaText, ctaLink, _a2, locale, siteURL)
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(_a0, locale)
 	} else {
 		r0 = ret.Error(0)
 	}

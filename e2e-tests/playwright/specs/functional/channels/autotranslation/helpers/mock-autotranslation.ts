@@ -22,6 +22,79 @@ interface MockTranslateResponse {
 let mockSourceLanguage = 'es';
 
 /**
+ * Simple language detection from text content
+ * Simulates how real LibreTranslate detects language from actual message text
+ */
+function detectLanguageFromText(text: string): string {
+    if (!text) return mockSourceLanguage;
+
+    const lowerText = text.toLowerCase();
+
+    // Spanish patterns
+    const spanishIndicators = [
+        'el ',
+        'la ',
+        'de ',
+        'que ',
+        'para ',
+        'con ',
+        'una ',
+        'este ',
+        'está',
+        'muy',
+        'en ',
+        'aquí',
+        'gracias',
+        'hola',
+        'adiós',
+    ];
+    const spanishMatches = spanishIndicators.filter((indicator) => lowerText.includes(indicator)).length;
+
+    // English patterns
+    const englishIndicators = [
+        'the ',
+        'and ',
+        'is ',
+        'to ',
+        'of ',
+        'that ',
+        'this ',
+        'for ',
+        'with ',
+        'hello',
+        'thanks',
+        'please',
+        'translation',
+    ];
+    const englishMatches = englishIndicators.filter((indicator) => lowerText.includes(indicator)).length;
+
+    // French patterns
+    const frenchIndicators = [
+        'le ',
+        'la ',
+        'de ',
+        'est ',
+        'que ',
+        'pour ',
+        'avec ',
+        'un ',
+        'une ',
+        'ça',
+        'bonjour',
+        'merci',
+    ];
+    const frenchMatches = frenchIndicators.filter((indicator) => lowerText.includes(indicator)).length;
+
+    // Return the language with most matches
+    if (spanishMatches > englishMatches && spanishMatches > frenchMatches) return 'es';
+    if (englishMatches > frenchMatches) return 'en';
+    if (frenchMatches > 0) return 'fr';
+
+    // Default to configured mock language
+    return mockSourceLanguage;
+}
+
+/**
  * Set the source language that the mock will detect
  * Useful for testing language detection and filtering logic
  */
@@ -92,7 +165,12 @@ export async function mockAutotranslationRoute(
             }
 
             const textToTranslate = postData.q || postData.text || '';
-            const sourceLanguage = postData.source || mockSourceLanguage;
+            // When source is empty or "auto", detect language from text (simulates real LibreTranslate)
+            // Otherwise use the provided source language
+            const sourceLanguage =
+                postData.source && postData.source !== 'auto'
+                    ? postData.source
+                    : detectLanguageFromText(textToTranslate);
             const targetLanguage = postData.target || 'en';
 
             // Validate target language is supported
@@ -133,7 +211,10 @@ export async function mockAutotranslationRoute(
             // Handle GET requests (e.g., /translate?q=hello&source=es&target=en)
             const url = new URL(request.url());
             const textToTranslate = url.searchParams.get('q') || '';
-            const sourceLanguage = url.searchParams.get('source') || mockSourceLanguage;
+            const sourceParam = url.searchParams.get('source');
+            // When source is empty or "auto", detect language from text (simulates real LibreTranslate)
+            const sourceLanguage =
+                sourceParam && sourceParam !== 'auto' ? sourceParam : detectLanguageFromText(textToTranslate);
             const targetLanguage = url.searchParams.get('target') || 'en';
 
             if (!supportedLanguages.includes(targetLanguage)) {
