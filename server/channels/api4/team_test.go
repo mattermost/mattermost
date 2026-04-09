@@ -4658,17 +4658,17 @@ func TestGetTeamMembersRoleDataSanitization(t *testing.T) {
 		require.Fail(t, "current user not found in members")
 	})
 
-	t.Run("team admin sees full role data", func(t *testing.T) {
+	t.Run("team admin sees full role data for other user", func(t *testing.T) {
 		members, _, err := teamAdminClient.GetTeamMembers(context.Background(), th.BasicTeam.Id, 0, 100, "")
 		require.NoError(t, err)
 
 		for _, m := range members {
-			if m.UserId == th.BasicUser2.Id {
-				assert.True(t, m.SchemeAdmin)
+			if m.UserId == th.BasicUser.Id {
+				assert.True(t, m.SchemeUser)
 				return
 			}
 		}
-		require.Fail(t, "team admin not found in members")
+		require.Fail(t, "target user not found in members")
 	})
 
 	t.Run("system admin sees full role data", func(t *testing.T) {
@@ -4702,10 +4702,10 @@ func TestGetTeamMemberRoleDataSanitization(t *testing.T) {
 		assert.True(t, member.SchemeUser)
 	})
 
-	t.Run("team admin sees full role data", func(t *testing.T) {
-		member, _, err := teamAdminClient.GetTeamMember(context.Background(), th.BasicTeam.Id, th.BasicUser2.Id, "")
+	t.Run("team admin sees full role data for other user", func(t *testing.T) {
+		member, _, err := teamAdminClient.GetTeamMember(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, "")
 		require.NoError(t, err)
-		assert.True(t, member.SchemeAdmin)
+		assert.True(t, member.SchemeUser)
 	})
 
 	t.Run("system admin sees full role data", func(t *testing.T) {
@@ -4734,11 +4734,11 @@ func TestGetTeamMembersByIdsRoleDataSanitization(t *testing.T) {
 		assert.True(t, members[0].SchemeUser)
 	})
 
-	t.Run("team admin sees full role data", func(t *testing.T) {
-		members, _, err := teamAdminClient.GetTeamMembersByIds(context.Background(), th.BasicTeam.Id, []string{th.BasicUser2.Id})
+	t.Run("team admin sees full role data for other user", func(t *testing.T) {
+		members, _, err := teamAdminClient.GetTeamMembersByIds(context.Background(), th.BasicTeam.Id, []string{th.BasicUser.Id})
 		require.NoError(t, err)
 		require.Len(t, members, 1)
-		assert.True(t, members[0].SchemeAdmin)
+		assert.True(t, members[0].SchemeUser)
 	})
 
 	t.Run("system admin sees full role data", func(t *testing.T) {
@@ -4826,17 +4826,17 @@ func TestGetTeamMembersForUserRoleDataSanitization(t *testing.T) {
 		}
 	})
 
-	t.Run("team admin sees full role data for managed team", func(t *testing.T) {
-		members, _, err := teamAdminClient.GetTeamMembersForUser(context.Background(), th.BasicUser2.Id, "")
+	t.Run("team admin sees full role data for other user in managed team", func(t *testing.T) {
+		members, _, err := teamAdminClient.GetTeamMembersForUser(context.Background(), th.BasicUser.Id, "")
 		require.NoError(t, err)
 		require.NotEmpty(t, members)
 		for _, m := range members {
 			if m.TeamId == th.BasicTeam.Id {
-				assert.True(t, m.SchemeAdmin)
+				assert.True(t, m.SchemeUser)
 				return
 			}
 		}
-		t.Fatal("basic team membership not found")
+		require.Fail(t, "basic team membership not found")
 	})
 
 	t.Run("system admin sees full role data", func(t *testing.T) {
@@ -4849,6 +4849,6 @@ func TestGetTeamMembersForUserRoleDataSanitization(t *testing.T) {
 				return
 			}
 		}
-		t.Fatal("basic team membership not found")
+		require.Fail(t, "basic team membership not found")
 	})
 }
