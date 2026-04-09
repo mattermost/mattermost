@@ -104,8 +104,8 @@ func getSharedChannelRemotesByRemoteCluster(c *Context, w http.ResponseWriter, r
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSecureConnections) {
-		c.SetPermissionError(model.PermissionManageSecureConnections)
+	c.RequirePermissionToManageSecureConnectionsOrSharedChannels()
+	if c.Err != nil {
 		return
 	}
 
@@ -150,8 +150,8 @@ func inviteRemoteClusterToChannel(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSecureConnections) {
-		c.SetPermissionError(model.PermissionManageSharedChannels)
+	c.RequirePermissionToManageSharedChannels()
+	if c.Err != nil {
 		return
 	}
 
@@ -201,8 +201,8 @@ func uninviteRemoteClusterToChannel(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSecureConnections) {
-		c.SetPermissionError(model.PermissionManageSharedChannels)
+	c.RequirePermissionToManageSharedChannels()
+	if c.Err != nil {
 		return
 	}
 
@@ -278,14 +278,14 @@ func getSharedChannelRemotes(c *Context, w http.ResponseWriter, r *http.Request)
 	remoteInfos := make([]*model.RemoteClusterInfo, 0, len(remoteStatuses))
 	for _, status := range remoteStatuses {
 		// Use GetRemoteCluster to get the full remote cluster
-		remoteCluster, appErr := c.App.GetRemoteCluster(status.ChannelId, false)
+		remoteCluster, appErr := c.App.GetRemoteCluster(status.RemoteId, false)
 		if appErr == nil && remoteCluster != nil {
 			info := remoteCluster.ToRemoteClusterInfo()
 			remoteInfos = append(remoteInfos, &info)
 		} else {
 			// If we can't find the detailed info, create a basic RemoteClusterInfo from the status
 			remoteInfos = append(remoteInfos, &model.RemoteClusterInfo{
-				Name:        status.ChannelId,
+				Name:        status.DisplayName,
 				DisplayName: status.DisplayName,
 				LastPingAt:  status.LastPingAt,
 			})

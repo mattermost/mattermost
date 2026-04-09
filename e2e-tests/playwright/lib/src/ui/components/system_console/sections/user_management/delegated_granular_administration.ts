@@ -65,6 +65,12 @@ class AdminRolesPanel {
     get customGroupManager() {
         return this.dataGrid.customGroupManager;
     }
+    get sharedChannelManager() {
+        return this.dataGrid.sharedChannelManager;
+    }
+    get secureConnectionManager() {
+        return this.dataGrid.secureConnectionManager;
+    }
     get viewer() {
         return this.dataGrid.viewer;
     }
@@ -80,6 +86,8 @@ class DataGrid {
     readonly systemManager: RoleRow;
     readonly userManager: RoleRow;
     readonly customGroupManager: RoleRow;
+    readonly sharedChannelManager: RoleRow;
+    readonly secureConnectionManager: RoleRow;
     readonly viewer: RoleRow;
 
     constructor(container: Locator) {
@@ -103,6 +111,14 @@ class DataGrid {
         this.customGroupManager = new RoleRow(
             this.rows.locator('.DataGrid_row').filter({hasText: 'Custom Group Manager'}),
             'system_custom_group_admin_edit',
+        );
+        this.sharedChannelManager = new RoleRow(
+            this.rows.locator('.DataGrid_row').filter({hasText: 'Shared Channel Manager'}),
+            'system_shared_channel_manager_edit',
+        );
+        this.secureConnectionManager = new RoleRow(
+            this.rows.locator('.DataGrid_row').filter({hasText: 'Secure Connection Manager'}),
+            'system_secure_connection_manager_edit',
         );
         this.viewer = new RoleRow(
             this.rows.locator('.DataGrid_row').filter({hasText: 'Viewer'}),

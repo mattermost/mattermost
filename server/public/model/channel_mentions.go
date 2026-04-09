@@ -29,7 +29,7 @@ func ChannelMentions(message string) []string {
 
 // ChannelMentionsFromAttachments extracts channel mentions from attachment fields.
 // It scans pretext, text, and field values (but not titles, as titles are labels).
-func ChannelMentionsFromAttachments(attachments []*SlackAttachment) []string {
+func ChannelMentionsFromAttachments(attachments []*MessageAttachment) []string {
 	alreadyMentioned := make(map[string]bool)
 	var names []string
 

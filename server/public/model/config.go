@@ -20,7 +20,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/blang/semver/v4"
+	"github.com/Masterminds/semver/v3"
 	"github.com/mattermost/ldap"
 	"github.com/pkg/errors"
 
@@ -45,8 +45,9 @@ const (
 	MinioSecretKey = "miniosecretkey"
 	MinioBucket    = "mattermost-test"
 
-	PasswordMaximumLength = 72
-	PasswordMinimumLength = 5
+	PasswordMaximumLength     = 72
+	PasswordMinimumLength     = 5
+	PasswordFIPSMinimumLength = 14
 
 	ServiceGitlab = "gitlab"
 
@@ -1734,7 +1735,11 @@ type PasswordSettings struct {
 
 func (s *PasswordSettings) SetDefaults() {
 	if s.MinimumLength == nil {
-		s.MinimumLength = NewPointer(8)
+		if FIPSEnabled {
+			s.MinimumLength = NewPointer(PasswordFIPSMinimumLength)
+		} else {
+			s.MinimumLength = NewPointer(8)
+		}
 	}
 
 	if s.Lowercase == nil {
@@ -2204,6 +2209,7 @@ func (s *RateLimitSettings) SetDefaults() {
 type PrivacySettings struct {
 	ShowEmailAddress *bool `access:"site_users_and_teams"`
 	ShowFullName     *bool `access:"site_users_and_teams"`
+	UseAnonymousURLs *bool `access:"site_users_and_teams"`
 }
 
 func (s *PrivacySettings) setDefaults() {
@@ -2213,6 +2219,10 @@ func (s *PrivacySettings) setDefaults() {
 
 	if s.ShowFullName == nil {
 		s.ShowFullName = NewPointer(true)
+	}
+
+	if s.UseAnonymousURLs == nil {
+		s.UseAnonymousURLs = NewPointer(false)
 	}
 }
 
@@ -3088,36 +3098,50 @@ func (s *NativeAppSettings) SetDefaults() {
 	}
 }
 
+func (s *NativeAppSettings) AreDownloadLinksValid() *AppError {
+	for _, link := range []*string{s.AppDownloadLink, s.AndroidAppDownloadLink, s.IosAppDownloadLink} {
+		if link == nil || *link == "" {
+			continue
+		}
+		u, err := url.ParseRequestURI(*link)
+		if err != nil || u.Scheme == "" || u.Hostname() == "" {
+			return NewAppError("NativeAppSettings.AreDownloadLinksValid", "model.config.is_valid.native_app_settings.download_link.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+	return nil
+}
+
 type ElasticsearchSettings struct {
-	ConnectionURL                 *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	Backend                       *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	Username                      *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	Password                      *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	EnableIndexing                *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	EnableSearching               *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	EnableCJKAnalyzers            *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	EnableAutocomplete            *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	Sniff                         *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	PostIndexReplicas             *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	PostIndexShards               *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	ChannelIndexReplicas          *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	ChannelIndexShards            *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	UserIndexReplicas             *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	UserIndexShards               *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	AggregatePostsAfterDays       *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // telemetry: none
-	PostsAggregatorJobStartTime   *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // telemetry: none
-	IndexPrefix                   *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	GlobalSearchPrefix            *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	LiveIndexingBatchSize         *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	BulkIndexingTimeWindowSeconds *int    `json:",omitempty"` // telemetry: none
-	BatchSize                     *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	RequestTimeoutSeconds         *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	SkipTLSVerification           *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	CA                            *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	ClientCert                    *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	ClientKey                     *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	Trace                         *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
-	IgnoredPurgeIndexes           *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // telemetry: none
+	ConnectionURL                               *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	Backend                                     *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	Username                                    *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	Password                                    *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	EnableIndexing                              *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	EnableSearching                             *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	EnableCJKAnalyzers                          *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	EnableAutocomplete                          *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	Sniff                                       *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	PostIndexReplicas                           *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	PostIndexShards                             *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	ChannelIndexReplicas                        *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	ChannelIndexShards                          *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	UserIndexReplicas                           *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	UserIndexShards                             *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	AggregatePostsAfterDays                     *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // telemetry: none
+	PostsAggregatorJobStartTime                 *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // telemetry: none
+	IndexPrefix                                 *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	GlobalSearchPrefix                          *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	LiveIndexingBatchSize                       *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	BulkIndexingTimeWindowSeconds               *int    `json:",omitempty"` // telemetry: none
+	BatchSize                                   *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	RequestTimeoutSeconds                       *int    `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	SkipTLSVerification                         *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	CA                                          *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	ClientCert                                  *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	ClientKey                                   *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	Trace                                       *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	IgnoredPurgeIndexes                         *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // telemetry: none
+	EnableSearchPublicChannelsWithoutMembership *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 }
 
 func (s *ElasticsearchSettings) SetDefaults() {
@@ -3231,6 +3255,10 @@ func (s *ElasticsearchSettings) SetDefaults() {
 
 	if s.IgnoredPurgeIndexes == nil {
 		s.IgnoredPurgeIndexes = NewPointer("")
+	}
+
+	if s.EnableSearchPublicChannelsWithoutMembership == nil {
+		s.EnableSearchPublicChannelsWithoutMembership = NewPointer(false)
 	}
 }
 
@@ -4154,6 +4182,10 @@ func (o *Config) IsValid() *AppError {
 		return appErr
 	}
 
+	if appErr := o.NativeAppSettings.AreDownloadLinksValid(); appErr != nil {
+		return appErr
+	}
+
 	// Cross-reference validation: IntuneSettings requires either Office365 or SAML to be enabled
 	if o.IntuneSettings.Enable != nil && *o.IntuneSettings.Enable {
 		if o.IntuneSettings.AuthService != nil && *o.IntuneSettings.AuthService != "" {
@@ -4170,8 +4202,12 @@ func (o *Config) IsValid() *AppError {
 		}
 	}
 
-	if *o.PasswordSettings.MinimumLength < PasswordMinimumLength || *o.PasswordSettings.MinimumLength > PasswordMaximumLength {
-		return NewAppError("Config.IsValid", "model.config.is_valid.password_length.app_error", map[string]any{"MinLength": PasswordMinimumLength, "MaxLength": PasswordMaximumLength}, "", http.StatusBadRequest)
+	minPasswordLength := PasswordMinimumLength
+	if FIPSEnabled {
+		minPasswordLength = PasswordFIPSMinimumLength
+	}
+	if *o.PasswordSettings.MinimumLength < minPasswordLength || *o.PasswordSettings.MinimumLength > PasswordMaximumLength {
+		return NewAppError("Config.IsValid", "model.config.is_valid.password_length.app_error", map[string]any{"MinLength": minPasswordLength, "MaxLength": PasswordMaximumLength}, "", http.StatusBadRequest)
 	}
 
 	if appErr := o.RateLimitSettings.isValid(); appErr != nil {
@@ -4637,7 +4673,7 @@ func (s *ServiceSettings) isValid() *AppError {
 	}
 
 	if *s.MinimumDesktopAppVersion != "" {
-		if _, err := semver.Parse(*s.MinimumDesktopAppVersion); err != nil {
+		if _, err := semver.StrictNewVersion(*s.MinimumDesktopAppVersion); err != nil {
 			return NewAppError("Config.IsValid", "model.config.is_valid.minimum_desktop_app_version.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 	}
@@ -4939,6 +4975,12 @@ func (s *ImageProxySettings) isValid() *AppError {
 			if *s.RemoteImageProxyOptions == "" {
 				return NewAppError("Config.IsValid", "model.config.is_valid.atmos_camo_image_proxy_options.app_error", nil, "", http.StatusBadRequest)
 			}
+
+			// RemoteImageProxyOptions is used as the HMAC key for URL signing,
+			// so it is subject to the same FIPS minimum key length as passwords.
+			if FIPSEnabled && len(*s.RemoteImageProxyOptions) < PasswordFIPSMinimumLength {
+				return NewAppError("Config.IsValid", "model.config.is_valid.atmos_camo_image_proxy_options_length.app_error", map[string]any{"MinLength": PasswordFIPSMinimumLength}, "", http.StatusBadRequest)
+			}
 		default:
 			return NewAppError("Config.IsValid", "model.config.is_valid.image_proxy_type.app_error", nil, "", http.StatusBadRequest)
 		}
@@ -5001,6 +5043,10 @@ func (o *Config) Sanitize(pluginManifests []*Manifest, opts *SanitizeOptions) {
 		*o.FileSettings.AmazonS3SecretAccessKey = FakeSetting
 	}
 
+	if o.FileSettings.ExportAmazonS3SecretAccessKey != nil && *o.FileSettings.ExportAmazonS3SecretAccessKey != "" {
+		*o.FileSettings.ExportAmazonS3SecretAccessKey = FakeSetting
+	}
+
 	if o.EmailSettings.SMTPPassword != nil && *o.EmailSettings.SMTPPassword != "" {
 		*o.EmailSettings.SMTPPassword = FakeSetting
 	}
@@ -5033,6 +5079,10 @@ func (o *Config) Sanitize(pluginManifests []*Manifest, opts *SanitizeOptions) {
 		*o.ElasticsearchSettings.Password = FakeSetting
 	}
 
+	if o.ElasticsearchSettings.ClientKey != nil && *o.ElasticsearchSettings.ClientKey != "" {
+		*o.ElasticsearchSettings.ClientKey = FakeSetting
+	}
+
 	for i := range o.SqlSettings.DataSourceReplicas {
 		o.SqlSettings.DataSourceReplicas[i] = sanitizeDataSourceField(o.SqlSettings.DataSourceReplicas[i], "SqlSettings.DataSourceReplicas")
 	}
@@ -5056,6 +5106,14 @@ func (o *Config) Sanitize(pluginManifests []*Manifest, opts *SanitizeOptions) {
 
 	if o.ServiceSettings.SplitKey != nil {
 		*o.ServiceSettings.SplitKey = FakeSetting
+	}
+
+	if o.ServiceSettings.GoogleDeveloperKey != nil && *o.ServiceSettings.GoogleDeveloperKey != "" {
+		*o.ServiceSettings.GoogleDeveloperKey = FakeSetting
+	}
+
+	if o.ServiceSettings.GiphySdkKey != nil && *o.ServiceSettings.GiphySdkKey != "" {
+		*o.ServiceSettings.GiphySdkKey = FakeSetting
 	}
 
 	if o.CacheSettings.RedisPassword != nil {

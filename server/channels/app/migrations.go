@@ -22,8 +22,8 @@ const (
 	GuestRolesCreationMigrationKey                  = "GuestRolesCreationMigrationComplete"
 	SystemConsoleRolesCreationMigrationKey          = "SystemConsoleRolesCreationMigrationComplete"
 	CustomGroupAdminRoleCreationMigrationKey        = "CustomGroupAdminRoleCreationMigrationComplete"
-	SharedChannelManagerRoleCreationMigrationKey    = "SharedChannelManagerRoleCreationMigrationComplete"
-	SecureConnectionManagerRoleCreationMigrationKey = "SecureConnectionManagerRoleCreationMigrationComplete"
+	SharedChannelManagerRoleCreationMigrationKey    = "SystemSharedChannelManagerRoleCreationMigrationComplete"
+	SecureConnectionManagerRoleCreationMigrationKey = "SystemSecureConnectionManagerRoleCreationMigrationComplete"
 	ContentExtractionConfigDefaultTrueMigrationKey  = "ContentExtractionConfigDefaultTrueMigrationComplete"
 	PlaybookRolesCreationMigrationKey               = "PlaybookRolesCreationMigrationComplete"
 	FirstAdminSetupCompleteKey                      = model.SystemFirstAdminSetupComplete
@@ -107,7 +107,7 @@ func (s *Server) doAdvancedPermissionsMigration() error {
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark advanced permissions migration as completed: %w", err)
 	}
 
@@ -178,7 +178,7 @@ func (s *Server) doEmojisPermissionsMigration() error {
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark emojis permissions migration as completed: %w", err)
 	}
 
@@ -271,7 +271,7 @@ func (s *Server) doGuestRolesCreationMigration() error {
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark guest roles creation migration as completed: %w", err)
 	}
 
@@ -318,7 +318,7 @@ func (s *Server) doSystemConsoleRolesCreationMigration() error {
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark system console roles creation migration as completed: %w", err)
 	}
 
@@ -354,7 +354,7 @@ func (s *Server) doSingleRoleCreationMigration(migrationKey, roleId string) erro
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark %s migration as completed: %w", migrationKey, err)
 	}
 
@@ -391,7 +391,7 @@ func (s *Server) doContentExtractionConfigDefaultTrueMigration() error {
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark content extraction config migration as completed: %w", err)
 	}
 
@@ -510,7 +510,7 @@ func (s *Server) doPlaybooksRolesCreationMigration() error {
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark playbook roles creation migration as completed: %w", err)
 	}
 
@@ -558,7 +558,7 @@ func (s *Server) doFirstAdminSetupCompleteMigration() error {
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark first admin setup migration as completed: %w", err)
 	}
 
@@ -590,7 +590,7 @@ func (s *Server) doRemainingSchemaMigrations() error {
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark the remaining schema migrations as completed: %w", err)
 	}
 
@@ -639,16 +639,16 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 	}
 
 	// RegisterPropertyGroup is idempotent, so no need to check if group is already registered
-	group, err := s.propertyAccessService.RegisterPropertyGroup(model.ContentFlaggingGroupName)
+	group, err := s.propertyService.RegisterPropertyGroup(model.ContentFlaggingGroupName)
 	if err != nil {
 		return fmt.Errorf("failed to register Content Flagging group: %w", err)
 	}
 
 	// Using page size of 100 and not iterating through all pages because the
 	// number of fields are static and defined here and not expected to be more than 100 for now.
-	existingProperties, appErr := s.propertyAccessService.SearchPropertyFields(anonymousCallerId, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
-	if appErr != nil {
-		return fmt.Errorf("failed to search for existing content flagging properties: %w", appErr)
+	existingProperties, err := s.propertyService.SearchPropertyFields(nil, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+	if err != nil {
+		return fmt.Errorf("failed to search for existing content flagging properties: %w", err)
 	}
 
 	existingPropertiesMap := map[string]*model.PropertyField{}
@@ -740,13 +740,13 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 	}
 
 	for _, property := range propertiesToCreate {
-		if _, err := s.propertyAccessService.CreatePropertyField(anonymousCallerId, property); err != nil {
+		if _, err := s.propertyService.CreatePropertyField(nil, property); err != nil {
 			return fmt.Errorf("failed to create content flagging property: %q, error: %w", property.Name, err)
 		}
 	}
 
 	if len(propertiesToUpdate) > 0 {
-		if _, err := s.propertyAccessService.UpdatePropertyFields(anonymousCallerId, group.ID, propertiesToUpdate); err != nil {
+		if _, err := s.propertyService.UpdatePropertyFields(nil, group.ID, propertiesToUpdate); err != nil {
 			return fmt.Errorf("failed to update content flagging property fields: %w", err)
 		}
 	}

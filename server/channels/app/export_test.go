@@ -604,7 +604,7 @@ func TestExportPostWithProps(t *testing.T) {
 	mainHelper.Parallel(t)
 	th1 := Setup(t).InitBasic(t)
 
-	attachments := []*model.SlackAttachment{{Footer: "footer"}}
+	attachments := []*model.MessageAttachment{{Footer: "footer"}}
 
 	// DM Channel
 	dmChannel := th1.CreateDmChannel(t, th1.BasicUser2)

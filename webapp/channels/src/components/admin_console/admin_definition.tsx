@@ -2494,6 +2494,7 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'SupportSettings.AllowDownloadLogs',
                             label: defineMessage({id: 'admin.support.problemAllowDownloadTitle', defaultMessage: 'Allow Mobile App Log Downloads:'}),
                             help_text: defineMessage({id: 'admin.support.problemAllowDownloadDescription', defaultMessage: 'When enabled, users can download app logs for troubleshooting. If a ‘Report a Problem’ link is shown, logs can be downloaded as part of that flow; if the ‘Report a Problem’ link is hidden, logs remain accessible as a separate option.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                         },
                         {
                             type: 'text',
@@ -2643,6 +2644,15 @@ const AdminDefinition: AdminDefinitionType = {
                                 },
                             ],
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'PrivacySettings.UseAnonymousURLs',
+                            label: defineMessage({id: 'admin.privacy.useAnonymousURLsTitle', defaultMessage: 'Use anonymous channel and team URLs:'}),
+                            help_text: defineMessage({id: 'admin.privacy.useAnonymousURLsDescription', defaultMessage: 'When true, newly created channels and teams use randomized, non-descriptive identifiers in their URLs instead of human-readable name slugs. This prevents channel and team names from being exposed when team, channel, or message URLs are shared. **Note:** Enabling this setting does not change the URLs of existing teams and channels. To update existing URLs to use anonymous identifiers, use the mmctl command line tool or update them manually.'}),
+                            help_text_markdown: true,
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
+                            isHidden: it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
                         },
                         {
                             type: 'dropdown',
@@ -3261,7 +3271,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     featureName: 'burn_on_read',
                                     title: defineMessage({id: 'admin.burn_on_read_feature_discovery.title', defaultMessage: 'Send burn-on-read messages that are automatically deleted after being read'}),
                                     description: defineMessage({id: 'admin.burn_on_read_feature_discovery.description', defaultMessage: 'With Mattermost Enterprise Advanced, users can send transient messages that are automatically deleted a fixed time after they are read by a recipient.'}),
-                                    learnMoreURL: 'https://docs.mattermost.com/deployment/burn-on-read-messages.html',
+                                    learnMoreURL: 'https://docs.mattermost.com/end-user-guide/collaborate/send-messages.html#send-burn-on-read-messages',
                                     svgImage: BurnOnReadSVG,
                                 },
                             },

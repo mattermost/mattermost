@@ -103,9 +103,9 @@ func TestGetSharedChannelRemotes(t *testing.T) {
 	assert.Equal(t, remote1.DisplayName, result[0].DisplayName)
 	assert.Equal(t, remote2.DisplayName, result[1].DisplayName)
 
-	// Should also contain other fields
-	assert.NotEmpty(t, result[0].Name)
-	assert.NotEmpty(t, result[1].Name)
+	// Verify the Name matches the actual remote cluster name
+	assert.Equal(t, remote1.Name, result[0].Name)
+	assert.Equal(t, remote2.Name, result[1].Name)
 	assert.NotZero(t, result[0].LastPingAt)
 	assert.NotZero(t, result[1].LastPingAt)
 
