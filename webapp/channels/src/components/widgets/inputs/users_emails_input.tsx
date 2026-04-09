@@ -34,7 +34,6 @@ type Props = {
     ariaLabel: string;
     usersLoader: (search: string, callback: (users: UserProfile[]) => void) => Promise<UserProfile[]> | undefined;
     onUsersLoad?: (users: UserProfile[]) => void;
-    onBlur?: () => void;
     onChange: (change: Array<UserProfile | string>) => void;
     showError?: boolean;
     errorMessage?: MessageDescriptor;
@@ -361,7 +360,7 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
         });
     };
 
-    optionsLoader = (_input: string, callback: (options: UserProfile[]) => void) => {
+    optionsLoader = (inputValue: string, callback: (options: UserProfile[]) => void) => {
         const customCallback = (options: UserProfile[]) => {
             this.setState({options});
             const accessibleProfiles = options.map((user: UserProfile) => ({...user, label: user.username}));
@@ -370,7 +369,7 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
                 this.props.onUsersLoad(options);
             }
         };
-        const result = this.props.usersLoader(this.props.inputValue, customCallback);
+        const result = this.props.usersLoader(inputValue, customCallback);
         if (result && result.then) {
             result.then(customCallback);
         }
@@ -382,13 +381,6 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
 
     onFocus = () => {
         this.selectRef.current?.onInputChange(this.props.inputValue, {action: 'set-value', prevInputValue: this.props.inputValue});
-    };
-
-    onBlur = () => {
-        this.selectRef.current?.onInputChange(this.props.inputValue, {action: 'input-blur', prevInputValue: this.state.prevValue});
-        if (this.props.onBlur) {
-            this.props.onBlur();
-        }
     };
 
     appendDelimitedValues = async (values: string, delimiter: RegExp = pasteDelimiter): Promise<number> => {
@@ -560,8 +552,7 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
                     onInputChange={this.handleInputChange}
                     inputValue={this.props.inputValue}
                     openMenuOnFocus={true}
-                    onFocus={() => this.onFocus}
-                    onBlur={() => this.onBlur}
+                    onFocus={this.onFocus}
                     tabSelectsValue={true}
                     value={values}
                     aria-label={this.props.ariaLabel}

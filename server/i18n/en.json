@@ -10453,6 +10453,10 @@
     "translation": "Invalid RemoteImageProxyOptions for atmos/camo. Must be set to your shared key."
   },
   {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_options_length.app_error",
+    "translation": "Invalid RemoteImageProxyOptions for atmos/camo: HMAC key must be at least {{.MinLength}} bytes for FIPS compliance."
+  },
+  {
     "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
     "translation": "Invalid RemoteImageProxyURL for atmos/camo. Must be set to your shared key."
   },

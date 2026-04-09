@@ -35,7 +35,7 @@ services:
       MINIO_ROOT_PASSWORD: miniosecretkey
       MINIO_KMS_SECRET_KEY: my-minio-key:OSMM+vkKUTCvQs9YL/CVMIMt43HFhkUpqJxTmGl6rYw=
   inbucket:
-    image: "inbucket/inbucket:stable"
+    image: "inbucket/inbucket:3.1.1"
     logging: *default-logging
     restart: always
     environment:

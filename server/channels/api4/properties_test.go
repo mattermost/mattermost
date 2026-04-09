@@ -2265,7 +2265,7 @@ func TestGetPropertyValuesChannelTargetAccess(t *testing.T) {
 	// Create a non-member user
 	nonMember := th.CreateUser(t)
 	nonMemberClient := th.CreateClient()
-	_, _, err := nonMemberClient.Login(context.Background(), nonMember.Email, "Pa$$word11")
+	_, _, err := nonMemberClient.Login(context.Background(), nonMember.Email, nonMember.Password)
 	require.NoError(t, err)
 
 	t.Run("public channel - member can read", func(t *testing.T) {
@@ -2374,7 +2374,7 @@ func TestPatchPropertyValuesChannelTargetAccess(t *testing.T) {
 	// Create a non-member user
 	nonMember := th.CreateUser(t)
 	nonMemberClient := th.CreateClient()
-	_, _, err := nonMemberClient.Login(context.Background(), nonMember.Email, "Pa$$word11")
+	_, _, err := nonMemberClient.Login(context.Background(), nonMember.Email, nonMember.Password)
 	require.NoError(t, err)
 
 	t.Run("public channel - member with manage permission can write", func(t *testing.T) {
