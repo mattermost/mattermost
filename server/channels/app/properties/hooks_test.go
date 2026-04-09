@@ -19,16 +19,16 @@ import (
 // methods where a test-specific function is set.
 type testHook struct {
 	BasePropertyHook
-	preCreateFieldFn   func(*model.PropertyField) (*model.PropertyField, error)
-	preUpdateFieldFn   func(string, *model.PropertyField) (*model.PropertyField, error)
-	preUpdateFieldsFn  func(string, []*model.PropertyField) ([]*model.PropertyField, error)
-	preDeleteFieldFn   func(string, string) error
-	postGetFieldFn     func(*model.PropertyField) (*model.PropertyField, error)
-	postGetFieldsFn    func([]*model.PropertyField) ([]*model.PropertyField, error)
-	preUpsertValueFn   func(*model.PropertyValue) (*model.PropertyValue, error)
-	preUpsertValuesFn  func([]*model.PropertyValue) ([]*model.PropertyValue, error)
-	postGetValueFn     func(*model.PropertyValue) (*model.PropertyValue, error)
-	postGetValuesFn    func([]*model.PropertyValue) ([]*model.PropertyValue, error)
+	preCreateFieldFn  func(*model.PropertyField) (*model.PropertyField, error)
+	preUpdateFieldFn  func(string, *model.PropertyField) (*model.PropertyField, error)
+	preUpdateFieldsFn func(string, []*model.PropertyField) ([]*model.PropertyField, error)
+	preDeleteFieldFn  func(string, string) error
+	postGetFieldFn    func(*model.PropertyField) (*model.PropertyField, error)
+	postGetFieldsFn   func([]*model.PropertyField) ([]*model.PropertyField, error)
+	preUpsertValueFn  func(*model.PropertyValue) (*model.PropertyValue, error)
+	preUpsertValuesFn func([]*model.PropertyValue) ([]*model.PropertyValue, error)
+	postGetValueFn    func(*model.PropertyValue) (*model.PropertyValue, error)
+	postGetValuesFn   func([]*model.PropertyValue) ([]*model.PropertyValue, error)
 }
 
 func (h *testHook) PreCreatePropertyField(_ request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
