@@ -1,333 +1,418 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/PushSettings should match snapshot, licensed 1`] = `
-<form
-  className="form-horizontal"
-  onSubmit={[Function]}
-  role="form"
->
-  <div
-    className="wrapper--fixed"
+<div>
+  <form
+    class="form-horizontal"
+    role="form"
   >
-    <AdminHeader>
-      <MemoizedFormattedMessage
-        defaultMessage="Push Notification Server"
-        id="admin.environment.pushNotificationServer"
-      />
-    </AdminHeader>
-    <Memo(SettingsGroup)>
-      <Memo(DropdownSetting)
-        helpText={null}
-        id="pushNotificationServerType"
-        label={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Enable Push Notifications: "
-            id="admin.email.pushTitle"
-          />
-        }
-        onChange={[Function]}
-        setByEnv={false}
-        value="mhpns"
-        values={
-          Array [
-            Object {
-              "text": "Do not send push notifications",
-              "value": "off",
-            },
-            Object {
-              "text": "Use HPNS connection with uptime SLA to send notifications to iOS and Android apps",
-              "value": "mhpns",
-            },
-            Object {
-              "text": "Use TPNS connection to send notifications to iOS and Android apps",
-              "value": "mtpns",
-            },
-            Object {
-              "text": "Manually enter Push Notification Service location",
-              "value": "custom",
-            },
-          ]
-        }
-      />
-      <Memo(DropdownSetting)
-        helpText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Location of the push notification server. Global uses geobalancing to route requests to the nearest server for optimal performance."
-            id="admin.email.pushServerLocationHelp"
-          />
-        }
-        id="pushNotificationServerLocation"
-        label={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Push Notification Server location:"
-            id="admin.email.pushServerLocationTitle"
-          />
-        }
-        onChange={[Function]}
-        setByEnv={false}
-        value="global"
-        values={
-          Array [
-            Object {
-              "text": "Global",
-              "value": "global",
-            },
-            Object {
-              "text": "US",
-              "value": "us",
-            },
-            Object {
-              "text": "Germany",
-              "value": "de",
-            },
-            Object {
-              "text": "Japan",
-              "value": "jp",
-            },
-          ]
-        }
-      />
+    <div
+      class="wrapper--fixed"
+    >
       <div
-        className="form-group"
+        class="admin-console__header"
+      >
+        Push Notification Server
+      </div>
+      <div
+        class="admin-console__wrapper"
       >
         <div
-          className="col-sm-4"
-        />
-        <div
-          className="col-sm-8"
+          class="admin-console__content"
         >
-          <input
-            checked={false}
-            onChange={[Function]}
-            type="checkbox"
-          />
-          <MemoizedFormattedMessage
-            defaultMessage=" I understand and accept the Mattermost Hosted Push Notification Service <linkTerms>Terms of Service</linkTerms> and <linkPrivacy>Privacy Policy</linkPrivacy>."
-            id="admin.email.agreeHPNS"
-            values={
-              Object {
-                "linkPrivacy": [Function],
-                "linkTerms": [Function],
-              }
-            }
-          />
+          <div
+            class="form-group"
+            data-testid="pushNotificationServerType"
+          >
+            <label
+              class="control-label col-sm-4"
+              for="pushNotificationServerType"
+            >
+              Enable Push Notifications: 
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <select
+                class="form-control"
+                data-testid="pushNotificationServerTypedropdown"
+                id="pushNotificationServerType"
+              >
+                <option
+                  value="off"
+                >
+                  Do not send push notifications
+                </option>
+                <option
+                  value="mhpns"
+                >
+                  Use HPNS connection with uptime SLA to send notifications to iOS and Android apps
+                </option>
+                <option
+                  value="mtpns"
+                >
+                  Use TPNS connection to send notifications to iOS and Android apps
+                </option>
+                <option
+                  value="custom"
+                >
+                  Manually enter Push Notification Service location
+                </option>
+              </select>
+              <div
+                class="help-text"
+                data-testid="pushNotificationServerTypehelp-text"
+              />
+            </div>
+          </div>
+          <div
+            class="form-group"
+            data-testid="pushNotificationServerLocation"
+          >
+            <label
+              class="control-label col-sm-4"
+              for="pushNotificationServerLocation"
+            >
+              Push Notification Server location:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <select
+                class="form-control"
+                data-testid="pushNotificationServerLocationdropdown"
+                id="pushNotificationServerLocation"
+              >
+                <option
+                  value="global"
+                >
+                  Global
+                </option>
+                <option
+                  value="us"
+                >
+                  US
+                </option>
+                <option
+                  value="de"
+                >
+                  Germany
+                </option>
+                <option
+                  value="jp"
+                >
+                  Japan
+                </option>
+              </select>
+              <div
+                class="help-text"
+                data-testid="pushNotificationServerLocationhelp-text"
+              >
+                Location of the push notification server. Global uses geobalancing to route requests to the nearest server for optimal performance.
+              </div>
+            </div>
+          </div>
+          <div
+            class="form-group"
+          >
+            <div
+              class="col-sm-4"
+            />
+            <div
+              class="col-sm-8"
+            >
+              <input
+                checked=""
+                type="checkbox"
+              />
+               I understand and accept the Mattermost Hosted Push Notification Service 
+              <a
+                href="https://mattermost.com/hpns-terms/?utm_source=mattermost&utm_medium=in-product&utm_content=push_settings&uid=&sid=&edition=team&server_version="
+                location="push_settings"
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                Terms of Service
+              </a>
+               and 
+              <a
+                href="https://mattermost.com/data-processing-addendum/?utm_source=mattermost&utm_medium=in-product&utm_content=push_settings&uid=&sid=&edition=team&server_version="
+                location="push_settings"
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                Privacy Policy
+              </a>
+              .
+            </div>
+          </div>
+          <div
+            class="form-group"
+            data-testid="pushNotificationServer"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="pushNotificationServerlabel"
+              for="pushNotificationServer"
+            >
+              Push Notification Server:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="pushNotificationServerinput"
+                disabled=""
+                id="pushNotificationServer"
+                maxlength="-1"
+                placeholder="E.g.: \\"https://push-test.mattermost.com\\""
+                type="text"
+                value="https://global.push.mattermost.com"
+              />
+              <div
+                class="help-text"
+                data-testid="pushNotificationServerhelp-text"
+              >
+                Download 
+                <a
+                  href="https://mattermost.com/pl/ios-app/?utm_source=mattermost&utm_medium=in-product&utm_content=push_settings&uid=&sid=&edition=team&server_version="
+                  location="push_settings"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  Mattermost iOS app
+                </a>
+                 from iTunes. Download 
+                <a
+                  href="https://mattermost.com/pl/android-app/?utm_source=mattermost&utm_medium=in-product&utm_content=push_settings&uid=&sid=&edition=team&server_version="
+                  location="push_settings"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  Mattermost Android app
+                </a>
+                 from Google Play. Learn more about the 
+                <a
+                  href="https://mattermost.com/pl/setup-push-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=push_settings&uid=&sid=&edition=team&server_version="
+                  location="push_settings"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  Mattermost Hosted Push Notification Service
+                </a>
+                .
+              </div>
+            </div>
+          </div>
+          <div
+            class="form-group"
+            data-testid="maxNotificationsPerChannel"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="maxNotificationsPerChannellabel"
+              for="maxNotificationsPerChannel"
+            >
+              Large Channel Notification Threshold:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="maxNotificationsPerChannelnumber"
+                id="maxNotificationsPerChannel"
+                maxlength="-1"
+                placeholder="E.g.: \\"1000\\""
+                type="number"
+                value="1000"
+              />
+              <div
+                class="help-text"
+                data-testid="maxNotificationsPerChannelhelp-text"
+              >
+                The maximum number of users that can be mentioned using @here, @all, or @channel. Above this limit, mentions and typing indicators are disabled, and users will see a system message if they try to use them.
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      <AdminTextSetting
-        disabled={true}
-        helpText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Download <linkIOS>Mattermost iOS app</linkIOS> from iTunes. Download <linkAndroid>Mattermost Android app</linkAndroid> from Google Play. Learn more about the <linkHPNS>Mattermost Hosted Push Notification Service</linkHPNS>."
-            id="admin.email.mhpnsHelp"
-            values={
-              Object {
-                "linkAndroid": [Function],
-                "linkHPNS": [Function],
-                "linkIOS": [Function],
-              }
-            }
-          />
-        }
-        id="pushNotificationServer"
-        label={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Push Notification Server:"
-            id="admin.email.pushServerTitle"
-          />
-        }
-        onChange={[Function]}
-        placeholder={
-          Object {
-            "defaultMessage": "E.g.: \\"https://push-test.mattermost.com\\"",
-            "id": "admin.email.pushServerEx",
-          }
-        }
-        setByEnv={false}
-        value="https://global.push.mattermost.com"
-      />
-      <AdminTextSetting
-        helpText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="The maximum number of users that can be mentioned using @here, @all, or @channel. Above this limit, mentions and typing indicators are disabled, and users will see a system message if they try to use them."
-            id="admin.team.maxNotificationsPerChannelDescription"
-          />
-        }
-        id="maxNotificationsPerChannel"
-        label={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Large Channel Notification Threshold:"
-            id="admin.team.maxNotificationsPerChannelTitle"
-          />
-        }
-        onChange={[Function]}
-        placeholder={
-          Object {
-            "defaultMessage": "E.g.: \\"1000\\"",
-            "id": "admin.team.maxNotificationsPerChannelExample",
-          }
-        }
-        setByEnv={false}
-        type="number"
-        value={1000}
-      />
-    </Memo(SettingsGroup)>
-    <div
-      className="admin-console-save"
-    >
-      <SaveButton
-        disabled={true}
-        onClick={[Function]}
-        saving={false}
-        savingMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Saving Config..."
-            id="admin.saving"
-          />
-        }
-      />
-      <WithTooltip
-        title=""
+      <div
+        class="admin-console-save"
       >
-        <div
-          className="error-message"
+        <button
+          class="btn btn-primary"
+          data-testid="saveSetting"
+          disabled=""
+          id="saveSetting"
+          type="submit"
         >
-          <Memo(FormError)
-            error={null}
-          />
-        </div>
-      </WithTooltip>
+          <span>
+            Save
+          </span>
+        </button>
+        <div
+          class="error-message"
+        />
+      </div>
     </div>
-  </div>
-</form>
+  </form>
+</div>
 `;
 
 exports[`components/PushSettings should match snapshot, unlicensed 1`] = `
-<form
-  className="form-horizontal"
-  onSubmit={[Function]}
-  role="form"
->
-  <div
-    className="wrapper--fixed"
+<div>
+  <form
+    class="form-horizontal"
+    role="form"
   >
-    <AdminHeader>
-      <MemoizedFormattedMessage
-        defaultMessage="Push Notification Server"
-        id="admin.environment.pushNotificationServer"
-      />
-    </AdminHeader>
-    <Memo(SettingsGroup)>
-      <Memo(DropdownSetting)
-        helpText={null}
-        id="pushNotificationServerType"
-        label={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Enable Push Notifications: "
-            id="admin.email.pushTitle"
-          />
-        }
-        onChange={[Function]}
-        setByEnv={false}
-        value="custom"
-        values={
-          Array [
-            Object {
-              "text": "Do not send push notifications",
-              "value": "off",
-            },
-            Object {
-              "text": "Use TPNS connection to send notifications to iOS and Android apps",
-              "value": "mtpns",
-            },
-            Object {
-              "text": "Manually enter Push Notification Service location",
-              "value": "custom",
-            },
-          ]
-        }
-      />
-      <AdminTextSetting
-        disabled={false}
-        helpText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Learn more about compiling and deploying your own mobile apps from an <link>Enterprise App Store</link>."
-            id="admin.email.easHelp"
-            values={
-              Object {
-                "link": [Function],
-              }
-            }
-          />
-        }
-        id="pushNotificationServer"
-        label={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Push Notification Server:"
-            id="admin.email.pushServerTitle"
-          />
-        }
-        onChange={[Function]}
-        placeholder={
-          Object {
-            "defaultMessage": "E.g.: \\"https://push-test.mattermost.com\\"",
-            "id": "admin.email.pushServerEx",
-          }
-        }
-        setByEnv={false}
-        value="https://global.push.mattermost.com"
-      />
-      <AdminTextSetting
-        helpText={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="The maximum number of users that can be mentioned using @here, @all, or @channel. Above this limit, mentions and typing indicators are disabled, and users will see a system message if they try to use them."
-            id="admin.team.maxNotificationsPerChannelDescription"
-          />
-        }
-        id="maxNotificationsPerChannel"
-        label={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Large Channel Notification Threshold:"
-            id="admin.team.maxNotificationsPerChannelTitle"
-          />
-        }
-        onChange={[Function]}
-        placeholder={
-          Object {
-            "defaultMessage": "E.g.: \\"1000\\"",
-            "id": "admin.team.maxNotificationsPerChannelExample",
-          }
-        }
-        setByEnv={false}
-        type="number"
-        value={1000}
-      />
-    </Memo(SettingsGroup)>
     <div
-      className="admin-console-save"
+      class="wrapper--fixed"
     >
-      <SaveButton
-        disabled={true}
-        onClick={[Function]}
-        saving={false}
-        savingMessage={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Saving Config..."
-            id="admin.saving"
-          />
-        }
-      />
-      <WithTooltip
-        title=""
+      <div
+        class="admin-console__header"
+      >
+        Push Notification Server
+      </div>
+      <div
+        class="admin-console__wrapper"
       >
         <div
-          className="error-message"
+          class="admin-console__content"
         >
-          <Memo(FormError)
-            error={null}
-          />
+          <div
+            class="form-group"
+            data-testid="pushNotificationServerType"
+          >
+            <label
+              class="control-label col-sm-4"
+              for="pushNotificationServerType"
+            >
+              Enable Push Notifications: 
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <select
+                class="form-control"
+                data-testid="pushNotificationServerTypedropdown"
+                id="pushNotificationServerType"
+              >
+                <option
+                  value="off"
+                >
+                  Do not send push notifications
+                </option>
+                <option
+                  value="mtpns"
+                >
+                  Use TPNS connection to send notifications to iOS and Android apps
+                </option>
+                <option
+                  value="custom"
+                >
+                  Manually enter Push Notification Service location
+                </option>
+              </select>
+              <div
+                class="help-text"
+                data-testid="pushNotificationServerTypehelp-text"
+              />
+            </div>
+          </div>
+          <div
+            class="form-group"
+            data-testid="pushNotificationServer"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="pushNotificationServerlabel"
+              for="pushNotificationServer"
+            >
+              Push Notification Server:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="pushNotificationServerinput"
+                id="pushNotificationServer"
+                maxlength="-1"
+                placeholder="E.g.: \\"https://push-test.mattermost.com\\""
+                type="text"
+                value="https://global.push.mattermost.com"
+              />
+              <div
+                class="help-text"
+                data-testid="pushNotificationServerhelp-text"
+              >
+                Learn more about compiling and deploying your own mobile apps from an 
+                <a
+                  href="https://docs.mattermost.com/?utm_source=mattermost&utm_medium=in-product&utm_content=push_settings&uid=&sid=&edition=team&server_version="
+                  location="push_settings"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  Enterprise App Store
+                </a>
+                .
+              </div>
+            </div>
+          </div>
+          <div
+            class="form-group"
+            data-testid="maxNotificationsPerChannel"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="maxNotificationsPerChannellabel"
+              for="maxNotificationsPerChannel"
+            >
+              Large Channel Notification Threshold:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="maxNotificationsPerChannelnumber"
+                id="maxNotificationsPerChannel"
+                maxlength="-1"
+                placeholder="E.g.: \\"1000\\""
+                type="number"
+                value="1000"
+              />
+              <div
+                class="help-text"
+                data-testid="maxNotificationsPerChannelhelp-text"
+              >
+                The maximum number of users that can be mentioned using @here, @all, or @channel. Above this limit, mentions and typing indicators are disabled, and users will see a system message if they try to use them.
+              </div>
+            </div>
+          </div>
         </div>
-      </WithTooltip>
+      </div>
+      <div
+        class="admin-console-save"
+      >
+        <button
+          class="btn btn-primary"
+          data-testid="saveSetting"
+          disabled=""
+          id="saveSetting"
+          type="submit"
+        >
+          <span>
+            Save
+          </span>
+        </button>
+        <div
+          class="error-message"
+        />
+      </div>
     </div>
-  </div>
-</form>
+  </form>
+</div>
 `;
