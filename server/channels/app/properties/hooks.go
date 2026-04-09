@@ -41,6 +41,9 @@ type PropertyHook interface {
 	// Return nil field to indicate the field is not accessible.
 	PostGetPropertyField(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error)
 	// PostGetPropertyFields is called after retrieving multiple fields (by IDs or search).
+	// Implementations must preserve slice cardinality: modify fields in place but do not
+	// remove entries. Callers of GetPropertyFields with explicit IDs (e.g. patchPropertyValues)
+	// expect a 1:1 mapping between requested IDs and returned fields.
 	PostGetPropertyFields(rctx request.CTX, fields []*model.PropertyField) ([]*model.PropertyField, error)
 
 	// Value pre-hooks (write operations)
@@ -61,6 +64,9 @@ type PropertyHook interface {
 	// Return nil value to indicate the value is not accessible.
 	PostGetPropertyValue(rctx request.CTX, value *model.PropertyValue) (*model.PropertyValue, error)
 	// PostGetPropertyValues is called after retrieving multiple values (by IDs or search).
+	// Implementations must preserve slice cardinality: modify values in place but do not
+	// remove entries. Callers of GetPropertyValues with explicit IDs expect a 1:1 mapping
+	// between requested IDs and returned values.
 	PostGetPropertyValues(rctx request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error)
 }
 
