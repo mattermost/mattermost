@@ -59,7 +59,7 @@ export function isSafari(): boolean {
     return userAgent().indexOf('Safari') !== -1 && userAgent().indexOf('Chrome') === -1;
 }
 
-export function isIosSafari(): boolean {
+function isIosSafari(): boolean {
     return (userAgent().indexOf('iPhone') !== -1 || userAgent().indexOf('iPad') !== -1) && userAgent().indexOf('Safari') !== -1 && userAgent().indexOf('CriOS') === -1;
 }
 
