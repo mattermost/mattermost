@@ -107,7 +107,7 @@ func (s *Server) doAdvancedPermissionsMigration() error {
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark advanced permissions migration as completed: %w", err)
 	}
 
@@ -178,7 +178,7 @@ func (s *Server) doEmojisPermissionsMigration() error {
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark emojis permissions migration as completed: %w", err)
 	}
 
@@ -271,7 +271,7 @@ func (s *Server) doGuestRolesCreationMigration() error {
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark guest roles creation migration as completed: %w", err)
 	}
 
@@ -318,7 +318,7 @@ func (s *Server) doSystemConsoleRolesCreationMigration() error {
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark system console roles creation migration as completed: %w", err)
 	}
 
@@ -354,7 +354,7 @@ func (s *Server) doSingleRoleCreationMigration(migrationKey, roleId string) erro
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark %s migration as completed: %w", migrationKey, err)
 	}
 
@@ -391,7 +391,7 @@ func (s *Server) doContentExtractionConfigDefaultTrueMigration() error {
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark content extraction config migration as completed: %w", err)
 	}
 
@@ -510,7 +510,7 @@ func (s *Server) doPlaybooksRolesCreationMigration() error {
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark playbook roles creation migration as completed: %w", err)
 	}
 
@@ -558,7 +558,7 @@ func (s *Server) doFirstAdminSetupCompleteMigration() error {
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark first admin setup migration as completed: %w", err)
 	}
 
@@ -590,7 +590,7 @@ func (s *Server) doRemainingSchemaMigrations() error {
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark the remaining schema migrations as completed: %w", err)
 	}
 

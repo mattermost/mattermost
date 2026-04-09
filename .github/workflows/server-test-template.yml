@@ -17,6 +17,10 @@ on:
       fullyparallel:
         required: false
         type: boolean
+        default: true
+      allow-failure:
+        required: false
+        type: boolean
         default: false
       enablecoverage:
         required: false
@@ -47,7 +51,7 @@ jobs:
   test:
     name: ${{ inputs.name }}
     runs-on: ubuntu-latest-8-cores
-    continue-on-error: ${{ inputs.fullyparallel }} # Used to avoid blocking PRs in case of flakiness
+    continue-on-error: ${{ inputs.allow-failure }} # Used to avoid blocking PRs in case of flakiness
     env:
       COMPOSE_PROJECT_NAME: ghactions
     steps:

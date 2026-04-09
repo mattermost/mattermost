@@ -283,6 +283,7 @@ jobs:
       drivername: postgres
       logsartifact: coverage-server-test-logs
       fullyparallel: true
+      allow-failure: true
       enablecoverage: true
       go-version: ${{ needs.go.outputs.version }}
   test-mmctl:
