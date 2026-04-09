@@ -11,14 +11,8 @@ Chrome:
 Firefox:
     Mozilla/5.0 (Windows NT 10.0; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0
 
-IE11:
-    Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko
-
 Edge:
     Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2486.0 Safari/537.36 Edge/13.10586
-
-ChromeOS Chromebook:
-    Mozilla/5.0 (X11; CrOS x86_64 8172.45.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.64 Safari/537.36
 
 Desktop App:
     Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Mattermost/1.2.1 Chrome/49.0.2623.75 Electron/0.37.8 Safari/537.36
@@ -83,20 +77,16 @@ export function isAndroid(): boolean {
     return userAgent().indexOf('Android') !== -1;
 }
 
-export function isAndroidChrome(): boolean {
+function isAndroidChrome(): boolean {
     return userAgent().indexOf('Android') !== -1 && userAgent().indexOf('Chrome') !== -1 && userAgent().indexOf('Version') === -1;
 }
 
-export function isAndroidFirefox(): boolean {
+function isAndroidFirefox(): boolean {
     return userAgent().indexOf('Android') !== -1 && userAgent().indexOf('Firefox') !== -1;
 }
 
 export function isAndroidWeb(): boolean {
     return isAndroidChrome() || isAndroidFirefox();
-}
-
-export function isIosClassic(): boolean {
-    return isMobileApp() && isIos();
 }
 
 // Returns true if and only if the user is using a Mattermost mobile app. This will return false if the user is using the
@@ -134,10 +124,6 @@ export function isDesktopApp(): boolean {
     return userAgent().indexOf('Mattermost') !== -1 && userAgent().indexOf('Electron') !== -1;
 }
 
-export function isWindowsApp(): boolean {
-    return isDesktopApp() && isWindows();
-}
-
 export function isMacApp(): boolean {
     return isDesktopApp() && isMac();
 }
@@ -154,16 +140,6 @@ export function isLinux(): boolean {
     return navigator.platform.toUpperCase().indexOf('LINUX') >= 0;
 }
 
-export function isWindows7(): boolean {
-    const appVersion = navigator.appVersion;
-
-    if (!appVersion) {
-        return false;
-    }
-
-    return (/\bWindows NT 6\.1\b/).test(appVersion);
-}
-
 export function getDesktopVersion(): string {
     // use if the value window.desktop.version is not set yet
     const regex = /Mattermost\/(\d+\.\d+\.\d+)/gm;
@@ -171,13 +147,13 @@ export function getDesktopVersion(): string {
     return match;
 }
 
-export function isTeamsMobile(): boolean {
+function isTeamsMobile(): boolean {
     return userAgent().indexOf('TeamsMobile-Android') !== -1 ||
            userAgent().indexOf('TeamsMobile-iOS') !== -1 ||
            (isMobile() && userAgent().indexOf('Teams/') !== -1);
 }
 
-export function isOutlookMobile(): boolean {
+function isOutlookMobile(): boolean {
     return userAgent().indexOf('PKeyAuth/1.0') !== -1;
 }
 
