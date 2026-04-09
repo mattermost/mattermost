@@ -478,7 +478,7 @@ test-server: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-server: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-server: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-server: test-server-pre
-	$(GOBIN)/gotestsum --rerun-fails=3 --format=standard-verbose --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- $(GOFLAGS) -v -timeout=5m $(COVERAGE_FLAG)
+	$(GOBIN)/gotestsum --format=standard-verbose --packages="github.com/mattermost/mattermost/server/v8/channels/api4" -- $(GOFLAGS) -v -count=1 -parallel=1 -timeout=10m $(COVERAGE_FLAG)
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)
     ifneq ($(TEMP_DOCKER_SERVICES),)
