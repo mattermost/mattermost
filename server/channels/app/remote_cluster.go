@@ -144,10 +144,88 @@ func (a *App) UpdateRemoteCluster(rc *model.RemoteCluster) (*model.RemoteCluster
 	return rc, nil
 }
 
+const sharedChannelRemotesPageSize = 10000
+
+// sharedChannelIDsWithActiveRemotesForRemote returns distinct channel IDs that have a non-deleted
+// SharedChannelRemote row for the given remote cluster.
+func (a *App) sharedChannelIDsWithActiveRemotesForRemote(remoteClusterID string) ([]string, error) {
+	ss := a.Srv().Store()
+	seen := make(map[string]struct{})
+	var channelIDs []string
+	offset := 0
+	for {
+		remotes, err := ss.SharedChannel().GetRemotes(offset, sharedChannelRemotesPageSize, model.SharedChannelRemoteFilterOpts{
+			RemoteId:           remoteClusterID,
+			IncludeUnconfirmed: true,
+		})
+		if err != nil {
+			return nil, err
+		}
+		for _, r := range remotes {
+			if _, ok := seen[r.ChannelId]; !ok {
+				seen[r.ChannelId] = struct{}{}
+				channelIDs = append(channelIDs, r.ChannelId)
+			}
+		}
+		if len(remotes) < sharedChannelRemotesPageSize {
+			break
+		}
+		offset += sharedChannelRemotesPageSize
+	}
+	return channelIDs, nil
+}
+
+// unshareSharedChannelsIfNoConfirmedRemotes unshares channels that have no remaining confirmed
+// SharedChannelRemote rows. This matches sharedchannel.Service.unshareChannelIfNoActiveRemotes.
+func (a *App) unshareSharedChannelsIfNoRemotes(channelIDs []string) {
+	ss := a.Srv().Store()
+	scService := a.Srv().GetSharedChannelSyncService()
+
+	for _, channelID := range channelIDs {
+		remotes, err := ss.SharedChannel().GetRemotes(0, 1, model.SharedChannelRemoteFilterOpts{ChannelId: channelID, IncludeUnconfirmed: true})
+		if err != nil {
+			a.Log().Error("Failed to check remaining shared channel remotes after remote cluster delete",
+				mlog.String("channel_id", channelID),
+				mlog.Err(err),
+			)
+			continue
+		}
+		if len(remotes) > 0 {
+			continue
+		}
+		if scService != nil {
+			if _, err := scService.UnshareChannel(channelID); err != nil {
+				a.Log().Error("Failed to unshare channel with no remaining confirmed remotes",
+					mlog.String("channel_id", channelID),
+					mlog.Err(err),
+				)
+			}
+			continue
+		}
+		if _, err := ss.SharedChannel().Delete(channelID); err != nil {
+			a.Log().Error("Failed to unshare channel via store after remote cluster delete",
+				mlog.String("channel_id", channelID),
+				mlog.Err(err),
+			)
+		}
+	}
+}
+
 func (a *App) DeleteRemoteCluster(remoteClusterId string) (bool, *model.AppError) {
+	affectedChannelIDs, listErr := a.sharedChannelIDsWithActiveRemotesForRemote(remoteClusterId)
+	if listErr != nil {
+		a.Log().Warn("Could not list shared channel remotes before deleting remote cluster; skipping orphan shared-channel cleanup",
+			mlog.String("remote_id", remoteClusterId),
+			mlog.Err(listErr),
+		)
+	}
+
 	deleted, err := a.Srv().Store().RemoteCluster().Delete(remoteClusterId)
 	if err != nil {
 		return false, model.NewAppError("DeleteRemoteCluster", "api.remote_cluster.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if deleted && listErr == nil {
+		a.unshareSharedChannelsIfNoRemotes(affectedChannelIDs)
 	}
 	return deleted, nil
 }
