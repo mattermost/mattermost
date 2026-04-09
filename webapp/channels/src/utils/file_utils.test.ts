@@ -19,7 +19,7 @@ describe('FileUtils.trimFilename', () => {
 });
 
 describe('FileUtils.canUploadFiles', () => {
-    (UserAgent as any).isMobileApp = jest.fn().mockImplementation(() => false); // eslint-disable-line no-import-assign
+    (UserAgent as any).isMobile = jest.fn().mockImplementation(() => false); // eslint-disable-line no-import-assign
 
     it('is false when file attachments are disabled', () => {
         const config = {
@@ -30,10 +30,10 @@ describe('FileUtils.canUploadFiles', () => {
     });
 
     describe('is true when file attachments are enabled', () => {
-        (UserAgent as any).isMobileApp.mockImplementation(() => false);
+        (UserAgent as any).isMobile.mockImplementation(() => false);
 
         it('and not on mobile', () => {
-            (UserAgent as any).isMobileApp.mockImplementation(() => false);
+            (UserAgent as any).isMobile.mockImplementation(() => false);
 
             const config = {
                 EnableFileAttachments: 'true',
@@ -43,7 +43,7 @@ describe('FileUtils.canUploadFiles', () => {
         });
 
         it('and on mobile with mobile file upload enabled', () => {
-            (UserAgent as any).isMobileApp.mockImplementation(() => true);
+            (UserAgent as any).isMobile.mockImplementation(() => true);
 
             const config = {
                 EnableFileAttachments: 'true',
@@ -53,7 +53,7 @@ describe('FileUtils.canUploadFiles', () => {
         });
 
         it('unless on mobile with mobile file upload disabled', () => {
-            (UserAgent as any).isMobileApp.mockImplementation(() => true);
+            (UserAgent as any).isMobile.mockImplementation(() => true);
 
             const config = {
                 EnableFileAttachments: 'true',

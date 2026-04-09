@@ -45,10 +45,6 @@ export function isSafari(): boolean {
     return userAgent().indexOf('Safari') !== -1 && userAgent().indexOf('Chrome') === -1;
 }
 
-function isIosSafari(): boolean {
-    return (userAgent().indexOf('iPhone') !== -1 || userAgent().indexOf('iPad') !== -1) && userAgent().indexOf('Safari') !== -1 && userAgent().indexOf('CriOS') === -1;
-}
-
 export function isIosChrome(): boolean {
     return userAgent().indexOf('CriOS') !== -1;
 }
@@ -63,20 +59,6 @@ export function isIos(): boolean {
 
 export function isAndroid(): boolean {
     return userAgent().indexOf('Android') !== -1;
-}
-
-function isAndroidChrome(): boolean {
-    return userAgent().indexOf('Android') !== -1 && userAgent().indexOf('Chrome') !== -1 && userAgent().indexOf('Version') === -1;
-}
-
-function isAndroidFirefox(): boolean {
-    return userAgent().indexOf('Android') !== -1 && userAgent().indexOf('Firefox') !== -1;
-}
-
-// Returns true if and only if the user is using a Mattermost mobile app. This will return false if the user is using the
-// web browser on a mobile device.
-export function isMobileApp(): boolean {
-    return isMobile() && !(isIosSafari() || isIosChrome()) && !(isAndroidChrome() || isAndroidFirefox());
 }
 
 // Returns true if and only if the user is using Mattermost from the web browser on a mobile device.

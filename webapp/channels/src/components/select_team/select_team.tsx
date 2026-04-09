@@ -343,7 +343,7 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
         );
 
         let adminConsoleLink;
-        if (!UserAgent.isMobileApp()) {
+        if (!UserAgent.isMobile()) {
             adminConsoleLink = (
                 <SystemPermissionGate permissions={[Permissions.MANAGE_SYSTEM]}>
                     <div className='mt-8 hidden-xs'>

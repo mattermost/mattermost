@@ -33,7 +33,7 @@ import {DesktopNotificationSounds, ding} from 'utils/notification_sounds';
 import {showNotification} from 'utils/notifications';
 import {getFocusedPopoutInfo} from 'utils/popouts/focus';
 import {cjkrPattern} from 'utils/text_formatting';
-import {isDesktopApp, isMobileApp} from 'utils/user_agent';
+import {isDesktopApp, isMobile} from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
 import type {ActionFuncAsync, GlobalState} from 'types/store';
@@ -166,7 +166,7 @@ export function sendDesktopNotification(post: Post, msgProps: NewPostMessageProp
         const result = dispatch(notifyMe(argsAfterHooks.title, argsAfterHooks.body, channel.id, teamId, argsAfterHooks.silent, argsAfterHooks.soundName, argsAfterHooks.url));
 
         //Don't add extra sounds on native desktop clients
-        if (desktopSoundEnabled && !isDesktopApp() && !isMobileApp()) {
+        if (desktopSoundEnabled && !isDesktopApp() && !isMobile()) {
             ding(soundName);
         }
 
