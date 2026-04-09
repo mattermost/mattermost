@@ -27,10 +27,13 @@ import {getUserCategoriesForCurrentTeam} from 'selectors/views/channel_sidebar';
 
 import EditCategoryModal from 'components/edit_category_modal';
 import * as Menu from 'components/menu';
+import WithTooltip from 'components/with_tooltip';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
+
+import './channel_move_to_sub_menu.scss';
 
 type Props = {
     channel: Channel;
@@ -181,18 +184,29 @@ const ChannelMoveToSubMenu = (props: Props) => {
 
     if (isInManagedCategory) {
         return (
-            <Menu.Item
-                id={`moveTo-${props.channel.id}`}
-                labels={
+            <WithTooltip
+                title={
                     <FormattedMessage
-                        id='sidebar_left.sidebar_channel_menu.moveTo'
-                        defaultMessage='Move to...'
+                        id='sidebar_left.sidebar_channel_menu.moveTo.disabled'
+                        defaultMessage="Channels in managed categories can't be moved from here. Edit the Channel Settings to change its category."
                     />
                 }
-                leadingElement={props.inHeaderDropdown ? null : <FolderMoveOutlineIcon size={18}/>}
-                trailingElements={<ChevronRightIcon size={16}/>}
-                disabled={true}
-            />
+            >
+                <div className='ChannelMoveToSubMenu__disabledContainer'>
+                    <Menu.Item
+                        id={`moveTo-${props.channel.id}`}
+                        labels={
+                            <FormattedMessage
+                                id='sidebar_left.sidebar_channel_menu.moveTo'
+                                defaultMessage='Move to...'
+                            />
+                        }
+                        leadingElement={props.inHeaderDropdown ? null : <FolderMoveOutlineIcon size={18}/>}
+                        trailingElements={<ChevronRightIcon size={16}/>}
+                        disabled={true}
+                    />
+                </div>
+            </WithTooltip>
         );
     }
 

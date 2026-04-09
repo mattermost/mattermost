@@ -153,6 +153,21 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
         this.props.handleOpenMoreDirectChannelsModal(event.nativeEvent);
     };
 
+    isChannelDragOverManagedCategory = () => {
+        const {draggingState} = this.props;
+        if (!draggingState.state || !draggingState.type) {
+            return false;
+        }
+        switch (draggingState.type) {
+        case DraggingStateTypes.CHANNEL:
+        case DraggingStateTypes.DM:
+        case DraggingStateTypes.MIXED_CHANNELS:
+            return true;
+        default:
+            return false;
+        }
+    };
+
     isDropDisabled = () => {
         const {draggingState, category} = this.props;
 
@@ -319,6 +334,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
             return (
                 <div
                     className={classNames('SidebarChannelGroup a11y__section', {
+                        'SidebarChannelGroup--managedDropRejected': this.isChannelDragOverManagedCategory(),
                         menuIsOpen: this.state.isMenuOpen,
                         isCollapsed: this.state.isManagedCategoryCollapsed,
                     })}

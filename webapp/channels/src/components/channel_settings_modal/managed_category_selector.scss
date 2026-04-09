@@ -24,11 +24,19 @@ $managed_category_index: 999999;
         border: none;
         background-color: var(--center-channel-bg);
         box-shadow: none;
+
+        .ManagedCategory__input {
+            box-shadow: none;
+        }
     }
 }
 
 .ManagedCategory__menu {
     background-color: var(--center-channel-bg) !important;
+}
+
+.ManagedCategorySelector__createLabelPrefix {
+    opacity: 0.75;
 }
 
 .ManagedCategory__indicator-separator {

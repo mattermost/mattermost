@@ -6842,10 +6842,10 @@ func TestGetManagedCategories(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	client := th.Client
 
-	t.Run("should return 403 without enterprise license", func(t *testing.T) {
+	t.Run("should return 501 without enterprise license", func(t *testing.T) {
 		resp, err := client.DoAPIGet(context.Background(), fmt.Sprintf("/teams/%s/channels/managed_categories", th.BasicTeam.Id), "")
 		require.Error(t, err)
-		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 	})
 
 	t.Run("should return 403 when feature is disabled", func(t *testing.T) {

@@ -6,10 +6,10 @@ import React, {useState, useMemo, useCallback} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 import {components} from 'react-select';
-import type {ClearIndicatorProps, GroupBase, Options, OptionsOrGroups} from 'react-select';
+import type {ClearIndicatorProps, GroupBase, OptionProps, Options, OptionsOrGroups} from 'react-select';
 import CreatableSelect from 'react-select/creatable';
 
-import {FolderOutlineIcon} from '@mattermost/compass-icons/components';
+import {FolderOutlineIcon, FolderPlusOutlineIcon} from '@mattermost/compass-icons/components';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {getManagedCategoryMappings} from 'mattermost-redux/selectors/entities/channel_categories';
@@ -63,19 +63,26 @@ const ValueContainer = ({children, ...props}: any) => (
     </components.ValueContainer>
 );
 
-const OptionComponent = (props: any) => (
-    <div
-        className={classNames('ManagedCategorySelector__option', {
-            selected: props.isSelected,
-            focused: props.isFocused,
-        })}
-    >
-        <components.Option {...props}>
-            <FolderOutlineIcon size={16}/>
-            <span>{props.children}</span>
-        </components.Option>
-    </div>
-);
+const CREATABLE_NEW_OPTION_KEY = '__isNew__';
+const OptionComponent = (props: OptionProps<Option, false, GroupBase<Option>>) => {
+    const isCreateOption = Boolean((props.data as Record<string, unknown>)[CREATABLE_NEW_OPTION_KEY]);
+    const OptionIcon = isCreateOption ? FolderPlusOutlineIcon : FolderOutlineIcon;
+
+    return (
+        <div
+            className={classNames('ManagedCategorySelector__option', {
+                'ManagedCategorySelector__option--create': isCreateOption,
+                selected: props.isSelected,
+                focused: props.isFocused,
+            })}
+        >
+            <components.Option {...props}>
+                <OptionIcon size={16}/>
+                <span>{props.children}</span>
+            </components.Option>
+        </div>
+    );
+};
 
 export default function ManagedCategorySelector({value, onChange, menuPortalTargetId, disabled}: Props) {
     const {formatMessage} = useIntl();
@@ -97,9 +104,13 @@ export default function ManagedCategorySelector({value, onChange, menuPortalTarg
     }, [onChange]);
 
     const formatCreateLabel = useCallback((inputValue: string) => {
-        return formatMessage(
-            {id: 'managed_category.create_new', defaultMessage: 'Create new category: {name}'},
-            {name: inputValue},
+        return (
+            <>
+                <span className='ManagedCategorySelector__createLabelPrefix'>
+                    {formatMessage({id: 'managed_category.create_new_prefix', defaultMessage: 'Create new category: '})}
+                </span>
+                <span>{inputValue}</span>
+            </>
         );
     }, [formatMessage]);
 
@@ -114,6 +125,12 @@ export default function ManagedCategorySelector({value, onChange, menuPortalTarg
 
     const onBlur = useCallback(() => {
         setFocused(false);
+    }, []);
+
+    const onKeyDown = useCallback((e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            e.stopPropagation();
+        }
     }, []);
 
     const portalTarget = menuPortalTargetId ? document.getElementById(menuPortalTargetId) : undefined;
@@ -135,6 +152,7 @@ export default function ManagedCategorySelector({value, onChange, menuPortalTarg
                     role='presentation'
                     onFocus={onFocus}
                     onBlur={onBlur}
+                    onKeyDown={onKeyDown}
                 >
                     <CreatableSelect<Option>
                         classNamePrefix='ManagedCategory'
