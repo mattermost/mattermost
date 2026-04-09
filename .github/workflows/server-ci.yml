@@ -196,7 +196,7 @@ jobs:
           make mmctl-docs
           if [[ -n $(git status --porcelain) ]]; then echo "Please update the mmctl docs using make mmctl-docs"; exit 1; fi
   test-postgres-binary:
-    if: github.event_name == 'push' # Only run postgres binary tests on master/release pushes: odds are low this regresses, so save the cycles for pull requests.
+    # if: github.event_name == 'push' # Temporarily enabled for all events to debug binary mode hang
     name: Postgres with binary parameters
     needs: go
     uses: ./.github/workflows/server-test-template.yml
