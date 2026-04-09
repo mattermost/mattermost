@@ -221,10 +221,7 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 		}()
 
 		localUser := th.BasicUser
-		remoteUser := th.CreateUser(t)
-		remoteUser.RemoteId = model.NewPointer(model.NewId())
-		remoteUser, appErr := th.App.UpdateUser(th.Context, remoteUser, false)
-		require.Nil(t, appErr)
+		remoteUser := th.SetUserRemoteID(t, th.CreateUser(t).Id, model.NewId())
 
 		dm, _, err := client.CreateDirectChannel(context.Background(), localUser.Id, remoteUser.Id)
 		require.Error(t, err)
@@ -243,10 +240,7 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 		}()
 
 		localUser := th.BasicUser
-		remoteUser := th.CreateUser(t)
-		remoteUser.RemoteId = model.NewPointer(model.NewId())
-		remoteUser, appErr := th.App.UpdateUser(th.Context, remoteUser, false)
-		require.Nil(t, appErr)
+		remoteUser := th.SetUserRemoteID(t, th.CreateUser(t).Id, model.NewId())
 
 		dm, _, err := client.CreateDirectChannel(context.Background(), localUser.Id, remoteUser.Id)
 		require.NoError(t, err)
@@ -278,9 +272,7 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 		rc, appErr := th.App.AddRemoteCluster(rc)
 		require.Nil(t, appErr)
 
-		remoteUser.RemoteId = model.NewPointer(rc.RemoteId)
-		remoteUser, appErr = th.App.UpdateUser(th.Context, remoteUser, false)
-		require.Nil(t, appErr)
+		th.SetUserRemoteID(t, remoteUser.Id, rc.RemoteId)
 
 		dm, _, err := client.CreateDirectChannel(context.Background(), localUser.Id, remoteUser.Id)
 		require.NoError(t, err)
@@ -312,9 +304,7 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 		rc, appErr := th.App.AddRemoteCluster(rc)
 		require.Nil(t, appErr)
 
-		remoteUser.RemoteId = model.NewPointer(rc.RemoteId)
-		remoteUser, appErr = th.App.UpdateUser(th.Context, remoteUser, false)
-		require.Nil(t, appErr)
+		th.SetUserRemoteID(t, remoteUser.Id, rc.RemoteId)
 
 		dm, _, err := client.CreateDirectChannel(context.Background(), remoteUser.Id, localUser.Id)
 		require.NoError(t, err)

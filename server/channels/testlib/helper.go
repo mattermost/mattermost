@@ -342,6 +342,13 @@ func (h *MainHelper) GetSQLStore() *sqlstore.SqlStore {
 	return h.SQLStore
 }
 
+// SetUserRemoteID sets the RemoteId on a user via direct SQL, bypassing the
+// store's Update method which preserves RemoteId from the existing row.
+func SetUserRemoteID(sqlStore *sqlstore.SqlStore, userID, remoteID string) error {
+	_, err := sqlStore.GetMaster().Exec("UPDATE Users SET RemoteId = ? WHERE Id = ?", remoteID, userID)
+	return err
+}
+
 func (h *MainHelper) GetClusterInterface() *FakeClusterInterface {
 	if h.ClusterInterface == nil {
 		panic("MainHelper not initialized with cluster interface.")
