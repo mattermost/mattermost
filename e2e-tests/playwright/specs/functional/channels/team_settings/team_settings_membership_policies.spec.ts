@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 /**
- * @objective E2E tests for the Access Control tab in Team Settings Modal
+ * @objective E2E tests for the Membership Policies tab in Team Settings Modal
  * @reference MM-67669
  */
 
@@ -17,8 +17,8 @@ import {
     createTeamAdmin,
 } from './helpers';
 
-test.describe('Team Settings Modal - Access Control Tab', () => {
-    test('MM-67669_1 Access Control tab visible for admin with ABAC enabled', async ({pw}) => {
+test.describe('Team Settings Modal - Membership Policies Tab', () => {
+    test('MM-67669_1 Membership Policies tab visible for admin with ABAC enabled', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient, adminConfig} = await pw.initSetup();
         const config = {...adminConfig};
@@ -28,7 +28,7 @@ test.describe('Team Settings Modal - Access Control Tab', () => {
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto();
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
 
@@ -39,13 +39,13 @@ test.describe('Team Settings Modal - Access Control Tab', () => {
         await teamSettings.close();
     });
 
-    test('MM-67669_2 Access Control tab hidden when ABAC disabled', async ({pw}) => {
+    test('MM-67669_2 Membership Policies tab hidden when ABAC disabled', async ({pw}) => {
         const {adminUser} = await pw.initSetup();
 
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto();
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
 
@@ -65,13 +65,16 @@ test.describe('Team Settings Modal - Access Control Tab', () => {
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto();
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
 
         // * Empty state shown
         await expect(teamSettings.container.getByText('No policies found')).toBeVisible();
+
+        // * Sync footer hidden when no policies exist
+        await expect(teamSettings.container.locator('.SyncStatusFooter')).not.toBeVisible();
 
         await teamSettings.close();
     });
@@ -90,7 +93,7 @@ test.describe('Team Settings Modal - Access Control Tab', () => {
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
@@ -123,7 +126,7 @@ test.describe('Team Settings Modal - Access Control Tab', () => {
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
@@ -134,7 +137,7 @@ test.describe('Team Settings Modal - Access Control Tab', () => {
         await teamSettings.close();
     });
 
-    test('MM-67669_7 Team Admin sees Access Control tab and team-scoped policies', async ({pw}) => {
+    test('MM-67669_7 Team Admin sees Membership Policies tab and team-scoped policies', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminClient, team} = await pw.initSetup();
         await enableABACConfig(adminClient);
@@ -149,7 +152,7 @@ test.describe('Team Settings Modal - Access Control Tab', () => {
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
 
@@ -190,7 +193,7 @@ test.describe('Team Settings Modal - Access Control Tab', () => {
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();

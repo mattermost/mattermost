@@ -2,10 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Modal} from 'react-bootstrap';
 import type {IntlShape} from 'react-intl';
 import {injectIntl, FormattedMessage, defineMessage} from 'react-intl';
 
+import {GenericModal} from '@mattermost/components';
 import type {Channel, ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -14,6 +14,8 @@ import MultiSelect from 'components/multiselect/multiselect';
 import type {Value} from 'components/multiselect/multiselect';
 
 import Constants from 'utils/constants';
+
+import './channel_selector_modal.scss';
 
 type ChannelWithTeamDataValue = ChannelWithTeamData & Value;
 
@@ -36,6 +38,7 @@ type Props = {
     excludeTypes?: string[];
     teamId?: string;
     customNoOptionsMessage?: React.ReactNode;
+    isStacked?: boolean;
 }
 
 type State = {
@@ -267,52 +270,47 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
         }
 
         return (
-            <Modal
-                dialogClassName={'a11y__modal more-modal more-direct-channels channel-selector-modal'}
+            <GenericModal
+                className='a11y__modal more-modal more-direct-channels channel-selector-modal'
                 show={this.state.show}
                 onHide={this.handleHide}
                 onExited={this.handleExit}
-                role='none'
-                aria-labelledby='channelSelectorModalLabel'
-            >
-                <Modal.Header closeButton={true}>
-                    <Modal.Title
-                        componentClass='h1'
-                        id='channelSelectorModalLabel'
-                    >
-                        <FormattedMessage
-                            id='channelSelectorModal.title'
-                            defaultMessage='Add Channels to <b>Channel Selection</b> List'
-                            values={{
-                                b: (chunks) => <b>{chunks}</b>,
-                            }}
-                        />
-                    </Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <MultiSelect<ChannelWithTeamDataValue>
-                        key='addChannelsToSchemeKey'
-                        options={options}
-                        optionRenderer={this.renderOption}
-                        intl={this.props.intl}
-                        selectedItemRef={this.selectedItemRef}
-                        values={values}
-                        valueRenderer={this.renderValue}
-                        perPage={CHANNELS_PER_PAGE}
-                        handlePageChange={this.handlePageChange}
-                        handleInput={this.search}
-                        handleDelete={this.handleDelete}
-                        handleAdd={this.addValue}
-                        handleSubmit={this.handleSubmit}
-                        numRemainingText={numRemainingText}
-                        buttonSubmitText={buttonSubmitText}
-                        saving={false}
-                        loading={this.state.loadingChannels}
-                        placeholderText={defineMessage({id: 'multiselect.addChannelsPlaceholder', defaultMessage: 'Search and add channels'})}
-                        customNoOptionsMessage={customNoOptionsMessage}
+                modalHeaderText={
+                    <FormattedMessage
+                        id='channelSelectorModal.title'
+                        defaultMessage='Add Channels to <b>Channel Selection</b> List'
+                        values={{
+                            b: (chunks) => <b>{chunks}</b>,
+                        }}
                     />
-                </Modal.Body>
-            </Modal>
+                }
+                isStacked={this.props.isStacked}
+                compassDesign={true}
+                bodyPadding={false}
+                id='channelSelectorModal'
+            >
+                <MultiSelect<ChannelWithTeamDataValue>
+                    key='addChannelsToSchemeKey'
+                    options={options}
+                    optionRenderer={this.renderOption}
+                    intl={this.props.intl}
+                    selectedItemRef={this.selectedItemRef}
+                    values={values}
+                    valueRenderer={this.renderValue}
+                    perPage={CHANNELS_PER_PAGE}
+                    handlePageChange={this.handlePageChange}
+                    handleInput={this.search}
+                    handleDelete={this.handleDelete}
+                    handleAdd={this.addValue}
+                    handleSubmit={this.handleSubmit}
+                    numRemainingText={numRemainingText}
+                    buttonSubmitText={buttonSubmitText}
+                    saving={false}
+                    loading={this.state.loadingChannels}
+                    placeholderText={defineMessage({id: 'multiselect.addChannelsPlaceholder', defaultMessage: 'Search and add channels'})}
+                    customNoOptionsMessage={customNoOptionsMessage}
+                />
+            </GenericModal>
         );
     }
 }

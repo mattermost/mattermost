@@ -17,6 +17,8 @@ import {
     createPrivateChannel,
     createTeamAdmin,
     setUserAttribute,
+    addAttributeRule,
+    addChannelToPolicy,
 } from './helpers';
 
 test.describe('Team Settings Modal - Policy Editor', () => {
@@ -31,7 +33,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
@@ -61,7 +63,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
@@ -74,31 +76,10 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await teamSettings.container.locator('#input_policyName').fill(policyName);
 
         // # Add a rule row and fill in a value
-        // Add a rule: click Add attribute, dismiss the auto-opened menu, fill value
-        const addAttrBtn = teamSettings.container.getByRole('button', {name: /Add attribute/});
-        await expect(addAttrBtn).toBeEnabled({timeout: 10000});
-        await addAttrBtn.click();
-        await page.waitForTimeout(500);
-
-        // The attribute selector menu auto-opens — dismiss by clicking the selected attribute
-        const attributeOption = page.locator('[id^="attribute-selector-menu"] li').first();
-        if (await attributeOption.isVisible({timeout: 2000})) {
-            await attributeOption.click({force: true});
-            await page.waitForTimeout(500);
-        }
-
-        // Fill value in the simple input (text-type attribute renders direct input)
-        const valueInput = teamSettings.container.locator('.values-editor__simple-input').first();
-        await valueInput.waitFor({state: 'visible', timeout: 10000});
-        await valueInput.fill('Engineering');
+        await addAttributeRule(teamSettings.container, page, 'Engineering');
 
         // # Add channel via channel selector
-        await teamSettings.container.getByRole('button', {name: /Add channels/}).click();
-        const channelModal = page.locator('.channel-selector-modal');
-        await channelModal.waitFor();
-        await expect(channelModal.locator('.more-modal__row').first()).toBeVisible({timeout: 10000});
-        await channelModal.locator('.more-modal__row').filter({hasText: channel.display_name}).click();
-        await channelModal.getByRole('button', {name: 'Add'}).click();
+        await addChannelToPolicy(teamSettings.container, page, channel.display_name);
 
         // # Save via SaveChangesPanel
         await teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
@@ -106,7 +87,6 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         // # Confirm in PolicyConfirmationModal
         await page.locator('.TeamPolicyConfirmationModal').waitFor();
         await page.getByRole('button', {name: /Apply policy/}).click();
-        await page.waitForLoadState('networkidle');
 
         // * Auto-navigated back to list, policy name visible
         await expect(teamSettings.container.getByText(policyName)).toBeVisible();
@@ -129,14 +109,13 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
 
         // # Click policy row
         await teamSettings.container.getByText(policy.name).click();
-        await page.waitForLoadState('networkidle');
 
         // * Editor shown with pre-populated name
         await expect(teamSettings.container.locator('#input_policyName')).toHaveValue(policy.name);
@@ -148,7 +127,6 @@ test.describe('Team Settings Modal - Policy Editor', () => {
 
         // # Save via SaveChangesPanel (name-only change skips confirmation modal)
         await teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
-        await page.waitForLoadState('networkidle');
 
         // * Auto-navigated back to list, updated name visible
         await expect(teamSettings.container.getByText(newName)).toBeVisible();
@@ -171,7 +149,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
@@ -180,7 +158,6 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const menuButton = teamSettings.container.locator(`button[id="policy-menu-${policy.id}"]`);
         await menuButton.click();
         await page.getByRole('menuitem', {name: 'Edit'}).click();
-        await page.waitForLoadState('networkidle');
 
         // * Editor shown with pre-populated name
         await expect(teamSettings.container.locator('#input_policyName')).toHaveValue(policy.name);
@@ -203,14 +180,14 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
 
         // # Open editor and modify name
         await teamSettings.container.getByText(policy.name).click();
-        await page.waitForLoadState('networkidle');
+
         await teamSettings.container.locator('#input_policyName').clear();
         await teamSettings.container.locator('#input_policyName').fill('Changed Name');
 
@@ -234,7 +211,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
@@ -262,14 +239,13 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
 
         // # Open editor
         await teamSettings.container.getByText(policy.name).click();
-        await page.waitForLoadState('networkidle');
 
         // # Remove the channel to enable delete (click Remove link in channel list)
         await teamSettings.container.getByText('Remove').first().click();
@@ -283,7 +259,6 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         // # Confirm in delete confirmation modal
         await page.locator('.TeamPolicyEditor__delete-modal').waitFor();
         await page.locator('.TeamPolicyEditor__delete-modal').getByRole('button', {name: 'Delete'}).click();
-        await page.waitForLoadState('networkidle');
 
         // * Back to list, policy removed
         await expect(teamSettings.container.getByText(policy.name)).not.toBeVisible();
@@ -306,36 +281,15 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
 
         // # Open create editor, add rule + channel but leave name empty
         await teamSettings.container.getByRole('button', {name: 'Add policy'}).click();
-        // Add a rule: click Add attribute, dismiss the auto-opened menu, fill value
-        const addAttrBtn = teamSettings.container.getByRole('button', {name: /Add attribute/});
-        await expect(addAttrBtn).toBeEnabled({timeout: 10000});
-        await addAttrBtn.click();
-        await page.waitForTimeout(500);
-
-        // The attribute selector menu auto-opens — dismiss by clicking the selected attribute
-        const attributeOption = page.locator('[id^="attribute-selector-menu"] li').first();
-        if (await attributeOption.isVisible({timeout: 2000})) {
-            await attributeOption.click({force: true});
-            await page.waitForTimeout(500);
-        }
-
-        // Fill value in the simple input (text-type attribute renders direct input)
-        const valueInput = teamSettings.container.locator('.values-editor__simple-input').first();
-        await valueInput.waitFor({state: 'visible', timeout: 10000});
-        await valueInput.fill('Engineering');
-        await teamSettings.container.getByRole('button', {name: /Add channels/}).click();
-        const channelModal = page.locator('.channel-selector-modal');
-        await channelModal.waitFor();
-        await expect(channelModal.locator('.more-modal__row').first()).toBeVisible({timeout: 10000});
-        await channelModal.locator('.more-modal__row').filter({hasText: channel.display_name}).click();
-        await channelModal.getByRole('button', {name: 'Add'}).click();
+        await addAttributeRule(teamSettings.container, page, 'Engineering');
+        await addChannelToPolicy(teamSettings.container, page, channel.display_name);
 
         // # Click Save
         await teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
@@ -357,7 +311,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
@@ -365,23 +319,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         // # Open create editor, add name + rule but no channels
         await teamSettings.container.getByRole('button', {name: 'Add policy'}).click();
         await teamSettings.container.locator('#input_policyName').fill(`No Channels ${Date.now()}`);
-        // Add a rule: click Add attribute, dismiss the auto-opened menu, fill value
-        const addAttrBtn = teamSettings.container.getByRole('button', {name: /Add attribute/});
-        await expect(addAttrBtn).toBeEnabled({timeout: 10000});
-        await addAttrBtn.click();
-        await page.waitForTimeout(500);
-
-        // The attribute selector menu auto-opens — dismiss by clicking the selected attribute
-        const attributeOption = page.locator('[id^="attribute-selector-menu"] li').first();
-        if (await attributeOption.isVisible({timeout: 2000})) {
-            await attributeOption.click({force: true});
-            await page.waitForTimeout(500);
-        }
-
-        // Fill value in the simple input (text-type attribute renders direct input)
-        const valueInput = teamSettings.container.locator('.values-editor__simple-input').first();
-        await valueInput.waitFor({state: 'visible', timeout: 10000});
-        await valueInput.fill('Engineering');
+        await addAttributeRule(teamSettings.container, page, 'Engineering');
 
         // # Click Save
         await teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
@@ -407,14 +345,13 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
 
         // # Open editor
         await teamSettings.container.getByText(policy.name).click();
-        await page.waitForLoadState('networkidle');
 
         // * Delete button is disabled (policy has channels)
         const deleteBtn = teamSettings.container
@@ -488,20 +425,19 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
 
         // # Edit policy name (name-only change — no confirmation modal)
         await teamSettings.container.getByText(policy.name).click();
-        await page.waitForLoadState('networkidle');
+
         await teamSettings.container.locator('#input_policyName').clear();
         await teamSettings.container.locator('#input_policyName').fill(`Updated ${Date.now()}`);
 
         // # Save
         await teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
-        await page.waitForLoadState('networkidle');
 
         // * Success message visible on list view
         await expect(teamSettings.container.locator('.SaveChangesPanel.saved')).toBeVisible();
@@ -522,7 +458,10 @@ test.describe('Team Settings Modal - Policy Editor', () => {
 
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
+        // # Navigate and wait for all API calls to settle (custom profile attributes
+        // must be fetched before the self-inclusion check can validate the admin's Department)
         await channelsPage.goto(team.name);
+        await channelsPage.toBeVisible();
         await page.waitForLoadState('networkidle');
 
         const teamSettings = await channelsPage.openTeamSettings();
@@ -535,31 +474,10 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await teamSettings.container.locator('#input_policyName').fill(policyName);
 
         // # Add a rule row and fill in a value
-        // Add a rule: click Add attribute, dismiss the auto-opened menu, fill value
-        const addAttrBtn = teamSettings.container.getByRole('button', {name: /Add attribute/});
-        await expect(addAttrBtn).toBeEnabled({timeout: 10000});
-        await addAttrBtn.click();
-        await page.waitForTimeout(500);
-
-        // The attribute selector menu auto-opens — dismiss by clicking the selected attribute
-        const attributeOption = page.locator('[id^="attribute-selector-menu"] li').first();
-        if (await attributeOption.isVisible({timeout: 2000})) {
-            await attributeOption.click({force: true});
-            await page.waitForTimeout(500);
-        }
-
-        // Fill value in the simple input (text-type attribute renders direct input)
-        const valueInput = teamSettings.container.locator('.values-editor__simple-input').first();
-        await valueInput.waitFor({state: 'visible', timeout: 10000});
-        await valueInput.fill('Engineering');
+        await addAttributeRule(teamSettings.container, page, 'Engineering');
 
         // # Add channel via channel selector
-        await teamSettings.container.getByRole('button', {name: /Add channels/}).click();
-        const channelModal = page.locator('.channel-selector-modal');
-        await channelModal.waitFor();
-        await expect(channelModal.locator('.more-modal__row').first()).toBeVisible({timeout: 10000});
-        await channelModal.locator('.more-modal__row').filter({hasText: channel.display_name}).click();
-        await channelModal.getByRole('button', {name: 'Add'}).click();
+        await addChannelToPolicy(teamSettings.container, page, channel.display_name);
 
         // # Save via SaveChangesPanel
         await teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
@@ -567,7 +485,6 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         // # Confirm in PolicyConfirmationModal
         await page.locator('.TeamPolicyConfirmationModal').waitFor();
         await page.getByRole('button', {name: /Apply policy/}).click();
-        await page.waitForLoadState('networkidle');
 
         // * Auto-navigated back to list, policy appears
         await expect(teamSettings.container.getByText(policyName)).toBeVisible();
@@ -575,7 +492,80 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await teamSettings.close();
     });
 
-    test('MM-67967_1 Team admin can delete policy after removing all channels', async ({pw}) => {
+    test('MM-67967_1 Team admin can trigger sync and see updated status', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        const {adminClient, team} = await pw.initSetup();
+        await enableABACConfig(adminClient);
+        await ensureDepartmentAttribute(adminClient);
+
+        const channel = await createPrivateChannel(adminClient, team.id);
+        const policy = await createParentPolicy(adminClient, `Sync Test ${Date.now()}`);
+        await assignChannelsToPolicy(adminClient, policy.id, [channel.id]);
+
+        const teamAdmin = await createTeamAdmin(adminClient, team.id);
+
+        const {page} = await pw.testBrowser.login(teamAdmin);
+        const channelsPage = new ChannelsPage(page);
+        await channelsPage.goto(team.name);
+        await channelsPage.toBeVisible();
+
+        const teamSettings = await channelsPage.openTeamSettings();
+        await teamSettings.openAccessPoliciesTab();
+
+        // * Footer visible with "Sync now" action
+        const footer = teamSettings.container.locator('.SyncStatusFooter');
+        await expect(footer).toBeVisible({timeout: 10000});
+        await expect(teamSettings.container.getByText(/Sync now/)).toBeVisible();
+
+        // # Click Sync now
+        await teamSettings.container.getByText(/Sync now/).click();
+
+        // * Syncing state appears
+        await expect(teamSettings.container.getByText(/Syncing/)).toBeVisible({timeout: 5000});
+
+        // * Wait for sync to complete and "Sync now" to reappear
+        await expect(teamSettings.container.getByText(/Sync now/)).toBeVisible({timeout: 30000});
+
+        // * Status updates to "Last synced just now" confirming a fresh sync completed
+        await expect(teamSettings.container.getByText(/Last synced just now/)).toBeVisible();
+
+        await teamSettings.close();
+    });
+
+    test('MM-67967_2 System admin can trigger sync from team settings', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        const {adminUser, adminClient, team} = await pw.initSetup();
+        await enableABACConfig(adminClient);
+        await ensureDepartmentAttribute(adminClient);
+
+        const channel = await createPrivateChannel(adminClient, team.id);
+        const policy = await createParentPolicy(adminClient, `SysAdmin Sync ${Date.now()}`);
+        await assignChannelsToPolicy(adminClient, policy.id, [channel.id]);
+
+        const {page} = await pw.testBrowser.login(adminUser);
+        const channelsPage = new ChannelsPage(page);
+        await channelsPage.goto(team.name);
+        await channelsPage.toBeVisible();
+
+        const teamSettings = await channelsPage.openTeamSettings();
+        await teamSettings.openAccessPoliciesTab();
+
+        // * Footer visible with "Sync now" action
+        await expect(teamSettings.container.getByText(/Sync now/)).toBeVisible({timeout: 15000});
+
+        // # Click Sync now
+        await teamSettings.container.getByText(/Sync now/).click();
+
+        // * Wait for sync to complete and "Sync now" to reappear
+        await expect(teamSettings.container.getByText(/Sync now/)).toBeVisible({timeout: 30000});
+
+        // * Status updates to "Last synced just now" confirming a fresh sync completed
+        await expect(teamSettings.container.getByText(/Last synced just now/)).toBeVisible();
+
+        await teamSettings.close();
+    });
+
+    test('MM-67594_1 Team admin can delete policy after removing all channels', async ({pw}) => {
         // Scenario: Policy created via API → team admin opens editor → removes channel → deletes.
         // Validates that the scope field persists team ownership through channel removal.
         await pw.skipIfNoLicense();
@@ -598,18 +588,16 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
-        await page.waitForLoadState('networkidle');
 
         // * Policy is visible
         await expect(teamSettings.container.getByText(policyName)).toBeVisible({timeout: 10000});
 
         // # Open editor by clicking policy row
         await teamSettings.container.getByText(policyName).click();
-        await page.waitForLoadState('networkidle');
 
         // # Remove the channel to enable delete
         const removeLink = teamSettings.container.getByText('Remove').first();
@@ -627,7 +615,6 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const deleteModal = page.locator('.TeamPolicyEditor__delete-modal');
         await expect(deleteModal).toBeVisible({timeout: 10000});
         await deleteModal.getByRole('button', {name: 'Delete'}).click();
-        await page.waitForLoadState('networkidle');
 
         // * Back to list, policy is removed
         await expect(teamSettings.container.getByText(policyName)).not.toBeVisible();
@@ -635,7 +622,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await teamSettings.close();
     });
 
-    test('MM-67967_2 System admin cross-team channel changes toggle team admin visibility', async ({pw}) => {
+    test('MM-67594_2 System admin cross-team channel changes toggle team admin visibility', async ({pw}) => {
         // Scenario: System admin creates policy with team A channels → team admin A sees it →
         // system admin adds team B channel (cross-team) → team admin A no longer sees it →
         // system admin removes team B channel → team admin A sees it again.
@@ -669,12 +656,12 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
-        await page.waitForLoadState('networkidle');
+        await channelsPage.toBeVisible();
 
         // # Step 1: Team admin can see the policy (all channels in their team)
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
-        await page.waitForLoadState('networkidle');
+
         await expect(teamSettings.container.getByText(policyName)).toBeVisible({timeout: 10000});
         await teamSettings.close();
 
@@ -684,7 +671,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         // # Team admin reopens team settings — policy should NOT be visible (cross-team)
         const teamSettings2 = await channelsPage.openTeamSettings();
         await teamSettings2.openAccessPoliciesTab();
-        await page.waitForLoadState('networkidle');
+
         await expect(teamSettings2.container.getByText(policyName)).not.toBeVisible({timeout: 10000});
         await teamSettings2.close();
 
@@ -694,7 +681,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         // # Team admin reopens team settings — policy should be visible again
         const teamSettings3 = await channelsPage.openTeamSettings();
         await teamSettings3.openAccessPoliciesTab();
-        await page.waitForLoadState('networkidle');
+
         await expect(teamSettings3.container.getByText(policyName)).toBeVisible({timeout: 10000});
 
         await teamSettings3.close();

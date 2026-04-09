@@ -15,6 +15,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import PolicyList from 'components/admin_console/access_control/policies';
 import SaveChangesPanel from 'components/widgets/modals/components/save_changes_panel';
 
+import SyncStatusFooter from './sync_status_footer';
 import TeamPolicyEditor from './team_policy_editor';
 
 import './team_access_policies_tab.scss';
@@ -91,6 +92,9 @@ const TeamAccessPoliciesTab = ({team, accessControlSettings, setAreThereUnsavedC
         setView('create');
     }, []);
 
+    const [hasPolicies, setHasPolicies] = useState(false);
+    const handlePoliciesLoaded = useCallback((count: number) => setHasPolicies(count > 0), []);
+
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
     const handleNavigateBack = useCallback((message?: string) => {
@@ -164,6 +168,11 @@ const TeamAccessPoliciesTab = ({team, accessControlSettings, setAreThereUnsavedC
                 showRefreshButton={true}
                 actions={policyListActions}
                 onPolicySelected={handlePolicySelected}
+                onPoliciesLoaded={handlePoliciesLoaded}
+            />
+            <SyncStatusFooter
+                teamId={team.id}
+                hasPolicies={hasPolicies}
             />
             {successMessage && (
                 <SaveChangesPanel

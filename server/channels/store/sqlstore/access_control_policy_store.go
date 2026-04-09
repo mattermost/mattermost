@@ -675,13 +675,18 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 	// enforces single-team scope). This only applies to parent policies; the type
 	// is forced to 'parent' when TeamID is set.
 	if opts.TeamID != "" {
-		if opts.Type == "" {
-			parentCondition := sq.Eq{"Type": model.AccessControlPolicyTypeParent}
-			query = query.Where(parentCondition)
-			count = count.Where(parentCondition)
-		}
+		if opts.Type == model.AccessControlPolicyTypeChannel {
+			condition := sq.Expr(`Id IN (SELECT Id FROM Channels WHERE TeamId = ?)`, opts.TeamID)
+			query = query.Where(condition)
+			count = count.Where(condition)
+		} else {
+			if opts.Type == "" {
+				parentCondition := sq.Eq{"Type": model.AccessControlPolicyTypeParent}
+				query = query.Where(parentCondition)
+				count = count.Where(parentCondition)
+			}
 
-		condition := sq.Expr(`Id IN (
+			condition := sq.Expr(`Id IN (
 			SELECT parent_id FROM (
 				SELECT ch.TeamId, jsonb_array_elements_text(cp.Data -> 'imports') AS parent_id
 				FROM AccessControlPolicies cp
@@ -690,8 +695,9 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 			) team_children
 			GROUP BY parent_id
 			HAVING COUNT(DISTINCT TeamId) = 1 AND MIN(TeamId) = ?)`, opts.TeamID)
-		query = query.Where(condition)
-		count = count.Where(condition)
+			query = query.Where(condition)
+			count = count.Where(condition)
+		}
 	}
 
 	cursor := opts.Cursor
