@@ -8201,6 +8201,15 @@ func (c *Client4) TestExpression(ctx context.Context, params QueryExpressionPara
 	return DecodeJSONFromResponse[*AccessControlPolicyTestResponse](r)
 }
 
+func (c *Client4) EvaluateExpression(ctx context.Context, req EvaluateExpressionRequest) (*EvaluateExpressionResponse, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.celRoute().Join("evaluate"), req)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*EvaluateExpressionResponse](r)
+}
+
 func (c *Client4) SearchAccessControlPolicies(ctx context.Context, options AccessControlPolicySearch) (*AccessControlPoliciesWithCount, *Response, error) {
 	r, err := c.doAPIPostJSON(ctx, c.accessControlPoliciesRoute().Join("search"), options)
 	if err != nil {

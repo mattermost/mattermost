@@ -574,6 +574,90 @@
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
+  /api/v4/access_control_policies/cel/evaluate:
+    post:
+      tags:
+        - access control
+      summary: Evaluate a CEL expression against specific users
+      description: |
+        Evaluates a CEL access control expression against one or more specified users
+        via the Policy Decision Point (PDP). Returns per-user access decisions along
+        with any CEL compilation errors or PDP evaluation errors.
+
+        This endpoint is useful for testing and previewing the effect of an expression
+        on specific users before applying it to a policy. It can also be used by plugins
+        through the Plugin API.
+
+        ##### Permissions
+        Must have the `manage_system` permission.
+      operationId: EvaluateExpression
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - expression
+                - user_ids
+              properties:
+                expression:
+                  type: string
+                  description: The CEL expression to evaluate.
+                user_ids:
+                  type: array
+                  items:
+                    type: string
+                  description: List of user IDs to evaluate the expression against. Maximum 100.
+                action:
+                  type: string
+                  description: The action context for the evaluation (e.g. "membership").
+                resource:
+                  type: object
+                  description: The resource context for the evaluation.
+                  properties:
+                    type:
+                      type: string
+                      description: Resource type (e.g. "channel").
+                    id:
+                      type: string
+                      description: Resource ID.
+      responses:
+        "200":
+          description: Expression evaluated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    description: Per-user evaluation results. Omitted when expression_errors is present.
+                    items:
+                      type: object
+                      properties:
+                        user_id:
+                          type: string
+                        decision:
+                          type: boolean
+                        error:
+                          type: string
+                          description: PDP evaluation error for this user, if any.
+                  expression_errors:
+                    type: array
+                    description: CEL compilation errors. Present only when the expression is invalid.
+                    items:
+                      $ref: "#/components/schemas/ExpressionError"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   /api/v4/access_control_policies/activate:
     put:
       tags:

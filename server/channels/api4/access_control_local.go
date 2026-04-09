@@ -18,6 +18,7 @@ func (api *API) InitAccessControlPolicyLocal() {
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/validate_requester", api.APILocal(validateExpressionAgainstRequester)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/autocomplete/fields", api.APILocal(getFieldsAutocomplete)).Methods(http.MethodGet)
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/visual_ast", api.APILocal(convertToVisualAST)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlPolicies.Handle("/cel/evaluate", api.APILocal(evaluateExpression)).Methods(http.MethodPost)
 
 	api.BaseRoutes.AccessControlPolicy.Handle("", api.APILocal(getAccessControlPolicy)).Methods(http.MethodGet)
 	api.BaseRoutes.AccessControlPolicy.Handle("", api.APILocal(deleteAccessControlPolicy)).Methods(http.MethodDelete)

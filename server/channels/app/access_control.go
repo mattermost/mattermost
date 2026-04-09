@@ -691,6 +691,76 @@ func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles s
 	return subject, nil
 }
 
+// EvaluateExpression evaluates a CEL expression against the given users via the PDP.
+// It first validates the expression syntax, then builds a Subject for each user and
+// calls AccessEvaluationWithExpression. Returns per-user results or expression errors.
+func (a *App) EvaluateExpression(rctx request.CTX, req model.EvaluateExpressionRequest) (*model.EvaluateExpressionResponse, *model.AppError) {
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return nil, model.NewAppError("EvaluateExpression", "app.pap.evaluate_expression.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
+	}
+
+	celErrors, appErr := acs.CheckExpression(rctx, req.Expression)
+	if appErr != nil {
+		return nil, model.NewAppError("EvaluateExpression", "app.pap.evaluate_expression.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+	}
+	if len(celErrors) > 0 {
+		return &model.EvaluateExpressionResponse{ExpressionErrors: celErrors}, nil
+	}
+
+	users, appErr := a.GetUsersByIds(rctx, req.UserIDs, &store.UserGetByIdsOpts{})
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	userMap := make(map[string]*model.User, len(users))
+	for _, u := range users {
+		userMap[u.Id] = u
+	}
+
+	results := make([]model.EvaluateExpressionResult, 0, len(req.UserIDs))
+	for _, userID := range req.UserIDs {
+		user, ok := userMap[userID]
+		if !ok {
+			results = append(results, model.EvaluateExpressionResult{
+				UserID: userID,
+				Error:  "user not found",
+			})
+			continue
+		}
+
+		subject, buildErr := a.BuildAccessControlSubject(rctx, user.Id, user.Roles)
+		if buildErr != nil {
+			results = append(results, model.EvaluateExpressionResult{
+				UserID: userID,
+				Error:  buildErr.Error(),
+			})
+			continue
+		}
+
+		accessReq := model.AccessRequest{
+			Subject: *subject,
+			Action:  req.Action,
+		}
+
+		decision, evalErr := acs.AccessEvaluationWithExpression(rctx, accessReq, req.Expression)
+		if evalErr != nil {
+			results = append(results, model.EvaluateExpressionResult{
+				UserID: userID,
+				Error:  evalErr.Error(),
+			})
+			continue
+		}
+
+		results = append(results, model.EvaluateExpressionResult{
+			UserID:   userID,
+			Decision: decision.Decision,
+		})
+	}
+
+	return &model.EvaluateExpressionResponse{Results: results}, nil
+}
+
 // refreshAttributeViewIfStale refreshes the materialized AttributeView if the last
 // refresh was more than attributeViewRefreshInterval ago. The refresh is non-blocking:
 // if another goroutine is already refreshing, this call returns immediately.

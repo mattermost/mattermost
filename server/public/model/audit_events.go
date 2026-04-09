@@ -19,6 +19,7 @@ const (
 	AuditEventAssignTeamAccessPolicy   = "assignTeamAccessPolicy"   // assign channels to team-scoped access control policy
 	AuditEventUnassignTeamAccessPolicy = "unassignTeamAccessPolicy" // remove channels from team-scoped access control policy
 	AuditEventTriggerTeamPolicySync    = "triggerTeamPolicySync"    // trigger sync for team-scoped access control policies
+	AuditEventEvaluateExpression       = "evaluateExpression"       // evaluate CEL expression against users via PDP
 )
 
 // Audit & Certificates

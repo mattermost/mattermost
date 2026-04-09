@@ -2182,3 +2182,109 @@ func TestScopeReconciliationCrossTeam(t *testing.T) {
 		require.Equal(t, th.BasicTeam.Id, reloaded.ScopeID, "scope_id must be preserved when no channels exist")
 	})
 }
+
+func TestEvaluateExpression(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	require.True(t, ok)
+
+	setupMock := func(mockACS *mocks.AccessControlServiceInterface) {
+		th.App.Srv().Channels().AccessControl = mockACS
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+	}
+
+	t.Run("Requires system admin permission", func(t *testing.T) {
+		setupMock(&mocks.AccessControlServiceInterface{})
+
+		req := model.EvaluateExpressionRequest{
+			Expression: "true",
+			UserIDs:    []string{th.BasicUser.Id},
+		}
+
+		_, resp, err := th.Client.EvaluateExpression(context.Background(), req)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		setupMock(&mocks.AccessControlServiceInterface{})
+
+		req := model.EvaluateExpressionRequest{
+			Expression: "",
+			UserIDs:    []string{th.BasicUser.Id},
+		}
+
+		_, resp, err := client.EvaluateExpression(context.Background(), req)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	}, "Returns error for empty expression")
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		setupMock(&mocks.AccessControlServiceInterface{})
+
+		req := model.EvaluateExpressionRequest{
+			Expression: "true",
+			UserIDs:    []string{},
+		}
+
+		_, resp, err := client.EvaluateExpression(context.Background(), req)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	}, "Returns error for empty user_ids")
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		mockACS := &mocks.AccessControlServiceInterface{}
+		mockACS.On("CheckExpression", mock.Anything, "user.attributes.dept == \"eng\"").Return([]model.CELExpressionError{}, nil)
+		mockACS.On("AccessEvaluationWithExpression", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Subject.ID == th.BasicUser.Id
+		}), "user.attributes.dept == \"eng\"").Return(model.AccessDecision{Decision: true}, nil)
+		mockACS.On("AccessEvaluationWithExpression", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Subject.ID == th.BasicUser2.Id
+		}), "user.attributes.dept == \"eng\"").Return(model.AccessDecision{Decision: false}, nil)
+		setupMock(mockACS)
+
+		req := model.EvaluateExpressionRequest{
+			Expression: "user.attributes.dept == \"eng\"",
+			UserIDs:    []string{th.BasicUser.Id, th.BasicUser2.Id},
+			Action:     "membership",
+		}
+
+		result, resp, err := client.EvaluateExpression(context.Background(), req)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, result)
+		require.Empty(t, result.ExpressionErrors)
+		require.Len(t, result.Results, 2)
+
+		require.Equal(t, th.BasicUser.Id, result.Results[0].UserID)
+		require.True(t, result.Results[0].Decision)
+		require.Empty(t, result.Results[0].Error)
+
+		require.Equal(t, th.BasicUser2.Id, result.Results[1].UserID)
+		require.False(t, result.Results[1].Decision)
+		require.Empty(t, result.Results[1].Error)
+	}, "Evaluates expression against users successfully")
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		mockACS := &mocks.AccessControlServiceInterface{}
+		mockACS.On("CheckExpression", mock.Anything, "true").Return([]model.CELExpressionError{}, nil)
+		setupMock(mockACS)
+
+		fakeUserID := model.NewId()
+		req := model.EvaluateExpressionRequest{
+			Expression: "true",
+			UserIDs:    []string{fakeUserID},
+		}
+
+		result, resp, err := client.EvaluateExpression(context.Background(), req)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, result)
+		require.Len(t, result.Results, 1)
+		require.Equal(t, fakeUserID, result.Results[0].UserID)
+		require.Equal(t, "user not found", result.Results[0].Error)
+	}, "Returns error for nonexistent user")
+}

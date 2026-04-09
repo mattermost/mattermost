@@ -1627,6 +1627,14 @@ type API interface {
 	// @tag Audit
 	// Minimum server version: 10.10
 	LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level)
+
+	// EvaluateUserExpression evaluates a CEL access control expression against a single user
+	// via the Policy Decision Point (PDP). Returns the access decision or an error if the
+	// expression is invalid or evaluation fails.
+	//
+	// @tag AccessControl
+	// Minimum server version: 11.8
+	EvaluateUserExpression(userID string, expression string) (*model.AccessDecision, error)
 }
 
 var handshake = plugin.HandshakeConfig{

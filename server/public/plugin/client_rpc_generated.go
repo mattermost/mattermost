@@ -8104,3 +8104,34 @@ func (s *apiRPCServer) DeletePropertyValuesForField(args *Z_DeletePropertyValues
 	}
 	return nil
 }
+
+type Z_EvaluateUserExpressionArgs struct {
+	A string
+	B string
+}
+
+type Z_EvaluateUserExpressionReturns struct {
+	A *model.AccessDecision
+	B error
+}
+
+func (g *apiRPCClient) EvaluateUserExpression(userID string, expression string) (*model.AccessDecision, error) {
+	_args := &Z_EvaluateUserExpressionArgs{userID, expression}
+	_returns := &Z_EvaluateUserExpressionReturns{}
+	if err := g.client.Call("Plugin.EvaluateUserExpression", _args, _returns); err != nil {
+		log.Printf("RPC call to EvaluateUserExpression API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) EvaluateUserExpression(args *Z_EvaluateUserExpressionArgs, returns *Z_EvaluateUserExpressionReturns) error {
+	if hook, ok := s.impl.(interface {
+		EvaluateUserExpression(userID string, expression string) (*model.AccessDecision, error)
+	}); ok {
+		returns.A, returns.B = hook.EvaluateUserExpression(args.A, args.B)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API EvaluateUserExpression called but not implemented."))
+	}
+	return nil
+}

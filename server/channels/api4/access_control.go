@@ -27,6 +27,7 @@ func (api *API) InitAccessControlPolicy() {
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/validate_requester", api.APISessionRequired(validateExpressionAgainstRequester)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/autocomplete/fields", api.APISessionRequired(getFieldsAutocomplete)).Methods(http.MethodGet)
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/visual_ast", api.APISessionRequired(convertToVisualAST)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlPolicies.Handle("/cel/evaluate", api.APISessionRequired(evaluateExpression)).Methods(http.MethodPost)
 
 	api.BaseRoutes.AccessControlPolicy.Handle("", api.APISessionRequired(getAccessControlPolicy)).Methods(http.MethodGet)
 	api.BaseRoutes.AccessControlPolicy.Handle("", api.APISessionRequired(deleteAccessControlPolicy)).Methods(http.MethodDelete)
@@ -365,6 +366,58 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 	js, err := json.Marshal(resp)
 	if err != nil {
 		c.Err = model.NewAppError("checkExpression", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func evaluateExpression(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	var req model.EvaluateExpressionRequest
+	if jsonErr := json.NewDecoder(r.Body).Decode(&req); jsonErr != nil {
+		c.SetInvalidParamWithErr("body", jsonErr)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventEvaluateExpression, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "expression", req.Expression)
+	model.AddEventParameterToAuditRec(auditRec, "user_ids", strings.Join(req.UserIDs, ","))
+
+	if req.Expression == "" {
+		c.SetInvalidParam("expression")
+		return
+	}
+
+	if len(req.UserIDs) == 0 {
+		c.SetInvalidParam("user_ids")
+		return
+	}
+
+	const maxUserIDs = 100
+	if len(req.UserIDs) > maxUserIDs {
+		c.SetInvalidParam("user_ids")
+		return
+	}
+
+	resp, appErr := c.App.EvaluateExpression(c.AppContext, req)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+
+	js, err := json.Marshal(resp)
+	if err != nil {
+		c.Err = model.NewAppError("evaluateExpression", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
