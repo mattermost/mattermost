@@ -209,12 +209,8 @@ describe('Authentication', () => {
         // # Go to front page
         cy.visit('/login');
 
-        // * Assert that create account button is visible
-        cy.findByText('Don\'t have an account?', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').click();
-
-        // * Verify redirection to access problem page since account creation is disabled
-        cy.url().should('include', '/access_problem');
-        cy.findByText('Contact your workspace admin');
+        // * Assert that create account button is not visible
+        cy.findByText('Don\'t have an account?', {timeout: TIMEOUTS.ONE_MIN}).should('not.exist');
 
         // # Go to sign up with email page
         cy.visit('/signup_user_complete');
