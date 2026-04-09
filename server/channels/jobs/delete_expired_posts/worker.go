@@ -21,7 +21,7 @@ const (
 
 type AppIface interface {
 	DeletePost(rctx request.CTX, postID, deleteByID string) (*model.Post, *model.AppError)
-	PermanentDeletePostDataRetainStub(rctx request.CTX, post *model.Post, deleteByID string) (string, *model.AppError)
+	PermanentDeletePostDataRetainStub(rctx request.CTX, post *model.Post, deleteByID string) (*model.PostDeletionReport, *model.AppError)
 	GetSinglePost(rctx request.CTX, postID string, includeDeleted bool) (*model.Post, *model.AppError)
 	GetPostsByIds(postIDs []string) ([]*model.Post, int64, *model.AppError)
 }
