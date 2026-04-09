@@ -8,10 +8,6 @@ else
 	PLATFORM := $(shell uname)
 endif
 
-# Detect Apple Silicon and set a flag.
-ifeq ($(shell uname)/$(shell uname -m),Darwin/arm64)
-  ARM_BASED_MAC = true
-endif
 
 define LICENSE_HEADER
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
@@ -169,7 +165,7 @@ PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.8.0
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.12.0
 PLUGIN_PACKAGES += mattermost-plugin-agents-v1.7.2
-PLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.2
+PLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.4
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.6.0
 PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.4.1
@@ -224,10 +220,6 @@ ifneq ("$(wildcard ./docker-compose.override.yaml)","")
   DOCKER_COMPOSE_OVERRIDE=-f docker-compose.override.yaml
 endif
 
-ifeq ($(ARM_BASED_MAC),true)
-  $(info Apple Silicon detected, applying elasticsearch override)
-  DOCKER_COMPOSE_OVERRIDE := -f docker-compose.makefile.m1.yml $(DOCKER_COMPOSE_OVERRIDE)
-endif
 
 # Support for pgvector postgres image
 MM_USE_PGVECTOR ?= false
