@@ -91,8 +91,8 @@
 
         &:focus {
             border-color: var(--button-bg);
-            outline: none;
             box-shadow: 0 0 0 2px rgba(var(--button-bg-rgb), 0.3);
+            outline: none;
         }
 
         .icon {
