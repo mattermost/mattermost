@@ -26,9 +26,9 @@ type Props = {
 const PAGE_SIZE = 10;
 
 const ROLE_LABELS: Record<string, string> = {
-    system_guest: 'Guest',
-    system_user: 'User',
-    system_admin: 'Administrators',
+    system_guest: 'Guest users',
+    system_user: 'Members and system administrators',
+    system_admin: 'System administrators',
 };
 
 const ACTION_LABELS: Record<string, string> = {

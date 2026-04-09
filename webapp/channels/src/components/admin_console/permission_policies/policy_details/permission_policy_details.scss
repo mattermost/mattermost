@@ -69,30 +69,35 @@
             font-size: 14px;
         }
 
-        .pp-role-options {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 24px;
+    }
+
+    .pp-role-dropdown-button {
+        display: flex;
+        width: 350px;
+        max-width: 100%;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 16px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        background: var(--center-channel-bg);
+        color: var(--center-channel-color);
+        cursor: pointer;
+        font-size: 14px;
+
+        &:hover {
+            border-color: rgba(var(--center-channel-color-rgb), 0.32);
         }
 
-        .pp-role-option {
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            gap: 8px;
+        &:focus {
+            border-color: var(--button-bg);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(var(--button-bg-rgb), 0.3);
+        }
 
-            input[type='radio'] {
-                width: 16px;
-                height: 16px;
-                margin: 0;
-                accent-color: var(--button-bg);
-                cursor: pointer;
-            }
-
-            span {
-                font-size: 14px;
-                font-weight: 400;
-            }
+        .icon {
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+            font-size: 18px;
         }
     }
 
@@ -176,23 +181,6 @@
 
         &:hover {
             background: rgba(var(--button-bg-rgb), 0.08);
-        }
-    }
-
-    // Permission Menu Item
-    .pp-permission-menu-item {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-
-        .pp-permission-menu-label {
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .pp-permission-menu-desc {
-            color: rgba(var(--center-channel-color-rgb), 0.56);
-            font-size: 12px;
         }
     }
 
