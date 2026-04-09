@@ -1409,16 +1409,6 @@ func (th *TestHelper) SetupScheme(tb testing.TB, scope string) *model.Scheme {
 	return scheme
 }
 
-func (th *TestHelper) SetUserRemoteID(tb testing.TB, userID, remoteID string) *model.User {
-	tb.Helper()
-	err := testlib.SetUserRemoteID(mainHelper.GetSQLStore(), userID, remoteID)
-	require.NoError(tb, err)
-	th.App.InvalidateCacheForUser(userID)
-	user, appErr := th.App.GetUser(userID)
-	require.Nil(tb, appErr)
-	return user
-}
-
 func (th *TestHelper) Parallel(t *testing.T) {
 	mainHelper.Parallel(t)
 }
