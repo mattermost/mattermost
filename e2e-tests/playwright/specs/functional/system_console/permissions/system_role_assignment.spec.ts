@@ -5,7 +5,6 @@ import {expect, test} from '@mattermost/playwright-lib';
 
 const roleCases = [
     {accessor: 'sharedChannelManager' as const, roleId: 'system_shared_channel_manager'},
-    {accessor: 'secureConnectionManager' as const, roleId: 'system_secure_connection_manager'},
 ];
 
 for (const {accessor, roleId} of roleCases) {

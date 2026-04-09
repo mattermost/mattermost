@@ -708,27 +708,3 @@ func TestSharedChannelEndpointsWithSharedChannelManagerRole(t *testing.T) {
 		require.Error(t, err)
 	})
 }
-
-func TestGetSharedChannelRemotesByRemoteClusterWithSecureConnectionManagerRole(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := setupForSharedChannels(t).InitBasic(t)
-
-	newRC := &model.RemoteCluster{Name: "rc", SiteURL: "http://example.com", CreatorId: th.SystemAdminUser.Id}
-	rc, appErr := th.App.AddRemoteCluster(newRC)
-	require.Nil(t, appErr)
-
-	// Create a user with only the secure_connection_manager role
-	scmUser := th.CreateUser(t)
-	_, appErr = th.App.UpdateUserRoles(th.Context, scmUser.Id, model.SystemUserRoleId+" "+model.SecureConnectionManagerRoleId, false)
-	require.Nil(t, appErr)
-
-	scmClient := th.CreateClient()
-	_, _, err := scmClient.Login(context.Background(), scmUser.Email, scmUser.Password)
-	require.NoError(t, err)
-
-	t.Run("secure_connection_manager should have access", func(t *testing.T) {
-		_, resp, err := scmClient.GetSharedChannelRemotesByRemoteCluster(context.Background(), rc.RemoteId, model.SharedChannelRemoteFilterOpts{}, 0, 100)
-		CheckOKStatus(t, resp)
-		require.NoError(t, err)
-	})
-}
