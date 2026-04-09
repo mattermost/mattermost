@@ -16,7 +16,7 @@ import {ensureUserAttributes, createPermissionPolicy, deletePermissionPolicyByNa
  *
  * UI:
  *   List page  — Name | Role | Permissions columns, "+ Add policy", Search
- *   Detail page — name input, role radio (Guest/User/Administrators), CEL editor,
+ *   Detail page — name input, role dropdown (Guest users / Members and system administrators / System administrators), CEL editor,
  *                 permissions menu (Download Files / Upload Files), Save / Cancel
  */
 
@@ -116,7 +116,7 @@ test.describe('Permission Policies - Create Policy', () => {
         await expect(systemConsolePage.page.getByText('Permissions evaluation order', {exact: false})).toBeVisible();
     });
 
-    test('MM-T5806 create policy form shows role selector with User selected by default', async ({pw}) => {
+    test('MM-T5806 create policy form shows role dropdown defaulting to Members and system administrators', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient} = await pw.initSetup();
         await ensureUserAttributes(adminClient);
@@ -128,22 +128,15 @@ test.describe('Permission Policies - Create Policy', () => {
         await systemConsolePage.page.waitForLoadState('networkidle');
 
         await expect(systemConsolePage.page.getByText('Who this policy applies to')).toBeVisible();
+        await expect(systemConsolePage.page.getByText('Select a role from the predefined list of system roles')).toBeVisible();
 
-        const guestRadio = systemConsolePage.page.locator('input[type="radio"][value="system_guest"]');
-        const userRadio = systemConsolePage.page.locator('input[type="radio"][value="system_user"]');
-        const adminRadio = systemConsolePage.page.locator('input[type="radio"][value="system_admin"]');
-
-        await expect(guestRadio).toBeVisible();
-        await expect(userRadio).toBeVisible();
-        await expect(adminRadio).toBeVisible();
-
-        // * User is the default selection
-        await expect(userRadio).toBeChecked();
-        await expect(guestRadio).not.toBeChecked();
-        await expect(adminRadio).not.toBeChecked();
+        // * The dropdown button is visible and shows the default role (system_user = "Members and system administrators")
+        const roleButton = systemConsolePage.page.locator('#pp-role-selector-btn');
+        await expect(roleButton).toBeVisible();
+        await expect(roleButton).toContainText('Members and system administrators');
     });
 
-    test('MM-T5807 admin can change role selection to Administrators', async ({pw}) => {
+    test('MM-T5807 admin can change role selection to System administrators via dropdown', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient} = await pw.initSetup();
         await ensureUserAttributes(adminClient);
@@ -154,13 +147,12 @@ test.describe('Permission Policies - Create Policy', () => {
         await systemConsolePage.page.getByRole('button', {name: 'Add policy'}).click();
         await systemConsolePage.page.waitForLoadState('networkidle');
 
-        const adminRadio = systemConsolePage.page.locator('input[type="radio"][value="system_admin"]');
-        await adminRadio.click();
+        // # Open the role dropdown and select System administrators
+        await systemConsolePage.page.locator('#pp-role-selector-btn').click();
+        await systemConsolePage.page.locator('#pp-role-option-system_admin').click();
 
-        await expect(adminRadio).toBeChecked();
-        await expect(
-            systemConsolePage.page.locator('input[type="radio"][value="system_user"]'),
-        ).not.toBeChecked();
+        // * Dropdown button now shows the selected role
+        await expect(systemConsolePage.page.locator('#pp-role-selector-btn')).toContainText('System administrators');
     });
 
     test('MM-T5808 admin can toggle between Simple and Advanced CEL editor modes', async ({pw}) => {
@@ -276,11 +268,11 @@ test.describe('Permission Policies - Create Policy', () => {
                 permissions: ['Download Files'],
             });
 
-            // * List page shows the new policy with correct role (User) and permissions
+            // * List page shows the new policy with correct role and permissions
             await expect(systemConsolePage.page.getByRole('heading', {name: 'Permission Policies'})).toBeVisible();
             const policyRow = systemConsolePage.page.locator('.DataGrid_row').filter({hasText: policyName});
             await expect(policyRow).toBeVisible();
-            await expect(policyRow.getByText('User')).toBeVisible();
+            await expect(policyRow.getByText('Members and system administrators')).toBeVisible();
             await expect(policyRow.getByText('Download Files')).toBeVisible();
         } finally {
             await deletePermissionPolicyByName(adminClient, policyName);
@@ -333,7 +325,7 @@ test.describe('Permission Policies - Create Policy', () => {
             // * Row shows name, Guest role, and Download Files permission
             const policyRow = systemConsolePage.page.locator('.DataGrid_row').filter({hasText: policyName});
             await expect(policyRow).toBeVisible();
-            await expect(policyRow.getByText('Guest')).toBeVisible();
+            await expect(policyRow.getByText('Guest users')).toBeVisible();
             await expect(policyRow.getByText('Download Files')).toBeVisible();
         } finally {
             await deletePermissionPolicyByName(adminClient, policyName);

@@ -186,6 +186,10 @@ export async function createUserForABAC(
 
     await setupCustomProfileAttributeValuesForUser(adminClient, attributes, attributeFieldsMap, user.id);
 
+    // Attach the password back to the user object so pw.testBrowser.login() can authenticate.
+    // The API response does not include the password field.
+    (user as any).password = 'Password123!';
+
     return user;
 }
 
@@ -1122,9 +1126,10 @@ export async function createPermissionPolicy(
     // Fill policy name
     await page.getByPlaceholder('Add a unique policy name').fill(options.name);
 
-    // Set role if not the default (system_user)
+    // Set role if not the default (system_user) using the role dropdown
     if (options.role && options.role !== 'system_user') {
-        await page.locator(`input[type="radio"][value="${options.role}"]`).click();
+        await page.locator('#pp-role-selector-btn').click();
+        await page.locator(`#pp-role-option-${options.role}`).click();
     }
 
     // Switch to Advanced (CEL) mode and enter expression
@@ -1142,10 +1147,15 @@ export async function createPermissionPolicy(
     await page.waitForTimeout(100);
     await page.keyboard.type(options.celExpression, {delay: 10});
 
-    // Add each permission via the menu
+    // Add each permission via the menu.
+    // Items are keyed by their action value, e.g. pp-add-permission-download_file_attachment.
+    const permissionIdMap: Record<string, string> = {
+        'Download Files': 'pp-add-permission-download_file_attachment',
+        'Upload Files': 'pp-add-permission-upload_file_attachment',
+    };
     for (const permission of options.permissions) {
         await page.getByRole('button', {name: 'Add permission'}).click();
-        await page.locator('.pp-permission-menu-label', {hasText: permission}).click();
+        await page.locator(`#${permissionIdMap[permission]}`).click();
     }
 
     await page.getByRole('button', {name: 'Save'}).last().click();
@@ -1185,5 +1195,72 @@ export async function deletePermissionPolicyByName(
         }
     } catch {
         // Policy may not exist or deletion may have already occurred — safe to ignore
+    }
+}
+
+/**
+ * Delete ALL permission policies in the system.
+ * Call this at the start of file-permission E2E tests to ensure no stale
+ * policies from previous runs interfere with the "no-policy = implicit allow" assertions.
+ */
+/**
+ * Delete ALL permission policies in the system.
+ * Uses the typed searchPermissionPolicies client method which sends the correct
+ * cursor + limit payload. Falls back to a doFetch approach if needed.
+ * Safe to call when no policies exist.
+ */
+export async function cleanupAllPermissionPolicies(client: Client4): Promise<void> {
+    let cursor = '';
+    const limit = 100;
+
+    let hasMore = true;
+    while (hasMore) {
+        let policies: any[] = [];
+        try {
+            // Use the typed method (available in the rebuilt @mattermost/client dist)
+            const result = await (client as any).searchPermissionPolicies('', cursor, limit);
+            policies = result?.policies || [];
+        } catch {
+            // Typed method unavailable — fall back to raw doFetch with explicit limit
+            try {
+                const searchUrl = `${client.getBaseRoute()}/access_control_policies/search`;
+                const result = await (client as any).doFetch(searchUrl, {
+                    method: 'POST',
+                    body: JSON.stringify({term: '', type: 'permission', cursor: {id: cursor}, limit}),
+                });
+                policies = Array.isArray(result) ? result : (result?.policies || []);
+            } catch {
+                hasMore = false;
+            }
+        }
+
+        if (policies.length === 0) {
+            hasMore = false;
+        }
+
+        if (hasMore) {
+            await Promise.all(
+                policies.map(async (policy: any) => {
+                    if (policy?.id) {
+                        try {
+                            await (client as any).doFetch(
+                                `${client.getBaseRoute()}/access_control_policies/${policy.id}`,
+                                {method: 'DELETE'},
+                            );
+                        } catch {
+                            // ignore individual delete failures
+                        }
+                    }
+                }),
+            );
+
+            // If we got fewer than `limit`, we've seen all pages
+            if (policies.length < limit) {
+                hasMore = false;
+            }
+        }
+
+        // Advance cursor to next page
+        cursor = policies[policies.length - 1].id;
     }
 }

@@ -2,26 +2,56 @@
 // See LICENSE.txt for license information.
 
 .post-image__column--redacted {
-    padding: 0 16px;
-    border-style: dashed;
-    background: var(--center-channel-color-04, rgba(63, 67, 80, 0.04));
+    width: auto;
+    // Override the fixed height from .post-image__column so text can wrap freely
+    height: auto;
+    min-height: 6.4rem;
+    padding: 12px 16px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border: 1px solid var(--center-channel-color-16, rgba(63, 67, 80, 0.16));
+    border-radius: 4px;
+    background: var(--center-channel-bg, #FFF);
+
+    /* Elevation 1 */
+    box-shadow: var(--elevation-1);
     cursor: default;
-    gap: 12px;
+    gap: 16px;
 
     &:hover,
     &:focus-within {
         box-shadow: none;
     }
 
-    svg {
-        flex-shrink: 0;
-    }
-
     &-compact {
-        // Compact variant mirrors the archived file compact layout in file_attachment.tsx
         display: flex;
+        height: auto;
+        min-height: unset;
         align-items: center;
-        gap: 6px;
+        padding: 6px 10px;
+        gap: 8px;
+    }
+}
+
+.post-image__redacted-icon {
+    position: relative;
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+
+
+
+    &::after {
+        position: absolute;
+        top: 55%;
+        left: 50%;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        content: '?';
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 1;
+        pointer-events: none;
+        transform: translate(-50%, -50%);
     }
 }
 
@@ -29,13 +59,32 @@
     display: flex;
     min-width: 0;
     flex: 1;
-    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
 }
 
-.post-image__redacted-message {
-    overflow: hidden;
-    color: var(--center-channel-color-64, rgba(63, 67, 80, 0.64));
+.post-image__redacted-title {
+    color: var(--center-channel-color-72, rgba(63, 67, 80, 0.72));
+    font-size: 14px;
+    font-style: italic;
+    font-weight: 600;
+    line-height: 20px;
+}
+
+.post-image__redacted-subtitle {
+    color: var(--center-channel-color-56, rgba(63, 67, 80, 0.56));
+    font-size: 12px;
+    font-style: italic;
+    font-weight: 400;
+    line-height: 16px;
+    // Allow text to wrap — do not truncate
+    white-space: normal;
+    word-break: break-word;
+}
+
+// Compact mode title
+.post-image__column--redacted-compact .post-image__redacted-title {
     font-size: 12px;
     line-height: 16px;
-    text-overflow: ellipsis;
 }

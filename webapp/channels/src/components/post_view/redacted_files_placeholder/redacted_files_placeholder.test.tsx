@@ -8,24 +8,24 @@ import {renderWithContext, screen} from 'tests/react_testing_utils';
 import RedactedFilesPlaceholder from './index';
 
 describe('RedactedFilesPlaceholder', () => {
-    it('should render placeholder with singular message for count=1', () => {
+    it('should render title "Files not available"', () => {
         renderWithContext(
             <RedactedFilesPlaceholder count={1}/>,
         );
 
         const placeholder = screen.getByTestId('redactedFilesPlaceholder');
         expect(placeholder).toBeInTheDocument();
-        expect(placeholder).toHaveTextContent(/1 file is restricted/);
+        expect(placeholder).toHaveTextContent(/Files not available/);
     });
 
-    it('should render placeholder with plural message for count=3', () => {
+    it('should render subtitle about attribute restriction', () => {
         renderWithContext(
-            <RedactedFilesPlaceholder count={3}/>,
+            <RedactedFilesPlaceholder count={1}/>,
         );
 
-        const placeholder = screen.getByTestId('redactedFilesPlaceholder');
-        expect(placeholder).toBeInTheDocument();
-        expect(placeholder).toHaveTextContent(/3 files are restricted/);
+        expect(screen.getByTestId('redactedFilesPlaceholder')).toHaveTextContent(
+            /Access to files is restricted based on attributes/,
+        );
     });
 
     it('should render normal (non-compact) layout by default', () => {
@@ -33,16 +33,9 @@ describe('RedactedFilesPlaceholder', () => {
             <RedactedFilesPlaceholder count={2}/>,
         );
 
-        // Normal layout has outer wrapper with post-image__columns
-        const outerWrapper = container.querySelector('.post-image__columns');
-        expect(outerWrapper).toBeInTheDocument();
-
-        const column = container.querySelector('.post-image__column--redacted');
-        expect(column).toBeInTheDocument();
-
-        // Should NOT have compact class
-        const compactColumn = container.querySelector('.post-image__column--redacted-compact');
-        expect(compactColumn).not.toBeInTheDocument();
+        expect(container.querySelector('.post-image__columns')).toBeInTheDocument();
+        expect(container.querySelector('.post-image__column--redacted')).toBeInTheDocument();
+        expect(container.querySelector('.post-image__column--redacted-compact')).not.toBeInTheDocument();
     });
 
     it('should render compact layout when compactDisplay is true', () => {
@@ -53,24 +46,19 @@ describe('RedactedFilesPlaceholder', () => {
             />,
         );
 
-        const compactColumn = container.querySelector('.post-image__column--redacted-compact');
-        expect(compactColumn).toBeInTheDocument();
-
-        // Should NOT have outer post-image__columns wrapper
-        const outerWrapper = container.querySelector('.post-image__columns');
-        expect(outerWrapper).not.toBeInTheDocument();
+        expect(container.querySelector('.post-image__column--redacted-compact')).toBeInTheDocument();
+        expect(container.querySelector('.post-image__columns')).not.toBeInTheDocument();
     });
 
-    it('should render lock icon', () => {
+    it('should render file icon', () => {
         const {container} = renderWithContext(
             <RedactedFilesPlaceholder count={1}/>,
         );
 
-        const svg = container.querySelector('svg');
-        expect(svg).toBeInTheDocument();
+        expect(container.querySelector('svg')).toBeInTheDocument();
     });
 
-    it('should render lock icon in compact mode', () => {
+    it('should render file icon in compact mode', () => {
         const {container} = renderWithContext(
             <RedactedFilesPlaceholder
                 count={1}
@@ -78,8 +66,7 @@ describe('RedactedFilesPlaceholder', () => {
             />,
         );
 
-        const svg = container.querySelector('svg');
-        expect(svg).toBeInTheDocument();
+        expect(container.querySelector('svg')).toBeInTheDocument();
     });
 
     it('should render with compactDisplay=false same as default', () => {
@@ -90,10 +77,7 @@ describe('RedactedFilesPlaceholder', () => {
             />,
         );
 
-        const outerWrapper = container.querySelector('.post-image__columns');
-        expect(outerWrapper).toBeInTheDocument();
-
-        const compactColumn = container.querySelector('.post-image__column--redacted-compact');
-        expect(compactColumn).not.toBeInTheDocument();
+        expect(container.querySelector('.post-image__columns')).toBeInTheDocument();
+        expect(container.querySelector('.post-image__column--redacted-compact')).not.toBeInTheDocument();
     });
 });
