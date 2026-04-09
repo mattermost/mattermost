@@ -3055,15 +3055,16 @@ func TestAddTeamMembersDomainConstrained(t *testing.T) {
 	require.NoError(t, err)
 
 	// create two users on allowed domains
+	password := model.NewTestPassword()
 	user1, _, err := client.CreateUser(context.Background(), &model.User{
 		Email:    "user@domain1.com",
-		Password: "Pa$$word11",
+		Password: password,
 		Username: GenerateTestUsername(),
 	})
 	require.NoError(t, err)
 	user2, _, err := client.CreateUser(context.Background(), &model.User{
 		Email:    "user@domain2.com",
-		Password: "Pa$$word11",
+		Password: password,
 		Username: GenerateTestUsername(),
 	})
 	require.NoError(t, err)
@@ -3552,7 +3553,7 @@ func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
 		Nickname:      "nn_" + id,
 		FirstName:     "f_" + id,
 		LastName:      "l_" + id,
-		Password:      "Pa$$word11",
+		Password:      model.NewTestPassword(),
 		EmailVerified: true,
 	}
 	guest, appError := th.App.CreateGuest(th.Context, guest)
