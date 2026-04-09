@@ -20,14 +20,6 @@ Desktop App:
     Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_0) AppleWebKit/537.36 (KHTML, like Gecko) Mattermost/3.4.1 Chrome/53.0.2785.113 Electron/1.4.2 Safari/537.36
     Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Mattermost/3.4.1 Chrome/51.0.2704.106 Electron/1.2.8 Safari/537.36
 
-Android Chrome:
-    Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19
-
-Android Firefox:
-    Mozilla/5.0 (Android; U; Android; pl; rv:1.9.2.8) Gecko/20100202 Firefox/3.5.8
-    Mozilla/5.0 (Android 7.0; Mobile; rv:54.0) Gecko/54.0 Firefox/54.0
-    Mozilla/5.0 (Android 7.0; Mobile; rv:57.0) Gecko/57.0 Firefox/57.0
-
 Android App:
     Mozilla/5.0 (Linux; U; Android 4.1.1; en-gb; Build/KLP) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Safari/534.30
     Mozilla/5.0 (Linux; Android 4.4; Nexus 5 Build/_BuildID_) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36
@@ -36,7 +28,7 @@ Android App:
 iOS Safari:
     Mozilla/5.0 (iPhone; U; CPU like Mac OS X; en) AppleWebKit/420+ (KHTML, like Gecko) Version/3.0 Mobile/1A543 Safari/419.3
 
-iOS Android:
+iOS Chrome:
     Mozilla/5.0 (iPhone; U; CPU iPhone OS 5_1_1 like Mac OS X; en) AppleWebKit/534.46.0 (KHTML, like Gecko) CriOS/19.0.1084.60 Mobile/9B206 Safari/7534.48.3
 
 iOS App:
@@ -65,10 +57,6 @@ export function isIosFirefox(): boolean {
     return userAgent().indexOf('FxiOS') !== -1;
 }
 
-export function isIosWeb(): boolean {
-    return isIosSafari() || isIosChrome();
-}
-
 export function isIos(): boolean {
     return userAgent().indexOf('iPhone') !== -1 || userAgent().indexOf('iPad') !== -1;
 }
@@ -85,14 +73,10 @@ function isAndroidFirefox(): boolean {
     return userAgent().indexOf('Android') !== -1 && userAgent().indexOf('Firefox') !== -1;
 }
 
-export function isAndroidWeb(): boolean {
-    return isAndroidChrome() || isAndroidFirefox();
-}
-
 // Returns true if and only if the user is using a Mattermost mobile app. This will return false if the user is using the
 // web browser on a mobile device.
 export function isMobileApp(): boolean {
-    return isMobile() && !isIosWeb() && !isAndroidWeb();
+    return isMobile() && !(isIosSafari() || isIosChrome()) && !(isAndroidChrome() || isAndroidFirefox());
 }
 
 // Returns true if and only if the user is using Mattermost from the web browser on a mobile device.

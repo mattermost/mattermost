@@ -34,7 +34,7 @@ import DesktopApp from 'utils/desktop_api';
 import {EmojiIndicesByAlias} from 'utils/emoji';
 import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';
-import {isAndroidWeb, isChromebook, isDesktopApp, isIosWeb} from 'utils/user_agent';
+import {isAndroid, isChromebook, isDesktopApp, isIos} from 'utils/user_agent';
 import {isTextDroppableEvent} from 'utils/utils';
 
 import LuxonController from './luxon_controller';
@@ -129,12 +129,12 @@ export default class Root extends React.PureComponent<Props, State> {
         }
 
         // Nothing to link to if we've removed the Android App download link
-        if (isAndroidWeb() && !this.props.androidDownloadLink) {
+        if (isAndroid() && !this.props.androidDownloadLink) {
             return;
         }
 
         // Nothing to link to if we've removed the iOS App download link
-        if (isIosWeb() && !this.props.iosDownloadLink) {
+        if (isIos() && !this.props.iosDownloadLink) {
             return;
         }
 

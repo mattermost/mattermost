@@ -199,7 +199,7 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
                     this.setPreference(LandingPreferenceTypes.MATTERMOSTAPP, true);
                     this.setState({redirectPage: true, navigating: true});
                     if (UserAgent.isMobile()) {
-                        if (UserAgent.isAndroidWeb()) {
+                        if (UserAgent.isAndroid()) {
                             const timeout = setTimeout(() => {
                                 window.location.replace(this.getDownloadLink()!);
                             }, 2000);
@@ -218,9 +218,9 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
     };
 
     getDownloadLink = () => {
-        if (UserAgent.isIosWeb()) {
+        if (UserAgent.isIos()) {
             return this.props.iosAppLink;
-        } else if (UserAgent.isAndroidWeb()) {
+        } else if (UserAgent.isAndroid()) {
             return this.props.androidAppLink;
         }
 
