@@ -80,6 +80,15 @@ jobs:
           restore-keys: |
             server-test-timing-
 
+      - name: Restore Go build cache
+        if: github.event_name == 'pull_request'
+        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: server/.go-build-cache
+          key: go-build-cache-${{ inputs.fips-enabled }}-${{ inputs.go-version }}-${{ hashFiles('server/go.sum') }}
+          restore-keys: |
+            go-build-cache-${{ inputs.fips-enabled }}-${{ inputs.go-version }}-
+
       - name: Setup BUILD_IMAGE
         id: build
         run: |
@@ -211,6 +220,7 @@ jobs:
             --env ENABLE_COVERAGE="${{ inputs.enablecoverage }}" \
             --env FIPS_ENABLED="${{ inputs.fips-enabled }}" \
             --env RACE_MODE \
+            --env GOCACHE=/mattermost/server/.go-build-cache \
             -v $PWD:/mattermost \
             -w /mattermost/server \
             $BUILD_IMAGE \
@@ -227,6 +237,13 @@ jobs:
         run: |
           cd server/build
           docker compose --ansi never stop
+
+      - name: Save Go build cache
+        if: always() && github.event_name != 'pull_request'
+        uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: server/.go-build-cache
+          key: go-build-cache-${{ inputs.fips-enabled }}-${{ inputs.go-version }}-${{ hashFiles('server/go.sum') }}
 
       - name: Archive logs
         if: ${{ always() }}
