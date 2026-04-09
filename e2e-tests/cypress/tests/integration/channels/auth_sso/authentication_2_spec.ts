@@ -27,7 +27,8 @@ describe('Authentication', () => {
         cy.uiSave();
 
         // * Ensure error appears when saving a password outside of the limits
-        cy.findByText('Minimum password length must be a whole number greater than or equal to 5 and less than or equal to 72.', {timeout: TIMEOUTS.ONE_MIN}).
+        // Note: minimum is 5 on non-FIPS builds and 14 on FIPS builds
+        cy.contains(/Minimum password length must be a whole number greater than or equal to (5|14) and less than or equal to 72\./, {timeout: TIMEOUTS.ONE_MIN}).
             should('exist').
             and('be.visible');
 
@@ -36,7 +37,7 @@ describe('Authentication', () => {
         cy.uiSave();
 
         // * Ensure error appears when saving a password outside of the limits
-        cy.findByText('Minimum password length must be a whole number greater than or equal to 5 and less than or equal to 72.', {timeout: TIMEOUTS.ONE_MIN}).
+        cy.contains(/Minimum password length must be a whole number greater than or equal to (5|14) and less than or equal to 72\./, {timeout: TIMEOUTS.ONE_MIN}).
             should('exist').
             and('be.visible');
     });
@@ -93,8 +94,14 @@ describe('Authentication', () => {
 
         cy.uiSave();
 
-        // * Ensure it resets to the default of 5
-        cy.findByPlaceholderText('E.g.: "5"').invoke('val').should('equal', '5');
+        // Reload to see the actual server state, since on FIPS builds saving
+        // the webapp default of 5 is rejected (below the FIPS minimum of 14).
+        cy.reload();
+
+        // * Ensure the field reflects the server's current minimum password length
+        cy.apiGetConfig().then(({config: {PasswordSettings}}) => {
+            cy.findByPlaceholderText('E.g.: "5"').invoke('val').should('equal', String(PasswordSettings.MinimumLength));
+        });
     });
 
     it('MM-T1774 - Select all Password Requirements, verify help text and error on bad password', () => {
