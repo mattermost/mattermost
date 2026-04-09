@@ -6,7 +6,7 @@ import React from 'react';
 import LatexInline from 'components/latex_inline/latex_inline';
 
 import {withIntl} from 'tests/helpers/intl-test-helper';
-import {act, renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, waitFor} from 'tests/react_testing_utils';
 
 describe('components/LatexInline', () => {
     const defaultProps = {
@@ -15,27 +15,20 @@ describe('components/LatexInline', () => {
     };
 
     test('should match snapshot', async () => {
-        let container;
-
-        await act(async () => {
-            const result = renderWithContext(withIntl(<LatexInline {...defaultProps}/>));
-            container = result.container;
+        const {container} = renderWithContext(withIntl(<LatexInline {...defaultProps}/>));
+        await waitFor(() => {
+            expect(container.querySelector('[data-testid="latex-enabled"]')).toBeInTheDocument();
         });
         expect(container).toMatchSnapshot();
     });
 
-    test('latex is disabled', async () => {
+    test('latex is disabled', () => {
         const props = {
             ...defaultProps,
             enableInlineLatex: false,
         };
 
-        let container;
-
-        await act(async () => {
-            const result = renderWithContext(withIntl(<LatexInline {...props}/>));
-            container = result.container;
-        });
+        const {container} = renderWithContext(withIntl(<LatexInline {...props}/>));
         expect(container).toMatchSnapshot();
     });
 
@@ -45,11 +38,9 @@ describe('components/LatexInline', () => {
             enableInlineLatex: true,
         };
 
-        let container;
-
-        await act(async () => {
-            const result = renderWithContext(withIntl(<LatexInline {...props}/>));
-            container = result.container;
+        const {container} = renderWithContext(withIntl(<LatexInline {...props}/>));
+        await waitFor(() => {
+            expect(container.querySelector('[data-testid="latex-enabled"]')).toBeInTheDocument();
         });
         expect(container).toMatchSnapshot();
     });

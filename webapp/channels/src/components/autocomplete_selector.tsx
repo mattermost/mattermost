@@ -7,6 +7,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
 import SuggestionBox from 'components/suggestion/suggestion_box';
+import type {SuggestionBoxElement} from 'components/suggestion/suggestion_box/suggestion_box';
 import SuggestionList from 'components/suggestion/suggestion_list';
 
 import type ModalSuggestionList from './suggestion/modal_suggestion_list';
@@ -31,17 +32,13 @@ type Props = {
     disabled?: boolean;
     toggleFocus?: ((focus: boolean) => void) | null;
     listComponent: typeof SuggestionList | typeof ModalSuggestionList;
-    listPosition: string;
+    listPosition: 'top' | 'bottom';
 };
 
 type State = {
     input: string;
     focused?: boolean;
 };
-
-type ChangeEvent = {
-    target: HTMLInputElement;
-}
 
 export default class AutocompleteSelector extends React.PureComponent<Props, State> {
     static defaultProps = {
@@ -63,7 +60,7 @@ export default class AutocompleteSelector extends React.PureComponent<Props, Sta
         };
     }
 
-    onChange = (e: ChangeEvent) => {
+    onChange = (e: React.ChangeEvent<SuggestionBoxElement>) => {
         if (!e || !e.target) {
             return;
         }
