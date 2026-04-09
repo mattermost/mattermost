@@ -349,6 +349,14 @@ export async function createBasicPolicy(
         channels?: string[];
     },
 ): Promise<void> {
+    // Ensure we are on the Membership Policies page before looking for "Add policy".
+    // The ABAC settings page was split: the enable/disable toggle is now on
+    // /attribute_based_access_control while the policy list lives on /membership_policies.
+    if (!page.url().includes('/membership_policies')) {
+        await page.goto('/admin_console/system_attributes/membership_policies');
+        await page.waitForLoadState('networkidle');
+    }
+
     // Click Add policy button
     const addPolicyButton = page.getByRole('button', {name: 'Add policy'});
     await addPolicyButton.click();
@@ -509,6 +517,11 @@ export async function createMultiAttributePolicy(
         channels?: string[];
     },
 ): Promise<void> {
+    if (!page.url().includes('/membership_policies')) {
+        await page.goto('/admin_console/system_attributes/membership_policies');
+        await page.waitForLoadState('networkidle');
+    }
+
     // Click Add policy button
     const addPolicyButton = page.getByRole('button', {name: 'Add policy'});
     await addPolicyButton.click();
@@ -668,6 +681,11 @@ export async function createAdvancedPolicy(
         channels?: string[];
     },
 ): Promise<void> {
+    if (!page.url().includes('/membership_policies')) {
+        await page.goto('/admin_console/system_attributes/membership_policies');
+        await page.waitForLoadState('networkidle');
+    }
+
     // Click Add policy button
     const addPolicyButton = page.getByRole('button', {name: 'Add policy'});
     await addPolicyButton.click();
@@ -1076,4 +1094,96 @@ export async function getPolicyIdByName(
     }
 
     return null;
+}
+
+/**
+ * Create a permission policy using the CEL (Advanced) editor.
+ * Caller must already be on the Permission Policies list page.
+ * Available permissions: 'download_file_attachment' | 'upload_file_attachment'
+ * Available roles: 'system_guest' | 'system_user' | 'system_admin'
+ */
+export async function createPermissionPolicy(
+    page: Page,
+    options: {
+        name: string;
+        celExpression: string;
+        permissions: Array<'Download Files' | 'Upload Files'>;
+        role?: 'system_guest' | 'system_user' | 'system_admin';
+    },
+): Promise<void> {
+    if (!page.url().includes('/permission_policies')) {
+        await page.goto('/admin_console/system_attributes/permission_policies');
+        await page.waitForLoadState('networkidle');
+    }
+
+    await page.getByRole('button', {name: 'Add policy'}).click();
+    await page.waitForLoadState('networkidle');
+
+    // Fill policy name
+    await page.getByPlaceholder('Add a unique policy name').fill(options.name);
+
+    // Set role if not the default (system_user)
+    if (options.role && options.role !== 'system_user') {
+        await page.locator(`input[type="radio"][value="${options.role}"]`).click();
+    }
+
+    // Switch to Advanced (CEL) mode and enter expression
+    await page.getByRole('button', {name: 'Switch to Advanced Mode'}).click();
+
+    const monacoContainer = page.locator('.monaco-editor').first();
+    await monacoContainer.waitFor({state: 'visible', timeout: 5000});
+
+    const editorLines = page.locator('.monaco-editor .view-lines').first();
+    await editorLines.click({force: true});
+    await page.waitForTimeout(300);
+
+    const isMac = process.platform === 'darwin';
+    await page.keyboard.press(isMac ? 'Meta+a' : 'Control+a');
+    await page.waitForTimeout(100);
+    await page.keyboard.type(options.celExpression, {delay: 10});
+
+    // Add each permission via the menu
+    for (const permission of options.permissions) {
+        await page.getByRole('button', {name: 'Add permission'}).click();
+        await page.locator('.pp-permission-menu-label', {hasText: permission}).click();
+    }
+
+    await page.getByRole('button', {name: 'Save'}).last().click();
+    await page.waitForLoadState('networkidle');
+}
+
+/**
+ * Delete a permission policy by name using the API.
+ * Searches for the policy by name, then deletes it by ID.
+ * Safe to call even if the policy does not exist (no-op).
+ */
+/**
+ * Delete a permission policy by name via the REST API.
+ * Uses doFetch (same pattern as getPolicyIdByName) to find the policy by name,
+ * then issues a DELETE. Safe to call even if the policy does not exist.
+ */
+export async function deletePermissionPolicyByName(
+    client: Client4,
+    policyName: string,
+): Promise<void> {
+    try {
+        const searchUrl = `${client.getBaseRoute()}/access_control_policies/search`;
+        const result = await (client as any).doFetch(searchUrl, {
+            method: 'POST',
+            body: JSON.stringify({term: policyName, type: 'permission'}),
+        });
+
+        // Response may be the array directly or wrapped in {policies: [...]}
+        const policies: any[] = Array.isArray(result) ? result : (result?.policies || []);
+        const match = policies.find((p: any) => p.name === policyName && p.type === 'permission');
+
+        if (match?.id) {
+            await (client as any).doFetch(
+                `${client.getBaseRoute()}/access_control_policies/${match.id}`,
+                {method: 'DELETE'},
+            );
+        }
+    } catch {
+        // Policy may not exist or deletion may have already occurred — safe to ignore
+    }
 }
