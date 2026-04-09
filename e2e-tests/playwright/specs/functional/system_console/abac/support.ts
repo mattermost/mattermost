@@ -16,6 +16,7 @@ import {
     CustomProfileAttribute,
     setupCustomProfileAttributeValuesForUser,
 } from '../../channels/custom_profile_attributes/helpers';
+import {newTestPassword} from '@mattermost/playwright-lib';
 
 /**
  * Verify policy exists with better waiting and retry logic
@@ -176,7 +177,7 @@ export async function createUserForABAC(
         {
             email: `${username}@example.com`,
             username: username,
-            password: 'Password123!',
+            password: newTestPassword(),
         } as any,
         '',
         '',
