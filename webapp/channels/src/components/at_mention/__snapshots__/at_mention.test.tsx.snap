@@ -65,6 +65,7 @@ exports[`components/AtMention should match snapshot when mentioning current user
     aria-expanded="false"
     aria-haspopup="dialog"
     class="style--none mention--highlight"
+    type="button"
   >
     <span
       class="mention-link"
@@ -81,6 +82,7 @@ exports[`components/AtMention should match snapshot when mentioning user 1`] = `
     aria-expanded="false"
     aria-haspopup="dialog"
     class="style--none"
+    type="button"
   >
     <span
       class="mention-link"
@@ -97,6 +99,7 @@ exports[`components/AtMention should match snapshot when mentioning user contain
     aria-expanded="false"
     aria-haspopup="dialog"
     class="style--none"
+    type="button"
   >
     <span
       class="mention-link"
@@ -114,6 +117,7 @@ exports[`components/AtMention should match snapshot when mentioning user contain
     aria-expanded="false"
     aria-haspopup="dialog"
     class="style--none"
+    type="button"
   >
     <span
       class="mention-link"
@@ -130,6 +134,7 @@ exports[`components/AtMention should match snapshot when mentioning user followe
     aria-expanded="false"
     aria-haspopup="dialog"
     class="style--none"
+    type="button"
   >
     <span
       class="mention-link"
@@ -147,6 +152,7 @@ exports[`components/AtMention should match snapshot when mentioning user with di
     aria-expanded="false"
     aria-haspopup="dialog"
     class="style--none"
+    type="button"
   >
     <span
       class="mention-link"
@@ -163,6 +169,7 @@ exports[`components/AtMention should match snapshot when mentioning user with mi
     aria-expanded="false"
     aria-haspopup="dialog"
     class="style--none"
+    type="button"
   >
     <span
       class="mention-link"
