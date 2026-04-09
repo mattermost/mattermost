@@ -13,7 +13,10 @@ import (
 // errNilHookResult is returned when a pre-hook returns a nil result without an
 // error. This catches buggy hook implementations early rather than letting a
 // nil propagate into the store layer.
-var errNilHookResult = errors.New("property hook returned nil result")
+var (
+	errNilHookResult          = errors.New("property hook returned nil result")
+	errFieldCardinalityBroken = errors.New("PostGetPropertyFields hook returned fewer fields than it received")
+)
 
 // PropertyHook defines an interface for hooks that run before and after property
 // service operations. Hooks can inspect and modify inputs (pre-hooks) or filter
@@ -41,9 +44,8 @@ type PropertyHook interface {
 	// Return nil field to indicate the field is not accessible.
 	PostGetPropertyField(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error)
 	// PostGetPropertyFields is called after retrieving multiple fields (by IDs or search).
-	// Implementations must preserve slice cardinality: modify fields in place but do not
-	// remove entries. Callers of GetPropertyFields with explicit IDs (e.g. patchPropertyValues)
-	// expect a 1:1 mapping between requested IDs and returned fields.
+	// Implementations must preserve slice length — the dispatcher enforces this and will
+	// return an error if a hook returns fewer fields than it received.
 	PostGetPropertyFields(rctx request.CTX, fields []*model.PropertyField) ([]*model.PropertyField, error)
 
 	// Value pre-hooks (write operations)
@@ -64,9 +66,7 @@ type PropertyHook interface {
 	// Return nil value to indicate the value is not accessible.
 	PostGetPropertyValue(rctx request.CTX, value *model.PropertyValue) (*model.PropertyValue, error)
 	// PostGetPropertyValues is called after retrieving multiple values (by IDs or search).
-	// Implementations must preserve slice cardinality: modify values in place but do not
-	// remove entries. Callers of GetPropertyValues with explicit IDs expect a 1:1 mapping
-	// between requested IDs and returned values.
+	// Implementations may remove entries from the returned slice.
 	PostGetPropertyValues(rctx request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error)
 }
 
@@ -207,12 +207,17 @@ func (ps *PropertyService) runPostGetPropertyField(rctx request.CTX, field *mode
 }
 
 // runPostGetPropertyFields runs all registered post-hooks for multi-field retrieval.
+// It enforces that hooks preserve slice length — a hook that drops fields is a bug.
 func (ps *PropertyService) runPostGetPropertyFields(rctx request.CTX, fields []*model.PropertyField) ([]*model.PropertyField, error) {
 	var err error
 	for _, hook := range ps.hooks {
+		n := len(fields)
 		fields, err = hook.PostGetPropertyFields(rctx, fields)
 		if err != nil {
 			return nil, err
+		}
+		if len(fields) != n {
+			return nil, errFieldCardinalityBroken
 		}
 	}
 	return fields, nil

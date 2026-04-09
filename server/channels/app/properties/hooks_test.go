@@ -243,8 +243,7 @@ func TestPostHookFiltering(t *testing.T) {
 		assert.Nil(t, result)
 	})
 
-	t.Run("post-hook filters list of fields", func(t *testing.T) {
-		// Create multiple fields
+	t.Run("post-hook that drops fields from list returns error", func(t *testing.T) {
 		field1 := th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			GroupID:    groupID,
 			Name:       "keep-" + model.NewId(),
@@ -260,7 +259,6 @@ func TestPostHookFiltering(t *testing.T) {
 
 		hook := &testHook{
 			postGetFieldsFn: func(fields []*model.PropertyField) ([]*model.PropertyField, error) {
-				// Only keep the first field
 				filtered := []*model.PropertyField{}
 				for _, f := range fields {
 					if f.ID == field1.ID {
@@ -273,10 +271,9 @@ func TestPostHookFiltering(t *testing.T) {
 		th.service.AddHook(hook)
 		defer func() { th.service.hooks = th.service.hooks[:len(th.service.hooks)-1] }()
 
-		result, err := th.service.GetPropertyFields(rctx, groupID, []string{field1.ID, field2.ID})
-		require.NoError(t, err)
-		assert.Len(t, result, 1)
-		assert.Equal(t, field1.ID, result[0].ID)
+		_, err := th.service.GetPropertyFields(rctx, groupID, []string{field1.ID, field2.ID})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "fewer fields")
 	})
 }
 
