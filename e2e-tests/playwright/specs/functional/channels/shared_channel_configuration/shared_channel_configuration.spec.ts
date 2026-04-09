@@ -364,7 +364,7 @@ test.describe('Shared channel configuration', () => {
         const sharedChannelUser = await adminClient.createUser(randomUser, '', '');
         sharedChannelUser.password = randomUser.password;
         await adminClient.addToTeam(team.id, sharedChannelUser.id);
-        await adminClient.updateUserRoles(sharedChannelUser.id, 'system_user shared_channel_manager');
+        await adminClient.updateUserRoles(sharedChannelUser.id, 'system_user system_shared_channel_manager');
 
         const channelName = `shared-config-permissions-${await getRandomId()}`;
         const channel = await adminClient.createChannel({
