@@ -98,15 +98,4 @@ describe('popout focus tracking', () => {
         simulateMessage(POPOUT_BLURRED);
         expect(getFocusedPopoutInfo()).toBeNull();
     });
-
-    it('should clear focus on popout close', async () => {
-        setupWithCapture();
-        await popoutChannel('Title', 'test-team', 'channels', 'town-square');
-
-        simulateMessage(POPOUT_FOCUSED, 'channel-123');
-        expect(getFocusedPopoutInfo()).not.toBeNull();
-
-        closeListeners.forEach((listener) => listener());
-        expect(getFocusedPopoutInfo()).toBeNull();
-    });
 });

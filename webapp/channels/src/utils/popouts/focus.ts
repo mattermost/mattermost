@@ -28,8 +28,4 @@ export function registerPopoutFocusListeners(listeners: Partial<PopoutListeners>
             break;
         }
     });
-
-    listeners.onClosePopout?.(() => {
-        focusedPopout = null;
-    });
 }
