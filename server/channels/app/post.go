@@ -1867,6 +1867,12 @@ func (a *App) DeletePost(rctx request.CTX, postID, deleteByID string) (*model.Po
 		a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, false)
 	}
 
+	if post.RootId == "" {
+		if appErr := a.DeletePersistentNotification(rctx, post); appErr != nil {
+			return nil, appErr
+		}
+	}
+
 	appErr = a.CleanUpAfterPostDeletion(rctx, post, deleteByID)
 	if appErr != nil {
 		return nil, appErr
@@ -3103,7 +3109,7 @@ func (a *App) PermanentDeletePost(rctx request.CTX, postID, deleteByID string) *
 	}
 
 	if postHasFiles {
-		appErr := a.PermanentDeleteFilesByPost(rctx, post.Id)
+		_, appErr := a.PermanentDeleteFilesByPost(rctx, post.Id)
 		if appErr != nil {
 			return appErr
 		}
@@ -3112,6 +3118,12 @@ func (a *App) PermanentDeletePost(rctx request.CTX, postID, deleteByID string) *
 	err = a.Srv().Store().Post().PermanentDelete(rctx, post.Id)
 	if err != nil {
 		return model.NewAppError("PermanentDeletePost", "app.post.permanent_delete_post.error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if post.RootId == "" {
+		if appErr := a.DeletePersistentNotification(rctx, post); appErr != nil {
+			return appErr
+		}
 	}
 
 	appErr := a.CleanUpAfterPostDeletion(rctx, post, deleteByID)
@@ -3128,11 +3140,11 @@ func (a *App) CleanUpAfterPostDeletion(rctx request.CTX, post *model.Post, delet
 		return appErr
 	}
 
-	if post.RootId == "" {
-		if appErr := a.DeletePersistentNotification(rctx, post); appErr != nil {
-			return appErr
-		}
-	}
+	//if post.RootId == "" {
+	//	if appErr := a.DeletePersistentNotification(rctx, post); appErr != nil {
+	//		return appErr
+	//	}
+	//}
 
 	postJSON, err := json.Marshal(post)
 	if err != nil {

@@ -662,7 +662,7 @@ func (a *App) PermanentDeleteFlaggedPost(rctx request.CTX, actionRequest *model.
 func (a *App) sendDeletionReportToReviewers(rctx request.CTX, flaggedPostId string, report *model.PostDeletionReport, contentFlaggingGroupId string) {
 	reportFileName := fmt.Sprintf("deletion_report_%s.md", flaggedPostId)
 
-	_, appErr := a.postReviewerMessage(rctx, "", contentFlaggingGroupId, flaggedPostId, nil, "", report, reportFileName)
+	_, appErr := a.postReviewerMessage(rctx, "", contentFlaggingGroupId, flaggedPostId, report, reportFileName)
 	if appErr != nil {
 		rctx.Logger().Error("Failed to send deletion report to reviewers", mlog.Err(appErr), mlog.String("post_id", flaggedPostId))
 	}
@@ -675,12 +675,12 @@ func (a *App) PermanentDeletePostDataRetainStub(rctx request.CTX, post *model.Po
 	}
 
 	// Step 1: Edit Histories
-	a.deleteEditHistoriesForReport(rctx, post.Id, deleteByID, report)
+	a.deleteEditHistories(rctx, post.Id, deleteByID, report)
 
 	// Step 2: Post's File Attachments from File System
 	// Step 3: FileInfo Rows
 	// Inline the file deletion logic to capture file names for the report
-	a.deleteFilesForReport(rctx, post.Id, report)
+	a.deleteFiles(rctx, post.Id, report)
 
 	// Step 4: Priority Data
 	if err := a.DeletePriorityForPost(post.Id); err != nil {
@@ -755,7 +755,7 @@ func (a *App) PermanentDeletePostDataRetainStub(rctx request.CTX, post *model.Po
 	return report, deletePostErr
 }
 
-func (a *App) deleteEditHistoriesForReport(rctx request.CTX, postId, deleteByID string, report *model.PostDeletionReport) {
+func (a *App) deleteEditHistories(rctx request.CTX, postId, deleteByID string, report *model.PostDeletionReport) {
 	editHistories, appErr := a.GetEditHistoryForPost(postId)
 	if appErr != nil {
 		if appErr.StatusCode != http.StatusNotFound {
@@ -781,30 +781,30 @@ func (a *App) deleteEditHistoriesForReport(rctx request.CTX, postId, deleteByID 
 	anySuccess := false
 
 	for _, editHistory := range editHistories {
-		sub := model.DeletionSubStep{Name: editHistory.Id}
+		subStep := model.DeletionSubStep{Name: editHistory.Id}
 
 		// Capture file names before deletion
 		fileInfos, storeErr := a.Srv().Store().FileInfo().GetForPost(editHistory.Id, false, true, true)
 		if storeErr == nil && len(fileInfos) > 0 {
 			fileNames := make([]string, 0, len(fileInfos))
-			for _, fi := range fileInfos {
-				fileNames = append(fileNames, fmt.Sprintf("`%s`", fi.Name))
+			for _, fileInfo := range fileInfos {
+				fileNames = append(fileNames, fmt.Sprintf("`%s`", fileInfo.Name))
 			}
-			sub.Detail = "app.data_spillage.report.detail.file_attachments_info"
-			sub.DetailParams = map[string]any{"FileNames": strings.Join(fileNames, ", "), "Count": len(fileInfos)}
+			subStep.Detail = "app.data_spillage.report.detail.file_attachments_info"
+			subStep.DetailParams = map[string]any{"FileNames": strings.Join(fileNames, ", "), "Count": len(fileInfos)}
 		}
 
 		if deletePostAppErr := a.PermanentDeletePost(rctx, editHistory.Id, deleteByID); deletePostAppErr != nil {
 			rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to permanently delete one of the edit history posts", mlog.Err(deletePostAppErr), mlog.String("post_id", editHistory.Id))
-			sub.Status = model.StepFailed
-			sub.Errors = []string{deletePostAppErr.Error()}
+			subStep.Status = model.StepFailed
+			subStep.Errors = []string{deletePostAppErr.Error()}
 			allSuccess = false
 		} else {
-			sub.Status = model.StepSuccess
+			subStep.Status = model.StepSuccess
 			anySuccess = true
 		}
 
-		step.SubSteps = append(step.SubSteps, sub)
+		step.SubSteps = append(step.SubSteps, subStep)
 	}
 
 	if allSuccess {
@@ -822,41 +822,21 @@ func (a *App) deleteEditHistoriesForReport(rctx request.CTX, postId, deleteByID 
 	report.Steps = append(report.Steps, step)
 }
 
-func (a *App) deleteFilesForReport(rctx request.CTX, postId string, report *model.PostDeletionReport) {
-	fileInfos, storeErr := a.Srv().Store().FileInfo().GetForPost(postId, false, true, true)
-	if storeErr != nil {
-		rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to get file infos for post", mlog.Err(storeErr), mlog.String("post_id", postId))
-		report.AddStep("app.data_spillage.report.step.file_attachments", model.StepFailed, "", []string{storeErr.Error()})
-		report.AddStep("app.data_spillage.report.step.fileinfo_rows", model.StepFailed, "", []string{"Skipped due to file info retrieval failure."})
+func (a *App) deleteFiles(rctx request.CTX, postId string, report *model.PostDeletionReport) {
+	fileNames, appErr := a.PermanentDeleteFilesByPost(rctx, postId)
+	if appErr != nil {
+		rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to permanently delete files for the post", mlog.Err(appErr), mlog.String("post_id", postId))
+		report.AddStep("app.data_spillage.report.step.file_attachments", model.StepFailed, "", []string{appErr.Error()})
 		return
 	}
 
-	if len(fileInfos) == 0 {
+	if len(fileNames) == 0 {
 		report.AddStep("app.data_spillage.report.step.file_attachments", model.StepSuccess, "app.data_spillage.report.detail.no_files", nil)
 		report.AddStep("app.data_spillage.report.step.fileinfo_rows", model.StepSuccess, "app.data_spillage.report.detail.no_rows_to_delete", nil)
 		return
-	}
-
-	// Capture file names for the report
-	fileNames := make([]string, 0, len(fileInfos))
-	for _, fi := range fileInfos {
-		fileNames = append(fileNames, fmt.Sprintf("`%s`", fi.Name))
-	}
-
-	// Step 2: Remove files from file store
-	a.RemoveFilesFromFileStore(rctx, fileInfos)
-	report.AddStepWithParams("app.data_spillage.report.step.file_attachments", model.StepSuccess, "app.data_spillage.report.detail.file_names", map[string]any{"FileNames": strings.Join(fileNames, ", ")}, nil)
-
-	// Step 3: Delete FileInfo rows from DB
-	if err := a.Srv().Store().FileInfo().PermanentDeleteForPost(rctx, postId); err != nil {
-		rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to permanently delete file info rows for post", mlog.Err(err), mlog.String("post_id", postId))
-		report.AddStep("app.data_spillage.report.step.fileinfo_rows", model.StepFailed, "", []string{err.Error()})
 	} else {
-		report.AddStepWithParams("app.data_spillage.report.step.fileinfo_rows", model.StepSuccess, "app.data_spillage.report.detail.rows_deleted", map[string]any{"Count": len(fileInfos)}, nil)
+		report.AddStepWithParams("app.data_spillage.report.step.file_attachments", model.StepSuccess, "app.data_spillage.report.detail.file_names", map[string]any{"FileNames": strings.Join(fileNames, ", ")}, nil)
 	}
-
-	a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postId, true)
-	a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postId, false)
 }
 
 func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContentActionRequest, reviewerId string, flaggedPost *model.Post) *model.AppError {
@@ -1213,7 +1193,7 @@ func (a *App) postAssignReviewerMessage(rctx request.CTX, contentFlaggingGroupId
 	}
 
 	message := fmt.Sprintf("@%s was assigned as a reviewer by @%s", reviewerUser.Username, assignedByUser.Username)
-	return a.postReviewerMessage(rctx, message, contentFlaggingGroupId, flaggedPostId, nil, "", nil, "")
+	return a.postReviewerMessage(rctx, message, contentFlaggingGroupId, flaggedPostId, nil, "")
 }
 
 func (a *App) postDeletePostReviewerMessage(rctx request.CTX, flaggedPostId, actorUserId, comment, contentFlaggingGroupId string) ([]*model.Post, *model.AppError) {
@@ -1227,7 +1207,7 @@ func (a *App) postDeletePostReviewerMessage(rctx request.CTX, flaggedPostId, act
 		message = fmt.Sprintf("%s\n\nWith comment:\n\n> %s", message, comment)
 	}
 
-	return a.postReviewerMessage(rctx, message, contentFlaggingGroupId, flaggedPostId, nil, "", nil, "")
+	return a.postReviewerMessage(rctx, message, contentFlaggingGroupId, flaggedPostId, nil, "")
 }
 
 func (a *App) postKeepPostReviewerMessage(rctx request.CTX, flaggedPostId, actorUserId, comment, contentFlaggingGroupId string) ([]*model.Post, *model.AppError) {
@@ -1241,7 +1221,7 @@ func (a *App) postKeepPostReviewerMessage(rctx request.CTX, flaggedPostId, actor
 		message = fmt.Sprintf("%s\n\nWith comment:\n\n> %s", message, comment)
 	}
 
-	return a.postReviewerMessage(rctx, message, contentFlaggingGroupId, flaggedPostId, nil, "", nil, "")
+	return a.postReviewerMessage(rctx, message, contentFlaggingGroupId, flaggedPostId, nil, "")
 }
 
 func (a *App) getReporterUserId(flaggedPostId, contentFlaggingGroupId string) (string, *model.AppError) {
@@ -1310,7 +1290,7 @@ func (a *App) postMessageToReporter(rctx request.CTX, contentFlaggingGroupId str
 	return a.postContentReviewBotMessage(rctx, message, userId)
 }
 
-func (a *App) postReviewerMessage(rctx request.CTX, message, contentFlaggingGroupId, flaggedPostId string, fileData []byte, fileName string, report *model.PostDeletionReport, reportFileName string) ([]*model.Post, *model.AppError) {
+func (a *App) postReviewerMessage(rctx request.CTX, message, contentFlaggingGroupId, flaggedPostId string, report *model.PostDeletionReport, reportFileName string) ([]*model.Post, *model.AppError) {
 	mappedFields, appErr := a.GetContentFlaggingMappedFields(contentFlaggingGroupId)
 	if appErr != nil {
 		return nil, appErr
@@ -1364,9 +1344,6 @@ func (a *App) postReviewerMessage(rctx request.CTX, message, contentFlaggingGrou
 			postMessage = report.RenderSummary(T)
 			postFileData = []byte(report.Render(T))
 			postFileName = reportFileName
-		} else {
-			postFileData = fileData
-			postFileName = fileName
 		}
 
 		post := &model.Post{
@@ -1380,14 +1357,13 @@ func (a *App) postReviewerMessage(rctx request.CTX, message, contentFlaggingGrou
 		if len(postFileData) > 0 {
 			fileInfo, uploadErr := a.UploadFile(rctx, postFileData, reviewerPost.ChannelId, postFileName)
 			if uploadErr != nil {
+				// When the report fails to upload, the details aren't lost as the logs of any item which failed to be deleted are still in the server logs.
 				rctx.Logger().Error("Failed to upload report file attachment, appending to message", mlog.Err(uploadErr), mlog.String("post_id", postId))
-				post.Message = postMessage + "\n\n---\n\n" + string(postFileData)
 			} else {
 				post.FileIds = []string{fileInfo.Id}
 			}
 		}
 
-		// We can ignore the membership since the post itself is does not have a permalink
 		createdPost, _, appErr := a.CreatePost(rctx, post, channel, model.CreatePostFlags{})
 		if appErr != nil {
 			rctx.Logger().Error("Failed to create assign reviewer post in one of the channels", mlog.Err(appErr), mlog.String("channel_id", channel.Id), mlog.String("post_id", postId))

@@ -1747,7 +1747,7 @@ func TestPostReviewerMessage(t *testing.T) {
 		require.Nil(t, err)
 
 		testMessage := "Test reviewer message"
-		_, appErr := th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id, nil, "", nil, "")
+		_, appErr := th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id, nil, "")
 		require.Nil(t, appErr)
 
 		// Verify message was posted to the reviewer thread
@@ -1804,7 +1804,7 @@ func TestPostReviewerMessage(t *testing.T) {
 		require.Nil(t, err)
 
 		testMessage := "Test message for multiple reviewers"
-		_, appErr = th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id, nil, "", nil, "")
+		_, appErr = th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id, nil, "")
 		require.Nil(t, appErr)
 
 		// Verify message was posted to both reviewer threads
@@ -1861,7 +1861,7 @@ func TestPostReviewerMessage(t *testing.T) {
 		require.Nil(t, err)
 
 		testMessage := "Test message for non-flagged post"
-		_, appErr := th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id, nil, "", nil, "")
+		_, appErr := th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id, nil, "")
 		require.Nil(t, appErr)
 	})
 
@@ -1874,7 +1874,7 @@ func TestPostReviewerMessage(t *testing.T) {
 		require.Nil(t, err)
 
 		testMessage := "Test message with special chars: @user #channel ~team & <script>alert('xss')</script>"
-		_, appErr := th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id, nil, "", nil, "")
+		_, appErr := th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id, nil, "")
 		require.Nil(t, appErr)
 
 		// Verify message was posted correctly with special characters preserved

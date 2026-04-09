@@ -1695,27 +1695,32 @@ func getFileExtFromMimeType(mimeType string) string {
 	return "jpg"
 }
 
-func (a *App) PermanentDeleteFilesByPost(rctx request.CTX, postID string) *model.AppError {
+func (a *App) PermanentDeleteFilesByPost(rctx request.CTX, postID string) ([]string, *model.AppError) {
 	fileInfos, err := a.Srv().Store().FileInfo().GetForPost(postID, false, true, true)
 	if err != nil {
-		return model.NewAppError("PermanentDeleteFilesByPost", "app.file_info.get_by_post_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("PermanentDeleteFilesByPost", "app.file_info.get_by_post_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if len(fileInfos) == 0 {
 		rctx.Logger().Debug("No files found for post", mlog.String("post_id", postID))
-		return nil
+		return []string{}, nil
+	}
+
+	fileNames := make([]string, 0, len(fileInfos))
+	for _, fileInfo := range fileInfos {
+		fileNames = append(fileNames, fmt.Sprintf("`%s`", fileInfo.Name))
 	}
 
 	a.RemoveFilesFromFileStore(rctx, fileInfos)
 
 	err = a.Srv().Store().FileInfo().PermanentDeleteForPost(rctx, postID)
 	if err != nil {
-		return model.NewAppError("PermanentDeleteFilesByPost", "app.file_info.permanent_delete_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("PermanentDeleteFilesByPost", "app.file_info.permanent_delete_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, true)
 	a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, false)
 
-	return nil
+	return fileNames, nil
 }
 
 func (a *App) RemoveFilesFromFileStore(rctx request.CTX, fileInfos []*model.FileInfo) {
