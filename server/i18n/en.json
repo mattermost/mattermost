@@ -5899,6 +5899,154 @@
     "translation": "Failed to update flagged post status when permanently deleting flagged post."
   },
   {
+    "id": "app.data_spillage.report.title",
+    "translation": "Post Deletion Report"
+  },
+  {
+    "id": "app.data_spillage.report.generated",
+    "translation": "Generated:"
+  },
+  {
+    "id": "app.data_spillage.report.post_id",
+    "translation": "Post ID:"
+  },
+  {
+    "id": "app.data_spillage.report.total_steps",
+    "translation": "Total Steps:"
+  },
+  {
+    "id": "app.data_spillage.report.summary",
+    "translation": "Summary"
+  },
+  {
+    "id": "app.data_spillage.report.incomplete_warning",
+    "translation": "Post deletion incomplete. Resolve failures and retry."
+  },
+  {
+    "id": "app.data_spillage.report.error_log",
+    "translation": "Error Log"
+  },
+  {
+    "id": "app.data_spillage.report.revisions_found",
+    "translation": "Revisions found:"
+  },
+  {
+    "id": "app.data_spillage.report.cleared",
+    "translation": "Cleared"
+  },
+  {
+    "id": "app.data_spillage.report.revision",
+    "translation": "Revision"
+  },
+  {
+    "id": "app.data_spillage.report.column.step",
+    "translation": "Step"
+  },
+  {
+    "id": "app.data_spillage.report.column.status",
+    "translation": "Status"
+  },
+  {
+    "id": "app.data_spillage.report.column.detail",
+    "translation": "Detail"
+  },
+  {
+    "id": "app.data_spillage.report.status.deleted",
+    "translation": "Deleted"
+  },
+  {
+    "id": "app.data_spillage.report.status.failed",
+    "translation": "Failed"
+  },
+  {
+    "id": "app.data_spillage.report.status.partial",
+    "translation": "Partial"
+  },
+  {
+    "id": "app.data_spillage.report.status.unknown",
+    "translation": "Unknown"
+  },
+  {
+    "id": "app.data_spillage.report.step.edit_histories",
+    "translation": "Edit Histories"
+  },
+  {
+    "id": "app.data_spillage.report.step.file_attachments",
+    "translation": "Post's File Attachments from File System"
+  },
+  {
+    "id": "app.data_spillage.report.step.fileinfo_rows",
+    "translation": "FileInfo Rows"
+  },
+  {
+    "id": "app.data_spillage.report.step.priority_data",
+    "translation": "Priority Data"
+  },
+  {
+    "id": "app.data_spillage.report.step.persistent_notifications",
+    "translation": "Persistent Notifications"
+  },
+  {
+    "id": "app.data_spillage.report.step.acknowledgements",
+    "translation": "Acknowledgements"
+  },
+  {
+    "id": "app.data_spillage.report.step.reminders",
+    "translation": "Reminders"
+  },
+  {
+    "id": "app.data_spillage.report.step.thread_data",
+    "translation": "Thread & Associated Data"
+  },
+  {
+    "id": "app.data_spillage.report.step.post_itself",
+    "translation": "The Post Itself"
+  },
+  {
+    "id": "app.data_spillage.report.detail.deleted",
+    "translation": "Deleted."
+  },
+  {
+    "id": "app.data_spillage.report.detail.no_revisions",
+    "translation": "No revisions found."
+  },
+  {
+    "id": "app.data_spillage.report.detail.failed_retrieve_edit_history",
+    "translation": "Failed to retrieve edit history."
+  },
+  {
+    "id": "app.data_spillage.report.detail.revisions_cleared",
+    "translation": "{{.Cleared}} of {{.Total}} revisions cleared"
+  },
+  {
+    "id": "app.data_spillage.report.detail.file_attachments_info",
+    "translation": "**File Attachments:** {{.FileNames}} — **FileInfo Rows:** {{.Count}} deleted"
+  },
+  {
+    "id": "app.data_spillage.report.detail.no_files",
+    "translation": "No files found."
+  },
+  {
+    "id": "app.data_spillage.report.detail.no_rows_to_delete",
+    "translation": "No rows to delete."
+  },
+  {
+    "id": "app.data_spillage.report.detail.file_names",
+    "translation": "{{.FileNames}}"
+  },
+  {
+    "id": "app.data_spillage.report.detail.rows_deleted",
+    "translation": "{{.Count}} rows deleted."
+  },
+  {
+    "id": "app.data_spillage.report.detail.thread_data_deleted",
+    "translation": "Threads, reactions, and associated data deleted."
+  },
+  {
+    "id": "app.data_spillage.report.detail.post_scrubbed_deleted",
+    "translation": "Post scrubbed and deleted."
+  },
+  {
     "id": "app.data_spillage.save_reviewer_settings.app_error",
     "translation": "Failed to save content reviewer settings to the database."
   },

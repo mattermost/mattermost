@@ -7213,6 +7213,10 @@
     "id": "api.templates.cloud_welcome_email.info",
     "translation": "Danke für das Erstellen "
   },
+    {
+        "id": "app.data_spillage.report.title",
+        "translation": "Bericht nach dem Löschen"
+    },
   {
     "id": "api.templates.cloud_welcome_email.download_mm_info",
     "translation": "Die Mattermost App runterladen"
