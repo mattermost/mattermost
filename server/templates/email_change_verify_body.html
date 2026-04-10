@@ -1,10 +1,6 @@
 {{define "email_change_verify_body"}}
 <html>
 <head>
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400,500,700&amp;display=swap" rel="stylesheet" type="text/css">
-    <style type="text/css">
-        @import url(https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400&amp;display=swap);
-    </style>
     <style>
         body {
             margin: 0;
@@ -87,12 +83,12 @@
                                             <tbody>
                                             <tr>
                                                 <td align="center" class="title" style="font-size:0px;padding:0px;word-break:break-word;">
-                                                    <h2 style="text-align: center; font-weight: 600; font-size: 28px; line-height: 36px; letter-spacing: -0.01em; color: #3F4350; font-family: Open Sans, sans-serif; margin: 20px 0 0;">{{.Props.Title}}</h2>
+                                                    <h2 style="text-align: center; font-weight: 600; font-size: 28px; line-height: 36px; letter-spacing: -0.01em; color: #3F4350; font-family: sans-serif; margin: 20px 0 0;">{{.Props.Title}}</h2>
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td align="center" class="subTitle" style="font-size:0px;padding:16px 24px 0px 24px;word-break:break-word;">
-                                                    <h5 style="font-family: Open Sans, sans-serif; text-align: center; font-size: 16px; font-weight: 400; line-height: 24px; color: #3F4350">{{.Props.Info}}</h5>
+                                                    <h5 style="font-family: sans-serif; text-align: center; font-size: 16px; font-weight: 400; line-height: 24px; color: #3F4350">{{.Props.Info}}</h5>
                                                 </td>
                                             </tr>
                                             <tr>
@@ -101,7 +97,7 @@
                                                         <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;">
                                                             <tr>
                                                                 <td align="center" bgcolor="#FFFFFF" role="presentation" style="border:none;border-radius:4px;cursor:auto;mso-padding-alt:10px 25px;background:#FFFFFF;" valign="middle">
-                                                                    <a rel="noopener noreferrer" href="{{.Props.VerifyUrl}}" style="display: inline-block; background: #FFFFFF; font-family: Open Sans, sans-serif; margin: 0; text-transform: none; mso-padding-alt: 0px; border-radius: 4px; text-decoration: none; background-color: #1C58D9; font-weight: 600; font-size: 16px; line-height: 18px; color: #FFFFFF; padding: 15px 24px;" target="_blank">
+                                                                    <a rel="noopener noreferrer" href="{{.Props.VerifyUrl}}" style="display: inline-block; background: #FFFFFF; font-family: sans-serif; margin: 0; text-transform: none; mso-padding-alt: 0px; border-radius: 4px; text-decoration: none; background-color: #1C58D9; font-weight: 600; font-size: 16px; line-height: 18px; color: #FFFFFF; padding: 15px 24px;" target="_blank">
                                                                         {{.Props.VerifyButton}}
                                                                     </a>
                                                                 </td>
@@ -157,8 +153,8 @@
                                             <tbody>
                                             <tr>
                                                 <td align="center" class="info" style="font-size:0px;padding:0px;word-break:break-word;">
-                                                    <p style="font-family: Open Sans, sans-serif;font-style: normal;font-weight: 600;font-size: 16px; line-height: 24px; margin-top: 56px; margin-bottom: 2px; color: #3F4350;">{{.Props.QuestionTitle}}</p>
-                                                    <p style="font-family: Open Sans, sans-serif;font-style: normal;font-weight: 400;font-size: 14px;line-height: 20px;margin-top: 2px; color: #3F4350;">{{.Props.EmailInfo1}}<a href='mailto:{{.Props.SupportEmail}}' style='text-decoration: none; color:#2389D7;'>{{.Props.SupportEmail}}</a></p>
+                                                    <p style="font-family: sans-serif;font-style: normal;font-weight: 600;font-size: 16px; line-height: 24px; margin-top: 56px; margin-bottom: 2px; color: #3F4350;">{{.Props.QuestionTitle}}</p>
+                                                    <p style="font-family: sans-serif;font-style: normal;font-weight: 400;font-size: 14px;line-height: 20px;margin-top: 2px; color: #3F4350;">{{.Props.EmailInfo1}}<a href='mailto:{{.Props.SupportEmail}}' style='text-decoration: none; color:#2389D7;'>{{.Props.SupportEmail}}</a></p>
                                                 </td>
                                             </tr>
                                             </tbody>
