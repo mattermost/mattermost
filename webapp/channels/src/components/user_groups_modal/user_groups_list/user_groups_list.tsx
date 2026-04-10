@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import type {ListChildComponentProps} from 'react-window';
 import {VariableSizeList} from 'react-window';
 import InfiniteLoader from 'react-window-infinite-loader';
@@ -126,34 +126,53 @@ const UserGroupsList = (props: Props) => {
             }
 
             return (
-                <button
+                <div
                     className='group-row'
                     style={style}
                     key={group.id}
-                    onClick={() => {
-                        goToViewGroupModal(group);
-                    }}
-                    aria-label={formatMessage({id: 'user_groups_list.groupAriaLabel', defaultMessage: '{group_name} group'}, {group_name: group.display_name})}
                 >
-                    <span className='group-display-name'>
-                        {
-                            group.delete_at > 0 &&
-                            <ArchiveOutlineIcon size={16}/>
-                        }
-                        {group.display_name}
-                    </span>
-                    <span className='group-name'>
-                        {'@'}{group.name}
-                    </span>
-                    <div className='group-member-count'>
-                        <FormattedMessage
-                            id='user_groups_modal.memberCount'
-                            defaultMessage='{member_count} {member_count, plural, one {member} other {members}}'
-                            values={{
-                                member_count: group.member_count,
-                            }}
-                        />
-                    </div>
+                    <button
+                        type='button'
+                        className='group-row__button'
+                        onClick={() => {
+                            goToViewGroupModal(group);
+                        }}
+                        aria-label={formatMessage(
+                            group.delete_at > 0 ? messages.groupAriaLabelArchived : messages.groupAriaLabel,
+                            {group_name: group.display_name},
+                        )}
+                    >
+                        <span className='group-display-name'>
+                            {
+                                group.delete_at > 0 &&
+                                <>
+                                    <ArchiveOutlineIcon
+                                        size={16}
+                                        aria-hidden='true'
+                                    />
+                                    <span className='sr-only'>
+                                        <FormattedMessage
+                                            id='user_groups_modal.archived'
+                                            defaultMessage='Archived'
+                                        />
+                                    </span>
+                                </>
+                            }
+                            {group.display_name}
+                        </span>
+                        <span className='group-name'>
+                            {'@'}{group.name}
+                        </span>
+                        <div className='group-member-count'>
+                            <FormattedMessage
+                                id='user_groups_modal.memberCount'
+                                defaultMessage='{member_count} {member_count, plural, one {member} other {members}}'
+                                values={{
+                                    member_count: group.member_count,
+                                }}
+                            />
+                        </div>
+                    </button>
                     <div className='group-action'>
                         <Menu.Container
                             menuButton={{
@@ -216,7 +235,7 @@ const UserGroupsList = (props: Props) => {
                             )}
                         </Menu.Container>
                     </div>
-                </button>
+                </div>
             );
         }
         if (loading) {
@@ -254,3 +273,14 @@ const UserGroupsList = (props: Props) => {
 };
 
 export default React.memo(UserGroupsList);
+
+const messages = defineMessages({
+    groupAriaLabel: {
+        id: 'user_groups_list.groupAriaLabel',
+        defaultMessage: '{group_name} group',
+    },
+    groupAriaLabelArchived: {
+        id: 'user_groups_list.groupAriaLabelArchived',
+        defaultMessage: '{group_name} group, Archived',
+    },
+});

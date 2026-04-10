@@ -8,7 +8,7 @@ import type {Channel} from '@mattermost/types/channels';
 import {SearchableChannelList} from 'components/searchable_channel_list';
 
 import {type MockIntl} from 'tests/helpers/intl-test-helper';
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import {Filter} from './browse_channels/browse_channels';
 
@@ -145,5 +145,23 @@ describe('components/SearchableChannelList', () => {
         expect(channelRow).toBeInTheDocument();
         expect(container.querySelector('[data-testid="archiveLockOutlineIcon"]')).toBeInTheDocument();
         expect(container.querySelector('[data-testid="archiveOutlineIcon"]')).not.toBeInTheDocument();
+    });
+
+    test('should expose the channel filter as a radio-style menu', async () => {
+        renderWithContext(
+            <SearchableChannelList
+                {...baseProps}
+                loading={false}
+                filter={Filter.Public}
+            />,
+            initialState,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: 'Channel type filter'}));
+
+        expect(screen.getByRole('menuitemradio', {name: 'All channel types'})).toHaveAttribute('aria-checked', 'false');
+        expect(screen.getByRole('menuitemradio', {name: 'Public channels'})).toHaveAttribute('aria-checked', 'true');
+        expect(screen.getByRole('menuitemradio', {name: 'Private channels'})).toHaveAttribute('aria-checked', 'false');
+        expect(screen.getByRole('menuitemradio', {name: 'Archived channels'})).toHaveAttribute('aria-checked', 'false');
     });
 });

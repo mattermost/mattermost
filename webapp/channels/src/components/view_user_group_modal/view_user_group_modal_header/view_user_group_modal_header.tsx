@@ -92,7 +92,18 @@ const ViewUserGroupModalHeader = ({
                     {group.display_name}
                     {
                         group.delete_at > 0 &&
-                        <ArchiveOutlineIcon size={18}/>
+                        <>
+                            <ArchiveOutlineIcon
+                                size={18}
+                                aria-hidden='true'
+                            />
+                            <span className='sr-only'>
+                                <FormattedMessage
+                                    id='user_groups_modal.archived'
+                                    defaultMessage='Archived'
+                                />
+                            </span>
+                        </>
                     }
                 </Modal.Title>
             );

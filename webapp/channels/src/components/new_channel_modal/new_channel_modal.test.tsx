@@ -234,23 +234,25 @@ describe('components/new_channel_modal', () => {
             initialState,
         );
 
-        // Change type to private
-        const privateChannel = screen.getByText('Private Channel');
-        expect(privateChannel).toBeInTheDocument();
+        const publicChannel = screen.getByRole('button', {name: /public channel/i});
+        const privateChannel = screen.getByRole('button', {name: /private channel/i});
 
+        expect(publicChannel).toHaveAttribute('aria-pressed', 'true');
+        expect(privateChannel).toHaveAttribute('aria-pressed', 'false');
+
+        // Change type to private
         await userEvent.click(privateChannel);
 
         // Type should have been updated to private
-        expect(privateChannel.parentElement?.nextSibling?.firstChild).toHaveAttribute('aria-label', 'Check Circle Icon');
+        expect(privateChannel).toHaveAttribute('aria-pressed', 'true');
+        expect(publicChannel).toHaveAttribute('aria-pressed', 'false');
 
         // Change type to public
-        const publicChannel = screen.getByText('Public Channel');
-        expect(publicChannel).toBeInTheDocument();
-
         await userEvent.click(publicChannel);
 
         // Type should have been updated to public
-        expect(publicChannel.parentElement?.nextSibling?.firstChild).toHaveAttribute('aria-label', 'Check Circle Icon');
+        expect(publicChannel).toHaveAttribute('aria-pressed', 'true');
+        expect(privateChannel).toHaveAttribute('aria-pressed', 'false');
     });
 
     test('should handle purpose changes', async () => {

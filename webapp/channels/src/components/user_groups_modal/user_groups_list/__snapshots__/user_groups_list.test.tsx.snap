@@ -13,27 +13,32 @@ exports[`component/user_groups_modal should match snapshot with groups 1`] = `
         <div
           style="height: 156px; width: 100%;"
         >
-          <button
-            aria-label="Group 0 group"
+          <div
             class="group-row"
             style="position: absolute; left: 0px; top: 0px; height: 52px; width: 100%;"
           >
-            <span
-              class="group-display-name"
+            <button
+              aria-label="Group 0 group"
+              class="group-row__button"
+              type="button"
             >
-              Group 0
-            </span>
-            <span
-              class="group-name"
-            >
-              @
-              group0
-            </span>
-            <div
-              class="group-member-count"
-            >
-              1 member
-            </div>
+              <span
+                class="group-display-name"
+              >
+                Group 0
+              </span>
+              <span
+                class="group-name"
+              >
+                @
+                group0
+              </span>
+              <div
+                class="group-member-count"
+              >
+                1 member
+              </div>
+            </button>
             <div
               class="group-action"
             >
@@ -50,28 +55,33 @@ exports[`component/user_groups_modal should match snapshot with groups 1`] = `
                 />
               </button>
             </div>
-          </button>
-          <button
-            aria-label="Group 1 group"
+          </div>
+          <div
             class="group-row"
             style="position: absolute; left: 0px; top: 52px; height: 52px; width: 100%;"
           >
-            <span
-              class="group-display-name"
+            <button
+              aria-label="Group 1 group"
+              class="group-row__button"
+              type="button"
             >
-              Group 1
-            </span>
-            <span
-              class="group-name"
-            >
-              @
-              group1
-            </span>
-            <div
-              class="group-member-count"
-            >
-              2 members
-            </div>
+              <span
+                class="group-display-name"
+              >
+                Group 1
+              </span>
+              <span
+                class="group-name"
+              >
+                @
+                group1
+              </span>
+              <div
+                class="group-member-count"
+              >
+                2 members
+              </div>
+            </button>
             <div
               class="group-action"
             >
@@ -88,28 +98,33 @@ exports[`component/user_groups_modal should match snapshot with groups 1`] = `
                 />
               </button>
             </div>
-          </button>
-          <button
-            aria-label="Group 2 group"
+          </div>
+          <div
             class="group-row"
             style="position: absolute; left: 0px; top: 104px; height: 52px; width: 100%;"
           >
-            <span
-              class="group-display-name"
+            <button
+              aria-label="Group 2 group"
+              class="group-row__button"
+              type="button"
             >
-              Group 2
-            </span>
-            <span
-              class="group-name"
-            >
-              @
-              group2
-            </span>
-            <div
-              class="group-member-count"
-            >
-              3 members
-            </div>
+              <span
+                class="group-display-name"
+              >
+                Group 2
+              </span>
+              <span
+                class="group-name"
+              >
+                @
+                group2
+              </span>
+              <div
+                class="group-member-count"
+              >
+                3 members
+              </div>
+            </button>
             <div
               class="group-action"
             >
@@ -126,7 +141,7 @@ exports[`component/user_groups_modal should match snapshot with groups 1`] = `
                 />
               </button>
             </div>
-          </button>
+          </div>
         </div>
       </div>
     </div>

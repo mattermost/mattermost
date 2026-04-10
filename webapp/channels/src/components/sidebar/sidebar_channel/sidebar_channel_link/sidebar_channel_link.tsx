@@ -297,6 +297,7 @@ export class SidebarChannelLink extends React.PureComponent<Props, State> {
                 className={className}
                 id={`sidebarItem_${channel.name}`}
                 aria-label={this.getAriaLabel()}
+                aria-current={isChannelSelected ? 'page' : undefined}
                 to={link}
                 onClick={this.handleChannelClick}
                 tabIndex={0}

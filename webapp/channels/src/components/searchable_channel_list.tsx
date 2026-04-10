@@ -446,6 +446,9 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 key='channelsMoreDropdownAll'
                 id='channelsMoreDropdownAll'
                 onClick={() => this.filterChange(Filter.All)}
+                role='menuitemradio'
+                aria-checked={this.props.filter === Filter.All}
+                forceCloseOnSelect={true}
                 leadingElement={<GlobeCheckedIcon size={16}/>}
                 labels={
                     <FormattedMessage
@@ -460,6 +463,9 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 key='channelsMoreDropdownPublic'
                 id='channelsMoreDropdownPublic'
                 onClick={() => this.filterChange(Filter.Public)}
+                role='menuitemradio'
+                aria-checked={this.props.filter === Filter.Public}
+                forceCloseOnSelect={true}
                 leadingElement={<GlobeIcon size={16}/>}
                 labels={
                     <FormattedMessage
@@ -474,6 +480,9 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 key='channelsMoreDropdownPrivate'
                 id='channelsMoreDropdownPrivate'
                 onClick={() => this.filterChange(Filter.Private)}
+                role='menuitemradio'
+                aria-checked={this.props.filter === Filter.Private}
+                forceCloseOnSelect={true}
                 leadingElement={<LockOutlineIcon size={16}/>}
                 labels={
                     <FormattedMessage
@@ -492,6 +501,9 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 key='channelsMoreDropdownArchived'
                 id='channelsMoreDropdownArchived'
                 onClick={() => this.filterChange(Filter.Archived)}
+                role='menuitemradio'
+                aria-checked={this.props.filter === Filter.Archived}
+                forceCloseOnSelect={true}
                 leadingElement={<ArchiveOutlineIcon size={16}/>}
                 labels={
                     <FormattedMessage

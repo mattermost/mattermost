@@ -56,8 +56,10 @@ const BigButtonSelector = ({
 
     const button = (
         <button
+            type='button'
             id={`public-private-selector-button-${id}`}
             className={classNames('public-private-selector-button', {selected, disabled, locked})}
+            aria-pressed={selected}
             onClick={handleOnClick}
         >
             <IconSVG className={classNames('public-private-selector-button-icon', iconClassName)}/>

@@ -205,4 +205,24 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
 
         expect(props.actions.fetchChannelRemotes).toHaveBeenCalledWith('new_channel_id');
     });
+
+    test('should expose aria-current on the selected channel link only', () => {
+        const {container, rerender} = renderWithContext(
+            <SidebarChannelLink
+                {...baseProps}
+                isChannelSelected={true}
+            />,
+        );
+
+        expect(container.querySelector('.SidebarLink')).toHaveAttribute('aria-current', 'page');
+
+        rerender(
+            <SidebarChannelLink
+                {...baseProps}
+                isChannelSelected={false}
+            />,
+        );
+
+        expect(container.querySelector('.SidebarLink')).not.toHaveAttribute('aria-current');
+    });
 });

@@ -5,7 +5,7 @@ import React from 'react';
 
 import type {Group, GroupPermissions} from '@mattermost/types/groups';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import UserGroupsList from './user_groups_list';
 
@@ -105,9 +105,7 @@ describe('component/user_groups_modal', () => {
         const groups = getGroups(3);
         const permissions = getPermissions(groups);
 
-        // Suppress expected DOM nesting warning from component's button structure
-        const originalError = console.error;
-        console.error = jest.fn();
+        const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
 
         const {baseElement} = renderWithContext(
             <UserGroupsList
@@ -120,6 +118,37 @@ describe('component/user_groups_modal', () => {
         );
         expect(baseElement).toMatchSnapshot();
 
-        console.error = originalError;
+        expect(consoleErrorSpy).not.toHaveBeenCalledWith(expect.stringContaining('validateDOMNesting'));
+        consoleErrorSpy.mockRestore();
+    });
+
+    test('should render separate row and actions buttons for each group', async () => {
+        const groups = getGroups(1);
+        const permissions = getPermissions(groups);
+
+        renderWithContext(
+            <UserGroupsList
+                {...baseProps}
+                groups={[
+                    {
+                        ...groups[0],
+                        delete_at: 123,
+                    },
+                ]}
+                groupPermissionsMap={permissions}
+            />,
+            initialState as any,
+            {useMockedStore: true},
+        );
+
+        const rowButton = screen.getByRole('button', {name: 'Group 0 group, Archived'});
+        const actionsButton = screen.getByRole('button', {name: 'Group 0 actions'});
+
+        expect(rowButton).toBeInTheDocument();
+        expect(actionsButton).toBeInTheDocument();
+        expect(rowButton).not.toContainElement(actionsButton);
+
+        await userEvent.click(actionsButton);
+        expect(screen.getByRole('menuitem', {name: 'View Group'})).toBeInTheDocument();
     });
 });

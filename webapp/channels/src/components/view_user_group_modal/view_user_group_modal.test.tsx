@@ -130,4 +130,34 @@ describe('component/view_user_group_modal', () => {
         await userEvent.type(searchInput, 'user1');
         expect(baseProps.actions.setModalSearchTerm).toHaveBeenCalledTimes(6);
     });
+
+    test('should announce archived groups in the modal header', () => {
+        renderWithContext(
+            <ViewUserGroupModal
+                {...baseProps}
+                group={{
+                    ...group,
+                    delete_at: 123,
+                }}
+            />,
+            {
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    groups: {
+                        ...initialState.entities.groups,
+                        groups: {
+                            groupid123: {
+                                ...group,
+                                delete_at: 123,
+                            },
+                        },
+                    },
+                },
+            } as any,
+            {useMockedStore: true},
+        );
+
+        expect(screen.getByRole('heading', {name: /group name archived/i})).toBeInTheDocument();
+    });
 });
