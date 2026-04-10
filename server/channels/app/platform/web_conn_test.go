@@ -243,17 +243,22 @@ func TestWebConnRejectBinaryFrameUnauthenticated(t *testing.T) {
 	th := Setup(t)
 
 	readPumpDone := make(chan struct{})
+	upgradeErrCh := make(chan error, 1)
 
 	s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		upgrader := &websocket.Upgrader{}
 		conn, err := upgrader.Upgrade(w, r, nil)
-		require.NoError(t, err)
+		if err != nil {
+			upgradeErrCh <- err
+			return
+		}
+		upgradeErrCh <- nil
 
 		wc := th.Service.NewWebConn(&WebConnConfig{
 			WebSocket: conn,
 		}, th.Suite, &hookRunner{})
 
-		require.False(t, wc.IsBasicAuthenticated())
+		require.False(t, wc.IsAuthenticated())
 
 		go func() {
 			wc.readPump()
@@ -266,6 +271,8 @@ func TestWebConnRejectBinaryFrameUnauthenticated(t *testing.T) {
 	clientConn, _, err := d.Dial("ws://"+s.Listener.Addr().String()+"/ws", nil)
 	require.NoError(t, err)
 	defer clientConn.Close()
+
+	require.NoError(t, <-upgradeErrCh)
 
 	err = clientConn.WriteMessage(websocket.BinaryMessage, []byte{0x01, 0x02, 0x03})
 	require.NoError(t, err)
