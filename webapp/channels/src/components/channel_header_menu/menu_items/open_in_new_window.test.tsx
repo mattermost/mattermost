@@ -8,7 +8,7 @@ import type {ChannelType} from '@mattermost/types/channels';
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
-import {isChannelPopoutWindow, popoutChannel} from 'utils/popouts/popout_windows';
+import {canPopout, isChannelPopoutWindow, popoutChannel} from 'utils/popouts/popout_windows';
 import {TestHelper} from 'utils/test_helper';
 
 import MenuItemOpenInNewWindow from './open_in_new_window';
@@ -55,10 +55,25 @@ describe('MenuItemOpenInNewWindow', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         jest.mocked(isChannelPopoutWindow).mockReturnValue(false);
+        jest.mocked(canPopout).mockReturnValue(true);
     });
 
     test('should render nothing when already in a channel popout', () => {
         jest.mocked(isChannelPopoutWindow).mockReturnValue(true);
+        const channel = TestHelper.getChannelMock({type: 'O' as ChannelType, name: 'town-square'});
+
+        const {container} = renderWithContext(
+            <WithTestMenuContext>
+                <MenuItemOpenInNewWindow channel={channel}/>
+            </WithTestMenuContext>,
+            baseState,
+        );
+
+        expect(container).toBeEmptyDOMElement();
+    });
+
+    test('should render nothing when popout is not available', () => {
+        jest.mocked(canPopout).mockReturnValue(false);
         const channel = TestHelper.getChannelMock({type: 'O' as ChannelType, name: 'town-square'});
 
         const {container} = renderWithContext(
