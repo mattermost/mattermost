@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Page} from '@playwright/test';
+import type {CDPSession, Page} from '@playwright/test';
 
 /**
  * This is Korean for "Test if Hangul is typed well".
@@ -21,54 +21,81 @@ export const koreanTestPhrase = '한글이 잘 입력되는지 테스트';
  *
  * Note: This only works on Chrome-based browsers because it relies on the Chrome Devtools Protocol (CDP).
  */
-export async function typeKoreanWithIme(page: Page, text: string) {
+export async function typeHangulWithIme(page: Page, text: string) {
     const client = await page.context().newCDPSession(page);
 
-    for (const decomposed of decomposeKorean(text)) {
-        if (decomposed.jama) {
-            // # Type the individual jamo
+    const decomposed = decomposeKorean(text);
+    for (let i = 0; i < decomposed.length; i++) {
+        await typeHangulCharacterWithIme(client, decomposed[i], decomposed[i - 1]);
+    }
 
-            // The first one is typed as-is
-            await client.send('Input.imeSetComposition', {
-                selectionStart: -1,
-                selectionEnd: -1,
-                text: decomposed.jama[0],
-            });
-
-            // When you type the second one, the IME combines the two into the resulting character. Instead of reversing
-            // the math, we can do that by concatenating them and then normalizing the Unicode.
-            await client.send('Input.imeSetComposition', {
-                selectionStart: -1,
-                selectionEnd: -1,
-                text: (decomposed.jama[0] + decomposed.jama[1]).normalize('NFKD'),
-            });
-
-            // For the third one, we can't normalize the Unicode because there are some initial and final jama which
-            // look identical and normalize to the same value, so just use the original character
-            await client.send('Input.imeSetComposition', {
-                selectionStart: -1,
-                selectionEnd: -1,
-                text: decomposed.character,
-            });
-
-            // # End composition by inserting the complete character into the textbox
-            // Technically, this doesn't actually happen until the user types something else or clicks on the textbox,
-            // but it's cleaner to do now since we don't currently support searching for partially composed characters.
-            await client.send('Input.insertText', {
-                text: decomposed.character,
-            });
-        } else {
-            // # Insert the character
-            await client.send('Input.insertText', {
-                text: decomposed.character,
-            });
-        }
+    const lastCharacter = decomposed.at(-1);
+    if (lastCharacter && 'jamo' in lastCharacter) {
+        // # End composition by inserting the final character into the textbox
+        await client.send('Input.insertText', {
+            text: lastCharacter.character,
+        });
     }
 
     await client.detach();
 }
 
-function decomposeKorean(text: string): Array<{character: string; jama?: string[]}> {
+export async function typeHangulCharacterWithIme(
+    client: CDPSession,
+    current: HangleCharacter,
+    previous: HangleCharacter | undefined,
+) {
+    if (previous && previous.jamo) {
+        // # End composition of the previous character by inserting it into the textbox
+        await client.send('Input.insertText', {
+            text: previous.character,
+        });
+    }
+
+    if (current.jamo) {
+        // # Type the individual jamo
+
+        // The first one is typed as-is
+        await client.send('Input.imeSetComposition', {
+            selectionStart: 0,
+            selectionEnd: 0,
+            text: current.jamo[0],
+        });
+
+        // When you type the second one, the IME combines the two into the resulting character. Instead of reversing
+        // the math, we can do that by concatenating them and then normalizing the Unicode.
+        await client.send('Input.imeSetComposition', {
+            selectionStart: 0,
+            selectionEnd: 0,
+            text: (current.jamo[0] + current.jamo[1]).normalize('NFKD'),
+        });
+
+        // For the third one, we can't normalize the Unicode because there are some initial and final jamo which
+        // look identical and normalize to the same value, so just use the original character
+        await client.send('Input.imeSetComposition', {
+            selectionStart: 0,
+            selectionEnd: 0,
+            text: current.character,
+        });
+    } else {
+        // # Insert the character
+        await client.send('Input.insertText', {
+            text: current.character,
+        });
+    }
+}
+
+/**
+ * HangleCharacter is an object containing either:
+ *  - An non-Korean character
+ *  - A Korean character and the array of jamo (syllables) that make up that character
+ */
+export interface HangleCharacter {
+    character: string;
+    jamo?: string[];
+}
+
+export function decomposeKorean(text: string): Array<HangleCharacter> {
     // Adapted from https://useless-factor.blogspot.com/2007/08/unicode-implementers-guide-part-3.html and
     // https://web.archive.org/web/20190512031142/http://www.programminginkorean.com/programming/hangul-in-unicode/composing-syllables-in-unicode/
 
@@ -156,7 +183,7 @@ function decomposeKorean(text: string): Array<{character: string; jama?: string[
 
     for (let i = 0; i < text.length; i++) {
         const character = text[i];
-        const code = character.charCodeAt(i);
+        const code = character.charCodeAt(0);
 
         if (code >= hangulStart && code <= hangulEnd) {
             // This is a Hangul character, so we can break it down into the individual constants and vowel
@@ -167,13 +194,13 @@ function decomposeKorean(text: string): Array<{character: string; jama?: string[
             const medialIndex = Math.floor((syllableIndex % (21 * 28)) / 28);
             const finalIndex = syllableIndex % 28;
 
-            const jama = [];
-            jama.push(initial[initialIndex]);
-            jama.push(medial[medialIndex]);
+            const jamo = [];
+            jamo.push(initial[initialIndex]);
+            jamo.push(medial[medialIndex]);
             if (final[finalIndex]) {
-                jama.push(final[finalIndex]);
+                jamo.push(final[finalIndex]);
             }
-            result.push({character, jama});
+            result.push({character, jamo});
         } else {
             // This is some other character, so just add it separately
             result.push({character});

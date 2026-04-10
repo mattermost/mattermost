@@ -946,7 +946,7 @@ func TestImportImportUser(t *testing.T) {
 		assert.Equal(t, userCount, userCountCurrent, "Unexpected number of users")
 
 		// Check Password and AuthData together.
-		data.Password = model.NewPointer("PasswordTest")
+		data.Password = model.NewPointer(model.NewTestPassword())
 		appErr = th.App.importUser(th.Context, &data, false)
 		require.NotNil(t, appErr, "Should have failed to import invalid user.")
 

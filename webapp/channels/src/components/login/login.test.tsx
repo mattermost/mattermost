@@ -408,6 +408,25 @@ describe('components/login/Login', () => {
         expect(history.push).toHaveBeenCalledWith(redirectPath);
     });
 
+    it('should not show dont have an account when open server is disabled', () => {
+        const state = mergeObjects(baseState, {
+            entities: {
+                general: {
+                    config: {
+                        EnableOpenServer: 'false',
+                    },
+                },
+            },
+        });
+
+        renderWithContext(
+            <Login/>,
+            state,
+        );
+
+        expect(screen.queryByText('Don\'t have an account')).not.toBeInTheDocument();
+    });
+
     describe('EnableGuestMagicLink', () => {
         it('should show password field when EnableGuestMagicLink is false', async () => {
             const state = mergeObjects(baseState, {
