@@ -1695,47 +1695,87 @@ func getFileExtFromMimeType(mimeType string) string {
 	return "jpg"
 }
 
-func (a *App) PermanentDeleteFilesByPost(rctx request.CTX, postID string) ([]string, *model.AppError) {
+func (a *App) PermanentDeleteFilesByPost(rctx request.CTX, postID string, report *model.PostDeletionReport) *model.AppError {
 	fileInfos, err := a.Srv().Store().FileInfo().GetForPost(postID, false, true, true)
 	if err != nil {
-		return nil, model.NewAppError("PermanentDeleteFilesByPost", "app.file_info.get_by_post_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		report.AddStep("app.data_spillage.report.step.file_attachments", model.StepFailed, "", []string{err.Error()})
+		report.AddStep("app.data_spillage.report.step.fileinfo_rows", model.StepFailed, "", []string{err.Error()})
+
+		return model.NewAppError("PermanentDeleteFilesByPost", "app.file_info.get_by_post_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if len(fileInfos) == 0 {
 		rctx.Logger().Debug("No files found for post", mlog.String("post_id", postID))
-		return []string{}, nil
+
+		if report != nil {
+			report.AddStep("app.data_spillage.report.step.file_attachments", model.StepSuccess, "app.data_spillage.report.detail.no_files", nil)
+			report.AddStep("app.data_spillage.report.step.fileinfo_rows", model.StepSuccess, "app.data_spillage.report.detail.no_rows_to_delete", nil)
+		}
+
+		return nil
 	}
 
 	fileNames := make([]string, 0, len(fileInfos))
+	fileInfoIDs := make([]string, 0, len(fileInfos))
 	for _, fileInfo := range fileInfos {
 		fileNames = append(fileNames, fmt.Sprintf("`%s`", fileInfo.Name))
+		fileInfoIDs = append(fileInfoIDs, fmt.Sprintf("`%s`", fileInfo.Id))
 	}
 
-	a.RemoveFilesFromFileStore(rctx, fileInfos)
+	errs := a.RemoveFilesFromFileStore(rctx, fileInfos)
+	if errs != nil && len(errs) > 0 {
+		if report != nil {
+			errMessages := make([]string, 0, len(errs))
+			for _, err := range errs {
+				errMessages = append(errMessages, err.Error())
+			}
+			report.AddStep("app.data_spillage.report.step.file_attachments", model.StepFailed, "", errMessages)
+		}
+	} else {
+		if report != nil {
+			report.AddStepWithParams("app.data_spillage.report.step.file_attachments", model.StepSuccess, "app.data_spillage.report.detail.file_names", map[string]any{"FileNames": strings.Join(fileNames, ", ")}, nil)
+		}
+	}
 
 	err = a.Srv().Store().FileInfo().PermanentDeleteForPost(rctx, postID)
 	if err != nil {
-		return nil, model.NewAppError("PermanentDeleteFilesByPost", "app.file_info.permanent_delete_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		if report != nil {
+			report.AddStep("app.data_spillage.report.step.fileinfo_rows", model.StepFailed, "", []string{err.Error()})
+		}
+
+		return model.NewAppError("PermanentDeleteFilesByPost", "app.file_info.permanent_delete_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if report != nil {
+		report.AddStepWithParams("app.data_spillage.report.step.fileinfo_rows", model.StepSuccess, "app.data_spillage.report.detail.file_attachments_info", map[string]any{"FileInfoIDs": strings.Join(fileInfoIDs, ", ")}, nil)
 	}
 
 	a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, true)
 	a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, false)
 
-	return fileNames, nil
+	return nil
 }
 
-func (a *App) RemoveFilesFromFileStore(rctx request.CTX, fileInfos []*model.FileInfo) {
+func (a *App) RemoveFilesFromFileStore(rctx request.CTX, fileInfos []*model.FileInfo) []*model.AppError {
+	errs := []*model.AppError{}
+
 	for _, info := range fileInfos {
-		a.RemoveFileFromFileStore(rctx, info.Path)
+		appErr := a.RemoveFileFromFileStore(rctx, info.Path)
+		if appErr != nil && appErr.StatusCode != http.StatusNotFound {
+			errs = append(errs, appErr)
+		}
+
 		if info.PreviewPath != "" {
-			a.RemoveFileFromFileStore(rctx, info.PreviewPath)
+			_ = a.RemoveFileFromFileStore(rctx, info.PreviewPath)
 		}
 		if info.ThumbnailPath != "" {
-			a.RemoveFileFromFileStore(rctx, info.ThumbnailPath)
+			_ = a.RemoveFileFromFileStore(rctx, info.ThumbnailPath)
 		}
 	}
+
+	return errs
 }
 
-func (a *App) RemoveFileFromFileStore(rctx request.CTX, path string) {
+func (a *App) RemoveFileFromFileStore(rctx request.CTX, path string) *model.AppError {
 	res, appErr := a.FileExists(path)
 	if appErr != nil {
 		rctx.Logger().Warn(
@@ -1743,12 +1783,12 @@ func (a *App) RemoveFileFromFileStore(rctx request.CTX, path string) {
 			mlog.String("path", path),
 			mlog.Err(appErr),
 		)
-		return
+		return appErr
 	}
 
 	if !res {
 		rctx.Logger().Warn("File not found", mlog.String("path", path))
-		return
+		return model.NewAppError("RemoveFileFromFile", "app.file_info.not_found", nil, "", http.StatusNotFound)
 	}
 
 	appErr = a.RemoveFile(path)
@@ -1758,8 +1798,10 @@ func (a *App) RemoveFileFromFileStore(rctx request.CTX, path string) {
 			mlog.String("path", path),
 			mlog.Err(appErr),
 		)
-		return
+		return appErr
 	}
+
+	return nil
 }
 
 // sendFileDownloadRejectedEvent sends a websocket event to notify the user that their file download was rejected.

@@ -674,13 +674,15 @@ func (a *App) PermanentDeletePostDataRetainStub(rctx request.CTX, post *model.Po
 		Timestamp: time.Now().UTC(),
 	}
 
+	a.deleteFiles(rctx, post.Id, report)
+
 	// Step 1: Edit Histories
 	a.deleteEditHistories(rctx, post.Id, deleteByID, report)
 
 	// Step 2: Post's File Attachments from File System
 	// Step 3: FileInfo Rows
 	// Inline the file deletion logic to capture file names for the report
-	a.deleteFiles(rctx, post.Id, report)
+	//a.deleteFiles(rctx, post.Id, report)
 
 	// Step 4: Priority Data
 	if err := a.DeletePriorityForPost(post.Id); err != nil {
@@ -738,9 +740,11 @@ func (a *App) PermanentDeletePostDataRetainStub(rctx request.CTX, post *model.Po
 	var deletePostErr *model.AppError
 	if post.DeleteAt == 0 {
 		// DeletePost is called to care of WebSocket events, cache invalidation, search index removal,
-		// persistent notification removal and other cleanup tasks that need to happen on post deletion.
+		// and other cleanup tasks that need to happen on post deletion.
 		_, deletePostErr = a.DeletePost(rctx, post.Id, deleteByID)
 		if deletePostErr != nil {
+			rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to delete the post after scrubbing content", mlog.Err(deletePostErr), mlog.String("post_id", post.Id))
+
 			postStepErrors = append(postStepErrors, deletePostErr.Error())
 			postStepFailed = true
 		}
@@ -757,14 +761,11 @@ func (a *App) PermanentDeletePostDataRetainStub(rctx request.CTX, post *model.Po
 
 func (a *App) deleteEditHistories(rctx request.CTX, postId, deleteByID string, report *model.PostDeletionReport) {
 	editHistories, appErr := a.GetEditHistoryForPost(postId)
-	if appErr != nil {
-		if appErr.StatusCode != http.StatusNotFound {
-			rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to get edit history for post", mlog.Err(appErr), mlog.String("post_id", postId))
-			if len(editHistories) == 0 {
-				report.AddStep("app.data_spillage.report.step.edit_histories", model.StepFailed, "app.data_spillage.report.detail.failed_retrieve_edit_history", []string{appErr.Error()})
-				return
-			}
-		}
+	if appErr != nil && appErr.StatusCode != http.StatusNotFound {
+		rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to get edit history for post", mlog.Err(appErr), mlog.String("post_id", postId))
+		report.AddStep("app.data_spillage.report.step.edit_histories", model.StepFailed, "app.data_spillage.report.detail.failed_retrieve_edit_history", []string{appErr.Error()})
+
+		return
 	}
 
 	if len(editHistories) == 0 {
@@ -823,19 +824,9 @@ func (a *App) deleteEditHistories(rctx request.CTX, postId, deleteByID string, r
 }
 
 func (a *App) deleteFiles(rctx request.CTX, postId string, report *model.PostDeletionReport) {
-	fileNames, appErr := a.PermanentDeleteFilesByPost(rctx, postId)
+	appErr := a.PermanentDeleteFilesByPost(rctx, postId, report)
 	if appErr != nil {
 		rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to permanently delete files for the post", mlog.Err(appErr), mlog.String("post_id", postId))
-		report.AddStep("app.data_spillage.report.step.file_attachments", model.StepFailed, "", []string{appErr.Error()})
-		return
-	}
-
-	if len(fileNames) == 0 {
-		report.AddStep("app.data_spillage.report.step.file_attachments", model.StepSuccess, "app.data_spillage.report.detail.no_files", nil)
-		report.AddStep("app.data_spillage.report.step.fileinfo_rows", model.StepSuccess, "app.data_spillage.report.detail.no_rows_to_delete", nil)
-		return
-	} else {
-		report.AddStepWithParams("app.data_spillage.report.step.file_attachments", model.StepSuccess, "app.data_spillage.report.detail.file_names", map[string]any{"FileNames": strings.Join(fileNames, ", ")}, nil)
 	}
 }
 

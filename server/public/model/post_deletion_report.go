@@ -204,8 +204,8 @@ func (r *PostDeletionReport) renderSummaryTable(T i18n.TranslateFunc, b *strings
 	for i, step := range r.Steps {
 		translatedName := T(step.Name)
 		translatedDetail := r.translateDetail(T, step.Detail, step.DetailParams)
-		b.WriteString(fmt.Sprintf("| %d | %s | %s %s | %s |\n",
-			i+1, translatedName, step.Status.Icon(), step.Status.Label(T), translatedDetail))
+		b.WriteString(fmt.Sprintf("| %d | %s | %s | %s |\n",
+			i+1, translatedName, step.Status.Icon(), translatedDetail))
 	}
 }
 

@@ -5968,7 +5968,7 @@
   },
   {
     "id": "app.data_spillage.report.step.edit_histories",
-    "translation": "Edit Histories"
+    "translation": "Edit History"
   },
   {
     "id": "app.data_spillage.report.step.file_attachments",
@@ -6020,7 +6020,7 @@
   },
   {
     "id": "app.data_spillage.report.detail.file_attachments_info",
-    "translation": "**File Attachments:** {{.FileNames}} — **FileInfo Rows:** {{.Count}} deleted"
+    "translation": "**File Info IDs:** {{.FileInfoIDs}}"
   },
   {
     "id": "app.data_spillage.report.detail.no_files",
@@ -6032,7 +6032,7 @@
   },
   {
     "id": "app.data_spillage.report.detail.file_names",
-    "translation": "{{.FileNames}}"
+    "translation": "**File Attachments:** {{.FileNames}}"
   },
   {
     "id": "app.data_spillage.report.detail.rows_deleted",

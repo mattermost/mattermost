@@ -3109,7 +3109,7 @@ func (a *App) PermanentDeletePost(rctx request.CTX, postID, deleteByID string) *
 	}
 
 	if postHasFiles {
-		_, appErr := a.PermanentDeleteFilesByPost(rctx, post.Id)
+		appErr := a.PermanentDeleteFilesByPost(rctx, post.Id, nil)
 		if appErr != nil {
 			return appErr
 		}
