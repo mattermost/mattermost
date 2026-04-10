@@ -482,7 +482,7 @@ export function getManagedCategoryMappings(state: GlobalState, teamId: string): 
     if (!areManagedCategoriesEnabled(state)) {
         return undefined;
     }
-    return state.entities.channelCategories.managedCategoryMappings?.[teamId];
+    return state.entities.channelCategories.managedCategoryMappings[teamId];
 }
 
 export function isChannelInManagedCategory(state: GlobalState, channelId: string): boolean {
