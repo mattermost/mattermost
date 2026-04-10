@@ -41,7 +41,7 @@ func main() {
 	flag.StringVar(&cfg.ServerDir, "server-dir", "", "Path to server directory (for managed mode)")
 	flag.BoolVar(&cfg.Manage, "manage", true, "Manage server lifecycle (build/start/stop)")
 	flag.StringVar(&cfg.AdminUser, "admin-user", "admin", "Admin username to create")
-	flag.StringVar(&cfg.AdminPass, "admin-pass", "Admin1234!", "Admin password")
+	flag.StringVar(&cfg.AdminPass, "admin-pass", "Admin1234567890", "Admin password")
 	flag.Parse()
 
 	if cfg.LicensePath == "" {

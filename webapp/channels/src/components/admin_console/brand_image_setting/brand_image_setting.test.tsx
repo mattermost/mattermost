@@ -1,30 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import nock from 'nock';
 import React from 'react';
 
-import {uploadBrandImage, deleteBrandImage} from 'actions/admin_actions.jsx';
+import {Client4} from 'mattermost-redux/client';
 
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import BrandImageSetting from './brand_image_setting';
 
-// Real implementations are async (await dispatch(...)); mocks must return Promises so handleSave can await them.
-jest.mock('actions/admin_actions.jsx', () => ({
-    ...jest.requireActual('actions/admin_actions.jsx'),
-    uploadBrandImage: jest.fn(async () => {}),
-    deleteBrandImage: jest.fn(async () => {}),
-}));
+Client4.setUrl('http://localhost:8065');
 
 describe('components/admin_console/brand_image_setting', () => {
-    beforeEach(() => {
-        jest.spyOn(global, 'fetch').mockResolvedValue({status: 404} as Response);
-    });
-
-    afterEach(() => {
-        jest.restoreAllMocks();
-    });
-
     const baseProps = {
         disabled: false,
         setSaveNeeded: jest.fn(),
@@ -32,71 +20,59 @@ describe('components/admin_console/brand_image_setting', () => {
         unRegisterSaveAction: jest.fn(),
     };
 
-    test('should have called deleteBrandImage or uploadBrandImage on save depending on component state', async () => {
-        let saveAction: (() => Promise<unknown>) | undefined;
-        const registerSaveAction = jest.fn((fn: () => Promise<unknown>) => {
-            saveAction = fn;
-        });
+    const deleteButtonTestId = 'remove-image__btn';
 
-        const {container, unmount} = renderWithContext(
-            <BrandImageSetting
-                {...baseProps}
-                registerSaveAction={registerSaveAction}
-            />,
-        );
+    let scope: nock.Scope;
 
-        // Wait for componentDidMount fetch to resolve
-        await waitFor(() => {
-            expect(registerSaveAction).toHaveBeenCalled();
-        });
-        expect(saveAction).toBeDefined();
+    beforeAll(() => {
+        scope = nock(Client4.getBaseRoute()).persist().get('/brand/image').query(true).reply(200);
+    });
 
-        // Simulate selecting a file via the file input to set brandImage
-        const file = new File(['brand_image_file'], 'brand.png', {type: 'image/png'});
-        const fileInput = container.querySelector('input[type="file"]');
-        expect(fileInput).toBeInTheDocument();
-        await userEvent.upload(fileInput as HTMLInputElement, file);
+    afterAll(() => {
+        nock.cleanAll();
+    });
 
-        // Now call save - should call uploadBrandImage
-        await saveAction!();
-        expect(deleteBrandImage).toHaveBeenCalledTimes(0);
-        expect(uploadBrandImage).toHaveBeenCalledTimes(1);
+    test('should register and unregister save handler when mounted and unmounted respectively', () => {
+        const {unmount} = renderWithContext(<BrandImageSetting {...baseProps}/>);
 
-        // To test deleteBrandImage path, unmount then re-mount with fetch returning 200
+        expect(baseProps.registerSaveAction).toHaveBeenCalledTimes(1);
+
         unmount();
-        jest.clearAllMocks();
-        (global.fetch as jest.Mock).mockResolvedValueOnce({status: 200} as Response);
 
-        let saveAction2: (() => Promise<unknown>) | undefined;
-        const registerSaveAction2 = jest.fn((fn: () => Promise<unknown>) => {
-            saveAction2 = fn;
-        });
+        expect(baseProps.unRegisterSaveAction).toHaveBeenCalledTimes(1);
+    });
 
-        renderWithContext(
-            <BrandImageSetting
-                {...baseProps}
-                registerSaveAction={registerSaveAction2}
-            />,
-        );
+    test('should show delete button if brand image exists', async () => {
+        renderWithContext(<BrandImageSetting {...baseProps}/>);
 
-        await waitFor(() => {
-            expect(registerSaveAction2).toHaveBeenCalled();
-        });
-        expect(saveAction2).toBeDefined();
+        await waitFor(() => expect(scope.isDone()).toBe(true));
 
-        // Wait for the brand image to be detected and delete button to appear
-        await waitFor(() => {
-            expect(screen.getByText('×')).toBeInTheDocument();
-        });
-        const deleteButton = screen.getByText('×').closest('button')!;
+        expect(screen.getByTestId(deleteButtonTestId)).toBeVisible();
+    });
+
+    test('should hide delete button if the setting is disabled', async () => {
+        const props = {...baseProps, disabled: true};
+
+        renderWithContext(<BrandImageSetting {...props}/>);
+
+        await waitFor(() => expect(screen.queryByTestId(deleteButtonTestId)).toBe(null));
+    });
+
+    test('should call setSaveNeeded when a brand image is uploaded', async () => {
+        renderWithContext(<BrandImageSetting {...baseProps}/>);
+
+        await userEvent.upload(screen.getByTestId('file__upload-input'), new File(['brand_image_file'], 'brand_image_file.png', {type: 'image/png'}));
+
+        expect(baseProps.setSaveNeeded).toHaveBeenCalledTimes(1);
+    });
+
+    test('should call setSaveNeeded when the delete button is pressed', async () => {
+        renderWithContext(<BrandImageSetting {...baseProps}/>);
+
+        const deleteButton = await screen.findByTestId(deleteButtonTestId);
+
         await userEvent.click(deleteButton);
 
-        await waitFor(() => {
-            expect(screen.getByText('No brand image uploaded')).toBeInTheDocument();
-        });
-
-        await saveAction2!();
-        expect(deleteBrandImage).toHaveBeenCalledTimes(1);
-        expect(uploadBrandImage).toHaveBeenCalledTimes(0);
+        expect(baseProps.setSaveNeeded).toHaveBeenCalledTimes(1);
     });
 });
