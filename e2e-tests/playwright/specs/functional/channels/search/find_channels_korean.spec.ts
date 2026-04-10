@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, koreanTestPhrase, test, typeKoreanWithIme} from '@mattermost/playwright-lib';
+import {expect, koreanTestPhrase, test, typeHangulWithIme} from '@mattermost/playwright-lib';
 
 test('Find Channels modal handles Korean IME input correctly', async ({pw, browserName}) => {
     test.skip(browserName !== 'chromium', 'The API used to test this is only available in Chrome');
@@ -42,7 +42,7 @@ test('Find Channels modal handles Korean IME input correctly', async ({pw, brows
     const secondHalf = koreanTestPhrase.substring(5);
 
     // # Type the first half of the test phrase
-    await typeKoreanWithIme(page, firstHalf);
+    await typeHangulWithIme(page, firstHalf);
 
     // * Verify that characters are correctly composed and weren't doubled up
     await expect(input).toHaveValue(firstHalf);
@@ -52,7 +52,7 @@ test('Find Channels modal handles Korean IME input correctly', async ({pw, brows
     await expect(page.getByRole('option', {name: partialMatchChannel.display_name, exact: true})).toBeVisible();
 
     // # Type the second half of the test phrase
-    await typeKoreanWithIme(page, secondHalf);
+    await typeHangulWithIme(page, secondHalf);
 
     // * Verify that characters are correctly composed and weren't doubled up
     await expect(input).toHaveValue(koreanTestPhrase);

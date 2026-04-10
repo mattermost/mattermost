@@ -289,7 +289,7 @@ func (scs *Service) notifyClientsForSharedChannelConverted(channel *model.Channe
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelUpdated, "", channel.Id, "", nil, "")
 	channelJSON, err := json.Marshal(channel)
 	if err != nil {
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "Cannot marshal channel to notify clients",
+		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Cannot marshal channel to notify clients",
 			mlog.String("channel_id", channel.Id),
 			mlog.Err(err),
 		)
@@ -319,8 +319,8 @@ func (scs *Service) postUnshareNotification(channelID string, creatorID string, 
 	_, _, appErr := scs.app.CreatePost(request.EmptyContext(logger), post, channel, model.CreatePostFlags{})
 
 	if appErr != nil {
-		scs.server.Log().Log(
-			mlog.LvlSharedChannelServiceError,
+		scs.server.Log().LogM(
+			mlog.MlvlSharedChannelServiceWarn,
 			"Error creating unshare notification post",
 			mlog.String("channel_id", channelID),
 			mlog.String("remote_id", rc.RemoteId),
