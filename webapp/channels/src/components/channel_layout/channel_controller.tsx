@@ -42,7 +42,7 @@ export default function ChannelController(props: Props) {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         const platform = navigator?.userAgentData?.platform || navigator?.platform || 'unknown';
-        document.body.classList.add(...getClassnamesForBody(platform, false));
+        document.body.classList.add(...getClassnamesForBody(platform));
 
         return () => {
             document.body.classList.remove(...BODY_CLASS_FOR_CHANNEL);
@@ -91,7 +91,7 @@ export default function ChannelController(props: Props) {
     );
 }
 
-export function getClassnamesForBody(platform: Window['navigator']['platform'], isMsBrowser = false) {
+export function getClassnamesForBody(platform: Window['navigator']['platform']) {
     const bodyClass = [...BODY_CLASS_FOR_CHANNEL];
 
     // OS Detection
@@ -99,11 +99,6 @@ export function getClassnamesForBody(platform: Window['navigator']['platform'], 
         bodyClass.push('os--windows');
     } else if (platform === 'MacIntel' || platform === 'MacPPC') {
         bodyClass.push('os--mac');
-    }
-
-    // IE Detection
-    if (isMsBrowser) {
-        bodyClass.push('browser--ie');
     }
 
     return bodyClass;
