@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow, mount} from 'enzyme';
 import React from 'react';
 
 import AtMentionProvider from 'components/suggestion/at_mention_provider/at_mention_provider';
@@ -9,6 +8,7 @@ import CommandProvider from 'components/suggestion/command_provider/command_prov
 import SuggestionBox from 'components/suggestion/suggestion_box/suggestion_box';
 import SuggestionList from 'components/suggestion/suggestion_list';
 
+import {render, act} from 'tests/react_testing_utils';
 import * as Utils from 'utils/utils';
 
 jest.mock('mattermost-redux/client', () => {
@@ -29,6 +29,13 @@ jest.mock('utils/user_agent', () => {
         ...original,
         isIos: jest.fn().mockReturnValue(true),
     };
+});
+
+// Helper to create a mock container with required DOM methods
+const createMockContainer = (containsFn) => ({
+    contains: containsFn,
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
 });
 
 describe('components/SuggestionBox', () => {
@@ -55,90 +62,138 @@ describe('components/SuggestionBox', () => {
     });
 
     test('should avoid ref access on unmount race', (done) => {
-        const wrapper = mount(
-            <SuggestionBox {...baseProps}/>,
+        const ref = React.createRef();
+        const {unmount} = render(
+            <SuggestionBox
+                {...baseProps}
+                ref={ref}
+            />,
         );
-        wrapper.instance().handleFocusIn({});
-        wrapper.unmount();
+        ref.current.handleFocusIn({});
+        unmount();
         done();
     });
 
     test('should match state and/or call function on handleFocusOut', () => {
         const onBlur = jest.fn();
-        const wrapper = shallow(
+        const ref = React.createRef();
+        render(
             <SuggestionBox
                 {...baseProps}
                 onBlur={onBlur}
+                ref={ref}
             />,
         );
-        wrapper.setState({focused: true});
-        const instance = wrapper.instance();
+        const instance = ref.current;
+        act(() => {
+            instance.setState({focused: true});
+        });
         const contains = jest.fn().mockReturnValueOnce(true).mockReturnValue(false);
         const relatedTarget = jest.fn();
-        instance.container = {contains};
+        instance.container = createMockContainer(contains);
         instance.handleEmitClearSuggestions = jest.fn();
 
-        instance.handleFocusOut({relatedTarget});
+        act(() => {
+            instance.handleFocusOut({relatedTarget});
+        });
         expect(instance.handleEmitClearSuggestions).not.toHaveBeenCalled();
-        expect(wrapper.state('focused')).toEqual(true);
+        expect(instance.state.focused).toEqual(true);
         expect(onBlur).not.toHaveBeenCalled();
 
         // test for iOS agent
-        instance.handleFocusOut({});
+        act(() => {
+            instance.handleFocusOut({});
+        });
         expect(instance.handleEmitClearSuggestions).not.toHaveBeenCalled();
-        expect(wrapper.state('focused')).toEqual(true);
+        expect(instance.state.focused).toEqual(true);
         expect(onBlur).not.toHaveBeenCalled();
 
-        instance.handleFocusOut({relatedTarget});
+        act(() => {
+            instance.handleFocusOut({relatedTarget});
+        });
         expect(instance.handleEmitClearSuggestions).toHaveBeenCalledTimes(1);
-        expect(wrapper.state('focused')).toEqual(false);
+        expect(instance.state.focused).toEqual(false);
         expect(onBlur).toHaveBeenCalledTimes(1);
     });
 
     test('should force pretext change on context change', () => {
-        const wrapper = shallow(
+        const ref = React.createRef();
+        const {rerender} = render(
             <SuggestionBox
                 {...baseProps}
+                ref={ref}
             />,
         );
-        const instance = wrapper.instance();
+        const instance = ref.current;
         instance.handlePretextChanged = jest.fn();
         instance.getTextbox = jest.fn().mockReturnValue({value: 'value'});
 
-        wrapper.setProps({...baseProps});
+        rerender(
+            <SuggestionBox
+                {...baseProps}
+                ref={ref}
+            />,
+        );
         expect(instance.handlePretextChanged).not.toHaveBeenCalled();
 
-        wrapper.setProps({...baseProps, contextId: 'new'});
+        rerender(
+            <SuggestionBox
+                {...baseProps}
+                contextId='new'
+                ref={ref}
+            />,
+        );
         expect(instance.handlePretextChanged).toHaveBeenCalledWith('value');
 
-        wrapper.setProps({...baseProps, contextId: 'new'});
+        rerender(
+            <SuggestionBox
+                {...baseProps}
+                contextId='new'
+                ref={ref}
+            />,
+        );
         expect(instance.handlePretextChanged.mock.calls.length).toBe(1);
     });
 
     test('should force pretext change after text has been cleared by parent', async () => {
-        const wrapper = shallow(
+        const ref = React.createRef();
+        const {rerender} = render(
             <SuggestionBox
                 {...baseProps}
+                ref={ref}
             />,
         );
-        const instance = wrapper.instance();
+        const instance = ref.current;
         instance.handlePretextChanged = jest.fn();
         instance.pretext = 'value';
 
-        wrapper.setProps({...baseProps});
+        rerender(
+            <SuggestionBox
+                {...baseProps}
+                ref={ref}
+            />,
+        );
         expect(instance.handlePretextChanged).not.toHaveBeenCalled();
 
-        wrapper.setProps({...baseProps, value: ''});
+        rerender(
+            <SuggestionBox
+                {...baseProps}
+                value=''
+                ref={ref}
+            />,
+        );
         expect(instance.handlePretextChanged).toHaveBeenCalledWith('');
     });
 
     test('should force pretext change on composition update', () => {
-        const wrapper = shallow(
+        const ref = React.createRef();
+        render(
             <SuggestionBox
                 {...baseProps}
+                ref={ref}
             />,
         );
-        const instance = wrapper.instance();
+        const instance = ref.current;
         instance.handlePretextChanged = jest.fn();
         instance.getTextbox = jest.fn().mockReturnValue({value: ''});
 
@@ -168,30 +223,43 @@ describe('components/SuggestionBox', () => {
         const provider = new AtMentionProvider(baseParams);
         jest.spyOn(provider, 'getProfilesWithLastViewAtInChannel').mockImplementation(() => [userid1, userid2, userid3]);
 
+        // Mock getSuggestionBoxAlgn to avoid DOM measurement issues
+        Utils.getSuggestionBoxAlgn = jest.fn().mockReturnValue({pixelsToMoveX: 0, pixelsToMoveY: 0});
+
         const props = {
             ...baseProps,
             providers: [provider],
         };
-        const wrapper = shallow(
+        const ref = React.createRef();
+        render(
             <SuggestionBox
                 {...props}
+                ref={ref}
             />,
         );
-        const instance = wrapper.instance();
+        const instance = ref.current;
 
-        expect(wrapper.state('selection')).toEqual('');
+        expect(instance.state.selection).toEqual('');
 
-        instance.nonDebouncedPretextChanged('hello world @');
-        expect(wrapper.state('selection')).toEqual('@other');
+        act(() => {
+            instance.nonDebouncedPretextChanged('hello world @');
+        });
+        expect(instance.state.selection).toEqual('@other');
 
-        instance.nonDebouncedPretextChanged('hello world @u');
-        expect(wrapper.state('selection')).toEqual('@user');
+        act(() => {
+            instance.nonDebouncedPretextChanged('hello world @u');
+        });
+        expect(instance.state.selection).toEqual('@user');
 
-        instance.nonDebouncedPretextChanged('hello world @');
-        expect(wrapper.state('selection')).toEqual('@other');
+        act(() => {
+            instance.nonDebouncedPretextChanged('hello world @');
+        });
+        expect(instance.state.selection).toEqual('@other');
 
-        instance.nonDebouncedPretextChanged('hello world ');
-        expect(wrapper.state('selection')).toEqual('');
+        act(() => {
+            instance.nonDebouncedPretextChanged('hello world ');
+        });
+        expect(instance.state.selection).toEqual('');
     });
 
     test('Test for suggestionBoxAlgn when slash command at beginning and when slash command in middle of text', () => {
@@ -204,82 +272,111 @@ describe('components/SuggestionBox', () => {
             ...baseProps,
             providers: [provider],
         };
-        const wrapper = shallow(
+        const ref = React.createRef();
+        render(
             <SuggestionBox
                 {...props}
+                ref={ref}
             />,
         );
-        const instance = wrapper.instance();
+        const instance = ref.current;
 
         Utils.getSuggestionBoxAlgn = jest.fn().mockReturnValue({pixelsToMoveX: 0, pixelsToMoveY: 35});
 
-        instance.nonDebouncedPretextChanged('/');
-        expect(wrapper.state('suggestionBoxAlgn')).toEqual({pixelsToMoveX: 0, pixelsToMoveY: 35});
+        act(() => {
+            instance.nonDebouncedPretextChanged('/');
+        });
+        expect(instance.state.suggestionBoxAlgn).toEqual({pixelsToMoveX: 0, pixelsToMoveY: 35});
 
-        instance.setState({suggestionBoxAlgn: {}});
+        act(() => {
+            instance.setState({suggestionBoxAlgn: {}});
+        });
 
-        instance.nonDebouncedPretextChanged('I should still have a empty suggestionBoxAlgn /');
-        expect(wrapper.state('suggestionBoxAlgn')).toEqual({});
+        act(() => {
+            instance.nonDebouncedPretextChanged('I should still have a empty suggestionBoxAlgn /');
+        });
+        expect(instance.state.suggestionBoxAlgn).toEqual({});
     });
 
     test('should call setState for clear based on present cleared state', () => {
-        const wrapper = mount(
-            <SuggestionBox {...baseProps}/>,
+        const ref = React.createRef();
+        render(
+            <SuggestionBox
+                {...baseProps}
+                ref={ref}
+            />,
         );
 
-        const instance = wrapper.instance();
+        const instance = ref.current;
         instance.setState = jest.fn();
         instance.clear();
         expect(instance.setState).not.toHaveBeenCalled();
-        wrapper.setState({cleared: false});
-        wrapper.update();
+
+        // Restore setState to set cleared to false, then re-mock
+        const origSetState = React.PureComponent.prototype.setState.bind(instance);
+        act(() => {
+            origSetState({cleared: false});
+        });
+
+        // Re-mock setState after state update
+        instance.setState = jest.fn();
         instance.clear();
         expect(instance.setState).toHaveBeenCalled();
     });
 
     test('should not call clear search resutls when forceSuggestionsWhenBlur is true', () => {
         const onBlur = jest.fn();
-        const wrapper = shallow(
+        const ref = React.createRef();
+        render(
             <SuggestionBox
                 {...baseProps}
                 onBlur={onBlur}
                 forceSuggestionsWhenBlur={true}
+                ref={ref}
             />,
         );
 
-        wrapper.setState({focused: true});
-        const instance = wrapper.instance();
+        const instance = ref.current;
+        act(() => {
+            instance.setState({focused: true});
+        });
         const contains = jest.fn().mockReturnValue(false);
         const relatedTarget = jest.fn();
-        instance.container = {contains};
+        instance.container = createMockContainer(contains);
         instance.handleEmitClearSuggestions = jest.fn();
 
-        instance.handleFocusOut({relatedTarget});
+        act(() => {
+            instance.handleFocusOut({relatedTarget});
+        });
         expect(instance.handleEmitClearSuggestions).not.toHaveBeenCalled();
-        expect(wrapper.state('focused')).toEqual(false);
+        expect(instance.state.focused).toEqual(false);
         expect(onBlur).toHaveBeenCalledTimes(1);
     });
 
     test('should call for handlePretextChanged on handleFocusIn and change of pretext', () => {
         jest.useFakeTimers();
         const onFocus = jest.fn();
-        const wrapper = shallow(
+        const ref = React.createRef();
+        render(
             <SuggestionBox
                 {...baseProps}
                 openOnFocus={true}
                 onFocus={onFocus}
+                ref={ref}
             />,
         );
-        const instance = wrapper.instance();
+        const instance = ref.current;
         instance.handlePretextChanged = jest.fn();
         instance.getTextbox = jest.fn().mockReturnValue({value: 'value'});
 
         const contains = jest.fn().mockReturnValue(false);
         const relatedTarget = jest.fn();
-        instance.container = {contains};
+        instance.container = createMockContainer(contains);
 
-        instance.handleFocusIn({relatedTarget});
-        jest.runOnlyPendingTimers();
+        act(() => {
+            instance.handleFocusIn({relatedTarget});
+            jest.runOnlyPendingTimers();
+        });
         expect(instance.handlePretextChanged).toHaveBeenCalledTimes(1);
         instance.handleFocusIn({relatedTarget});
         expect(instance.handlePretextChanged).toHaveBeenCalledTimes(1);
@@ -287,16 +384,28 @@ describe('components/SuggestionBox', () => {
     });
 
     test('should call for handlePretextChanged on componentDidMount', () => {
-        const wrapper = shallow(<SuggestionBox {...baseProps}/>);
-        const instance = wrapper.instance();
+        const ref = React.createRef();
+        render(
+            <SuggestionBox
+                {...baseProps}
+                ref={ref}
+            />,
+        );
+        const instance = ref.current;
         instance.handlePretextChanged = jest.fn();
         instance.componentDidMount();
         expect(instance.handlePretextChanged).toHaveBeenCalledTimes(1);
     });
 
     test('should not clear pretext when clearing the suggestion list', () => {
-        const wrapper = shallow(<SuggestionBox {...baseProps}/>);
-        const instance = wrapper.instance();
+        const ref = React.createRef();
+        render(
+            <SuggestionBox
+                {...baseProps}
+                ref={ref}
+            />,
+        );
+        const instance = ref.current;
         instance.handlePretextChanged = jest.fn();
         instance.clear();
         expect(instance.handlePretextChanged).not.toHaveBeenCalled();

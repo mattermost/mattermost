@@ -20,9 +20,9 @@ func TestIsPasswordValidWithSettings(t *testing.T) {
 		ExpectedError string
 	}{
 		"Short": {
-			Password: strings.Repeat("x", 3),
+			Password: strings.Repeat("x", model.PasswordFIPSMinimumLength),
 			Settings: &model.PasswordSettings{
-				MinimumLength: model.NewPointer(3),
+				MinimumLength: model.NewPointer(model.PasswordFIPSMinimumLength),
 				Lowercase:     model.NewPointer(false),
 				Uppercase:     model.NewPointer(false),
 				Number:        model.NewPointer(false),
@@ -41,7 +41,7 @@ func TestIsPasswordValidWithSettings(t *testing.T) {
 		"TooShort": {
 			Password: strings.Repeat("x", 2),
 			Settings: &model.PasswordSettings{
-				MinimumLength: model.NewPointer(3),
+				MinimumLength: model.NewPointer(model.PasswordFIPSMinimumLength),
 				Lowercase:     model.NewPointer(false),
 				Uppercase:     model.NewPointer(false),
 				Number:        model.NewPointer(false),
@@ -110,7 +110,7 @@ func TestIsPasswordValidWithSettings(t *testing.T) {
 			ExpectedError: "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
 		},
 		"Everything": {
-			Password: "asdASD!@#123",
+			Password: "asdASDasd!@#123",
 			Settings: &model.PasswordSettings{
 				Lowercase: model.NewPointer(true),
 				Uppercase: model.NewPointer(true),
