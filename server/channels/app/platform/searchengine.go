@@ -46,7 +46,7 @@ func (ps *PlatformService) StartSearchEngine() (string, string) {
 			ps.esWatcher.requestRestart()
 		}
 		if connectionChanged || startingES || stoppingES {
-			ps.esWatcher.notify()
+			ps.esWatcher.reevaluate()
 		}
 
 		// Backfill was enabled but ES was already running (not starting fresh).
@@ -68,14 +68,14 @@ func (ps *PlatformService) StartSearchEngine() (string, string) {
 		}
 		if oldLicense == nil && newLicense != nil {
 			// License added -- watcher will try Start() on next evaluation.
-			ps.esWatcher.notify()
+			ps.esWatcher.reevaluate()
 		} else if oldLicense != nil && newLicense == nil {
 			// License removed -- tell the watcher to stop the engine.
 			// The watcher will then retry Start() which returns nil
 			// without a license, so it backs off gracefully.
 			if ps.SearchEngine.ElasticsearchEngine != nil {
 				ps.esWatcher.requestRestart()
-				ps.esWatcher.notify()
+				ps.esWatcher.reevaluate()
 			}
 		}
 	})

@@ -210,7 +210,7 @@ func TestRunSearchEngineWatcher(t *testing.T) {
 
 		// Enable and notify.
 		atomic.StoreInt32(&enabled, 1)
-		w.notify()
+		w.reevaluate()
 
 		// Watcher should wake up and try Start().
 		require.Eventually(t, func() bool {
@@ -446,7 +446,7 @@ func TestNotifySearchEngineWatcher(t *testing.T) {
 
 		// Watcher is now in backoff (10s). Send notify to wake it.
 		before := atomic.LoadInt32(&startCalls)
-		w.notify()
+		w.reevaluate()
 
 		// Start should be called again quickly (not after 10s).
 		require.Eventually(t, func() bool {
@@ -460,7 +460,7 @@ func TestNotifySearchEngineWatcher(t *testing.T) {
 
 		// Should not panic or block.
 		require.NotPanics(t, func() {
-			w.notify()
+			w.reevaluate()
 		})
 	})
 }

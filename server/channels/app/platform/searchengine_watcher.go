@@ -30,7 +30,7 @@ var (
 // concurrent callers.
 //
 // External code communicates with the watcher through two signals:
-//   - notify():         wake the watcher for immediate re-evaluation
+//   - reevaluate():     wake the watcher for immediate re-evaluation
 //   - requestRestart(): tell the watcher to Stop() before re-evaluating
 type searchEngineWatcher struct {
 	ps     *PlatformService
@@ -108,9 +108,9 @@ func (w *searchEngineWatcher) stop() {
 	}
 }
 
-// notify sends a non-blocking signal to the watcher to re-evaluate engine
+// reevaluate sends a non-blocking signal to the watcher to re-evaluate engine
 // state immediately. Safe to call on a nil receiver.
-func (w *searchEngineWatcher) notify() {
+func (w *searchEngineWatcher) reevaluate() {
 	if w == nil {
 		return
 	}
@@ -164,7 +164,7 @@ func (w *searchEngineWatcher) requestRestart() {
 //	   |--ok-----> reset backoff, HEALTH CHECK
 //
 //	Any state -- ctx.Done() --> EXIT
-//	Any state -- notify     --> immediate re-evaluation
+//	Any state -- reevaluate --> immediate re-evaluation
 func (w *searchEngineWatcher) run(ctx context.Context, notifyCh <-chan struct{}) {
 	if w.engine == nil {
 		return
@@ -233,7 +233,7 @@ func (w *searchEngineWatcher) applyForceRestart() {
 
 // parkIfDisabled stops the engine (if active) and parks the watcher when the
 // engine is disabled. Returns true when parked (caller should continue the
-// loop without scheduling a timer -- the next wake comes from notify).
+// loop without scheduling a timer -- the next wake comes from reevaluate).
 func (w *searchEngineWatcher) parkIfDisabled(timer *time.Timer) bool {
 	if w.engine.IsEnabled() {
 		return false
