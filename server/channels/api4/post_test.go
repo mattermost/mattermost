@@ -14,7 +14,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"os"
 	"reflect"
 	"sort"
 	"strings"
@@ -872,9 +871,10 @@ func TestCreatePostWithOutgoingHook_no_content_type(t *testing.T) {
 }
 
 func TestMoveThread(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_MOVETHREADSENABLED", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_MOVETHREADSENABLED")
 	th := SetupEnterprise(t).InitBasic(t)
+
+	// Enable MoveThreads feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.MoveThreadsEnabled = true })
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
@@ -6051,12 +6051,10 @@ func TestRestorePostVersion(t *testing.T) {
 }
 
 func TestRevealPost(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
-	})
-
 	th := SetupEnterprise(t).InitBasic(t)
+
+	// Enable BurnOnRead feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 
 	th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
 	th.AddUserToChannel(t, th.SystemAdminUser, th.BasicChannel)
@@ -6095,22 +6093,22 @@ func TestRevealPost(t *testing.T) {
 		return user2, client2
 	}
 
-	t.Run("feature not enabled, should still allow reveal", func(t *testing.T) {
+	t.Run("feature not enabled, reveal returns 501", func(t *testing.T) {
 		enableBurnOnReadFeature(th)
 		post := createBurnOnReadPost(th.SystemAdminClient, th.BasicChannel)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.FeatureFlags.BurnOnRead = false
 		})
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.FeatureFlags.BurnOnRead = true
+			})
+		})
 
-		revealedPost, resp, err := th.Client.RevealPost(context.Background(), post.Id)
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-		require.NotNil(t, revealedPost)
-		require.Equal(t, post.Id, revealedPost.Id)
-		require.Equal(t, "burn on read message", revealedPost.Message)
-		require.NotNil(t, revealedPost.Metadata)
-		require.NotZero(t, revealedPost.Metadata.ExpireAt)
+		_, resp, err := th.Client.RevealPost(context.Background(), post.Id)
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
 	})
 
 	th.TestForRegularAndSystemAdminClients(t, func(t *testing.T, client *model.Client4) {
@@ -6307,12 +6305,10 @@ func TestRevealPost(t *testing.T) {
 }
 
 func TestCreateBurnOnReadPost(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
-	})
-
 	th := SetupEnterprise(t).InitBasic(t)
+
+	// Enable BurnOnRead feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 
 	th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
 	th.AddUserToChannel(t, th.SystemAdminUser, th.BasicChannel)
@@ -6437,12 +6433,10 @@ func TestCreateBurnOnReadPost(t *testing.T) {
 }
 
 func TestBurnPost(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
-	})
-
 	th := SetupEnterprise(t).InitBasic(t)
+
+	// Enable BurnOnRead feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 
 	th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
 	th.AddUserToChannel(t, th.SystemAdminUser, th.BasicChannel)

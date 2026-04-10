@@ -1354,11 +1354,10 @@ func TestCreatePost(t *testing.T) {
 	})
 
 	t.Run("Should remove post file IDs for burn on read posts", func(t *testing.T) {
-		os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
-		t.Cleanup(func() {
-			os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
-		})
 		th := Setup(t).InitBasic(t)
+
+		// Enable BurnOnRead feature flag
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 		enableBoRFeature(th)
 
 		post := &model.Post{
@@ -4612,13 +4611,11 @@ func TestValidateMoveOrCopy(t *testing.T) {
 }
 
 func TestPermanentDeletePost(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
-	})
-
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
+
+	// Enable BurnOnRead feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 
 	t.Run("should permanently delete a post and its file attachment", func(t *testing.T) {
 		// Create a post with a file attachment.
@@ -5091,12 +5088,10 @@ func TestFilterPostsByChannelPermissions(t *testing.T) {
 }
 
 func TestRevealPost(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
-	})
-
 	th := Setup(t).InitBasic(t)
+
+	// Enable BurnOnRead feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 
 	// Helper to create a burn-on-read post
 	createBurnOnReadPost := func() *model.Post {
@@ -5348,12 +5343,10 @@ func TestRevealPost(t *testing.T) {
 }
 
 func TestBurnPost(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
-	})
-
 	th := Setup(t).InitBasic(t)
+
+	// Enable BurnOnRead feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 
 	// feature flag, configuration and license is not checked for this feature
 	// so we set these to enable the feature to create a burn on read post
@@ -5468,12 +5461,10 @@ func TestBurnPost(t *testing.T) {
 }
 
 func TestGetFlaggedPostsWithExpiredBurnOnRead(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
-	})
-
 	th := Setup(t).InitBasic(t)
+
+	// Enable BurnOnRead feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 
 	// Create a second user for testing
 	user2 := th.CreateUser(t)
@@ -5663,12 +5654,10 @@ func TestGetFlaggedPostsWithExpiredBurnOnRead(t *testing.T) {
 }
 
 func TestBurnOnReadRestrictionsForDMsAndBots(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
-	defer func() {
-		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
-	}()
-
 	th := Setup(t).InitBasic(t)
+
+	// Enable BurnOnRead feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 

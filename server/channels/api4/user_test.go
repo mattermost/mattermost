@@ -304,13 +304,11 @@ func TestCreateUserAudit(t *testing.T) {
 	require.NoError(t, err)
 	defer os.Remove(logFile.Name())
 
-	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED", "true")
-	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME", logFile.Name())
-	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED")
-	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME")
-
 	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
-	th := SetupWithServerOptions(t, options)
+	th := SetupWithServerOptionsAndConfig(t, options, func(cfg *model.Config) {
+		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
+		cfg.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
+	})
 
 	email := th.GenerateTestEmail()
 	user := model.User{
@@ -341,13 +339,11 @@ func TestUserLoginAudit(t *testing.T) {
 	require.NoError(t, err)
 	defer os.Remove(logFile.Name())
 
-	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED", "true")
-	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME", logFile.Name())
-	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED")
-	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME")
-
 	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
-	th := SetupWithServerOptions(t, options)
+	th := SetupWithServerOptionsAndConfig(t, options, func(cfg *model.Config) {
+		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
+		cfg.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
+	})
 
 	_, err = th.Client.Logout(context.Background())
 	require.NoError(t, err)
@@ -386,13 +382,11 @@ func TestLogoutAuditAuthStatus(t *testing.T) {
 	require.NoError(t, err)
 	defer os.Remove(logFile.Name())
 
-	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED", "true")
-	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME", logFile.Name())
-	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED")
-	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME")
-
 	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
-	th := SetupWithServerOptions(t, options)
+	th := SetupWithServerOptionsAndConfig(t, options, func(cfg *model.Config) {
+		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
+		cfg.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
+	})
 
 	t.Run("authenticated logout has auth_status=authenticated and user_id", func(t *testing.T) {
 		require.NoError(t, logFile.Truncate(0))
@@ -4598,13 +4592,14 @@ func TestLoginCookies(t *testing.T) {
 
 	t.Run("should return cookie with MMCLOUDURL for cloud installations when doing cws login", func(t *testing.T) {
 		token := model.NewRandomString(64)
-		os.Setenv("CWS_CLOUD_TOKEN", token)
 
 		updateConfig := func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "https://testchips.cloud.mattermost.com"
 		}
 		th := SetupAndApplyConfigBeforeLogin(t, updateConfig).InitBasic(t)
 
+		th.App.Srv().SetCWSTokenOverride(token)
+		t.Cleanup(func() { th.App.Srv().SetCWSTokenOverride("") })
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
 		form := url.Values{}
@@ -6935,13 +6930,11 @@ func TestUpdatePasswordAudit(t *testing.T) {
 	require.NoError(t, err)
 	defer os.Remove(logFile.Name())
 
-	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED", "true")
-	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME", logFile.Name())
-	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED")
-	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME")
-
 	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
-	th := SetupWithServerOptions(t, options)
+	th := SetupWithServerOptionsAndConfig(t, options, func(cfg *model.Config) {
+		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
+		cfg.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
+	})
 
 	password := model.NewTestPassword()
 	th.LoginBasic(t)

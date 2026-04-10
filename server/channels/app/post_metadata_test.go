@@ -244,13 +244,11 @@ func TestPreparePostForClient(t *testing.T) {
 	})
 
 	t.Run("burn on read post priority read from master", func(t *testing.T) {
-		os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
-		t.Cleanup(func() {
-			os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
-		})
-
 		// Verifies BoR post priority is correctly fetched when using master context
 		th := setup(t)
+
+		// Enable BurnOnRead feature flag
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 
 		// Enable BoR feature with license and config
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
@@ -3365,13 +3363,10 @@ func TestGetLinkMetadataFromCache(t *testing.T) {
 }
 
 func TestPreparePostForClient_BurnOnReadSenderExpireAt(t *testing.T) {
-	// Set feature flag before setup
-	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
-	})
-
 	th := Setup(t).InitBasic(t)
+
+	// Enable BurnOnRead feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 
 	// Enable Enterprise Advanced license and BoR config
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))

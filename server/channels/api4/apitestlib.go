@@ -417,6 +417,22 @@ func SetupWithServerOptions(tb testing.TB, options []app.Option) *TestHelper {
 	return th
 }
 
+func SetupWithServerOptionsAndConfig(tb testing.TB, options []app.Option, updateConfig func(*model.Config)) *TestHelper {
+	if testing.Short() {
+		tb.SkipNow()
+	}
+
+	if mainHelper == nil {
+		tb.SkipNow()
+	}
+
+	dbStore, dbSettings, searchEngine := setupStores(tb)
+	th := setupTestHelper(tb, dbStore, dbSettings, searchEngine, false, true, updateConfig, options)
+	th.InitLogin(tb)
+
+	return th
+}
+
 func SetupEnterpriseWithServerOptions(tb testing.TB, options []app.Option) *TestHelper {
 	if testing.Short() {
 		tb.SkipNow()
