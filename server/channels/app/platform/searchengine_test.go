@@ -587,20 +587,21 @@ func TestWatcherHealthFlag(t *testing.T) {
 		engineMock.On("IsActive").Return(true).Maybe()
 
 		// Track SetHealthy calls.
-		var healthyValue int32 = 1 // assume healthy at start
+		var healthyValue atomic.Int32
+		healthyValue.Store(1) // assume healthy at start
 		engineMock.ExpectedCalls = removeSetHealthyExpectation(engineMock.ExpectedCalls)
 		engineMock.On("SetHealthy", mock.Anything).Run(func(args mock.Arguments) {
 			if args.Bool(0) {
-				atomic.StoreInt32(&healthyValue, 1)
+				healthyValue.Store(1)
 			} else {
-				atomic.StoreInt32(&healthyValue, 0)
+				healthyValue.Store(0)
 			}
 		}).Maybe()
 
 		// HealthCheck fails on the first call.
-		var healthCalls int32
+		var healthCalls atomic.Int32
 		engineMock.On("HealthCheck", mock.Anything).Return(func(_ request.CTX) *model.AppError {
-			atomic.AddInt32(&healthCalls, 1)
+			healthCalls.Add(1)
 			return model.NewAppError("test", "hc_fail", nil, "", 502)
 		})
 		engineMock.On("Stop").Return(nil).Maybe()
@@ -611,10 +612,10 @@ func TestWatcherHealthFlag(t *testing.T) {
 
 		// Wait for the first health check call.
 		require.Eventually(t, func() bool {
-			return atomic.LoadInt32(&healthCalls) >= 1
+			return healthCalls.Load() >= 1
 		}, 2*time.Second, 5*time.Millisecond)
 
-		assert.Equal(t, int32(0), atomic.LoadInt32(&healthyValue),
+		assert.Equal(t, int32(0), healthyValue.Load(),
 			"engine should be marked unhealthy after first health check failure")
 	})
 
@@ -625,20 +626,24 @@ func TestWatcherHealthFlag(t *testing.T) {
 		engineMock.On("IsActive").Return(true).Maybe()
 
 		// Track SetHealthy calls.
-		var healthyValue int32
+		var healthyValue atomic.Int32
 		engineMock.ExpectedCalls = removeSetHealthyExpectation(engineMock.ExpectedCalls)
 		engineMock.On("SetHealthy", mock.Anything).Run(func(args mock.Arguments) {
 			if args.Bool(0) {
-				atomic.StoreInt32(&healthyValue, 1)
+				healthyValue.Store(1)
 			} else {
-				atomic.StoreInt32(&healthyValue, 0)
+				healthyValue.Store(0)
 			}
 		}).Maybe()
 
+		// The engine will be active when the watcher exits, so the
+		// cleanup defer in run() will call Stop().
+		engineMock.On("Stop").Return(nil).Maybe()
+
 		// First health check fails, second succeeds.
-		var healthCalls int32
+		var healthCalls atomic.Int32
 		engineMock.On("HealthCheck", mock.Anything).Return(func(_ request.CTX) *model.AppError {
-			n := atomic.AddInt32(&healthCalls, 1)
+			n := healthCalls.Add(1)
 			if n == 1 {
 				return model.NewAppError("test", "hc_fail", nil, "", 502)
 			}
@@ -651,7 +656,7 @@ func TestWatcherHealthFlag(t *testing.T) {
 		// Wait for SetHealthy(true) — called by the watcher after the
 		// second (successful) HealthCheck returns.
 		require.Eventually(t, func() bool {
-			return atomic.LoadInt32(&healthyValue) == 1
+			return healthyValue.Load() == 1
 		}, 2*time.Second, 5*time.Millisecond,
 			"engine should be marked healthy after successful health check")
 	})
