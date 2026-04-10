@@ -287,6 +287,7 @@ func (us SqlUserStore) Update(rctx request.CTX, user *model.User, trustedUpdateD
 	user.MfaActive = oldUser.MfaActive
 	user.MfaUsedTimestamps = oldUser.MfaUsedTimestamps
 	user.LastLogin = oldUser.LastLogin
+	user.RemoteId = oldUser.RemoteId
 
 	if !trustedUpdateData {
 		user.Roles = oldUser.Roles
