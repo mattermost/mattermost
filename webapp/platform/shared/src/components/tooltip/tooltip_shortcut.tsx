@@ -7,9 +7,7 @@ import {FormattedMessage} from 'react-intl';
 
 import {isMessageDescriptor} from '../../utils/i18n';
 import {isMac} from '../../utils/user_agent';
-import {ShortcutKey, ShortcutKeys, ShortcutKeyVariant} from '../shortcut_key';
-
-export {ShortcutKeys};
+import {ShortcutKey, ShortcutKeyVariant} from '../shortcut_key';
 
 type ShortcutKeyDescriptor = string | MessageDescriptor;
 

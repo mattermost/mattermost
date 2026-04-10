@@ -9,9 +9,9 @@ import {Link} from 'react-router-dom';
 
 import {mark} from 'actions/telemetry_actions';
 
+import {ShortcutKeys} from 'components/shortcut_key';
 import TeamIcon from 'components/widgets/team_icon/team_icon';
 import WithTooltip from 'components/with_tooltip';
-import {ShortcutKeys} from 'components/with_tooltip/tooltip_shortcut';
 
 import {Mark} from 'utils/performance_telemetry';
 
