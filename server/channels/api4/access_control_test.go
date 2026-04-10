@@ -5,6 +5,7 @@ package api4
 
 import (
 	"context"
+	"os"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
