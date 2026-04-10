@@ -3,7 +3,7 @@
 # regression rates, so running them weekly saves significant 8-core
 # runner capacity (9 fewer concurrent 8-core jobs per master push).
 #
-# Schedule: Monday 1am EST (5am UTC)
+# Schedule: Monday ~1am ET (5am UTC)
 #
 # Jobs moved here from server-ci.yml:
 # - Postgres with binary parameters (1x 8-core)
@@ -12,7 +12,7 @@
 name: Server CI Weekly
 on:
   schedule:
-    - cron: "0 5 * * 1" # Monday 5am UTC = 1am EST
+    - cron: "0 5 * * 1" # Monday 5am UTC (~1am ET)
   push:
     branches:
       - 'release-*'

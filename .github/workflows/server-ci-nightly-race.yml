@@ -5,7 +5,7 @@
 # runner to minimize resource usage — race detection adds significant
 # overhead that makes parallel execution impractical.
 #
-# Schedule: Nightly at 2am EST (6am UTC)
+# Schedule: Nightly at ~2am ET (6am UTC)
 #
 # Previously, -race was implicitly bundled with the binary params job
 # via the fullyparallel=false → RACE_MODE coupling. This decouples
@@ -14,7 +14,7 @@
 name: Server CI Nightly Race
 on:
   schedule:
-    - cron: "0 6 * * *" # Daily 6am UTC = 2am EST
+    - cron: "0 6 * * *" # Daily 6am UTC (~2am ET)
   workflow_dispatch: # Manual trigger for on-demand race detection
 
 jobs:
