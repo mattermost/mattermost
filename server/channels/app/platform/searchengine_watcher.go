@@ -250,6 +250,19 @@ func (w *searchEngineWatcher) parkIfDisabled(timer *time.Timer) bool {
 	return true
 }
 
+// parkIfUnlicensed parks the watcher when the server has no Elasticsearch
+// license. Returns true when parked (caller should continue the loop).
+func (w *searchEngineWatcher) parkIfUnlicensed(timer *time.Timer) bool {
+	license := w.ps.License()
+	if license != nil && model.SafeDereference(license.Features.Elasticsearch) {
+		return false
+	}
+	w.ps.Log().Info("Search engine watcher: engine not active (no Elasticsearch license), parking",
+		mlog.String("engine", w.engine.GetName()))
+	timer.Stop()
+	return true
+}
+
 // startIfInactive attempts to start the engine when it is not active.
 // Returns true when it handled the state (caller should continue the loop).
 func (w *searchEngineWatcher) startIfInactive(ctx context.Context, timer *time.Timer, s *watcherLoopState) bool {
@@ -275,6 +288,10 @@ func (w *searchEngineWatcher) startIfInactive(ctx context.Context, timer *time.T
 
 	// Start() returned nil but engine may not be active (e.g. no license).
 	if !w.engine.IsActive() {
+		if w.parkIfUnlicensed(timer) {
+			return true
+		}
+
 		s.consecutiveFailures++
 		w.ps.Log().Warn("Search engine watcher: Start() returned no error but engine is not active, will retry",
 			mlog.Int("consecutive_failures", s.consecutiveFailures),
