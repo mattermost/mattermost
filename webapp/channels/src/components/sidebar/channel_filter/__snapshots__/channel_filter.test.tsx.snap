@@ -1,99 +1,37 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/sidebar/channel_filter should match snapshot 1`] = `
-<div
-  className="SidebarFilters"
->
-  <WithTooltip
-    shortcut={
-      Object {
-        "default": Array [
-          Object {
-            "defaultMessage": "Ctrl",
-            "id": "shortcuts.generic.ctrl",
-          },
-          Object {
-            "defaultMessage": "Shift",
-            "id": "shortcuts.generic.shift",
-          },
-          "U",
-        ],
-        "mac": Array [
-          "⌘",
-          Object {
-            "defaultMessage": "Shift",
-            "id": "shortcuts.generic.shift",
-          },
-          "U",
-        ],
-      }
-    }
-    title={
-      Object {
-        "defaultMessage": "Filter by unread",
-        "id": "sidebar_left.channel_filter.filterByUnread",
-      }
-    }
+<div>
+  <div
+    class="SidebarFilters"
   >
     <a
       aria-label="unreads filter"
-      className="SidebarFilters_filterButton"
+      class="SidebarFilters_filterButton"
       href="#"
-      onClick={[Function]}
     >
       <i
-        className="icon icon-filter-variant"
+        class="icon icon-filter-variant"
       />
     </a>
-  </WithTooltip>
+  </div>
 </div>
 `;
 
 exports[`components/sidebar/channel_filter should match snapshot if the unread filter is enabled 1`] = `
-<div
-  className="SidebarFilters"
->
-  <WithTooltip
-    shortcut={
-      Object {
-        "default": Array [
-          Object {
-            "defaultMessage": "Ctrl",
-            "id": "shortcuts.generic.ctrl",
-          },
-          Object {
-            "defaultMessage": "Shift",
-            "id": "shortcuts.generic.shift",
-          },
-          "U",
-        ],
-        "mac": Array [
-          "⌘",
-          Object {
-            "defaultMessage": "Shift",
-            "id": "shortcuts.generic.shift",
-          },
-          "U",
-        ],
-      }
-    }
-    title={
-      Object {
-        "defaultMessage": "Show all channels",
-        "id": "sidebar_left.channel_filter.showAllChannels",
-      }
-    }
+<div>
+  <div
+    class="SidebarFilters"
   >
     <a
       aria-label="unreads filter"
-      className="SidebarFilters_filterButton active"
+      class="SidebarFilters_filterButton active"
       href="#"
-      onClick={[Function]}
     >
       <i
-        className="icon icon-filter-variant"
+        class="icon icon-filter-variant"
       />
     </a>
-  </WithTooltip>
+  </div>
 </div>
 `;

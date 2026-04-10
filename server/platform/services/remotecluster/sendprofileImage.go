@@ -57,7 +57,7 @@ func (rcs *Service) sendProfileImage(task sendProfileImageTask) {
 	var response Response
 
 	if err != nil {
-		rcs.server.Log().Log(mlog.LvlRemoteClusterServiceError, "Remote Cluster send profile image failed",
+		rcs.server.Log().LogM(mlog.MlvlRemoteClusterServiceWarn, "Remote Cluster send profile image failed",
 			mlog.String("remote", task.rc.DisplayName),
 			mlog.String("UserId", task.userID),
 			mlog.Err(err),
