@@ -1548,7 +1548,7 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Block file metadata (including mini_preview) for users denied download access.
-	filePost, filePostErr := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
+	filePost, filePostErr := c.App.GetSinglePost(c.AppContext, c.Params.PostId, includeDeleted)
 	if filePostErr != nil {
 		c.Err = filePostErr
 		return

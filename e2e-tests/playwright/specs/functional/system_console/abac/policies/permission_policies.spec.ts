@@ -116,7 +116,9 @@ test.describe('Permission Policies - Create Policy', () => {
         await expect(systemConsolePage.page.getByText('Permissions evaluation order', {exact: false})).toBeVisible();
     });
 
-    test('MM-T5806 create policy form shows role dropdown defaulting to Members and system administrators', async ({pw}) => {
+    test('MM-T5806 create policy form shows role dropdown defaulting to Members and system administrators', async ({
+        pw,
+    }) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient} = await pw.initSetup();
         await ensureUserAttributes(adminClient);
@@ -128,7 +130,9 @@ test.describe('Permission Policies - Create Policy', () => {
         await systemConsolePage.page.waitForLoadState('networkidle');
 
         await expect(systemConsolePage.page.getByText('Who this policy applies to')).toBeVisible();
-        await expect(systemConsolePage.page.getByText('Select a role from the predefined list of system roles')).toBeVisible();
+        await expect(
+            systemConsolePage.page.getByText('Select a role from the predefined list of system roles'),
+        ).toBeVisible();
 
         // * The dropdown button is visible and shows the default role (system_user = "Members and system administrators")
         const roleButton = systemConsolePage.page.locator('#pp-role-selector-btn');
@@ -210,9 +214,9 @@ test.describe('Permission Policies - Create Policy', () => {
         await systemConsolePage.page.getByRole('button', {name: 'Add policy'}).click();
         await systemConsolePage.page.waitForLoadState('networkidle');
 
-        await systemConsolePage.page.getByPlaceholder('Add a unique policy name').fill(
-            `PP Expr Validate ${await pw.random.id()}`,
-        );
+        await systemConsolePage.page
+            .getByPlaceholder('Add a unique policy name')
+            .fill(`PP Expr Validate ${await pw.random.id()}`);
         await systemConsolePage.page.getByRole('button', {name: 'Save'}).last().click();
 
         await expect(systemConsolePage.page.getByText('Please add an expression to the policy')).toBeVisible();
@@ -230,9 +234,9 @@ test.describe('Permission Policies - Create Policy', () => {
         await systemConsolePage.page.getByRole('button', {name: 'Add policy'}).click();
         await systemConsolePage.page.waitForLoadState('networkidle');
 
-        await systemConsolePage.page.getByPlaceholder('Add a unique policy name').fill(
-            `PP Perm Validate ${await pw.random.id()}`,
-        );
+        await systemConsolePage.page
+            .getByPlaceholder('Add a unique policy name')
+            .fill(`PP Perm Validate ${await pw.random.id()}`);
 
         // # Enter a valid CEL expression but add no permissions
         await systemConsolePage.page.getByRole('button', {name: 'Switch to Advanced Mode'}).click();

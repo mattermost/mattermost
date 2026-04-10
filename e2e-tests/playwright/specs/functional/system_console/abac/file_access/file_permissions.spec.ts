@@ -36,9 +36,13 @@ import {
 
 // ─── Shared setup helper ─────────────────────────────────────────────────────
 
-async function setupUserAndChannel(adminClient: any, team: any): Promise<{
+async function setupUserAndChannel(
+    adminClient: any,
+    team: any,
+): Promise<{
     testUser: any;
     channelName: string;
+    channelId: string;
 }> {
     // Ensure at least one user attribute field exists so the permission policy
     // CEL editor's "Switch to Advanced Mode" button is enabled in the UI.

@@ -1172,10 +1172,7 @@ export async function createPermissionPolicy(
  * Uses doFetch (same pattern as getPolicyIdByName) to find the policy by name,
  * then issues a DELETE. Safe to call even if the policy does not exist.
  */
-export async function deletePermissionPolicyByName(
-    client: Client4,
-    policyName: string,
-): Promise<void> {
+export async function deletePermissionPolicyByName(client: Client4, policyName: string): Promise<void> {
     try {
         const searchUrl = `${client.getBaseRoute()}/access_control_policies/search`;
         const result = await (client as any).doFetch(searchUrl, {
@@ -1184,14 +1181,13 @@ export async function deletePermissionPolicyByName(
         });
 
         // Response may be the array directly or wrapped in {policies: [...]}
-        const policies: any[] = Array.isArray(result) ? result : (result?.policies || []);
+        const policies: any[] = Array.isArray(result) ? result : result?.policies || [];
         const match = policies.find((p: any) => p.name === policyName && p.type === 'permission');
 
         if (match?.id) {
-            await (client as any).doFetch(
-                `${client.getBaseRoute()}/access_control_policies/${match.id}`,
-                {method: 'DELETE'},
-            );
+            await (client as any).doFetch(`${client.getBaseRoute()}/access_control_policies/${match.id}`, {
+                method: 'DELETE',
+            });
         }
     } catch {
         // Policy may not exist or deletion may have already occurred — safe to ignore
@@ -1213,8 +1209,8 @@ export async function cleanupAllPermissionPolicies(client: Client4): Promise<voi
     let cursor = '';
     const limit = 100;
 
-    let hasMore = true;
-    while (hasMore) {
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
         let policies: any[] = [];
         try {
             // Use the typed method (available in the rebuilt @mattermost/client dist)
@@ -1228,39 +1224,34 @@ export async function cleanupAllPermissionPolicies(client: Client4): Promise<voi
                     method: 'POST',
                     body: JSON.stringify({term: '', type: 'permission', cursor: {id: cursor}, limit}),
                 });
-                policies = Array.isArray(result) ? result : (result?.policies || []);
+                policies = Array.isArray(result) ? result : result?.policies || [];
             } catch {
-                hasMore = false;
+                break;
             }
         }
 
         if (policies.length === 0) {
-            hasMore = false;
+            break;
         }
 
-        if (hasMore) {
-            await Promise.all(
-                policies.map(async (policy: any) => {
-                    if (policy?.id) {
-                        try {
-                            await (client as any).doFetch(
-                                `${client.getBaseRoute()}/access_control_policies/${policy.id}`,
-                                {method: 'DELETE'},
-                            );
-                        } catch {
-                            // ignore individual delete failures
-                        }
+        await Promise.all(
+            policies.map(async (policy: any) => {
+                if (policy?.id) {
+                    try {
+                        await (client as any).doFetch(`${client.getBaseRoute()}/access_control_policies/${policy.id}`, {
+                            method: 'DELETE',
+                        });
+                    } catch {
+                        // ignore individual delete failures
                     }
-                }),
-            );
+                }
+            }),
+        );
 
-            // If we got fewer than `limit`, we've seen all pages
-            if (policies.length < limit) {
-                hasMore = false;
-            }
+        if (policies.length < limit) {
+            break;
         }
 
-        // Advance cursor to next page
         cursor = policies[policies.length - 1].id;
     }
 }

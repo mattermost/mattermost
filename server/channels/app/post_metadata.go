@@ -482,14 +482,17 @@ func (a *App) sanitizeFileAttachmentsForUser(rctx request.CTX, post *model.Post,
 		if !ok || previewPost == nil || previewPost.Post == nil {
 			continue
 		}
-		referencedPost := previewPost.Post
-		if referencedPost.Metadata == nil || len(referencedPost.Metadata.Files) == 0 {
+		if previewPost.Post.Metadata == nil || len(previewPost.Post.Metadata.Files) == 0 {
 			continue
 		}
-		if !a.HasPermissionToFileAction(rctx, userID, user.Roles, referencedPost.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
+		if !a.HasPermissionToFileAction(rctx, userID, user.Roles, previewPost.Post.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
+			// Clone before mutating — embed.Data points into the global link-metadata
+			// cache and the same Permalink object is shared across requests.
+			referencedPost := previewPost.Post.Clone()
 			referencedPost.Metadata.RedactedFileCount = len(referencedPost.Metadata.Files)
 			referencedPost.Metadata.Files = nil
 			referencedPost.FileIds = model.StringArray{}
+			previewPost.Post = referencedPost
 		}
 	}
 }
