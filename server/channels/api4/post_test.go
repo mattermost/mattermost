@@ -9,11 +9,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"maps"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"os"
 	"reflect"
 	"sort"
 	"strings"
@@ -871,9 +871,10 @@ func TestCreatePostWithOutgoingHook_no_content_type(t *testing.T) {
 }
 
 func TestMoveThread(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_MOVETHREADSENABLED", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_MOVETHREADSENABLED")
 	th := SetupEnterprise(t).InitBasic(t)
+
+	// Enable MoveThreads feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.MoveThreadsEnabled = true })
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
@@ -1212,7 +1213,7 @@ func TestCreatePostPublic(t *testing.T) {
 
 	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "#hashtag a" + model.NewId() + "a"}
 
-	user := model.User{Email: th.GenerateTestEmail(), Nickname: "Joram Wilander", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemUserRoleId}
+	user := model.User{Email: th.GenerateTestEmail(), Nickname: "Joram Wilander", Password: model.NewTestPassword(), Username: GenerateTestUsername(), Roles: model.SystemUserRoleId}
 
 	ruser, _, err := client.CreateUser(context.Background(), &user)
 	require.NoError(t, err)
@@ -1270,7 +1271,7 @@ func TestCreatePostAll(t *testing.T) {
 
 	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "#hashtag a" + model.NewId() + "a"}
 
-	user := model.User{Email: th.GenerateTestEmail(), Nickname: "Joram Wilander", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemUserRoleId}
+	user := model.User{Email: th.GenerateTestEmail(), Nickname: "Joram Wilander", Password: model.NewTestPassword(), Username: GenerateTestUsername(), Roles: model.SystemUserRoleId}
 
 	directChannel, _ := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
 
@@ -6050,12 +6051,10 @@ func TestRestorePostVersion(t *testing.T) {
 }
 
 func TestRevealPost(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
-	})
-
 	th := SetupEnterprise(t).InitBasic(t)
+
+	// Enable BurnOnRead feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 
 	th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
 	th.AddUserToChannel(t, th.SystemAdminUser, th.BasicChannel)
@@ -6094,22 +6093,22 @@ func TestRevealPost(t *testing.T) {
 		return user2, client2
 	}
 
-	t.Run("feature not enabled, should still allow reveal", func(t *testing.T) {
+	t.Run("feature not enabled, reveal returns 501", func(t *testing.T) {
 		enableBurnOnReadFeature(th)
 		post := createBurnOnReadPost(th.SystemAdminClient, th.BasicChannel)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.FeatureFlags.BurnOnRead = false
 		})
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.FeatureFlags.BurnOnRead = true
+			})
+		})
 
-		revealedPost, resp, err := th.Client.RevealPost(context.Background(), post.Id)
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-		require.NotNil(t, revealedPost)
-		require.Equal(t, post.Id, revealedPost.Id)
-		require.Equal(t, "burn on read message", revealedPost.Message)
-		require.NotNil(t, revealedPost.Metadata)
-		require.NotZero(t, revealedPost.Metadata.ExpireAt)
+		_, resp, err := th.Client.RevealPost(context.Background(), post.Id)
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
 	})
 
 	th.TestForRegularAndSystemAdminClients(t, func(t *testing.T, client *model.Client4) {
@@ -6306,12 +6305,10 @@ func TestRevealPost(t *testing.T) {
 }
 
 func TestCreateBurnOnReadPost(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
-	})
-
 	th := SetupEnterprise(t).InitBasic(t)
+
+	// Enable BurnOnRead feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 
 	th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
 	th.AddUserToChannel(t, th.SystemAdminUser, th.BasicChannel)
@@ -6436,12 +6433,10 @@ func TestCreateBurnOnReadPost(t *testing.T) {
 }
 
 func TestBurnPost(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
-	})
-
 	th := SetupEnterprise(t).InitBasic(t)
+
+	// Enable BurnOnRead feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 
 	th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
 	th.AddUserToChannel(t, th.SystemAdminUser, th.BasicChannel)
@@ -6791,4 +6786,47 @@ func TestCreateCardPostWithFeatureFlagDisabled(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, "", rpost.Type)
 	})
+}
+
+// MM-68140: POST /posts/rewrite must reject root_id for threads in channels the user cannot read
+// before any thread content is used (e.g. sent to the AI bridge).
+func TestRewritePostRequiresReadAccessToRootThread(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	dm := th.CreateDmChannel(t, th.BasicUser2)
+	secretToken := "MM68140_SECRET_REWRITE_HTTP_" + model.NewId()
+	root := th.CreateMessagePostWithClient(t, th.Client, dm, secretToken)
+
+	attacker := th.CreateUserWithClient(t, th.SystemAdminClient)
+	th.LinkUserToTeam(t, attacker, th.BasicTeam)
+
+	attackerClient := th.CreateClient()
+	_, _, err := attackerClient.Login(context.Background(), attacker.Email, attacker.Password)
+	require.NoError(t, err)
+
+	req := model.RewriteRequest{
+		AgentID: model.NewId(),
+		Message: "text to shorten",
+		Action:  model.RewriteActionShorten,
+		RootID:  root.Id,
+	}
+	reqBody, err := json.Marshal(req)
+	require.NoError(t, err)
+	// Use raw HTTP so we can read the body on non-2xx (DoAPIPostJSON returns an error and closes the body for status >= 300).
+	httpReq, err := http.NewRequestWithContext(context.Background(), http.MethodPost, attackerClient.APIURL+"/posts/rewrite", bytes.NewReader(reqBody))
+	require.NoError(t, err)
+	httpReq.Header.Set(model.HeaderAuth, attackerClient.AuthType+" "+attackerClient.AuthToken)
+	httpReq.Header.Set("Content-Type", "application/json")
+	respHTTP, err := attackerClient.HTTPClient.Do(httpReq)
+	require.NoError(t, err)
+	defer respHTTP.Body.Close()
+
+	bodyBytes, err := io.ReadAll(respHTTP.Body)
+	require.NoError(t, err)
+
+	resp := model.BuildResponse(respHTTP)
+	require.Equalf(t, http.StatusForbidden, resp.StatusCode,
+		"rewrite with root_id in an unreadable channel must return forbidden before using thread content; status=%d body=%s", resp.StatusCode, string(bodyBytes))
+	assert.NotContains(t, string(bodyBytes), secretToken, "response must not leak private thread content")
 }

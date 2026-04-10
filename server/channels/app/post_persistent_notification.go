@@ -163,13 +163,25 @@ func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(pos
 		return err
 	}
 
+	var postsForPersistentNotificationCleanup []*model.Post
+
 	for _, post := range posts {
 		channel := channelsMap[post.ChannelId]
+		if channel == nil {
+			postsForPersistentNotificationCleanup = append(postsForPersistentNotificationCleanup, post)
+			continue
+		}
+
 		team := teamsMap[channel.TeamId]
 		// GMs and DMs don't belong to any team
 		if channel.IsGroupOrDirect() {
 			team = &model.Team{}
+		} else if team == nil {
+			// cleanup persistent notification for posts with missing teams when they are not DM or GM
+			postsForPersistentNotificationCleanup = append(postsForPersistentNotificationCleanup, post)
+			continue
 		}
+
 		profileMap := channelProfileMap[channel.Id]
 
 		// Ensure the sender is always in the profile map: for example, system admins can post
@@ -210,6 +222,14 @@ func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(pos
 		}
 	}
 
+	if len(postsForPersistentNotificationCleanup) > 0 {
+		for _, post := range postsForPersistentNotificationCleanup {
+			if appErr := a.DeletePersistentNotification(request.EmptyContext(a.Log()), post); appErr != nil {
+				a.Log().Warn("Failed to delete persistent notification for post", mlog.String("post_id", post.Id), mlog.String("channel_id", post.ChannelId), mlog.Err(appErr))
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -219,9 +239,14 @@ func (a *App) persistentNotificationsAuxiliaryData(channelsMap map[string]*model
 	channelKeywords := make(map[string]MentionKeywords, len(channelsMap))
 	channelNotifyProps := make(map[string]map[string]model.StringMap, len(channelsMap))
 	for _, c := range channelsMap {
+		team := teamsMap[c.TeamId]
+		if team == nil && !c.IsGroupOrDirect() {
+			continue
+		}
+
 		// In DM, notifications can't be send to any 3rd person.
 		if c.Type != model.ChannelTypeDirect {
-			groups, err := a.getGroupsAllowedForReferenceInChannel(c, teamsMap[c.TeamId])
+			groups, err := a.getGroupsAllowedForReferenceInChannel(c, team)
 			if err != nil {
 				return nil, nil, nil, nil, errors.Wrapf(err, "failed to get profiles for channel %s", c.Id)
 			}

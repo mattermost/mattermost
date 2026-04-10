@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
+import {render, waitFor} from '@testing-library/react';
 import React from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -15,6 +15,23 @@ import type {FakePost} from 'types/store/rhs';
 
 import ThreadViewer from './thread_viewer';
 import type {Props} from './thread_viewer';
+
+jest.mock('components/deferComponentRender', () => (component: any) => component);
+
+jest.mock('../virtualized_thread_viewer', () => () => (
+    <div data-testid='virtualized-thread-viewer'/>
+));
+
+jest.mock('components/file_upload_overlay', () => () => (
+    <div data-testid='file-upload-overlay'/>
+));
+
+jest.mock('client/web_websocket_client', () => ({
+    __esModule: true,
+    default: {
+        updateActiveThread: jest.fn(),
+    },
+}));
 
 describe('components/threading/ThreadViewer', () => {
     const post: Post = TestHelper.getPostMock({
@@ -91,24 +108,46 @@ describe('components/threading/ThreadViewer', () => {
     test('should match snapshot', async () => {
         const reset = fakeDate(new Date(1502715365000));
 
-        const wrapper = shallow(
+        const {container} = render(
             <ThreadViewer {...baseProps}/>,
         );
 
-        await new Promise((resolve) => setTimeout(resolve));
-        expect(wrapper).toMatchSnapshot();
+        await waitFor(() => {
+            expect(actions.getPostThread).toHaveBeenCalled();
+        });
+        expect(container).toMatchSnapshot();
         reset();
     });
 
-    test('should make api call to get thread posts on socket reconnect', () => {
-        const wrapper = shallow(
+    test('should make api call to get thread posts on socket reconnect', async () => {
+        const {rerender} = render(
             <ThreadViewer {...baseProps}/>,
         );
 
-        wrapper.setProps({socketConnectionStatus: false});
-        wrapper.setProps({socketConnectionStatus: true});
+        // ThreadViewer calls getPostThread(rootId, !reconnected, lastUpdateAt) from onInit(reconnected).
+        // Initial mount: onInit(false) → fetchThreads true. After reconnect: onInit(true) → fetchThreads false.
+        await waitFor(() => {
+            expect(actions.getPostThread).toHaveBeenCalledWith(post.id, true, 1234);
+        });
+        actions.getPostThread.mockClear();
 
-        return expect(actions.getPostThread).toHaveBeenCalledWith(post.id, true, 1234);
+        rerender(
+            <ThreadViewer
+                {...baseProps}
+                socketConnectionStatus={false}
+            />,
+        );
+        rerender(
+            <ThreadViewer
+                {...baseProps}
+                socketConnectionStatus={true}
+            />,
+        );
+
+        await waitFor(() => {
+            expect(actions.getPostThread).toHaveBeenCalledTimes(1);
+            expect(actions.getPostThread).toHaveBeenCalledWith(post.id, false, 1234);
+        });
     });
 
     test('should not break if root post is a fake post', () => {
@@ -118,7 +157,7 @@ describe('components/threading/ThreadViewer', () => {
         };
 
         expect(() => {
-            shallow(<ThreadViewer {...props}/>);
+            render(<ThreadViewer {...props}/>);
         }).not.toThrow("Cannot read property 'reply_count' of undefined");
     });
 
@@ -130,28 +169,25 @@ describe('components/threading/ThreadViewer', () => {
         };
 
         expect(() => {
-            shallow(<ThreadViewer {...props}/>);
+            render(<ThreadViewer {...props}/>);
         }).not.toThrow("Cannot read property 'reply_count' of undefined");
     });
 
-    test('should call fetchThread when no thread on mount', (done) => {
+    test('should call fetchThread when no thread on mount', async () => {
         const {actions} = baseProps;
 
-        shallow(
+        render(
             <ThreadViewer
                 {...baseProps}
                 isCollapsedThreadsEnabled={true}
             />,
         );
 
-        expect.assertions(3);
-
-        process.nextTick(() => {
-            expect(actions.updateThreadLastOpened).not.toHaveBeenCalled();
-            expect(actions.updateThreadRead).not.toHaveBeenCalled();
+        await waitFor(() => {
             expect(actions.getThread).toHaveBeenCalledWith('user_id', 'team_id', 'id', true);
-            done();
         });
+        expect(actions.updateThreadLastOpened).not.toHaveBeenCalled();
+        expect(actions.updateThreadRead).not.toHaveBeenCalled();
     });
 
     test('should call updateThreadLastOpened on mount', () => {
@@ -163,7 +199,7 @@ describe('components/threading/ThreadViewer', () => {
             last_reply_at: 32,
         } as UserThread;
 
-        shallow(
+        render(
             <ThreadViewer
                 {...baseProps}
                 userThread={userThread}
@@ -171,7 +207,6 @@ describe('components/threading/ThreadViewer', () => {
             />,
         );
 
-        expect.assertions(3);
         expect(actions.updateThreadLastOpened).toHaveBeenCalledWith('id', 42);
         expect(actions.updateThreadRead).not.toHaveBeenCalled();
         expect(actions.getThread).not.toHaveBeenCalled();
@@ -186,7 +221,7 @@ describe('components/threading/ThreadViewer', () => {
             last_reply_at: 142,
         } as UserThread;
 
-        shallow(
+        render(
             <ThreadViewer
                 {...baseProps}
                 userThread={userThread}
@@ -194,13 +229,12 @@ describe('components/threading/ThreadViewer', () => {
             />,
         );
 
-        expect.assertions(3);
         expect(actions.updateThreadLastOpened).toHaveBeenCalledWith('id', 42);
         expect(actions.updateThreadRead).toHaveBeenCalledWith('user_id', 'team_id', 'id', 400);
         expect(actions.getThread).not.toHaveBeenCalled();
     });
 
-    test('should call updateThreadLastOpened and updateThreadRead upon thread id change', (done) => {
+    test('should call updateThreadLastOpened and updateThreadRead upon thread id change', async () => {
         jest.useRealTimers();
         const dateNowOrig = Date.now;
         Date.now = () => new Date(400).getMilliseconds();
@@ -212,34 +246,48 @@ describe('components/threading/ThreadViewer', () => {
             last_reply_at: 142,
         } as UserThread;
 
-        const wrapper = shallow(
+        const {rerender} = render(
             <ThreadViewer
                 {...baseProps}
                 isCollapsedThreadsEnabled={true}
             />,
         );
 
-        expect.assertions(6);
-        process.nextTick(() => {
-            expect(actions.updateThreadLastOpened).not.toHaveBeenCalled();
-            expect(actions.updateThreadRead).not.toHaveBeenCalled();
+        await waitFor(() => {
             expect(actions.getThread).toHaveBeenCalled();
-
-            jest.resetAllMocks();
-            wrapper.setProps({userThread});
-
-            expect(actions.updateThreadLastOpened).toHaveBeenCalledWith('id', 42);
-            expect(actions.updateThreadRead).toHaveBeenCalledWith('user_id', 'team_id', 'id', 400);
-            expect(actions.getThread).not.toHaveBeenCalled();
-            Date.now = dateNowOrig;
-            done();
         });
+        expect(actions.updateThreadLastOpened).not.toHaveBeenCalled();
+        expect(actions.updateThreadRead).not.toHaveBeenCalled();
+
+        jest.resetAllMocks();
+        jest.mocked(baseProps.actions.getPostThread).mockResolvedValue({
+            data: {
+                order: ['post1', 'post2', 'post3'],
+                posts: {
+                    post1: TestHelper.getPostMock({id: 'post1', update_at: 1000}),
+                    post2: TestHelper.getPostMock({id: 'post2', update_at: 2000}),
+                    post3: TestHelper.getPostMock({id: 'post3', update_at: 1500}),
+                },
+            },
+        });
+        rerender(
+            <ThreadViewer
+                {...baseProps}
+                isCollapsedThreadsEnabled={true}
+                userThread={userThread}
+            />,
+        );
+
+        expect(actions.updateThreadLastOpened).toHaveBeenCalledWith('id', 42);
+        expect(actions.updateThreadRead).toHaveBeenCalledWith('user_id', 'team_id', 'id', 400);
+        expect(actions.getThread).not.toHaveBeenCalled();
+        Date.now = dateNowOrig;
     });
 
     test('should call fetchRHSAppsBindings on mount if appsEnabled', () => {
         const {actions} = baseProps;
 
-        shallow(
+        render(
             <ThreadViewer
                 {...baseProps}
             />,
@@ -251,7 +299,7 @@ describe('components/threading/ThreadViewer', () => {
     test('should not call fetchRHSAppsBindings on mount if not appsEnabled', () => {
         const {actions} = baseProps;
 
-        shallow(
+        render(
             <ThreadViewer
                 {...baseProps}
                 appsEnabled={false}
@@ -264,17 +312,17 @@ describe('components/threading/ThreadViewer', () => {
     test('should update thread with highest update_at value when lastUpdateAt is 0', async () => {
         const {actions} = baseProps;
 
-        shallow(
+        render(
             <ThreadViewer
                 {...baseProps}
                 lastUpdateAt={0} // Set lastUpdateAt to 0
             />,
         );
 
-        await new Promise(process.nextTick);
-
-        // Verify getPostThread was called with lastUpdateAt = 0
-        expect(actions.getPostThread).toHaveBeenCalledWith(post.id, true, 0);
+        await waitFor(() => {
+            // Verify getPostThread was called with lastUpdateAt = 0
+            expect(actions.getPostThread).toHaveBeenCalledWith(post.id, true, 0);
+        });
 
         // Verify updateThreadLastUpdateAt was called with the highest update_at value
         expect(actions.updateThreadLastUpdateAt).toHaveBeenCalledWith(post.id, 2000);
@@ -293,15 +341,15 @@ describe('components/threading/ThreadViewer', () => {
             },
         });
 
-        shallow(
+        render(
             <ThreadViewer
                 {...baseProps}
             />,
         );
 
-        await new Promise(process.nextTick);
-
-        // Verify updateThreadLastUpdateAt was called with the highest update_at value
-        expect(actions.updateThreadLastUpdateAt).toHaveBeenCalledWith(post.id, 9000);
+        await waitFor(() => {
+            // Verify updateThreadLastUpdateAt was called with the highest update_at value
+            expect(actions.updateThreadLastUpdateAt).toHaveBeenCalledWith(post.id, 9000);
+        });
     });
 });

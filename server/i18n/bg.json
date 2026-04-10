@@ -3552,10 +3552,6 @@
     "translation": "Лицензът за Mattermost корпоративна е деактивиран."
   },
   {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Корпоративния лиценз е изтекъл и някои функции може да бъдат забранени. Моля, подновете го."
-  },
-  {
     "id": "api.templates.post_body.button",
     "translation": "Преглед на съобщението"
   },

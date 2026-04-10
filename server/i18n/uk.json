@@ -5224,10 +5224,6 @@
     "translation": "Ліцензію Mattermost Enterprise вимкнено."
   },
   {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Термін дії вашої ліцензії на Enterprise версію закінчився, і деякі функції можуть бути вимкнені. Будь ласка, поновіть ліцензію."
-  },
-  {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} запросив вас приєднатися до команди {{ .TeamDisplayName }} як гостя"
   },
@@ -10066,10 +10062,6 @@
   {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
     "translation": "Не вдалось зареєструвати групу властивостей \"Атрибути користувацького профілю\""
-  },
-  {
-    "id": "app.custom_profile_attributes.create_property_field.app_error",
-    "translation": "Неможливо створити поле \"Атрибут користувацького профілю\""
   },
   {
     "id": "app.custom_profile_attributes.get_property_field.app_error",
