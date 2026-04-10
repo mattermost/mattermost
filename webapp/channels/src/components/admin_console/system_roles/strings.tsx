@@ -74,31 +74,31 @@ export const rolesStrings: Record<string, Record<string, MessageDescriptor>> = {
             defaultMessage: 'System Role',
         },
     }),
-    shared_channel_manager: defineMessages({
+    system_shared_channel_manager: defineMessages({
         name: {
-            id: 'admin.permissions.roles.shared_channel_manager.name',
+            id: 'admin.permissions.roles.system_shared_channel_manager.name',
             defaultMessage: 'Shared Channel Manager',
         },
         description: {
-            id: 'admin.permissions.roles.shared_channel_manager.description',
+            id: 'admin.permissions.roles.system_shared_channel_manager.description',
             defaultMessage: 'Can browse available connections and share or unshare channels with remote servers.',
         },
         type: {
-            id: 'admin.permissions.roles.shared_channel_manager.type',
+            id: 'admin.permissions.roles.system_shared_channel_manager.type',
             defaultMessage: 'System Role',
         },
     }),
-    secure_connection_manager: defineMessages({
+    system_secure_connection_manager: defineMessages({
         name: {
-            id: 'admin.permissions.roles.secure_connection_manager.name',
+            id: 'admin.permissions.roles.system_secure_connection_manager.name',
             defaultMessage: 'Secure Connection Manager',
         },
         description: {
-            id: 'admin.permissions.roles.secure_connection_manager.description',
+            id: 'admin.permissions.roles.system_secure_connection_manager.description',
             defaultMessage: 'Can create, manage, and remove secure connections to remote servers.',
         },
         type: {
-            id: 'admin.permissions.roles.secure_connection_manager.type',
+            id: 'admin.permissions.roles.system_secure_connection_manager.type',
             defaultMessage: 'System Role',
         },
     }),

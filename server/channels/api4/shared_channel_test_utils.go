@@ -235,9 +235,6 @@ func EnsureCleanState(t *testing.T, th *TestHelper, ss store.Store) {
 
 	rcService := th.App.Srv().GetRemoteClusterService()
 	if rcService != nil {
-		if rc, ok := rcService.(*remotecluster.Service); ok {
-			rc.SetActive(true)
-		}
 		require.Eventually(t, func() bool {
 			return rcService.Active()
 		}, 5*time.Second, 100*time.Millisecond, "Remote cluster service should be active")
