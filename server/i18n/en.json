@@ -9333,6 +9333,10 @@
     "translation": "{{.Backend}} version {{.Version}} is higher than max supported version of {{.MaxVersion}}"
   },
   {
+    "id": "ent.elasticsearch.min_version.app_error",
+    "translation": "{{.Backend}} version {{.Version}} is lower than min supported version of {{.MinVersion}}"
+  },
+  {
     "id": "ent.elasticsearch.not_started.error",
     "translation": "{{.Backend}} is not started"
   },
@@ -10451,6 +10455,10 @@
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
     "translation": "Invalid RemoteImageProxyOptions for atmos/camo. Must be set to your shared key."
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_options_length.app_error",
+    "translation": "Invalid RemoteImageProxyOptions for atmos/camo: HMAC key must be at least {{.MinLength}} bytes for FIPS compliance."
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",

@@ -451,7 +451,7 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 		remoteUserFromClusterB := &model.User{
 			Email:         "remote-user-b@example.com",
 			Username:      "remoteuserb" + model.NewId()[:4],
-			Password:      "password123",
+			Password:      model.NewTestPassword(),
 			EmailVerified: true,
 			RemoteId:      &clusterB.RemoteId,
 		}

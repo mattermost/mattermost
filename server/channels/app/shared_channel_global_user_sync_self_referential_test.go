@@ -227,7 +227,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 
 		// Create remote user (should NOT be synced)
 		remoteUser := th.CreateUser(t)
-		remoteUser.RemoteId = &selfCluster.RemoteId
+		remoteUser = th.SetUserRemoteID(t, remoteUser.Id, selfCluster.RemoteId)
 		remoteUser.UpdateAt = baseTime + 600
 		_, err = ss.User().Update(th.Context, remoteUser, true)
 		require.NoError(t, err)
@@ -1187,7 +1187,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		syncedUserOnB := &model.User{
 			Email:    model.NewId() + "@example.com",
 			Username: originalUser.Username + "_" + clusterB.Name, // Munged username
-			Password: "password",
+			Password: model.NewTestPassword(),
 			RemoteId: &clusterB.RemoteId, // This would be A's cluster ID on the actual B server
 			UpdateAt: model.GetMillis(),
 		}
