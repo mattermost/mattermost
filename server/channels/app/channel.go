@@ -4212,6 +4212,10 @@ func (a *App) SetChannelMembers(rctx request.CTX, channel *model.Channel, desire
 		return nil
 	}
 
+	if batchSize <= 0 {
+		batchSize = 1
+	}
+
 	batchDelay := time.Duration(batchDelayMs) * time.Millisecond
 
 	// Process removals first
@@ -4233,6 +4237,9 @@ func (a *App) SetChannelMembers(rctx request.CTX, channel *model.Channel, desire
 		onBatch(result)
 
 		if end < len(toRemove) {
+			if rctx.Context().Err() != nil {
+				return model.NewAppError("SetChannelMembers", "app.channel.set_members.context_cancelled.app_error", nil, "", http.StatusInternalServerError).Wrap(rctx.Context().Err())
+			}
 			time.Sleep(batchDelay)
 		}
 	}
@@ -4256,6 +4263,9 @@ func (a *App) SetChannelMembers(rctx request.CTX, channel *model.Channel, desire
 		onBatch(result)
 
 		if end < len(toAdd) {
+			if rctx.Context().Err() != nil {
+				return model.NewAppError("SetChannelMembers", "app.channel.set_members.context_cancelled.app_error", nil, "", http.StatusInternalServerError).Wrap(rctx.Context().Err())
+			}
 			time.Sleep(batchDelay)
 		}
 	}

@@ -6892,15 +6892,21 @@ func TestSetChannelMembers(t *testing.T) {
 
 	t.Run("idempotent", func(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
+		user2 := th.BasicUser2
 
-		// First call
-		_, _, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, []string{th.BasicUser.Id}, 0, 0)
+		// First call performs a real mutation — add user2
+		results1, _, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, []string{th.BasicUser.Id, user2.Id}, 0, 0)
 		require.NoError(t, err)
+		var firstAdded []string
+		for _, r := range results1 {
+			firstAdded = append(firstAdded, r.Added...)
+		}
+		assert.Contains(t, firstAdded, user2.Id, "first call should add user2")
 
 		// Second call with same list — should be all no-ops
-		results, _, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, []string{th.BasicUser.Id}, 0, 0)
+		results2, _, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, []string{th.BasicUser.Id, user2.Id}, 0, 0)
 		require.NoError(t, err)
-		for _, r := range results {
+		for _, r := range results2 {
 			assert.Empty(t, r.Added)
 			assert.Empty(t, r.Removed)
 			assert.Empty(t, r.Errors)
@@ -6909,8 +6915,7 @@ func TestSetChannelMembers(t *testing.T) {
 		// Verify membership unchanged
 		members, _, err := th.SystemAdminClient.GetChannelMembers(ctx, channel.Id, 0, 100, "")
 		require.NoError(t, err)
-		assert.Len(t, members, 1)
-		assert.Equal(t, th.BasicUser.Id, members[0].UserId)
+		assert.Len(t, members, 2)
 	})
 
 	t.Run("empty list removes all removable members", func(t *testing.T) {
@@ -6954,6 +6959,17 @@ func TestSetChannelMembers(t *testing.T) {
 	t.Run("DM channel rejected", func(t *testing.T) {
 		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
 		_, resp, err := th.SystemAdminClient.SetChannelMembers(ctx, dmChannel.Id, []string{th.BasicUser.Id}, 0, 0)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("GM channel rejected", func(t *testing.T) {
+		user3 := th.CreateUserWithClient(t, th.SystemAdminClient)
+		th.LinkUserToTeam(t, user3, th.BasicTeam)
+		gmChannel, _, err := th.SystemAdminClient.CreateGroupChannel(ctx, []string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id})
+		require.NoError(t, err)
+
+		_, resp, err := th.SystemAdminClient.SetChannelMembers(ctx, gmChannel.Id, []string{th.BasicUser.Id}, 0, 0)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
@@ -7038,15 +7054,15 @@ func TestSetChannelMembers(t *testing.T) {
 		results, _, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, userIDs, 2, 0)
 		require.NoError(t, err)
 
-		// Should have multiple batch results since we have 5 adds with batch_size=2
-		// (BasicUser is already a member, so 5 to add in batches of 2 = 3 batches)
-		assert.GreaterOrEqual(t, len(results), 2, "should have multiple batch results")
+		// BasicUser is already a member, so 5 to add in batches of 2 = 3 batches
+		assert.Len(t, results, 3, "should have exactly 3 batches for 5 adds with batch_size=2")
 
 		var allAdded []string
 		for _, r := range results {
+			assert.LessOrEqual(t, len(r.Added), 2, "each batch should have at most 2 additions")
 			allAdded = append(allAdded, r.Added...)
 		}
-		assert.Len(t, allAdded, 5, "should have added 5 users")
+		assert.Len(t, allAdded, 5, "should have added 5 users total")
 
 		// Verify final membership matches the requested list
 		members, _, err := th.SystemAdminClient.GetChannelMembers(ctx, channel.Id, 0, 100, "")

@@ -1368,8 +1368,9 @@
         Results are streamed back as NDJSON (`application/x-ndjson`), one line per batch. Each line
         is a JSON object with `added`, `removed`, and `errors` arrays for that batch.
 
-        The client can implement progress tracking by counting accumulated results from each NDJSON
-        line against the total desired user count and batch size.
+        The client can implement progress tracking by counting accumulated entries (added + removed +
+        errors) from each streamed NDJSON line. The total number of operations equals the number of
+        adds plus removals computed by the server, which the client can estimate from the batch count.
 
         Removals are processed before additions. Private channels cannot be emptied entirely.
         DM/GM and group-constrained channels are rejected.

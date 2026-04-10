@@ -2224,6 +2224,10 @@ func setChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParamWithErr("user_ids", err)
 		return
 	}
+	if desiredUserIDs == nil {
+		c.SetInvalidParam("user_ids")
+		return
+	}
 
 	// Validate and deduplicate user IDs
 	seen := make(map[string]struct{}, len(desiredUserIDs))
@@ -2266,9 +2270,20 @@ func setChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/x-ndjson")
 	enc := json.NewEncoder(w)
 
+	flusher, _ := w.(http.Flusher)
+
 	appErr = c.App.SetChannelMembers(c.AppContext, channel, desiredUserIDs, c.AppContext.Session().UserId, batchSize, batchDelayMs, func(result *model.SetChannelMembersResponse) {
+		if result.Added == nil {
+			result.Added = []string{}
+		}
+		if result.Removed == nil {
+			result.Removed = []string{}
+		}
 		if err := enc.Encode(result); err != nil {
 			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
+		if flusher != nil {
+			flusher.Flush()
 		}
 	})
 	if appErr != nil {
