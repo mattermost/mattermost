@@ -71,7 +71,7 @@ export default class SystemProperties {
 
     async selectType(nth: number, typeName: string) {
         await this.typeSelector(nth).click();
-        await this.page.getByRole('menuitemradio', {name: typeName}).click();
+        await this.page.getByRole('menuitemradio', {name: typeName, exact: true}).click();
     }
 
     async addOption(nth: number, value: string) {

@@ -611,11 +611,7 @@ test.describe('System Console - User Attributes Management', () => {
             // * Verify the row is removed (no confirmation modal for unsaved fields)
             await expect(sp.nameInputByValue('Temporary')).not.toBeVisible();
 
-            // * Verify Save button returns to disabled state (no net changes).
-            //   BUG: the app does not reset dirty state after removing an unsaved row,
-            //   so Save stays enabled. test.fail() lets CI pass while the bug exists
-            //   and will alert us when the fix lands (the test will unexpectedly pass).
-            test.fail();
+            // * Verify Save button returns to disabled state (no net changes)
             await expect(sp.saveButton).toBeDisabled({timeout: 10000});
         },
     );
