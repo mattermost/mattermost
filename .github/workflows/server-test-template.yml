@@ -222,6 +222,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           disable_search: true
           files: server/cover.out
+          flags: server
 
       - name: Stop docker compose
         run: |
