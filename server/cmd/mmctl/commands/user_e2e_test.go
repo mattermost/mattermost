@@ -218,7 +218,7 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	for range 10 {
 		userData := model.User{
 			Username: "fakeuser" + model.NewRandomString(10),
-			Password: "Pa$$word11",
+			Password: model.NewTestPassword(),
 			Email:    s.th.GenerateTestEmail(),
 		}
 		usr, err := s.th.App.CreateUser(s.th.Context, &userData)
@@ -231,7 +231,7 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	for range 2 {
 		userData := model.User{
 			Username: "fakeuser" + model.NewRandomString(10),
-			Password: "Pa$$word11",
+			Password: model.NewTestPassword(),
 			Email:    s.th.GenerateTestEmail(),
 			DeleteAt: model.GetMillis(),
 		}
@@ -297,7 +297,7 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	for range 10 {
 		userData := model.User{
 			Username: "teamuser" + model.NewRandomString(10),
-			Password: "Pa$$word11",
+			Password: model.NewTestPassword(),
 			Email:    s.th.GenerateTestEmail(),
 		}
 		usr, err := s.th.App.CreateUser(s.th.Context, &userData)
@@ -330,7 +330,7 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	for range 10 {
 		userData := model.User{
 			Username: "inactiveteamuser" + model.NewRandomString(10),
-			Password: "Pa$$word11",
+			Password: model.NewTestPassword(),
 			Email:    s.th.GenerateTestEmail(),
 			DeleteAt: model.GetMillis(),
 		}
@@ -971,7 +971,7 @@ func (s *MmctlE2ETestSuite) TestDeleteAllUserCmd() {
 		for range 10 {
 			userData := model.User{
 				Username: "fakeuser" + model.NewRandomString(10),
-				Password: "Pa$$word11",
+				Password: model.NewTestPassword(),
 				Email:    s.th.GenerateTestEmail(),
 			}
 			_, err := s.th.App.CreateUser(s.th.Context, &userData)

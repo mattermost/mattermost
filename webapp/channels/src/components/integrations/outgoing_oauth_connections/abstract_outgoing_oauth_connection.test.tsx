@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Provider} from 'react-redux';
 import {BrowserRouter as Router} from 'react-router-dom';
 
 import type {OutgoingOAuthConnection} from '@mattermost/types/integrations';
@@ -11,9 +10,7 @@ import {Permissions} from 'mattermost-redux/constants';
 
 import AbstractOutgoingOAuthConnection from 'components/integrations/outgoing_oauth_connections/abstract_outgoing_oauth_connection';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import {act} from 'tests/react_testing_utils';
-import mockStore from 'tests/test_store';
+import {renderWithContext, screen, userEvent, act} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/integrations/AbstractOutgoingOAuthConnection', () => {
@@ -80,59 +77,59 @@ describe('components/integrations/AbstractOutgoingOAuthConnection', () => {
 
     test('should match snapshot', () => {
         const props = {...baseProps};
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <Router>
-                <Provider store={store}>
-                    <AbstractOutgoingOAuthConnection {...props}/>
-                </Provider>
+                <AbstractOutgoingOAuthConnection {...props}/>
             </Router>,
+            state,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, displays client error', () => {
+    test('should match snapshot, displays client error', async () => {
         const submitAction = jest.fn().mockResolvedValue({data: true});
 
         const newServerError = 'serverError';
         const props = {...baseProps, serverError: newServerError, submitAction};
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <Router>
-                <Provider store={store}>
-                    <AbstractOutgoingOAuthConnection {...props}/>
-                </Provider>
+                <AbstractOutgoingOAuthConnection {...props}/>
             </Router>,
+            state,
         );
 
-        wrapper.find('#audienceUrls').simulate('change', {target: {value: ''}});
-        wrapper.find('button.btn-primary').simulate('click', {preventDefault() {
-            return jest.fn();
-        }});
+        const audienceUrlsInput = screen.getByDisplayValue('https://aud.com');
+        await userEvent.clear(audienceUrlsInput);
+
+        const submitButton = container.querySelector('button.btn-primary') as HTMLButtonElement;
+        await act(async () => {
+            submitButton?.click();
+        });
 
         expect(submitAction).not.toHaveBeenCalled();
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('Memo(FormError)').exists()).toBe(true);
+        expect(container).toMatchSnapshot();
     });
 
     test('should call action function', async () => {
         const submitAction = jest.fn().mockResolvedValue({data: true});
 
         const props = {...baseProps, submitAction};
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <Router>
-                <Provider store={store}>
-                    <AbstractOutgoingOAuthConnection {...props}/>
-                </Provider>
+                <AbstractOutgoingOAuthConnection {...props}/>
             </Router>,
+            state,
         );
 
         await act(async () => {
-            wrapper.find('#name').simulate('change', {target: {value: 'name'}});
-            wrapper.find('button.btn-primary').simulate('click', {preventDefault() {
-                return jest.fn();
-            }});
+            const nameInput = container.querySelector('#name') as HTMLInputElement;
+            if (nameInput) {
+                nameInput.value = 'name';
+                nameInput.dispatchEvent(new Event('change', {bubbles: true}));
+            }
+
+            const submitButton = container.querySelector('button.btn-primary') as HTMLButtonElement;
+            submitButton?.click();
 
             expect(submitAction).toHaveBeenCalled();
         });

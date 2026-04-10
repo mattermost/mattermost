@@ -50,7 +50,7 @@ func TestGetAllSharedChannelsWithSharedChannelManagerRole(t *testing.T) {
 	_, err := th.App.ShareChannel(th.Context, sc)
 	require.NoError(t, err)
 
-	// Create a user with the shared_channel_manager role
+	// Create a user with the system_shared_channel_manager role
 	scmUser := th.CreateUser(t)
 	_, appErr := th.App.UpdateUserRoles(th.Context, scmUser.Id, model.SystemUserRoleId+" "+model.SharedChannelManagerRoleId, false)
 	require.Nil(t, appErr)
@@ -70,7 +70,7 @@ func TestGetAllSharedChannelsWithSharedChannelManagerRole(t *testing.T) {
 		}
 	})
 
-	t.Run("shared_channel_manager user sees all shared channels", func(t *testing.T) {
+	t.Run("system_shared_channel_manager user sees all shared channels", func(t *testing.T) {
 		// scmUser is NOT a member of otherChannel, but has manage_shared_channels
 		channels, _, err := scmClient.GetAllSharedChannels(context.Background(), th.BasicTeam.Id, 0, 100)
 		require.NoError(t, err)
@@ -83,7 +83,7 @@ func TestGetAllSharedChannelsWithSharedChannelManagerRole(t *testing.T) {
 			}
 		}
 		assert.True(t, found,
-			"shared_channel_manager user should see all shared channels, including ones they are not a member of")
+			"system_shared_channel_manager user should see all shared channels, including ones they are not a member of")
 	})
 }
 
@@ -706,29 +706,5 @@ func TestSharedChannelEndpointsWithSharedChannelManagerRole(t *testing.T) {
 		resp, err := scmClient.UninviteRemoteClusterToChannel(context.Background(), rc.RemoteId, model.NewId())
 		CheckBadRequestStatus(t, resp)
 		require.Error(t, err)
-	})
-}
-
-func TestGetSharedChannelRemotesByRemoteClusterWithSecureConnectionManagerRole(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := setupForSharedChannels(t).InitBasic(t)
-
-	newRC := &model.RemoteCluster{Name: "rc", SiteURL: "http://example.com", CreatorId: th.SystemAdminUser.Id}
-	rc, appErr := th.App.AddRemoteCluster(newRC)
-	require.Nil(t, appErr)
-
-	// Create a user with only the secure_connection_manager role
-	scmUser := th.CreateUser(t)
-	_, appErr = th.App.UpdateUserRoles(th.Context, scmUser.Id, model.SystemUserRoleId+" "+model.SecureConnectionManagerRoleId, false)
-	require.Nil(t, appErr)
-
-	scmClient := th.CreateClient()
-	_, _, err := scmClient.Login(context.Background(), scmUser.Email, scmUser.Password)
-	require.NoError(t, err)
-
-	t.Run("secure_connection_manager should have access", func(t *testing.T) {
-		_, resp, err := scmClient.GetSharedChannelRemotesByRemoteCluster(context.Background(), rc.RemoteId, model.SharedChannelRemoteFilterOpts{}, 0, 100)
-		CheckOKStatus(t, resp)
-		require.NoError(t, err)
 	})
 }

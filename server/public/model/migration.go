@@ -59,7 +59,7 @@ const (
 	MigrationKeyAddChannelAccessRulesPermission        = "add_channel_access_rules_permission"
 	MigrationKeyAddChannelAutoTranslationPermissions   = "add_channel_auto_translation_permissions"
 	MigrationKeyAddTeamAccessRulesPermission           = "add_team_access_rules_permission"
-	MigrationKeyAddSharedChannelManagerPermissions     = "shared_channel_manager_permissions"
 	MigrationKeyAddSecureConnectionManagerPermissions  = "secure_connection_manager_permissions"
+	MigrationKeyAddSharedChannelManagerPermissions     = "system_shared_channel_manager_permissions"
 	MigrationKeyRestoreManageOAuthPermission           = "restore_manage_oauth_permission"
 )
