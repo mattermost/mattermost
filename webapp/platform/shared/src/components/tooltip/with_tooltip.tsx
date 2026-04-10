@@ -30,7 +30,13 @@ import type {ShortcutDefinition} from './tooltip_shortcut';
 
 import './with_tooltip.css';
 
-interface Props {
+export const OverlayArrow = {
+    WIDTH: 10, // in px
+    HEIGHT: 6, // in px
+    OFFSET: 8, // in px
+};
+
+export interface WithTooltipProps {
     title: string | ReactNode | MessageDescriptor;
     emoji?: string;
     isEmojiLarge?: boolean;
