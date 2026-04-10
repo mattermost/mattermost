@@ -81,7 +81,7 @@ describe('getCategoryInTeamWithChannel', () => {
     });
 });
 
-describe('makeGetUserCategoriesForTeam', () => {
+describe('makeGetNonManagedCategoriesForTeam', () => {
     const category1 = {id: 'category1', display_name: 'Category One', type: CategoryTypes.CUSTOM};
     const category2 = {id: 'category2', display_name: 'Category Two', type: CategoryTypes.CUSTOM};
 
@@ -100,7 +100,7 @@ describe('makeGetUserCategoriesForTeam', () => {
     } as unknown as GlobalState;
 
     test('should return categories for team in order', () => {
-        const getCategoriesForTeam = Selectors.makeGetUserCategoriesForTeam();
+        const getCategoriesForTeam = Selectors.makeGetNonManagedCategoriesForTeam();
 
         expect(getCategoriesForTeam(state, 'team1')).toEqual([
             state.entities.channelCategories.byId.category2,
@@ -109,7 +109,7 @@ describe('makeGetUserCategoriesForTeam', () => {
     });
 
     test('should memoize properly', () => {
-        const getCategoriesForTeam = Selectors.makeGetUserCategoriesForTeam();
+        const getCategoriesForTeam = Selectors.makeGetNonManagedCategoriesForTeam();
 
         const result = getCategoriesForTeam(state, 'team1');
 
@@ -117,7 +117,7 @@ describe('makeGetUserCategoriesForTeam', () => {
         expect(getCategoriesForTeam(state, 'team1')).toBe(result);
 
         // Calls to a difference instance of the selector won't return the same array
-        expect(result).not.toBe(Selectors.makeGetUserCategoriesForTeam()(state, 'team1'));
+        expect(result).not.toBe(Selectors.makeGetNonManagedCategoriesForTeam()(state, 'team1'));
 
         // Calls with different arguments won't return the same array
         expect(getCategoriesForTeam(state, 'team2')).not.toBe(result);
@@ -1581,7 +1581,7 @@ describe('makeGetManagedCategoriesForTeam', () => {
 });
 
 describe('makeGetCategoriesForTeam (merged)', () => {
-    const userCategory1 = {
+    const nonManagedCategory1 = {
         id: 'favorites1',
         team_id: 'team1',
         type: CategoryTypes.FAVORITES,
@@ -1592,7 +1592,7 @@ describe('makeGetCategoriesForTeam (merged)', () => {
         muted: false,
         collapsed: false,
     };
-    const userCategory2 = {
+    const nonManagedCategory2 = {
         id: 'channels1',
         team_id: 'team1',
         type: CategoryTypes.CHANNELS,
@@ -1604,7 +1604,7 @@ describe('makeGetCategoriesForTeam (merged)', () => {
         collapsed: false,
     };
 
-    test('should return only user categories when no managed mappings exist', () => {
+    test('should return only non-managed categories when no managed mappings exist', () => {
         const getCategoriesForTeam = Selectors.makeGetCategoriesForTeam();
 
         const state = {
@@ -1613,7 +1613,7 @@ describe('makeGetCategoriesForTeam (merged)', () => {
                     config: {EnableManagedChannelCategories: 'true'},
                 },
                 channelCategories: {
-                    byId: {favorites1: userCategory1, channels1: userCategory2},
+                    byId: {favorites1: nonManagedCategory1, channels1: nonManagedCategory2},
                     orderByTeam: {team1: ['favorites1', 'channels1']},
                     managedCategoryMappings: {},
                 },
@@ -1624,10 +1624,10 @@ describe('makeGetCategoriesForTeam (merged)', () => {
         } as unknown as GlobalState;
 
         const result = getCategoriesForTeam(state, 'team1');
-        expect(result).toEqual([userCategory1, userCategory2]);
+        expect(result).toEqual([nonManagedCategory1, nonManagedCategory2]);
     });
 
-    test('should prepend managed categories and strip their channels from user categories', () => {
+    test('should prepend managed categories and strip their channels from non-managed categories', () => {
         const getCategoriesForTeam = Selectors.makeGetCategoriesForTeam();
 
         const state = {
@@ -1636,7 +1636,7 @@ describe('makeGetCategoriesForTeam (merged)', () => {
                     config: {EnableManagedChannelCategories: 'true'},
                 },
                 channelCategories: {
-                    byId: {favorites1: userCategory1, channels1: userCategory2},
+                    byId: {favorites1: nonManagedCategory1, channels1: nonManagedCategory2},
                     orderByTeam: {team1: ['favorites1', 'channels1']},
                     managedCategoryMappings: {
                         team1: {
@@ -1666,7 +1666,7 @@ describe('makeGetCategoriesForTeam (merged)', () => {
         expect(result[2].channel_ids).toEqual(['channel5']);
     });
 
-    test('should not modify user categories when no channels overlap with managed categories', () => {
+    test('should not modify non-managed categories when no channels overlap with managed categories', () => {
         const getCategoriesForTeam = Selectors.makeGetCategoriesForTeam();
 
         const state = {
@@ -1675,7 +1675,7 @@ describe('makeGetCategoriesForTeam (merged)', () => {
                     config: {EnableManagedChannelCategories: 'true'},
                 },
                 channelCategories: {
-                    byId: {favorites1: userCategory1, channels1: userCategory2},
+                    byId: {favorites1: nonManagedCategory1, channels1: nonManagedCategory2},
                     orderByTeam: {team1: ['favorites1', 'channels1']},
                     managedCategoryMappings: {
                         team1: {
@@ -1693,7 +1693,7 @@ describe('makeGetCategoriesForTeam (merged)', () => {
 
         expect(result).toHaveLength(3);
         expect(result[0].display_name).toBe('Isolated');
-        expect(result[1].channel_ids).toEqual(userCategory1.channel_ids);
-        expect(result[2].channel_ids).toEqual(userCategory2.channel_ids);
+        expect(result[1].channel_ids).toEqual(nonManagedCategory1.channel_ids);
+        expect(result[2].channel_ids).toEqual(nonManagedCategory2.channel_ids);
     });
 });

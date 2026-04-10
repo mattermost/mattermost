@@ -71,7 +71,6 @@ const OptionComponent = (props: OptionProps<Option, false, GroupBase<Option>>) =
     return (
         <div
             className={classNames('ManagedCategorySelector__option', {
-                'ManagedCategorySelector__option--create': isCreateOption,
                 selected: props.isSelected,
                 focused: props.isFocused,
             })}

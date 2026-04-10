@@ -59,14 +59,14 @@ export function getCategoryWhere(state: GlobalState, condition: (category: Chann
     return Object.values(categoriesByIds).find(condition);
 }
 
-export function getUserCategoryOrderForTeam(state: GlobalState, teamId: string): string[] {
+export function getNonManagedCategoryOrderForTeam(state: GlobalState, teamId: string): string[] {
     return state.entities.channelCategories.orderByTeam[teamId];
 }
 
-export function makeGetUserCategoriesForTeam(): (state: GlobalState, teamId: string) => ChannelCategory[] {
+export function makeGetNonManagedCategoriesForTeam(): (state: GlobalState, teamId: string) => ChannelCategory[] {
     return createSelector(
-        'makeGetUserCategoriesForTeam',
-        getUserCategoryOrderForTeam,
+        'makeGetNonManagedCategoriesForTeam',
+        getNonManagedCategoryOrderForTeam,
         (state: GlobalState) => state.entities.channelCategories.byId,
         (categoryIds, categoriesById) => {
             if (!categoryIds) {
@@ -512,27 +512,27 @@ export function getChannelManagedCategoryName(state: GlobalState, channelId: str
 }
 
 export function makeGetCategoriesForTeam(): (state: GlobalState, teamId: string) => ChannelCategory[] {
-    const getUserCategoriesForTeam = makeGetUserCategoriesForTeam();
+    const getNonManagedCategoriesForTeam = makeGetNonManagedCategoriesForTeam();
     const getManagedCategoriesForTeam = makeGetManagedCategoriesForTeam();
 
     return createSelector(
         'makeGetCategoriesForTeam',
-        getUserCategoriesForTeam,
+        getNonManagedCategoriesForTeam,
         getManagedCategoriesForTeam,
-        (userCategories, managedCategories) => {
+        (nonManagedCategories, managedCategories) => {
             if (managedCategories.length === 0) {
-                return userCategories;
+                return nonManagedCategories;
             }
 
             const managedChannelIds = managedCategories.flatMap((c) => c.channel_ids);
-            const strippedUserCategories = userCategories.map((category) => ({
+            const strippedNonManagedCategories = nonManagedCategories.map((category) => ({
                 ...category,
                 channel_ids: category.channel_ids.filter((id) => !managedChannelIds.includes(id)),
             }));
 
             return [
                 ...managedCategories,
-                ...strippedUserCategories,
+                ...strippedNonManagedCategories,
             ];
         },
     );
@@ -549,7 +549,7 @@ export function makeGetManagedCategoriesForTeam(): (state: GlobalState, teamId: 
                 return [];
             }
 
-            const channelsByCategory: Record<string, string[]> = {};
+            const channelsByCategory: Record<string, string[]> = Object.create(null);
             for (const [channelId, categoryName] of Object.entries(mappings)) {
                 if (!channelsByCategory[categoryName]) {
                     channelsByCategory[categoryName] = [];

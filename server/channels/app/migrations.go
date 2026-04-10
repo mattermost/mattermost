@@ -30,7 +30,7 @@ const (
 	postPriorityConfigDefaultTrueMigrationKey      = "PostPriorityConfigDefaultTrueMigrationComplete"
 	contentFlaggingSetupDoneKey                    = "content_flagging_setup_done"
 	contentFlaggingMigrationVersion                = "v5"
-  managedCategorySetupDoneKey                    = "managed_category_setup_done"
+	managedCategorySetupDoneKey                    = "managed_category_setup_done"
 
 	contentFlaggingPropertyNameFlaggedPostId       = "flagged_post_id"
 	ContentFlaggingPropertyNameStatus              = "status"
@@ -770,20 +770,8 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 		return fmt.Errorf("failed to register managed category group: %w", err)
 	}
 
-	existingFields, err := s.propertyService.SearchPropertyFields(nil, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+	_, err = s.propertyService.GetPropertyFieldByName(nil, group.ID, "", model.ManagedCategoryPropertyFieldName)
 	if err != nil {
-		return fmt.Errorf("failed to search for existing managed category properties: %w", err)
-	}
-
-	fieldExists := false
-	for _, field := range existingFields {
-		if field.Name == model.ManagedCategoryPropertyFieldName {
-			fieldExists = true
-			break
-		}
-	}
-
-	if !fieldExists {
 		field := &model.PropertyField{
 			GroupID:           group.ID,
 			Name:              model.ManagedCategoryPropertyFieldName,

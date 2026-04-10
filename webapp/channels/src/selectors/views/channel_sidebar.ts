@@ -9,7 +9,7 @@ import type {RelationOneToOne} from '@mattermost/types/utilities';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {
     makeGetCategoriesForTeam,
-    makeGetUserCategoriesForTeam,
+    makeGetNonManagedCategoriesForTeam,
     makeGetChannelsByCategory,
     makeGetChannelIdsForCategory,
 } from 'mattermost-redux/selectors/entities/channel_categories';
@@ -39,12 +39,12 @@ export const getCategoriesForCurrentTeam: (state: GlobalState) => ChannelCategor
     });
 })();
 
-export const getUserCategoriesForCurrentTeam: (state: GlobalState) => ChannelCategory[] = (() => {
-    const getUserCategoriesForTeam = makeGetUserCategoriesForTeam();
+export const getNonManagedCategoriesForCurrentTeam: (state: GlobalState) => ChannelCategory[] = (() => {
+    const getNonManagedCategoriesForTeam = makeGetNonManagedCategoriesForTeam();
 
     return memoizeResult((state: GlobalState) => {
         const currentTeamId = getCurrentTeamId(state);
-        return getUserCategoriesForTeam(state, currentTeamId);
+        return getNonManagedCategoriesForTeam(state, currentTeamId);
     });
 })();
 

@@ -23,7 +23,7 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {addChannelsInSidebar} from 'actions/views/channel_sidebar';
 import {openModal} from 'actions/views/modals';
-import {getUserCategoriesForCurrentTeam} from 'selectors/views/channel_sidebar';
+import {getNonManagedCategoriesForCurrentTeam} from 'selectors/views/channel_sidebar';
 
 import EditCategoryModal from 'components/edit_category_modal';
 import * as Menu from 'components/menu';
@@ -56,7 +56,7 @@ const ChannelMoveToSubMenu = (props: Props) => {
     });
     const currentTeam = useSelector(getCurrentTeam);
     const categories = useSelector((state: GlobalState) => {
-        return currentTeam ? getUserCategoriesForCurrentTeam(state) : undefined;
+        return currentTeam ? getNonManagedCategoriesForCurrentTeam(state) : undefined;
     });
     const currentCategory = useSelector((state: GlobalState) => {
         return currentTeam ? getCategoryInTeamWithChannel(state, currentTeam?.id || '', props.channel.id) : undefined;

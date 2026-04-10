@@ -443,10 +443,10 @@ export class SidebarList extends React.PureComponent<Props, State> {
             }
 
             const managedCategories = categories.filter((c) => c.type === CategoryTypes.MANAGED);
-            const userCategories = categories.filter((c) => c.type !== CategoryTypes.MANAGED);
+            const nonManagedCategories = categories.filter((c) => c.type !== CategoryTypes.MANAGED);
 
             const renderedManagedCategories = managedCategories.map(this.renderCategory);
-            const renderedUserCategories = userCategories.map(this.renderCategory);
+            const renderedNonManagedCategories = nonManagedCategories.map(this.renderCategory);
 
             channelList = (
                 <>
@@ -469,7 +469,7 @@ export class SidebarList extends React.PureComponent<Props, State> {
                                         ref={provided.innerRef}
                                         {...provided.droppableProps}
                                     >
-                                        {renderedUserCategories}
+                                        {renderedNonManagedCategories}
                                         {provided.placeholder}
                                     </div>
                                 );
