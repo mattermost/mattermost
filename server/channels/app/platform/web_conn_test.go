@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
@@ -236,4 +237,42 @@ func TestWebConnDrainDeadQueue(t *testing.T) {
 		t.Run("Cycled End", func(t *testing.T) { run(int64(137), deadQueueSize+10) })
 		t.Run("Overwritten First", func(t *testing.T) { run(int64(128), deadQueueSize+10) })
 	})
+}
+
+func TestWebConnRejectBinaryFrameUnauthenticated(t *testing.T) {
+	th := Setup(t)
+
+	readPumpDone := make(chan struct{})
+
+	s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		upgrader := &websocket.Upgrader{}
+		conn, err := upgrader.Upgrade(w, r, nil)
+		require.NoError(t, err)
+
+		wc := th.Service.NewWebConn(&WebConnConfig{
+			WebSocket: conn,
+		}, th.Suite, &hookRunner{})
+
+		require.False(t, wc.IsBasicAuthenticated())
+
+		go func() {
+			wc.readPump()
+			close(readPumpDone)
+		}()
+	}))
+	defer s.Close()
+
+	d := websocket.Dialer{}
+	clientConn, _, err := d.Dial("ws://"+s.Listener.Addr().String()+"/ws", nil)
+	require.NoError(t, err)
+	defer clientConn.Close()
+
+	err = clientConn.WriteMessage(websocket.BinaryMessage, []byte{0x01, 0x02, 0x03})
+	require.NoError(t, err)
+
+	select {
+	case <-readPumpDone:
+	case <-time.After(5 * time.Second):
+		t.Fatal("readPump did not exit after receiving binary frame from unauthenticated connection")
+	}
 }
