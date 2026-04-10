@@ -280,6 +280,6 @@ func TestWebConnRejectBinaryFrameUnauthenticated(t *testing.T) {
 	select {
 	case <-readPumpDone:
 	case <-time.After(5 * time.Second):
-		t.Fatal("readPump did not exit after receiving binary frame from unauthenticated connection")
+		require.Fail(t, "readPump did not exit after receiving binary frame")
 	}
 }
