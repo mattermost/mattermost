@@ -540,14 +540,14 @@ func TestPermalinkBroadcastHook_AbacFileStripping(t *testing.T) {
 		return wc
 	}
 
-	extractPost := func(t *testing.T, msg *platform.HookedWebSocketEvent) model.Post {
+	extractPost := func(t *testing.T, msg *platform.HookedWebSocketEvent) *model.Post {
 		t.Helper()
 		gotJSON, ok := msg.Get("post").(string)
 		require.True(t, ok)
 		var gotPost model.Post
 		err := json.Unmarshal([]byte(gotJSON), &gotPost)
 		require.NoError(t, err)
-		return gotPost
+		return &gotPost
 	}
 
 	t.Run("files stripped from embed when user denied download", func(t *testing.T) {
@@ -679,7 +679,7 @@ func TestAbacFilesBroadcastHook_Process(t *testing.T) {
 				Files: make([]*model.FileInfo, fileCount),
 			},
 		}
-		for i := 0; i < fileCount; i++ {
+		for i := range fileCount {
 			fid := model.NewId()
 			post.FileIds[i] = fid
 			post.Metadata.Files[i] = &model.FileInfo{Id: fid, Name: "file.txt", Extension: "txt"}
@@ -716,14 +716,14 @@ func TestAbacFilesBroadcastHook_Process(t *testing.T) {
 		return wc
 	}
 
-	extractPost := func(t *testing.T, msg *platform.HookedWebSocketEvent) model.Post {
+	extractPost := func(t *testing.T, msg *platform.HookedWebSocketEvent) *model.Post {
 		t.Helper()
 		gotJSON, ok := msg.Get("post").(string)
 		require.True(t, ok)
 		var gotPost model.Post
 		err := json.Unmarshal([]byte(gotJSON), &gotPost)
 		require.NoError(t, err)
-		return gotPost
+		return &gotPost
 	}
 
 	t.Run("allowed user: post is unchanged", func(t *testing.T) {
