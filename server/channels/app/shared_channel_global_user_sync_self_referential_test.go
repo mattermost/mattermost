@@ -61,11 +61,6 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 	if rcService != nil {
 		_ = rcService.Start()
 
-		// Force the service to be active in test environment
-		if rc, ok := rcService.(*remotecluster.Service); ok {
-			rc.SetActive(true)
-		}
-
 		// Verify it's active
 		if !rcService.Active() {
 			t.Fatalf("RemoteClusterService is not active after Start")
@@ -1192,7 +1187,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		syncedUserOnB := &model.User{
 			Email:    model.NewId() + "@example.com",
 			Username: originalUser.Username + "_" + clusterB.Name, // Munged username
-			Password: "password",
+			Password: model.NewTestPassword(),
 			RemoteId: &clusterB.RemoteId, // This would be A's cluster ID on the actual B server
 			UpdateAt: model.GetMillis(),
 		}

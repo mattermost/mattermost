@@ -8,20 +8,36 @@ import type {Group, GroupChannel, GroupTeam} from '@mattermost/types/groups';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
-import GroupDetails from 'components/admin_console/group_settings/group_details/group_details';
+import {GroupDetails} from 'components/admin_console/group_settings/group_details/group_details';
 
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+import {defaultIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext, act} from 'tests/react_testing_utils';
 
-function getAnyInstance(wrapper: any) {
-    return wrapper.instance() as any;
-}
+jest.mock('mattermost-redux/actions/channels', () => ({
+    ...jest.requireActual('mattermost-redux/actions/channels'),
+    getAllChannels: () => () => Promise.resolve({data: []}),
+    searchAllChannels: () => () => Promise.resolve({data: []}),
+}));
 
-function getAnyState(wrapper: any) {
-    return wrapper.state() as any;
-}
+jest.mock('mattermost-redux/actions/teams', () => ({
+    ...jest.requireActual('mattermost-redux/actions/teams'),
+    getTeams: () => () => Promise.resolve({data: []}),
+    searchTeams: () => () => Promise.resolve({data: []}),
+}));
 
 describe('components/admin_console/group_settings/group_details/GroupDetails', () => {
+    const originalRAF = window.requestAnimationFrame;
+
+    beforeEach(() => {
+        window.requestAnimationFrame = jest.fn();
+    });
+
+    afterEach(() => {
+        window.requestAnimationFrame = originalRAF;
+    });
+
     const defaultProps = {
+        intl: defaultIntl,
         groupID: 'xxxxxxxxxxxxxxxxxxxxxxxxxx',
         group: {
             display_name: 'Group',
@@ -38,9 +54,9 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
             {channel_id: '66666666666666666666666666'} as GroupChannel,
         ],
         members: [
-            {id: '77777777777777777777777777'} as UserProfile,
-            {id: '88888888888888888888888888'} as UserProfile,
-            {id: '99999999999999999999999999'} as UserProfile,
+            {id: '77777777777777777777777777', username: 'user1', email: 'user1@test.com', last_picture_update: 0} as UserProfile,
+            {id: '88888888888888888888888888', username: 'user2', email: 'user2@test.com', last_picture_update: 0} as UserProfile,
+            {id: '99999999999999999999999999', username: 'user3', email: 'user3@test.com', last_picture_update: 0} as UserProfile,
         ],
         memberCount: 20,
         actions: {
@@ -57,30 +73,54 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
     };
 
     test('should match snapshot, with everything closed', () => {
-        const wrapper = shallowWithIntl(<GroupDetails {...defaultProps}/>);
+        const {container} = renderWithContext(<GroupDetails {...defaultProps}/>);
         defaultProps.actions.getGroupSyncables.mockClear();
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, with add team selector open', () => {
-        const wrapper = shallowWithIntl(<GroupDetails {...defaultProps}/>);
-        wrapper.setState({addTeamOpen: true});
+        const ref = React.createRef<InstanceType<typeof GroupDetails>>();
+        const {container} = renderWithContext(
+            <GroupDetails
+                {...defaultProps}
+                ref={ref}
+            />,
+        );
+        act(() => {
+            ref.current!.setState({addTeamOpen: true});
+        });
         defaultProps.actions.getGroupSyncables.mockClear();
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, with add channel selector open', () => {
-        const wrapper = shallowWithIntl(<GroupDetails {...defaultProps}/>);
-        wrapper.setState({addChannelOpen: true});
+        const ref = React.createRef<InstanceType<typeof GroupDetails>>();
+        const {container} = renderWithContext(
+            <GroupDetails
+                {...defaultProps}
+                ref={ref}
+            />,
+        );
+        act(() => {
+            ref.current!.setState({addChannelOpen: true});
+        });
         defaultProps.actions.getGroupSyncables.mockClear();
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, with loaded state', () => {
-        const wrapper = shallowWithIntl(<GroupDetails {...defaultProps}/>);
-        wrapper.setState({loading: false, loadingTeamsAndChannels: false});
+        const ref = React.createRef<InstanceType<typeof GroupDetails>>();
+        const {container} = renderWithContext(
+            <GroupDetails
+                {...defaultProps}
+                ref={ref}
+            />,
+        );
+        act(() => {
+            ref.current!.setState({loadingTeamsAndChannels: false});
+        });
         defaultProps.actions.getGroupSyncables.mockClear();
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should load data on mount', () => {
@@ -88,14 +128,14 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
             getGroupSyncables: jest.fn().mockReturnValue(Promise.resolve()),
             getGroupStats: jest.fn().mockReturnValue(Promise.resolve()),
             getGroup: jest.fn().mockReturnValue(Promise.resolve()),
-            getMembers: jest.fn(),
+            getMembers: jest.fn().mockReturnValue(Promise.resolve()),
             link: jest.fn(),
             unlink: jest.fn(),
             patchGroup: jest.fn(),
             patchGroupSyncable: jest.fn(),
             setNavigationBlocked: jest.fn(),
         };
-        shallowWithIntl(
+        renderWithContext(
             <GroupDetails
                 {...defaultProps}
                 actions={actions}
@@ -112,31 +152,34 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
             getGroupSyncables: jest.fn().mockReturnValue(Promise.resolve()),
             getGroupStats: jest.fn().mockReturnValue(Promise.resolve()),
             getGroup: jest.fn().mockReturnValue(Promise.resolve()),
-            getMembers: jest.fn(),
+            getMembers: jest.fn().mockReturnValue(Promise.resolve()),
             link: jest.fn().mockReturnValue(Promise.resolve()),
             unlink: jest.fn().mockReturnValue(Promise.resolve()),
             patchGroup: jest.fn(),
             patchGroupSyncable: jest.fn(),
             setNavigationBlocked: jest.fn(),
         };
-        const wrapper = shallowWithIntl(
+        const ref = React.createRef<InstanceType<typeof GroupDetails>>();
+        renderWithContext(
             <GroupDetails
                 {...defaultProps}
                 actions={actions}
+                ref={ref}
             />,
         );
-        const instance = getAnyInstance(wrapper);
-        await instance.addChannels([
-            {id: '11111111111111111111111111'} as ChannelWithTeamData,
-            {id: '22222222222222222222222222'} as ChannelWithTeamData,
-        ]);
+        await act(async () => {
+            await (ref.current as any).addChannels([
+                {id: '11111111111111111111111111', display_name: 'Channel 1', team_display_name: 'Team 1', team_id: 'team1', type: 'O'} as ChannelWithTeamData,
+                {id: '22222222222222222222222222', display_name: 'Channel 2', team_display_name: 'Team 1', team_id: 'team1', type: 'O'} as ChannelWithTeamData,
+            ]);
+        });
         const testStateObj = (stateSubset?: GroupChannel[]) => {
             const channelIDs = stateSubset?.map((gc) => gc.channel_id);
             expect(channelIDs).toContain('11111111111111111111111111');
             expect(channelIDs).toContain('22222222222222222222222222');
         };
-        testStateObj(instance.state.groupChannels);
-        testStateObj(instance.state.channelsToAdd);
+        testStateObj((ref.current as any).state.groupChannels);
+        testStateObj((ref.current as any).state.channelsToAdd);
     });
 
     test('should set state for each team when addTeams is called', async () => {
@@ -144,51 +187,59 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
             getGroupSyncables: jest.fn().mockReturnValue(Promise.resolve()),
             getGroupStats: jest.fn().mockReturnValue(Promise.resolve()),
             getGroup: jest.fn().mockReturnValue(Promise.resolve()),
-            getMembers: jest.fn(),
+            getMembers: jest.fn().mockReturnValue(Promise.resolve()),
             link: jest.fn().mockReturnValue(Promise.resolve()),
             unlink: jest.fn().mockReturnValue(Promise.resolve()),
             patchGroup: jest.fn(),
             patchGroupSyncable: jest.fn(),
             setNavigationBlocked: jest.fn(),
         };
-        const wrapper = shallowWithIntl(
+        const ref = React.createRef<InstanceType<typeof GroupDetails>>();
+        renderWithContext(
             <GroupDetails
                 {...defaultProps}
                 actions={actions}
+                ref={ref}
             />,
         );
-        const instance = getAnyInstance(wrapper);
-        expect(instance.state.groupTeams?.length === 0);
-        instance.addTeams([
-            {id: '11111111111111111111111111'} as Team,
-            {id: '22222222222222222222222222'} as Team,
-        ]);
+        expect((ref.current as any).state.groupTeams?.length).toBe(0);
+        act(() => {
+            (ref.current as any).addTeams([
+                {id: '11111111111111111111111111'} as Team,
+                {id: '22222222222222222222222222'} as Team,
+            ]);
+        });
         const testStateObj = (stateSubset?: GroupTeam[]) => {
             const teamIDs = stateSubset?.map((gt) => gt.team_id);
             expect(teamIDs).toContain('11111111111111111111111111');
             expect(teamIDs).toContain('22222222222222222222222222');
         };
-        testStateObj(instance.state.groupTeams);
-        testStateObj(instance.state.teamsToAdd);
+        testStateObj((ref.current as any).state.groupTeams);
+        testStateObj((ref.current as any).state.teamsToAdd);
     });
 
     test('update name for null slug', async () => {
-        const wrapper = shallowWithIntl(
+        const ref = React.createRef<InstanceType<typeof GroupDetails>>();
+        renderWithContext(
             <GroupDetails
                 {...defaultProps}
                 group={{
                     display_name: 'test group',
                     allow_reference: false,
                 } as Group}
+                ref={ref}
             />,
         );
 
-        getAnyInstance(wrapper).onMentionToggle(true);
-        expect(getAnyState(wrapper).groupMentionName).toBe('test-group');
+        act(() => {
+            (ref.current as any).onMentionToggle(true);
+        });
+        expect((ref.current as any).state.groupMentionName).toBe('test-group');
     });
 
     test('update name for empty slug', async () => {
-        const wrapper = shallowWithIntl(
+        const ref = React.createRef<InstanceType<typeof GroupDetails>>();
+        renderWithContext(
             <GroupDetails
                 {...defaultProps}
                 group={{
@@ -196,15 +247,19 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
                     display_name: 'test group',
                     allow_reference: false,
                 } as Group}
+                ref={ref}
             />,
         );
 
-        getAnyInstance(wrapper).onMentionToggle(true);
-        expect(getAnyState(wrapper).groupMentionName).toBe('test-group');
+        act(() => {
+            (ref.current as any).onMentionToggle(true);
+        });
+        expect((ref.current as any).state.groupMentionName).toBe('test-group');
     });
 
     test('Should not update name for slug', async () => {
-        const wrapper = shallowWithIntl(
+        const ref = React.createRef<InstanceType<typeof GroupDetails>>();
+        renderWithContext(
             <GroupDetails
                 {...defaultProps}
                 group={{
@@ -212,10 +267,13 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
                     display_name: 'test group',
                     allow_reference: false,
                 } as Group}
+                ref={ref}
             />,
         );
-        getAnyInstance(wrapper).onMentionToggle(true);
-        expect(getAnyState(wrapper).groupMentionName).toBe('any_name_at_all');
+        act(() => {
+            (ref.current as any).onMentionToggle(true);
+        });
+        expect((ref.current as any).state.groupMentionName).toBe('any_name_at_all');
     });
 
     test('handleRolesToUpdate should only update scheme_admin and not auto_add', async () => {
@@ -225,22 +283,27 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
             patchGroupSyncable,
         };
 
-        const wrapper = shallowWithIntl(
+        const ref = React.createRef<InstanceType<typeof GroupDetails>>();
+        renderWithContext(
             <GroupDetails
                 {...defaultProps}
                 actions={actions}
+                ref={ref}
             />,
         );
 
-        const instance = getAnyInstance(wrapper);
-        instance.setState({
-            rolesToChange: {
-                'team1/public-team': true,
-                'channel1/public-channel': false,
-            },
+        act(() => {
+            ref.current!.setState({
+                rolesToChange: {
+                    'team1/public-team': true,
+                    'channel1/public-channel': false,
+                },
+            } as any);
         });
 
-        await instance.handleRolesToUpdate();
+        await act(async () => {
+            await (ref.current as any).handleRolesToUpdate();
+        });
 
         expect(patchGroupSyncable).toHaveBeenCalledTimes(2);
         expect(patchGroupSyncable).toHaveBeenCalledWith(
