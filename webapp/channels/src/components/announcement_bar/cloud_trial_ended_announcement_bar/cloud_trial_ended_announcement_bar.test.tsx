@@ -6,8 +6,7 @@ import * as reactRedux from 'react-redux';
 
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
+import {renderWithContext} from 'tests/react_testing_utils';
 import {CloudProducts, Preferences, CloudBanners} from 'utils/constants';
 import {FileSizes} from 'utils/file_utils';
 
@@ -128,20 +127,15 @@ describe('components/global/CloudTrialEndAnnouncementBar', () => {
         // Set the system time to be June 20th, since this banner won't show for trial's ending prior to June 15
         jest.useFakeTimers().setSystemTime(new Date('2022-06-20'));
 
-        const store = mockStore(state);
-
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        const wrapper = mountWithIntl(
-            <reactRedux.Provider store={store}>
-                <CloudTrialEndAnnouncementBar/>
-            </reactRedux.Provider>,
+        const {container} = renderWithContext(
+            <CloudTrialEndAnnouncementBar/>,
+            state,
         );
 
-        expect(
-            wrapper.find('AnnouncementBar').exists(),
-        ).toEqual(true);
+        expect(container.querySelector('.announcement-bar')).not.toBeNull();
     });
 
     it('Should show banner cloudArchived teams exist', () => {
@@ -159,18 +153,15 @@ describe('components/global/CloudTrialEndAnnouncementBar', () => {
         // Set the system time to be June 20th, since this banner won't show for trial's ending prior to June 15
         jest.useFakeTimers().setSystemTime(new Date('2022-06-20'));
 
-        const store = mockStore(state);
-
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        const wrapper = mountWithIntl(
-            <reactRedux.Provider store={store}>
-                <CloudTrialEndAnnouncementBar/>
-            </reactRedux.Provider>,
+        const {container} = renderWithContext(
+            <CloudTrialEndAnnouncementBar/>,
+            state,
         );
 
-        expect(wrapper.find('AnnouncementBar').exists()).toEqual(true);
+        expect(container.querySelector('.announcement-bar')).not.toBeNull();
     });
 
     it('should not show banner if on free trial', () => {
@@ -211,44 +202,39 @@ describe('components/global/CloudTrialEndAnnouncementBar', () => {
                     },
                 },
             },
-            usage: {
-                integrations: {
-                    enabled: 11,
-                    enabledLoaded: true,
-                },
-                messages: {
-                    history: 10000,
-                    historyLoaded: true,
-                },
-                files: {
-                    totalStorage: FileSizes.Gigabyte,
-                    totalStorageLoaded: true,
-                },
-                teams: {
-                    active: 1,
-                    teamsLoaded: true,
-                },
-                boards: {
-                    cards: 500,
-                    cardsLoaded: true,
-                },
+        };
+        state.entities.usage = {
+            integrations: {
+                enabled: 11,
+                enabledLoaded: true,
+            },
+            messages: {
+                history: 10000,
+                historyLoaded: true,
+            },
+            files: {
+                totalStorage: FileSizes.Gigabyte,
+                totalStorageLoaded: true,
+            },
+            teams: {
+                active: 1,
+                teamsLoaded: true,
+            },
+            boards: {
+                cards: 500,
+                cardsLoaded: true,
             },
         };
-
-        const store = mockStore(state);
 
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
-        const wrapper = mountWithIntl(
-            <reactRedux.Provider store={store}>
-                <CloudTrialEndAnnouncementBar/>
-            </reactRedux.Provider>,
+        const {container} = renderWithContext(
+            <CloudTrialEndAnnouncementBar/>,
+            state,
         );
 
-        expect(
-            wrapper.find('AnnouncementBar').exists(),
-        ).toEqual(false);
+        expect(container.querySelector('.announcement-bar')).toBeNull();
     });
 
     it('should not show for non-admins', () => {
@@ -260,44 +246,36 @@ describe('components/global/CloudTrialEndAnnouncementBar', () => {
             },
         };
 
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(
-            <reactRedux.Provider store={store}>
-                <CloudTrialEndAnnouncementBar/>
-            </reactRedux.Provider>,
+        const {container} = renderWithContext(
+            <CloudTrialEndAnnouncementBar/>,
+            state,
         );
 
-        expect(
-            wrapper.find('AnnouncementBar').exists(),
-        ).toEqual(false);
+        expect(container.querySelector('.announcement-bar')).toBeNull();
     });
 
     it('should not show for enterprise workspaces', () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.cloud.subscription.product_id = 'test_prod_2';
 
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(
-            <reactRedux.Provider store={store}>
-                <CloudTrialEndAnnouncementBar/>
-            </reactRedux.Provider>,
+        const {container} = renderWithContext(
+            <CloudTrialEndAnnouncementBar/>,
+            state,
         );
 
-        expect(wrapper.find('AnnouncementBar').exists()).toEqual(false);
+        expect(container.querySelector('.announcement-bar')).toBeNull();
     });
 
     it('should not show for professional workspaces', () => {
         const state = JSON.parse(JSON.stringify(initialState));
         state.entities.cloud.subscription.product_id = 'test_prod_3';
 
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(
-            <reactRedux.Provider store={store}>
-                <CloudTrialEndAnnouncementBar/>
-            </reactRedux.Provider>,
+        const {container} = renderWithContext(
+            <CloudTrialEndAnnouncementBar/>,
+            state,
         );
 
-        expect(wrapper.find('AnnouncementBar').exists()).toEqual(false);
+        expect(container.querySelector('.announcement-bar')).toBeNull();
     });
 
     it('Should not show banner if preference is set to hidden', () => {
@@ -311,15 +289,11 @@ describe('components/global/CloudTrialEndAnnouncementBar', () => {
             },
         };
 
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(
-            <reactRedux.Provider store={store}>
-                <CloudTrialEndAnnouncementBar/>
-            </reactRedux.Provider>,
+        const {container} = renderWithContext(
+            <CloudTrialEndAnnouncementBar/>,
+            state,
         );
 
-        expect(
-            wrapper.find('AnnouncementBar').exists(),
-        ).toEqual(false);
+        expect(container.querySelector('.announcement-bar')).toBeNull();
     });
 });

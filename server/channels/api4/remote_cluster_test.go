@@ -27,7 +27,7 @@ func TestGetRemoteClustersWithSecureConnectionManagerRole(t *testing.T) {
 	_, appErr := th.App.AddRemoteCluster(newRC)
 	require.Nil(t, appErr)
 
-	// Create a user with only the secure_connection_manager role
+	// Create a user with only the system_secure_connection_manager role
 	scmUser := th.CreateUser(t)
 	_, appErr = th.App.UpdateUserRoles(th.Context, scmUser.Id, model.SystemUserRoleId+" "+model.SecureConnectionManagerRoleId, false)
 	require.Nil(t, appErr)
@@ -42,7 +42,7 @@ func TestGetRemoteClustersWithSecureConnectionManagerRole(t *testing.T) {
 		require.Error(t, err)
 	})
 
-	t.Run("secure_connection_manager user should have access", func(t *testing.T) {
+	t.Run("system_secure_connection_manager user should have access", func(t *testing.T) {
 		rcs, resp, err := scmClient.GetRemoteClusters(context.Background(), 0, 999999, model.RemoteClusterQueryFilter{})
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
@@ -65,7 +65,7 @@ func TestGetRemoteClustersWithSharedChannelManagerRole(t *testing.T) {
 	_, appErr := th.App.AddRemoteCluster(newRC)
 	require.Nil(t, appErr)
 
-	// Create a user with only the shared_channel_manager role
+	// Create a user with only the system_shared_channel_manager role
 	scmUser := th.CreateUser(t)
 	_, appErr = th.App.UpdateUserRoles(th.Context, scmUser.Id, model.SystemUserRoleId+" "+model.SharedChannelManagerRoleId, false)
 	require.Nil(t, appErr)
@@ -80,7 +80,7 @@ func TestGetRemoteClustersWithSharedChannelManagerRole(t *testing.T) {
 		require.Error(t, err)
 	})
 
-	t.Run("shared_channel_manager user should have access", func(t *testing.T) {
+	t.Run("system_shared_channel_manager user should have access", func(t *testing.T) {
 		rcs, resp, err := scmClient.GetRemoteClusters(context.Background(), 0, 999999, model.RemoteClusterQueryFilter{})
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
@@ -93,7 +93,7 @@ func TestCreateRemoteClusterWithSecureConnectionManagerRole(t *testing.T) {
 	th := setupForSharedChannels(t).InitBasic(t)
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065" })
 
-	// Create a user with only the secure_connection_manager role
+	// Create a user with only the system_secure_connection_manager role
 	scmUser := th.CreateUser(t)
 	_, appErr := th.App.UpdateUserRoles(th.Context, scmUser.Id, model.SystemUserRoleId+" "+model.SecureConnectionManagerRoleId, false)
 	require.Nil(t, appErr)
@@ -107,7 +107,7 @@ func TestCreateRemoteClusterWithSecureConnectionManagerRole(t *testing.T) {
 			Name:          "test-from-scm",
 			DefaultTeamId: th.BasicTeam.Id,
 		},
-		Password: "mysupersecret",
+		Password: model.NewTestPassword(),
 	}
 
 	t.Run("regular user should be denied", func(t *testing.T) {
@@ -116,7 +116,7 @@ func TestCreateRemoteClusterWithSecureConnectionManagerRole(t *testing.T) {
 		require.Error(t, err)
 	})
 
-	t.Run("secure_connection_manager user should have access", func(t *testing.T) {
+	t.Run("system_secure_connection_manager user should have access", func(t *testing.T) {
 		rcWithInvite, resp, err := scmClient.CreateRemoteCluster(context.Background(), rcPayload)
 		CheckCreatedStatus(t, resp)
 		require.NoError(t, err)
@@ -129,7 +129,7 @@ func TestCreateRemoteClusterDeniedForSharedChannelManagerRole(t *testing.T) {
 	th := setupForSharedChannels(t).InitBasic(t)
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065" })
 
-	// Create a user with only the shared_channel_manager role
+	// Create a user with only the system_shared_channel_manager role
 	scmUser := th.CreateUser(t)
 	_, appErr := th.App.UpdateUserRoles(th.Context, scmUser.Id, model.SystemUserRoleId+" "+model.SharedChannelManagerRoleId, false)
 	require.Nil(t, appErr)
@@ -138,13 +138,13 @@ func TestCreateRemoteClusterDeniedForSharedChannelManagerRole(t *testing.T) {
 	_, _, err := scmClient.Login(context.Background(), scmUser.Email, scmUser.Password)
 	require.NoError(t, err)
 
-	t.Run("shared_channel_manager should be denied create", func(t *testing.T) {
+	t.Run("system_shared_channel_manager should be denied create", func(t *testing.T) {
 		rcPayload := &model.RemoteClusterWithPassword{
 			RemoteCluster: &model.RemoteCluster{
 				Name:          "test-from-scm",
 				DefaultTeamId: th.BasicTeam.Id,
 			},
-			Password: "mysupersecret",
+			Password: model.NewTestPassword(),
 		}
 		_, resp, err := scmClient.CreateRemoteCluster(context.Background(), rcPayload)
 		CheckForbiddenStatus(t, resp)
@@ -328,7 +328,7 @@ func TestCreateRemoteCluster(t *testing.T) {
 			DefaultTeamId: model.NewId(),
 			Token:         model.NewId(),
 		},
-		Password: "mysupersecret",
+		Password: model.NewTestPassword(),
 	}
 
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
@@ -436,7 +436,7 @@ func TestRemoteClusterAcceptinvite(t *testing.T) {
 	rcAcceptInvite := &model.RemoteClusterAcceptInvite{
 		Name:          "remotecluster",
 		Invite:        "myinvitecode",
-		Password:      "mysupersecret",
+		Password:      model.NewTestPassword(),
 		DefaultTeamId: "",
 	}
 
@@ -459,8 +459,7 @@ func TestRemoteClusterAcceptinvite(t *testing.T) {
 		SiteURL:  "http://localhost:8065",
 		Token:    "token",
 	}
-	password := "mysupersecret"
-	encrypted, err := invite.Encrypt(password)
+	encrypted, err := invite.Encrypt(rcAcceptInvite.Password)
 	require.NoError(t, err)
 	encoded := base64.URLEncoding.EncodeToString(encrypted)
 	rcAcceptInvite.Invite = encoded
@@ -530,7 +529,7 @@ func TestRemoteClusterAcceptinvite(t *testing.T) {
 
 func TestGenerateRemoteClusterInvite(t *testing.T) {
 	mainHelper.Parallel(t)
-	password := "mysupersecret"
+	password := model.NewTestPassword()
 
 	newRC := &model.RemoteCluster{
 		Name:    "remotecluster",
@@ -690,7 +689,7 @@ func TestGetRemoteClusterWithManagerRoles(t *testing.T) {
 	_, appErr := th.App.AddRemoteCluster(newRC)
 	require.Nil(t, appErr)
 
-	// Create a user with only the shared_channel_manager role
+	// Create a user with only the system_shared_channel_manager role
 	sharedChannelUser := th.CreateUser(t)
 	_, appErr = th.App.UpdateUserRoles(th.Context, sharedChannelUser.Id, model.SystemUserRoleId+" "+model.SharedChannelManagerRoleId, false)
 	require.Nil(t, appErr)
@@ -699,7 +698,7 @@ func TestGetRemoteClusterWithManagerRoles(t *testing.T) {
 	_, _, err := sharedChannelClient.Login(context.Background(), sharedChannelUser.Email, sharedChannelUser.Password)
 	require.NoError(t, err)
 
-	// Create a user with only the secure_connection_manager role
+	// Create a user with only the system_secure_connection_manager role
 	secureConnUser := th.CreateUser(t)
 	_, appErr = th.App.UpdateUserRoles(th.Context, secureConnUser.Id, model.SystemUserRoleId+" "+model.SecureConnectionManagerRoleId, false)
 	require.Nil(t, appErr)
@@ -714,7 +713,7 @@ func TestGetRemoteClusterWithManagerRoles(t *testing.T) {
 		require.Error(t, err)
 	})
 
-	t.Run("shared_channel_manager user should have access", func(t *testing.T) {
+	t.Run("system_shared_channel_manager user should have access", func(t *testing.T) {
 		fetchedRC, resp, err := sharedChannelClient.GetRemoteCluster(context.Background(), newRC.RemoteId)
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
@@ -722,7 +721,7 @@ func TestGetRemoteClusterWithManagerRoles(t *testing.T) {
 		require.Empty(t, fetchedRC.Token)
 	})
 
-	t.Run("secure_connection_manager user should have access", func(t *testing.T) {
+	t.Run("system_secure_connection_manager user should have access", func(t *testing.T) {
 		fetchedRC, resp, err := secureConnClient.GetRemoteCluster(context.Background(), newRC.RemoteId)
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
