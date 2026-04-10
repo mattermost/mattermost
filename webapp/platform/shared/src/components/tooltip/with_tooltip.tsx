@@ -23,8 +23,7 @@ import React, {useRef, useState, useMemo, cloneElement, isValidElement} from 're
 import type {ReactElement, ReactNode} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 
-import {OverlayArrow, OverlaysTimings, OverlayTransitionStyles, RootHtmlPortalId} from 'utils/constants';
-
+import {OverlaysTimings, OverlayTransitionStyles, RootHtmlPortalId} from './constants';
 import TooltipContent from './tooltip_content';
 import type {ShortcutDefinition} from './tooltip_shortcut';
 
@@ -72,7 +71,7 @@ export interface WithTooltipProps {
     forcedPlacement?: Placement;
 }
 
-export default function WithTooltip({
+export function WithTooltip({
     children,
     title,
     emoji,
@@ -86,7 +85,7 @@ export default function WithTooltip({
     disabled,
     forcedPlacement,
     id,
-}: Props) {
+}: WithTooltipProps) {
     const [open, setOpen] = useState(false);
 
     const arrowRef = useRef(null);
