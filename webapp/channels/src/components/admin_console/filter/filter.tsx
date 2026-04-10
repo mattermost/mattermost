@@ -32,9 +32,8 @@ export type FilterOption = {
     // Key value map of filter values with keys matching the keys above
     values: FilterValues;
 
-    // Filter component constructor (use ComponentType, not ElementType: babel-plugin-typescript-to-proptypes maps
-    // ElementType to PropTypes.node, which breaks runtime validation for custom filter UIs such as TeamFilterDropdown).
-    type?: React.ComponentType<any>;
+    // Filter Component type, optional parameter defaults to FilterCheckbox
+    type?: React.ElementType;
 }
 
 export type FilterOptions = {

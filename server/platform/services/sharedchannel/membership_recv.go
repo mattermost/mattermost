@@ -54,7 +54,7 @@ func (scs *Service) onReceiveMembershipChanges(syncMsg *model.SyncMsg, rc *model
 
 	for _, change := range syncMsg.MembershipChanges {
 		if change.ChannelId != syncMsg.ChannelId {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "ChannelId mismatch in membership change",
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "ChannelId mismatch in membership change",
 				mlog.String("expected", syncMsg.ChannelId),
 				mlog.String("got", change.ChannelId),
 				mlog.String("remote_id", rc.RemoteId),
@@ -82,7 +82,7 @@ func (scs *Service) onReceiveMembershipChanges(syncMsg *model.SyncMsg, rc *model
 		}
 
 		if processErr != nil {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to process membership change",
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Failed to process membership change",
 				mlog.String("user_id", change.UserId),
 				mlog.String("channel_id", change.ChannelId),
 				mlog.String("remote_id", rc.RemoteId),
@@ -95,7 +95,7 @@ func (scs *Service) onReceiveMembershipChanges(syncMsg *model.SyncMsg, rc *model
 	}
 
 	if failCount > 0 {
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "Some membership changes failed",
+		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Some membership changes failed",
 			mlog.String("channel_id", syncMsg.ChannelId),
 			mlog.Int("total", len(syncMsg.MembershipChanges)),
 			mlog.Int("failed", failCount),
@@ -125,7 +125,14 @@ func (scs *Service) processMemberAdd(change *model.MembershipChangeMsg, channel 
 		}
 	}
 
-	if user.GetRemoteID() != rc.RemoteId {
+	// Only process users that originated from the sending remote.
+	// Local users (RemoteID == "") are managed locally, and users from other
+	// remotes should not be manipulated by this sender.
+	remoteID := user.GetRemoteID()
+	if remoteID == "" {
+		return nil
+	}
+	if remoteID != rc.RemoteId {
 		return fmt.Errorf("membership add sync failed: %w", ErrRemoteIDMismatch)
 	}
 
@@ -156,7 +163,7 @@ func (scs *Service) processMemberRemove(change *model.MembershipChangeMsg, rc *m
 	// Get channel so we can use app layer methods properly
 	channel, err := scs.server.GetStore().Channel().Get(change.ChannelId, true)
 	if err != nil {
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "Cannot find channel for member removal",
+		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Cannot find channel for member removal",
 			mlog.String("channel_id", change.ChannelId),
 			mlog.String("user_id", change.UserId),
 			mlog.Err(err),
@@ -169,7 +176,12 @@ func (scs *Service) processMemberRemove(change *model.MembershipChangeMsg, rc *m
 	if userErr != nil {
 		return fmt.Errorf("cannot get user for channel remove: %w", userErr)
 	}
-	if user.GetRemoteID() != rc.RemoteId {
+
+	remoteID := user.GetRemoteID()
+	if remoteID == "" {
+		return nil
+	}
+	if remoteID != rc.RemoteId {
 		return fmt.Errorf("membership remove sync failed: %w", ErrRemoteIDMismatch)
 	}
 

@@ -249,6 +249,39 @@ describe('components/post_view/MessageAttachment', () => {
         expect(srcValues).toContain(props.attachment.thumb_url);
     });
 
+    test('should decode HTML entities in title when title_link is present', () => {
+        const props = {
+            ...baseProps,
+            attachment: {
+                ...attachment,
+                title: 'Meeting &#40;Q1 Review&#41; &amp; Planning',
+                title_link: 'https://example.com/meeting',
+            } as MessageAttachmentType,
+        };
+
+        const {container} = renderWithContext(<MessageAttachment {...props}/>);
+        const titleLink = container.querySelector('.attachment__title-link');
+        expect(titleLink).toBeInTheDocument();
+        expect(titleLink).toHaveTextContent('Meeting (Q1 Review) & Planning');
+    });
+
+    test('should decode HTML entities in author_name', () => {
+        const props = {
+            ...baseProps,
+            attachment: {
+                ...attachment,
+                author_name: 'Bot &#40;v2&#41;',
+                author_icon: undefined,
+                author_link: undefined,
+            } as unknown as MessageAttachmentType,
+        };
+
+        const {container} = renderWithContext(<MessageAttachment {...props}/>);
+        const authorName = container.querySelector('.attachment__author-name');
+        expect(authorName).toBeInTheDocument();
+        expect(authorName).toHaveTextContent('Bot (v2)');
+    });
+
     test('should match snapshot when the attachment has an emoji in the title', () => {
         const props = {
             ...baseProps,
