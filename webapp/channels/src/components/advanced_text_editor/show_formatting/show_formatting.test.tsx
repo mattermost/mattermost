@@ -7,7 +7,7 @@ import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import ShowFormatting from './show_formatting';
 
-jest.mock('components/with_tooltip', () => {
+jest.mock('@mattermost/shared/components/tooltip', () => {
     return ({children}: { children: React.ReactNode }) => <div>{children}</div>;
 });
 

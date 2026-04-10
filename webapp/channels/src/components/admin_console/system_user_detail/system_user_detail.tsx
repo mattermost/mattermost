@@ -13,6 +13,7 @@ import type {RouteComponentProps} from 'react-router-dom';
 import ReactSelect from 'react-select';
 
 import {SyncIcon, PowerPlugOutlineIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {ServerError} from '@mattermost/types/errors';
 import type {UserPropertyField} from '@mattermost/types/properties';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
@@ -39,7 +40,6 @@ import AtIcon from 'components/widgets/icons/at_icon';
 import EmailIcon from 'components/widgets/icons/email_icon';
 import ShieldOutlineIcon from 'components/widgets/icons/shield_outline_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
-import WithTooltip from 'components/with_tooltip';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import {validHttpUrl} from 'utils/url';

@@ -5,8 +5,9 @@ import React from 'react';
 import {useIntl, FormattedMessage} from 'react-intl';
 import styled from 'styled-components';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+
 import useCopyText from 'components/common/hooks/useCopyText';
-import WithTooltip from 'components/with_tooltip';
 
 import Constants from 'utils/constants';
 

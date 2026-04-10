@@ -46,7 +46,7 @@ jest.mock('components/async_load', () => ({
 }));
 
 // Mock WithTooltip to avoid complex tooltip testing
-jest.mock('components/with_tooltip', () => ({
+jest.mock('@mattermost/shared/components/tooltip', () => ({
     __esModule: true,
     default: ({children, title}: {children: React.ReactNode; title: string}) => (
         <div

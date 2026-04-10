@@ -8,9 +8,8 @@ import {act, fireEvent, renderWithContext, screen, userEvent} from 'tests/react_
 import Input from './input';
 
 // Mock the WithTooltip component to avoid ref issues
-jest.mock('components/with_tooltip', () => ({
-    __esModule: true,
-    default: ({children}: {children: React.ReactNode}) => children,
+jest.mock('@mattermost/shared/components/tooltip', () => ({
+    WithTooltip: ({children}: {children: React.ReactNode}) => children,
 }));
 
 // Mock the CloseCircleIcon component to avoid ref issues

@@ -7,7 +7,7 @@ import {renderWithContext, userEvent, screen} from 'tests/react_testing_utils';
 
 import BurnOnReadButton from './burn_on_read_button';
 
-jest.mock('components/with_tooltip', () => {
+jest.mock('@mattermost/shared/components/tooltip', () => {
     return ({children}: { children: React.ReactNode }) => <div>{children}</div>;
 });
 

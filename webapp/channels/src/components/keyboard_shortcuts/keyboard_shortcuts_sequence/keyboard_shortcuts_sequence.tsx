@@ -4,7 +4,7 @@
 import React, {memo} from 'react';
 import {useIntl} from 'react-intl';
 
-import {ShortcutKeyVariant, ShortcutKey} from 'components/shortcut_key';
+import {ShortcutKeyVariant, ShortcutKey} from '@mattermost/shared/components/shortcut_key';
 
 import {isMessageDescriptor} from 'utils/i18n';
 import {isMac} from 'utils/user_agent';

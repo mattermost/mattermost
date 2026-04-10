@@ -7,7 +7,7 @@ import {fireEvent, renderWithContext, screen, userEvent} from 'tests/react_testi
 
 import ToggleFormattingBar from './toggle_formatting_bar';
 
-jest.mock('components/with_tooltip', () => {
+jest.mock('@mattermost/shared/components/tooltip', () => {
     return ({children}: { children: React.ReactNode }) => <div>{children}</div>;
 });
 

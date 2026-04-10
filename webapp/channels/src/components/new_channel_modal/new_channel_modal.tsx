@@ -7,6 +7,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Board} from '@mattermost/types/boards';
 import type {ChannelType, Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
@@ -25,7 +26,6 @@ import {closeModal} from 'actions/views/modals';
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
 import Input from 'components/widgets/inputs/input/input';
 import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
-import WithTooltip from 'components/with_tooltip';
 
 import Pluggable from 'plugins/pluggable';
 import Constants, {ModalIdentifiers} from 'utils/constants';

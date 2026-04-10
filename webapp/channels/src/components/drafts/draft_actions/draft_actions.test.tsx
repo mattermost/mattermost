@@ -7,7 +7,7 @@ import {renderWithContext} from 'tests/react_testing_utils';
 
 import DraftActions from './draft_actions';
 
-jest.mock('components/with_tooltip', () => ({
+jest.mock('@mattermost/shared/components/tooltip', () => ({
     __esModule: true,
     default: ({children}: {children: React.ReactNode}) => (
         <div data-testid='with-tooltip'>{children}</div>
