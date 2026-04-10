@@ -187,7 +187,7 @@ func (r *PostDeletionReport) renderErrors(T i18n.TranslateFunc, b *strings.Build
 	}
 	b.WriteString(fmt.Sprintf("\n> **%s**\n> ```\n", T("app.data_spillage.report.error_log")))
 	for _, e := range errs {
-		for _, line := range strings.Split(e, "\n") {
+		for line := range strings.SplitSeq(e, "\n") {
 			b.WriteString(fmt.Sprintf("> %s\n", line))
 		}
 	}

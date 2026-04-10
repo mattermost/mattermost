@@ -816,7 +816,7 @@ func TestPermanentDeleteFilesByPost(t *testing.T) {
 		post, _, err = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		assert.Nil(t, err)
 
-		err = th.App.PermanentDeleteFilesByPost(th.Context, post.Id)
+		err = th.App.PermanentDeleteFilesByPost(th.Context, post.Id, nil)
 		require.Nil(t, err)
 
 		_, err = th.App.GetFileInfo(th.Context, info1.Id)
@@ -824,7 +824,7 @@ func TestPermanentDeleteFilesByPost(t *testing.T) {
 	})
 
 	t.Run("should not delete files for post that doesn't exist", func(t *testing.T) {
-		err := th.App.PermanentDeleteFilesByPost(th.Context, "postId1")
+		err := th.App.PermanentDeleteFilesByPost(th.Context, "postId1", nil)
 		assert.Nil(t, err)
 	})
 
@@ -840,7 +840,7 @@ func TestPermanentDeleteFilesByPost(t *testing.T) {
 		post, _, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		assert.Nil(t, err)
 
-		err = th.App.PermanentDeleteFilesByPost(th.Context, post.Id)
+		err = th.App.PermanentDeleteFilesByPost(th.Context, post.Id, nil)
 		assert.Nil(t, err)
 	})
 }

@@ -1722,7 +1722,7 @@ func (a *App) PermanentDeleteFilesByPost(rctx request.CTX, postID string, report
 	}
 
 	errs := a.RemoveFilesFromFileStore(rctx, fileInfos)
-	if errs != nil && len(errs) > 0 {
+	if len(errs) > 0 {
 		if report != nil {
 			errMessages := make([]string, 0, len(errs))
 			for _, err := range errs {
@@ -1788,7 +1788,7 @@ func (a *App) RemoveFileFromFileStore(rctx request.CTX, path string) *model.AppE
 
 	if !res {
 		rctx.Logger().Warn("File not found", mlog.String("path", path))
-		return model.NewAppError("RemoveFileFromFile", "app.file_info.not_found", nil, "", http.StatusNotFound)
+		return model.NewAppError("RemoveFileFromFile", "app.file_info.not_found", map[string]any{"Path": path}, "", http.StatusNotFound)
 	}
 
 	appErr = a.RemoveFile(path)

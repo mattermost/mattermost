@@ -676,15 +676,8 @@ func (a *App) PermanentDeletePostDataRetainStub(rctx request.CTX, post *model.Po
 
 	a.deleteFiles(rctx, post.Id, report)
 
-	// Step 1: Edit Histories
 	a.deleteEditHistories(rctx, post.Id, deleteByID, report)
 
-	// Step 2: Post's File Attachments from File System
-	// Step 3: FileInfo Rows
-	// Inline the file deletion logic to capture file names for the report
-	//a.deleteFiles(rctx, post.Id, report)
-
-	// Step 4: Priority Data
 	if err := a.DeletePriorityForPost(post.Id); err != nil {
 		rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to delete post priority for the post", mlog.Err(err), mlog.String("post_id", post.Id))
 		report.AddStep("app.data_spillage.report.step.priority_data", model.StepFailed, "", []string{err.Error()})
@@ -692,7 +685,6 @@ func (a *App) PermanentDeletePostDataRetainStub(rctx request.CTX, post *model.Po
 		report.AddStep("app.data_spillage.report.step.priority_data", model.StepSuccess, "app.data_spillage.report.detail.deleted", nil)
 	}
 
-	// Step 5: Persistent Notifications
 	if err := a.Srv().Store().PostPersistentNotification().Delete([]string{post.Id}); err != nil {
 		rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to delete persistent notifications for the post", mlog.Err(err), mlog.String("post_id", post.Id))
 		report.AddStep("app.data_spillage.report.step.persistent_notifications", model.StepFailed, "", []string{err.Error()})
@@ -700,7 +692,6 @@ func (a *App) PermanentDeletePostDataRetainStub(rctx request.CTX, post *model.Po
 		report.AddStep("app.data_spillage.report.step.persistent_notifications", model.StepSuccess, "app.data_spillage.report.detail.deleted", nil)
 	}
 
-	// Step 6: Acknowledgements
 	if err := a.Srv().Store().PostAcknowledgement().DeleteAllForPost(post.Id); err != nil {
 		rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to delete post acknowledgements for the post", mlog.Err(err), mlog.String("post_id", post.Id))
 		report.AddStep("app.data_spillage.report.step.acknowledgements", model.StepFailed, "", []string{err.Error()})
@@ -708,7 +699,6 @@ func (a *App) PermanentDeletePostDataRetainStub(rctx request.CTX, post *model.Po
 		report.AddStep("app.data_spillage.report.step.acknowledgements", model.StepSuccess, "app.data_spillage.report.detail.deleted", nil)
 	}
 
-	// Step 7: Reminders
 	if err := a.Srv().Store().Post().DeleteAllPostRemindersForPost(post.Id); err != nil {
 		rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to delete post reminders for the post", mlog.Err(err), mlog.String("post_id", post.Id))
 		report.AddStep("app.data_spillage.report.step.reminders", model.StepFailed, "", []string{err.Error()})
@@ -716,7 +706,6 @@ func (a *App) PermanentDeletePostDataRetainStub(rctx request.CTX, post *model.Po
 		report.AddStep("app.data_spillage.report.step.reminders", model.StepSuccess, "app.data_spillage.report.detail.deleted", nil)
 	}
 
-	// Step 8: Thread & Associated Data (threads, thread memberships, reactions, temp posts, read receipts)
 	if err := a.Srv().Store().Post().PermanentDeleteAssociatedData([]string{post.Id}); err != nil {
 		rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to permanently delete associated data for the post", mlog.Err(err), mlog.String("post_id", post.Id))
 		report.AddStep("app.data_spillage.report.step.thread_data", model.StepFailed, "", []string{err.Error()})
@@ -724,7 +713,6 @@ func (a *App) PermanentDeletePostDataRetainStub(rctx request.CTX, post *model.Po
 		report.AddStep("app.data_spillage.report.step.thread_data", model.StepSuccess, "app.data_spillage.report.detail.thread_data_deleted", nil)
 	}
 
-	// Step 9: The Post Itself
 	postStepErrors := []string{}
 	postStepFailed := false
 

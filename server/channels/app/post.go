@@ -1868,7 +1868,8 @@ func (a *App) DeletePost(rctx request.CTX, postID, deleteByID string) (*model.Po
 	}
 
 	if post.RootId == "" {
-		if appErr := a.DeletePersistentNotification(rctx, post); appErr != nil {
+		appErr = a.DeletePersistentNotification(rctx, post)
+		if appErr != nil {
 			return nil, appErr
 		}
 	}
@@ -3139,12 +3140,6 @@ func (a *App) CleanUpAfterPostDeletion(rctx request.CTX, post *model.Post, delet
 	if appErr != nil {
 		return appErr
 	}
-
-	//if post.RootId == "" {
-	//	if appErr := a.DeletePersistentNotification(rctx, post); appErr != nil {
-	//		return appErr
-	//	}
-	//}
 
 	postJSON, err := json.Marshal(post)
 	if err != nil {
