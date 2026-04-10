@@ -259,7 +259,7 @@ func (os *OpensearchInterfaceImpl) HealthCheck(_ request.CTX) *model.AppError {
 		return model.NewAppError("Opensearch.HealthCheck", "ent.elasticsearch.healthcheck.not_started.app_error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*os.Platform.Config().ElasticsearchSettings.RequestTimeoutSeconds)*time.Second)
 	defer cancel()
 
 	if _, err := client.Cluster.Health(ctx, nil); err != nil {
