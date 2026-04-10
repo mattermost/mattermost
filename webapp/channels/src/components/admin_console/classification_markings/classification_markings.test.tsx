@@ -9,17 +9,15 @@ import {Client4} from 'mattermost-redux/client';
 
 import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
-import type {ClassificationLevel} from './presets';
-import {PRESET_CUSTOM, presets} from './presets';
-
-import {
+import ClassificationMarkings, {
     detectPreset,
     optionsToLevels,
     levelsToOptions,
     processClassificationField,
     fetchClassificationField,
 } from './classification_markings';
-import ClassificationMarkings from './classification_markings';
+import type {ClassificationLevel} from './presets';
+import {PRESET_CUSTOM, presets} from './presets';
 
 jest.mock('mattermost-redux/client');
 
@@ -227,9 +225,9 @@ describe('fetchClassificationField', () => {
         const expected = makePropertyField({id: 'found', name: 'classification', delete_at: 0});
         const page2 = [expected];
 
-        jest.spyOn(Client4, 'getPropertyFields')
-            .mockResolvedValueOnce(page1)
-            .mockResolvedValueOnce(page2);
+        jest.spyOn(Client4, 'getPropertyFields').
+            mockResolvedValueOnce(page1).
+            mockResolvedValueOnce(page2);
 
         const result = await fetchClassificationField();
         expect(result).toEqual(expected);
@@ -284,7 +282,7 @@ describe('ClassificationMarkings component', () => {
 
     test('should show error when load fails', async () => {
         const error = new Error('Network error');
-        (error as any).status_code = 500;
+        (error as unknown as Record<string, number>).status_code = 500;
         jest.spyOn(Client4, 'getPropertyFields').mockRejectedValueOnce(error);
 
         renderWithContext(<ClassificationMarkings/>);
@@ -399,7 +397,7 @@ describe('ClassificationMarkings component', () => {
 
     test('should handle 404 error as no field found', async () => {
         const error = new Error('Not found');
-        (error as any).status_code = 404;
+        (error as unknown as Record<string, number>).status_code = 404;
         jest.spyOn(Client4, 'getPropertyFields').mockRejectedValueOnce(error);
 
         renderWithContext(<ClassificationMarkings/>);
