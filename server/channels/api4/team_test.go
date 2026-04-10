@@ -4828,9 +4828,6 @@ func TestGetTeamMembersForUserRoleDataSanitization(t *testing.T) {
 	})
 
 	t.Run("team admin sees full role data for other user in managed team", func(t *testing.T) {
-		// The API requires PermissionReadOtherUsersTeams (system-level) to view another user's
-		// team memberships. Grant it explicitly — previously this only passed because a concurrent
-		// test leaked this permission into the system_user role.
 		defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 		defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 		th.AddPermissionToRole(t, model.PermissionReadOtherUsersTeams.Id, model.SystemUserRoleId)
