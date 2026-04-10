@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
@@ -4167,4 +4168,97 @@ func (a *App) addChannelToDefaultCategory(rctx request.CTX, userID string, chann
 			}
 		}
 	}
+}
+
+// SetChannelMembers reconciles the membership of a channel to match the desired list of user IDs.
+// Users already in the channel are left untouched (no-op). Users not in the desired list are removed.
+// Users in the desired list but not in the channel are added. Operations are processed in batches
+// with a configurable delay between batches. The onBatch callback is invoked after each batch
+// with the results for that batch.
+func (a *App) SetChannelMembers(rctx request.CTX, channel *model.Channel, desiredUserIDs []string, requestorUserID string, batchSize int, batchDelayMs int, onBatch func(*model.SetChannelMembersResponse)) *model.AppError {
+	currentIDs, err := a.Srv().Store().Channel().GetAllChannelMemberIdsByChannelId(channel.Id)
+	if err != nil {
+		return model.NewAppError("SetChannelMembers", "app.channel.set_members.get_current.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	currentSet := make(map[string]struct{}, len(currentIDs))
+	for _, id := range currentIDs {
+		currentSet[id] = struct{}{}
+	}
+	desiredSet := make(map[string]struct{}, len(desiredUserIDs))
+	for _, id := range desiredUserIDs {
+		desiredSet[id] = struct{}{}
+	}
+
+	var toAdd, toRemove []string
+	for id := range desiredSet {
+		if _, exists := currentSet[id]; !exists {
+			toAdd = append(toAdd, id)
+		}
+	}
+	for id := range currentSet {
+		if _, exists := desiredSet[id]; !exists {
+			toRemove = append(toRemove, id)
+		}
+	}
+
+	// Prevent emptying private channels — they become orphaned since non-admins can't rejoin
+	if channel.Type == model.ChannelTypePrivate && len(desiredUserIDs) == 0 {
+		return model.NewAppError("SetChannelMembers", "app.channel.set_members.empty_private.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(toAdd) == 0 && len(toRemove) == 0 {
+		onBatch(&model.SetChannelMembersResponse{})
+		return nil
+	}
+
+	batchDelay := time.Duration(batchDelayMs) * time.Millisecond
+
+	// Process removals first
+	for i := 0; i < len(toRemove); i += batchSize {
+		end := min(i+batchSize, len(toRemove))
+		batch := toRemove[i:end]
+
+		result := &model.SetChannelMembersResponse{}
+		for _, userID := range batch {
+			if appErr := a.removeUserFromChannel(rctx, userID, requestorUserID, channel); appErr != nil {
+				result.Errors = append(result.Errors, model.SetChannelMembersError{
+					UserID: userID,
+					Error:  appErr.Error(),
+				})
+			} else {
+				result.Removed = append(result.Removed, userID)
+			}
+		}
+		onBatch(result)
+
+		if end < len(toRemove) {
+			time.Sleep(batchDelay)
+		}
+	}
+
+	// Process additions
+	for i := 0; i < len(toAdd); i += batchSize {
+		end := min(i+batchSize, len(toAdd))
+		batch := toAdd[i:end]
+
+		result := &model.SetChannelMembersResponse{}
+		for _, userID := range batch {
+			if _, appErr := a.AddChannelMember(rctx, userID, channel, ChannelMemberOpts{UserRequestorID: requestorUserID}); appErr != nil {
+				result.Errors = append(result.Errors, model.SetChannelMembersError{
+					UserID: userID,
+					Error:  appErr.Error(),
+				})
+			} else {
+				result.Added = append(result.Added, userID)
+			}
+		}
+		onBatch(result)
+
+		if end < len(toAdd) {
+			time.Sleep(batchDelay)
+		}
+	}
+
+	return nil
 }

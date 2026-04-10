@@ -254,3 +254,24 @@ type ChannelMemberIdentifier struct {
 	ChannelId string `json:"channel_id"`
 	UserId    string `json:"user_id"`
 }
+
+// SetChannelMembersResponse is one batch of results from a bulk set channel members operation.
+// Multiple responses may be streamed as NDJSON lines.
+type SetChannelMembersResponse struct {
+	Added   []string                 `json:"added"`
+	Removed []string                 `json:"removed"`
+	Errors  []SetChannelMembersError `json:"errors,omitempty"`
+}
+
+func (o *SetChannelMembersResponse) Auditable() map[string]any {
+	return map[string]any{
+		"added":   o.Added,
+		"removed": o.Removed,
+		"errors":  o.Errors,
+	}
+}
+
+type SetChannelMembersError struct {
+	UserID string `json:"user_id"`
+	Error  string `json:"error"`
+}

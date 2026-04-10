@@ -6840,3 +6840,224 @@ func TestChannelMemberSanitization(t *testing.T) {
 		assert.Equal(t, channel.Id, returnedMember.ChannelId, "ChannelId should be preserved")
 	})
 }
+
+func TestSetChannelMembers(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	ctx := context.Background()
+
+	t.Run("basic reconcile", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+		user2 := th.BasicUser2
+
+		// Add user2 to channel first
+		_, _, err := th.SystemAdminClient.AddChannelMember(ctx, channel.Id, user2.Id)
+		require.NoError(t, err)
+
+		// Create a new user on the team
+		user3 := th.CreateUserWithClient(t, th.SystemAdminClient)
+		th.LinkUserToTeam(t, user3, th.BasicTeam)
+
+		// Set members to [BasicUser, user3] — user2 should be removed, user3 added
+		results, resp, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, []string{th.BasicUser.Id, user3.Id}, 0, 0)
+		require.NoError(t, err)
+		assert.Equal(t, "application/x-ndjson", resp.Header.Get("Content-Type"))
+
+		// Collect all results
+		var allAdded, allRemoved []string
+		var allErrors []model.SetChannelMembersError
+		for _, r := range results {
+			allAdded = append(allAdded, r.Added...)
+			allRemoved = append(allRemoved, r.Removed...)
+			allErrors = append(allErrors, r.Errors...)
+		}
+		assert.Contains(t, allRemoved, user2.Id)
+		assert.Contains(t, allAdded, user3.Id)
+		assert.NotContains(t, allAdded, th.BasicUser.Id, "existing member should not be re-added")
+		assert.NotContains(t, allRemoved, th.BasicUser.Id, "existing member should not be removed")
+		assert.Empty(t, allErrors, "should have no errors")
+
+		// Verify final channel membership matches what was requested
+		members, _, err := th.SystemAdminClient.GetChannelMembers(ctx, channel.Id, 0, 100, "")
+		require.NoError(t, err)
+		memberIDs := make(map[string]bool)
+		for _, m := range members {
+			memberIDs[m.UserId] = true
+		}
+		assert.Len(t, members, 2, "channel should have exactly 2 members")
+		assert.True(t, memberIDs[th.BasicUser.Id], "BasicUser should be a member")
+		assert.True(t, memberIDs[user3.Id], "user3 should be a member")
+		assert.False(t, memberIDs[user2.Id], "user2 should not be a member")
+	})
+
+	t.Run("idempotent", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+
+		// First call
+		_, _, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, []string{th.BasicUser.Id}, 0, 0)
+		require.NoError(t, err)
+
+		// Second call with same list — should be all no-ops
+		results, _, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, []string{th.BasicUser.Id}, 0, 0)
+		require.NoError(t, err)
+		for _, r := range results {
+			assert.Empty(t, r.Added)
+			assert.Empty(t, r.Removed)
+			assert.Empty(t, r.Errors)
+		}
+
+		// Verify membership unchanged
+		members, _, err := th.SystemAdminClient.GetChannelMembers(ctx, channel.Id, 0, 100, "")
+		require.NoError(t, err)
+		assert.Len(t, members, 1)
+		assert.Equal(t, th.BasicUser.Id, members[0].UserId)
+	})
+
+	t.Run("empty list removes all removable members", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+
+		// Set to empty list
+		results, _, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, []string{}, 0, 0)
+		require.NoError(t, err)
+
+		var allRemoved []string
+		for _, r := range results {
+			allRemoved = append(allRemoved, r.Removed...)
+		}
+		assert.Contains(t, allRemoved, th.BasicUser.Id)
+
+		// Verify channel has no members
+		members, _, err := th.SystemAdminClient.GetChannelMembers(ctx, channel.Id, 0, 100, "")
+		require.NoError(t, err)
+		assert.Empty(t, members)
+	})
+
+	t.Run("empty private channel rejected", func(t *testing.T) {
+		privateChannel := th.CreatePrivateChannel(t)
+		_, resp, err := th.SystemAdminClient.SetChannelMembers(ctx, privateChannel.Id, []string{}, 0, 0)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		// Verify members are unchanged
+		members, _, err := th.SystemAdminClient.GetChannelMembers(ctx, privateChannel.Id, 0, 100, "")
+		require.NoError(t, err)
+		assert.NotEmpty(t, members, "private channel should still have members")
+	})
+
+	t.Run("non-sysadmin returns 403", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+		_, resp, err := th.Client.SetChannelMembers(ctx, channel.Id, []string{th.BasicUser.Id}, 0, 0)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("DM channel rejected", func(t *testing.T) {
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
+		_, resp, err := th.SystemAdminClient.SetChannelMembers(ctx, dmChannel.Id, []string{th.BasicUser.Id}, 0, 0)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("group-constrained channel rejected", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+		channel.GroupConstrained = model.NewPointer(true)
+		_, appErr := th.App.UpdateChannel(th.Context, channel)
+		require.Nil(t, appErr)
+
+		_, resp, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, []string{th.BasicUser.Id}, 0, 0)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("town-square non-guests cannot be removed", func(t *testing.T) {
+		// Find town-square
+		townSquare, appErr := th.App.GetChannelByName(th.Context, model.DefaultChannelName, th.BasicTeam.Id, false)
+		require.Nil(t, appErr)
+
+		// Set to empty list — non-guest members cannot be removed and should appear in errors
+		results, _, err := th.SystemAdminClient.SetChannelMembers(ctx, townSquare.Id, []string{}, 0, 0)
+		require.NoError(t, err)
+
+		var allErrors []model.SetChannelMembersError
+		for _, r := range results {
+			allErrors = append(allErrors, r.Errors...)
+		}
+		assert.NotEmpty(t, allErrors, "non-guest members should appear in errors")
+
+		// Verify members are still in town-square (removal was blocked)
+		members, _, err := th.SystemAdminClient.GetChannelMembers(ctx, townSquare.Id, 0, 100, "")
+		require.NoError(t, err)
+		assert.NotEmpty(t, members, "town-square should still have members")
+	})
+
+	t.Run("user not on team appears in errors", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+
+		// Create a user NOT on the team
+		otherUser := th.CreateUserWithClient(t, th.SystemAdminClient)
+
+		results, _, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, []string{th.BasicUser.Id, otherUser.Id}, 0, 0)
+		require.NoError(t, err)
+
+		var allErrors []model.SetChannelMembersError
+		for _, r := range results {
+			allErrors = append(allErrors, r.Errors...)
+		}
+		found := false
+		for _, e := range allErrors {
+			if e.UserID == otherUser.Id {
+				found = true
+				break
+			}
+		}
+		assert.True(t, found, "user not on team should appear in errors")
+	})
+
+	t.Run("invalid query params", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+
+		// batch_size out of range (too large)
+		_, resp, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, []string{th.BasicUser.Id}, 9999, 0)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("batching with large list", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+
+		// Create 5 users and add them to the team
+		var userIDs []string
+		userIDs = append(userIDs, th.BasicUser.Id)
+		for range 5 {
+			u := th.CreateUserWithClient(t, th.SystemAdminClient)
+			th.LinkUserToTeam(t, u, th.BasicTeam)
+			userIDs = append(userIDs, u.Id)
+		}
+
+		// Use batch_size=2 to force multiple batches
+		results, _, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, userIDs, 2, 0)
+		require.NoError(t, err)
+
+		// Should have multiple batch results since we have 5 adds with batch_size=2
+		// (BasicUser is already a member, so 5 to add in batches of 2 = 3 batches)
+		assert.GreaterOrEqual(t, len(results), 2, "should have multiple batch results")
+
+		var allAdded []string
+		for _, r := range results {
+			allAdded = append(allAdded, r.Added...)
+		}
+		assert.Len(t, allAdded, 5, "should have added 5 users")
+
+		// Verify final membership matches the requested list
+		members, _, err := th.SystemAdminClient.GetChannelMembers(ctx, channel.Id, 0, 100, "")
+		require.NoError(t, err)
+		memberIDs := make(map[string]bool)
+		for _, m := range members {
+			memberIDs[m.UserId] = true
+		}
+		for _, id := range userIDs {
+			assert.True(t, memberIDs[id], "user %s should be a member", id)
+		}
+		assert.Len(t, members, len(userIDs), "channel should have exactly the requested members")
+	})
+}

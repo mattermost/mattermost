@@ -72,6 +72,7 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.ChannelMembers.Handle("", api.APISessionRequired(getChannelMembers)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelMembers.Handle("/ids", api.APISessionRequired(getChannelMembersByIds)).Methods(http.MethodPost)
 	api.BaseRoutes.ChannelMembers.Handle("", api.APISessionRequired(addChannelMember)).Methods(http.MethodPost)
+	api.BaseRoutes.ChannelMembers.Handle("", api.APISessionRequired(setChannelMembers)).Methods(http.MethodPut)
 	api.BaseRoutes.ChannelMembersForUser.Handle("", api.APISessionRequired(getChannelMembersForTeamForUser)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelMember.Handle("", api.APISessionRequired(getChannelMember)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelMember.Handle("", api.APISessionRequired(removeChannelMember)).Methods(http.MethodDelete)
@@ -2169,6 +2170,113 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
 	}
+}
+
+const (
+	setChannelMembersDefaultBatchSize    = 100
+	setChannelMembersMinBatchSize        = 1
+	setChannelMembersMaxBatchSize        = 1000
+	setChannelMembersDefaultBatchDelayMs = 500
+	setChannelMembersMinBatchDelayMs     = 0
+	setChannelMembersMaxBatchDelayMs     = 10000
+	setChannelMembersMaxBodySize         = 12 * 1024 * 1024 // 12 MB
+)
+
+func setChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	// Require system admin
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	// Parse query params
+	batchSize := setChannelMembersDefaultBatchSize
+	if v := r.URL.Query().Get("batch_size"); v != "" {
+		n, err := strconv.Atoi(v)
+		if err != nil || n < setChannelMembersMinBatchSize || n > setChannelMembersMaxBatchSize {
+			c.SetInvalidURLParam("batch_size")
+			return
+		}
+		batchSize = n
+	}
+
+	batchDelayMs := setChannelMembersDefaultBatchDelayMs
+	if v := r.URL.Query().Get("batch_delay_ms"); v != "" {
+		n, err := strconv.Atoi(v)
+		if err != nil || n < setChannelMembersMinBatchDelayMs || n > setChannelMembersMaxBatchDelayMs {
+			c.SetInvalidURLParam("batch_delay_ms")
+			return
+		}
+		batchDelayMs = n
+	}
+
+	// Cap request body size
+	r.Body = http.MaxBytesReader(w, r.Body, setChannelMembersMaxBodySize)
+
+	// Decode request body as JSON array of user IDs
+	var desiredUserIDs []string
+	if err := json.NewDecoder(r.Body).Decode(&desiredUserIDs); err != nil {
+		c.SetInvalidParamWithErr("user_ids", err)
+		return
+	}
+
+	// Validate and deduplicate user IDs
+	seen := make(map[string]struct{}, len(desiredUserIDs))
+	deduped := make([]string, 0, len(desiredUserIDs))
+	for _, id := range desiredUserIDs {
+		if !model.IsValidId(id) {
+			c.SetInvalidParam("user_ids")
+			return
+		}
+		if _, exists := seen[id]; !exists {
+			seen[id] = struct{}{}
+			deduped = append(deduped, id)
+		}
+	}
+	desiredUserIDs = deduped
+
+	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	// Reject DM/GM channels
+	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
+		c.Err = model.NewAppError("setChannelMembers", "api.channel.set_members.type.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	// Reject group-constrained channels
+	if channel.IsGroupConstrained() {
+		c.Err = model.NewAppError("setChannelMembers", "api.channel.set_members.group_constrained.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventSetChannelMembers, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
+	model.AddEventParameterToAuditRec(auditRec, "desired_user_count", len(desiredUserIDs))
+
+	w.Header().Set("Content-Type", "application/x-ndjson")
+	enc := json.NewEncoder(w)
+
+	appErr = c.App.SetChannelMembers(c.AppContext, channel, desiredUserIDs, c.AppContext.Session().UserId, batchSize, batchDelayMs, func(result *model.SetChannelMembersResponse) {
+		if err := enc.Encode(result); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
+	})
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
 }
 
 func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {

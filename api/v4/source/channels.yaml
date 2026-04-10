@@ -1356,6 +1356,101 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+    put:
+      tags:
+        - channels
+      summary: Set channel members
+      description: |
+        Set the complete membership list for a channel. The server compares the provided list against
+        the current membership and adds or removes users as needed. Users already in the channel are
+        left untouched (no-op).
+
+        Results are streamed back as NDJSON (`application/x-ndjson`), one line per batch. Each line
+        is a JSON object with `added`, `removed`, and `errors` arrays for that batch.
+
+        The client can implement progress tracking by counting accumulated results from each NDJSON
+        line against the total desired user count and batch size.
+
+        Removals are processed before additions. Private channels cannot be emptied entirely.
+        DM/GM and group-constrained channels are rejected.
+
+        __Minimum server version__: 11.7
+        ##### Permissions
+        Must have `manage_system` permission (system admin only).
+      operationId: SetChannelMembers
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+        - name: batch_size
+          in: query
+          description: Number of add/remove operations per batch.
+          schema:
+            type: integer
+            default: 100
+            minimum: 1
+            maximum: 1000
+        - name: batch_delay_ms
+          in: query
+          description: Milliseconds to pause between batches, giving the server time to process
+            websocket events and plugin hooks.
+          schema:
+            type: integer
+            default: 500
+            minimum: 0
+            maximum: 10000
+      requestBody:
+        description: JSON array of user IDs representing the complete desired membership.
+          Request body is limited to 12 MB.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+              description: User IDs for the desired channel membership.
+        required: true
+      responses:
+        "200":
+          description: |
+            Streamed NDJSON response. Each line is a JSON object representing one batch of results.
+          content:
+            application/x-ndjson:
+              schema:
+                type: object
+                properties:
+                  added:
+                    type: array
+                    items:
+                      type: string
+                    description: User IDs successfully added to the channel in this batch.
+                  removed:
+                    type: array
+                    items:
+                      type: string
+                    description: User IDs successfully removed from the channel in this batch.
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        user_id:
+                          type: string
+                          description: The user ID that failed.
+                        error:
+                          type: string
+                          description: Description of the failure.
+                    description: Per-user failures (not on team, deleted user, cannot remove
+                      from default channel, plugin rejection).
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
   "/api/v4/channels/{channel_id}/members/ids":
     post:
       tags:
