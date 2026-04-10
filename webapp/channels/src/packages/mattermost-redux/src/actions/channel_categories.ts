@@ -492,31 +492,27 @@ export function addChannelToManagedCategory(
     teamId: Team['id'],
     channelId: Channel['id'],
     categoryName: string,
-): ThunkActionFunc<void> {
-    return (dispatch) => {
-        dispatch({
-            type: ChannelCategoryTypes.MANAGED_CATEGORY_MAPPING_SET,
-            data: {
-                id: channelId,
-                team_id: teamId,
-                category_name: categoryName,
-            },
-        });
+) {
+    return {
+        type: ChannelCategoryTypes.MANAGED_CATEGORY_MAPPING_SET,
+        data: {
+            id: channelId,
+            team_id: teamId,
+            category_name: categoryName,
+        },
     };
 }
 
 export function removeChannelFromManagedCategory(
     teamId: Team['id'],
     channelId: Channel['id'],
-): ThunkActionFunc<void> {
-    return (dispatch) => {
-        dispatch({
-            type: ChannelCategoryTypes.MANAGED_CATEGORY_MAPPING_REMOVED,
-            data: {
-                id: channelId,
-                team_id: teamId,
-            },
-        });
+) {
+    return {
+        type: ChannelCategoryTypes.MANAGED_CATEGORY_MAPPING_REMOVED,
+        data: {
+            id: channelId,
+            team_id: teamId,
+        },
     };
 }
 
