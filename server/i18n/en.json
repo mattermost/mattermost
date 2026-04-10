@@ -7235,10 +7235,6 @@
     "translation": "Failed evaluate access control policy."
   },
   {
-    "id": "app.pdp.access_evaluation.permission_policy.app_error",
-    "translation": "Failed to evaluate permission policy."
-  },
-  {
     "id": "app.plugin.cluster.save_config.app_error",
     "translation": "The plugin configuration in your config.json file must be updated manually when using ReadOnlyConfig with clustering enabled."
   },
@@ -10011,6 +10007,10 @@
   {
     "id": "model.access_policy.inherit.version.app_error",
     "translation": "Could not inherit access control policy."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.app_error",
+    "translation": "Action(s) is not valid."
   },
   {
     "id": "model.access_policy.is_valid.id.app_error",

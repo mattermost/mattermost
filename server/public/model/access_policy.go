@@ -6,6 +6,7 @@ package model
 import (
 	"fmt"
 	"slices"
+	"strings"
 
 	"github.com/pkg/errors"
 	"golang.org/x/mod/semver"
@@ -271,6 +272,11 @@ func (p *AccessControlPolicy) accessPolicyVersionV0_3() *AppError {
 		if len(p.Roles) != 1 {
 			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.roles.app_error", nil, "", 400)
 		}
+		for _, role := range p.Roles {
+			if strings.TrimSpace(role) == "" {
+				return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.roles.app_error", nil, "", 400)
+			}
+		}
 
 		if len(p.Imports) > 0 {
 			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.imports.app_error", nil, "", 400)
@@ -313,6 +319,9 @@ func (p *AccessControlPolicy) Inherit(parent *AccessControlPolicy) *AppError {
 	case AccessControlPolicyVersionV0_3:
 		if p.Type == AccessControlPolicyTypePermission || parent.Type == AccessControlPolicyTypePermission {
 			return NewAppError("AccessControlPolicy.Inherit", "model.access_policy.inherit.permission.app_error", nil, "", 400)
+		}
+		if parent.Version != AccessControlPolicyVersionV0_3 {
+			return NewAppError("AccessControlPolicy.Inherit", "model.access_policy.inherit.version.app_error", nil, "", 400)
 		}
 		if slices.Contains(p.Imports, parent.ID) {
 			return NewAppError("AccessControlPolicy.Inherit", "model.access_policy.inherit.already_imported.app_error", nil, "", 400)
