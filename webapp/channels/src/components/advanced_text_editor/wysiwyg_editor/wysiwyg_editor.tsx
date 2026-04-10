@@ -86,7 +86,8 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     const editorRef = useRef<Editor | null>(null);
 
     const handleUpdate = useCallback(({editor}: {editor: Editor}) => {
-        const md = editor.getMarkdown().trimEnd();
+        let md = editor.getMarkdown().trimEnd();
+        md = md.replace(/\n\n&nbsp;$/g, '').replace(/^&nbsp;$/, '');
         onChangeRef.current(md);
     }, []);
 
@@ -215,7 +216,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
         onFocus: () => onFocusRef.current?.(),
         onBlur: () => onBlurRef.current?.(),
         onUpdate: handleUpdate,
-    }, [channelId, placeholderText, disabled]);
+    }, [channelId]);
 
     useEffect(() => {
         editorRef.current = editor;
@@ -230,21 +231,17 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
         },
     }), [editor]);
 
-    const prevValueRef = useRef(value);
+    const lastValueRef = useRef(value);
     useEffect(() => {
         if (!editor || editor.isDestroyed) {
             return;
         }
+        const prev = lastValueRef.current;
+        lastValueRef.current = value;
 
-        if (editor.isFocused && value !== '' && value === prevValueRef.current) {
-            return;
+        if (value === '' && prev !== '' && !editor.isEmpty) {
+            editor.commands.clearContent();
         }
-
-        const currentMd = editor.getMarkdown();
-        if (value !== currentMd) {
-            editor.commands.setContent(value, {contentType: 'markdown'});
-        }
-        prevValueRef.current = value;
     }, [value, editor]);
 
     useEffect(() => {
@@ -252,6 +249,17 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
             editor.setEditable(!disabled);
         }
     }, [disabled, editor]);
+
+    useEffect(() => {
+        if (editor && !editor.isDestroyed) {
+            editor.extensionManager.extensions.forEach((ext) => {
+                if (ext.name === 'placeholder') {
+                    ext.options.placeholder = placeholderText ?? '';
+                    editor.view.dispatch(editor.state.tr);
+                }
+            });
+        }
+    }, [placeholderText, editor]);
 
     return (
         <div className={`WysiwygEditor${disabled ? ' WysiwygEditor--disabled' : ''}`}>

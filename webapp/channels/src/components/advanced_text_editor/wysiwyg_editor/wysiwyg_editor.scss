@@ -58,8 +58,10 @@
             }
 
             + p:empty,
-            + p:has(br:only-child) {
+            + p:has(> br:only-child) {
                 margin: 0;
+                font-size: 0;
+                line-height: 0;
             }
         }
 
