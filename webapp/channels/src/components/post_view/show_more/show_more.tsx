@@ -114,8 +114,10 @@ export default class ShowMore extends React.PureComponent<Props, State> {
         let className = 'post-message';
         let collapsedMaxHeightStyle: number | undefined;
         if (isCollapsed) {
-            collapsedMaxHeightStyle = this.maxHeight;
             className += ' post-message--collapsed';
+            if (!(overflowType === 'ellipsis' && isOverflow)) {
+                collapsedMaxHeightStyle = this.maxHeight;
+            }
         } else {
             className += ' post-message--expanded';
         }

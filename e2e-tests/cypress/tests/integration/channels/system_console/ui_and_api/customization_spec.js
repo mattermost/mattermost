@@ -49,10 +49,28 @@ describe('Customization', () => {
         // # Save setting
         saveSetting();
 
-        // # Verify that after page reload image exist
         cy.reload();
         cy.findByTestId('CustomBrandImage').should('be.visible').within(() => {
+            // * Verify that after page reload image exist
             cy.get('img').should('have.attr', 'src').and('include', '/api/v4/brand/image?t=');
+
+            // * Verify that there's an option to delete the image.
+            cy.findByTestId('remove-image__btn').should('be.visible');
+
+            // # delete the image
+            cy.findByTestId('remove-image__btn').click();
+        });
+
+        // # Save setting
+        saveSetting();
+
+        cy.reload();
+        cy.findByTestId('CustomBrandImage').should('be.visible').within(() => {
+            // * Verify that after page reload, the image doesn't exist.
+            cy.findByAltText('brand image').should('not.exist');
+
+            // * Verify there's no option to delete the image.
+            cy.findByTestId('remove-image__btn').should('not.exist');
         });
     });
 
