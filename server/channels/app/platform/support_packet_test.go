@@ -37,8 +37,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	// Set MM_LOG_PATH to allow log file reads from our temp directory
-	t.Setenv("MM_LOG_PATH", dir)
+	// Override log root path to allow log file reads from our temp directory
+	th.Service.SetLogRootPathOverride(dir)
 
 	th.Service.UpdateConfig(func(cfg *model.Config) {
 		*cfg.LogSettings.FileLocation = dir
@@ -165,7 +165,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 func TestGetSupportPacketDiagnostics(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
-	t.Setenv(envVarInstallType, "docker")
+	th.Service.installTypeOverride = "docker"
 
 	licenseUsers := 100
 	license := model.NewTestLicense("ldap")
@@ -489,6 +489,10 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 }
 
 func TestGetSanitizedConfigFile(t *testing.T) {
+	// t.Setenv is correct here: this test verifies that feature flags set via
+	// environment variables (the production mechanism) appear in the sanitized
+	// config output. UpdateConfig won't work because SetDefaults() resets
+	// FeatureFlags before applyEnvironmentMap() re-applies env overrides.
 	t.Setenv("MM_FEATUREFLAGS_TestFeature", "true")
 
 	th := Setup(t)
