@@ -117,6 +117,12 @@ var (
 
 // Combinations for LogM (log multi).
 var (
+	MlvlRemoteClusterServiceError = []Level{LvlError, LvlRemoteClusterServiceError}
+	MlvlRemoteClusterServiceWarn  = []Level{LvlWarn, LvlRemoteClusterServiceWarn}
+
+	MlvlSharedChannelServiceError = []Level{LvlError, LvlSharedChannelServiceError}
+	MlvlSharedChannelServiceWarn  = []Level{LvlWarn, LvlSharedChannelServiceWarn}
+
 	MlvlLDAPError = []Level{LvlError, LvlLDAPError}
 	MlvlLDAPWarn  = []Level{LvlWarn, LvlLDAPWarn}
 	MlvlLDAPInfo  = []Level{LvlInfo, LvlLDAPInfo}

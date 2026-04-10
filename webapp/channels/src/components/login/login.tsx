@@ -437,23 +437,18 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     }, [sessionExpired, formatMessage, onDismissSessionExpired, extraParam, siteName, searchParam]);
 
     const getAlternateLink = useCallback(() => {
+        if (!showSignup) {
+            return undefined;
+        }
+
         const linkLabel = formatMessage({
             id: 'login.noAccount',
             defaultMessage: 'Don\'t have an account?',
         });
-        if (showSignup) {
-            return (
-                <AlternateLinkLayout
-                    className='login-body-alternate-link'
-                    alternateLinkPath={'/signup_user_complete'}
-                    alternateLinkLabel={linkLabel}
-                />
-            );
-        }
         return (
             <AlternateLinkLayout
                 className='login-body-alternate-link'
-                alternateLinkPath={'/access_problem'}
+                alternateLinkPath={'/signup_user_complete'}
                 alternateLinkLabel={linkLabel}
             />
         );

@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"slices"
 	"testing"
 	"time"
@@ -337,12 +336,10 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 
 func TestGetCloudSession(t *testing.T) {
 	th := Setup(t)
-	defer func() {
-		os.Unsetenv("MM_CLOUD_API_KEY")
-	}()
 
 	t.Run("Matching environment variable and token should return non-nil session", func(t *testing.T) {
-		os.Setenv("MM_CLOUD_API_KEY", "mytoken")
+		// t.Setenv prevents t.Parallel — env var has no config equivalent
+		t.Setenv("MM_CLOUD_API_KEY", "mytoken")
 		session, err := th.App.GetCloudSession("mytoken")
 		require.Nil(t, err)
 		require.NotNil(t, session)
@@ -350,7 +347,8 @@ func TestGetCloudSession(t *testing.T) {
 	})
 
 	t.Run("Empty environment variable should return error", func(t *testing.T) {
-		os.Setenv("MM_CLOUD_API_KEY", "")
+		// t.Setenv prevents t.Parallel — env var has no config equivalent
+		t.Setenv("MM_CLOUD_API_KEY", "")
 		session, err := th.App.GetCloudSession("mytoken")
 		require.Nil(t, session)
 		require.NotNil(t, err)
@@ -358,7 +356,8 @@ func TestGetCloudSession(t *testing.T) {
 	})
 
 	t.Run("Mismatched env variable and token should return error", func(t *testing.T) {
-		os.Setenv("MM_CLOUD_API_KEY", "mytoken")
+		// t.Setenv prevents t.Parallel — env var has no config equivalent
+		t.Setenv("MM_CLOUD_API_KEY", "mytoken")
 		session, err := th.App.GetCloudSession("myincorrecttoken")
 		require.Nil(t, session)
 		require.NotNil(t, err)

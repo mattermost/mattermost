@@ -10,7 +10,6 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"slices"
 	"sync"
 	"sync/atomic"
@@ -47,11 +46,6 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 	rcService := th.App.Srv().GetRemoteClusterService()
 	if rcService != nil {
 		_ = rcService.Start()
-
-		// Force the service to be active in test environment
-		if rc, ok := rcService.(*remotecluster.Service); ok {
-			rc.SetActive(true)
-		}
 
 		// Wait for remote cluster service to be active
 		require.Eventually(t, func() bool {
@@ -1084,9 +1078,10 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		var syncMessageCount atomic.Int32
 
 		// Disable feature flag from the beginning to prevent any automatic sync
-		os.Setenv("MM_FEATUREFLAGS_ENABLESHAREDCHANNELMEMBERSYNC", "false")
-		rErr := th.App.ReloadConfig()
-		require.NoError(t, rErr)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableSharedChannelsMemberSync = false })
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableSharedChannelsMemberSync = true })
+		})
 
 		// Create test HTTP server that counts sync messages
 		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
