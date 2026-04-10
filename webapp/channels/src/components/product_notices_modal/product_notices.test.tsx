@@ -9,7 +9,12 @@ import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_te
 
 import ProductNoticesModal from './product_notices_modal';
 
-jest.mock('@mattermost/shared/utils/user_agent');
+const getDesktopVersionMock = jest.mocked(getDesktopVersion);
+const isDesktopAppMock = jest.mocked(isDesktopApp);
+jest.mock('@mattermost/shared/utils/user_agent', () => ({
+    getDesktopVersion: jest.fn(),
+    isDesktopApp: jest.fn(),
+}));
 
 describe('ProductNoticesModal', () => {
     const noticesData = [{
@@ -51,8 +56,8 @@ describe('ProductNoticesModal', () => {
     beforeEach(() => {
         baseProps.actions.getInProductNotices.mockClear();
         baseProps.actions.updateNoticesAsViewed.mockClear();
-        (isDesktopApp as any).mockReset();
-        (getDesktopVersion as any).mockReset();
+        isDesktopAppMock.mockReset();
+        getDesktopVersionMock.mockReset();
     });
 
     test('Should match snapshot when there are no notices', async () => {
@@ -237,8 +242,8 @@ describe('ProductNoticesModal', () => {
     });
 
     test('Should call for getInProductNotices with desktop as client if isDesktopApp returns true', () => {
-        (getDesktopVersion as any).mockReturnValue('4.5.0');
-        (isDesktopApp as any).mockReturnValue(true);
+        getDesktopVersionMock.mockReturnValue('4.5.0');
+        isDesktopAppMock.mockReturnValue(true);
         renderWithContext(<ProductNoticesModal {...baseProps}/>);
         expect(baseProps.actions.getInProductNotices).toHaveBeenCalledWith(baseProps.currentTeamId, 'desktop', '4.5.0');
     });

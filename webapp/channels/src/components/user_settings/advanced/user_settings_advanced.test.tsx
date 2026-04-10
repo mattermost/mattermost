@@ -13,7 +13,12 @@ import {Preferences} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 jest.mock('actions/global_actions');
-jest.mock('@mattermost/shared/utils/user_agent');
+
+const isMacMock = jest.mocked(isMac);
+jest.mock('@mattermost/shared/utils/user_agent', () => ({
+    isDesktopApp: jest.fn(() => false),
+    isMac: jest.fn(() => false),
+}));
 
 describe('components/user_settings/display/UserSettingsDisplay', () => {
     const user = TestHelper.getUserMock({
@@ -127,7 +132,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     });
 
     test('function getCtrlSendText should return correct value for Mac', () => {
-        (isMac as jest.Mock).mockReturnValue(true);
+        isMacMock.mockReturnValue(true);
         const props = {...requiredProps};
 
         renderWithContext(<AdvancedSettingsDisplay {...props}/>);
@@ -135,7 +140,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     });
 
     test('function getCtrlSendText should return correct value for Windows', () => {
-        (isMac as jest.Mock).mockReturnValue(false);
+        isMacMock.mockReturnValue(false);
         const props = {...requiredProps};
 
         renderWithContext(<AdvancedSettingsDisplay {...props}/>);

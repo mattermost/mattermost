@@ -9,7 +9,10 @@ import {
     getFileTypeFromMime,
 } from 'utils/file_utils';
 
-jest.mock('@mattermost/shared/utils/user_agent');
+const isMobileMock = jest.mocked(UserAgent.isMobile);
+jest.mock('@mattermost/shared/utils/user_agent', () => ({
+    isMobile: jest.fn(() => false),
+}));
 
 describe('FileUtils.trimFilename', () => {
     it('trimFilename: should return same filename', () => {
@@ -22,7 +25,7 @@ describe('FileUtils.trimFilename', () => {
 });
 
 describe('FileUtils.canUploadFiles', () => {
-    (UserAgent.isMobile as jest.Mock).mockReturnValue(false);
+    isMobileMock.mockReturnValue(false);
 
     it('is false when file attachments are disabled', () => {
         const config = {
@@ -33,10 +36,10 @@ describe('FileUtils.canUploadFiles', () => {
     });
 
     describe('is true when file attachments are enabled', () => {
-        (UserAgent.isMobile as jest.Mock).mockReturnValue(false);
+        isMobileMock.mockReturnValue(false);
 
         it('and not on mobile', () => {
-            (UserAgent.isMobile as jest.Mock).mockReturnValue(false);
+            isMobileMock.mockReturnValue(false);
 
             const config = {
                 EnableFileAttachments: 'true',
@@ -46,7 +49,7 @@ describe('FileUtils.canUploadFiles', () => {
         });
 
         it('and on mobile with mobile file upload enabled', () => {
-            (UserAgent.isMobile as jest.Mock).mockReturnValue(true);
+            isMobileMock.mockReturnValue(true);
 
             const config = {
                 EnableFileAttachments: 'true',
@@ -56,7 +59,7 @@ describe('FileUtils.canUploadFiles', () => {
         });
 
         it('unless on mobile with mobile file upload disabled', () => {
-            (UserAgent.isMobile as jest.Mock).mockReturnValue(true);
+            isMobileMock.mockReturnValue(true);
 
             const config = {
                 EnableFileAttachments: 'true',

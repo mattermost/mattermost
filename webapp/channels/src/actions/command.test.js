@@ -133,7 +133,11 @@ const initialState = {
     },
 };
 
-jest.mock('@mattermost/shared/utils/user_agent');
+const isMobileMock = jest.mocked(UserAgent.isMobile);
+jest.mock('@mattermost/shared/utils/user_agent', () => ({
+    isDesktopApp: jest.fn(),
+    isMobile: jest.fn(),
+}));
 jest.mock('actions/global_actions');
 
 describe('executeCommand', () => {
@@ -160,10 +164,8 @@ describe('executeCommand', () => {
     });
 
     describe('shortcuts', () => {
-        UserAgent.isMobile = jest.fn();
-
         test('should return error in case of mobile', async () => {
-            UserAgent.isMobile.mockReturnValueOnce(true);
+            isMobileMock.mockReturnValueOnce(true);
 
             const result = await store.dispatch(executeCommand('/shortcuts', []));
 
@@ -175,7 +177,7 @@ describe('executeCommand', () => {
         });
 
         test('should open shortcut modal in case of no mobile', async () => {
-            UserAgent.isMobile.mockReturnValueOnce(false);
+            isMobileMock.mockReturnValueOnce(false);
 
             const result = await store.dispatch(executeCommand('/shortcuts', []));
 
