@@ -6949,6 +6949,32 @@ func TestSetChannelMembers(t *testing.T) {
 		assert.NotEmpty(t, members, "private channel should still have members")
 	})
 
+	t.Run("private channel can be orphaned when all desired users are invalid", func(t *testing.T) {
+		// Known limitation: if the desired list is non-empty but all users are
+		// invalid (e.g. not on the team), removals succeed first and then all
+		// adds fail, leaving the private channel empty. The sysadmin can recover
+		// by adding members back via the API.
+		privateChannel := th.CreatePrivateChannel(t)
+
+		// Create a user NOT on the team
+		otherUser := th.CreateUserWithClient(t, th.SystemAdminClient)
+
+		results, _, err := th.SystemAdminClient.SetChannelMembers(ctx, privateChannel.Id, []string{otherUser.Id}, 0, 0)
+		require.NoError(t, err)
+
+		// The add should have failed
+		var allErrors []model.SetChannelMembersError
+		for _, r := range results {
+			allErrors = append(allErrors, r.Errors...)
+		}
+		assert.NotEmpty(t, allErrors, "invalid user should appear in errors")
+
+		// The channel is now empty — this is the known limitation
+		members, _, err := th.SystemAdminClient.GetChannelMembers(ctx, privateChannel.Id, 0, 100, "")
+		require.NoError(t, err)
+		assert.Empty(t, members, "private channel is orphaned (known limitation)")
+	})
+
 	t.Run("non-sysadmin returns 403", func(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
 		_, resp, err := th.Client.SetChannelMembers(ctx, channel.Id, []string{th.BasicUser.Id}, 0, 0)
@@ -7027,6 +7053,14 @@ func TestSetChannelMembers(t *testing.T) {
 			}
 		}
 		assert.True(t, found, "user not on team should appear in errors")
+	})
+
+	t.Run("null body rejected", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+		// nil slice serializes as JSON null
+		_, resp, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, nil, 0, 0)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
 	})
 
 	t.Run("invalid query params", func(t *testing.T) {

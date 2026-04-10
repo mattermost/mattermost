@@ -4237,11 +4237,17 @@ func (a *App) SetChannelMembers(rctx request.CTX, channel *model.Channel, desire
 		onBatch(result)
 
 		if end < len(toRemove) {
-			if rctx.Context().Err() != nil {
+			select {
+			case <-rctx.Context().Done():
 				return model.NewAppError("SetChannelMembers", "app.channel.set_members.context_cancelled.app_error", nil, "", http.StatusInternalServerError).Wrap(rctx.Context().Err())
+			case <-time.After(batchDelay):
 			}
-			time.Sleep(batchDelay)
 		}
+	}
+
+	// Check context between removal and addition phases
+	if rctx.Context().Err() != nil {
+		return model.NewAppError("SetChannelMembers", "app.channel.set_members.context_cancelled.app_error", nil, "", http.StatusInternalServerError).Wrap(rctx.Context().Err())
 	}
 
 	// Process additions
@@ -4263,10 +4269,11 @@ func (a *App) SetChannelMembers(rctx request.CTX, channel *model.Channel, desire
 		onBatch(result)
 
 		if end < len(toAdd) {
-			if rctx.Context().Err() != nil {
+			select {
+			case <-rctx.Context().Done():
 				return model.NewAppError("SetChannelMembers", "app.channel.set_members.context_cancelled.app_error", nil, "", http.StatusInternalServerError).Wrap(rctx.Context().Err())
+			case <-time.After(batchDelay):
 			}
-			time.Sleep(batchDelay)
 		}
 	}
 

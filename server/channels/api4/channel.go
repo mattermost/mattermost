@@ -2266,18 +2266,26 @@ func setChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
 	model.AddEventParameterToAuditRec(auditRec, "desired_user_count", len(desiredUserIDs))
+	model.AddEventParameterToAuditRec(auditRec, "batch_size", batchSize)
+	model.AddEventParameterToAuditRec(auditRec, "batch_delay_ms", batchDelayMs)
 
-	w.Header().Set("Content-Type", "application/x-ndjson")
 	enc := json.NewEncoder(w)
-
 	flusher, _ := w.(http.Flusher)
+	streamingStarted := false
 
 	appErr = c.App.SetChannelMembers(c.AppContext, channel, desiredUserIDs, c.AppContext.Session().UserId, batchSize, batchDelayMs, func(result *model.SetChannelMembersResponse) {
+		if !streamingStarted {
+			w.Header().Set("Content-Type", "application/x-ndjson")
+			streamingStarted = true
+		}
 		if result.Added == nil {
 			result.Added = []string{}
 		}
 		if result.Removed == nil {
 			result.Removed = []string{}
+		}
+		if result.Errors == nil {
+			result.Errors = []model.SetChannelMembersError{}
 		}
 		if err := enc.Encode(result); err != nil {
 			c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -2287,7 +2295,14 @@ func setChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	})
 	if appErr != nil {
-		c.Err = appErr
+		if streamingStarted {
+			// Response is already committed (NDJSON lines written), so we cannot
+			// set c.Err — the framework would try to write a JSON error into the
+			// NDJSON stream. Log the error instead.
+			c.Logger.Warn("SetChannelMembers terminated with error", mlog.Err(appErr))
+		} else {
+			c.Err = appErr
+		}
 		return
 	}
 
