@@ -8,8 +8,7 @@ import {renderWithContext, screen} from 'tests/react_testing_utils';
 import PanelHeader from './panel_header';
 
 jest.mock('@mattermost/shared/components/tooltip', () => ({
-    __esModule: true,
-    default: ({children}: {children: React.ReactNode}) => (
+    WithTooltip: ({children}: {children: React.ReactNode}) => (
         <div data-testid='with-tooltip'>{children}</div>
     ),
 }));
