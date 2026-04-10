@@ -172,6 +172,21 @@ func (w *searchEngineWatcher) run(ctx context.Context, notifyCh <-chan struct{})
 		return
 	}
 
+	// Safety net: if the engine is still active when the goroutine exits
+	// (e.g. Start() completed just as the context was canceled), stop it so
+	// it is not left running with no goroutine to manage it.
+	defer func() {
+		if w.engine.IsActive() {
+			w.ps.Log().Info("Search engine watcher: stopping engine on goroutine exit",
+				mlog.String("engine", w.engine.GetName()))
+			if err := w.engine.Stop(); err != nil {
+				w.ps.Log().Warn("Search engine watcher: Stop() failed on goroutine exit",
+					mlog.Err(err),
+					mlog.String("engine", w.engine.GetName()))
+			}
+		}
+	}()
+
 	s := &watcherLoopState{backoff: searchEngineRetryInitial}
 	rctx := request.EmptyContext(w.ps.logger)
 

@@ -97,6 +97,10 @@ func TestRunSearchEngineWatcher(t *testing.T) {
 			healthChecked.Store(1)
 		}).Return(nil).Maybe()
 
+		// The engine will be active when the watcher exits, so the
+		// cleanup defer in run() will call Stop().
+		engineMock.On("Stop").Return(nil).Maybe()
+
 		w.start()
 		t.Cleanup(w.stop)
 
@@ -218,6 +222,52 @@ func TestRunSearchEngineWatcher(t *testing.T) {
 		}, 2*time.Second, 5*time.Millisecond,
 			"watcher should have called Start after notify")
 	})
+
+	t.Run("stops engine on exit when Start succeeds during shutdown", func(t *testing.T) {
+		w, engineMock := setupWatcherTest(t)
+
+		engineMock.On("IsEnabled").Return(true).Maybe()
+
+		// Start() succeeds but the context is cancelled while it runs,
+		// simulating the race where Start() completes just as stop() is
+		// called. Without the safety-net defer in run(), the engine
+		// would be left active with no goroutine to manage it.
+		ctx, cancel := context.WithCancel(context.Background())
+		notifyCh := make(chan struct{}, 1)
+
+		engineMock.On("IsActive").Return(false).Once() // first check in startIfInactive
+		engineMock.On("Start", mock.Anything).Run(func(mock.Arguments) {
+			cancel() // simulate stop() racing with Start()
+		}).Return(nil).Once()
+
+		// After Start() returns nil, run() checks ctx.Err() != nil and
+		// falls through to the defer, which sees the engine as active.
+		engineMock.On("IsActive").Return(true).Once() // checked by the safety-net defer
+
+		var stopped atomic.Int32
+		engineMock.On("Stop").Run(func(mock.Arguments) {
+			stopped.Add(1)
+		}).Return(nil).Once()
+
+		done := make(chan struct{})
+		go func() {
+			defer close(done)
+			w.run(ctx, notifyCh)
+		}()
+
+		require.Eventually(t, func() bool {
+			select {
+			case <-done:
+				return true
+			default:
+				return false
+			}
+		}, 2*time.Second, 5*time.Millisecond,
+			"watcher did not exit after context cancellation")
+
+		assert.Equal(t, int32(1), stopped.Load(),
+			"safety net should have called Stop() exactly once on goroutine exit")
+	})
 }
 
 func TestStartIfInactive(t *testing.T) {
@@ -284,9 +334,14 @@ func TestWatcherHealthPhase(t *testing.T) {
 		engineMock.On("IsEnabled").Return(true).Maybe()
 		engineMock.On("IsActive").Return(true).Maybe()
 
+		// The engine will be active when the watcher exits, so the
+		// cleanup defer in run() will call Stop().
+		engineMock.On("Stop").Return(nil).Maybe()
+
 		// HealthCheck alternates: fail, ok, fail, ok...
 		// The consecutive failure counter resets on each success, so
-		// the threshold is never reached and Stop() is never called.
+		// the threshold is never reached and Stop() is never called
+		// by the health-check logic (only by the exit defer).
 		var healthCalls atomic.Int32
 		engineMock.On("HealthCheck", mock.Anything).Return(func(_ request.CTX) *model.AppError {
 			n := healthCalls.Add(1)
@@ -303,7 +358,9 @@ func TestWatcherHealthPhase(t *testing.T) {
 			return healthCalls.Load() >= 4
 		}, 2*time.Second, 5*time.Millisecond)
 
-		// Stop should never have been called — failures never reached threshold.
+		// Stop should not have been called by health-check logic —
+		// failures never reached the threshold. (It will be called
+		// once later by the cleanup defer in run().)
 		engineMock.AssertNotCalled(t, "Stop")
 	})
 
