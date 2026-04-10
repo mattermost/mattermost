@@ -1,15 +1,3 @@
-/*
-Notes:
-- I removed the styles specific to the System Console (.console__body) since it didn't really make sense for those to
-  be different than the rest of the app. The styles had slightly drifted in
-  https://github.com/mattermost/mattermost/pull/26570, but they were mostly the same outside of one colour value.
-- I also removed the .app__body wrapper around the rest of these since I don't see any reason why those would differ
-  between themed and unthemed parts of the app.
-- (Potential TODO) We can probably remove the variants since none of them appear to be used, and they don't match the standard variants
-  of the tag component.
-- (Potential TODO) Change to proper CSS modules or consider changing the naming convention to prevent conflicts.
-*/
-
 .shortcut-key {
     display: inline-block;
     padding: 10px 9px 8px 8px;
