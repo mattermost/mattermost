@@ -12193,6 +12193,18 @@
     "translation": "This post contains permalinks to other channels which may not be visible to users in other sites."
   },
   {
+    "id": "shared_channel.system_message.no_longer_shared",
+    "translation": "This channel is no longer shared with {{.WorkspaceName}}."
+  },
+  {
+    "id": "shared_channel.system_message.no_longer_shared_unknown",
+    "translation": "This channel is no longer shared with another workspace."
+  },
+  {
+    "id": "shared_channel.system_message.now_shared",
+    "translation": "This channel is now shared with {{.WorkspaceName}}."
+  },
+  {
     "id": "store.sql_bot.get.missing.app_error",
     "translation": "Bot does not exist."
   },

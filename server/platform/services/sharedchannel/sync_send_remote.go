@@ -711,6 +711,11 @@ func (scs *Service) filterPostsForSync(sd *syncData) {
 	filtered := make([]*model.Post, 0, len(sd.posts))
 
 	for _, p := range sd.posts {
+		// Shared-channel share/unshare system posts are authored separately on each cluster; never sync them.
+		if p.Type == model.PostTypeSharedChannelState {
+			continue
+		}
+
 		// Don't resend an existing post where only the reactions changed.
 		// Posts we must send:
 		//   - new posts (EditAt == 0)
@@ -1261,31 +1266,6 @@ func (scs *Service) handleChannelNotSharedError(msg *model.SyncMsg, rc *model.Re
 		mlog.String("remote", rc.Name),
 		mlog.String("channel_id", msg.ChannelId),
 	)
-
-	// Get the SharedChannelRemote record for this channel and remote
-	scr, getErr := scs.server.GetStore().SharedChannel().GetRemoteByIds(msg.ChannelId, rc.RemoteId)
-	if getErr != nil {
-		logger.LogM(mlog.MlvlSharedChannelServiceError, "Failed to get shared channel remote",
-			mlog.String("remote", rc.Name),
-			mlog.String("channel_id", msg.ChannelId),
-			mlog.Err(getErr),
-		)
-		return
-	}
-
-	// Get channel details for posting the system message
-	channel, channelErr := scs.server.GetStore().Channel().Get(msg.ChannelId, true)
-	if channelErr != nil {
-		logger.LogM(mlog.MlvlSharedChannelServiceError, "Failed to get channel details",
-			mlog.String("remote", rc.Name),
-			mlog.String("channel_id", msg.ChannelId),
-			mlog.Err(channelErr),
-		)
-		return
-	}
-
-	// Post a system message to notify users that the channel is no longer shared with this remote
-	scs.postUnshareNotification(msg.ChannelId, scr.CreatorId, channel, rc)
 
 	if err := scs.UninviteRemoteFromChannel(msg.ChannelId, rc.RemoteId); err != nil {
 		logger.LogM(mlog.MlvlSharedChannelServiceError, "Failed to uninvite remote from shared channel", mlog.Err(err))

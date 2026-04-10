@@ -426,6 +426,38 @@ func (_m *MockAppIface) GetProfileImage(user *model.User) ([]byte, bool, *model.
 	return r0, r1, r2
 }
 
+// GetSystemBot provides a mock function with given fields: rctx
+func (_m *MockAppIface) GetSystemBot(rctx request.CTX) (*model.Bot, *model.AppError) {
+	ret := _m.Called(rctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSystemBot")
+	}
+
+	var r0 *model.Bot
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX) (*model.Bot, *model.AppError)); ok {
+		return rf(rctx)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX) *model.Bot); ok {
+		r0 = rf(rctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Bot)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX) *model.AppError); ok {
+		r1 = rf(rctx)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // MentionsToTeamMembers provides a mock function with given fields: rctx, message, teamID
 func (_m *MockAppIface) MentionsToTeamMembers(rctx request.CTX, message string, teamID string) model.UserMentionMap {
 	ret := _m.Called(rctx, message, teamID)

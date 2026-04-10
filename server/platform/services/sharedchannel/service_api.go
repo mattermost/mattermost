@@ -95,11 +95,43 @@ func (scs *Service) UnshareChannel(channelID string) (bool, error) {
 		return false, err
 	}
 
+	var workspaceNames []string
+	remotes, remotesErr := scs.server.GetStore().SharedChannel().GetRemotes(0, 10000, model.SharedChannelRemoteFilterOpts{ChannelId: channelID})
+	if remotesErr != nil {
+		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Could not list remotes before unshare; skipping unshare system posts",
+			mlog.String("channel_id", channelID),
+			mlog.Err(remotesErr),
+		)
+	} else {
+		workspaceNames = make([]string, 0, len(remotes))
+		for _, scr := range remotes {
+			rc, rcErr := scs.server.GetStore().RemoteCluster().Get(scr.RemoteId, false)
+			workspaceName := scr.RemoteId
+			if rcErr == nil && rc != nil {
+				workspaceName = remoteClusterDisplayName(rc)
+			} else if rcErr != nil {
+				scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Could not load remote cluster while preparing unshare system post",
+					mlog.String("channel_id", channelID),
+					mlog.String("remote_id", scr.RemoteId),
+					mlog.Err(rcErr),
+				)
+			}
+			workspaceNames = append(workspaceNames, workspaceName)
+		}
+	}
+
 	// deletes the ShareChannel, unsets the share flag on the channel, deletes all records in SharedChannelRemotes for the channel.
 	deleted, err := scs.server.GetStore().SharedChannel().Delete(channelID)
 	if err != nil {
 		return false, err
 	}
+
+	if deleted {
+		for _, workspaceName := range workspaceNames {
+			scs.postChannelUnsharedWithWorkspace(channel, workspaceName)
+		}
+	}
+
 	// to avoid fetching the channel again, we manually set the shared
 	// flag before notifying the clients
 	channel.Shared = model.NewPointer(false)
@@ -216,6 +248,28 @@ func (scs *Service) UninviteRemoteFromChannel(channelID, remoteID string) error 
 		}
 		return model.NewAppError("UninviteRemoteFromChannel", "api.command_share.could_not_uninvite.error",
 			map[string]any{"RemoteId": remoteID, "Error": err.Error()}, "", code)
+	}
+
+	channel, chErr := scs.server.GetStore().Channel().Get(channelID, true)
+	if chErr != nil {
+		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Could not load channel after uninvite for system post",
+			mlog.String("channel_id", channelID),
+			mlog.String("remote_id", remoteID),
+			mlog.Err(chErr),
+		)
+	} else {
+		rc, rcErr := scs.server.GetStore().RemoteCluster().Get(remoteID, false)
+		workspaceName := remoteID
+		if rcErr == nil && rc != nil {
+			workspaceName = remoteClusterDisplayName(rc)
+		} else if rcErr != nil {
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Could not load remote cluster after uninvite for system post",
+				mlog.String("channel_id", channelID),
+				mlog.String("remote_id", remoteID),
+				mlog.Err(rcErr),
+			)
+		}
+		scs.postChannelUnsharedWithWorkspace(channel, workspaceName)
 	}
 
 	_, unshareErr := scs.unshareChannelIfNoActiveRemotes(channelID)

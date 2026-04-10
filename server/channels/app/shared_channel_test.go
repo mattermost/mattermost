@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 )
@@ -237,13 +238,15 @@ func TestApp_RemoteUnsharing(t *testing.T) {
 		// Find and verify the system message content
 		var systemPost *model.Post
 		for _, p := range postsAfterRemove.Posts {
-			if p.Type == model.PostTypeSystemGeneric {
+			if p.Type == model.PostTypeSharedChannelState {
 				systemPost = p
 				break
 			}
 		}
 		require.NotNil(t, systemPost, "A system post should be created")
-		assert.Equal(t, "This channel is no longer shared.", systemPost.Message, "Message should match unshare message")
+		assert.Equal(t, i18n.T("shared_channel.system_message.no_longer_shared", map[string]any{"WorkspaceName": "Test Remote"}), systemPost.Message)
+		assert.Equal(t, model.SharedChannelStatePostValueUnshared, systemPost.GetProps()[model.PostPropsSharedChannelState])
+		assert.Equal(t, "Test Remote", systemPost.GetProps()[model.PostPropsSharedChannelWorkspaceName])
 	})
 
 	t.Run("remote-initiated unshare with multiple remotes", func(t *testing.T) {
@@ -430,13 +433,15 @@ func TestApp_RemoteUnsharing(t *testing.T) {
 		// Find and verify the system message content
 		var systemPost *model.Post
 		for _, p := range postsAfterRemove.Posts {
-			if p.Type == model.PostTypeSystemGeneric {
+			if p.Type == model.PostTypeSharedChannelState {
 				systemPost = p
 				break
 			}
 		}
 		require.NotNil(t, systemPost, "A system post should be created")
-		assert.Equal(t, "This channel is no longer shared.", systemPost.Message, "Message should match unshare message")
+		assert.Equal(t, i18n.T("shared_channel.system_message.no_longer_shared", map[string]any{"WorkspaceName": "Test Remote 1"}), systemPost.Message)
+		assert.Equal(t, model.SharedChannelStatePostValueUnshared, systemPost.GetProps()[model.PostPropsSharedChannelState])
+		assert.Equal(t, "Test Remote 1", systemPost.GetProps()[model.PostPropsSharedChannelWorkspaceName])
 	})
 }
 
@@ -548,12 +553,15 @@ func TestSyncMessageErrChannelNotSharedResponse(t *testing.T) {
 	// Find the system message
 	var systemPost *model.Post
 	for _, p := range posts.Posts {
-		if p.Type == model.PostTypeSystemGeneric && p.Message == "This channel is no longer shared." {
+		if p.Type == model.PostTypeSharedChannelState {
 			systemPost = p
 			break
 		}
 	}
 	require.NotNil(t, systemPost, "System message should be posted when channel becomes unshared")
+	assert.Equal(t, i18n.T("shared_channel.system_message.no_longer_shared", map[string]any{"WorkspaceName": "Test Remote"}), systemPost.Message)
+	assert.Equal(t, model.SharedChannelStatePostValueUnshared, systemPost.GetProps()[model.PostPropsSharedChannelState])
+	assert.Equal(t, "Test Remote", systemPost.GetProps()[model.PostPropsSharedChannelWorkspaceName])
 }
 
 // TestTransformMentionsOnReceive provides comprehensive unit testing for the mention transformation logic
