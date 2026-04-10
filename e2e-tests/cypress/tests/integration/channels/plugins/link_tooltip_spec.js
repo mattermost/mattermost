@@ -54,5 +54,9 @@ describe('Link tooltips', () => {
 
         // # Close the tooltip
         cy.get('body').type('{esc}');
+
+        // * Verify the tooltip overlay is fully removed before the test ends,
+        // so that retries don't start with a stale overlay blocking the page.
+        cy.get('.plugin-link-tooltip-floating-overlay').should('not.exist');
     });
 });
