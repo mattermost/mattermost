@@ -163,7 +163,8 @@ jobs:
  
             - Feature flags (`feature_flags.go`) are **not** configuration settings. Do not conflate them. Config settings belong in the admin configuration reference.
             - Plugin version bumps in `server/Makefile`: only major or minor version changes (e.g. `1.2.x` → `1.3.0` or `2.0.0`) warrant documentation review; patch-only bumps (e.g. `1.2.3` → `1.2.4`) generally do not.
-            - Security hardening of existing endpoints is **not** a documentation-worthy change. Adding CSRF protection (e.g., enforcing `X-Requested-With` header for cookie-authenticated requests), rate limiting, or input validation to already-existing endpoints is an internal implementation detail. Do **not** flag these as needing documentation. Only flag API changes that alter the public contract for integrators: new endpoints, changed request/response schemas, or new required parameters that affect non-security functionality.
+            - Purely internal security hardening of existing endpoints is generally **not** documentation-worthy.
+            - However, if hardening introduces an externally observable contract change (e.g., new required headers, auth prerequisites, or request constraints), flag it for documentation as an API behavior change without disclosing vulnerability details.
  
             ## Output
  
@@ -200,7 +201,7 @@ jobs:
             ## Rules
  
             - Name exact RST file paths in `./docs/source/` when you find relevant documentation.
-            - Classify as "No Documentation Changes Needed" and keep the response brief when the PR only modifies test files, internal utilities, internal refactors with no behavioral change, CI/build configuration, or security hardening of existing endpoints.
+            - Classify as "No Documentation Changes Needed" and keep the response brief when the PR only modifies test files, internal utilities, internal refactors with no behavioral change, CI/build configuration, or purely internal security hardening with no externally observable behavior/contract changes.
             - When uncertain whether a change needs documentation, recommend a review rather than staying silent.
             - Keep analysis focused and actionable so developers can act on recommendations directly.
             - This is a READ-ONLY analysis except for writing the output file. Never modify source code, push branches, or create PRs.
