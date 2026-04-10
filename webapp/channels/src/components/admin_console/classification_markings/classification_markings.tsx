@@ -50,7 +50,7 @@ type Props = {
     disabled?: boolean;
 };
 
-function detectPreset(levels: ClassificationLevel[]): string {
+export function detectPreset(levels: ClassificationLevel[]): string {
     for (const preset of presets) {
         if (preset.levels.length !== levels.length) {
             continue;
@@ -66,7 +66,7 @@ function detectPreset(levels: ClassificationLevel[]): string {
     return PRESET_CUSTOM;
 }
 
-function optionsToLevels(options: PropertyFieldOption[]): ClassificationLevel[] {
+export function optionsToLevels(options: PropertyFieldOption[]): ClassificationLevel[] {
     return options.map((opt, i) => ({
         id: opt.id,
         name: opt.name,
@@ -75,7 +75,7 @@ function optionsToLevels(options: PropertyFieldOption[]): ClassificationLevel[] 
     })).sort((a, b) => a.rank - b.rank);
 }
 
-function levelsToOptions(levels: ClassificationLevel[]): Array<{id: string; name: string; color: string; rank: number}> {
+export function levelsToOptions(levels: ClassificationLevel[]): Array<{id: string; name: string; color: string; rank: number}> {
     return levels.map((level) => ({
         id: level.id.startsWith('pending_') ? '' : level.id,
         name: level.name,
@@ -84,7 +84,7 @@ function levelsToOptions(levels: ClassificationLevel[]): Array<{id: string; name
     }));
 }
 
-async function fetchClassificationField(): Promise<PropertyField | undefined> {
+export async function fetchClassificationField(): Promise<PropertyField | undefined> {
     const maxItems = 500;
     let fetched = 0;
     let cursorId: string | undefined;
@@ -106,7 +106,7 @@ async function fetchClassificationField(): Promise<PropertyField | undefined> {
     return undefined;
 }
 
-function processClassificationField(field: PropertyField): {levels: ClassificationLevel[]; presetId: string} {
+export function processClassificationField(field: PropertyField): {levels: ClassificationLevel[]; presetId: string} {
     const options = (field.attrs?.options as PropertyFieldOption[]) || [];
     const levels = optionsToLevels(options);
     const presetId = detectPreset(levels);
