@@ -21,7 +21,7 @@ import UnreadsStatusHandler from 'components/unreads_status_handler';
 
 import Pluggable from 'plugins/pluggable';
 import {Constants} from 'utils/constants';
-import {isInternetExplorer, isEdge} from 'utils/user_agent';
+import {isInternetExplorer} from 'utils/user_agent';
 
 const ProductNoticesModal = makeAsyncComponent('ProductNoticesModal', lazy(() => import('components/product_notices_modal')));
 const ResetStatusModal = makeAsyncComponent('ResetStatusModal', lazy(() => import('components/reset_status_modal')));
@@ -39,7 +39,7 @@ export default function ChannelController(props: Props) {
     const dispatch = useDispatch();
 
     useEffect(() => {
-        const isMsBrowser = isInternetExplorer() || isEdge();
+        const isMsBrowser = isInternetExplorer();
         const {navigator} = window;
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
