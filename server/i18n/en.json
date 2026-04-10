@@ -9333,6 +9333,10 @@
     "translation": "{{.Backend}} version {{.Version}} is higher than max supported version of {{.MaxVersion}}"
   },
   {
+    "id": "ent.elasticsearch.min_version.app_error",
+    "translation": "{{.Backend}} version {{.Version}} is lower than min supported version of {{.MinVersion}}"
+  },
+  {
     "id": "ent.elasticsearch.not_started.error",
     "translation": "{{.Backend}} is not started"
   },
