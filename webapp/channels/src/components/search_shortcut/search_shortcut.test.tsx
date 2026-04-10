@@ -3,10 +3,11 @@
 
 import React from 'react';
 
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
+
 import {SearchShortcut} from 'components/search_shortcut';
 
 import {render} from 'tests/react_testing_utils';
-import * as UserAgent from 'utils/user_agent';
 
 describe('components/SearchShortcut', () => {
     test('should match snapshot on Windows webapp', () => {

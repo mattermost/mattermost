@@ -6,6 +6,7 @@ import type {ReactNode, MouseEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
 import type {CloudUsage} from '@mattermost/types/cloud';
 import type {Team} from '@mattermost/types/teams';
 
@@ -25,7 +26,6 @@ import LogoutIcon from 'components/widgets/icons/fa_logout_icon';
 
 import logoImage from 'images/logo.png';
 import Constants from 'utils/constants';
-import * as UserAgent from 'utils/user_agent';
 
 import SelectTeamItem from './components/select_team_item';
 

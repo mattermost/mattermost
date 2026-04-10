@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
+
 import {Client4} from 'mattermost-redux/client';
 import {Permissions} from 'mattermost-redux/constants';
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
@@ -13,7 +15,6 @@ import UserSettingsModal from 'components/user_settings/modal';
 
 import mockStore from 'tests/test_store';
 import {ActionTypes, Constants, ModalIdentifiers} from 'utils/constants';
-import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
 import {executeCommand} from './command';
@@ -132,7 +133,7 @@ const initialState = {
     },
 };
 
-jest.mock('utils/user_agent');
+jest.mock('@mattermost/shared/utils/user_agent');
 jest.mock('actions/global_actions');
 
 describe('executeCommand', () => {

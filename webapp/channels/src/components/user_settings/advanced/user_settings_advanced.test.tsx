@@ -4,15 +4,16 @@
 import React from 'react';
 import type {ComponentProps} from 'react';
 
+import {isMac} from '@mattermost/shared/utils/user_agent';
+
 import AdvancedSettingsDisplay from 'components/user_settings/advanced/user_settings_advanced';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {Preferences} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
-import {isMac} from 'utils/user_agent';
 
 jest.mock('actions/global_actions');
-jest.mock('utils/user_agent');
+jest.mock('@mattermost/shared/utils/user_agent');
 
 describe('components/user_settings/display/UserSettingsDisplay', () => {
     const user = TestHelper.getUserMock({

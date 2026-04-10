@@ -3,12 +3,13 @@
 
 import React from 'react';
 
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
+
 import * as useDesktopAppNotificationPermission from 'components/common/hooks/use_desktop_notification_permission';
 import type {DesktopNotificationPermission} from 'components/common/hooks/use_desktop_notification_permission';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import * as utilsNotifications from 'utils/notifications';
-import * as UserAgent from 'utils/user_agent';
 
 import NotificationPermissionSectionNotice from './index';
 

@@ -3,12 +3,13 @@
 
 import React from 'react';
 
+import {isDesktopApp, getDesktopVersion} from '@mattermost/shared/utils/user_agent';
+
 import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
-import {isDesktopApp, getDesktopVersion} from 'utils/user_agent';
 
 import ProductNoticesModal from './product_notices_modal';
 
-jest.mock('utils/user_agent');
+jest.mock('@mattermost/shared/utils/user_agent');
 
 describe('ProductNoticesModal', () => {
     const noticesData = [{

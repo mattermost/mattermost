@@ -4,6 +4,8 @@
 import React, {PureComponent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
+
 import BrowserStore from 'stores/browser_store';
 
 import ExternalLink from 'components/external_link';
@@ -12,7 +14,6 @@ import desktopImg from 'images/deep-linking/deeplinking-desktop-img.png';
 import mobileImg from 'images/deep-linking/deeplinking-mobile-img.png';
 import MattermostLogoSvg from 'images/logo.svg';
 import {LandingPreferenceTypes} from 'utils/constants';
-import * as UserAgent from 'utils/user_agent';
 
 type Props = {
     desktopAppLink?: string;

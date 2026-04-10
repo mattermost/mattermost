@@ -6,6 +6,8 @@ import React, {lazy} from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
 
+import {isAndroid, isChromebook, isDesktopApp, isIos} from '@mattermost/shared/utils/user_agent';
+
 import {setSystemEmojis} from 'mattermost-redux/actions/emojis';
 import {setUrl} from 'mattermost-redux/actions/general';
 import {Client4} from 'mattermost-redux/client';
@@ -34,7 +36,6 @@ import DesktopApp from 'utils/desktop_api';
 import {EmojiIndicesByAlias} from 'utils/emoji';
 import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';
-import {isAndroid, isChromebook, isDesktopApp, isIos} from 'utils/user_agent';
 import {isTextDroppableEvent} from 'utils/utils';
 
 import LuxonController from './luxon_controller';
