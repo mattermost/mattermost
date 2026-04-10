@@ -44,8 +44,7 @@ func (ps *PlatformService) StartSearchEngine() (string, string) {
 			// re-evaluating. The watcher will call Stop() + Start()
 			// with the new settings on its next tick.
 			ps.esWatcher.requestRestart()
-		}
-		if connectionChanged || startingES || stoppingES {
+		} else if startingES || stoppingES {
 			ps.esWatcher.reevaluate()
 		}
 
@@ -75,7 +74,6 @@ func (ps *PlatformService) StartSearchEngine() (string, string) {
 			// without a license, so it backs off gracefully.
 			if ps.SearchEngine.ElasticsearchEngine != nil {
 				ps.esWatcher.requestRestart()
-				ps.esWatcher.reevaluate()
 			}
 		}
 	})

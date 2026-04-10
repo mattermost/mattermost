@@ -128,13 +128,15 @@ func (w *searchEngineWatcher) reevaluate() {
 }
 
 // requestRestart sets a flag that tells the watcher to Stop() the engine
-// before its next evaluation cycle. Used when connection settings change or
-// the license is removed. Safe to call on a nil receiver.
+// before its next evaluation cycle, then wakes it for immediate re-evaluation.
+// Used when connection settings change or the license is removed.
+// Safe to call on a nil receiver.
 func (w *searchEngineWatcher) requestRestart() {
 	if w == nil {
 		return
 	}
 	atomic.StoreInt32(&w.forceRestart, 1)
+	w.reevaluate()
 }
 
 // run is the watcher's main loop. It drives a simple state machine:
