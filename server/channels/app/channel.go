@@ -4277,5 +4277,16 @@ func (a *App) SetChannelMembers(rctx request.CTX, channel *model.Channel, desire
 		}
 	}
 
+	// Warn if a private channel was left with no members (known limitation)
+	if channel.Type == model.ChannelTypePrivate {
+		remainingIDs, err := a.Srv().Store().Channel().GetAllChannelMemberIdsByChannelId(channel.Id)
+		if err == nil && len(remainingIDs) == 0 {
+			rctx.Logger().Error("SetChannelMembers left private channel with no members",
+				mlog.String("channel_id", channel.Id),
+				mlog.String("requestor_user_id", requestorUserID),
+			)
+		}
+	}
+
 	return nil
 }
