@@ -270,7 +270,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
 
     test('should not show Open in new window when popout is not available', async () => {
         jest.mocked(canPopout).mockReturnValue(false);
-        jest.mocked(isChannelPopoutWindow).mockReturnValue(true);
+        jest.mocked(isChannelPopoutWindow).mockReturnValue(false);
 
         renderWithContext(
             <SidebarChannelMenu {...baseProps}/>,
