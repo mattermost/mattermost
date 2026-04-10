@@ -13,6 +13,9 @@ name: Server CI Weekly
 on:
   schedule:
     - cron: "0 5 * * 1" # Monday 5am UTC = 1am EST
+  push:
+    branches:
+      - 'release-*'
   workflow_dispatch: # Allow manual trigger for urgent FIPS/binary verification
 
 jobs:
