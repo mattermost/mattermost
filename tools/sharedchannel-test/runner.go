@@ -135,7 +135,7 @@ func (tr *TestRunner) provision(ctx context.Context) error {
 
 	// Create a single remote cluster connection for all tests
 	tr.logger.Info("Setting up remote cluster connection...")
-	invitePassword := "TestInvite123!"
+	invitePassword := model.NewTestPassword()
 	invite, _, err := tr.clientA.CreateRemoteCluster(ctx, &model.RemoteClusterWithPassword{
 		RemoteCluster: &model.RemoteCluster{
 			Name:          "server-b-" + tr.suffix,
@@ -245,7 +245,7 @@ func (tr *TestRunner) createTestUser(ctx context.Context, username string) (stri
 	user, _, err := tr.clientA.CreateUser(ctx, &model.User{
 		Username: uniqueName,
 		Email:    uniqueName + "@test.local",
-		Password: "TestPass123!",
+		Password: model.NewTestPassword(),
 	})
 	if err != nil {
 		return "", fmt.Errorf("create user %s: %w", username, err)
