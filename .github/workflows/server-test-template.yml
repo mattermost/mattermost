@@ -50,6 +50,11 @@ on:
         required: false
         type: number
         default: 1
+      runner:
+        description: "GitHub-hosted runner label (default: ubuntu-latest-8-cores)"
+        required: false
+        type: string
+        default: "ubuntu-latest-8-cores"
 
 permissions:
   id-token: write
@@ -58,7 +63,7 @@ permissions:
 jobs:
   test:
     name: ${{ inputs.name }}
-    runs-on: ubuntu-latest-8-cores
+    runs-on: ${{ inputs.runner }}
     continue-on-error: ${{ inputs.allow-failure }} # Used to avoid blocking PRs in case of flakiness
     env:
       COMPOSE_PROJECT_NAME: ghactions
