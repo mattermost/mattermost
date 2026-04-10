@@ -1187,7 +1187,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		syncedUserOnB := &model.User{
 			Email:    model.NewId() + "@example.com",
 			Username: originalUser.Username + "_" + clusterB.Name, // Munged username
-			Password: "password",
+			Password: model.NewTestPassword(),
 			RemoteId: &clusterB.RemoteId, // This would be A's cluster ID on the actual B server
 			UpdateAt: model.GetMillis(),
 		}

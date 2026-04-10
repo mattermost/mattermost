@@ -132,29 +132,35 @@ func TestRemoteClusterInviteEncryption(t *testing.T) {
 		badDecrypt bool
 		password   string
 		invite     RemoteClusterInvite
+		skipFIPS   bool
 	}{
-		{name: "empty password", badDecrypt: false, password: "", invite: makeInvite("https://example.com:8065")},
+		{name: "empty password", badDecrypt: false, password: "", invite: makeInvite("https://example.com:8065"), skipFIPS: true},
 		{name: "good password", badDecrypt: false, password: "Ultra secret password!", invite: makeInvite("https://example.com:8065")},
 		{name: "bad decrypt", badDecrypt: true, password: "correct horse battery staple", invite: makeInvite("https://example.com:8065")},
 	}
 
 	for _, tt := range testData {
-		encrypted, err := tt.invite.Encrypt(tt.password)
-		require.NoError(t, err)
-
-		invite := RemoteClusterInvite{}
-		if tt.badDecrypt {
-			buf := make([]byte, len(encrypted))
-			_, err = io.ReadFull(rand.Reader, buf)
-			assert.NoError(t, err)
-
-			err = invite.Decrypt(buf, tt.password)
-			require.Error(t, err)
-		} else {
-			err = invite.Decrypt(encrypted, tt.password)
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.skipFIPS && FIPSEnabled {
+				t.Skip("skipping under FIPS: encryption requires keys >= 14 bytes")
+			}
+			encrypted, err := tt.invite.Encrypt(tt.password)
 			require.NoError(t, err)
-			assert.Equal(t, tt.invite, invite)
-		}
+
+			invite := RemoteClusterInvite{}
+			if tt.badDecrypt {
+				buf := make([]byte, len(encrypted))
+				_, err = io.ReadFull(rand.Reader, buf)
+				assert.NoError(t, err)
+
+				err = invite.Decrypt(buf, tt.password)
+				require.Error(t, err)
+			} else {
+				err = invite.Decrypt(encrypted, tt.password)
+				require.NoError(t, err)
+				assert.Equal(t, tt.invite, invite)
+			}
+		})
 	}
 }
 
@@ -168,7 +174,7 @@ func TestRemoteClusterInviteBackwardCompatibility(t *testing.T) {
 		Version:        2, // Old version using scrypt
 	}
 
-	password := "test password"
+	password := NewTestPassword()
 
 	// Encrypt with old method (scrypt)
 	encrypted, err := oldInvite.Encrypt(password)
