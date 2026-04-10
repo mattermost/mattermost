@@ -462,6 +462,206 @@ func TestChannelMentionsBroadcastHook(t *testing.T) {
 	})
 }
 
+func TestPermalinkBroadcastHook_AbacFileStripping(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	hook := &permalinkBroadcastHook{}
+
+	userID := model.NewId()
+	postChannelID := model.NewId()
+	refChannelID := model.NewId()
+
+	previewChannel := &model.Channel{Id: refChannelID, Name: "ref-channel", Type: model.ChannelTypeOpen}
+
+	// makeRefPost builds a PreviewPost with optional file attachments.
+	makeRefPost := func(fileIDs []string, files []*model.FileInfo) *model.PreviewPost {
+		refPost := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: refChannelID,
+			FileIds:   fileIDs,
+			Metadata:  &model.PostMetadata{Files: files},
+		}
+		return &model.PreviewPost{
+			PostID: refPost.Id,
+			Post:   refPost,
+		}
+	}
+
+	// makeOuterPostJSON creates a clean outer post JSON to seed the WS event.
+	makeOuterPostJSON := func(t *testing.T) string {
+		t.Helper()
+		outerPost := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: postChannelID,
+			Metadata:  &model.PostMetadata{},
+		}
+		postJSON, err := outerPost.ToJSON()
+		require.NoError(t, err)
+		return postJSON
+	}
+
+	makeMessage := func(postJSON string) *platform.HookedWebSocketEvent {
+		event := model.NewWebSocketEvent(model.WebsocketEventPosted, "", postChannelID, "", nil, "")
+		event.Add("post", postJSON)
+		return platform.MakeHookedWebSocketEvent(event)
+	}
+
+	makeWebConn := func(t *testing.T, allowed bool) *platform.WebConn {
+		t.Helper()
+		mockSuite := &platform_mocks.SuiteIFace{}
+		mockSuite.On("HasPermissionToReadChannel", mock.Anything, userID, previewChannel).Return(true, true)
+		mockSuite.On("HasPermissionToFileAction", mock.Anything, userID, mock.AnythingOfType("string"), refChannelID, model.AccessControlPolicyActionDownloadFileAttachment).Return(allowed)
+		mockSuite.On("MakeAuditRecord", mock.Anything, mock.Anything, mock.Anything).Return(&model.AuditRecord{})
+		mockSuite.On("LogAuditRec", mock.Anything, mock.Anything, mock.Anything).Return()
+		wc := &platform.WebConn{
+			UserId:   userID,
+			Platform: &platform.PlatformService{},
+			Suite:    mockSuite,
+		}
+		session := &model.Session{UserId: userID, Roles: model.SystemUserRoleId}
+		wc.SetSession(session)
+		return wc
+	}
+
+	// makeWebConnNoFileCheck builds a webConn whose mock does NOT expect HasPermissionToFileAction.
+	makeWebConnNoFileCheck := func(t *testing.T) *platform.WebConn {
+		t.Helper()
+		mockSuite := &platform_mocks.SuiteIFace{}
+		mockSuite.On("HasPermissionToReadChannel", mock.Anything, userID, previewChannel).Return(true, true)
+		mockSuite.On("MakeAuditRecord", mock.Anything, mock.Anything, mock.Anything).Return(&model.AuditRecord{})
+		mockSuite.On("LogAuditRec", mock.Anything, mock.Anything, mock.Anything).Return()
+		wc := &platform.WebConn{
+			UserId:   userID,
+			Platform: &platform.PlatformService{},
+			Suite:    mockSuite,
+		}
+		session := &model.Session{UserId: userID, Roles: model.SystemUserRoleId}
+		wc.SetSession(session)
+		return wc
+	}
+
+	extractPost := func(t *testing.T, msg *platform.HookedWebSocketEvent) model.Post {
+		t.Helper()
+		gotJSON, ok := msg.Get("post").(string)
+		require.True(t, ok)
+		var gotPost model.Post
+		err := json.Unmarshal([]byte(gotJSON), &gotPost)
+		require.NoError(t, err)
+		return gotPost
+	}
+
+	t.Run("files stripped from embed when user denied download", func(t *testing.T) {
+		postJSON := makeOuterPostJSON(t)
+		msg := makeMessage(postJSON)
+		wc := makeWebConn(t, false)
+
+		fileID := model.NewId()
+		previewPost := makeRefPost(
+			model.StringArray{fileID},
+			[]*model.FileInfo{{Id: fileID, Name: "photo.png", Extension: "png"}},
+		)
+		// Save the original Post pointer to verify the hook does not replace it.
+		origPostPtr := previewPost.Post
+
+		err := hook.Process(msg, wc, map[string]any{
+			"preview_channel":          previewChannel,
+			"permalink_previewed_post": previewPost,
+			"preview_prop":             previewPost.PostID,
+		})
+		require.NoError(t, err)
+
+		gotPost := extractPost(t, msg)
+		require.Len(t, gotPost.Metadata.Embeds, 1)
+		assert.Equal(t, model.PostEmbedPermalink, gotPost.Metadata.Embeds[0].Type)
+
+		// The embed's data is serialized/deserialized as JSON — inspect via raw JSON.
+		gotJSON, _ := msg.Get("post").(string)
+		assert.NotContains(t, gotJSON, fileID, "file ID should be stripped from embed")
+		assert.Contains(t, gotJSON, `"redacted_file_count":1`, "redacted count should reflect the stripped file")
+
+		// The hook creates a previewCopy with a cloned Post; the original PreviewPost.Post
+		// pointer must not be swapped out.
+		assert.Same(t, origPostPtr, previewPost.Post, "original PreviewPost.Post pointer must not be replaced")
+	})
+
+	t.Run("files preserved in embed when user allowed download", func(t *testing.T) {
+		postJSON := makeOuterPostJSON(t)
+		msg := makeMessage(postJSON)
+		wc := makeWebConn(t, true)
+
+		fileID := model.NewId()
+		previewPost := makeRefPost(
+			model.StringArray{fileID},
+			[]*model.FileInfo{{Id: fileID, Name: "photo.png", Extension: "png"}},
+		)
+
+		err := hook.Process(msg, wc, map[string]any{
+			"preview_channel":          previewChannel,
+			"permalink_previewed_post": previewPost,
+			"preview_prop":             previewPost.PostID,
+		})
+		require.NoError(t, err)
+
+		gotPost := extractPost(t, msg)
+		require.Len(t, gotPost.Metadata.Embeds, 1)
+
+		gotJSON, _ := msg.Get("post").(string)
+		assert.Contains(t, gotJSON, fileID, "file ID should be present in the embed")
+		assert.NotContains(t, gotJSON, `"redacted_file_count"`, "no redaction should occur")
+	})
+
+	t.Run("files stripped when FileIds non-empty but Metadata.Files already nil", func(t *testing.T) {
+		postJSON := makeOuterPostJSON(t)
+		msg := makeMessage(postJSON)
+		wc := makeWebConn(t, false)
+
+		fileID := model.NewId()
+		// FileIds set but Metadata.Files nil — simulates upstream stripping.
+		previewPost := makeRefPost(
+			model.StringArray{fileID},
+			nil,
+		)
+
+		err := hook.Process(msg, wc, map[string]any{
+			"preview_channel":          previewChannel,
+			"permalink_previewed_post": previewPost,
+			"preview_prop":             previewPost.PostID,
+		})
+		require.NoError(t, err)
+
+		gotPost := extractPost(t, msg)
+		require.Len(t, gotPost.Metadata.Embeds, 1)
+
+		gotJSON, _ := msg.Get("post").(string)
+		assert.NotContains(t, gotJSON, fileID, "file ID should be cleared")
+		// RedactedFileCount is 0 because Files was nil (len(nil) == 0).
+		// With JSON omitempty, a zero value is omitted from the output.
+		assert.NotContains(t, gotJSON, `"redacted_file_count"`, "zero redacted count is omitted by omitempty")
+	})
+
+	t.Run("no file stripping when embed has no files", func(t *testing.T) {
+		postJSON := makeOuterPostJSON(t)
+		msg := makeMessage(postJSON)
+		// Use webConn that does NOT expect HasPermissionToFileAction to be called.
+		wc := makeWebConnNoFileCheck(t)
+
+		previewPost := makeRefPost(model.StringArray{}, nil)
+
+		err := hook.Process(msg, wc, map[string]any{
+			"preview_channel":          previewChannel,
+			"permalink_previewed_post": previewPost,
+			"preview_prop":             previewPost.PostID,
+		})
+		require.NoError(t, err)
+
+		gotPost := extractPost(t, msg)
+		require.Len(t, gotPost.Metadata.Embeds, 1)
+
+		gotJSON, _ := msg.Get("post").(string)
+		assert.NotContains(t, gotJSON, `"redacted_file_count"`, "no redaction metadata should be present")
+	})
+}
+
 func TestAbacFilesBroadcastHook_Process(t *testing.T) {
 	mainHelper.Parallel(t)
 	hook := &abacFilesBroadcastHook{}

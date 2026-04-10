@@ -19,8 +19,8 @@ type PostMetadata struct {
 	// Files holds information about the file attachments on the post.
 	Files []*FileInfo `json:"files,omitempty"`
 
-	// RedactedFileCount is the number of file attachments that were removed from this post
-	// because the requesting user lacks permission to access them
+	// RedactedFileCount is set when file attachments are stripped by an ABAC permission policy.
+	// Clients use this to render a placeholder instead of the file.
 	RedactedFileCount int `json:"redacted_file_count,omitempty"`
 
 	// Images holds the dimensions of all external images in the post as a map of the image URL to its dimensions.

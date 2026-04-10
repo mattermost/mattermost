@@ -360,8 +360,8 @@ func (a *App) SanitizePostMetadataForUser(rctx request.CTX, post *model.Post, us
 	// sanitizeChannelMentionsForUser returns immediately if no channel mentions exist
 	post = a.sanitizeChannelMentionsForUser(rctx, post, userID)
 
-	// Strip file attachments if user lacks ABAC download permission
-	if post.Metadata != nil && len(post.Metadata.Files) > 0 {
+	// Strip file attachments denied by ABAC — covers both the post and permalink embeds.
+	if post.Metadata != nil {
 		a.sanitizeFileAttachmentsForUser(rctx, post, userID)
 	}
 
@@ -431,15 +431,15 @@ func (a *App) sanitizeChannelMentionsForUser(rctx request.CTX, post *model.Post,
 	return post
 }
 
-// sanitizeFileAttachmentsForUser strips file metadata from the post if the user is denied
-// the download_file_attachment action by ABAC permission policies.
+// sanitizeFileAttachmentsForUser strips file metadata from the post and from any embedded
+// permalink preview posts if the user is denied the download_file_attachment action.
 func (a *App) sanitizeFileAttachmentsForUser(rctx request.CTX, post *model.Post, userID string) {
-	acs := a.Srv().Channels().AccessControl
-	if acs == nil {
+	if a.Srv().Channels().AccessControl == nil {
 		return
 	}
 
-	if !*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl {
+	cfg := a.Config().AccessControlSettings.EnableAttributeBasedAccessControl
+	if cfg == nil || !*cfg {
 		return
 	}
 
@@ -458,16 +458,39 @@ func (a *App) sanitizeFileAttachmentsForUser(rctx request.CTX, post *model.Post,
 		return
 	}
 
-	if !a.HasPermissionToFileAction(rctx, userID, user.Roles, post.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
-		rctx.Logger().Debug("Stripping file attachments from post due to ABAC permission policy",
-			mlog.String("user_id", userID),
-			mlog.String("post_id", post.Id),
-			mlog.String("channel_id", post.ChannelId),
-			mlog.Int("files_removed", len(post.Metadata.Files)),
-		)
-		post.Metadata.RedactedFileCount = len(post.Metadata.Files)
-		post.Metadata.Files = nil
-		post.FileIds = model.StringArray{}
+	if len(post.Metadata.Files) > 0 {
+		if !a.HasPermissionToFileAction(rctx, userID, user.Roles, post.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
+			rctx.Logger().Debug("Stripping file attachments from post due to ABAC permission policy",
+				mlog.String("user_id", userID),
+				mlog.String("post_id", post.Id),
+				mlog.String("channel_id", post.ChannelId),
+				mlog.Int("files_removed", len(post.Metadata.Files)),
+			)
+			post.Metadata.RedactedFileCount = len(post.Metadata.Files)
+			post.Metadata.Files = nil
+			post.FileIds = model.StringArray{}
+		}
+	}
+
+	// Also strip files from permalink-embedded posts. embed.Data is *model.PreviewPost;
+	// each referenced post is checked against its own channel.
+	for _, embed := range post.Metadata.Embeds {
+		if embed.Type != model.PostEmbedPermalink {
+			continue
+		}
+		previewPost, ok := embed.Data.(*model.PreviewPost)
+		if !ok || previewPost == nil || previewPost.Post == nil {
+			continue
+		}
+		referencedPost := previewPost.Post
+		if referencedPost.Metadata == nil || len(referencedPost.Metadata.Files) == 0 {
+			continue
+		}
+		if !a.HasPermissionToFileAction(rctx, userID, user.Roles, referencedPost.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
+			referencedPost.Metadata.RedactedFileCount = len(referencedPost.Metadata.Files)
+			referencedPost.Metadata.Files = nil
+			referencedPost.FileIds = model.StringArray{}
+		}
 	}
 }
 

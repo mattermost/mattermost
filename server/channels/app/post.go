@@ -1040,8 +1040,8 @@ func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, m
 	return nil
 }
 
-// setupBroadcastHookForAbacFiles registers a per-recipient broadcast hook that strips file
-// metadata from the post for users denied the download_file_attachment action by ABAC policies.
+// setupBroadcastHookForAbacFiles registers abacFilesBroadcastHook when ABAC is active and
+// the post has file attachments. Skipped for burn-on-read posts (handled by their own hook).
 func (a *App) setupBroadcastHookForAbacFiles(post *model.Post, message *model.WebSocketEvent) {
 	if a.Srv().Channels().AccessControl == nil {
 		return
@@ -1052,16 +1052,11 @@ func (a *App) setupBroadcastHookForAbacFiles(post *model.Post, message *model.We
 		return
 	}
 
-	// Burn-on-read posts handle file visibility through their own broadcast hook.
-	// The burn_on_read hook already clears FileIds at the publishWebsocketEventForPost
-	// entry point; registering the ABAC hook would interact incorrectly with that path.
 	if post.Type == model.PostTypeBurnOnRead {
 		return
 	}
 
-	// Derive file count from FileIds or Metadata.Files — whichever is populated.
-	// The serialized post JSON always contains Metadata.Files when PreparePostForClient
-	// has been called, so we use that as the authoritative source for the hook payload.
+	// Prefer FileIds; fall back to Metadata.Files when PreparePostForClient has been called.
 	fileCount := len(post.FileIds)
 	if fileCount == 0 && post.Metadata != nil {
 		fileCount = len(post.Metadata.Files)
@@ -3554,6 +3549,12 @@ func (a *App) RevealPost(rctx request.CTX, post *model.Post, userID string, conn
 		IncludePriority: true,
 		RetainContent:   true,
 	})
+
+	// Apply ABAC file sanitization after PreparePostForClient populates Metadata.Files.
+	revealedPost, _, err = a.SanitizePostMetadataForUser(rctx, revealedPost, userID)
+	if err != nil {
+		return nil, err
+	}
 
 	// Publish websocket event if this is the first time revealing
 	if isFirstReveal {

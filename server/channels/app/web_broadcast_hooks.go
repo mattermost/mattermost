@@ -197,8 +197,29 @@ func (h *permalinkBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 		return errors.Wrap(err, "Invalid preview_prop value passed to permalinkBroadcastHook")
 	}
 
+	// Strip files from the referenced post for recipients denied download access.
+	// Clone to avoid mutating the shared hook arg across concurrent recipients.
+	embedData := permalinkPreviewedPost
+	if permalinkPreviewedPost.Post != nil &&
+		(len(permalinkPreviewedPost.Post.FileIds) > 0 ||
+			(permalinkPreviewedPost.Post.Metadata != nil && len(permalinkPreviewedPost.Post.Metadata.Files) > 0)) {
+		session := webConn.GetSession()
+		if session != nil {
+			rctxWithSession := rctx.WithSession(session)
+			if !webConn.Suite.HasPermissionToFileAction(rctxWithSession, webConn.UserId, session.Roles, permalinkPreviewedPost.Post.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
+				postCopy := permalinkPreviewedPost.Post.Clone()
+				postCopy.Metadata.RedactedFileCount = len(postCopy.Metadata.Files)
+				postCopy.Metadata.Files = nil
+				postCopy.FileIds = model.StringArray{}
+				previewCopy := *permalinkPreviewedPost
+				previewCopy.Post = postCopy
+				embedData = &previewCopy
+			}
+		}
+	}
+
 	post.AddProp(model.PostPropsPreviewedPost, previewProp)
-	post.Metadata.Embeds = append(post.Metadata.Embeds, &model.PostEmbed{Type: model.PostEmbedPermalink, Data: permalinkPreviewedPost})
+	post.Metadata.Embeds = append(post.Metadata.Embeds, &model.PostEmbed{Type: model.PostEmbedPermalink, Data: embedData})
 
 	// Marshal and write back
 	updatedPostJSON, err := post.ToJSON()
@@ -324,6 +345,8 @@ func (h *burnOnReadBroadcastHook) Process(msg *platform.HookedWebSocketEvent, we
 	post.Metadata.Embeds = []*model.PostEmbed{}
 	post.Metadata.Emojis = []*model.Emoji{}
 	post.Metadata.Reactions = []*model.Reaction{}
+	post.Metadata.Files = nil
+	post.FileIds = model.StringArray{}
 	postJSON, err = post.ToJSON()
 	if err != nil {
 		return errors.Wrap(err, "Invalid post value passed to burnOnReadBroadcastHook")
@@ -386,14 +409,9 @@ func useAbacFilesHook(message *model.WebSocketEvent, channelID string, fileCount
 	})
 }
 
-// Process strips file metadata from the post for users who are denied the download_file_attachment
-// action by ABAC permission policies, and sets the redacted file count so the client can show a
-// placeholder. For users with permission, the post is left unchanged (files are already in it).
-//
-// Security contract: once the permission check determines the user is denied, all subsequent
-// errors strip files defensively rather than leaving them intact. Only errors that occur before
-// the permission check (arg parsing, missing session) allow pass-through, since no security
-// decision has been made at that point.
+// Process strips file metadata for recipients denied the download_file_attachment action.
+// Once a deny decision is made, all subsequent errors strip defensively (fail closed).
+// Errors before the permission check allow pass-through (no decision made yet).
 func (h *abacFilesBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
 	channelID, err := getTypedArg[string](args, "channel_id")
 	if err != nil {
@@ -405,32 +423,24 @@ func (h *abacFilesBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 		return errors.Wrap(err, "Invalid file_count value passed to abacFilesBroadcastHook")
 	}
 
-	// Get the user's session from the WebSocket connection.
-	// The session must be attached to the request context because the ABAC permission policy
-	// evaluator (resolveSystemRole) derives the user's role from rctx.Session(), not from
-	// the Subject.Role field we pass to HasPermissionToFileAction.
+	// The ABAC evaluator resolves role from rctx.Session(), not Subject.Role.
 	session := webConn.GetSession()
 	if session == nil {
-		// No session means we can't evaluate — allow by default to avoid blocking legitimate users.
 		return nil
 	}
 
 	rctx := request.EmptyContext(webConn.Platform.Log()).WithSession(session)
 
 	if webConn.Suite.HasPermissionToFileAction(rctx, webConn.UserId, session.Roles, channelID, model.AccessControlPolicyActionDownloadFileAttachment) {
-		// User is allowed — post already contains files, nothing to do.
 		return nil
 	}
 
-	// User is denied. From this point, strip files defensively on any error rather than
-	// returning the error (which would leave the original event with full file metadata intact).
 	post, postErr := getPostFromMessage(msg)
 	if postErr != nil {
-		mlog.Warn("abacFilesBroadcastHook: failed to get post from message, stripping files defensively",
+		mlog.Warn("abacFilesBroadcastHook: failed to deserialise post, stripping defensively",
 			mlog.String("user_id", webConn.UserId),
 			mlog.Err(postErr),
 		)
-		// Cannot reconstruct post — deny by stripping with a count derived from registered args.
 		return h.stripFilesFromMessage(msg, fileCount)
 	}
 
@@ -438,16 +448,12 @@ func (h *abacFilesBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 		post.Metadata = &model.PostMetadata{}
 	}
 
-	// Use the actual file count from the deserialized post; fall back to the registered arg.
-	// Note: Metadata.Images holds external/inline image dimensions, not file attachment data,
-	// so it is intentionally left untouched.
+	// Use live count; fall back to registered arg if a prior hook already cleared Files.
 	actualCount := len(post.Metadata.Files)
 	if actualCount == 0 {
 		actualCount = len(post.FileIds)
 	}
 	if actualCount == 0 {
-		// Hook was registered with fileCount > 0; if the post now has no files it may have been
-		// modified by a prior hook. Use the registered count as the authoritative value.
 		actualCount = fileCount
 	}
 
@@ -457,7 +463,7 @@ func (h *abacFilesBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 
 	updatedPostJSON, jsonErr := post.ToJSON()
 	if jsonErr != nil {
-		mlog.Warn("abacFilesBroadcastHook: failed to marshal post, stripping files defensively",
+		mlog.Warn("abacFilesBroadcastHook: failed to marshal post, stripping defensively",
 			mlog.String("user_id", webConn.UserId),
 			mlog.Err(jsonErr),
 		)
@@ -468,14 +474,10 @@ func (h *abacFilesBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 	return nil
 }
 
-// stripFilesFromMessage is a best-effort defensive strip used when the hook cannot fully
-// reconstruct the post JSON. It replaces the post data in the message with a minimal
-// representation that includes only the redacted file count, preventing file metadata leakage.
+// stripFilesFromMessage is the fallback strip path when the post cannot be fully reconstructed.
 func (h *abacFilesBroadcastHook) stripFilesFromMessage(msg *platform.HookedWebSocketEvent, redactedCount int) error {
 	post, err := getPostFromMessage(msg)
 	if err != nil {
-		// If we truly cannot read the post at all, we must reject the event entirely
-		// to avoid sending unknown content to a denied user.
 		msg.Event().Reject()
 		return nil
 	}
