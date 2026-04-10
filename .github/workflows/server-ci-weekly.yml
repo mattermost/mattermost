@@ -41,7 +41,6 @@ jobs:
       logsartifact: postgres-binary-server-test-logs
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: false
-      fullyparallel: false
 
   test-postgres-normal-fips:
     name: Postgres FIPS (shard ${{ matrix.shard }})
