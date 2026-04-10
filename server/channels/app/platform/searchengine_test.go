@@ -75,9 +75,9 @@ func TestRunSearchEngineWatcher(t *testing.T) {
 		engineMock.On("IsEnabled").Return(true).Maybe()
 
 		// Start() fails twice, then succeeds on the third call.
-		var startCalls int32
+		var startCalls atomic.Int32
 		engineMock.On("Start", mock.Anything).Return(func(context.Context) *model.AppError {
-			n := atomic.AddInt32(&startCalls, 1)
+			n := startCalls.Add(1)
 			if n <= 2 {
 				return model.NewAppError("test", "start_failed", nil, "", 500)
 			}
@@ -87,21 +87,21 @@ func TestRunSearchEngineWatcher(t *testing.T) {
 		// After Start() succeeds, IsActive returns true so the watcher
 		// transitions to the health phase.
 		engineMock.On("IsActive").Return(func() bool {
-			return atomic.LoadInt32(&startCalls) > 2
+			return startCalls.Load() > 2
 		})
 
 		// Track whether HealthCheck is called — that confirms the
 		// watcher entered the health phase.
-		var healthChecked int32
+		var healthChecked atomic.Int32
 		engineMock.On("HealthCheck", mock.Anything).Run(func(mock.Arguments) {
-			atomic.StoreInt32(&healthChecked, 1)
+			healthChecked.Store(1)
 		}).Return(nil).Maybe()
 
 		w.start()
 		t.Cleanup(w.stop)
 
 		require.Eventually(t, func() bool {
-			return atomic.LoadInt32(&healthChecked) == 1
+			return healthChecked.Load() == 1
 		}, 2*time.Second, 5*time.Millisecond,
 			"watcher should have transitioned to health phase after Start succeeds")
 	})
@@ -150,12 +150,12 @@ func TestRunSearchEngineWatcher(t *testing.T) {
 		engineMock.On("IsActive").Return(false).Maybe()
 
 		// Engine starts enabled, then becomes disabled after first Start() attempt.
-		var startCalls int32
+		var startCalls atomic.Int32
 		engineMock.On("IsEnabled").Return(func() bool {
-			return atomic.LoadInt32(&startCalls) == 0
+			return startCalls.Load() == 0
 		})
 		engineMock.On("Start", mock.Anything).Return(func(context.Context) *model.AppError {
-			atomic.AddInt32(&startCalls, 1)
+			startCalls.Add(1)
 			return model.NewAppError("test", "start_failed", nil, "", 500)
 		}).Maybe()
 
@@ -189,15 +189,15 @@ func TestRunSearchEngineWatcher(t *testing.T) {
 		w, engineMock := setupWatcherTest(t)
 
 		// Start disabled, then enable after a notify.
-		var enabled int32
+		var enabled atomic.Int32
 		engineMock.On("IsEnabled").Return(func() bool {
-			return atomic.LoadInt32(&enabled) == 1
+			return enabled.Load() == 1
 		})
 		engineMock.On("IsActive").Return(false).Maybe()
 
-		var started int32
+		var started atomic.Int32
 		engineMock.On("Start", mock.Anything).Return(func(context.Context) *model.AppError {
-			atomic.StoreInt32(&started, 1)
+			started.Store(1)
 			return model.NewAppError("test", "start_failed", nil, "", 500)
 		}).Maybe()
 
@@ -206,15 +206,15 @@ func TestRunSearchEngineWatcher(t *testing.T) {
 
 		// Watcher should be parked (engine disabled).
 		time.Sleep(50 * time.Millisecond)
-		assert.Equal(t, int32(0), atomic.LoadInt32(&started), "Start should not be called when disabled")
+		assert.Equal(t, int32(0), started.Load(), "Start should not be called when disabled")
 
 		// Enable and notify.
-		atomic.StoreInt32(&enabled, 1)
+		enabled.Store(1)
 		w.reevaluate()
 
 		// Watcher should wake up and try Start().
 		require.Eventually(t, func() bool {
-			return atomic.LoadInt32(&started) == 1
+			return started.Load() == 1
 		}, 2*time.Second, 5*time.Millisecond,
 			"watcher should have called Start after notify")
 	})
@@ -228,9 +228,9 @@ func TestStartIfInactive(t *testing.T) {
 		engineMock.On("IsActive").Return(false).Maybe()
 
 		// Start() succeeds but engine stays inactive (no license).
-		var startCalls int32
+		var startCalls atomic.Int32
 		engineMock.On("Start", mock.Anything).Run(func(mock.Arguments) {
-			atomic.AddInt32(&startCalls, 1)
+			startCalls.Add(1)
 		}).Return(nil)
 
 		// No license is set — the default for the test PlatformService.
@@ -240,12 +240,12 @@ func TestStartIfInactive(t *testing.T) {
 
 		// Wait for the first Start() call.
 		require.Eventually(t, func() bool {
-			return atomic.LoadInt32(&startCalls) >= 1
+			return startCalls.Load() >= 1
 		}, 2*time.Second, 5*time.Millisecond)
 
 		// The watcher should park — no further Start() calls after the first one.
 		time.Sleep(100 * time.Millisecond)
-		assert.Equal(t, int32(1), atomic.LoadInt32(&startCalls),
+		assert.Equal(t, int32(1), startCalls.Load(),
 			"watcher should park after one Start() call when there is no ES license")
 		engineMock.AssertNotCalled(t, "HealthCheck", mock.Anything)
 	})
@@ -256,9 +256,9 @@ func TestStartIfInactive(t *testing.T) {
 		engineMock.On("IsEnabled").Return(true).Maybe()
 		engineMock.On("IsActive").Return(false).Maybe()
 
-		var startCalls int32
+		var startCalls atomic.Int32
 		engineMock.On("Start", mock.Anything).Run(func(mock.Arguments) {
-			atomic.AddInt32(&startCalls, 1)
+			startCalls.Add(1)
 		}).Return(nil)
 
 		// Set a license with Elasticsearch feature enabled.
@@ -269,7 +269,7 @@ func TestStartIfInactive(t *testing.T) {
 
 		// The watcher should keep retrying because the license is present.
 		require.Eventually(t, func() bool {
-			return atomic.LoadInt32(&startCalls) >= 3
+			return startCalls.Load() >= 3
 		}, 2*time.Second, 5*time.Millisecond,
 			"watcher should retry Start when it returns nil but engine is not active (with license)")
 		engineMock.AssertNotCalled(t, "HealthCheck", mock.Anything)
@@ -287,9 +287,9 @@ func TestWatcherHealthPhase(t *testing.T) {
 		// HealthCheck alternates: fail, ok, fail, ok...
 		// The consecutive failure counter resets on each success, so
 		// the threshold is never reached and Stop() is never called.
-		var healthCalls int32
+		var healthCalls atomic.Int32
 		engineMock.On("HealthCheck", mock.Anything).Return(func(_ request.CTX) *model.AppError {
-			n := atomic.AddInt32(&healthCalls, 1)
+			n := healthCalls.Add(1)
 			if n%2 == 1 { // odd calls fail
 				return model.NewAppError("test", "hc_fail", nil, "", 502)
 			}
@@ -300,7 +300,7 @@ func TestWatcherHealthPhase(t *testing.T) {
 		t.Cleanup(w.stop)
 
 		require.Eventually(t, func() bool {
-			return atomic.LoadInt32(&healthCalls) >= 4
+			return healthCalls.Load() >= 4
 		}, 2*time.Second, 5*time.Millisecond)
 
 		// Stop should never have been called — failures never reached threshold.
@@ -313,9 +313,9 @@ func TestWatcherHealthPhase(t *testing.T) {
 		engineMock.On("IsEnabled").Return(true).Maybe()
 
 		// Engine starts active; becomes inactive after Stop().
-		var stopped int32
+		var stopped atomic.Int32
 		engineMock.On("IsActive").Return(func() bool {
-			return atomic.LoadInt32(&stopped) == 0
+			return stopped.Load() == 0
 		})
 
 		// HealthCheck always fails — triggers Stop after 3 consecutive failures.
@@ -327,14 +327,14 @@ func TestWatcherHealthPhase(t *testing.T) {
 		// listener). The watcher must tolerate this and still transition
 		// to the retry phase.
 		engineMock.On("Stop").Return(func() *model.AppError {
-			atomic.StoreInt32(&stopped, 1)
+			stopped.Store(1)
 			return model.NewAppError("test", "already_stopped", nil, "", 500)
 		})
 
 		// After transitioning to retry phase, Start() succeeds.
-		var started int32
+		var started atomic.Int32
 		engineMock.On("Start", mock.Anything).Return(func(context.Context) *model.AppError {
-			atomic.StoreInt32(&started, 1)
+			started.Store(1)
 			return nil
 		}).Maybe()
 
@@ -343,7 +343,7 @@ func TestWatcherHealthPhase(t *testing.T) {
 
 		// Watcher should have called Stop() then retried Start().
 		require.Eventually(t, func() bool {
-			return atomic.LoadInt32(&started) == 1
+			return started.Load() == 1
 		}, 2*time.Second, 5*time.Millisecond,
 			"watcher should have called Stop then retried Start")
 	})
@@ -437,9 +437,9 @@ func TestStopSearchEngineWatcher(t *testing.T) {
 		// First watcher: Start() blocks forever.
 		blocked := make(chan struct{})
 		enteredStart := make(chan struct{}, 1)
-		var startCalls int32
+		var startCalls atomic.Int32
 		engineMock.On("Start", mock.Anything).Return(func(context.Context) *model.AppError {
-			n := atomic.AddInt32(&startCalls, 1)
+			n := startCalls.Add(1)
 			if n == 1 {
 				enteredStart <- struct{}{}
 				<-blocked
@@ -463,7 +463,7 @@ func TestStopSearchEngineWatcher(t *testing.T) {
 
 		// New watcher should call Start() (the second call).
 		require.Eventually(t, func() bool {
-			return atomic.LoadInt32(&startCalls) >= 2
+			return startCalls.Load() >= 2
 		}, 2*time.Second, 5*time.Millisecond,
 			"new watcher should have called Start")
 
@@ -486,9 +486,9 @@ func TestNotifySearchEngineWatcher(t *testing.T) {
 		// Use a long retry so the watcher is in a backoff wait.
 		searchEngineRetryInitial = 10 * time.Second
 
-		var startCalls int32
+		var startCalls atomic.Int32
 		engineMock.On("Start", mock.Anything).Return(func(context.Context) *model.AppError {
-			atomic.AddInt32(&startCalls, 1)
+			startCalls.Add(1)
 			return model.NewAppError("test", "start_failed", nil, "", 500)
 		})
 
@@ -497,16 +497,16 @@ func TestNotifySearchEngineWatcher(t *testing.T) {
 
 		// Wait for first Start() call.
 		require.Eventually(t, func() bool {
-			return atomic.LoadInt32(&startCalls) >= 1
+			return startCalls.Load() >= 1
 		}, 2*time.Second, 5*time.Millisecond)
 
 		// Watcher is now in backoff (10s). Send notify to wake it.
-		before := atomic.LoadInt32(&startCalls)
+		before := startCalls.Load()
 		w.reevaluate()
 
 		// Start should be called again quickly (not after 10s).
 		require.Eventually(t, func() bool {
-			return atomic.LoadInt32(&startCalls) > before
+			return startCalls.Load() > before
 		}, 1*time.Second, 5*time.Millisecond,
 			"notify should have triggered an immediate Start retry")
 	})
