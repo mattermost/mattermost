@@ -230,5 +230,5 @@ require (
 // https://github.com/advancedlogic/GoOse/pull/77
 replace github.com/olekukonko/tablewriter => github.com/olekukonko/tablewriter v0.0.5
 
-// See MM-66167 for more details.
-replace github.com/vmihailenco/msgpack/v5 => github.com/mattermost/msgpack/v5 v5.0.0-20260120151306-2f9c67d7e57f
+// See MM-66167, MM-68222 for more details.
+replace github.com/vmihailenco/msgpack/v5 => github.com/mattermost/msgpack/v5 v5.0.0-20260408165622-cadfad56a815
