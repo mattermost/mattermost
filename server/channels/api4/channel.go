@@ -2272,6 +2272,7 @@ func setChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	enc := json.NewEncoder(w)
 	flusher, _ := w.(http.Flusher)
 	streamingStarted := false
+	var totalAdded, totalRemoved, totalErrors int
 
 	appErr = c.App.SetChannelMembers(c.AppContext, channel, desiredUserIDs, c.AppContext.Session().UserId, batchSize, batchDelayMs, func(result *model.SetChannelMembersResponse) {
 		if !streamingStarted {
@@ -2287,6 +2288,9 @@ func setChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		if result.Errors == nil {
 			result.Errors = []model.SetChannelMembersError{}
 		}
+		totalAdded += len(result.Added)
+		totalRemoved += len(result.Removed)
+		totalErrors += len(result.Errors)
 		if err := enc.Encode(result); err != nil {
 			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
@@ -2294,11 +2298,24 @@ func setChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 			flusher.Flush()
 		}
 	})
+
+	model.AddEventParameterToAuditRec(auditRec, "total_added", totalAdded)
+	model.AddEventParameterToAuditRec(auditRec, "total_removed", totalRemoved)
+	model.AddEventParameterToAuditRec(auditRec, "total_errors", totalErrors)
+
 	if appErr != nil {
 		if streamingStarted {
 			// Response is already committed (NDJSON lines written), so we cannot
 			// set c.Err — the framework would try to write a JSON error into the
-			// NDJSON stream. Log the error instead.
+			// NDJSON stream. Emit a final error line so the client can detect
+			// the incomplete operation.
+			errLine := map[string]string{"error": appErr.Error()}
+			if err := enc.Encode(errLine); err != nil {
+				c.Logger.Warn("Error writing terminal error to NDJSON stream", mlog.Err(err))
+			}
+			if flusher != nil {
+				flusher.Flush()
+			}
 			c.Logger.Warn("SetChannelMembers terminated with error", mlog.Err(appErr))
 		} else {
 			c.Err = appErr

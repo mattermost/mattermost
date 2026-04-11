@@ -4228,6 +4228,7 @@ func (a *App) SetChannelMembers(rctx request.CTX, channel *model.Channel, desire
 			if appErr := a.removeUserFromChannel(rctx, userID, requestorUserID, channel); appErr != nil {
 				result.Errors = append(result.Errors, model.SetChannelMembersError{
 					UserID: userID,
+					ID:     appErr.Id,
 					Error:  appErr.Error(),
 				})
 			} else {
@@ -4260,6 +4261,7 @@ func (a *App) SetChannelMembers(rctx request.CTX, channel *model.Channel, desire
 			if _, appErr := a.AddChannelMember(rctx, userID, channel, ChannelMemberOpts{UserRequestorID: requestorUserID}); appErr != nil {
 				result.Errors = append(result.Errors, model.SetChannelMembersError{
 					UserID: userID,
+					ID:     appErr.Id,
 					Error:  appErr.Error(),
 				})
 			} else {

@@ -273,5 +273,6 @@ func (o *SetChannelMembersResponse) Auditable() map[string]any {
 
 type SetChannelMembersError struct {
 	UserID string `json:"user_id"`
+	ID     string `json:"id"`
 	Error  string `json:"error"`
 }
