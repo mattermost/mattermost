@@ -287,6 +287,7 @@ func (us SqlUserStore) Update(rctx request.CTX, user *model.User, trustedUpdateD
 	user.MfaActive = oldUser.MfaActive
 	user.MfaUsedTimestamps = oldUser.MfaUsedTimestamps
 	user.LastLogin = oldUser.LastLogin
+	user.RemoteId = oldUser.RemoteId
 
 	if !trustedUpdateData {
 		user.Roles = oldUser.Roles
@@ -697,7 +698,7 @@ func applyMultiRoleFilters(query sq.SelectBuilder, systemRoles []string, teamRol
 			case model.SystemUserRoleId:
 				// If querying for a `system_user` ensure that the user is only a system_user.
 				sqOr = append(sqOr, sq.Eq{"Users.Roles": role})
-			case model.SystemGuestRoleId, model.SystemAdminRoleId, model.SystemUserManagerRoleId, model.SystemReadOnlyAdminRoleId, model.SystemManagerRoleId:
+			case model.SystemGuestRoleId, model.SystemAdminRoleId, model.SystemUserManagerRoleId, model.SystemReadOnlyAdminRoleId, model.SystemManagerRoleId, model.SystemCustomGroupAdminRoleId, model.SharedChannelManagerRoleId:
 				// If querying for any other roles search using a wildcard.
 				sqOr = append(sqOr, sq.ILike{"Users.Roles": queryRole})
 			}
