@@ -22,6 +22,14 @@ on:
         required: false
         type: boolean
         default: false
+      elasticsearch-version:
+        required: false
+        type: string
+        default: "9.0.0"
+      test-target:
+        required: false
+        type: string
+        default: "test-server"
 
 jobs:
   test:
@@ -47,6 +55,8 @@ jobs:
           echo "${{ inputs.name }}" > server/test-name
           echo "${{ github.event.pull_request.number }}" > server/pr-number
       - name: Run docker compose
+        env:
+          ELASTICSEARCH_VERSION: ${{ inputs.elasticsearch-version }}
         run: |
           cd server/build
           docker compose --ansi never run --rm start_dependencies
@@ -59,7 +69,7 @@ jobs:
         env:
           BUILD_IMAGE: mattermostdevelopment/mattermost-build-server:${{ steps.go.outputs.GO_VERSION }}
         run: |
-          if [[ ${{ github.ref_name }} == 'master' && ${{ inputs.fullyparallel }} != true ]]; then
+          if [[ ${{ github.ref_name }} == 'master' && ${{ inputs.fullyparallel }} != true && "${{ inputs.test-target }}" == "test-server" ]]; then
             export RACE_MODE="-race"
           fi
           docker run --net ghactions_mm-test \
@@ -76,7 +86,7 @@ jobs:
             -v $PWD:/mattermost \
             -w /mattermost/server \
             $BUILD_IMAGE \
-            make test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID
+            make ${{ inputs.test-target }}$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID
       - name: Upload coverage to Codecov
         if: ${{ inputs.enablecoverage }}
         uses: codecov/codecov-action@v5
