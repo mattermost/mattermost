@@ -1,11 +1,6 @@
 ---
 name: E2E Tests (pull request)
 on:
-  pull_request:
-    types:
-      - opened
-      - synchronize
-      - reopened
   # Argo Events Trigger (automated):
   #   - Triggered by: Enterprise CI/docker-image status check (success)
   #   - Payload: { ref: "<branch>", inputs: { commit_sha: "<sha>" } }
