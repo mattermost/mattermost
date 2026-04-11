@@ -36,7 +36,10 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
     });
 
     const baseProps = {
-        actions: {updateUserPassword: jest.fn(() => Promise.resolve({data: ''}))},
+        actions: {
+            sendPasswordResetEmail: jest.fn(() => Promise.resolve({data: true})),
+            updateUserPassword: jest.fn(() => Promise.resolve({data: ''})),
+        },
         currentUserId: user.id,
         user,
         onExited: jest.fn(),
@@ -80,17 +83,25 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
         expect(screen.getByPlaceholderText(/New password/i)).toBeInTheDocument();
     });
 
-    test('should not show current password field when resetting another user password', () => {
+    test('should show reset method options when resetting another user password', () => {
         const props = {...baseProps, currentUserId: 'different_user_id'};
         renderWithContext(<ResetPasswordModal {...props}/>);
 
         expect(screen.queryByPlaceholderText(/Current password/i)).not.toBeInTheDocument();
-        expect(screen.getByPlaceholderText(/New password/i)).toBeInTheDocument();
+        expect(screen.getByText(/Choose how you'd like to reset this user's password/i)).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: /Send reset link/i})).toBeInTheDocument();
+        expect(screen.queryByPlaceholderText(/New password/i)).not.toBeInTheDocument();
     });
 
     test('should call updateUserPassword with both passwords when resetting own password', async () => {
         const updateUserPassword = jest.fn(() => Promise.resolve({data: ''}));
-        const props = {...baseProps, actions: {updateUserPassword}};
+        const props = {
+            ...baseProps,
+            actions: {
+                ...baseProps.actions,
+                updateUserPassword,
+            },
+        };
         renderWithContext(<ResetPasswordModal {...props}/>);
 
         const currentPasswordInput = screen.getByPlaceholderText(/Current password/i);
@@ -112,7 +123,13 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
 
     test('should not call updateUserPassword when the current password is not provided', async () => {
         const updateUserPassword = jest.fn(() => Promise.resolve({data: ''}));
-        const props = {...baseProps, actions: {updateUserPassword}};
+        const props = {
+            ...baseProps,
+            actions: {
+                ...baseProps.actions,
+                updateUserPassword,
+            },
+        };
         renderWithContext(<ResetPasswordModal {...props}/>);
 
         const newPasswordInput = screen.getByPlaceholderText(/New password/i);
@@ -125,14 +142,46 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
         });
     });
 
-    test('should call updateUserPassword without current password when resetting another user', async () => {
+    test('should send a password reset email by default when resetting another user', async () => {
+        const sendPasswordResetEmail = jest.fn(() => Promise.resolve({data: true}));
         const updateUserPassword = jest.fn(() => Promise.resolve({data: ''}));
-        const props = {...baseProps, currentUserId: 'different_user_id', actions: {updateUserPassword}};
+        const props = {
+            ...baseProps,
+            currentUserId: 'different_user_id',
+            actions: {
+                sendPasswordResetEmail,
+                updateUserPassword,
+            },
+        };
         renderWithContext(<ResetPasswordModal {...props}/>);
 
-        const newPasswordInput = screen.getByPlaceholderText(/New password/i);
+        await userEvent.click(screen.getByRole('button', {name: /Send reset link/i}));
+
+        await waitFor(() => {
+            expect(sendPasswordResetEmail).toHaveBeenCalledTimes(1);
+            expect(sendPasswordResetEmail).toHaveBeenCalledWith(user.email);
+        });
+        expect(updateUserPassword).not.toHaveBeenCalled();
+    });
+
+    test('should call updateUserPassword without current password when manual reset is selected for another user', async () => {
+        const updateUserPassword = jest.fn(() => Promise.resolve({data: ''}));
+        const props = {
+            ...baseProps,
+            currentUserId: 'different_user_id',
+            actions: {
+                ...baseProps.actions,
+                updateUserPassword,
+            },
+        };
+        renderWithContext(<ResetPasswordModal {...props}/>);
+
+        await userEvent.click(screen.getByRole('radio', {name: /Set password manually/i}));
+
+        const newPasswordInput = await screen.findByRole('textbox', {name: /New password/i});
+        await userEvent.clear(newPasswordInput);
         await userEvent.type(newPasswordInput, 'Password123!');
-        await userEvent.click(screen.getByRole('button', {name: /Reset/i}));
+        await userEvent.click(screen.getByRole('button', {name: /Reset password/i}));
 
         await waitFor(() => {
             expect(updateUserPassword).toHaveBeenCalledTimes(1);
@@ -146,12 +195,22 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
 
     test('should show error when password does not meet requirements', async () => {
         const updateUserPassword = jest.fn(() => Promise.resolve({data: ''}));
-        const props = {...baseProps, currentUserId: 'different_user_id', actions: {updateUserPassword}};
+        const props = {
+            ...baseProps,
+            currentUserId: 'different_user_id',
+            actions: {
+                ...baseProps.actions,
+                updateUserPassword,
+            },
+        };
         renderWithContext(<ResetPasswordModal {...props}/>);
 
-        const newPasswordInput = screen.getByPlaceholderText(/New password/i);
+        await userEvent.click(screen.getByRole('radio', {name: /Set password manually/i}));
+
+        const newPasswordInput = await screen.findByRole('textbox', {name: /New password/i});
+        await userEvent.clear(newPasswordInput);
         await userEvent.type(newPasswordInput, 'weak');
-        await userEvent.click(screen.getByRole('button', {name: /Reset/i}));
+        await userEvent.click(screen.getByRole('button', {name: /Reset password/i}));
 
         expect(updateUserPassword).not.toHaveBeenCalled();
 
@@ -159,5 +218,16 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
         await waitFor(() => {
             expect(screen.getByText(/Must be 10-72 characters long/i)).toBeInTheDocument();
         });
+    });
+
+    test('should generate a password when manual reset is selected for another user', async () => {
+        const props = {...baseProps, currentUserId: 'different_user_id'};
+        renderWithContext(<ResetPasswordModal {...props}/>);
+
+        await userEvent.click(screen.getByRole('radio', {name: /Set password manually/i}));
+
+        const newPasswordInput = await screen.findByPlaceholderText(/New password/i);
+        expect((newPasswordInput as HTMLInputElement).value).not.toEqual('');
+        expect(screen.getByText(/Very strong|Strong|Fair|Weak/i)).toBeInTheDocument();
     });
 });
