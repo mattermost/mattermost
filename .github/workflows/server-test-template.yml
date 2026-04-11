@@ -17,6 +17,10 @@ on:
       fullyparallel:
         required: false
         type: boolean
+        default: true
+      allow-failure:
+        required: false
+        type: boolean
         default: false
       enablecoverage:
         required: false
@@ -29,6 +33,14 @@ on:
         required: false
         default: false
         type: boolean
+      elasticsearch-version:
+        required: false
+        type: string
+        default: "9.0.0"
+      test-target:
+        required: false
+        type: string
+        default: "test-server"
       # -- Test sharding inputs (leave defaults for non-sharded callers) --
       shard-index:
         required: false
@@ -47,7 +59,7 @@ jobs:
   test:
     name: ${{ inputs.name }}
     runs-on: ubuntu-latest-8-cores
-    continue-on-error: ${{ inputs.fullyparallel }} # Used to avoid blocking PRs in case of flakiness
+    continue-on-error: ${{ inputs.allow-failure }} # Used to avoid blocking PRs in case of flakiness
     env:
       COMPOSE_PROJECT_NAME: ghactions
     steps:
@@ -94,6 +106,7 @@ jobs:
 
       - name: Run docker compose
         env:
+          ELASTICSEARCH_VERSION: ${{ inputs.elasticsearch-version }}
           POSTGRES_PASSWORD: ${{ inputs.fips-enabled && 'mostest-fips-test' || 'mostest' }}
         run: |
           cd server/build
@@ -162,11 +175,11 @@ jobs:
         env:
           BUILD_IMAGE: ${{ steps.build.outputs.BUILD_IMAGE }}
         run: |
-          if [[ ${{ github.ref_name }} == 'master' && ${{ inputs.fullyparallel }} != true ]]; then
+          if [[ ${{ github.ref_name }} == 'master' && ${{ inputs.fullyparallel }} != true && "${{ inputs.test-target }}" == "test-server" ]]; then
             export RACE_MODE="-race"
           fi
 
-          MAKE_ARGS="test-server${RACE_MODE} BUILD_NUMBER=${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}"
+          MAKE_ARGS="${{ inputs.test-target }}${RACE_MODE} BUILD_NUMBER=${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}"
           DOCKER_CMD="make ${MAKE_ARGS}"
 
           # When sharding is active, use the multi-run wrapper script
@@ -218,6 +231,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           disable_search: true
           files: server/cover.out
+          flags: server
 
       - name: Stop docker compose
         run: |

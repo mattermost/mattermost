@@ -5243,10 +5243,6 @@
     "translation": "Mattermost Enterprise licentie werd uitgeschakeld."
   },
   {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Je Enterprise editie licentie is vervallen en sommige functies zijn mogelijk uitgeschakeld. Gelieve je licentie nu te vernieuwen."
-  },
-  {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} heeft je uitgenodigd om deel te nemen aan het {{ .TeamDisplayName }} Team als gast"
   },

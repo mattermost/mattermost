@@ -1,21 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {act, fireEvent, waitFor} from '@testing-library/react';
 import React from 'react';
-import {Provider} from 'react-redux';
 
 import type {UserPropertyField} from '@mattermost/types/properties';
 import type {UserProfile} from '@mattermost/types/users';
 
-import configureStore from 'store';
-
-import {shallowWithIntl, mountWithIntl} from 'tests/helpers/intl-test-helper';
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {defaultIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext, screen, userEvent, act, fireEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
-import UserSettingsGeneral from './user_settings_general';
-import type {UserSettingsGeneralTab} from './user_settings_general';
+import UserSettingsGeneral, {UserSettingsGeneralTab} from './user_settings_general';
 
 jest.mock('@mattermost/client', () => ({
     ...jest.requireActual('@mattermost/client'),
@@ -39,6 +34,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
     });
 
     const requiredProps = {
+        intl: defaultIntl,
         user,
         updateSection: jest.fn(),
         updateTab: jest.fn(),
@@ -84,17 +80,18 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         },
     };
 
-    let store: ReturnType<typeof configureStore>;
-    beforeEach(() => {
-        store = configureStore();
-    });
-
     test('submitUser() should have called updateMe', () => {
         const updateMe = jest.fn().mockResolvedValue({data: true});
         const props = {...requiredProps, actions: {...requiredProps.actions, updateMe}};
-        const wrapper = shallowWithIntl(<UserSettingsGeneral {...props}/>);
+        const ref = React.createRef<UserSettingsGeneralTab>();
+        renderWithContext(
+            <UserSettingsGeneralTab
+                {...props}
+                ref={ref}
+            />,
+        );
 
-        (wrapper.instance() as UserSettingsGeneralTab).submitUser(requiredProps.user, false);
+        ref.current!.submitUser(requiredProps.user, false);
         expect(updateMe).toHaveBeenCalledTimes(1);
         expect(updateMe).toHaveBeenCalledWith(requiredProps.user);
     });
@@ -102,32 +99,48 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
     test('submitPicture() should not have called uploadProfileImage', () => {
         const uploadProfileImage = jest.fn().mockResolvedValue({});
         const props = {...requiredProps, actions: {...requiredProps.actions, uploadProfileImage}};
-        const wrapper = shallowWithIntl(<UserSettingsGeneral {...props}/>);
+        const ref = React.createRef<UserSettingsGeneralTab>();
+        renderWithContext(
+            <UserSettingsGeneralTab
+                {...props}
+                ref={ref}
+            />,
+        );
 
-        (wrapper.instance() as UserSettingsGeneralTab).submitPicture();
+        ref.current!.submitPicture();
         expect(uploadProfileImage).toHaveBeenCalledTimes(0);
     });
 
     test('submitPicture() should have called uploadProfileImage', async () => {
         const uploadProfileImage = jest.fn(() => Promise.resolve({data: true}));
         const props = {...requiredProps, actions: {...requiredProps.actions, uploadProfileImage}};
-        const wrapper = shallowWithIntl(<UserSettingsGeneral {...props}/>);
+        const ref = React.createRef<UserSettingsGeneralTab>();
+        renderWithContext(
+            <UserSettingsGeneralTab
+                {...props}
+                ref={ref}
+            />,
+        );
 
         const mockFile = {type: 'image/jpeg', size: requiredProps.maxFileSize};
         const event: any = {target: {files: [mockFile]}};
 
-        (wrapper.instance() as UserSettingsGeneralTab).updatePicture(event);
+        act(() => {
+            ref.current!.updatePicture(event);
+        });
 
-        expect(wrapper.state('pictureFile')).toBe(event.target.files[0]);
-        expect((wrapper.instance() as UserSettingsGeneralTab).submitActive).toBe(true);
+        expect(ref.current!.state.pictureFile).toBe(event.target.files[0]);
+        expect(ref.current!.submitActive).toBe(true);
 
-        await (wrapper.instance() as UserSettingsGeneralTab).submitPicture();
+        await act(async () => {
+            await ref.current!.submitPicture();
+        });
 
         expect(uploadProfileImage).toHaveBeenCalledTimes(1);
         expect(uploadProfileImage).toHaveBeenCalledWith(requiredProps.user.id, mockFile);
 
-        expect(wrapper.state('pictureFile')).toBe(null);
-        expect((wrapper.instance() as UserSettingsGeneralTab).submitActive).toBe(false);
+        expect(ref.current!.state.pictureFile).toBe(null);
+        expect(ref.current!.submitActive).toBe(false);
 
         expect(requiredProps.updateSection).toHaveBeenCalledTimes(1);
         expect(requiredProps.updateSection).toHaveBeenCalledWith('');
@@ -142,34 +155,31 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         props.ldapPositionAttributeSet = false;
         props.samlPositionAttributeSet = false;
 
-        let wrapper = mountWithIntl(
-            <Provider store={store}>
-                <UserSettingsGeneral {...props}/>
-            </Provider>,
+        const {container, rerender} = renderWithContext(
+            <UserSettingsGeneral {...props}/>,
         );
-        expect(wrapper.find('#position').length).toBe(2);
-        expect(wrapper.find('#position.Input').is('input')).toBeTruthy();
+        expect(container.querySelectorAll('#position').length).toBe(1);
+        expect(container.querySelector('#position.Input')?.tagName).toBe('INPUT');
 
         props.ldapPositionAttributeSet = true;
         props.samlPositionAttributeSet = false;
 
-        wrapper = mountWithIntl(
-            <Provider store={store}>
-                <UserSettingsGeneral {...props}/>
-            </Provider>,
+        rerender(
+            <UserSettingsGeneral {...{...props, ldapPositionAttributeSet: true, samlPositionAttributeSet: false}}/>,
         );
-        expect(wrapper.find('#position').length).toBe(0);
+        expect(container.querySelectorAll('#position').length).toBe(0);
 
-        props.user.auth_service = 'saml';
-        props.ldapPositionAttributeSet = false;
-        props.samlPositionAttributeSet = true;
-
-        wrapper = mountWithIntl(
-            <Provider store={store}>
-                <UserSettingsGeneral {...props}/>
-            </Provider>,
+        rerender(
+            <UserSettingsGeneral
+                {...{
+                    ...props,
+                    user: {...user, auth_service: 'saml'},
+                    ldapPositionAttributeSet: false,
+                    samlPositionAttributeSet: true,
+                }}
+            />,
         );
-        expect(wrapper.find('#position').length).toBe(0);
+        expect(container.querySelectorAll('#position').length).toBe(0);
     });
 
     test('should not show image field when LDAP picture attribute is set', () => {
@@ -180,28 +190,31 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
 
         props.ldapPictureAttributeSet = false;
 
-        let wrapper = mountWithIntl(
-            <Provider store={store}>
-                <UserSettingsGeneral {...props}/>
-            </Provider>,
+        const {container, rerender} = renderWithContext(
+            <UserSettingsGeneral {...props}/>,
         );
-        expect(wrapper.find('.profile-img').exists()).toBeTruthy();
+        expect(container.querySelector('.profile-img')).toBeTruthy();
 
-        props.ldapPictureAttributeSet = true;
-        wrapper = mountWithIntl(
-            <Provider store={store}>
-                <UserSettingsGeneral {...props}/>
-            </Provider>,
+        rerender(
+            <UserSettingsGeneral {...{...props, ldapPictureAttributeSet: true}}/>,
         );
-        expect(wrapper.find('.profile-img').exists()).toBeFalsy();
+        expect(container.querySelector('.profile-img')).toBeFalsy();
     });
 
     test('it should display an error about a username conflicting with a group name', async () => {
         const updateMe = () => Promise.resolve({data: false, error: {server_error_id: 'app.user.group_name_conflict', message: ''}});
         const props = {...requiredProps, actions: {...requiredProps.actions, updateMe}};
-        const wrapper = shallowWithIntl(<UserSettingsGeneral {...props}/>);
-        await (wrapper.instance() as UserSettingsGeneralTab).submitUser(requiredProps.user, false);
-        expect(wrapper.state('serverError')).toBe('This username conflicts with an existing group name.');
+        const ref = React.createRef<UserSettingsGeneralTab>();
+        renderWithContext(
+            <UserSettingsGeneralTab
+                {...props}
+                ref={ref}
+            />,
+        );
+        await act(async () => {
+            await ref.current!.submitUser(requiredProps.user, false);
+        });
+        expect(ref.current!.state.serverError).toBe('This username conflicts with an existing group name.');
     });
 
     test('should show Custom Attribute Field with no value', async () => {
