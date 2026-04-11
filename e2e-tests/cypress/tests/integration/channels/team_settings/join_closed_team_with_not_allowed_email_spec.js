@@ -80,7 +80,7 @@ describe('Team Settings', () => {
             const email = `user${randomId}@sample.gmail.com`;
             const username = `user${randomId}`;
             const password = 'passwd';
-            const errorMessage = `The following email addresses do not belong to an accepted domain: ${emailDomain}. Please contact your System Administrator for details.`;
+            const errorMessage = `The email address you entered does not belong to an accepted domain: ${emailDomain}.`;
 
             // # Type email, username and password
             cy.get('#input_email').should('be.visible').type(email);

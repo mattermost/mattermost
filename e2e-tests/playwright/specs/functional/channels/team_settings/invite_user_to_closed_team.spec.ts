@@ -72,6 +72,6 @@ test('MM-T388 Invite new user to closed team with email domain restriction', {ta
     await membersInvitedModal2.toBeVisible();
     const notSentReason = await membersInvitedModal2.getNotSentResultReason();
     expect(notSentReason).toContain(
-        `The following email addresses do not belong to an accepted domain: ${invalidEmail}.`,
+        `The email address you entered does not belong to an accepted domain: ${invalidEmail}.`,
     );
 });

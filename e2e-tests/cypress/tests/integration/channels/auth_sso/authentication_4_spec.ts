@@ -279,6 +279,6 @@ describe('Authentication', () => {
         cy.findByRole('button', {name: 'Invite'}).click({force: true});
 
         // * Verify message is what you expect it to be
-        cy.contains('The following email addresses do not belong to an accepted domain:', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').and('exist');
+        cy.contains('The email address you entered does not belong to an accepted domain:', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').and('exist');
     });
 });
