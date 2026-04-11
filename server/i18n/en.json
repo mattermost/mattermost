@@ -6214,6 +6214,110 @@
     "id": "app.file_info.not_found",
     "translation": "File not found in file store at path {{.Path}}."
   },
+    {
+        "id": "app.data_spillage.report.cleared",
+        "translation": "Cleared"
+    },
+    {
+        "id": "app.data_spillage.report.column.detail",
+        "translation": "Detail"
+    },
+    {
+        "id": "app.data_spillage.report.column.status",
+        "translation": "Status"
+    },
+    {
+        "id": "app.data_spillage.report.column.step",
+        "translation": "Step"
+    },
+    {
+        "id": "app.data_spillage.report.error_log",
+        "translation": "Error Log"
+    },
+    {
+        "id": "app.data_spillage.report.generated",
+        "translation": "Generated:"
+    },
+    {
+        "id": "app.data_spillage.report.incomplete_warning",
+        "translation": "Post deletion incomplete. Resolve failures and retry."
+    },
+    {
+        "id": "app.data_spillage.report.post_id",
+        "translation": "Post ID:"
+    },
+    {
+        "id": "app.data_spillage.report.revision",
+        "translation": "Revision"
+    },
+    {
+        "id": "app.data_spillage.report.revisions_found",
+        "translation": "Revisions found:"
+    },
+    {
+        "id": "app.data_spillage.report.status.deleted",
+        "translation": "Deleted"
+    },
+    {
+        "id": "app.data_spillage.report.status.failed",
+        "translation": "Failed"
+    },
+    {
+        "id": "app.data_spillage.report.status.partial",
+        "translation": "Partial"
+    },
+    {
+        "id": "app.data_spillage.report.status.unknown",
+        "translation": "Unknown"
+    },
+    {
+        "id": "app.data_spillage.report.summary",
+        "translation": "Summary"
+    },
+    {
+        "id": "app.data_spillage.report.title",
+        "translation": "Post Deletion Report"
+    },
+    {
+        "id": "app.data_spillage.report.total_steps",
+        "translation": "Total Steps:"
+    },
+    {
+        "id": "app.data_spillage.report.step.edit_histories",
+        "translation": "Edit History"
+    },
+    {
+        "id": "app.data_spillage.report.step.file_attachments",
+        "translation": "Post's File Attachments from File System"
+    },
+    {
+        "id": "app.data_spillage.report.step.fileinfo_rows",
+        "translation": "FileInfo Rows"
+    },
+    {
+        "id": "app.data_spillage.report.step.priority_data",
+        "translation": "Priority Data"
+    },
+    {
+        "id": "app.data_spillage.report.step.persistent_notifications",
+        "translation": "Persistent Notifications"
+    },
+    {
+        "id": "app.data_spillage.report.step.acknowledgements",
+        "translation": "Acknowledgements"
+    },
+    {
+        "id": "app.data_spillage.report.step.reminders",
+        "translation": "Reminders"
+    },
+    {
+        "id": "app.data_spillage.report.step.thread_data",
+        "translation": "Thread & Associated Data"
+    },
+    {
+        "id": "app.data_spillage.report.step.post_itself",
+        "translation": "The Post Itself"
+    },
   {
     "id": "app.file_info.permanent_delete_by_user.app_error",
     "translation": "Unable to delete attachments of the user."

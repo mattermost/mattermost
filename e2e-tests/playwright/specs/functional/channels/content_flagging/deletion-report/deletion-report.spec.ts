@@ -4,6 +4,7 @@
 import {expect, test} from '@mattermost/playwright-lib';
 
 import {setupContentFlagging, createPost} from './../support';
+import {createPrivateKey} from 'node:crypto';
 
 /**
  * @objective Verify that a deletion report summary is posted to the reviewer's content review thread after removing a flagged post
@@ -39,13 +40,16 @@ test('Reviewer receives a deletion report summary after removing a flagged post'
 
     // The deletion report summary should be posted as a message in the reviewer's thread
     // It contains a markdown summary table with step/status/detail columns
-    const lastPost = await channelsPage.centerView.getLastPost();
-    await lastPost.toBeVisible();
+    // const lastPost = await channelsPage.centerView.getLastPost();
+    // await lastPost.toBeVisible();
+
+    const viewDetailButton = await channelsPage.getFlaggedPostViewDetailButton(post.id);
+    await viewDetailButton.click();
 
     // Verify the summary table headers are present (rendered as markdown table)
-    await expect(lastPost.body).toContainText('Step');
-    await expect(lastPost.body).toContainText('Status');
-    await expect(lastPost.body).toContainText('Detail');
+    await expect(channelsPage.sidebarRight).toContainText('Step');
+    await expect(channelsPage.sidebarRight).toContainText('Status');
+    await expect(channelsPage.sidebarRight).toContainText('Detail');
 });
 
 /**
