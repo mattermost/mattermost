@@ -1418,41 +1418,51 @@
         "200":
           description: |
             Streamed NDJSON response. Each line is a JSON object representing one batch of results.
+
+            If the operation is interrupted (e.g. context cancellation), a final NDJSON line
+            with an `error` field is emitted so the client can distinguish partial from full
+            success: `{"error":"The set channel members operation was cancelled."}`
           content:
             application/x-ndjson:
               schema:
-                type: object
-                properties:
-                  added:
-                    type: array
-                    items:
-                      type: string
-                    description: User IDs successfully added to the channel in this batch.
-                  removed:
-                    type: array
-                    items:
-                      type: string
-                    description: User IDs successfully removed from the channel in this batch.
-                  errors:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        user_id:
+                oneOf:
+                  - type: object
+                    description: A batch of results from the set channel members operation.
+                    properties:
+                      added:
+                        type: array
+                        items:
                           type: string
-                          description: The user ID that failed.
-                        id:
+                        description: User IDs successfully added to the channel in this batch.
+                      removed:
+                        type: array
+                        items:
                           type: string
-                          description: Machine-readable error identifier (i18n key).
-                        error:
-                          type: string
-                          description: Human-readable description of the failure.
-                    description: Per-user failures (not on team, deleted user, cannot remove
-                      from default channel, plugin rejection).
-
-            If the operation is interrupted (e.g. context cancellation), a final NDJSON line
-            with an `error` field is emitted so the client can distinguish partial from full success:
-            `{"error":"The set channel members operation was cancelled."}`
+                        description: User IDs successfully removed from the channel in this batch.
+                      errors:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            user_id:
+                              type: string
+                              description: The user ID that failed.
+                            id:
+                              type: string
+                              description: Machine-readable error identifier (i18n key).
+                            error:
+                              type: string
+                              description: Human-readable description of the failure.
+                        description: Per-user failures (not on team, deleted user, cannot remove
+                          from default channel, plugin rejection).
+                  - type: object
+                    description: Terminal error line emitted when the operation is interrupted.
+                    required:
+                      - error
+                    properties:
+                      error:
+                        type: string
+                        description: Human-readable description of the interruption.
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
