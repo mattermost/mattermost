@@ -32,7 +32,8 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
 )
 
-const elasticsearchMaxVersion = 8
+const elasticsearchMinVersion = 8
+const elasticsearchMaxVersion = 9
 
 var (
 	purgeIndexListAllowedIndexes = []string{common.IndexBaseChannels}
@@ -41,7 +42,7 @@ var (
 type ElasticsearchInterfaceImpl struct {
 	client      *elastic.TypedClient
 	mutex       sync.RWMutex
-	ready       int32
+	ready       atomic.Int32
 	version     int
 	fullVersion string
 	plugins     []string
@@ -72,7 +73,7 @@ func (es *ElasticsearchInterfaceImpl) IsEnabled() bool {
 }
 
 func (es *ElasticsearchInterfaceImpl) IsActive() bool {
-	return *es.Platform.Config().ElasticsearchSettings.EnableIndexing && atomic.LoadInt32(&es.ready) == 1
+	return *es.Platform.Config().ElasticsearchSettings.EnableIndexing && es.ready.Load() == 1
 }
 
 func (es *ElasticsearchInterfaceImpl) IsIndexingEnabled() bool {
@@ -93,7 +94,7 @@ func (es *ElasticsearchInterfaceImpl) IsIndexingSync() bool {
 
 // fetchServerInfo retrieves and stores the server version and plugins from the given client.
 func (es *ElasticsearchInterfaceImpl) fetchServerInfo(client *elastic.TypedClient) *model.AppError {
-	version, major, appErr := checkMaxVersion(client)
+	version, major, appErr := checkVersion(client)
 	if appErr != nil {
 		return appErr
 	}
@@ -124,7 +125,7 @@ func (es *ElasticsearchInterfaceImpl) Start() *model.AppError {
 	es.mutex.Lock()
 	defer es.mutex.Unlock()
 
-	if atomic.LoadInt32(&es.ready) != 0 {
+	if es.ready.Load() != 0 {
 		// Elasticsearch is already started. We don't return an error
 		// because "Test Connection" already re-initializes the client. So this
 		// can be a valid scenario.
@@ -228,7 +229,7 @@ func (es *ElasticsearchInterfaceImpl) Start() *model.AppError {
 		return model.NewAppError("Elasticsearch.start", "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	atomic.StoreInt32(&es.ready, 1)
+	es.ready.Store(1)
 
 	return nil
 }
@@ -237,7 +238,7 @@ func (es *ElasticsearchInterfaceImpl) Stop() *model.AppError {
 	es.mutex.Lock()
 	defer es.mutex.Unlock()
 
-	if atomic.LoadInt32(&es.ready) == 0 {
+	if es.ready.Load() == 0 {
 		return model.NewAppError("Elasticsearch.start", "ent.elasticsearch.stop.already_stopped.app_error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -250,7 +251,7 @@ func (es *ElasticsearchInterfaceImpl) Stop() *model.AppError {
 		es.bulkProcessor = nil
 	}
 
-	atomic.StoreInt32(&es.ready, 0)
+	es.ready.Store(0)
 
 	return nil
 }
@@ -271,7 +272,7 @@ func (es *ElasticsearchInterfaceImpl) IndexPost(post *model.Post, teamId string,
 	es.mutex.RLock()
 	defer es.mutex.RUnlock()
 
-	if atomic.LoadInt32(&es.ready) == 0 {
+	if es.ready.Load() == 0 {
 		return model.NewAppError("Elasticsearch.IndexPost", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -357,7 +358,7 @@ func (es *ElasticsearchInterfaceImpl) SearchPosts(channels model.ChannelList, se
 	es.mutex.RLock()
 	defer es.mutex.RUnlock()
 
-	if atomic.LoadInt32(&es.ready) == 0 {
+	if es.ready.Load() == 0 {
 		return []string{}, nil, model.NewAppError("Elasticsearch.SearchPosts", "ent.elasticsearch.search_posts.disabled", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -717,7 +718,7 @@ func (es *ElasticsearchInterfaceImpl) DeletePost(post *model.Post) *model.AppErr
 	es.mutex.RLock()
 	defer es.mutex.RUnlock()
 
-	if atomic.LoadInt32(&es.ready) == 0 {
+	if es.ready.Load() == 0 {
 		return model.NewAppError("Elasticsearch.DeletePost", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -739,7 +740,7 @@ func (es *ElasticsearchInterfaceImpl) DeleteChannelPosts(rctx request.CTX, chann
 	es.mutex.RLock()
 	defer es.mutex.RUnlock()
 
-	if atomic.LoadInt32(&es.ready) == 0 {
+	if es.ready.Load() == 0 {
 		return model.NewAppError("Elasticsearch.DeleteChannelPosts", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -775,7 +776,7 @@ func (es *ElasticsearchInterfaceImpl) UpdatePostsChannelTypeByChannelId(rctx req
 	es.mutex.RLock()
 	defer es.mutex.RUnlock()
 
-	if atomic.LoadInt32(&es.ready) == 0 {
+	if es.ready.Load() == 0 {
 		return model.NewAppError("Elasticsearch.UpdatePostsChannelTypeByChannelId", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -832,7 +833,7 @@ func (es *ElasticsearchInterfaceImpl) BackfillPostsChannelType(rctx request.CTX,
 	es.mutex.RLock()
 	defer es.mutex.RUnlock()
 
-	if atomic.LoadInt32(&es.ready) == 0 {
+	if es.ready.Load() == 0 {
 		return model.NewAppError("Elasticsearch.BackfillPostsChannelType", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -895,7 +896,7 @@ func (es *ElasticsearchInterfaceImpl) DeleteUserPosts(rctx request.CTX, userID s
 	es.mutex.RLock()
 	defer es.mutex.RUnlock()
 
-	if atomic.LoadInt32(&es.ready) == 0 {
+	if es.ready.Load() == 0 {
 		return model.NewAppError("Elasticsearch.DeleteUserPosts", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -954,7 +955,7 @@ func (es *ElasticsearchInterfaceImpl) IndexChannel(rctx request.CTX, channel *mo
 	es.mutex.RLock()
 	defer es.mutex.RUnlock()
 
-	if atomic.LoadInt32(&es.ready) == 0 {
+	if es.ready.Load() == 0 {
 		return model.NewAppError("Elasticsearch.IndexChannel", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -999,7 +1000,7 @@ func (es *ElasticsearchInterfaceImpl) SyncBulkIndexChannels(rctx request.CTX, ch
 	es.mutex.RLock()
 	defer es.mutex.RUnlock()
 
-	if atomic.LoadInt32(&es.ready) == 0 {
+	if es.ready.Load() == 0 {
 		return model.NewAppError("Elasticsearch.SyncBulkIndexChannels", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -1038,7 +1039,7 @@ func (es *ElasticsearchInterfaceImpl) SearchChannels(teamId, userID string, term
 	es.mutex.RLock()
 	defer es.mutex.RUnlock()
 
-	if atomic.LoadInt32(&es.ready) == 0 {
+	if es.ready.Load() == 0 {
 		return []string{}, model.NewAppError("Elasticsearch.SearchChannels", "ent.elasticsearch.search_channels.disabled", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -1141,7 +1142,7 @@ func (es *ElasticsearchInterfaceImpl) DeleteChannel(channel *model.Channel) *mod
 	es.mutex.RLock()
 	defer es.mutex.RUnlock()
 
-	if atomic.LoadInt32(&es.ready) == 0 {
+	if es.ready.Load() == 0 {
 		return model.NewAppError("Elasticsearch.DeleteChannel", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -1172,7 +1173,7 @@ func (es *ElasticsearchInterfaceImpl) IndexUser(rctx request.CTX, user *model.Us
 	es.mutex.RLock()
 	defer es.mutex.RUnlock()
 
-	if atomic.LoadInt32(&es.ready) == 0 {
+	if es.ready.Load() == 0 {
 		return model.NewAppError("Elasticsearch.IndexUser", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -1214,7 +1215,7 @@ func (es *ElasticsearchInterfaceImpl) autocompleteUsers(contextCategory string, 
 	es.mutex.RLock()
 	defer es.mutex.RUnlock()
 
-	if atomic.LoadInt32(&es.ready) == 0 {
+	if es.ready.Load() == 0 {
 		return nil, model.NewAppError("Elasticsearch.autocompleteUsers", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -1327,7 +1328,7 @@ func (es *ElasticsearchInterfaceImpl) autocompleteUsersNotInChannel(teamId, chan
 	es.mutex.RLock()
 	defer es.mutex.RUnlock()
 
-	if atomic.LoadInt32(&es.ready) == 0 {
+	if es.ready.Load() == 0 {
 		return nil, model.NewAppError("Elasticsearch.autocompleteUsersNotInChannel", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -1490,7 +1491,7 @@ func (es *ElasticsearchInterfaceImpl) DeleteUser(user *model.User) *model.AppErr
 	es.mutex.RLock()
 	defer es.mutex.RUnlock()
 
-	if atomic.LoadInt32(&es.ready) == 0 {
+	if es.ready.Load() == 0 {
 		return model.NewAppError("Elasticsearch.DeleteUser", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -1536,7 +1537,7 @@ func (es *ElasticsearchInterfaceImpl) TestConfig(rctx request.CTX, cfg *model.Co
 	}
 
 	// Resetting the state.
-	if atomic.CompareAndSwapInt32(&es.ready, 0, 1) {
+	if es.ready.CompareAndSwap(0, 1) {
 		// Re-assign the client.
 		// This is necessary in case elasticsearch was started
 		// after server start.
@@ -1556,7 +1557,7 @@ func (es *ElasticsearchInterfaceImpl) PurgeIndexes(rctx request.CTX) *model.AppE
 		return model.NewAppError("Elasticsearch.PurgeIndexes", "ent.elasticsearch.test_config.license.error", nil, "", http.StatusNotImplemented)
 	}
 
-	if atomic.LoadInt32(&es.ready) == 0 {
+	if es.ready.Load() == 0 {
 		return model.NewAppError("Elasticsearch.PurgeIndexes", "ent.elasticsearch.generic.disabled", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -1606,7 +1607,7 @@ func (es *ElasticsearchInterfaceImpl) PurgeIndexList(rctx request.CTX, indexes [
 		return model.NewAppError("Elasticsearch.PurgeIndexList", "ent.elasticsearch.test_config.license.error", nil, "", http.StatusNotImplemented)
 	}
 
-	if atomic.LoadInt32(&es.ready) == 0 {
+	if es.ready.Load() == 0 {
 		return model.NewAppError("Elasticsearch.PurgeIndexList", "ent.elasticsearch.generic.disabled", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -1669,7 +1670,7 @@ func (es *ElasticsearchInterfaceImpl) DataRetentionDeleteIndexes(rctx request.CT
 		return model.NewAppError("Elasticsearch.DataRetentionDeleteIndexes", "ent.elasticsearch.test_config.license.error", nil, "", http.StatusNotImplemented)
 	}
 
-	if atomic.LoadInt32(&es.ready) == 0 {
+	if es.ready.Load() == 0 {
 		return model.NewAppError("Elasticsearch.DataRetentionDeleteIndexes", "ent.elasticsearch.generic.disabled", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -1698,7 +1699,7 @@ func (es *ElasticsearchInterfaceImpl) IndexFile(file *model.FileInfo, channelId 
 	es.mutex.RLock()
 	defer es.mutex.RUnlock()
 
-	if atomic.LoadInt32(&es.ready) == 0 {
+	if es.ready.Load() == 0 {
 		return model.NewAppError("Elasticsearch.IndexFile", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -1739,7 +1740,7 @@ func (es *ElasticsearchInterfaceImpl) SearchFiles(channels model.ChannelList, se
 	es.mutex.RLock()
 	defer es.mutex.RUnlock()
 
-	if atomic.LoadInt32(&es.ready) == 0 {
+	if es.ready.Load() == 0 {
 		return []string{}, model.NewAppError("Elasticsearch.SearchPosts", "ent.elasticsearch.search_files.disabled", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -1980,7 +1981,7 @@ func (es *ElasticsearchInterfaceImpl) DeleteFile(fileID string) *model.AppError 
 	es.mutex.RLock()
 	defer es.mutex.RUnlock()
 
-	if atomic.LoadInt32(&es.ready) == 0 {
+	if es.ready.Load() == 0 {
 		return model.NewAppError("Elasticsearch.DeleteFile", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -2011,7 +2012,7 @@ func (es *ElasticsearchInterfaceImpl) DeleteUserFiles(rctx request.CTX, userID s
 	es.mutex.RLock()
 	defer es.mutex.RUnlock()
 
-	if atomic.LoadInt32(&es.ready) == 0 {
+	if es.ready.Load() == 0 {
 		return model.NewAppError("Elasticsearch.DeleteFilesBatch", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -2043,7 +2044,7 @@ func (es *ElasticsearchInterfaceImpl) DeletePostFiles(rctx request.CTX, postID s
 	es.mutex.RLock()
 	defer es.mutex.RUnlock()
 
-	if atomic.LoadInt32(&es.ready) == 0 {
+	if es.ready.Load() == 0 {
 		return model.NewAppError("Elasticsearch.DeleteFilesBatch", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -2074,7 +2075,7 @@ func (es *ElasticsearchInterfaceImpl) DeleteFilesBatch(rctx request.CTX, endTime
 	es.mutex.RLock()
 	defer es.mutex.RUnlock()
 
-	if atomic.LoadInt32(&es.ready) == 0 {
+	if es.ready.Load() == 0 {
 		return model.NewAppError("Elasticsearch.DeleteFilesBatch", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
 	}
 
@@ -2110,19 +2111,22 @@ func (es *ElasticsearchInterfaceImpl) DeleteFilesBatch(rctx request.CTX, endTime
 	return nil
 }
 
-func checkMaxVersion(client *elastic.TypedClient) (string, int, *model.AppError) {
+func checkVersion(client *elastic.TypedClient) (string, int, *model.AppError) {
 	resp, err := client.API.Core.Info().Do(context.Background())
 	if err != nil {
-		return "", 0, model.NewAppError("Elasticsearch.checkMaxVersion", "ent.elasticsearch.start.get_server_version.app_error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
+		return "", 0, model.NewAppError("Elasticsearch.checkVersion", "ent.elasticsearch.start.get_server_version.app_error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	major, _, _, esErr := common.GetVersionComponents(resp.Version.Int)
 	if esErr != nil {
-		return "", 0, model.NewAppError("Elasticsearch.checkMaxVersion", "ent.elasticsearch.start.parse_server_version.app_error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
+		return "", 0, model.NewAppError("Elasticsearch.checkVersion", "ent.elasticsearch.start.parse_server_version.app_error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(esErr)
 	}
 
+	if major < elasticsearchMinVersion {
+		return "", 0, model.NewAppError("Elasticsearch.checkVersion", "ent.elasticsearch.min_version.app_error", map[string]any{"Version": major, "MinVersion": elasticsearchMinVersion, "Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusBadRequest)
+	}
 	if major > elasticsearchMaxVersion {
-		return "", 0, model.NewAppError("Elasticsearch.checkMaxVersion", "ent.elasticsearch.max_version.app_error", map[string]any{"Version": major, "MaxVersion": elasticsearchMaxVersion, "Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusBadRequest)
+		return "", 0, model.NewAppError("Elasticsearch.checkVersion", "ent.elasticsearch.max_version.app_error", map[string]any{"Version": major, "MaxVersion": elasticsearchMaxVersion, "Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusBadRequest)
 	}
 	return resp.Version.Int, major, nil
 }

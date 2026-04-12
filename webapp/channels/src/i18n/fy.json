@@ -3997,7 +3997,6 @@
   "threading.numNewReplies": "{newReplies, plural, =1 {# nieuwe reactie} other {# nieuwe reacties}}",
   "threading.numReplies": "{totalReplies, plural, =0 {antwoorden}=1 {# antwoord} other {# antwoorden}}",
   "threading.threadHeader.menu": "Meer acties",
-  "threading.threadItem.menu": "Acties",
   "threading.threadList.markRead": "Markeer alles als gelezen",
   "threading.threadMenu.copy": "Kopieer link",
   "threading.threadMenu.follow": "Draadje volgen",

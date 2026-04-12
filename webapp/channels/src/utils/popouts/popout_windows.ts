@@ -13,6 +13,7 @@ import {isDesktopApp} from 'utils/user_agent';
 import type {RhsState, SearchType} from 'types/store/rhs';
 
 import BrowserPopouts from './browser_popouts';
+import {registerPopoutFocusListeners} from './focus';
 import {
     sendToParent as sendToParentBrowser,
     onMessageFromParent as onMessageFromParentBrowser,
@@ -37,6 +38,8 @@ export async function popoutThread(
             titleTemplate,
         },
     );
+
+    registerPopoutFocusListeners(popoutListeners);
 
     popoutListeners?.onMessageFromPopout?.((channel: string, ...args: unknown[]) => {
         if (channel === FOCUS_REPLY_POST) {
@@ -113,6 +116,21 @@ export async function popoutRhsSearch(
         },
     );
 }
+export async function popoutChannel(
+    titleTemplate: string,
+    teamName: string,
+    path: string,
+    channelIdentifier: string,
+) {
+    const popoutListeners = await popout(
+        `${getBasePath()}/_popout/channel/${teamName}/${path}/${channelIdentifier}`,
+        {titleTemplate},
+    );
+
+    registerPopoutFocusListeners(popoutListeners);
+
+    return popoutListeners;
+}
 
 export async function popoutHelp() {
     return popout(
@@ -169,6 +187,10 @@ export function onMessageFromParent(listener: (channel: string, ...args: unknown
 
 export function isPopoutWindow() {
     return window.location.href.startsWith(`${Client4.getUrl()}/_popout/`);
+}
+
+export function isChannelPopoutWindow() {
+    return window.location.href.startsWith(`${Client4.getUrl()}/_popout/channel/`);
 }
 
 export function isThreadPopoutWindow(teamName: string, threadId: string) {

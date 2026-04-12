@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {Team, TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import TeamMembers from './team_members';
@@ -42,24 +42,24 @@ describe('admin_console/team_channel_settings/team/TeamMembers', () => {
         updateRole: jest.fn(),
 
         actions: {
-            getTeamStats: jest.fn(),
-            loadProfilesAndReloadTeamMembers: jest.fn(),
-            searchProfilesAndTeamMembers: jest.fn(),
-            getFilteredUsersStats: jest.fn(),
+            getTeamStats: jest.fn().mockResolvedValue({}),
+            loadProfilesAndReloadTeamMembers: jest.fn().mockResolvedValue({}),
+            searchProfilesAndTeamMembers: jest.fn().mockResolvedValue({}),
+            getFilteredUsersStats: jest.fn().mockResolvedValue({}),
             setUserGridSearch: jest.fn(),
             setUserGridFilters: jest.fn(),
         },
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <TeamMembers {...baseProps}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot loading no users', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <TeamMembers
                 {...baseProps}
                 users={[]}
@@ -68,6 +68,6 @@ describe('admin_console/team_channel_settings/team/TeamMembers', () => {
                 loading={true}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });
