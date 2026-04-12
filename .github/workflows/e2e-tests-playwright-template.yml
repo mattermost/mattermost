@@ -228,7 +228,8 @@ jobs:
           mkdir -p results/reporter
 
           # Merge blob reports using Playwright merge-reports (per docs)
-          npm install --no-save @playwright/test
+          # Pin version to match the one used to generate blob reports (avoids format mismatch)
+          npm install --no-save @playwright/test@$(node -e "process.stdout.write(require('./package.json').devDependencies['@playwright/test'])")
           npx playwright merge-reports --config merge.config.mjs ./shard-results/results/blob-report/
       - name: ci/calculate
         id: calculate
