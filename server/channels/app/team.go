@@ -1415,6 +1415,20 @@ func (a *App) prepareInviteNewUsersToTeam(teamID, senderId string, channelIds []
 	return user, team, channels, nil
 }
 
+func (a *App) getExistingInviteUserByEmail(email string) (*model.User, *model.AppError) {
+	user, err := a.ch.srv.userService.GetUserByEmail(email)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(err, &nfErr) {
+			return nil, nil
+		}
+
+		return nil, model.NewAppError("getExistingInviteUserByEmail", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return user, nil
+}
+
 func (a *App) InviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite *model.MemberInvite, teamID, senderId string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableEmailInvitations {
 		return nil, model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -1441,7 +1455,16 @@ func (a *App) InviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite *mod
 		if !teams.IsEmailAddressAllowed(email, allowedDomains) {
 			invite.Error = model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": email}, "", http.StatusBadRequest)
 		} else {
-			goodEmails = append(goodEmails, email)
+			existingUser, appErr := a.getExistingInviteUserByEmail(email)
+			if appErr != nil {
+				return nil, appErr
+			}
+
+			if existingUser != nil && existingUser.DeleteAt != 0 {
+				invite.Error = model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.deactivated_email.app_error", map[string]any{"Addresses": email}, "", http.StatusBadRequest)
+			} else {
+				goodEmails = append(goodEmails, email)
+			}
 		}
 		inviteListWithErrors = append(inviteListWithErrors, invite)
 	}
@@ -1635,16 +1658,32 @@ func (a *App) InviteNewUsersToTeam(rctx request.CTX, emailList []string, teamID,
 
 	allowedDomains := a.ch.srv.teamService.GetAllowedDomains(user, team)
 	var invalidEmailList []string
+	var deactivatedEmailList []string
 
 	for _, email := range emailList {
 		if !teams.IsEmailAddressAllowed(email, allowedDomains) {
 			invalidEmailList = append(invalidEmailList, email)
+			continue
+		}
+
+		existingUser, appErr := a.getExistingInviteUserByEmail(email)
+		if appErr != nil {
+			return appErr
+		}
+
+		if existingUser != nil && existingUser.DeleteAt != 0 {
+			deactivatedEmailList = append(deactivatedEmailList, email)
 		}
 	}
 
 	if len(invalidEmailList) > 0 {
 		s := strings.Join(invalidEmailList, ", ")
 		return model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": s}, "", http.StatusBadRequest)
+	}
+
+	if len(deactivatedEmailList) > 0 {
+		s := strings.Join(deactivatedEmailList, ", ")
+		return model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.deactivated_email.app_error", map[string]any{"Addresses": s}, "", http.StatusBadRequest)
 	}
 
 	nameFormat := *a.Config().TeamSettings.TeammateNameDisplay

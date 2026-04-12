@@ -4078,6 +4078,25 @@ func TestInviteUsersToTeam(t *testing.T) {
 		CheckRequestEntityTooLargeStatus(t, resp)
 		CheckErrorID(t, err, "app.email.rate_limit_exceeded.app_error")
 	}, "rate limits")
+
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		deactivatedUser := th.CreateUser(t)
+		_, appErr := th.App.UpdateActive(th.Context, deactivatedUser, false)
+		require.Nil(t, appErr)
+
+		invitesWithErrors, _, err := client.InviteUsersToTeamGracefully(context.Background(), th.BasicTeam.Id, []string{deactivatedUser.Email, user1})
+		require.NoError(t, err)
+		require.Len(t, invitesWithErrors, 2)
+		require.Equal(t, deactivatedUser.Email, invitesWithErrors[0].Email)
+		require.NotNil(t, invitesWithErrors[0].Error)
+		require.Equal(t, "api.team.invite_members.deactivated_email.app_error", invitesWithErrors[0].Error.Id)
+		require.Equal(t, user1, invitesWithErrors[1].Email)
+		require.Nil(t, invitesWithErrors[1].Error)
+
+		_, err = client.InviteUsersToTeam(context.Background(), th.BasicTeam.Id, []string{deactivatedUser.Email})
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.team.invite_members.deactivated_email.app_error")
+	}, "deactivated users")
 }
 
 func TestInviteGuestsToTeam(t *testing.T) {
