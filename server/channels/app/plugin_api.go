@@ -1509,16 +1509,16 @@ func (api *PluginAPI) UninviteRemoteFromChannel(channelID string, remoteID strin
 	return api.app.UninviteRemoteFromChannel(channelID, remoteID)
 }
 
-func (api *PluginAPI) SendSharedChannelSyncMsg(msg *model.SyncMsg) (model.SyncResponse, error) {
-	return api.app.SendSharedChannelSyncMsg(api.ctx, api.id, msg)
+func (api *PluginAPI) ReceiveSharedChannelSyncMsg(msg *model.SyncMsg) (model.SyncResponse, error) {
+	return api.app.ReceiveSharedChannelSyncMsg(api.ctx, api.id, msg)
 }
 
-func (api *PluginAPI) SendSharedChannelAttachmentSyncMsg(channelID string, fi *model.FileInfo, data io.Reader) (*model.FileInfo, error) {
-	return api.app.SendSharedChannelAttachmentSyncMsg(api.ctx, api.id, channelID, fi, data)
+func (api *PluginAPI) ReceiveSharedChannelAttachmentSyncMsg(channelID string, fi *model.FileInfo, data io.Reader) (*model.FileInfo, error) {
+	return api.app.ReceiveSharedChannelAttachmentSyncMsg(api.ctx, api.id, channelID, fi, data)
 }
 
-func (api *PluginAPI) SendSharedChannelProfileImageSyncMsg(userID string, image []byte) error {
-	return api.app.SendSharedChannelProfileImageSyncMsg(api.ctx, api.id, userID, image)
+func (api *PluginAPI) ReceiveSharedChannelProfileImageSyncMsg(userID string, image []byte) error {
+	return api.app.ReceiveSharedChannelProfileImageSyncMsg(api.ctx, api.id, userID, image)
 }
 
 func (api *PluginAPI) GetPluginID() string {

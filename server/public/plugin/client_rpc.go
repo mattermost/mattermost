@@ -1210,18 +1210,18 @@ func (s *apiRPCServer) InstallPlugin(args *Z_InstallPluginArgs, returns *Z_Insta
 	return nil
 }
 
-type Z_SendSharedChannelAttachmentSyncMsgArgs struct {
+type Z_ReceiveSharedChannelAttachmentSyncMsgArgs struct {
 	A            string          // channelID
 	B            *model.FileInfo // fi
 	DataStreamID uint32
 }
 
-type Z_SendSharedChannelAttachmentSyncMsgReturns struct {
+type Z_ReceiveSharedChannelAttachmentSyncMsgReturns struct {
 	A *model.FileInfo
 	B error
 }
 
-func (g *apiRPCClient) SendSharedChannelAttachmentSyncMsg(channelID string, fi *model.FileInfo, data io.Reader) (*model.FileInfo, error) {
+func (g *apiRPCClient) ReceiveSharedChannelAttachmentSyncMsg(channelID string, fi *model.FileInfo, data io.Reader) (*model.FileInfo, error) {
 	dataStreamID := g.muxBroker.NextId()
 
 	go func() {
@@ -1234,21 +1234,21 @@ func (g *apiRPCClient) SendSharedChannelAttachmentSyncMsg(channelID string, fi *
 		serveIOReader(data, dataConnection)
 	}()
 
-	_args := &Z_SendSharedChannelAttachmentSyncMsgArgs{channelID, fi, dataStreamID}
-	_returns := &Z_SendSharedChannelAttachmentSyncMsgReturns{}
-	if err := g.client.Call("Plugin.SendSharedChannelAttachmentSyncMsg", _args, _returns); err != nil {
-		log.Print("RPC call SendSharedChannelAttachmentSyncMsg to plugin failed.", mlog.Err(err))
+	_args := &Z_ReceiveSharedChannelAttachmentSyncMsgArgs{channelID, fi, dataStreamID}
+	_returns := &Z_ReceiveSharedChannelAttachmentSyncMsgReturns{}
+	if err := g.client.Call("Plugin.ReceiveSharedChannelAttachmentSyncMsg", _args, _returns); err != nil {
+		log.Print("RPC call ReceiveSharedChannelAttachmentSyncMsg to plugin failed.", mlog.Err(err))
 	}
 
 	return _returns.A, _returns.B
 }
 
-func (s *apiRPCServer) SendSharedChannelAttachmentSyncMsg(args *Z_SendSharedChannelAttachmentSyncMsgArgs, returns *Z_SendSharedChannelAttachmentSyncMsgReturns) error {
+func (s *apiRPCServer) ReceiveSharedChannelAttachmentSyncMsg(args *Z_ReceiveSharedChannelAttachmentSyncMsgArgs, returns *Z_ReceiveSharedChannelAttachmentSyncMsgReturns) error {
 	hook, ok := s.impl.(interface {
-		SendSharedChannelAttachmentSyncMsg(channelID string, fi *model.FileInfo, data io.Reader) (*model.FileInfo, error)
+		ReceiveSharedChannelAttachmentSyncMsg(channelID string, fi *model.FileInfo, data io.Reader) (*model.FileInfo, error)
 	})
 	if !ok {
-		return encodableError(fmt.Errorf("API SendSharedChannelAttachmentSyncMsg called but not implemented"))
+		return encodableError(fmt.Errorf("API ReceiveSharedChannelAttachmentSyncMsg called but not implemented"))
 	}
 
 	receiveDataConnection, err := s.muxBroker.Dial(args.DataStreamID)
@@ -1259,7 +1259,7 @@ func (s *apiRPCServer) SendSharedChannelAttachmentSyncMsg(args *Z_SendSharedChan
 	dataReader := connectIOReader(receiveDataConnection)
 	defer dataReader.Close()
 
-	returns.A, returns.B = hook.SendSharedChannelAttachmentSyncMsg(args.A, args.B, dataReader)
+	returns.A, returns.B = hook.ReceiveSharedChannelAttachmentSyncMsg(args.A, args.B, dataReader)
 	return nil
 }
 

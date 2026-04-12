@@ -1311,7 +1311,7 @@ type API interface {
 	// Minimum server version: 9.5
 	UninviteRemoteFromChannel(channelID string, remoteID string) error
 
-	// SendSharedChannelSyncMsg processes a sync message from this plugin, creating or updating
+	// ReceiveSharedChannelSyncMsg processes a sync message from this plugin, creating or updating
 	// posts, reactions, users, statuses, acknowledgements, and membership changes.
 	// When msg.ChannelId is set, content is synced into that shared channel.
 	// When msg.ChannelId is empty and only Users are present, a global user sync is performed.
@@ -1321,24 +1321,24 @@ type API interface {
 	//
 	// @tag SharedChannels
 	// Minimum server version: 11.7
-	SendSharedChannelSyncMsg(msg *model.SyncMsg) (model.SyncResponse, error)
+	ReceiveSharedChannelSyncMsg(msg *model.SyncMsg) (model.SyncResponse, error)
 
-	// SendSharedChannelAttachmentSyncMsg syncs a file attachment into a shared channel.
+	// ReceiveSharedChannelAttachmentSyncMsg syncs a file attachment into a shared channel.
 	// The FileInfo provides metadata (Name, Size, CreatorId); the server constructs the
 	// storage path and manages the upload. The data reader provides the raw file bytes.
 	// This is the inbound counterpart of the OnSharedChannelsAttachmentSyncMsg hook.
 	//
 	// @tag SharedChannels
 	// Minimum server version: 11.7
-	SendSharedChannelAttachmentSyncMsg(channelID string, fi *model.FileInfo, data io.Reader) (*model.FileInfo, error)
+	ReceiveSharedChannelAttachmentSyncMsg(channelID string, fi *model.FileInfo, data io.Reader) (*model.FileInfo, error)
 
-	// SendSharedChannelProfileImageSyncMsg syncs a user's profile image from this plugin's
+	// ReceiveSharedChannelProfileImageSyncMsg syncs a user's profile image from this plugin's
 	// remote into Mattermost. The user must have a RemoteId matching this plugin's remote.
 	// This is the inbound counterpart of the OnSharedChannelsProfileImageSyncMsg hook.
 	//
 	// @tag SharedChannels
 	// Minimum server version: 11.7
-	SendSharedChannelProfileImageSyncMsg(userID string, image []byte) error
+	ReceiveSharedChannelProfileImageSyncMsg(userID string, image []byte) error
 
 	// UpsertGroupMember adds a user to a group or updates their existing membership.
 	//

@@ -1380,24 +1380,24 @@ func (api *apiTimerLayer) UninviteRemoteFromChannel(channelID string, remoteID s
 	return _returnsA
 }
 
-func (api *apiTimerLayer) SendSharedChannelSyncMsg(msg *model.SyncMsg) (model.SyncResponse, error) {
+func (api *apiTimerLayer) ReceiveSharedChannelSyncMsg(msg *model.SyncMsg) (model.SyncResponse, error) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.SendSharedChannelSyncMsg(msg)
-	api.recordTime(startTime, "SendSharedChannelSyncMsg", _returnsB == nil)
+	_returnsA, _returnsB := api.apiImpl.ReceiveSharedChannelSyncMsg(msg)
+	api.recordTime(startTime, "ReceiveSharedChannelSyncMsg", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) SendSharedChannelAttachmentSyncMsg(channelID string, fi *model.FileInfo, data io.Reader) (*model.FileInfo, error) {
+func (api *apiTimerLayer) ReceiveSharedChannelAttachmentSyncMsg(channelID string, fi *model.FileInfo, data io.Reader) (*model.FileInfo, error) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.SendSharedChannelAttachmentSyncMsg(channelID, fi, data)
-	api.recordTime(startTime, "SendSharedChannelAttachmentSyncMsg", _returnsB == nil)
+	_returnsA, _returnsB := api.apiImpl.ReceiveSharedChannelAttachmentSyncMsg(channelID, fi, data)
+	api.recordTime(startTime, "ReceiveSharedChannelAttachmentSyncMsg", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) SendSharedChannelProfileImageSyncMsg(userID string, image []byte) error {
+func (api *apiTimerLayer) ReceiveSharedChannelProfileImageSyncMsg(userID string, image []byte) error {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.SendSharedChannelProfileImageSyncMsg(userID, image)
-	api.recordTime(startTime, "SendSharedChannelProfileImageSyncMsg", _returnsA == nil)
+	_returnsA := api.apiImpl.ReceiveSharedChannelProfileImageSyncMsg(userID, image)
+	api.recordTime(startTime, "ReceiveSharedChannelProfileImageSyncMsg", _returnsA == nil)
 	return _returnsA
 }
 

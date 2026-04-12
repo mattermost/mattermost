@@ -234,8 +234,8 @@ func (a *App) SyncSharedChannel(channelID string) error {
 
 // Plugin inbound sync APIs
 
-// SendSharedChannelSyncMsg processes an inbound sync message from a plugin remote.
-func (a *App) SendSharedChannelSyncMsg(rctx request.CTX, pluginID string, msg *model.SyncMsg) (model.SyncResponse, error) {
+// ReceiveSharedChannelSyncMsg processes an inbound sync message from a plugin remote.
+func (a *App) ReceiveSharedChannelSyncMsg(rctx request.CTX, pluginID string, msg *model.SyncMsg) (model.SyncResponse, error) {
 	if msg == nil {
 		return model.SyncResponse{}, fmt.Errorf("SyncMsg must not be nil")
 	}
@@ -256,24 +256,24 @@ func (a *App) SendSharedChannelSyncMsg(rctx request.CTX, pluginID string, msg *m
 	return scService.ProcessSyncMessage(rctx, msg, rc)
 }
 
-// SendSharedChannelAttachmentSyncMsg receives a file attachment from a plugin remote.
+// ReceiveSharedChannelAttachmentSyncMsg receives a file attachment from a plugin remote.
 // The server constructs the file path — the plugin provides the FileInfo metadata and
 // raw file bytes, but does not control where the file is stored.
-func (a *App) SendSharedChannelAttachmentSyncMsg(rctx request.CTX, pluginID string, channelID string, fi *model.FileInfo, data io.Reader) (*model.FileInfo, error) {
+func (a *App) ReceiveSharedChannelAttachmentSyncMsg(rctx request.CTX, pluginID string, channelID string, fi *model.FileInfo, data io.Reader) (*model.FileInfo, error) {
 	if fi == nil {
-		return nil, model.NewAppError("SendSharedChannelAttachmentSyncMsg",
+		return nil, model.NewAppError("ReceiveSharedChannelAttachmentSyncMsg",
 			"api.shared_channel.attachment.file_info_required.app_error", nil, "", http.StatusBadRequest)
 	}
 	if data == nil {
-		return nil, model.NewAppError("SendSharedChannelAttachmentSyncMsg",
+		return nil, model.NewAppError("ReceiveSharedChannelAttachmentSyncMsg",
 			"api.shared_channel.attachment.data_required.app_error", nil, "", http.StatusBadRequest)
 	}
 	if fi.CreatorId == "" {
-		return nil, model.NewAppError("SendSharedChannelAttachmentSyncMsg",
+		return nil, model.NewAppError("ReceiveSharedChannelAttachmentSyncMsg",
 			"api.shared_channel.attachment.creator_id_required.app_error", nil, "", http.StatusBadRequest)
 	}
 	if fi.Name == "" {
-		return nil, model.NewAppError("SendSharedChannelAttachmentSyncMsg",
+		return nil, model.NewAppError("ReceiveSharedChannelAttachmentSyncMsg",
 			"api.shared_channel.attachment.filename_required.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -312,11 +312,11 @@ func (a *App) SendSharedChannelAttachmentSyncMsg(rctx request.CTX, pluginID stri
 
 	// Validate file attachments are enabled and size is within limits
 	if !*a.Config().FileSettings.EnableFileAttachments {
-		return nil, model.NewAppError("SendSharedChannelAttachmentSyncMsg",
+		return nil, model.NewAppError("ReceiveSharedChannelAttachmentSyncMsg",
 			"api.file.attachments.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 	if a.Config().FileSettings.MaxFileSize != nil && fi.Size > *a.Config().FileSettings.MaxFileSize {
-		return nil, model.NewAppError("SendSharedChannelAttachmentSyncMsg",
+		return nil, model.NewAppError("ReceiveSharedChannelAttachmentSyncMsg",
 			"api.upload.create.upload_too_large.app_error",
 			map[string]any{"channelId": channelID}, "", http.StatusRequestEntityTooLarge)
 	}
@@ -359,8 +359,8 @@ func (a *App) SendSharedChannelAttachmentSyncMsg(rctx request.CTX, pluginID stri
 	return saved, nil
 }
 
-// SendSharedChannelProfileImageSyncMsg receives a profile image from a plugin remote.
-func (a *App) SendSharedChannelProfileImageSyncMsg(rctx request.CTX, pluginID string, userID string, image []byte) error {
+// ReceiveSharedChannelProfileImageSyncMsg receives a profile image from a plugin remote.
+func (a *App) ReceiveSharedChannelProfileImageSyncMsg(rctx request.CTX, pluginID string, userID string, image []byte) error {
 	if _, err := a.getSharedChannelsService(true); err != nil {
 		return err
 	}
@@ -387,7 +387,7 @@ func (a *App) SendSharedChannelProfileImageSyncMsg(rctx request.CTX, pluginID st
 
 	// Validate image size
 	if a.Config().FileSettings.MaxFileSize != nil && int64(len(image)) > *a.Config().FileSettings.MaxFileSize {
-		return model.NewAppError("SendSharedChannelProfileImageSyncMsg",
+		return model.NewAppError("ReceiveSharedChannelProfileImageSyncMsg",
 			"api.user.upload_profile_user.too_large.app_error", nil, "", http.StatusRequestEntityTooLarge)
 	}
 

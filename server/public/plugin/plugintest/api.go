@@ -4599,6 +4599,82 @@ func (_m *API) ReadFile(path string) ([]byte, *model.AppError) {
 	return r0, r1
 }
 
+// ReceiveSharedChannelAttachmentSyncMsg provides a mock function with given fields: channelID, fi, data
+func (_m *API) ReceiveSharedChannelAttachmentSyncMsg(channelID string, fi *model.FileInfo, data io.Reader) (*model.FileInfo, error) {
+	ret := _m.Called(channelID, fi, data)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ReceiveSharedChannelAttachmentSyncMsg")
+	}
+
+	var r0 *model.FileInfo
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, *model.FileInfo, io.Reader) (*model.FileInfo, error)); ok {
+		return rf(channelID, fi, data)
+	}
+	if rf, ok := ret.Get(0).(func(string, *model.FileInfo, io.Reader) *model.FileInfo); ok {
+		r0 = rf(channelID, fi, data)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.FileInfo)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, *model.FileInfo, io.Reader) error); ok {
+		r1 = rf(channelID, fi, data)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ReceiveSharedChannelProfileImageSyncMsg provides a mock function with given fields: userID, image
+func (_m *API) ReceiveSharedChannelProfileImageSyncMsg(userID string, image []byte) error {
+	ret := _m.Called(userID, image)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ReceiveSharedChannelProfileImageSyncMsg")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, []byte) error); ok {
+		r0 = rf(userID, image)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ReceiveSharedChannelSyncMsg provides a mock function with given fields: msg
+func (_m *API) ReceiveSharedChannelSyncMsg(msg *model.SyncMsg) (model.SyncResponse, error) {
+	ret := _m.Called(msg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ReceiveSharedChannelSyncMsg")
+	}
+
+	var r0 model.SyncResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.SyncMsg) (model.SyncResponse, error)); ok {
+		return rf(msg)
+	}
+	if rf, ok := ret.Get(0).(func(*model.SyncMsg) model.SyncResponse); ok {
+		r0 = rf(msg)
+	} else {
+		r0 = ret.Get(0).(model.SyncResponse)
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.SyncMsg) error); ok {
+		r1 = rf(msg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // RegisterCollectionAndTopic provides a mock function with given fields: collectionType, topicType
 func (_m *API) RegisterCollectionAndTopic(collectionType string, topicType string) error {
 	ret := _m.Called(collectionType, topicType)
@@ -5201,82 +5277,6 @@ func (_m *API) SendPushNotification(notification *model.PushNotification, userID
 	}
 
 	return r0
-}
-
-// SendSharedChannelAttachmentSyncMsg provides a mock function with given fields: channelID, fi, data
-func (_m *API) SendSharedChannelAttachmentSyncMsg(channelID string, fi *model.FileInfo, data io.Reader) (*model.FileInfo, error) {
-	ret := _m.Called(channelID, fi, data)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SendSharedChannelAttachmentSyncMsg")
-	}
-
-	var r0 *model.FileInfo
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string, *model.FileInfo, io.Reader) (*model.FileInfo, error)); ok {
-		return rf(channelID, fi, data)
-	}
-	if rf, ok := ret.Get(0).(func(string, *model.FileInfo, io.Reader) *model.FileInfo); ok {
-		r0 = rf(channelID, fi, data)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.FileInfo)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string, *model.FileInfo, io.Reader) error); ok {
-		r1 = rf(channelID, fi, data)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// SendSharedChannelProfileImageSyncMsg provides a mock function with given fields: userID, image
-func (_m *API) SendSharedChannelProfileImageSyncMsg(userID string, image []byte) error {
-	ret := _m.Called(userID, image)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SendSharedChannelProfileImageSyncMsg")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, []byte) error); ok {
-		r0 = rf(userID, image)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// SendSharedChannelSyncMsg provides a mock function with given fields: msg
-func (_m *API) SendSharedChannelSyncMsg(msg *model.SyncMsg) (model.SyncResponse, error) {
-	ret := _m.Called(msg)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SendSharedChannelSyncMsg")
-	}
-
-	var r0 model.SyncResponse
-	var r1 error
-	if rf, ok := ret.Get(0).(func(*model.SyncMsg) (model.SyncResponse, error)); ok {
-		return rf(msg)
-	}
-	if rf, ok := ret.Get(0).(func(*model.SyncMsg) model.SyncResponse); ok {
-		r0 = rf(msg)
-	} else {
-		r0 = ret.Get(0).(model.SyncResponse)
-	}
-
-	if rf, ok := ret.Get(1).(func(*model.SyncMsg) error); ok {
-		r1 = rf(msg)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
 }
 
 // SendToastMessage provides a mock function with given fields: userID, connectionID, message, options
