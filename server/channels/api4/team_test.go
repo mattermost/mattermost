@@ -4080,8 +4080,13 @@ func TestInviteUsersToTeam(t *testing.T) {
 	}, "rate limits")
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictCreationToDomains = "" })
+		th.BasicTeam.AllowedDomains = ""
+		_, appErr := th.App.UpdateTeam(th.BasicTeam)
+		require.Nil(t, appErr)
+
 		deactivatedUser := th.CreateUser(t)
-		_, appErr := th.App.UpdateActive(th.Context, deactivatedUser, false)
+		_, appErr = th.App.UpdateActive(th.Context, deactivatedUser, false)
 		require.Nil(t, appErr)
 
 		invitesWithErrors, _, err := client.InviteUsersToTeamGracefully(context.Background(), th.BasicTeam.Id, []string{deactivatedUser.Email, user1})
