@@ -20,7 +20,7 @@ type TestEnvironment struct {
 }
 
 func CreateTestEnvironmentWithTeams(a *app.App, rctx request.CTX, client *model.Client4, rangeTeams utils.Range, rangeChannels utils.Range, rangeUsers utils.Range, rangePosts utils.Range, fuzzy bool) (TestEnvironment, error) {
-	rand.Seed(time.Now().UTC().UnixNano())
+	// rand.Seed(time.Now().UTC().UnixNano()) // Removed: Go 1.20+ auto-seeds math/rand
 
 	teamCreator := NewAutoTeamCreator(client)
 	teamCreator.Fuzzy = fuzzy
@@ -53,7 +53,7 @@ func CreateTestEnvironmentWithTeams(a *app.App, rctx request.CTX, client *model.
 }
 
 func CreateTestEnvironmentInTeam(a *app.App, rctx request.CTX, client *model.Client4, team *model.Team, rangeChannels utils.Range, rangeUsers utils.Range, rangePosts utils.Range, fuzzy bool) (TeamEnvironment, error) {
-	rand.Seed(time.Now().UTC().UnixNano())
+	// rand.Seed(time.Now().UTC().UnixNano()) // Removed: Go 1.20+ auto-seeds math/rand
 
 	// We need to create at least one user
 	if rangeUsers.Begin <= 0 {
