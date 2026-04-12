@@ -56,6 +56,8 @@ var PermissionListTeamChannels *Permission
 var PermissionJoinPublicChannels *Permission
 var PermissionDeletePublicChannel *Permission
 var PermissionDeletePrivateChannel *Permission
+var PermissionDeleteDirectChannel *Permission
+var PermissionDeleteGroupChannel *Permission
 var PermissionEditOtherUsers *Permission
 var PermissionReadChannel *Permission
 var PermissionReadChannelContent *Permission
@@ -605,6 +607,18 @@ func initializePermissions() {
 		"authentication.permissions.delete_private_channel.name",
 		"authentication.permissions.delete_private_channel.description",
 		PermissionScopeChannel,
+	}
+	PermissionDeleteDirectChannel = &Permission{
+		"delete_direct_channel",
+		"authentication.permissions.delete_direct_channel.name",
+		"authentication.permissions.delete_direct_channel.description",
+		PermissionScopeSystem,
+	}
+	PermissionDeleteGroupChannel = &Permission{
+		"delete_group_channel",
+		"authentication.permissions.delete_group_channel.name",
+		"authentication.permissions.delete_group_channel.description",
+		PermissionScopeSystem,
 	}
 	PermissionEditOtherUsers = &Permission{
 		"edit_other_users",
@@ -2524,6 +2538,8 @@ func initializePermissions() {
 		PermissionManageLicenseInformation,
 		PermissionCreateCustomGroup,
 		PermissionManageOutgoingOAuthConnections,
+		PermissionDeleteDirectChannel,
+		PermissionDeleteGroupChannel,
 	}
 
 	TeamScopedPermissions := []*Permission{

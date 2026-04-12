@@ -1440,9 +1440,16 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionDeletePrivateChannel); !ok {
-			c.SetPermissionError(model.PermissionDeletePrivateChannel)
-			return
+		if channel.Type == model.ChannelTypeDirect {
+			if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionDeleteDirectChannel) {
+				c.SetPermissionError(model.PermissionDeleteDirectChannel)
+				return
+			}
+		} else {
+			if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionDeleteGroupChannel) {
+				c.SetPermissionError(model.PermissionDeleteGroupChannel)
+				return
+			}
 		}
 	}
 
