@@ -11,7 +11,7 @@
 // Group: @channels @onboarding
 
 import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {getRandomId} from '../../../utils';
+import {getRandomId, newTestPassword} from '../../../utils';
 
 const uniqueUserId = getRandomId();
 
@@ -51,7 +51,7 @@ describe('Cloud Onboarding', () => {
 
     it('MM-T403 Email address already exists', () => {
         // # Signup a new user with an email address and user generated in signupWithEmail
-        signupWithEmail('unique.' + uniqueUserId, 'unique1pw');
+        signupWithEmail('unique.' + uniqueUserId, newTestPassword());
 
         // * Verify there is Logout Button
         cy.contains('Logout').should('be.visible');
@@ -64,7 +64,7 @@ describe('Cloud Onboarding', () => {
 
         // # Logout and signup another user with the same email but different username and password
         cy.apiLogout();
-        signupWithEmail('unique-2', 'unique2pw');
+        signupWithEmail('unique-2', newTestPassword());
 
         // * Error message displays below the Create Account button that says "An account with that email already exists"
         cy.findByText('An account with that email already exists.').should('be.visible');
