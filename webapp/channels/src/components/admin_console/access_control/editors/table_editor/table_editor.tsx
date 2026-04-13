@@ -21,6 +21,10 @@ import {AddAttributeButton, TestButton, HelpText, OPERATOR_CONFIG, OPERATOR_LABE
 
 import './table_editor.scss';
 
+function celStringLiteral(val: string): string {
+    return '"' + val.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
+}
+
 interface TableEditorProps {
     value: string;
     onChange: (value: string) => void;
@@ -199,27 +203,27 @@ function TableEditor({
             if (!config) {
                 // Fallback for unknown operators, defaulting to 'in' logic
                 if (attributeObj?.type === 'multiselect') {
-                    return row.values.map((val: string) => `"${val}" in ${attributeExpr}`).join(' && ');
+                    return row.values.map((val: string) => `${celStringLiteral(val)} in ${attributeExpr}`).join(' && ');
                 }
-                const valuesStr = row.values.map((val: string) => `"${val}"`).join(', ');
+                const valuesStr = row.values.map((val: string) => celStringLiteral(val)).join(', ');
                 return `${attributeExpr} in [${valuesStr}]`;
             }
 
             if (config.type === 'list') {
                 if (row.operator === OperatorLabel.HAS_ANY_OF) {
-                    const parts = row.values.map((val: string) => `"${val}" ${config.celOp} ${attributeExpr}`);
+                    const parts = row.values.map((val: string) => `${celStringLiteral(val)} ${config.celOp} ${attributeExpr}`);
                     const orExpr = parts.join(' || ');
                     return parts.length > 1 ? `(${orExpr})` : orExpr;
                 }
                 if (row.operator === OperatorLabel.HAS_ALL_OF) {
-                    return row.values.map((val: string) => `"${val}" ${config.celOp} ${attributeExpr}`).join(' && ');
+                    return row.values.map((val: string) => `${celStringLiteral(val)} ${config.celOp} ${attributeExpr}`).join(' && ');
                 }
 
                 // Standard 'in' for select/text attributes: attr in [values]
                 if (attributeObj?.type === 'multiselect') {
-                    return row.values.map((val: string) => `"${val}" ${config.celOp} ${attributeExpr}`).join(' && ');
+                    return row.values.map((val: string) => `${celStringLiteral(val)} ${config.celOp} ${attributeExpr}`).join(' && ');
                 }
-                const valuesStr = row.values.map((val: string) => `"${val}"`).join(', ');
+                const valuesStr = row.values.map((val: string) => celStringLiteral(val)).join(', ');
                 return `${attributeExpr} ${config.celOp} [${valuesStr}]`;
             }
 
@@ -227,11 +231,11 @@ function TableEditor({
             const value = row.values.length > 0 ? row.values[0] : '';
 
             if (config.type === 'comparison') {
-                return `${attributeExpr} ${config.celOp} "${value}"`;
+                return `${attributeExpr} ${config.celOp} ${celStringLiteral(value)}`;
             }
 
             // config.type must be 'method'
-            return `${attributeExpr}.${config.celOp}("${value}")`;
+            return `${attributeExpr}.${config.celOp}(${celStringLiteral(value)})`;
         }).join(' && ');
 
         onChange(expr);
