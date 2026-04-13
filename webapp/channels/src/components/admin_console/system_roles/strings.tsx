@@ -74,4 +74,18 @@ export const rolesStrings: Record<string, Record<string, MessageDescriptor>> = {
             defaultMessage: 'System Role',
         },
     }),
+    system_shared_channel_manager: defineMessages({
+        name: {
+            id: 'admin.permissions.roles.system_shared_channel_manager.name',
+            defaultMessage: 'Shared Channel Manager',
+        },
+        description: {
+            id: 'admin.permissions.roles.system_shared_channel_manager.description',
+            defaultMessage: 'Can browse available connections and share or unshare channels with remote servers.',
+        },
+        type: {
+            id: 'admin.permissions.roles.system_shared_channel_manager.type',
+            defaultMessage: 'System Role',
+        },
+    }),
 };

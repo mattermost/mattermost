@@ -563,13 +563,11 @@ func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
 	require.NoError(t, err)
 	defer os.Remove(logFile.Name())
 
-	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED", "true")
-	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME", logFile.Name())
-	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED")
-	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME")
-
 	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
-	th := SetupWithServerOptions(t, options)
+	th := SetupWithServerOptionsAndConfig(t, options, func(cfg *model.Config) {
+		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
+		cfg.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
+	})
 
 	cfg, _, err := th.SystemAdminClient.GetConfig(context.Background())
 	require.NoError(t, err)
@@ -603,10 +601,11 @@ func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
 }
 
 func TestGetEnvironmentConfig(t *testing.T) {
-	os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://example.mattermost.com")
-	os.Setenv("MM_SERVICESETTINGS_ENABLECUSTOMEMOJI", "true")
-	defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
-	defer os.Unsetenv("MM_SERVICESETTINGS_ENABLECUSTOMEMOJI")
+	// These MUST be t.Setenv (not UpdateConfig) because GetEnvironmentConfig
+	// returns only config values sourced from environment variables.
+	// t.Setenv prevents t.Parallel — intentionally serial.
+	t.Setenv("MM_SERVICESETTINGS_SITEURL", "http://example.mattermost.com")
+	t.Setenv("MM_SERVICESETTINGS_ENABLECUSTOMEMOJI", "true")
 
 	th := Setup(t)
 
@@ -950,6 +949,72 @@ func TestPatchConfig(t *testing.T) {
 		// Check that sending an empty config returns no error.
 		_, _, err = th.SystemAdminClient.PatchConfig(context.Background(), &model.Config{})
 		require.NoError(t, err)
+	})
+
+	t.Run("should preserve plugin configs when toggling plugin enable off then on", func(t *testing.T) {
+		// Have some plugin settings setup
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.PluginSettings.Enable = model.NewPointer(true)
+			cfg.PluginSettings.Plugins = map[string]map[string]any{
+				"com.example.oauth-plugin": {
+					"clientid":     "test-client-id",
+					"clientsecret": "test-client-secret",
+				},
+			}
+		})
+
+		// First PATCH: disable the plugin subsystem
+		disablePatch := &model.Config{}
+		disablePatch.PluginSettings.Enable = model.NewPointer(false)
+		disabledResponse, _, err := th.SystemAdminClient.PatchConfig(context.Background(), disablePatch)
+		require.NoError(t, err)
+		// The sanitized response returns an empty Plugins map when plugins are disabled
+		assert.Empty(t, disabledResponse.PluginSettings.Plugins)
+
+		// Second PATCH: re-enable plugins using the response from the first PATCH
+		disabledResponse.PluginSettings.Enable = model.NewPointer(true)
+		_, _, err = th.SystemAdminClient.PatchConfig(context.Background(), &model.Config{
+			PluginSettings: disabledResponse.PluginSettings,
+		})
+		require.NoError(t, err)
+
+		// Plugin configs must survive the round-trip unchanged
+		storedCfg := th.App.Config()
+		require.Contains(t, storedCfg.PluginSettings.Plugins, "com.example.oauth-plugin")
+		assert.Equal(t, "test-client-id", storedCfg.PluginSettings.Plugins["com.example.oauth-plugin"]["clientid"])
+	})
+
+	t.Run("local client should preserve plugin configs when toggling plugin enable off then on", func(t *testing.T) {
+		// Have some plugin settings setup
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.PluginSettings.Enable = model.NewPointer(true)
+			cfg.PluginSettings.Plugins = map[string]map[string]any{
+				"com.example.oauth-plugin": {
+					"clientid":     "test-client-id",
+					"clientsecret": "test-client-secret",
+				},
+			}
+		})
+
+		// First PATCH: disable the plugin subsystem
+		disablePatch := &model.Config{}
+		disablePatch.PluginSettings.Enable = model.NewPointer(false)
+		disabledResponse, _, err := th.LocalClient.PatchConfig(context.Background(), disablePatch)
+		require.NoError(t, err)
+		// The sanitized response returns an empty Plugins map when plugins are disabled
+		assert.Empty(t, disabledResponse.PluginSettings.Plugins)
+
+		// Second PATCH: re-enable plugins using the response from the first PATCH
+		disabledResponse.PluginSettings.Enable = model.NewPointer(true)
+		_, _, err = th.LocalClient.PatchConfig(context.Background(), &model.Config{
+			PluginSettings: disabledResponse.PluginSettings,
+		})
+		require.NoError(t, err)
+
+		// Plugin configs must survive the round-trip unchanged
+		storedCfg := th.App.Config()
+		require.Contains(t, storedCfg.PluginSettings.Plugins, "com.example.oauth-plugin")
+		assert.Equal(t, "test-client-id", storedCfg.PluginSettings.Plugins["com.example.oauth-plugin"]["clientid"])
 	})
 }
 

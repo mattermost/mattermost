@@ -1480,10 +1480,6 @@
     "translation": "Errore nel avvio del server, err:%v"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "L'Integrazione/Slack-Bot-User con email {{.Email}} e password {{.Password}} è stata importata.\r\n"
-  },
-  {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "Impossibile importare l'Integrazione/Slack-Bot-user {{.Username}}.\r\n"
   },
@@ -1506,10 +1502,6 @@
   {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\r\nUtente creato:\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "L'utente Slack con email {{.Email}} e password {{.Password}} è stato importato.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
@@ -5322,10 +5314,6 @@
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
     "translation": "Aggiornamento membro squadra invalido: Un utente deve essere ospite o utente ma non entrambi."
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "La licenza enterprise è scaduta e alcune funzionalità possono essere disabilitate. Rinnovare la licenza."
   },
   {
     "id": "api.templates.remove_expired_license.subject",

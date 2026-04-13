@@ -4488,10 +4488,6 @@
     "translation": "Xác nhận Email"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Tài khoản người dùng dạng Tích hợp/Slack Bot với email {{.Email}} và password {{.Password}} đã được lưu trữ.\n"
-  },
-  {
     "id": "api.user.check_user_password.invalid.app_error",
     "translation": "Đăng nhập thất bại vì mật khẩu không hợp lệ"
   },
@@ -4764,10 +4760,6 @@
   {
     "id": "model.token.is_valid.size",
     "translation": "Token không hợp lệ."
-  },
-  {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Tài khoản Slack với email {{.Email}} và password {{.Password}} đã được lưu nhập.\n"
   },
   {
     "id": "app.import.validate_reply_import_data.message_missing.error",
@@ -6056,10 +6048,6 @@
   {
     "id": "api.system.id_loaded.not_available.app_error",
     "translation": "Thông báo đẩy được tải ID không được định cấu hình hoặc hỗ trợ trên máy chủ này."
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Giấy phép Phiên bản Enterprise của bạn đã hết hạn và một số tính năng có thể bị tắt. Hãy gia hạn giấy phép của bạn ngay bây giờ."
   },
   {
     "id": "api.team.add_members.user_denied",

@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {Bot} from '@mattermost/types/bots';
@@ -10,7 +9,7 @@ import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import ConfirmIntegration from 'components/integrations/confirm_integration/confirm_integration';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/integrations/ConfirmIntegration', () => {
@@ -78,10 +77,13 @@ describe('components/integrations/ConfirmIntegration', () => {
 
     test('should match snapshot, oauthApps case', () => {
         props.location.search = getSearchString('oauth2-apps');
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <ConfirmIntegration {...props}/>,
+            initialState,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByText('Setup Successful')).toBeInTheDocument();
+        expect(screen.getByText('OAuth 2.0 Applications')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match callback URLs of OAuth Apps', () => {
@@ -96,49 +98,69 @@ describe('components/integrations/ConfirmIntegration', () => {
 
     test('should match snapshot, outgoingOAuthConnections case', () => {
         props.location.search = getSearchString('outgoing-oauth2-connections');
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <ConfirmIntegration {...props}/>,
+            initialState,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByText('Setup Successful')).toBeInTheDocument();
+        expect(screen.getByText('Outgoing OAuth Connections')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, commands case', () => {
         props.location.search = getSearchString('commands');
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <ConfirmIntegration {...props}/>,
+            initialState,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByText('Setup Successful')).toBeInTheDocument();
+        expect(screen.getAllByText('Slash Commands').length).toBeGreaterThanOrEqual(1);
+        expect(screen.getByText(token)).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, incomingHooks case', () => {
         props.location.search = getSearchString('incoming_webhooks');
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <ConfirmIntegration {...props}/>,
+            initialState,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByText('Setup Successful')).toBeInTheDocument();
+        expect(screen.getAllByText('Incoming Webhooks').length).toBeGreaterThanOrEqual(1);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, outgoingHooks case', () => {
         props.location.search = getSearchString('outgoing_webhooks');
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <ConfirmIntegration {...props}/>,
+            initialState,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByText('Setup Successful')).toBeInTheDocument();
+        expect(screen.getAllByText('Outgoing Webhooks').length).toBeGreaterThanOrEqual(1);
+        expect(screen.getByText(token)).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, outgoingHooks and bad identifier case', () => {
         props.location.search = getSearchString('outgoing_webhooks', 'bad');
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <ConfirmIntegration {...props}/>,
+            initialState,
         );
-        expect(wrapper).toMatchSnapshot();
+
+        // Bad identifier means integration not found, redirects to error page
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, bad integration type case', () => {
         props.location.search = getSearchString('bad');
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <ConfirmIntegration {...props}/>,
+            initialState,
         );
-        expect(wrapper).toMatchSnapshot();
+
+        // Bad type means redirect to error page
+        expect(container).toMatchSnapshot();
     });
 });

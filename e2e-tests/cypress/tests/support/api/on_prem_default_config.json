@@ -175,15 +175,10 @@
     "ExperimentalAuditSettings": {
         "FileEnabled": false,
         "FileName": "",
-        "FileMaxSizeMB": 100,
-        "FileMaxAgeDays": 0,
-        "FileMaxBackups": 0,
-        "FileCompress": false,
-        "FileMaxQueueSize": 1000,
         "AdvancedLoggingJSON": {}
     },
     "PasswordSettings": {
-        "MinimumLength": 5,
+        "MinimumLength": 14,
         "Lowercase": false,
         "Number": false,
         "Uppercase": false,

@@ -18,13 +18,8 @@ import (
 
 func TestMloggerConfigFromAuditConfig(t *testing.T) {
 	auditSettings := model.ExperimentalAuditSettings{
-		FileEnabled:      model.NewPointer(true),
-		FileName:         model.NewPointer("audit.log"),
-		FileMaxSizeMB:    model.NewPointer(20),
-		FileMaxAgeDays:   model.NewPointer(1),
-		FileMaxBackups:   model.NewPointer(5),
-		FileCompress:     model.NewPointer(true),
-		FileMaxQueueSize: model.NewPointer(5000),
+		FileEnabled: model.NewPointer(true),
+		FileName:    model.NewPointer("audit.log"),
 	}
 
 	t.Run("validate default audit settings", func(t *testing.T) {

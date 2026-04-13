@@ -15,6 +15,7 @@ import (
 	"testing"
 	"time"
 
+	sq "github.com/mattermost/squirrel"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
@@ -167,15 +168,6 @@ func setupTestHelper(dbStore store.Store, sqlStore *sqlstore.SqlStore, sqlSettin
 	th.App.Srv().Store().MarkSystemRanUnitTests()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
-
-	// Disable strict password requirements for test
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.PasswordSettings.MinimumLength = 5
-		*cfg.PasswordSettings.Lowercase = false
-		*cfg.PasswordSettings.Uppercase = false
-		*cfg.PasswordSettings.Symbol = false
-		*cfg.PasswordSettings.Number = false
-	})
 
 	tb.Cleanup(func() {
 		if th.IncludeCacheLayer {
@@ -381,7 +373,7 @@ func (th *TestHelper) CreateUserOrGuest(tb testing.TB, guest bool) *model.User {
 		Email:         "success+" + id + "@simulator.amazonses.com",
 		Username:      "un_" + id,
 		Nickname:      "nn_" + id,
-		Password:      "Password1",
+		Password:      model.NewTestPassword(),
 		EmailVerified: true,
 	}
 
@@ -823,6 +815,36 @@ func decodeJSON[T any](tb testing.TB, o any, result *T) *T {
 	return result
 }
 
+func (th *TestHelper) SetUserRemoteID(tb testing.TB, userID, remoteID string) *model.User {
+	tb.Helper()
+
+	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
+		Update("Users").
+		Set("RemoteId", remoteID).
+		Where(sq.Eq{"Id": userID}).
+		ToSql()
+	require.NoError(tb, err)
+
+	_, err = th.App.Srv().Store().GetInternalMasterDB().Exec(query, args...)
+	require.NoError(tb, err)
+
+	th.App.InvalidateCacheForUser(userID)
+	user, appErr := th.App.GetUser(userID)
+	require.Nil(tb, appErr)
+	return user
+}
+
 func (th *TestHelper) Parallel(t *testing.T) {
 	mainHelper.Parallel(t)
+}
+
+// anonymousCallerId can be used for calls to the service that aren't tied to a specific entity.
+// These calls will not be able to access any data that has access control restrictions.
+const anonymousCallerId = ""
+
+// emptyContextWithCallerID creates a new empty request context with a caller ID for testing.
+// This is used in tests when no context is available but a caller ID is needed.
+func (th *TestHelper) emptyContextWithCallerID(callerID string) request.CTX {
+	ctx := model.WithCallerID(request.EmptyContext(th.App.Log()).Context(), callerID)
+	return request.EmptyContext(th.App.Log()).WithContext(ctx)
 }

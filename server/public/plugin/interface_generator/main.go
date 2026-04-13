@@ -23,7 +23,9 @@ import (
 )
 
 var excludedPluginHooks = []string{
+	"ChannelMemberWillBeAdded",
 	"FileWillBeUploaded",
+	"TeamMemberWillBeAdded",
 	"Implemented",
 	"LoadPluginConfiguration",
 	"InstallPlugin",

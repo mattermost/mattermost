@@ -31,7 +31,8 @@ import {stripMarkdown, formatWithRenderer} from 'utils/markdown';
 import MentionableRenderer from 'utils/markdown/mentionable_renderer';
 import {DesktopNotificationSounds, ding} from 'utils/notification_sounds';
 import {showNotification} from 'utils/notifications';
-import {cjkrPattern, escapeRegex} from 'utils/text_formatting';
+import {getFocusedPopoutInfo} from 'utils/popouts/focus';
+import {cjkrPattern} from 'utils/text_formatting';
 import {isDesktopApp, isMobileApp} from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
@@ -369,10 +370,10 @@ function shouldSkipNotification(
             let pattern;
             if (cjkrPattern.test(mention.key)) {
                 // In the case of CJK mention key, even if there's no delimiters (such as spaces) at both ends of a word, it is recognized as a mention key
-                pattern = new RegExp(`()(${escapeRegex(mention.key)})()`, flags);
+                pattern = new RegExp(`()(${RegExp.escape(mention.key)})()`, flags);
             } else {
                 pattern = new RegExp(
-                    `(^|\\W)(${escapeRegex(mention.key)})(\\b|_+\\b)`,
+                    `(^|\\W)(${RegExp.escape(mention.key)})(\\b|_+\\b)`,
                     flags,
                 );
             }
@@ -397,6 +398,7 @@ function shouldSkipNotification(
     // the window itself is not active
     const activeChannel = getCurrentChannel(state);
     const channelId = channel ? channel.id : null;
+    const focusedPopout = getFocusedPopoutInfo();
 
     if (state.views.browser.focused) {
         if (isCrtReply) {
@@ -405,6 +407,13 @@ function shouldSkipNotification(
             }
         } else if (activeChannel && activeChannel.id === channelId) {
             return {status: 'not_sent', reason: 'channel_is_open', data: activeChannel?.id};
+        }
+    } else if (focusedPopout) {
+        if (isCrtReply && focusedPopout.threadId === post.root_id) {
+            return {status: 'not_sent', reason: 'thread_is_open', data: post.root_id};
+        }
+        if (!isCrtReply && !focusedPopout.threadId && focusedPopout.channelId === channelId) {
+            return {status: 'not_sent', reason: 'channel_is_open', data: channelId};
         }
     }
 

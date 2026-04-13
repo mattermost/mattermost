@@ -1484,10 +1484,6 @@
     "translation": "Erro ao iniciar o servidor, err:%v"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "O usuário com email {{.Email}} e senha {{.Password}} da Integração/Slack Bot foi importado.\r\n"
-  },
-  {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "Não é possível importar o usuário {{.Username}} da Integração/Slack Bot.\r\n"
   },
@@ -1510,10 +1506,6 @@
   {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\r\nUsuários criados:\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "O usuário Slack com e-mail {{.Email}} e a senha {{.Password}} foi importado.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
@@ -5230,10 +5222,6 @@
   {
     "id": "api.templates.remove_expired_license.subject",
     "translation": "A licença Mattermost Enterprise foi desativada."
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Sua licença Enterprise Edition expirou e alguns recursos podem ser desativados. Por favor renove usa licença agora."
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -9814,10 +9802,6 @@
   {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
     "translation": "Não é possível registrar o grupo de propriedades Custom Profile Attributes"
-  },
-  {
-    "id": "app.custom_profile_attributes.create_property_field.app_error",
-    "translation": "Não é possível criar o campo Atributo de perfil personalizado"
   },
   {
     "id": "app.custom_profile_attributes.get_property_field.app_error",

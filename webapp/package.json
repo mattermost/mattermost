@@ -19,7 +19,8 @@
     "i18n-extract": "npm run i18n-extract --workspaces --if-present",
     "i18n-extract:check": "npm run i18n-extract:check --workspaces --if-present",
     "clean": "npm run clean --workspaces --if-present && rm -rf node_modules .parcel-cache",
-    "gen-lang-imports": "node scripts/gen_lang_imports.mjs"
+    "gen-lang-imports": "node scripts/gen_lang_imports.mjs",
+    "check-external-links": "node scripts/check-external-links.mjs"
   },
   "dependencies": {
     "@mattermost/compass-icons": "0.1.53",
@@ -28,14 +29,13 @@
   },
   "devDependencies": {
     "@babel/core": "7.28.5",
-    "@babel/preset-env": "7.28.5",
+    "@babel/preset-env": "7.29.2",
     "@babel/preset-react": "7.28.5",
     "@babel/preset-typescript": "7.28.5",
     "@formatjs/cli": "6.7.4",
     "@types/node": "24.10.4",
     "babel-loader": "9.1.2",
     "babel-plugin-formatjs": "10.5.1",
-    "babel-plugin-typescript-to-proptypes": "2.1.0",
     "blessed": "0.1.81",
     "chalk": "5.3.0",
     "concurrently": "9.0.1",

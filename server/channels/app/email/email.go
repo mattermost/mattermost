@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 
@@ -396,6 +397,7 @@ func (es *Service) SendMfaChangeEmail(email string, activated bool, locale, site
 }
 
 func (es *Service) SendInviteEmails(
+	rctx request.CTX,
 	team *model.Team,
 	senderName string,
 	senderUserId string,
@@ -409,7 +411,7 @@ func (es *Service) SendInviteEmails(
 	if es.perHourEmailRateLimiter == nil {
 		return NoRateLimiterError
 	}
-	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimit(senderUserId, len(invites))
+	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimitCtx(rctx.Context(), senderUserId, len(invites))
 	if err != nil {
 		return SetupRateLimiterError
 	}
@@ -488,6 +490,7 @@ func (es *Service) SendInviteEmails(
 const magicLinkURL = "%s/landing#/login/one_time_link?t=%s"
 
 func (es *Service) SendGuestInviteEmails(
+	rctx request.CTX,
 	team *model.Team,
 	channels []*model.Channel,
 	senderName string,
@@ -504,7 +507,7 @@ func (es *Service) SendGuestInviteEmails(
 	if es.perHourEmailRateLimiter == nil {
 		return NoRateLimiterError
 	}
-	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimit(senderUserId, len(invites))
+	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimitCtx(rctx.Context(), senderUserId, len(invites))
 	if err != nil {
 		return SetupRateLimiterError
 	}
@@ -618,6 +621,7 @@ func (es *Service) SendGuestInviteEmails(
 // This is for self-service login requests (no sender, no team/channel context).
 // For admin-initiated guest magic link invitations with team/channel assignment, use SendGuestInviteEmails with isGuestMagicLink=true.
 func (es *Service) SendMagicLinkEmailSelfService(
+	rctx request.CTX,
 	invite string,
 	siteURL string,
 ) error {
@@ -626,7 +630,7 @@ func (es *Service) SendMagicLinkEmailSelfService(
 	}
 
 	// Rate limit by email address for self-service requests
-	rateLimited, result, err := es.perMinuteEmailRateLimiter.RateLimit(invite, 1)
+	rateLimited, result, err := es.perMinuteEmailRateLimiter.RateLimitCtx(rctx.Context(), invite, 1)
 	if err != nil {
 		return SetupRateLimiterError
 	}
@@ -689,6 +693,7 @@ func (es *Service) SendMagicLinkEmailSelfService(
 }
 
 func (es *Service) SendInviteEmailsToTeamAndChannels(
+	rctx request.CTX,
 	team *model.Team,
 	channels []*model.Channel,
 	senderName string,
@@ -705,7 +710,7 @@ func (es *Service) SendInviteEmailsToTeamAndChannels(
 	if es.perHourEmailRateLimiter == nil {
 		return nil, NoRateLimiterError
 	}
-	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimit(senderUserId, len(invites))
+	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimitCtx(rctx.Context(), senderUserId, len(invites))
 	if err != nil {
 		return nil, SetupRateLimiterError
 	}
@@ -998,23 +1003,25 @@ func (es *Service) CreateVerifyEmailToken(userID string, newEmail string) (*mode
 	return token, nil
 }
 
-func (es *Service) SendLicenseUpForRenewalEmail(email, name, locale, siteURL, ctaTitle, ctaLink, ctaText string, daysToExpiration int) error {
+func (es *Service) SendLicenseUpForRenewalEmail(email, locale string, daysToExpiration int) error {
 	T := i18n.GetUserTranslations(locale)
-	subject := T("api.templates.license_up_for_renewal_subject")
-
+	skuName := es.getLicenseSkuName()
+	prefixedSkuName := es.getPrefixedLicenseSkuName()
+	subject := T("api.templates.license_up_for_renewal_subject",
+		map[string]any{"SkuName": prefixedSkuName})
+	siteName := es.getConfigSiteName()
+	siteURL := *es.config().ServiceSettings.SiteURL
 	data := es.NewEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL
 	data.Props["Title"] = T("api.templates.license_up_for_renewal_title")
-	data.Props["SubTitle"] = T("api.templates.license_up_for_renewal_subtitle", map[string]any{"UserName": name, "Days": daysToExpiration})
-	data.Props["SubTitleTwo"] = ctaTitle
-	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
-	data.Props["Button"] = ctaText
-	data.Props["ButtonURL"] = ctaLink
-	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
-	data.Props["SupportEmail"] = "feedback@mattermost.com"
-	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
+	data.Props["Button"] = T("api.templates.license_up_for_renewal_contact_sales")
+	data.Props["ButtonURL"] = "https://mattermost.com/contact-sales/"
+	data.Props["NeedHelpTitle"] = T("api.templates.license_need_help.title")
+	data.Props["SubTitleTwo"] = T("api.templates.license_up_for_renewal_subtitle_two")
+	data.HTML["SubTitle"] = i18n.TranslateAsHTML(T, "api.templates.license_up_for_renewal_subtitle", map[string]any{"SkuName": skuName, "SiteURL": siteURL, "SiteName": siteName, "Days": daysToExpiration})
+	data.HTML["NeedHelpInfo"] = template.HTML(T("api.templates.license_need_help.info"))
 
-	body, err := es.templatesContainer.RenderToString("license_up_for_renewal", data)
+	body, err := es.templatesContainer.RenderToString("license_notification", data)
 	if err != nil {
 		return err
 	}
@@ -1026,20 +1033,25 @@ func (es *Service) SendLicenseUpForRenewalEmail(email, name, locale, siteURL, ct
 	return nil
 }
 
-// SendRemoveExpiredLicenseEmail formats an email and uses the email service to send the email to user with link pointing to CWS
-// to renew the user license
-func (es *Service) SendRemoveExpiredLicenseEmail(ctaText, ctaLink, email, locale, siteURL string) error {
+func (es *Service) SendRemoveExpiredLicenseEmail(email, locale string) error {
 	T := i18n.GetUserTranslations(locale)
+	skuName := es.getLicenseSkuName()
+	prefixedSkuName := es.getPrefixedLicenseSkuName()
 	subject := T("api.templates.remove_expired_license.subject",
-		map[string]any{"SiteName": es.config().TeamSettings.SiteName})
-
+		map[string]any{"SkuName": prefixedSkuName})
+	siteName := es.getConfigSiteName()
+	siteURL := *es.config().ServiceSettings.SiteURL
 	data := es.NewEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL
-	data.Props["Title"] = T("api.templates.remove_expired_license.body.title")
-	data.Props["Link"] = ctaLink
-	data.Props["LinkButton"] = ctaText
+	data.Props["Title"] = T("api.templates.remove_expired_license.body.heading")
+	data.Props["Button"] = T("api.templates.license_up_for_renewal_contact_sales")
+	data.Props["ButtonURL"] = "https://mattermost.com/contact-sales/"
+	data.Props["NeedHelpTitle"] = T("api.templates.license_need_help.title")
+	data.Props["SubTitleTwo"] = T("api.templates.remove_expired_license.body.subtitle_two")
+	data.HTML["SubTitle"] = i18n.TranslateAsHTML(T, "api.templates.remove_expired_license.body.subtitle", map[string]any{"SkuName": skuName, "SiteURL": siteURL, "SiteName": siteName})
+	data.HTML["NeedHelpInfo"] = template.HTML(T("api.templates.license_need_help.info"))
 
-	body, err := es.templatesContainer.RenderToString("remove_expired_license", data)
+	body, err := es.templatesContainer.RenderToString("license_notification", data)
 	if err != nil {
 		return err
 	}

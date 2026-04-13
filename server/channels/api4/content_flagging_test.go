@@ -6,7 +6,6 @@ package api4
 import (
 	"context"
 	"net/http"
-	"os"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -104,7 +103,7 @@ func setCommonReviewerWithRequiredCommentConfig(th *TestHelper) *model.AppError 
 func flagPostViaAPI(t *testing.T, client *model.Client4, postId string) {
 	t.Helper()
 	flagRequest := &model.FlagContentRequest{
-		Reason:  "Sensitive data",
+		Reason:  "Classification mismatch",
 		Comment: "This is sensitive content",
 	}
 	resp, err := client.FlagPostForContentReview(context.Background(), postId, flagRequest)
@@ -138,7 +137,7 @@ func TestRequireContentFlaggingEnabled(t *testing.T) {
 
 		requireContentFlaggingEnabled(c)
 		require.NotNil(t, c.Err)
-		require.Equal(t, "api.content_flagging.error.license", c.Err.Id)
+		require.Equal(t, "api.data_spillage.error.license", c.Err.Id)
 		require.Equal(t, http.StatusNotImplemented, c.Err.StatusCode)
 	})
 
@@ -158,7 +157,7 @@ func TestRequireContentFlaggingEnabled(t *testing.T) {
 
 		requireContentFlaggingEnabled(c)
 		require.NotNil(t, c.Err)
-		require.Equal(t, "api.content_flagging.error.disabled", c.Err.Id)
+		require.Equal(t, "api.data_spillage.error.disabled", c.Err.Id)
 		require.Equal(t, http.StatusNotImplemented, c.Err.StatusCode)
 	})
 
@@ -521,11 +520,10 @@ func TestGetFlaggedPost(t *testing.T) {
 }
 
 func TestFlagPost(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
-	})
 	th := Setup(t).InitBasic(t)
+
+	// Enable BurnOnRead feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 
 	client := th.Client
 
@@ -616,7 +614,7 @@ func TestFlagPost(t *testing.T) {
 
 		post := th.CreatePost(t)
 		flagRequest := &model.FlagContentRequest{
-			Reason:  "Sensitive data",
+			Reason:  "Classification mismatch",
 			Comment: "This is sensitive data",
 		}
 

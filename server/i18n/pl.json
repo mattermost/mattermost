@@ -1484,10 +1484,6 @@
     "translation": "Błąd podczas uruchamiania serwera, err:%v"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Użytkownik Integracji / Slack Bot z adresem e-mail {{.Email}} i hasłem {{.Password}} został zaimportowany.\r\n"
-  },
-  {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "Nie udało się zaimportować użytkownika Integracji/Slack Bot {{.Username}}.\r\n"
   },
@@ -1510,10 +1506,6 @@
   {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\r\nUtworzeni użytkownicy:\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Użytkownik Slacka z adresem e-mail {{.Email}} i hasłem {{.Password}} został zaimportowany.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
@@ -5230,10 +5222,6 @@
   {
     "id": "api.templates.remove_expired_license.subject",
     "translation": "Mattermost Enterprise license has been disabled."
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Twoja licencja Enterprise Edition wygasła i niektóre funkcjonalności mogą być niedostępne. Proszę odnowić swoją licencję."
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -10032,12 +10020,8 @@
     "translation": "Nie można utworzyć katalogu dla niestandardowych obrazów emoji"
   },
   {
-    "id": "app.custom_profile_attributes.create_property_field.app_error",
-    "translation": "Nie można utworzyć pola atrybutu profilu niestandardowego"
-  },
-  {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
-    "translation": "Nie można zarejestrować grupy właściwości Atrybuty profilu niestandardowego"
+    "translation": "Nie można pobrać grupy właściwości Atrybuty profilu niestandardowego."
   },
   {
     "id": "app.custom_profile_attributes.limit_reached.app_error",
@@ -10584,14 +10568,6 @@
     "translation": "Test połączenia LDAP nie powiódł się. Serwer: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Błąd: {{.Error}}"
   },
   {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid",
-    "translation": "Maksymalna konfiguracja kopii zapasowych plików logów audytu nie może być ujemna."
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid",
-    "translation": "Maksymalna kolejka plików konfiguracji logów audytu musi być większa od zera."
-  },
-  {
     "id": "model.acknowledgement.is_valid.channel_id.app_error",
     "translation": "Nieprawidłowy identyfikator kanału."
   },
@@ -10606,14 +10582,6 @@
   {
     "id": "model.config.is_valid.content_flagging.team_reviewers_not_set.app_error",
     "translation": "Recenzenci zespołu lub dodatkowi recenzenci muszą być ustawieni podczas ustawiania opcji \"Włączone\" dla zespołu."
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_age_invalid",
-    "translation": "Maksymalny wiek pliku konfiguracji dzienników audytu nie może być ujemny."
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_size_invalid",
-    "translation": "Maksymalny rozmiar pliku konfiguracji logów audytu musi być większy od zera."
   },
   {
     "id": "model.config.is_valid.experimental_audit_settings.file_name_is_directory",
@@ -10690,14 +10658,6 @@
   {
     "id": "ent.access_control.sync_job.app_error",
     "translation": "Nie udało się uruchomić zadania synchronizacji kontroli dostępu."
-  },
-  {
-    "id": "api.content_flagging.error.disabled",
-    "translation": "Funkcja oznaczania treści jest wyłączona."
-  },
-  {
-    "id": "api.content_flagging.error.license",
-    "translation": "Twoja licencja nie obsługuje flagowania treści."
   },
   {
     "id": "app.access_control.insufficient_permissions",
@@ -10788,30 +10748,6 @@
     "translation": "Nie możesz pisać w ograniczonym DM"
   },
   {
-    "id": "api.content_flagging.error.comment_required",
-    "translation": "Dodaj komentarz wyjaśniający, dlaczego oznaczasz tę wiadomość flagą."
-  },
-  {
-    "id": "api.content_flagging.error.comment_too_long",
-    "translation": "Powód oflagowania wiadomości nie może być dłuższy niż {{.MaxLength}} znaków."
-  },
-  {
-    "id": "api.content_flagging.error.not_available_on_team",
-    "translation": "Funkcja flagowania treści nie jest włączona w tym zespole."
-  },
-  {
-    "id": "api.content_flagging.error.post_not_in_progress",
-    "translation": "Oflagowany post musi mieć status oczekujący lub przypisany, aby mógł zostać zachowany lub usunięty."
-  },
-  {
-    "id": "api.content_flagging.error.reason_invalid",
-    "translation": "Podano nieznany powód oflagowania wiadomości."
-  },
-  {
-    "id": "api.content_flagging.error.reason_required",
-    "translation": "Wybierz powód oflagowania tej wiadomości."
-  },
-  {
     "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
     "translation": "Nie możesz zapisać wersji roboczej do zastrzeżonego kanału wiadomości bezpośrednich"
   },
@@ -10852,100 +10788,8 @@
     "translation": "Błąd pobierania wspólnych zespołów dla Kanału"
   },
   {
-    "id": "app.content_flagging.can_flag_post.in_progress",
-    "translation": "Nie możesz oflagować tego postu, ponieważ jest już oflagowany."
-  },
-  {
     "id": "api.encoding_error",
     "translation": "Napotkano błąd kodowania JSON dla odpowiedzi API"
-  },
-  {
-    "id": "app.content_flagging.can_flag_post.removed",
-    "translation": "Nie możesz oflagować tego postu, ponieważ został on usunięty w wyniku wcześniejszej prośby o oflagowanie."
-  },
-  {
-    "id": "app.content_flagging.can_flag_post.retained",
-    "translation": "Nie możesz oflagować tego postu, ponieważ został on zachowany w poprzednim żądaniu oflagowania."
-  },
-  {
-    "id": "app.content_flagging.can_flag_post.unknown",
-    "translation": "Nie możesz oflagować tego postu, ponieważ ma on nieznany status."
-  },
-  {
-    "id": "app.content_flagging.create_property_values.app_error",
-    "translation": "Nie udało się zapisać wartości właściwości dla oflagowanego posta."
-  },
-  {
-    "id": "app.content_flagging.flag_post.marshal_comment.app_error",
-    "translation": "Nie udało się pobrać komentarza użytkownika flagującego"
-  },
-  {
-    "id": "app.content_flagging.flag_post.marshal_reason.app_error",
-    "translation": "Nie udało się pobrać powodu użytkownika flagującego"
-  },
-  {
-    "id": "app.content_flagging.flag_post_confirmation.message",
-    "translation": "Wiadomość od @{{.username}} została oznaczona do sprawdzenia. Otrzymasz powiadomienie, gdy zostanie ona sprawdzona przez weryfikatora treści. "
-  },
-  {
-    "id": "app.content_flagging.get_group.error",
-    "translation": "Nie udało się pobrać bota Content Flagging."
-  },
-  {
-    "id": "app.content_flagging.get_reviewer_settings.app_error",
-    "translation": "Nie udało się pobrać ustawień recenzenta treści z bazy danych"
-  },
-  {
-    "id": "app.content_flagging.get_status_property.app_error",
-    "translation": "Nie udało się uzyskać pola właściwości Status."
-  },
-  {
-    "id": "app.content_flagging.get_users_in_team.app_error",
-    "translation": "Nie udało się szukać recenzentów w zespole."
-  },
-  {
-    "id": "app.content_flagging.keep_flag_post.marshal_comment.app_error",
-    "translation": "Nie udało się zebrać komentarza recenzenta"
-  },
-  {
-    "id": "app.content_flagging.keep_post.status_update.app_error",
-    "translation": "Nie udało się zaktualizować statusu oflagowanego postu podczas usuwania oflagowanego postu "
-  },
-  {
-    "id": "app.content_flagging.keep_post.undelete.app_error",
-    "translation": "Nie udało się zaktualizować posta w bazie danych podczas próby usunięcia oflagowanego posta i powiązanych z nim danych."
-  },
-  {
-    "id": "app.content_flagging.marshal_property_values.app_error",
-    "translation": "Nie udało się pobrać wartości właściwości Content Flagging do wysłania w zdarzeniu WebSocket."
-  },
-  {
-    "id": "app.content_flagging.no_status_property.app_error",
-    "translation": "Nie można pobrać oflagowanego posta, ponieważ nie jest on oflagowany."
-  },
-  {
-    "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",
-    "translation": "Nie udało się zebrać komentarza recenzenta"
-  },
-  {
-    "id": "app.content_flagging.permanently_delete.update_property_value.app_error",
-    "translation": "Nie udało się zaktualizować statusu oflagowanego postu podczas trwałego usunięcia oflagowanego postu."
-  },
-  {
-    "id": "app.content_flagging.save_reviewer_settings.app_error",
-    "translation": "Nie udało się zapisać ustawień weryfikatora treści w bazie danych."
-  },
-  {
-    "id": "app.content_flagging.search_property_fields.app_error",
-    "translation": "Szukanie pól właściwości Content Flagging nie powiodło się."
-  },
-  {
-    "id": "app.content_flagging.search_property_values.app_error",
-    "translation": "Nie udało się pobrać wartości właściwości flagowania treści posta z bazy danych."
-  },
-  {
-    "id": "app.content_flagging.search_status_property.app_error",
-    "translation": "Nie udało się znaleźć wartości właściwości dla oflagowanego posta."
   },
   {
     "id": "app.post_priority.delete_for_post.app_error",
@@ -10954,10 +10798,6 @@
   {
     "id": "app.save_scheduled_post.restricted_dm.error",
     "translation": "Nie możesz zaplanować postu w ograniczonym DM"
-  },
-  {
-    "id": "app.system.content_review_bot.bot_displayname",
-    "translation": "Przegląd zawartości"
   },
   {
     "id": "app.upload.create.cannot_upload_to_restricted_dm.error",
@@ -10984,72 +10824,8 @@
     "translation": "Nie można dodać uprawnienia, które jest ograniczone przez zespół lub schemat uprawnień systemu."
   },
   {
-    "id": "api.content_flagging.error.user_not_reviewer",
-    "translation": "Użytkownik nie jest recenzentem treści."
-  },
-  {
     "id": "api.team.get_team.flagged_post_mismatch.app_error",
     "translation": "Identyfikator zespołu nie pasuje do identyfikatora zespołu w oflagowanym poście."
-  },
-  {
-    "id": "app.content_flagging.assign_reviewer.no_reviewer_field.app_error",
-    "translation": "Nie znaleziono pola właściwości ID weryfikatora."
-  },
-  {
-    "id": "app.content_flagging.assign_reviewer.update_status_property_value.app_error",
-    "translation": "Nie udało się zaktualizować wartości właściwości Status przy ustawieniu recenzenta."
-  },
-  {
-    "id": "app.content_flagging.assign_reviewer.upsert_property_value.app_error",
-    "translation": "Nie udało się ustawić flagowanego recenzenta postów."
-  },
-  {
-    "id": "app.content_flagging.missing_flagged_post_id_field.app_error",
-    "translation": "Nie można znaleźć pola właściwości Flagged Post ID."
-  },
-  {
-    "id": "app.content_flagging.missing_reporting_user_id_field.app_error",
-    "translation": "Nie można znaleźć pola użytkownika raportującego."
-  },
-  {
-    "id": "app.content_flagging.missing_reporting_user_id_property_value.app_error",
-    "translation": "Nie można znaleźć wartości dla pola użytkownika raportującego."
-  },
-  {
-    "id": "app.content_flagging.search_common_reviewers.app_error",
-    "translation": "Nie udało się szukać terminu w Common Reviewers."
-  },
-  {
-    "id": "app.content_flagging.search_reviewer_posts.app_error",
-    "translation": "Nie udało się szukać postów recenzentów dla oflagowanego postu."
-  },
-  {
-    "id": "app.content_flagging.search_sysadmin_reviewers.app_error",
-    "translation": "Nie udało się znaleźć szukanego terminu w System Admin Reviewers."
-  },
-  {
-    "id": "app.content_flagging.search_team_admin_reviewers.app_error",
-    "translation": "Nie udało się wyszukać szukanego hasła w Team Admin Reviewers."
-  },
-  {
-    "id": "app.content_flagging.search_team_reviewers.app_error",
-    "translation": "Nie udało się wyszukać szukanego hasła w Team Reviewers."
-  },
-  {
-    "id": "app.content_flagging.get_thread_replies.app_error",
-    "translation": "Nie udało się pobrać odpowiedzi wątku dla oflagowanego posta."
-  },
-  {
-    "id": "app.content_flagging.missing_manage_by_field.app_error",
-    "translation": "Nie udało się znaleźć pola właściwości Zarządzaj przez."
-  },
-  {
-    "id": "app.content_flagging.missing_status_field.app_error",
-    "translation": "Nie znaleziono pola właściwości Status."
-  },
-  {
-    "id": "app.content_flagging.set_thread_replies_properties.app_error",
-    "translation": "Nie udało się ustawić wartości właściwości w odpowiedziach wątku dla oflagowanego postu."
   },
   {
     "id": "api.user.delete_channel.not_enabled.for_admin.app_error",
@@ -11154,10 +10930,6 @@
   {
     "id": "api.user.guest_magic_link.invalid_token.app_error",
     "translation": "Nieprawidłowy link zaproszenia."
-  },
-  {
-    "id": "api.user.guest_magic_link.invalid_token_type.app_error",
-    "translation": "Nieprawidłowy typ linku zaproszenia."
   },
   {
     "id": "api.user.guest_magic_link.missing_token.app_error",
@@ -11584,10 +11356,6 @@
     "translation": "Identyfikator dzierżawcy usługi Intune MAM musi być prawidłowym identyfikatorem UUID."
   },
   {
-    "id": "api.content_flagging.error.invalid_post_type",
-    "translation": "Oznaczanie postów typu '{{.PostType}}' jest niedozwolone."
-  },
-  {
     "id": "model.config.is_valid.guest_accounts.cannot_enforce_multifactor_authentication_when_guest_magic_link_is_enabled.app_error",
     "translation": "Nie możesz wymusić uwierzytelniania wieloskładnikowego dla kont gości, gdy włączone jest uwierzytelnianie magic link."
   },
@@ -11813,7 +11581,7 @@
   },
   {
     "id": "model.config.is_valid.autotranslation.workers.app_error",
-    "translation": "Liczba pracowników musi wynosić od 1 do 32."
+    "translation": "Liczba pracowników musi wynosić od 1 do 64."
   },
   {
     "id": "model.translation.is_valid.lang.app_error",
@@ -11934,5 +11702,389 @@
   {
     "id": "model.config.is_valid.dcr_redirect_uri_allowlist.app_error",
     "translation": "Lista dozwolonych URI przekierowania DCR zawiera nieprawidłowy wzorzec. Wzorce muszą zaczynać się od http:// lub https:// i nie mogą być puste ani zawierać białych znaków."
+  },
+  {
+    "id": "api.data_spillage.error.comment_required",
+    "translation": "Dodaj komentarz wyjaśniający, dlaczego oznaczasz tę wiadomość flagą."
+  },
+  {
+    "id": "api.data_spillage.error.comment_too_long",
+    "translation": "Powód kwarantanny wiadomości nie może być dłuższy niż {{.MaxLength}} znaków."
+  },
+  {
+    "id": "api.data_spillage.error.disabled",
+    "translation": "Funkcja obsługi wycieków danych jest wyłączona."
+  },
+  {
+    "id": "api.data_spillage.error.invalid_post_type",
+    "translation": "Poddawanie kwarantannie postów typu '{{.PostType}}' jest niedozwolone."
+  },
+  {
+    "id": "api.data_spillage.error.license",
+    "translation": "Twoja licencja nie wspiera obsługi wycieków danych."
+  },
+  {
+    "id": "api.data_spillage.error.not_available_on_team",
+    "translation": "Funkcja obsługi wycieków danych nie jest włączona w tym zespole."
+  },
+  {
+    "id": "api.data_spillage.error.post_not_in_progress",
+    "translation": "Post objęty kwarantanną musi mieć status oczekujący lub przypisany, aby mógł zostać zachowany lub usunięty."
+  },
+  {
+    "id": "api.data_spillage.error.reason_invalid",
+    "translation": "Podano nieznany powód poddania wiadomości kwarantannie."
+  },
+  {
+    "id": "api.data_spillage.error.reason_required",
+    "translation": "Wybierz powód poddania tej wiadomości kwarantannie."
+  },
+  {
+    "id": "api.data_spillage.error.user_not_reviewer",
+    "translation": "Użytkownik nie jest recenzentem treści."
+  },
+  {
+    "id": "api.plugin.install.check_directory.app_error",
+    "translation": "Wystąpił błąd podczas sprawdzania konfiguracji katalogu Wtyczek."
+  },
+  {
+    "id": "api.plugin.install.directory_conflict.app_error",
+    "translation": "Nie można zainstalować Wtyczki: PluginSettings.Directory jest w konflikcie z ImportSettings.Directory."
+  },
+  {
+    "id": "api.slackimport.slack_add_bot_user.email",
+    "translation": "Użytkownik Integration/Slack Bot z adresem e-mail {{.Email}} został zaimportowany.\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.email",
+    "translation": "Użytkownik Slack z adresem e-mail {{.Email}} został zaimportowany.\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.send_reset_email_failed",
+    "translation": "Nie można wysłać wiadomości e-mail z resetem hasła na adres {{.Username}} pod adresem {{.Email}}.\n"
+  },
+  {
+    "id": "api.upload.create.check_directory.app_error",
+    "translation": "Wystąpił błąd podczas sprawdzania konfiguracji katalogu importu."
+  },
+  {
+    "id": "api.upload.create.directory_conflict.app_error",
+    "translation": "Nie można utworzyć Przesyłania importu: ImportSettings.Directory jest w konflikcie z PluginSettings.Directory."
+  },
+  {
+    "id": "app.command.validatecommandtriggeruniqueness.internal_error",
+    "translation": "Podane słowo kluczowe trigera już istnieje."
+  },
+  {
+    "id": "app.data_spillage.assign_reviewer.no_reviewer_field.app_error",
+    "translation": "Nie znaleziono pola właściwości ID weryfikatora."
+  },
+  {
+    "id": "app.data_spillage.assign_reviewer.update_status_property_value.app_error",
+    "translation": "Nie udało się zaktualizować wartości właściwości Status przy ustawieniu recenzenta."
+  },
+  {
+    "id": "app.data_spillage.assign_reviewer.upsert_property_value.app_error",
+    "translation": "Nie udało się ustawić flagowanego recenzenta postów."
+  },
+  {
+    "id": "app.data_spillage.can_flag_post.in_progress",
+    "translation": "Nie możesz poddać tego postu kwarantannie, ponieważ został on już poddany kwarantannie w celu sprawdzenia."
+  },
+  {
+    "id": "app.data_spillage.can_flag_post.removed",
+    "translation": "Nie możesz poddać tego postu kwarantannie, ponieważ został on usunięty w poprzedniej recenzji."
+  },
+  {
+    "id": "app.data_spillage.can_flag_post.retained",
+    "translation": "Nie możesz poddać tego postu kwarantannie, ponieważ został on zachowany w poprzedniej recenzji."
+  },
+  {
+    "id": "app.data_spillage.can_flag_post.unknown",
+    "translation": "Nie można poddać kwarantannie tego postu, ponieważ ma on nieznany status."
+  },
+  {
+    "id": "app.data_spillage.create_property_values.app_error",
+    "translation": "Nie udało się zapisać wartości właściwości dla oflagowanego posta."
+  },
+  {
+    "id": "app.data_spillage.flag_post.marshal_comment.app_error",
+    "translation": "Nie udało się pobrać komentarza użytkownika flagującego"
+  },
+  {
+    "id": "app.data_spillage.flag_post.marshal_reason.app_error",
+    "translation": "Nie udało się pobrać powodu użytkownika flagującego"
+  },
+  {
+    "id": "app.data_spillage.flag_post_confirmation.message",
+    "translation": "Wiadomość od @{{.username}} została poddana kwarantannie w celu sprawdzenia. Zostaniesz powiadomiony, gdy zostanie ona sprawdzona przez recenzenta."
+  },
+  {
+    "id": "app.data_spillage.get_group.error",
+    "translation": "Nie można pobrać grupy właściwości flagowania zawartości."
+  },
+  {
+    "id": "app.data_spillage.get_reviewer_settings.app_error",
+    "translation": "Nie udało się pobrać ustawień recenzenta treści z bazy danych"
+  },
+  {
+    "id": "app.data_spillage.get_status_property.app_error",
+    "translation": "Nie udało się uzyskać pola właściwości Status."
+  },
+  {
+    "id": "app.data_spillage.get_thread_replies.app_error",
+    "translation": "Nie udało się pobrać odpowiedzi wątku dla oflagowanego posta."
+  },
+  {
+    "id": "app.data_spillage.get_users_in_team.app_error",
+    "translation": "Nie udało się szukać recenzentów w zespole."
+  },
+  {
+    "id": "app.data_spillage.keep_flag_post.marshal_comment.app_error",
+    "translation": "Nie udało się zebrać komentarza recenzenta"
+  },
+  {
+    "id": "app.data_spillage.keep_post.status_update.app_error",
+    "translation": "Nie udało się zaktualizować statusu oflagowanego postu podczas usuwania oflagowanego postu "
+  },
+  {
+    "id": "app.data_spillage.keep_post.undelete.app_error",
+    "translation": "Nie udało się zaktualizować posta w bazie danych podczas próby usunięcia oflagowanego posta i powiązanych z nim danych."
+  },
+  {
+    "id": "app.data_spillage.marshal_property_values.app_error",
+    "translation": "Nie udało się pobrać wartości właściwości Content Flagging do wysłania w zdarzeniu WebSocket."
+  },
+  {
+    "id": "app.data_spillage.missing_flagged_post_id_field.app_error",
+    "translation": "Nie można znaleźć pola właściwości Flagged Post ID."
+  },
+  {
+    "id": "app.data_spillage.missing_manage_by_field.app_error",
+    "translation": "Nie udało się znaleźć pola właściwości Zarządzaj przez."
+  },
+  {
+    "id": "app.data_spillage.missing_reporting_user_id_field.app_error",
+    "translation": "Nie można znaleźć pola użytkownika raportującego."
+  },
+  {
+    "id": "app.data_spillage.missing_reporting_user_id_property_value.app_error",
+    "translation": "Nie można znaleźć wartości dla pola użytkownika raportującego."
+  },
+  {
+    "id": "app.data_spillage.missing_status_field.app_error",
+    "translation": "Nie znaleziono pola właściwości Status."
+  },
+  {
+    "id": "app.data_spillage.no_status_property.app_error",
+    "translation": "Nie można pobrać oflagowanego posta, ponieważ nie jest on oflagowany."
+  },
+  {
+    "id": "app.data_spillage.permanently_delete.marshal_comment.app_error",
+    "translation": "Nie udało się zebrać komentarza recenzenta"
+  },
+  {
+    "id": "app.data_spillage.permanently_delete.update_property_value.app_error",
+    "translation": "Nie udało się zaktualizować statusu oflagowanego postu podczas trwałego usunięcia oflagowanego postu."
+  },
+  {
+    "id": "app.data_spillage.save_reviewer_settings.app_error",
+    "translation": "Nie udało się zapisać ustawień weryfikatora treści w bazie danych."
+  },
+  {
+    "id": "app.data_spillage.search_common_reviewers.app_error",
+    "translation": "Nie udało się szukać terminu w Common Reviewers."
+  },
+  {
+    "id": "api.oauth.get_access_token.client_id_mismatch.app_error",
+    "translation": "invalid_grant: Token grant nie został wydany temu klientowi."
+  },
+  {
+    "id": "app.data_spillage.search_property_fields.app_error",
+    "translation": "Szukanie pól właściwości Content Flagging nie powiodło się."
+  },
+  {
+    "id": "app.data_spillage.search_property_values.app_error",
+    "translation": "Nie udało się pobrać wartości właściwości flagowania treści posta z bazy danych."
+  },
+  {
+    "id": "app.data_spillage.search_reviewer_posts.app_error",
+    "translation": "Nie udało się szukać postów recenzentów dla oflagowanego postu."
+  },
+  {
+    "id": "app.data_spillage.search_status_property.app_error",
+    "translation": "Nie udało się znaleźć wartości właściwości dla oflagowanego posta."
+  },
+  {
+    "id": "app.data_spillage.search_sysadmin_reviewers.app_error",
+    "translation": "Nie udało się znaleźć szukanego terminu w System Admin Reviewers."
+  },
+  {
+    "id": "app.data_spillage.search_team_admin_reviewers.app_error",
+    "translation": "Nie udało się wyszukać szukanego hasła w Team Admin Reviewers."
+  },
+  {
+    "id": "app.data_spillage.search_team_reviewers.app_error",
+    "translation": "Nie udało się wyszukać szukanego hasła w Team Reviewers."
+  },
+  {
+    "id": "app.data_spillage.set_thread_replies_properties.app_error",
+    "translation": "Nie udało się ustawić wartości właściwości w odpowiedziach wątku dla oflagowanego postu."
+  },
+  {
+    "id": "app.limits.get_app_limits.single_channel_guest_count.store_error",
+    "translation": "Nie udało się uzyskać liczby gości w pojedynczym kanale."
+  },
+  {
+    "id": "app.pap.get_policies_for_field_ids.app_error",
+    "translation": "Nie można uzyskać polityki dla podanych identyfikatorów pól."
+  },
+  {
+    "id": "app.role.send_updated_role_event.app_error",
+    "translation": "Wystąpił błąd podczas nadawania aktualizacji roli."
+  },
+  {
+    "id": "app.role.send_updated_role_event.unknown_scope",
+    "translation": "Wystąpił błąd podczas nadawania aktualizacji roli: nieznany zakres schematu."
+  },
+  {
+    "id": "app.system.data_spillage_bot.bot_displayname",
+    "translation": "Bot wycieku danych"
+  },
+  {
+    "id": "app.user.analytics_get_single_channel_guest_count.app_error",
+    "translation": "Nie udało się uzyskać liczby gości w pojedynczym kanale dla analityki."
+  },
+  {
+    "id": "ent.elasticsearch.backfill_posts_channel_type.error",
+    "translation": "{{.Backend}} nie udało się uzupełnić typu kanału w postach"
+  },
+  {
+    "id": "ent.elasticsearch.update_posts_channel_type.error",
+    "translation": "{{.Backend}} Nie udało się zaktualizować typu kanału w postach"
+  },
+  {
+    "id": "model.config.is_valid.minimum_desktop_app_version.app_error",
+    "translation": "Nieprawidłowy numer wersji. Musi być prawidłową wersją semantyczną (np. 5.0.0)."
+  },
+  {
+    "id": "model.config.is_valid.native_app_settings.download_link.app_error",
+    "translation": "Co najmniej jeden link do pobrania aplikacji nie ma prawidłowego adresu URL."
+  },
+  {
+    "id": "model.user_report_options.is_valid.invalid_guest_filter",
+    "translation": "Podany filtr gości jest nieprawidłowy."
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.assistance",
+    "translation": "Jeśli potrzebujesz dalszej pomocy, skontaktuj się z administratorem systemu."
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.download_button",
+    "translation": "Pobierz zaktualizowaną aplikację"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_about",
+    "translation": "O"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_help",
+    "translation": "Pomoc"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_privacy",
+    "translation": "Polityka Prywatności"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_terms",
+    "translation": "Warunki"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.message",
+    "translation": "Twoja wersja aplikacji {{.SiteName}} na Pulpit ({{.CurrentVersion}}) jest poniżej minimalnej wymaganej wersji ({{.MinimumVersion}}). Aby kontynuować, zaktualizuj aplikację lub otwórz stronę {{.SiteName}} w przeglądarce internetowej."
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.title",
+    "translation": "Wymagana jest aktualizacja"
+  },
+  {
+    "id": "api.ai_bridge_test_helper.disabled.app_error",
+    "translation": "Pomocnik testu mostka jest wyłączony."
+  },
+  {
+    "id": "api.command.execute_command.provided_site_url_different.app_error",
+    "translation": "Nazwa hosta żądania różni się od skonfigurowanego adresu URL witryny. Skonfigurowany adres URL witryny zostanie użyty dla adresu URL odpowiedzi na polecenie slash."
+  },
+  {
+    "id": "api.command.execute_command.site_url_required.app_error",
+    "translation": "SiteURL musi być skonfigurowany do używania poleceń z ukośnikiem"
+  },
+  {
+    "id": "api.post.create_post.card_type_disabled.app_error",
+    "translation": "Posty w kartach nie są włączone na tym serwerze."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.shared_channel.app_error",
+    "translation": "Spalanie postów po przeczytaniu nie jest dozwolone w udostępnionych Kanałach."
+  },
+  {
+    "id": "api.post.reveal_post.invalid_request.app_error",
+    "translation": "Nieprawidłowe żądanie: brak lub nieprawidłowy nagłówek X-Requested-With."
+  },
+  {
+    "id": "api.property_field.create.invalid_target_type.app_error",
+    "translation": "Podany typ celu jest nieprawidłowy."
+  },
+  {
+    "id": "api.property_field.create.protected_via_api.app_error",
+    "translation": "Nie można utworzyć chronionego pola właściwości za pośrednictwem interfejsu API."
+  },
+  {
+    "id": "api.property_field.create.target_id_required.app_error",
+    "translation": "Identyfikator target_id jest wymagany podczas tworzenia pola właściwości o zakresie Kanał lub Zespół."
+  },
+  {
+    "id": "api.property_field.delete.no_permission.app_error",
+    "translation": "Nie masz uprawnień do usunięcia tego pola właściwości."
+  },
+  {
+    "id": "api.property_field.delete.protected_via_api.app_error",
+    "translation": "Nie można usunąć chronionego pola właściwości za pośrednictwem interfejsu API."
+  },
+  {
+    "id": "api.property_field.get.invalid_target_type.app_error",
+    "translation": "Wymagany jest prawidłowy target_type (system, zespół lub kanał)."
+  },
+  {
+    "id": "api.property_field.get.target_id_required.app_error",
+    "translation": "Identyfikator target_id jest wymagany przy wyszukiwaniu według typu target_type Kanału lub Zespołu."
+  },
+  {
+    "id": "api.property_field.invalid_group_name.app_error",
+    "translation": "Określona grupa właściwości nie została znaleziona."
+  },
+  {
+    "id": "api.property_field.invalid_patch.app_error",
+    "translation": "Nieprawidłowa poprawka pola właściwości."
+  },
+  {
+    "id": "api.property_field.object_type_mismatch.app_error",
+    "translation": "Typ obiektu pola właściwości nie pasuje do URL."
+  },
+  {
+    "id": "api.property_field.patch.legacy_field.app_error",
+    "translation": "Nie można zmienić pola właściwości v1 za pośrednictwem tego interfejsu API."
+  },
+  {
+    "id": "api.property_field.update.no_field_permission.app_error",
+    "translation": "Nie masz uprawnień, aby edytować to pole właściwości."
+  },
+  {
+    "id": "api.property_field.update.no_options_permission.app_error",
+    "translation": "Nie masz uprawnień do zarządzania opcjami dla tego pola właściwości."
+  },
+  {
+    "id": "api.property_field.update.protected_via_api.app_error",
+    "translation": "Nie można zaktualizować chronionego pola właściwości za pośrednictwem interfejsu API."
   }
 ]

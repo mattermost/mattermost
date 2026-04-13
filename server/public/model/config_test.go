@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"maps"
-	"os"
 	"reflect"
 	"strings"
 	"testing"
@@ -974,6 +973,8 @@ func TestImageProxySettingsSetDefaults(t *testing.T) {
 }
 
 func TestImageProxySettingsIsValid(t *testing.T) {
+	testHMACKey := NewTestPassword()
+
 	for _, test := range []struct {
 		Name                    string
 		Enable                  bool
@@ -1014,7 +1015,7 @@ func TestImageProxySettingsIsValid(t *testing.T) {
 			Enable:                  true,
 			ImageProxyType:          ImageProxyTypeAtmosCamo,
 			RemoteImageProxyURL:     "someurl",
-			RemoteImageProxyOptions: "someoptions",
+			RemoteImageProxyOptions: testHMACKey,
 			ExpectError:             false,
 		},
 		{
@@ -1032,6 +1033,14 @@ func TestImageProxySettingsIsValid(t *testing.T) {
 			RemoteImageProxyURL:     "someurl",
 			RemoteImageProxyOptions: "",
 			ExpectError:             true,
+		},
+		{
+			Name:                    "atmos/camo, short options under FIPS",
+			Enable:                  true,
+			ImageProxyType:          ImageProxyTypeAtmosCamo,
+			RemoteImageProxyURL:     "someurl",
+			RemoteImageProxyOptions: "foo",
+			ExpectError:             FIPSEnabled,
 		},
 	} {
 		t.Run(test.Name, func(t *testing.T) {
@@ -1581,9 +1590,13 @@ func TestConfigSanitize(t *testing.T) {
 
 	*c.LdapSettings.BindPassword = "foo"
 	*c.FileSettings.AmazonS3SecretAccessKey = "bar"
+	*c.FileSettings.ExportAmazonS3SecretAccessKey = "export-secret"
 	*c.EmailSettings.SMTPPassword = "baz"
 	*c.GitLabSettings.Secret = "bingo"
 	*c.OpenIdSettings.Secret = "secret"
+	*c.ServiceSettings.GoogleDeveloperKey = "google-api-key"
+	*c.ServiceSettings.GiphySdkKey = "giphy-sdk-key"
+	*c.ElasticsearchSettings.ClientKey = "/path/to/client-key.pem"
 	*c.AutoTranslationSettings.LibreTranslate.APIKey = "libre-api-key"
 	c.SqlSettings.DataSourceReplicas = []string{"stuff"}
 	c.SqlSettings.DataSourceSearchReplicas = []string{"stuff"}
@@ -1598,6 +1611,7 @@ func TestConfigSanitize(t *testing.T) {
 	assert.Equal(t, FakeSetting, *c.LdapSettings.BindPassword)
 	assert.Equal(t, FakeSetting, *c.FileSettings.PublicLinkSalt)
 	assert.Equal(t, FakeSetting, *c.FileSettings.AmazonS3SecretAccessKey)
+	assert.Equal(t, FakeSetting, *c.FileSettings.ExportAmazonS3SecretAccessKey)
 	assert.Equal(t, FakeSetting, *c.EmailSettings.SMTPPassword)
 	assert.Equal(t, FakeSetting, *c.GitLabSettings.Secret)
 	assert.Equal(t, FakeSetting, *c.OpenIdSettings.Secret)
@@ -1605,6 +1619,9 @@ func TestConfigSanitize(t *testing.T) {
 	assert.Equal(t, FakeSetting, *c.SqlSettings.DataSource)
 	assert.Equal(t, FakeSetting, *c.SqlSettings.AtRestEncryptKey)
 	assert.Equal(t, FakeSetting, *c.ElasticsearchSettings.Password)
+	assert.Equal(t, FakeSetting, *c.ElasticsearchSettings.ClientKey)
+	assert.Equal(t, FakeSetting, *c.ServiceSettings.GoogleDeveloperKey)
+	assert.Equal(t, FakeSetting, *c.ServiceSettings.GiphySdkKey)
 	assert.Equal(t, FakeSetting, c.SqlSettings.DataSourceReplicas[0])
 	assert.Equal(t, FakeSetting, c.SqlSettings.DataSourceSearchReplicas[0])
 
@@ -2182,8 +2199,8 @@ func TestConfigDefaultCallsPluginState(t *testing.T) {
 	})
 
 	t.Run("should enable Calls plugin by default on Cloud", func(t *testing.T) {
-		os.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
-		defer os.Unsetenv("MM_CLOUD_INSTALLATION_ID")
+		// t.Setenv prevents t.Parallel — env var has no config equivalent
+		t.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
 		c1 := Config{}
 		c1.SetDefaults()
 
@@ -2215,8 +2232,8 @@ func TestConfigDefaultAIPluginState(t *testing.T) {
 	})
 
 	t.Run("should enable AI plugin by default on Cloud", func(t *testing.T) {
-		os.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
-		defer os.Unsetenv("MM_CLOUD_INSTALLATION_ID")
+		// t.Setenv prevents t.Parallel — env var has no config equivalent
+		t.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
 		c1 := Config{}
 		c1.SetDefaults()
 
@@ -2395,71 +2412,10 @@ func TestExperimentalAuditSettingsIsValid(t *testing.T) {
 		},
 		"file enabled with valid filename": {
 			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled:      NewPointer(true),
-				FileName:         NewPointer("audit.log"),
-				FileMaxSizeMB:    NewPointer(100),
-				FileMaxAgeDays:   NewPointer(5),
-				FileMaxBackups:   NewPointer(10),
-				FileMaxQueueSize: NewPointer(1000),
+				FileEnabled: NewPointer(true),
+				FileName:    NewPointer("audit.log"),
 			},
 			ExpectError: false,
-		},
-		"invalid file max size": {
-			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled:   NewPointer(true),
-				FileName:      NewPointer("audit.log"),
-				FileMaxSizeMB: NewPointer(0),
-			},
-			ExpectError: true,
-		},
-		"negative file max size": {
-			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled:   NewPointer(true),
-				FileName:      NewPointer("audit.log"),
-				FileMaxSizeMB: NewPointer(-10),
-			},
-			ExpectError: true,
-		},
-		"negative file max age": {
-			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled:    NewPointer(true),
-				FileName:       NewPointer("audit.log"),
-				FileMaxSizeMB:  NewPointer(100),
-				FileMaxAgeDays: NewPointer(-5),
-			},
-			ExpectError: true,
-		},
-		"negative file max backups": {
-			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled:    NewPointer(true),
-				FileName:       NewPointer("audit.log"),
-				FileMaxSizeMB:  NewPointer(100),
-				FileMaxAgeDays: NewPointer(5),
-				FileMaxBackups: NewPointer(-10),
-			},
-			ExpectError: true,
-		},
-		"zero file max queue size": {
-			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled:      NewPointer(true),
-				FileName:         NewPointer("audit.log"),
-				FileMaxSizeMB:    NewPointer(100),
-				FileMaxAgeDays:   NewPointer(5),
-				FileMaxBackups:   NewPointer(10),
-				FileMaxQueueSize: NewPointer(0),
-			},
-			ExpectError: true,
-		},
-		"negative file max queue size": {
-			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled:      NewPointer(true),
-				FileName:         NewPointer("audit.log"),
-				FileMaxSizeMB:    NewPointer(100),
-				FileMaxAgeDays:   NewPointer(5),
-				FileMaxBackups:   NewPointer(10),
-				FileMaxQueueSize: NewPointer(-1000),
-			},
-			ExpectError: true,
 		},
 		"AdvancedLoggingJSON has JSON error ": {
 			ExperimentalAuditSettings: ExperimentalAuditSettings{
@@ -2848,6 +2804,33 @@ func TestAutoTranslationSettingsIsValid(t *testing.T) {
 			},
 			expectError: false,
 		},
+		{
+			name: "valid workers at 48",
+			settings: AutoTranslationSettings{
+				Enable:   NewPointer(true),
+				Provider: NewPointer("libretranslate"),
+				Workers:  NewPointer(48),
+				LibreTranslate: &LibreTranslateProviderSettings{
+					URL:    NewPointer("https://lt.example.com"),
+					APIKey: NewPointer("optional-key"),
+				},
+			},
+			expectError: false,
+		},
+		{
+			name:    "invalid workers above 64",
+			errorId: "model.config.is_valid.autotranslation.workers.app_error",
+			settings: AutoTranslationSettings{
+				Enable:   NewPointer(true),
+				Provider: NewPointer("libretranslate"),
+				Workers:  NewPointer(65),
+				LibreTranslate: &LibreTranslateProviderSettings{
+					URL:    NewPointer("https://lt.example.com"),
+					APIKey: NewPointer("optional-key"),
+				},
+			},
+			expectError: true,
+		},
 		// TODO: Enable Agents provider in future release
 		// {
 		// 	name: "valid agents settings",
@@ -2938,4 +2921,64 @@ func TestConfigAccessTagsMapToValidPermissions(t *testing.T) {
 	}
 
 	checkStruct(t, reflect.TypeFor[Config](), "Config")
+}
+
+func TestNativeAppSettingsIsValid(t *testing.T) {
+	t.Run("defaults are valid", func(t *testing.T) {
+		cfg := Config{}
+		cfg.SetDefaults()
+		require.Nil(t, cfg.NativeAppSettings.AreDownloadLinksValid())
+	})
+
+	t.Run("empty string is valid (hides the menu item)", func(t *testing.T) {
+		cfg := Config{}
+		cfg.SetDefaults()
+		*cfg.NativeAppSettings.AppDownloadLink = ""
+		*cfg.NativeAppSettings.AndroidAppDownloadLink = ""
+		*cfg.NativeAppSettings.IosAppDownloadLink = ""
+		require.Nil(t, cfg.NativeAppSettings.AreDownloadLinksValid())
+	})
+
+	t.Run("valid https URLs are accepted", func(t *testing.T) {
+		cfg := Config{}
+		cfg.SetDefaults()
+		*cfg.NativeAppSettings.AppDownloadLink = "https://example.com/download"
+		*cfg.NativeAppSettings.AndroidAppDownloadLink = "https://play.google.com/store/apps/details?id=com.mattermost.rn"
+		*cfg.NativeAppSettings.IosAppDownloadLink = "https://apps.apple.com/us/app/mattermost/id1257222717"
+		require.Nil(t, cfg.NativeAppSettings.AreDownloadLinksValid())
+	})
+
+	t.Run("custom scheme URLs are accepted for enterprise use cases", func(t *testing.T) {
+		cfg := Config{}
+		cfg.SetDefaults()
+		*cfg.NativeAppSettings.AppDownloadLink = "myapp://install/mattermost"
+		require.Nil(t, cfg.NativeAppSettings.AreDownloadLinksValid())
+	})
+
+	t.Run("malformed AppDownloadLink is rejected", func(t *testing.T) {
+		cfg := Config{}
+		cfg.SetDefaults()
+		*cfg.NativeAppSettings.AppDownloadLink = "http://://mattermost.com"
+		appErr := cfg.NativeAppSettings.AreDownloadLinksValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.native_app_settings.download_link.app_error", appErr.Id)
+	})
+
+	t.Run("malformed AndroidAppDownloadLink is rejected", func(t *testing.T) {
+		cfg := Config{}
+		cfg.SetDefaults()
+		*cfg.NativeAppSettings.AndroidAppDownloadLink = "not-a-url"
+		appErr := cfg.NativeAppSettings.AreDownloadLinksValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.native_app_settings.download_link.app_error", appErr.Id)
+	})
+
+	t.Run("malformed IosAppDownloadLink is rejected", func(t *testing.T) {
+		cfg := Config{}
+		cfg.SetDefaults()
+		*cfg.NativeAppSettings.IosAppDownloadLink = "not-a-url"
+		appErr := cfg.NativeAppSettings.AreDownloadLinksValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.native_app_settings.download_link.app_error", appErr.Id)
+	})
 }

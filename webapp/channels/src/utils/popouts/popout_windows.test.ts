@@ -5,9 +5,9 @@ import DesktopApp from 'utils/desktop_api';
 import {getBasePath} from 'utils/url';
 import {isDesktopApp} from 'utils/user_agent';
 
-import {FOCUS_REPLY_POST, popoutRhsPlugin, popoutThread} from './popout_windows';
+import {POPOUT_FOCUSED, POPOUT_BLURRED, getFocusedPopoutInfo} from './focus';
+import {FOCUS_REPLY_POST, popoutChannel, popoutRhsPlugin, popoutRhsSearch, popoutThread} from './popout_windows';
 
-// Mock dependencies
 jest.mock('utils/desktop_api', () => ({
     __esModule: true,
     default: {
@@ -36,20 +36,31 @@ jest.mock('./browser_popouts', () => {
     };
 });
 
-const mockDesktopApp = DesktopApp as jest.Mocked<typeof DesktopApp>;
-const mockIsDesktopApp = isDesktopApp as jest.MockedFunction<typeof isDesktopApp>;
-const mockGetBasePath = getBasePath as jest.MockedFunction<typeof getBasePath>;
+const mockDesktopApp = jest.mocked(DesktopApp);
 
-const getMockSetupBrowserPopout = () => {
-    return (globalThis as typeof globalThis & {mockSetupBrowserPopout: jest.MockedFunction<() => unknown>}).mockSetupBrowserPopout;
+const getMockSetupBrowserPopout = (): jest.Mock => (globalThis as typeof globalThis & {mockSetupBrowserPopout: jest.Mock}).mockSetupBrowserPopout;
+
+const mockListeners = {
+    sendToPopout: jest.fn(),
+    onMessageFromPopout: jest.fn(),
+    onClosePopout: jest.fn(),
 };
+
+function setupDesktop() {
+    jest.mocked(isDesktopApp).mockReturnValue(true);
+    mockDesktopApp.setupDesktopPopout.mockResolvedValue(mockListeners);
+}
+
+function setupBrowser(basePath = '') {
+    jest.mocked(isDesktopApp).mockReturnValue(false);
+    jest.mocked(getBasePath).mockReturnValue(basePath);
+    getMockSetupBrowserPopout().mockReturnValue(mockListeners);
+}
 
 describe('popout_windows', () => {
     beforeEach(() => {
         getMockSetupBrowserPopout().mockClear();
-
-        // Default: no subpath
-        mockGetBasePath.mockReturnValue('');
+        jest.mocked(getBasePath).mockReturnValue('');
     });
 
     describe('popoutThread', () => {
@@ -60,13 +71,7 @@ describe('popout_windows', () => {
         });
 
         it('should call popout with correct path and props for desktop app', async () => {
-            mockIsDesktopApp.mockReturnValue(true);
-            const mockListeners = {
-                sendToPopout: jest.fn(),
-                onMessageFromPopout: jest.fn(),
-                onClosePopout: jest.fn(),
-            };
-            mockDesktopApp.setupDesktopPopout.mockResolvedValue(mockListeners);
+            setupDesktop();
 
             await popoutThread('Thread - {channelName} - {teamName} - {serverName}', 'thread-123', 'test-team', mockOnFocusPost);
 
@@ -80,13 +85,7 @@ describe('popout_windows', () => {
         });
 
         it('should call popout with correct path and props for browser popout', async () => {
-            mockIsDesktopApp.mockReturnValue(false);
-            const mockListeners = {
-                sendToPopout: jest.fn(),
-                onMessageFromPopout: jest.fn(),
-                onClosePopout: jest.fn(),
-            };
-            getMockSetupBrowserPopout().mockReturnValue(mockListeners);
+            setupBrowser();
 
             await popoutThread('Thread - {channelName} - {teamName} - {serverName}', 'thread-123', 'test-team', mockOnFocusPost);
 
@@ -95,50 +94,33 @@ describe('popout_windows', () => {
             );
         });
 
-        it('should return popout listeners', async () => {
-            mockIsDesktopApp.mockReturnValue(true);
-            const mockListeners = {
-                sendToPopout: jest.fn(),
-                onMessageFromPopout: jest.fn(),
+        it('should register focus and FOCUS_REPLY_POST listeners', async () => {
+            setupBrowser();
+            const messageListeners: Array<(channel: string, ...args: unknown[]) => void> = [];
+            getMockSetupBrowserPopout().mockReturnValue({
+                ...mockListeners,
+                onMessageFromPopout: (listener: (channel: string, ...args: unknown[]) => void) => {
+                    messageListeners.push(listener);
+                },
                 onClosePopout: jest.fn(),
-            };
-            mockDesktopApp.setupDesktopPopout.mockResolvedValue(mockListeners);
-
-            const result = await popoutThread('Thread - {channelName} - {teamName} - {serverName}', 'thread-123', 'test-team', mockOnFocusPost);
-
-            expect(result).toEqual(mockListeners);
-        });
-
-        it('should set up listener for FOCUS_REPLY_POST messages', async () => {
-            mockIsDesktopApp.mockReturnValue(true);
-            const mockListener = jest.fn();
-            const mockListeners = {
-                sendToPopout: jest.fn(),
-                onMessageFromPopout: mockListener,
-                onClosePopout: jest.fn(),
-            };
-            mockDesktopApp.setupDesktopPopout.mockResolvedValue(mockListeners);
+            });
 
             await popoutThread('Thread - {channelName} - {teamName} - {serverName}', 'thread-123', 'test-team', mockOnFocusPost);
 
-            expect(mockListener).toHaveBeenCalledTimes(1);
-            const registeredListener = mockListener.mock.calls[0][0];
+            expect(messageListeners).toHaveLength(2);
 
-            registeredListener(FOCUS_REPLY_POST, 'post-123', '/team/pl/post-123');
+            messageListeners.forEach((listener) => listener(POPOUT_FOCUSED, 'channel-abc', 'thread-123'));
+            expect(getFocusedPopoutInfo()).toEqual({channelId: 'channel-abc', threadId: 'thread-123'});
 
-            expect(mockOnFocusPost).toHaveBeenCalledTimes(1);
+            messageListeners.forEach((listener) => listener(FOCUS_REPLY_POST, 'post-123', '/team/pl/post-123'));
             expect(mockOnFocusPost).toHaveBeenCalledWith('post-123', '/team/pl/post-123');
+
+            messageListeners.forEach((listener) => listener(POPOUT_BLURRED));
+            expect(getFocusedPopoutInfo()).toBeNull();
         });
 
         it('should include subpath in popout URL when basename is set', async () => {
-            mockIsDesktopApp.mockReturnValue(false);
-            mockGetBasePath.mockReturnValue('/company/mattermost');
-            const mockListeners = {
-                sendToPopout: jest.fn(),
-                onMessageFromPopout: jest.fn(),
-                onClosePopout: jest.fn(),
-            };
-            getMockSetupBrowserPopout().mockReturnValue(mockListeners);
+            setupBrowser('/company/mattermost');
 
             await popoutThread('Thread - {channelName} - {teamName} - {serverName}', 'thread-123', 'test-team', mockOnFocusPost);
 
@@ -150,18 +132,12 @@ describe('popout_windows', () => {
 
     describe('popoutRhsPlugin', () => {
         it('should call popout with correct path and props for desktop app', async () => {
-            mockIsDesktopApp.mockReturnValue(true);
-            const mockListeners = {
-                sendToPopout: jest.fn(),
-                onMessageFromPopout: jest.fn(),
-                onClosePopout: jest.fn(),
-            };
-            mockDesktopApp.setupDesktopPopout.mockResolvedValue(mockListeners);
+            setupDesktop();
 
             await popoutRhsPlugin('{pluginDisplayName} - {serverName}', 'test-plugin-id', 'test-team', 'test-channel');
 
             expect(mockDesktopApp.setupDesktopPopout).toHaveBeenCalledWith(
-                '/_popout/rhs/test-team/test-channel/plugin/test-plugin-id',
+                '/_popout/rhs/test-team/plugin/test-plugin-id?channel=test-channel',
                 {
                     isRHS: true,
                     titleTemplate: '{pluginDisplayName} - {serverName}',
@@ -170,29 +146,17 @@ describe('popout_windows', () => {
         });
 
         it('should call popout with correct path and props for browser popout', async () => {
-            mockIsDesktopApp.mockReturnValue(false);
-            const mockListeners = {
-                sendToPopout: jest.fn(),
-                onMessageFromPopout: jest.fn(),
-                onClosePopout: jest.fn(),
-            };
-            getMockSetupBrowserPopout().mockReturnValue(mockListeners);
+            setupBrowser();
 
             await popoutRhsPlugin('{pluginDisplayName} - {serverName}', 'test-plugin-id', 'test-team', 'test-channel');
 
             expect(getMockSetupBrowserPopout()).toHaveBeenCalledWith(
-                '/_popout/rhs/test-team/test-channel/plugin/test-plugin-id',
+                '/_popout/rhs/test-team/plugin/test-plugin-id?channel=test-channel',
             );
         });
 
         it('should return popout listeners', async () => {
-            mockIsDesktopApp.mockReturnValue(true);
-            const mockListeners = {
-                sendToPopout: jest.fn(),
-                onMessageFromPopout: jest.fn(),
-                onClosePopout: jest.fn(),
-            };
-            mockDesktopApp.setupDesktopPopout.mockResolvedValue(mockListeners);
+            setupDesktop();
 
             const result = await popoutRhsPlugin('{pluginDisplayName} - {serverName}', 'test-plugin-id', 'test-team', 'test-channel');
 
@@ -200,21 +164,123 @@ describe('popout_windows', () => {
         });
 
         it('should include subpath in popout URL when basename is set', async () => {
-            mockIsDesktopApp.mockReturnValue(false);
-            mockGetBasePath.mockReturnValue('/company/mattermost');
-            const mockListeners = {
-                sendToPopout: jest.fn(),
-                onMessageFromPopout: jest.fn(),
-                onClosePopout: jest.fn(),
-            };
-            getMockSetupBrowserPopout().mockReturnValue(mockListeners);
+            setupBrowser('/company/mattermost');
 
             await popoutRhsPlugin('{pluginDisplayName} - {serverName}', 'test-plugin-id', 'test-team', 'test-channel');
 
             expect(getMockSetupBrowserPopout()).toHaveBeenCalledWith(
-                '/company/mattermost/_popout/rhs/test-team/test-channel/plugin/test-plugin-id',
+                '/company/mattermost/_popout/rhs/test-team/plugin/test-plugin-id?channel=test-channel',
             );
         });
     });
-});
 
+    describe('popoutChannel', () => {
+        it('should include the path segment in the URL for regular channels', async () => {
+            setupBrowser();
+
+            await popoutChannel('Title', 'test-team', 'channels', 'town-square');
+
+            expect(getMockSetupBrowserPopout()).toHaveBeenCalledWith(
+                '/_popout/channel/test-team/channels/town-square',
+            );
+        });
+
+        it('should include the messages path for DM/GM channels', async () => {
+            setupBrowser();
+
+            await popoutChannel('Title', 'test-team', 'messages', '@otheruser');
+
+            expect(getMockSetupBrowserPopout()).toHaveBeenCalledWith(
+                '/_popout/channel/test-team/messages/@otheruser',
+            );
+        });
+
+        it('should include subpath in popout URL when basename is set', async () => {
+            setupBrowser('/company/mattermost');
+
+            await popoutChannel('Title', 'test-team', 'channels', 'town-square');
+
+            expect(getMockSetupBrowserPopout()).toHaveBeenCalledWith(
+                '/company/mattermost/_popout/channel/test-team/channels/town-square',
+            );
+        });
+
+        it('should call desktop popout with correct path for desktop app', async () => {
+            setupDesktop();
+
+            await popoutChannel('Channel Title', 'test-team', 'channels', 'town-square');
+
+            expect(mockDesktopApp.setupDesktopPopout).toHaveBeenCalledWith(
+                '/_popout/channel/test-team/channels/town-square',
+                {titleTemplate: 'Channel Title'},
+            );
+        });
+    });
+
+    describe('popoutRhsSearch', () => {
+        async function callDesktop(...args: Parameters<typeof popoutRhsSearch>) {
+            setupDesktop();
+            const result = await popoutRhsSearch(...args);
+            return result;
+        }
+
+        function expectDesktopPath(substring: string) {
+            expect(mockDesktopApp.setupDesktopPopout).toHaveBeenCalledWith(
+                expect.stringContaining(substring),
+                expect.objectContaining({isRHS: true}),
+            );
+        }
+
+        it('should call popout with correct path and query params for desktop app', async () => {
+            await callDesktop('Search Results - {serverName}', 'test-team', 'hello world', 'search', 'messages');
+
+            expectDesktopPath('/_popout/rhs/test-team/search');
+            expectDesktopPath('q=hello+world');
+            expectDesktopPath('type=messages');
+            expectDesktopPath('mode=search');
+        });
+
+        it('should include channel param when provided', async () => {
+            await callDesktop('Pinned Messages - {serverName}', 'test-team', '', 'pin', 'messages', 'town-square');
+            expectDesktopPath('channel=town-square');
+        });
+
+        it('should include searchTeamId when provided', async () => {
+            await callDesktop('Search Results - {serverName}', 'test-team', 'test', 'search', 'messages', undefined, 'team-123');
+            expectDesktopPath('searchTeamId=team-123');
+        });
+
+        it('should include searchTeamId with empty string for All Teams', async () => {
+            await callDesktop('Search Results - {serverName}', 'test-team', 'test', 'search', 'messages', undefined, '');
+            expectDesktopPath('searchTeamId=');
+        });
+
+        it('should call browser popout when not desktop app', async () => {
+            setupBrowser();
+
+            await popoutRhsSearch('Search Results - {serverName}', 'test-team', 'hello', 'search', 'messages');
+
+            expect(getMockSetupBrowserPopout()).toHaveBeenCalledWith(
+                expect.stringContaining('/_popout/rhs/test-team/search'),
+            );
+            expect(getMockSetupBrowserPopout()).toHaveBeenCalledWith(
+                expect.stringContaining('q=hello'),
+            );
+        });
+
+        it('should include subpath when basename is set', async () => {
+            setupBrowser('/company/mattermost');
+
+            await popoutRhsSearch('Search Results - {serverName}', 'test-team', 'hello', 'search', 'messages');
+
+            expect(getMockSetupBrowserPopout()).toHaveBeenCalledWith(
+                expect.stringContaining('/company/mattermost/_popout/rhs/test-team/search'),
+            );
+        });
+
+        it('should return popout listeners', async () => {
+            const result = await callDesktop('Search Results - {serverName}', 'test-team', 'test', 'search', 'messages');
+            expect(result).toEqual(mockListeners);
+        });
+    });
+});
