@@ -259,6 +259,7 @@ const defaultServerConfig: AdminConfig = {
         Trace: false,
         AtRestEncryptKey: '',
         QueryTimeout: 30,
+        AnalyticsQueryTimeout: 300,
         DisableDatabaseSearch: false,
         MigrationsStatementTimeoutSeconds: 100000,
         ReplicaLagSettings: [],

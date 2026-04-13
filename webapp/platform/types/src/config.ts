@@ -486,6 +486,7 @@ export type SqlSettings = {
     Trace: boolean;
     AtRestEncryptKey: string;
     QueryTimeout: number;
+    AnalyticsQueryTimeout: number;
     DisableDatabaseSearch: boolean;
     MigrationsStatementTimeoutSeconds: number;
     ReplicaLagSettings: ReplicaLagSetting[];
