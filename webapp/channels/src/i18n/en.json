@@ -345,6 +345,8 @@
   "admin.access_control.table_editor.operator": "Operator",
   "admin.access_control.table_editor.operator.contains": "contains",
   "admin.access_control.table_editor.operator.ends_with": "ends with",
+  "admin.access_control.table_editor.operator.has_all_of": "has all of",
+  "admin.access_control.table_editor.operator.has_any_of": "has any of",
   "admin.access_control.table_editor.operator.in": "in",
   "admin.access_control.table_editor.operator.is": "is",
   "admin.access_control.table_editor.operator.is_not": "is not",

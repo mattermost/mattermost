@@ -13,7 +13,7 @@ import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import * as Menu from 'components/menu';
 
-import {OperatorLabel} from '../shared';
+import {OperatorLabel, isMultiselectOperator} from '../shared';
 import './selector_menus.scss';
 
 interface OperatorSelectorProps {
@@ -44,7 +44,10 @@ const OperatorSelectorMenu = ({currentOperator, disabled, onChange, attributeTyp
 
     const filteredOperators = useMemo(() => {
         return Object.values(OPERATOR_DESCRIPTORS).filter((desc) => {
-            if (attributeType === 'multiselect' && desc.id !== OperatorLabel.IN) {
+            if (attributeType === 'multiselect' && !isMultiselectOperator(desc.id)) {
+                return false;
+            }
+            if (attributeType !== 'multiselect' && isMultiselectOperator(desc.id)) {
                 return false;
             }
             const label = formatMessage(desc.label);
@@ -150,6 +153,22 @@ const OPERATOR_DESCRIPTORS: IDMappedObjects<OperatorDescriptor> = {
         label: defineMessage({
             id: 'admin.access_control.table_editor.operator.in',
             defaultMessage: 'in',
+        }),
+    },
+    [OperatorLabel.HAS_ANY_OF]: {
+        id: OperatorLabel.HAS_ANY_OF,
+        icon: ElementOfIcon,
+        label: defineMessage({
+            id: 'admin.access_control.table_editor.operator.has_any_of',
+            defaultMessage: 'has any of',
+        }),
+    },
+    [OperatorLabel.HAS_ALL_OF]: {
+        id: OperatorLabel.HAS_ALL_OF,
+        icon: ElementOfIcon,
+        label: defineMessage({
+            id: 'admin.access_control.table_editor.operator.has_all_of',
+            defaultMessage: 'has all of',
         }),
     },
     [OperatorLabel.STARTS_WITH]: {

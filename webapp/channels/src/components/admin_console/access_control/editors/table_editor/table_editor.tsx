@@ -17,7 +17,7 @@ import ValueSelectorMenu from './value_selector_menu';
 
 import CELHelpModal from '../../modals/cel_help/cel_help_modal';
 import TestResultsModal from '../../modals/policy_test/test_modal';
-import {AddAttributeButton, TestButton, HelpText, OPERATOR_CONFIG, OPERATOR_LABELS, OperatorLabel} from '../shared';
+import {AddAttributeButton, TestButton, HelpText, OPERATOR_CONFIG, OPERATOR_LABELS, OperatorLabel, isMultiValueOperator} from '../shared';
 
 import './table_editor.scss';
 
@@ -205,7 +205,17 @@ function TableEditor({
                 return `${attributeExpr} in [${valuesStr}]`;
             }
 
-            if (config.type === 'list') { // Handles 'in'
+            if (config.type === 'list') {
+                if (row.operator === OperatorLabel.HAS_ANY_OF) {
+                    const parts = row.values.map((val: string) => `"${val}" ${config.celOp} ${attributeExpr}`);
+                    const orExpr = parts.join(' || ');
+                    return parts.length > 1 ? `(${orExpr})` : orExpr;
+                }
+                if (row.operator === OperatorLabel.HAS_ALL_OF) {
+                    return row.values.map((val: string) => `"${val}" ${config.celOp} ${attributeExpr}`).join(' && ');
+                }
+
+                // Standard 'in' for select/text attributes: attr in [values]
                 if (attributeObj?.type === 'multiselect') {
                     return row.values.map((val: string) => `"${val}" ${config.celOp} ${attributeExpr}`).join(' && ');
                 }
@@ -254,7 +264,7 @@ function TableEditor({
         setRows((currentRows) => {
             const newRow = {
                 attribute: firstAvailableAttribute.name,
-                operator: firstAvailableAttribute.type === 'multiselect' ? OperatorLabel.IN : OperatorLabel.IS,
+                operator: firstAvailableAttribute.type === 'multiselect' ? OperatorLabel.HAS_ANY_OF : OperatorLabel.IS,
                 values: [],
                 attribute_type: firstAvailableAttribute.type || '',
             };
@@ -286,9 +296,17 @@ function TableEditor({
                 newRows[index].attribute_type = newAttributeObj?.type || '';
 
                 const isMultiselect = newAttributeObj?.type === 'multiselect';
-                if (isMultiselect && newRows[index].operator !== OperatorLabel.IN) {
-                    newRows[index].operator = OperatorLabel.IN;
+                const wasMultiselect = currentRows[index].attribute_type === 'multiselect';
+                if (isMultiselect && !wasMultiselect) {
+                    newRows[index].operator = OperatorLabel.HAS_ANY_OF;
+                } else if (!isMultiselect && wasMultiselect) {
+                    newRows[index].operator = OperatorLabel.IS;
                 }
+
+                // Values were cleared — row is in an intermediate editing state.
+                // Don't regenerate the expression now; it will be updated when
+                // the user selects new values via updateRowValues.
+                return newRows;
             }
             updateExpression(newRows);
             return newRows;
@@ -298,15 +316,16 @@ function TableEditor({
     const updateRowOperator = useCallback((index: number, newOperator: string) => {
         setRows((currentRows) => {
             const oldOperator = currentRows[index].operator;
-            let newValues = [...currentRows[index].values]; // Start with a copy of current values
+            let newValues = [...currentRows[index].values];
 
-            if (newOperator === OperatorLabel.IN && oldOperator !== OperatorLabel.IN) {
-                // Transitioning TO 'in' FROM a non-'in' (likely single-value) operator:
-                // Trim each value and then filter out any that become empty strings.
+            const wasMulti = isMultiValueOperator(oldOperator);
+            const isMulti = isMultiValueOperator(newOperator);
+
+            if (isMulti && !wasMulti) {
+                // Transitioning TO a multi-value operator FROM a single-value operator:
                 newValues = newValues.map((v) => v.trim()).filter((v) => v !== '');
-            } else if (newOperator !== OperatorLabel.IN) {
-                // Transitioning TO a non-'in' (single-value) operator (or staying as one):
-                // If there are multiple values (e.g., coming from 'in'), take only the first one.
+            } else if (!isMulti && wasMulti) {
+                // Transitioning TO a single-value operator FROM a multi-value operator:
                 if (newValues.length > 1) {
                     newValues = [newValues[0]];
                 }

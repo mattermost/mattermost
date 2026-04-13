@@ -126,17 +126,32 @@ function PolicyDetails({
             return true;
         }
 
-        // Expression is simple if it only contains user.attributes.X == "Y" or user.attributes.X in ["Y", "Z"]
-        // or user.attributes.X.startsWith/endsWith/contains("Y")
-        // or ["Y", "Z"] in user.attributes.X (for multiselect attributes)
+        const isSimpleCondition = (s: string): boolean => {
+            const trimmed = s.trim();
+            return Boolean(
+                trimmed.match(/^user\.attributes\.\w+\s*(==|!=)\s*['"][^'"]*['"]$/) ||
+                trimmed.match(/^user\.attributes\.\w+\s+in\s+\[.*?\]$/) ||
+                trimmed.match(/^((\[.*?\])|['"][^'"]*['"])\s+in\s+user\.attributes\.\w+$/) ||
+                trimmed.match(/^user\.attributes\.\w+\.startsWith\(['"][^'"]*['"].*?\)$/) ||
+                trimmed.match(/^user\.attributes\.\w+\.endsWith\(['"][^'"]*['"].*?\)$/) ||
+                trimmed.match(/^user\.attributes\.\w+\.contains\(['"][^'"]*['"].*?\)$/),
+            );
+        };
+
+        const isMultiselectOrGroup = (s: string): boolean => {
+            const trimmed = s.trim();
+            if (!trimmed.startsWith('(') || !trimmed.endsWith(')')) {
+                return false;
+            }
+            const inner = trimmed.slice(1, -1);
+            return inner.split('||').every((part) => {
+                const p = part.trim();
+                return Boolean(p.match(/^['"][^'"]*['"]\s+in\s+user\.attributes\.\w+$/));
+            });
+        };
+
         return expr.split('&&').every((condition) => {
-            const trimmed = condition.trim();
-            return trimmed.match(/^user\.attributes\.\w+\s*(==|!=)\s*['"][^'"]*['"]$/) ||
-                   trimmed.match(/^user\.attributes\.\w+\s+in\s+\[.*?\]$/) ||
-                   trimmed.match(/^((\[.*?\])||['"][^'"]*['"].*?)\s+in\s+user\.attributes\.\w+$/) ||
-                   trimmed.match(/^user\.attributes\.\w+\.startsWith\(['"][^'"]*['"].*?\)$/) ||
-                   trimmed.match(/^user\.attributes\.\w+\.endsWith\(['"][^'"]*['"].*?\)$/) ||
-                   trimmed.match(/^user\.attributes\.\w+\.contains\(['"][^'"]*['"].*?\)$/);
+            return isSimpleCondition(condition) || isMultiselectOrGroup(condition);
         });
     };
 

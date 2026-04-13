@@ -77,7 +77,7 @@ describe('TableEditor - Multiselect Attribute Operator Restriction', () => {
         jest.restoreAllMocks();
     });
 
-    test('should default to "in" operator when adding a row with multiselect attribute', async () => {
+    test('should default to "has any of" operator when adding a row with multiselect attribute', async () => {
         mockMultiselectActions.getVisualAST.mockResolvedValue({data: {conditions: []}});
 
         renderWithContext(<TableEditor {...multiselectBaseProps}/>, {});
@@ -93,16 +93,16 @@ describe('TableEditor - Multiselect Attribute Operator Restriction', () => {
             expect(screen.getByTestId('operatorSelectorMenuButton')).toBeInTheDocument();
         });
 
-        expect(screen.getByTestId('operatorSelectorMenuButton')).toHaveTextContent('in');
+        expect(screen.getByTestId('operatorSelectorMenuButton')).toHaveTextContent('has any of');
     });
 
-    test('should show "in" operator for multiselect attribute parsed from expression', async () => {
+    test('should show "has all of" operator for multiselect attribute parsed from expression', async () => {
         mockMultiselectActions.getVisualAST.mockResolvedValue({
             data: {
                 conditions: [
                     {
                         attribute: 'user.attributes.skills',
-                        operator: 'in',
+                        operator: 'has_all_of',
                         value: ['JavaScript', 'Python'],
                         value_type: 0,
                         attribute_type: 'multiselect',
@@ -113,7 +113,7 @@ describe('TableEditor - Multiselect Attribute Operator Restriction', () => {
 
         const props = {
             ...multiselectBaseProps,
-            value: '["JavaScript", "Python"] in user.attributes.skills',
+            value: '"JavaScript" in user.attributes.skills && "Python" in user.attributes.skills',
         };
 
         renderWithContext(<TableEditor {...props}/>, {});
@@ -122,7 +122,7 @@ describe('TableEditor - Multiselect Attribute Operator Restriction', () => {
             expect(screen.getByTestId('operatorSelectorMenuButton')).toBeInTheDocument();
         });
 
-        expect(screen.getByTestId('operatorSelectorMenuButton')).toHaveTextContent('in');
+        expect(screen.getByTestId('operatorSelectorMenuButton')).toHaveTextContent('has all of');
     });
 });
 

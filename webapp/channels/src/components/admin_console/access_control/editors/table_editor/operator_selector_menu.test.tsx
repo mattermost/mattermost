@@ -60,11 +60,11 @@ describe('OperatorSelectorMenu', () => {
         expect(menuItems).toHaveLength(6);
     });
 
-    test('shows only "in" operator when attributeType is multiselect', () => {
+    test('shows only "has any of" and "has all of" operators when attributeType is multiselect', () => {
         renderWithContext(
             <OperatorSelectorMenu
                 {...defaultProps}
-                currentOperator='in'
+                currentOperator='has any of'
                 attributeType='multiselect'
             />,
         );
@@ -72,16 +72,17 @@ describe('OperatorSelectorMenu', () => {
         fireEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
 
         const menuItems = screen.getAllByRole('menuitemradio');
-        expect(menuItems).toHaveLength(1);
-        expect(menuItems[0]).toHaveTextContent('in');
+        expect(menuItems).toHaveLength(2);
+        const menuTexts = menuItems.map((item) => item.textContent);
+        expect(menuTexts).toEqual(['has any of', 'has all of']);
     });
 
-    test('filters out non-"in" operators for multiselect attribute type', () => {
+    test('hides multiselect operators for non-multiselect attribute types', () => {
         renderWithContext(
             <OperatorSelectorMenu
                 {...defaultProps}
-                currentOperator='in'
-                attributeType='multiselect'
+                currentOperator='is'
+                attributeType='text'
             />,
         );
 
@@ -89,6 +90,7 @@ describe('OperatorSelectorMenu', () => {
 
         const menuItems = screen.getAllByRole('menuitemradio');
         const menuTexts = menuItems.map((item) => item.textContent);
-        expect(menuTexts).toEqual(['in']);
+        expect(menuTexts).not.toContain('has any of');
+        expect(menuTexts).not.toContain('has all of');
     });
 });

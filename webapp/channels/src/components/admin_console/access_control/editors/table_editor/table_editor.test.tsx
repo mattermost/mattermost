@@ -166,12 +166,12 @@ describe('parseExpression', () => {
 });
 
 describe('parseExpression with multiselect attributes', () => {
-    test('handles "in" operator with multiselect attribute type', () => {
+    test('handles "has_all_of" operator with multiselect attribute type', () => {
         const ast: AccessControlVisualAST = {
             conditions: [
                 {
                     attribute: 'user.attributes.skills',
-                    operator: 'in',
+                    operator: 'has_all_of',
                     value: ['JavaScript', 'Python'],
                     value_type: 0,
                     attribute_type: 'multiselect',
@@ -182,8 +182,31 @@ describe('parseExpression with multiselect attributes', () => {
         expect(parseExpression(ast)).toEqual([
             {
                 attribute: 'skills',
-                operator: 'in',
+                operator: 'has all of',
                 values: ['JavaScript', 'Python'],
+                attribute_type: 'multiselect',
+            },
+        ]);
+    });
+
+    test('handles "has_any_of" operator with multiselect attribute type', () => {
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.attributes.programs',
+                    operator: 'has_any_of',
+                    value: ['Dragon', 'Phoenix'],
+                    value_type: 0,
+                    attribute_type: 'multiselect',
+                },
+            ],
+        };
+
+        expect(parseExpression(ast)).toEqual([
+            {
+                attribute: 'programs',
+                operator: 'has any of',
+                values: ['Dragon', 'Phoenix'],
                 attribute_type: 'multiselect',
             },
         ]);
@@ -194,7 +217,7 @@ describe('parseExpression with multiselect attributes', () => {
             conditions: [
                 {
                     attribute: 'user.attributes.skills',
-                    operator: 'in',
+                    operator: 'has_all_of',
                     value: ['JavaScript'],
                     value_type: 0,
                     attribute_type: 'multiselect',
@@ -205,7 +228,7 @@ describe('parseExpression with multiselect attributes', () => {
         expect(parseExpression(ast)).toEqual([
             {
                 attribute: 'skills',
-                operator: 'in',
+                operator: 'has all of',
                 values: ['JavaScript'],
                 attribute_type: 'multiselect',
             },
