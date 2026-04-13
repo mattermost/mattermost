@@ -10,7 +10,6 @@ import (
 	"io"
 	"strings"
 
-	"github.com/anthonynsimon/bild/transform"
 	"github.com/bep/imagemeta"
 )
 
@@ -41,22 +40,89 @@ var errStopDecoding = fmt.Errorf("stop decoding")
 func MakeImageUpright(img image.Image, orientation int) image.Image {
 	switch orientation {
 	case UprightMirrored:
-		return transform.FlipH(img)
+		return flipH(img)
 	case UpsideDown:
-		return transform.Rotate(img, 180, &transform.RotationOptions{ResizeBounds: true})
+		return rotate180(img)
 	case UpsideDownMirrored:
-		return transform.FlipV(img)
+		return flipV(img)
 	case RotatedCWMirrored:
-		return transform.Rotate(transform.FlipH(img), -90, &transform.RotationOptions{ResizeBounds: true})
+		return rotate90CCW(flipH(img))
 	case RotatedCCW:
-		return transform.Rotate(img, 90, &transform.RotationOptions{ResizeBounds: true})
+		return rotate90CW(img)
 	case RotatedCCWMirrored:
-		return transform.Rotate(transform.FlipV(img), -90, &transform.RotationOptions{ResizeBounds: true})
+		return rotate90CCW(flipV(img))
 	case RotatedCW:
-		return transform.Rotate(img, 270, &transform.RotationOptions{ResizeBounds: true})
+		return rotate90CCW(img)
 	default:
 		return img
 	}
+}
+
+// flipH returns a horizontally mirrored copy of img.
+func flipH(img image.Image) *image.NRGBA {
+	b := img.Bounds()
+	w, h := b.Dx(), b.Dy()
+	dst := image.NewNRGBA(image.Rect(0, 0, w, h))
+	for y := range h {
+		for x := range w {
+			dst.Set(w-1-x, y, img.At(b.Min.X+x, b.Min.Y+y))
+		}
+	}
+	return dst
+}
+
+// flipV returns a vertically mirrored copy of img.
+func flipV(img image.Image) *image.NRGBA {
+	b := img.Bounds()
+	w, h := b.Dx(), b.Dy()
+	dst := image.NewNRGBA(image.Rect(0, 0, w, h))
+	for y := range h {
+		for x := range w {
+			dst.Set(x, h-1-y, img.At(b.Min.X+x, b.Min.Y+y))
+		}
+	}
+	return dst
+}
+
+// rotate90CCW returns a copy of img rotated 90° counter-clockwise.
+// The output dimensions are transposed (width↔height).
+func rotate90CCW(img image.Image) *image.NRGBA {
+	b := img.Bounds()
+	srcW, srcH := b.Dx(), b.Dy()
+	dst := image.NewNRGBA(image.Rect(0, 0, srcH, srcW))
+	for y := range srcH {
+		for x := range srcW {
+			dst.Set(y, srcW-1-x, img.At(b.Min.X+x, b.Min.Y+y))
+		}
+	}
+	return dst
+}
+
+// rotate90CW returns a copy of img rotated 90° clockwise.
+// The output dimensions are transposed (width↔height).
+func rotate90CW(img image.Image) *image.NRGBA {
+	b := img.Bounds()
+	srcW, srcH := b.Dx(), b.Dy()
+	dst := image.NewNRGBA(image.Rect(0, 0, srcH, srcW))
+	for y := range srcH {
+		for x := range srcW {
+			dst.Set(srcH-1-y, x, img.At(b.Min.X+x, b.Min.Y+y))
+		}
+	}
+	return dst
+}
+
+// rotate180 returns a copy of img rotated 180°.
+func rotate180(img image.Image) *image.NRGBA {
+	b := img.Bounds()
+	w, h := b.Dx(), b.Dy()
+	dst := image.NewNRGBA(image.Rect(0, 0, w, h))
+	for y := range h {
+		for x := range w {
+			dst.Set(w-1-x, h-1-y, img.At(b.Min.X+x, b.Min.Y+y))
+		}
+	}
+	return dst
 }
 
 type fwSeeker struct {

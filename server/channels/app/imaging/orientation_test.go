@@ -6,6 +6,7 @@ package imaging
 import (
 	"bytes"
 	"fmt"
+	"image"
 	"io"
 	"os"
 	"path/filepath"
@@ -14,6 +15,94 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/stretchr/testify/require"
 )
+
+func loadPNG(t *testing.T, path string) image.Image {
+	t.Helper()
+	f, err := os.Open(path)
+	require.NoError(t, err)
+	defer f.Close()
+	d, err := NewDecoder(DecoderOptions{})
+	require.NoError(t, err)
+	img, _, err := d.Decode(f)
+	require.NoError(t, err)
+	return img
+}
+
+// pixelEqual reports whether two images have identical pixel values at every
+// coordinate.  It does not require the same concrete type.
+func pixelEqual(a, b image.Image) bool {
+	if a.Bounds() != b.Bounds() {
+		return false
+	}
+	bounds := a.Bounds()
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+			ar, ag, ab, aa := a.At(x, y).RGBA()
+			br, bg, bb, ba := b.At(x, y).RGBA()
+			if ar != br || ag != bg || ab != bb || aa != ba {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func TestMakeImageUpright(t *testing.T) {
+	imgDir, ok := fileutils.FindDir("tests/exif_samples")
+	require.True(t, ok)
+
+	d, err := NewDecoder(DecoderOptions{})
+	require.NoError(t, err)
+
+	openFile := func(name string) image.Image {
+		f, ferr := os.Open(filepath.Join(imgDir, name))
+		require.NoError(t, ferr)
+		defer f.Close()
+		img, _, ferr := d.Decode(f)
+		require.NoError(t, ferr)
+		return img
+	}
+
+	t.Run("Upright is a no-op", func(t *testing.T) {
+		img := openFile("up.jpg")
+		out := MakeImageUpright(img, Upright)
+		require.True(t, img == out, "Upright orientation should return the original image unchanged")
+	})
+
+	// For the 90°-rotated orientations the stored pixel buffer is landscape
+	// (640×480) and MakeImageUpright must produce portrait (480×640).
+	for _, tc := range []struct {
+		file        string
+		orientation int
+		wantW       int
+		wantH       int
+	}{
+		{"up-mirrored.jpg", UprightMirrored, 480, 640},
+		{"down.jpg", UpsideDown, 480, 640},
+		{"down-mirrored.jpg", UpsideDownMirrored, 480, 640},
+		{"left-mirrored.jpg", RotatedCWMirrored, 480, 640},
+		{"left.jpg", RotatedCCW, 480, 640},
+		{"right-mirrored.jpg", RotatedCCWMirrored, 480, 640},
+		{"right.jpg", RotatedCW, 480, 640},
+	} {
+		t.Run(tc.file, func(t *testing.T) {
+			img := openFile(tc.file)
+			out := MakeImageUpright(img, tc.orientation)
+			require.Equal(t, tc.wantW, out.Bounds().Dx(), "width")
+			require.Equal(t, tc.wantH, out.Bounds().Dy(), "height")
+		})
+	}
+
+	// The quadrant PNGs are purpose-built for pixel-level rotation verification:
+	// quadrants-orientation-1.png is the upright reference; applying the correct
+	// transformation to quadrants-orientation-8.png (RotatedCW) must reproduce it.
+	t.Run("RotatedCW pixel content matches upright reference", func(t *testing.T) {
+		reference := loadPNG(t, filepath.Join(imgDir, "quadrants-orientation-1.png"))
+		rotated := loadPNG(t, filepath.Join(imgDir, "quadrants-orientation-8.png"))
+		out := MakeImageUpright(rotated, RotatedCW)
+		require.True(t, pixelEqual(reference, out), "pixel content after rotation does not match the upright reference")
+	})
+}
 
 func TestFwSeeker(t *testing.T) {
 	t.Run("Read", func(t *testing.T) {

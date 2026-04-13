@@ -5,7 +5,6 @@ go 1.25.8
 require (
 	code.sajari.com/docconv/v2 v2.0.0-pre.4
 	github.com/Masterminds/semver/v3 v3.4.0
-	github.com/anthonynsimon/bild v0.14.0
 	github.com/avct/uasurfer v0.0.0-20250915105040-a942f6fb6edc
 	github.com/aws/aws-sdk-go-v2 v1.41.5
 	github.com/aws/aws-sdk-go-v2/config v1.32.13

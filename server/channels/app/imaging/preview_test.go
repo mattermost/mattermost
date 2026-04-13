@@ -12,6 +12,39 @@ import (
 	xdraw "golang.org/x/image/draw"
 )
 
+func TestGeneratePreview(t *testing.T) {
+	for _, tc := range []struct {
+		name          string
+		img           image.Image
+		maxWidth      int
+		expectedWidth int
+	}{
+		{
+			name:          "wider than limit is scaled down",
+			img:           createTestImage(t, 3000, 2000),
+			maxWidth:      1920,
+			expectedWidth: 1920,
+		},
+		{
+			name:          "equal to limit is unchanged",
+			img:           createTestImage(t, 1920, 1080),
+			maxWidth:      1920,
+			expectedWidth: 1920,
+		},
+		{
+			name:          "narrower than limit is unchanged",
+			img:           createTestImage(t, 800, 600),
+			maxWidth:      1920,
+			expectedWidth: 800,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			out := GeneratePreview(tc.img, tc.maxWidth)
+			require.Equal(t, tc.expectedWidth, out.Bounds().Dx())
+		})
+	}
+}
+
 func TestGenerateThumbnail(t *testing.T) {
 	tcs := []struct {
 		name           string
