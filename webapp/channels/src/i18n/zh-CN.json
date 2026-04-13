@@ -5046,8 +5046,6 @@
   "login.cardtitle": "登录",
   "login.cardtitle.external": "使用以下之一进行登录：",
   "login.changed": "登录方式更改成功",
-  "login.contact_admin.detail": "要访问您团队的工作区，请联系您的工作区管理员。如果您已经被邀请，请检查您的邮箱收件箱是否有 Mattermost 工作区邀请。",
-  "login.contact_admin.title": "联系您的工作区管理员",
   "login.createTeam": "创建新团队",
   "login.deactivatedUser": "你的账户已被停用。",
   "login.defaultError": "我们无法让你登录。请输入你的信息后再试一次。",

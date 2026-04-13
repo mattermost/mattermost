@@ -3421,8 +3421,6 @@
   "login.cardtitle": "Prisijungti",
   "login.cardtitle.external": "Prisijunkite naudodami vieną iš šių:",
   "login.changed": " Prisijungimo metodas sėkmingai pakeistas",
-  "login.contact_admin.detail": "Norėdami pasiekti savo komandos darbo aplinką, susisiekite su savo darbo srities administratoriumi. Jei jau buvote pakviesti, patikrinkite, ar el. pašto dėžutėje nėra Mattermost darbo srities kvietimo.",
-  "login.contact_admin.title": "Susisiekite su savo darbo vietos administratoriumi",
   "login.createTeam": "Sukurti komandą",
   "login.email": "El. paštas",
   "login.forgot": "Pamiršote slaptažodį?",

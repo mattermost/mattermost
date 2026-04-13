@@ -3966,8 +3966,6 @@
   "login.cardtitle": "Logg inn",
   "login.cardtitle.external": "Logg på med ett av følgende:",
   "login.changed": "Innloggingsmetode har blitt endret",
-  "login.contact_admin.detail": "For å få tilgang til teamets arbeidsområde, kontakt administratoren for arbeidsområdet ditt. Hvis du allerede har blitt invitert, kan du se etter en invitasjon til Mattermost-arbeidsområdet i innboksen til dine-post.",
-  "login.contact_admin.title": "Kontakt administratoren for arbeidsområdet ditt",
   "login.createTeam": "Opprett et team",
   "login.email": "E-post",
   "login.forgot": "Glemt ditt passord?",

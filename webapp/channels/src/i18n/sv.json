@@ -4816,8 +4816,6 @@
   "login.cardtitle": "Logga in",
   "login.cardtitle.external": "Logga in med något av följande:",
   "login.changed": " Ändring av inloggningsmetod lyckades",
-  "login.contact_admin.detail": "För att få tillgång till ditt teams arbetsyta kontaktar du arbetsytans administratör. Om du redan har blivit inbjuden kan du kontrollera din mejl efter en inbjudan till arbetsytan från Mattermost.",
-  "login.contact_admin.title": "Kontakta administratören för din arbetsyta",
   "login.createTeam": "Skapa team",
   "login.deactivatedUser": "Ditt konto har stängts av.",
   "login.email": "E-post",

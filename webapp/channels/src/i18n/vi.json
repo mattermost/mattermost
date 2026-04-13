@@ -3380,8 +3380,6 @@
   "login.cardtitle": "Đăng nhập",
   "login.cardtitle.external": "Đăng nhập bằng một trong các cách sau:",
   "login.changed": " Đã thay đổi thành công phương thức đăng nhập",
-  "login.contact_admin.detail": "Để truy cập không gian làm việc của nhóm, hãy liên hệ với quản trị viên không gian làm việc của bạn. Nếu bạn đã được mời, hãy kiểm tra hộp thư đến trong email của bạn để biết lời mời đến không gian làm việc Mattermost.",
-  "login.contact_admin.title": "Liên hệ với quản trị viên không gian làm việc của bạn",
   "login.createTeam": "Tạo nhóm",
   "login.email": "Email",
   "login.forgot": "Tôi quên mật khẩu của mình.",

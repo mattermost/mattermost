@@ -4567,8 +4567,6 @@
   "login.cardtitle": "Přihlášení",
   "login.cardtitle.external": "Přihlaste se pomocí jednoho z následujících:",
   "login.changed": " Přihlašovací metoda byla úspěšně změněna",
-  "login.contact_admin.detail": "Chcete-li získat přístup k pracovnímu prostoru svého týmu, kontaktujte svého správce pracovního prostoru. Pokud jste již byli pozváni, vyhledejte ve své e-mailové schránce pozvánku do pracovního prostoru Mattermost.",
-  "login.contact_admin.title": "Kontaktujte svého správce pracovního prostoru",
   "login.createTeam": "Vytvořit nový tým",
   "login.email": "E-mail",
   "login.forgot": "Zapomněli jste heslo?",

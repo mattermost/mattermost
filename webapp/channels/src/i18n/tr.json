@@ -4689,8 +4689,6 @@
   "login.cardtitle": "Oturum aç",
   "login.cardtitle.external": "Şunlardan biri ile oturum açın:",
   "login.changed": " Oturum açma yöntemi değiştirildi",
-  "login.contact_admin.detail": "Takımınızın çalışma alanına erişmek için çalışma alanı yöneticiniz ile görüşün. Zaten davet edildiyseniz, Mattermost çalışma alanı daveti için e-postanızın gelen kutusuna bakın.",
-  "login.contact_admin.title": "Çalışma alanınızın yöneticisi ile görüşün",
   "login.createTeam": "Takım ekle",
   "login.email": "E-posta",
   "login.forgot": "Parolanızı mı unuttunuz?",

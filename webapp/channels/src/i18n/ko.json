@@ -4610,8 +4610,6 @@
   "login.cardtitle": "로그인",
   "login.cardtitle.external": "다음 중 하나로 로그인하세요:",
   "login.changed": " 인증 방식이 성공적으로 변경되었습니다.",
-  "login.contact_admin.detail": "팀의 워크스페이스에 액세스하려면 워크스페이스 관리자에게 문의하세요. 이미 초대를 받으셨다면 이메일 받은 편지함에서 Mattermost 워크스페이스 초대를 확인하세요.",
-  "login.contact_admin.title": "워크스페이스 관리자에게 문의",
   "login.createTeam": "팀 만들기",
   "login.email": "전자우편",
   "login.forgot": "비밀번호를 잊어버리셨나요?",

@@ -4764,8 +4764,6 @@
   "login.cardtitle": "ログイン",
   "login.cardtitle.external": "以下のいずれかでログインしてください:",
   "login.changed": " サインイン方法が変更されました",
-  "login.contact_admin.detail": "チームのワークスペースにアクセスするには、ワークスペースの管理者に連絡してください。すでに招待されている場合は、電子メールの受信ボックスにMattermostへの招待が届いていないか確認してください。",
-  "login.contact_admin.title": "ワークスペースの管理者に連絡する",
   "login.createTeam": "新しいチームを作成する",
   "login.email": "電子メール",
   "login.forgot": "パスワードをお忘れですか?",

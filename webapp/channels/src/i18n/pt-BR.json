@@ -3469,8 +3469,6 @@
   "login.cardtitle": "Conecte-se",
   "login.cardtitle.external": "Conecte-se com um dos seguintes:",
   "login.changed": " Método de login alterada com sucesso",
-  "login.contact_admin.detail": "Para acessar o espaço de trabalho da sua equipe, entre em contato com o administrador do espaço de trabalho. Se você já foi convidado, verifique sua caixa de entrada de e-mail para obter um convite para o espaço de trabalho Mattermost.",
-  "login.contact_admin.title": "Entre em contato com o administrador do espaço de trabalho",
   "login.createTeam": "Criar uma equipe",
   "login.email": "E-mail",
   "login.forgot": "Esqueceu sua senha?",
