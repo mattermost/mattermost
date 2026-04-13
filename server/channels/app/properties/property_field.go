@@ -207,8 +207,6 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 		existingByID[ef.ID] = ef
 	}
 
-	var propagations []store.PropagationRequest
-
 	// Check each field for changes that require conflict validation and linked field restrictions
 	for _, field := range fields {
 		existing, ok := existingByID[field.ID]
@@ -312,18 +310,14 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 			)
 		}
 
-		// Check if this field has linked dependents (needed for type change
-		// blocking and options propagation). Only query once.
-		typeChanged := field.Type != existing.Type
-		optsChanged := optionsChanged(existing.Attrs, field.Attrs)
-
-		if typeChanged || optsChanged {
+		// Block type changes on source fields with active linked dependents
+		if field.Type != existing.Type {
 			count, cErr := ps.fieldStore.CountLinkedFields(field.ID)
 			if cErr != nil {
 				return nil, nil, fmt.Errorf("failed to count linked fields: %w", cErr)
 			}
 
-			if typeChanged && count > 0 {
+			if count > 0 {
 				return nil, nil, model.NewAppError(
 					"UpdatePropertyFields",
 					"app.property_field.update.type_change_with_dependents.app_error",
@@ -331,18 +325,6 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 					"cannot change type of a field with active linked dependents",
 					http.StatusConflict,
 				)
-			}
-
-			if optsChanged && count > 0 {
-				var opts any
-				if field.Attrs != nil {
-					opts = field.Attrs[model.PropertyFieldAttributeOptions]
-				}
-				propagations = append(propagations, store.PropagationRequest{
-					SourceFieldID: field.ID,
-					FieldType:     field.Type,
-					Options:       opts,
-				})
 			}
 		}
 
@@ -374,8 +356,9 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 		expectedUpdateAts[id] = ef.UpdateAt
 	}
 
-	// Use UpdateAndPropagate to atomically update fields and cascade options
-	all, uErr := ps.fieldStore.UpdateAndPropagate(groupID, fields, propagations, expectedUpdateAts)
+	// Update fields atomically. The store handles propagation of type and
+	// options to linked dependents automatically via a JOIN-based UPDATE.
+	all, uErr := ps.fieldStore.Update(groupID, fields, expectedUpdateAts)
 	if uErr != nil {
 		return nil, nil, uErr
 	}

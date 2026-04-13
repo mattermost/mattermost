@@ -5,8 +5,8 @@ package sqlstore
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
+	"strings"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
@@ -217,8 +217,157 @@ func (s *SqlPropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSea
 	return fields, nil
 }
 
-func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
-	return s.UpdateAndPropagate(groupID, fields, nil, nil)
+func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyField, expectedUpdateAts map[string]int64) ([]*model.PropertyField, error) {
+	if len(fields) == 0 {
+		return nil, nil
+	}
+
+	transaction, err := s.GetMaster().Beginx()
+	if err != nil {
+		return nil, errors.Wrap(err, "property_field_update_begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	updateTime := model.GetMillis()
+	nameCase := sq.Case("id")
+	typeCase := sq.Case("id")
+	attrsCase := sq.Case("id")
+	targetIDCase := sq.Case("id")
+	targetTypeCase := sq.Case("id")
+	protectedCase := sq.Case("id")
+	permissionFieldCase := sq.Case("id")
+	permissionValuesCase := sq.Case("id")
+	permissionOptionsCase := sq.Case("id")
+	linkedFieldIDCase := sq.Case("id")
+	deleteAtCase := sq.Case("id")
+	updatedByCase := sq.Case("id")
+	ids := make([]string, len(fields))
+
+	for i, field := range fields {
+		field.UpdateAt = updateTime
+		if ensureErr := field.EnsureOptionIDs(); ensureErr != nil {
+			return nil, errors.Wrap(ensureErr, "property_field_update_ensure_option_ids")
+		}
+		if vErr := field.IsValid(); vErr != nil {
+			return nil, errors.Wrap(vErr, "property_field_update_isvalid")
+		}
+
+		ids[i] = field.ID
+		whenID := sq.Expr("?", field.ID)
+		nameCase = nameCase.When(whenID, sq.Expr("?::text", field.Name))
+		typeCase = typeCase.When(whenID, sq.Expr("?::property_field_type", field.Type))
+		attrsCase = attrsCase.When(whenID, sq.Expr("?::jsonb", field.Attrs))
+		targetIDCase = targetIDCase.When(whenID, sq.Expr("?::text", field.TargetID))
+		targetTypeCase = targetTypeCase.When(whenID, sq.Expr("?::text", field.TargetType))
+		protectedCase = protectedCase.When(whenID, sq.Expr("?::boolean", field.Protected))
+		permissionFieldCase = permissionFieldCase.When(whenID, sq.Expr("?::permission_level", field.PermissionField))
+		permissionValuesCase = permissionValuesCase.When(whenID, sq.Expr("?::permission_level", field.PermissionValues))
+		permissionOptionsCase = permissionOptionsCase.When(whenID, sq.Expr("?::permission_level", field.PermissionOptions))
+		linkedFieldIDCase = linkedFieldIDCase.When(whenID, sq.Expr("?", field.LinkedFieldID))
+		deleteAtCase = deleteAtCase.When(whenID, sq.Expr("?::bigint", field.DeleteAt))
+		updatedByCase = updatedByCase.When(whenID, sq.Expr("?::text", field.UpdatedBy))
+	}
+
+	builder := s.getQueryBuilder().
+		Update("PropertyFields").
+		Set("Name", nameCase).
+		Set("Type", typeCase).
+		Set("Attrs", attrsCase).
+		Set("TargetID", targetIDCase).
+		Set("TargetType", targetTypeCase).
+		Set("Protected", protectedCase).
+		Set("PermissionField", permissionFieldCase).
+		Set("PermissionValues", permissionValuesCase).
+		Set("PermissionOptions", permissionOptionsCase).
+		Set("LinkedFieldID", linkedFieldIDCase).
+		Set("UpdateAt", updateTime).
+		Set("DeleteAt", deleteAtCase).
+		Set("UpdatedBy", updatedByCase).
+		Where(sq.Eq{"id": ids})
+
+	if groupID != "" {
+		builder = builder.Where(sq.Eq{"GroupID": groupID})
+	}
+
+	// Optimistic concurrency: if expectedUpdateAts is provided, only update
+	// rows whose UpdateAt still matches the value read before validation.
+	// This closes the TOCTOU window between validation and the UPDATE.
+	if len(expectedUpdateAts) > 0 {
+		updateAtCase := sq.Case("id")
+		for _, id := range ids {
+			if expected, ok := expectedUpdateAts[id]; ok {
+				updateAtCase = updateAtCase.When(sq.Expr("?", id), sq.Expr("?::bigint", expected))
+			}
+		}
+		caseSql, caseArgs, caseErr := updateAtCase.ToSql()
+		if caseErr != nil {
+			return nil, errors.Wrap(caseErr, "property_field_update_build_update_at_check")
+		}
+		builder = builder.Where("UpdateAt = "+caseSql, caseArgs...)
+	}
+
+	result, err := transaction.ExecBuilder(builder)
+	if err != nil {
+		return nil, errors.Wrap(err, "property_field_update_exec")
+	}
+
+	count, err := result.RowsAffected()
+	if err != nil {
+		return nil, errors.Wrap(err, "property_field_update_rowsaffected")
+	}
+	if count != int64(len(fields)) {
+		if len(expectedUpdateAts) > 0 {
+			return nil, store.NewErrConflict("PropertyField", nil, "concurrent modification detected; retry the update")
+		}
+		return nil, errors.Errorf("failed to update, some property fields were not found, got %d of %d", count, len(fields))
+	}
+
+	// Propagate type and options from updated source fields to all their
+	// linked dependents. The JOIN ensures only linked fields whose type or
+	// options actually differ from the source are touched; this is a no-op
+	// when none of the updated fields are link sources or when nothing changed.
+	inPlaceholders := make([]string, len(ids))
+	propagateArgs := make([]any, 0, len(ids)+1)
+	propagateArgs = append(propagateArgs, updateTime)
+	for i, id := range ids {
+		inPlaceholders[i] = fmt.Sprintf("$%d", i+2)
+		propagateArgs = append(propagateArgs, id)
+	}
+
+	propagateSQL := fmt.Sprintf(`
+UPDATE PropertyFields AS linked
+   SET Type = source.Type,
+       Attrs = jsonb_set(COALESCE(linked.Attrs, '{}'::jsonb), '{options}',
+                         COALESCE(source.Attrs->'options', '[]'::jsonb)),
+       UpdateAt = $1
+  FROM PropertyFields AS source
+ WHERE source.ID IN (%s)
+   AND linked.LinkedFieldID = source.ID
+   AND linked.DeleteAt = 0
+   AND (linked.Type != source.Type
+        OR linked.Attrs->'options' IS DISTINCT FROM source.Attrs->'options')
+`, strings.Join(inPlaceholders, ", "))
+
+	if _, execErr := transaction.ExecRaw(propagateSQL, propagateArgs...); execErr != nil {
+		return nil, errors.Wrap(execErr, "property_field_update_propagate")
+	}
+
+	// Retrieve propagated linked fields to include in the return value
+	selectBuilder := s.tableSelectQuery.
+		Where(sq.Eq{"LinkedFieldID": ids}).
+		Where(sq.Eq{"DeleteAt": 0}).
+		Where(sq.Eq{"UpdateAt": updateTime})
+
+	var propagatedFields []*model.PropertyField
+	if selectErr := transaction.SelectBuilder(&propagatedFields, selectBuilder); selectErr != nil {
+		return nil, errors.Wrap(selectErr, "property_field_update_select_propagated")
+	}
+
+	if err := transaction.Commit(); err != nil {
+		return nil, errors.Wrap(err, "property_field_update_commit_transaction")
+	}
+
+	return append(fields, propagatedFields...), nil
 }
 
 func (s *SqlPropertyFieldStore) Delete(groupID string, id string) error {
@@ -465,151 +614,3 @@ func (s *SqlPropertyFieldStore) CountLinkedFields(fieldID string) (int64, error)
 	return count, nil
 }
 
-func (s *SqlPropertyFieldStore) UpdateAndPropagate(groupID string, fields []*model.PropertyField, propagations []store.PropagationRequest, expectedUpdateAts map[string]int64) ([]*model.PropertyField, error) {
-	if len(fields) == 0 {
-		return nil, nil
-	}
-
-	transaction, err := s.GetMaster().Beginx()
-	if err != nil {
-		return nil, errors.Wrap(err, "property_field_update_and_propagate_begin_transaction")
-	}
-	defer finalizeTransactionX(transaction, &err)
-
-	updateTime := model.GetMillis()
-	nameCase := sq.Case("id")
-	typeCase := sq.Case("id")
-	attrsCase := sq.Case("id")
-	targetIDCase := sq.Case("id")
-	targetTypeCase := sq.Case("id")
-	protectedCase := sq.Case("id")
-	permissionFieldCase := sq.Case("id")
-	permissionValuesCase := sq.Case("id")
-	permissionOptionsCase := sq.Case("id")
-	linkedFieldIDCase := sq.Case("id")
-	deleteAtCase := sq.Case("id")
-	updatedByCase := sq.Case("id")
-	ids := make([]string, len(fields))
-
-	for i, field := range fields {
-		field.UpdateAt = updateTime
-		if ensureErr := field.EnsureOptionIDs(); ensureErr != nil {
-			return nil, errors.Wrap(ensureErr, "property_field_update_and_propagate_ensure_option_ids")
-		}
-		if vErr := field.IsValid(); vErr != nil {
-			return nil, errors.Wrap(vErr, "property_field_update_and_propagate_isvalid")
-		}
-
-		ids[i] = field.ID
-		whenID := sq.Expr("?", field.ID)
-		nameCase = nameCase.When(whenID, sq.Expr("?::text", field.Name))
-		typeCase = typeCase.When(whenID, sq.Expr("?::property_field_type", field.Type))
-		attrsCase = attrsCase.When(whenID, sq.Expr("?::jsonb", field.Attrs))
-		targetIDCase = targetIDCase.When(whenID, sq.Expr("?::text", field.TargetID))
-		targetTypeCase = targetTypeCase.When(whenID, sq.Expr("?::text", field.TargetType))
-		protectedCase = protectedCase.When(whenID, sq.Expr("?::boolean", field.Protected))
-		permissionFieldCase = permissionFieldCase.When(whenID, sq.Expr("?::permission_level", field.PermissionField))
-		permissionValuesCase = permissionValuesCase.When(whenID, sq.Expr("?::permission_level", field.PermissionValues))
-		permissionOptionsCase = permissionOptionsCase.When(whenID, sq.Expr("?::permission_level", field.PermissionOptions))
-		linkedFieldIDCase = linkedFieldIDCase.When(whenID, sq.Expr("?", field.LinkedFieldID))
-		deleteAtCase = deleteAtCase.When(whenID, sq.Expr("?::bigint", field.DeleteAt))
-		updatedByCase = updatedByCase.When(whenID, sq.Expr("?::text", field.UpdatedBy))
-	}
-
-	builder := s.getQueryBuilder().
-		Update("PropertyFields").
-		Set("Name", nameCase).
-		Set("Type", typeCase).
-		Set("Attrs", attrsCase).
-		Set("TargetID", targetIDCase).
-		Set("TargetType", targetTypeCase).
-		Set("Protected", protectedCase).
-		Set("PermissionField", permissionFieldCase).
-		Set("PermissionValues", permissionValuesCase).
-		Set("PermissionOptions", permissionOptionsCase).
-		Set("LinkedFieldID", linkedFieldIDCase).
-		Set("UpdateAt", updateTime).
-		Set("DeleteAt", deleteAtCase).
-		Set("UpdatedBy", updatedByCase).
-		Where(sq.Eq{"id": ids})
-
-	if groupID != "" {
-		builder = builder.Where(sq.Eq{"GroupID": groupID})
-	}
-
-	// Optimistic concurrency: if expectedUpdateAts is provided, only update
-	// rows whose UpdateAt still matches the value read before validation.
-	// This closes the TOCTOU window between validation and the UPDATE.
-	if len(expectedUpdateAts) > 0 {
-		updateAtCase := sq.Case("id")
-		for _, id := range ids {
-			if expected, ok := expectedUpdateAts[id]; ok {
-				updateAtCase = updateAtCase.When(sq.Expr("?", id), sq.Expr("?::bigint", expected))
-			}
-		}
-		caseSql, caseArgs, caseErr := updateAtCase.ToSql()
-		if caseErr != nil {
-			return nil, errors.Wrap(caseErr, "property_field_update_and_propagate_build_update_at_check")
-		}
-		builder = builder.Where("UpdateAt = "+caseSql, caseArgs...)
-	}
-
-	result, err := transaction.ExecBuilder(builder)
-	if err != nil {
-		return nil, errors.Wrap(err, "property_field_update_and_propagate_exec")
-	}
-
-	count, err := result.RowsAffected()
-	if err != nil {
-		return nil, errors.Wrap(err, "property_field_update_and_propagate_rowsaffected")
-	}
-	if count != int64(len(fields)) {
-		if len(expectedUpdateAts) > 0 {
-			return nil, store.NewErrConflict("PropertyField", nil, "concurrent modification detected; retry the update")
-		}
-		return nil, errors.Errorf("failed to update, some property fields were not found, got %d of %d", count, len(fields))
-	}
-
-	// Propagate type and options to all linked fields within the same transaction
-	for _, prop := range propagations {
-		optionsJSON, jsonErr := json.Marshal(prop.Options)
-		if jsonErr != nil {
-			return nil, errors.Wrap(jsonErr, "property_field_update_and_propagate_marshal_options")
-		}
-
-		// Type is included for defense-in-depth. Since type changes are blocked
-		// on source fields with dependents, this value is always the same as
-		// the existing value on linked fields.
-		propagateBuilder := s.getQueryBuilder().
-			Update("PropertyFields").
-			Set("Type", sq.Expr("?::property_field_type", prop.FieldType)).
-			Set("Attrs", sq.Expr("jsonb_set(COALESCE(Attrs, '{}'::jsonb), '{options}', ?::jsonb)", string(optionsJSON))).
-			Set("UpdateAt", updateTime).
-			Where(sq.Eq{"LinkedFieldID": prop.SourceFieldID}).
-			Where(sq.Eq{"DeleteAt": 0})
-
-		if _, execErr := transaction.ExecBuilder(propagateBuilder); execErr != nil {
-			return nil, errors.Wrapf(execErr, "property_field_update_and_propagate_propagate source=%s", prop.SourceFieldID)
-		}
-	}
-
-	// Retrieve all propagated linked fields to include in the return value
-	var propagatedFields []*model.PropertyField
-	for _, prop := range propagations {
-		selectBuilder := s.tableSelectQuery.
-			Where(sq.Eq{"LinkedFieldID": prop.SourceFieldID}).
-			Where(sq.Eq{"DeleteAt": 0})
-
-		var linked []*model.PropertyField
-		if selectErr := transaction.SelectBuilder(&linked, selectBuilder); selectErr != nil {
-			return nil, errors.Wrap(selectErr, "property_field_update_and_propagate_select_linked")
-		}
-		propagatedFields = append(propagatedFields, linked...)
-	}
-
-	if err := transaction.Commit(); err != nil {
-		return nil, errors.Wrap(err, "property_field_update_and_propagate_commit_transaction")
-	}
-
-	return append(fields, propagatedFields...), nil
-}

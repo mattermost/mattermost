@@ -29,7 +29,7 @@ func TestPropertyFieldStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("CountForGroup", func(t *testing.T) { testCountForGroup(t, rctx, ss) })
 	t.Run("CheckPropertyNameConflict", func(t *testing.T) { testCheckPropertyNameConflict(t, rctx, ss) })
 	t.Run("CountLinkedFields", func(t *testing.T) { testCountLinkedFields(t, rctx, ss) })
-	t.Run("UpdateAndPropagate", func(t *testing.T) { testUpdateAndPropagate(t, rctx, ss) })
+	t.Run("UpdateWithPropagation", func(t *testing.T) { testUpdateWithPropagation(t, rctx, ss) })
 	t.Run("SearchByLinkedFieldID", func(t *testing.T) { testSearchByLinkedFieldID(t, rctx, ss) })
 }
 
@@ -506,7 +506,7 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 			Type:     model.PropertyFieldTypeText,
 			CreateAt: model.GetMillis(),
 		}
-		updatedField, err := ss.PropertyField().Update("", []*model.PropertyField{field})
+		updatedField, err := ss.PropertyField().Update("", []*model.PropertyField{field}, nil)
 		require.Zero(t, updatedField)
 		require.ErrorContains(t, err, "failed to update, some property fields were not found, got 0 of 1")
 	})
@@ -522,13 +522,13 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NotZero(t, field.ID)
 
 		field.GroupID = ""
-		updatedField, err := ss.PropertyField().Update("", []*model.PropertyField{field})
+		updatedField, err := ss.PropertyField().Update("", []*model.PropertyField{field}, nil)
 		require.Zero(t, updatedField)
 		require.ErrorContains(t, err, "model.property_field.is_valid.app_error")
 
 		field.GroupID = model.NewId()
 		field.Name = ""
-		updatedField, err = ss.PropertyField().Update("", []*model.PropertyField{field})
+		updatedField, err = ss.PropertyField().Update("", []*model.PropertyField{field}, nil)
 		require.Zero(t, updatedField)
 		require.ErrorContains(t, err, "model.property_field.is_valid.app_error")
 	})
@@ -579,7 +579,7 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 			},
 		}
 
-		_, err := ss.PropertyField().Update("", []*model.PropertyField{field1, field2})
+		_, err := ss.PropertyField().Update("", []*model.PropertyField{field1, field2}, nil)
 		require.NoError(t, err)
 
 		// Verify first field
@@ -636,7 +636,7 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 			},
 		}
 
-		updatedFields, err := ss.PropertyField().Update("", []*model.PropertyField{multiselectField})
+		updatedFields, err := ss.PropertyField().Update("", []*model.PropertyField{multiselectField}, nil)
 		require.NoError(t, err)
 		require.Len(t, updatedFields, 1)
 
@@ -679,7 +679,7 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 			},
 		}
 
-		updatedFields, err := ss.PropertyField().Update("", []*model.PropertyField{multiselectField})
+		updatedFields, err := ss.PropertyField().Update("", []*model.PropertyField{multiselectField}, nil)
 		require.NoError(t, err)
 		require.Len(t, updatedFields, 1)
 
@@ -723,7 +723,7 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		field1.Name = "Valid update"
 		field2.GroupID = "Invalid ID"
 
-		_, err := ss.PropertyField().Update("", []*model.PropertyField{field1, field2})
+		_, err := ss.PropertyField().Update("", []*model.PropertyField{field1, field2}, nil)
 		require.ErrorContains(t, err, "model.property_field.is_valid.app_error")
 
 		// Check that fields were not updated
@@ -767,7 +767,7 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 
 		field1.Name = "Updated First"
 
-		_, err = ss.PropertyField().Update("", []*model.PropertyField{field1, field2})
+		_, err = ss.PropertyField().Update("", []*model.PropertyField{field1, field2}, nil)
 		require.Error(t, err)
 		require.ErrorContains(t, err, "failed to update, some property fields were not found")
 
@@ -801,7 +801,7 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		field1.Name = "Updated Group Field 1"
 		field2.Name = "Updated Group Field 2"
 
-		updatedFields, err := ss.PropertyField().Update(groupID, []*model.PropertyField{field1, field2})
+		updatedFields, err := ss.PropertyField().Update(groupID, []*model.PropertyField{field1, field2}, nil)
 		require.NoError(t, err)
 		require.Len(t, updatedFields, 2)
 
@@ -841,7 +841,7 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		field1.Name = "Updated Field in Group 1"
 		field2.Name = "Updated Field in Group 2"
 
-		_, err := ss.PropertyField().Update(groupID1, []*model.PropertyField{field1, field2})
+		_, err := ss.PropertyField().Update(groupID1, []*model.PropertyField{field1, field2}, nil)
 		require.Error(t, err)
 		require.ErrorContains(t, err, "failed to update, some property fields were not found")
 
@@ -874,7 +874,7 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		field.Name = "Updated Name"
 		field.UpdatedBy = updaterUserID
 
-		_, err = ss.PropertyField().Update("", []*model.PropertyField{field})
+		_, err = ss.PropertyField().Update("", []*model.PropertyField{field}, nil)
 		require.NoError(t, err)
 
 		// Verify CreatedBy stays the same but UpdatedBy changes
@@ -917,7 +917,7 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		field2.Name = "Field 2 Updated"
 		field2.UpdatedBy = user2
 
-		_, err = ss.PropertyField().Update("", []*model.PropertyField{field1, field2})
+		_, err = ss.PropertyField().Update("", []*model.PropertyField{field1, field2}, nil)
 		require.NoError(t, err)
 
 		// Verify both fields have correct UpdatedBy
@@ -1419,7 +1419,7 @@ func testSearchPropertyFieldsSince(t *testing.T, _ request.CTX, ss store.Store) 
 	// Update field2 to change its UpdateAt timestamp
 	time.Sleep(10 * time.Millisecond)
 	field2.Name = "Field 2 Updated"
-	updatedFields, err := ss.PropertyField().Update("", []*model.PropertyField{field2})
+	updatedFields, err := ss.PropertyField().Update("", []*model.PropertyField{field2}, nil)
 	require.NoError(t, err)
 	require.Len(t, updatedFields, 1)
 	updatedField2 := updatedFields[0]
@@ -2596,7 +2596,7 @@ func testCountLinkedFields(t *testing.T, _ request.CTX, ss store.Store) {
 	})
 }
 
-func testUpdateAndPropagate(t *testing.T, _ request.CTX, ss store.Store) {
+func testUpdateWithPropagation(t *testing.T, _ request.CTX, ss store.Store) {
 	groupID := model.NewId()
 
 	optA := map[string]any{"id": model.NewId(), "name": "A"}
@@ -2654,13 +2654,7 @@ func testUpdateAndPropagate(t *testing.T, _ request.CTX, ss store.Store) {
 			"options": newOptions,
 		}
 
-		result, uErr := ss.PropertyField().UpdateAndPropagate("", []*model.PropertyField{sourceField}, []store.PropagationRequest{
-			{
-				SourceFieldID: sourceField.ID,
-				FieldType:     model.PropertyFieldTypeSelect,
-				Options:       newOptions,
-			},
-		}, nil)
+		result, uErr := ss.PropertyField().Update("", []*model.PropertyField{sourceField}, nil)
 		require.NoError(t, uErr)
 
 		// The result should contain the source field + both linked fields (3 total)
@@ -2687,13 +2681,7 @@ func testUpdateAndPropagate(t *testing.T, _ request.CTX, ss store.Store) {
 			"options": reducedOptions,
 		}
 
-		result, uErr := ss.PropertyField().UpdateAndPropagate("", []*model.PropertyField{sourceField}, []store.PropagationRequest{
-			{
-				SourceFieldID: sourceField.ID,
-				FieldType:     model.PropertyFieldTypeSelect,
-				Options:       reducedOptions,
-			},
-		}, nil)
+		result, uErr := ss.PropertyField().Update("", []*model.PropertyField{sourceField}, nil)
 		require.NoError(t, uErr)
 		require.Len(t, result, 3) // source + 2 linked
 
@@ -2718,13 +2706,7 @@ func testUpdateAndPropagate(t *testing.T, _ request.CTX, ss store.Store) {
 			"options": updatedOptions,
 		}
 
-		_, uErr := ss.PropertyField().UpdateAndPropagate("", []*model.PropertyField{sourceField}, []store.PropagationRequest{
-			{
-				SourceFieldID: sourceField.ID,
-				FieldType:     model.PropertyFieldTypeSelect,
-				Options:       updatedOptions,
-			},
-		}, nil)
+		_, uErr := ss.PropertyField().Update("", []*model.PropertyField{sourceField}, nil)
 		require.NoError(t, uErr)
 
 		// Verify linked fields have the renamed option
@@ -2736,10 +2718,10 @@ func testUpdateAndPropagate(t *testing.T, _ request.CTX, ss store.Store) {
 		require.Equal(t, "A-Renamed", firstOpt["name"])
 	})
 
-	t.Run("empty propagations behaves like regular update", func(t *testing.T) {
-		// Update source field name only, no propagation
+	t.Run("name-only update does not return linked fields when options unchanged", func(t *testing.T) {
+		// Update source field name only — no propagation needed
 		sourceField.Name = "Updated Name"
-		result, uErr := ss.PropertyField().UpdateAndPropagate("", []*model.PropertyField{sourceField}, nil, nil)
+		result, uErr := ss.PropertyField().Update("", []*model.PropertyField{sourceField}, nil)
 		require.NoError(t, uErr)
 		require.Len(t, result, 1) // only source, no linked fields
 		require.Equal(t, "Updated Name", result[0].Name)
@@ -2752,13 +2734,13 @@ func testUpdateAndPropagate(t *testing.T, _ request.CTX, ss store.Store) {
 
 		// Simulate a concurrent update by directly modifying the field
 		current.Name = "Concurrent Update"
-		_, uErr := ss.PropertyField().UpdateAndPropagate("", []*model.PropertyField{current}, nil, nil)
+		_, uErr := ss.PropertyField().Update("", []*model.PropertyField{current}, nil)
 		require.NoError(t, uErr)
 
 		// Now try to update with stale expectedUpdateAts (using the old UpdateAt)
 		staleUpdateAts := map[string]int64{sourceField.ID: sourceField.UpdateAt}
 		sourceField.Name = "Stale Update"
-		_, uErr = ss.PropertyField().UpdateAndPropagate("", []*model.PropertyField{sourceField}, nil, staleUpdateAts)
+		_, uErr = ss.PropertyField().Update("", []*model.PropertyField{sourceField}, staleUpdateAts)
 		require.Error(t, uErr)
 
 		var conflictErr *store.ErrConflict
@@ -2778,7 +2760,7 @@ func testUpdateAndPropagate(t *testing.T, _ request.CTX, ss store.Store) {
 		// Update with correct expectedUpdateAts
 		expectedUpdateAts := map[string]int64{current.ID: current.UpdateAt}
 		current.Name = "Valid Update"
-		result, uErr := ss.PropertyField().UpdateAndPropagate("", []*model.PropertyField{current}, nil, expectedUpdateAts)
+		result, uErr := ss.PropertyField().Update("", []*model.PropertyField{current}, expectedUpdateAts)
 		require.NoError(t, uErr)
 		require.Len(t, result, 1)
 		require.Equal(t, "Valid Update", result[0].Name)
@@ -2808,7 +2790,7 @@ func testUpdateAndPropagate(t *testing.T, _ request.CTX, ss store.Store) {
 
 		// Concurrently modify only batchField (advance its UpdateAt)
 		freshBatch.Name = "Concurrent Batch Change"
-		_, uErr := ss.PropertyField().UpdateAndPropagate("", []*model.PropertyField{freshBatch}, nil, nil)
+		_, uErr := ss.PropertyField().Update("", []*model.PropertyField{freshBatch}, nil)
 		require.NoError(t, uErr)
 
 		// Re-fetch the source since it wasn't modified (its UpdateAt is still valid)
@@ -2822,7 +2804,7 @@ func testUpdateAndPropagate(t *testing.T, _ request.CTX, ss store.Store) {
 		}
 		freshSource.Name = "Should Not Stick"
 		freshBatch.Name = "Should Also Not Stick"
-		_, uErr = ss.PropertyField().UpdateAndPropagate("", []*model.PropertyField{freshSource, freshBatch}, nil, expectedUpdateAts)
+		_, uErr = ss.PropertyField().Update("", []*model.PropertyField{freshSource, freshBatch}, expectedUpdateAts)
 		require.Error(t, uErr)
 
 		var conflictErr *store.ErrConflict
@@ -2848,13 +2830,7 @@ func testUpdateAndPropagate(t *testing.T, _ request.CTX, ss store.Store) {
 		freshSource.Attrs = map[string]any{"options": newOptions}
 
 		expectedUpdateAts := map[string]int64{freshSource.ID: freshSource.UpdateAt}
-		result, uErr := ss.PropertyField().UpdateAndPropagate("", []*model.PropertyField{freshSource}, []store.PropagationRequest{
-			{
-				SourceFieldID: freshSource.ID,
-				FieldType:     model.PropertyFieldTypeSelect,
-				Options:       newOptions,
-			},
-		}, expectedUpdateAts)
+		result, uErr := ss.PropertyField().Update("", []*model.PropertyField{freshSource}, expectedUpdateAts)
 		require.NoError(t, uErr)
 		// source + 2 linked fields
 		require.Len(t, result, 3)
@@ -2876,7 +2852,7 @@ func testUpdateAndPropagate(t *testing.T, _ request.CTX, ss store.Store) {
 
 		// Advance the source field's UpdateAt with a concurrent update
 		freshSource.Name = "Advanced Source"
-		_, uErr := ss.PropertyField().UpdateAndPropagate("", []*model.PropertyField{freshSource}, nil, nil)
+		_, uErr := ss.PropertyField().Update("", []*model.PropertyField{freshSource}, nil)
 		require.NoError(t, uErr)
 
 		// Try to propagate with the stale UpdateAt
@@ -2885,13 +2861,7 @@ func testUpdateAndPropagate(t *testing.T, _ request.CTX, ss store.Store) {
 		freshSource.Attrs = map[string]any{"options": staleOptions}
 
 		staleUpdateAts := map[string]int64{freshSource.ID: staleSourceUpdateAt} // stale
-		_, uErr = ss.PropertyField().UpdateAndPropagate("", []*model.PropertyField{freshSource}, []store.PropagationRequest{
-			{
-				SourceFieldID: freshSource.ID,
-				FieldType:     model.PropertyFieldTypeSelect,
-				Options:       staleOptions,
-			},
-		}, staleUpdateAts)
+		_, uErr = ss.PropertyField().Update("", []*model.PropertyField{freshSource}, staleUpdateAts)
 		require.Error(t, uErr)
 
 		var conflictErr *store.ErrConflict
@@ -2911,14 +2881,14 @@ func testUpdateAndPropagate(t *testing.T, _ request.CTX, ss store.Store) {
 
 		// Update without any concurrency check — should always succeed
 		freshSource.Name = "No OCC Check"
-		result, uErr := ss.PropertyField().UpdateAndPropagate("", []*model.PropertyField{freshSource}, nil, nil)
+		result, uErr := ss.PropertyField().Update("", []*model.PropertyField{freshSource}, nil)
 		require.NoError(t, uErr)
 		require.Len(t, result, 1)
 		require.Equal(t, "No OCC Check", result[0].Name)
 
 		// Do it again immediately — still no check
 		result[0].Name = "Still No OCC Check"
-		result2, uErr := ss.PropertyField().UpdateAndPropagate("", []*model.PropertyField{result[0]}, nil, nil)
+		result2, uErr := ss.PropertyField().Update("", []*model.PropertyField{result[0]}, nil)
 		require.NoError(t, uErr)
 		require.Len(t, result2, 1)
 		require.Equal(t, "Still No OCC Check", result2[0].Name)

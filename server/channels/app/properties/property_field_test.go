@@ -1682,7 +1682,7 @@ func TestOptimisticConcurrency(t *testing.T) {
 		freshFromDB, err := th.dbStore.PropertyField().Get(groupID, field.ID)
 		require.NoError(t, err)
 		freshFromDB.Name = "External Update"
-		_, err = th.dbStore.PropertyField().Update(groupID, []*model.PropertyField{freshFromDB})
+		_, err = th.dbStore.PropertyField().Update(groupID, []*model.PropertyField{freshFromDB}, nil)
 		require.NoError(t, err)
 
 		// Service-layer update reads fresh state internally, so OCC will use

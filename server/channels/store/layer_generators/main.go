@@ -245,8 +245,6 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s store.%s", param.Name, param.Type))
 				case "*UserGetByIdsOpts", "*SidebarCategorySearchOpts":
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s *store.%s", param.Name, strings.TrimPrefix(param.Type, "*")))
-				case "[]PropagationRequest":
-					paramsWithType = append(paramsWithType, fmt.Sprintf("%s []store.PropagationRequest", param.Name))
 				default:
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s %s", param.Name, param.Type))
 				}
@@ -261,8 +259,6 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s store.%s", param.Name, param.Type))
 				case "*UserGetByIdsOpts", "*SidebarCategorySearchOpts":
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s *store.%s", param.Name, strings.TrimPrefix(param.Type, "*")))
-				case "[]PropagationRequest":
-					paramsWithType = append(paramsWithType, fmt.Sprintf("%s []store.PropagationRequest", param.Name))
 				default:
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s %s", param.Name, param.Type))
 				}

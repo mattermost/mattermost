@@ -8060,10 +8060,10 @@ func (s *TimerLayerPropertyFieldStore) SearchPropertyFields(opts model.PropertyF
 	return result, err
 }
 
-func (s *TimerLayerPropertyFieldStore) Update(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
+func (s *TimerLayerPropertyFieldStore) Update(groupID string, fields []*model.PropertyField, expectedUpdateAts map[string]int64) ([]*model.PropertyField, error) {
 	start := time.Now()
 
-	result, err := s.PropertyFieldStore.Update(groupID, fields)
+	result, err := s.PropertyFieldStore.Update(groupID, fields, expectedUpdateAts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -8072,22 +8072,6 @@ func (s *TimerLayerPropertyFieldStore) Update(groupID string, fields []*model.Pr
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.Update", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerPropertyFieldStore) UpdateAndPropagate(groupID string, fields []*model.PropertyField, propagations []store.PropagationRequest, expectedUpdateAts map[string]int64) ([]*model.PropertyField, error) {
-	start := time.Now()
-
-	result, err := s.PropertyFieldStore.UpdateAndPropagate(groupID, fields, propagations, expectedUpdateAts)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.UpdateAndPropagate", success, elapsed)
 	}
 	return result, err
 }

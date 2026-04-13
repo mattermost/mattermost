@@ -6,7 +6,6 @@ package mocks
 
 import (
 	model "github.com/mattermost/mattermost/server/public/model"
-	store "github.com/mattermost/mattermost/server/v8/channels/store"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -325,9 +324,9 @@ func (_m *PropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSearc
 	return r0, r1
 }
 
-// Update provides a mock function with given fields: groupID, fields
-func (_m *PropertyFieldStore) Update(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
-	ret := _m.Called(groupID, fields)
+// Update provides a mock function with given fields: groupID, fields, expectedUpdateAts
+func (_m *PropertyFieldStore) Update(groupID string, fields []*model.PropertyField, expectedUpdateAts map[string]int64) ([]*model.PropertyField, error) {
+	ret := _m.Called(groupID, fields, expectedUpdateAts)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Update")
@@ -335,49 +334,19 @@ func (_m *PropertyFieldStore) Update(groupID string, fields []*model.PropertyFie
 
 	var r0 []*model.PropertyField
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, []*model.PropertyField) ([]*model.PropertyField, error)); ok {
-		return rf(groupID, fields)
+	if rf, ok := ret.Get(0).(func(string, []*model.PropertyField, map[string]int64) ([]*model.PropertyField, error)); ok {
+		return rf(groupID, fields, expectedUpdateAts)
 	}
-	if rf, ok := ret.Get(0).(func(string, []*model.PropertyField) []*model.PropertyField); ok {
-		r0 = rf(groupID, fields)
+	if rf, ok := ret.Get(0).(func(string, []*model.PropertyField, map[string]int64) []*model.PropertyField); ok {
+		r0 = rf(groupID, fields, expectedUpdateAts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.PropertyField)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, []*model.PropertyField) error); ok {
-		r1 = rf(groupID, fields)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// UpdateAndPropagate provides a mock function with given fields: groupID, fields, propagations, expectedUpdateAts
-func (_m *PropertyFieldStore) UpdateAndPropagate(groupID string, fields []*model.PropertyField, propagations []store.PropagationRequest, expectedUpdateAts map[string]int64) ([]*model.PropertyField, error) {
-	ret := _m.Called(groupID, fields, propagations, expectedUpdateAts)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UpdateAndPropagate")
-	}
-
-	var r0 []*model.PropertyField
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string, []*model.PropertyField, []store.PropagationRequest, map[string]int64) ([]*model.PropertyField, error)); ok {
-		return rf(groupID, fields, propagations, expectedUpdateAts)
-	}
-	if rf, ok := ret.Get(0).(func(string, []*model.PropertyField, []store.PropagationRequest, map[string]int64) []*model.PropertyField); ok {
-		r0 = rf(groupID, fields, propagations, expectedUpdateAts)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.PropertyField)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string, []*model.PropertyField, []store.PropagationRequest, map[string]int64) error); ok {
-		r1 = rf(groupID, fields, propagations, expectedUpdateAts)
+	if rf, ok := ret.Get(1).(func(string, []*model.PropertyField, map[string]int64) error); ok {
+		r1 = rf(groupID, fields, expectedUpdateAts)
 	} else {
 		r1 = ret.Error(1)
 	}

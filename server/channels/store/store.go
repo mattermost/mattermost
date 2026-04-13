@@ -1129,15 +1129,6 @@ type PropertyGroupStore interface {
 	Get(name string) (*model.PropertyGroup, error)
 }
 
-// PropagationRequest describes a schema propagation from a source field to
-// all fields that link to it. Used by UpdateAndPropagate to atomically
-// update a source field and cascade type+options to its linked dependents.
-type PropagationRequest struct {
-	SourceFieldID string
-	FieldType     model.PropertyFieldType
-	Options       any // the options value from Attrs
-}
-
 type PropertyFieldStore interface {
 	Create(field *model.PropertyField) (*model.PropertyField, error)
 	Get(groupID, id string) (*model.PropertyField, error)
@@ -1148,8 +1139,7 @@ type PropertyFieldStore interface {
 	CountForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error)
 	CountLinkedFields(fieldID string) (int64, error)
 	SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
-	Update(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error)
-	UpdateAndPropagate(groupID string, fields []*model.PropertyField, propagations []PropagationRequest, expectedUpdateAts map[string]int64) ([]*model.PropertyField, error)
+	Update(groupID string, fields []*model.PropertyField, expectedUpdateAts map[string]int64) ([]*model.PropertyField, error)
 	Delete(groupID string, id string) error
 	CheckPropertyNameConflict(field *model.PropertyField, excludeID string) (model.PropertyFieldTargetLevel, error)
 }
