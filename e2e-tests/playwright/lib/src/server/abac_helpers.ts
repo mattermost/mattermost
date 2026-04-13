@@ -275,7 +275,7 @@ export async function deletePolicy(page: Page, policyName: string): Promise<void
  * is kept for interface compatibility but the old 3-second sleep has been removed —
  * that time is now spent doing useful work (API polling in the caller).
  */
-export async function runSyncJob(page: Page, waitForCompletion: boolean = true): Promise<void> {
+export async function runSyncJob(page: Page): Promise<void> {
     const runSyncButton = page.getByRole('button', {name: 'Run Sync Job'});
     await runSyncButton.click();
     await page.waitForLoadState('networkidle');
