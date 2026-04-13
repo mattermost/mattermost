@@ -252,12 +252,20 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 			}
 			if channel.Type != model.ChannelTypeDirect {
 				rootMentions = getExplicitMentions(rootPost, keywords)
-				for id := range rootMentions.Mentions {
+				channelMentionAutoFollow := *a.Config().ServiceSettings.ChannelMentionAutoFollowThreads
+				for id, mentionType := range rootMentions.Mentions {
+					if mentionType == ChannelMention && !channelMentionAutoFollow {
+						continue
+					}
 					threadParticipants[id] = true
 				}
 			}
 		}
-		for id := range mentions.Mentions {
+		channelMentionAutoFollow := *a.Config().ServiceSettings.ChannelMentionAutoFollowThreads
+		for id, mentionType := range mentions.Mentions {
+			if mentionType == ChannelMention && !channelMentionAutoFollow {
+				continue
+			}
 			threadParticipants[id] = true
 		}
 

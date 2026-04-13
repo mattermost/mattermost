@@ -410,6 +410,7 @@ export type ServiceSettings = {
     LocalModeSocketLocation: string;
     CollapsedThreads: CollapsedThreads;
     ThreadAutoFollow: boolean;
+    ChannelMentionAutoFollowThreads: boolean;
     PostPriority: boolean;
     EnableAPIChannelDeletion: boolean;
     EnableAWSMetering: boolean;

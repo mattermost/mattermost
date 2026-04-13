@@ -3022,6 +3022,77 @@ func TestChannelAutoFollowThreads(t *testing.T) {
 	assert.False(t, threadMembership.Following)
 }
 
+func TestChannelMentionAutoFollowThreads(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	u1 := th.BasicUser
+	u2 := th.BasicUser2
+	u3 := th.CreateUser(t)
+	th.LinkUserToTeam(t, u3, th.BasicTeam)
+	c1 := th.BasicChannel
+	th.AddUserToChannel(t, u2, c1)
+	th.AddUserToChannel(t, u3, c1)
+
+	rootPost := &model.Post{
+		ChannelId: c1.Id,
+		Message:   "root post by user3",
+		UserId:    u3.Id,
+	}
+	rpost, _, appErr := th.App.CreatePost(th.Context, rootPost, c1, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
+
+	t.Run("channel mention auto-follow enabled (default)", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.ChannelMentionAutoFollowThreads = model.NewPointer(true)
+		})
+
+		replyPost := &model.Post{
+			ChannelId: c1.Id,
+			Message:   "@channel reply by user1",
+			UserId:    u1.Id,
+			RootId:    rpost.Id,
+		}
+		_, _, appErr = th.App.CreatePost(th.Context, replyPost, c1, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		// u2 should be auto-following because they are mentioned via @channel
+		threadMembership, appErr := th.App.GetThreadMembershipForUser(u2.Id, rpost.Id)
+		require.Nil(t, appErr)
+		require.NotNil(t, threadMembership)
+		assert.True(t, threadMembership.Following)
+	})
+
+	t.Run("channel mention auto-follow disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.ChannelMentionAutoFollowThreads = model.NewPointer(false)
+		})
+
+		// Reset u2 membership so the prior sub-test doesn't interfere
+		_, err := th.App.Srv().Store().Thread().MaintainMembership(u2.Id, rpost.Id, store.ThreadMembershipOpts{
+			Following:       false,
+			UpdateFollowing: true,
+		})
+		require.NoError(t, err)
+
+		replyPost := &model.Post{
+			ChannelId: c1.Id,
+			Message:   "@channel reply by user1 again",
+			UserId:    u1.Id,
+			RootId:    rpost.Id,
+		}
+		_, _, appErr = th.App.CreatePost(th.Context, replyPost, c1, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		// u2 should NOT be auto-following even though @channel was used
+		threadMembership, appErr := th.App.GetThreadMembershipForUser(u2.Id, rpost.Id)
+		require.Nil(t, appErr)
+		if threadMembership != nil {
+			assert.False(t, threadMembership.Following)
+		}
+	})
+}
+
 func TestRemoveNotifications(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

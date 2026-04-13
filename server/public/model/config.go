@@ -450,6 +450,7 @@ type ServiceSettings struct {
 	FeatureFlagSyncIntervalSeconds                    *int    `access:"experimental_feature_flags,write_restrictable"` // telemetry: none
 	DebugSplit                                        *bool   `access:"experimental_feature_flags,write_restrictable"` // telemetry: none
 	ThreadAutoFollow                                  *bool   `access:"experimental_features"`
+	ChannelMentionAutoFollowThreads                   *bool   `access:"experimental_features"`
 	CollapsedThreads                                  *string `access:"experimental_features"`
 	ManagedResourcePaths                              *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
 	EnableCustomGroups                                *bool   `access:"site_users_and_teams"`
@@ -940,6 +941,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.ThreadAutoFollow == nil {
 		s.ThreadAutoFollow = NewPointer(true)
+	}
+
+	if s.ChannelMentionAutoFollowThreads == nil {
+		s.ChannelMentionAutoFollowThreads = NewPointer(true)
 	}
 
 	if s.CollapsedThreads == nil {

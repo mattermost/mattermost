@@ -3057,6 +3057,14 @@ const AdminDefinition: AdminDefinitionType = {
                                     isHidden: it.licensedForFeature('Cloud'),
                                 },
                                 {
+                                    type: 'bool',
+                                    key: 'ServiceSettings.ChannelMentionAutoFollowThreads',
+                                    label: defineMessage({id: 'admin.experimental.channelMentionAutoFollowThreads.title', defaultMessage: 'Auto-Follow Threads on Channel-Wide Mentions'}),
+                                    help_text: defineMessage({id: 'admin.experimental.channelMentionAutoFollowThreads.desc', defaultMessage: 'When enabled (default), users are automatically added as thread followers when a reply in a thread mentions @channel, @all, or @here. Disable to prevent channel-wide mentions from forcing thread membership; users will still receive notifications but will not follow the thread.'}),
+                                    help_text_markdown: false,
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                                },
+                                {
                                     type: 'dropdown',
                                     key: 'ServiceSettings.CollapsedThreads',
                                     label: defineMessage({id: 'admin.experimental.collapsedThreads.title', defaultMessage: 'Threaded Discussions'}),
