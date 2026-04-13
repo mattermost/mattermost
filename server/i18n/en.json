@@ -9293,6 +9293,14 @@
     "translation": "Failed to get all team members"
   },
   {
+    "id": "ent.elasticsearch.healthcheck.not_started.app_error",
+    "translation": "{{.Backend}} is not started."
+  },
+  {
+    "id": "ent.elasticsearch.healthcheck.unreachable.app_error",
+    "translation": "{{.Backend}} health check failed: could not complete check."
+  },
+  {
     "id": "ent.elasticsearch.index_channel.error",
     "translation": "Failed to index the channel"
   },
@@ -9331,6 +9339,10 @@
   {
     "id": "ent.elasticsearch.max_version.app_error",
     "translation": "{{.Backend}} version {{.Version}} is higher than max supported version of {{.MaxVersion}}"
+  },
+  {
+    "id": "ent.elasticsearch.min_version.app_error",
+    "translation": "{{.Backend}} version {{.Version}} is lower than min supported version of {{.MinVersion}}"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
@@ -9411,10 +9423,6 @@
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "Failed to parse {{.Backend}} server version."
-  },
-  {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "{{.Backend}} is already stopped."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -10453,6 +10461,10 @@
     "translation": "Invalid RemoteImageProxyOptions for atmos/camo. Must be set to your shared key."
   },
   {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_options_length.app_error",
+    "translation": "Invalid RemoteImageProxyOptions for atmos/camo: HMAC key must be at least {{.MinLength}} bytes for FIPS compliance."
+  },
+  {
     "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
     "translation": "Invalid RemoteImageProxyURL for atmos/camo. Must be set to your shared key."
   },
@@ -11015,6 +11027,10 @@
   {
     "id": "model.config.is_valid.sitename_length.app_error",
     "translation": "Site name must be less than or equal to {{.MaxLength}} characters."
+  },
+  {
+    "id": "model.config.is_valid.sql_analytics_query_timeout.app_error",
+    "translation": "Invalid analytics query timeout for SQL settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error",

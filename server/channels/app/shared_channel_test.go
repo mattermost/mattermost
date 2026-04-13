@@ -598,12 +598,13 @@ func TestTransformMentionsOnReceive(t *testing.T) {
 	// Helper to create test users
 	createUser := func(username string, remoteId *string) *model.User {
 		user := th.CreateUser(t)
-		user.Username = username
 		if remoteId != nil {
-			user.RemoteId = remoteId
+			user = th.SetUserRemoteID(t, user.Id, *remoteId)
 		}
-		user, updateErr := th.App.UpdateUser(th.Context, user, false)
-		require.Nil(t, updateErr)
+		user.Username = username
+		var appErr *model.AppError
+		user, appErr = th.App.UpdateUser(th.Context, user, false)
+		require.Nil(t, appErr)
 		th.LinkUserToTeam(t, user, th.BasicTeam)
 		th.AddUserToChannel(t, user, sharedChannel)
 		return user

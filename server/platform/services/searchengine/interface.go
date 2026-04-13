@@ -4,6 +4,7 @@
 package searchengine
 
 import (
+	"context"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -11,8 +12,9 @@ import (
 )
 
 type SearchEngineInterface interface {
-	Start() *model.AppError
+	Start(ctx context.Context) *model.AppError
 	Stop() *model.AppError
+	HealthCheck(rctx request.CTX) *model.AppError
 	GetFullVersion() string
 	GetVersion() int
 	GetPlugins() []string

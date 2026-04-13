@@ -4492,10 +4492,6 @@
     "translation": "Mattermost Enterprise licence has been disabled."
   },
   {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Your Enterprise Edition licence has expired and some features may be disabled. Please renew your licence now."
-  },
-  {
     "id": "api.templates.questions_footer.title",
     "translation": "Questions?"
   },
