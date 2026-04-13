@@ -93,8 +93,8 @@ func (es *ElasticsearchInterfaceImpl) IsIndexingSync() bool {
 }
 
 // fetchServerInfo retrieves and stores the server version and plugins from the given client.
-func (es *ElasticsearchInterfaceImpl) fetchServerInfo(client *elastic.TypedClient) *model.AppError {
-	version, major, appErr := checkVersion(client)
+func (es *ElasticsearchInterfaceImpl) fetchServerInfo(ctx context.Context, client *elastic.TypedClient) *model.AppError {
+	version, major, appErr := checkVersion(ctx, client)
 	if appErr != nil {
 		return appErr
 	}
@@ -104,7 +104,7 @@ func (es *ElasticsearchInterfaceImpl) fetchServerInfo(client *elastic.TypedClien
 
 	// Since we are only retrieving plugins for the Support Packet generation, it doesn't make sense to kill the process if we get an error
 	// Instead, we will log it and move forward
-	resp, err := client.API.Cat.Plugins().Do(context.Background())
+	resp, err := client.API.Cat.Plugins().Do(ctx)
 	if err != nil {
 		es.Platform.Log().Warn("Error retrieving elasticsearch plugins", mlog.Err(err))
 	} else {
@@ -117,7 +117,7 @@ func (es *ElasticsearchInterfaceImpl) fetchServerInfo(client *elastic.TypedClien
 	return nil
 }
 
-func (es *ElasticsearchInterfaceImpl) Start() *model.AppError {
+func (es *ElasticsearchInterfaceImpl) Start(ctx context.Context) *model.AppError {
 	if license := es.Platform.License(); license == nil || !*license.Features.Elasticsearch || !*es.Platform.Config().ElasticsearchSettings.EnableIndexing {
 		return nil
 	}
@@ -137,11 +137,9 @@ func (es *ElasticsearchInterfaceImpl) Start() *model.AppError {
 		return appErr
 	}
 
-	if appErr = es.fetchServerInfo(es.client); appErr != nil {
+	if appErr = es.fetchServerInfo(ctx, es.client); appErr != nil {
 		return appErr
 	}
-
-	ctx := context.Background()
 
 	var err error
 	esSettings := es.Platform.Config().ElasticsearchSettings
@@ -234,12 +232,57 @@ func (es *ElasticsearchInterfaceImpl) Start() *model.AppError {
 	return nil
 }
 
+// snapshotClient returns the current client reference under the read lock,
+// releasing the lock before returning. This lets HealthCheck make a blocking
+// network call without holding the RLock for its full duration.
+//
+// Why this matters: the health check can block for up to 5 seconds when the
+// server is unreachable. Holding the RLock that long would block Stop() and
+// Start() (which need the write lock) — exactly when fast lifecycle
+// transitions matter most.
+//
+// Why we can't drop the mutex entirely: Stop() sets es.client = nil before
+// setting ready = 0, so without synchronization HealthCheck could see
+// ready == 1 but dereference a nil client. Using atomic.Pointer for the
+// client would work but would be a larger refactor across all methods.
+// Copying the reference under the lock is the minimal, safe fix.
+//
+// Worst case after releasing the lock: Stop() runs and nils es.client while
+// our snapshot is in-flight. The snapshot remains valid (Stop doesn't close
+// the HTTP transport), so the call completes or times out normally — the
+// next health check cycle will pick up the new state.
+func (es *ElasticsearchInterfaceImpl) snapshotClient() (*elastic.TypedClient, bool) {
+	es.mutex.RLock()
+	defer es.mutex.RUnlock()
+
+	if es.ready.Load() == 0 {
+		return nil, false
+	}
+	return es.client, true
+}
+
+func (es *ElasticsearchInterfaceImpl) HealthCheck(_ request.CTX) *model.AppError {
+	client, ok := es.snapshotClient()
+	if !ok {
+		return model.NewAppError("Elasticsearch.HealthCheck", "ent.elasticsearch.healthcheck.not_started.app_error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if _, err := client.Cluster.Health().Do(ctx); err != nil {
+		return model.NewAppError("Elasticsearch.HealthCheck", "ent.elasticsearch.healthcheck.unreachable.app_error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusBadGateway).Wrap(err)
+	}
+
+	return nil
+}
+
 func (es *ElasticsearchInterfaceImpl) Stop() *model.AppError {
 	es.mutex.Lock()
 	defer es.mutex.Unlock()
 
 	if es.ready.Load() == 0 {
-		return model.NewAppError("Elasticsearch.start", "ent.elasticsearch.stop.already_stopped.app_error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
+		return nil
 	}
 
 	es.client = nil
@@ -1532,7 +1575,7 @@ func (es *ElasticsearchInterfaceImpl) TestConfig(rctx request.CTX, cfg *model.Co
 		return appErr
 	}
 
-	if appErr = es.fetchServerInfo(client); appErr != nil {
+	if appErr = es.fetchServerInfo(context.Background(), client); appErr != nil {
 		return appErr
 	}
 
@@ -2111,8 +2154,8 @@ func (es *ElasticsearchInterfaceImpl) DeleteFilesBatch(rctx request.CTX, endTime
 	return nil
 }
 
-func checkVersion(client *elastic.TypedClient) (string, int, *model.AppError) {
-	resp, err := client.API.Core.Info().Do(context.Background())
+func checkVersion(ctx context.Context, client *elastic.TypedClient) (string, int, *model.AppError) {
+	resp, err := client.API.Core.Info().Do(ctx)
 	if err != nil {
 		return "", 0, model.NewAppError("Elasticsearch.checkVersion", "ent.elasticsearch.start.get_server_version.app_error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}

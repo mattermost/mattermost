@@ -287,6 +287,7 @@ func (us SqlUserStore) Update(rctx request.CTX, user *model.User, trustedUpdateD
 	user.MfaActive = oldUser.MfaActive
 	user.MfaUsedTimestamps = oldUser.MfaUsedTimestamps
 	user.LastLogin = oldUser.LastLogin
+	user.RemoteId = oldUser.RemoteId
 
 	if !trustedUpdateData {
 		user.Roles = oldUser.Roles
@@ -2373,9 +2374,13 @@ func (us SqlUserStore) GetUsersWithInvalidEmails(page int, perPage int, restrict
 }
 
 func (us SqlUserStore) RefreshPostStatsForUsers() error {
-	if _, err := us.GetMaster().Exec("REFRESH MATERIALIZED VIEW poststats"); err != nil {
+	ctx, cancel := us.analyticsContext()
+	defer cancel()
+
+	if _, err := us.GetMaster().ExecContext(ctx, "REFRESH MATERIALIZED VIEW poststats"); err != nil {
 		return errors.Wrap(err, "users_refresh_post_stats_exec")
 	}
+
 	return nil
 }
 

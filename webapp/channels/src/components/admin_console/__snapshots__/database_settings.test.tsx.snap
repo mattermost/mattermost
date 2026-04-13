@@ -170,6 +170,37 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
           </div>
           <div
             class="form-group"
+            data-testid="analyticsQueryTimeout"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="analyticsQueryTimeoutlabel"
+              for="analyticsQueryTimeout"
+            >
+              Analytics Query Timeout:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="analyticsQueryTimeoutinput"
+                id="analyticsQueryTimeout"
+                maxlength="-1"
+                placeholder="E.g.: \\"300\\""
+                type="text"
+                value="300"
+              />
+              <div
+                class="help-text"
+                data-testid="analyticsQueryTimeouthelp-text"
+              >
+                The number of seconds to wait for a response from the database after opening a connection and sending certain analytics queries. This setting only applies to long queries which are run in the background to populate some information in the Team and Site Statistics pages.
+              </div>
+            </div>
+          </div>
+          <div
+            class="form-group"
             data-testid="connMaxLifetimeMilliseconds"
           >
             <label
