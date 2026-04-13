@@ -8,8 +8,6 @@ import (
 	"fmt"
 	"image"
 	"image/jpeg"
-
-	xdraw "golang.org/x/image/draw"
 )
 
 // GeneratePreview generates the preview for the given image.
@@ -18,7 +16,7 @@ func GeneratePreview(img image.Image, width int) image.Image {
 	w := img.Bounds().Dx()
 
 	if w > width {
-		preview = Resize(img, width, 0, xdraw.ApproxBiLinear)
+		preview = Resize(img, width, 0, attachmentInterp)
 	}
 
 	return preview
@@ -31,16 +29,16 @@ func GenerateThumbnail(img image.Image, targetWidth, targetHeight int) image.Ima
 
 	// We keep aspect ratio and ensure the output dimensions are never higher than the provided targets.
 	if width > height {
-		return Resize(img, targetWidth, 0, xdraw.ApproxBiLinear)
+		return Resize(img, targetWidth, 0, attachmentInterp)
 	}
 
-	return Resize(img, 0, targetHeight, xdraw.ApproxBiLinear)
+	return Resize(img, 0, targetHeight, attachmentInterp)
 }
 
 // GenerateMiniPreviewImage generates the mini preview for the given image.
 func GenerateMiniPreviewImage(img image.Image, w, h, q int) ([]byte, error) {
 	var buf bytes.Buffer
-	preview := Resize(img, w, h, xdraw.ApproxBiLinear)
+	preview := Resize(img, w, h, attachmentInterp)
 	if err := jpeg.Encode(&buf, preview, &jpeg.Options{Quality: q}); err != nil {
 		return nil, fmt.Errorf("failed to encode image to JPEG format: %w", err)
 	}

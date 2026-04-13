@@ -12,6 +12,25 @@ import (
 	xdraw "golang.org/x/image/draw"
 )
 
+// attachmentInterp is the interpolator used when generating file-attachment
+// previews, thumbnails, and mini-previews (see preview.go).
+//
+// ApproxBiLinear is orders of magnitude faster than BiLinear at the large
+// reduction ratios typical of camera-phone uploads (e.g. 4000 px → 120 px is
+// a 33× reduction).  At those scales the quality difference is imperceptible,
+// while the speed and memory savings are substantial — directly addressing the
+// OOM and CPU spikes reported in mattermost/mattermost#34887.
+var attachmentInterp xdraw.Interpolator = xdraw.ApproxBiLinear
+
+// identityInterp is the interpolator used when resizing profile pictures, team
+// icons, and emoji (FillCenter, Fit).
+//
+// BiLinear produces noticeably sharper results at the modest reduction ratios
+// typical of these assets (often ≤2×).  The performance difference versus
+// ApproxBiLinear is negligible at these sizes, and the higher quality is
+// appropriate for images displayed prominently in the UI.
+var identityInterp xdraw.Interpolator = xdraw.BiLinear
+
 type rawImg interface {
 	Set(x, y int, c color.Color)
 	Opaque() bool
@@ -170,9 +189,9 @@ func resizeAndCropCenter(img image.Image, width, height int) image.Image {
 
 	var tmp image.Image
 	if srcAspectRatio < dstAspectRatio {
-		tmp = Resize(img, dstW, 0, xdraw.BiLinear)
+		tmp = Resize(img, dstW, 0, identityInterp)
 	} else {
-		tmp = Resize(img, 0, dstH, xdraw.BiLinear)
+		tmp = Resize(img, 0, dstH, identityInterp)
 	}
 
 	return CropCenter(tmp, dstW, dstH)
@@ -234,7 +253,7 @@ func Fit(img image.Image, maxW, maxH int) image.Image {
 		newW = int(float64(newH) * srcAspectRatio)
 	}
 
-	return Resize(img, newW, newH, xdraw.BiLinear)
+	return Resize(img, newW, newH, identityInterp)
 }
 
 // Resize resizes the image to the specified width and height using the specified resampling
