@@ -346,4 +346,30 @@ func TestFillCenter(t *testing.T) {
 			require.Equal(t, expectedImg.Bounds().Dy(), filledImg.Bounds().Dy())
 		})
 	}
+
+	t.Run("same-size input is returned unchanged", func(t *testing.T) {
+		img := image.NewNRGBA(image.Rect(0, 0, 50, 50))
+		got := FillCenter(img, 50, 50)
+		require.True(t, img == got, "FillCenter with matching dimensions should return the original image")
+	})
+
+	t.Run("zero source dimensions returns empty image", func(t *testing.T) {
+		got := FillCenter(image.NewNRGBA(image.Rect(0, 0, 0, 0)), 50, 50)
+		require.Equal(t, 0, got.Bounds().Dx())
+		require.Equal(t, 0, got.Bounds().Dy())
+	})
+}
+
+func TestFitEdgeCases(t *testing.T) {
+	t.Run("image already fits returns original", func(t *testing.T) {
+		img := image.NewNRGBA(image.Rect(0, 0, 40, 30))
+		got := Fit(img, 100, 100)
+		require.True(t, img == got, "Fit with image within bounds should return the original image")
+	})
+
+	t.Run("zero source dimensions returns empty image", func(t *testing.T) {
+		got := Fit(image.NewNRGBA(image.Rect(0, 0, 0, 0)), 100, 100)
+		require.Equal(t, 0, got.Bounds().Dx())
+		require.Equal(t, 0, got.Bounds().Dy())
+	})
 }

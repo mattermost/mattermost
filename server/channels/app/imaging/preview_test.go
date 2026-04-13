@@ -4,8 +4,10 @@
 package imaging
 
 import (
+	"bytes"
 	"image"
 	"image/color"
+	"image/jpeg"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -200,6 +202,31 @@ func TestResize(t *testing.T) {
 			resizedImg := Resize(tc.img, tc.targetW, tc.targetH, xdraw.BiLinear)
 			require.Equal(t, tc.expectedW, resizedImg.Bounds().Dx())
 			require.Equal(t, tc.expectedH, resizedImg.Bounds().Dy())
+		})
+	}
+}
+
+func TestGenerateMiniPreviewImage(t *testing.T) {
+	src := createTestImage(t, 200, 150)
+
+	for _, tc := range []struct {
+		name    string
+		w, h, q int
+	}{
+		{"16x16 quality 50", 16, 16, 50},
+		{"8x8 quality 80", 8, 8, 80},
+		{"32x24 quality 90", 32, 24, 90},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			data, err := GenerateMiniPreviewImage(src, tc.w, tc.h, tc.q)
+			require.NoError(t, err)
+			require.NotEmpty(t, data)
+
+			// Verify output is valid JPEG.
+			decoded, err := jpeg.Decode(bytes.NewReader(data))
+			require.NoError(t, err)
+			require.Equal(t, tc.w, decoded.Bounds().Dx())
+			require.Equal(t, tc.h, decoded.Bounds().Dy())
 		})
 	}
 }

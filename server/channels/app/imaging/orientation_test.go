@@ -286,3 +286,29 @@ func TestGetImageOrientation(t *testing.T) {
 		})
 	}
 }
+
+func TestToNRGBA(t *testing.T) {
+	t.Run("returns same pointer for zero-origin NRGBA", func(t *testing.T) {
+		src := image.NewNRGBA(image.Rect(0, 0, 10, 10))
+		got := toNRGBA(src)
+		require.True(t, got == src, "expected the original pointer to be returned unchanged")
+	})
+
+	t.Run("copies NRGBA with non-zero origin", func(t *testing.T) {
+		full := image.NewNRGBA(image.Rect(0, 0, 20, 20))
+		sub := full.SubImage(image.Rect(5, 5, 15, 15)).(*image.NRGBA)
+		got := toNRGBA(sub)
+		require.False(t, got == sub, "non-zero-origin NRGBA must be copied, not returned as-is")
+		require.True(t, got.Bounds().Min.Eq(image.Point{}), "result must have zero origin")
+		require.Equal(t, 10, got.Bounds().Dx())
+		require.Equal(t, 10, got.Bounds().Dy())
+	})
+
+	t.Run("converts non-NRGBA image", func(t *testing.T) {
+		src := image.NewRGBA(image.Rect(0, 0, 8, 6))
+		got := toNRGBA(src)
+		require.Equal(t, 8, got.Bounds().Dx())
+		require.Equal(t, 6, got.Bounds().Dy())
+		require.True(t, got.Bounds().Min.Eq(image.Point{}))
+	})
+}
