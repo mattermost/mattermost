@@ -22,6 +22,7 @@ import {
     createPrivateChannelForABAC,
     createBasicPolicy,
     activatePolicy,
+    captureLatestJobId,
     waitForLatestSyncJob,
     enableUserManagedAttributes,
 } from '../support';
@@ -310,6 +311,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         await enableABAC(systemConsolePage.page);
 
         const policy1Name = `Engineering Access NoAutoAdd ${await pw.random.id()}`;
+        const beforePolicy1JobId = await captureLatestJobId(systemConsolePage.page);
         await createBasicPolicy(systemConsolePage.page, {
             name: policy1Name,
             attribute: 'Department',
@@ -325,7 +327,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         expect(initialInChannel).toBe(true);
 
         // Get policy ID and activate
-        await waitForLatestSyncJob(systemConsolePage.page);
+        const policy1JobId = await waitForLatestSyncJob(systemConsolePage.page, 5, beforePolicy1JobId);
         const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
         await searchInput.waitFor({state: 'visible', timeout: 5000});
         const idMatch = policy1Name.match(/([a-z0-9]+)$/i);
@@ -350,7 +352,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
 
         // Run sync job
         await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        const sync1JobId = await waitForLatestSyncJob(systemConsolePage.page, 5, policy1JobId);
 
         // Wait for membership updates to apply
         await systemConsolePage.page.waitForTimeout(1000);
@@ -388,6 +390,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         await navigateToABACPage(systemConsolePage.page);
 
         const policy2Name = `Engineering Access WithAutoAdd ${await pw.random.id()}`;
+        const beforePolicy2JobId = sync1JobId;
         await createBasicPolicy(systemConsolePage.page, {
             name: policy2Name,
             attribute: 'Department',
@@ -398,7 +401,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         });
 
         // Activate and run sync to auto-add user
-        await waitForLatestSyncJob(systemConsolePage.page);
+        const policy2JobId = await waitForLatestSyncJob(systemConsolePage.page, 5, beforePolicy2JobId);
         await searchInput.fill(policy2Name.match(/([a-z0-9]+)$/i)?.[1] || policy2Name);
         await systemConsolePage.page.waitForTimeout(1000);
 
@@ -411,7 +414,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         await searchInput.clear();
 
         await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        const sync2JobId = await waitForLatestSyncJob(systemConsolePage.page, 5, policy2JobId);
 
         const userAutoAdded = await verifyUserInChannel(adminClient, testUser.id, channel2.id);
         expect(userAutoAdded).toBe(true);
@@ -424,7 +427,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
 
         // Run sync
         await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, sync2JobId);
 
         // Small delay for channel membership update
         await systemConsolePage.page.waitForTimeout(1000);

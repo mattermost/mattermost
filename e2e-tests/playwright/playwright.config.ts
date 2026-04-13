@@ -8,7 +8,6 @@ import {duration, testConfig} from '@mattermost/playwright-lib';
 export default defineConfig({
     globalSetup: './global_setup.ts',
     forbidOnly: testConfig.isCI,
-    fullyParallel: testConfig.isCI,
     outputDir: './results/output',
     retries: testConfig.isCI ? 2 : 0,
     testDir: 'specs',

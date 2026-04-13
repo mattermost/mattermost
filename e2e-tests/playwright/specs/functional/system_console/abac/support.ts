@@ -818,6 +818,28 @@ export async function activatePolicy(client: Client4, policyId: string): Promise
 }
 
 /**
+ * Return the ID of the most recent access_control_sync job, or null if none exist.
+ *
+ * Call this before triggering a sync action and pass the result as skipJobId to
+ * waitForLatestSyncJob so it skips the previously-completed job and waits only for
+ * the new one.
+ */
+export async function captureLatestJobId(page: Page): Promise<string | null> {
+    const origin = new URL(page.url()).origin;
+    const jobsUrl = `${origin}/api/v4/jobs/type/access_control_sync?page=0&per_page=1`;
+    try {
+        const response = await page.request.get(jobsUrl);
+        if (response.ok()) {
+            const jobs: Array<{id: string}> = await response.json();
+            return jobs.length > 0 ? jobs[0].id : null;
+        }
+    } catch {
+        // ignore
+    }
+    return null;
+}
+
+/**
  * Wait for the latest access_control_sync job to complete.
  *
  * Polls the jobs API directly instead of reloading the page on every check.
@@ -826,12 +848,24 @@ export async function activatePolicy(client: Client4, policyId: string): Promise
  *
  * @param page - Playwright page (must be on the Mattermost server; used for auth context and final reload)
  * @param maxRetries - kept for backward compatibility; maps to a wall-clock timeout of max(maxRetries × 6s, 30s)
+ * @param skipJobId - if provided, skip any job with this ID and wait for a newer one. Obtain via
+ *   captureLatestJobId before triggering the sync action so the previously-completed job is not
+ *   mistaken for the new one.
+ * @returns the ID of the completed job
  */
-export async function waitForLatestSyncJob(page: Page, maxRetries: number = 5): Promise<any> {
+export async function waitForLatestSyncJob(
+    page: Page,
+    maxRetries: number = 5,
+    skipJobId?: string | null,
+): Promise<string | null> {
     const pollIntervalMs = 500;
     const timeoutMs = Math.max(maxRetries * 6000, 30000);
     const startTime = Date.now();
     const deadline = startTime + timeoutMs;
+
+    // Without a skipJobId, ignore jobs older than 30 seconds to avoid picking up
+    // ancient stale results from a previous test or run.
+    const staleThresholdMs = 30000;
 
     // Extract server origin once; page.url() is stable here because runSyncJob
     // already awaited waitForLoadState('networkidle') before returning.
@@ -852,22 +886,29 @@ export async function waitForLatestSyncJob(page: Page, maxRetries: number = 5): 
         if (jobs.length > 0) {
             const latest = jobs[0];
 
-            // Only act on a job that was created at or after we started waiting.
-            // The 5s buffer absorbs clock skew between client and server plus the
-            // time between runSyncJob's button click and this function being called.
-            if (latest.create_at >= startTime - 5000) {
-                if (latest.status === 'success') {
-                    // One reload to sync the DOM for any subsequent page interactions.
-                    await page.reload();
-                    await page.waitForLoadState('networkidle');
-                    return page.locator('tr.clickable').first();
-                }
-                if (latest.status === 'error' || latest.status === 'canceled') {
-                    throw new Error(`Sync job failed with status: ${latest.status}`);
-                }
-                // 'pending' or 'in_progress' → keep polling
+            // Skip the explicitly-provided prior job — it was completed before this sync was
+            // triggered, so we must wait for a newer one to appear.
+            if (skipJobId && latest.id === skipJobId) {
+                await page.waitForTimeout(pollIntervalMs);
+                continue;
             }
-            // Job predates this wait call (stale success from a previous run) → keep polling
+
+            // Without a skipJobId, guard against ancient stale jobs from earlier runs.
+            if (!skipJobId && latest.create_at < startTime - staleThresholdMs) {
+                await page.waitForTimeout(pollIntervalMs);
+                continue;
+            }
+
+            if (latest.status === 'success') {
+                // One reload to sync the DOM for any subsequent page interactions.
+                await page.reload();
+                await page.waitForLoadState('networkidle');
+                return latest.id;
+            }
+            if (latest.status === 'error' || latest.status === 'canceled') {
+                throw new Error(`Sync job failed with status: ${latest.status}`);
+            }
+            // 'pending' or 'in_progress' → keep polling
         }
 
         await page.waitForTimeout(pollIntervalMs);
