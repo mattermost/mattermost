@@ -818,35 +818,62 @@ export async function activatePolicy(client: Client4, policyId: string): Promise
 }
 
 /**
- * Wait for sync job to complete and get the latest job row
+ * Wait for the latest access_control_sync job to complete.
+ *
+ * Polls the jobs API directly instead of reloading the page on every check.
+ * This replaces a loop of up to N × (2s sleep + full page reload + 1s sleep)
+ * with 500ms API polls, then a single reload once the job is confirmed done.
+ *
+ * @param page - Playwright page (must be on the Mattermost server; used for auth context and final reload)
+ * @param maxRetries - kept for backward compatibility; maps to a wall-clock timeout of max(maxRetries × 6s, 30s)
  */
 export async function waitForLatestSyncJob(page: Page, maxRetries: number = 5): Promise<any> {
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        // Wait a bit for the job to process
-        await page.waitForTimeout(2000);
+    const pollIntervalMs = 500;
+    const timeoutMs = Math.max(maxRetries * 6000, 30000);
+    const startTime = Date.now();
+    const deadline = startTime + timeoutMs;
 
-        // Reload the page to get fresh data
-        await page.reload();
-        await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(1000);
+    // Extract server origin once; page.url() is stable here because runSyncJob
+    // already awaited waitForLoadState('networkidle') before returning.
+    const origin = new URL(page.url()).origin;
+    const jobsUrl = `${origin}/api/v4/jobs/type/access_control_sync?page=0&per_page=1`;
 
-        // Get the first (latest) job row
-        const latestJobRow = page.locator('tr.clickable').first();
-
-        if (await latestJobRow.isVisible({timeout: 3000})) {
-            // Check the status
-            const statusCell = latestJobRow.locator('td').first();
-            const status = await statusCell.textContent();
-
-            if (status?.trim() === 'Success') {
-                return latestJobRow;
-            } else if (status?.trim() === 'Error' || status?.trim() === 'Failed') {
-                throw new Error(`Sync job failed with status: ${status?.trim()}`);
+    while (Date.now() < deadline) {
+        let jobs: Array<{id: string; status: string; create_at: number}> = [];
+        try {
+            const response = await page.request.get(jobsUrl);
+            if (response.ok()) {
+                jobs = await response.json();
             }
+        } catch {
+            // Network hiccup — keep polling
         }
+
+        if (jobs.length > 0) {
+            const latest = jobs[0];
+
+            // Only act on a job that was created at or after we started waiting.
+            // The 5s buffer absorbs clock skew between client and server plus the
+            // time between runSyncJob's button click and this function being called.
+            if (latest.create_at >= startTime - 5000) {
+                if (latest.status === 'success') {
+                    // One reload to sync the DOM for any subsequent page interactions.
+                    await page.reload();
+                    await page.waitForLoadState('networkidle');
+                    return page.locator('tr.clickable').first();
+                }
+                if (latest.status === 'error' || latest.status === 'canceled') {
+                    throw new Error(`Sync job failed with status: ${latest.status}`);
+                }
+                // 'pending' or 'in_progress' → keep polling
+            }
+            // Job predates this wait call (stale success from a previous run) → keep polling
+        }
+
+        await page.waitForTimeout(pollIntervalMs);
     }
 
-    throw new Error(`Sync job did not complete after ${maxRetries} retries`);
+    throw new Error(`Sync job did not complete within ${timeoutMs / 1000}s`);
 }
 
 /**

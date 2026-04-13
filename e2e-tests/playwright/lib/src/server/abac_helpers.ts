@@ -268,17 +268,17 @@ export async function deletePolicy(page: Page, policyName: string): Promise<void
 }
 
 /**
- * Run ABAC sync job
+ * Click the "Run Sync Job" button and wait for the network request to complete.
+ *
+ * Job completion must be awaited separately with waitForLatestSyncJob (in support.ts),
+ * which now polls the jobs API instead of sleeping. The waitForCompletion parameter
+ * is kept for interface compatibility but the old 3-second sleep has been removed —
+ * that time is now spent doing useful work (API polling in the caller).
  */
 export async function runSyncJob(page: Page, waitForCompletion: boolean = true): Promise<void> {
     const runSyncButton = page.getByRole('button', {name: 'Run Sync Job'});
     await runSyncButton.click();
     await page.waitForLoadState('networkidle');
-
-    // Wait for job to process if requested
-    if (waitForCompletion) {
-        await page.waitForTimeout(3000);
-    }
 }
 
 /**
