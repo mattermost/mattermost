@@ -842,16 +842,19 @@ export async function captureLatestJobId(page: Page): Promise<string | null> {
 /**
  * Wait for the latest access_control_sync job to complete.
  *
- * Polls the jobs API directly instead of reloading the page on every check.
- * This replaces a loop of up to N × (2s sleep + full page reload + 1s sleep)
- * with 500ms API polls, then a single reload once the job is confirmed done.
+ * Uses a two-phase approach to avoid returning the wrong job when other workers
+ * create concurrent jobs:
+ *   Phase 1 — Poll the jobs list until a NEW job appears (one whose ID differs
+ *              from skipJobId and is not an ancient stale result).
+ *   Phase 2 — Once the specific job ID is known, poll GET /api/v4/jobs/{id}
+ *              directly until it reaches a terminal status.
  *
- * @param page - Playwright page (must be on the Mattermost server; used for auth context and final reload)
- * @param maxRetries - kept for backward compatibility; maps to a wall-clock timeout of max(maxRetries × 6s, 30s)
- * @param skipJobId - if provided, skip any job with this ID and wait for a newer one. Obtain via
- *   captureLatestJobId before triggering the sync action so the previously-completed job is not
+ * @param page - Playwright page used for auth context and the final reload.
+ * @param maxRetries - Maps to a wall-clock timeout of max(maxRetries × 6s, 30s).
+ * @param skipJobId - ID of a previously-completed job to ignore. Obtain via
+ *   captureLatestJobId before triggering the sync action so the old job is not
  *   mistaken for the new one.
- * @returns the ID of the completed job
+ * @returns the ID of the completed job.
  */
 export async function waitForLatestSyncJob(
     page: Page,
@@ -863,19 +866,21 @@ export async function waitForLatestSyncJob(
     const startTime = Date.now();
     const deadline = startTime + timeoutMs;
 
-    // Without a skipJobId, ignore jobs older than 30 seconds to avoid picking up
-    // ancient stale results from a previous test or run.
+    // Without a skipJobId, reject jobs older than 30 seconds to avoid picking
+    // up ancient stale results from a previous test or run.
     const staleThresholdMs = 30000;
 
-    // Extract server origin once; page.url() is stable here because runSyncJob
-    // already awaited waitForLoadState('networkidle') before returning.
     const origin = new URL(page.url()).origin;
-    const jobsUrl = `${origin}/api/v4/jobs/type/access_control_sync?page=0&per_page=1`;
+    const listUrl = `${origin}/api/v4/jobs/type/access_control_sync?page=0&per_page=1`;
 
-    while (Date.now() < deadline) {
+    // ── Phase 1: identify the specific job we are waiting for ──────────────
+    let expectedJobId: string | null = null;
+    let initialStatus: string | null = null;
+
+    while (!expectedJobId && Date.now() < deadline) {
         let jobs: Array<{id: string; status: string; create_at: number}> = [];
         try {
-            const response = await page.request.get(jobsUrl);
+            const response = await page.request.get(listUrl);
             if (response.ok()) {
                 jobs = await response.json();
             }
@@ -886,27 +891,63 @@ export async function waitForLatestSyncJob(
         if (jobs.length > 0) {
             const latest = jobs[0];
 
-            // Skip the explicitly-provided prior job — it was completed before this sync was
-            // triggered, so we must wait for a newer one to appear.
+            // Skip the known prior job — the new one hasn't appeared yet.
             if (skipJobId && latest.id === skipJobId) {
                 await page.waitForTimeout(pollIntervalMs);
                 continue;
             }
 
-            // Without a skipJobId, guard against ancient stale jobs from earlier runs.
+            // Without a skipJobId, reject ancient stale jobs.
             if (!skipJobId && latest.create_at < startTime - staleThresholdMs) {
                 await page.waitForTimeout(pollIntervalMs);
                 continue;
             }
 
-            if (latest.status === 'success') {
+            // Found the job we care about.
+            expectedJobId = latest.id;
+            initialStatus = latest.status;
+        } else {
+            await page.waitForTimeout(pollIntervalMs);
+        }
+    }
+
+    if (!expectedJobId) {
+        throw new Error(`Sync job did not appear within ${timeoutMs / 1000}s`);
+    }
+
+    // Fast path: job was already done when discovered in Phase 1.
+    if (initialStatus === 'success') {
+        await page.reload();
+        await page.waitForLoadState('networkidle');
+        return expectedJobId;
+    }
+    if (initialStatus === 'error' || initialStatus === 'canceled') {
+        throw new Error(`Sync job failed with status: ${initialStatus}`);
+    }
+
+    // ── Phase 2: poll the specific job by ID until it reaches a terminal status
+    const jobUrl = `${origin}/api/v4/jobs/${expectedJobId}`;
+
+    while (Date.now() < deadline) {
+        let job: {id: string; status: string} | null = null;
+        try {
+            const response = await page.request.get(jobUrl);
+            if (response.ok()) {
+                job = await response.json();
+            }
+        } catch {
+            // Network hiccup — keep polling
+        }
+
+        if (job) {
+            if (job.status === 'success') {
                 // One reload to sync the DOM for any subsequent page interactions.
                 await page.reload();
                 await page.waitForLoadState('networkidle');
-                return latest.id;
+                return job.id;
             }
-            if (latest.status === 'error' || latest.status === 'canceled') {
-                throw new Error(`Sync job failed with status: ${latest.status}`);
+            if (job.status === 'error' || job.status === 'canceled') {
+                throw new Error(`Sync job failed with status: ${job.status}`);
             }
             // 'pending' or 'in_progress' → keep polling
         }
