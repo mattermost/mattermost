@@ -852,7 +852,7 @@ export async function captureLatestJobId(page: Page): Promise<string | null> {
  *              directly until it reaches a terminal status.
  *
  * @param page - Playwright page used for auth context and the final reload.
- * @param maxRetries - Maps to a wall-clock timeout of max(maxRetries × 6s, 30s).
+ * @param maxRetries - Maps to a wall-clock timeout of max(maxRetries × 12s, 60s).
  * @param skipJobId - ID of a previously-completed job to ignore (Phase 1 only).
  *   Obtain via captureLatestJobId before triggering the sync action.
  * @param jobId - Exact ID of the job to wait for, obtained from runSyncJob.
@@ -866,7 +866,7 @@ export async function waitForLatestSyncJob(
     jobId?: string | null,
 ): Promise<string | null> {
     const pollIntervalMs = 500;
-    const timeoutMs = Math.max(maxRetries * 6000, 30000);
+    const timeoutMs = Math.max(maxRetries * 12000, 60000);
     const startTime = Date.now();
     const deadline = startTime + timeoutMs;
 
