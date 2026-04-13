@@ -20,6 +20,7 @@ import {
     createPrivateChannelForABAC,
     createBasicPolicy,
     activatePolicy,
+    captureLatestJobId,
     waitForLatestSyncJob,
     getJobDetailsFromRecentJobs,
     enableUserManagedAttributes,
@@ -102,6 +103,7 @@ test.describe('ABAC Policies - Create Policies', () => {
 
         // Use the working createBasicPolicy helper (same as MM-T5784)
         const policyName = `Engineering Policy ${await pw.random.id()}`;
+        const beforeT5784PolicyJobId = await captureLatestJobId(systemConsolePage.page);
         await createBasicPolicy(systemConsolePage.page, {
             name: policyName,
             attribute: 'Department',
@@ -135,7 +137,7 @@ test.describe('ABAC Policies - Create Policies', () => {
         }
 
         // Wait for sync job to complete (triggered by createBasicPolicy)
-        await waitForLatestSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, beforeT5784PolicyJobId);
 
         // ============================================================
         // STEP 5-7: Verify channel membership after sync
@@ -280,6 +282,7 @@ test.describe('ABAC Policies - Create Policies', () => {
 
         // Use createBasicPolicy with autoSync: true
         const policyName = `Auto-Add Policy ${await pw.random.id()}`;
+        const beforeT5784AutoAddPolicyJobId = await captureLatestJobId(systemConsolePage.page);
         await createBasicPolicy(systemConsolePage.page, {
             name: policyName,
             attribute: 'Department',
@@ -311,7 +314,7 @@ test.describe('ABAC Policies - Create Policies', () => {
         }
 
         // Wait for initial sync job to complete
-        await waitForLatestSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, beforeT5784AutoAddPolicyJobId);
 
         // Get policy ID and activate it for auto-add to work
         const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
@@ -335,8 +338,8 @@ test.describe('ABAC Policies - Create Policies', () => {
         await activatePolicy(adminClient, policyId);
 
         // Run sync job with active policy
-        await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        const t5784SyncJobId = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, t5784SyncJobId);
 
         // ============================================================
         // VERIFY VIA JOB DETAILS: Check recent jobs for channel membership changes

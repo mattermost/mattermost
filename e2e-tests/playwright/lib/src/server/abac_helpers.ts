@@ -268,15 +268,30 @@ export async function deletePolicy(page: Page, policyName: string): Promise<void
 }
 
 /**
- * Click the "Run Sync Job" button and wait for the network request to complete.
+ * Click the "Run Sync Job" button and return the new job ID immediately.
  *
- * Job completion must be awaited separately via waitForLatestSyncJob (in support.ts),
- * which polls the jobs API until the job finishes.
+ * Intercepts the POST /api/v4/jobs response so the caller gets the exact job ID
+ * without a polling round-trip. Pass the returned ID to waitForLatestSyncJob as
+ * the `jobId` argument to skip Phase 1 and poll the specific job directly.
+ *
+ * Returns null if the response interception times out or the body has no id field.
  */
-export async function runSyncJob(page: Page): Promise<void> {
-    const runSyncButton = page.getByRole('button', {name: 'Run Sync Job'});
-    await runSyncButton.click();
+export async function runSyncJob(page: Page): Promise<string | null> {
+    const jobResponsePromise = page.waitForResponse(
+        (resp) => resp.url().includes('/api/v4/jobs') && resp.request().method() === 'POST' && resp.ok(),
+        {timeout: 10000},
+    );
+    await page.getByRole('button', {name: 'Run Sync Job'}).click();
+    let jobId: string | null = null;
+    try {
+        const response = await jobResponsePromise;
+        const job = await response.json();
+        jobId = job.id ?? null;
+    } catch {
+        // Interception failed — callers fall back to list-based polling in Phase 1.
+    }
     await page.waitForLoadState('networkidle');
+    return jobId;
 }
 
 /**

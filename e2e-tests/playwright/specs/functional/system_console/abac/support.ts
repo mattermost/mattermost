@@ -842,8 +842,10 @@ export async function captureLatestJobId(page: Page): Promise<string | null> {
 /**
  * Wait for the latest access_control_sync job to complete.
  *
- * Uses a two-phase approach to avoid returning the wrong job when other workers
- * create concurrent jobs:
+ * When `jobId` is provided (returned by runSyncJob) Phase 1 is skipped entirely
+ * and the function polls GET /api/v4/jobs/{jobId} directly — the fastest path.
+ *
+ * Without `jobId` a two-phase approach is used:
  *   Phase 1 — Poll the jobs list until a NEW job appears (one whose ID differs
  *              from skipJobId and is not an ancient stale result).
  *   Phase 2 — Once the specific job ID is known, poll GET /api/v4/jobs/{id}
@@ -851,26 +853,57 @@ export async function captureLatestJobId(page: Page): Promise<string | null> {
  *
  * @param page - Playwright page used for auth context and the final reload.
  * @param maxRetries - Maps to a wall-clock timeout of max(maxRetries × 6s, 30s).
- * @param skipJobId - ID of a previously-completed job to ignore. Obtain via
- *   captureLatestJobId before triggering the sync action so the old job is not
- *   mistaken for the new one.
+ * @param skipJobId - ID of a previously-completed job to ignore (Phase 1 only).
+ *   Obtain via captureLatestJobId before triggering the sync action.
+ * @param jobId - Exact ID of the job to wait for, obtained from runSyncJob.
+ *   When present, skipJobId and Phase 1 are bypassed entirely.
  * @returns the ID of the completed job.
  */
 export async function waitForLatestSyncJob(
     page: Page,
     maxRetries: number = 5,
     skipJobId?: string | null,
+    jobId?: string | null,
 ): Promise<string | null> {
     const pollIntervalMs = 500;
     const timeoutMs = Math.max(maxRetries * 6000, 30000);
     const startTime = Date.now();
     const deadline = startTime + timeoutMs;
 
+    const origin = new URL(page.url()).origin;
+
+    // ── Fast path: skip Phase 1 when the caller already has the job ID ─────
+    if (jobId) {
+        const jobUrl = `${origin}/api/v4/jobs/${jobId}`;
+        while (Date.now() < deadline) {
+            let job: {id: string; status: string} | null = null;
+            try {
+                const response = await page.request.get(jobUrl);
+                if (response.ok()) {
+                    job = await response.json();
+                }
+            } catch {
+                // Network hiccup — keep polling
+            }
+            if (job) {
+                if (job.status === 'success') {
+                    await page.reload();
+                    await page.waitForLoadState('networkidle');
+                    return job.id;
+                }
+                if (job.status === 'error' || job.status === 'canceled') {
+                    throw new Error(`Sync job failed with status: ${job.status}`);
+                }
+            }
+            await page.waitForTimeout(pollIntervalMs);
+        }
+        throw new Error(`Sync job did not complete within ${timeoutMs / 1000}s`);
+    }
+
     // Without a skipJobId, reject jobs older than 30 seconds to avoid picking
     // up ancient stale results from a previous test or run.
     const staleThresholdMs = 30000;
 
-    const origin = new URL(page.url()).origin;
     const listUrl = `${origin}/api/v4/jobs/type/access_control_sync?page=0&per_page=1`;
 
     // ── Phase 1: identify the specific job we are waiting for ──────────────

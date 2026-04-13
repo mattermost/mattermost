@@ -149,8 +149,8 @@ test.describe('ABAC Policies - Channel Integration', () => {
         // ============================================================
         await systemConsolePage.page.waitForTimeout(2000);
         await navigateToABACPage(systemConsolePage.page);
-        await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        const syncJobId = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, syncJobId);
 
         // ============================================================
         // VERIFY: Channel membership

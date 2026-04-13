@@ -20,6 +20,7 @@ import {
     createPrivateChannelForABAC,
     createBasicPolicy,
     createAdvancedPolicy,
+    captureLatestJobId,
     waitForLatestSyncJob,
     enableUserManagedAttributes,
 } from '../support';
@@ -145,6 +146,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // ===========================================
 
         // Navigate to ABAC page and find the policy
+        const beforeEdit1JobId = await captureLatestJobId(page);
         await navigateToABACPage(page);
         await page.waitForTimeout(1000);
 
@@ -258,7 +260,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
 
         // Wait for sync to complete
         await navigateToABACPage(page);
-        await waitForLatestSyncJob(page, 5);
+        await waitForLatestSyncJob(page, 5, beforeEdit1JobId);
 
         // ===========================================
         // STEP 5 & 6: Verify channel membership after policy edit
@@ -416,6 +418,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // ===========================================
 
         // Navigate back to ABAC list page
+        const beforeEdit2JobId = await captureLatestJobId(page);
         await page.goto('/admin_console/system_attributes/attribute_based_access_control', {waitUntil: 'networkidle'});
         await page.waitForTimeout(2000);
 
@@ -514,7 +517,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         await page.waitForTimeout(2000);
 
         // Wait for the auto-triggered sync job to complete (policy edit triggers sync automatically)
-        await waitForLatestSyncJob(page);
+        await waitForLatestSyncJob(page, 5, beforeEdit2JobId);
 
         // Additional wait for membership changes to propagate
         await page.waitForTimeout(5000);
@@ -681,6 +684,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // ===========================================
 
         // Navigate back to ABAC list page
+        const beforeEdit3JobId = await captureLatestJobId(page);
         await page.goto('/admin_console/system_attributes/attribute_based_access_control', {waitUntil: 'networkidle'});
         await page.waitForTimeout(2000);
 
@@ -787,7 +791,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
 
         // Navigate to ABAC page and wait for sync job to complete
         await navigateToABACPage(page);
-        await waitForLatestSyncJob(page);
+        await waitForLatestSyncJob(page, 5, beforeEdit3JobId);
 
         // ===========================================
         // STEP 5 & 6: Verify channel membership after edit

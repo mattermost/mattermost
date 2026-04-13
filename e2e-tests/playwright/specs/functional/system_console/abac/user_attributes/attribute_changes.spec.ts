@@ -73,6 +73,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         await enableABAC(systemConsolePage.page);
 
         const policyName = `Engineering Access ${await pw.random.id()}`;
+        const beforePolicyJobId = await captureLatestJobId(systemConsolePage.page);
         await createBasicPolicy(systemConsolePage.page, {
             name: policyName,
             attribute: 'Department',
@@ -83,7 +84,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         });
 
         // Activate policy (EXACT same pattern as MM-T5800)
-        await waitForLatestSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, beforePolicyJobId);
         const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
         await searchInput.waitFor({state: 'visible', timeout: 5000});
         const idMatch = policyName.match(/([a-z0-9]+)$/i);
@@ -102,8 +103,8 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         // ============================================================
         // STEP 2: Verify user is NOT in channel initially
         // ============================================================
-        await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        const syncJob1Id = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, syncJob1Id);
 
         const initialInChannel = await verifyUserInChannel(adminClient, testUser.id, privateChannel.id);
         expect(initialInChannel).toBe(false);
@@ -125,8 +126,8 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         // Get the Department field to check its value
         await adminClient.getCustomProfileAttributeFields();
 
-        await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        const syncJob2Id = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, syncJob2Id);
 
         // ============================================================
         // VERIFICATION: User should now be auto-added to channel
@@ -351,8 +352,8 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         await systemConsolePage.page.waitForTimeout(1000);
 
         // Run sync job
-        await runSyncJob(systemConsolePage.page);
-        const sync1JobId = await waitForLatestSyncJob(systemConsolePage.page, 5, policy1JobId);
+        const runSync1JobId = await runSyncJob(systemConsolePage.page);
+        const sync1JobId = await waitForLatestSyncJob(systemConsolePage.page, 5, policy1JobId, runSync1JobId);
 
         // Wait for membership updates to apply
         await systemConsolePage.page.waitForTimeout(1000);
@@ -413,8 +414,8 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         }
         await searchInput.clear();
 
-        await runSyncJob(systemConsolePage.page);
-        const sync2JobId = await waitForLatestSyncJob(systemConsolePage.page, 5, policy2JobId);
+        const runSync2JobId = await runSyncJob(systemConsolePage.page);
+        const sync2JobId = await waitForLatestSyncJob(systemConsolePage.page, 5, policy2JobId, runSync2JobId);
 
         const userAutoAdded = await verifyUserInChannel(adminClient, testUser.id, channel2.id);
         expect(userAutoAdded).toBe(true);
@@ -426,8 +427,8 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         await systemConsolePage.page.waitForTimeout(1000);
 
         // Run sync
-        await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page, 5, sync2JobId);
+        const runSync3JobId = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, sync2JobId, runSync3JobId);
 
         // Small delay for channel membership update
         await systemConsolePage.page.waitForTimeout(1000);
