@@ -143,7 +143,7 @@ TEMPLATES_DIR=templates
 # Plugins Packages
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
 PLUGIN_PACKAGES += mattermost-plugin-calls-v1.11.4
-PLUGIN_PACKAGES += mattermost-plugin-github-v2.7.0
+PLUGIN_PACKAGES += mattermost-plugin-github-v2.5.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.12.1
 PLUGIN_PACKAGES += mattermost-plugin-jira-v4.5.0
 # We need to prepackage both versions of playbooks and install the correct one based on the server license. See MM-60025.
