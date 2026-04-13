@@ -467,6 +467,12 @@ func (wc *WebConn) readPump() {
 			return
 		}
 
+		// Reject binary frames from unauthenticated connections. See MM-68222.
+		if msgType != websocket.TextMessage && !wc.IsAuthenticated() {
+			wc.logSocketErr("websocket.UnauthBinary", errors.New("binary frames require authentication"))
+			return
+		}
+
 		var decoder interface {
 			Decode(v any) error
 		}
