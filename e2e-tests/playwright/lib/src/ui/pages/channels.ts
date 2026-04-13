@@ -301,7 +301,6 @@ export default class ChannelsPage {
     }
 
     async getFlaggedPostViewDetailButton(flaggedPostId: string) {
-        console.log({testID: `data-spillage-action-view-details_${flaggedPostId}`});
         return this.page.getByTestId(`data-spillage-action-view-details_${flaggedPostId}`);
     }
 }
