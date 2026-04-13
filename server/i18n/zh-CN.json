@@ -3038,10 +3038,6 @@
     "translation": "解码搜索结果失败"
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "{{.Backend}} 已停止。"
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "{{.Backend}} 已禁用。"
   },

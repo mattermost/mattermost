@@ -3043,10 +3043,6 @@
     "translation": "Arama sonuçlarının kodu çözülemedi"
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "{{.Backend}} zaten durdurulmuş."
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "{{.Backend}} kapalı."
   },

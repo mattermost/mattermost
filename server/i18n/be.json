@@ -4232,10 +4232,6 @@
     "translation": "Ваша ліцэнзія Mattermost не падтрымлівае індэксаваны пошук."
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "{{.Backend}} ужо спынены."
-  },
-  {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "Немагчыма прааналізаваць версію сервера {{.Backend}}."
   },

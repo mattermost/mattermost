@@ -2712,10 +2712,6 @@
     "translation": "Elasticsearch on kytketty pois."
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch on jo lopetettu"
-  },
-  {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
     "translation": "Hakutulosten dekoodaus epäonnistui"
   },

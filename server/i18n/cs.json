@@ -2472,10 +2472,6 @@
     "translation": "{{.Backend}} je zakázán."
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "{{.Backend}} je již zastaven."
-  },
-  {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "Nepodařilo se zpracovat verzi {{.Backend}} serveru."
   },

@@ -3048,10 +3048,6 @@
     "translation": "Błąd w dekodowaniu wyników wyszukiwania"
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "{{.Backend}} jest aktualnie zatrzymany."
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "{{.Backend}} jest wyłączone."
   },

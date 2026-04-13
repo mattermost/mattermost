@@ -3043,10 +3043,6 @@
     "translation": "Konnte Suchergebnisse nicht dekodieren"
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "{{.Backend}} ist bereits gestoppt."
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "{{.Backend}} ist deaktiviert."
   },

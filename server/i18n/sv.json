@@ -2784,10 +2784,6 @@
     "translation": "{{.Backend}} är avaktiverat."
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "{{.Backend}} är redan stoppad."
-  },
-  {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "Det gick inte att tolka {{.Backend}}-serverns versionsnummer."
   },
