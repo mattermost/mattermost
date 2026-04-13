@@ -598,10 +598,10 @@ function ClassificationLevelsTable({levels, updateLevel, deleteLevel, onReorder,
                                 <span>{row.original.color}</span>
                             </ReadOnlyColor>
                         ) : (
-                            <ColorInput
-                                id={`classification-color-${row.original.id}`}
+                            <LevelColorCell
+                                id={row.original.id}
                                 value={row.original.color}
-                                onChange={(color: string) => updateLevel(row.original.id, {color})}
+                                updateLevel={updateLevel}
                             />
                         )}
                     </ColorCellWrapper>
@@ -696,6 +696,36 @@ function LevelNameCell({value, id, updateLevel, label, disabled}: LevelNameCellP
                 }
             }}
         />
+    );
+}
+
+type LevelColorCellProps = {
+    value: string;
+    id: string;
+    updateLevel: (id: string, updates: Partial<ClassificationLevel>) => void;
+};
+
+function LevelColorCell({value, id, updateLevel}: LevelColorCellProps) {
+    const [localColor, setLocalColor] = useState(value);
+
+    useEffect(() => {
+        setLocalColor(value);
+    }, [value]);
+
+    return (
+        <div
+            onBlur={() => {
+                if (localColor !== value) {
+                    updateLevel(id, {color: localColor});
+                }
+            }}
+        >
+            <ColorInput
+                id={`classification-color-${id}`}
+                value={localColor}
+                onChange={setLocalColor}
+            />
+        </div>
     );
 }
 

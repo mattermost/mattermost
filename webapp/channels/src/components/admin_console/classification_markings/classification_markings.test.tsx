@@ -407,6 +407,78 @@ describe('ClassificationMarkings component', () => {
         expect(screen.queryByText(/Failed to load/)).not.toBeInTheDocument();
     });
 
+    test('should allow typing a full 6-char hex color without auto-fill at 3 chars', async () => {
+        const field = makePropertyField({
+            attrs: {
+                options: [
+                    {id: 'lvl1', name: 'SECRET', color: '#C8102E', rank: 1},
+                ],
+            },
+        });
+        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([field]);
+
+        renderWithContext(<ClassificationMarkings/>);
+        await screen.findByText('Classification levels');
+
+        const user = userEvent.setup();
+        const colorInput = screen.getByTestId('color-inputColorValue');
+
+        await act(async () => {
+            await user.clear(colorInput);
+            await user.type(colorInput, '#1a2b3c');
+        });
+
+        // Input should show exactly what was typed, not auto-expanded from 3-char hex
+        expect(colorInput).toHaveValue('#1a2b3c');
+    });
+
+    test('should sync color to level on blur', async () => {
+        const field = makePropertyField({
+            attrs: {
+                options: [
+                    {id: 'lvl1', name: 'SECRET', color: '#C8102E', rank: 1},
+                ],
+            },
+        });
+        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([field]);
+        jest.spyOn(Client4, 'patchPropertyField').mockResolvedValueOnce(makePropertyField({
+            attrs: {
+                options: [
+                    {id: 'lvl1', name: 'SECRET', color: '#1a2b3c', rank: 1},
+                ],
+            },
+        }));
+
+        renderWithContext(<ClassificationMarkings/>);
+        await screen.findByText('Classification levels');
+
+        const user = userEvent.setup();
+        const colorInput = screen.getByTestId('color-inputColorValue');
+
+        // Type a new color then tab away to blur
+        await user.clear(colorInput);
+        await user.type(colorInput, '#1a2b3c');
+        await user.tab();
+
+        // Save should be available (changes detected after blur)
+        const saveButton = await screen.findByText('Save');
+        await user.click(saveButton);
+
+        // The patch call should include the typed color
+        expect(Client4.patchPropertyField).toHaveBeenCalledWith(
+            'custom_profile_attributes',
+            'user',
+            'field1',
+            expect.objectContaining({
+                attrs: expect.objectContaining({
+                    options: expect.arrayContaining([
+                        expect.objectContaining({color: '#1a2b3c'}),
+                    ]),
+                }),
+            }),
+        );
+    });
+
     test('should pass disabled prop to disable controls', async () => {
         jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([]);
 
