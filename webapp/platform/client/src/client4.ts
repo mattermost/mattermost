@@ -200,6 +200,7 @@ export default class Client4 {
         unknownError: 'We received an unexpected status code from the server.',
     };
     userRoles = '';
+    private bypassCacheUntil = 0;
 
     getUrl() {
         return this.url;
@@ -571,8 +572,22 @@ export default class Client4 {
         return '';
     }
 
+    /**
+     * Temporarily forces all subsequent API requests to bypass the browser's HTTP cache.
+     * Sets `cache: 'reload'` on every fetch for the given duration, preventing 304 Not Modified
+     * responses from stale ETags. Used when a server-side change (e.g. permission policy update)
+     * requires all clients to get fresh data even though resource timestamps haven't changed.
+     */
+    invalidateAllCaches(durationMs = 5000) {
+        this.bypassCacheUntil = Date.now() + durationMs;
+    }
+
     getOptions(options: Options) {
         const newOptions: Options = {...options};
+
+        if (!newOptions.cache && this.bypassCacheUntil > Date.now()) {
+            newOptions.cache = 'reload';
+        }
 
         const headers: {[x: string]: string} = {
             [HEADER_REQUESTED_WITH]: 'XMLHttpRequest',

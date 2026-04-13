@@ -95,4 +95,5 @@ export const enum WebSocketEvents {
     FileDownloadRejected = 'file_download_rejected',
     ShowToast = 'show_toast',
     SharedChannelRemoteUpdated = 'shared_channel_remote_updated',
+    PermissionPolicyUpdated = 'permission_policy_updated',
 }

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useMemo} from 'react';
+import React, {useState, useEffect, useMemo, useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
@@ -17,6 +17,7 @@ import {getHistory} from 'utils/browser_history';
 import '../access_control/policies.scss';
 
 type Props = {
+    lastInvalidation: number;
     actions: {
         searchPolicies: (term: string, after: string, limit: number) => Promise<ActionResult>;
         deletePolicy: (id: string) => Promise<ActionResult>;
@@ -63,9 +64,18 @@ export default function PermissionPolicyList(props: Props): JSX.Element {
 
     const history = useMemo(() => getHistory(), []);
 
+    const lastSeenInvalidation = useRef(props.lastInvalidation);
+
     useEffect(() => {
         fetchPolicies();
     }, []);
+
+    useEffect(() => {
+        if (props.lastInvalidation > lastSeenInvalidation.current) {
+            lastSeenInvalidation.current = props.lastInvalidation;
+            fetchPolicies(search, '', true);
+        }
+    }, [props.lastInvalidation]);
 
     const fetchPolicies = async (term = '', afterParam = '', resetPage = false) => {
         setLoading(true);

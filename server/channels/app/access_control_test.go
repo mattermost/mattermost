@@ -1426,3 +1426,100 @@ func TestHasPermissionToFileAction(t *testing.T) {
 		assert.True(t, result)
 	})
 }
+
+func TestPermissionPolicyWebSocketBroadcast(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	userID := th.BasicUser.Id
+	messages, closeWS := connectFakeWebSocket(t, th, userID, "", []model.WebsocketEventType{model.WebsocketEventPermissionPolicyUpdated})
+	defer closeWS()
+
+	t.Run("CreateOrUpdate broadcasts for permission policy", func(t *testing.T) {
+		policy := &model.AccessControlPolicy{
+			ID:      model.NewId(),
+			Type:    model.AccessControlPolicyTypePermission,
+			Name:    "Test Permission Policy",
+			Version: model.AccessControlPolicyVersionV0_3,
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{"download_file_attachment"}, Expression: "true"},
+			},
+			Roles: []string{"system_user"},
+		}
+
+		mockAC := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockAC
+		mockAC.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).Return(policy, nil)
+
+		_, appErr := th.App.CreateOrUpdateAccessControlPolicy(th.Context, policy)
+		require.Nil(t, appErr)
+
+		received := <-messages
+		require.Equal(t, model.WebsocketEventPermissionPolicyUpdated, received.EventType())
+	})
+
+	t.Run("CreateOrUpdate does not broadcast for parent policy", func(t *testing.T) {
+		policy := &model.AccessControlPolicy{
+			ID:      model.NewId(),
+			Type:    model.AccessControlPolicyTypeParent,
+			Name:    "Test Parent Policy",
+			Version: model.AccessControlPolicyVersionV0_3,
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{"membership"}, Expression: "true"},
+			},
+		}
+
+		mockAC := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockAC
+		mockAC.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).Return(policy, nil)
+
+		_, appErr := th.App.CreateOrUpdateAccessControlPolicy(th.Context, policy)
+		require.Nil(t, appErr)
+
+		select {
+		case msg := <-messages:
+			t.Fatalf("unexpected WS event received: %s", msg.EventType())
+		default:
+		}
+	})
+
+	t.Run("Delete broadcasts for permission policy", func(t *testing.T) {
+		policyID := model.NewId()
+		policy := &model.AccessControlPolicy{
+			ID:   policyID,
+			Type: model.AccessControlPolicyTypePermission,
+		}
+
+		mockAC := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockAC
+		mockAC.On("GetPolicy", mock.AnythingOfType("*request.Context"), policyID).Return(policy, nil)
+		mockAC.On("DeletePolicy", mock.AnythingOfType("*request.Context"), policyID).Return(nil)
+
+		appErr := th.App.DeleteAccessControlPolicy(th.Context, policyID)
+		require.Nil(t, appErr)
+
+		received := <-messages
+		require.Equal(t, model.WebsocketEventPermissionPolicyUpdated, received.EventType())
+	})
+
+	t.Run("Delete does not broadcast for channel policy", func(t *testing.T) {
+		policyID := model.NewId()
+		policy := &model.AccessControlPolicy{
+			ID:   policyID,
+			Type: model.AccessControlPolicyTypeChannel,
+		}
+
+		mockAC := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockAC
+		mockAC.On("GetPolicy", mock.AnythingOfType("*request.Context"), policyID).Return(policy, nil)
+		mockAC.On("DeletePolicy", mock.AnythingOfType("*request.Context"), policyID).Return(nil)
+
+		appErr := th.App.DeleteAccessControlPolicy(th.Context, policyID)
+		require.Nil(t, appErr)
+
+		select {
+		case msg := <-messages:
+			t.Fatalf("unexpected WS event received: %s", msg.EventType())
+		default:
+		}
+	})
+}

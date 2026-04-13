@@ -17,6 +17,11 @@ import (
 
 const attributeViewRefreshInterval = 30 * time.Second
 
+func (a *App) sendPermissionPolicyUpdatedEvent() {
+	message := model.NewWebSocketEvent(model.WebsocketEventPermissionPolicyUpdated, "", "", "", nil, "")
+	a.Publish(message)
+}
+
 func (a *App) GetChannelsForPolicy(rctx request.CTX, policyID string, cursor model.AccessControlPolicyCursor, limit int) ([]*model.ChannelWithTeamData, int64, *model.AppError) {
 	policy, appErr := a.GetAccessControlPolicy(rctx, policyID)
 	if appErr != nil {
@@ -99,6 +104,10 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		return nil, appErr
 	}
 
+	if policy.Type == model.AccessControlPolicyTypePermission {
+		a.sendPermissionPolicyUpdatedEvent()
+	}
+
 	return policy, nil
 }
 
@@ -108,9 +117,18 @@ func (a *App) DeleteAccessControlPolicy(rctx request.CTX, id string) *model.AppE
 		return model.NewAppError("DeleteAccessControlPolicy", "app.pap.delete_access_control_policy.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
 	}
 
+	policy, getErr := acs.GetPolicy(rctx, id)
+	if getErr != nil {
+		return getErr
+	}
+
 	appErr := acs.DeletePolicy(rctx, id)
 	if appErr != nil {
 		return appErr
+	}
+
+	if policy.Type == model.AccessControlPolicyTypePermission {
+		a.sendPermissionPolicyUpdatedEvent()
 	}
 
 	return nil
@@ -325,6 +343,14 @@ func (a *App) UpdateAccessControlPoliciesActive(rctx request.CTX, updates []mode
 	if err != nil {
 		return nil, model.NewAppError("UpdateAccessControlPoliciesActive", "app.pap.update_access_control_policies_active.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+
+	for _, p := range policies {
+		if p.Type == model.AccessControlPolicyTypePermission {
+			a.sendPermissionPolicyUpdatedEvent()
+			break
+		}
+	}
+
 	return policies, nil
 }
 

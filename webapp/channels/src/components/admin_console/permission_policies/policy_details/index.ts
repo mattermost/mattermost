@@ -30,6 +30,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         policy,
         policyId,
         accessControlSettings: config,
+        lastInvalidation: state.entities.admin.permissionPoliciesLastInvalidation,
     };
 }
 

@@ -5,9 +5,15 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
+import type {GlobalState} from '@mattermost/types/store';
+
 import {searchPermissionPolicies, deleteAccessControlPolicy} from 'mattermost-redux/actions/access_control';
 
 import PermissionPolicyList from './permission_policies';
+
+const mapStateToProps = (state: GlobalState) => ({
+    lastInvalidation: state.entities.admin.permissionPoliciesLastInvalidation,
+});
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
     actions: bindActionCreators({
@@ -16,4 +22,4 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     }, dispatch),
 });
 
-export default connect(null, mapDispatchToProps)(PermissionPolicyList);
+export default connect(mapStateToProps, mapDispatchToProps)(PermissionPolicyList);

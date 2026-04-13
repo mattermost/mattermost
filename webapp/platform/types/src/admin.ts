@@ -72,6 +72,7 @@ export type AdminState = {
     prevTrialLicense: ClientLicense;
     accessControlPolicies: IDMappedObjects<AccessControlPolicy>;
     channelsForAccessControlPolicy: Record<string, string[]>;
+    permissionPoliciesLastInvalidation: number;
 };
 
 export type AnalyticsState = {

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useMemo, useCallback} from 'react';
+import React, {useState, useEffect, useMemo, useCallback, useRef} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 
@@ -89,6 +89,7 @@ export interface PermissionPolicyDetailsProps {
     policy?: AccessControlPolicy;
     policyId?: string;
     accessControlSettings: AccessControlSettings;
+    lastInvalidation: number;
     actions: PolicyActions;
 }
 
@@ -109,6 +110,7 @@ function PermissionPolicyDetails({
     policyId,
     actions,
     accessControlSettings,
+    lastInvalidation,
 }: PermissionPolicyDetailsProps): JSX.Element {
     const [policyName, setPolicyName] = useState(policy?.name || '');
     const [expression, setExpression] = useState(policy?.rules?.[0]?.expression || '');
@@ -129,10 +131,18 @@ function PermissionPolicyDetails({
     const abacActions = useChannelAccessControlActions();
 
     const noUsableAttributes = attributesLoaded && !hasUsableAttributes(autocompleteResult, accessControlSettings.EnableUserManagedAttributes);
+    const lastSeenInvalidation = useRef(lastInvalidation);
 
     useEffect(() => {
         loadPage().finally(() => setPageLoaded(true));
     }, [policyId]);
+
+    useEffect(() => {
+        if (policyId && lastInvalidation > lastSeenInvalidation.current) {
+            lastSeenInvalidation.current = lastInvalidation;
+            loadPage();
+        }
+    }, [lastInvalidation]);
 
     const isSimpleExpression = (expr: string): boolean => {
         if (!expr) {

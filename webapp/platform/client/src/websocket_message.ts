@@ -96,6 +96,7 @@ export type WebSocketMessage = (
 
     Messages.FileDownloadRejected |
     Messages.ShowToast |
+    Messages.PermissionPolicyUpdated |
 
     Messages.Plugin |
     Messages.PluginStatusesChanged |

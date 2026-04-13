@@ -680,8 +680,28 @@ function accessControlPolicies(state: IDMappedObjects<AccessControlPolicy> = {},
         }
         return nextState;
     }
+    case AdminTypes.PERMISSION_POLICIES_INVALIDATED: {
+        const nextState: IDMappedObjects<AccessControlPolicy> = {};
+        for (const [id, policy] of Object.entries(state)) {
+            if (policy.type !== 'permission') {
+                nextState[id] = policy;
+            }
+        }
+        return nextState;
+    }
     case UserTypes.LOGOUT_SUCCESS:
         return {};
+    default:
+        return state;
+    }
+}
+
+function permissionPoliciesLastInvalidation(state = 0, action: MMReduxAction) {
+    switch (action.type) {
+    case AdminTypes.PERMISSION_POLICIES_INVALIDATED:
+        return Date.now();
+    case UserTypes.LOGOUT_SUCCESS:
+        return 0;
     default:
         return state;
     }
@@ -779,4 +799,7 @@ export default combineReducers({
 
     // object with policy ids as keys and arrays of channel ids as values
     channelsForAccessControlPolicy,
+
+    // timestamp of last permission policy invalidation via WebSocket
+    permissionPoliciesLastInvalidation,
 });

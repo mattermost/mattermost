@@ -487,6 +487,8 @@ export type ShowToast = BaseWebSocketMessage<WebSocketEvents.ShowToast, {
     position?: string;
 }>;
 
+export type PermissionPolicyUpdated = BaseWebSocketMessage<WebSocketEvents.PermissionPolicyUpdated>;
+
 /**
  * Unknown is used for WebSocket messages which don't come from Mattermost itself. It's primarily intended for use
  * by plugins.

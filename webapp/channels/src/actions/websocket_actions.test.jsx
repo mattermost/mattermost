@@ -240,6 +240,15 @@ describe('handleEvent', () => {
 
         expect(store.dispatch).toHaveBeenCalled();
     });
+
+    test('should dispatch permission policy updated event', () => {
+        store.dispatch.mockClear();
+        const msg = {event: WebSocketEvents.PermissionPolicyUpdated};
+
+        handleEvent(msg);
+
+        expect(store.dispatch).toHaveBeenCalled();
+    });
 });
 
 describe('handlePostEditEvent', () => {

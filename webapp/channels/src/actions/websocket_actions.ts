@@ -710,6 +710,9 @@ export function handleEvent(msg: WebSocketMessage) {
     case WebSocketEvents.ShowToast:
         dispatch(handleShowToast(msg));
         break;
+    case WebSocketEvents.PermissionPolicyUpdated:
+        dispatch(handlePermissionPolicyUpdatedEvent());
+        break;
     default:
     }
 
@@ -1352,6 +1355,19 @@ export async function handleUserUpdatedEvent(msg: WebSocketMessages.UserUpdated)
 
 function handleChannelSchemeUpdatedEvent(msg: WebSocketMessages.ChannelSchemeUpdated) {
     dispatch(getMyChannelMember(msg.broadcast.channel_id));
+}
+
+function handlePermissionPolicyUpdatedEvent(): ThunkActionFunc<void> {
+    return (myDispatch, myGetState) => {
+        Client4.invalidateAllCaches();
+
+        const currentTeamId = getCurrentTeamId(myGetState());
+        if (currentTeamId) {
+            myDispatch(fetchChannelsAndMembers(currentTeamId));
+        }
+
+        myDispatch({type: AdminTypes.PERMISSION_POLICIES_INVALIDATED});
+    };
 }
 
 function handleRoleUpdatedEvent(msg: WebSocketMessages.RoleUpdated) {

@@ -1027,4 +1027,42 @@ describe('reducers.entities.admin', () => {
             expect(actualState.dataRetentionCustomPolicies).toEqual(expectedState);
         });
     });
+
+    describe('permissionPoliciesLastInvalidation', () => {
+        it('initial state', () => {
+            const action = {type: 'testinit'};
+            const actualState = reducer({permissionPoliciesLastInvalidation: 0} as ReducerState, action);
+            expect(actualState.permissionPoliciesLastInvalidation).toEqual(0);
+        });
+
+        it('PERMISSION_POLICIES_INVALIDATED sets timestamp', () => {
+            const before = Date.now();
+            const action = {type: AdminTypes.PERMISSION_POLICIES_INVALIDATED};
+            const actualState = reducer({permissionPoliciesLastInvalidation: 0} as ReducerState, action);
+            expect(actualState.permissionPoliciesLastInvalidation).toBeGreaterThanOrEqual(before);
+        });
+
+        it('LOGOUT_SUCCESS resets to 0', () => {
+            const action = {type: UserTypes.LOGOUT_SUCCESS};
+            const actualState = reducer({permissionPoliciesLastInvalidation: 12345} as ReducerState, action);
+            expect(actualState.permissionPoliciesLastInvalidation).toEqual(0);
+        });
+    });
+
+    describe('accessControlPolicies', () => {
+        it('PERMISSION_POLICIES_INVALIDATED removes only permission-type policies', () => {
+            const state = {
+                'policy-1': {id: 'policy-1', type: 'permission', name: 'P1'},
+                'policy-2': {id: 'policy-2', type: 'parent', name: 'P2'},
+                'policy-3': {id: 'policy-3', type: 'channel', name: 'P3'},
+                'policy-4': {id: 'policy-4', type: 'permission', name: 'P4'},
+            };
+            const action = {type: AdminTypes.PERMISSION_POLICIES_INVALIDATED};
+            const actualState = reducer({accessControlPolicies: state} as unknown as ReducerState, action);
+            expect(actualState.accessControlPolicies).toEqual({
+                'policy-2': {id: 'policy-2', type: 'parent', name: 'P2'},
+                'policy-3': {id: 'policy-3', type: 'channel', name: 'P3'},
+            });
+        });
+    });
 });
