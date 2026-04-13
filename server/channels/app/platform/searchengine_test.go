@@ -5,6 +5,7 @@ package platform
 
 import (
 	"context"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -15,7 +16,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
 	searchenginemocks "github.com/mattermost/mattermost/server/v8/platform/services/searchengine/mocks"
 )
@@ -58,6 +61,8 @@ func setupWatcherTest(t *testing.T) (*searchEngineWatcher, *searchenginemocks.Se
 
 	engineMock := &searchenginemocks.SearchEngineInterface{}
 	engineMock.On("GetName").Return("test-engine").Maybe()
+	engineMock.On("IsHealthy").Return(true).Maybe()
+	engineMock.On("SetHealthy", mock.Anything).Maybe()
 
 	ps.SearchEngine = searchengine.NewBroker(ps.Config())
 	ps.SearchEngine.ElasticsearchEngine = engineMock
@@ -575,5 +580,140 @@ func TestNotifySearchEngineWatcher(t *testing.T) {
 		require.NotPanics(t, func() {
 			w.reevaluate()
 		})
+	})
+}
+
+func TestWatcherHealthFlag(t *testing.T) {
+	t.Run("first health check failure sets engine unhealthy", func(t *testing.T) {
+		w, engineMock := setupWatcherTest(t)
+
+		engineMock.On("IsEnabled").Return(true).Maybe()
+		engineMock.On("IsActive").Return(true).Maybe()
+
+		// Track SetHealthy calls.
+		var healthyValue atomic.Int32
+		healthyValue.Store(1) // assume healthy at start
+		engineMock.On("SetHealthy", mock.Anything).Unset()
+		engineMock.On("SetHealthy", mock.Anything).Run(func(args mock.Arguments) {
+			if args.Bool(0) {
+				healthyValue.Store(1)
+			} else {
+				healthyValue.Store(0)
+			}
+		}).Maybe()
+
+		// HealthCheck fails on the first call.
+		engineMock.On("HealthCheck", mock.Anything).Return(func(_ request.CTX) *model.AppError {
+			return model.NewAppError("test", "hc_fail", nil, "", 502)
+		})
+		engineMock.On("Stop").Return(nil).Maybe()
+		engineMock.On("Start", mock.Anything).Return(nil).Maybe()
+
+		w.start()
+		t.Cleanup(w.stop)
+
+		// Wait for the health flag update itself rather than the HealthCheck
+		// call count, which can race with the watcher's SetHealthy(false) call.
+		require.Eventually(t, func() bool {
+			return healthyValue.Load() == 0
+		}, 2*time.Second, 5*time.Millisecond,
+			"engine should be marked unhealthy after first health check failure")
+	})
+
+	t.Run("successful health check restores healthy flag", func(t *testing.T) {
+		w, engineMock := setupWatcherTest(t)
+
+		engineMock.On("IsEnabled").Return(true).Maybe()
+		engineMock.On("IsActive").Return(true).Maybe()
+
+		// Track SetHealthy calls.
+		var healthyValue atomic.Int32
+		engineMock.On("SetHealthy", mock.Anything).Unset()
+		engineMock.On("SetHealthy", mock.Anything).Run(func(args mock.Arguments) {
+			if args.Bool(0) {
+				healthyValue.Store(1)
+			} else {
+				healthyValue.Store(0)
+			}
+		}).Maybe()
+
+		// The engine will be active when the watcher exits, so the
+		// cleanup defer in run() will call Stop().
+		engineMock.On("Stop").Return(nil).Maybe()
+
+		// First health check fails, second succeeds.
+		var healthCalls atomic.Int32
+		engineMock.On("HealthCheck", mock.Anything).Return(func(_ request.CTX) *model.AppError {
+			n := healthCalls.Add(1)
+			if n == 1 {
+				return model.NewAppError("test", "hc_fail", nil, "", 502)
+			}
+			return nil
+		})
+
+		w.start()
+		t.Cleanup(w.stop)
+
+		// Wait for SetHealthy(true) — called by the watcher after the
+		// second (successful) HealthCheck returns.
+		require.Eventually(t, func() bool {
+			return healthyValue.Load() == 1
+		}, 2*time.Second, 5*time.Millisecond,
+			"engine should be marked healthy after successful health check")
+	})
+
+	setupHealthCheckLogTest := func(t *testing.T, startHealthy bool) (*searchEngineWatcher, *mlog.Buffer) {
+		t.Helper()
+
+		w, engineMock := setupWatcherTest(t)
+
+		logBuffer := &mlog.Buffer{}
+		require.NoError(t, mlog.AddWriterTarget(w.ps.Logger(), logBuffer, true, mlog.StdAll...))
+
+		engineMock.On("IsEnabled").Return(true).Maybe()
+		engineMock.On("IsActive").Return(true).Maybe()
+		engineMock.On("Stop").Return(nil).Maybe()
+		engineMock.On("Start", mock.Anything).Return(nil).Maybe()
+
+		engineMock.On("IsHealthy").Unset()
+		engineMock.On("IsHealthy").Return(startHealthy)
+
+		if startHealthy {
+			engineMock.On("HealthCheck", mock.Anything).Return(
+				model.NewAppError("test", "hc_fail", nil, "", 502),
+			)
+		} else {
+			engineMock.On("HealthCheck", mock.Anything).Return(nil)
+		}
+
+		return w, logBuffer
+	}
+
+	t.Run("logs healthy to unhealthy transition", func(t *testing.T) {
+		w, logBuffer := setupHealthCheckLogTest(t, true)
+
+		w.start()
+		t.Cleanup(w.stop)
+
+		require.Eventually(t, func() bool {
+			require.NoError(t, w.ps.Logger().Flush())
+			return testlib.CheckLog(t, strings.NewReader(logBuffer.String()), "",
+				"Search engine health check failed: it is now marked as unhealthy")
+		}, 2*time.Second, 5*time.Millisecond,
+			"expected log for healthy->unhealthy transition")
+	})
+
+	t.Run("logs unhealthy to healthy transition", func(t *testing.T) {
+		w, logBuffer := setupHealthCheckLogTest(t, false)
+
+		w.start()
+		t.Cleanup(w.stop)
+
+		require.Eventually(t, func() bool {
+			require.NoError(t, w.ps.Logger().Flush())
+			return testlib.CheckLog(t, strings.NewReader(logBuffer.String()), "",
+				"Search engine health check succeeded: it is now marked as healthy")
+		}, 2*time.Second, 5*time.Millisecond,
+			"expected log for unhealthy->healthy transition")
 	})
 }

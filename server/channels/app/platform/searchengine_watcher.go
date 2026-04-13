@@ -339,7 +339,20 @@ func (w *searchEngineWatcher) startIfInactive(ctx context.Context, timer *time.T
 // reaching the consecutive failure threshold it stops the engine and
 // schedules a retry; otherwise it schedules the next health check.
 func (w *searchEngineWatcher) healthCheck(rctx request.CTX, timer *time.Timer, s *watcherLoopState) {
+	// Save the previous state so that we can log any state change
+	wasHealthy := w.engine.IsHealthy()
+
 	if err := w.engine.HealthCheck(rctx); err != nil {
+		// Mark unhealthy on the first failure so the broker skips this
+		// engine immediately (searches fall back to DB, indexing is
+		// deferred). The engine stays started until the consecutive
+		// failure threshold is reached.
+		w.engine.SetHealthy(false)
+		if wasHealthy {
+			w.ps.Log().Warn("Search engine health check failed: it is now marked as unhealthy",
+				mlog.String("engine", w.engine.GetName()))
+		}
+
 		s.consecutiveFailures++
 		if s.consecutiveFailures >= searchEngineHealthFailThreshold {
 			w.ps.Log().Error("Search engine health check failed repeatedly; stopping engine",
@@ -364,6 +377,11 @@ func (w *searchEngineWatcher) healthCheck(rctx request.CTX, timer *time.Timer, s
 			mlog.Int("threshold", searchEngineHealthFailThreshold),
 			mlog.String("engine", w.engine.GetName()))
 	} else {
+		w.engine.SetHealthy(true)
+		if !wasHealthy {
+			w.ps.Log().Info("Search engine health check succeeded: it is now marked as healthy",
+				mlog.String("engine", w.engine.GetName()))
+		}
 		s.consecutiveFailures = 0
 	}
 
