@@ -7,7 +7,7 @@ import {expect} from '@mattermost/playwright-lib';
 
 const DEMO_PLUGIN_ID = 'com.mattermost.demo-plugin';
 const DEMO_PLUGIN_URL =
-    'https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.10.3/mattermost-plugin-demo-v0.10.3.tar.gz';
+    'https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.11.0/mattermost-plugin-demo-v0.11.0-linux-amd64.tar.gz';
 
 export async function setupDemoPlugin(
     adminClient: Client4,
@@ -18,6 +18,16 @@ export async function setupDemoPlugin(
 ) {
     await adminClient.patchConfig({
         FileSettings: {EnablePublicLink: true},
+        ServiceSettings: {EnableGifPicker: true},
+        PluginSettings: {
+            Plugins: {
+                'com.mattermost.demo-plugin': {
+                    username: 'demouser',
+                    channelname: 'demo',
+                    lastname: 'User',
+                },
+            },
+        },
     });
 
     await pw.installAndEnablePlugin(adminClient, DEMO_PLUGIN_URL, DEMO_PLUGIN_ID);
