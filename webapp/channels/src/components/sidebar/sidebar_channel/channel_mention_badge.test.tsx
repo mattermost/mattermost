@@ -2,18 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {defineMessages} from 'react-intl';
 
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import ChannelMentionBadge from './channel_mention_badge';
 
-const messages = defineMessages({
-    urgentTooltip: {
-        id: 'channel_mention_badge.urgent_tooltip',
-        defaultMessage: 'You have an urgent mention',
-    },
-});
+const urgentTooltipDescriptor = {
+    id: 'channel_mention_badge.urgent_tooltip',
+    defaultMessage: 'You have an urgent mention',
+};
 
 describe('ChannelMentionBadge', () => {
     it('should render nothing when unreadMentions is 0', () => {
@@ -61,7 +58,7 @@ describe('ChannelMentionBadge', () => {
             <ChannelMentionBadge
                 unreadMentions={2}
                 hasUrgent={true}
-                tooltip={messages.urgentTooltip}
+                tooltip={urgentTooltipDescriptor}
             />,
         );
 

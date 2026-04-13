@@ -144,6 +144,10 @@ export class SidebarChannelLink extends React.PureComponent<Props, State> {
             ariaLabel += ` ${unreadMentions} ${intl.formatMessage({id: 'accessibility.sidebar.types.mentions', defaultMessage: 'mentions'})}`;
         }
 
+        if (this.props.hasUrgent && unreadMentions > 0) {
+            ariaLabel += ` ${intl.formatMessage({id: 'accessibility.sidebar.types.urgent_mention', defaultMessage: 'including an urgent mention'})}`;
+        }
+
         if (this.props.isUnread && unreadMentions === 0) {
             ariaLabel += ` ${intl.formatMessage({id: 'accessibility.sidebar.types.unread', defaultMessage: 'unread'})}`;
         }

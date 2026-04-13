@@ -111,7 +111,14 @@ export default function TeamButton({
         }
 
         if (mentions && isNotCreateTeamButton) {
-            ariaLabel = formatMessage({
+            ariaLabel = otherProps.hasUrgent ? formatMessage({
+                id: 'team.button.mentions.urgent.ariaLabel',
+                defaultMessage: '{teamName} team, {mentionCount} mentions, including an urgent mention',
+            },
+            {
+                teamName: displayName,
+                mentionCount: mentions,
+            }) : formatMessage({
                 id: 'team.button.mentions.ariaLabel',
                 defaultMessage: '{teamName} team, {mentionCount} mentions',
             },

@@ -99,6 +99,7 @@ describe('components/TeamSidebar/TeamButton', () => {
             unread: true,
             mentions: 3,
             hasUrgent: true,
+            displayName: 'Acme',
         };
 
         renderWithContext(
@@ -106,6 +107,7 @@ describe('components/TeamSidebar/TeamButton', () => {
         );
 
         expect(screen.queryByTestId('team-badge-')).toHaveClass('urgent');
+        expect(screen.getByRole('link')).toHaveAccessibleName(/including an urgent mention/i);
     });
 
     it('should not show urgent class on mentions badge when hasUrgent is false', () => {
