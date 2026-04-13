@@ -121,6 +121,22 @@ export async function createPrivateChannel(client: Client4, teamId: string) {
     return client.createChannel({team_id: teamId, name: `abac-${id}`, display_name: `ABAC-${id}`, type: 'P'} as any);
 }
 
+export async function createGroupConstrainedPrivateChannel(client: Client4, teamId: string) {
+    const id = Date.now().toString(36) + Math.random().toString(36).substring(2, 7);
+    return client.createChannel({
+        team_id: teamId,
+        name: `gc-${id}`,
+        display_name: `GC-${id}`,
+        type: 'P',
+        group_constrained: true,
+    } as any);
+}
+
+export async function createPublicChannel(client: Client4, teamId: string) {
+    const id = Date.now().toString(36) + Math.random().toString(36).substring(2, 7);
+    return client.createChannel({team_id: teamId, name: `pub-${id}`, display_name: `PUB-${id}`, type: 'O'} as any);
+}
+
 export async function createTeamAdmin(adminClient: Client4, teamId: string) {
     const id = Date.now().toString(36) + Math.random().toString(36).substring(2, 7);
     const user = await adminClient.createUser(

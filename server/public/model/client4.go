@@ -3014,6 +3014,20 @@ func (c *Client4) SearchAllChannels(ctx context.Context, search *ChannelSearch) 
 	return DecodeJSONFromResponse[ChannelListWithTeamData](r)
 }
 
+// SearchAllChannelsForUserWithOpts searches channels for a regular user with additional filter options.
+// Sends system_console=false so the server applies user-visibility scoping (membership-gated for private channels).
+func (c *Client4) SearchAllChannelsForUserWithOpts(ctx context.Context, search *ChannelSearch) (ChannelListWithTeamData, *Response, error) {
+	values := url.Values{}
+	values.Set("system_console", "false")
+
+	r, err := c.doAPIPostJSONWithQuery(ctx, c.channelsRoute().Join("search"), values, search)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[ChannelListWithTeamData](r)
+}
+
 // SearchAllChannelsForUser search in all the channels for a regular user.
 func (c *Client4) SearchAllChannelsForUser(ctx context.Context, term string) (ChannelListWithTeamData, *Response, error) {
 	values := url.Values{}

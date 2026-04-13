@@ -1340,10 +1340,20 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !fromSysConsole {
 		if len(props.TeamIds) == 1 && model.IsValidId(props.TeamIds[0]) {
-			// Team-scoped search at the store layer
-			channels, err := c.App.AutocompleteChannelsForTeam(c.AppContext, props.TeamIds[0], c.AppContext.Session().UserId, props.Term)
-			if err != nil {
-				c.Err = err
+			if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), props.TeamIds[0], model.PermissionViewTeam) {
+				c.SetPermissionError(model.PermissionViewTeam)
+				return
+			}
+			// Team-scoped search
+			var channels model.ChannelList
+			var appErr *model.AppError
+			if props.Private || props.ExcludeGroupConstrained {
+				channels, appErr = c.App.AutocompleteChannelsForTeamFiltered(c.AppContext, props.TeamIds[0], c.AppContext.Session().UserId, props.Term, props.Private, props.ExcludeGroupConstrained)
+			} else {
+				channels, appErr = c.App.AutocompleteChannelsForTeam(c.AppContext, props.TeamIds[0], c.AppContext.Session().UserId, props.Term)
+			}
+			if appErr != nil {
+				c.Err = appErr
 				return
 			}
 			if err := json.NewEncoder(w).Encode(channels); err != nil {

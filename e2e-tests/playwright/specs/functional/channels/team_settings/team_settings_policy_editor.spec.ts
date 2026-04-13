@@ -15,6 +15,8 @@ import {
     assignChannelsToPolicy,
     unassignChannelsFromPolicy,
     createPrivateChannel,
+    createGroupConstrainedPrivateChannel,
+    createPublicChannel,
     createTeamAdmin,
     setUserAttribute,
     addAttributeRule,
@@ -277,6 +279,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const channel = await createPrivateChannel(adminClient, team.id);
         const teamAdmin = await createTeamAdmin(adminClient, team.id);
         await adminClient.addToChannel(teamAdmin.id, channel.id);
+        await setUserAttribute(adminClient, teamAdmin.id, 'Department', 'Engineering');
 
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
@@ -307,6 +310,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await ensureDepartmentAttribute(adminClient);
 
         const teamAdmin = await createTeamAdmin(adminClient, team.id);
+        await setUserAttribute(adminClient, teamAdmin.id, 'Department', 'Engineering');
 
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);
@@ -685,5 +689,78 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await expect(teamSettings3.container.getByText(policyName)).toBeVisible({timeout: 10000});
 
         await teamSettings3.close();
+    });
+
+    test('MM-67594_14 Add channels modal shows only private member channels even when team has >50 public channels', async ({
+        pw,
+    }) => {
+        // Regression: the non-sysConsole fast path previously called AutocompleteChannelsForTeam
+        // which ignored the private=true filter and returned a mixed set capped at 50.
+        // With >50 public channels, private channels were cut off before client-side filtering.
+        await pw.skipIfNoLicense();
+        const {adminClient, team} = await pw.initSetup();
+        await enableABACConfig(adminClient);
+        await ensureDepartmentAttribute(adminClient);
+
+        const teamAdmin = await createTeamAdmin(adminClient, team.id);
+        await setUserAttribute(adminClient, teamAdmin.id, 'Department', 'Engineering');
+
+        // # Create 55 public channels — more than the 50-result autocomplete cap
+        for (let i = 0; i < 55; i++) {
+            const pub = await createPublicChannel(adminClient, team.id);
+            await adminClient.addToChannel(teamAdmin.id, pub.id);
+        }
+
+        // # Create 2 private channels the team admin is a member of
+        const privateChannel1 = await createPrivateChannel(adminClient, team.id);
+        const privateChannel2 = await createPrivateChannel(adminClient, team.id);
+        await adminClient.addToChannel(teamAdmin.id, privateChannel1.id);
+        await adminClient.addToChannel(teamAdmin.id, privateChannel2.id);
+
+        // # Create a group-constrained private channel the team admin is a member of
+        const gcChannel = await createGroupConstrainedPrivateChannel(adminClient, team.id);
+        await adminClient.addToChannel(teamAdmin.id, gcChannel.id);
+
+        const {page} = await pw.testBrowser.login(teamAdmin);
+        const channelsPage = new ChannelsPage(page);
+        await channelsPage.goto(team.name);
+        await channelsPage.toBeVisible();
+
+        const teamSettings = await channelsPage.openTeamSettings();
+        await teamSettings.openAccessPoliciesTab();
+
+        // # Open the policy editor and click Add channels
+        await teamSettings.container.getByRole('button', {name: 'Add policy'}).click();
+        await expect(teamSettings.container.locator('#input_policyName')).toBeVisible({timeout: 10000});
+        await teamSettings.container.getByRole('button', {name: /Add channels/}).click();
+
+        const channelModal = page.locator('.channel-selector-modal');
+        await channelModal.waitFor();
+        await expect(channelModal.locator('.more-modal__row').first()).toBeVisible({timeout: 10000});
+
+        // * Both private channels appear despite 55 public channels exceeding the cap
+        await expect(
+            channelModal.locator('.more-modal__row').filter({hasText: privateChannel1.display_name}),
+        ).toBeVisible();
+        await expect(
+            channelModal.locator('.more-modal__row').filter({hasText: privateChannel2.display_name}),
+        ).toBeVisible();
+
+        // * No public channels appear in the modal
+        const rows = channelModal.locator('.more-modal__row');
+        const count = await rows.count();
+        for (let i = 0; i < count; i++) {
+            const row = rows.nth(i);
+            const icon = row.locator('.icon-globe');
+            await expect(icon).not.toBeVisible();
+        }
+
+        // * Group-constrained channel does not appear
+        await expect(
+            channelModal.locator('.more-modal__row').filter({hasText: gcChannel.display_name}),
+        ).not.toBeVisible();
+
+        await page.keyboard.press('Escape');
+        await teamSettings.close();
     });
 });

@@ -40,6 +40,7 @@ test.describe('Team Settings Modal - Membership Policies Tab', () => {
     });
 
     test('MM-67669_2 Membership Policies tab hidden when ABAC disabled', async ({pw}) => {
+        await pw.skipIfNoLicense();
         const {adminUser} = await pw.initSetup();
 
         const {page} = await pw.testBrowser.login(adminUser);
