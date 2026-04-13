@@ -11029,6 +11029,10 @@
     "translation": "Site name must be less than or equal to {{.MaxLength}} characters."
   },
   {
+    "id": "model.config.is_valid.sql_analytics_query_timeout.app_error",
+    "translation": "Invalid analytics query timeout for SQL settings. Must be a positive number."
+  },
+  {
     "id": "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error",
     "translation": "Invalid connection maximum idle time for SQL settings. Must be a non-negative number."
   },
