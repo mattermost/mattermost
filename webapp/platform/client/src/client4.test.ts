@@ -74,7 +74,7 @@ describe('Client4', () => {
         });
 
         test('createPropertyField should send POST with field body', async () => {
-            const field = {name: 'classification', type: 'select', target_type: 'system'};
+            const field = {name: 'classification', type: 'select' as const, target_type: 'system'};
             const created = {id: 'new1', ...field};
 
             nock(client.getBaseRoute()).
