@@ -1699,6 +1699,114 @@ describe('dialog_conversion', () => {
                 });
             });
 
+            it('should convert date field with datetime_config.min_date and max_date', () => {
+                const elements: DialogElement[] = [
+                    {
+                        name: 'event_date',
+                        type: 'date',
+                        display_name: 'Event Date',
+                        datetime_config: {
+                            min_date: '2025-01-01',
+                            max_date: '2025-12-31',
+                        },
+                        optional: false,
+                    } as DialogElement,
+                ];
+
+                const {form} = convertDialogToAppForm(
+                    elements,
+                    'Test Form',
+                    undefined,
+                    undefined,
+                    undefined,
+                    '',
+                    '',
+                    legacyOptions,
+                );
+
+                expect(form.fields).toHaveLength(1);
+                expect(form.fields?.[0]).toMatchObject({
+                    name: 'event_date',
+                    type: 'date',
+                    label: 'Event Date',
+                    min_date: '2025-01-01',
+                    max_date: '2025-12-31',
+                    is_required: true,
+                });
+                expect(form.fields?.[0]?.datetime_config).toMatchObject({
+                    min_date: '2025-01-01',
+                    max_date: '2025-12-31',
+                });
+            });
+
+            it('should convert datetime field with datetime_config.time_interval', () => {
+                const elements: DialogElement[] = [
+                    {
+                        name: 'meeting_time',
+                        type: 'datetime',
+                        display_name: 'Meeting Time',
+                        datetime_config: {
+                            time_interval: 30,
+                        },
+                        optional: true,
+                    } as DialogElement,
+                ];
+
+                const {form} = convertDialogToAppForm(
+                    elements,
+                    'Test Form',
+                    undefined,
+                    undefined,
+                    undefined,
+                    '',
+                    '',
+                    legacyOptions,
+                );
+
+                expect(form.fields).toHaveLength(1);
+                expect(form.fields?.[0]).toMatchObject({
+                    name: 'meeting_time',
+                    type: 'datetime',
+                    label: 'Meeting Time',
+                    time_interval: 30,
+                    is_required: false,
+                });
+                expect(form.fields?.[0]?.datetime_config?.time_interval).toBe(30);
+            });
+
+            it('datetime_config should take precedence over legacy fields', () => {
+                const elements: DialogElement[] = [
+                    {
+                        name: 'event_date',
+                        type: 'date',
+                        display_name: 'Event Date',
+                        min_date: '2024-01-01',
+                        max_date: '2024-12-31',
+                        datetime_config: {
+                            min_date: '2025-06-01',
+                            max_date: '2025-12-31',
+                        },
+                        optional: false,
+                    } as DialogElement,
+                ];
+
+                const {form} = convertDialogToAppForm(
+                    elements,
+                    'Test Form',
+                    undefined,
+                    undefined,
+                    undefined,
+                    '',
+                    '',
+                    legacyOptions,
+                );
+
+                expect(form.fields?.[0]?.min_date).toBe('2025-06-01');
+                expect(form.fields?.[0]?.max_date).toBe('2025-12-31');
+                expect(form.fields?.[0]?.datetime_config?.min_date).toBe('2025-06-01');
+                expect(form.fields?.[0]?.datetime_config?.max_date).toBe('2025-12-31');
+            });
+
             it('should not add datetime-specific properties to date fields', () => {
                 const elements: DialogElement[] = [
                     {

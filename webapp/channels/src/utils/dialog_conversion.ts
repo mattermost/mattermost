@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {isAppSelectOption, type AppForm, type AppField, type AppFormValue, type AppSelectOption, type AppFormValues} from '@mattermost/types/apps';
+import {isAppSelectOption, type AppForm, type AppField, type AppFormValue, type AppSelectOption, type AppFormValues, type DateTimeConfig} from '@mattermost/types/apps';
 import type {DialogElement} from '@mattermost/types/integrations';
 
 import {AppFieldTypes} from 'mattermost-redux/constants/apps';
@@ -457,20 +457,41 @@ export function convertElement(element: DialogElement, options: ConversionOption
 
     // Add date/datetime specific properties
     if (element.type === DialogElementTypes.DATE || element.type === DialogElementTypes.DATETIME) {
-        // Use datetime_config if provided
-        if (element.datetime_config) {
-            appField.datetime_config = element.datetime_config;
+        // Merge datetime_config over deprecated top-level fields (datetime_config takes precedence)
+        const minDate = element.datetime_config?.min_date ?? element.min_date;
+        const maxDate = element.datetime_config?.max_date ?? element.max_date;
+        const timeInterval = element.datetime_config?.time_interval ?? element.time_interval;
+
+        const mergedConfig: DateTimeConfig = {};
+        if (element.datetime_config?.location_timezone) {
+            mergedConfig.location_timezone = element.datetime_config.location_timezone;
+        }
+        if (element.datetime_config?.allow_manual_time_entry !== undefined) {
+            mergedConfig.allow_manual_time_entry = element.datetime_config.allow_manual_time_entry;
+        }
+        if (minDate !== undefined) {
+            mergedConfig.min_date = String(minDate);
+        }
+        if (maxDate !== undefined) {
+            mergedConfig.max_date = String(maxDate);
+        }
+        if (timeInterval !== undefined && element.type === DialogElementTypes.DATETIME) {
+            mergedConfig.time_interval = Number(timeInterval);
         }
 
-        // Simple fallback fields (used when datetime_config is not provided)
-        if (element.min_date !== undefined) {
-            appField.min_date = String(element.min_date);
+        if (Object.keys(mergedConfig).length > 0) {
+            appField.datetime_config = mergedConfig;
         }
-        if (element.max_date !== undefined) {
-            appField.max_date = String(element.max_date);
+
+        // Also set deprecated top-level fields for backward compatibility with consumers
+        if (minDate !== undefined) {
+            appField.min_date = String(minDate);
         }
-        if (element.time_interval !== undefined && element.type === DialogElementTypes.DATETIME) {
-            appField.time_interval = Number(element.time_interval);
+        if (maxDate !== undefined) {
+            appField.max_date = String(maxDate);
+        }
+        if (timeInterval !== undefined && element.type === DialogElementTypes.DATETIME) {
+            appField.time_interval = Number(timeInterval);
         }
 
         if (element.refresh !== undefined) {

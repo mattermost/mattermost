@@ -1534,4 +1534,90 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 		err = element.IsValid()
 		assert.NoError(t, err)
 	})
+
+	t.Run("should validate date element with DateTimeConfig.MinDate and MaxDate", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Test Date",
+			Name:        "test_date",
+			Type:        "date",
+			DateTimeConfig: &DialogDateTimeConfig{
+				MinDate: "2025-01-01",
+				MaxDate: "2025-12-31",
+			},
+		}
+		err := element.IsValid()
+		assert.NoError(t, err)
+	})
+
+	t.Run("should validate datetime element with DateTimeConfig.MinDate, MaxDate, and TimeInterval", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Test DateTime",
+			Name:        "test_datetime",
+			Type:        "datetime",
+			DateTimeConfig: &DialogDateTimeConfig{
+				MinDate:      "2025-01-01T00:00:00Z",
+				MaxDate:      "2025-12-31T23:59:59Z",
+				TimeInterval: 30,
+			},
+		}
+		err := element.IsValid()
+		assert.NoError(t, err)
+	})
+
+	t.Run("should reject invalid MinDate in DateTimeConfig", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Test Date",
+			Name:        "test_date",
+			Type:        "date",
+			DateTimeConfig: &DialogDateTimeConfig{
+				MinDate: "invalid-date",
+			},
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid date format")
+	})
+
+	t.Run("should reject invalid TimeInterval in DateTimeConfig", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Test DateTime",
+			Name:        "test_datetime",
+			Type:        "datetime",
+			DateTimeConfig: &DialogDateTimeConfig{
+				TimeInterval: 729,
+			},
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "divisor of 1440")
+	})
+
+	t.Run("DateTimeConfig should take precedence over legacy fields", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:  "Test Date",
+			Name:         "test_date",
+			Type:         "date",
+			MinDate:      "invalid-date", // legacy field is invalid
+			DateTimeConfig: &DialogDateTimeConfig{
+				MinDate: "2025-01-01", // config field is valid and takes precedence
+			},
+		}
+		cfg := element.EffectiveDateTimeConfig()
+		assert.Equal(t, "2025-01-01", cfg.MinDate)
+	})
+
+	t.Run("legacy fields used when DateTimeConfig not provided", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:  "Test DateTime",
+			Name:         "test_datetime",
+			Type:         "datetime",
+			MinDate:      "2025-01-01T00:00:00Z",
+			MaxDate:      "2025-12-31T23:59:59Z",
+			TimeInterval: 30,
+		}
+		cfg := element.EffectiveDateTimeConfig()
+		assert.Equal(t, "2025-01-01T00:00:00Z", cfg.MinDate)
+		assert.Equal(t, "2025-12-31T23:59:59Z", cfg.MaxDate)
+		assert.Equal(t, 30, cfg.TimeInterval)
+	})
 }

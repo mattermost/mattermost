@@ -3,6 +3,7 @@
 
 import type moment from 'moment-timezone';
 import React, {useCallback, useMemo} from 'react';
+import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import type {AppField} from '@mattermost/types/apps';
@@ -48,11 +49,10 @@ const AppsFormDateTimeField: React.FC<Props> = ({
 }) => {
     const userTimezone = useSelector(getCurrentTimezone);
 
-    // Extract datetime config with fallback to top-level fields
-    const config = field.datetime_config || {};
-    const locationTimezone = config.location_timezone;
-    const timePickerInterval = config.time_interval ?? field.time_interval ?? DEFAULT_TIME_INTERVAL_MINUTES;
-    const allowManualTimeEntry = config.allow_manual_time_entry ?? false;
+    // Resolve datetime config (datetime_config takes precedence over deprecated top-level fields)
+    const locationTimezone = field.datetime_config?.location_timezone;
+    const timePickerInterval = field.datetime_config?.time_interval ?? field.time_interval ?? DEFAULT_TIME_INTERVAL_MINUTES;
+    const allowManualTimeEntry = field.datetime_config?.allow_manual_time_entry ?? false;
 
     // Use location_timezone if specified, otherwise fall back to user's timezone
     const timezone = locationTimezone || userTimezone;
@@ -82,27 +82,35 @@ const AppsFormDateTimeField: React.FC<Props> = ({
         onChange(field.name, newValue);
     }, [field.name, onChange]);
 
+    // Resolve effective min/max dates (datetime_config takes precedence over deprecated top-level fields)
+    const effectiveMinDate = field.datetime_config?.min_date ?? field.min_date;
+    const effectiveMaxDate = field.datetime_config?.max_date ?? field.max_date;
+
     const {minDateTime, allowPastDates} = useMemo(() => {
-        if (!field.min_date) {
+        if (!effectiveMinDate) {
             return {minDateTime: undefined, allowPastDates: true};
         }
-        const min = stringToMoment(field.min_date, timezone) ?? undefined;
+        const min = stringToMoment(effectiveMinDate, timezone) ?? undefined;
         const now = getCurrentMomentForTimezone(timezone);
         return {minDateTime: min, allowPastDates: !min || min.isBefore(now, 'minute')};
-    }, [field.min_date, timezone]);
+    }, [effectiveMinDate, timezone]);
 
     const maxDateTime = useMemo(() => {
-        if (!field.max_date) {
+        if (!effectiveMaxDate) {
             return undefined;
         }
-        return stringToMoment(field.max_date, timezone) ?? undefined;
-    }, [field.max_date, timezone]);
+        return stringToMoment(effectiveMaxDate, timezone) ?? undefined;
+    }, [effectiveMaxDate, timezone]);
 
     return (
         <div className='apps-form-datetime-input'>
             {showTimezoneIndicator && (
-                <div style={{fontSize: '11px', color: '#888', marginBottom: '8px'}}>
-                    {'🌍 Times in ' + getTimezoneAbbreviation(timezone)}
+                <div className='apps-form-datetime-input__timezone-hint'>
+                    <FormattedMessage
+                        id='apps_form.datetime_field.timezone_hint'
+                        defaultMessage='Times in {timezone}'
+                        values={{timezone: getTimezoneAbbreviation(timezone)}}
+                    />
                 </div>
             )}
             <DateTimeInput
