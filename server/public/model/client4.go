@@ -6160,9 +6160,16 @@ func (c *Client4) GetJobs(ctx context.Context, jobType string, status string, pa
 
 // GetJobsByType gets all jobs of a given type, sorted with the job that was created most recently first.
 func (c *Client4) GetJobsByType(ctx context.Context, jobType string, page int, perPage int) ([]*Job, *Response, error) {
+	return c.GetJobsByTypeForTeam(ctx, jobType, page, perPage, "")
+}
+
+func (c *Client4) GetJobsByTypeForTeam(ctx context.Context, jobType string, page int, perPage int, teamID string) ([]*Job, *Response, error) {
 	values := url.Values{}
 	values.Set("page", strconv.Itoa(page))
 	values.Set("per_page", strconv.Itoa(perPage))
+	if teamID != "" {
+		values.Set("team_id", teamID)
+	}
 	r, err := c.doAPIGetWithQuery(ctx, c.jobsRoute().Join("type", jobType), values, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
@@ -8152,7 +8159,15 @@ func (c *Client4) GetChannelsForAccessControlPolicy(ctx context.Context, policyI
 }
 
 func (c *Client4) SearchChannelsForAccessControlPolicy(ctx context.Context, policyID string, options ChannelSearch) (*ChannelsWithCount, *Response, error) {
-	r, err := c.doAPIPostJSON(ctx, c.accessControlPolicyRoute(policyID).Join("resources", "channels", "search"), options)
+	return c.SearchChannelsForAccessControlPolicyForTeam(ctx, policyID, "", options)
+}
+
+func (c *Client4) SearchChannelsForAccessControlPolicyForTeam(ctx context.Context, policyID, teamID string, options ChannelSearch) (*ChannelsWithCount, *Response, error) {
+	var query url.Values
+	if teamID != "" {
+		query = url.Values{"team_id": []string{teamID}}
+	}
+	r, err := c.doAPIPostJSONWithQuery(ctx, c.accessControlPolicyRoute(policyID).Join("resources", "channels", "search"), query, options)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}

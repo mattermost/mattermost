@@ -18,7 +18,11 @@ import './policies.scss';
 
 type Props = {
     onPolicySelected?: (policy: AccessControlPolicy) => void;
+    onPoliciesLoaded?: (count: number) => void;
     simpleMode?: boolean;
+    hideHeader?: boolean;
+    hideDeleteAction?: boolean;
+    showRefreshButton?: boolean;
     actions: {
         searchPolicies: (term: string, type: string, after: string, limit: number) => Promise<ActionResult>;
         deletePolicy: (id: string) => Promise<ActionResult>;
@@ -49,8 +53,15 @@ export default function PolicyList(props: Props): JSX.Element {
 
         try {
             const action = await props.actions.searchPolicies(term, 'parent', afterParam, PAGE_SIZE + 1);
-            const data = action.data.policies || [];
-            const newTotal = action.data.total || 0;
+
+            if (action.error) {
+                setLoading(false);
+                setSearchErrored(true);
+                return;
+            }
+
+            const data = action.data?.policies || [];
+            const newTotal = action.data?.total || 0;
 
             // Check if we have more data than the page size, indicating there's a next page
             const hasNextPage = data.length > PAGE_SIZE;
@@ -74,6 +85,7 @@ export default function PolicyList(props: Props): JSX.Element {
                 setAfter(lastPolicyId);
                 setTotal(newTotal);
             }
+            props.onPoliciesLoaded?.(newTotal);
         } catch (error) {
             setLoading(false);
             setSearchErrored(true);
@@ -97,14 +109,14 @@ export default function PolicyList(props: Props): JSX.Element {
     };
 
     const nextPage = async () => {
-        // Save current cursor to history for "previous" navigation
         const newCursorHistory = [...cursorHistory, after];
+        const newPage = page + 1;
 
         setLoading(true);
-        setPage(page + 1);
         setCursorHistory(newCursorHistory);
 
         await fetchPolicies(search, after);
+        setPage(newPage);
     };
 
     const previousPage = async () => {
@@ -112,18 +124,16 @@ export default function PolicyList(props: Props): JSX.Element {
             return;
         }
 
-        // Remove the current cursor from history
         const newCursorHistory = [...cursorHistory];
         newCursorHistory.pop();
-
-        // Get the previous cursor
         const previousCursor = newCursorHistory.length > 0 ? newCursorHistory[newCursorHistory.length - 1] : '';
+        const newPage = page - 1;
 
         setLoading(true);
-        setPage(page - 1);
         setCursorHistory(newCursorHistory);
 
         await fetchPolicies(search, previousCursor);
+        setPage(newPage);
     };
 
     const getResources = (policy: AccessControlPolicy) => {
@@ -197,7 +207,11 @@ export default function PolicyList(props: Props): JSX.Element {
                                     <Menu.Item
                                         id={`policy-menu-edit-${policy.id}`}
                                         onClick={() => {
-                                            history.push(`/admin_console/system_attributes/attribute_based_access_control/edit_policy/${policy.id}`);
+                                            if (props.onPolicySelected) {
+                                                props.onPolicySelected(policy);
+                                            } else {
+                                                history.push(`/admin_console/system_attributes/attribute_based_access_control/edit_policy/${policy.id}`);
+                                            }
                                         }}
                                         leadingElement={<i className='icon icon-pencil-outline'/>}
                                         labels={
@@ -207,19 +221,21 @@ export default function PolicyList(props: Props): JSX.Element {
                                             />
                                         }
                                     />
-                                    <Menu.Item
-                                        id={`policy-menu-delete-${policy.id}`}
-                                        onClick={() => handleDelete(policy.id)}
-                                        leadingElement={<i className='icon icon-trash-can-outline'/>}
-                                        labels={
-                                            <FormattedMessage
-                                                id='admin.access_control.delete'
-                                                defaultMessage='Delete'
-                                            />
-                                        }
-                                        isDestructive={true}
-                                        disabled={Boolean(policy.props?.child_ids?.length)}
-                                    />
+                                    {!props.hideDeleteAction && (
+                                        <Menu.Item
+                                            id={`policy-menu-delete-${policy.id}`}
+                                            onClick={() => handleDelete(policy.id)}
+                                            leadingElement={<i className='icon icon-trash-can-outline'/>}
+                                            labels={
+                                                <FormattedMessage
+                                                    id='admin.access_control.delete'
+                                                    defaultMessage='Delete'
+                                                />
+                                            }
+                                            isDestructive={true}
+                                            disabled={Boolean(policy.props?.child_ids?.length)}
+                                        />
+                                    )}
                                 </Menu.Container>
                             )}
                         </div>
@@ -285,12 +301,7 @@ export default function PolicyList(props: Props): JSX.Element {
     const columns: Column[] = getColumns();
     const {startCount, endCount} = getPaginationProps();
 
-    let placeholderEmpty: JSX.Element = (
-        <FormattedMessage
-            id='admin.user_settings.policy_list.no_policies_found'
-            defaultMessage='No policies found'
-        />
-    );
+    let placeholderEmpty: JSX.Element;
 
     if (searchErrored) {
         placeholderEmpty = (
@@ -298,6 +309,37 @@ export default function PolicyList(props: Props): JSX.Element {
                 id='admin.user_settings.policy_list.search_policy_errored'
                 defaultMessage='Something went wrong. Try again'
             />
+        );
+    } else if (search && policies.length === 0) {
+        placeholderEmpty = (
+            <div className='PolicyList__no-results'>
+                <FormattedMessage
+                    id='admin.user_settings.policy_list.no_results_for'
+                    defaultMessage='No results for "{term}"'
+                    values={{term: search}}
+                />
+                <span className='PolicyList__no-results-hint'>
+                    <FormattedMessage
+                        id='admin.user_settings.policy_list.no_results_hint'
+                        defaultMessage='Check the spelling or try another search.'
+                    />
+                </span>
+            </div>
+        );
+    } else {
+        placeholderEmpty = (
+            <div className='PolicyList__no-results'>
+                <FormattedMessage
+                    id='admin.user_settings.policy_list.no_policies_found'
+                    defaultMessage='No policies found'
+                />
+                <span className='PolicyList__no-results-hint'>
+                    <FormattedMessage
+                        id='admin.user_settings.policy_list.no_policies_hint'
+                        defaultMessage='Add a new policy to get started'
+                    />
+                </span>
+            </div>
         );
     }
 
@@ -307,7 +349,7 @@ export default function PolicyList(props: Props): JSX.Element {
 
     return (
         <div className='PolicyTable'>
-            {!props.simpleMode && (
+            {!props.simpleMode && !props.hideHeader && (
                 <div className='policy-header'>
                     <div className='policy-header-text'>
                         <h1>
@@ -352,6 +394,16 @@ export default function PolicyList(props: Props): JSX.Element {
                 rowsContainerStyles={rowsContainerStyles}
                 nextPage={nextPage}
                 previousPage={previousPage}
+                extraComponent={props.showRefreshButton ? (
+                    <button
+                        className='style--none policy-refresh-btn'
+                        onClick={() => fetchPolicies(search, '', true)}
+                        aria-label={intl.formatMessage({id: 'admin.access_control.policies.refresh', defaultMessage: 'Refresh list'})}
+                        title={intl.formatMessage({id: 'admin.access_control.policies.refresh', defaultMessage: 'Refresh list'})}
+                    >
+                        <i className='icon icon-refresh'/>
+                    </button>
+                ) : undefined}
             />
         </div>
     );

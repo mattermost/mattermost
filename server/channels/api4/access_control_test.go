@@ -5,6 +5,7 @@ package api4
 
 import (
 	"context"
+	"os"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -582,6 +583,89 @@ func TestSearchAccessControlPolicies(t *testing.T) {
 	}, "SearchAccessControlPolicies with system admin")
 }
 
+func TestSearchTeamAccessControlPolicies(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
+	th := Setup(t).InitBasic(t)
+	t.Cleanup(func() {
+		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
+	})
+
+	teamSearch := model.AccessControlPolicySearch{TeamID: th.BasicTeam.Id}
+
+	setupLicenseAndABAC := func(t *testing.T) {
+		t.Helper()
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "SetLicense should return true")
+
+		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().Channels().AccessControl = mockAccessControlService
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+
+		th.AddPermissionToRole(t, model.PermissionManageTeamAccessRules.Id, model.TeamAdminRoleId)
+	}
+
+	t.Run("without license returns not implemented", func(t *testing.T) {
+		originalACS := th.App.Srv().Channels().AccessControl
+		th.App.Srv().Channels().AccessControl = nil
+		defer func() { th.App.Srv().Channels().AccessControl = originalACS }()
+
+		_, resp, err := th.SystemAdminClient.SearchAccessControlPolicies(context.Background(), teamSearch)
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+	})
+
+	t.Run("regular user without manage_team_access_rules permission gets forbidden", func(t *testing.T) {
+		setupLicenseAndABAC(t)
+
+		_, resp, err := th.Client.SearchAccessControlPolicies(context.Background(), teamSearch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("team admin with manage_team_access_rules can search", func(t *testing.T) {
+		setupLicenseAndABAC(t)
+
+		th.LoginTeamAdmin(t)
+		defer th.LoginBasic(t)
+
+		policiesResp, resp, err := th.Client.SearchAccessControlPolicies(context.Background(), teamSearch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, policiesResp)
+		require.Empty(t, policiesResp.Policies)
+		require.Equal(t, int64(0), policiesResp.Total)
+	})
+
+	t.Run("team admin without manage_team_access_rules gets forbidden", func(t *testing.T) {
+		setupLicenseAndABAC(t)
+
+		defaultPerms := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+		th.RemovePermissionFromRole(t, model.PermissionManageTeamAccessRules.Id, model.TeamAdminRoleId)
+
+		th.LoginTeamAdmin(t)
+		defer th.LoginBasic(t)
+
+		_, resp, err := th.Client.SearchAccessControlPolicies(context.Background(), teamSearch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		setupLicenseAndABAC(t)
+
+		policiesResp, resp, err := client.SearchAccessControlPolicies(context.Background(), teamSearch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, policiesResp)
+		require.Empty(t, policiesResp.Policies)
+		require.Equal(t, int64(0), policiesResp.Total)
+	}, "system admin and local can search team policies")
+}
+
 func TestAssignAccessPolicy(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true }).InitBasic(t)
 
@@ -785,20 +869,25 @@ func TestGetChannelsForAccessControlPolicy(t *testing.T) {
 func TestSearchChannelsForAccessControlPolicy(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true }).InitBasic(t)
 
-	samplePolicy := &model.AccessControlPolicy{
-		ID:       model.NewId(),
-		Type:     model.AccessControlPolicyTypeParent,
-		Version:  model.AccessControlPolicyVersionV0_2,
-		Revision: 1,
-		Rules: []model.AccessControlPolicyRule{
-			{
-				Expression: "user.attributes.team == 'engineering'",
-				Actions:    []string{"*"},
+	newSamplePolicy := func() *model.AccessControlPolicy {
+		return &model.AccessControlPolicy{
+			ID:      model.NewId(),
+			Name:    "test-policy-" + model.NewId(),
+			Type:    model.AccessControlPolicyTypeParent,
+			Version: model.AccessControlPolicyVersionV0_2,
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Expression: "user.attributes.team == 'engineering'",
+					Actions:    []string{"*"},
+				},
 			},
-		},
+			Scope:   model.AccessControlPolicyScopeTeam,
+			ScopeID: th.BasicTeam.Id,
+		}
 	}
 
-	t.Run("SearchChannelsForAccessControlPolicy with regular user", func(t *testing.T) {
+	setupLicenseAndABAC := func(t *testing.T) {
+		t.Helper()
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
@@ -809,10 +898,114 @@ func TestSearchChannelsForAccessControlPolicy(t *testing.T) {
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
 		})
 
-		_, resp, err := th.Client.SearchChannelsForAccessControlPolicy(context.Background(), samplePolicy.ID, model.ChannelSearch{})
+		th.AddPermissionToRole(t, model.PermissionManageTeamAccessRules.Id, model.TeamAdminRoleId)
+	}
+
+	t.Run("regular user gets forbidden", func(t *testing.T) {
+		setupLicenseAndABAC(t)
+
+		_, resp, err := th.Client.SearchChannelsForAccessControlPolicy(context.Background(), model.NewId(), model.ChannelSearch{})
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
+
+	t.Run("team admin without team_id query param gets forbidden", func(t *testing.T) {
+		setupLicenseAndABAC(t)
+
+		th.LinkUserToTeam(t, th.TeamAdminUser, th.BasicTeam)
+		th.UpdateUserToTeamAdmin(t, th.TeamAdminUser, th.BasicTeam)
+
+		th.LoginTeamAdmin(t)
+		defer th.LoginBasic(t)
+
+		// No team_id in query param → should be forbidden
+		_, resp, err := th.Client.SearchChannelsForAccessControlPolicy(context.Background(), model.NewId(), model.ChannelSearch{})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("team admin with valid team_id can search", func(t *testing.T) {
+		setupLicenseAndABAC(t)
+
+		policy := newSamplePolicy()
+		savedPolicy, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+		require.NoError(t, err)
+		defer func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, savedPolicy.ID)
+		}()
+
+		th.LinkUserToTeam(t, th.TeamAdminUser, th.BasicTeam)
+		th.UpdateUserToTeamAdmin(t, th.TeamAdminUser, th.BasicTeam)
+
+		th.LoginTeamAdmin(t)
+		defer th.LoginBasic(t)
+
+		channelsResp, resp, err := th.Client.SearchChannelsForAccessControlPolicyForTeam(
+			context.Background(), savedPolicy.ID, th.BasicTeam.Id, model.ChannelSearch{})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, channelsResp)
+	})
+
+	t.Run("team admin body TeamIds forced to authorized team", func(t *testing.T) {
+		setupLicenseAndABAC(t)
+
+		policy := newSamplePolicy()
+		savedPolicy, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+		require.NoError(t, err)
+		defer func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, savedPolicy.ID)
+		}()
+
+		// Create a second team with a private channel
+		otherTeam := th.CreateTeam(t)
+		otherChannel := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypePrivate, otherTeam.Id)
+		_ = otherChannel
+
+		th.LinkUserToTeam(t, th.TeamAdminUser, th.BasicTeam)
+		th.UpdateUserToTeamAdmin(t, th.TeamAdminUser, th.BasicTeam)
+
+		th.LoginTeamAdmin(t)
+		defer th.LoginBasic(t)
+
+		// Attempt to search with body TeamIds pointing to a different team.
+		// The authZ is against BasicTeam (via team_id query param), but the
+		// body tries to query otherTeam's channels. The fix should force
+		// TeamIds to BasicTeam.Id regardless of what the body says.
+		channelsResp, resp, err := th.Client.SearchChannelsForAccessControlPolicyForTeam(
+			context.Background(), savedPolicy.ID, th.BasicTeam.Id,
+			model.ChannelSearch{TeamIds: []string{otherTeam.Id}})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, channelsResp)
+
+		// None of the returned channels should belong to the other team
+		for _, ch := range channelsResp.Channels {
+			require.Equal(t, th.BasicTeam.Id, ch.TeamId,
+				"team admin should only see channels from the authorized team, got channel %s from team %s", ch.Id, ch.TeamId)
+		}
+	})
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		setupLicenseAndABAC(t)
+
+		policy := newSamplePolicy()
+		savedPolicy, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+		require.NoError(t, err)
+		defer func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, savedPolicy.ID)
+		}()
+
+		// System admin can search with arbitrary TeamIds (no restriction)
+		otherTeam := th.CreateTeam(t)
+
+		channelsResp, resp, err := client.SearchChannelsForAccessControlPolicy(
+			context.Background(), savedPolicy.ID,
+			model.ChannelSearch{TeamIds: []string{otherTeam.Id}})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, channelsResp)
+	}, "system admin can search with arbitrary TeamIds")
 }
 
 func TestSetActiveStatus(t *testing.T) {

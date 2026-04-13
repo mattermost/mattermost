@@ -19,6 +19,8 @@ const (
 
 	AccessControlPolicyVersionV0_1 = "v0.1"
 	AccessControlPolicyVersionV0_2 = "v0.2"
+
+	AccessControlPolicyScopeTeam = "team"
 )
 
 // AccessControlAttribute represents a user attribute with its name and possible values
@@ -49,6 +51,8 @@ type AccessControlPolicySearch struct {
 	IncludeChildren bool                      `json:"include_children"`
 	Active          bool                      `json:"active"`
 	TeamID          string                    `json:"team_id"`
+	Scope           string                    `json:"scope,omitempty"`
+	ScopeID         string                    `json:"scope_id,omitempty"`
 }
 
 type AccessControlPolicyCursor struct {
@@ -72,6 +76,9 @@ type AccessControlPolicy struct {
 
 	Imports []string                  `json:"imports"`
 	Rules   []AccessControlPolicyRule `json:"rules"`
+
+	Scope   string `json:"scope,omitempty"`    // "" (system) or "team"
+	ScopeID string `json:"scope_id,omitempty"` // team ID when scope="team"
 
 	Props map[string]any `json:"props"` // add auto-sync property here, also maybe the attributes being used in the expression
 }
@@ -100,6 +107,7 @@ type AccessControlPolicyActiveUpdate struct {
 // AccessControlPolicyActiveUpdateRequest is used in the API to update active status for multiple policies.
 type AccessControlPolicyActiveUpdateRequest struct {
 	Entries []AccessControlPolicyActiveUpdate `json:"entries"`
+	TeamID  string                            `json:"team_id,omitempty"`
 }
 
 func (r *AccessControlPolicyActiveUpdateRequest) Auditable() map[string]any {
@@ -110,9 +118,13 @@ func (r *AccessControlPolicyActiveUpdateRequest) Auditable() map[string]any {
 			"active": entry.Active,
 		})
 	}
-	return map[string]any{
+	result := map[string]any{
 		"entries": entries,
 	}
+	if r.TeamID != "" {
+		result["team_id"] = r.TeamID
+	}
+	return result
 }
 
 func (p *AccessControlPolicy) IsValid() *AppError {
