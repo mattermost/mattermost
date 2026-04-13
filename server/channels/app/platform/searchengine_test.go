@@ -589,7 +589,7 @@ func TestWatcherHealthFlag(t *testing.T) {
 		// Track SetHealthy calls.
 		var healthyValue atomic.Int32
 		healthyValue.Store(1) // assume healthy at start
-		engineMock.ExpectedCalls = removeSetHealthyExpectation(engineMock.ExpectedCalls)
+		engineMock.On("SetHealthy").Unset()
 		engineMock.On("SetHealthy", mock.Anything).Run(func(args mock.Arguments) {
 			if args.Bool(0) {
 				healthyValue.Store(1)
@@ -627,7 +627,7 @@ func TestWatcherHealthFlag(t *testing.T) {
 
 		// Track SetHealthy calls.
 		var healthyValue atomic.Int32
-		engineMock.ExpectedCalls = removeSetHealthyExpectation(engineMock.ExpectedCalls)
+		engineMock.On("SetHealthy").Unset()
 		engineMock.On("SetHealthy", mock.Anything).Run(func(args mock.Arguments) {
 			if args.Bool(0) {
 				healthyValue.Store(1)
@@ -660,16 +660,4 @@ func TestWatcherHealthFlag(t *testing.T) {
 		}, 2*time.Second, 5*time.Millisecond,
 			"engine should be marked healthy after successful health check")
 	})
-}
-
-// removeSetHealthyExpectation removes the default SetHealthy expectation from
-// setupWatcherTest so the test can install its own with tracking.
-func removeSetHealthyExpectation(calls []*mock.Call) []*mock.Call {
-	filtered := make([]*mock.Call, 0, len(calls))
-	for _, c := range calls {
-		if c.Method != "SetHealthy" {
-			filtered = append(filtered, c)
-		}
-	}
-	return filtered
 }
