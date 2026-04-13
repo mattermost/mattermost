@@ -658,7 +658,7 @@ func (a *App) HasPermissionToFileAction(rctx request.CTX, userID string, roles s
 		Action: action,
 	})
 	if evalErr != nil {
-		rctx.Logger().Warn("ABAC file action evaluation failed, denying by default",
+		rctx.Logger().Debug("ABAC file action evaluation failed, denying by default",
 			mlog.String("user_id", userID),
 			mlog.String("action", action),
 			mlog.String("channel_id", channelID),
