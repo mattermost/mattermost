@@ -3,6 +3,7 @@
 
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 import {getAdminAccount} from '../../../support/env';
+import {newTestPassword} from '../../../utils';
 
 export type SimpleUser = Pick<Cypress.UserProfile, 'username' | 'first_name' | 'last_name' | 'nickname' | 'password' | 'email'>;
 
@@ -224,7 +225,7 @@ function createChannel(channelType: string, teamId: string, userToAdd: Cypress.U
 function generatePrefixedUser(user: Omit<SimpleUser, 'password' | 'email'>, prefix: string) {
     return {
         username: withPrefix(user.username, prefix),
-        password: 'passwd',
+        password: newTestPassword(),
         first_name: withPrefix(user.first_name, prefix),
         last_name: withPrefix(user.last_name, prefix),
         email: createEmail(user.username, prefix),
