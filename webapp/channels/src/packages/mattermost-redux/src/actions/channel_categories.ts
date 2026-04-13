@@ -196,19 +196,7 @@ export function addChannelToInitialCategory(channel: Channel, setOnServer = fals
         }
 
         if (areManagedCategoriesEnabled(state)) {
-            Client4.getPropertyValues<string>(
-                ManagedCategoryPropertyGroupName,
-                'channel',
-                channel.id,
-            ).then((values) => {
-                const categoryValue = values[0];
-                if (categoryValue && channel.team_id) {
-                    dispatch(addChannelToManagedCategory(channel.team_id, channel.id, categoryValue.value));
-                }
-            }).catch((error) => {
-                forceLogoutIfNecessary(error, dispatch, getState);
-                dispatch(logError(error));
-            });
+            dispatch(fetchChannelManagedCategoryMapping(channel));
         }
 
         // Add the new channel to the Channels category on the channel's team
@@ -509,6 +497,27 @@ export function removeChannelFromManagedCategory(
             id: channelId,
             team_id: teamId,
         },
+    };
+}
+
+export function fetchChannelManagedCategoryMapping(channel: Channel): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        try {
+            const values = await Client4.getPropertyValues<string>(
+                ManagedCategoryPropertyGroupName,
+                'channel',
+                channel.id,
+            );
+            const categoryValue = values[0];
+            if (categoryValue && channel.team_id) {
+                dispatch(addChannelToManagedCategory(channel.team_id, channel.id, categoryValue.value));
+            }
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+        }
+
+        return {data: true};
     };
 }
 
