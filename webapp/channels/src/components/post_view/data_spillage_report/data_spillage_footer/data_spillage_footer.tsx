@@ -11,7 +11,7 @@ import {selectPostFromRightHandSideSearch} from 'actions/views/rhs';
 
 type Props = {
     post: Post;
-    flaggedPostID?: string;
+    flaggedPostID: string;
 };
 
 export default function DataSpillageFooter({post, flaggedPostID}: Props) {

@@ -5927,6 +5927,10 @@
     "translation": "**File Attachments:** {{.FileNames}} — **FileInfo Rows:** {{.Count}} deleted"
   },
   {
+    "id": "app.data_spillage.report.detail.file_attachments_info_ids",
+    "translation": "**File Info IDs:** {{.FileInfoIDs}}"
+  },
+  {
     "id": "app.data_spillage.report.detail.file_names",
     "translation": "{{.FileNames}}"
   },
@@ -6288,7 +6292,7 @@
   },
   {
     "id": "app.file_info.not_found",
-    "translation": "File not found in file store at path {{.Path}}."
+    "translation": "File not found in file store at path."
   },
   {
     "id": "app.file_info.permanent_delete_by_user.app_error",

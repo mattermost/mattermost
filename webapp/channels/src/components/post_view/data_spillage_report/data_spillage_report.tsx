@@ -152,10 +152,10 @@ export function DataSpillageReport({post, isRHS}: Props) {
         return (
             <DataSpillageFooter
                 post={post}
-                flaggedPostID={reportedPost?.id}
+                flaggedPostID={reportedPostId}
             />
         );
-    }, [isRHS, post, reportedPost?.id]);
+    }, [isRHS, post, reportedPostId]);
 
     const actionRow = useMemo(() => {
         if (!reportedPost || !reportingUser) {

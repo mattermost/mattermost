@@ -1747,7 +1747,7 @@ func (a *App) PermanentDeleteFilesByPost(rctx request.CTX, postID string, report
 	}
 
 	if report != nil {
-		report.AddStepWithParams(i18n.TranslationId("app.data_spillage.report.step.fileinfo_rows"), model.StepSuccess, i18n.TranslationId("app.data_spillage.report.detail.file_attachments_info"), map[string]any{"FileInfoIDs": strings.Join(fileInfoIDs, ", ")}, nil)
+		report.AddStepWithParams(i18n.TranslationId("app.data_spillage.report.step.fileinfo_rows"), model.StepSuccess, i18n.TranslationId("app.data_spillage.report.detail.file_attachments_info_ids"), map[string]any{"FileInfoIDs": strings.Join(fileInfoIDs, ", ")}, nil)
 	}
 
 	a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, true)
@@ -1762,7 +1762,8 @@ func (a *App) RemoveFilesFromFileStore(rctx request.CTX, fileInfos []*model.File
 	for _, info := range fileInfos {
 		appErr := a.RemoveFileFromFileStore(rctx, info.Path)
 		if appErr != nil && appErr.StatusCode != http.StatusNotFound {
-			errs = append(errs, appErr)
+			newAppErr := model.NewAppError("RemoveFilesFromFileStore", "app.file_info.remove_file.app_error", map[string]interface{}{"FileInfoID": info.Id}, "", http.StatusInternalServerError)
+			errs = append(errs, newAppErr)
 		}
 
 		if info.PreviewPath != "" {
@@ -1789,9 +1790,9 @@ func (a *App) RemoveFileFromFileStore(rctx request.CTX, path string) *model.AppE
 
 	if !res {
 		rctx.Logger().Warn("File not found", mlog.String("path", path))
-		return model.NewAppError("RemoveFileFromFile", "app.file_info.not_found", map[string]any{"Path": path}, "", http.StatusNotFound)
+		return model.NewAppError("RemoveFileFromFile", "app.file_info.not_found", nil, "", http.StatusNotFound)
 	}
-
+	s
 	appErr = a.RemoveFile(path)
 	if appErr != nil {
 		rctx.Logger().Warn(
