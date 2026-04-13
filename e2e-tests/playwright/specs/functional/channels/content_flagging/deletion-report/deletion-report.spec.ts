@@ -65,4 +65,3 @@ test('Reviewer receives a deletion report summary after removing a flagged post'
     const expectedFileName = `deletion_report_${post.id}.md`;
     await expect(rhsLastPost.container).toContainText(expectedFileName);
 });
-
