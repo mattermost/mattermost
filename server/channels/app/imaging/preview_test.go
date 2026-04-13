@@ -8,8 +8,8 @@ import (
 	"image/color"
 	"testing"
 
-	"github.com/anthonynsimon/bild/transform"
 	"github.com/stretchr/testify/require"
+	xdraw "golang.org/x/image/draw"
 )
 
 func TestGenerateThumbnail(t *testing.T) {
@@ -164,7 +164,7 @@ func TestResize(t *testing.T) {
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			resizedImg := Resize(tc.img, tc.targetW, tc.targetH, transform.Lanczos)
+			resizedImg := Resize(tc.img, tc.targetW, tc.targetH, xdraw.BiLinear)
 			require.Equal(t, tc.expectedW, resizedImg.Bounds().Dx())
 			require.Equal(t, tc.expectedH, resizedImg.Bounds().Dy())
 		})

@@ -6,10 +6,10 @@ package imaging
 import (
 	"image"
 	"image/color"
+	"image/draw"
 	"math"
 
-	"github.com/anthonynsimon/bild/clone"
-	"github.com/anthonynsimon/bild/transform"
+	xdraw "golang.org/x/image/draw"
 )
 
 type rawImg interface {
@@ -142,7 +142,7 @@ func FillImageTransparency(img image.Image, c color.Color) {
 	}
 }
 
-// CropAnchor cuts out a rectangular region with the specified size
+// CropCenter cuts out a rectangular region with the specified size
 // from the image using the specified anchor point and returns the cropped image.
 // Adapted from github.com/disintegration/imaging
 func CropCenter(img image.Image, w, h int) image.Image {
@@ -150,7 +150,9 @@ func CropCenter(img image.Image, w, h int) image.Image {
 	anchorPoint := image.Pt(srcBounds.Min.X+(srcBounds.Dx()-w)/2, srcBounds.Min.Y+(srcBounds.Dy()-h)/2)
 	r := image.Rect(0, 0, w, h).Add(anchorPoint)
 	b := srcBounds.Intersect(r)
-	return transform.Crop(img, b)
+	dst := image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
+	draw.Draw(dst, dst.Bounds(), img, b.Min, draw.Src)
+	return dst
 }
 
 // resizeAndCrop resizes the image to the smallest possible size that will cover the specified dimensions,
@@ -168,9 +170,9 @@ func resizeAndCropCenter(img image.Image, width, height int) image.Image {
 
 	var tmp image.Image
 	if srcAspectRatio < dstAspectRatio {
-		tmp = Resize(img, dstW, 0, transform.Lanczos)
+		tmp = Resize(img, dstW, 0, xdraw.BiLinear)
 	} else {
-		tmp = Resize(img, 0, dstH, transform.Lanczos)
+		tmp = Resize(img, 0, dstH, xdraw.BiLinear)
 	}
 
 	return CropCenter(tmp, dstW, dstH)
@@ -194,7 +196,7 @@ func FillCenter(img image.Image, dstW, dstH int) image.Image {
 	}
 
 	if srcW == dstW && srcH == dstH {
-		return clone.AsShallowRGBA(img)
+		return img
 	}
 
 	return resizeAndCropCenter(img, dstW, dstH)
@@ -217,7 +219,7 @@ func Fit(img image.Image, maxW, maxH int) image.Image {
 	}
 
 	if srcW <= maxW && srcH <= maxH {
-		return clone.AsShallowRGBA(img)
+		return img
 	}
 
 	srcAspectRatio := float64(srcW) / float64(srcH)
@@ -232,13 +234,14 @@ func Fit(img image.Image, maxW, maxH int) image.Image {
 		newW = int(float64(newH) * srcAspectRatio)
 	}
 
-	return Resize(img, newW, newH, transform.Lanczos)
+	return Resize(img, newW, newH, xdraw.BiLinear)
 }
 
-// Resize resizes the image to the specified width and height using the specified resampling filter and returns the transformed image.
+// Resize resizes the image to the specified width and height using the specified resampling
+// interpolator and returns the transformed image.
 // If one of width or height is 0, the image aspect ratio is preserved.
 // Adapted from github.com/disintegration/imaging
-func Resize(img image.Image, targetWidth, targetHeight int, filter transform.ResampleFilter) image.Image {
+func Resize(img image.Image, targetWidth, targetHeight int, interp xdraw.Interpolator) image.Image {
 	if targetWidth < 0 || targetHeight < 0 {
 		return &image.NRGBA{}
 	}
@@ -263,5 +266,7 @@ func Resize(img image.Image, targetWidth, targetHeight int, filter transform.Res
 		targetHeight = int(math.Max(1.0, math.Floor(tmpH+0.5)))
 	}
 
-	return transform.Resize(img, targetWidth, targetHeight, filter)
+	dst := image.NewNRGBA(image.Rect(0, 0, targetWidth, targetHeight))
+	interp.Scale(dst, dst.Bounds(), img, img.Bounds(), xdraw.Src, nil)
+	return dst
 }
