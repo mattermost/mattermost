@@ -4,11 +4,13 @@
 package properties
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 // rejectTemplateValues checks that none of the given values target a template
@@ -16,27 +18,36 @@ import (
 // This is enforced at the service layer to cover all entry points (API,
 // CPA endpoints, plugin API).
 func (ps *PropertyService) rejectTemplateValues(values []*model.PropertyValue) error {
-	// Collect unique (groupID, fieldID) pairs
-	type fieldKey struct{ groupID, fieldID string }
-	seen := make(map[fieldKey]struct{}, len(values))
+	// Collect unique field IDs
+	seen := make(map[string]struct{}, len(values))
 	for _, v := range values {
 		if v == nil {
 			continue
 		}
-		seen[fieldKey{v.GroupID, v.FieldID}] = struct{}{}
+		seen[v.FieldID] = struct{}{}
+	}
+	if len(seen) == 0 {
+		return nil
 	}
 
-	for key := range seen {
-		field, err := ps.fieldStore.GetFromMaster("", key.fieldID)
-		if err != nil {
-			return fmt.Errorf("failed to look up field %q: %w", key.fieldID, err)
-		}
+	fieldIDs := make([]string, 0, len(seen))
+	for id := range seen {
+		fieldIDs = append(fieldIDs, id)
+	}
+
+	// Batch lookup from master to avoid replication lag
+	fields, err := ps.fieldStore.GetMany(store.WithMaster(context.Background()), "", fieldIDs)
+	if err != nil {
+		return fmt.Errorf("failed to look up fields for template check: %w", err)
+	}
+
+	for _, field := range fields {
 		if field.ObjectType == model.PropertyFieldObjectTypeTemplate {
 			return model.NewAppError(
 				"PropertyService",
 				"app.property_value.template_no_values.app_error",
 				nil,
-				fmt.Sprintf("template field %q cannot have values", key.fieldID),
+				fmt.Sprintf("template field %q cannot have values", field.ID),
 				http.StatusBadRequest,
 			)
 		}

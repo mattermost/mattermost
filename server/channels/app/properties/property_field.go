@@ -4,6 +4,7 @@
 package properties
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -23,7 +24,7 @@ func (ps *PropertyService) createPropertyField(field *model.PropertyField) (*mod
 
 	// If this field links to a source, validate the source and copy its schema
 	if field.LinkedFieldID != nil && *field.LinkedFieldID != "" {
-		source, err := ps.fieldStore.GetFromMaster("", *field.LinkedFieldID)
+		source, err := ps.fieldStore.Get(store.WithMaster(context.Background()), "", *field.LinkedFieldID)
 		if err != nil {
 			if store.IsErrNotFound(err) {
 				return nil, model.NewAppError(
@@ -134,19 +135,19 @@ func (ps *PropertyService) createPropertyField(field *model.PropertyField) (*mod
 }
 
 func (ps *PropertyService) getPropertyField(groupID, id string) (*model.PropertyField, error) {
-	return ps.fieldStore.Get(groupID, id)
+	return ps.fieldStore.Get(context.Background(), groupID, id)
 }
 
 func (ps *PropertyService) getPropertyFieldFromMaster(groupID, id string) (*model.PropertyField, error) {
-	return ps.fieldStore.GetFromMaster(groupID, id)
+	return ps.fieldStore.Get(store.WithMaster(context.Background()), groupID, id)
 }
 
 func (ps *PropertyService) getPropertyFields(groupID string, ids []string) ([]*model.PropertyField, error) {
-	return ps.fieldStore.GetMany(groupID, ids)
+	return ps.fieldStore.GetMany(context.Background(), groupID, ids)
 }
 
 func (ps *PropertyService) getPropertyFieldByName(groupID, targetID, name string) (*model.PropertyField, error) {
-	return ps.fieldStore.GetFieldByName(groupID, targetID, name)
+	return ps.fieldStore.GetFieldByName(context.Background(), groupID, targetID, name)
 }
 
 func (ps *PropertyService) countActivePropertyFieldsForGroup(groupID string) (int64, error) {
@@ -196,7 +197,10 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 		ids[i] = f.ID
 	}
 
-	existingFields, err := ps.fieldStore.GetMany(groupID, ids)
+	// Read from master to avoid replication lag between this read and the
+	// subsequent UPDATE (which also runs against master). This closes the
+	// TOCTOU window that a replica read would leave open.
+	existingFields, err := ps.fieldStore.GetMany(store.WithMaster(context.Background()), groupID, ids)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get existing fields for update: %w", err)
 	}

@@ -4,6 +4,7 @@
 package properties
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"testing"
@@ -1679,7 +1680,7 @@ func TestOptimisticConcurrency(t *testing.T) {
 		})
 
 		// Modify the field via the store directly (simulating another API request)
-		freshFromDB, err := th.dbStore.PropertyField().Get(groupID, field.ID)
+		freshFromDB, err := th.dbStore.PropertyField().Get(context.Background(), groupID,field.ID)
 		require.NoError(t, err)
 		freshFromDB.Name = "External Update"
 		_, err = th.dbStore.PropertyField().Update(groupID, []*model.PropertyField{freshFromDB}, nil)
@@ -1775,7 +1776,7 @@ func TestOptimisticConcurrency(t *testing.T) {
 		require.Equal(t, "OCC Source", result.Name)
 
 		// Verify propagation occurred
-		linkedAfter, err := th.dbStore.PropertyField().Get(groupID, linkedField.ID)
+		linkedAfter, err := th.dbStore.PropertyField().Get(context.Background(), groupID,linkedField.ID)
 		require.NoError(t, err)
 		opts := linkedAfter.Attrs["options"].([]any)
 		require.Len(t, opts, 2)

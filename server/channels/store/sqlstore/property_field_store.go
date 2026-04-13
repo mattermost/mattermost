@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"strings"
@@ -57,20 +58,15 @@ func (s *SqlPropertyFieldStore) Create(field *model.PropertyField) (*model.Prope
 	return field, nil
 }
 
-func (s *SqlPropertyFieldStore) get(groupID, id string, fromMaster bool) (*model.PropertyField, error) {
+func (s *SqlPropertyFieldStore) Get(ctx context.Context, groupID, id string) (*model.PropertyField, error) {
 	builder := s.tableSelectQuery.Where(sq.Eq{"id": id})
 
 	if groupID != "" {
 		builder = builder.Where(sq.Eq{"GroupID": groupID})
 	}
 
-	db := s.GetReplica()
-	if fromMaster {
-		db = s.GetMaster()
-	}
-
 	var field model.PropertyField
-	if err := db.GetBuilder(&field, builder); err != nil {
+	if err := s.DBXFromContext(ctx).GetBuilder(&field, builder); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("PropertyField", id)
 		}
@@ -80,15 +76,7 @@ func (s *SqlPropertyFieldStore) get(groupID, id string, fromMaster bool) (*model
 	return &field, nil
 }
 
-func (s *SqlPropertyFieldStore) Get(groupID, id string) (*model.PropertyField, error) {
-	return s.get(groupID, id, false)
-}
-
-func (s *SqlPropertyFieldStore) GetFromMaster(groupID, id string) (*model.PropertyField, error) {
-	return s.get(groupID, id, true)
-}
-
-func (s *SqlPropertyFieldStore) GetFieldByName(groupID, targetID, name string) (*model.PropertyField, error) {
+func (s *SqlPropertyFieldStore) GetFieldByName(ctx context.Context, groupID, targetID, name string) (*model.PropertyField, error) {
 	builder := s.tableSelectQuery.
 		Where(sq.Eq{"GroupID": groupID}).
 		Where(sq.Eq{"TargetID": targetID}).
@@ -96,14 +84,14 @@ func (s *SqlPropertyFieldStore) GetFieldByName(groupID, targetID, name string) (
 		Where(sq.Eq{"DeleteAt": 0})
 
 	var field model.PropertyField
-	if err := s.GetReplica().GetBuilder(&field, builder); err != nil {
+	if err := s.DBXFromContext(ctx).GetBuilder(&field, builder); err != nil {
 		return nil, errors.Wrap(err, "property_field_get_by_name_select")
 	}
 
 	return &field, nil
 }
 
-func (s *SqlPropertyFieldStore) GetMany(groupID string, ids []string) ([]*model.PropertyField, error) {
+func (s *SqlPropertyFieldStore) GetMany(ctx context.Context, groupID string, ids []string) ([]*model.PropertyField, error) {
 	builder := s.tableSelectQuery.Where(sq.Eq{"id": ids})
 
 	if groupID != "" {
@@ -111,7 +99,7 @@ func (s *SqlPropertyFieldStore) GetMany(groupID string, ids []string) ([]*model.
 	}
 
 	fields := []*model.PropertyField{}
-	if err := s.GetReplica().SelectBuilder(&fields, builder); err != nil {
+	if err := s.DBXFromContext(ctx).SelectBuilder(&fields, builder); err != nil {
 		return nil, errors.Wrap(err, "property_field_get_many_query")
 	}
 
