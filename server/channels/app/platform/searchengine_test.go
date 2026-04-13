@@ -589,7 +589,7 @@ func TestWatcherHealthFlag(t *testing.T) {
 		// Track SetHealthy calls.
 		var healthyValue atomic.Int32
 		healthyValue.Store(1) // assume healthy at start
-		engineMock.On("SetHealthy").Unset()
+		engineMock.On("SetHealthy", mock.Anything).Unset()
 		engineMock.On("SetHealthy", mock.Anything).Run(func(args mock.Arguments) {
 			if args.Bool(0) {
 				healthyValue.Store(1)
@@ -624,7 +624,7 @@ func TestWatcherHealthFlag(t *testing.T) {
 
 		// Track SetHealthy calls.
 		var healthyValue atomic.Int32
-		engineMock.On("SetHealthy").Unset()
+		engineMock.On("SetHealthy", mock.Anything).Unset()
 		engineMock.On("SetHealthy", mock.Anything).Run(func(args mock.Arguments) {
 			if args.Bool(0) {
 				healthyValue.Store(1)
