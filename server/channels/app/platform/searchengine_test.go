@@ -599,9 +599,7 @@ func TestWatcherHealthFlag(t *testing.T) {
 		}).Maybe()
 
 		// HealthCheck fails on the first call.
-		var healthCalls atomic.Int32
 		engineMock.On("HealthCheck", mock.Anything).Return(func(_ request.CTX) *model.AppError {
-			healthCalls.Add(1)
 			return model.NewAppError("test", "hc_fail", nil, "", 502)
 		})
 		engineMock.On("Stop").Return(nil).Maybe()
@@ -610,12 +608,11 @@ func TestWatcherHealthFlag(t *testing.T) {
 		w.start()
 		t.Cleanup(w.stop)
 
-		// Wait for the first health check call.
+		// Wait for the health flag update itself rather than the HealthCheck
+		// call count, which can race with the watcher's SetHealthy(false) call.
 		require.Eventually(t, func() bool {
-			return healthCalls.Load() >= 1
-		}, 2*time.Second, 5*time.Millisecond)
-
-		assert.Equal(t, int32(0), healthyValue.Load(),
+			return healthyValue.Load() == 0
+		}, 2*time.Second, 5*time.Millisecond,
 			"engine should be marked unhealthy after first health check failure")
 	})
 
