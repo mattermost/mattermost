@@ -20,7 +20,7 @@ func TestRestoreManageOAuthPermissionMigration(t *testing.T) {
 
 	th := SetupWithStoreMock(t)
 
-	migrationMap, err := th.App.getRestoreManageOAuthPermissionMigration()
+	migrationMap, err := getRestoreManageOAuthPermissionMigration()
 	require.NoError(t, err)
 
 	systemAdminRole := &model.Role{
