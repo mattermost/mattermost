@@ -1594,12 +1594,12 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 
 	t.Run("DateTimeConfig should take precedence over legacy fields", func(t *testing.T) {
 		element := DialogElement{
-			DisplayName:  "Test Date",
-			Name:         "test_date",
-			Type:         "date",
-			MinDate:      "invalid-date", // legacy field is invalid
+			DisplayName: "Test Date",
+			Name:        "test_date",
+			Type:        "date",
+			MinDate:     "invalid-date",
 			DateTimeConfig: &DialogDateTimeConfig{
-				MinDate: "2025-01-01", // config field is valid and takes precedence
+				MinDate: "2025-01-01",
 			},
 		}
 		cfg := element.EffectiveDateTimeConfig()
