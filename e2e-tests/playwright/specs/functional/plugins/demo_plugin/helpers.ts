@@ -7,7 +7,7 @@ import {expect} from '@mattermost/playwright-lib';
 
 const DEMO_PLUGIN_ID = 'com.mattermost.demo-plugin';
 const DEMO_PLUGIN_URL =
-    'https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.11.0/mattermost-plugin-demo-v0.11.0-linux-amd64.tar.gz';
+    'https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.11.0/mattermost-plugin-demo-v0.11.0.tar.gz';
 
 export async function setupDemoPlugin(
     adminClient: Client4,

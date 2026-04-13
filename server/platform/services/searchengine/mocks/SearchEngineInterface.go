@@ -5,6 +5,8 @@
 package mocks
 
 import (
+	"context"
+
 	model "github.com/mattermost/mattermost/server/public/model"
 	request "github.com/mattermost/mattermost/server/public/shared/request"
 	mock "github.com/stretchr/testify/mock"
@@ -306,6 +308,26 @@ func (_m *SearchEngineInterface) GetVersion() int {
 		r0 = rf()
 	} else {
 		r0 = ret.Get(0).(int)
+	}
+
+	return r0
+}
+
+// HealthCheck provides a mock function with given fields: rctx
+func (_m *SearchEngineInterface) HealthCheck(rctx request.CTX) *model.AppError {
+	ret := _m.Called(rctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for HealthCheck")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX) *model.AppError); ok {
+		r0 = rf(rctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
 	}
 
 	return r0
@@ -737,17 +759,17 @@ func (_m *SearchEngineInterface) SearchUsersInTeam(teamId string, restrictedToCh
 	return r0, r1
 }
 
-// Start provides a mock function with no fields
-func (_m *SearchEngineInterface) Start() *model.AppError {
-	ret := _m.Called()
+// Start provides a mock function with given fields: ctx
+func (_m *SearchEngineInterface) Start(ctx context.Context) *model.AppError {
+	ret := _m.Called(ctx)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Start")
 	}
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func() *model.AppError); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(context.Context) *model.AppError); ok {
+		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
