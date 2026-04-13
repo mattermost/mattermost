@@ -24,6 +24,17 @@ func (ps *PropertyService) createPropertyField(field *model.PropertyField) (*mod
 
 	// If this field links to a source, validate the source and copy its schema
 	if field.LinkedFieldID != nil && *field.LinkedFieldID != "" {
+		// Templates are definition-only and cannot themselves be linked
+		if field.ObjectType == model.PropertyFieldObjectTypeTemplate {
+			return nil, model.NewAppError(
+				"CreatePropertyField",
+				"app.property_field.create.template_cannot_be_linked.app_error",
+				nil,
+				"template fields cannot have a linked_field_id",
+				http.StatusBadRequest,
+			)
+		}
+
 		source, err := ps.fieldStore.Get(store.WithMaster(context.Background()), "", *field.LinkedFieldID)
 		if err != nil {
 			if store.IsErrNotFound(err) {

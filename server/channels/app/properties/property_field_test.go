@@ -956,6 +956,22 @@ func TestLinkedPropertyFields(t *testing.T) {
 		assert.Contains(t, err.Error(), "template")
 	})
 
+	t.Run("create linked template field is rejected", func(t *testing.T) {
+		source := createSourceField(t, "TemplateLink-"+model.NewId())
+
+		// A template field should not itself be linked to another template
+		_, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       groupID,
+			ObjectType:    model.PropertyFieldObjectTypeTemplate,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "LinkedTemplate-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "template")
+	})
+
 	t.Run("create linked field rejects target type mismatch", func(t *testing.T) {
 		source := createSourceField(t, "TTMismatchSource-"+model.NewId())
 
