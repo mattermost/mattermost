@@ -1963,11 +1963,11 @@
   },
   {
     "id": "api.custom_profile_attributes.invalid_field_patch",
-    "translation": "invalid custom profile attribute field patch"
+    "translation": "invalid User Attribute field patch"
   },
   {
     "id": "api.custom_profile_attributes.license_error",
-    "translation": "Your license does not support Custom Profile Attributes."
+    "translation": "Your license does not support User Attributes."
   },
   {
     "id": "api.custom_status.disabled",
@@ -5716,63 +5716,63 @@
   },
   {
     "id": "app.custom_profile_attributes.count_property_fields.app_error",
-    "translation": "Unable to count the number of fields for the custom profile attribute group"
+    "translation": "Unable to count the number of fields for the User Attributes group"
   },
   {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
-    "translation": "Unable to retrieve the custom profile attributes property group."
+    "translation": "Unable to retrieve the User Attributes property group."
   },
   {
     "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
-    "translation": "Unable to delete Custom Profile Attribute Values for user"
+    "translation": "Unable to delete User Attribute values for user"
   },
   {
     "id": "app.custom_profile_attributes.get_property_field.app_error",
-    "translation": "Unable to get Custom Profile Attribute field"
+    "translation": "Unable to get User Attribute field"
   },
   {
     "id": "app.custom_profile_attributes.get_property_value.app_error",
-    "translation": "Unable to get Custom Profile Attribute value"
+    "translation": "Unable to get User Attribute value"
   },
   {
     "id": "app.custom_profile_attributes.limit_reached.app_error",
-    "translation": "Custom Profile Attributes field limit reached"
+    "translation": "User Attributes field limit reached"
   },
   {
     "id": "app.custom_profile_attributes.list_property_values.app_error",
-    "translation": "Unable to get custom profile attribute values"
+    "translation": "Unable to get User Attribute values"
   },
   {
     "id": "app.custom_profile_attributes.patch_field.app_error",
-    "translation": "Unable to patch Custom Profile Attribute field"
+    "translation": "Unable to patch User Attribute field"
   },
   {
     "id": "app.custom_profile_attributes.property_field_conversion.app_error",
-    "translation": "Unable to convert the property field to a custom profile attribute field"
+    "translation": "Unable to convert the property field to a User Attribute field"
   },
   {
     "id": "app.custom_profile_attributes.property_field_delete.app_error",
-    "translation": "Unable to delete Custom Profile Attribute field"
+    "translation": "Unable to delete User Attribute field"
   },
   {
     "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
-    "translation": "Cannot update value for an admin-managed Custom Profile Attribute field"
+    "translation": "Cannot update value for an admin-managed User Attribute field"
   },
   {
     "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
-    "translation": "Cannot update value for a synced Custom Profile Attribute field"
+    "translation": "Cannot update value for a synced User Attribute field"
   },
   {
     "id": "app.custom_profile_attributes.property_field_not_found.app_error",
-    "translation": "Custom Profile Attribute field not found"
+    "translation": "User Attribute field not found"
   },
   {
     "id": "app.custom_profile_attributes.property_field_update.app_error",
-    "translation": "Unable to update Custom Profile Attribute field"
+    "translation": "Unable to update User Attribute field"
   },
   {
     "id": "app.custom_profile_attributes.property_value_upsert.app_error",
-    "translation": "Unable to upsert Custom Profile Attribute fields"
+    "translation": "Unable to upsert User Attribute fields"
   },
   {
     "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
@@ -5780,7 +5780,7 @@
   },
   {
     "id": "app.custom_profile_attributes.search_property_fields.app_error",
-    "translation": "Unable to search Custom Profile Attribute fields"
+    "translation": "Unable to search User Attribute fields"
   },
   {
     "id": "app.custom_profile_attributes.validate_value.app_error",

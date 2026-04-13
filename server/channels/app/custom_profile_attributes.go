@@ -1,6 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+// This file implements the "User Attributes" feature (formerly "Custom
+// Profile Attributes" / CPA). Internal identifiers retain the old naming
+// for backward compatibility. See MM-68235.
+
 package app
 
 import (
