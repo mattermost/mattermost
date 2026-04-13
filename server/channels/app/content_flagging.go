@@ -680,37 +680,37 @@ func (a *App) PermanentDeletePostDataRetainStub(rctx request.CTX, post *model.Po
 
 	if err := a.DeletePriorityForPost(post.Id); err != nil {
 		rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to delete post priority for the post", mlog.Err(err), mlog.String("post_id", post.Id))
-		report.AddStep("app.data_spillage.report.step.priority_data", model.StepFailed, "", []string{err.Error()})
+		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.priority_data"), model.StepFailed, "", []string{err.Error()})
 	} else {
-		report.AddStep("app.data_spillage.report.step.priority_data", model.StepSuccess, "app.data_spillage.report.detail.deleted", nil)
+		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.priority_data"), model.StepSuccess, i18n.TranslationId("app.data_spillage.report.detail.deleted"), nil)
 	}
 
 	if err := a.Srv().Store().PostPersistentNotification().Delete([]string{post.Id}); err != nil {
 		rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to delete persistent notifications for the post", mlog.Err(err), mlog.String("post_id", post.Id))
-		report.AddStep("app.data_spillage.report.step.persistent_notifications", model.StepFailed, "", []string{err.Error()})
+		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.persistent_notifications"), model.StepFailed, "", []string{err.Error()})
 	} else {
-		report.AddStep("app.data_spillage.report.step.persistent_notifications", model.StepSuccess, "app.data_spillage.report.detail.deleted", nil)
+		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.persistent_notifications"), model.StepSuccess, i18n.TranslationId("app.data_spillage.report.detail.deleted"), nil)
 	}
 
 	if err := a.Srv().Store().PostAcknowledgement().DeleteAllForPost(post.Id); err != nil {
 		rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to delete post acknowledgements for the post", mlog.Err(err), mlog.String("post_id", post.Id))
-		report.AddStep("app.data_spillage.report.step.acknowledgements", model.StepFailed, "", []string{err.Error()})
+		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.acknowledgements"), model.StepFailed, "", []string{err.Error()})
 	} else {
-		report.AddStep("app.data_spillage.report.step.acknowledgements", model.StepSuccess, "app.data_spillage.report.detail.deleted", nil)
+		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.acknowledgements"), model.StepSuccess, i18n.TranslationId("app.data_spillage.report.detail.deleted"), nil)
 	}
 
 	if err := a.Srv().Store().Post().DeleteAllPostRemindersForPost(post.Id); err != nil {
 		rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to delete post reminders for the post", mlog.Err(err), mlog.String("post_id", post.Id))
-		report.AddStep("app.data_spillage.report.step.reminders", model.StepFailed, "", []string{err.Error()})
+		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.reminders"), model.StepFailed, "", []string{err.Error()})
 	} else {
-		report.AddStep("app.data_spillage.report.step.reminders", model.StepSuccess, "app.data_spillage.report.detail.deleted", nil)
+		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.reminders"), model.StepSuccess, i18n.TranslationId("app.data_spillage.report.detail.deleted"), nil)
 	}
 
 	if err := a.Srv().Store().Post().PermanentDeleteAssociatedData([]string{post.Id}); err != nil {
 		rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to permanently delete associated data for the post", mlog.Err(err), mlog.String("post_id", post.Id))
-		report.AddStep("app.data_spillage.report.step.thread_data", model.StepFailed, "", []string{err.Error()})
+		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.thread_data"), model.StepFailed, "", []string{err.Error()})
 	} else {
-		report.AddStep("app.data_spillage.report.step.thread_data", model.StepSuccess, "app.data_spillage.report.detail.thread_data_deleted", nil)
+		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.thread_data"), model.StepSuccess, i18n.TranslationId("app.data_spillage.report.detail.thread_data_deleted"), nil)
 	}
 
 	postStepErrors := []string{}
@@ -739,9 +739,9 @@ func (a *App) PermanentDeletePostDataRetainStub(rctx request.CTX, post *model.Po
 	}
 
 	if postStepFailed {
-		report.AddStep("app.data_spillage.report.step.post_itself", model.StepFailed, "", postStepErrors)
+		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.post_itself"), model.StepFailed, "", postStepErrors)
 	} else {
-		report.AddStep("app.data_spillage.report.step.post_itself", model.StepSuccess, "app.data_spillage.report.detail.post_scrubbed_deleted", nil)
+		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.post_itself"), model.StepSuccess, i18n.TranslationId("app.data_spillage.report.detail.post_scrubbed_deleted"), nil)
 	}
 
 	return report, deletePostErr
@@ -751,18 +751,18 @@ func (a *App) deleteEditHistories(rctx request.CTX, postId, deleteByID string, r
 	editHistories, appErr := a.GetEditHistoryForPost(postId)
 	if appErr != nil && appErr.StatusCode != http.StatusNotFound {
 		rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to get edit history for post", mlog.Err(appErr), mlog.String("post_id", postId))
-		report.AddStep("app.data_spillage.report.step.edit_histories", model.StepFailed, "app.data_spillage.report.detail.failed_retrieve_edit_history", []string{appErr.Error()})
+		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.edit_histories"), model.StepFailed, i18n.TranslationId("app.data_spillage.report.detail.failed_retrieve_edit_history"), []string{appErr.Error()})
 
 		return
 	}
 
 	if len(editHistories) == 0 {
-		report.AddStep("app.data_spillage.report.step.edit_histories", model.StepSuccess, "app.data_spillage.report.detail.no_revisions", nil)
+		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.edit_histories"), model.StepSuccess, i18n.TranslationId("app.data_spillage.report.detail.no_revisions"), nil)
 		return
 	}
 
 	step := model.DeletionStepResult{
-		Name:     "app.data_spillage.report.step.edit_histories",
+		Name:     i18n.TranslationId("app.data_spillage.report.step.edit_histories"),
 		SubSteps: make([]model.DeletionSubStep, 0, len(editHistories)),
 	}
 
@@ -779,7 +779,7 @@ func (a *App) deleteEditHistories(rctx request.CTX, postId, deleteByID string, r
 			for _, fileInfo := range fileInfos {
 				fileNames = append(fileNames, fmt.Sprintf("`%s`", fileInfo.Name))
 			}
-			subStep.Detail = "app.data_spillage.report.detail.file_attachments_info"
+			subStep.Detail = i18n.TranslationId("app.data_spillage.report.detail.file_attachments_info")
 			subStep.DetailParams = map[string]any{"FileNames": strings.Join(fileNames, ", "), "Count": len(fileInfos)}
 		}
 
@@ -806,7 +806,7 @@ func (a *App) deleteEditHistories(rctx request.CTX, postId, deleteByID string, r
 
 	cleared := model.CountSubStepSuccesses(step.SubSteps)
 	total := len(step.SubSteps)
-	step.Detail = "app.data_spillage.report.detail.revisions_cleared"
+	step.Detail = i18n.TranslationId("app.data_spillage.report.detail.revisions_cleared")
 	step.DetailParams = map[string]any{"Cleared": cleared, "Total": total}
 	report.Steps = append(report.Steps, step)
 }

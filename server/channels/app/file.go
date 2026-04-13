@@ -28,6 +28,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
@@ -1698,8 +1699,8 @@ func getFileExtFromMimeType(mimeType string) string {
 func (a *App) PermanentDeleteFilesByPost(rctx request.CTX, postID string, report *model.PostDeletionReport) *model.AppError {
 	fileInfos, err := a.Srv().Store().FileInfo().GetForPost(postID, false, true, true)
 	if err != nil {
-		report.AddStep("app.data_spillage.report.step.file_attachments", model.StepFailed, "", []string{err.Error()})
-		report.AddStep("app.data_spillage.report.step.fileinfo_rows", model.StepFailed, "", []string{err.Error()})
+		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.file_attachments"), model.StepFailed, "", []string{err.Error()})
+		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.fileinfo_rows"), model.StepFailed, "", []string{err.Error()})
 
 		return model.NewAppError("PermanentDeleteFilesByPost", "app.file_info.get_by_post_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -1707,8 +1708,8 @@ func (a *App) PermanentDeleteFilesByPost(rctx request.CTX, postID string, report
 		rctx.Logger().Debug("No files found for post", mlog.String("post_id", postID))
 
 		if report != nil {
-			report.AddStep("app.data_spillage.report.step.file_attachments", model.StepSuccess, "app.data_spillage.report.detail.no_files", nil)
-			report.AddStep("app.data_spillage.report.step.fileinfo_rows", model.StepSuccess, "app.data_spillage.report.detail.no_rows_to_delete", nil)
+			report.AddStep(i18n.TranslationId("app.data_spillage.report.step.file_attachments"), model.StepSuccess, i18n.TranslationId("app.data_spillage.report.detail.no_files"), nil)
+			report.AddStep(i18n.TranslationId("app.data_spillage.report.step.fileinfo_rows"), model.StepSuccess, i18n.TranslationId("app.data_spillage.report.detail.no_rows_to_delete"), nil)
 		}
 
 		return nil
@@ -1728,25 +1729,25 @@ func (a *App) PermanentDeleteFilesByPost(rctx request.CTX, postID string, report
 			for _, err := range errs {
 				errMessages = append(errMessages, err.Error())
 			}
-			report.AddStep("app.data_spillage.report.step.file_attachments", model.StepFailed, "", errMessages)
+			report.AddStep(i18n.TranslationId("app.data_spillage.report.step.file_attachments"), model.StepFailed, "", errMessages)
 		}
 	} else {
 		if report != nil {
-			report.AddStepWithParams("app.data_spillage.report.step.file_attachments", model.StepSuccess, "app.data_spillage.report.detail.file_names", map[string]any{"FileNames": strings.Join(fileNames, ", ")}, nil)
+			report.AddStepWithParams(i18n.TranslationId("app.data_spillage.report.step.file_attachments"), model.StepSuccess, i18n.TranslationId("app.data_spillage.report.detail.file_names"), map[string]any{"FileNames": strings.Join(fileNames, ", ")}, nil)
 		}
 	}
 
 	err = a.Srv().Store().FileInfo().PermanentDeleteForPost(rctx, postID)
 	if err != nil {
 		if report != nil {
-			report.AddStep("app.data_spillage.report.step.fileinfo_rows", model.StepFailed, "", []string{err.Error()})
+			report.AddStep(i18n.TranslationId("app.data_spillage.report.step.fileinfo_rows"), model.StepFailed, "", []string{err.Error()})
 		}
 
-		return model.NewAppError("PermanentDeleteFilesByPost", "app.file_info.permanent_delete_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("PermanentDeleteFilesByPost", i18n.TranslationId("app.file_info.permanent_delete_for_post.app_error"), nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if report != nil {
-		report.AddStepWithParams("app.data_spillage.report.step.fileinfo_rows", model.StepSuccess, "app.data_spillage.report.detail.file_attachments_info", map[string]any{"FileInfoIDs": strings.Join(fileInfoIDs, ", ")}, nil)
+		report.AddStepWithParams(i18n.TranslationId("app.data_spillage.report.step.fileinfo_rows"), model.StepSuccess, i18n.TranslationId("app.data_spillage.report.detail.file_attachments_info"), map[string]any{"FileInfoIDs": strings.Join(fileInfoIDs, ", ")}, nil)
 	}
 
 	a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, true)
