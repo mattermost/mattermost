@@ -101,12 +101,12 @@ describe('RhsSearchPopout', () => {
     }
 
     test('should render SearchResults component', async () => {
-        renderPopout('?q=test&type=messages&mode=search');
+        await renderPopout('?q=test&type=messages&mode=search');
         expect(screen.getByTestId('search-results')).toBeInTheDocument();
     });
 
     test('should dispatch search setup actions from query params on mount', async () => {
-        renderPopout('?q=hello+world&type=messages&mode=search');
+        await renderPopout('?q=hello+world&type=messages&mode=search');
 
         await waitFor(() => {
             expect(jest.mocked(updateSearchType)).toHaveBeenCalledWith('messages');
@@ -117,7 +117,7 @@ describe('RhsSearchPopout', () => {
     });
 
     test('should dispatch showMentions for mention mode without search terms', async () => {
-        renderPopout('?q=&type=messages&mode=mention', 'mention');
+        await renderPopout('?q=&type=messages&mode=mention', 'mention');
 
         await waitFor(() => {
             expect(jest.mocked(showMentions)).toHaveBeenCalled();
@@ -125,7 +125,7 @@ describe('RhsSearchPopout', () => {
     });
 
     test('should dispatch showSearchResults(true) for mention mode with search terms', async () => {
-        renderPopout('?q=from:user&type=messages&mode=mention', 'mention');
+        await renderPopout('?q=from:user&type=messages&mode=mention', 'mention');
 
         await waitFor(() => {
             expect(jest.mocked(showSearchResults)).toHaveBeenCalledWith(true);
@@ -133,7 +133,7 @@ describe('RhsSearchPopout', () => {
     });
 
     test('should dispatch showFlaggedPosts for flag mode', async () => {
-        renderPopout('?q=&type=messages&mode=flag', 'flag');
+        await renderPopout('?q=&type=messages&mode=flag', 'flag');
 
         await waitFor(() => {
             expect(jest.mocked(showFlaggedPosts)).toHaveBeenCalled();
@@ -141,7 +141,7 @@ describe('RhsSearchPopout', () => {
     });
 
     test('should dispatch showPinnedPosts for pin mode when channelId is available', async () => {
-        renderPopout('?q=&type=messages&mode=pin&channel=test-channel', 'pin');
+        await renderPopout('?q=&type=messages&mode=pin&channel=test-channel', 'pin');
 
         await waitFor(() => {
             expect(jest.mocked(showPinnedPosts)).toHaveBeenCalledWith(channel.id);
@@ -149,7 +149,7 @@ describe('RhsSearchPopout', () => {
     });
 
     test('should not dispatch showPinnedPosts when channelId is not available', async () => {
-        renderPopout('?q=&type=messages&mode=pin', 'pin');
+        await renderPopout('?q=&type=messages&mode=pin', 'pin');
 
         await waitFor(() => {
             expect(jest.mocked(updateSearchType)).toHaveBeenCalled();
@@ -160,7 +160,7 @@ describe('RhsSearchPopout', () => {
     });
 
     test('should dispatch showChannelFiles for channel_files mode when channelId is available', async () => {
-        renderPopout('?q=&type=messages&mode=channel-files&channel=test-channel', 'channel-files');
+        await renderPopout('?q=&type=messages&mode=channel-files&channel=test-channel', 'channel-files');
 
         await waitFor(() => {
             expect(jest.mocked(showChannelFiles)).toHaveBeenCalledWith(channel.id);
@@ -168,19 +168,19 @@ describe('RhsSearchPopout', () => {
     });
 
     test('should resolve searchTeamId from query params with fallback to current team', async () => {
-        renderPopout('?q=test&type=messages&mode=search&searchTeamId=other-team');
+        await renderPopout('?q=test&type=messages&mode=search&searchTeamId=other-team');
         await waitFor(() => {
             expect(jest.mocked(updateSearchTeam)).toHaveBeenCalledWith('other-team');
         });
 
         jest.clearAllMocks();
-        renderPopout('?q=test&type=messages&mode=search&searchTeamId=');
+        await renderPopout('?q=test&type=messages&mode=search&searchTeamId=');
         await waitFor(() => {
             expect(jest.mocked(updateSearchTeam)).toHaveBeenCalledWith('');
         });
 
         jest.clearAllMocks();
-        renderPopout('?q=test&type=messages&mode=search');
+        await renderPopout('?q=test&type=messages&mode=search');
         await waitFor(() => {
             expect(jest.mocked(updateSearchTeam)).toHaveBeenCalledWith(team.id);
         });
@@ -210,7 +210,7 @@ describe('RhsSearchPopout', () => {
     });
 
     test('should fallback to updateRhsState for search mode with no search terms', async () => {
-        renderPopout('?q=&type=messages&mode=search');
+        await renderPopout('?q=&type=messages&mode=search');
 
         await waitFor(() => {
             expect(jest.mocked(updateRhsState)).toHaveBeenCalledWith('search', undefined);

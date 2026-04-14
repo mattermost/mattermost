@@ -408,7 +408,7 @@ describe('components/login/Login', () => {
         expect(history.push).toHaveBeenCalledWith(redirectPath);
     });
 
-    it('should not show dont have an account when open server is disabled', () => {
+    it('should not show dont have an account when open server is disabled', async () => {
         const state = mergeObjects(baseState, {
             entities: {
                 general: {
@@ -419,7 +419,7 @@ describe('components/login/Login', () => {
             },
         });
 
-        renderWithContext(
+        await renderWithContext(
             <Login/>,
             state,
         );

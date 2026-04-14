@@ -33,7 +33,7 @@ describe('PreviewModalContent', () => {
     };
 
     it('should render title and subtitle', async () => {
-        renderComponent(baseContent);
+        await renderComponent(baseContent);
 
         expect(screen.getByText('Test Title')).toBeInTheDocument();
         expect(screen.getByText('Test subtitle with bold text')).toBeInTheDocument();
@@ -48,7 +48,7 @@ describe('PreviewModalContent', () => {
             },
         };
 
-        renderComponent(content);
+        await renderComponent(content);
 
         expect(screen.getByText('ENTERPRISE')).toBeInTheDocument();
         const skuLabelContainer = screen.getByText('ENTERPRISE').closest('.preview-modal-content__sku-label');
@@ -65,7 +65,7 @@ describe('PreviewModalContent', () => {
             },
         };
 
-        renderComponent(contentWithoutSku);
+        await renderComponent(contentWithoutSku);
 
         expect(screen.queryByText('ENTERPRISE')).not.toBeInTheDocument();
         const skuContainer = document.querySelector('.preview-modal-content__sku-label');
@@ -78,7 +78,7 @@ describe('PreviewModalContent', () => {
             videoUrl: 'https://example.com/video.mp4',
         };
 
-        renderComponent(content);
+        await renderComponent(content);
 
         const video = screen.getByTestId('video-element') as HTMLVideoElement;
         expect(video).toBeInTheDocument();
@@ -95,7 +95,7 @@ describe('PreviewModalContent', () => {
             videoPoster: 'https://example.com/poster.jpg',
         };
 
-        renderComponent(content);
+        await renderComponent(content);
 
         const video = screen.getByTestId('video-element') as HTMLVideoElement;
         expect(video).toBeInTheDocument();
@@ -108,7 +108,7 @@ describe('PreviewModalContent', () => {
             videoUrl: 'https://example.com/video.mp4',
         };
 
-        renderComponent(content);
+        await renderComponent(content);
 
         const video = screen.getByTestId('video-element') as HTMLVideoElement;
         expect(video).toBeInTheDocument();
@@ -121,7 +121,7 @@ describe('PreviewModalContent', () => {
             videoUrl: 'https://example.com/video.mp4',
         };
 
-        renderComponent(content);
+        await renderComponent(content);
 
         const playButton = screen.getByLabelText('Play video');
         expect(playButton).toBeInTheDocument();
@@ -138,7 +138,7 @@ describe('PreviewModalContent', () => {
         const mockPlay = jest.fn();
         HTMLVideoElement.prototype.play = mockPlay;
 
-        renderComponent(content);
+        await renderComponent(content);
 
         const playButton = screen.getByLabelText('Play video');
         await userEvent.click(playButton);
@@ -147,25 +147,25 @@ describe('PreviewModalContent', () => {
         expect(screen.queryByLabelText('Play video')).not.toBeInTheDocument();
     });
 
-    it('should render video when videoUrl is provided with .webm extension', () => {
+    it('should render video when videoUrl is provided with .webm extension', async () => {
         const content = {
             ...baseContent,
             videoUrl: 'test-video.webm',
         };
 
-        renderComponent(content);
+        await renderComponent(content);
 
         expect(screen.getByTestId('video-element')).toBeInTheDocument();
         expect(screen.getByTestId('video-element')).toHaveAttribute('src', 'test-video.webm');
     });
 
-    it('should render image when videoUrl is provided with image extension', () => {
+    it('should render image when videoUrl is provided with image extension', async () => {
         const content = {
             ...baseContent,
             videoUrl: 'https://example.com/image.png',
         };
 
-        renderComponent(content);
+        await renderComponent(content);
 
         const images = screen.getAllByRole('img');
         const contentImage = images.find((img) => (img as HTMLImageElement).src === 'https://example.com/image.png');
@@ -173,8 +173,8 @@ describe('PreviewModalContent', () => {
         expect((contentImage as HTMLImageElement).alt).toBe('Test Title');
     });
 
-    it('should not render video container when videoUrl is not provided', () => {
-        renderComponent(baseContent);
+    it('should not render video container when videoUrl is not provided', async () => {
+        await renderComponent(baseContent);
 
         expect(screen.queryByRole('video')).not.toBeInTheDocument();
 
@@ -187,13 +187,13 @@ describe('PreviewModalContent', () => {
         expect(contentImages).toHaveLength(0);
     });
 
-    it('should render video when videoUrl is provided with .mov extension', () => {
+    it('should render video when videoUrl is provided with .mov extension', async () => {
         const content = {
             ...baseContent,
             videoUrl: 'test-video.mov',
         };
 
-        renderComponent(content);
+        await renderComponent(content);
 
         expect(screen.getByTestId('video-element')).toBeInTheDocument();
         expect(screen.getByTestId('video-element')).toHaveAttribute('src', 'test-video.mov');

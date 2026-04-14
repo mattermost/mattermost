@@ -83,7 +83,7 @@ const renderWithRouter = async (state: any, initialEntries = ['/team1/channels/t
 
 describe('components/drafts/drafts_link', () => {
     it('should not render when no drafts or scheduled posts exist', async () => {
-        renderWithRouter(baseState);
+        await renderWithRouter(baseState);
 
         expect(screen.queryByText('Drafts')).not.toBeInTheDocument();
     });
@@ -98,7 +98,7 @@ describe('components/drafts/drafts_link', () => {
             },
         };
 
-        renderWithRouter(state);
+        await renderWithRouter(state);
 
         expect(screen.getByText('Drafts')).toBeInTheDocument();
         expect(screen.getByTestId('draftIcon')).toBeInTheDocument();
@@ -117,7 +117,7 @@ describe('components/drafts/drafts_link', () => {
             },
         };
 
-        renderWithRouter(state);
+        await renderWithRouter(state);
 
         expect(screen.getByText('Drafts')).toBeInTheDocument();
         expect(screen.getByTestId('scheduledPostIcon')).toBeInTheDocument();
@@ -141,7 +141,7 @@ describe('components/drafts/drafts_link', () => {
             },
         };
 
-        renderWithRouter(state);
+        await renderWithRouter(state);
 
         expect(screen.queryByTestId('scheduledPostIcon')).not.toBeInTheDocument();
     });
@@ -164,7 +164,7 @@ describe('components/drafts/drafts_link', () => {
             },
         };
 
-        renderWithRouter(state);
+        await renderWithRouter(state);
 
         expect(screen.queryByTestId('scheduledPostIcon')).not.toBeInTheDocument();
     });
@@ -185,7 +185,7 @@ describe('components/drafts/drafts_link', () => {
             },
         };
 
-        renderWithRouter(state);
+        await renderWithRouter(state);
 
         const badge = screen.getByTestId('scheduledPostIcon').closest('.scheduledPostBadge');
         expect(badge).toHaveClass('persistent');
@@ -194,14 +194,14 @@ describe('components/drafts/drafts_link', () => {
     it('should fetch scheduled posts when component mounts', async () => {
         const fetchTeamScheduledPosts = require('mattermost-redux/actions/scheduled_posts').fetchTeamScheduledPosts;
 
-        renderWithRouter(baseState);
+        await renderWithRouter(baseState);
 
         await waitFor(() => {
             expect(fetchTeamScheduledPosts).toHaveBeenCalledWith('team1', true);
         });
     });
 
-    it('should be active when on drafts route', () => {
+    it('should be active when on drafts route', async () => {
         const state: DeepPartial<GlobalState> = {
             ...baseState,
             storage: {
@@ -211,7 +211,7 @@ describe('components/drafts/drafts_link', () => {
             },
         };
 
-        renderWithRouter(
+        await renderWithRouter(
             state,
             ['/team1/drafts'],
         );
@@ -220,7 +220,7 @@ describe('components/drafts/drafts_link', () => {
         expect(navLink).toHaveClass('active');
     });
 
-    it('should be active when on scheduled posts route', () => {
+    it('should be active when on scheduled posts route', async () => {
         const state: DeepPartial<GlobalState> = {
             ...baseState,
             storage: {
@@ -230,7 +230,7 @@ describe('components/drafts/drafts_link', () => {
             },
         };
 
-        renderWithRouter(
+        await renderWithRouter(
             state,
             [`/team1/${SCHEDULED_POST_URL_SUFFIX}`],
         );

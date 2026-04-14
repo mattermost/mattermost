@@ -95,7 +95,7 @@ describe('PluginLinkTooltip', () => {
     });
 
     test('should not block interaction with elements outside the tooltip', async () => {
-        renderWithContext(
+        await renderWithContext(
             <>
                 <textarea
                     data-testid='textarea'

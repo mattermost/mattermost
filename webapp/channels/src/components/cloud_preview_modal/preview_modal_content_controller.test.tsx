@@ -78,14 +78,14 @@ describe('PreviewModalController', () => {
     };
 
     it('should render when show is true', async () => {
-        renderComponent();
+        await renderComponent();
 
         // Look for the modal content instead of a mocked test id
         expect(screen.getByText('First Slide')).toBeInTheDocument();
     });
 
     it('should not render when show is false', async () => {
-        renderComponent({show: false});
+        await renderComponent({show: false});
         expect(screen.queryByText('First Slide')).not.toBeInTheDocument();
     });
 
@@ -102,13 +102,13 @@ describe('PreviewModalController', () => {
     });
 
     it('should render first slide initially', async () => {
-        renderComponent();
+        await renderComponent();
         expect(screen.getByText('First Slide')).toBeInTheDocument();
         expect(screen.queryByText('Second Slide')).not.toBeInTheDocument();
     });
 
     it('should render pagination dots', async () => {
-        renderComponent();
+        await renderComponent();
 
         // Find dots by their container and check children
         const dotsContainer = screen.getByTestId('pagination-dots');
@@ -116,12 +116,12 @@ describe('PreviewModalController', () => {
     });
 
     it('should render page counter', async () => {
-        renderComponent();
+        await renderComponent();
         expect(screen.getByText('1/3')).toBeInTheDocument();
     });
 
     it('should update page counter when navigating', async () => {
-        renderComponent();
+        await renderComponent();
 
         expect(screen.getByText('1/3')).toBeInTheDocument();
 
@@ -132,7 +132,7 @@ describe('PreviewModalController', () => {
     });
 
     it('should navigate to next slide when Next is clicked', async () => {
-        renderComponent();
+        await renderComponent();
 
         const nextButton = screen.getByText('Next');
         await userEvent.click(nextButton);
@@ -142,7 +142,7 @@ describe('PreviewModalController', () => {
     });
 
     it('should navigate to previous slide when Previous is clicked', async () => {
-        renderComponent();
+        await renderComponent();
 
         // Go to second slide first
         const nextButton = screen.getByText('Next');
@@ -157,7 +157,7 @@ describe('PreviewModalController', () => {
     });
 
     it('should show Skip for now button only on first slide', async () => {
-        renderComponent();
+        await renderComponent();
 
         // First slide should have Skip button
         expect(screen.getByText('Skip for now')).toBeInTheDocument();
@@ -171,12 +171,12 @@ describe('PreviewModalController', () => {
     });
 
     it('should not show Previous button on first slide', async () => {
-        renderComponent();
+        await renderComponent();
         expect(screen.queryByText('Previous')).not.toBeInTheDocument();
     });
 
     it('should show Done button on last slide', async () => {
-        renderComponent();
+        await renderComponent();
 
         // Navigate to last slide
         const nextButton = screen.getByText('Next');
@@ -188,7 +188,7 @@ describe('PreviewModalController', () => {
     });
 
     it('should call onClose when Skip is clicked', async () => {
-        renderComponent();
+        await renderComponent();
 
         const skipButton = screen.getByText('Skip for now');
         await userEvent.click(skipButton);
@@ -197,7 +197,7 @@ describe('PreviewModalController', () => {
     });
 
     it('should call onClose when Finish is clicked on last slide', async () => {
-        renderComponent();
+        await renderComponent();
 
         // Navigate to last slide
         const nextButton = screen.getByText('Next');
@@ -211,7 +211,7 @@ describe('PreviewModalController', () => {
     });
 
     it('should call onClose when close button is clicked', async () => {
-        renderComponent();
+        await renderComponent();
 
         // Look for the actual close button from GenericModal
         const closeButton = screen.getByLabelText('Close');
@@ -220,8 +220,8 @@ describe('PreviewModalController', () => {
         expect(mockOnClose).toHaveBeenCalledTimes(1);
     });
 
-    it('should not render if contentData is empty', () => {
-        renderComponent({contentData: []});
+    it('should not render if contentData is empty', async () => {
+        await renderComponent({contentData: []});
         expect(screen.queryByText('First Slide')).not.toBeInTheDocument();
     });
 });

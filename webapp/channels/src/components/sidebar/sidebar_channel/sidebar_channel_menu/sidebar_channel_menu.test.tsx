@@ -272,7 +272,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
         jest.mocked(canPopout).mockReturnValue(false);
         jest.mocked(isChannelPopoutWindow).mockReturnValue(false);
 
-        renderWithContext(
+        await renderWithContext(
             <SidebarChannelMenu {...baseProps}/>,
         );
 

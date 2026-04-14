@@ -109,10 +109,10 @@ describe('ScheduledPostActions Component', () => {
             state,
         );
     }
-    it('should render all action buttons when user is an ADMIN', () => {
+    it('should render all action buttons when user is an ADMIN', async () => {
         isCurrentUserSystemAdminMock.mockReturnValue(true);
 
-        renderComponent();
+        await renderComponent();
 
         const buttons = screen.getAllByRole('button');
         expect(buttons).toHaveLength(5);
@@ -125,10 +125,10 @@ describe('ScheduledPostActions Component', () => {
         expect(buttonIds).toContain('draft_icon-send-outline_sendNow');
     });
 
-    it('should render appropriate action buttons when user is NOT an admin but IS member of the channel', () => {
+    it('should render appropriate action buttons when user is NOT an admin but IS member of the channel', async () => {
         isCurrentUserSystemAdminMock.mockReturnValue(false);
 
-        renderComponent();
+        await renderComponent();
 
         const buttons = screen.getAllByRole('button');
         expect(buttons).toHaveLength(5);
@@ -141,13 +141,13 @@ describe('ScheduledPostActions Component', () => {
         expect(buttonIds).toContain('draft_icon-send-outline_sendNow');
     });
 
-    it('should only render delete and copy text button when regular user is NOT member of the channel', () => {
+    it('should only render delete and copy text button when regular user is NOT member of the channel', async () => {
         isCurrentUserSystemAdminMock.mockReturnValue(false);
 
         // Regular User is not a member of the channel
         getMyChannelMembershipsnMock.mockReturnValue({});
 
-        renderComponent();
+        await renderComponent();
 
         const buttons = screen.getAllByRole('button');
         expect(buttons).toHaveLength(2);
@@ -162,11 +162,11 @@ describe('ScheduledPostActions Component', () => {
         expect(buttonIds).not.toContain('draft_icon-clock-send-outline_reschedule');
     });
 
-    it('should render all action buttons when user is not member of the channel but is an admin', () => {
+    it('should render all action buttons when user is not member of the channel but is an admin', async () => {
         isCurrentUserSystemAdminMock.mockReturnValue(true);
         getMyChannelMembershipsnMock.mockReturnValue({});
 
-        renderComponent();
+        await renderComponent();
 
         const buttons = screen.getAllByRole('button');
         expect(buttons).toHaveLength(5);
@@ -179,7 +179,7 @@ describe('ScheduledPostActions Component', () => {
         expect(buttonIds).toContain('draft_icon-send-outline_sendNow');
     });
 
-    it('should only render delete and copy text buttons when the channel is archived and is regular user', () => {
+    it('should only render delete and copy text buttons when the channel is archived and is regular user', async () => {
         const archivedChannelProps = {
             ...defaultProps,
             channel: {
@@ -188,7 +188,7 @@ describe('ScheduledPostActions Component', () => {
             } as Channel,
         };
 
-        renderComponent(archivedChannelProps);
+        await renderComponent(archivedChannelProps);
 
         const buttons = screen.getAllByRole('button');
         expect(buttons).toHaveLength(2);
@@ -203,7 +203,7 @@ describe('ScheduledPostActions Component', () => {
         expect(buttonIds).not.toContain('draft_icon-clock-send-outline_reschedule');
     });
 
-    it('should render all action buttons when the channel is archived and the user is admin', () => {
+    it('should render all action buttons when the channel is archived and the user is admin', async () => {
         const archivedChannelProps = {
             ...defaultProps,
             channel: {
@@ -214,7 +214,7 @@ describe('ScheduledPostActions Component', () => {
 
         isCurrentUserSystemAdminMock.mockReturnValue(true);
 
-        renderComponent(archivedChannelProps);
+        await renderComponent(archivedChannelProps);
 
         const buttons = screen.getAllByRole('button');
         expect(buttons).toHaveLength(5);
