@@ -227,7 +227,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 
 		// Create remote user (should NOT be synced)
 		remoteUser := th.CreateUser(t)
-		remoteUser.RemoteId = &selfCluster.RemoteId
+		remoteUser = th.SetUserRemoteID(t, remoteUser.Id, selfCluster.RemoteId)
 		remoteUser.UpdateAt = baseTime + 600
 		_, err = ss.User().Update(th.Context, remoteUser, true)
 		require.NoError(t, err)
