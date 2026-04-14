@@ -2023,7 +2023,6 @@ export const Constants = {
     PERMISSIONS_DELETE_POST_SYSTEM_ADMIN: 'system_admin',
     PERMISSIONS_SYSTEM_CUSTOM_GROUP_ADMIN: 'system_custom_group_admin',
     PERMISSIONS_SHARED_CHANNEL_MANAGER: 'system_shared_channel_manager',
-    PERMISSIONS_SECURE_CONNECTION_MANAGER: 'system_secure_connection_manager',
     ALLOW_EDIT_POST_ALWAYS: 'always',
     ALLOW_EDIT_POST_NEVER: 'never',
     ALLOW_EDIT_POST_TIME_LIMIT: 'time_limit',

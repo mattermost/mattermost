@@ -4828,6 +4828,10 @@ func TestGetTeamMembersForUserRoleDataSanitization(t *testing.T) {
 	})
 
 	t.Run("team admin sees full role data for other user in managed team", func(t *testing.T) {
+		defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+		th.AddPermissionToRole(t, model.PermissionReadOtherUsersTeams.Id, model.SystemUserRoleId)
+
 		members, _, err := teamAdminClient.GetTeamMembersForUser(context.Background(), th.BasicUser.Id, "")
 		require.NoError(t, err)
 		require.NotEmpty(t, members)
