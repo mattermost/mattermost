@@ -350,7 +350,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
 
         // Run sync job
         const runSync1JobId = await runSyncJob(systemConsolePage.page);
-        const sync1JobId = await waitForLatestSyncJob(systemConsolePage.page, 5, policy1JobId, runSync1JobId);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, policy1JobId, runSync1JobId);
 
         // Wait for membership updates to apply
         await systemConsolePage.page.waitForTimeout(1000);
