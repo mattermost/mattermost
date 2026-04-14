@@ -187,7 +187,7 @@ def check_api(patches: dict[str, str]) -> CheckResult:
     added_eps:   list[str] = []
     removed_eps: list[str] = []
  
-    for fname, patch in api4_patches.items():
+    for _, patch in api4_patches.items():
         added_lines, removed_lines = lines_by_sign(patch)
  
         for line in added_lines:
@@ -344,7 +344,11 @@ def inject_note(body: str, note: str) -> str:
 # ── GitHub API ─────────────────────────────────────────────────────────────────
  
 def get_pr_body() -> str:
-    r = requests.get(f"{BASE_URL}/repos/{REPO}/pulls/{PR_NUMBER}", headers=HEADERS)
+    r = requests.get(
+        f"{BASE_URL}/repos/{REPO}/pulls/{PR_NUMBER}",
+        headers=HEADERS,
+        timeout=15,
+    )
     r.raise_for_status()
     return r.json().get("body") or ""
  
@@ -354,6 +358,7 @@ def update_pr_body(new_body: str) -> None:
         f"{BASE_URL}/repos/{REPO}/pulls/{PR_NUMBER}",
         headers=HEADERS,
         json={"body": new_body},
+        timeout=15,
     )
     r.raise_for_status()
  
@@ -419,4 +424,6 @@ if __name__ == "__main__":
     except requests.HTTPError as e:
         print(f"❌ GitHub API error: {e.response.status_code}\n{e.response.text}", file=sys.stderr)
         sys.exit(1)
-  
+    except requests.RequestException as e:
+        print(f"❌ GitHub request failed: {e}", file=sys.stderr)
+        sys.exit(1)
