@@ -5584,10 +5584,6 @@
     "translation": "Ліцэнзія Mattermost Enterprise была адключана."
   },
   {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Тэрмін дзеяння вашай ліцэнзіі Enterprise Edition скончыўся, і некаторыя функцыі могуць быць адключаны. Калі ласка, падоўжыце ліцэнзію."
-  },
-  {
     "id": "api.templates.questions_footer.info",
     "translation": "Патрэбна дапамога ці ёсць пытанні? Напішыце нам па адрасе "
   },

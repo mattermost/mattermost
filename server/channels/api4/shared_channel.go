@@ -5,6 +5,7 @@ package api4
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -267,11 +268,15 @@ func getSharedChannelRemotes(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// Get the remotes status
+	// Get the remotes status (return empty if channel is not yet shared)
 	remoteStatuses, err := c.App.GetSharedChannelRemotesStatus(c.Params.ChannelId)
 	if err != nil {
-		c.Err = model.NewAppError("getSharedChannelRemotes", "api.command_share.fetch_remote_status.error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
+		if errors.Is(err, model.ErrChannelNotShared) {
+			remoteStatuses = []*model.SharedChannelRemoteStatus{}
+		} else {
+			c.Err = model.NewAppError("getSharedChannelRemotes", "api.command_share.fetch_remote_status.error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return
+		}
 	}
 
 	// For each remote status, get the RemoteClusterInfo
@@ -285,9 +290,11 @@ func getSharedChannelRemotes(c *Context, w http.ResponseWriter, r *http.Request)
 		} else {
 			// If we can't find the detailed info, create a basic RemoteClusterInfo from the status
 			remoteInfos = append(remoteInfos, &model.RemoteClusterInfo{
+				RemoteId:    status.RemoteId,
 				Name:        status.DisplayName,
 				DisplayName: status.DisplayName,
 				LastPingAt:  status.LastPingAt,
+				SiteURL:     status.SiteURL,
 			})
 		}
 	}
