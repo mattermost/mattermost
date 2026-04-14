@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-const CustomProfileAttributesPropertyGroupName = "custom_profile_attributes"
+const CustomProfileAttributesPropertyGroupName = "protected_attributes"
 
 const (
 	// Attributes keys
