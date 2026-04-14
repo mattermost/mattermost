@@ -19,7 +19,7 @@ describe('Authentication', () => {
         cy.apiAdminLogin();
     });
 
-    it('MM-T1771 - Minimum password length error field shows below 5 and above 72', () => {
+    it('MM-T1771 - Minimum password length error field shows below minimum and above 72', () => {
         cy.visit('/admin_console/authentication/password');
 
         cy.findByPlaceholderText('E.g.: "5"', {timeout: TIMEOUTS.ONE_MIN}).clear().type('88');
@@ -27,7 +27,8 @@ describe('Authentication', () => {
         cy.uiSave();
 
         // * Ensure error appears when saving a password outside of the limits
-        cy.findByText('Minimum password length must be a whole number greater than or equal to 5 and less than or equal to 72.', {timeout: TIMEOUTS.ONE_MIN}).
+        // Note: minimum is 5 on non-FIPS builds and 14 on FIPS builds
+        cy.contains(/Minimum password length must be a whole number greater than or equal to (5|14) and less than or equal to 72\./, {timeout: TIMEOUTS.ONE_MIN}).
             should('exist').
             and('be.visible');
 
@@ -36,7 +37,7 @@ describe('Authentication', () => {
         cy.uiSave();
 
         // * Ensure error appears when saving a password outside of the limits
-        cy.findByText('Minimum password length must be a whole number greater than or equal to 5 and less than or equal to 72.', {timeout: TIMEOUTS.ONE_MIN}).
+        cy.contains(/Minimum password length must be a whole number greater than or equal to (5|14) and less than or equal to 72\./, {timeout: TIMEOUTS.ONE_MIN}).
             should('exist').
             and('be.visible');
     });
@@ -44,11 +45,11 @@ describe('Authentication', () => {
     it('MM-T1772 - Change minimum password length, verify help text and error message', () => {
         cy.visit('/admin_console/authentication/password');
 
-        cy.findByPlaceholderText('E.g.: "5"', {timeout: TIMEOUTS.ONE_MIN}).clear().type('7');
+        cy.findByPlaceholderText('E.g.: "5"', {timeout: TIMEOUTS.ONE_MIN}).clear().type('15');
 
         cy.uiSave();
 
-        cy.findByText('Your password must be 7-72 characters long.').should('be.visible');
+        cy.findByText('Your password must be 15-72 characters long.').should('be.visible');
 
         cy.apiLogout();
 
@@ -66,9 +67,9 @@ describe('Authentication', () => {
         cy.findByText('Create account').click();
 
         // * Assert the error is what is expected;
-        cy.findByText('Your password must be 7-72 characters long.').should('be.visible');
+        cy.findByText('Your password must be 15-72 characters long.').should('be.visible');
 
-        cy.get('#input_password-input').clear().type('greaterthan7');
+        cy.get('#input_password-input').clear().type('GreaterThan15Chr!');
 
         cy.get('#signup-body-card-form-check-terms-and-privacy').check();
 
@@ -81,20 +82,26 @@ describe('Authentication', () => {
     it('MM-T1773 - Minimum password length field resets to default after saving invalid value', () => {
         cy.visit('/admin_console/authentication/password');
 
-        cy.findByPlaceholderText('E.g.: "5"', {timeout: TIMEOUTS.ONE_MIN}).clear().type('10');
+        cy.findByPlaceholderText('E.g.: "5"', {timeout: TIMEOUTS.ONE_MIN}).clear().type('20');
 
         cy.uiSave();
 
         cy.reload();
 
-        // * Ensure the limit 10 appears
-        cy.findByPlaceholderText('E.g.: "5"').invoke('val').should('equal', '10');
+        // * Ensure the limit 20 appears
+        cy.findByPlaceholderText('E.g.: "5"').invoke('val').should('equal', '20');
         cy.findByPlaceholderText('E.g.: "5"').clear();
 
         cy.uiSave();
 
-        // * Ensure the limit 10 appears
-        cy.findByPlaceholderText('E.g.: "5"').invoke('val').should('equal', '5');
+        // Reload to see the actual server state, since on FIPS builds saving
+        // the webapp default of 5 is rejected (below the FIPS minimum of 14).
+        cy.reload();
+
+        // * Ensure the field reflects the server's current minimum password length
+        cy.apiGetConfig().then(({config: {PasswordSettings}}) => {
+            cy.findByPlaceholderText('E.g.: "5"').invoke('val').should('equal', String(PasswordSettings.MinimumLength));
+        });
     });
 
     it('MM-T1774 - Select all Password Requirements, verify help text and error on bad password', () => {
@@ -118,12 +125,12 @@ describe('Authentication', () => {
 
         cy.get('#signup-body-card-form-check-terms-and-privacy').check();
 
-        ['NOLOWERCASE123!', 'noupppercase123!', 'NoNumber!', 'NoSymbol123'].forEach((option) => {
+        ['NOLOWERCASE12345!', 'nouppercase12345!', 'NoNumberHere!!!', 'NoSymbol1234567'].forEach((option) => {
             cy.get('#input_password-input').clear().type(option);
             cy.findByText('Create account').click();
 
             // * Assert the error is what is expected;
-            cy.findByText('Your password must be 5-72 characters long and include both lowercase and uppercase letters, numbers, and special characters.').should('be.visible');
+            cy.findByText('Your password must be 14-72 characters long and include both lowercase and uppercase letters, numbers, and special characters.').should('be.visible');
         });
     });
 

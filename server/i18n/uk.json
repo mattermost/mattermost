@@ -5224,10 +5224,6 @@
     "translation": "Ліцензію Mattermost Enterprise вимкнено."
   },
   {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Термін дії вашої ліцензії на Enterprise версію закінчився, і деякі функції можуть бути вимкнені. Будь ласка, поновіть ліцензію."
-  },
-  {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} запросив вас приєднатися до команди {{ .TeamDisplayName }} як гостя"
   },
