@@ -311,9 +311,18 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 	}
 
 	// Propagate type and options from updated source fields to all their
-	// linked dependents. The JOIN ensures only linked fields whose type or
-	// options actually differ from the source are touched; this is a no-op
-	// when none of the updated fields are link sources or when nothing changed.
+	// linked dependents. This self-joins PropertyFields: "source" is the
+	// row we just updated, "linked" is any row whose LinkedFieldID points
+	// to it. Only rows where type or options actually differ are touched,
+	// so this is a no-op when none of the updated fields have dependents.
+	//
+	// We build the query manually because squirrel doesn't support
+	// PostgreSQL's UPDATE ... FROM syntax, and use ExecRaw because the
+	// placeholders are already in $N format (Exec would try to rebind them).
+	//
+	// For ids = ["aaa", "bbb"] the args and SQL expand to:
+	//   propagateArgs = [updateTime, "aaa", "bbb"]  →  $1, $2, $3
+	//   SQL: ... WHERE source.ID IN ($2, $3) ... UpdateAt = $1
 	inPlaceholders := make([]string, len(ids))
 	propagateArgs := make([]any, 0, len(ids)+1)
 	propagateArgs = append(propagateArgs, updateTime)
