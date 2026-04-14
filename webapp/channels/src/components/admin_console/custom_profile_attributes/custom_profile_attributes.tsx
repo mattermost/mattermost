@@ -1,6 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+// This component implements the "User Attributes" admin UI, formerly known as
+// "Custom Profile Attributes" (CPA). Internal identifiers retain the old
+// naming for backward compatibility. See MM-68235.
+
 import React, {useEffect, useState} from 'react';
 import './custom_profile_attributes.scss';
 import {FormattedMessage, defineMessage} from 'react-intl';
@@ -137,13 +141,13 @@ const CustomProfileAttributes: React.FC<Props> = (props: Props): JSX.Element | n
                 id={props.id}
                 title={defineMessage({
                     id: 'admin.customProfileAttributes.title',
-                    defaultMessage: 'Custom profile attributes sync',
+                    defaultMessage: 'User attributes sync',
                 })}
                 container={false}
                 subtitle={
                     <FormattedMessage
                         id='admin.customProfileAttributes.subtitle'
-                        defaultMessage='You can add or remove custom profile attributes by going to the <link>user attributes page</link>.'
+                        defaultMessage='You can add or remove user attributes by going to the <link>user attributes page</link>.'
                         values={{
                             link: (msg) => (
                                 <Link
