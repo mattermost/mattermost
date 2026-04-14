@@ -9,7 +9,10 @@ const EMOJI_SIZE = 16;
 test('Should show channel banner when configured', async ({pw}) => {
     const {adminUser, adminClient} = await pw.initSetup();
     const license = await adminClient.getClientLicenseOld();
-    test.skip(license.SkuShortName !== LicenseSkus.EnterpriseAdvanced, 'Skipping test - server does not have Enterprise Advanced license');
+    test.skip(
+        license.SkuShortName !== LicenseSkus.EnterpriseAdvanced,
+        'Skipping test - server does not have Enterprise Advanced license',
+    );
 
     const {channelsPage} = await pw.testBrowser.login(adminUser);
     await channelsPage.goto();
@@ -54,8 +57,10 @@ test('Should show channel banner when configured', async ({pw}) => {
 test('Should render emojis without clipping', async ({pw}) => {
     const {adminUser, adminClient} = await pw.initSetup();
     const license = await adminClient.getClientLicenseOld();
-    test.skip(license.SkuShortName !== LicenseSkus.EnterpriseAdvanced, 'Skipping test - server does not have Enterprise Advanced license');
-
+    test.skip(
+        license.SkuShortName !== LicenseSkus.EnterpriseAdvanced,
+        'Skipping test - server does not have Enterprise Advanced license',
+    );
 
     const {channelsPage} = await pw.testBrowser.login(adminUser);
     await channelsPage.goto();
@@ -89,7 +94,10 @@ test('Should render emojis without clipping', async ({pw}) => {
 test('Should render markdown', async ({pw}) => {
     const {adminUser, adminClient} = await pw.initSetup();
     const license = await adminClient.getClientLicenseOld();
-    test.skip(license.SkuShortName !== LicenseSkus.EnterpriseAdvanced, 'Skipping test - server does not have Enterprise Advanced license');
+    test.skip(
+        license.SkuShortName !== LicenseSkus.EnterpriseAdvanced,
+        'Skipping test - server does not have Enterprise Advanced license',
+    );
 
     const {channelsPage} = await pw.testBrowser.login(adminUser);
     await channelsPage.goto();
