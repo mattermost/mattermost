@@ -4360,10 +4360,6 @@
     "translation": "مجوز تجاری Mattermost غیرفعال شده است."
   },
   {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "مجوز تجاری شما منقضی شده است و برخی از ویژگی ها ممکن است غیرفعال شوند. لطفا اشتراکتان را تمدید کنید."
-  },
-  {
     "id": "api.templates.questions_footer.title",
     "translation": "سوالات؟"
   },

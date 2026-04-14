@@ -5214,10 +5214,6 @@
     "translation": "Mattermostエンタープライズライセンスは無効になっています。"
   },
   {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "エンタープライズエディションのライセンスの有効期限が切れ、一部の機能が無効になることがあります。今すぐライセンスを更新してください。"
-  },
-  {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} がゲストとしてあなたを {{ .TeamDisplayName }} チームに招待しました"
   },

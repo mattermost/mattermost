@@ -240,6 +240,21 @@ jobs:
       artifact-name: postgres-server-test-logs
       save-timing-cache: true
 
+  test-elasticsearch-v8:
+    name: Elasticsearch v8 Compatibility
+    needs: go
+    uses: ./.github/workflows/server-test-template.yml
+    secrets: inherit
+    with:
+      name: Elasticsearch v8 Compatibility
+      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      drivername: postgres
+      logsartifact: elasticsearch-v8-server-test-logs
+      go-version: ${{ needs.go.outputs.version }}
+      fips-enabled: false
+      elasticsearch-version: "8.9.0"
+      test-target: "test-server-elasticsearch"
+
   test-postgres-normal-fips:
     # Always run on pushes to master/release branches.
     # For PRs, run when the branch name contains "fips" or any go.mod was changed.
