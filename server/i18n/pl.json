@@ -5224,10 +5224,6 @@
     "translation": "Mattermost Enterprise license has been disabled."
   },
   {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Twoja licencja Enterprise Edition wygasła i niektóre funkcjonalności mogą być niedostępne. Proszę odnowić swoją licencję."
-  },
-  {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} zaprasza Cię do dołączenia do zespołu {{ .TeamDisplayName }} jako gość"
   },
@@ -12010,5 +12006,85 @@
   {
     "id": "web.error.unsupported_desktop_app.title",
     "translation": "Wymagana jest aktualizacja"
+  },
+  {
+    "id": "api.ai_bridge_test_helper.disabled.app_error",
+    "translation": "Pomocnik testu mostka jest wyłączony."
+  },
+  {
+    "id": "api.command.execute_command.provided_site_url_different.app_error",
+    "translation": "Nazwa hosta żądania różni się od skonfigurowanego adresu URL witryny. Skonfigurowany adres URL witryny zostanie użyty dla adresu URL odpowiedzi na polecenie slash."
+  },
+  {
+    "id": "api.command.execute_command.site_url_required.app_error",
+    "translation": "SiteURL musi być skonfigurowany do używania poleceń z ukośnikiem"
+  },
+  {
+    "id": "api.post.create_post.card_type_disabled.app_error",
+    "translation": "Posty w kartach nie są włączone na tym serwerze."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.shared_channel.app_error",
+    "translation": "Spalanie postów po przeczytaniu nie jest dozwolone w udostępnionych Kanałach."
+  },
+  {
+    "id": "api.post.reveal_post.invalid_request.app_error",
+    "translation": "Nieprawidłowe żądanie: brak lub nieprawidłowy nagłówek X-Requested-With."
+  },
+  {
+    "id": "api.property_field.create.invalid_target_type.app_error",
+    "translation": "Podany typ celu jest nieprawidłowy."
+  },
+  {
+    "id": "api.property_field.create.protected_via_api.app_error",
+    "translation": "Nie można utworzyć chronionego pola właściwości za pośrednictwem interfejsu API."
+  },
+  {
+    "id": "api.property_field.create.target_id_required.app_error",
+    "translation": "Identyfikator target_id jest wymagany podczas tworzenia pola właściwości o zakresie Kanał lub Zespół."
+  },
+  {
+    "id": "api.property_field.delete.no_permission.app_error",
+    "translation": "Nie masz uprawnień do usunięcia tego pola właściwości."
+  },
+  {
+    "id": "api.property_field.delete.protected_via_api.app_error",
+    "translation": "Nie można usunąć chronionego pola właściwości za pośrednictwem interfejsu API."
+  },
+  {
+    "id": "api.property_field.get.invalid_target_type.app_error",
+    "translation": "Wymagany jest prawidłowy target_type (system, zespół lub kanał)."
+  },
+  {
+    "id": "api.property_field.get.target_id_required.app_error",
+    "translation": "Identyfikator target_id jest wymagany przy wyszukiwaniu według typu target_type Kanału lub Zespołu."
+  },
+  {
+    "id": "api.property_field.invalid_group_name.app_error",
+    "translation": "Określona grupa właściwości nie została znaleziona."
+  },
+  {
+    "id": "api.property_field.invalid_patch.app_error",
+    "translation": "Nieprawidłowa poprawka pola właściwości."
+  },
+  {
+    "id": "api.property_field.object_type_mismatch.app_error",
+    "translation": "Typ obiektu pola właściwości nie pasuje do URL."
+  },
+  {
+    "id": "api.property_field.patch.legacy_field.app_error",
+    "translation": "Nie można zmienić pola właściwości v1 za pośrednictwem tego interfejsu API."
+  },
+  {
+    "id": "api.property_field.update.no_field_permission.app_error",
+    "translation": "Nie masz uprawnień, aby edytować to pole właściwości."
+  },
+  {
+    "id": "api.property_field.update.no_options_permission.app_error",
+    "translation": "Nie masz uprawnień do zarządzania opcjami dla tego pola właściwości."
+  },
+  {
+    "id": "api.property_field.update.protected_via_api.app_error",
+    "translation": "Nie można zaktualizować chronionego pola właściwości za pośrednictwem interfejsu API."
   }
 ]

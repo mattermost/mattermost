@@ -5184,10 +5184,6 @@
     "translation": "La licencia de Mattermost Enterprise ha sido desactivada."
   },
   {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Su licencia de la Enterprise Edition ha expirado y algunas características pueden estar desactivadas. Por favor, renueve su licencia ahora."
-  },
-  {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} te ha invitado a unirte al equipo {{ .TeamDisplayName }} como huésped"
   },
