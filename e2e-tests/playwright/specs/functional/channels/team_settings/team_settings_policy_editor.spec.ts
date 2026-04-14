@@ -15,7 +15,6 @@ import {
     assignChannelsToPolicy,
     unassignChannelsFromPolicy,
     createPrivateChannel,
-    createGroupConstrainedPrivateChannel,
     createPublicChannel,
     createTeamAdmin,
     setUserAttribute,
@@ -83,11 +82,16 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         // # Add channel via channel selector
         await addChannelToPolicy(teamSettings.container, page, channel.display_name);
 
-        // # Save via SaveChangesPanel
-        await teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
+        // * Confirm the channel appears in the editor list before saving
+        await expect(teamSettings.container.getByText(channel.display_name)).toBeVisible({timeout: 10000});
+
+        // # Save via SaveChangesPanel — wait for button to be enabled (form fully dirty)
+        const saveBtn = teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]');
+        await expect(saveBtn).toBeEnabled({timeout: 10000});
+        await saveBtn.click();
 
         // # Confirm in PolicyConfirmationModal
-        await page.locator('.TeamPolicyConfirmationModal').waitFor();
+        await page.locator('.TeamPolicyConfirmationModal').waitFor({timeout: 30000});
         await page.getByRole('button', {name: /Apply policy/}).click();
 
         // * Auto-navigated back to list, policy name visible
@@ -483,11 +487,16 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         // # Add channel via channel selector
         await addChannelToPolicy(teamSettings.container, page, channel.display_name);
 
-        // # Save via SaveChangesPanel
-        await teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
+        // * Confirm the channel appears in the editor list before saving
+        await expect(teamSettings.container.getByText(channel.display_name)).toBeVisible({timeout: 10000});
+
+        // # Save via SaveChangesPanel — wait for button to be enabled (form fully dirty)
+        const saveBtn = teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]');
+        await expect(saveBtn).toBeEnabled({timeout: 10000});
+        await saveBtn.click();
 
         // # Confirm in PolicyConfirmationModal
-        await page.locator('.TeamPolicyConfirmationModal').waitFor();
+        await page.locator('.TeamPolicyConfirmationModal').waitFor({timeout: 30000});
         await page.getByRole('button', {name: /Apply policy/}).click();
 
         // * Auto-navigated back to list, policy appears
@@ -717,9 +726,12 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await adminClient.addToChannel(teamAdmin.id, privateChannel1.id);
         await adminClient.addToChannel(teamAdmin.id, privateChannel2.id);
 
-        // # Create a group-constrained private channel the team admin is a member of
-        const gcChannel = await createGroupConstrainedPrivateChannel(adminClient, team.id);
+        // # Create a private channel, add the team admin, then make it group-constrained.
+        // Membership must be established before the constraint is set — the API rejects
+        // addToChannel on an already-constrained channel.
+        const gcChannel = await createPrivateChannel(adminClient, team.id);
         await adminClient.addToChannel(teamAdmin.id, gcChannel.id);
+        await adminClient.patchChannel(gcChannel.id, {group_constrained: true} as any);
 
         const {page} = await pw.testBrowser.login(teamAdmin);
         const channelsPage = new ChannelsPage(page);

@@ -1189,3 +1189,770 @@ func TestSetActiveStatus(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 }
+
+func setupTeamAdminABAC(t *testing.T, th *TestHelper) *mocks.AccessControlServiceInterface {
+	t.Helper()
+	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	require.True(t, ok, "SetLicense should return true")
+
+	mockACS := &mocks.AccessControlServiceInterface{}
+	th.App.Srv().Channels().AccessControl = mockACS
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+	})
+
+	th.AddPermissionToRole(t, model.PermissionManageTeamAccessRules.Id, model.TeamAdminRoleId)
+	return mockACS
+}
+
+// makeTeamAdmin links the given user to the given team and promotes them to
+// team admin. It also logs th.Client in as that user.
+func makeTeamAdminAndLogin(t *testing.T, th *TestHelper, user *model.User, team *model.Team) {
+	t.Helper()
+	th.LinkUserToTeam(t, user, team)
+	th.UpdateUserToTeamAdmin(t, user, team)
+	_, _, err := th.Client.Login(context.Background(), user.Email, user.Password)
+	require.NoError(t, err)
+}
+
+// newParentPolicy returns a parent-type policy ready for storage or mock use.
+func newParentPolicy(teamID string) *model.AccessControlPolicy {
+	return &model.AccessControlPolicy{
+		ID:   model.NewId(),
+		Name: "test-policy-" + model.NewId(),
+		Type: model.AccessControlPolicyTypeParent,
+		Rules: []model.AccessControlPolicyRule{
+			{
+				Expression: "user.attributes.department == 'engineering'",
+				Actions:    []string{"*"},
+			},
+		},
+		Version: model.AccessControlPolicyVersionV0_2,
+		Scope:   model.AccessControlPolicyScopeTeam,
+		ScopeID: teamID,
+	}
+}
+
+func TestCreateAccessControlPolicyTeamAdmin(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
+	th := Setup(t).InitBasic(t)
+	t.Cleanup(func() {
+		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
+	})
+
+	t.Run("team admin with permission can create parent policy scoped to their team", func(t *testing.T) {
+		mockACS := setupTeamAdminABAC(t, th)
+
+		makeTeamAdminAndLogin(t, th, th.TeamAdminUser, th.BasicTeam)
+		defer th.LoginBasic(t)
+
+		policy := newParentPolicy(th.BasicTeam.Id)
+		// Strip ID, scope so the handler treats this as a CREATE and sets them itself.
+		// A non-empty ID triggers the update-ownership check, which fails if the
+		// policy doesn't already exist in the store.
+		policy.ID = ""
+		policy.Scope = ""
+		policy.ScopeID = ""
+
+		mockACS.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).
+			Return(policy, nil).Once()
+
+		r, err := th.Client.DoAPIPutJSON(
+			context.Background(),
+			"/access_control_policies?team_id="+th.BasicTeam.Id,
+			policy,
+		)
+		require.NoError(t, err)
+		defer r.Body.Close()
+		require.Equal(t, 200, r.StatusCode)
+
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("team admin without manage_team_access_rules permission gets 403", func(t *testing.T) {
+		setupTeamAdminABAC(t, th)
+
+		defaultPerms := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+		th.RemovePermissionFromRole(t, model.PermissionManageTeamAccessRules.Id, model.TeamAdminRoleId)
+
+		makeTeamAdminAndLogin(t, th, th.TeamAdminUser, th.BasicTeam)
+		defer th.LoginBasic(t)
+
+		policy := newParentPolicy(th.BasicTeam.Id)
+		policy.Scope = ""
+		policy.ScopeID = ""
+
+		r, err := th.Client.DoAPIPutJSON(
+			context.Background(),
+			"/access_control_policies?team_id="+th.BasicTeam.Id,
+			policy,
+		)
+		require.Error(t, err)
+		defer r.Body.Close()
+		require.Equal(t, 403, r.StatusCode)
+	})
+
+	t.Run("team admin using a wrong team_id gets 403", func(t *testing.T) {
+		setupTeamAdminABAC(t, th)
+
+		// Create a second team that the team admin does NOT belong to.
+		otherTeam := th.CreateTeam(t)
+
+		makeTeamAdminAndLogin(t, th, th.TeamAdminUser, th.BasicTeam)
+		defer th.LoginBasic(t)
+
+		policy := newParentPolicy(otherTeam.Id)
+
+		r, err := th.Client.DoAPIPutJSON(
+			context.Background(),
+			"/access_control_policies?team_id="+otherTeam.Id,
+			policy,
+		)
+		require.Error(t, err)
+		defer r.Body.Close()
+		require.Equal(t, 403, r.StatusCode)
+	})
+
+	t.Run("team admin omitting team_id gets 403 (falls through to system permission check)", func(t *testing.T) {
+		setupTeamAdminABAC(t, th)
+
+		makeTeamAdminAndLogin(t, th, th.TeamAdminUser, th.BasicTeam)
+		defer th.LoginBasic(t)
+
+		policy := newParentPolicy(th.BasicTeam.Id)
+
+		// No team_id in query string — handler requires system permission.
+		r, err := th.Client.DoAPIPutJSON(
+			context.Background(),
+			"/access_control_policies",
+			policy,
+		)
+		require.Error(t, err)
+		defer r.Body.Close()
+		require.Equal(t, 403, r.StatusCode)
+	})
+
+	t.Run("regular user is denied even with team_id", func(t *testing.T) {
+		setupTeamAdminABAC(t, th)
+
+		th.LoginBasic(t)
+
+		policy := newParentPolicy(th.BasicTeam.Id)
+
+		r, err := th.Client.DoAPIPutJSON(
+			context.Background(),
+			"/access_control_policies?team_id="+th.BasicTeam.Id,
+			policy,
+		)
+		require.Error(t, err)
+		defer r.Body.Close()
+		require.Equal(t, 403, r.StatusCode)
+	})
+}
+
+func TestGetAccessControlPolicyTeamAdmin(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
+	th := Setup(t).InitBasic(t)
+	t.Cleanup(func() {
+		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
+	})
+
+	t.Run("team admin can GET a policy scoped to their team", func(t *testing.T) {
+		mockACS := setupTeamAdminABAC(t, th)
+
+		// Insert a team-scoped policy directly into the store so ownership
+		// validation (ValidateTeamAdminPolicyOwnership) can confirm it.
+		policy := newParentPolicy(th.BasicTeam.Id)
+		savedPolicy, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+		require.NoError(t, err)
+		defer func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, savedPolicy.ID)
+		}()
+
+		// The handler calls GetPolicy twice: once in ValidateAccessControlPolicyPermissionWithChannelContext
+		// (which returns forbidden for parent-type policies, falling through to team-admin path)
+		// and once for the actual policy retrieval after permission is confirmed.
+		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), savedPolicy.ID).
+			Return(savedPolicy, nil).Times(2)
+
+		makeTeamAdminAndLogin(t, th, th.TeamAdminUser, th.BasicTeam)
+		defer th.LoginBasic(t)
+
+		r, err := th.Client.DoAPIGet(
+			context.Background(),
+			"/access_control_policies/"+savedPolicy.ID+"?team_id="+th.BasicTeam.Id,
+			"",
+		)
+		require.NoError(t, err)
+		defer r.Body.Close()
+		require.Equal(t, 200, r.StatusCode)
+
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("team admin cannot GET a policy owned by another team", func(t *testing.T) {
+		mockACS := setupTeamAdminABAC(t, th)
+
+		// Create another team and a policy scoped to it.
+		otherTeam := th.CreateTeam(t)
+		otherPolicy := newParentPolicy(otherTeam.Id)
+		savedOtherPolicy, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, otherPolicy)
+		require.NoError(t, err)
+		defer func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, savedOtherPolicy.ID)
+		}()
+
+		// The mock must not be called for GetPolicy because ownership fails first.
+		// However ValidateAccessControlPolicyPermissionWithChannelContext calls GetPolicy
+		// before the team-admin fallback, so we set up a return for completeness.
+		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), savedOtherPolicy.ID).
+			Return(savedOtherPolicy, nil).Maybe()
+
+		makeTeamAdminAndLogin(t, th, th.TeamAdminUser, th.BasicTeam)
+		defer th.LoginBasic(t)
+
+		// Team admin passes their own team_id but the policy belongs to otherTeam.
+		r, err := th.Client.DoAPIGet(
+			context.Background(),
+			"/access_control_policies/"+savedOtherPolicy.ID+"?team_id="+th.BasicTeam.Id,
+			"",
+		)
+		require.Error(t, err)
+		defer r.Body.Close()
+		require.Equal(t, 403, r.StatusCode)
+	})
+
+	t.Run("team admin without team_id and no system rights gets 403", func(t *testing.T) {
+		mockACS := setupTeamAdminABAC(t, th)
+
+		policy := newParentPolicy(th.BasicTeam.Id)
+		savedPolicy, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+		require.NoError(t, err)
+		defer func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, savedPolicy.ID)
+		}()
+
+		// GetPolicy is called by ValidateAccessControlPolicyPermissionWithChannelContext
+		// (first check). The policy is of parent type so that path returns forbidden.
+		// After that, the handler checks team_id which is missing so it returns 403.
+		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), savedPolicy.ID).
+			Return(savedPolicy, nil).Maybe()
+
+		makeTeamAdminAndLogin(t, th, th.TeamAdminUser, th.BasicTeam)
+		defer th.LoginBasic(t)
+
+		// No team_id query param — handler cannot elevate to team admin path.
+		r, err := th.Client.DoAPIGet(
+			context.Background(),
+			"/access_control_policies/"+savedPolicy.ID,
+			"",
+		)
+		require.Error(t, err)
+		defer r.Body.Close()
+		require.Equal(t, 403, r.StatusCode)
+	})
+}
+
+func TestDeleteAccessControlPolicyTeamAdmin(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
+	th := Setup(t).InitBasic(t)
+	t.Cleanup(func() {
+		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
+	})
+
+	t.Run("team admin can delete their own team-scoped policy", func(t *testing.T) {
+		mockACS := setupTeamAdminABAC(t, th)
+
+		policy := newParentPolicy(th.BasicTeam.Id)
+		savedPolicy, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+		require.NoError(t, err)
+
+		// ValidateAccessControlPolicyPermission calls GetPolicy; the policy is
+		// parent-typed so that path fails → handler falls through to team-admin check.
+		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), savedPolicy.ID).
+			Return(savedPolicy, nil).Maybe()
+		mockACS.On("DeletePolicy", mock.AnythingOfType("*request.Context"), savedPolicy.ID).
+			Return(nil).Once()
+
+		makeTeamAdminAndLogin(t, th, th.TeamAdminUser, th.BasicTeam)
+		defer th.LoginBasic(t)
+
+		r, err := th.Client.DoAPIDelete(
+			context.Background(),
+			"/access_control_policies/"+savedPolicy.ID+"?team_id="+th.BasicTeam.Id,
+		)
+		require.NoError(t, err)
+		defer r.Body.Close()
+		require.Equal(t, 200, r.StatusCode)
+
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("team admin cannot delete a policy owned by another team", func(t *testing.T) {
+		mockACS := setupTeamAdminABAC(t, th)
+
+		otherTeam := th.CreateTeam(t)
+		otherPolicy := newParentPolicy(otherTeam.Id)
+		savedOtherPolicy, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, otherPolicy)
+		require.NoError(t, err)
+		defer func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, savedOtherPolicy.ID)
+		}()
+
+		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), savedOtherPolicy.ID).
+			Return(savedOtherPolicy, nil).Maybe()
+
+		makeTeamAdminAndLogin(t, th, th.TeamAdminUser, th.BasicTeam)
+		defer th.LoginBasic(t)
+
+		// team_id=BasicTeam but the policy belongs to otherTeam → ownership check fails.
+		r, err := th.Client.DoAPIDelete(
+			context.Background(),
+			"/access_control_policies/"+savedOtherPolicy.ID+"?team_id="+th.BasicTeam.Id,
+		)
+		require.Error(t, err)
+		defer r.Body.Close()
+		require.Equal(t, 403, r.StatusCode)
+	})
+
+	t.Run("regular user is denied", func(t *testing.T) {
+		mockACS := setupTeamAdminABAC(t, th)
+
+		policy := newParentPolicy(th.BasicTeam.Id)
+		savedPolicy, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+		require.NoError(t, err)
+		defer func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, savedPolicy.ID)
+		}()
+
+		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), savedPolicy.ID).
+			Return(savedPolicy, nil).Maybe()
+
+		th.LoginBasic(t)
+
+		r, err := th.Client.DoAPIDelete(
+			context.Background(),
+			"/access_control_policies/"+savedPolicy.ID+"?team_id="+th.BasicTeam.Id,
+		)
+		require.Error(t, err)
+		defer r.Body.Close()
+		require.Equal(t, 403, r.StatusCode)
+	})
+}
+
+func TestAssignAccessPolicyTeamAdmin(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
+	th := Setup(t).InitBasic(t)
+	t.Cleanup(func() {
+		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
+	})
+
+	t.Run("team admin can assign channels from their own team", func(t *testing.T) {
+		mockACS := setupTeamAdminABAC(t, th)
+
+		// Create a private channel in BasicTeam.
+		privateCh := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypePrivate, th.BasicTeam.Id)
+
+		// Insert a team-scoped parent policy so ownership validation passes.
+		policy := newParentPolicy(th.BasicTeam.Id)
+		savedPolicy, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+		require.NoError(t, err)
+		defer func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, savedPolicy.ID)
+		}()
+
+		// AssignAccessControlPolicyToChannels calls GetPolicy then SavePolicy per channel.
+		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), savedPolicy.ID).
+			Return(savedPolicy, nil).Once()
+		childPolicy := &model.AccessControlPolicy{
+			ID:   privateCh.Id,
+			Type: model.AccessControlPolicyTypeChannel,
+		}
+		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), privateCh.Id).
+			Return(nil, model.NewAppError("GetPolicy", "not_found", nil, "", 404)).Once()
+		mockACS.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).
+			Return(childPolicy, nil).Once()
+
+		makeTeamAdminAndLogin(t, th, th.TeamAdminUser, th.BasicTeam)
+		defer th.LoginBasic(t)
+
+		body := map[string]any{
+			"channel_ids": []string{privateCh.Id},
+			"team_id":     th.BasicTeam.Id,
+		}
+		r, err := th.Client.DoAPIPostJSON(
+			context.Background(),
+			"/access_control_policies/"+savedPolicy.ID+"/assign",
+			body,
+		)
+		require.NoError(t, err)
+		defer r.Body.Close()
+		require.Equal(t, 200, r.StatusCode)
+
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("team admin cannot assign channels from a foreign team", func(t *testing.T) {
+		mockACS := setupTeamAdminABAC(t, th)
+
+		// Create a private channel in a DIFFERENT team.
+		otherTeam := th.CreateTeam(t)
+		foreignCh := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypePrivate, otherTeam.Id)
+
+		// Policy is scoped to BasicTeam.
+		policy := newParentPolicy(th.BasicTeam.Id)
+		savedPolicy, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+		require.NoError(t, err)
+		defer func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, savedPolicy.ID)
+		}()
+
+		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), savedPolicy.ID).
+			Return(savedPolicy, nil).Maybe()
+
+		makeTeamAdminAndLogin(t, th, th.TeamAdminUser, th.BasicTeam)
+		defer th.LoginBasic(t)
+
+		body := map[string]any{
+			"channel_ids": []string{foreignCh.Id},
+			"team_id":     th.BasicTeam.Id,
+		}
+		r, err := th.Client.DoAPIPostJSON(
+			context.Background(),
+			"/access_control_policies/"+savedPolicy.ID+"/assign",
+			body,
+		)
+		require.Error(t, err)
+		defer r.Body.Close()
+		// ValidateTeamScopePolicyChannelAssignment returns 400 for foreign channels.
+		require.Equal(t, 400, r.StatusCode)
+	})
+
+	t.Run("team admin without manage_team_access_rules is denied", func(t *testing.T) {
+		setupTeamAdminABAC(t, th)
+
+		defaultPerms := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+		th.RemovePermissionFromRole(t, model.PermissionManageTeamAccessRules.Id, model.TeamAdminRoleId)
+
+		policy := newParentPolicy(th.BasicTeam.Id)
+		savedPolicy, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+		require.NoError(t, err)
+		defer func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, savedPolicy.ID)
+		}()
+
+		makeTeamAdminAndLogin(t, th, th.TeamAdminUser, th.BasicTeam)
+		defer th.LoginBasic(t)
+
+		body := map[string]any{
+			"channel_ids": []string{model.NewId()},
+			"team_id":     th.BasicTeam.Id,
+		}
+		r, err := th.Client.DoAPIPostJSON(
+			context.Background(),
+			"/access_control_policies/"+savedPolicy.ID+"/assign",
+			body,
+		)
+		require.Error(t, err)
+		defer r.Body.Close()
+		require.Equal(t, 403, r.StatusCode)
+	})
+
+	t.Run("regular user without team_id is denied", func(t *testing.T) {
+		setupTeamAdminABAC(t, th)
+
+		th.LoginBasic(t)
+
+		body := map[string]any{
+			"channel_ids": []string{model.NewId()},
+		}
+		r, err := th.Client.DoAPIPostJSON(
+			context.Background(),
+			"/access_control_policies/"+model.NewId()+"/assign",
+			body,
+		)
+		require.Error(t, err)
+		defer r.Body.Close()
+		require.Equal(t, 403, r.StatusCode)
+	})
+}
+
+func TestUnassignAccessPolicyTeamAdmin(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
+	th := Setup(t).InitBasic(t)
+	t.Cleanup(func() {
+		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
+	})
+
+	t.Run("team admin can unassign channels from their policy", func(t *testing.T) {
+		mockACS := setupTeamAdminABAC(t, th)
+
+		privateCh := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypePrivate, th.BasicTeam.Id)
+
+		// Parent policy scoped to BasicTeam.
+		policy := newParentPolicy(th.BasicTeam.Id)
+		savedPolicy, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+		require.NoError(t, err)
+		defer func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, savedPolicy.ID)
+		}()
+
+		// Child channel policy that will be deleted on unassign.
+		childPolicy := &model.AccessControlPolicy{
+			ID:       privateCh.Id,
+			Type:     model.AccessControlPolicyTypeChannel,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Revision: 1,
+		}
+		childPolicy.Props = map[string]any{}
+		_ = childPolicy.Inherit(savedPolicy)
+		savedChild, storeErr := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, childPolicy)
+		require.NoError(t, storeErr)
+		defer func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, savedChild.ID)
+		}()
+
+		// UnassignPoliciesFromChannels fetches the child policy via acs.GetPolicy,
+		// then deletes it (no imports and no rules remain after removing the parent).
+		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), privateCh.Id).
+			Return(savedChild, nil).Once()
+		mockACS.On("DeletePolicy", mock.AnythingOfType("*request.Context"), privateCh.Id).
+			Return(nil).Once()
+
+		makeTeamAdminAndLogin(t, th, th.TeamAdminUser, th.BasicTeam)
+		defer th.LoginBasic(t)
+
+		body := map[string]any{
+			"channel_ids": []string{privateCh.Id},
+			"team_id":     th.BasicTeam.Id,
+		}
+		r, err := th.Client.DoAPIDeleteJSON(
+			context.Background(),
+			"/access_control_policies/"+savedPolicy.ID+"/unassign",
+			body,
+		)
+		require.NoError(t, err)
+		defer r.Body.Close()
+		require.Equal(t, 200, r.StatusCode)
+
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("after unassigning the last channel, scope is preserved because it was set at creation", func(t *testing.T) {
+		mockACS := setupTeamAdminABAC(t, th)
+
+		privateCh := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypePrivate, th.BasicTeam.Id)
+
+		// Policy already has explicit scope set (as created by team admin).
+		policy := newParentPolicy(th.BasicTeam.Id)
+		savedPolicy, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+		require.NoError(t, err)
+		defer func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, savedPolicy.ID)
+		}()
+
+		// Assign child policy so there is one channel.
+		childPolicy := &model.AccessControlPolicy{
+			ID:      privateCh.Id,
+			Type:    model.AccessControlPolicyTypeChannel,
+			Version: model.AccessControlPolicyVersionV0_2,
+			Props:   map[string]any{},
+		}
+		_ = childPolicy.Inherit(savedPolicy)
+		savedChild, storeErr := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, childPolicy)
+		require.NoError(t, storeErr)
+		// Child will be deleted during unassign; clean up if test fails early.
+		defer func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, savedChild.ID)
+		}()
+
+		// UnassignPoliciesFromChannels fetches the child via acs.GetPolicy before deleting it.
+		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), privateCh.Id).
+			Return(savedChild, nil).Once()
+		mockACS.On("DeletePolicy", mock.AnythingOfType("*request.Context"), privateCh.Id).
+			Return(nil).Once()
+
+		makeTeamAdminAndLogin(t, th, th.TeamAdminUser, th.BasicTeam)
+		defer th.LoginBasic(t)
+
+		body := map[string]any{
+			"channel_ids": []string{privateCh.Id},
+			"team_id":     th.BasicTeam.Id,
+		}
+		r, err := th.Client.DoAPIDeleteJSON(
+			context.Background(),
+			"/access_control_policies/"+savedPolicy.ID+"/unassign",
+			body,
+		)
+		require.NoError(t, err)
+		defer r.Body.Close()
+		require.Equal(t, 200, r.StatusCode)
+
+		// After unassigning the only channel, ReconcilePolicyTeamScope sees no
+		// children → it is a no-op and the explicit scope is preserved.
+		reloaded, storeErr := th.App.Srv().Store().AccessControlPolicy().Get(th.Context, savedPolicy.ID)
+		require.NoError(t, storeErr)
+		require.Equal(t, model.AccessControlPolicyScopeTeam, reloaded.Scope, "scope should be preserved after last channel unassigned")
+		require.Equal(t, th.BasicTeam.Id, reloaded.ScopeID, "scope_id should remain the team's ID")
+
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("team admin for wrong team is denied", func(t *testing.T) {
+		mockACS := setupTeamAdminABAC(t, th)
+
+		// Policy belongs to BasicTeam, but we will try to unassign it as if we
+		// own otherTeam.
+		otherTeam := th.CreateTeam(t)
+		policy := newParentPolicy(th.BasicTeam.Id)
+		savedPolicy, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+		require.NoError(t, err)
+		defer func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, savedPolicy.ID)
+		}()
+
+		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), savedPolicy.ID).
+			Return(savedPolicy, nil).Maybe()
+
+		// Make the user team admin of otherTeam only.
+		th.LinkUserToTeam(t, th.TeamAdminUser, otherTeam)
+		th.UpdateUserToTeamAdmin(t, th.TeamAdminUser, otherTeam)
+		_, _, err = th.Client.Login(context.Background(), th.TeamAdminUser.Email, th.TeamAdminUser.Password)
+		require.NoError(t, err)
+		defer th.LoginBasic(t)
+
+		body := map[string]any{
+			"channel_ids": []string{model.NewId()},
+			"team_id":     otherTeam.Id,
+		}
+		r, err := th.Client.DoAPIDeleteJSON(
+			context.Background(),
+			"/access_control_policies/"+savedPolicy.ID+"/unassign",
+			body,
+		)
+		require.Error(t, err)
+		defer r.Body.Close()
+		require.Equal(t, 403, r.StatusCode)
+	})
+}
+
+func TestScopeReconciliationCrossTeam(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
+	th := Setup(t).InitBasic(t)
+	t.Cleanup(func() {
+		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
+	})
+
+	// System admin creates a parent policy with channels only from teamA.
+	// After assigning a channel from teamB, scope must be cleared.
+	// After removing the teamB channel, scope should be restored to teamA.
+
+	t.Run("scope cleared when cross-team channel is added then restored after removal", func(t *testing.T) {
+		mockACS := setupTeamAdminABAC(t, th)
+
+		teamA := th.BasicTeam
+		teamB := th.CreateTeam(t)
+
+		chA := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypePrivate, teamA.Id)
+		chB := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypePrivate, teamB.Id)
+
+		// Insert a parent policy explicitly scoped to teamA.
+		parentPolicy := newParentPolicy(teamA.Id)
+		savedParent, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, parentPolicy)
+		require.NoError(t, err)
+		defer func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, savedParent.ID)
+		}()
+
+		// Verify initial scope is teamA.
+		require.Equal(t, model.AccessControlPolicyScopeTeam, savedParent.Scope)
+		require.Equal(t, teamA.Id, savedParent.ScopeID)
+
+		// --- Phase 1: Assign chA (same-team channel). Scope must remain teamA. ---
+		childA := &model.AccessControlPolicy{
+			ID:      chA.Id,
+			Type:    model.AccessControlPolicyTypeChannel,
+			Version: model.AccessControlPolicyVersionV0_2,
+			Props:   map[string]any{},
+		}
+		_ = childA.Inherit(savedParent)
+		savedChildA, storeErr := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, childA)
+		require.NoError(t, storeErr)
+		defer func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, savedChildA.ID)
+		}()
+
+		// ReconcilePolicyTeamScope needs GetChannels (via app layer), and the
+		// store-level SearchPolicies. After assigning chA, all children are in
+		// teamA → scope stays teamA. We call ReconcileScope directly to verify.
+		appErr := th.App.ReconcilePolicyTeamScope(th.Context, savedParent.ID)
+		require.Nil(t, appErr)
+
+		reloaded, storeErr := th.App.Srv().Store().AccessControlPolicy().Get(th.Context, savedParent.ID)
+		require.NoError(t, storeErr)
+		require.Equal(t, model.AccessControlPolicyScopeTeam, reloaded.Scope, "scope should still be team after same-team channel added")
+		require.Equal(t, teamA.Id, reloaded.ScopeID, "scope_id should remain teamA after same-team channel added")
+
+		// --- Phase 2: Assign chB (cross-team channel). Scope must be cleared. ---
+		childB := &model.AccessControlPolicy{
+			ID:      chB.Id,
+			Type:    model.AccessControlPolicyTypeChannel,
+			Version: model.AccessControlPolicyVersionV0_2,
+			Props:   map[string]any{},
+		}
+		_ = childB.Inherit(savedParent)
+		savedChildB, storeErr := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, childB)
+		require.NoError(t, storeErr)
+		defer func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, savedChildB.ID)
+		}()
+
+		appErr = th.App.ReconcilePolicyTeamScope(th.Context, savedParent.ID)
+		require.Nil(t, appErr)
+
+		reloaded, storeErr = th.App.Srv().Store().AccessControlPolicy().Get(th.Context, savedParent.ID)
+		require.NoError(t, storeErr)
+		require.Equal(t, "", reloaded.Scope, "scope should be cleared when channels span multiple teams")
+		require.Equal(t, "", reloaded.ScopeID, "scope_id should be cleared when channels span multiple teams")
+
+		// --- Phase 3: Remove chB. Scope should be restored to teamA. ---
+		storeErr = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, savedChildB.ID)
+		require.NoError(t, storeErr)
+
+		appErr = th.App.ReconcilePolicyTeamScope(th.Context, savedParent.ID)
+		require.Nil(t, appErr)
+
+		reloaded, storeErr = th.App.Srv().Store().AccessControlPolicy().Get(th.Context, savedParent.ID)
+		require.NoError(t, storeErr)
+		require.Equal(t, model.AccessControlPolicyScopeTeam, reloaded.Scope, "scope should be restored to team after cross-team channel removed")
+		require.Equal(t, teamA.Id, reloaded.ScopeID, "scope_id should be restored to teamA after cross-team channel removed")
+
+		// The mock was set up but never needed in this test since we exercise the
+		// app/store directly. Suppress unused-mock warnings.
+		_ = mockACS
+	})
+
+	t.Run("scope is not set when no channels are assigned", func(t *testing.T) {
+		setupTeamAdminABAC(t, th)
+
+		// A brand-new policy with explicit scope set at creation.
+		policy := newParentPolicy(th.BasicTeam.Id)
+		savedPolicy, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+		require.NoError(t, err)
+		defer func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, savedPolicy.ID)
+		}()
+
+		// ReconcileScope with no children is a no-op — scope is unchanged.
+		appErr := th.App.ReconcilePolicyTeamScope(th.Context, savedPolicy.ID)
+		require.Nil(t, appErr)
+
+		reloaded, storeErr := th.App.Srv().Store().AccessControlPolicy().Get(th.Context, savedPolicy.ID)
+		require.NoError(t, storeErr)
+		require.Equal(t, model.AccessControlPolicyScopeTeam, reloaded.Scope, "scope must be preserved when no channels exist")
+		require.Equal(t, th.BasicTeam.Id, reloaded.ScopeID, "scope_id must be preserved when no channels exist")
+	})
+}
