@@ -7,7 +7,7 @@ import type {ChannelType} from '@mattermost/types/channels';
 import type {Post, PostType} from '@mattermost/types/posts';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, act} from 'tests/react_testing_utils';
 import {Locations} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -334,7 +334,9 @@ describe('components/dot_menu/DotMenu', () => {
 
         // Simulate pressing 'W' key while menu is open
         const menu = screen.getByRole('menu');
-        menu.focus();
+        await act(async () => {
+            menu.focus();
+        });
         await userEvent.keyboard('W');
 
         // Move thread should not be triggered (menu item doesn't exist, so no way to verify the action wasn't called)

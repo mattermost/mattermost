@@ -180,21 +180,10 @@ exports[`components/integrations/EditIncomingWebhook should have called submitHo
           </a>
           <button
             class="btn btn-primary"
-            disabled=""
             id="saveWebhook"
             type="submit"
           >
-            <span
-              class="LoadingSpinner with-text"
-              data-testid="loadingSpinner"
-              id="loadingSpinner"
-            >
-              <span
-                class="fa fa-spinner fa-fw fa-pulse spinner"
-                title="Loading Icon"
-              />
-              Updating...
-            </span>
+            Update
           </button>
         </div>
       </form>
@@ -383,21 +372,10 @@ exports[`components/integrations/EditIncomingWebhook should have called submitHo
           </a>
           <button
             class="btn btn-primary"
-            disabled=""
             id="saveWebhook"
             type="submit"
           >
-            <span
-              class="LoadingSpinner with-text"
-              data-testid="loadingSpinner"
-              id="loadingSpinner"
-            >
-              <span
-                class="fa fa-spinner fa-fw fa-pulse spinner"
-                title="Loading Icon"
-              />
-              Updating...
-            </span>
+            Update
           </button>
         </div>
       </form>

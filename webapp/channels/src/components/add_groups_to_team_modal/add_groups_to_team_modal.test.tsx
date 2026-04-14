@@ -170,17 +170,17 @@ describe('components/AddGroupsToTeamModal', () => {
         );
         const instance = ref.current!;
 
-        act(() => {
+        await act(async () => {
             instance.handlePageChange(0, 1);
         });
         expect(baseProps.actions.getGroupsNotAssociatedToTeam).toHaveBeenCalledTimes(1);
 
-        act(() => {
+        await act(async () => {
             instance.handlePageChange(1, 0);
         });
         expect(baseProps.actions.getGroupsNotAssociatedToTeam).toHaveBeenCalledTimes(2);
 
-        act(() => {
+        await act(async () => {
             instance.handlePageChange(0, 1);
         });
         expect(baseProps.actions.getGroupsNotAssociatedToTeam).toHaveBeenCalledTimes(2);

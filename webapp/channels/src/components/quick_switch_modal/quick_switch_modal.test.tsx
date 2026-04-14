@@ -7,7 +7,7 @@ import {IntlProvider, injectIntl} from 'react-intl';
 import QuickSwitchModal, {QuickSwitchModal as QuickSwitchModalClass} from 'components/quick_switch_modal/quick_switch_modal';
 import ChannelNavigator from 'components/sidebar/channel_navigator/channel_navigator';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 
 // Wrap the class component with injectIntl + forwardRef so refs work
@@ -48,7 +48,9 @@ describe('components/QuickSwitchModal', () => {
             );
             const instance = ref.current!;
 
-            instance.handleSubmit();
+            await act(async () => {
+                instance.handleSubmit();
+            });
             expect(props.onExited).not.toHaveBeenCalled();
             expect(props.actions.switchToChannel).not.toHaveBeenCalled();
         });
@@ -65,10 +67,10 @@ describe('components/QuickSwitchModal', () => {
             const instance = ref.current!;
 
             const channel = {id: 'channel_id', userId: 'user_id', type: Constants.DM_CHANNEL};
-            instance.handleSubmit({channel});
+            await act(async () => {
+                instance.handleSubmit({channel});
+            });
             expect(props.actions.switchToChannel).toHaveBeenCalledWith(channel);
-
-            await new Promise(process.nextTick);
             expect(props.onExited).not.toHaveBeenCalled();
         });
 
@@ -94,10 +96,10 @@ describe('components/QuickSwitchModal', () => {
             const instance = ref.current!;
 
             const channel = {id: 'channel_id', userId: 'user_id', type: Constants.DM_CHANNEL};
-            instance.handleSubmit({channel});
+            await act(async () => {
+                instance.handleSubmit({channel});
+            });
             expect(props.actions.switchToChannel).toHaveBeenCalledWith(channel);
-
-            await new Promise(process.nextTick);
             expect(props.onExited).toHaveBeenCalled();
         });
 
@@ -128,10 +130,10 @@ describe('components/QuickSwitchModal', () => {
                 channel,
             };
 
-            instance.handleSubmit(selected);
+            await act(async () => {
+                instance.handleSubmit(selected);
+            });
             expect(props.actions.joinChannelById).toHaveBeenCalledWith(channel.id);
-
-            await new Promise(process.nextTick);
             expect(props.actions.switchToChannel).toHaveBeenCalledWith(channel);
         });
 
@@ -162,11 +164,11 @@ describe('components/QuickSwitchModal', () => {
                 channel,
             };
 
-            instance.handleSubmit(selected);
+            await act(async () => {
+                instance.handleSubmit(selected);
+            });
             expect(props.actions.joinChannelById).not.toHaveBeenCalled();
             expect(props.actions.switchToChannel).toHaveBeenCalledWith(channel);
-
-            await new Promise(process.nextTick);
             expect(props.onExited).toHaveBeenCalled();
         });
     });

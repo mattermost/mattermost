@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, waitFor} from '@testing-library/react';
+import {act, render, waitFor} from '@testing-library/react';
 import React from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -150,27 +150,27 @@ describe('components/threading/ThreadViewer', () => {
         });
     });
 
-    test('should not break if root post is a fake post', () => {
+    test('should not break if root post is a fake post', async () => {
         const props = {
             ...baseProps,
             selected: fakePost,
         };
 
-        expect(() => {
+        await act(async () => {
             render(<ThreadViewer {...props}/>);
-        }).not.toThrow("Cannot read property 'reply_count' of undefined");
+        });
     });
 
-    test('should not break if root post is ID only', () => {
+    test('should not break if root post is ID only', async () => {
         const props = {
             ...baseProps,
             rootPostId: post.id,
             selected: undefined,
         };
 
-        expect(() => {
+        await act(async () => {
             render(<ThreadViewer {...props}/>);
-        }).not.toThrow("Cannot read property 'reply_count' of undefined");
+        });
     });
 
     test('should call fetchThread when no thread on mount', async () => {
@@ -190,7 +190,7 @@ describe('components/threading/ThreadViewer', () => {
         expect(actions.updateThreadRead).not.toHaveBeenCalled();
     });
 
-    test('should call updateThreadLastOpened on mount', () => {
+    test('should call updateThreadLastOpened on mount', async () => {
         jest.useFakeTimers().setSystemTime(400);
         const {actions} = baseProps;
         const userThread = {
@@ -199,20 +199,22 @@ describe('components/threading/ThreadViewer', () => {
             last_reply_at: 32,
         } as UserThread;
 
-        render(
-            <ThreadViewer
-                {...baseProps}
-                userThread={userThread}
-                isCollapsedThreadsEnabled={true}
-            />,
-        );
+        await act(async () => {
+            render(
+                <ThreadViewer
+                    {...baseProps}
+                    userThread={userThread}
+                    isCollapsedThreadsEnabled={true}
+                />,
+            );
+        });
 
         expect(actions.updateThreadLastOpened).toHaveBeenCalledWith('id', 42);
         expect(actions.updateThreadRead).not.toHaveBeenCalled();
         expect(actions.getThread).not.toHaveBeenCalled();
     });
 
-    test('should call updateThreadLastOpened and updateThreadRead on mount when unread replies', () => {
+    test('should call updateThreadLastOpened and updateThreadRead on mount when unread replies', async () => {
         jest.useFakeTimers().setSystemTime(400);
         const {actions} = baseProps;
         const userThread = {
@@ -221,13 +223,15 @@ describe('components/threading/ThreadViewer', () => {
             last_reply_at: 142,
         } as UserThread;
 
-        render(
-            <ThreadViewer
-                {...baseProps}
-                userThread={userThread}
-                isCollapsedThreadsEnabled={true}
-            />,
-        );
+        await act(async () => {
+            render(
+                <ThreadViewer
+                    {...baseProps}
+                    userThread={userThread}
+                    isCollapsedThreadsEnabled={true}
+                />,
+            );
+        });
 
         expect(actions.updateThreadLastOpened).toHaveBeenCalledWith('id', 42);
         expect(actions.updateThreadRead).toHaveBeenCalledWith('user_id', 'team_id', 'id', 400);
@@ -284,27 +288,31 @@ describe('components/threading/ThreadViewer', () => {
         Date.now = dateNowOrig;
     });
 
-    test('should call fetchRHSAppsBindings on mount if appsEnabled', () => {
+    test('should call fetchRHSAppsBindings on mount if appsEnabled', async () => {
         const {actions} = baseProps;
 
-        render(
-            <ThreadViewer
-                {...baseProps}
-            />,
-        );
+        await act(async () => {
+            render(
+                <ThreadViewer
+                    {...baseProps}
+                />,
+            );
+        });
 
         expect(actions.fetchRHSAppsBindings).toHaveBeenCalledWith('channel_id', 'id');
     });
 
-    test('should not call fetchRHSAppsBindings on mount if not appsEnabled', () => {
+    test('should not call fetchRHSAppsBindings on mount if not appsEnabled', async () => {
         const {actions} = baseProps;
 
-        render(
-            <ThreadViewer
-                {...baseProps}
-                appsEnabled={false}
-            />,
-        );
+        await act(async () => {
+            render(
+                <ThreadViewer
+                    {...baseProps}
+                    appsEnabled={false}
+                />,
+            );
+        });
 
         expect(actions.fetchRHSAppsBindings).not.toHaveBeenCalledWith('channel_id', 'id');
     });

@@ -5,7 +5,7 @@ import React from 'react';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -55,7 +55,9 @@ describe('components/admin_console/license_settings/modals/confirm_license_remov
             state,
         );
         const confirmButton = screen.getByRole('button', {name: 'Confirm'});
-        confirmButton.click();
+        act(() => {
+            confirmButton.click();
+        });
         expect(mockHandleRemove).toHaveBeenCalledTimes(1);
     });
 
@@ -65,7 +67,9 @@ describe('components/admin_console/license_settings/modals/confirm_license_remov
             state,
         );
         const cancelButton = screen.getByRole('button', {name: 'Cancel'});
-        cancelButton.click();
+        act(() => {
+            cancelButton.click();
+        });
         expect(mockOnExited).toHaveBeenCalledTimes(1);
     });
 

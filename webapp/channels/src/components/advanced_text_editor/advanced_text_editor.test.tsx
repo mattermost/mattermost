@@ -11,7 +11,7 @@ import type {FileUpload} from 'components/file_upload/file_upload';
 import type Textbox from 'components/textbox/textbox';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {renderWithContext, userEvent, screen} from 'tests/react_testing_utils';
+import {act, renderWithContext, userEvent, screen} from 'tests/react_testing_utils';
 import Constants, {Locations, StoragePrefixes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -243,8 +243,10 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             await userEvent.type(textbox, 'something{escape}', {advanceTimers: jest.advanceTimersByTime});
             expect(textbox).not.toHaveFocus();
 
-            // save is called with a short delayed after pressing escape key
-            jest.advanceTimersByTime(Constants.SAVE_DRAFT_TIMEOUT + 50);
+            // save is called with a short delay after pressing escape key
+            await act(() => {
+                jest.advanceTimersByTime(Constants.SAVE_DRAFT_TIMEOUT + 50);
+            });
             expect(mockedRemoveDraft).toHaveBeenCalled();
             expect(mockedUpdateDraft).not.toHaveBeenCalled();
 

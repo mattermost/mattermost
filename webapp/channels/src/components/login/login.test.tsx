@@ -12,7 +12,7 @@ import LocalStorageStore from 'stores/local_storage_store';
 import Login from 'components/login/login';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import Constants, {WindowSizes} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {showNotification} from 'utils/notifications';
@@ -609,14 +609,25 @@ describe('components/login/Login', () => {
             const emailInput = screen.getByLabelText('Email');
             await userEvent.type(emailInput, 'user@example.com');
 
+            // Click login — this dispatches getUserLoginType which asynchronously
+            // sets requiresPassword state, causing the PasswordInput (ForwardRef) to render
             await userEvent.click(screen.getByRole('button', {name: 'Log in'}));
 
-            // Password field should appear and be focused
+            // Wait for the password field to appear (state update from getUserLoginType result)
             const passwordField = await screen.findByLabelText('Password');
             expect(passwordField).toBeVisible();
 
-            // Wait for focus to be set (setTimeout in the code)
-            await new Promise((resolve) => setTimeout(resolve, 150));
+            // Wait for the component's internal setTimeout(100ms) that focuses the password field,
+            // wrapping in act() to capture the focus-triggered state updates
+            await act(async () => {
+                await new Promise((resolve) => setTimeout(resolve, 150));
+            });
+
+            // Flush any remaining microtasks from the focus event
+            await act(async () => {
+                await Promise.resolve();
+            });
+
             expect(passwordField).toHaveFocus();
         });
 

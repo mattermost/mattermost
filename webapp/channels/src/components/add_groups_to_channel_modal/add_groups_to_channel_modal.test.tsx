@@ -162,17 +162,17 @@ describe('components/AddGroupsToChannelModal', () => {
         act(() => {
             instance.setState({values: [{id: 'id_1'} as any]});
         });
-        act(() => {
+        await act(async () => {
             instance.handlePageChange(0, 1);
         });
         expect(baseProps.actions.getGroupsNotAssociatedToChannel).toHaveBeenCalledTimes(1);
 
-        act(() => {
+        await act(async () => {
             instance.handlePageChange(1, 0);
         });
         expect(baseProps.actions.getGroupsNotAssociatedToChannel).toHaveBeenCalledTimes(2);
 
-        act(() => {
+        await act(async () => {
             instance.handlePageChange(0, 1);
         });
         expect(baseProps.actions.getGroupsNotAssociatedToChannel).toHaveBeenCalledTimes(2);

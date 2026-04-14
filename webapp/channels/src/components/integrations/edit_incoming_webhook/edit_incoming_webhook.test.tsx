@@ -11,7 +11,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import EditIncomingWebhook from 'components/integrations/edit_incoming_webhook/edit_incoming_webhook';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {getHistory} from 'utils/browser_history';
 import {TestHelper} from 'utils/test_helper';
 
@@ -123,7 +123,7 @@ describe('components/integrations/EditIncomingWebhook', () => {
 
         // Submit the form via the Update button
         const submitButton = screen.getByRole('button', {name: 'Update'});
-        await submitButton.click();
+        await userEvent.click(submitButton);
 
         expect(container).toMatchSnapshot();
         expect(newActions.updateIncomingHook).toHaveBeenCalledTimes(1);
@@ -141,7 +141,7 @@ describe('components/integrations/EditIncomingWebhook', () => {
         const {container} = await renderWithContext(<EditIncomingWebhook {...props}/>, initialState as GlobalState);
 
         const submitButton = screen.getByRole('button', {name: 'Update'});
-        await submitButton.click();
+        await userEvent.click(submitButton);
 
         expect(container).toMatchSnapshot();
         expect(newActions.updateIncomingHook).toHaveBeenCalledTimes(1);
@@ -159,7 +159,7 @@ describe('components/integrations/EditIncomingWebhook', () => {
         await renderWithContext(<EditIncomingWebhook {...props}/>, initialState as GlobalState);
 
         const submitButton = screen.getByRole('button', {name: 'Update'});
-        await submitButton.click();
+        await userEvent.click(submitButton);
 
         expect(newUpdateIncomingHook).toHaveBeenCalledTimes(1);
         expect(newUpdateIncomingHook).toHaveBeenCalledWith({

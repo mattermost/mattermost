@@ -243,7 +243,9 @@ describe('components/channel_invite_modal', () => {
 
         // Find the close button and click it to trigger onHide
         const closeButton = screen.getByRole('button', {name: /close/i});
-        closeButton.click();
+        await act(async () => {
+            closeButton.click();
+        });
 
         // After clicking close, the modal should be hiding
         expect(baseProps.actions.closeModal).not.toHaveBeenCalled();
@@ -255,12 +257,17 @@ describe('components/channel_invite_modal', () => {
             <ChannelInviteModal {...props}/>,
         );
 
-        // Close the modal to trigger onExited
+        // Close the modal to trigger onExited — the click triggers a CSS transition
+        // which fires state updates asynchronously
         const closeButton = screen.getByRole('button', {name: /close/i});
-        closeButton.click();
+        await userEvent.click(closeButton);
+
+        // Wait for the modal transition to fully complete
+        await act(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 0));
+        });
 
         // The onExited callback is called after the modal animation completes
-        // In RTL with full render, we verify the close button triggers the flow
         expect(closeButton).toBeInTheDocument();
     });
 

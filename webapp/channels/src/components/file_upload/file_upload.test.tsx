@@ -101,7 +101,9 @@ describe('components/FileUpload', () => {
         );
 
         const input = container.querySelector('input');
-        input?.click();
+        act(() => {
+            input?.click();
+        });
         expect(baseProps.onClick).toHaveBeenCalledTimes(1);
     });
 
@@ -211,7 +213,9 @@ describe('components/FileUpload', () => {
 
         const instance = ref.current!;
 
-        instance.fileUploadSuccess(data, 'channel_id', 'root_id');
+        act(() => {
+            instance.fileUploadSuccess(data, 'channel_id', 'root_id');
+        });
 
         expect(baseProps.onFileUpload).toHaveBeenCalledTimes(1);
         expect(baseProps.onFileUpload).toHaveBeenCalledWith(data.file_infos, data.client_ids, 'channel_id', 'root_id');
@@ -261,7 +265,9 @@ describe('components/FileUpload', () => {
         jest.spyOn(instance, 'containsEventTarget').mockReturnValue(true);
         const spy = jest.spyOn(instance, 'checkPluginHooksAndUploadFiles');
 
-        document.dispatchEvent(event);
+        act(() => {
+            document.dispatchEvent(event);
+        });
         expect(event.preventDefault).toHaveBeenCalled();
         expect(spy).toHaveBeenCalledWith([expect.objectContaining({name: expectedFileName})]);
         expect(spy.mock.calls[0][0][0]).toBeInstanceOf(Blob); // first call, first arg, first item in array
@@ -306,7 +312,9 @@ describe('components/FileUpload', () => {
         );
 
         const instance = ref.current!;
-        instance.checkPluginHooksAndUploadFiles(files);
+        act(() => {
+            instance.checkPluginHooksAndUploadFiles(files);
+        });
 
         expect(uploadFile).toHaveBeenCalledTimes(2);
 
@@ -334,7 +342,9 @@ describe('components/FileUpload', () => {
         );
 
         const instance = ref.current!;
-        instance.checkPluginHooksAndUploadFiles(files);
+        act(() => {
+            instance.checkPluginHooksAndUploadFiles(files);
+        });
 
         expect(uploadFile).not.toHaveBeenCalled();
 
@@ -480,7 +490,9 @@ describe('components/FileUpload', () => {
         );
 
         const instance = ref.current!;
-        instance.checkPluginHooksAndUploadFiles(files);
+        act(() => {
+            instance.checkPluginHooksAndUploadFiles(files);
+        });
 
         expect(uploadFile).toHaveBeenCalledTimes(1);
 

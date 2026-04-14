@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, fireEvent, act} from 'tests/react_testing_utils';
 
 import BurnOnReadTimerChip from './burn_on_read_timer_chip';
 
@@ -70,7 +70,9 @@ describe('BurnOnReadTimerChip', () => {
             />,
         );
 
-        jest.advanceTimersByTime(1000);
+        act(() => {
+            jest.advanceTimersByTime(1000);
+        });
 
         const chip = screen.getByRole('button');
         expect(chip).toHaveClass('BurnOnReadTimerChip--warning');
@@ -86,7 +88,9 @@ describe('BurnOnReadTimerChip', () => {
             />,
         );
 
-        jest.advanceTimersByTime(3000);
+        act(() => {
+            jest.advanceTimersByTime(3000);
+        });
 
         // Component should still be rendered (expiration handled by scheduler, not component)
         expect(screen.getByRole('button')).toBeInTheDocument();

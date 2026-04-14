@@ -8,7 +8,7 @@ import type {Channel} from '@mattermost/types/channels';
 import EditChannelPurposeModal from 'components/edit_channel_purpose_modal/edit_channel_purpose_modal';
 
 import {testComponentForLineBreak} from 'tests/helpers/line_break_helpers';
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, act} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -214,12 +214,14 @@ describe('comoponents/EditChannelPurposeModal', () => {
         );
 
         const textarea = screen.getByRole('textbox');
-        textarea.dispatchEvent(new KeyboardEvent('keydown', {
-            key: Constants.KeyCodes.ENTER[0],
-            keyCode: Constants.KeyCodes.ENTER[1],
-            ctrlKey: true,
-            bubbles: true,
-        }));
+        await act(async () => {
+            textarea.dispatchEvent(new KeyboardEvent('keydown', {
+                key: Constants.KeyCodes.ENTER[0],
+                keyCode: Constants.KeyCodes.ENTER[1],
+                ctrlKey: true,
+                bubbles: true,
+            }));
+        });
 
         expect(patchChannel).toHaveBeenCalledWith('channel_id', {purpose: 'testPurpose'});
     });
@@ -237,12 +239,14 @@ describe('comoponents/EditChannelPurposeModal', () => {
         );
 
         const textarea = screen.getByRole('textbox');
-        textarea.dispatchEvent(new KeyboardEvent('keydown', {
-            key: Constants.KeyCodes.ENTER[0],
-            keyCode: Constants.KeyCodes.ENTER[1],
-            ctrlKey: false,
-            bubbles: true,
-        }));
+        await act(async () => {
+            textarea.dispatchEvent(new KeyboardEvent('keydown', {
+                key: Constants.KeyCodes.ENTER[0],
+                keyCode: Constants.KeyCodes.ENTER[1],
+                ctrlKey: false,
+                bubbles: true,
+            }));
+        });
 
         expect(patchChannel).toHaveBeenCalledWith('channel_id', {purpose: 'testPurpose'});
     });

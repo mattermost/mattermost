@@ -86,8 +86,13 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
                 ref={ref}
             />,
         );
-        act(() => {
+        await act(async () => {
             ref.current!.setState({addTeamOpen: true});
+
+            // Flush microtasks so TeamSelectorModal's async effects settle inside act()
+            for (let i = 0; i < 10; i++) {
+                await Promise.resolve(); // eslint-disable-line no-await-in-loop
+            }
         });
         defaultProps.actions.getGroupSyncables.mockClear();
         expect(container).toMatchSnapshot();
@@ -101,8 +106,13 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
                 ref={ref}
             />,
         );
-        act(() => {
+        await act(async () => {
             ref.current!.setState({addChannelOpen: true});
+
+            // Flush microtasks so ChannelSelectorModal's async effects settle inside act()
+            for (let i = 0; i < 10; i++) {
+                await Promise.resolve(); // eslint-disable-line no-await-in-loop
+            }
         });
         defaultProps.actions.getGroupSyncables.mockClear();
         expect(container).toMatchSnapshot();

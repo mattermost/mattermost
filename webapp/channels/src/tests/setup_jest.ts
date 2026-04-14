@@ -57,8 +57,9 @@ window.getComputedStyle = (elt: Element, pseudoElt?: string | null) => {
     return origGetComputedStyle(elt);
 };
 
-// Set React act() environment flag so state updates outside act() produce proper warnings
-// instead of "The current testing environment is not configured to support act(...)".
+// Set React act() environment flag so state updates outside act() produce warnings that
+// our guard below can catch and fail the test. Without this, React silently ignores
+// unhandled state updates. See https://react.dev/reference/react/act
 (globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
 
 // isDependencyWarning returns true when the given console.warn message is coming from a dependency using deprecated
@@ -100,23 +101,6 @@ afterEach(() => {
     }
 
     for (const call of errorSpy.mock.calls) {
-        if (
-            typeof call[0] === 'string' && (
-                call[0].includes('inside a test was not wrapped in act') ||
-                call[0].includes('A suspended resource finished loading inside a test, but the event was not wrapped in act')
-            )
-        ) {
-            // These warnings indicate that we're not using React Testing Library properly because we're not waiting
-            // for some async action to complete. Sometimes, these are side effects during the test which are missed
-            // which could lead our tests to be invalid, but more often than not, this warning is printed because of
-            // unhandled side effects from something that wasn't being tested (such as some data being loaded that we
-            // didn't care about in that test case).
-            //
-            // Ideally, we wouldn't ignore these, but so many of our existing tests are set up in a way that we can't
-            // fix this everywhere at the moment.
-            continue;
-        }
-
         // jsdom doesn't implement navigation, but this is expected behavior in tests
         const errorStr = call[0] instanceof Error ? call[0].message : String(call[0]);
         if (errorStr.includes('Not implemented:')) {
@@ -138,11 +122,25 @@ afterEach(() => {
         }
 
         let message = 'Unexpected console errors:';
+        let hasActWarning = false;
         for (const call of warns) {
             message += `\n\t- (warning) ${formatCall(call)}`;
         }
         for (const call of errors) {
             message += `\n\t- (error) ${formatCall(call)}`;
+            const msg = String(call[0]);
+            if (msg.includes('inside a test was not wrapped in act')) {
+                hasActWarning = true;
+            }
+        }
+
+        if (hasActWarning) {
+            message += '\n\n' +
+                'To fix the act() warning, try one of the following:\n' +
+                '  - Add `await` to `renderWithContext()` or `renderHookWithContext()` calls\n' +
+                '  - Wrap state-triggering code in `await act(async () => { ... })`\n' +
+                '  - Use `await waitFor(() => ...)` to wait for async state updates\n' +
+                '  - For loading-state tests, use a never-resolving promise to prevent async state updates from leaking';
         }
 
         throw new Error(message);

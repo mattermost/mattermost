@@ -8,7 +8,7 @@ import {getThreadsForCurrentTeam} from 'mattermost-redux/actions/threads';
 
 import {openModal} from 'actions/views/modals';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {WindowSizes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -136,7 +136,10 @@ describe('components/threading/global_threads/thread_list', () => {
         );
 
         const handleLoadMoreItems = capturedVTLProps.loadMoreItems;
-        const loadMoreItems = await handleLoadMoreItems(2, 3);
+        let loadMoreItems;
+        await act(async () => {
+            loadMoreItems = await handleLoadMoreItems(2, 3);
+        });
 
         expect(loadMoreItems).toEqual({data: true});
         expect(getThreadsForCurrentTeam).toHaveBeenCalledWith({unread: false, before: '2'});

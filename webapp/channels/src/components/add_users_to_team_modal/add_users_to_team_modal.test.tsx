@@ -119,15 +119,15 @@ describe('components/admin_console/add_users_to_team_modal/AddUsersToTeamModal',
         const addUsers = ref.current!;
 
         // search profiles when search term given
-        act(() => {
-            addUsers.search('foo');
+        await act(async () => {
+            await addUsers.search('foo');
         });
         expect(baseProps.actions.searchProfiles).toHaveBeenCalledTimes(1);
         expect(baseProps.actions.getProfilesNotInTeam).toHaveBeenCalledTimes(1);
 
         // get profiles when no search term
-        act(() => {
-            addUsers.search('');
+        await act(async () => {
+            await addUsers.search('');
         });
         expect(baseProps.actions.searchProfiles).toHaveBeenCalledTimes(1);
         expect(baseProps.actions.getProfilesNotInTeam).toHaveBeenCalledTimes(2);

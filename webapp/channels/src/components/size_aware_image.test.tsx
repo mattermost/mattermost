@@ -254,7 +254,7 @@ describe('components/SizeAwareImage', () => {
         const {container} = await renderWithContext(<SizeAwareImage {...props}/>, state);
 
         const copyButton = container.querySelector('.size-aware-image__copy_link')!;
-        act(() => {
+        await act(async () => {
             copyButton.dispatchEvent(new MouseEvent('click', {bubbles: true}));
         });
         expect(getFilePublicLink).toHaveBeenCalled();

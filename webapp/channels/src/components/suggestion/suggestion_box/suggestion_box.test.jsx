@@ -61,7 +61,8 @@ describe('components/SuggestionBox', () => {
         expect(SuggestionBox.findOverlap('black', 'ack')).toBe('ack');
     });
 
-    test('should avoid ref access on unmount race', (done) => {
+    test('should avoid ref access on unmount race', async () => {
+        jest.useFakeTimers();
         const ref = React.createRef();
         const {unmount} = render(
             <SuggestionBox
@@ -69,9 +70,12 @@ describe('components/SuggestionBox', () => {
                 ref={ref}
             />,
         );
-        ref.current.handleFocusIn({});
+        act(() => {
+            ref.current.handleFocusIn({});
+            jest.runAllTimers();
+        });
         unmount();
-        done();
+        jest.useRealTimers();
     });
 
     test('should match state and/or call function on handleFocusOut', () => {
@@ -185,7 +189,8 @@ describe('components/SuggestionBox', () => {
         expect(instance.handlePretextChanged).toHaveBeenCalledWith('');
     });
 
-    test('should reset selection after provider.handlePretextChanged is handled', () => {
+    test('should reset selection after provider.handlePretextChanged is handled', async () => {
+        jest.useFakeTimers();
         const userid1 = {id: 'userid1', username: 'user', first_name: 'a', last_name: 'b', nickname: 'c'};
         const userid2 = {id: 'userid2', username: 'user2', first_name: 'd', last_name: 'e', nickname: 'f'};
         const userid3 = {id: 'userid3', username: 'other', first_name: 'X', last_name: 'Y', nickname: 'Z'};
@@ -220,30 +225,38 @@ describe('components/SuggestionBox', () => {
         );
         const instance = ref.current;
 
+        // Flush the debounced timer from componentDidMount and async provider callbacks
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
         expect(instance.state.selection).toEqual('');
 
-        act(() => {
+        await act(async () => {
             instance.nonDebouncedPretextChanged('hello world @');
         });
         expect(instance.state.selection).toEqual('@other');
 
-        act(() => {
+        await act(async () => {
             instance.nonDebouncedPretextChanged('hello world @u');
         });
         expect(instance.state.selection).toEqual('@user');
 
-        act(() => {
+        await act(async () => {
             instance.nonDebouncedPretextChanged('hello world @');
         });
         expect(instance.state.selection).toEqual('@other');
 
-        act(() => {
+        await act(async () => {
             instance.nonDebouncedPretextChanged('hello world ');
         });
         expect(instance.state.selection).toEqual('');
+
+        jest.useRealTimers();
     });
 
-    test('Test for suggestionBoxAlgn when slash command at beginning and when slash command in middle of text', () => {
+    test('Test for suggestionBoxAlgn when slash command at beginning and when slash command in middle of text', async () => {
+        jest.useFakeTimers();
         const provider = new CommandProvider({
             teamId: 'current_team',
             channelId: 'current_channel',
@@ -262,21 +275,26 @@ describe('components/SuggestionBox', () => {
         );
         const instance = ref.current;
 
+        // Flush the debounced timer from componentDidMount and async provider callbacks
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
         Utils.getSuggestionBoxAlgn = jest.fn().mockReturnValue({pixelsToMoveX: 0, pixelsToMoveY: 35});
 
-        act(() => {
+        await act(async () => {
             instance.nonDebouncedPretextChanged('/');
         });
         expect(instance.state.suggestionBoxAlgn).toEqual({pixelsToMoveX: 0, pixelsToMoveY: 35});
 
-        act(() => {
-            instance.setState({suggestionBoxAlgn: {}});
-        });
-
-        act(() => {
+        await act(async () => {
             instance.nonDebouncedPretextChanged('I should still have a empty suggestionBoxAlgn /');
         });
-        expect(instance.state.suggestionBoxAlgn).toEqual({});
+
+        // When slash is in the middle of text, provider does not handle it, so clear() resets suggestionBoxAlgn
+        expect(instance.state.suggestionBoxAlgn).toBeUndefined();
+
+        jest.useRealTimers();
     });
 
     test('should call setState for clear based on present cleared state', () => {
@@ -347,6 +365,12 @@ describe('components/SuggestionBox', () => {
             />,
         );
         const instance = ref.current;
+
+        // Flush the debounced timer from componentDidMount
+        act(() => {
+            jest.runAllTimers();
+        });
+
         instance.handlePretextChanged = jest.fn();
         instance.getTextbox = jest.fn().mockReturnValue({value: 'value'});
 
@@ -359,9 +383,13 @@ describe('components/SuggestionBox', () => {
             jest.runOnlyPendingTimers();
         });
         expect(instance.handlePretextChanged).toHaveBeenCalledTimes(1);
-        instance.handleFocusIn({relatedTarget});
+        act(() => {
+            instance.handleFocusIn({relatedTarget});
+        });
         expect(instance.handlePretextChanged).toHaveBeenCalledTimes(1);
         expect(onFocus).toHaveBeenCalled();
+
+        jest.useRealTimers();
     });
 
     test('should call for handlePretextChanged on componentDidMount', () => {

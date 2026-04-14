@@ -231,6 +231,9 @@ describe('ProductNoticesModal', () => {
             />,
         );
 
+        // Flush async state updates from fetchNoticesData triggered by socket reconnect
+        await act(async () => {});
+
         expect(baseProps.actions.getInProductNotices).toHaveBeenCalledWith(baseProps.currentTeamId, 'web', baseProps.version);
         expect(baseProps.actions.getInProductNotices).toHaveBeenCalledTimes(2);
     });

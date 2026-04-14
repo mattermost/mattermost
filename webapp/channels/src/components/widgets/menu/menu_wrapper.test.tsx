@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {fireEvent, render, userEvent} from 'tests/react_testing_utils';
+import {act, fireEvent, render, userEvent} from 'tests/react_testing_utils';
 
 import MenuWrapper from './menu_wrapper';
 
@@ -107,7 +107,9 @@ describe('components/MenuWrapper', () => {
         const preventDefault = jest.spyOn(mockEvent, 'preventDefault');
         const stopPropagation = jest.spyOn(mockEvent, 'stopPropagation');
 
-        wrapper?.dispatchEvent(mockEvent);
+        act(() => {
+            wrapper?.dispatchEvent(mockEvent);
+        });
 
         expect(preventDefault).toHaveBeenCalled();
         expect(stopPropagation).toHaveBeenCalled();
