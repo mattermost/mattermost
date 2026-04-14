@@ -54,7 +54,7 @@ test('Should show channel banner when configured', async ({pw}) => {
     await channelsPage.centerView.assertChannelBanner('Example channel banner text', '#77DD88');
 });
 
-test('Should render emojis without clipping', async ({pw}) => {
+test('Should render image emoticons without clipping', async ({pw}) => {
     const {adminUser, adminClient} = await pw.initSetup();
     const license = await adminClient.getClientLicenseOld();
     test.skip(
@@ -73,20 +73,39 @@ test('Should render emojis without clipping', async ({pw}) => {
 
     await configurationTab.enableChannelBanner();
     await configurationTab.setChannelBannerTextColor('77DD88');
-
-    // Test image emoji (e.g. :dog:) - rendered as .emoticon
+    // :dog: is in Mattermost's emoji map → renders as .emoticon (background-image).
+    // Unicode emojis that are also in the map (e.g. 🐶) follow the same path.
     await configurationTab.setChannelBannerText('Hello :dog:');
     await configurationTab.save();
     await channelSettingsModal.close();
 
     await channelsPage.centerView.assertChannelBannerImageEmojiSize(EMOJI_SIZE);
+});
 
-    // Test unicode emoji - rendered as .emoticon--unicode
-    const channelSettingsModal2 = await channelsPage.openChannelSettings();
-    const configurationTab2 = await channelSettingsModal2.openConfigurationTab();
-    await configurationTab2.setChannelBannerText('Hello 🐶');
-    await configurationTab2.save();
-    await channelSettingsModal2.close();
+test('Should render unsupported unicode emoji without clipping', async ({pw}) => {
+    const {adminUser, adminClient} = await pw.initSetup();
+    const license = await adminClient.getClientLicenseOld();
+    test.skip(
+        license.SkuShortName !== LicenseSkus.EnterpriseAdvanced,
+        'Skipping test - server does not have Enterprise Advanced license',
+    );
+
+    const {channelsPage} = await pw.testBrowser.login(adminUser);
+    await channelsPage.goto();
+    await channelsPage.toBeVisible();
+
+    await channelsPage.newChannel(await getRandomId(), 'O');
+
+    const channelSettingsModal = await channelsPage.openChannelSettings();
+    const configurationTab = await channelSettingsModal.openConfigurationTab();
+
+    await configurationTab.enableChannelBanner();
+    await configurationTab.setChannelBannerTextColor('77DD88');
+    // 🫠 (U+1FAE0, Unicode 14.0) is above Mattermost's emoji map ceiling (1FAD6)
+    // so it falls through to the .emoticon--unicode span path.
+    await configurationTab.setChannelBannerText('Hello 🫠');
+    await configurationTab.save();
+    await channelSettingsModal.close();
 
     await channelsPage.centerView.assertChannelBannerUnicodeEmojiSize(EMOJI_SIZE);
 });

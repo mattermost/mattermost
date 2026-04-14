@@ -177,6 +177,17 @@ export default class ChannelsCenterView {
         expect(actualText).toBe(text);
     }
 
+    async assertChannelBannerHasEmoticon() {
+        const emoji = this.channelBanner.locator('.emoticon:not(.emoticon--unicode)').first();
+        await expect(emoji).toBeVisible();
+
+        const backgroundImage = await emoji.evaluate((el) => {
+            return window.getComputedStyle(el).getPropertyValue('background-image');
+        });
+
+        expect(backgroundImage).not.toBe('none');
+    }
+
     async assertChannelBannerImageEmojiSize(expectedSizePx: number) {
         const emoji = this.channelBanner.locator('.emoticon:not(.emoticon--unicode)').first();
         await expect(emoji).toBeVisible();
