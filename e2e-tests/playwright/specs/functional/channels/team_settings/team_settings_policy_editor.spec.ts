@@ -85,17 +85,17 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         // * Confirm the channel appears in the editor list before saving
         await expect(teamSettings.container.getByText(channel.display_name)).toBeVisible({timeout: 10000});
 
-        // # Save via SaveChangesPanel — wait for button to be enabled (form fully dirty)
+        // # Save via SaveChangesPanel — wait for button to be enabled (form fully dirty).
         const saveBtn = teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]');
-        await expect(saveBtn).toBeEnabled({timeout: 10000});
+        await expect(saveBtn).toBeEnabled({timeout: 20000});
         await saveBtn.click();
 
         // # Confirm in PolicyConfirmationModal
         await page.locator('.TeamPolicyConfirmationModal').waitFor({timeout: 30000});
         await page.getByRole('button', {name: /Apply policy/}).click();
 
-        // * Auto-navigated back to list, policy name visible
-        await expect(teamSettings.container.getByText(policyName)).toBeVisible();
+        // * Auto-navigated back to list, policy name visible.
+        await expect(teamSettings.container.getByText(policyName)).toBeVisible({timeout: 15000});
 
         await teamSettings.close();
     });

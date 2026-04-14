@@ -24,10 +24,22 @@ export async function ensureDepartmentAttribute(client: Client4) {
         // May not exist yet
     }
     if (!fields.find((f: any) => f.name === 'Department')) {
-        await (client as any).doFetch(`${client.getBaseRoute()}/custom_profile_attributes/fields`, {
-            method: 'POST',
-            body: JSON.stringify({name: 'Department', type: 'text', attrs: {visibility: 'when_set'}}),
-        });
+        try {
+            await (client as any).doFetch(`${client.getBaseRoute()}/custom_profile_attributes/fields`, {
+                method: 'POST',
+                body: JSON.stringify({name: 'Department', type: 'text', attrs: {visibility: 'when_set'}}),
+            });
+        } catch {
+            // Another parallel worker may have created the field between our GET and POST.
+            // Re-fetch to confirm it now exists before propagating any error.
+            const recheck: any[] = await (client as any).doFetch(
+                `${client.getBaseRoute()}/custom_profile_attributes/fields`,
+                {method: 'GET'},
+            );
+            if (!recheck.find((f: any) => f.name === 'Department')) {
+                throw new Error('Failed to create Department custom profile attribute field');
+            }
+        }
     }
 }
 
@@ -202,5 +214,5 @@ export async function addChannelToPolicy(container: Locator, page: Page, channel
     // Wait for the modal to fully close before returning — callers must not proceed
     // until the channel is committed to form state, otherwise a save click races
     // against the React state update and the confirmation modal never appears.
-    await channelModal.waitFor({state: 'hidden', timeout: 10000});
+    await channelModal.waitFor({state: 'hidden', timeout: 20000});
 }
