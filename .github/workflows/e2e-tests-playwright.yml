@@ -146,19 +146,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           COMMIT_SHA: ${{ inputs.commit_sha }}
-          EDITION: "${{ inputs.server_edition || 'enterprise' }}"
-          CONTEXT_SUFFIX: "${{ needs.generate-build-variables.outputs.context_suffix }}"
+          CONTEXT_NAME: "e2e-test/playwright-full/${{ inputs.server_edition || 'enterprise' }}${{ needs.generate-build-variables.outputs.context_suffix }}"
         run: |
-          for CONTEXT_NAME in \
-            "e2e-test/playwright-full/${EDITION}${CONTEXT_SUFFIX}" \
-            "e2e-test/playwright-abac/${EDITION}${CONTEXT_SUFFIX}"; do
-            gh api repos/${{ github.repository }}/statuses/${COMMIT_SHA} \
-              -f state=success \
-              -f context="${CONTEXT_NAME}" \
-              -f description="No E2E-relevant changes - skipped" \
-              -f target_url="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-            echo "Posted success for ${CONTEXT_NAME}"
-          done
+          gh api repos/${{ github.repository }}/statuses/${COMMIT_SHA} \
+            -f state=success \
+            -f context="${CONTEXT_NAME}" \
+            -f description="No E2E-relevant changes - skipped" \
+            -f target_url="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          echo "Posted success for ${CONTEXT_NAME}"
 
   playwright-full:
     needs:
@@ -167,10 +162,8 @@ jobs:
     uses: ./.github/workflows/e2e-tests-playwright-template.yml
     with:
       test_type: full
-      # Exclude ABAC specs: they run in the dedicated playwright-abac job below
-      # to prevent their slow LDAP sync waits from clustering in one shard.
-      test_filter: '--config playwright.noabac.config.ts --grep-invert "@visual"'
-      workers: 5
+      test_filter: '--grep-invert "@visual"'
+      workers: 10
       enabled_docker_services: "postgres inbucket minio openldap elasticsearch keycloak"
       commit_sha: ${{ inputs.commit_sha }}
       branch: ${{ needs.generate-build-variables.outputs.branch }}
@@ -185,37 +178,6 @@ jobs:
       ref_branch: ${{ inputs.ref_branch }}
       pr_number: ${{ inputs.pr_number }}
       context_name: "e2e-test/playwright-full/${{ inputs.server_edition || 'enterprise' }}${{ needs.generate-build-variables.outputs.context_suffix }}"
-    secrets:
-      MM_LICENSE: ${{ secrets.MM_LICENSE }}
-      REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-  playwright-abac:
-    needs:
-      - generate-build-variables
-    if: inputs.should_run != 'false'
-    uses: ./.github/workflows/e2e-tests-playwright-template.yml
-    with:
-      test_type: abac
-      # Run only ABAC specs; split across 2 shards with PW_WORKERS=1 (serialized)
-      # so concurrent spec files cannot contaminate each other's LDAP sync jobs.
-      test_filter: 'specs/functional/system_console/abac'
-      workers: 2
-      enabled_docker_services: "postgres inbucket minio openldap elasticsearch keycloak"
-      commit_sha: ${{ inputs.commit_sha }}
-      branch: "${{ needs.generate-build-variables.outputs.branch }}-abac"
-      build_id: "${{ needs.generate-build-variables.outputs.build_id }}-abac"
-      server_image_tag: ${{ needs.generate-build-variables.outputs.server_image_tag }}
-      server_edition: ${{ inputs.server_edition }}
-      server_image_repo: ${{ inputs.server_image_repo }}
-      server_image_aliases: ${{ inputs.server_image_aliases }}
-      server: ${{ inputs.server }}
-      enable_reporting: ${{ inputs.enable_reporting }}
-      report_type: ${{ inputs.report_type }}
-      ref_branch: ${{ inputs.ref_branch }}
-      pr_number: ${{ inputs.pr_number }}
-      context_name: "e2e-test/playwright-abac/${{ inputs.server_edition || 'enterprise' }}${{ needs.generate-build-variables.outputs.context_suffix }}"
     secrets:
       MM_LICENSE: ${{ secrets.MM_LICENSE }}
       REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
