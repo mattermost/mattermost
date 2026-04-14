@@ -588,18 +588,14 @@ func TestUpdatePropertyField(t *testing.T) {
 			},
 		})
 
-		// Update non-name fields (Type, Attrs)
-		field.Type = model.PropertyFieldTypeSelect
+		// Update non-name fields (Attrs only — Type changes are disallowed)
 		field.Attrs = map[string]any{
-			"options": []any{
-				map[string]any{"name": "a"},
-				map[string]any{"name": "b"},
-			},
+			"key": "updated",
 		}
 
 		result, err := th.service.UpdatePropertyField(rctx, groupID, field)
 		require.NoError(t, err)
-		assert.Equal(t, model.PropertyFieldTypeSelect, result.Type)
+		assert.Equal(t, "updated", result.Attrs["key"])
 	})
 
 	t.Run("updating name to non-conflicting value should succeed", func(t *testing.T) {
@@ -832,7 +828,7 @@ func TestUpdatePropertyField(t *testing.T) {
 		})
 
 		// Update with same name should succeed (no actual change to name)
-		field.Type = model.PropertyFieldTypeSelect // Change something else
+		field.Attrs = map[string]any{"key": "changed"} // Change something else
 		result, err := th.service.UpdatePropertyField(rctx, groupID, field)
 		require.NoError(t, err)
 		assert.Equal(t, "SameName", result.Name)

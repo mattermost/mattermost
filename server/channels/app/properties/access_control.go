@@ -258,7 +258,7 @@ func (h *AccessControlHook) PostGetPropertyFields(rctx request.CTX, fields []*mo
 
 // Value Pre-Hooks
 
-// PreCreatePropertyValue enforces write access on the value's field before creation.
+// PreCreatePropertyValue enforces write access and sync locking on the value's field before creation.
 func (h *AccessControlHook) PreCreatePropertyValue(rctx request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
 	if !h.isGroupManaged(value.GroupID) {
 		return value, nil
@@ -271,14 +271,14 @@ func (h *AccessControlHook) PreCreatePropertyValue(rctx request.CTX, value *mode
 		return nil, fmt.Errorf("PreCreatePropertyValue: %w", err)
 	}
 
-	if err := h.checkFieldWriteAccess(field, callerID); err != nil {
+	if err := h.checkValueWriteAccess(field, callerID); err != nil {
 		return nil, fmt.Errorf("PreCreatePropertyValue: %w", err)
 	}
 
 	return value, nil
 }
 
-// PreCreatePropertyValues enforces write access for all fields atomically before creation.
+// PreCreatePropertyValues enforces write access and sync locking for all fields atomically before creation.
 // All values in a batch share the same GroupID (enforced by the public API).
 func (h *AccessControlHook) PreCreatePropertyValues(rctx request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
 	if len(values) == 0 || !h.isGroupManaged(values[0].GroupID) {
@@ -297,7 +297,7 @@ func (h *AccessControlHook) PreCreatePropertyValues(rctx request.CTX, values []*
 		if !exists {
 			return nil, fmt.Errorf("PreCreatePropertyValues: field %s not found", value.FieldID)
 		}
-		if err := h.checkFieldWriteAccess(field, callerID); err != nil {
+		if err := h.checkValueWriteAccess(field, callerID); err != nil {
 			return nil, fmt.Errorf("PreCreatePropertyValues: field %s: %w", value.FieldID, err)
 		}
 	}
@@ -305,7 +305,7 @@ func (h *AccessControlHook) PreCreatePropertyValues(rctx request.CTX, values []*
 	return values, nil
 }
 
-// PreUpdatePropertyValue enforces write access on the value's field before update.
+// PreUpdatePropertyValue enforces write access and sync locking on the value's field before update.
 func (h *AccessControlHook) PreUpdatePropertyValue(rctx request.CTX, groupID string, value *model.PropertyValue) (*model.PropertyValue, error) {
 	if !h.isGroupManaged(groupID) {
 		return value, nil
@@ -318,14 +318,14 @@ func (h *AccessControlHook) PreUpdatePropertyValue(rctx request.CTX, groupID str
 		return nil, fmt.Errorf("PreUpdatePropertyValue: %w", err)
 	}
 
-	if err := h.checkFieldWriteAccess(field, callerID); err != nil {
+	if err := h.checkValueWriteAccess(field, callerID); err != nil {
 		return nil, fmt.Errorf("PreUpdatePropertyValue: %w", err)
 	}
 
 	return value, nil
 }
 
-// PreUpdatePropertyValues enforces write access for all fields atomically before update.
+// PreUpdatePropertyValues enforces write access and sync locking for all fields atomically before update.
 // All values in a batch share the same GroupID (enforced by the public API).
 func (h *AccessControlHook) PreUpdatePropertyValues(rctx request.CTX, groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
 	if len(values) == 0 || !h.isGroupManaged(groupID) {
@@ -344,7 +344,7 @@ func (h *AccessControlHook) PreUpdatePropertyValues(rctx request.CTX, groupID st
 		if !exists {
 			return nil, fmt.Errorf("PreUpdatePropertyValues: field %s not found", value.FieldID)
 		}
-		if err := h.checkFieldWriteAccess(field, callerID); err != nil {
+		if err := h.checkValueWriteAccess(field, callerID); err != nil {
 			return nil, fmt.Errorf("PreUpdatePropertyValues: field %s: %w", value.FieldID, err)
 		}
 	}
@@ -352,7 +352,7 @@ func (h *AccessControlHook) PreUpdatePropertyValues(rctx request.CTX, groupID st
 	return values, nil
 }
 
-// PreUpsertPropertyValue enforces write access on the value's field before upsert.
+// PreUpsertPropertyValue enforces write access and sync locking on the value's field before upsert.
 func (h *AccessControlHook) PreUpsertPropertyValue(rctx request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
 	if !h.isGroupManaged(value.GroupID) {
 		return value, nil
@@ -365,14 +365,14 @@ func (h *AccessControlHook) PreUpsertPropertyValue(rctx request.CTX, value *mode
 		return nil, fmt.Errorf("PreUpsertPropertyValue: %w", err)
 	}
 
-	if err := h.checkFieldWriteAccess(field, callerID); err != nil {
+	if err := h.checkValueWriteAccess(field, callerID); err != nil {
 		return nil, fmt.Errorf("PreUpsertPropertyValue: %w", err)
 	}
 
 	return value, nil
 }
 
-// PreUpsertPropertyValues enforces write access for all fields atomically before upsert.
+// PreUpsertPropertyValues enforces write access and sync locking for all fields atomically before upsert.
 // All values in a batch share the same GroupID (enforced by the public API).
 func (h *AccessControlHook) PreUpsertPropertyValues(rctx request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
 	if len(values) == 0 || !h.isGroupManaged(values[0].GroupID) {
@@ -391,7 +391,7 @@ func (h *AccessControlHook) PreUpsertPropertyValues(rctx request.CTX, values []*
 		if !exists {
 			return nil, fmt.Errorf("PreUpsertPropertyValues: field %s not found", value.FieldID)
 		}
-		if err := h.checkFieldWriteAccess(field, callerID); err != nil {
+		if err := h.checkValueWriteAccess(field, callerID); err != nil {
 			return nil, fmt.Errorf("PreUpsertPropertyValues: field %s: %w", value.FieldID, err)
 		}
 	}
@@ -417,7 +417,7 @@ func (h *AccessControlHook) PreDeletePropertyValue(rctx request.CTX, groupID str
 		return fmt.Errorf("PreDeletePropertyValue: %w", err)
 	}
 
-	if err := h.checkFieldWriteAccess(field, callerID); err != nil {
+	if err := h.checkValueWriteAccess(field, callerID); err != nil {
 		return fmt.Errorf("PreDeletePropertyValue: %w", err)
 	}
 
@@ -489,7 +489,7 @@ func (h *AccessControlHook) PreDeletePropertyValuesForTarget(rctx request.CTX, g
 	}
 
 	for _, field := range fields {
-		if err := h.checkFieldWriteAccess(field, callerID); err != nil {
+		if err := h.checkValueWriteAccess(field, callerID); err != nil {
 			return fmt.Errorf("PreDeletePropertyValuesForTarget: field %s: %w", field.ID, err)
 		}
 	}
@@ -510,7 +510,7 @@ func (h *AccessControlHook) PreDeletePropertyValuesForField(rctx request.CTX, gr
 		return fmt.Errorf("PreDeletePropertyValuesForField: %w", err)
 	}
 
-	if err := h.checkFieldWriteAccess(field, callerID); err != nil {
+	if err := h.checkValueWriteAccess(field, callerID); err != nil {
 		return fmt.Errorf("PreDeletePropertyValuesForField: %w", err)
 	}
 
@@ -680,6 +680,43 @@ func (h *AccessControlHook) checkFieldDeleteAccess(field *model.PropertyField, c
 	}
 
 	return nil
+}
+
+// checkSyncLock checks whether the caller is allowed to write values for a
+// synced field. Synced fields have an ldap or saml attr set, and only the
+// corresponding sync service (identified by well-known caller IDs) may write
+// their values.
+func (h *AccessControlHook) checkSyncLock(field *model.PropertyField, callerID string) error {
+	syncSource := model.GetPropertyFieldSyncSource(field)
+	if syncSource == "" {
+		return nil
+	}
+
+	// Map sync source to the expected caller ID
+	var expectedCallerID string
+	switch syncSource {
+	case "ldap":
+		expectedCallerID = model.CallerIDLDAPSync
+	case "saml":
+		expectedCallerID = model.CallerIDSAMLSync
+	default:
+		return fmt.Errorf("field %s has unknown sync source %q", field.ID, syncSource)
+	}
+
+	if callerID != expectedCallerID {
+		return fmt.Errorf("field %s is managed by %s sync and cannot be modified by caller %q", field.ID, syncSource, callerID)
+	}
+
+	return nil
+}
+
+// checkValueWriteAccess combines the protected-field write access check and
+// the sync lock check for value write operations.
+func (h *AccessControlHook) checkValueWriteAccess(field *model.PropertyField, callerID string) error {
+	if err := h.checkFieldWriteAccess(field, callerID); err != nil {
+		return err
+	}
+	return h.checkSyncLock(field, callerID)
 }
 
 // getCallerValuesForField retrieves all property values for the caller on a specific field.

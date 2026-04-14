@@ -282,6 +282,13 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrap(err, "failed to look up CPA property group")
 	}
 
+	// License check hook — must run before other hooks so unlicensed
+	// operations are rejected early.
+	licenseCheckHook := properties.NewLicenseCheckHook(func() *model.License {
+		return s.License()
+	}, cpaGroup.ID)
+	s.propertyService.AddHook(licenseCheckHook)
+
 	accessControlHook := properties.NewAccessControlHook(s.propertyService, func(pluginID string) bool {
 		if s.ch == nil {
 			return false
@@ -291,6 +298,21 @@ func NewServer(options ...Option) (*Server, error) {
 		return err == nil
 	}, cpaGroup.ID)
 	s.propertyService.AddHook(accessControlHook)
+
+	// Attribute validation hook — validates visibility, sort_order on fields
+	// and value_type constraints on values.
+	attrValidationHook := properties.NewAttributeValidationHook(s.propertyService, cpaGroup.ID)
+	s.propertyService.AddHook(attrValidationHook)
+
+	// Field limit hook — enforces per-object-type and global field limits.
+	fieldLimitHook := properties.NewFieldLimitHook(s.propertyService)
+	fieldLimitHook.AddGroupLimit(cpaGroup.ID, &properties.FieldLimitConfig{
+		PerObjectType: map[string]int64{
+			model.PropertyFieldObjectTypeUser: 20,
+		},
+		GlobalLimit: 200,
+	})
+	s.propertyService.AddHook(fieldLimitHook)
 
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.

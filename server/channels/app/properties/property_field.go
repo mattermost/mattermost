@@ -110,12 +110,23 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 		existingByID[ef.ID] = ef
 	}
 
-	// Check each field for changes that require conflict validation
+	// Check each field for changes that require validation
 	for _, field := range fields {
 		existing, ok := existingByID[field.ID]
 		if !ok {
 			// Field not found - the store.Update will handle this error
 			continue
+		}
+
+		// Type changes are never allowed — users must delete and recreate
+		if existing.Type != field.Type {
+			return nil, model.NewAppError(
+				"UpdatePropertyFields",
+				"app.property_field.update.type_change.app_error",
+				map[string]any{"ID": field.ID, "OldType": string(existing.Type), "NewType": string(field.Type)},
+				fmt.Sprintf("cannot change field type from %q to %q; delete and recreate the field instead", existing.Type, field.Type),
+				http.StatusBadRequest,
+			)
 		}
 
 		// Legacy properties (PSAv1) skip conflict check
