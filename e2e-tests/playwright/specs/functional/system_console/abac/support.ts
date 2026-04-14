@@ -482,10 +482,7 @@ export async function createBasicPolicy(
 
     // Intercept the PUT response to capture the policy ID
     const policyResponsePromise = page.waitForResponse(
-        (resp) =>
-            resp.url().includes('/access_control_policies') &&
-            resp.request().method() === 'PUT' &&
-            resp.ok(),
+        (resp) => resp.url().includes('/access_control_policies') && resp.request().method() === 'PUT' && resp.ok(),
         {timeout: 15000},
     );
 
@@ -807,10 +804,7 @@ export async function createAdvancedPolicy(
 
     // Intercept the PUT response to capture the policy ID
     const policyResponsePromise = page.waitForResponse(
-        (resp) =>
-            resp.url().includes('/access_control_policies') &&
-            resp.request().method() === 'PUT' &&
-            resp.ok(),
+        (resp) => resp.url().includes('/access_control_policies') && resp.request().method() === 'PUT' && resp.ok(),
         {timeout: 15000},
     );
 
