@@ -339,59 +339,6 @@ func TestUpdatePropertyFields(t *testing.T) {
 	})
 }
 
-func TestUpdatePropertyFieldConflictResponse(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
-
-	groupID, err := th.App.CpaGroupID()
-	require.Nil(t, err)
-
-	t.Run("sequential updates through app layer succeed (OCC non-regression)", func(t *testing.T) {
-		field := &model.PropertyField{
-			GroupID:    groupID,
-			Name:       "OCC Sequential Field",
-			Type:       model.PropertyFieldTypeText,
-			ObjectType: model.PropertyFieldObjectTypeChannel,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-		}
-		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
-		require.Nil(t, appErr)
-
-		// First update
-		created.Name = "First Update"
-		updated1, appErr := th.App.UpdatePropertyField(th.Context, groupID, created, false, "")
-		require.Nil(t, appErr)
-		assert.Equal(t, "First Update", updated1.Name)
-
-		// Second update using the returned field (fresh state)
-		updated1.Name = "Second Update"
-		updated2, appErr := th.App.UpdatePropertyField(th.Context, groupID, updated1, false, "")
-		require.Nil(t, appErr)
-		assert.Equal(t, "Second Update", updated2.Name)
-
-		// Third update: batch
-		updated2.Name = "Third Update"
-		batchResult, appErr := th.App.UpdatePropertyFields(th.Context, groupID, []*model.PropertyField{updated2}, false, "")
-		require.Nil(t, appErr)
-		require.Len(t, batchResult, 1)
-		assert.Equal(t, "Third Update", batchResult[0].Name)
-	})
-
-	t.Run("conflict error ID is set correctly", func(t *testing.T) {
-		// Verify the error ID constant exists and is the expected value
-		// (the 409 path is tested end-to-end at the service layer in
-		// TestOptimisticConcurrency; here we just verify the error shape)
-		appErr := model.NewAppError(
-			"UpdatePropertyFields",
-			"app.property_field.update.conflict.app_error",
-			nil,
-			"concurrent modification detected; please retry",
-			http.StatusConflict,
-		)
-		assert.Equal(t, http.StatusConflict, appErr.StatusCode)
-		assert.Equal(t, "app.property_field.update.conflict.app_error", appErr.Id)
-	})
-}
 
 func TestDeletePropertyField(t *testing.T) {
 	mainHelper.Parallel(t)

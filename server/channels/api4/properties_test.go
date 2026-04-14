@@ -3106,4 +3106,67 @@ func TestLinkedProperties(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
+
+	t.Run("patch source field options propagates to linked fields", func(t *testing.T) {
+		// Create a template (source) with one option
+		optA := map[string]any{"id": model.NewId(), "name": "PropTestA"}
+		sourceField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeSelect,
+			GroupID:           group.ID,
+			ObjectType:        model.PropertyFieldObjectTypeTemplate,
+			TargetType:        "system",
+			PermissionField:   &sysadminLevel,
+			PermissionValues:  &sysadminLevel,
+			PermissionOptions: &sysadminLevel,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{optA},
+			},
+		}
+		createdSource, appErr := th.App.CreatePropertyField(th.Context, sourceField, false, "")
+		require.Nil(t, appErr)
+
+		// Create two linked fields and keep their IDs
+		sourceID := createdSource.ID
+		var linkedIDs []string
+		for i := 0; i < 2; i++ {
+			linked := &model.PropertyField{
+				Name:              "PropLinked-" + model.NewId(),
+				Type:              model.PropertyFieldTypeSelect,
+				GroupID:           group.ID,
+				ObjectType:        "user",
+				TargetType:        "system",
+				LinkedFieldID:     &sourceID,
+				PermissionField:   &memberLevel,
+				PermissionValues:  &memberLevel,
+				PermissionOptions: &memberLevel,
+			}
+			createdLinked, lErr := th.App.CreatePropertyField(th.Context, linked, false, "")
+			require.Nil(t, lErr)
+			linkedIDs = append(linkedIDs, createdLinked.ID)
+		}
+
+		// Patch the source field's options via the API — add a second option
+		optB := map[string]any{"id": model.NewId(), "name": "PropTestB"}
+		patch := &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{optA, optB},
+			},
+		}
+		updatedSource, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, "template", createdSource.ID, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		// Source should have 2 options now
+		sourceOpts := updatedSource.Attrs[model.PropertyFieldAttributeOptions].([]any)
+		require.Len(t, sourceOpts, 2)
+
+		// Fetch each linked field and verify propagation
+		for _, linkedID := range linkedIDs {
+			lf, lfErr := th.App.GetPropertyField(th.Context, group.ID, linkedID)
+			require.Nil(t, lfErr)
+			opts := lf.Attrs[model.PropertyFieldAttributeOptions].([]any)
+			require.Len(t, opts, 2, "linked field %s should have 2 options after propagation", linkedID)
+		}
+	})
 }
