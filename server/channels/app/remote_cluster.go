@@ -146,11 +146,10 @@ func (a *App) UpdateRemoteCluster(rc *model.RemoteCluster) (*model.RemoteCluster
 
 const sharedChannelRemotesPageSize = 10000
 
-// sharedChannelIDsWithActiveRemotesForRemote returns distinct channel IDs that have a non-deleted
+// sharedChannelIDsWithActiveRemotesForRemote returns channel IDs that have a non-deleted
 // SharedChannelRemote row for the given remote cluster.
 func (a *App) sharedChannelIDsWithActiveRemotesForRemote(remoteClusterID string) ([]string, error) {
 	ss := a.Srv().Store()
-	seen := make(map[string]struct{})
 	var channelIDs []string
 	offset := 0
 	for {
@@ -162,10 +161,7 @@ func (a *App) sharedChannelIDsWithActiveRemotesForRemote(remoteClusterID string)
 			return nil, err
 		}
 		for _, r := range remotes {
-			if _, ok := seen[r.ChannelId]; !ok {
-				seen[r.ChannelId] = struct{}{}
-				channelIDs = append(channelIDs, r.ChannelId)
-			}
+			channelIDs = append(channelIDs, r.ChannelId)
 		}
 		if len(remotes) < sharedChannelRemotesPageSize {
 			break
@@ -175,8 +171,10 @@ func (a *App) sharedChannelIDsWithActiveRemotesForRemote(remoteClusterID string)
 	return channelIDs, nil
 }
 
-// unshareSharedChannelsIfNoConfirmedRemotes unshares channels that have no remaining confirmed
-// SharedChannelRemote rows. This matches sharedchannel.Service.unshareChannelIfNoActiveRemotes.
+// unshareSharedChannelsIfNoRemotes unshares each channel in channelIDs that has no remaining
+// SharedChannelRemote rows. The check matches sharedchannel.Service.unshareChannelIfNoActiveRemotes
+// (GetRemotes with IncludeUnconfirmed: true). If the shared channel sync service is not
+// running, the shared channel row is removed via the store instead of UnshareChannel.
 func (a *App) unshareSharedChannelsIfNoRemotes(channelIDs []string) {
 	ss := a.Srv().Store()
 	scService := a.Srv().GetSharedChannelSyncService()
@@ -195,7 +193,7 @@ func (a *App) unshareSharedChannelsIfNoRemotes(channelIDs []string) {
 		}
 		if scService != nil {
 			if _, err := scService.UnshareChannel(channelID); err != nil {
-				a.Log().Error("Failed to unshare channel with no remaining confirmed remotes",
+				a.Log().Error("Failed to unshare channel with no remaining remotes",
 					mlog.String("channel_id", channelID),
 					mlog.Err(err),
 				)
