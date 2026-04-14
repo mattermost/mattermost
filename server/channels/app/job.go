@@ -6,6 +6,7 @@ package app
 import (
 	"errors"
 	"net/http"
+	"sort"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -117,6 +118,31 @@ func (a *App) CreateAccessControlSyncJob(rctx request.CTX, jobData map[string]st
 
 	// Create the new job
 	return a.Srv().Jobs.CreateJob(rctx, model.JobTypeAccessControlSync, jobData)
+}
+
+// GetJobsByTypeAndData returns jobs of the given type whose Data map contains all
+// key-value pairs in data, ordered newest-first and paginated.
+// Used by the jobs-by-type API handler to support optional data-filter query params
+// (e.g. policy_id on access_control_sync jobs).
+func (a *App) GetJobsByTypeAndData(rctx request.CTX, jobType string, data map[string]string, page int, perPage int) ([]*model.Job, *model.AppError) {
+	jobs, err := a.Srv().Store().Job().GetByTypeAndData(rctx, jobType, data, false)
+	if err != nil {
+		return nil, model.NewAppError("GetJobsByTypeAndData", "app.job.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	// GetByTypeAndData has no guaranteed ordering; sort newest-first so
+	// page=0&per_page=1 reliably returns the most-recently-created job.
+	sort.Slice(jobs, func(i, j int) bool {
+		return jobs[i].CreateAt > jobs[j].CreateAt
+	})
+	start := page * perPage
+	if start >= len(jobs) {
+		return []*model.Job{}, nil
+	}
+	end := start + perPage
+	if end > len(jobs) {
+		end = len(jobs)
+	}
+	return jobs[start:end], nil
 }
 
 func (a *App) CancelJob(rctx request.CTX, jobId string) *model.AppError {

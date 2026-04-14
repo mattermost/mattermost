@@ -22,7 +22,6 @@ import {
     createPrivateChannelForABAC,
     createAdvancedPolicy,
     activatePolicy,
-    captureLatestJobId,
     waitForLatestSyncJob,
     getJobDetailsFromRecentJobs,
     enableUserManagedAttributes,
@@ -124,8 +123,7 @@ test.describe('ABAC Policies - Advanced Policies', () => {
         // User 1 and 2 have Department=Engineering, User 3 has Department=Sales
         const celExpression = 'user.attributes.Department == "Engineering"';
 
-        const beforeT5785PolicyJobId = await captureLatestJobId(systemConsolePage.page);
-        await createAdvancedPolicy(systemConsolePage.page, {
+        const t5785PolicyId = await createAdvancedPolicy(systemConsolePage.page, {
             name: policyName,
             celExpression: celExpression,
             autoSync: true,
@@ -175,7 +173,7 @@ test.describe('ABAC Policies - Advanced Policies', () => {
         await activatePolicy(adminClient, policyId);
 
         // Wait for the initial sync job (created when policy was saved)
-        await waitForLatestSyncJob(systemConsolePage.page, 10, beforeT5785PolicyJobId);
+        await waitForLatestSyncJob(systemConsolePage.page, 10, undefined, undefined, t5785PolicyId);
 
         // Run ANOTHER sync job now that policy is active
         const t5785SyncJobId = await runSyncJob(systemConsolePage.page);
@@ -295,8 +293,7 @@ test.describe('ABAC Policies - Advanced Policies', () => {
         await adminClient.addToChannel(salesUser.id, channel1.id); // Sales user in channel initially
 
         const policy1Name = `IsNot Policy ${await pw.random.id()}`;
-        const beforeT5786Policy1JobId = await captureLatestJobId(systemConsolePage.page);
-        await createAdvancedPolicy(systemConsolePage.page, {
+        const t5786Policy1Id = await createAdvancedPolicy(systemConsolePage.page, {
             name: policy1Name,
             celExpression: 'user.attributes.Department != "Sales"',
             autoSync: true,
@@ -318,7 +315,7 @@ test.describe('ABAC Policies - Advanced Policies', () => {
             await navigateToABACPage(systemConsolePage.page);
         }
 
-        await waitForLatestSyncJob(systemConsolePage.page, 5, beforeT5786Policy1JobId);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, undefined, t5786Policy1Id);
 
         // Get policy ID and activate
         const searchInput1 = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
@@ -349,8 +346,7 @@ test.describe('ABAC Policies - Advanced Policies', () => {
         await adminClient.addToChannel(salesUser.id, channel2.id); // Sales user in channel initially
 
         const policy2Name = `In Policy ${await pw.random.id()}`;
-        const beforeT5786Policy2JobId = await captureLatestJobId(systemConsolePage.page);
-        await createAdvancedPolicy(systemConsolePage.page, {
+        const t5786Policy2Id = await createAdvancedPolicy(systemConsolePage.page, {
             name: policy2Name,
             celExpression: 'user.attributes.Department in ["Engineering", "DevOps"]',
             autoSync: true,
@@ -372,7 +368,7 @@ test.describe('ABAC Policies - Advanced Policies', () => {
             await navigateToABACPage(systemConsolePage.page);
         }
 
-        await waitForLatestSyncJob(systemConsolePage.page, 5, beforeT5786Policy2JobId);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, undefined, t5786Policy2Id);
 
         const searchInput2 = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
         await searchInput2.fill('In Policy');
@@ -401,8 +397,7 @@ test.describe('ABAC Policies - Advanced Policies', () => {
         await adminClient.addToChannel(salesUser.id, channel3.id);
 
         const policy3Name = `StartsWith Policy ${await pw.random.id()}`;
-        const beforeT5786Policy3JobId = await captureLatestJobId(systemConsolePage.page);
-        await createAdvancedPolicy(systemConsolePage.page, {
+        const t5786Policy3Id = await createAdvancedPolicy(systemConsolePage.page, {
             name: policy3Name,
             celExpression: 'user.attributes.Department.startsWith("Eng")',
             autoSync: true,
@@ -424,7 +419,7 @@ test.describe('ABAC Policies - Advanced Policies', () => {
             await navigateToABACPage(systemConsolePage.page);
         }
 
-        await waitForLatestSyncJob(systemConsolePage.page, 5, beforeT5786Policy3JobId);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, undefined, t5786Policy3Id);
 
         const searchInput3 = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
         await searchInput3.fill('StartsWith');
@@ -453,8 +448,7 @@ test.describe('ABAC Policies - Advanced Policies', () => {
         await adminClient.addToChannel(salesUser.id, channel4.id);
 
         const policy4Name = `EndsWith Policy ${await pw.random.id()}`;
-        const beforeT5786Policy4JobId = await captureLatestJobId(systemConsolePage.page);
-        await createAdvancedPolicy(systemConsolePage.page, {
+        const t5786Policy4Id = await createAdvancedPolicy(systemConsolePage.page, {
             name: policy4Name,
             celExpression: 'user.attributes.Department.endsWith("ing")',
             autoSync: true,
@@ -476,7 +470,7 @@ test.describe('ABAC Policies - Advanced Policies', () => {
             await navigateToABACPage(systemConsolePage.page);
         }
 
-        await waitForLatestSyncJob(systemConsolePage.page, 5, beforeT5786Policy4JobId);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, undefined, t5786Policy4Id);
 
         const searchInput4 = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
         await searchInput4.fill('EndsWith');
@@ -505,8 +499,7 @@ test.describe('ABAC Policies - Advanced Policies', () => {
         await adminClient.addToChannel(salesUser.id, channel5.id);
 
         const policy5Name = `Contains Policy ${await pw.random.id()}`;
-        const beforeT5786Policy5JobId = await captureLatestJobId(systemConsolePage.page);
-        await createAdvancedPolicy(systemConsolePage.page, {
+        const t5786Policy5Id = await createAdvancedPolicy(systemConsolePage.page, {
             name: policy5Name,
             celExpression: 'user.attributes.Department.contains("gineer")',
             autoSync: true,
@@ -528,7 +521,7 @@ test.describe('ABAC Policies - Advanced Policies', () => {
             await navigateToABACPage(systemConsolePage.page);
         }
 
-        await waitForLatestSyncJob(systemConsolePage.page, 5, beforeT5786Policy5JobId);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, undefined, t5786Policy5Id);
 
         const searchInput5 = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
         await searchInput5.fill('Contains');
@@ -643,8 +636,7 @@ test.describe('ABAC Policies - Advanced Policies', () => {
         const complexExpression =
             'user.attributes.Department == "Engineering" || (user.attributes.Department == "Sales" && user.attributes.Location == "Remote")';
 
-        const beforeT5787PolicyJobId = await captureLatestJobId(systemConsolePage.page);
-        await createAdvancedPolicy(systemConsolePage.page, {
+        const t5787PolicyId = await createAdvancedPolicy(systemConsolePage.page, {
             name: policyName,
             celExpression: complexExpression,
             autoSync: true,
@@ -673,7 +665,7 @@ test.describe('ABAC Policies - Advanced Policies', () => {
         }
 
         // # Wait for sync job (from Apply Policy)
-        await waitForLatestSyncJob(systemConsolePage.page, 5, beforeT5787PolicyJobId);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, undefined, t5787PolicyId);
 
         // # Find and activate the policy - search by unique ID part
         const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();

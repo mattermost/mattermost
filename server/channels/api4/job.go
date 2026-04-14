@@ -267,7 +267,16 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	jobs, appErr := c.App.GetJobsByTypePage(c.AppContext, c.Params.JobType, c.Params.Page, c.Params.PerPage)
+	var jobs []*model.Job
+	var appErr *model.AppError
+
+	policyID := r.URL.Query().Get("policy_id")
+	if policyID != "" && c.Params.JobType == model.JobTypeAccessControlSync {
+		jobs, appErr = c.App.GetJobsByTypeAndData(c.AppContext, c.Params.JobType,
+			map[string]string{"policy_id": policyID}, c.Params.Page, c.Params.PerPage)
+	} else {
+		jobs, appErr = c.App.GetJobsByTypePage(c.AppContext, c.Params.JobType, c.Params.Page, c.Params.PerPage)
+	}
 	if appErr != nil {
 		c.Err = appErr
 		return

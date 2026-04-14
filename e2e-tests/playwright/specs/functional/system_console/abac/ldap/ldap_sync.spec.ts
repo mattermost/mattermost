@@ -18,7 +18,6 @@ import {
     createBasicPolicy,
     createAdvancedPolicy,
     activatePolicy,
-    captureLatestJobId,
     waitForLatestSyncJob,
 } from '../support';
 
@@ -63,8 +62,7 @@ test.describe('ABAC LDAP Integration - Sync', () => {
         await enableABAC(systemConsolePage.page);
 
         const policy1Name = `LDAP AutoAdd Single ${await pw.random.id()}`;
-        const beforePolicy1JobId = await captureLatestJobId(systemConsolePage.page);
-        await createBasicPolicy(systemConsolePage.page, {
+        const policy1Id = await createBasicPolicy(systemConsolePage.page, {
             name: policy1Name,
             attribute: 'Department',
             operator: '==',
@@ -77,7 +75,7 @@ test.describe('ABAC LDAP Integration - Sync', () => {
         await systemConsolePage.page.waitForTimeout(2000);
 
         // Activate policy
-        await waitForLatestSyncJob(systemConsolePage.page, 5, beforePolicy1JobId);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, undefined, policy1Id);
         const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
         await searchInput.waitFor({state: 'visible', timeout: 5000});
         await searchInput.fill(policy1Name.match(/([a-z0-9]+)$/i)?.[1] || policy1Name);
@@ -137,8 +135,7 @@ test.describe('ABAC LDAP Integration - Sync', () => {
 
         // Create policy with contains operator: Department contains "Eng"
         const policy2Name = `LDAP AutoAdd Contains ${await pw.random.id()}`;
-        const beforePolicy2JobId = await captureLatestJobId(systemConsolePage.page);
-        await createAdvancedPolicy(systemConsolePage.page, {
+        const policy2Id = await createAdvancedPolicy(systemConsolePage.page, {
             name: policy2Name,
             celExpression: 'user.attributes.Department.contains("Eng")',
             autoSync: true, // Auto-add TRUE
@@ -146,7 +143,7 @@ test.describe('ABAC LDAP Integration - Sync', () => {
         });
 
         // Activate policy
-        await waitForLatestSyncJob(systemConsolePage.page, 5, beforePolicy2JobId);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, undefined, policy2Id);
         await searchInput.fill(policy2Name.match(/([a-z0-9]+)$/i)?.[1] || policy2Name);
         await systemConsolePage.page.waitForTimeout(1000);
 
@@ -244,8 +241,7 @@ test.describe('ABAC LDAP Integration - Sync', () => {
         await enableABAC(systemConsolePage.page);
 
         const policy1Name = `LDAP Sync Equals ${await pw.random.id()}`;
-        const beforeT5798Policy1JobId = await captureLatestJobId(systemConsolePage.page);
-        await createBasicPolicy(systemConsolePage.page, {
+        const t5798Policy1Id = await createBasicPolicy(systemConsolePage.page, {
             name: policy1Name,
             attribute: 'Department',
             operator: '==',
@@ -255,7 +251,7 @@ test.describe('ABAC LDAP Integration - Sync', () => {
         });
 
         // Activate policy
-        await waitForLatestSyncJob(systemConsolePage.page, 5, beforeT5798Policy1JobId);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, undefined, t5798Policy1Id);
         const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
         await searchInput.waitFor({state: 'visible', timeout: 5000});
         await searchInput.fill(policy1Name.match(/([a-z0-9]+)$/i)?.[1] || policy1Name);
@@ -316,8 +312,7 @@ test.describe('ABAC LDAP Integration - Sync', () => {
 
         // Create policy with 'in' operator (user.attributes.Department in ["Engineering", "Product"])
         const policy2Name = `LDAP Sync In ${await pw.random.id()}`;
-        const beforeT5798Policy2JobId = await captureLatestJobId(systemConsolePage.page);
-        await createAdvancedPolicy(systemConsolePage.page, {
+        const t5798Policy2Id = await createAdvancedPolicy(systemConsolePage.page, {
             name: policy2Name,
             celExpression: 'user.attributes.Department in ["Engineering", "Product"]',
             autoSync: false, // Auto-add FALSE
@@ -325,7 +320,7 @@ test.describe('ABAC LDAP Integration - Sync', () => {
         });
 
         // Activate policy
-        await waitForLatestSyncJob(systemConsolePage.page, 5, beforeT5798Policy2JobId);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, undefined, t5798Policy2Id);
         await searchInput.fill(policy2Name.match(/([a-z0-9]+)$/i)?.[1] || policy2Name);
         await systemConsolePage.page.waitForTimeout(1000);
 
@@ -422,8 +417,7 @@ test.describe('ABAC LDAP Integration - Sync', () => {
         await enableABAC(systemConsolePage.page);
 
         const policy1Name = `LDAP Remove StartsWith ${await pw.random.id()}`;
-        const beforeT5799Policy1JobId = await captureLatestJobId(systemConsolePage.page);
-        await createAdvancedPolicy(systemConsolePage.page, {
+        const t5799Policy1Id = await createAdvancedPolicy(systemConsolePage.page, {
             name: policy1Name,
             celExpression: 'user.attributes.Department.startsWith("Eng")',
             autoSync: true, // Auto-add TRUE
@@ -432,7 +426,7 @@ test.describe('ABAC LDAP Integration - Sync', () => {
 
         // Activate policy
         await systemConsolePage.page.waitForTimeout(2000);
-        await waitForLatestSyncJob(systemConsolePage.page, 5, beforeT5799Policy1JobId);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, undefined, t5799Policy1Id);
         const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
         await searchInput.waitFor({state: 'visible', timeout: 5000});
         await searchInput.fill(policy1Name.match(/([a-z0-9]+)$/i)?.[1] || policy1Name);
@@ -491,8 +485,7 @@ test.describe('ABAC LDAP Integration - Sync', () => {
         // Create policy with TWO attributes: Department == "Engineering"
         // Note: Using single attribute with == since we can't reliably set multiple different attribute types
         const policy2Name = `LDAP Remove TwoAttr ${await pw.random.id()}`;
-        const beforeT5799Policy2JobId = await captureLatestJobId(systemConsolePage.page);
-        await createBasicPolicy(systemConsolePage.page, {
+        const t5799Policy2Id = await createBasicPolicy(systemConsolePage.page, {
             name: policy2Name,
             attribute: 'Department',
             operator: '==',
@@ -503,7 +496,7 @@ test.describe('ABAC LDAP Integration - Sync', () => {
 
         // Activate policy
         await systemConsolePage.page.waitForTimeout(2000);
-        await waitForLatestSyncJob(systemConsolePage.page, 5, beforeT5799Policy2JobId);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, undefined, t5799Policy2Id);
         await searchInput.fill(policy2Name.match(/([a-z0-9]+)$/i)?.[1] || policy2Name);
         await systemConsolePage.page.waitForTimeout(1000);
 
@@ -579,8 +572,7 @@ test.describe('ABAC LDAP Integration - Sync', () => {
         await enableABAC(systemConsolePage.page);
 
         const policyName = `Dynamic Policy ${await pw.random.id()}`;
-        const beforeT5800PolicyJobId = await captureLatestJobId(systemConsolePage.page);
-        await createBasicPolicy(systemConsolePage.page, {
+        const t5800PolicyId = await createBasicPolicy(systemConsolePage.page, {
             name: policyName,
             attribute: 'Department',
             operator: '==',
@@ -590,7 +582,7 @@ test.describe('ABAC LDAP Integration - Sync', () => {
         });
 
         // Activate policy
-        await waitForLatestSyncJob(systemConsolePage.page, 5, beforeT5800PolicyJobId);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, undefined, t5800PolicyId);
         const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
         await searchInput.waitFor({state: 'visible', timeout: 5000});
         const idMatch = policyName.match(/([a-z0-9]+)$/i);

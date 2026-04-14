@@ -346,7 +346,7 @@ export async function createBasicPolicy(
         autoSync?: boolean;
         channels?: string[];
     },
-): Promise<void> {
+): Promise<string | null> {
     // Click Add policy button
     const addPolicyButton = page.getByRole('button', {name: 'Add policy'});
     await addPolicyButton.click();
@@ -479,8 +479,27 @@ export async function createBasicPolicy(
 
     // Save policy and confirm
     const saveButton = page.getByRole('button', {name: 'Save'});
+
+    // Intercept the PUT response to capture the policy ID
+    const policyResponsePromise = page.waitForResponse(
+        (resp) =>
+            resp.url().includes('/access_control_policies') &&
+            resp.request().method() === 'PUT' &&
+            resp.ok(),
+        {timeout: 15000},
+    );
+
     await saveButton.click();
     await page.waitForTimeout(1000);
+
+    let policyId: string | null = null;
+    try {
+        const response = await policyResponsePromise;
+        const policy: {id?: string} = await response.json();
+        policyId = policy.id ?? null;
+    } catch {
+        // fallback — caller gets null, will use global job list
+    }
 
     // Click "Apply policy" button in confirmation modal (only appears if channels are assigned)
     const applyPolicyButton = page.getByRole('button', {name: /apply policy/i});
@@ -493,6 +512,8 @@ export async function createBasicPolicy(
         // No channels assigned, just wait for save to complete
         await page.waitForLoadState('networkidle');
     }
+
+    return policyId;
 }
 
 /**
@@ -665,7 +686,7 @@ export async function createAdvancedPolicy(
         autoSync?: boolean;
         channels?: string[];
     },
-): Promise<void> {
+): Promise<string | null> {
     // Click Add policy button
     const addPolicyButton = page.getByRole('button', {name: 'Add policy'});
     await addPolicyButton.click();
@@ -784,8 +805,26 @@ export async function createAdvancedPolicy(
         throw new Error(`Save button is disabled`);
     }
 
+    // Intercept the PUT response to capture the policy ID
+    const policyResponsePromise = page.waitForResponse(
+        (resp) =>
+            resp.url().includes('/access_control_policies') &&
+            resp.request().method() === 'PUT' &&
+            resp.ok(),
+        {timeout: 15000},
+    );
+
     await saveButton.click();
     await page.waitForTimeout(2000);
+
+    let policyId: string | null = null;
+    try {
+        const response = await policyResponsePromise;
+        const policy: {id?: string} = await response.json();
+        policyId = policy.id ?? null;
+    } catch {
+        // fallback — caller gets null, will use global job list
+    }
 
     // Check for error message
     const errorMessage = page.locator('text=/Unable to save|errors in the form/i').first();
@@ -807,6 +846,8 @@ export async function createAdvancedPolicy(
         // console.error(`❌ Apply Policy button not found`);
         throw new Error(`Apply Policy button not visible after Save`);
     }
+
+    return policyId;
 }
 
 /**
@@ -824,9 +865,10 @@ export async function activatePolicy(client: Client4, policyId: string): Promise
  * waitForLatestSyncJob so it skips the previously-completed job and waits only for
  * the new one.
  */
-export async function captureLatestJobId(page: Page): Promise<string | null> {
+export async function captureLatestJobId(page: Page, policyId?: string | null): Promise<string | null> {
     const origin = new URL(page.url()).origin;
-    const jobsUrl = `${origin}/api/v4/jobs/type/access_control_sync?page=0&per_page=1`;
+    const policyParam = policyId ? `&policy_id=${encodeURIComponent(policyId)}` : '';
+    const jobsUrl = `${origin}/api/v4/jobs/type/access_control_sync?page=0&per_page=1${policyParam}`;
     try {
         const response = await page.request.get(jobsUrl);
         if (response.ok()) {
@@ -864,6 +906,7 @@ export async function waitForLatestSyncJob(
     maxRetries: number = 5,
     skipJobId?: string | null,
     jobId?: string | null,
+    policyId?: string | null,
 ): Promise<string | null> {
     const pollIntervalMs = 500;
     const timeoutMs = Math.max(maxRetries * 12000, 60000);
@@ -904,7 +947,8 @@ export async function waitForLatestSyncJob(
     // up ancient stale results from a previous test or run.
     const staleThresholdMs = 30000;
 
-    const listUrl = `${origin}/api/v4/jobs/type/access_control_sync?page=0&per_page=1`;
+    const policyParam = policyId ? `&policy_id=${encodeURIComponent(policyId)}` : '';
+    const listUrl = `${origin}/api/v4/jobs/type/access_control_sync?page=0&per_page=1${policyParam}`;
 
     // ── Phase 1: identify the specific job we are waiting for ──────────────
     let expectedJobId: string | null = null;

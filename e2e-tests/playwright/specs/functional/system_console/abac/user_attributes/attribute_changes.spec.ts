@@ -22,7 +22,6 @@ import {
     createPrivateChannelForABAC,
     createBasicPolicy,
     activatePolicy,
-    captureLatestJobId,
     waitForLatestSyncJob,
     enableUserManagedAttributes,
 } from '../support';
@@ -73,8 +72,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         await enableABAC(systemConsolePage.page);
 
         const policyName = `Engineering Access ${await pw.random.id()}`;
-        const beforePolicyJobId = await captureLatestJobId(systemConsolePage.page);
-        await createBasicPolicy(systemConsolePage.page, {
+        const policyId = await createBasicPolicy(systemConsolePage.page, {
             name: policyName,
             attribute: 'Department',
             operator: '==',
@@ -84,7 +82,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         });
 
         // Activate policy (EXACT same pattern as MM-T5800)
-        await waitForLatestSyncJob(systemConsolePage.page, 5, beforePolicyJobId);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, undefined, policyId);
         const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
         await searchInput.waitFor({state: 'visible', timeout: 5000});
         const idMatch = policyName.match(/([a-z0-9]+)$/i);
@@ -312,8 +310,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         await enableABAC(systemConsolePage.page);
 
         const policy1Name = `Engineering Access NoAutoAdd ${await pw.random.id()}`;
-        const beforePolicy1JobId = await captureLatestJobId(systemConsolePage.page);
-        await createBasicPolicy(systemConsolePage.page, {
+        const policy1Id = await createBasicPolicy(systemConsolePage.page, {
             name: policy1Name,
             attribute: 'Department',
             operator: '==',
@@ -328,7 +325,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         expect(initialInChannel).toBe(true);
 
         // Get policy ID and activate
-        const policy1JobId = await waitForLatestSyncJob(systemConsolePage.page, 5, beforePolicy1JobId);
+        const policy1JobId = await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, undefined, policy1Id);
         const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
         await searchInput.waitFor({state: 'visible', timeout: 5000});
         const idMatch = policy1Name.match(/([a-z0-9]+)$/i);
@@ -391,8 +388,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         await navigateToABACPage(systemConsolePage.page);
 
         const policy2Name = `Engineering Access WithAutoAdd ${await pw.random.id()}`;
-        const beforePolicy2JobId = sync1JobId;
-        await createBasicPolicy(systemConsolePage.page, {
+        const policy2Id = await createBasicPolicy(systemConsolePage.page, {
             name: policy2Name,
             attribute: 'Department',
             operator: '==',
@@ -402,7 +398,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         });
 
         // Activate and run sync to auto-add user
-        const policy2JobId = await waitForLatestSyncJob(systemConsolePage.page, 5, beforePolicy2JobId);
+        const policy2JobId = await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, undefined, policy2Id);
         await searchInput.fill(policy2Name.match(/([a-z0-9]+)$/i)?.[1] || policy2Name);
         await systemConsolePage.page.waitForTimeout(1000);
 

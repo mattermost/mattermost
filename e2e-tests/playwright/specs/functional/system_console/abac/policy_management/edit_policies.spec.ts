@@ -109,7 +109,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // ===========================================
         const policyName = `ABAC-Edit-Test-${await pw.random.id()}`;
 
-        await createBasicPolicy(page, {
+        const editTest1PolicyId = await createBasicPolicy(page, {
             name: policyName,
             attribute: 'Department',
             operator: '==',
@@ -146,7 +146,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // ===========================================
 
         // Navigate to ABAC page and find the policy
-        const beforeEdit1JobId = await captureLatestJobId(page);
+        const beforeEdit1JobId = await captureLatestJobId(page, editTest1PolicyId);
         await navigateToABACPage(page);
         await page.waitForTimeout(1000);
 
@@ -260,7 +260,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
 
         // Wait for sync to complete
         await navigateToABACPage(page);
-        await waitForLatestSyncJob(page, 5, beforeEdit1JobId);
+        await waitForLatestSyncJob(page, 5, beforeEdit1JobId, undefined, editTest1PolicyId);
 
         // ===========================================
         // STEP 5 & 6: Verify channel membership after policy edit
@@ -396,7 +396,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // ===========================================
         const policyName = `ABAC-AddAttr-Test-${await pw.random.id()}`;
 
-        await createBasicPolicy(page, {
+        const editTest2PolicyId = await createBasicPolicy(page, {
             name: policyName,
             attribute: 'Department',
             operator: '==',
@@ -418,7 +418,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // ===========================================
 
         // Navigate back to ABAC list page
-        const beforeEdit2JobId = await captureLatestJobId(page);
+        const beforeEdit2JobId = await captureLatestJobId(page, editTest2PolicyId);
         await page.goto('/admin_console/system_attributes/attribute_based_access_control', {waitUntil: 'networkidle'});
         await page.waitForTimeout(2000);
 
@@ -517,7 +517,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         await page.waitForTimeout(2000);
 
         // Wait for the auto-triggered sync job to complete (policy edit triggers sync automatically)
-        await waitForLatestSyncJob(page, 5, beforeEdit2JobId);
+        await waitForLatestSyncJob(page, 5, beforeEdit2JobId, undefined, editTest2PolicyId);
 
         // Additional wait for membership changes to propagate
         await page.waitForTimeout(5000);
@@ -658,7 +658,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         const policyName = `ABAC-RemoveRule-${await pw.random.id()}`;
 
         // Use advanced mode for multi-attribute policy
-        await createAdvancedPolicy(page, {
+        const editTest3PolicyId = await createAdvancedPolicy(page, {
             name: policyName,
             celExpression: 'user.attributes.Department == "Engineering" && user.attributes.Office == "Remote"',
             autoSync: true, // Auto-add is ON
@@ -684,7 +684,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // ===========================================
 
         // Navigate back to ABAC list page
-        const beforeEdit3JobId = await captureLatestJobId(page);
+        const beforeEdit3JobId = await captureLatestJobId(page, editTest3PolicyId);
         await page.goto('/admin_console/system_attributes/attribute_based_access_control', {waitUntil: 'networkidle'});
         await page.waitForTimeout(2000);
 
@@ -791,7 +791,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
 
         // Navigate to ABAC page and wait for sync job to complete
         await navigateToABACPage(page);
-        await waitForLatestSyncJob(page, 5, beforeEdit3JobId);
+        await waitForLatestSyncJob(page, 5, beforeEdit3JobId, undefined, editTest3PolicyId);
 
         // ===========================================
         // STEP 5 & 6: Verify channel membership after edit
