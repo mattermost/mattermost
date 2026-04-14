@@ -302,6 +302,21 @@ func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember 
 		a.Srv().Platform().InvalidateChannelCacheForUser(channel.CreatorId)
 	}
 
+	if channel.ManagedCategoryName != "" {
+		if !model.MinimumEnterpriseLicense(a.Channels().License()) || !model.SafeDereference(a.Config().TeamSettings.EnableManagedChannelCategories) {
+			rctx.Logger().Warn("Managed category update ignored: feature not available")
+			sc.ManagedCategoryName = ""
+		} else {
+			if appErr := a.SetChannelManagedCategory(rctx, sc.Id, channel.ManagedCategoryName); appErr != nil {
+				rctx.Logger().Error("Failed to set managed category on new channel",
+					mlog.String("channel_id", sc.Id),
+					mlog.String("category_name", channel.ManagedCategoryName),
+					mlog.Err(appErr))
+				sc.ManagedCategoryName = ""
+			}
+		}
+	}
+
 	a.Srv().Go(func() {
 		pluginContext := pluginContext(rctx)
 		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
@@ -1616,6 +1631,12 @@ func (a *App) DeleteChannel(rctx request.CTX, channel *model.Channel, userID str
 			map[string]any{"Reason": archiveRejectionReason}, "", http.StatusBadRequest)
 	}
 
+	deleteAt := model.GetMillis()
+
+	if err := a.Srv().Store().Channel().Delete(channel.Id, deleteAt); err != nil {
+		return model.NewAppError("DeleteChannel", "app.channel.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
 	if user != nil {
 		T := i18n.GetUserTranslations(user.Locale)
 
@@ -1669,12 +1690,6 @@ func (a *App) DeleteChannel(rctx request.CTX, channel *model.Channel, userID str
 
 	if err := a.Srv().Store().PostPersistentNotification().DeleteByChannel([]string{channel.Id}); err != nil {
 		return model.NewAppError("DeleteChannel", "app.post_persistent_notification.delete_by_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	deleteAt := model.GetMillis()
-
-	if err := a.Srv().Store().Channel().Delete(channel.Id, deleteAt); err != nil {
-		return model.NewAppError("DeleteChannel", "app.channel.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	a.Srv().Platform().InvalidateCacheForChannel(channel)

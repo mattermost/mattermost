@@ -36,6 +36,7 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.ChannelsForTeam.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchChannelsForTeam)).Methods(http.MethodPost)
 	api.BaseRoutes.ChannelsForTeam.Handle("/autocomplete", api.APISessionRequired(autocompleteChannelsForTeam)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelsForTeam.Handle("/search_autocomplete", api.APISessionRequired(autocompleteChannelsForTeamForSearch)).Methods(http.MethodGet)
+	api.BaseRoutes.ChannelsForTeam.Handle("/managed_categories", api.APISessionRequired(getManagedCategories)).Methods(http.MethodGet)
 	api.BaseRoutes.User.Handle("/teams/{team_id:[A-Za-z0-9]+}/channels", api.APISessionRequired(getChannelsForTeamForUser)).Methods(http.MethodGet)
 	api.BaseRoutes.User.Handle("/channels", api.APISessionRequired(getChannelsForUser)).Methods(http.MethodGet)
 
@@ -351,8 +352,9 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	updatingProperties := patch.DisplayName != nil || patch.Name != nil || patch.Header != nil || patch.Purpose != nil || patch.GroupConstrained != nil
 	updatingAutoTranslation := patch.AutoTranslation != nil
+	updatingManagedCategory := patch.ManagedCategoryName != nil
 
-	if !updatingProperties && !updatingAutoTranslation && patch.BannerInfo == nil {
+	if !updatingProperties && !updatingAutoTranslation && patch.BannerInfo == nil && !updatingManagedCategory {
 		c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.no_changes.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
@@ -426,6 +428,15 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if updatingManagedCategory {
+		if model.MinimumEnterpriseLicense(c.App.Channels().License()) && *c.App.Config().TeamSettings.EnableManagedChannelCategories {
+			if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManageChannelRoles); !ok {
+				c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.cannot_update_managed_category.app_error", nil, "", http.StatusForbidden)
+				return
+			}
+		}
+	}
+
 	rchannel, appErr := c.App.PatchChannel(c.AppContext, oldChannel, patch, c.AppContext.Session().UserId)
 	if appErr != nil {
 		c.Err = appErr
@@ -439,6 +450,25 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 				c.Logger.Warn("Error deleting group-constrained channel memberships", mlog.Err(err))
 			}
 		})
+	}
+
+	if updatingManagedCategory {
+		if !model.MinimumEnterpriseLicense(c.App.Channels().License()) || !*c.App.Config().TeamSettings.EnableManagedChannelCategories {
+			c.Logger.Info("Managed category update ignored: feature not available")
+		} else {
+			name := *patch.ManagedCategoryName
+			if name != "" {
+				if appErr = c.App.SetChannelManagedCategory(c.AppContext, c.Params.ChannelId, name); appErr != nil {
+					c.Err = appErr
+					return
+				}
+			} else {
+				if appErr = c.App.ClearChannelManagedCategory(c.AppContext, c.Params.ChannelId); appErr != nil {
+					c.Err = appErr
+					return
+				}
+			}
+		}
 	}
 
 	appErr = c.App.FillInChannelProps(c.AppContext, rchannel)
@@ -2686,6 +2716,35 @@ func getChannelAccessControlAttributes(c *Context, w http.ResponseWriter, r *htt
 	}
 
 	if err := json.NewEncoder(w).Encode(attributes); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func getManagedCategories(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	teamID := c.Params.TeamId
+
+	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
+		c.Err = model.NewAppError("Api4.getManagedCategories", "api.license_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if !*c.App.Config().TeamSettings.EnableManagedChannelCategories {
+		c.Err = model.NewAppError("Api4.getManagedCategories", "api.managed_category.feature_not_available.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	mappings, appErr := c.App.GetVisibleManagedCategoryMappings(c.AppContext, teamID)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(mappings); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

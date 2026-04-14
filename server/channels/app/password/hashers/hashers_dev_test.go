@@ -16,7 +16,7 @@ func TestSetTestHasher(t *testing.T) {
 	SetTestHasher(nil)
 
 	// Hash should work with nil testHasher (uses latestHasher)
-	hash1, err := Hash("password")
+	hash1, err := Hash("T3stP@ssw0rd!xYz")
 	require.NoError(t, err)
 	require.NotEmpty(t, hash1)
 
@@ -26,7 +26,7 @@ func TestSetTestHasher(t *testing.T) {
 	defer SetTestHasher(nil)
 
 	// Hash should now use the fast test hasher
-	hash2, err := Hash("password")
+	hash2, err := Hash("T3stP@ssw0rd!xYz")
 	require.NoError(t, err)
 	require.NotEmpty(t, hash2)
 
@@ -37,8 +37,8 @@ func TestSetTestHasher(t *testing.T) {
 	// Verify the password can be verified against the hash
 	hasher, phc, err := GetHasherFromPHCString(hash2)
 	require.NoError(t, err)
-	require.NoError(t, hasher.CompareHashAndPassword(phc, "password"))
-	require.Error(t, hasher.CompareHashAndPassword(phc, "wrongpassword"))
+	require.NoError(t, hasher.CompareHashAndPassword(phc, "T3stP@ssw0rd!xYz"))
+	require.Error(t, hasher.CompareHashAndPassword(phc, "Wr0ngP@ssw0rd!!"))
 }
 
 func TestFastTestHasher(t *testing.T) {
@@ -51,14 +51,15 @@ func TestFastTestHasher(t *testing.T) {
 	require.Equal(t, fastTestHasherWorkFactor, pbkdf2Hasher.workFactor)
 
 	// Test that it produces valid hashes
-	hash, err := hasher.Hash("testpassword")
+	testPassword := "T3stP@ssw0rd!xYz"
+	hash, err := hasher.Hash(testPassword)
 	require.NoError(t, err)
 	require.Contains(t, hash, ",w=1000,")
 
 	// Verify the hash can be validated
 	parsedHasher, phc, err := GetHasherFromPHCString(hash)
 	require.NoError(t, err)
-	require.NoError(t, parsedHasher.CompareHashAndPassword(phc, "testpassword"))
+	require.NoError(t, parsedHasher.CompareHashAndPassword(phc, testPassword))
 }
 
 func TestGetLatestHasher(t *testing.T) {

@@ -1,17 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ShallowWrapper} from 'enzyme';
 import React from 'react';
 import type {ComponentProps} from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 import type {TeamType} from '@mattermost/types/teams';
 
-import UnreadsStatusHandler from 'components/unreads_status_handler/unreads_status_handler';
-import type {UnreadsStatusHandlerClass} from 'components/unreads_status_handler/unreads_status_handler';
+import UnreadsStatusHandler, {UnreadsStatusHandlerClass} from 'components/unreads_status_handler/unreads_status_handler';
 
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext} from 'tests/react_testing_utils';
 import {Constants} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 import {isChrome, isFirefox} from 'utils/user_agent';
@@ -51,70 +49,78 @@ describe('components/UnreadsStatusHandler', () => {
     };
 
     test('set correctly the title when needed', () => {
-        const wrapper = shallowWithIntl(
-            <UnreadsStatusHandler {...defaultProps}/>,
-        ) as unknown as ShallowWrapper<Props, any, UnreadsStatusHandlerClass>;
-        const instance = wrapper.instance();
-        instance.updateTitle();
-        instance.componentDidUpdate = jest.fn();
-        instance.render = jest.fn();
+        // Render with slightly different prop to trigger componentDidUpdate on first rerender
+        const {rerender} = renderWithContext(
+            <UnreadsStatusHandler
+                {...defaultProps}
+                unreadStatus={true}
+            />,
+        );
+
+        // Track cumulative props like Enzyme's setProps
+        let currentProps: any = {...defaultProps};
+
+        rerender(<UnreadsStatusHandler {...currentProps}/>);
         expect(document.title).toBe('Public test 1 - Test team display name Test site');
 
-        wrapper.setProps({
-            siteName: undefined,
-        });
-        instance.updateTitle();
+        currentProps = {...currentProps, siteName: undefined};
+        rerender(<UnreadsStatusHandler {...currentProps}/>);
         expect(document.title).toBe('Public test 1 - Test team display name');
 
-        wrapper.setProps({
+        currentProps = {
+            ...currentProps,
             currentChannel: {id: '1', type: Constants.DM_CHANNEL} as Props['currentChannel'],
             currentTeammate: {display_name: 'teammate'} as Props['currentTeammate'],
-        });
-        instance.updateTitle();
+        };
+        rerender(<UnreadsStatusHandler {...currentProps}/>);
         expect(document.title).toBe('teammate - Test team display name');
 
-        wrapper.setProps({
-            unreadStatus: 3,
-        });
-        instance.updateTitle();
+        currentProps = {...currentProps, unreadStatus: 3};
+        rerender(<UnreadsStatusHandler {...currentProps}/>);
         expect(document.title).toBe('(3) teammate - Test team display name');
 
-        wrapper.setProps({
+        currentProps = {
+            ...currentProps,
             currentChannel: {} as Props['currentChannel'],
-            currentTeammate: {} as Props['currentTeammate']});
-        instance.updateTitle();
+            currentTeammate: {} as Props['currentTeammate'],
+        };
+        rerender(<UnreadsStatusHandler {...currentProps}/>);
         expect(document.title).toBe('Mattermost - Join a team');
 
-        wrapper.setProps({
+        currentProps = {
+            ...currentProps,
             inDrafts: false,
             inScheduledPosts: true,
             unreadStatus: 0,
-        });
-        instance.updateTitle();
+        };
+        rerender(<UnreadsStatusHandler {...currentProps}/>);
         expect(document.title).toBe('Scheduled - Test team display name');
 
-        wrapper.setProps({
+        currentProps = {
+            ...currentProps,
             inDrafts: false,
             inScheduledPosts: true,
             unreadStatus: 10,
-        });
-        instance.updateTitle();
+        };
+        rerender(<UnreadsStatusHandler {...currentProps}/>);
         expect(document.title).toBe('(10) Scheduled - Test team display name');
 
-        wrapper.setProps({
+        currentProps = {
+            ...currentProps,
             inDrafts: true,
             inScheduledPosts: false,
             unreadStatus: 0,
-        });
-        instance.updateTitle();
+        };
+        rerender(<UnreadsStatusHandler {...currentProps}/>);
         expect(document.title).toBe('Drafts - Test team display name');
 
-        wrapper.setProps({
+        currentProps = {
+            ...currentProps,
             inDrafts: true,
             inScheduledPosts: false,
             unreadStatus: 10,
-        });
-        instance.updateTitle();
+        };
+        rerender(<UnreadsStatusHandler {...currentProps}/>);
         expect(document.title).toBe('(10) Drafts - Test team display name');
     });
 
@@ -123,76 +129,106 @@ describe('components/UnreadsStatusHandler', () => {
         // supported, hence we need to show * in title on mentions
         (isFirefox as jest.Mock).mockImplementation(() => false);
         (isChrome as jest.Mock).mockImplementation(() => false);
-        const wrapper = shallowWithIntl(
-            <UnreadsStatusHandler {...defaultProps}/>,
-        ) as unknown as ShallowWrapper<Props, any, UnreadsStatusHandlerClass>;
-        const instance = wrapper.instance();
 
-        wrapper.setProps({
-            siteName: undefined,
-        });
-        wrapper.setProps({
+        const {rerender} = renderWithContext(
+            <UnreadsStatusHandler {...defaultProps}/>,
+        );
+
+        let currentProps: any = {...defaultProps, siteName: undefined};
+        currentProps = {
+            ...currentProps,
             currentChannel: {id: '1', type: Constants.DM_CHANNEL} as Props['currentChannel'],
             currentTeammate: {display_name: 'teammate'} as Props['currentTeammate'],
-        });
-        wrapper.setProps({
-            unreadStatus: 3,
-        });
-        instance.updateTitle();
+        };
+        currentProps = {...currentProps, unreadStatus: 3};
+        rerender(<UnreadsStatusHandler {...currentProps}/>);
         expect(document.title).toBe('(3) * teammate - Test team display name');
     });
 
     test('should display correct favicon', () => {
-        const link = document.createElement('link');
-        link.rel = 'icon';
-        document.head.appendChild(link);
+        const sizes = ['16x16', '24x24', '32x32', '64x64', '96x96'];
+        sizes.forEach((size) => {
+            const link = document.createElement('link');
+            link.rel = 'icon';
+            link.setAttribute('sizes', size);
+            document.head.appendChild(link);
+        });
 
-        const wrapper = shallowWithIntl(
+        (isFirefox as jest.Mock).mockReturnValue(true);
+
+        // Spy on getBadgeStatus to verify the correct badge status is computed
+        // (updateFavicon is an arrow function so we can't spy on it directly)
+        const getBadgeStatusSpy = jest.spyOn(UnreadsStatusHandlerClass.prototype, 'getBadgeStatus');
+
+        const {rerender} = renderWithContext(
             <UnreadsStatusHandler {...defaultProps}/>,
-        ) as unknown as ShallowWrapper<Props, any, UnreadsStatusHandlerClass>;
-        const instance = wrapper.instance();
-        instance.updateFavicon = jest.fn();
+        );
 
-        wrapper.setProps({
-            unreadStatus: 3,
-        });
-        expect(instance.updateFavicon).toHaveBeenLastCalledWith('Mention');
+        rerender(
+            <UnreadsStatusHandler
+                {...defaultProps}
+                unreadStatus={3}
+            />,
+        );
+        expect(getBadgeStatusSpy).toHaveLastReturnedWith('Mention');
 
-        wrapper.setProps({
-            unreadStatus: true,
-        });
-        expect(instance.updateFavicon).toHaveBeenLastCalledWith('Unread');
+        rerender(
+            <UnreadsStatusHandler
+                {...defaultProps}
+                unreadStatus={true}
+            />,
+        );
+        expect(getBadgeStatusSpy).toHaveLastReturnedWith('Unread');
 
-        wrapper.setProps({
-            unreadStatus: false,
+        rerender(
+            <UnreadsStatusHandler
+                {...defaultProps}
+                unreadStatus={false}
+            />,
+        );
+        expect(getBadgeStatusSpy).toHaveLastReturnedWith('None');
+
+        getBadgeStatusSpy.mockRestore();
+
+        // Clean up
+        sizes.forEach((size) => {
+            const link = document.querySelector(`link[rel="icon"][sizes="${size}"]`);
+            if (link) {
+                link.remove();
+            }
         });
-        expect(instance.updateFavicon).toHaveBeenLastCalledWith('None');
     });
 
     test('should display correct title when in drafts', () => {
-        const wrapper = shallowWithIntl(
+        const {rerender} = renderWithContext(
+            <UnreadsStatusHandler {...defaultProps}/>,
+        );
+
+        rerender(
             <UnreadsStatusHandler
                 {...defaultProps}
                 inDrafts={true}
                 currentChannel={undefined}
                 siteName={undefined}
             />,
-        ) as unknown as ShallowWrapper<Props, any, UnreadsStatusHandlerClass>;
-        wrapper.instance().updateTitle();
+        );
 
         expect(document.title).toBe('Drafts - Test team display name');
     });
 
     test('should display correct title when in scheduled posts tab', () => {
-        const wrapper = shallowWithIntl(
+        const {rerender} = renderWithContext(
+            <UnreadsStatusHandler {...defaultProps}/>,
+        );
+
+        rerender(
             <UnreadsStatusHandler
                 {...defaultProps}
                 inScheduledPosts={true}
                 currentChannel={undefined}
                 siteName={undefined}
             />,
-        ) as unknown as ShallowWrapper<Props, any, UnreadsStatusHandlerClass>;
-        wrapper.instance().updateTitle();
+        );
 
         expect(document.title).toBe('Scheduled - Test team display name');
     });
