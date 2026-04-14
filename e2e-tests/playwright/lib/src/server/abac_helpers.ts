@@ -274,24 +274,37 @@ export async function deletePolicy(page: Page, policyName: string): Promise<void
  * without a polling round-trip. Pass the returned ID to waitForLatestSyncJob as
  * the `jobId` argument to skip Phase 1 and poll the specific job directly.
  *
- * Returns null if the response interception times out or the body has no id field.
+ * Throws if the server returns a non-2xx status or if the response body has no
+ * id field. Returns null only if the interception times out (network hiccup),
+ * allowing callers to fall back to list-based Phase 1 polling.
  */
 export async function runSyncJob(page: Page): Promise<string | null> {
+    // Do NOT filter by resp.ok() here — capture the response regardless of status
+    // so we can surface API errors explicitly instead of silently swallowing them.
     const jobResponsePromise = page.waitForResponse(
-        (resp) => resp.url().includes('/api/v4/jobs') && resp.request().method() === 'POST' && resp.ok(),
+        (resp) => resp.url().includes('/api/v4/jobs') && resp.request().method() === 'POST',
         {timeout: 10000},
     );
     await page.getByRole('button', {name: 'Run Sync Job'}).click();
-    let jobId: string | null = null;
     try {
         const response = await jobResponsePromise;
+        if (!response.ok()) {
+            throw new Error(`POST /api/v4/jobs failed with status ${response.status()}`);
+        }
         const job = await response.json();
-        jobId = job.id ?? null;
-    } catch {
-        // Interception failed — callers fall back to list-based polling in Phase 1.
+        if (!job.id) {
+            throw new Error('POST /api/v4/jobs response missing id field');
+        }
+        await page.waitForLoadState('networkidle');
+        return job.id as string;
+    } catch (err) {
+        if (err instanceof Error && err.message.startsWith('POST /api/v4/jobs')) {
+            throw err;
+        }
+        // Interception timed out — callers fall back to list-based polling in Phase 1.
+        await page.waitForLoadState('networkidle');
+        return null;
     }
-    await page.waitForLoadState('networkidle');
-    return jobId;
 }
 
 /**
