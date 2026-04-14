@@ -210,17 +210,19 @@ export default class ChannelsCenterView {
 
     /**
      * Asserts that the given element's bounding box lies fully within the channel
-     * banner's content area (i.e. the banner minus its computed padding).
+     * banner's content area (banner bounds minus computed padding).
      *
      * Uses getBoundingClientRect() coordinates, which are NOT clipped by parent
      * overflow — so if an element protrudes into or beyond the padding zone it will
      * be visually clipped by `overflow: hidden` on the text container, and this
      * assertion will catch that.
      *
-     * Padding is read from computed styles so the assertion stays correct if padding
-     * values change.
+     * A small epsilon is applied to each boundary to avoid flaky failures caused
+     * by sub-pixel rounding differences in layout engines.
      */
     private async assertElementContainedInBanner(element: Locator) {
+        const EPSILON = 0.5;
+
         const bannerBox = await this.channelBanner.boundingBox();
         const elementBox = await element.boundingBox();
 
@@ -240,9 +242,9 @@ export default class ChannelsCenterView {
             };
         });
 
-        expect(el.y).toBeGreaterThanOrEqual(banner.y + paddingTop);
-        expect(el.y + el.height).toBeLessThanOrEqual(banner.y + banner.height - paddingBottom);
-        expect(el.x).toBeGreaterThanOrEqual(banner.x + paddingLeft);
-        expect(el.x + el.width).toBeLessThanOrEqual(banner.x + banner.width - paddingRight);
+        expect(el.y).toBeGreaterThanOrEqual(banner.y + paddingTop - EPSILON);
+        expect(el.y + el.height).toBeLessThanOrEqual(banner.y + banner.height - paddingBottom + EPSILON);
+        expect(el.x).toBeGreaterThanOrEqual(banner.x + paddingLeft - EPSILON);
+        expect(el.x + el.width).toBeLessThanOrEqual(banner.x + banner.width - paddingRight + EPSILON);
     }
 }

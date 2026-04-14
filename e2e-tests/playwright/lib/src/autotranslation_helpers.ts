@@ -16,7 +16,7 @@ export type EnableAutotranslationOptions = {
  * Use with test.skip(!hasAutotranslationLicense(license.SkuShortName), '...') in autotranslation specs.
  */
 export function hasAutotranslationLicense(skuShortName: string): boolean {
-    return skuShortName === 'entry' || skuShortName === 'advanced';
+    return skuShortName === LicenseSkus.Entry || skuShortName === LicenseSkus.EnterpriseAdvanced;
 }
 
 /**
