@@ -4183,6 +4183,7 @@ func (s SqlChannelStore) SetShared(channelId string, shared bool) error {
 	squery, args, err := s.getQueryBuilder().
 		Update("Channels").
 		Set("Shared", shared).
+		Set("UpdateAt", model.GetMillis()).
 		Where(sq.Eq{"Id": channelId}).
 		ToSql()
 	if err != nil {
