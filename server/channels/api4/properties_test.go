@@ -3129,7 +3129,7 @@ func TestLinkedProperties(t *testing.T) {
 		// Create two linked fields and keep their IDs
 		sourceID := createdSource.ID
 		var linkedIDs []string
-		for i := 0; i < 2; i++ {
+		for range 2 {
 			linked := &model.PropertyField{
 				Name:              "PropLinked-" + model.NewId(),
 				Type:              model.PropertyFieldTypeSelect,

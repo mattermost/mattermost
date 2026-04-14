@@ -1649,4 +1649,3 @@ func TestOptionsChanged(t *testing.T) {
 		assert.True(t, optionsChanged(old, updated))
 	})
 }
-

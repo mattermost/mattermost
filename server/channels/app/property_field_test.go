@@ -339,7 +339,6 @@ func TestUpdatePropertyFields(t *testing.T) {
 	})
 }
 
-
 func TestDeletePropertyField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

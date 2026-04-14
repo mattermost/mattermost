@@ -610,4 +610,3 @@ func (s *SqlPropertyFieldStore) CountLinkedFields(fieldID string) (int64, error)
 	}
 	return count, nil
 }
-
