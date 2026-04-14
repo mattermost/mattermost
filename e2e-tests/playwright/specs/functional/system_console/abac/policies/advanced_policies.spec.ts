@@ -250,7 +250,9 @@ test.describe('ABAC Policies - Advanced Policies', () => {
             for (const field of existingFields || []) {
                 await adminClient.deleteCustomProfileAttributeField(field.id).catch(() => {});
             }
-        } catch {}
+        } catch {
+            // ignore cleanup errors
+        }
 
         const attributeFields: CustomProfileAttribute[] = [{name: 'Department', type: 'text', value: ''}];
         const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, attributeFields);
@@ -322,7 +324,9 @@ test.describe('ABAC Policies - Advanced Policies', () => {
             for (const field of existingFields || []) {
                 await adminClient.deleteCustomProfileAttributeField(field.id).catch(() => {});
             }
-        } catch {}
+        } catch {
+            // ignore cleanup errors
+        }
 
         const attributeFields: CustomProfileAttribute[] = [{name: 'Department', type: 'text', value: ''}];
         const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, attributeFields);
@@ -394,7 +398,9 @@ test.describe('ABAC Policies - Advanced Policies', () => {
             for (const field of existingFields || []) {
                 await adminClient.deleteCustomProfileAttributeField(field.id).catch(() => {});
             }
-        } catch {}
+        } catch {
+            // ignore cleanup errors
+        }
 
         const attributeFields: CustomProfileAttribute[] = [{name: 'Department', type: 'text', value: ''}];
         const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, attributeFields);
@@ -466,7 +472,9 @@ test.describe('ABAC Policies - Advanced Policies', () => {
             for (const field of existingFields || []) {
                 await adminClient.deleteCustomProfileAttributeField(field.id).catch(() => {});
             }
-        } catch {}
+        } catch {
+            // ignore cleanup errors
+        }
 
         const attributeFields: CustomProfileAttribute[] = [{name: 'Department', type: 'text', value: ''}];
         const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, attributeFields);
@@ -538,7 +546,9 @@ test.describe('ABAC Policies - Advanced Policies', () => {
             for (const field of existingFields || []) {
                 await adminClient.deleteCustomProfileAttributeField(field.id).catch(() => {});
             }
-        } catch {}
+        } catch {
+            // ignore cleanup errors
+        }
 
         const attributeFields: CustomProfileAttribute[] = [{name: 'Department', type: 'text', value: ''}];
         const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, attributeFields);
