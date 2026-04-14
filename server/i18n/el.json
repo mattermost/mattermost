@@ -2835,10 +2835,6 @@
     "translation": "Η άδεια χρήσης Mattermost Enterprise έχει απενεργοποιηθεί."
   },
   {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Η άδεια χρήσης σας Enterprise Edition έχει λήξει και ορισμένες δυνατότητες ενδέχεται να είναι απενεργοποιημένες. Παρακαλούμε ανανεώστε την άδειά σας τώρα."
-  },
-  {
     "id": "api.templates.post_body.button",
     "translation": "Προβολή μηνύματος"
   },

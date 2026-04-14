@@ -94,6 +94,37 @@ describe('PluginLinkTooltip', () => {
         expect(screen.getByTestId('textarea')).toHaveFocus();
     });
 
+    test('should not block interaction with elements outside the tooltip', async () => {
+        renderWithContext(
+            <>
+                <textarea
+                    data-testid='textarea'
+                    defaultValue='some text'
+                />
+                <PluginLinkTooltip
+                    nodeAttributes={{
+                        href: 'https://example.com/tooltip',
+                    }}
+                >
+                    {'This is a link'}
+                </PluginLinkTooltip>
+                <div id={RootHtmlPortalId}/>
+            </>,
+            baseState,
+        );
+
+        // # Hover over the link to show the tooltip
+        await userEvent.hover(screen.getByText('This is a link'));
+        await waitFor(() => {
+            expect(screen.queryByText('This is a link tooltip')).toBeVisible();
+        });
+
+        // * Verify the overlay has pointer-events: none so it doesn't block clicks
+        const overlay = document.querySelector('.plugin-link-tooltip-floating-overlay') as HTMLElement;
+        expect(overlay).toBeInTheDocument();
+        expect(overlay.style.pointerEvents || getComputedStyle(overlay).pointerEvents).toBe('none');
+    });
+
     test('should not take focus when hovered without a tooltip', async () => {
         renderWithContext(
             <>

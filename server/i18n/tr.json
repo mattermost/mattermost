@@ -4939,10 +4939,6 @@
     "translation": "[{{ .SiteName }}] {{ .SenderName }} sizi konuk olarak {{ .TeamDisplayName }} takımına katılmaya davet etti"
   },
   {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Enterprise lisansın süresi dolmuş olduğundan bazı özellikler kullanımdan kaldırılabilir. Lütfen şimdi lisansı yenileyin."
-  },
-  {
     "id": "api.user.create_password_token.error",
     "translation": "Parola sıfırlama kodu oluşturulamadı"
   },

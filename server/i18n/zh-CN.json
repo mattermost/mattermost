@@ -4942,10 +4942,6 @@
     "translation": "[{{ .SiteName }}] {{ .SenderName }} 邀请您以访客加入团队 {{ .TeamDisplayName }}"
   },
   {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "您的企业许可证已过期并且部分功能已停用。请立刻续订您的许可证。"
-  },
-  {
     "id": "api.user.create_password_token.error",
     "translation": "未能创建找回密码令牌"
   },
