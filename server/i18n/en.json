@@ -3387,6 +3387,22 @@
     "translation": "Error starting server, err:%v"
   },
   {
+    "id": "api.shared_channel.attachment.creator_id_required.app_error",
+    "translation": "FileInfo.CreatorId is required."
+  },
+  {
+    "id": "api.shared_channel.attachment.data_required.app_error",
+    "translation": "File data is required."
+  },
+  {
+    "id": "api.shared_channel.attachment.file_info_required.app_error",
+    "translation": "FileInfo is required."
+  },
+  {
+    "id": "api.shared_channel.attachment.filename_required.app_error",
+    "translation": "FileInfo.Name is required."
+  },
+  {
     "id": "api.shared_channel.get_shared_channel_remotes_error",
     "translation": "Could not fetch shared channel remotes"
   },
