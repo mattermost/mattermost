@@ -464,6 +464,10 @@
     "translation": "Auto translation is not allowed for this channel."
   },
   {
+    "id": "api.channel.patch_update_channel.cannot_update_managed_category.app_error",
+    "translation": "Cannot update a managed category for this channel without the correct permissions."
+  },
+  {
     "id": "api.channel.patch_update_channel.feature_not_available.app_error",
     "translation": "Auto translation feature is not available."
   },
@@ -2543,6 +2547,10 @@
   {
     "id": "api.license_error",
     "translation": "api endpoint requires a license"
+  },
+  {
+    "id": "api.managed_category.feature_not_available.app_error",
+    "translation": "Managed channel categories are not available."
   },
   {
     "id": "api.marshal_error",
@@ -6957,6 +6965,30 @@
   {
     "id": "app.lookup_interactive_dialog.read_body_error",
     "translation": "Encountered an error reading response body from interactive dialog lookup."
+  },
+  {
+    "id": "app.managed_category.clear.app_error",
+    "translation": "Failed to clear managed category from channel."
+  },
+  {
+    "id": "app.managed_category.dm_gm_not_allowed.app_error",
+    "translation": "Direct and group message channels cannot be assigned to a managed category."
+  },
+  {
+    "id": "app.managed_category.empty_name.app_error",
+    "translation": "Managed category name cannot be empty."
+  },
+  {
+    "id": "app.managed_category.get_mappings.app_error",
+    "translation": "Failed to retrieve managed category mappings."
+  },
+  {
+    "id": "app.managed_category.search.app_error",
+    "translation": "Failed to search for managed category for channel."
+  },
+  {
+    "id": "app.managed_category.set.app_error",
+    "translation": "Failed to set managed category on channel."
   },
   {
     "id": "app.member_count",

@@ -30,6 +30,7 @@ const (
 	postPriorityConfigDefaultTrueMigrationKey      = "PostPriorityConfigDefaultTrueMigrationComplete"
 	contentFlaggingSetupDoneKey                    = "content_flagging_setup_done"
 	contentFlaggingMigrationVersion                = "v5"
+	managedCategorySetupDoneKey                    = "managed_category_setup_done"
 
 	contentFlaggingPropertyNameFlaggedPostId       = "flagged_post_id"
 	ContentFlaggingPropertyNameStatus              = "status"
@@ -753,6 +754,68 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 	return nil
 }
 
+func (s *Server) doSetupManagedCategoryProperties() error {
+	var nfErr *store.ErrNotFound
+	data, err := s.Store().System().GetByName(managedCategorySetupDoneKey)
+	if err != nil && !errors.As(err, &nfErr) {
+		return fmt.Errorf("could not query migration: %w", err)
+	}
+
+	if data != nil {
+		return s.cacheManagedCategoryIDs()
+	}
+
+	group, err := s.propertyService.RegisterPropertyGroup(model.ManagedCategoryPropertyGroupName)
+	if err != nil {
+		return fmt.Errorf("failed to register managed category group: %w", err)
+	}
+
+	_, err = s.propertyService.GetPropertyFieldByName(nil, group.ID, "", model.ManagedCategoryPropertyFieldName)
+	if err != nil {
+		field := &model.PropertyField{
+			GroupID:           group.ID,
+			Name:              model.ManagedCategoryPropertyFieldName,
+			Type:              model.PropertyFieldTypeText,
+			ObjectType:        model.PropertyValueTargetTypeChannel,
+			TargetType:        "system",
+			TargetID:          "",
+			Protected:         true,
+			PermissionField:   model.NewPointer(model.PermissionLevelNone),
+			PermissionValues:  model.NewPointer(model.PermissionLevelMember),
+			PermissionOptions: model.NewPointer(model.PermissionLevelMember),
+		}
+
+		if _, err := s.propertyService.CreatePropertyField(nil, field); err != nil {
+			if _, retryErr := s.propertyService.GetPropertyFieldByName(nil, group.ID, "", model.ManagedCategoryPropertyFieldName); retryErr != nil {
+				return fmt.Errorf("failed to create managed category field: %w", err)
+			}
+		}
+	}
+
+	if err := s.Store().System().SaveOrUpdate(&model.System{Name: managedCategorySetupDoneKey, Value: "true"}); err != nil {
+		return fmt.Errorf("failed to save managed category setup done flag: %w", err)
+	}
+
+	return s.cacheManagedCategoryIDs()
+}
+
+func (s *Server) cacheManagedCategoryIDs() error {
+	group, err := s.propertyService.GetPropertyGroup(model.ManagedCategoryPropertyGroupName)
+	if err != nil {
+		return fmt.Errorf("failed to get managed category group: %w", err)
+	}
+
+	field, err := s.propertyService.GetPropertyFieldByName(nil, group.ID, "", model.ManagedCategoryPropertyFieldName)
+	if err != nil {
+		return fmt.Errorf("failed to get managed category field: %w", err)
+	}
+
+	s.Channels().managedCategoryGroupID = group.ID
+	s.Channels().managedCategoryFieldID = field.ID
+
+	return nil
+}
+
 func (s *Server) doCloudS3PathMigrations(rctx request.CTX) error {
 	// This migration is only applicable for cloud environments
 	if os.Getenv("MM_CLOUD_FILESTORE_BIFROST") == "" {
@@ -868,6 +931,7 @@ func (s *Server) doAppMigrations() {
 		{"Remaining Schema Migrations", s.doRemainingSchemaMigrations},
 		{"Post Priority Config Default True Migration", s.doPostPriorityConfigDefaultTrueMigration},
 		{"Content Flagging Properties Setup", s.doSetupContentFlaggingProperties},
+		{"Managed Category Properties Setup", s.doSetupManagedCategoryProperties},
 	}
 
 	for i := range m1 {
