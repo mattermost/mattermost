@@ -1,9 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React from 'react';
-
 import CenterChannel from './center_channel';
 
 import type {OwnProps} from './index';
@@ -29,21 +26,27 @@ describe('components/channel_layout/CenterChannel', () => {
         },
     };
     test('should call update returnTo on props change', () => {
-        const wrapper = shallow(<CenterChannel {...props}/>);
+        let state = {returnTo: '', lastReturnTo: ''};
 
-        expect(wrapper.state('returnTo')).toBe('');
+        // Simulate initial render with pathname '/some'
+        let derived = CenterChannel.getDerivedStateFromProps(props as any, state);
+        state = {...state, ...derived};
+        expect(state.returnTo).toBe('');
 
-        wrapper.setProps({
-            location: {
-                pathname: '/pl/path',
-            },
-        });
-        expect(wrapper.state('returnTo')).toBe('/some');
-        wrapper.setProps({
-            location: {
-                pathname: '/pl/path1',
-            },
-        });
-        expect(wrapper.state('returnTo')).toBe('/pl/path');
+        // Simulate props change to '/pl/path'
+        derived = CenterChannel.getDerivedStateFromProps(
+            {...props, location: {pathname: '/pl/path'}} as any,
+            state,
+        );
+        state = {...state, ...derived};
+        expect(state.returnTo).toBe('/some');
+
+        // Simulate props change to '/pl/path1'
+        derived = CenterChannel.getDerivedStateFromProps(
+            {...props, location: {pathname: '/pl/path1'}} as any,
+            state,
+        );
+        state = {...state, ...derived};
+        expect(state.returnTo).toBe('/pl/path');
     });
 });

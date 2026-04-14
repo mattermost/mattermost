@@ -62,6 +62,64 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match sn
 </div>
 `;
 
+exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match snapshot for desktop 1`] = `
+<div>
+  <a
+    aria-label="channel_label"
+    class="SidebarLink"
+    href="/team/channels/town-square"
+    id="sidebarItem_"
+    tabindex="0"
+  >
+    <div
+      class="SidebarChannelLinkLabel_wrapper"
+    >
+      <span
+        class="SidebarChannelLinkLabel"
+      >
+        channel_label
+      </span>
+    </div>
+    <div
+      class="SidebarMenu MenuWrapper"
+    >
+      <div
+        data-testid="sidebar-channel-menu"
+      />
+    </div>
+  </a>
+</div>
+`;
+
+exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match snapshot when tooltip is enabled 1`] = `
+<div>
+  <a
+    aria-label="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    class="SidebarLink"
+    href="/team/channels/town-square"
+    id="sidebarItem_"
+    tabindex="0"
+  >
+    <div
+      class="SidebarChannelLinkLabel_wrapper"
+    >
+      <span
+        class="SidebarChannelLinkLabel"
+      >
+        aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+      </span>
+    </div>
+    <div
+      class="SidebarMenu MenuWrapper"
+    >
+      <div
+        data-testid="sidebar-channel-menu"
+      />
+    </div>
+  </a>
+</div>
+`;
+
 exports[`components/sidebar/sidebar_channel/sidebar_channel_link should match snapshot with aria label prefix and unread mentions 1`] = `
 <div>
   <a

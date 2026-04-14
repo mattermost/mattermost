@@ -27,10 +27,6 @@ const (
 )
 
 func TestService_sendProfileImageToRemote(t *testing.T) {
-	hadPing := disablePing
-	disablePing = true
-	defer func() { disablePing = hadPing }()
-
 	shouldError := &flag{}
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -107,6 +103,7 @@ func TestService_sendProfileImageToRemote(t *testing.T) {
 
 	service, err := NewRemoteClusterService(mockServer, mockApp)
 	require.NoError(t, err)
+	service.disablePing = true
 
 	err = service.Start()
 	require.NoError(t, err)

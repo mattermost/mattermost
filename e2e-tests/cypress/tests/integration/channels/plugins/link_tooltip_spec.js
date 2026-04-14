@@ -17,10 +17,18 @@ describe('Link tooltips', () => {
         cy.shouldNotRunOnCloudEdition();
         cy.shouldHavePluginUploadEnabled();
 
-        // # Set plugin settings
+        // # Set plugin settings, including demo plugin defaults so that
+        // OnConfigurationChange can create the demo user with a valid email
         const newSettings = {
             PluginSettings: {
                 Enable: true,
+                Plugins: {
+                    [demoPlugin.id]: {
+                        channelname: 'demo_plugin',
+                        username: 'demo_plugin',
+                        lastname: 'Plugin User',
+                    },
+                },
             },
             ServiceSettings: {
                 EnableGifPicker: true,
@@ -47,7 +55,7 @@ describe('Link tooltips', () => {
         cy.uiWaitUntilMessagePostedIncludes(url);
 
         // # Hover over the plugin link
-        cy.findByText(url).should('exist').focus();
+        cy.getLastPost().findByText(url).should('exist').focus();
 
         // * Check tooltip has appeared
         cy.findByText('This is a custom tooltip from the Demo Plugin').should('be.visible');

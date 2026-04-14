@@ -188,7 +188,7 @@ const PostMessagePreview = (props: Props) => {
                 <PostMessageView
                     post={previewPost}
                     overflowType='ellipsis'
-                    maxHeight={105}
+                    maxHeight={200}
                     userLanguage={locale}
                     isChannelAutotranslated={isChannelAutotranslated}
                 />

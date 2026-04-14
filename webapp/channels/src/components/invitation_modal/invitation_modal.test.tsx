@@ -3,25 +3,19 @@
 
 import React from 'react';
 import type {IntlShape} from 'react-intl';
-import {Provider} from 'react-redux';
 
 import type {Team} from '@mattermost/types/teams';
 
 import {General} from 'mattermost-redux/constants';
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import {act} from 'tests/react_testing_utils';
-import mockStore from 'tests/test_store';
+import {renderWithContext, screen, act} from 'tests/react_testing_utils';
 import {SelfHostedProducts} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 import {generateId} from 'utils/utils';
 
 import InvitationModal, {View} from './invitation_modal';
 import type {Props} from './invitation_modal';
-import InviteView from './invite_view';
-import NoPermissionsView from './no_permissions_view';
-import ResultView from './result_view';
 
 const defaultProps: Props = deepFreeze({
     actions: {
@@ -114,34 +108,34 @@ describe('InvitationModal', () => {
         },
     };
 
-    const store = mockStore(state);
-
     beforeEach(() => {
         props = defaultProps;
     });
 
     it('shows invite view when view state is invite', () => {
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <InvitationModal {...props}/>
-            </Provider>,
+        renderWithContext(
+            <InvitationModal {...props}/>,
+            state,
         );
-        expect(wrapper.find(InviteView).length).toBe(1);
+        expect(screen.getByTestId('inviteButton')).toBeInTheDocument();
     });
 
     it('shows result view when view state is result', () => {
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <InvitationModal {...props}/>
-            </Provider>,
+        const ref = React.createRef<InvitationModal>();
+
+        renderWithContext(
+            <InvitationModal
+                {...props}
+                ref={ref}
+            />,
+            state,
         );
 
         act(() => {
-            wrapper.find(InvitationModal).at(0).setState({view: View.RESULT});
-            wrapper.update();
+            ref.current!.setState({view: View.RESULT});
         });
 
-        expect(wrapper.find(ResultView).length).toBe(1);
+        expect(screen.getByTestId('confirm-done')).toBeInTheDocument();
     });
 
     it('shows no permissions view when user can neither invite users nor guests', () => {
@@ -150,13 +144,12 @@ describe('InvitationModal', () => {
             canAddUsers: false,
             canInviteGuests: false,
         };
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <InvitationModal {...props}/>
-            </Provider>,
+        renderWithContext(
+            <InvitationModal {...props}/>,
+            state,
         );
 
-        expect(wrapper.find(NoPermissionsView).length).toBe(1);
+        expect(screen.getByTestId('confirm-done')).toBeInTheDocument();
     });
 
     it('filters out policy_enforced channels when inviting guests', async () => {
@@ -180,14 +173,18 @@ describe('InvitationModal', () => {
             invitableChannels: [regularChannel, policyEnforcedChannel],
         };
 
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <InvitationModal {...props}/>
-            </Provider>,
+        const ref = React.createRef<InvitationModal>();
+
+        renderWithContext(
+            <InvitationModal
+                {...props}
+                ref={ref}
+            />,
+            state,
         );
 
         // Get the component instance with proper typing
-        const instance = wrapper.find(InvitationModal).instance() as InvitationModal;
+        const instance = ref.current!;
 
         // Set invite type to GUEST
         act(() => {

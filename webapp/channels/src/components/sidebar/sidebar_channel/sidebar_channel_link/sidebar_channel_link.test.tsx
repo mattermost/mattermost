@@ -108,6 +108,31 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
         expect(container).toMatchSnapshot();
     });
 
+    test('should match snapshot for desktop', () => {
+        const userAgentMock = jest.requireMock('utils/user_agent');
+        userAgentMock.isDesktopApp.mockImplementation(() => false);
+
+        const {container} = renderLink();
+
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should match snapshot when tooltip is enabled', () => {
+        const props = {
+            label: 'a'.repeat(200),
+        };
+
+        Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {configurable: true, value: 50});
+        Object.defineProperty(HTMLElement.prototype, 'scrollWidth', {configurable: true, value: 200});
+
+        const {container} = renderLink(props);
+
+        expect(container).toMatchSnapshot();
+
+        Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {configurable: true, value: 0});
+        Object.defineProperty(HTMLElement.prototype, 'scrollWidth', {configurable: true, value: 0});
+    });
+
     test('should match snapshot with aria label prefix and unread mentions', () => {
         const props = {
             isUnread: true,
@@ -118,6 +143,19 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
         const {container} = renderLink(props);
 
         expect(container).toMatchSnapshot();
+    });
+
+    test('should enable tooltip when needed', () => {
+        Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {configurable: true, value: 50});
+        Object.defineProperty(HTMLElement.prototype, 'scrollWidth', {configurable: true, value: 60});
+
+        const {container} = renderLink();
+
+        const label = container.querySelector('.SidebarChannelLinkLabel');
+        expect(label).toBeInTheDocument();
+
+        Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {configurable: true, value: 0});
+        Object.defineProperty(HTMLElement.prototype, 'scrollWidth', {configurable: true, value: 0});
     });
 
     test('should not fetch shared channels for non-shared channels', () => {
