@@ -87,7 +87,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
 
     const handleUpdate = useCallback(({editor}: {editor: Editor}) => {
         let md = editor.getMarkdown().trimEnd();
-        md = md.replace(/\n\n&nbsp;$/g, '').replace(/^&nbsp;$/, '');
+        md = md.replace(/\n\n&nbsp;\n/g, '\n').replace(/\n\n&nbsp;$/g, '').replace(/^&nbsp;$/, '');
         onChangeRef.current(md);
     }, []);
 

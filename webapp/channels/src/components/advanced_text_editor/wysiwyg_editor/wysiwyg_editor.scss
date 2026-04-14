@@ -57,9 +57,7 @@
                 margin-top: 0;
             }
 
-            + p:empty,
-            + p:has(> br:only-child) {
-                margin: 0;
+            + p:last-child:has(> br:only-child) {
                 font-size: 0;
                 line-height: 0;
             }
