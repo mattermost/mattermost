@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {MutableRefObject} from 'react';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 import {useDebounce} from 'hooks/useDebounce';
@@ -18,6 +19,51 @@ const ITEM_GAP = 4;
 // Debounce delay for overflow recalculation
 const OVERFLOW_DEBOUNCE_MS = 100;
 
+interface UseObservedItemRefsOptions {
+    onResize: () => void;
+    refs: MutableRefObject<Map<string, HTMLElement>>;
+}
+
+/**
+ * Adds resize observation to a keyed element registry. Watches every
+ * registered element via a single shared ResizeObserver and fires
+ * `onResize` when any element's dimensions change (e.g. after a rename).
+ *
+ * Returns a stable `register` callback — call with the element on mount
+ * and `null` on unmount.
+ */
+function useObservedItemRefs({onResize, refs}: UseObservedItemRefsOptions) {
+    const observerRef = useRef<ResizeObserver | null>(null);
+
+    useEffect(() => {
+        const observer = new ResizeObserver(onResize);
+        observerRef.current = observer;
+
+        // Observe any elements registered before the observer was created
+        refs.current.forEach((el) => observer.observe(el));
+
+        return () => {
+            observer.disconnect();
+            observerRef.current = null;
+        };
+    }, [onResize, refs]);
+
+    const register = useCallback((id: string, element: HTMLElement | null) => {
+        if (element) {
+            refs.current.set(id, element);
+            observerRef.current?.observe(element);
+        } else {
+            const existing = refs.current.get(id);
+            if (existing) {
+                observerRef.current?.unobserve(existing);
+            }
+            refs.current.delete(id);
+        }
+    }, [refs]);
+
+    return {register};
+}
+
 export function useBookmarksOverflow(order: string[]) {
     const containerRef = useRef<HTMLDivElement>(null);
     const itemRefs = useRef<Map<string, HTMLElement>>(new Map());
@@ -27,14 +73,6 @@ export function useBookmarksOverflow(order: string[]) {
     const orderRef = useLatest(order);
 
     const [overflowStartIndex, setOverflowStartIndex] = useState<number>(order.length);
-
-    const registerItemRef = useCallback((id: string, element: HTMLElement | null) => {
-        if (element) {
-            itemRefs.current.set(id, element);
-        } else {
-            itemRefs.current.delete(id);
-        }
-    }, []);
 
     const calculateOverflow = useCallback(() => {
         if (isPausedRef.current) {
@@ -70,11 +108,18 @@ export function useBookmarksOverflow(order: string[]) {
         }
 
         setOverflowStartIndex(newOverflowIndex);
-    }, [orderRef]);
+    }, [orderRef, itemRefs]);
 
     const debouncedCalculateOverflow = useDebounce(calculateOverflow, OVERFLOW_DEBOUNCE_MS);
 
-    // Set up ResizeObserver and trigger recalculation on order changes.
+    // Item registry with resize observation — width changes (e.g. renaming
+    // a bookmark) trigger overflow recalculation even when order is unchanged.
+    const {register: registerItemRef} = useObservedItemRefs({
+        onResize: debouncedCalculateOverflow,
+        refs: itemRefs,
+    });
+
+    // Set up container ResizeObserver and trigger recalculation on order changes.
     // calculateOverflow and debouncedCalculateOverflow are stable (read
     // order from ref), so the observer is only recreated when order.length
     // changes (items added/removed, not reordered).
@@ -84,19 +129,19 @@ export function useBookmarksOverflow(order: string[]) {
             return undefined;
         }
 
-        const resizeObserver = new ResizeObserver(() => {
+        const containerObserver = new ResizeObserver(() => {
             debouncedCalculateOverflow();
         });
-        resizeObserver.observe(container);
+        containerObserver.observe(container);
 
         // Initial/re-calculation (debounced to ensure child refs are registered)
         debouncedCalculateOverflow();
 
         return () => {
             debouncedCalculateOverflow.cancel();
-            resizeObserver.disconnect();
+            containerObserver.disconnect();
         };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- order.length triggers recalc when items are added/removed
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- order.length triggers recalc on add/remove
     }, [calculateOverflow, debouncedCalculateOverflow, order.length]);
 
     // Recalculate when order changes (reorder, add, remove).

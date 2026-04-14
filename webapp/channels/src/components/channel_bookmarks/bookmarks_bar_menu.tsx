@@ -59,13 +59,14 @@ function BookmarksBarMenu({
 
     // When autoFocusItem is off, the Popover container gets focus on open.
     // ArrowDown/Up from the container should focus the first/last menu item.
+    // Only fires when the container itself is focused (e.target === e.currentTarget)
+    // so nested controls (e.g. overflow dot-menu button) keep their own key handling.
     const handleMenuKeyDown = useCallback((e: React.KeyboardEvent) => {
         if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-            const menu = document.getElementById('channelBookmarksBarMenuDropdown');
-            const focusedIsItem = (e.target as HTMLElement).getAttribute('role') === 'menuitem';
-            if (focusedIsItem) {
-                return; // MUI handles item-to-item cycling
+            if (e.target !== e.currentTarget) {
+                return;
             }
+            const menu = document.getElementById('channelBookmarksBarMenuDropdown');
             const items = menu?.querySelectorAll('[role="menuitem"]');
             if (items?.length) {
                 e.preventDefault();
@@ -134,11 +135,15 @@ function BookmarksBarMenu({
 
     if (hasOverflow) {
         overflowItems.forEach((id) => {
+            const bookmark = bookmarks[id];
+            if (!bookmark) {
+                return;
+            }
             menuItems.push(
                 <OverflowBookmarkItem
                     key={id}
                     id={id}
-                    bookmark={bookmarks[id]}
+                    bookmark={bookmark}
                     canReorder={canReorder}
                     isDragging={isDragging}
                     isKeyboardReordering={reorderState?.isReordering && reorderState?.itemId === id}

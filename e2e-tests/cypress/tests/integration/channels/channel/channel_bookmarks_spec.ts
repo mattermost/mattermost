@@ -221,6 +221,13 @@ describe('Channel Bookmarks', () => {
                     cy.get('#channelBookmarksBarMenuButton').click();
                     cy.contains('[role="menuitem"]', nextDisplayName).should('exist');
                     cy.get('body').type('{esc}');
+
+                    // * Verify URL was saved via API (overflow items don't render href)
+                    cy.makeClient().then(async (client) => {
+                        const bookmarks = await client.getChannelBookmarks(publicChannel.id);
+                        const edited = bookmarks.find((b) => b.display_name === nextDisplayName);
+                        expect(edited?.link_url).to.eq(realNextLink);
+                    });
                 }
             });
         });
@@ -252,6 +259,13 @@ describe('Channel Bookmarks', () => {
                     cy.get('#channelBookmarksBarMenuButton').click();
                     cy.contains('[role="menuitem"]', nextDisplayName).should('exist');
                     cy.get('body').type('{esc}');
+
+                    // * Verify URL unchanged via API (overflow items don't render href)
+                    cy.makeClient().then(async (client) => {
+                        const bookmarks = await client.getChannelBookmarks(publicChannel.id);
+                        const edited = bookmarks.find((b) => b.display_name === nextDisplayName);
+                        expect(edited?.link_url).to.eq(realLink);
+                    });
                 }
             });
         });
@@ -278,6 +292,13 @@ describe('Channel Bookmarks', () => {
             cy.findByTestId('channel-bookmarks-container').then(($container) => {
                 const barLink = findVisibleBarLink($container, displayName);
                 expect(barLink.length).to.eq(0);
+            });
+            cy.get('body').then(($body) => {
+                if ($body.find('#channelBookmarksBarMenuButton').length) {
+                    cy.get('#channelBookmarksBarMenuButton').click();
+                    cy.get('#channelBookmarksBarMenuDropdown').should('not.contain', displayName);
+                    cy.get('body').type('{esc}');
+                }
             });
         });
 
