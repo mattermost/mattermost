@@ -2116,6 +2116,7 @@
   "admin.service.listenExample": "F.eks.: \":8065\"",
   "admin.service.managedResourcePaths": "Baner for administrerte ressurser:",
   "admin.service.managedResourcePathsDescription": "En kommaseparert liste over stier på Mattermost-serveren som administreres av en annen tjeneste. Se <link>her</link> for mer informasjon.",
+  "admin.service.maximumPayloadSize": "Maksimal nyttelaststørrelse (bytes):",
   "admin.service.mfaDesc": "Når sann, kan brukere med AD/LDAP- eller e-postinnlogging legge til multifaktorautentisering på kontoen sin ved hjelp av en autentiseringsapp.",
   "admin.service.mfaTitle": "Aktiver multifaktorautentisering:",
   "admin.service.minimumHashtagLengthExample": "F.eks.: \"3\"",
