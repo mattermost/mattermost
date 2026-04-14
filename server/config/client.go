@@ -157,7 +157,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["AllowSyncedDrafts"] = strconv.FormatBool(*c.ServiceSettings.AllowSyncedDrafts)
 	props["DelayChannelAutocomplete"] = strconv.FormatBool(*c.ExperimentalSettings.DelayChannelAutocomplete)
 	props["YoutubeReferrerPolicy"] = strconv.FormatBool(*c.ExperimentalSettings.YoutubeReferrerPolicy)
-	props["ExperimentalEnableWatermark"] = strconv.FormatBool(*c.ExperimentalSettings.EnableWatermark)
 	props["UniqueEmojiReactionLimitPerPost"] = strconv.FormatInt(int64(*c.ServiceSettings.UniqueEmojiReactionLimitPerPost), 10)
 
 	props["EnableAttributeBasedAccessControl"] = strconv.FormatBool(*c.AccessControlSettings.EnableAttributeBasedAccessControl)
@@ -242,6 +241,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 			props["MobileEnableBiometrics"] = strconv.FormatBool(*c.NativeAppSettings.MobileEnableBiometrics)
 			props["MobilePreventScreenCapture"] = strconv.FormatBool(*c.NativeAppSettings.MobilePreventScreenCapture)
 			props["MobileJailbreakProtection"] = strconv.FormatBool(*c.NativeAppSettings.MobileJailbreakProtection)
+			props["ExperimentalEnableWatermark"] = strconv.FormatBool(*c.ExperimentalSettings.EnableWatermark)
 		}
 
 		if model.MinimumEnterpriseAdvancedLicense(license) {
@@ -427,6 +427,7 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 			props["MobileEnableBiometrics"] = strconv.FormatBool(*c.NativeAppSettings.MobileEnableBiometrics)
 			props["MobilePreventScreenCapture"] = strconv.FormatBool(*c.NativeAppSettings.MobilePreventScreenCapture)
 			props["MobileJailbreakProtection"] = strconv.FormatBool(*c.NativeAppSettings.MobileJailbreakProtection)
+			props["ExperimentalEnableWatermark"] = strconv.FormatBool(*c.ExperimentalSettings.EnableWatermark)
 		}
 
 		if model.MinimumEnterpriseAdvancedLicense(license) {
