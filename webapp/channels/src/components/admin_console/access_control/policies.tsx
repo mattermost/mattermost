@@ -48,7 +48,7 @@ export default function PolicyList(props: Props): JSX.Element {
         fetchPolicies();
     }, []);
 
-    const fetchPolicies = async (term = '', afterParam = '', resetPage = false) => {
+    const fetchPolicies = async (term = '', afterParam = '', resetPage = false): Promise<boolean> => {
         setLoading(true);
 
         try {
@@ -57,7 +57,7 @@ export default function PolicyList(props: Props): JSX.Element {
             if (action.error) {
                 setLoading(false);
                 setSearchErrored(true);
-                return;
+                return false;
             }
 
             const data = action.data?.policies || [];
@@ -86,9 +86,11 @@ export default function PolicyList(props: Props): JSX.Element {
                 setTotal(newTotal);
             }
             props.onPoliciesLoaded?.(newTotal);
+            return true;
         } catch (error) {
             setLoading(false);
             setSearchErrored(true);
+            return false;
         }
     };
 
@@ -109,14 +111,11 @@ export default function PolicyList(props: Props): JSX.Element {
     };
 
     const nextPage = async () => {
-        const newCursorHistory = [...cursorHistory, after];
-        const newPage = page + 1;
-
-        setLoading(true);
-        setCursorHistory(newCursorHistory);
-
-        await fetchPolicies(search, after);
-        setPage(newPage);
+        const succeeded = await fetchPolicies(search, after);
+        if (succeeded) {
+            setCursorHistory([...cursorHistory, after]);
+            setPage(page + 1);
+        }
     };
 
     const previousPage = async () => {
@@ -127,13 +126,12 @@ export default function PolicyList(props: Props): JSX.Element {
         const newCursorHistory = [...cursorHistory];
         newCursorHistory.pop();
         const previousCursor = newCursorHistory.length > 0 ? newCursorHistory[newCursorHistory.length - 1] : '';
-        const newPage = page - 1;
 
-        setLoading(true);
-        setCursorHistory(newCursorHistory);
-
-        await fetchPolicies(search, previousCursor);
-        setPage(newPage);
+        const succeeded = await fetchPolicies(search, previousCursor);
+        if (succeeded) {
+            setCursorHistory(newCursorHistory);
+            setPage(page - 1);
+        }
     };
 
     const getResources = (policy: AccessControlPolicy) => {

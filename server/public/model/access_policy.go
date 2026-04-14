@@ -128,6 +128,12 @@ func (r *AccessControlPolicyActiveUpdateRequest) Auditable() map[string]any {
 }
 
 func (p *AccessControlPolicy) IsValid() *AppError {
+	if p.Scope != "" || p.ScopeID != "" {
+		if appErr := p.validateScope(); appErr != nil {
+			return appErr
+		}
+	}
+
 	switch p.Version {
 	case AccessControlPolicyVersionV0_1:
 		return p.accessPolicyVersionV0_1()
@@ -136,6 +142,22 @@ func (p *AccessControlPolicy) IsValid() *AppError {
 	default:
 		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.version.app_error", nil, "", 400)
 	}
+}
+
+func (p *AccessControlPolicy) validateScope() *AppError {
+	switch p.Scope {
+	case "":
+		if p.ScopeID != "" {
+			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.scope_id_without_scope.app_error", nil, "", 400)
+		}
+	case AccessControlPolicyScopeTeam:
+		if !IsValidId(p.ScopeID) {
+			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.scope_id.app_error", nil, "", 400)
+		}
+	default:
+		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.scope.app_error", nil, "", 400)
+	}
+	return nil
 }
 
 func (p *AccessControlPolicy) accessPolicyVersionV0_1() *AppError {

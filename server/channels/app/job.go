@@ -242,9 +242,9 @@ func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.
 			}
 		}
 
-		// Check team admin permission
+		// Check team admin permission. This is needed for jobs that are scoped to a team but don't specify a channel (i.e. team-level syncs).
 		teamID, hasTeamID := job.Data["team_id"]
-		if hasTeamID && teamID != "" && model.IsValidId(teamID) {
+		if hasTeamID && teamID != "" && model.IsValidId(teamID) && job.Data["policy_id"] == "" {
 			if a.SessionHasPermissionToTeam(session, teamID, model.PermissionManageTeamAccessRules) {
 				return true, model.PermissionManageTeamAccessRules
 			}

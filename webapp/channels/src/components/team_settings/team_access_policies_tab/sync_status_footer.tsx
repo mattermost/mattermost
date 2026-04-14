@@ -109,6 +109,10 @@ export default function SyncStatusFooter({teamId, hasPolicies}: Props) {
 
         const interval = setInterval(async () => {
             const result = await dispatch(getJobsByType(JOB_TYPE_ACCESS_CONTROL_SYNC, 0, JOBS_PER_PAGE, teamId));
+            if (result.error) {
+                setSyncing(false);
+                return;
+            }
             if (result.data) {
                 const completedJob = (result.data as Job[]).find((job) => job.status === JOB_STATUS_SUCCESS);
                 if (completedJob && completedJob.last_activity_at > lastSyncedAt) {

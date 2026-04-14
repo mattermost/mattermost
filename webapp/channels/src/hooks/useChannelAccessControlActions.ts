@@ -65,11 +65,11 @@ export const useChannelAccessControlActions = (channelId?: string, teamId?: stri
         },
 
         saveChannelPolicy: (policy: AccessControlPolicy) => {
-            return dispatch(createAccessControlPolicy(policy));
+            return dispatch(createAccessControlPolicy(policy, teamId));
         },
 
         deleteChannelPolicy: (policyId: string) => {
-            return dispatch(deleteAccessControlPolicy(policyId));
+            return dispatch(deleteAccessControlPolicy(policyId, teamId));
         },
 
         getChannelMembers: (channelId: string, page = 0, perPage = 200) => {

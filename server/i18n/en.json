@@ -10057,6 +10057,18 @@
     "translation": "Policy must either import or define rules."
   },
   {
+    "id": "model.access_policy.is_valid.scope.app_error",
+    "translation": "Invalid scope value for this access control policy."
+  },
+  {
+    "id": "model.access_policy.is_valid.scope_id.app_error",
+    "translation": "Scope ID must be a valid ID when scope is set."
+  },
+  {
+    "id": "model.access_policy.is_valid.scope_id_without_scope.app_error",
+    "translation": "Scope ID cannot be set without a scope."
+  },
+  {
     "id": "model.access_policy.is_valid.type.app_error",
     "translation": "Invalid policy type."
   },
