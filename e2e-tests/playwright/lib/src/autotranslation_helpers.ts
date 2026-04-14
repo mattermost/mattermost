@@ -3,6 +3,7 @@
 
 import type {Client4} from '@mattermost/client';
 
+import {LicenseSkus} from './constant';
 import {mergeWithOnPremServerConfig} from './server/default_config';
 
 export type EnableAutotranslationOptions = {

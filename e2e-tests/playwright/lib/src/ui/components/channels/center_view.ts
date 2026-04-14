@@ -176,4 +176,73 @@ export default class ChannelsCenterView {
         const actualText = await strikethroughText.textContent();
         expect(actualText).toBe(text);
     }
+
+    async assertChannelBannerImageEmojiSize(expectedSizePx: number) {
+        const emoji = this.channelBanner.locator('.emoticon:not(.emoticon--unicode)').first();
+        await expect(emoji).toBeVisible();
+
+        const {width, height} = await emoji.evaluate((el) => {
+            const styles = window.getComputedStyle(el);
+            return {
+                width: styles.getPropertyValue('width'),
+                height: styles.getPropertyValue('height'),
+            };
+        });
+
+        expect(width).toBe(`${expectedSizePx}px`);
+        expect(height).toBe(`${expectedSizePx}px`);
+
+        await this.assertElementContainedInBanner(emoji);
+    }
+
+    async assertChannelBannerUnicodeEmojiSize(expectedSizePx: number) {
+        const emoji = this.channelBanner.locator('.emoticon--unicode').first();
+        await expect(emoji).toBeVisible();
+
+        const fontSize = await emoji.evaluate((el) => {
+            return window.getComputedStyle(el).getPropertyValue('font-size');
+        });
+
+        expect(fontSize).toBe(`${expectedSizePx}px`);
+
+        await this.assertElementContainedInBanner(emoji);
+    }
+
+    /**
+     * Asserts that the given element's bounding box lies fully within the channel
+     * banner's content area (i.e. the banner minus its computed padding).
+     *
+     * Uses getBoundingClientRect() coordinates, which are NOT clipped by parent
+     * overflow — so if an element protrudes into or beyond the padding zone it will
+     * be visually clipped by `overflow: hidden` on the text container, and this
+     * assertion will catch that.
+     *
+     * Padding is read from computed styles so the assertion stays correct if padding
+     * values change.
+     */
+    private async assertElementContainedInBanner(element: Locator) {
+        const bannerBox = await this.channelBanner.boundingBox();
+        const elementBox = await element.boundingBox();
+
+        expect(bannerBox).not.toBeNull();
+        expect(elementBox).not.toBeNull();
+
+        const banner = bannerBox!;
+        const el = elementBox!;
+
+        const {paddingTop, paddingBottom, paddingLeft, paddingRight} = await this.channelBanner.evaluate((node) => {
+            const styles = window.getComputedStyle(node);
+            return {
+                paddingTop: parseFloat(styles.paddingTop),
+                paddingBottom: parseFloat(styles.paddingBottom),
+                paddingLeft: parseFloat(styles.paddingLeft),
+                paddingRight: parseFloat(styles.paddingRight),
+            };
+        });
+
+        expect(el.y).toBeGreaterThanOrEqual(banner.y + paddingTop);
+        expect(el.y + el.height).toBeLessThanOrEqual(banner.y + banner.height - paddingBottom);
+        expect(el.x).toBeGreaterThanOrEqual(banner.x + paddingLeft);
+        expect(el.x + el.width).toBeLessThanOrEqual(banner.x + banner.width - paddingRight);
+    }
 }
