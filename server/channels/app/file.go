@@ -1792,7 +1792,7 @@ func (a *App) RemoveFileFromFileStore(rctx request.CTX, path string) *model.AppE
 		rctx.Logger().Warn("File not found", mlog.String("path", path))
 		return model.NewAppError("RemoveFileFromFile", "app.file_info.not_found", nil, "", http.StatusNotFound)
 	}
-	s
+
 	appErr = a.RemoveFile(path)
 	if appErr != nil {
 		rctx.Logger().Warn(
