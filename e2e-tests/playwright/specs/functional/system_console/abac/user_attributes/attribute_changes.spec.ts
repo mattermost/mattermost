@@ -90,9 +90,6 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         await searchInput.fill(uniqueId);
         await systemConsolePage.page.waitForTimeout(1000);
 
-        const policyRow = systemConsolePage.page.locator('.policy-name').first();
-        const policyId = (await policyRow.getAttribute('id'))?.replace('customDescription-', '');
-
         if (policyId) {
             await activatePolicy(adminClient, policyId);
         }
