@@ -44,10 +44,18 @@ export type AccessControlPolicyRule = {
 
 /**
  * Returns the first rule with a "membership" action, falling back to rules[0]
- * for backward compatibility with older policies.
+ * only when it carries a wildcard action (legacy v0.2 policies).
  */
 export function getMembershipRule(rules?: AccessControlPolicyRule[]): AccessControlPolicyRule | undefined {
-    return rules?.find((r) => r.actions?.includes('membership')) ?? rules?.[0];
+    const membership = rules?.find((r) => r.actions?.includes('membership'));
+    if (membership) {
+        return membership;
+    }
+    const first = rules?.[0];
+    if (first?.actions?.includes('*')) {
+        return first;
+    }
+    return undefined;
 }
 
 /**
