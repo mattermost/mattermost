@@ -338,6 +338,12 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 		sd.posts = appendPosts(sd.posts, posts, scs.server.GetStore().Post(), cursor.LastPostUpdateAt, scs.server.Log())
 	}
 
+	// Shared-channel state posts are never synced to remotes. Drop them before
+	// PreparePostForClient and before reaction/ack/post-user collection so we do not query stores
+	// for posts that will be removed later. Cursor is still derived from GetPostsSinceForSync above,
+	// which includes these rows, so sync cursors advance the same as before.
+	stripSharedChannelStatePostsForSync(sd)
+
 	// Populate metadata for all posts before syncing
 	for i, post := range sd.posts {
 		if post != nil {
@@ -706,16 +712,25 @@ func (scs *Service) fetchPostAttachmentsForSync(sd *syncData) error {
 	return merr.ErrorOrNil()
 }
 
+func stripSharedChannelStatePostsForSync(sd *syncData) {
+	if len(sd.posts) == 0 {
+		return
+	}
+	out := make([]*model.Post, 0, len(sd.posts))
+	for _, p := range sd.posts {
+		if p != nil && p.Type == model.PostTypeSharedChannelState {
+			continue
+		}
+		out = append(out, p)
+	}
+	sd.posts = out
+}
+
 // filterPostsForSync removes any posts that do not need to sync.
 func (scs *Service) filterPostsForSync(sd *syncData) {
 	filtered := make([]*model.Post, 0, len(sd.posts))
 
 	for _, p := range sd.posts {
-		// Shared-channel share/unshare system posts are authored separately on each cluster; never sync them.
-		if p.Type == model.PostTypeSharedChannelState {
-			continue
-		}
-
 		// Don't resend an existing post where only the reactions changed.
 		// Posts we must send:
 		//   - new posts (EditAt == 0)

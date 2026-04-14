@@ -28,6 +28,21 @@ func setupSharedChannels(tb testing.TB) *TestHelper {
 	})
 }
 
+// firstSharedChannelStatePostInOrderedPage walks pl.Order (same ordering as GetPostsPage:
+// root posts by CreateAt DESC) instead of ranging over pl.Posts, which is nondeterministic.
+func firstSharedChannelStatePostInOrderedPage(pl *model.PostList) *model.Post {
+	if pl == nil {
+		return nil
+	}
+	for _, id := range pl.Order {
+		p := pl.Posts[id]
+		if p != nil && p.Type == model.PostTypeSharedChannelState {
+			return p
+		}
+	}
+	return nil
+}
+
 func TestApp_CheckCanInviteToSharedChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := setupSharedChannels(t).InitBasic(t)
@@ -237,13 +252,7 @@ func TestApp_RemoteUnsharing(t *testing.T) {
 		assert.Equal(t, postCountBefore+1, len(postsAfterRemove.Posts), "There should be one new post")
 
 		// Find and verify the system message content
-		var systemPost *model.Post
-		for _, p := range postsAfterRemove.Posts {
-			if p.Type == model.PostTypeSharedChannelState {
-				systemPost = p
-				break
-			}
-		}
+		systemPost := firstSharedChannelStatePostInOrderedPage(postsAfterRemove)
 		require.NotNil(t, systemPost, "A system post should be created")
 		assert.Equal(t, i18n.T("shared_channel.system_message.no_longer_shared", map[string]any{"WorkspaceName": "Test Remote"}), systemPost.Message)
 		assert.Equal(t, model.SharedChannelStatePostValueUnshared, systemPost.GetProps()[model.PostPropsSharedChannelState])
@@ -432,13 +441,7 @@ func TestApp_RemoteUnsharing(t *testing.T) {
 		assert.Equal(t, postCountBefore+1, len(postsAfterRemove.Posts), "There should be one new post")
 
 		// Find and verify the system message content
-		var systemPost *model.Post
-		for _, p := range postsAfterRemove.Posts {
-			if p.Type == model.PostTypeSharedChannelState {
-				systemPost = p
-				break
-			}
-		}
+		systemPost := firstSharedChannelStatePostInOrderedPage(postsAfterRemove)
 		require.NotNil(t, systemPost, "A system post should be created")
 		assert.Equal(t, i18n.T("shared_channel.system_message.no_longer_shared", map[string]any{"WorkspaceName": "Test Remote 1"}), systemPost.Message)
 		assert.Equal(t, model.SharedChannelStatePostValueUnshared, systemPost.GetProps()[model.PostPropsSharedChannelState])
@@ -552,13 +555,7 @@ func TestSyncMessageErrChannelNotSharedResponse(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// Find the system message
-	var systemPost *model.Post
-	for _, p := range posts.Posts {
-		if p.Type == model.PostTypeSharedChannelState {
-			systemPost = p
-			break
-		}
-	}
+	systemPost := firstSharedChannelStatePostInOrderedPage(posts)
 	require.NotNil(t, systemPost, "System message should be posted when channel becomes unshared")
 	assert.Equal(t, i18n.T("shared_channel.system_message.no_longer_shared", map[string]any{"WorkspaceName": "Test Remote"}), systemPost.Message)
 	assert.Equal(t, model.SharedChannelStatePostValueUnshared, systemPost.GetProps()[model.PostPropsSharedChannelState])
@@ -658,6 +655,20 @@ func TestUninviteRemoteFromChannel_OnlyRemovesRequestedRemote(t *testing.T) {
 		has2, err := ss.SharedChannel().HasRemote(channel.Id, rc2.RemoteId)
 		require.NoError(t, err)
 		require.True(t, has2, "Other remote (unconfirmed) should still be present")
+
+		// Uninvite posts a shared-channel state system message with the uninvited remote's display name
+		postsPage, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
+			ChannelId: channel.Id,
+			Page:      0,
+			PerPage:   20,
+		})
+		require.Nil(t, appErr)
+		uninvitePost := firstSharedChannelStatePostInOrderedPage(postsPage)
+		require.NotNil(t, uninvitePost, "expected a system_shared_chan_state post after uninvite")
+		assert.Equal(t, channel.Id, uninvitePost.ChannelId)
+		assert.Equal(t, model.SharedChannelStatePostValueUnshared, uninvitePost.GetProps()[model.PostPropsSharedChannelState])
+		assert.Equal(t, rc1.DisplayName, uninvitePost.GetProps()[model.PostPropsSharedChannelWorkspaceName])
+		assert.Equal(t, i18n.T("shared_channel.system_message.no_longer_shared", map[string]any{"WorkspaceName": rc1.DisplayName}), uninvitePost.Message)
 	})
 
 	t.Run("uninvite one of two confirmed remotes leaves channel shared and other remote present", func(t *testing.T) {
