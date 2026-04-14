@@ -22,6 +22,7 @@ import ChannelMoveToSubmenu from 'components/channel_move_to_sub_menu';
 import * as Menu from 'components/menu';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
+import {canPopout, isChannelPopoutWindow} from 'utils/popouts/popout_windows';
 import {copyToClipboard} from 'utils/utils';
 
 import type {PropsFromRedux, OwnProps} from './index';
@@ -299,7 +300,9 @@ const SidebarChannelMenu = ({
                 onToggle: onMenuToggle,
             }}
         >
-            <MenuItemOpenInNewWindow channel={channel}/>
+            {canPopout() && !isChannelPopoutWindow() && (
+                <MenuItemOpenInNewWindow channel={channel}/>
+            )}
             {markAsReadUnreadMenuItem}
             {favoriteUnfavoriteMenuItem}
             {muteUnmuteChannelMenuItem}

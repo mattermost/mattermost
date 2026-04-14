@@ -216,6 +216,30 @@ func makeInvite(url string) RemoteClusterInvite {
 	}
 }
 
+func TestRemoteClusterToRemoteClusterInfo(t *testing.T) {
+	remoteID := NewId()
+	now := GetMillis()
+	rc := &RemoteCluster{
+		RemoteId:    remoteID,
+		Name:        "test-name",
+		DisplayName: "Test Display Name",
+		CreateAt:    now,
+		DeleteAt:    0,
+		LastPingAt:  now,
+		SiteURL:     "https://example.com:8065",
+	}
+
+	info := rc.ToRemoteClusterInfo()
+
+	assert.Equal(t, remoteID, info.RemoteId, "RemoteId should be set")
+	assert.Equal(t, rc.Name, info.Name)
+	assert.Equal(t, rc.DisplayName, info.DisplayName)
+	assert.Equal(t, rc.CreateAt, info.CreateAt)
+	assert.Equal(t, rc.DeleteAt, info.DeleteAt)
+	assert.Equal(t, rc.LastPingAt, info.LastPingAt)
+	assert.Equal(t, rc.SiteURL, info.SiteURL)
+}
+
 func TestNewIDFromBytes(t *testing.T) {
 	tests := []struct {
 		name string
