@@ -11,7 +11,7 @@
 // Group: @channels @notifications
 
 import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {getRandomId} from '../../../utils';
+import {getRandomId, newTestPassword} from '../../../utils';
 
 describe('Notifications', () => {
     let testTeam;
@@ -104,7 +104,7 @@ describe('Notifications', () => {
         return {
             email: `${username}${randomId}@sample.mattermost.com`,
             username,
-            password: 'passwd',
+            password: newTestPassword(),
             first_name: `First${randomId}`,
             last_name: `Last${randomId}`,
             nickname: `Nickname${randomId}`,

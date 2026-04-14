@@ -23,6 +23,7 @@ import SidebarRight from 'components/sidebar_right';
 import UnreadsStatusHandler from 'components/unreads_status_handler';
 
 import Constants from 'utils/constants';
+import usePopoutFocus from 'utils/popouts/use_popout_focus';
 import usePopoutTitle from 'utils/popouts/use_popout_title';
 import {isDesktopApp} from 'utils/user_agent';
 
@@ -48,6 +49,7 @@ export default function ChannelPopout() {
     const rhsOpen = useSelector(getIsRhsOpen);
 
     usePopoutTitle(getPopoutChannelTitle(channel?.type));
+    usePopoutFocus(channelId);
 
     useEffect(() => {
         if (teamId) {
