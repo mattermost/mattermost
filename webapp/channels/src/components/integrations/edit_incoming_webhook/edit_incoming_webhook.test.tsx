@@ -1,17 +1,53 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
+import type {ChannelType} from '@mattermost/types/channels';
 import type {IncomingWebhook} from '@mattermost/types/integrations';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import EditIncomingWebhook from 'components/integrations/edit_incoming_webhook/edit_incoming_webhook';
 
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {getHistory} from 'utils/browser_history';
 import {TestHelper} from 'utils/test_helper';
+
+import type {GlobalState} from 'types/store';
+
+const initialState: DeepPartial<GlobalState> = {
+    entities: {
+        channels: {
+            currentChannelId: 'channel_id',
+            channels: {
+                channel_id: TestHelper.getChannelMock({
+                    id: 'channel_id',
+                    team_id: 'team_id',
+                    type: 'O' as ChannelType,
+                    name: 'channel_id',
+                    display_name: 'Test Channel',
+                }),
+            },
+            myMembers: {
+                channel_id: TestHelper.getChannelMembershipMock({channel_id: 'channel_id'}),
+            },
+            channelsInTeam: {
+                team_id: new Set(['channel_id']),
+            },
+        },
+        teams: {
+            currentTeamId: 'team_id',
+            teams: {
+                team_id: TestHelper.getTeamMock({id: 'team_id'}),
+            },
+            myMembers: {
+                team_id: TestHelper.getTeamMembershipMock({roles: 'team_roles'}),
+            },
+        },
+    },
+};
 
 describe('components/integrations/EditIncomingWebhook', () => {
     const hook = {
@@ -56,25 +92,25 @@ describe('components/integrations/EditIncomingWebhook', () => {
 
     test('should show Loading screen when no hook is provided', () => {
         const props = {...requiredProps, actions};
-        const wrapper = shallow(<EditIncomingWebhook {...props}/>);
+        const {container} = renderWithContext(<EditIncomingWebhook {...props}/>, initialState as GlobalState);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
         expect(getIncomingHook).toHaveBeenCalledTimes(1);
         expect(getIncomingHook).toHaveBeenCalledWith(props.hookId);
     });
 
     test('should show AbstractIncomingWebhook', () => {
         const props = {...requiredProps, actions, hook};
-        const wrapper = shallow(<EditIncomingWebhook {...props}/>);
+        const {container} = renderWithContext(<EditIncomingWebhook {...props}/>, initialState as GlobalState);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should not call getIncomingHook', () => {
         const props = {...requiredProps, enableIncomingWebhooks: false, actions};
-        const wrapper = shallow(<EditIncomingWebhook {...props}/>);
+        const {container} = renderWithContext(<EditIncomingWebhook {...props}/>, initialState as GlobalState);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
         expect(getIncomingHook).toHaveBeenCalledTimes(0);
     });
 
@@ -83,14 +119,18 @@ describe('components/integrations/EditIncomingWebhook', () => {
         const newActions = {...actions, updateIncomingHook: newUpdateIncomingHook};
         const asyncHook = {...hook};
         const props = {...requiredProps, actions: newActions, hook};
-        const wrapper = shallow<EditIncomingWebhook>(<EditIncomingWebhook {...props}/>);
+        const {container} = renderWithContext(<EditIncomingWebhook {...props}/>, initialState as GlobalState);
 
-        const instance = wrapper.instance();
-        await instance.editIncomingHook(asyncHook);
-        expect(wrapper).toMatchSnapshot();
+        // Submit the form via the Update button
+        const submitButton = screen.getByRole('button', {name: 'Update'});
+        await submitButton.click();
+
+        expect(container).toMatchSnapshot();
         expect(newActions.updateIncomingHook).toHaveBeenCalledTimes(1);
-        expect(newActions.updateIncomingHook).toHaveBeenCalledWith(asyncHook);
-        expect(wrapper.state('serverError')).toEqual('');
+        expect(newActions.updateIncomingHook).toHaveBeenCalledWith({
+            ...asyncHook,
+            id: hook.id,
+        });
     });
 
     test('should have called submitHook when editIncomingHook is initiated (with server error)', async () => {
@@ -98,14 +138,17 @@ describe('components/integrations/EditIncomingWebhook', () => {
         const newActions = {...actions, updateIncomingHook: newUpdateIncomingHook};
         const asyncHook = {...hook};
         const props = {...requiredProps, actions: newActions, hook};
-        const wrapper = shallow<EditIncomingWebhook>(<EditIncomingWebhook {...props}/>);
+        const {container} = renderWithContext(<EditIncomingWebhook {...props}/>, initialState as GlobalState);
 
-        const instance = wrapper.instance();
-        await instance.editIncomingHook(asyncHook);
+        const submitButton = screen.getByRole('button', {name: 'Update'});
+        await submitButton.click();
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
         expect(newActions.updateIncomingHook).toHaveBeenCalledTimes(1);
-        expect(newActions.updateIncomingHook).toHaveBeenCalledWith(asyncHook);
+        expect(newActions.updateIncomingHook).toHaveBeenCalledWith({
+            ...asyncHook,
+            id: hook.id,
+        });
     });
 
     test('should have called submitHook when editIncomingHook is initiated (with data)', async () => {
@@ -113,15 +156,16 @@ describe('components/integrations/EditIncomingWebhook', () => {
         const newActions = {...actions, updateIncomingHook: newUpdateIncomingHook};
         const asyncHook = {...hook};
         const props = {...requiredProps, actions: newActions, hook};
-        const wrapper = shallow<EditIncomingWebhook>(<EditIncomingWebhook {...props}/>);
+        renderWithContext(<EditIncomingWebhook {...props}/>, initialState as GlobalState);
 
-        const instance = wrapper.instance();
-        await instance.editIncomingHook(asyncHook);
+        const submitButton = screen.getByRole('button', {name: 'Update'});
+        await submitButton.click();
 
-        expect(wrapper).toMatchSnapshot();
         expect(newUpdateIncomingHook).toHaveBeenCalledTimes(1);
-        expect(newUpdateIncomingHook).toHaveBeenCalledWith(asyncHook);
-        expect(wrapper.state('serverError')).toEqual('');
+        expect(newUpdateIncomingHook).toHaveBeenCalledWith({
+            ...asyncHook,
+            id: hook.id,
+        });
         expect(getHistory().push).toHaveBeenCalledWith(`/${requiredProps.team.name}/integrations/incoming_webhooks`);
     });
 });

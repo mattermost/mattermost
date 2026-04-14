@@ -302,6 +302,21 @@ func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember 
 		a.Srv().Platform().InvalidateChannelCacheForUser(channel.CreatorId)
 	}
 
+	if channel.ManagedCategoryName != "" {
+		if !model.MinimumEnterpriseLicense(a.Channels().License()) || !model.SafeDereference(a.Config().TeamSettings.EnableManagedChannelCategories) {
+			rctx.Logger().Warn("Managed category update ignored: feature not available")
+			sc.ManagedCategoryName = ""
+		} else {
+			if appErr := a.SetChannelManagedCategory(rctx, sc.Id, channel.ManagedCategoryName); appErr != nil {
+				rctx.Logger().Error("Failed to set managed category on new channel",
+					mlog.String("channel_id", sc.Id),
+					mlog.String("category_name", channel.ManagedCategoryName),
+					mlog.Err(appErr))
+				sc.ManagedCategoryName = ""
+			}
+		}
+	}
+
 	a.Srv().Go(func() {
 		pluginContext := pluginContext(rctx)
 		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
@@ -1604,6 +1619,24 @@ func (a *App) DeleteChannel(rctx request.CTX, channel *model.Channel, userID str
 		return err
 	}
 
+	var archiveRejectionReason string
+	pluginContext := pluginContext(rctx)
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+		archiveRejectionReason = hooks.ChannelWillBeArchived(pluginContext, channel)
+		return archiveRejectionReason == ""
+	}, plugin.ChannelWillBeArchivedID)
+
+	if archiveRejectionReason != "" {
+		return model.NewAppError("DeleteChannel", "app.channel.delete_channel.rejected_by_plugin",
+			map[string]any{"Reason": archiveRejectionReason}, "", http.StatusBadRequest)
+	}
+
+	deleteAt := model.GetMillis()
+
+	if err := a.Srv().Store().Channel().Delete(channel.Id, deleteAt); err != nil {
+		return model.NewAppError("DeleteChannel", "app.channel.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
 	if user != nil {
 		T := i18n.GetUserTranslations(user.Locale)
 
@@ -1657,12 +1690,6 @@ func (a *App) DeleteChannel(rctx request.CTX, channel *model.Channel, userID str
 
 	if err := a.Srv().Store().PostPersistentNotification().DeleteByChannel([]string{channel.Id}); err != nil {
 		return model.NewAppError("DeleteChannel", "app.post_persistent_notification.delete_by_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	deleteAt := model.GetMillis()
-
-	if err := a.Srv().Store().Channel().Delete(channel.Id, deleteAt); err != nil {
-		return model.NewAppError("DeleteChannel", "app.channel.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
@@ -1731,10 +1758,10 @@ func (a *App) addUserToChannel(rctx request.CTX, user *model.User, channel *mode
 						fmt.Sprintf("failed to get group: %v, user_id: %s, channel_id: %s", err, user.Id, channel.Id), http.StatusInternalServerError)
 				}
 
-				s, err := a.Srv().Store().Attributes().GetSubject(rctx, user.Id, groupID)
-				if err != nil {
+				s, getSubjectErr := a.Srv().Store().Attributes().GetSubject(rctx, user.Id, groupID)
+				if getSubjectErr != nil {
 					return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil,
-						fmt.Sprintf("failed to get subject: %v, user_id: %s, channel_id: %s", err, user.Id, channel.Id), http.StatusForbidden)
+						fmt.Sprintf("failed to get subject: %v, user_id: %s, channel_id: %s", getSubjectErr, user.Id, channel.Id), http.StatusForbidden)
 				}
 
 				decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
@@ -1756,6 +1783,25 @@ func (a *App) addUserToChannel(rctx request.CTX, user *model.User, channel *mode
 		}
 	}
 
+	var rejectionReason string
+	pluginContext := pluginContext(rctx)
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+		updatedMember, reason := hooks.ChannelMemberWillBeAdded(pluginContext, newMember)
+		if reason != "" {
+			rejectionReason = reason
+			return false
+		}
+		if updatedMember != nil {
+			newMember = updatedMember
+		}
+		return true
+	}, plugin.ChannelMemberWillBeAddedID)
+
+	if rejectionReason != "" {
+		return nil, model.NewAppError("AddUserToChannel", "app.channel.add_user.to.channel.rejected_by_plugin",
+			map[string]any{"Reason": rejectionReason}, "", http.StatusBadRequest)
+	}
+
 	newMember, nErr = a.Srv().Store().Channel().SaveMember(rctx, newMember)
 	if nErr != nil {
 		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil,
@@ -1772,7 +1818,7 @@ func (a *App) addUserToChannel(rctx request.CTX, user *model.User, channel *mode
 	// Synchronize membership change for shared channels
 	if channel.IsShared() {
 		if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
-			scs.HandleMembershipChange(channel.Id, user.Id, true, user.GetRemoteID())
+			scs.NotifyMembershipChanged(channel.Id, user.GetRemoteID())
 		}
 	}
 
@@ -2844,9 +2890,8 @@ func (a *App) removeUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 
 	// Synchronize membership change for shared channels
 	if channel.IsShared() {
-		// isAdd=false, empty remoteId means locally initiated
 		if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
-			scs.HandleMembershipChange(channel.Id, userIDToRemove, false, "")
+			scs.NotifyMembershipChanged(channel.Id, "")
 		}
 	}
 

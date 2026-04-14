@@ -5,7 +5,8 @@ import DesktopApp from 'utils/desktop_api';
 import {getBasePath} from 'utils/url';
 import {isDesktopApp} from 'utils/user_agent';
 
-import {FOCUS_REPLY_POST, popoutRhsPlugin, popoutRhsSearch, popoutThread} from './popout_windows';
+import {POPOUT_FOCUSED, POPOUT_BLURRED, getFocusedPopoutInfo} from './focus';
+import {FOCUS_REPLY_POST, popoutChannel, popoutRhsPlugin, popoutRhsSearch, popoutThread} from './popout_windows';
 
 jest.mock('utils/desktop_api', () => ({
     __esModule: true,
@@ -37,9 +38,7 @@ jest.mock('./browser_popouts', () => {
 
 const mockDesktopApp = jest.mocked(DesktopApp);
 
-const getMockSetupBrowserPopout = () => {
-    return (globalThis as typeof globalThis & {mockSetupBrowserPopout: jest.MockedFunction<() => unknown>}).mockSetupBrowserPopout;
-};
+const getMockSetupBrowserPopout = (): jest.Mock => (globalThis as typeof globalThis & {mockSetupBrowserPopout: jest.Mock}).mockSetupBrowserPopout;
 
 const mockListeners = {
     sendToPopout: jest.fn(),
@@ -95,31 +94,29 @@ describe('popout_windows', () => {
             );
         });
 
-        it('should return popout listeners', async () => {
-            setupDesktop();
-
-            const result = await popoutThread('Thread - {channelName} - {teamName} - {serverName}', 'thread-123', 'test-team', mockOnFocusPost);
-
-            expect(result).toEqual(mockListeners);
-        });
-
-        it('should set up listener for FOCUS_REPLY_POST messages', async () => {
-            setupDesktop();
-            const onMessage = jest.fn();
-            mockDesktopApp.setupDesktopPopout.mockResolvedValue({
+        it('should register focus and FOCUS_REPLY_POST listeners', async () => {
+            setupBrowser();
+            const messageListeners: Array<(channel: string, ...args: unknown[]) => void> = [];
+            getMockSetupBrowserPopout().mockReturnValue({
                 ...mockListeners,
-                onMessageFromPopout: onMessage,
+                onMessageFromPopout: (listener: (channel: string, ...args: unknown[]) => void) => {
+                    messageListeners.push(listener);
+                },
+                onClosePopout: jest.fn(),
             });
 
             await popoutThread('Thread - {channelName} - {teamName} - {serverName}', 'thread-123', 'test-team', mockOnFocusPost);
 
-            expect(onMessage).toHaveBeenCalledTimes(1);
-            const registeredListener = onMessage.mock.calls[0][0];
+            expect(messageListeners).toHaveLength(2);
 
-            registeredListener(FOCUS_REPLY_POST, 'post-123', '/team/pl/post-123');
+            messageListeners.forEach((listener) => listener(POPOUT_FOCUSED, 'channel-abc', 'thread-123'));
+            expect(getFocusedPopoutInfo()).toEqual({channelId: 'channel-abc', threadId: 'thread-123'});
 
-            expect(mockOnFocusPost).toHaveBeenCalledTimes(1);
+            messageListeners.forEach((listener) => listener(FOCUS_REPLY_POST, 'post-123', '/team/pl/post-123'));
             expect(mockOnFocusPost).toHaveBeenCalledWith('post-123', '/team/pl/post-123');
+
+            messageListeners.forEach((listener) => listener(POPOUT_BLURRED));
+            expect(getFocusedPopoutInfo()).toBeNull();
         });
 
         it('should include subpath in popout URL when basename is set', async () => {
@@ -173,6 +170,49 @@ describe('popout_windows', () => {
 
             expect(getMockSetupBrowserPopout()).toHaveBeenCalledWith(
                 '/company/mattermost/_popout/rhs/test-team/plugin/test-plugin-id?channel=test-channel',
+            );
+        });
+    });
+
+    describe('popoutChannel', () => {
+        it('should include the path segment in the URL for regular channels', async () => {
+            setupBrowser();
+
+            await popoutChannel('Title', 'test-team', 'channels', 'town-square');
+
+            expect(getMockSetupBrowserPopout()).toHaveBeenCalledWith(
+                '/_popout/channel/test-team/channels/town-square',
+            );
+        });
+
+        it('should include the messages path for DM/GM channels', async () => {
+            setupBrowser();
+
+            await popoutChannel('Title', 'test-team', 'messages', '@otheruser');
+
+            expect(getMockSetupBrowserPopout()).toHaveBeenCalledWith(
+                '/_popout/channel/test-team/messages/@otheruser',
+            );
+        });
+
+        it('should include subpath in popout URL when basename is set', async () => {
+            setupBrowser('/company/mattermost');
+
+            await popoutChannel('Title', 'test-team', 'channels', 'town-square');
+
+            expect(getMockSetupBrowserPopout()).toHaveBeenCalledWith(
+                '/company/mattermost/_popout/channel/test-team/channels/town-square',
+            );
+        });
+
+        it('should call desktop popout with correct path for desktop app', async () => {
+            setupDesktop();
+
+            await popoutChannel('Channel Title', 'test-team', 'channels', 'town-square');
+
+            expect(mockDesktopApp.setupDesktopPopout).toHaveBeenCalledWith(
+                '/_popout/channel/test-team/channels/town-square',
+                {titleTemplate: 'Channel Title'},
             );
         });
     });

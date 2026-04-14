@@ -46,7 +46,7 @@ import {
 } from 'mattermost-redux/action_types';
 import {getStandardAnalytics} from 'mattermost-redux/actions/admin';
 import {fetchAppBindings, fetchRHSAppsBindings} from 'mattermost-redux/actions/apps';
-import {addChannelToInitialCategory, fetchMyCategories, receivedCategoryOrder} from 'mattermost-redux/actions/channel_categories';
+import {addChannelToInitialCategory, fetchMyCategories, handleManagedCategoryPropertyValuesUpdated, receivedCategoryOrder} from 'mattermost-redux/actions/channel_categories';
 import {
     getChannelAndMyMember,
     getMyChannelMember,
@@ -75,6 +75,7 @@ import {
 import {getRecap} from 'mattermost-redux/actions/recaps';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {fetchTeamScheduledPosts} from 'mattermost-redux/actions/scheduled_posts';
+import {fetchChannelRemotes} from 'mattermost-redux/actions/shared_channels';
 import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/status_profile_polling';
 import * as TeamActions from 'mattermost-redux/actions/teams';
 import {
@@ -156,6 +157,7 @@ import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
 import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
 import {getIntl} from 'utils/i18n';
+import {isChannelPopoutWindow} from 'utils/popouts/popout_windows';
 import {getSiteURL} from 'utils/url';
 
 import type {ActionFunc, ThunkActionFunc} from 'types/store';
@@ -478,6 +480,10 @@ export function handleEvent(msg: WebSocketMessage) {
         handleChannelConvertedEvent(msg);
         break;
 
+    case WebSocketEvents.SharedChannelRemoteUpdated:
+        handleSharedChannelRemoteUpdatedEvent(msg);
+        break;
+
     case WebSocketEvents.ChannelUpdated:
         dispatch(handleChannelUpdatedEvent(msg));
         break;
@@ -616,6 +622,9 @@ export function handleEvent(msg: WebSocketMessage) {
     case WebSocketEvents.SidebarCategoryOrderUpdated:
         dispatch(handleSidebarCategoryOrderUpdated(msg));
         break;
+    case WebSocketEvents.PropertyValuesUpdated:
+        dispatch(handlePropertyValuesUpdated(msg));
+        break;
     case WebSocketEvents.UserActivationStatusChange:
         dispatch(handleUserActivationStatusChange());
         break;
@@ -709,6 +718,13 @@ export function handleEvent(msg: WebSocketMessage) {
     });
 }
 
+function handleSharedChannelRemoteUpdatedEvent(msg: WebSocketMessages.SharedChannelRemoteUpdated) {
+    const channelId = msg.data.channel_id || msg.broadcast.channel_id;
+    if (channelId) {
+        dispatch(fetchChannelRemotes(channelId, true));
+    }
+}
+
 // handleChannelConvertedEvent handles updating of channel which is converted from public to private
 function handleChannelConvertedEvent(msg: WebSocketMessages.ChannelConverted) {
     const channelId = msg.data.channel_id;
@@ -754,7 +770,15 @@ export function handleChannelUpdatedEvent(msg: WebSocketMessages.ChannelUpdated)
         if (channel.id === getCurrentChannelId(state)) {
             // using channel's team_id to ensure we always redirect to current channel even if channel's team changes.
             const teamId = channel.team_id || getCurrentTeamId(state);
-            getHistory().replace(`${getRelativeTeamUrl(state, teamId)}/channels/${channel.name}`);
+            const teamUrl = getRelativeTeamUrl(state, teamId);
+            let channelPath = `${teamUrl}/channels/${channel.name}`;
+
+            // For the popout we make an exception and redirect to the popout path instead of the channel path.
+            // DM/GM names never change, so we only need to handle regular channels here.
+            if (isChannelPopoutWindow() && channel.type !== General.DM_CHANNEL && channel.type !== General.GM_CHANNEL) {
+                channelPath = `/_popout/channel${teamUrl}/channels/${channel.name}`;
+            }
+            getHistory().replace(channelPath);
         }
     };
 }
@@ -1093,6 +1117,9 @@ function handleDeleteTeamEvent(msg: WebSocketMessages.Team) {
             } else {
                 getHistory().push('/');
             }
+            if (isChannelPopoutWindow()) {
+                window.close();
+            }
         }
     }
 }
@@ -1151,6 +1178,27 @@ function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel): ThunkA
     };
 }
 
+function handlePropertyValuesUpdated(msg: WebSocketMessages.PropertyValuesUpdated): ThunkActionFunc<void> {
+    return (doDispatch) => {
+        let values;
+        try {
+            values = JSON.parse(msg.data.values ?? '[]');
+        } catch {
+            // invalid JSON
+            return;
+        }
+
+        const parsedPropertyValuesUpdated = {
+            object_type: msg.data.object_type,
+            target_id: msg.data.target_id,
+            field_id: msg.data.field_id,
+            values,
+        };
+
+        doDispatch(handleManagedCategoryPropertyValuesUpdated(parsedPropertyValuesUpdated));
+    };
+}
+
 function fetchChannelAndAddToSidebar(channelId: string): ThunkActionFunc<void> {
     return async (doDispatch) => {
         const {data, error} = await doDispatch(getChannelAndMyMember(channelId));
@@ -1206,7 +1254,10 @@ export function handleUserRemovedEvent(msg: WebSocketMessages.UserRemovedFromCha
         });
 
         if (currentChannel && msg.data.channel_id === currentChannel.id) {
-            redirectUserToDefaultTeam();
+            const redirect = redirectUserToDefaultTeam();
+            if (isChannelPopoutWindow()) {
+                redirect.then(() => window.close());
+            }
         }
 
         if (isGuest(currentUser.roles)) {

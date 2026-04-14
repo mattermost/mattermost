@@ -5316,10 +5316,6 @@
     "translation": "Aggiornamento membro squadra invalido: Un utente deve essere ospite o utente ma non entrambi."
   },
   {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "La licenza enterprise è scaduta e alcune funzionalità possono essere disabilitate. Rinnovare la licenza."
-  },
-  {
     "id": "api.templates.remove_expired_license.subject",
     "translation": "Licenza Mattermost Enteprise disabilitata."
   },

@@ -947,8 +947,10 @@
             .post-image__name {
                 @include mixins.clearfix;
 
-                display: block;
+                display: flex;
                 width: 100%;
+                align-items: center;
+                justify-content: flex-start;
                 padding: 0 5px;
                 margin: 0;
                 text-overflow: ellipsis;
@@ -2122,6 +2124,7 @@
 
     .edit-post-history__content_container {
         margin-left: 26px;
+        cursor: default;
 
         .post__content {
             padding-left: 0;

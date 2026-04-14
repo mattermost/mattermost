@@ -18,17 +18,17 @@ func TestDoSetupContentFlaggingProperties(t *testing.T) {
 		//settings, setting up the store and initializing services used in store such as property services.
 		th := Setup(t)
 
-		group, err := th.Server.propertyAccessService.GetPropertyGroup(model.ContentFlaggingGroupName)
-		require.NoError(t, err)
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.ContentFlaggingGroupName)
+		require.Nil(t, appErr)
 		require.NotNil(t, group)
 		require.Equal(t, model.ContentFlaggingGroupName, group.Name)
 
-		propertyFields, err := th.Server.propertyAccessService.SearchPropertyFields(anonymousCallerId, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
-		require.NoError(t, err)
+		propertyFields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
 		require.Len(t, propertyFields, 11)
 
-		data, err := th.Store.System().GetByName(contentFlaggingSetupDoneKey)
-		require.NoError(t, err)
+		data, sysErr := th.Store.System().GetByName(contentFlaggingSetupDoneKey)
+		require.NoError(t, sysErr)
 		require.Equal(t, "v5", data.Value)
 	})
 
@@ -43,16 +43,16 @@ func TestDoSetupContentFlaggingProperties(t *testing.T) {
 		err = th.Server.doSetupContentFlaggingProperties()
 		require.NoError(t, err)
 
-		group, err := th.Server.propertyAccessService.GetPropertyGroup(model.ContentFlaggingGroupName)
-		require.NoError(t, err)
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.ContentFlaggingGroupName)
+		require.Nil(t, appErr)
 		require.Equal(t, model.ContentFlaggingGroupName, group.Name)
 
-		propertyFields, err := th.Server.propertyAccessService.SearchPropertyFields(anonymousCallerId, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
-		require.NoError(t, err)
+		propertyFields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
 		require.Len(t, propertyFields, 11)
 
-		data, err := th.Store.System().GetByName(contentFlaggingSetupDoneKey)
-		require.NoError(t, err)
+		data, sysErr := th.Store.System().GetByName(contentFlaggingSetupDoneKey)
+		require.NoError(t, sysErr)
 		require.Equal(t, "v5", data.Value)
 	})
 }

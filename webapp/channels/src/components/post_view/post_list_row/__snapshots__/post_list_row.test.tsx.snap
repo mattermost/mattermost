@@ -1,140 +1,127 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/post_view/post_list_row should have class hideAnimation for NEWER_MESSAGES_LOADER if loadingNewerPosts is false 1`] = `
-<div
-  className="loading-screen"
->
+<div>
   <div
-    className="loading__content hideAnimation"
+    class="loading-screen"
   >
     <div
-      className="round round-1"
-    />
-    <div
-      className="round round-2"
-    />
-    <div
-      className="round round-3"
-    />
+      class="loading__content hideAnimation"
+    >
+      <div
+        class="round round-1"
+      />
+      <div
+        class="round round-2"
+      />
+      <div
+        class="round round-3"
+      />
+    </div>
   </div>
 </div>
 `;
 
 exports[`components/post_view/post_list_row should have class hideAnimation for OLDER_MESSAGES_LOADER if loadingOlderPosts is false 1`] = `
-<div
-  className="loading-screen"
->
+<div>
   <div
-    className="loading__content hideAnimation"
+    class="loading-screen"
   >
     <div
-      className="round round-1"
-    />
-    <div
-      className="round round-2"
-    />
-    <div
-      className="round round-3"
-    />
+      class="loading__content hideAnimation"
+    >
+      <div
+        class="round round-1"
+      />
+      <div
+        class="round round-2"
+      />
+      <div
+        class="round round-3"
+      />
+    </div>
   </div>
 </div>
 `;
 
-exports[`components/post_view/post_list_row should render channel intro message 1`] = `<Connect(ChannelIntroMessage) />`;
+exports[`components/post_view/post_list_row should render channel intro message 1`] = `
+<div>
+  <div
+    data-testid="channel-intro-message"
+  >
+    ChannelIntroMessage
+  </div>
+</div>
+`;
 
 exports[`components/post_view/post_list_row should render combined post 1`] = `
-<Connect(Connect(ErrorBoundary(PostComponent)))
-  combinedId="user-activity-1234-5678"
-  isChannelAutotranslated={false}
-  isLastPost={false}
-  location="CENTER"
-  previousPostId="abcd"
-  shouldHighlight={false}
-  togglePostMenu={[MockFunction]}
-/>
+<div>
+  <div
+    data-testid="combined-user-activity"
+  >
+    CombinedUserActivityPost: user-activity-1234-5678
+  </div>
+</div>
 `;
 
 exports[`components/post_view/post_list_row should render date line 1`] = `
-<Memo(DateSeparator)
-  date={1553106600000}
-  key="1553106600000"
-/>
+<div>
+  <div
+    data-testid="date-separator"
+  >
+    DateSeparator: 1553106600000
+  </div>
+</div>
 `;
 
 exports[`components/post_view/post_list_row should render manual load messages trigger 1`] = `
-<button
-  className="more-messages-text theme style--none color--link"
-  onClick={[MockFunction]}
->
-  <MemoizedFormattedMessage
-    defaultMessage="Load more messages"
-    id="posts_view.loadMore"
-  />
-</button>
+<div>
+  <button
+    class="more-messages-text theme style--none color--link"
+  >
+    Load more messages
+  </button>
+</div>
 `;
 
 exports[`components/post_view/post_list_row should render more messages loading indicator 1`] = `
-<div
-  className="loading-screen"
->
+<div>
   <div
-    className="loading__content"
+    class="loading-screen"
   >
     <div
-      className="round round-1"
-    />
-    <div
-      className="round round-2"
-    />
-    <div
-      className="round round-3"
-    />
+      class="loading__content"
+    >
+      <div
+        class="round round-1"
+      />
+      <div
+        class="round round-2"
+      />
+      <div
+        class="round round-3"
+      />
+    </div>
   </div>
 </div>
 `;
 
 exports[`components/post_view/post_list_row should render new messages line 1`] = `
-<Memo(NewMessageSeparator)
-  channelId="channel_id_1"
-  newMessagesSeparatorActions={Array []}
-  separatorId="start-of-new-messages-1553106600000"
-/>
+<div>
+  <div
+    data-testid="new-message-separator"
+  >
+    NewMessageSeparator: start-of-new-messages-1553106600000
+  </div>
+</div>
 `;
 
 exports[`components/post_view/post_list_row should render post 1`] = `
-<Connect(ErrorBoundary(PostComponent))
-  isChannelAutotranslated={false}
-  isLastPost={false}
-  location="CENTER"
-  post={
-    Object {
-      "channel_id": "",
-      "create_at": 0,
-      "delete_at": 0,
-      "edit_at": 0,
-      "hashtags": "",
-      "id": "post_id_1",
-      "is_pinned": false,
-      "message": "post message",
-      "metadata": Object {
-        "embeds": Array [],
-        "emojis": Array [],
-        "files": Array [],
-        "images": Object {},
-        "reactions": Array [],
-      },
-      "original_id": "",
-      "pending_post_id": "",
-      "props": Object {},
-      "reply_count": 0,
-      "root_id": "",
-      "type": "system_add_remove",
-      "update_at": 0,
-      "user_id": "user_id",
-    }
-  }
-  previousPostId="abcd"
-  shouldHighlight={false}
-  togglePostMenu={[MockFunction]}
-/>
+<div>
+  <div
+    data-testid="post"
+  >
+    Post: post_id_1
+  </div>
+</div>
 `;

@@ -685,19 +685,19 @@ export function getStatusesByIds(userIds: Array<UserProfile['id']>): ActionFuncA
 
 export function setStatus(status: UserStatus): ActionFuncAsync<UserStatus> {
     return async (dispatch, getState) => {
-        let recievedStatus: UserStatus;
+        let receivedStatus: UserStatus;
         try {
-            recievedStatus = await Client4.updateStatus(status);
+            receivedStatus = await Client4.updateStatus(status);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
             return {error};
         }
 
-        const updatedStatus = {[recievedStatus.user_id]: recievedStatus.status};
-        const dndEndTimes = {[recievedStatus.user_id]: recievedStatus?.dnd_end_time ?? 0};
-        const isManualStatus = {[recievedStatus.user_id]: recievedStatus?.manual ?? false};
-        const lastActivity = {[recievedStatus.user_id]: recievedStatus?.last_activity_at ?? 0};
+        const updatedStatus = {[receivedStatus.user_id]: receivedStatus.status};
+        const dndEndTimes = {[receivedStatus.user_id]: receivedStatus?.dnd_end_time ?? 0};
+        const isManualStatus = {[receivedStatus.user_id]: receivedStatus?.manual ?? false};
+        const lastActivity = {[receivedStatus.user_id]: receivedStatus?.last_activity_at ?? 0};
 
         dispatch(batchActions([
             {
@@ -718,7 +718,7 @@ export function setStatus(status: UserStatus): ActionFuncAsync<UserStatus> {
             },
         ], 'BATCHING_STATUS'));
 
-        return {data: recievedStatus};
+        return {data: receivedStatus};
     };
 }
 
@@ -986,7 +986,7 @@ export function saveCustomProfileAttribute(userID: string, attributeID: string, 
             return {data};
         } catch (error) {
             // Extract user-friendly error message from server response
-            let errorMessage = 'Failed to update custom profile attribute';
+            let errorMessage = 'Failed to update user attribute';
             if (error && typeof error === 'object' && 'message' in error && error.message) {
                 errorMessage = error.message;
             }

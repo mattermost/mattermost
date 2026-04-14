@@ -150,13 +150,9 @@ func testCreateInitialSidebarCategories(t *testing.T, rctx request.CTX, ss store
 		var wg sync.WaitGroup
 
 		for range 10 {
-			wg.Add(1)
-
-			go func() {
-				defer wg.Done()
-
+			wg.Go(func() {
 				_, _ = ss.Channel().CreateInitialSidebarCategories(rctx, userID, team.Id)
-			}()
+			})
 		}
 
 		wg.Wait()
@@ -2294,14 +2290,12 @@ func doTestSidebarCategoryConcurrentAccess(t *testing.T, rctx request.CTX, ss st
 	var wg sync.WaitGroup
 
 	for i := range numGoroutines {
-		wg.Add(1)
 		// Run GetSidebarCategoriesForTeamForUser
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			categories, getErr := ss.Channel().GetSidebarCategoriesForTeamForUser(userID, team.Id)
 			require.NoError(t, getErr)
 			require.NotEmpty(t, categories.Categories)
-		}()
+		})
 
 		// Run UpdateSidebarCategories with different update patterns
 		wg.Add(1)
