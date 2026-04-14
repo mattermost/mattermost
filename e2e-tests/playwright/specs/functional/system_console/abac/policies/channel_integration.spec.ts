@@ -1,21 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {
-    expect,
-    test,
-    navigateToABACPage,
-    runSyncJob,
-    verifyUserInChannel,
-} from '@mattermost/playwright-lib';
+import {expect, test, navigateToABACPage, runSyncJob, verifyUserInChannel} from '@mattermost/playwright-lib';
 
 import {setupCustomProfileAttributeFields} from '../../../channels/custom_profile_attributes/helpers';
-import {
-    createUserForABAC,
-    createPrivateChannelForABAC,
-    createBasicPolicy,
-    waitForLatestSyncJob,
-} from '../support';
+import {createUserForABAC, createPrivateChannelForABAC, createBasicPolicy, waitForLatestSyncJob} from '../support';
 
 /**
  * MM-T5788: Add attribute-based policy to a channel from Channel Configuration page
@@ -83,10 +72,7 @@ test('MM-T5788 Add policy to channel from Channel Configuration page', async ({p
     await systemConsolePage.page.waitForTimeout(1000);
 
     // Verify channel shows "Manual Invites" management
-    const channelRow = systemConsolePage.page
-        .locator('.DataGrid_row')
-        .filter({hasText: channel.display_name})
-        .first();
+    const channelRow = systemConsolePage.page.locator('.DataGrid_row').filter({hasText: channel.display_name}).first();
     // const managementText = await channelRow.textContent();
 
     // Click Edit

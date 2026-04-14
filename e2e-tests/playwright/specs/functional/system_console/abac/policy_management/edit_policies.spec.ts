@@ -1,12 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {
-    expect,
-    test,
-    navigateToABACPage,
-    verifyUserInChannel,
-} from '@mattermost/playwright-lib';
+import {expect, test, navigateToABACPage, verifyUserInChannel} from '@mattermost/playwright-lib';
 
 import {
     CustomProfileAttribute,
@@ -256,11 +251,7 @@ test('MM-T5790 Editing policy value applies access control without auto-add', as
     try {
         await adminClient.addToChannel(salesUser.id, privateChannel.id);
 
-        const salesInChannelAfterManualAdd = await verifyUserInChannel(
-            adminClient,
-            salesUser.id,
-            privateChannel.id,
-        );
+        const salesInChannelAfterManualAdd = await verifyUserInChannel(adminClient, salesUser.id, privateChannel.id);
         expect(salesInChannelAfterManualAdd).toBe(true);
     } catch (error) {
         throw new Error(`Step 7 FAILED: Admin should be able to manually add satisfying user. Error: ${error}`);

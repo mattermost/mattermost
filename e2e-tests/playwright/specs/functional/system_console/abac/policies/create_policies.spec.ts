@@ -1,13 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {
-    expect,
-    test,
-    navigateToABACPage,
-    runSyncJob,
-    verifyUserInChannel,
-} from '@mattermost/playwright-lib';
+import {expect, test, navigateToABACPage, runSyncJob, verifyUserInChannel} from '@mattermost/playwright-lib';
 
 import {
     CustomProfileAttribute,
@@ -69,11 +63,7 @@ test('MM-T5783 Create and test policy with auto-add disabled', async ({pw}) => {
         satisfyingUserNotInChannel.id,
         privateChannel.id,
     );
-    const initialUser2InChannel = await verifyUserInChannel(
-        adminClient,
-        satisfyingUserInChannel.id,
-        privateChannel.id,
-    );
+    const initialUser2InChannel = await verifyUserInChannel(adminClient, satisfyingUserInChannel.id, privateChannel.id);
     const initialUser3InChannel = await verifyUserInChannel(
         adminClient,
         nonSatisfyingUserInChannel.id,
@@ -164,11 +154,7 @@ test('MM-T5783 Create and test policy with auto-add disabled', async ({pw}) => {
     }
 
     // Verify the non-satisfying user is NOT in the channel
-    const user3AfterAttempt = await verifyUserInChannel(
-        adminClient,
-        nonSatisfyingUserInChannel.id,
-        privateChannel.id,
-    );
+    const user3AfterAttempt = await verifyUserInChannel(adminClient, nonSatisfyingUserInChannel.id, privateChannel.id);
     expect(user3AfterAttempt).toBe(false); // Policy prevents non-compliant users
 });
 
@@ -243,11 +229,7 @@ test('MM-T5784 Create and test policy with auto-add enabled', async ({pw}) => {
         satisfyingUserNotInChannel.id,
         privateChannel.id,
     );
-    const initialUser2InChannel = await verifyUserInChannel(
-        adminClient,
-        satisfyingUserInChannel.id,
-        privateChannel.id,
-    );
+    const initialUser2InChannel = await verifyUserInChannel(adminClient, satisfyingUserInChannel.id, privateChannel.id);
     const initialUser3InChannel = await verifyUserInChannel(
         adminClient,
         nonSatisfyingUserInChannel.id,

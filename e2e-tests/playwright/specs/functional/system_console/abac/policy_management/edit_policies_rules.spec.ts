@@ -19,7 +19,6 @@ import {
     waitForLatestSyncJob,
 } from '../support';
 
-
 /**
  * MM-T5791: Editing existing access policy to add another attribute applies access control as specified (with auto-add)
  *
@@ -229,16 +228,8 @@ test('MM-T5791 Editing policy to add attribute with auto-add enabled', async ({p
     // STEP 5 & 6: Verify channel membership after edit
     // ===========================================
 
-    const engineerRemoteAfterEdit = await verifyUserInChannel(
-        adminClient,
-        engineerRemoteUser.id,
-        privateChannel.id,
-    );
-    const engineerOfficeAfterEdit = await verifyUserInChannel(
-        adminClient,
-        engineerOfficeUser.id,
-        privateChannel.id,
-    );
+    const engineerRemoteAfterEdit = await verifyUserInChannel(adminClient, engineerRemoteUser.id, privateChannel.id);
+    const engineerOfficeAfterEdit = await verifyUserInChannel(adminClient, engineerOfficeUser.id, privateChannel.id);
     const salesAfterEdit = await verifyUserInChannel(adminClient, salesUser.id, privateChannel.id);
 
     // Step 5: engineerRemoteUser should be in channel (satisfies BOTH attributes)
@@ -452,16 +443,8 @@ test('MM-T5792 Editing policy to remove attribute rule with auto-add enabled', a
     // STEP 5 & 6: Verify channel membership after edit
     // ===========================================
 
-    const engineerRemoteAfterEdit = await verifyUserInChannel(
-        adminClient,
-        engineerRemoteUser.id,
-        privateChannel.id,
-    );
-    const engineerOfficeAfterEdit = await verifyUserInChannel(
-        adminClient,
-        engineerOfficeUser.id,
-        privateChannel.id,
-    );
+    const engineerRemoteAfterEdit = await verifyUserInChannel(adminClient, engineerRemoteUser.id, privateChannel.id);
+    const engineerOfficeAfterEdit = await verifyUserInChannel(adminClient, engineerOfficeUser.id, privateChannel.id);
     const salesRemoteAfterEdit = await verifyUserInChannel(adminClient, salesRemoteUser.id, privateChannel.id);
 
     // Step 5: engineerOfficeUser should be AUTO-ADDED (now satisfies simpler Dept-only policy)

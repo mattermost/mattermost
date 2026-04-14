@@ -80,16 +80,8 @@ test('MM-T5785 Test policy with all attribute types and auto-add', async ({pw}) 
         satisfyingUserNotInChannel.id,
         privateChannel.id,
     );
-    const initialUser2InChannel = await verifyUserInChannel(
-        adminClient,
-        satisfyingUserInChannel.id,
-        privateChannel.id,
-    );
-    const initialUser3InChannel = await verifyUserInChannel(
-        adminClient,
-        partialSatisfyingUser.id,
-        privateChannel.id,
-    );
+    const initialUser2InChannel = await verifyUserInChannel(adminClient, satisfyingUserInChannel.id, privateChannel.id);
+    const initialUser3InChannel = await verifyUserInChannel(adminClient, partialSatisfyingUser.id, privateChannel.id);
     expect(initialUser1InChannel).toBe(false);
     expect(initialUser2InChannel).toBe(true);
     expect(initialUser3InChannel).toBe(true);
