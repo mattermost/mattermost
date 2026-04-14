@@ -6303,6 +6303,10 @@
     "translation": "Failed to permanently delete file for post."
   },
   {
+    "id": "app.file_info.remove_file.app_error",
+    "translation": "Failed to remove the file from file store."
+  },
+  {
     "id": "app.file_info.save.app_error",
     "translation": "Unable to save the file info."
   },

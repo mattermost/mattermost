@@ -1699,8 +1699,10 @@ func getFileExtFromMimeType(mimeType string) string {
 func (a *App) PermanentDeleteFilesByPost(rctx request.CTX, postID string, report *model.PostDeletionReport) *model.AppError {
 	fileInfos, err := a.Srv().Store().FileInfo().GetForPost(postID, false, true, true)
 	if err != nil {
-		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.file_attachments"), model.StepFailed, "", []string{err.Error()})
-		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.fileinfo_rows"), model.StepFailed, "", []string{err.Error()})
+		if report != nil {
+			report.AddStep(i18n.TranslationId("app.data_spillage.report.step.file_attachments"), model.StepFailed, "", []string{err.Error()})
+			report.AddStep(i18n.TranslationId("app.data_spillage.report.step.fileinfo_rows"), model.StepFailed, "", []string{err.Error()})
+		}
 
 		return model.NewAppError("PermanentDeleteFilesByPost", "app.file_info.get_by_post_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -1762,7 +1764,7 @@ func (a *App) RemoveFilesFromFileStore(rctx request.CTX, fileInfos []*model.File
 	for _, info := range fileInfos {
 		appErr := a.RemoveFileFromFileStore(rctx, info.Path)
 		if appErr != nil && appErr.StatusCode != http.StatusNotFound {
-			newAppErr := model.NewAppError("RemoveFilesFromFileStore", "app.file_info.remove_file.app_error", map[string]interface{}{"FileInfoID": info.Id}, "", http.StatusInternalServerError)
+			newAppErr := model.NewAppError("RemoveFilesFromFileStore", "app.file_info.remove_file.app_error", map[string]any{"FileInfoID": info.Id}, "", http.StatusInternalServerError)
 			errs = append(errs, newAppErr)
 		}
 
