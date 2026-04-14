@@ -108,10 +108,10 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
         tabindex="-1"
       >
         <li
-          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
           id="channelOpenInNewWindow"
           role="menuitem"
-          tabindex="-1"
+          tabindex="0"
         >
           <div
             class="leading-element"
@@ -449,10 +449,10 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
         tabindex="-1"
       >
         <li
-          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
           id="channelOpenInNewWindow"
           role="menuitem"
-          tabindex="-1"
+          tabindex="0"
         >
           <div
             class="leading-element"
@@ -790,10 +790,10 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
         tabindex="-1"
       >
         <li
-          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
           id="channelOpenInNewWindow"
           role="menuitem"
-          tabindex="-1"
+          tabindex="0"
         >
           <div
             class="leading-element"
@@ -1131,10 +1131,10 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
         tabindex="-1"
       >
         <li
-          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
           id="channelOpenInNewWindow"
           role="menuitem"
-          tabindex="-1"
+          tabindex="0"
         >
           <div
             class="leading-element"
@@ -1404,10 +1404,10 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
         tabindex="-1"
       >
         <li
-          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
           id="channelOpenInNewWindow"
           role="menuitem"
-          tabindex="-1"
+          tabindex="0"
         >
           <div
             class="leading-element"
@@ -1713,10 +1713,10 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
         tabindex="-1"
       >
         <li
-          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
           id="channelOpenInNewWindow"
           role="menuitem"
-          tabindex="-1"
+          tabindex="0"
         >
           <div
             class="leading-element"
@@ -2051,10 +2051,10 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
         tabindex="-1"
       >
         <li
-          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
           id="channelOpenInNewWindow"
           role="menuitem"
-          tabindex="-1"
+          tabindex="0"
         >
           <div
             class="leading-element"
@@ -2392,10 +2392,10 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
         tabindex="-1"
       >
         <li
-          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
           id="channelOpenInNewWindow"
           role="menuitem"
-          tabindex="-1"
+          tabindex="0"
         >
           <div
             class="leading-element"
@@ -2733,10 +2733,10 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
         tabindex="-1"
       >
         <li
-          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
           id="channelOpenInNewWindow"
           role="menuitem"
-          tabindex="-1"
+          tabindex="0"
         >
           <div
             class="leading-element"
@@ -3074,10 +3074,10 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
         tabindex="-1"
       >
         <li
-          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
           id="channelOpenInNewWindow"
           role="menuitem"
-          tabindex="-1"
+          tabindex="0"
         >
           <div
             class="leading-element"

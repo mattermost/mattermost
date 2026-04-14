@@ -33,6 +33,14 @@ on:
         required: false
         default: false
         type: boolean
+      elasticsearch-version:
+        required: false
+        type: string
+        default: "9.0.0"
+      test-target:
+        required: false
+        type: string
+        default: "test-server"
       # -- Test sharding inputs (leave defaults for non-sharded callers) --
       shard-index:
         required: false
@@ -98,6 +106,7 @@ jobs:
 
       - name: Run docker compose
         env:
+          ELASTICSEARCH_VERSION: ${{ inputs.elasticsearch-version }}
           POSTGRES_PASSWORD: ${{ inputs.fips-enabled && 'mostest-fips-test' || 'mostest' }}
         run: |
           cd server/build
@@ -166,11 +175,11 @@ jobs:
         env:
           BUILD_IMAGE: ${{ steps.build.outputs.BUILD_IMAGE }}
         run: |
-          if [[ ${{ github.ref_name }} == 'master' && ${{ inputs.fullyparallel }} != true ]]; then
+          if [[ ${{ github.ref_name }} == 'master' && ${{ inputs.fullyparallel }} != true && "${{ inputs.test-target }}" == "test-server" ]]; then
             export RACE_MODE="-race"
           fi
 
-          MAKE_ARGS="test-server${RACE_MODE} BUILD_NUMBER=${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}"
+          MAKE_ARGS="${{ inputs.test-target }}${RACE_MODE} BUILD_NUMBER=${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}"
           DOCKER_CMD="make ${MAKE_ARGS}"
 
           # When sharding is active, use the multi-run wrapper script
