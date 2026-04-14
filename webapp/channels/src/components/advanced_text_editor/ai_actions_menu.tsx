@@ -102,19 +102,15 @@ const AIActionsMenu = ({
     }, [draft, getSelectedText, updateText, channelId, isRHS, handleToggle]);
 
     const submenuOrigins = useMemo((): {anchorOrigin: PopoverOrigin; transformOrigin: PopoverOrigin} => {
-        if (!submenuAnchorEl || !window?.innerWidth) {
-            return {
-                anchorOrigin: {vertical: 'bottom', horizontal: 'right'},
-                transformOrigin: {vertical: 'bottom', horizontal: 'left'},
-            };
-        }
-        const rightSpace = window.innerWidth - (submenuAnchorEl.getBoundingClientRect()?.right ?? 0);
-        const leftSpace = submenuAnchorEl.getBoundingClientRect()?.left ?? 0;
-        if (rightSpace < leftSpace) {
-            return {
-                anchorOrigin: {vertical: 'bottom', horizontal: 'left'},
-                transformOrigin: {vertical: 'bottom', horizontal: 'right'},
-            };
+        const MIN_SUBMENU_WIDTH = 400;
+        if (submenuAnchorEl) {
+            const rightSpace = window.innerWidth - (submenuAnchorEl.getBoundingClientRect()?.right ?? 0);
+            if (rightSpace < MIN_SUBMENU_WIDTH) {
+                return {
+                    anchorOrigin: {vertical: 'bottom', horizontal: 'left'},
+                    transformOrigin: {vertical: 'bottom', horizontal: 'right'},
+                };
+            }
         }
         return {
             anchorOrigin: {vertical: 'bottom', horizontal: 'right'},
