@@ -10,7 +10,6 @@ import type {PluginRedux} from '@mattermost/types/plugins';
 import CustomPluginSettings from 'components/admin_console/custom_plugin_settings/custom_plugin_settings';
 import {escapePathPart} from 'components/admin_console/schema_admin_settings';
 
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import {screen, renderWithContext} from 'tests/react_testing_utils';
 
 import type {AdminDefinitionSetting} from '../types';
@@ -133,7 +132,7 @@ describe('components/admin_console/CustomPluginSettings', () => {
                 label: setting.display_name,
             } as AdminDefinitionSetting;
         });
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <CustomPluginSettings
                 {...baseProps}
                 config={config}
@@ -141,11 +140,11 @@ describe('components/admin_console/CustomPluginSettings', () => {
                 patchConfig={jest.fn()}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with settings and no plugin', () => {
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <CustomPluginSettings
                 {...baseProps}
                 config={config}
@@ -156,14 +155,14 @@ describe('components/admin_console/CustomPluginSettings', () => {
                 patchConfig={jest.fn()}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with no settings and plugin', () => {
         const settings = plugin && plugin.settings_schema && plugin.settings_schema.settings && plugin.settings_schema.settings.map((setting) => {
             return {...setting, label: setting.display_name} as AdminDefinitionSetting;
         });
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <CustomPluginSettings
                 {...baseProps}
                 config={{
@@ -175,7 +174,7 @@ describe('components/admin_console/CustomPluginSettings', () => {
                 patchConfig={jest.fn()}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });
 

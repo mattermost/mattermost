@@ -168,9 +168,9 @@ describe('date_utils', () => {
             expect(result).toBe('2025-01-22');
         });
 
-        it('should not resolve +1H (hours not supported)', () => {
+        it('should resolve +1H to a date string', () => {
             const result = resolveRelativeDate('+1H', testTimezone);
-            expect(result).toBe('+1H');
+            expect(result).toBe('2025-01-15');
         });
 
         it('should resolve dynamic patterns like +5d', () => {
@@ -209,10 +209,32 @@ describe('date_utils', () => {
         });
 
         it('should still handle relative dates normally', () => {
-            // These should work exactly as before
             expect(stringToMoment('today')?.isValid()).toBe(true);
             expect(stringToMoment('+7d')?.isValid()).toBe(true);
             expect(stringToMoment('-2w')?.isValid()).toBe(true);
+        });
+
+        it('should resolve sub-day relative patterns (H/M/S)', () => {
+            // System time: 2025-01-15T10:00:00.000Z = 05:00 EST
+            const result = stringToMoment('+2H', testTimezone);
+            expect(result).toBeTruthy();
+            expect(result!.tz(testTimezone).hour()).toBe(7); // 05:00 + 2H = 07:00 EST
+            expect(result!.tz(testTimezone).second()).toBe(0);
+
+            const result30M = stringToMoment('+30M', testTimezone);
+            expect(result30M).toBeTruthy();
+            expect(result30M!.tz(testTimezone).hour()).toBe(5);
+            expect(result30M!.tz(testTimezone).minute()).toBe(30);
+
+            const result90S = stringToMoment('+90S', testTimezone);
+            expect(result90S).toBeTruthy();
+            expect(result90S!.tz(testTimezone).hour()).toBe(5);
+            expect(result90S!.tz(testTimezone).minute()).toBe(1);
+        });
+
+        it('should reject case-insensitive variants of sub-day units', () => {
+            expect(stringToMoment('+1h', testTimezone)).toBeNull(); // lowercase h
+            expect(stringToMoment('+1s', testTimezone)).toBeNull(); // lowercase s
         });
 
         it('should accept any valid ISO format', () => {

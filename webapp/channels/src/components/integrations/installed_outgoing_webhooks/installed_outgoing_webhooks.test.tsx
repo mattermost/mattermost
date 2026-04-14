@@ -1,15 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
+import {screen, waitFor} from '@testing-library/react';
 import React from 'react';
-import type {ComponentProps} from 'react';
 
 import type {OutgoingWebhook} from '@mattermost/types/integrations';
 
 import InstalledOutgoingWebhooks from 'components/integrations/installed_outgoing_webhooks/installed_outgoing_webhooks';
 
+import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
+
+jest.mock('components/integrations/delete_integration_link', () => {
+    const ReactMock = require('react'); // eslint-disable-line @typescript-eslint/no-var-requires, global-require
+    return {
+        __esModule: true,
+        default: (props: {onDelete: () => void}) => ReactMock.createElement('button', {onClick: props.onDelete}, 'Delete'),
+    };
+});
 
 describe('components/integrations/InstalledOutgoingWebhooks', () => {
     const teamId = 'testteamid';
@@ -65,7 +73,18 @@ describe('components/integrations/InstalledOutgoingWebhooks', () => {
         } as unknown as OutgoingWebhook,
     ];
 
-    const defaultProps: ComponentProps<typeof InstalledOutgoingWebhooks> = {
+    const initialState = {
+        entities: {
+            general: {
+                config: {},
+            },
+            users: {
+                currentUserId: 'currentUserId',
+            },
+        },
+    };
+
+    const defaultProps = {
         outgoingWebhooks,
         teamId,
         team,
@@ -81,38 +100,70 @@ describe('components/integrations/InstalledOutgoingWebhooks', () => {
         canManageOthersWebhooks: true,
     };
 
-    test('should match snapshot', () => {
-        const wrapper = shallow<InstalledOutgoingWebhooks>(
+    test('should match snapshot', async () => {
+        const {container} = renderWithContext(
             <InstalledOutgoingWebhooks
                 {...defaultProps}
             />,
+            initialState,
         );
-        expect(shallow(<div>{wrapper.instance().outgoingWebhooks('town')}</div>)).toMatchSnapshot();
-        expect(shallow(<div>{wrapper.instance().outgoingWebhooks('ZZZ')}</div>)).toMatchSnapshot();
-        expect(wrapper).toMatchSnapshot();
+
+        await waitFor(() => {
+            expect(screen.getByText('build status')).toBeInTheDocument();
+        });
+
+        expect(container).toMatchSnapshot();
     });
 
-    test('should call regenOutgoingHookToken function', () => {
-        const wrapper = shallow<InstalledOutgoingWebhooks>(
+    test('should call regenOutgoingHookToken function', async () => {
+        const regenOutgoingHookToken = jest.fn();
+        const props = {
+            ...defaultProps,
+            actions: {
+                ...defaultProps.actions,
+                regenOutgoingHookToken,
+            },
+        };
+
+        renderWithContext(
             <InstalledOutgoingWebhooks
-                {...defaultProps}
+                {...props}
             />,
+            initialState,
         );
-        wrapper.instance().regenOutgoingWebhookToken(outgoingWebhooks[0]);
-        expect(defaultProps.actions.regenOutgoingHookToken).toHaveBeenCalledTimes(1);
-        expect(defaultProps.actions.regenOutgoingHookToken).toHaveBeenCalledWith(outgoingWebhooks[0].id);
+
+        await waitFor(() => {
+            expect(screen.getAllByRole('button', {name: 'Regenerate Token'})).toHaveLength(2);
+        });
+
+        await userEvent.click(screen.getAllByRole('button', {name: 'Regenerate Token'})[0]);
+        expect(regenOutgoingHookToken).toHaveBeenCalledTimes(1);
+        expect(regenOutgoingHookToken).toHaveBeenCalledWith(outgoingWebhooks[0].id);
     });
 
-    test('should call removeOutgoingHook function', () => {
-        const wrapper = shallow<InstalledOutgoingWebhooks>(
+    test('should call removeOutgoingHook function', async () => {
+        const removeOutgoingHook = jest.fn();
+        const props = {
+            ...defaultProps,
+            actions: {
+                ...defaultProps.actions,
+                removeOutgoingHook,
+            },
+        };
+
+        renderWithContext(
             <InstalledOutgoingWebhooks
-                {...defaultProps}
+                {...props}
             />,
+            initialState,
         );
 
-        wrapper.instance().removeOutgoingHook(outgoingWebhooks[1]);
-        expect(defaultProps.actions.removeOutgoingHook).toHaveBeenCalledTimes(1);
-        expect(defaultProps.actions.removeOutgoingHook).toHaveBeenCalledWith(outgoingWebhooks[1].id);
-        expect(defaultProps.actions.removeOutgoingHook).toHaveBeenCalled();
+        await waitFor(() => {
+            expect(screen.getAllByRole('button', {name: 'Delete'})).toHaveLength(2);
+        });
+
+        await userEvent.click(screen.getAllByRole('button', {name: 'Delete'})[1]);
+        expect(removeOutgoingHook).toHaveBeenCalledTimes(1);
+        expect(removeOutgoingHook).toHaveBeenCalledWith(outgoingWebhooks[1].id);
     });
 });

@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import GroupRow from './group_row';
 
@@ -13,7 +14,7 @@ describe('admin_console/team_channel_settings/group/GroupRow', () => {
         member_count: 3,
     };
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <GroupRow
                 group={testGroup}
                 removeGroup={() => {}}
@@ -21,6 +22,7 @@ describe('admin_console/team_channel_settings/group/GroupRow', () => {
                 type='channel'
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+
+        expect(container).toMatchSnapshot();
     });
 });

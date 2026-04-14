@@ -6,13 +6,14 @@ export {testConfig} from './test_config';
 export {baseGlobalSetup} from './global_setup';
 export {TestBrowser} from './browser_context';
 export {getBlobFromAsset, getFileFromAsset} from './file';
-export {koreanTestPhrase, typeKoreanWithIme} from './ime';
-export {duration, wait} from './util';
+export {decomposeKorean, koreanTestPhrase, typeHangulCharacterWithIme, typeHangulWithIme} from './ime';
+export {duration, wait, newTestPassword} from './util';
 
 export {
     ChannelsPage,
     LandingLoginPage,
     LoginPage,
+    RecapsPage,
     ResetPasswordPage,
     SignupPage,
     ScheduledPostsPage,
