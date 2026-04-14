@@ -8,7 +8,7 @@ test('MM-T5782 System admin can enable or disable system-wide ABAC', async ({pw}
     await pw.skipIfNoLicense();
 
     // # Set up admin user and login
-    const {adminUser, adminClient} = await pw.initSetup();
+    const {adminUser} = await pw.initSetup();
 
     // # Now login
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
