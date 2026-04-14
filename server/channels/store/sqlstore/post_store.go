@@ -3267,11 +3267,18 @@ func (s *SqlPostStore) RefreshPostStats() error {
 	// at the expense of locking the mat view. Since viewing admin console
 	// is not a very frequent activity, we accept the tradeoff to let the
 	// refresh happen as fast as possible.
-	if _, err := s.GetMaster().Exec("REFRESH MATERIALIZED VIEW posts_by_team_day"); err != nil {
+
+	postsCtx, postsCancel := s.analyticsContext()
+	defer postsCancel()
+
+	if _, err := s.GetMaster().ExecContext(postsCtx, "REFRESH MATERIALIZED VIEW posts_by_team_day"); err != nil {
 		return errors.Wrap(err, "error refreshing materialized view posts_by_team_day")
 	}
 
-	if _, err := s.GetMaster().Exec("REFRESH MATERIALIZED VIEW bot_posts_by_team_day"); err != nil {
+	botPostsCtx, botPostsCancel := s.analyticsContext()
+	defer botPostsCancel()
+
+	if _, err := s.GetMaster().ExecContext(botPostsCtx, "REFRESH MATERIALIZED VIEW bot_posts_by_team_day"); err != nil {
 		return errors.Wrap(err, "error refreshing materialized view bot_posts_by_team_day")
 	}
 

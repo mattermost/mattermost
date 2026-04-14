@@ -5,7 +5,7 @@ import {Client4} from '@mattermost/client';
 import {UserProfile, UserTimezone} from '@mattermost/types/users';
 import {DateTime} from 'luxon';
 
-import {getRandomId} from '@/util';
+import {getRandomId, newTestPassword} from '@/util';
 import {testConfig} from '@/test_config';
 import {REMOTE_USERS_HOUR_LIMIT_END_OF_THE_DAY, REMOTE_USERS_HOUR_LIMIT_BEGINNING_OF_THE_DAY} from '@/constant';
 
@@ -46,7 +46,7 @@ export async function createRandomUser(prefix = 'user') {
     const user = {
         email: `${prefix}${randomId}@sample.mattermost.com`,
         username: `${prefix}${randomId}`,
-        password: 'passwd',
+        password: newTestPassword(),
         first_name: `First${randomId}`,
         last_name: `Last${randomId}`,
         nickname: `Nickname${randomId}`,

@@ -8470,6 +8470,19 @@ func testSetShared(t *testing.T, rctx request.CTX, ss store.Store) {
 		assert.True(t, channelMod.IsShared())
 	})
 
+	t.Run("Set Shared updates UpdateAt", func(t *testing.T) {
+		updateAtBefore := channelSaved.UpdateAt
+		// Ensure GetMillis() advances so UpdateAt is strictly greater
+		time.Sleep(2 * time.Millisecond)
+
+		err := ss.Channel().SetShared(channelSaved.Id, true)
+		require.NoError(t, err)
+
+		channelMod, err := ss.Channel().Get(channelSaved.Id, false)
+		require.NoError(t, err)
+		require.Greater(t, channelMod.UpdateAt, updateAtBefore, "SetShared should update channel UpdateAt")
+	})
+
 	t.Run("Set Shared for invalid id", func(t *testing.T) {
 		err := ss.Channel().SetShared(model.NewId(), true)
 		require.Error(t, err)
