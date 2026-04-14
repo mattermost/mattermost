@@ -333,6 +333,80 @@ func TestCreateChannel(t *testing.T) {
 	})
 }
 
+func TestCreateChannelManagedCategory(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+	team := th.BasicTeam
+
+	t.Run("should ignore managed category when no enterprise license", func(t *testing.T) {
+		appErr := th.App.Srv().RemoveLicense()
+		require.Nil(t, appErr)
+
+		channel := &model.Channel{
+			DisplayName:         "Managed No License",
+			Name:                GenerateTestChannelName(),
+			Type:                model.ChannelTypeOpen,
+			TeamId:              team.Id,
+			ManagedCategoryName: "Operations",
+		}
+		created, resp, err := client.CreateChannel(context.Background(), channel)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		assert.Empty(t, created.ManagedCategoryName, "managed category should be cleared without license")
+	})
+
+	t.Run("should ignore managed category when feature is disabled", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableManagedChannelCategories = false })
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		channel := &model.Channel{
+			DisplayName:         "Managed Disabled Feature",
+			Name:                GenerateTestChannelName(),
+			Type:                model.ChannelTypeOpen,
+			TeamId:              team.Id,
+			ManagedCategoryName: "Operations",
+		}
+		created, resp, err := client.CreateChannel(context.Background(), channel)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		assert.Empty(t, created.ManagedCategoryName, "managed category should be cleared when feature is disabled")
+	})
+
+	t.Run("should set managed category when feature is enabled with license", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableManagedChannelCategories = true })
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		channel := &model.Channel{
+			DisplayName:         "Managed Enabled",
+			Name:                GenerateTestChannelName(),
+			Type:                model.ChannelTypeOpen,
+			TeamId:              team.Id,
+			ManagedCategoryName: "Operations",
+		}
+		created, resp, err := client.CreateChannel(context.Background(), channel)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		assert.Equal(t, "Operations", created.ManagedCategoryName)
+
+		resp2, err := client.DoAPIGet(context.Background(), fmt.Sprintf("/teams/%s/channels/managed_categories", team.Id), "")
+		require.NoError(t, err)
+		defer resp2.Body.Close()
+
+		var mappings map[string]string
+		require.NoError(t, json.NewDecoder(resp2.Body).Decode(&mappings))
+		assert.Equal(t, "Operations", mappings[created.Id])
+	})
+}
+
 func TestUpdateChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -6838,5 +6912,189 @@ func TestChannelMemberSanitization(t *testing.T) {
 		assert.Equal(t, int64(-1), returnedMember.LastUpdateAt, "Returned member LastUpdateAt should be sanitized")
 		assert.Equal(t, newUser.Id, returnedMember.UserId, "UserId should be preserved")
 		assert.Equal(t, channel.Id, returnedMember.ChannelId, "ChannelId should be preserved")
+	})
+}
+
+func TestGetManagedCategories(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+
+	t.Run("should return 501 without enterprise license", func(t *testing.T) {
+		resp, err := client.DoAPIGet(context.Background(), fmt.Sprintf("/teams/%s/channels/managed_categories", th.BasicTeam.Id), "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+	})
+
+	t.Run("should return 403 when feature is disabled", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableManagedChannelCategories = false })
+
+		resp, err := client.DoAPIGet(context.Background(), fmt.Sprintf("/teams/%s/channels/managed_categories", th.BasicTeam.Id), "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
+	t.Run("should return empty map when no managed categories exist", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableManagedChannelCategories = true })
+
+		resp, err := client.DoAPIGet(context.Background(), fmt.Sprintf("/teams/%s/channels/managed_categories", th.BasicTeam.Id), "")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		var mappings map[string]string
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&mappings))
+		assert.Empty(t, mappings)
+	})
+
+	t.Run("should return managed category mappings for the user's channels", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableManagedChannelCategories = true })
+
+		appErr := th.App.SetChannelManagedCategory(th.Context, th.BasicChannel.Id, "Operations")
+		require.Nil(t, appErr)
+		defer func() {
+			_ = th.App.ClearChannelManagedCategory(th.Context, th.BasicChannel.Id)
+		}()
+
+		resp, err := client.DoAPIGet(context.Background(), fmt.Sprintf("/teams/%s/channels/managed_categories", th.BasicTeam.Id), "")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		var mappings map[string]string
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&mappings))
+		assert.Equal(t, "Operations", mappings[th.BasicChannel.Id])
+	})
+}
+
+func TestPatchChannelManagedCategory(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+
+	enableManagedCategories := func() {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableManagedChannelCategories = true })
+	}
+	disableManagedCategories := func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableManagedChannelCategories = false })
+	}
+	removeLicense := func() {
+		appErr := th.App.Srv().RemoveLicense()
+		require.Nil(t, appErr)
+	}
+
+	t.Run("non-admin should get 403 when feature is enabled", func(t *testing.T) {
+		enableManagedCategories()
+		defer removeLicense()
+
+		channel := th.CreatePublicChannel(t)
+
+		user := th.CreateUser(t)
+		th.LinkUserToTeam(t, user, th.BasicTeam)
+		th.AddUserToChannel(t, user, channel)
+		userClient := th.CreateClient()
+		_, _, err := userClient.Login(context.Background(), user.Email, user.Password)
+		require.NoError(t, err)
+
+		categoryName := "Operations"
+		patch := &model.ChannelPatch{ManagedCategoryName: &categoryName}
+		_, resp, err := userClient.PatchChannel(context.Background(), channel.Id, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("should silently ignore when no enterprise license", func(t *testing.T) {
+		removeLicense()
+
+		channel := th.CreatePublicChannel(t)
+
+		categoryName := "Operations"
+		patch := &model.ChannelPatch{ManagedCategoryName: &categoryName}
+		_, _, err := client.PatchChannel(context.Background(), channel.Id, patch)
+		require.NoError(t, err)
+
+		enableManagedCategories()
+		defer removeLicense()
+
+		resp, err := client.DoAPIGet(context.Background(), fmt.Sprintf("/teams/%s/channels/managed_categories", th.BasicTeam.Id), "")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		var mappings map[string]string
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&mappings))
+		_, exists := mappings[channel.Id]
+		assert.False(t, exists, "managed category should not be set without license")
+	})
+
+	t.Run("should silently ignore when feature is disabled", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		disableManagedCategories()
+		defer removeLicense()
+
+		channel := th.CreatePublicChannel(t)
+
+		categoryName := "Operations"
+		patch := &model.ChannelPatch{ManagedCategoryName: &categoryName}
+		_, _, err := client.PatchChannel(context.Background(), channel.Id, patch)
+		require.NoError(t, err)
+
+		enableManagedCategories()
+
+		resp, err := client.DoAPIGet(context.Background(), fmt.Sprintf("/teams/%s/channels/managed_categories", th.BasicTeam.Id), "")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		var mappings map[string]string
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&mappings))
+		_, exists := mappings[channel.Id]
+		assert.False(t, exists, "managed category should not be set when feature is disabled")
+	})
+
+	t.Run("happy path: set and clear managed category", func(t *testing.T) {
+		enableManagedCategories()
+		defer removeLicense()
+
+		channel := th.CreatePublicChannel(t)
+
+		categoryName := "Operations"
+		patch := &model.ChannelPatch{ManagedCategoryName: &categoryName}
+		_, _, err := client.PatchChannel(context.Background(), channel.Id, patch)
+		require.NoError(t, err)
+
+		resp, err := client.DoAPIGet(context.Background(), fmt.Sprintf("/teams/%s/channels/managed_categories", th.BasicTeam.Id), "")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		var mappings map[string]string
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&mappings))
+		assert.Equal(t, "Operations", mappings[channel.Id])
+
+		emptyName := ""
+		clearPatch := &model.ChannelPatch{ManagedCategoryName: &emptyName}
+		_, _, err = client.PatchChannel(context.Background(), channel.Id, clearPatch)
+		require.NoError(t, err)
+
+		resp2, err := client.DoAPIGet(context.Background(), fmt.Sprintf("/teams/%s/channels/managed_categories", th.BasicTeam.Id), "")
+		require.NoError(t, err)
+		defer resp2.Body.Close()
+
+		var mappings2 map[string]string
+		require.NoError(t, json.NewDecoder(resp2.Body).Decode(&mappings2))
+		_, exists := mappings2[channel.Id]
+		assert.False(t, exists, "managed category should be cleared")
 	})
 }
