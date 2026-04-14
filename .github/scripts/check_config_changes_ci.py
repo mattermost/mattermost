@@ -399,12 +399,16 @@ def main():
             print(f"  –  {r.label}: no changes")
  
     note = build_pr_note(results)
-    if not note:
-        print("\nℹ️  No notable changes found across all checkers.")
-        return
- 
     print("\n🔄 Fetching PR description …")
     body = get_pr_body()
+
+    if not note:
+        if MARKER_OPEN in (body or ""):
+            update_pr_body(strip_old_note(body))
+            print("✅ Removed stale config-change-checker note from PR description.")
+        else:
+            print("\nℹ️  No notable changes found across all checkers.")
+        return
  
     if already_up_to_date(body):
         print("ℹ️  PR description is already up to date for this commit.")
