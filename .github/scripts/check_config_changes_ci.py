@@ -161,7 +161,7 @@ def check_config(patches: dict[str, str]) -> CheckResult:
 # Groups:   (path, handler_function, HTTP_METHOD)
 _HANDLE_RE = re.compile(
     r'\.Handle\("([^"]*)"'           # path
-    r',\s*\w+\.\w+\((\w+)\)\)'      # wrapper(handlerFunc))
+    r',\s*\w+\.\w+\(([^)]+)\)'      # wrapper(handler...))
     r'\.Methods\((?:http\.Method)?(\w+)\)'  # .Methods(GET / http.MethodGet)
 )
  
