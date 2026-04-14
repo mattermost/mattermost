@@ -5168,7 +5168,8 @@ func TestImportImportBot(t *testing.T) {
 
 		// Verify bot was not created in DB.
 		_, err := th.App.Srv().Store().Bot().GetByUsername(*data.Username)
-		require.Error(t, err, "Bot should not exist after dry run.")
+		var nfErr *store.ErrNotFound
+		require.ErrorAs(t, err, &nfErr, "Bot should not be found after dry run.")
 	})
 
 	t.Run("import valid bot in apply mode", func(t *testing.T) {
@@ -5338,6 +5339,9 @@ func TestImportImportBot(t *testing.T) {
 
 		// Re-import with exactly the same data. hasBotChanged should remain
 		// false, so no database write occurs and the bot is unchanged.
+		// Sleep briefly so that any real update would produce a different
+		// UpdateAt timestamp (millisecond resolution).
+		time.Sleep(2 * time.Millisecond)
 		appErr = th.App.importBot(th.Context, &data, false)
 		require.Nil(t, appErr, "Idempotent re-import should succeed.")
 
@@ -5372,6 +5376,32 @@ func TestImportImportBot(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, "Updated DisplayName", bot.DisplayName)
 		assert.Equal(t, "Unchanged description", bot.Description, "Description should remain unchanged.")
+	})
+
+	t.Run("import bot returns error when CreateBot fails for non-username reason", func(t *testing.T) {
+		// Trigger a non-username CreateBot failure by pre-creating a user whose
+		// email collides with the email CreateBot would generate (username@localhost).
+		// This causes User().Save() inside CreateBot to fail with
+		// ErrInvalidInput{Field: "email"}, which importBot must return directly
+		// instead of entering the username-conflict recovery path.
+		botUsername := model.NewUsername()
+		collidingEmail := model.NormalizeEmail(botUsername + "@localhost")
+		_, err := th.App.Srv().Store().User().Save(th.Context, &model.User{
+			Username: model.NewUsername(), // different username — no username conflict
+			Email:    collidingEmail,      // same email CreateBot would use
+			Roles:    model.SystemUserRoleId,
+		})
+		require.NoError(t, err, "Failed to create user with colliding email.")
+
+		data := imports.BotImportData{
+			Username:    &botUsername,
+			DisplayName: model.NewPointer("Email Conflict Bot"),
+			Description: model.NewPointer("Should fail"),
+			Owner:       &th.BasicUser.Username,
+		}
+		appErr := th.App.importBot(th.Context, &data, false)
+		require.NotNil(t, appErr, "Import should fail when CreateBot hits a non-username error.")
+		assert.Contains(t, appErr.Id, "email_exists", "Error should indicate email conflict, not username conflict.")
 	})
 
 	t.Run("import bot with owner that does not exist uses owner as plugin id", func(t *testing.T) {

@@ -935,7 +935,7 @@ func (a *App) importBot(rctx request.CTX, data *imports.BotImportData, dryRun bo
 				var updateErr error
 				savedBot, updateErr = a.Srv().Store().Bot().Update(bot)
 				if updateErr != nil {
-					return model.NewAppError("importBot", "app.bot.createbot.internal_error", nil, "", http.StatusInternalServerError).Wrap(updateErr)
+					return model.NewAppError("importBot", "app.bot.update.internal_error", nil, "", http.StatusInternalServerError).Wrap(updateErr)
 				}
 			}
 		}
