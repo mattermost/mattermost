@@ -18,19 +18,18 @@ import (
 )
 
 const (
-	EmojisPermissionsMigrationKey                   = "EmojisPermissionsMigrationComplete"
-	GuestRolesCreationMigrationKey                  = "GuestRolesCreationMigrationComplete"
-	SystemConsoleRolesCreationMigrationKey          = "SystemConsoleRolesCreationMigrationComplete"
-	CustomGroupAdminRoleCreationMigrationKey        = "CustomGroupAdminRoleCreationMigrationComplete"
-	SharedChannelManagerRoleCreationMigrationKey    = "SystemSharedChannelManagerRoleCreationMigrationComplete"
-	SecureConnectionManagerRoleCreationMigrationKey = "SystemSecureConnectionManagerRoleCreationMigrationComplete"
-	ContentExtractionConfigDefaultTrueMigrationKey  = "ContentExtractionConfigDefaultTrueMigrationComplete"
-	PlaybookRolesCreationMigrationKey               = "PlaybookRolesCreationMigrationComplete"
-	FirstAdminSetupCompleteKey                      = model.SystemFirstAdminSetupComplete
-	remainingSchemaMigrationsKey                    = "RemainingSchemaMigrations"
-	postPriorityConfigDefaultTrueMigrationKey       = "PostPriorityConfigDefaultTrueMigrationComplete"
-	contentFlaggingSetupDoneKey                     = "content_flagging_setup_done"
-	contentFlaggingMigrationVersion                 = "v5"
+	EmojisPermissionsMigrationKey                  = "EmojisPermissionsMigrationComplete"
+	GuestRolesCreationMigrationKey                 = "GuestRolesCreationMigrationComplete"
+	SystemConsoleRolesCreationMigrationKey         = "SystemConsoleRolesCreationMigrationComplete"
+	CustomGroupAdminRoleCreationMigrationKey       = "CustomGroupAdminRoleCreationMigrationComplete"
+	SharedChannelManagerRoleCreationMigrationKey   = "SystemSharedChannelManagerRoleCreationMigrationComplete"
+	ContentExtractionConfigDefaultTrueMigrationKey = "ContentExtractionConfigDefaultTrueMigrationComplete"
+	PlaybookRolesCreationMigrationKey              = "PlaybookRolesCreationMigrationComplete"
+	FirstAdminSetupCompleteKey                     = model.SystemFirstAdminSetupComplete
+	remainingSchemaMigrationsKey                   = "RemainingSchemaMigrations"
+	postPriorityConfigDefaultTrueMigrationKey      = "PostPriorityConfigDefaultTrueMigrationComplete"
+	contentFlaggingSetupDoneKey                    = "content_flagging_setup_done"
+	contentFlaggingMigrationVersion                = "v5"
 
 	contentFlaggingPropertyNameFlaggedPostId       = "flagged_post_id"
 	ContentFlaggingPropertyNameStatus              = "status"
@@ -367,10 +366,6 @@ func (s *Server) doCustomGroupAdminRoleCreationMigration() error {
 
 func (s *Server) doSharedChannelManagerRoleCreationMigration() error {
 	return s.doSingleRoleCreationMigration(SharedChannelManagerRoleCreationMigrationKey, model.SharedChannelManagerRoleId)
-}
-
-func (s *Server) doSecureConnectionManagerRoleCreationMigration() error {
-	return s.doSingleRoleCreationMigration(SecureConnectionManagerRoleCreationMigrationKey, model.SecureConnectionManagerRoleId)
 }
 
 func (s *Server) doContentExtractionConfigDefaultTrueMigration() error {
@@ -865,7 +860,6 @@ func (s *Server) doAppMigrations() {
 		{"System Console Roles Creation Migration", s.doSystemConsoleRolesCreationMigration},
 		{"Custom Group Admin Role Creation Migration", s.doCustomGroupAdminRoleCreationMigration},
 		{"Shared Channel Manager Role Creation Migration", s.doSharedChannelManagerRoleCreationMigration},
-		{"Secure Connection Manager Role Creation Migration", s.doSecureConnectionManagerRoleCreationMigration},
 		// This migration always run after dependent migrations such as the guest roles migration.
 		{"Permissions Migrations", s.doPermissionsMigrations},
 		{"Content Extraction Config Default True Migration", s.doContentExtractionConfigDefaultTrueMigration},
