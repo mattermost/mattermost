@@ -56,6 +56,12 @@ export async function getRandomId(length = 7): Promise<string> {
 // It should not be used for testing.
 export const defaultTeam = {name: 'ad-1', displayName: 'eligendi', type: 'O'};
 
+// Returns a FIPS-compliant test password (>= 14 chars with complexity).
+// Static for now but could generate unique passwords if requirements change.
+export function newTestPassword(): string {
+    return 'Passwd4Testing!';
+}
+
 export const illegalRe = /[/?<>\\:*|":&();]/g;
 export const simpleEmailRe = /\S+@\S+\.\S+/;
 

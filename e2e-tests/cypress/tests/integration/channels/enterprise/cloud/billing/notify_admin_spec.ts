@@ -11,6 +11,7 @@
 // Group: @channels @cloud_only @cloud_trial
 
 import {getAdminAccount} from '../../../../../support/env';
+import {newTestPassword} from '../../../../../utils';
 
 const admin = getAdminAccount();
 
@@ -291,7 +292,7 @@ function testTrialNotifications(subscription, limits) {
     cy.then(() => {
         myAllProfessionalUsers.forEach((user) => {
             simulateSubscription(subscription, limits);
-            cy.apiLogin({...user, password: 'passwd'});
+            cy.apiLogin({...user, password: newTestPassword()});
             cy.visit(`/${myTeam.name}/channels/${myChannel.name}`);
             cy.wait(['@subscription', '@products']);
             createTrialNotificationForProfessionalFeatures();
@@ -302,7 +303,7 @@ function testTrialNotifications(subscription, limits) {
     cy.then(() => {
         myAllEnterpriseUsers.forEach((user) => {
             simulateSubscription(subscription, limits);
-            cy.apiLogin({...user, password: 'passwd'});
+            cy.apiLogin({...user, password: newTestPassword()});
             cy.visit(`/${myTeam.name}/channels/${myChannel.name}`);
             cy.wait(['@subscription', '@products']);
             createTrialNotificationForEnterpriseFeatures();
@@ -345,7 +346,7 @@ function testFilesNotifications(subscription: Subscription, limits: Limits) {
     cy.then(() => {
         myAllProfessionalUsers.forEach((user) => {
             simulateSubscription(subscription, limits);
-            cy.apiLogin({...user, password: 'passwd'});
+            cy.apiLogin({...user, password: newTestPassword()});
             cy.visit(`/${myTeam.name}/channels/${myChannel.name}`);
             cy.wait(['@subscription', '@products']);
             createFilesNotificationForProfessionalFeatures();
@@ -393,7 +394,7 @@ function testUpgradeNotifications(subscription, limits) {
         myMessageLimitUsers.forEach((user) => {
             cy.clearCookies();
             simulateSubscription(subscription, limits);
-            cy.apiLogin({...user, password: 'passwd'});
+            cy.apiLogin({...user, password: newTestPassword()});
             cy.visit(`/${myTeam.name}/channels/${myChannel.name}`);
             cy.wait(['@subscription', '@products']);
             createMessageLimitNotification();
@@ -405,7 +406,7 @@ function testUpgradeNotifications(subscription, limits) {
         myUnlimitedTeamsUsers.forEach((user) => {
             cy.clearCookies();
             simulateSubscription(subscription, limits);
-            cy.apiLogin({...user, password: 'passwd'});
+            cy.apiLogin({...user, password: newTestPassword()});
             cy.visit(`/${myTeam.name}/channels/${myChannel.name}`);
             cy.wait(['@subscription', '@products']);
             creatNewTeamNotification();
@@ -417,7 +418,7 @@ function testUpgradeNotifications(subscription, limits) {
         myUserGroupsUsers.forEach((user) => {
             cy.clearCookies();
             simulateSubscription(subscription, limits);
-            cy.apiLogin({...user, password: 'passwd'});
+            cy.apiLogin({...user, password: newTestPassword()});
             cy.visit(`/${myTeam.name}/channels/${myChannel.name}`);
             userGroupsNotification();
         });
