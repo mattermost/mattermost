@@ -323,7 +323,7 @@ func remoteClusterDisplayName(rc *model.RemoteCluster) string {
 // messageForSharedChannelStatePost returns the server-default-locale (i18n.T) copy for Post.Message so clients
 // without a renderer still show the same sentence as the webapp (shared_channel.system_message.*).
 func messageForSharedChannelStatePost(props model.StringInterface) string {
-	raw, _ := props[model.PostPropsSharedChannelState]
+	raw := props[model.PostPropsSharedChannelState]
 	state, _ := raw.(string)
 	switch state {
 	case model.SharedChannelStatePostValueShared:

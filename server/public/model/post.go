@@ -102,13 +102,13 @@ const (
 	PostPropsCurrentTeamId            = "current_team_id"
 	PostPropsUnsafeLinks              = "unsafe_links"
 	PostPropsAIGeneratedByUserID      = "ai_generated_by"
-	PostPropsAIGeneratedByUsername = "ai_generated_by_username"
-	// Shared-channel state posts (PostTypeSharedChannelState): props for client-side i18n.
-	PostPropsSharedChannelState          = "shared_channel_state"
-	PostPropsSharedChannelWorkspaceName  = "workspace_name"
-	PostPropsSharedChannelWorkspaceUnknown = "workspace_unknown"
-	PostPropsExpireAt                    = "expire_at"
+	PostPropsAIGeneratedByUsername    = "ai_generated_by_username"
+	PostPropsExpireAt                 = "expire_at"
 	PostPropsReadDurationSeconds      = "read_duration"
+	// Shared-channel state posts (PostTypeSharedChannelState): props for client-side i18n.
+	PostPropsSharedChannelState            = "shared_channel_state"
+	PostPropsSharedChannelWorkspaceName    = "workspace_name"
+	PostPropsSharedChannelWorkspaceUnknown = "workspace_unknown"
 
 	PostPriorityUrgent = "urgent"
 
