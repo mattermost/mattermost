@@ -698,7 +698,7 @@ func applyMultiRoleFilters(query sq.SelectBuilder, systemRoles []string, teamRol
 			case model.SystemUserRoleId:
 				// If querying for a `system_user` ensure that the user is only a system_user.
 				sqOr = append(sqOr, sq.Eq{"Users.Roles": role})
-			case model.SystemGuestRoleId, model.SystemAdminRoleId, model.SystemUserManagerRoleId, model.SystemReadOnlyAdminRoleId, model.SystemManagerRoleId, model.SystemCustomGroupAdminRoleId, model.SharedChannelManagerRoleId, model.SecureConnectionManagerRoleId:
+			case model.SystemGuestRoleId, model.SystemAdminRoleId, model.SystemUserManagerRoleId, model.SystemReadOnlyAdminRoleId, model.SystemManagerRoleId, model.SystemCustomGroupAdminRoleId, model.SharedChannelManagerRoleId:
 				// If querying for any other roles search using a wildcard.
 				sqOr = append(sqOr, sq.ILike{"Users.Roles": queryRole})
 			}
@@ -2374,9 +2374,13 @@ func (us SqlUserStore) GetUsersWithInvalidEmails(page int, perPage int, restrict
 }
 
 func (us SqlUserStore) RefreshPostStatsForUsers() error {
-	if _, err := us.GetMaster().Exec("REFRESH MATERIALIZED VIEW poststats"); err != nil {
+	ctx, cancel := us.analyticsContext()
+	defer cancel()
+
+	if _, err := us.GetMaster().ExecContext(ctx, "REFRESH MATERIALIZED VIEW poststats"); err != nil {
 		return errors.Wrap(err, "users_refresh_post_stats_exec")
 	}
+
 	return nil
 }
 

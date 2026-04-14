@@ -861,7 +861,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                             <span className='cpa-section-header'>
                                 <FormattedMessage
                                     id='admin.userManagement.userDetail.customProfileAttributes'
-                                    defaultMessage='Custom Profile Attributes'
+                                    defaultMessage='User Attributes'
                                 />
                             </span>
                         </div>

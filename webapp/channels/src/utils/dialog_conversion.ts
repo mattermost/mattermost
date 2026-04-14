@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AppForm, AppField, AppFormValue, AppSelectOption, AppFormValues} from '@mattermost/types/apps';
+import {isAppSelectOption, type AppForm, type AppField, type AppFormValue, type AppSelectOption, type AppFormValues} from '@mattermost/types/apps';
 import type {DialogElement} from '@mattermost/types/integrations';
 
 import {AppFieldTypes} from 'mattermost-redux/constants/apps';
@@ -253,10 +253,19 @@ export function getDefaultValue(element: DialogElement): AppFormValue {
         return boolString === 'true' || boolString === '1' || boolString === 'yes';
     }
 
-    case DialogElementTypes.SELECT:
     case DialogElementTypes.RADIO: {
+        // Radio values are always plain strings (RadioSetting.onChange returns e.target.value).
+        // Normalize to string from the start so the value shape never changes after user interaction.
+        if (element.options && element.default) {
+            const match = element.options.find((opt) => opt.value === element.default);
+            return match ? match.value : null;
+        }
+        return element.default ? String(element.default) : null;
+    }
+
+    case DialogElementTypes.SELECT: {
         // Handle dynamic selects that use data_source instead of static options
-        if (element.type === 'select' && element.data_source === 'dynamic' && element.default) {
+        if (element.data_source === 'dynamic' && element.default) {
             if (element.multiselect) {
                 const values = Array.isArray(element.default) ?
                     element.default :
@@ -274,7 +283,7 @@ export function getDefaultValue(element: DialogElement): AppFormValue {
 
         if (element.options && element.default) {
             // Handle multiselect defaults (comma-separated values)
-            if (element.type === 'select' && element.multiselect) {
+            if (element.multiselect) {
                 const defaultValues = Array.isArray(element.default) ? element.default : String(element.default).split(',').map((val) => val.trim());
 
                 const defaultOptions = defaultValues.map((value) => {
@@ -439,6 +448,13 @@ export function convertElement(element: DialogElement, options: ConversionOption
         }
     }
 
+    // Add refresh support for bool fields
+    if (element.type === DialogElementTypes.BOOL) {
+        if (element.refresh !== undefined) {
+            appField.refresh = element.refresh;
+        }
+    }
+
     // Add date/datetime specific properties
     if (element.type === DialogElementTypes.DATE || element.type === DialogElementTypes.DATETIME) {
         // Use datetime_config if provided
@@ -455,6 +471,10 @@ export function convertElement(element: DialogElement, options: ConversionOption
         }
         if (element.time_interval !== undefined && element.type === DialogElementTypes.DATETIME) {
             appField.time_interval = Number(element.time_interval);
+        }
+
+        if (element.refresh !== undefined) {
+            appField.refresh = element.refresh;
         }
     }
 
@@ -567,42 +587,34 @@ export function convertDialogToAppForm(
 /**
  * Extract primitive values from form field objects for storage/submission
  * Converts select option objects {label: "Text", value: "val"} to primitive "val"
- * Filters out null, undefined, empty, and "<nil>" values
+ * Filters out null, undefined, empty, and "<nil>" values unless clearEmptyFields is true,
+ * in which case empty/null fields are emitted as '' or [] so they can overwrite prior values.
  */
-export function extractPrimitiveValues(values: Record<string, any>): Record<string, any> {
-    const normalized: Record<string, any> = {};
+export function extractPrimitiveValues(values: Record<string, any>, clearEmptyFields = false): Record<string, any> {
+    const isMeaningful = (v: any): v is string | boolean => v != null && v !== '' && v !== '<nil>';
 
-    Object.entries(values).forEach(([key, value]) => {
-        // Skip null, undefined, empty string, and "<nil>" values
-        if (value === null || value === undefined || value === '' || value === '<nil>') {
-            return;
-        }
-
+    return Object.entries(values).reduce<Record<string, any>>((acc, [key, value]) => {
         if (Array.isArray(value)) {
-            // Handle multiselect arrays - extract values from each option object
-            const extractedValues = value.
-                filter((item) => item && typeof item === 'object' && 'value' in item).
-                map((item) => item.value).
-                filter((val) => val !== null && val !== undefined && val !== '' && val !== '<nil>');
+            const extracted = value.
+                map((item) => (isAppSelectOption(item) ? item.value : item)).
+                filter(isMeaningful);
 
-            if (extractedValues.length > 0) {
-                normalized[key] = extractedValues;
+            if (extracted.length > 0 || clearEmptyFields) {
+                acc[key] = extracted;
             }
-        } else if (value && typeof value === 'object' && 'value' in value) {
-            // Extract value from single select option object {label: "...", value: "..."}
-            const extractedValue = value.value;
-
-            // Only store if the extracted value is meaningful
-            if (extractedValue !== null && extractedValue !== undefined && extractedValue !== '' && extractedValue !== '<nil>') {
-                normalized[key] = extractedValue;
+        } else if (isAppSelectOption(value)) {
+            if (isMeaningful(value.value)) {
+                acc[key] = value.value;
+            } else if (clearEmptyFields) {
+                acc[key] = '';
             }
-        } else {
-            // Keep primitive values as-is (but skip empty/nil values)
-            normalized[key] = value;
+        } else if (isMeaningful(value)) {
+            acc[key] = value;
+        } else if (clearEmptyFields) {
+            acc[key] = '';
         }
-    });
-
-    return normalized;
+        return acc;
+    }, {});
 }
 
 /**
@@ -693,7 +705,13 @@ export function convertAppFormValuesToDialogSubmission(
             break;
 
         case DialogElementTypes.RADIO:
-            submission[element.name] = String(value);
+            // Radio values are normally plain strings, but accept {label, value}
+            // objects for backwards compatibility with older code paths.
+            if (isAppSelectOption(value)) {
+                submission[element.name] = value.value;
+            } else {
+                submission[element.name] = String(value);
+            }
             break;
 
         case DialogElementTypes.SELECT:

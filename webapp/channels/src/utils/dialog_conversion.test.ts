@@ -8,6 +8,7 @@ import {
     convertDialogToAppForm,
     convertAppFormValuesToDialogSubmission,
     DialogElementTypes,
+    extractPrimitiveValues,
     getDefaultValue,
     getFieldType,
     getOptions,
@@ -335,10 +336,24 @@ describe('dialog_conversion', () => {
             } as DialogElement;
 
             const result = getDefaultValue(element);
-            expect(result).toEqual({
-                label: 'Option 1',
-                value: 'option1',
-            });
+
+            // Radio defaults are plain strings (not {label, value} objects)
+            // because RadioSetting.onChange returns e.target.value (a string)
+            expect(result).toBe('option1');
+        });
+
+        it('should return null for radio default that does not match any option', () => {
+            const element = {
+                type: 'radio',
+                default: 'stale_value',
+                options: [
+                    {text: 'Option 1', value: 'option1'},
+                    {text: 'Option 2', value: 'option2'},
+                ],
+            } as DialogElement;
+
+            const result = getDefaultValue(element);
+            expect(result).toBeNull();
         });
 
         it('should handle dynamic select defaults', () => {
@@ -973,6 +988,48 @@ describe('dialog_conversion', () => {
             expect(form.fields?.[0].refresh).toBe(true);
         });
 
+        it('should handle refresh property for date and datetime fields', () => {
+            const elements: DialogElement[] = [
+                {
+                    name: 'refreshable_date',
+                    type: 'date',
+                    display_name: 'Refreshable Date',
+                    optional: false,
+                    refresh: true,
+                } as DialogElement,
+                {
+                    name: 'refreshable_datetime',
+                    type: 'datetime',
+                    display_name: 'Refreshable Datetime',
+                    optional: false,
+                    refresh: true,
+                } as DialogElement,
+                {
+                    name: 'non_refreshable_date',
+                    type: 'date',
+                    display_name: 'Non-Refreshable Date',
+                    optional: false,
+                } as DialogElement,
+            ];
+
+            const {form, errors} = convertDialogToAppForm(
+                elements,
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                'http://example.com/source',
+                '',
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(form.fields).toHaveLength(3);
+            expect(form.fields?.[0].refresh).toBe(true);
+            expect(form.fields?.[1].refresh).toBe(true);
+            expect(form.fields?.[2].refresh).toBeUndefined();
+        });
+
         it('should include state in submit and source AppCall objects', () => {
             const elements: DialogElement[] = [
                 {
@@ -1231,6 +1288,48 @@ describe('dialog_conversion', () => {
             expect(errors).toHaveLength(0);
             expect(submission).toEqual({
                 radio_field: 'optA',
+            });
+        });
+
+        it('should extract value from radio field stored as AppSelectOption object', () => {
+            const values = {
+                radio_object: {label: 'Option A', value: 'optA'},
+                radio_string: 'optB',
+            } as unknown as AppFormValues;
+
+            const elements: DialogElement[] = [
+                {
+                    name: 'radio_object',
+                    type: 'radio',
+                    display_name: 'Radio Object Field',
+                    optional: false,
+                    options: [
+                        {text: 'Option A', value: 'optA'},
+                        {text: 'Option B', value: 'optB'},
+                    ],
+                } as DialogElement,
+                {
+                    name: 'radio_string',
+                    type: 'radio',
+                    display_name: 'Radio String Field',
+                    optional: false,
+                    options: [
+                        {text: 'Option A', value: 'optA'},
+                        {text: 'Option B', value: 'optB'},
+                    ],
+                } as DialogElement,
+            ];
+
+            const {submission, errors} = convertAppFormValuesToDialogSubmission(
+                values,
+                elements,
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(submission).toEqual({
+                radio_object: 'optA',
+                radio_string: 'optB',
             });
         });
 
@@ -1678,6 +1777,156 @@ describe('dialog_conversion', () => {
                 expect(errors).toHaveLength(0);
                 expect(submission).toEqual({
                     meeting_time: '2025-01-15T14:30:00Z',
+                });
+            });
+        });
+    });
+
+    describe('extractPrimitiveValues', () => {
+        it('should extract value from a single select option', () => {
+            const result = extractPrimitiveValues({
+                color: {label: 'Red', value: 'red'},
+            });
+            expect(result).toEqual({color: 'red'});
+        });
+
+        it('should extract values from a multiselect array', () => {
+            const result = extractPrimitiveValues({
+                colors: [
+                    {label: 'Red', value: 'red'},
+                    {label: 'Blue', value: 'blue'},
+                ],
+            });
+            expect(result).toEqual({colors: ['red', 'blue']});
+        });
+
+        it('should pass through primitive strings', () => {
+            const result = extractPrimitiveValues({
+                name: 'hello',
+            });
+            expect(result).toEqual({name: 'hello'});
+        });
+
+        it('should pass through booleans', () => {
+            const result = extractPrimitiveValues({
+                enabled: true,
+                disabled: false,
+            });
+            expect(result).toEqual({enabled: true, disabled: false});
+        });
+
+        it('should skip null, undefined, empty string, and <nil> values', () => {
+            const result = extractPrimitiveValues({
+                a: null,
+                b: undefined,
+                c: '',
+                d: '<nil>',
+                e: 'keep',
+            });
+            expect(result).toEqual({e: 'keep'});
+        });
+
+        it('should skip select option with empty value', () => {
+            const result = extractPrimitiveValues({
+                color: {label: '', value: ''},
+            });
+            expect(result).toEqual({});
+        });
+
+        it('should skip select option with <nil> value', () => {
+            const result = extractPrimitiveValues({
+                color: {label: 'None', value: '<nil>'},
+            });
+            expect(result).toEqual({});
+        });
+
+        it('should skip empty multiselect arrays', () => {
+            const result = extractPrimitiveValues({
+                colors: [],
+            });
+            expect(result).toEqual({});
+        });
+
+        it('should pass through primitive string arrays', () => {
+            const result = extractPrimitiveValues({
+                dates: ['2026-01-01', '2026-01-15'],
+            });
+            expect(result).toEqual({dates: ['2026-01-01', '2026-01-15']});
+        });
+
+        it('should handle mixed arrays of select options and primitives', () => {
+            const result = extractPrimitiveValues({
+                items: [
+                    {label: 'Red', value: 'red'},
+                    'already-extracted',
+                ],
+            });
+            expect(result).toEqual({items: ['red', 'already-extracted']});
+        });
+
+        it('should filter out meaningless values from multiselect arrays', () => {
+            const result = extractPrimitiveValues({
+                colors: [
+                    {label: 'Red', value: 'red'},
+                    {label: 'Empty', value: ''},
+                    {label: 'Blue', value: 'blue'},
+                ],
+            });
+            expect(result).toEqual({colors: ['red', 'blue']});
+        });
+
+        describe('with clearEmptyFields=true', () => {
+            it('should emit empty string for null values', () => {
+                const result = extractPrimitiveValues({a: null}, true);
+                expect(result).toEqual({a: ''});
+            });
+
+            it('should emit empty string for undefined values', () => {
+                const result = extractPrimitiveValues({a: undefined}, true);
+                expect(result).toEqual({a: ''});
+            });
+
+            it('should emit empty string for empty string values', () => {
+                const result = extractPrimitiveValues({a: ''}, true);
+                expect(result).toEqual({a: ''});
+            });
+
+            it('should emit empty string for <nil> values', () => {
+                const result = extractPrimitiveValues({a: '<nil>'}, true);
+                expect(result).toEqual({a: ''});
+            });
+
+            it('should emit empty array for empty multiselect arrays', () => {
+                const result = extractPrimitiveValues({colors: []}, true);
+                expect(result).toEqual({colors: []});
+            });
+
+            it('should emit empty string for select option with empty value', () => {
+                const result = extractPrimitiveValues({
+                    color: {label: '', value: ''},
+                }, true);
+                expect(result).toEqual({color: ''});
+            });
+
+            it('should emit empty string for select option with <nil> value', () => {
+                const result = extractPrimitiveValues({
+                    color: {label: 'None', value: '<nil>'},
+                }, true);
+                expect(result).toEqual({color: ''});
+            });
+
+            it('should still extract meaningful values normally', () => {
+                const result = extractPrimitiveValues({
+                    name: 'hello',
+                    color: {label: 'Red', value: 'red'},
+                    cleared: null,
+                    emptied: [],
+                }, true);
+                expect(result).toEqual({
+                    name: 'hello',
+                    color: 'red',
+                    cleared: '',
+                    emptied: [],
                 });
             });
         });
