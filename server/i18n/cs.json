@@ -5052,10 +5052,6 @@
     "translation": "Licence na Mattermost Enterprise byla deaktivována."
   },
   {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Vaše licence na Enterprise Edition vypršela a některé funkce mohou být deaktivovány. Obnovte prosím svou licenci nyní."
-  },
-  {
     "id": "api.team.join_user_to_team.allowed_domains.app_error",
     "translation": "Uživatele nelze přidat, protože doména přiřazená tomuto účtu není povolena. Další podrobnosti žádejte od svého systémového administrátora."
   },

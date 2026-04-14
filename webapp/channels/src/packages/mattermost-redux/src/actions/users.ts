@@ -986,7 +986,7 @@ export function saveCustomProfileAttribute(userID: string, attributeID: string, 
             return {data};
         } catch (error) {
             // Extract user-friendly error message from server response
-            let errorMessage = 'Failed to update custom profile attribute';
+            let errorMessage = 'Failed to update user attribute';
             if (error && typeof error === 'object' && 'message' in error && error.message) {
                 errorMessage = error.message;
             }
