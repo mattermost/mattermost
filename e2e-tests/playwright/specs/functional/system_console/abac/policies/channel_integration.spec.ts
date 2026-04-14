@@ -83,7 +83,7 @@ test('MM-T5788 Add policy to channel from Channel Configuration page', async ({p
     // STEP 3: Toggle on "Enable attribute based channel access"
     // ============================================================
 
-    const abacToggle = systemConsolePage.page.locator('[data-testid="policy-enforce-toggle-button"]');
+    const abacToggle = systemConsolePage.page.locator('[data-testid="policy-enforce-toggle"]');
     await abacToggle.waitFor({state: 'visible', timeout: 5000});
 
     const isEnabled = await abacToggle.getAttribute('aria-pressed');
@@ -96,16 +96,16 @@ test('MM-T5788 Add policy to channel from Channel Configuration page', async ({p
     // STEP 4: Link to policy and Save
     // ============================================================
 
-    // Click "Link to a policy"
-    const linkButton = systemConsolePage.page.locator('[data-testid="link-to-a-policy"]');
+    // Click "Link to a policy" (button has no data-testid; locate by visible text)
+    const linkButton = systemConsolePage.page.getByRole('button', {name: 'Link to a policy'});
     await linkButton.waitFor({state: 'visible', timeout: 5000});
     await linkButton.click();
     await systemConsolePage.page.waitForTimeout(500);
 
-    // Select policy in modal
-    const modal = systemConsolePage.page
-        .locator('[role="dialog"]')
-        .filter({hasText: 'Select an Access Control Policy'});
+    // Select policy in modal.
+    // GenericModal also sets role='none' on its outer Bootstrap Modal element,
+    // so we locate by the modal's id prop instead of [role="dialog"].
+    const modal = systemConsolePage.page.locator('#PolicySelectionModal');
     await modal.waitFor({state: 'visible', timeout: 5000});
 
     const modalSearch = modal.locator('[data-testid="searchInput"]');
@@ -253,7 +253,7 @@ test('MM-T5789 Channel with LDAP group sync cannot use ABAC', async ({pw}) => {
     await page.waitForTimeout(1000);
 
     // STEP 1.3: Verify ABAC toggle is NOT available when Group Sync is enabled
-    const abacToggle = page.locator('[data-testid="policy-enforce-toggle-button"]');
+    const abacToggle = page.locator('[data-testid="policy-enforce-toggle"]');
     const abacVisibleWithGroupSync = await abacToggle.isVisible({timeout: 5000}).catch(() => false);
 
     expect(abacVisibleWithGroupSync).toBe(false);
@@ -271,7 +271,7 @@ test('MM-T5789 Channel with LDAP group sync cannot use ABAC', async ({pw}) => {
     await page.waitForTimeout(1000);
 
     // Verify ABAC toggle is now available
-    const abacToggleAfter = page.locator('[data-testid="policy-enforce-toggle-button"]');
+    const abacToggleAfter = page.locator('[data-testid="policy-enforce-toggle"]');
     const abacVisibleAfterDisable = await abacToggleAfter.isVisible({timeout: 5000}).catch(() => false);
 
     expect(abacVisibleAfterDisable).toBe(true);
@@ -309,8 +309,10 @@ test('MM-T5789 Channel with LDAP group sync cannot use ABAC', async ({pw}) => {
     await addChannelsButton.click();
     await page.waitForTimeout(1000);
 
-    // Step 2.3: Try to select the Group Sync channel
-    const channelModal = page.locator('[role="dialog"]').filter({hasText: /channel/i});
+    // Step 2.3: Try to select the Group Sync channel.
+    // ChannelSelectorModal uses role='none' on its outer element, so locate
+    // by its dialogClassName CSS class instead of [role="dialog"].
+    const channelModal = page.locator('.channel-selector-modal');
     await channelModal.waitFor({state: 'visible', timeout: 5000});
 
     // Search for the Group Sync channel

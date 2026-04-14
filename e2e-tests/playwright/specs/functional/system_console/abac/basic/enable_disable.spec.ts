@@ -7,8 +7,8 @@ test('MM-T5782 System admin can enable or disable system-wide ABAC', async ({pw}
     // # Skip test if no license for ABAC
     await pw.skipIfNoLicense();
 
-    // # Set up admin user and login
-    const {adminUser} = await pw.initSetup();
+    // # Set up admin user and login (adminClient is used for API-based state restore)
+    const {adminUser, adminClient} = await pw.initSetup();
 
     // # Now login
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -42,18 +42,26 @@ test('MM-T5782 System admin can enable or disable system-wide ABAC', async ({pw}
     await expect(addPolicyButton).toBeVisible();
     await expect(runSyncJobButton).toBeVisible();
 
-    // # Test disable ABAC
-    await disableRadio.click();
-    await expect(disableRadio).toBeChecked();
-    await saveButton.click();
-    await systemConsolePage.page.waitForLoadState('networkidle');
+    // # Test disable ABAC, then immediately re-enable to minimise the parallel
+    // race window. Use try/finally so the re-enable runs even if an assertion
+    // fails and the test is aborted mid-way.
+    try {
+        await disableRadio.click();
+        await expect(disableRadio).toBeChecked();
+        await saveButton.click();
+        await systemConsolePage.page.waitForLoadState('networkidle');
 
-    // * Verify policy management UI is hidden when disabled
-    await expect(addPolicyButton).not.toBeVisible();
-    await expect(runSyncJobButton).not.toBeVisible();
-
-    // # Re-enable ABAC for subsequent tests
-    await enableRadio.click();
-    await saveButton.click();
-    await systemConsolePage.page.waitForLoadState('networkidle');
+        // * Verify policy management UI is hidden when disabled
+        await expect(addPolicyButton).not.toBeVisible();
+        await expect(runSyncJobButton).not.toBeVisible();
+    } finally {
+        // # Re-enable ABAC via API — faster than UI navigation and shrinks the
+        // window where parallel ABAC tests would see a disabled system to near-zero.
+        const config = await adminClient.getConfig();
+        (config as any).AccessControlSettings = {
+            ...((config as any).AccessControlSettings || {}),
+            EnableAttributeBasedAccessControl: true,
+        };
+        await adminClient.updateConfig(config);
+    }
 });

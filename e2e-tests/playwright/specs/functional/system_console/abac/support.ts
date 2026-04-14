@@ -733,9 +733,12 @@ export async function createAdvancedPolicy(
         await addChannelsButton.click();
         await page.waitForTimeout(1000);
 
-        // Wait for the modal to appear
-        const channelModal = page.locator('[role="dialog"]').filter({hasText: /channel/i});
-        await channelModal.waitFor({state: 'visible', timeout: 5000});
+        // Wait for the modal to appear.
+        // ChannelSelectorModal sets role='none' on its outer element, so we locate
+        // by its dialog CSS class (dialogClassName='...channel-selector-modal') instead
+        // of [role="dialog"] which would not match.
+        const channelModal = page.locator('.channel-selector-modal');
+        await channelModal.waitFor({state: 'visible', timeout: 10000});
 
         for (const channelName of options.channels) {
             // Find search input within the modal
