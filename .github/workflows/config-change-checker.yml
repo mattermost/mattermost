@@ -27,6 +27,9 @@ jobs:
   check-release-notes:
     name: Detect release-note-worthy changes
     runs-on: ubuntu-latest
+    concurrency:
+      group: config-change-checker-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
  
     permissions:
       pull-requests: write   # needed to update the PR description
