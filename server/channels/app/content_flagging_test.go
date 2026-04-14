@@ -1853,6 +1853,41 @@ func TestPostReviewerMessage(t *testing.T) {
 		require.Equal(t, contentReviewBot.UserId, testMessagePost2.UserId)
 	})
 
+	t.Run("should post message from report with file attachment", func(t *testing.T) {
+		require.Nil(t, setBaseConfig(th))
+
+		post := setupFlaggedPost(t, th)
+
+		groupId, err := th.App.ContentFlaggingGroupId()
+		require.Nil(t, err)
+
+		report := &model.PostDeletionReport{
+			PostID:    post.Id,
+			Timestamp: time.Now(),
+		}
+		report.AddStep("app.data_spillage.report.step.post_content", model.StepSuccess, "app.data_spillage.report.detail.cleared", nil)
+		report.AddStep("app.data_spillage.report.step.file_attachments", model.StepFailed, "app.data_spillage.report.detail.failed", []string{"file not found"})
+
+		reportFileName := "deletion_report.md"
+		createdPosts, appErr := th.App.postReviewerMessage(th.Context, "", groupId, post.Id, report, reportFileName)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, createdPosts)
+
+		// Verify the message content is derived from report.RenderSummary, not the passed-in message string
+		createdPost := createdPosts[0]
+		require.NotEmpty(t, createdPost.Message)
+		// Verify it contains summary table markers that RenderSummary produces
+		require.Contains(t, createdPost.Message, "📊")
+
+		// Verify file attachment was created
+		require.NotEmpty(t, createdPost.FileIds, "expected a file attachment from the report")
+
+		// Verify the file info exists and has the correct name
+		fileInfo, appErr := th.App.GetFileInfo(th.Context, createdPost.FileIds[0])
+		require.Nil(t, appErr)
+		require.Equal(t, reportFileName, fileInfo.Name)
+	})
+
 	t.Run("should handle case when no reviewer posts exist", func(t *testing.T) {
 		require.Nil(t, setBaseConfig(th))
 		post := th.CreatePost(t, th.BasicChannel)
