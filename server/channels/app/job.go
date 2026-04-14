@@ -138,10 +138,7 @@ func (a *App) GetJobsByTypeAndData(rctx request.CTX, jobType string, data map[st
 	if start >= len(jobs) {
 		return []*model.Job{}, nil
 	}
-	end := start + perPage
-	if end > len(jobs) {
-		end = len(jobs)
-	}
+	end := min(start+perPage, len(jobs))
 	return jobs[start:end], nil
 }
 
