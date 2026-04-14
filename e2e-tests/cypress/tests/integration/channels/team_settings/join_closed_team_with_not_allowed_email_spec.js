@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @team_settings
 
-import {getRandomId, stubClipboard} from '../../../utils';
+import {getRandomId, stubClipboard, newTestPassword} from '../../../utils';
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 describe('Team Settings', () => {
@@ -79,7 +79,7 @@ describe('Team Settings', () => {
 
             const email = `user${randomId}@sample.gmail.com`;
             const username = `user${randomId}`;
-            const password = 'passwd';
+            const password = newTestPassword();
             const errorMessage = `The following email addresses do not belong to an accepted domain: ${emailDomain}. Please contact your System Administrator for details.`;
 
             // # Type email, username and password
@@ -130,7 +130,7 @@ describe('Team Settings', () => {
         });
 
         // # Create a new user
-        cy.apiCreateUser({user: {email: `user${randomId}@sample.gmail.com`, username: `user${randomId}`, password: 'passwd'}}).then(({user}) => {
+        cy.apiCreateUser({user: {email: `user${randomId}@sample.gmail.com`, username: `user${randomId}`, password: newTestPassword()}}).then(({user}) => {
             // # Create a second team
             cy.apiCreateTeam('other-team', 'Other Team').then(({team: otherTeam}) => {
                 // # Add user to the other team
