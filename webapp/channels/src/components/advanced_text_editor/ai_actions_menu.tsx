@@ -3,6 +3,7 @@
 
 import MuiMenuList from '@mui/material/MenuList';
 import MuiPopover from '@mui/material/Popover';
+import type {PopoverOrigin} from '@mui/material/Popover';
 import classNames from 'classnames';
 import React, {useCallback, useMemo, useState} from 'react';
 import type {KeyboardEvent, MouseEvent} from 'react';
@@ -99,6 +100,27 @@ const AIActionsMenu = ({
             handleToggle(false);
         };
     }, [draft, getSelectedText, updateText, channelId, isRHS, handleToggle]);
+
+    const submenuOrigins = useMemo((): {anchorOrigin: PopoverOrigin; transformOrigin: PopoverOrigin} => {
+        if (!submenuAnchorEl || !window?.innerWidth) {
+            return {
+                anchorOrigin: {vertical: 'bottom', horizontal: 'right'},
+                transformOrigin: {vertical: 'bottom', horizontal: 'left'},
+            };
+        }
+        const rightSpace = window.innerWidth - (submenuAnchorEl.getBoundingClientRect()?.right ?? 0);
+        const leftSpace = submenuAnchorEl.getBoundingClientRect()?.left ?? 0;
+        if (rightSpace < leftSpace) {
+            return {
+                anchorOrigin: {vertical: 'bottom', horizontal: 'left'},
+                transformOrigin: {vertical: 'bottom', horizontal: 'right'},
+            };
+        }
+        return {
+            anchorOrigin: {vertical: 'bottom', horizontal: 'right'},
+            transformOrigin: {vertical: 'bottom', horizontal: 'left'},
+        };
+    }, [submenuAnchorEl]);
 
     if (!hasItems) {
         return <></>;
@@ -224,14 +246,8 @@ const AIActionsMenu = ({
                 <MuiPopover
                     open={true}
                     anchorEl={submenuAnchorEl}
-                    anchorOrigin={{
-                        vertical: 'bottom',
-                        horizontal: 'right',
-                    }}
-                    transformOrigin={{
-                        vertical: 'bottom',
-                        horizontal: 'left',
-                    }}
+                    anchorOrigin={submenuOrigins.anchorOrigin}
+                    transformOrigin={submenuOrigins.transformOrigin}
                     className={submenuClassName}
                     disableAutoFocus={true}
                     disableEnforceFocus={true}
