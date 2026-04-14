@@ -1,0 +1,57 @@
+# .github/workflows/config-change-checker.yml
+#
+# Automatically detects notable additions/removals across four source files
+# and appends structured release-note entries to the PR description under
+# the "## Release Notes" section.
+#
+# Tracked files / directories:
+#   • server/public/model/config.go       — config struct field changes
+#   • server/channels/api4/               — API endpoint additions/removals
+#   • server/public/model/audit_events.go — audit log event constant changes
+#   • server/build/Dockerfile.buildenv    — Go runtime version changes
+#
+# No secrets needed — uses the built-in GITHUB_TOKEN.
+ 
+name: Config Change Checker
+ 
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'server/public/model/config.go'
+      - 'server/channels/api4/**'
+      - 'server/public/model/audit_events.go'
+      - 'server/build/Dockerfile.buildenv'
+ 
+jobs:
+  check-release-notes:
+    name: Detect release-note-worthy changes
+    runs-on: ubuntu-latest
+ 
+    permissions:
+      pull-requests: write   # needed to update the PR description
+      contents: read
+ 
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          # Fetch enough history to diff against the base branch
+          fetch-depth: 0
+ 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+ 
+      - name: Install dependencies
+        run: pip install requests --quiet
+ 
+      - name: Detect changes and update PR description
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER:    ${{ github.event.pull_request.number }}
+          BASE_SHA:     ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA:     ${{ github.event.pull_request.head.sha }}
+          REPO:         ${{ github.repository }}
+        run: python3 .github/scripts/check_config_changes_ci.py
