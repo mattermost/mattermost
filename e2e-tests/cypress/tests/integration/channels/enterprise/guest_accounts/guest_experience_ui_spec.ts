@@ -15,6 +15,7 @@
  */
 
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import {newTestPassword} from '../../../../utils';
 
 function demoteGuestUser(guestUser) {
     // # Demote user as guest user before each test
@@ -226,7 +227,7 @@ describe('Guest Account - Guest User Experience', () => {
 
         // # Login with guest user credentials and check the error message
         cy.get('#input_loginId').type(guestUser.username);
-        cy.get('#input_password-input').type('passwd');
+        cy.get('#input_password-input').type(newTestPassword());
         cy.get('#saveSetting').should('not.be.disabled').click();
 
         // * Verify if guest account is deactivated

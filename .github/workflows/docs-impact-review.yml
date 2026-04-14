@@ -1,19 +1,18 @@
 name: Documentation Impact Review
-
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
-
+ 
 concurrency:
   group: ${{ format('docs-impact-{0}', github.event.pull_request.number) }}
   cancel-in-progress: true
-
+ 
 permissions:
   contents: read
   pull-requests: write
   issues: write
   id-token: write
-
+ 
 jobs:
   docs-impact-review:
     if: github.event.pull_request.draft == false
@@ -25,7 +24,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-
+ 
       - name: Checkout documentation repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -46,7 +45,7 @@ jobs:
             source/conf.py
             source/index.rst
           sparse-checkout-cone-mode: false
-
+ 
       - name: Analyze documentation impact
         id: docs-analysis
         if: ${{ env.HAS_ANTHROPIC_KEY == 'true' }}
@@ -57,17 +56,18 @@ jobs:
           prompt: |
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
-
+ 
             ## Task
-
+ 
             You are a documentation impact analyst for the Mattermost project. Your job is to determine whether a pull request requires updates to the public documentation hosted at https://docs.mattermost.com (source repo: mattermost/docs).
-
+ 
             ## Repository Layout
-
+ 
             The PR code is checked out at the workspace root. The documentation source is checked out at `./docs/source/` (RST files, Sphinx-based).
-
+ 
             <monorepo_paths>
             ### Code Paths and Documentation Relevance
+ 
             - `server/channels/api4/` — REST API handlers → API docs
             - `server/public/model/config.go` — Configuration settings struct → admin guide updates
             - `server/public/model/feature_flags.go` — Feature flags → these control gradual rollouts and are **distinct from configuration settings**
@@ -83,9 +83,10 @@ jobs:
             - `webapp/platform/` — Platform-level webapp code
             - `server/Makefile` - changes to plugin version pins starting at line ~155 (major or minor version bumps) indicate plugin releases that may require documentation updates in the integrations or deployment guide
             </monorepo_paths>
-
+ 
             <docs_directories>
             ### Documentation Directories (`./docs/source/`)
+ 
             - `administration-guide/` — Server config, admin console, upgrade notes, CLI, server management, support packet, audit events
             - `deployment-guide/` — Installation, deployment, scaling, high availability
             - `end-user-guide/` — User-facing features, messaging, channels, search, notifications
@@ -95,44 +96,44 @@ jobs:
             - `get-help/` — Troubleshooting guides
             - `product-overview/` — Product overview and feature descriptions
             - `use-case-guide/` — Use case specific guides
-
             </docs_directories>
-
+ 
             ## Documentation Personas
-
+ 
             Each code change can impact multiple audiences. Identify all affected personas and prioritize by breadth of impact.
-
+ 
             <personas>
             ### System Administrator
             Deploys, configures, and maintains Mattermost servers.
             - **Reads:** `administration-guide/`, `deployment-guide/`, `security-guide/`
             - **Cares about:** config settings, CLI commands (mmctl), database migrations, upgrade procedures, scaling, HA, environment variables, performance tuning
             - **Impact signals:** changes to `model/config.go`, `db/migrations/`, `server/cmd/`, `einterfaces/`, `model/audit_events.go`, `model/support_packet.go`
-
+ 
             ### End User
             Uses Mattermost daily for messaging, collaboration, and workflows.
             - **Reads:** `end-user-guide/`, `get-help/`
             - **Cares about:** UI changes, new messaging features, search behavior, notification settings, keyboard shortcuts, channel management, file sharing
             - **Impact signals:** changes to `webapp/channels/src/components/`, `i18n/` (new user-facing strings), `app/` changes that alter user-visible behavior
-
+ 
             ### Developer / Integrator
             Builds integrations, plugins, bots, and custom tools on top of Mattermost.
             - **Reads:** `integrations-guide/`, API reference (`api/v4/source/`)
             - **Cares about:** REST API endpoints, request/response schemas, webhook payloads, WebSocket events, plugin APIs, bot account behavior, OAuth/authentication flows
             - **Impact signals:** changes to `api4/` handlers, `api/v4/source/` specs, `model/websocket_message.go`, plugin interfaces, major/minor plugin version bumps in `server/Makefile`
-
+ 
             ### Security / Compliance Officer
             Evaluates and enforces security and regulatory requirements.
             - **Reads:** `security-guide/`, relevant sections of `administration-guide/`
             - **Cares about:** authentication methods (SAML, LDAP, OAuth, MFA), permission model changes, data retention policies, audit logging, encryption settings, compliance exports
             - **Impact signals:** changes to security-related config, authentication handlers, audit/compliance code
             </personas>
-
+ 
             ## Analysis Steps
-
+ 
             Follow these steps in order. Complete each step before moving to the next.
-
+ 
             1. **Read the PR diff** using `gh pr diff ${{ github.event.pull_request.number }}` to understand what changed.
+ 
             2. **Categorize each changed file** by documentation relevance using one or more of these labels:
               - API changes (new endpoints, changed parameters, changed responses)
               - Configuration changes (new or modified settings in `config.go`)
@@ -145,57 +146,62 @@ jobs:
               - CLI command changes
               - User-facing behavioral changes
               - UI changes
+ 
             3. **Identify affected personas** for each documentation-relevant change using the impact signals defined above.
+ 
             4. **Search `./docs/source/`** for existing documentation covering each affected feature/area. Search for related RST files by name patterns and content.
+ 
             5. **Evaluate documentation impact** for each change by applying these two criteria:
               - **Documented behavior changed:** The PR modifies behavior that is currently described in the documentation. The existing docs would become inaccurate or misleading if not updated. Flag these as **"Documentation Updates Required"**.
               - **Documentation gap identified:** The PR introduces new functionality, settings, endpoints, or behavioral changes that are not covered anywhere in the current documentation, and that are highly relevant to one or more identified personas. Flag these as **"Documentation Updates Recommended"** and note that new documentation is needed.
+ 
             6. **Determine the documentation action** for each flagged change: does an existing page need updating (cite the exact RST file), or is an entirely new page needed (suggest the appropriate directory and a proposed filename)?
-
+ 
             Only flag changes that meet at least one of the two criteria above. Internal refactors, test changes, and implementation details that do not alter documented behavior or create a persona-relevant gap should not be flagged.
-
+ 
             **Important distinctions to apply during analysis:**
+ 
             - Feature flags (`feature_flags.go`) are **not** configuration settings. Do not conflate them. Config settings belong in the admin configuration reference.
             - Plugin version bumps in `server/Makefile`: only major or minor version changes (e.g. `1.2.x` → `1.3.0` or `2.0.0`) warrant documentation review; patch-only bumps (e.g. `1.2.3` → `1.2.4`) generally do not.
-
+            - Purely internal security hardening of existing endpoints is generally **not** documentation-worthy.
+            - However, if hardening introduces an externally observable contract change (e.g., new required headers, auth prerequisites, or request constraints), flag it for documentation as an API behavior change without disclosing vulnerability details.
+ 
             ## Output
-
+ 
             Use the `Write` tool to write your analysis to `${{ runner.temp }}/docs-impact-result.md`. The file content must follow this exact markdown structure:
-
+ 
             ```
             ---
-
             ### Documentation Impact Analysis
-
+ 
             **Overall Assessment:** [One of: "No Documentation Changes Needed", "Documentation Updates Recommended", "Documentation Updates Required"]
-
+ 
             #### Changes Summary
             [1–3 sentence summary of what this PR does from a documentation perspective]
-
+ 
             #### Documentation Impact Details
-
+ 
             | Change Type | Files Changed | Affected Personas | Documentation Action | Docs Location |
             |---|---|---|---|---|
             | [e.g., New API Endpoint] | [e.g., server/channels/api4/foo.go] | [e.g., Developer/Integrator] | [e.g., Add endpoint docs] | [e.g., docs/source/integrations-guide/api.rst or "New page needed"] |
-
+ 
             (Include rows only for changes with documentation impact. If none, write "No documentation-relevant changes detected.")
-
+ 
             #### Recommended Actions
             - [ ] [Specific action item with exact file path, e.g., "Update docs/source/administration-guide/config-settings.rst to document new FooBar setting"]
             - [ ] [Another action item with file path]
-
+ 
             If the PR has API spec changes in `api/v4/source/`, note that these are automatically published to api.mattermost.com and may not need separate docs repo changes, but flag them for completeness review.
-
+ 
             #### Confidence
             [High/Medium/Low] — [Brief explanation of confidence level]
-
             ---
             ```
-
+ 
             ## Rules
-
+ 
             - Name exact RST file paths in `./docs/source/` when you find relevant documentation.
-            - Classify as "No Documentation Changes Needed" and keep the response brief when the PR only modifies test files, internal utilities, internal refactors with no behavioral change, or CI/build configuration.
+            - Classify as "No Documentation Changes Needed" and keep the response brief when the PR only modifies test files, internal utilities, internal refactors with no behavioral change, CI/build configuration, or purely internal security hardening with no externally observable behavior/contract changes.
             - When uncertain whether a change needs documentation, recommend a review rather than staying silent.
             - Keep analysis focused and actionable so developers can act on recommendations directly.
             - This is a READ-ONLY analysis except for writing the output file. Never modify source code, push branches, or create PRs.
@@ -206,7 +212,7 @@ jobs:
             --model claude-sonnet-4-20250514
             --max-turns 30
             --allowedTools "Bash(gh pr diff*),Bash(gh pr view*),Read,Write,Glob,Grep"
-
+ 
       - name: Post analysis and manage label
         if: ${{ always() && env.HAS_ANTHROPIC_KEY == 'true' }}
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
@@ -218,27 +224,28 @@ jobs:
             const marker = '<!-- docs-impact-analysis -->';
             const prNumber = context.payload.pull_request.number;
             const analysisFile = `${process.env.RUNNER_TEMP}/docs-impact-result.md`;
-
             let body = '';
             if (fs.existsSync(analysisFile)) {
               body = fs.readFileSync(analysisFile, 'utf8').trim();
             }
-
+ 
             const validAssessments = new Set([
               'No Documentation Changes Needed',
               'Documentation Updates Recommended',
               'Documentation Updates Required',
             ]);
-             const overallAssessment =
-               body.match(/^\*\*Overall Assessment:\*\*\s*(.+)$/m)?.[1]?.trim();
+ 
+            const overallAssessment =
+              body.match(/^\*\*Overall Assessment:\*\*\s*(.+)$/m)?.[1]?.trim();
             const analysisFailed =
               process.env.ANALYSIS_OUTCOME !== 'success' ||
               !body ||
               !validAssessments.has(overallAssessment);
-             const needsDocs =
-               overallAssessment === 'Documentation Updates Recommended' ||
-               overallAssessment === 'Documentation Updates Required';
-
+ 
+            const needsDocs =
+              overallAssessment === 'Documentation Updates Recommended' ||
+              overallAssessment === 'Documentation Updates Required';
+ 
             let commentBody;
             if (!analysisFailed && needsDocs) {
               commentBody = `${marker}\n<details>\n<summary>Documentation Impact Analysis — updates needed</summary>\n\n${body}\n</details>`;
@@ -249,14 +256,14 @@ jobs:
                 `Please review this PR manually for documentation impact.\n\n` +
                 `[View workflow run](${runUrl})\n</details>`;
             }
-
+ 
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: prNumber,
             });
             const existing = comments.find(c => c.body?.includes(marker));
-
+ 
             if (commentBody) {
               if (existing) {
                 await github.rest.issues.updateComment({
@@ -284,7 +291,7 @@ jobs:
                 body: staleBody,
               });
             }
-
+ 
             const label = 'Docs/Needed';
             const { data: issueLabels } = await github.rest.issues.listLabelsOnIssue({
               owner: context.repo.owner,
@@ -292,7 +299,6 @@ jobs:
               issue_number: prNumber,
             });
             const hasLabel = issueLabels.some(l => l.name === label);
-
             if (needsDocs && !hasLabel) {
               await github.rest.issues.addLabels({
                 owner: context.repo.owner,

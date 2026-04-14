@@ -44,7 +44,7 @@ export default class SignupPage {
         this.usernameError = page.locator(
             'text=Usernames have to begin with a lowercase letter and be 3-22 characters long. You can use lowercase letters, numbers, periods, dashes, and underscores.',
         );
-        this.passwordError = page.locator('text=Must be 5-72 characters long.');
+        this.passwordError = page.locator('text=/Must be \\d+-72 characters long\\./');
 
         const termsAndPrivacyBlock = page.locator('.check-input');
         this.termsAndPrivacyCheckBox = termsAndPrivacyBlock.getByRole('checkbox', {

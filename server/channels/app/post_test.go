@@ -739,6 +739,8 @@ func TestImageProxy(t *testing.T) {
 
 	th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server.platform, th.Server.HTTPService(), th.Server.Log())
 
+	testHMACKey := model.NewTestPassword()
+
 	for name, tc := range map[string]struct {
 		ProxyType              string
 		ProxyURL               string
@@ -750,7 +752,7 @@ func TestImageProxy(t *testing.T) {
 		"atmos/camo": {
 			ProxyType:              model.ImageProxyTypeAtmosCamo,
 			ProxyURL:               "https://127.0.0.1",
-			ProxyOptions:           "foo",
+			ProxyOptions:           testHMACKey,
 			ImageURL:               "http://mydomain.com/myimage",
 			ProxiedRemovedImageURL: "http://mydomain.com/myimage",
 			ProxiedImageURL:        "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage",
@@ -758,7 +760,7 @@ func TestImageProxy(t *testing.T) {
 		"atmos/camo_SameSite": {
 			ProxyType:              model.ImageProxyTypeAtmosCamo,
 			ProxyURL:               "https://127.0.0.1",
-			ProxyOptions:           "foo",
+			ProxyOptions:           testHMACKey,
 			ImageURL:               "http://mymattermost.com/myimage",
 			ProxiedRemovedImageURL: "http://mymattermost.com/myimage",
 			ProxiedImageURL:        "http://mymattermost.com/myimage",
@@ -766,7 +768,7 @@ func TestImageProxy(t *testing.T) {
 		"atmos/camo_PathOnly": {
 			ProxyType:              model.ImageProxyTypeAtmosCamo,
 			ProxyURL:               "https://127.0.0.1",
-			ProxyOptions:           "foo",
+			ProxyOptions:           testHMACKey,
 			ImageURL:               "/myimage",
 			ProxiedRemovedImageURL: "http://mymattermost.com/myimage",
 			ProxiedImageURL:        "http://mymattermost.com/myimage",
@@ -774,7 +776,7 @@ func TestImageProxy(t *testing.T) {
 		"atmos/camo_EmptyImageURL": {
 			ProxyType:              model.ImageProxyTypeAtmosCamo,
 			ProxyURL:               "https://127.0.0.1",
-			ProxyOptions:           "foo",
+			ProxyOptions:           testHMACKey,
 			ImageURL:               "",
 			ProxiedRemovedImageURL: "",
 			ProxiedImageURL:        "",
@@ -961,7 +963,7 @@ func TestCreatePost(t *testing.T) {
 			*cfg.ImageProxySettings.Enable = true
 			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
 			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
-			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
+			*cfg.ImageProxySettings.RemoteImageProxyOptions = model.NewTestPassword()
 		})
 
 		th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server.platform, th.Server.HTTPService(), th.Server.Log())
@@ -1352,11 +1354,10 @@ func TestCreatePost(t *testing.T) {
 	})
 
 	t.Run("Should remove post file IDs for burn on read posts", func(t *testing.T) {
-		os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
-		t.Cleanup(func() {
-			os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
-		})
 		th := Setup(t).InitBasic(t)
+
+		// Enable BurnOnRead feature flag
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 		enableBoRFeature(th)
 
 		post := &model.Post{
@@ -1448,7 +1449,7 @@ func TestPatchPost(t *testing.T) {
 			*cfg.ImageProxySettings.Enable = true
 			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
 			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
-			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
+			*cfg.ImageProxySettings.RemoteImageProxyOptions = model.NewTestPassword()
 		})
 
 		th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server.platform, th.Server.HTTPService(), th.Server.Log())
@@ -1903,7 +1904,7 @@ func TestUpdatePost(t *testing.T) {
 			*cfg.ImageProxySettings.Enable = true
 			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
 			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
-			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
+			*cfg.ImageProxySettings.RemoteImageProxyOptions = model.NewTestPassword()
 		})
 
 		th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server.platform, th.Server.HTTPService(), th.Server.Log())
@@ -2232,6 +2233,7 @@ func TestSearchPostsForUser(t *testing.T) {
 		es.On("SearchPosts", mock.Anything, mock.Anything, page, perPage).Return(resultsPage, nil, nil)
 		es.On("Start").Return(nil).Maybe()
 		es.On("IsActive").Return(true)
+		es.On("IsHealthy").Return(true)
 		es.On("IsSearchEnabled").Return(true)
 		th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = es
 		defer func() {
@@ -2260,6 +2262,7 @@ func TestSearchPostsForUser(t *testing.T) {
 		es.On("SearchPosts", mock.Anything, mock.Anything, page, perPage).Return(resultsPage, nil, nil)
 		es.On("Start").Return(nil).Maybe()
 		es.On("IsActive").Return(true)
+		es.On("IsHealthy").Return(true)
 		es.On("IsSearchEnabled").Return(true)
 		th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = es
 		defer func() {
@@ -2285,6 +2288,7 @@ func TestSearchPostsForUser(t *testing.T) {
 		es.On("GetName").Return("mock")
 		es.On("Start").Return(nil).Maybe()
 		es.On("IsActive").Return(true)
+		es.On("IsHealthy").Return(true)
 		es.On("IsSearchEnabled").Return(true)
 		th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = es
 		defer func() {
@@ -2318,6 +2322,7 @@ func TestSearchPostsForUser(t *testing.T) {
 		es.On("GetName").Return("mock")
 		es.On("Start").Return(nil).Maybe()
 		es.On("IsActive").Return(true)
+		es.On("IsHealthy").Return(true)
 		es.On("IsSearchEnabled").Return(true)
 		th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = es
 		defer func() {
@@ -3150,7 +3155,7 @@ func TestFillInPostProps(t *testing.T) {
 			Email:         "success+" + id + "@simulator.amazonses.com",
 			Username:      "un_" + id,
 			Nickname:      "nn_" + id,
-			Password:      "Password1",
+			Password:      model.NewTestPassword(),
 			EmailVerified: true,
 		}
 		guest, err := th.App.CreateGuest(th.Context, guest)
@@ -3184,7 +3189,7 @@ func TestFillInPostProps(t *testing.T) {
 			Email:         "success+" + id + "@simulator.amazonses.com",
 			Username:      "un_" + id,
 			Nickname:      "nn_" + id,
-			Password:      "Password1",
+			Password:      model.NewTestPassword(),
 			EmailVerified: true,
 		}
 		guest, err := th.App.CreateGuest(th.Context, guest)
@@ -4610,13 +4615,11 @@ func TestValidateMoveOrCopy(t *testing.T) {
 }
 
 func TestPermanentDeletePost(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
-	})
-
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
+
+	// Enable BurnOnRead feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 
 	t.Run("should permanently delete a post and its file attachment", func(t *testing.T) {
 		// Create a post with a file attachment.
@@ -5089,12 +5092,10 @@ func TestFilterPostsByChannelPermissions(t *testing.T) {
 }
 
 func TestRevealPost(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
-	})
-
 	th := Setup(t).InitBasic(t)
+
+	// Enable BurnOnRead feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 
 	// Helper to create a burn-on-read post
 	createBurnOnReadPost := func() *model.Post {
@@ -5346,12 +5347,10 @@ func TestRevealPost(t *testing.T) {
 }
 
 func TestBurnPost(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
-	})
-
 	th := Setup(t).InitBasic(t)
+
+	// Enable BurnOnRead feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 
 	// feature flag, configuration and license is not checked for this feature
 	// so we set these to enable the feature to create a burn on read post
@@ -5466,12 +5465,10 @@ func TestBurnPost(t *testing.T) {
 }
 
 func TestGetFlaggedPostsWithExpiredBurnOnRead(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
-	})
-
 	th := Setup(t).InitBasic(t)
+
+	// Enable BurnOnRead feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 
 	// Create a second user for testing
 	user2 := th.CreateUser(t)
@@ -5661,12 +5658,10 @@ func TestGetFlaggedPostsWithExpiredBurnOnRead(t *testing.T) {
 }
 
 func TestBurnOnReadRestrictionsForDMsAndBots(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
-	defer func() {
-		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
-	}()
-
 	th := Setup(t).InitBasic(t)
+
+	// Enable BurnOnRead feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 

@@ -5,7 +5,7 @@ import {UserAccessToken, UserProfile} from '@mattermost/types/users';
 import authenticator from 'authenticator';
 import {ChainableT} from 'tests/types';
 
-import {getRandomId} from '../../utils';
+import {getRandomId, newTestPassword} from '../../utils';
 import {getAdminAccount} from '../env';
 
 import {buildQueryString} from './helpers';
@@ -377,7 +377,7 @@ function generateRandomUser(prefix = 'user', createAt = 0): Partial<UserProfile>
     return {
         email: `${prefix}${randomId}@sample.mattermost.com`,
         username: `${prefix}${randomId}`,
-        password: 'passwd',
+        password: newTestPassword(),
         first_name: `First${randomId}`,
         last_name: `Last${randomId}`,
         nickname: `Nickname${randomId}`,
