@@ -46,7 +46,7 @@ import {
 } from 'mattermost-redux/action_types';
 import {getStandardAnalytics} from 'mattermost-redux/actions/admin';
 import {fetchAppBindings, fetchRHSAppsBindings} from 'mattermost-redux/actions/apps';
-import {addChannelToInitialCategory, fetchMyCategories, receivedCategoryOrder} from 'mattermost-redux/actions/channel_categories';
+import {addChannelToInitialCategory, fetchMyCategories, handleManagedCategoryPropertyValuesUpdated, receivedCategoryOrder} from 'mattermost-redux/actions/channel_categories';
 import {
     getChannelAndMyMember,
     getMyChannelMember,
@@ -622,6 +622,9 @@ export function handleEvent(msg: WebSocketMessage) {
     case WebSocketEvents.SidebarCategoryOrderUpdated:
         dispatch(handleSidebarCategoryOrderUpdated(msg));
         break;
+    case WebSocketEvents.PropertyValuesUpdated:
+        dispatch(handlePropertyValuesUpdated(msg));
+        break;
     case WebSocketEvents.UserActivationStatusChange:
         dispatch(handleUserActivationStatusChange());
         break;
@@ -1172,6 +1175,27 @@ function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel): ThunkA
         if (msg.data.team_id && config.RestrictDirectMessage === 'team') {
             dispatch({type: ChannelTypes.RESTRICTED_DMS_TEAMS_CHANGED});
         }
+    };
+}
+
+function handlePropertyValuesUpdated(msg: WebSocketMessages.PropertyValuesUpdated): ThunkActionFunc<void> {
+    return (doDispatch) => {
+        let values;
+        try {
+            values = JSON.parse(msg.data.values ?? '[]');
+        } catch {
+            // invalid JSON
+            return;
+        }
+
+        const parsedPropertyValuesUpdated = {
+            object_type: msg.data.object_type,
+            target_id: msg.data.target_id,
+            field_id: msg.data.field_id,
+            values,
+        };
+
+        doDispatch(handleManagedCategoryPropertyValuesUpdated(parsedPropertyValuesUpdated));
     };
 }
 

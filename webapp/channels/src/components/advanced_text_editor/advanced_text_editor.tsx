@@ -295,7 +295,9 @@ const AdvancedTextEditor = ({
 
         setTimeout(() => {
             const textbox = textboxRef.current?.getInputBox();
-            Utils.setSelectionRange(textbox, res.selectionStart, res.selectionEnd);
+            if (textbox) {
+                Utils.setSelectionRange(textbox, res.selectionStart, res.selectionEnd);
+            }
         });
     }, [showPreview, handleDraftChange, draft]);
 
@@ -494,14 +496,14 @@ const AdvancedTextEditor = ({
      * down the current message value that came from the parents state was not optimal,
      * although still working as expected
      */
-    const getCurrentValue = useCallback(() => textboxRef.current?.getInputBox().value, [textboxRef]);
+    const getCurrentValue = useCallback(() => textboxRef.current?.getInputBox()?.value ?? '', [textboxRef]);
 
     const getCurrentSelection = useCallback(() => {
         const input = textboxRef.current?.getInputBox();
 
         return {
-            start: input.selectionStart,
-            end: input.selectionEnd,
+            start: input?.selectionStart ?? 0,
+            end: input?.selectionEnd ?? 0,
         };
     }, [textboxRef]);
 
@@ -831,7 +833,7 @@ const AdvancedTextEditor = ({
                             onChange={handleChange}
                             onKeyPress={postMsgKeyPress}
                             onKeyDown={handleKeyDown}
-                            onComposition={emitTypingEvent}
+                            onCompositionUpdate={emitTypingEvent}
                             onHeightChange={handleHeightChange}
                             handlePostError={handlePostError}
                             value={messageValue}
