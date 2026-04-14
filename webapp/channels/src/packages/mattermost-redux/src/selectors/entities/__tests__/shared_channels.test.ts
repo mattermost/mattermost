@@ -47,8 +47,8 @@ describe('shared_channels selectors', () => {
         expect(result).toEqual(remotes);
     });
 
-    test('getRemotesForChannel should return empty array when no remotes exist', () => {
+    test('getRemotesForChannel should return undefined when no remotes exist', () => {
         const result = getRemotesForChannel(state as any, 'nonexistent_channel');
-        expect(result).toEqual([]);
+        expect(result).toEqual(undefined);
     });
 });

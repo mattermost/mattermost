@@ -3,21 +3,12 @@
 
 import type {Client4} from '@mattermost/client';
 
-import {LicenseSkus} from './constant';
 import {mergeWithOnPremServerConfig} from './server/default_config';
 
 export type EnableAutotranslationOptions = {
     mockBaseUrl: string;
     targetLanguages?: string[];
 };
-
-/**
- * Returns true if the server has a license that includes autotranslation (Entry or Advanced).
- * Use with test.skip(!hasAutotranslationLicense(license.SkuShortName), '...') in autotranslation specs.
- */
-export function hasAutotranslationLicense(skuShortName: string): boolean {
-    return skuShortName === LicenseSkus.Entry || skuShortName === LicenseSkus.EnterpriseAdvanced;
-}
 
 /**
  * Enable autotranslation in server config with LibreTranslate provider pointing at the mock URL.
