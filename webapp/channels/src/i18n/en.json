@@ -6370,6 +6370,8 @@
   "textbox.preview": "Preview",
   "textbox.quote": ">quote",
   "textbox.strike": "strike",
+  "texteditor.ai_actions": "AI Actions",
+  "texteditor.ai_actions.menu": "AI Actions",
   "texteditor.rewrite": "Rewrite",
   "texteditor.rewrite.create": "Create a new message...",
   "texteditor.rewrite.discard": "Discard",
