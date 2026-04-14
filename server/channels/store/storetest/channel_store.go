@@ -6495,7 +6495,6 @@ func testAutocompleteInTeamFiltered(t *testing.T, rctx request.CTX, ss store.Sto
 			}
 		}
 	})
-
 }
 
 func testAutocomplete(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
