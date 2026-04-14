@@ -45,7 +45,6 @@ func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
 			callerID, _ := model.CallerIDFromContext(rctx.Context())
 			return callerID
 		},
-		Logger: logger,
 	})
 	require.NoError(tb, err)
 

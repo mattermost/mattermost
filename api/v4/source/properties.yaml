@@ -69,7 +69,7 @@
                 linked_field_id:
                   type: string
                   description: >
-                    Optional. The ID of a template field to link to. The source must be a
+                    The ID of a template field to link to. The source must be a
                     template field in the same group, must not itself be linked, and must
                     not be deleted. When set, the created field inherits the source's type,
                     options, and security attributes; the `type` field in the request body

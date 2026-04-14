@@ -9,7 +9,6 @@ import (
 	"sync"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
@@ -24,7 +23,6 @@ type PropertyService struct {
 	valueStore        store.PropertyValueStore
 	propertyAccess    *PropertyAccessService
 	callerIDExtractor CallerIDExtractor
-	logger            *mlog.Logger
 	groupCache        sync.Map // name -> *model.PropertyGroup
 }
 
@@ -33,21 +31,11 @@ type ServiceConfig struct {
 	PropertyFieldStore store.PropertyFieldStore
 	PropertyValueStore store.PropertyValueStore
 	CallerIDExtractor  CallerIDExtractor
-	Logger             *mlog.Logger
 }
 
 func New(c ServiceConfig) (*PropertyService, error) {
 	if err := c.validate(); err != nil {
 		return nil, err
-	}
-
-	logger := c.Logger
-	if logger == nil {
-		var logErr error
-		logger, logErr = mlog.NewLogger()
-		if logErr != nil {
-			return nil, fmt.Errorf("failed to initialize property service logger: %w", logErr)
-		}
 	}
 
 	return &PropertyService{
@@ -56,7 +44,6 @@ func New(c ServiceConfig) (*PropertyService, error) {
 		valueStore:        c.PropertyValueStore,
 		callerIDExtractor: c.CallerIDExtractor,
 		propertyAccess:    nil,
-		logger:            logger,
 	}, nil
 }
 
