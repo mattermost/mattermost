@@ -15,6 +15,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/Masterminds/semver/v3"
 	svg "github.com/h2non/go-is-svg"
@@ -244,9 +245,16 @@ func (ch *Channels) initPlugins(rctx request.CTX, pluginDir, webappPluginDir str
 			ch.syncPluginsActiveState()
 		}
 
-		ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+		ch.RunMultiHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
+			start := time.Now()
 			if err := hooks.OnConfigurationChange(); err != nil {
 				ch.srv.Log().Error("Plugin OnConfigurationChange hook failed", mlog.Err(err))
+			}
+			if elapsed := time.Since(start); elapsed > time.Second {
+				ch.srv.Log().Warn("Plugin OnConfigurationChange hook was slow",
+					mlog.String("plugin_id", manifest.Id),
+					mlog.Duration("elapsed", elapsed),
+				)
 			}
 			return true
 		}, plugin.OnConfigurationChangeID)
