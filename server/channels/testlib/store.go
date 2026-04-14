@@ -152,6 +152,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 
 	boardField := &model.PropertyField{ID: model.NewId(), GroupID: boardsGroup.ID, Name: model.BoardsPropertyFieldNameBoard}
 	propertyFieldStore.On("GetFieldByName", mock.Anything, boardsGroup.ID, "", model.BoardsPropertyFieldNameBoard).Return(boardField, nil)
+	propertyFieldStore.On("GetFieldByName", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, store.NewErrNotFound("PropertyField", ""))
 
 	viewStore := mocks.ViewStore{}
 	mockStore.On("View").Return(&viewStore)
