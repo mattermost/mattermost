@@ -29,12 +29,21 @@ describe('codeBlock', () => {
                 code={input}
                 language={language}
             />,
+            {flushEffects: false},
         );
 
         expect(screen.getByText('TypeScript')).toBeInTheDocument();
         expect(container.querySelector('.post-code__line-numbers')).toBeInTheDocument();
 
-        // highlight.js resolves during async renderWithContext, so syntax highlighting is already applied
+        // Before highlight.js finishes loading
+        expect(container.querySelector('.hljs-keyword')).not.toBeInTheDocument();
+
+        // Wait for highlight.js to finish loading
+        await actImmediate();
+
+        expect(screen.getByText('TypeScript')).toBeInTheDocument();
+        expect(container.querySelector('.post-code__line-numbers')).toBeInTheDocument();
+
         expect(container.querySelector('.hljs-keyword')).toBeInTheDocument();
     });
 

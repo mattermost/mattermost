@@ -39,25 +39,38 @@ export type FullContextOptions = {
     useMockedStore?: boolean;
     pluginReducers?: string[];
     history?: History<unknown>;
+    flushEffects?: boolean;
+}
+
+const fullContextOptionsKeys = new Set<string>(['intlMessages', 'locale', 'useMockedStore', 'pluginReducers', 'history', 'flushEffects']);
+
+function isFullContextOptions(value: unknown): value is FullContextOptions {
+    if (!value || typeof value !== 'object') {
+        return false;
+    }
+    return Object.keys(value).every((key) => fullContextOptionsKeys.has(key));
 }
 
 export const renderWithContext = async (
     component: React.ReactElement,
-    initialState: DeepPartial<GlobalState> = {},
+    initialStateOrOptions?: DeepPartial<GlobalState> | FullContextOptions,
     partialOptions?: FullContextOptions,
 ) => {
+    const resolvedOptions = partialOptions ?? (isFullContextOptions(initialStateOrOptions) ? initialStateOrOptions : undefined);
+    const initialState: DeepPartial<GlobalState> = isFullContextOptions(initialStateOrOptions) ? {} : (initialStateOrOptions ?? {});
+
     const options = {
-        intlMessages: partialOptions?.intlMessages,
-        locale: partialOptions?.locale ?? 'en',
-        useMockedStore: partialOptions?.useMockedStore ?? false,
+        intlMessages: resolvedOptions?.intlMessages,
+        locale: resolvedOptions?.locale ?? 'en',
+        useMockedStore: resolvedOptions?.useMockedStore ?? false,
     };
 
-    const testStore = configureOrMockStore(initialState, options.useMockedStore, partialOptions?.pluginReducers);
+    const testStore = configureOrMockStore(initialState, options.useMockedStore, resolvedOptions?.pluginReducers);
 
     // Store these in an object so that they can be maintained through rerenders
     const renderState = {
         component,
-        history: partialOptions?.history ?? createBrowserHistory(),
+        history: resolvedOptions?.history ?? createBrowserHistory(),
         options,
         store: testStore,
     };
@@ -71,7 +84,9 @@ export const renderWithContext = async (
         },
     });
 
-    await flushEffects();
+    if (resolvedOptions?.flushEffects !== false) {
+        await flushEffects();
+    }
 
     return {
         ...results,
@@ -85,7 +100,7 @@ export const renderWithContext = async (
          * Rerenders the component after replacing the entire store state with the provided one.
          */
         replaceStoreState: (newInitialState: DeepPartial<GlobalState>) => {
-            renderState.store = configureOrMockStore(newInitialState, renderState.options.useMockedStore, partialOptions?.pluginReducers);
+            renderState.store = configureOrMockStore(newInitialState, renderState.options.useMockedStore, resolvedOptions?.pluginReducers);
 
             results.rerender(renderState.component);
         },
@@ -95,7 +110,7 @@ export const renderWithContext = async (
          */
         updateStoreState: (stateDiff: DeepPartial<GlobalState>) => {
             const newInitialState = mergeObjects(renderState.store.getState(), stateDiff);
-            renderState.store = configureOrMockStore(newInitialState, renderState.options.useMockedStore, partialOptions?.pluginReducers);
+            renderState.store = configureOrMockStore(newInitialState, renderState.options.useMockedStore, resolvedOptions?.pluginReducers);
 
             results.rerender(renderState.component);
         },
@@ -105,21 +120,24 @@ export const renderWithContext = async (
 
 export const renderHookWithContext = async <TProps, TResult>(
     callback: (props: TProps) => TResult,
-    initialState: DeepPartial<GlobalState> = {},
+    initialStateOrOptions?: DeepPartial<GlobalState> | FullContextOptions,
     partialOptions?: FullContextOptions,
 ) => {
+    const resolvedOptions = partialOptions ?? (isFullContextOptions(initialStateOrOptions) ? initialStateOrOptions : undefined);
+    const initialState: DeepPartial<GlobalState> = isFullContextOptions(initialStateOrOptions) ? {} : (initialStateOrOptions ?? {});
+
     const options = {
-        intlMessages: partialOptions?.intlMessages,
-        locale: partialOptions?.locale ?? 'en',
-        useMockedStore: partialOptions?.useMockedStore ?? false,
+        intlMessages: resolvedOptions?.intlMessages,
+        locale: resolvedOptions?.locale ?? 'en',
+        useMockedStore: resolvedOptions?.useMockedStore ?? false,
     };
 
-    const testStore = configureOrMockStore(initialState, options.useMockedStore, partialOptions?.pluginReducers);
+    const testStore = configureOrMockStore(initialState, options.useMockedStore, resolvedOptions?.pluginReducers);
 
     // Store these in an object so that they can be maintained through rerenders
     const renderState = {
         callback,
-        history: partialOptions?.history ?? createBrowserHistory(),
+        history: resolvedOptions?.history ?? createBrowserHistory(),
         options,
         store: testStore,
     };
@@ -132,7 +150,9 @@ export const renderHookWithContext = async <TProps, TResult>(
         },
     });
 
-    await flushEffects();
+    if (resolvedOptions?.flushEffects !== false) {
+        await flushEffects();
+    }
 
     return {
         ...results,
@@ -141,7 +161,7 @@ export const renderHookWithContext = async <TProps, TResult>(
          * Rerenders the component after replacing the entire store state with the provided one.
          */
         replaceStoreState: (newInitialState: DeepPartial<GlobalState>) => {
-            renderState.store = configureOrMockStore(newInitialState, renderState.options.useMockedStore, partialOptions?.pluginReducers);
+            renderState.store = configureOrMockStore(newInitialState, renderState.options.useMockedStore, resolvedOptions?.pluginReducers);
 
             results.rerender();
         },
@@ -217,15 +237,18 @@ const Providers = ({children, store, history, options}: RenderStateProps) => {
  *
  * **Trade-off**: Because effects resolve before the render result is returned, intermediate states
  * (loading spinners, skeleton screens) are no longer observable. To test intermediate states,
- * mock the async action so it never resolves:
+ * either mock the async action so it never resolves, or pass `{flushEffects: false}`:
  *
  * @example
  * ```ts
- * // Mock the async action to stay pending so the component remains in loading state
+ * // Option 1: Mock the async action to stay pending
  * jest.spyOn(Client4, 'getUser').mockReturnValue(new Promise(() => {}));
- *
  * const {container} = await renderWithContext(<UserProfile userId='uid'/>);
  * expect(screen.getByText('Loading...')).toBeInTheDocument();
+ *
+ * // Option 2: Skip flushing effects
+ * const {result} = await renderHookWithContext(() => useMyHook(), {flushEffects: false});
+ * expect(result.current.loading).toBe(true);
  * ```
  */
 function flushEffects() {

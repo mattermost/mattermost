@@ -57,18 +57,9 @@ describe('SystemUserDetail', () => {
         } as RouteComponentProps<Params>),
     };
 
-    const waitForLoadingToFinish = async () => {
-        await waitFor(() => {
-            expect(screen.queryAllByTitle('Loading Icon')).toHaveLength(0);
-            expect(screen.queryByText('No teams found')).toBeInTheDocument();
-        });
-    };
-
     test('should match default snapshot', async () => {
         const props = defaultProps;
         const {container} = await renderWithContext(<SystemUserDetail {...props}/>);
-
-        await waitForLoadingToFinish();
 
         expect(container).toMatchSnapshot();
     });
@@ -80,8 +71,6 @@ describe('SystemUserDetail', () => {
         };
         const {container} = await renderWithContext(<SystemUserDetail {...props}/>);
 
-        await waitForLoadingToFinish();
-
         expect(container).toMatchSnapshot();
     });
 
@@ -91,8 +80,6 @@ describe('SystemUserDetail', () => {
             showManageUserSettings: true,
         };
         const {container} = await renderWithContext(<SystemUserDetail {...props}/>);
-
-        await waitForLoadingToFinish();
 
         expect(container).toMatchSnapshot();
     });
@@ -104,8 +91,6 @@ describe('SystemUserDetail', () => {
         };
         const {container} = await renderWithContext(<SystemUserDetail {...props}/>);
 
-        await waitForLoadingToFinish();
-
         expect(container).toMatchSnapshot();
     });
 
@@ -116,8 +101,6 @@ describe('SystemUserDetail', () => {
         };
 
         const {container} = await renderWithContext(<SystemUserDetail {...props}/>);
-
-        await waitForLoadingToFinish();
 
         const activateButton = container.querySelector('button[disabled]');
         expect(activateButton).toHaveTextContent('Deactivate (Managed By LDAP)');
@@ -132,8 +115,6 @@ describe('SystemUserDetail', () => {
         };
         const {container} = await renderWithContext(<SystemUserDetail {...props}/>);
 
-        await waitForLoadingToFinish();
-
         expect(container).toMatchSnapshot();
     });
 
@@ -141,8 +122,6 @@ describe('SystemUserDetail', () => {
         test('should detect email changes and enable save', async () => {
             const userEventInstance = userEvent.setup();
             await renderWithContext(<SystemUserDetail {...defaultProps}/>);
-
-            await waitFor(() => expect(screen.queryAllByTestId('loadingSpinner')).toHaveLength(0));
 
             const emailInput = screen.getByLabelText('Email');
             await userEventInstance.clear(emailInput);
@@ -153,8 +132,6 @@ describe('SystemUserDetail', () => {
         test('should detect username changes and enable save', async () => {
             const userEventInstance = userEvent.setup();
             await renderWithContext(<SystemUserDetail {...defaultProps}/>);
-
-            await waitFor(() => expect(screen.queryAllByTestId('loadingSpinner')).toHaveLength(0));
 
             const usernameInput = screen.getByPlaceholderText('Enter username');
             await userEventInstance.clear(usernameInput);
@@ -168,8 +145,6 @@ describe('SystemUserDetail', () => {
             const userEventInstance = userEvent.setup();
             await renderWithContext(<SystemUserDetail {...defaultProps}/>);
 
-            await waitFor(() => expect(screen.queryAllByTestId('loadingSpinner')).toHaveLength(0));
-
             const emailInput = screen.getByLabelText('Email');
             await userEventInstance.clear(emailInput);
             await userEventInstance.type(emailInput, 'invalid-email');
@@ -181,8 +156,6 @@ describe('SystemUserDetail', () => {
         test('should not show validation error for valid email', async () => {
             const userEventInstance = userEvent.setup();
             await renderWithContext(<SystemUserDetail {...defaultProps}/>);
-
-            await waitFor(() => expect(screen.queryAllByTestId('loadingSpinner')).toHaveLength(0));
 
             const emailInput = screen.getByLabelText('Email');
             await userEventInstance.clear(emailInput);
@@ -196,8 +169,6 @@ describe('SystemUserDetail', () => {
         test('should show validation error for empty email', async () => {
             const userEventInstance = userEvent.setup();
             await renderWithContext(<SystemUserDetail {...defaultProps}/>);
-
-            await waitFor(() => expect(screen.queryAllByTestId('loadingSpinner')).toHaveLength(0));
 
             const emailInput = screen.getByLabelText('Email');
             await userEventInstance.clear(emailInput);
@@ -213,8 +184,6 @@ describe('SystemUserDetail', () => {
         test('should show validation error for empty username', async () => {
             const userEventInstance = userEvent.setup();
             await renderWithContext(<SystemUserDetail {...defaultProps}/>);
-
-            await waitFor(() => expect(screen.queryAllByTestId('loadingSpinner')).toHaveLength(0));
 
             const usernameInput = screen.getByPlaceholderText('Enter username');
             await userEventInstance.clear(usernameInput);
@@ -238,8 +207,6 @@ describe('SystemUserDetail', () => {
             };
             await renderWithContext(<SystemUserDetail {...props}/>);
 
-            await waitFor(() => expect(screen.queryAllByTestId('loadingSpinner')).toHaveLength(0));
-
             const authDataInput = screen.getByPlaceholderText('Enter auth data');
             await userEventInstance.clear(authDataInput);
             await userEventInstance.type(authDataInput, '  ');
@@ -256,8 +223,6 @@ describe('SystemUserDetail', () => {
                 getUser: getSamlUserMock,
             };
             await renderWithContext(<SystemUserDetail {...props}/>);
-
-            await waitFor(() => expect(screen.queryAllByTestId('loadingSpinner')).toHaveLength(0));
 
             const authDataInput = screen.getByPlaceholderText('Enter auth data');
             const longAuthData = 'a'.repeat(129); // 129 characters, exceeds max
@@ -276,8 +241,6 @@ describe('SystemUserDetail', () => {
                 getUser: getSamlUserMock,
             };
             await renderWithContext(<SystemUserDetail {...props}/>);
-
-            await waitFor(() => expect(screen.queryAllByTestId('loadingSpinner')).toHaveLength(0));
 
             const authDataInput = screen.getByPlaceholderText('Enter auth data');
             const validAuthData = 'a'.repeat(128); // Exactly 128 characters
@@ -337,8 +300,6 @@ describe('SystemUserDetail', () => {
             };
 
             await renderWithContext(<SystemUserDetail {...props}/>);
-
-            await waitFor(() => expect(screen.queryAllByTestId('loadingSpinner')).toHaveLength(0));
 
             // Find and click activate button
             const activateButton = screen.getByText('Activate');

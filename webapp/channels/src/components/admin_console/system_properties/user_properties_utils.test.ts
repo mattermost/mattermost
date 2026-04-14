@@ -78,9 +78,14 @@ describe('useUserPropertyFields', () => {
     it('should return a collection', async () => {
         const {result, rerender} = await renderHookWithContext(() => {
             return useUserPropertyFields();
-        }, getBaseState());
+        }, getBaseState(), {flushEffects: false});
 
+        const [fields1, read1] = result.current;
+        expect(read1.loading).toBe(true);
+        expect(read1.error).toBe(undefined);
         expect(getFields).toHaveBeenCalledTimes(1);
+        expect(fields1.data).toEqual({});
+        expect(fields1.order).toEqual([]);
 
         act(() => {
             jest.runAllTimers();

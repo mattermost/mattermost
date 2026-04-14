@@ -39,14 +39,10 @@ describe('component/PDFPreview', () => {
         });
     });
 
-    test('should match snapshot, loading', () => {
-        // Use a never-resolving promise so no async state updates occur after render
-        mockGetDocument.mockReturnValueOnce({
-            promise: new Promise(() => {}),
-        });
-
-        const {container} = render(
+    test('should match snapshot, loading', async () => {
+        const {container} = await renderWithContext(
             <PDFPreview {...requiredProps}/>,
+            {flushEffects: false},
         );
         expect(container).toMatchSnapshot();
     });

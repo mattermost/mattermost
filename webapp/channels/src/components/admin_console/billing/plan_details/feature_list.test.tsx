@@ -65,7 +65,6 @@ describe('components/admin_console/billing/plan_details/feature_list', () => {
         ];
 
         for (const plan of plans) {
-            // eslint-disable-next-line no-await-in-loop
             const {container} = await renderFeatureList({
                 subscriptionPlan: plan,
             });

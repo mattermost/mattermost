@@ -1437,7 +1437,7 @@ describe('AppsFormComponent', () => {
                 };
 
                 // Should not throw error for valid divisors
-                // eslint-disable-next-line no-await-in-loop
+
                 await renderWithContext(<AppsForm {...props}/>);
             }
         });
@@ -1464,7 +1464,6 @@ describe('AppsFormComponent', () => {
                     form: formWithInvalidInterval,
                 };
 
-                // eslint-disable-next-line no-await-in-loop
                 await renderWithContext(<AppsForm {...props}/>);
 
                 // Should log warning for invalid divisors
@@ -1503,7 +1502,6 @@ describe('AppsFormComponent', () => {
                     form: formWithOutOfRangeInterval,
                 };
 
-                // eslint-disable-next-line no-await-in-loop
                 await renderWithContext(<AppsForm {...props}/>);
 
                 // Should log warning for out of range values
@@ -1542,7 +1540,6 @@ describe('AppsFormComponent', () => {
                     form: formWithNonNumericInterval,
                 };
 
-                // eslint-disable-next-line no-await-in-loop
                 await renderWithContext(<AppsForm {...props}/>);
 
                 // Should log warning for non-numeric values (unless undefined)

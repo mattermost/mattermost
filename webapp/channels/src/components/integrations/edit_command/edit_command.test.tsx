@@ -84,6 +84,7 @@ describe('components/integrations/EditCommand', () => {
     test('should match snapshot, loading', async () => {
         const {container} = await renderWithContext(
             <EditCommand {...baseProps}/>,
+            {flushEffects: false},
         );
 
         // Before getCustomTeamCommands resolves, should show loading

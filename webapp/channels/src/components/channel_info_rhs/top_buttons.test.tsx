@@ -176,7 +176,7 @@ describe('channel_info_rhs/top_buttons', () => {
                 ...topButtonDefaultProps,
                 channelType,
             };
-            // eslint-disable-next-line no-await-in-loop
+
             await renderWithContext(
                 <TopButtons
                     {...localProps}

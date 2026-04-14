@@ -8,7 +8,7 @@ import {bindActionCreators} from 'redux';
 import * as GlobalActions from 'actions/global_actions';
 
 import testConfigureStore from 'packages/mattermost-redux/test/test_store';
-import {renderWithContext, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, waitFor, act} from 'tests/react_testing_utils';
 import * as BrowserUtils from 'utils/browser_utils';
 import {StoragePrefixes} from 'utils/constants';
 
@@ -134,6 +134,40 @@ describe('components/Root', () => {
 
         await waitFor(() => {
             expect(props.history.push).toHaveBeenCalledWith('/signup_user_complete');
+        });
+    });
+
+    test('should show initial loading state then stop loading screen after config is loaded', async () => {
+        const InitialLoadingScreen = require('components/initial_loading_screen').default;
+        InitialLoadingScreen.stop.mockClear();
+
+        let resolveLoadConfig: (value: {isLoaded: boolean; isMeRequested: boolean}) => void;
+        const props = {
+            ...baseProps,
+            actions: {
+                ...baseProps.actions,
+                loadConfigAndMe: jest.fn().mockImplementation(() => {
+                    return new Promise((resolve) => {
+                        resolveLoadConfig = resolve;
+                    });
+                }),
+            },
+        };
+
+        const {container} = await renderWithContext(<Root {...props}/>);
+
+        // Initially, app routes should not be mounted (loading state)
+        expect(container.innerHTML).toBe('<div></div>');
+        expect(InitialLoadingScreen.stop).not.toHaveBeenCalled();
+
+        // Config finishes loading
+        await act(async () => {
+            resolveLoadConfig!({isLoaded: true, isMeRequested: false});
+        });
+
+        // Loading screen should be stopped after config and plugins initialize
+        await waitFor(() => {
+            expect(InitialLoadingScreen.stop).toHaveBeenCalledWith('root');
         });
     });
 

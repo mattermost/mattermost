@@ -51,7 +51,8 @@
     {
       "files": ["*.test.*", "src/tests/**"],
       "rules": {
-        "no-only-tests/no-only-tests": ["error", {"focus": ["only", "skip"]}]
+        "no-only-tests/no-only-tests": ["error", {"focus": ["only", "skip"]}],
+        "no-await-in-loop": "off"
       }
     },
     {

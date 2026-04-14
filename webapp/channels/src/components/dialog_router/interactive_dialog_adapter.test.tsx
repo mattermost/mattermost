@@ -612,12 +612,10 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                     elements: [boolElement],
                 };
 
-                // eslint-disable-next-line no-await-in-loop
                 const {getByTestId} = await renderWithContext(
                     <InteractiveDialogAdapter {...props}/>,
                 );
 
-                // eslint-disable-next-line no-await-in-loop
                 await waitFor(() => {
                     expect(getByTestId(`field-value-test-bool-${test.name}`)).toHaveTextContent(String(test.expected));
                 });

@@ -123,7 +123,9 @@ describe('hooks/useChannelSystemPolicies', () => {
             error: {message: 'Policy not found'},
         });
 
-        const {result} = await renderHookWithContext(() => useChannelSystemPolicies(mockChannelWithPolicyEnforcement));
+        const {result} = await renderHookWithContext(() => useChannelSystemPolicies(mockChannelWithPolicyEnforcement), {flushEffects: false});
+
+        expect(result.current.loading).toBe(true);
 
         await waitFor(() => {
             expect(result.current.loading).toBe(false);
@@ -145,7 +147,9 @@ describe('hooks/useChannelSystemPolicies', () => {
                 data: mockParentPolicy2,
             });
 
-        const {result} = await renderHookWithContext(() => useChannelSystemPolicies(mockChannelWithPolicyEnforcement));
+        const {result} = await renderHookWithContext(() => useChannelSystemPolicies(mockChannelWithPolicyEnforcement), {flushEffects: false});
+
+        expect(result.current.loading).toBe(true);
 
         await waitFor(() => {
             expect(result.current.loading).toBe(false);
@@ -160,7 +164,9 @@ describe('hooks/useChannelSystemPolicies', () => {
             data: mockChannelPolicyParentType,
         });
 
-        const {result} = await renderHookWithContext(() => useChannelSystemPolicies(mockChannelWithPolicyEnforcement));
+        const {result} = await renderHookWithContext(() => useChannelSystemPolicies(mockChannelWithPolicyEnforcement), {flushEffects: false});
+
+        expect(result.current.loading).toBe(true);
 
         await waitFor(() => {
             expect(result.current.loading).toBe(false);
@@ -173,7 +179,9 @@ describe('hooks/useChannelSystemPolicies', () => {
     test('should handle network/API errors', async () => {
         dispatchMock.mockRejectedValue(new Error('Network error'));
 
-        const {result} = await renderHookWithContext(() => useChannelSystemPolicies(mockChannelWithPolicyEnforcement));
+        const {result} = await renderHookWithContext(() => useChannelSystemPolicies(mockChannelWithPolicyEnforcement), {flushEffects: false});
+
+        expect(result.current.loading).toBe(true);
 
         await waitFor(() => {
             expect(result.current.loading).toBe(false);
