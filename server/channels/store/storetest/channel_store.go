@@ -6371,7 +6371,7 @@ func testAutocompleteInTeamFiltered(t *testing.T, rctx request.CTX, ss store.Sto
 	for range 55 {
 		ch, chErr := ss.Channel().Save(rctx, &model.Channel{
 			TeamId:      team.Id,
-			DisplayName: fmt.Sprintf("Public Channel %03d", len(publicChannels)),
+			DisplayName: fmt.Sprintf("AAA Public Channel %03d", len(publicChannels)),
 			Name:        NewTestID(),
 			Type:        model.ChannelTypeOpen,
 		}, -1)
@@ -6388,7 +6388,7 @@ func testAutocompleteInTeamFiltered(t *testing.T, rctx request.CTX, ss store.Sto
 	// Create private channels the user is a member of
 	private1, nErr := ss.Channel().Save(rctx, &model.Channel{
 		TeamId:      team.Id,
-		DisplayName: "Private Member 1",
+		DisplayName: "ZZZ Private Member 1",
 		Name:        NewTestID(),
 		Type:        model.ChannelTypePrivate,
 	}, -1)
@@ -6398,7 +6398,7 @@ func testAutocompleteInTeamFiltered(t *testing.T, rctx request.CTX, ss store.Sto
 
 	private2, nErr := ss.Channel().Save(rctx, &model.Channel{
 		TeamId:      team.Id,
-		DisplayName: "Private Member 2",
+		DisplayName: "ZZZ Private Member 2",
 		Name:        NewTestID(),
 		Type:        model.ChannelTypePrivate,
 	}, -1)
@@ -6421,7 +6421,7 @@ func testAutocompleteInTeamFiltered(t *testing.T, rctx request.CTX, ss store.Sto
 	gcTrue := true
 	privateGroupConstrained, nErr := ss.Channel().Save(rctx, &model.Channel{
 		TeamId:           team.Id,
-		DisplayName:      "Private Group Constrained",
+		DisplayName:      "ZZZ Private Group Constrained",
 		Name:             NewTestID(),
 		Type:             model.ChannelTypePrivate,
 		GroupConstrained: &gcTrue,
@@ -6454,6 +6454,7 @@ func testAutocompleteInTeamFiltered(t *testing.T, rctx request.CTX, ss store.Sto
 		}
 		assert.Contains(t, ids, private1.Id, "private member channel 1 should be returned")
 		assert.Contains(t, ids, private2.Id, "private member channel 2 should be returned")
+		assert.Contains(t, ids, privateGroupConstrained.Id, "group-constrained private channel should be included when excludeGroupConstrained=false")
 
 		for _, ch := range channels {
 			assert.Equal(t, model.ChannelTypePrivate, ch.Type, "only private channels should be returned")
@@ -6494,6 +6495,20 @@ func testAutocompleteInTeamFiltered(t *testing.T, rctx request.CTX, ss store.Sto
 				assert.NotEqual(t, privateNotMember.Id, ch.Id, "private channel user is not a member of should never appear")
 			}
 		}
+
+		// Verify parity with AutocompleteInTeam using the same arguments
+		baseChannels, err := ss.Channel().AutocompleteInTeam(rctx, team.Id, user.Id, "", false, false)
+		require.NoError(t, err)
+
+		filteredIDs := make(map[string]bool, len(channels))
+		for _, ch := range channels {
+			filteredIDs[ch.Id] = true
+		}
+		baseIDs := make(map[string]bool, len(baseChannels))
+		for _, ch := range baseChannels {
+			baseIDs[ch.Id] = true
+		}
+		assert.Equal(t, baseIDs, filteredIDs, "AutocompleteInTeamFiltered with no filters should return the same channels as AutocompleteInTeam")
 	})
 }
 
