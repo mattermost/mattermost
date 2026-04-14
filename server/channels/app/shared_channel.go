@@ -235,7 +235,9 @@ func (a *App) SyncSharedChannel(channelID string) error {
 // Plugin inbound sync APIs
 
 // ReceiveSharedChannelSyncMsg processes an inbound sync message from a plugin remote.
-func (a *App) ReceiveSharedChannelSyncMsg(rctx request.CTX, pluginID string, msg *model.SyncMsg) (model.SyncResponse, error) {
+// The pluginID is server-injected (from api.id) for ownership validation; remoteID
+// is the caller-supplied remote identifier returned by RegisterPluginForSharedChannels.
+func (a *App) ReceiveSharedChannelSyncMsg(rctx request.CTX, pluginID, remoteID string, msg *model.SyncMsg) (model.SyncResponse, error) {
 	if msg == nil {
 		return model.SyncResponse{}, fmt.Errorf("SyncMsg must not be nil")
 	}
@@ -245,21 +247,25 @@ func (a *App) ReceiveSharedChannelSyncMsg(rctx request.CTX, pluginID string, msg
 		return model.SyncResponse{}, err
 	}
 
-	rc, err := a.Srv().Store().RemoteCluster().GetByPluginID(pluginID)
+	rc, err := a.Srv().Store().RemoteCluster().Get(remoteID, false)
 	if err != nil {
 		if isNotFoundError(err) {
-			return model.SyncResponse{}, fmt.Errorf("plugin %s is not registered for shared channels: %w", pluginID, err)
+			return model.SyncResponse{}, fmt.Errorf("remote %s not found: %w", remoteID, err)
 		}
-		return model.SyncResponse{}, fmt.Errorf("error looking up plugin %s registration: %w", pluginID, err)
+		return model.SyncResponse{}, fmt.Errorf("error looking up remote %s: %w", remoteID, err)
+	}
+	if rc.PluginID != pluginID {
+		return model.SyncResponse{}, fmt.Errorf("remote %s does not belong to plugin %s", remoteID, pluginID)
 	}
 
 	return scService.ProcessSyncMessage(rctx, msg, rc)
 }
 
 // ReceiveSharedChannelAttachmentSyncMsg receives a file attachment from a plugin remote.
-// The server constructs the file path — the plugin provides the FileInfo metadata and
+// The server constructs the file path, the plugin provides the FileInfo metadata and
 // raw file bytes, but does not control where the file is stored.
-func (a *App) ReceiveSharedChannelAttachmentSyncMsg(rctx request.CTX, pluginID string, channelID string, fi *model.FileInfo, data io.Reader) (*model.FileInfo, error) {
+// The pluginID is server-injected for ownership validation; remoteID is caller-supplied.
+func (a *App) ReceiveSharedChannelAttachmentSyncMsg(rctx request.CTX, pluginID, remoteID, channelID string, fi *model.FileInfo, data io.Reader) (*model.FileInfo, error) {
 	if fi == nil {
 		return nil, model.NewAppError("ReceiveSharedChannelAttachmentSyncMsg",
 			"api.shared_channel.attachment.file_info_required.app_error", nil, "", http.StatusBadRequest)
@@ -281,12 +287,15 @@ func (a *App) ReceiveSharedChannelAttachmentSyncMsg(rctx request.CTX, pluginID s
 		return nil, err
 	}
 
-	rc, err := a.Srv().Store().RemoteCluster().GetByPluginID(pluginID)
+	rc, err := a.Srv().Store().RemoteCluster().Get(remoteID, false)
 	if err != nil {
 		if isNotFoundError(err) {
-			return nil, fmt.Errorf("plugin %s is not registered for shared channels: %w", pluginID, err)
+			return nil, fmt.Errorf("remote %s not found: %w", remoteID, err)
 		}
-		return nil, fmt.Errorf("error looking up plugin %s registration: %w", pluginID, err)
+		return nil, fmt.Errorf("error looking up remote %s: %w", remoteID, err)
+	}
+	if rc.PluginID != pluginID {
+		return nil, fmt.Errorf("remote %s does not belong to plugin %s", remoteID, pluginID)
 	}
 
 	// Validate channel is shared with this remote
@@ -360,17 +369,21 @@ func (a *App) ReceiveSharedChannelAttachmentSyncMsg(rctx request.CTX, pluginID s
 }
 
 // ReceiveSharedChannelProfileImageSyncMsg receives a profile image from a plugin remote.
-func (a *App) ReceiveSharedChannelProfileImageSyncMsg(rctx request.CTX, pluginID string, userID string, image []byte) error {
+// The pluginID is server-injected for ownership validation; remoteID is caller-supplied.
+func (a *App) ReceiveSharedChannelProfileImageSyncMsg(rctx request.CTX, pluginID, remoteID, userID string, image []byte) error {
 	if _, err := a.getSharedChannelsService(true); err != nil {
 		return err
 	}
 
-	rc, err := a.Srv().Store().RemoteCluster().GetByPluginID(pluginID)
+	rc, err := a.Srv().Store().RemoteCluster().Get(remoteID, false)
 	if err != nil {
 		if isNotFoundError(err) {
-			return fmt.Errorf("plugin %s is not registered for shared channels: %w", pluginID, err)
+			return fmt.Errorf("remote %s not found: %w", remoteID, err)
 		}
-		return fmt.Errorf("error looking up plugin %s registration: %w", pluginID, err)
+		return fmt.Errorf("error looking up remote %s: %w", remoteID, err)
+	}
+	if rc.PluginID != pluginID {
+		return fmt.Errorf("remote %s does not belong to plugin %s", remoteID, pluginID)
 	}
 
 	// Validate user exists and belongs to this remote

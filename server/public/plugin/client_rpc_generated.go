@@ -6778,7 +6778,8 @@ func (s *apiRPCServer) UninviteRemoteFromChannel(args *Z_UninviteRemoteFromChann
 }
 
 type Z_ReceiveSharedChannelSyncMsgArgs struct {
-	A *model.SyncMsg
+	A string
+	B *model.SyncMsg
 }
 
 type Z_ReceiveSharedChannelSyncMsgReturns struct {
@@ -6786,8 +6787,8 @@ type Z_ReceiveSharedChannelSyncMsgReturns struct {
 	B error
 }
 
-func (g *apiRPCClient) ReceiveSharedChannelSyncMsg(msg *model.SyncMsg) (model.SyncResponse, error) {
-	_args := &Z_ReceiveSharedChannelSyncMsgArgs{msg}
+func (g *apiRPCClient) ReceiveSharedChannelSyncMsg(remoteID string, msg *model.SyncMsg) (model.SyncResponse, error) {
+	_args := &Z_ReceiveSharedChannelSyncMsgArgs{remoteID, msg}
 	_returns := &Z_ReceiveSharedChannelSyncMsgReturns{}
 	if err := g.client.Call("Plugin.ReceiveSharedChannelSyncMsg", _args, _returns); err != nil {
 		log.Printf("RPC call to ReceiveSharedChannelSyncMsg API failed: %s", err.Error())
@@ -6797,9 +6798,9 @@ func (g *apiRPCClient) ReceiveSharedChannelSyncMsg(msg *model.SyncMsg) (model.Sy
 
 func (s *apiRPCServer) ReceiveSharedChannelSyncMsg(args *Z_ReceiveSharedChannelSyncMsgArgs, returns *Z_ReceiveSharedChannelSyncMsgReturns) error {
 	if hook, ok := s.impl.(interface {
-		ReceiveSharedChannelSyncMsg(msg *model.SyncMsg) (model.SyncResponse, error)
+		ReceiveSharedChannelSyncMsg(remoteID string, msg *model.SyncMsg) (model.SyncResponse, error)
 	}); ok {
-		returns.A, returns.B = hook.ReceiveSharedChannelSyncMsg(args.A)
+		returns.A, returns.B = hook.ReceiveSharedChannelSyncMsg(args.A, args.B)
 		returns.B = encodableError(returns.B)
 	} else {
 		return encodableError(fmt.Errorf("API ReceiveSharedChannelSyncMsg called but not implemented."))
@@ -6809,15 +6810,16 @@ func (s *apiRPCServer) ReceiveSharedChannelSyncMsg(args *Z_ReceiveSharedChannelS
 
 type Z_ReceiveSharedChannelProfileImageSyncMsgArgs struct {
 	A string
-	B []byte
+	B string
+	C []byte
 }
 
 type Z_ReceiveSharedChannelProfileImageSyncMsgReturns struct {
 	A error
 }
 
-func (g *apiRPCClient) ReceiveSharedChannelProfileImageSyncMsg(userID string, image []byte) error {
-	_args := &Z_ReceiveSharedChannelProfileImageSyncMsgArgs{userID, image}
+func (g *apiRPCClient) ReceiveSharedChannelProfileImageSyncMsg(remoteID, userID string, image []byte) error {
+	_args := &Z_ReceiveSharedChannelProfileImageSyncMsgArgs{remoteID, userID, image}
 	_returns := &Z_ReceiveSharedChannelProfileImageSyncMsgReturns{}
 	if err := g.client.Call("Plugin.ReceiveSharedChannelProfileImageSyncMsg", _args, _returns); err != nil {
 		log.Printf("RPC call to ReceiveSharedChannelProfileImageSyncMsg API failed: %s", err.Error())
@@ -6827,9 +6829,9 @@ func (g *apiRPCClient) ReceiveSharedChannelProfileImageSyncMsg(userID string, im
 
 func (s *apiRPCServer) ReceiveSharedChannelProfileImageSyncMsg(args *Z_ReceiveSharedChannelProfileImageSyncMsgArgs, returns *Z_ReceiveSharedChannelProfileImageSyncMsgReturns) error {
 	if hook, ok := s.impl.(interface {
-		ReceiveSharedChannelProfileImageSyncMsg(userID string, image []byte) error
+		ReceiveSharedChannelProfileImageSyncMsg(remoteID, userID string, image []byte) error
 	}); ok {
-		returns.A = hook.ReceiveSharedChannelProfileImageSyncMsg(args.A, args.B)
+		returns.A = hook.ReceiveSharedChannelProfileImageSyncMsg(args.A, args.B, args.C)
 		returns.A = encodableError(returns.A)
 	} else {
 		return encodableError(fmt.Errorf("API ReceiveSharedChannelProfileImageSyncMsg called but not implemented."))

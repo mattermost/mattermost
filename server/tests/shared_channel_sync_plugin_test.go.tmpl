@@ -48,7 +48,7 @@ func (p *TestPlugin) OnActivate() error {
 		},
 	}
 
-	resp, err := p.API.ReceiveSharedChannelSyncMsg(msg)
+	resp, err := p.API.ReceiveSharedChannelSyncMsg(remoteID, msg)
 	if err != nil {
 		return fmt.Errorf("ReceiveSharedChannelSyncMsg failed: %w", err)
 	}
@@ -67,7 +67,7 @@ func (p *TestPlugin) OnActivate() error {
 		Size:      int64(len(fileData)),
 	}
 
-	savedFI, err := p.API.ReceiveSharedChannelAttachmentSyncMsg(channelID, fi, bytes.NewReader(fileData))
+	savedFI, err := p.API.ReceiveSharedChannelAttachmentSyncMsg(remoteID, channelID, fi, bytes.NewReader(fileData))
 	if err != nil {
 		return fmt.Errorf("ReceiveSharedChannelAttachmentSyncMsg failed: %w", err)
 	}
@@ -83,7 +83,7 @@ func (p *TestPlugin) OnActivate() error {
 		return fmt.Errorf("failed to encode test PNG: %w", err)
 	}
 
-	if err := p.API.ReceiveSharedChannelProfileImageSyncMsg(syncUserID, pngBuf.Bytes()); err != nil {
+	if err := p.API.ReceiveSharedChannelProfileImageSyncMsg(remoteID, syncUserID, pngBuf.Bytes()); err != nil {
 		return fmt.Errorf("ReceiveSharedChannelProfileImageSyncMsg failed: %w", err)
 	}
 

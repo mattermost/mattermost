@@ -1211,8 +1211,9 @@ func (s *apiRPCServer) InstallPlugin(args *Z_InstallPluginArgs, returns *Z_Insta
 }
 
 type Z_ReceiveSharedChannelAttachmentSyncMsgArgs struct {
-	A            string          // channelID
-	B            *model.FileInfo // fi
+	A            string          // remoteID
+	B            string          // channelID
+	C            *model.FileInfo // fi
 	DataStreamID uint32
 }
 
@@ -1221,7 +1222,7 @@ type Z_ReceiveSharedChannelAttachmentSyncMsgReturns struct {
 	B error
 }
 
-func (g *apiRPCClient) ReceiveSharedChannelAttachmentSyncMsg(channelID string, fi *model.FileInfo, data io.Reader) (*model.FileInfo, error) {
+func (g *apiRPCClient) ReceiveSharedChannelAttachmentSyncMsg(remoteID, channelID string, fi *model.FileInfo, data io.Reader) (*model.FileInfo, error) {
 	dataStreamID := g.muxBroker.NextId()
 
 	go func() {
@@ -1234,7 +1235,7 @@ func (g *apiRPCClient) ReceiveSharedChannelAttachmentSyncMsg(channelID string, f
 		serveIOReader(data, dataConnection)
 	}()
 
-	_args := &Z_ReceiveSharedChannelAttachmentSyncMsgArgs{channelID, fi, dataStreamID}
+	_args := &Z_ReceiveSharedChannelAttachmentSyncMsgArgs{remoteID, channelID, fi, dataStreamID}
 	_returns := &Z_ReceiveSharedChannelAttachmentSyncMsgReturns{}
 	if err := g.client.Call("Plugin.ReceiveSharedChannelAttachmentSyncMsg", _args, _returns); err != nil {
 		log.Print("RPC call ReceiveSharedChannelAttachmentSyncMsg to plugin failed.", mlog.Err(err))
@@ -1245,7 +1246,7 @@ func (g *apiRPCClient) ReceiveSharedChannelAttachmentSyncMsg(channelID string, f
 
 func (s *apiRPCServer) ReceiveSharedChannelAttachmentSyncMsg(args *Z_ReceiveSharedChannelAttachmentSyncMsgArgs, returns *Z_ReceiveSharedChannelAttachmentSyncMsgReturns) error {
 	hook, ok := s.impl.(interface {
-		ReceiveSharedChannelAttachmentSyncMsg(channelID string, fi *model.FileInfo, data io.Reader) (*model.FileInfo, error)
+		ReceiveSharedChannelAttachmentSyncMsg(remoteID, channelID string, fi *model.FileInfo, data io.Reader) (*model.FileInfo, error)
 	})
 	if !ok {
 		return encodableError(fmt.Errorf("API ReceiveSharedChannelAttachmentSyncMsg called but not implemented"))
@@ -1259,7 +1260,7 @@ func (s *apiRPCServer) ReceiveSharedChannelAttachmentSyncMsg(args *Z_ReceiveShar
 	dataReader := connectIOReader(receiveDataConnection)
 	defer dataReader.Close()
 
-	returns.A, returns.B = hook.ReceiveSharedChannelAttachmentSyncMsg(args.A, args.B, dataReader)
+	returns.A, returns.B = hook.ReceiveSharedChannelAttachmentSyncMsg(args.A, args.B, args.C, dataReader)
 	return nil
 }
 

@@ -900,23 +900,32 @@ func TestPluginAPIReceiveSharedChannelSyncMsg(t *testing.T) {
 	api := NewPluginAPI(th.App, th.Context, &model.Manifest{Id: pluginID})
 
 	t.Run("nil msg returns error", func(t *testing.T) {
-		_, err := api.ReceiveSharedChannelSyncMsg(nil)
+		_, err := api.ReceiveSharedChannelSyncMsg(rc.RemoteId, nil)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "must not be nil")
 	})
 
-	t.Run("unregistered plugin returns error", func(t *testing.T) {
-		badAPI := NewPluginAPI(th.App, th.Context, &model.Manifest{Id: "com.nonexistent.plugin"})
+	t.Run("unknown remoteID returns error", func(t *testing.T) {
 		msg := model.NewSyncMsg(channel.Id)
-		_, err := badAPI.ReceiveSharedChannelSyncMsg(msg)
+		_, err := api.ReceiveSharedChannelSyncMsg(model.NewId(), msg)
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "not registered")
+		assert.Contains(t, err.Error(), "not found")
+	})
+
+	t.Run("remoteID belonging to different plugin returns error", func(t *testing.T) {
+		otherPluginID := "com.other.plugin"
+		otherChannel := th.CreateChannel(t, th.BasicTeam)
+		otherRC := registerPluginRemoteForTest(t, th, otherPluginID, otherChannel)
+		msg := model.NewSyncMsg(channel.Id)
+		_, err := api.ReceiveSharedChannelSyncMsg(otherRC.RemoteId, msg)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "does not belong to plugin")
 	})
 
 	t.Run("channel not shared with remote returns error", func(t *testing.T) {
 		otherChannel := th.CreateChannel(t, th.BasicTeam)
 		msg := model.NewSyncMsg(otherChannel.Id)
-		_, err := api.ReceiveSharedChannelSyncMsg(msg)
+		_, err := api.ReceiveSharedChannelSyncMsg(rc.RemoteId, msg)
 		require.Error(t, err)
 	})
 
@@ -935,7 +944,7 @@ func TestPluginAPIReceiveSharedChannelSyncMsg(t *testing.T) {
 			},
 		}
 
-		resp, err := api.ReceiveSharedChannelSyncMsg(msg)
+		resp, err := api.ReceiveSharedChannelSyncMsg(rc.RemoteId, msg)
 		require.NoError(t, err)
 		assert.Contains(t, resp.UsersSyncd, userID)
 		assert.Empty(t, resp.UserErrors)
@@ -959,7 +968,7 @@ func TestPluginAPIReceiveSharedChannelSyncMsg(t *testing.T) {
 				RemoteId: model.NewPointer(rc.RemoteId),
 			},
 		}
-		_, err := api.ReceiveSharedChannelSyncMsg(msg)
+		_, err := api.ReceiveSharedChannelSyncMsg(rc.RemoteId, msg)
 		require.NoError(t, err)
 
 		// Now sync a post from that user
@@ -976,7 +985,7 @@ func TestPluginAPIReceiveSharedChannelSyncMsg(t *testing.T) {
 			},
 		}
 
-		resp, err := api.ReceiveSharedChannelSyncMsg(postMsg)
+		resp, err := api.ReceiveSharedChannelSyncMsg(rc.RemoteId, postMsg)
 		require.NoError(t, err)
 		assert.Empty(t, resp.PostErrors)
 
@@ -998,52 +1007,61 @@ func TestPluginAPIReceiveSharedChannelAttachmentSyncMsg(t *testing.T) {
 
 	api := NewPluginAPI(th.App, th.Context, &model.Manifest{Id: pluginID})
 
-	t.Run("unregistered plugin returns error", func(t *testing.T) {
-		badAPI := NewPluginAPI(th.App, th.Context, &model.Manifest{Id: "com.nonexistent.plugin"})
+	t.Run("unknown remoteID returns error", func(t *testing.T) {
 		fi := &model.FileInfo{Name: "test.txt", Size: 4, CreatorId: th.BasicUser.Id}
-		_, err := badAPI.ReceiveSharedChannelAttachmentSyncMsg(channel.Id, fi, bytes.NewReader([]byte("data")))
+		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(model.NewId(), channel.Id, fi, bytes.NewReader([]byte("data")))
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "not registered")
+		assert.Contains(t, err.Error(), "not found")
+	})
+
+	t.Run("remoteID belonging to different plugin returns error", func(t *testing.T) {
+		otherPluginID := "com.other.attachment-plugin"
+		otherChannel := th.CreateChannel(t, th.BasicTeam)
+		otherRC := registerPluginRemoteForTest(t, th, otherPluginID, otherChannel)
+		fi := &model.FileInfo{Name: "test.txt", Size: 4, CreatorId: th.BasicUser.Id}
+		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(otherRC.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data")))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "does not belong to plugin")
 	})
 
 	t.Run("channel not shared with remote returns error", func(t *testing.T) {
 		otherChannel := th.CreateChannel(t, th.BasicTeam)
 		fi := &model.FileInfo{Name: "test.txt", Size: 4, CreatorId: th.BasicUser.Id}
-		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(otherChannel.Id, fi, bytes.NewReader([]byte("data")))
+		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, otherChannel.Id, fi, bytes.NewReader([]byte("data")))
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "not shared")
 	})
 
 	t.Run("nil FileInfo returns error", func(t *testing.T) {
-		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(channel.Id, nil, bytes.NewReader([]byte("data")))
+		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, nil, bytes.NewReader([]byte("data")))
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "FileInfo is required")
 	})
 
 	t.Run("nil data returns error", func(t *testing.T) {
 		fi := &model.FileInfo{Name: "test.txt", Size: 4, CreatorId: th.BasicUser.Id}
-		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(channel.Id, fi, nil)
+		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, nil)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "File data is required")
 	})
 
 	t.Run("empty CreatorId returns error", func(t *testing.T) {
 		fi := &model.FileInfo{Name: "test.txt", Size: 4}
-		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(channel.Id, fi, bytes.NewReader([]byte("data")))
+		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data")))
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "CreatorId is required")
 	})
 
 	t.Run("empty Name returns error", func(t *testing.T) {
 		fi := &model.FileInfo{Size: 4, CreatorId: th.BasicUser.Id}
-		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(channel.Id, fi, bytes.NewReader([]byte("data")))
+		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data")))
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "Name is required")
 	})
 
 	t.Run("local user as creator returns error", func(t *testing.T) {
 		fi := &model.FileInfo{Name: "test.txt", Size: 4, CreatorId: th.BasicUser.Id}
-		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(channel.Id, fi, bytes.NewReader([]byte("data")))
+		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data")))
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "does not belong to remote")
 	})
@@ -1065,7 +1083,7 @@ func TestPluginAPIReceiveSharedChannelAttachmentSyncMsg(t *testing.T) {
 			Size:      13,
 		}
 
-		saved, err := api.ReceiveSharedChannelAttachmentSyncMsg(channel.Id, fi, bytes.NewReader([]byte("hello, world!")))
+		saved, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("hello, world!")))
 		require.NoError(t, err)
 		require.NotNil(t, saved)
 		assert.NotEmpty(t, saved.Id)
@@ -1096,21 +1114,29 @@ func TestPluginAPIReceiveSharedChannelProfileImageSyncMsg(t *testing.T) {
 
 	api := NewPluginAPI(th.App, th.Context, &model.Manifest{Id: pluginID})
 
-	t.Run("unregistered plugin returns error", func(t *testing.T) {
-		badAPI := NewPluginAPI(th.App, th.Context, &model.Manifest{Id: "com.nonexistent.plugin"})
-		err := badAPI.ReceiveSharedChannelProfileImageSyncMsg(th.BasicUser.Id, []byte("img"))
+	t.Run("unknown remoteID returns error", func(t *testing.T) {
+		err := api.ReceiveSharedChannelProfileImageSyncMsg(model.NewId(), th.BasicUser.Id, []byte("img"))
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "not registered")
+		assert.Contains(t, err.Error(), "not found")
+	})
+
+	t.Run("remoteID belonging to different plugin returns error", func(t *testing.T) {
+		otherPluginID := "com.other.profile-plugin"
+		otherChannel := th.CreateChannel(t, th.BasicTeam)
+		otherRC := registerPluginRemoteForTest(t, th, otherPluginID, otherChannel)
+		err := api.ReceiveSharedChannelProfileImageSyncMsg(otherRC.RemoteId, th.BasicUser.Id, []byte("img"))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "does not belong to plugin")
 	})
 
 	t.Run("nonexistent user returns error", func(t *testing.T) {
-		err := api.ReceiveSharedChannelProfileImageSyncMsg(model.NewId(), []byte("img"))
+		err := api.ReceiveSharedChannelProfileImageSyncMsg(rc.RemoteId, model.NewId(), []byte("img"))
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "not found")
 	})
 
 	t.Run("local user (wrong RemoteId) returns error", func(t *testing.T) {
-		err := api.ReceiveSharedChannelProfileImageSyncMsg(th.BasicUser.Id, []byte("img"))
+		err := api.ReceiveSharedChannelProfileImageSyncMsg(rc.RemoteId, th.BasicUser.Id, []byte("img"))
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "does not belong to remote")
 	})
@@ -1135,7 +1161,7 @@ func TestPluginAPIReceiveSharedChannelProfileImageSyncMsg(t *testing.T) {
 		pngData, err := os.ReadFile("tests/test.png")
 		require.NoError(t, err, "Failed to load tests/test.png")
 
-		err = api.ReceiveSharedChannelProfileImageSyncMsg(remoteUser.Id, pngData)
+		err = api.ReceiveSharedChannelProfileImageSyncMsg(rc.RemoteId, remoteUser.Id, pngData)
 		require.NoError(t, err)
 
 		// Verify the user's LastPictureUpdate was bumped
