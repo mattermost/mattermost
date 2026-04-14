@@ -13,6 +13,7 @@
 import moment from 'moment-timezone';
 
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import {newTestPassword} from '../../../../utils';
 
 describe('Profile', () => {
     let siteName: string;
@@ -51,8 +52,10 @@ describe('Profile', () => {
     });
 
     it('MM-T2085 Password: Valid values in password change fields allow the form to save successfully', () => {
+        const newPassword = newTestPassword();
+
         // # Enter valid values in password change fields
-        enterPasswords(testUser.password, 'passwd', 'passwd');
+        enterPasswords(testUser.password, newPassword, newPassword);
 
         // * Check that there are no errors
         cy.get('#error_currentPassword').should('not.exist');
@@ -68,7 +71,7 @@ describe('Profile', () => {
 
     it('MM-T2082 Password: New password confirmation mismatch produces error', () => {
         // # Enter mismatching passwords for new password and confirm fields
-        enterPasswords(testUser.password, 'newPW', 'NewPW');
+        enterPasswords(testUser.password, 'MismatchPass14!', 'MISmatchPass14!');
 
         // * Verify for error message: "The new passwords you entered do not match."
         cy.get('#error_confirmPassword').should('be.visible').should('have.text', 'The new passwords you entered do not match.');
@@ -78,13 +81,15 @@ describe('Profile', () => {
         // # Enter a New password two letters long
         enterPasswords(testUser.password, 'pw', 'pw');
 
-        // * Verify for error message: "Your password must be 5-72 characters long."
-        cy.get('#error_newPassword').should('be.visible').should('have.text', 'Your password must be 5-72 characters long.');
+        // * Verify for error message about password length
+        cy.get('#error_newPassword').should('be.visible').should('have.text', 'Your password must be 14-72 characters long.');
     });
 
     it('MM-T2084 Password: Cancel out of password changes causes no changes to be made', () => {
+        const newPassword = 'Changed4Testing!';
+
         // # Enter new valid passwords
-        enterPasswords(testUser.password, 'newPasswd', 'newPasswd');
+        enterPasswords(testUser.password, newPassword, newPassword);
 
         // # Click 'Cancel'
         cy.uiCancel();
@@ -98,7 +103,7 @@ describe('Profile', () => {
 
         // * Verify that user cannot login with the cancelled password
         cy.get('#input_loginId').type(testUser.username);
-        cy.get('#input_password-input').type('newPasswd');
+        cy.get('#input_password-input').type(newPassword);
         cy.get('#saveSetting').should('not.be.disabled').click();
         cy.findByText('The email/username or password is invalid.').should('be.visible');
 
@@ -109,8 +114,10 @@ describe('Profile', () => {
     });
 
     it.skip('MM-T2086 Password: Timestamp and email', () => {
+        const newPassword = newTestPassword();
+
         // # Enter valid values in password change fields
-        enterPasswords(testUser.password, 'passwd', 'passwd');
+        enterPasswords(testUser.password, newPassword, newPassword);
 
         // # Get current date
         const now = moment(Date.now());

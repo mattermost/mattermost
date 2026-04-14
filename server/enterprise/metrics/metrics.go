@@ -154,6 +154,7 @@ type MetricsInterfaceImpl struct {
 	WebSocketBroadcastBufferUsersRegisteredGauge *prometheus.GaugeVec
 	WebSocketReconnectCounter                    *prometheus.CounterVec
 
+	SearchEngineStatusGauge    prometheus.GaugeFunc
 	SearchPostSearchesCounter  prometheus.Counter
 	SearchPostSearchesDuration prometheus.Histogram
 	SearchFileSearchesCounter  prometheus.Counter
@@ -744,6 +745,24 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 	m.Registry.MustRegister(m.WebSocketReconnectCounter)
 
 	// Search Subsystem
+
+	m.SearchEngineStatusGauge = prometheus.NewGaugeFunc(prometheus.GaugeOpts{
+		Namespace:   MetricsNamespace,
+		Subsystem:   MetricsSubsystemSearch,
+		Name:        "engine_status",
+		Help:        "Status of the configured search engine: 1 = healthy or not configured, 0 = configured but unavailable.",
+		ConstLabels: additionalLabels,
+	}, func() float64 {
+		es := m.Platform.SearchEngine.ElasticsearchEngine
+		if es == nil || !es.IsEnabled() {
+			return 1 // no search engine expected; nothing to alert on
+		}
+		if es.IsHealthy() {
+			return 1
+		}
+		return 0
+	})
+	m.Registry.MustRegister(m.SearchEngineStatusGauge)
 
 	m.SearchPostSearchesCounter = prometheus.NewCounter(prometheus.CounterOpts{
 		Namespace:   MetricsNamespace,
