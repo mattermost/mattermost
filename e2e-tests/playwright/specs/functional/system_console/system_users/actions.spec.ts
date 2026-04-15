@@ -108,13 +108,13 @@ test('MM-T5520-4 should reset the users password', async ({pw}) => {
     await actionMenu.clickResetPassword();
 
     // # Enter a random password and click Reset
-    await systemConsolePage.users.resetPasswordModal.fillPassword(await pw.random.id());
+    await systemConsolePage.users.resetPasswordModal.fillPassword(pw.newTestPassword());
     await systemConsolePage.users.resetPasswordModal.reset();
 });
 
 test('MM-T5520-5 should change the users email', async ({pw}) => {
     const {getUser, systemConsolePage} = await setupAndGetRandomUser(pw);
-    const newEmail = `${await pw.random.id()}@example.com`;
+    const newEmail = `${pw.random.id()}@example.com`;
 
     const userRow = systemConsolePage.users.usersTable.getRowByIndex(0);
 

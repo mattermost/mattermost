@@ -5,6 +5,8 @@ import React, {useState, useEffect, useCallback, useMemo, useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import type {AccessControlPolicyRule} from '@mattermost/types/access_control';
+import {getMembershipRule, buildRulesWithMembership} from '@mattermost/types/access_control';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
@@ -59,6 +61,7 @@ function ChannelSettingsAccessRulesTab({
     // State for the access control expression and user attributes
     const [expression, setExpression] = useState('');
     const [originalExpression, setOriginalExpression] = useState('');
+    const [existingRules, setExistingRules] = useState<AccessControlPolicyRule[]>([]);
     const [userAttributes, setUserAttributes] = useState<UserPropertyField[]>([]);
     const [attributesLoaded, setAttributesLoaded] = useState(false);
 
@@ -121,12 +124,12 @@ function ChannelSettingsAccessRulesTab({
             try {
                 const result = await actions.getChannelPolicy(channel.id);
                 if (result.data) {
-                    // Extract expression from the policy rules
-                    const existingExpression = result.data.rules?.[0]?.expression || '';
+                    const existingExpression = getMembershipRule(result.data.rules)?.expression || '';
                     const existingAutoSync = result.data.active || false;
 
                     setExpression(existingExpression);
                     setOriginalExpression(existingExpression);
+                    setExistingRules(result.data.rules || []);
                     setAutoSyncMembers(existingAutoSync);
                     setOriginalAutoSyncMembers(existingAutoSync);
                 }
@@ -205,7 +208,7 @@ function ChannelSettingsAccessRulesTab({
     const combineSystemAndChannelExpressions = useCallback((channelExpression: string): string => {
         // Get expressions from system policies
         const systemExpressions = systemPolicies.
-            map((policy) => policy.rules?.[0]?.expression).
+            map((policy) => getMembershipRule(policy.rules)?.expression).
             filter((expr) => expr && expr.trim());
 
         // Combine channel expression with system expressions
@@ -225,7 +228,7 @@ function ChannelSettingsAccessRulesTab({
         if (allExpressions.length === 0) {
             return '';
         } else if (allExpressions.length === 1) {
-            return allExpressions[0];
+            return allExpressions[0]!;
         }
 
         // Wrap each expression in parentheses and combine with &&
@@ -400,14 +403,10 @@ function ChannelSettingsAccessRulesTab({
                 id: channel.id,
                 name: channel.display_name,
                 type: 'channel',
-                version: 'v0.2',
                 active: false, // Always save as false initially, then update separately
                 revision: 1,
                 created_at: Date.now(),
-                rules: expression.trim() ? [{
-                    actions: ['*'],
-                    expression: expression.trim(),
-                }] : [],
+                rules: buildRulesWithMembership(existingRules, expression),
                 imports: systemPolicies.map((p) => p.id), // Include existing parent policies
             };
 

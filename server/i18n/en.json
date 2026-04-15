@@ -464,6 +464,10 @@
     "translation": "Auto translation is not allowed for this channel."
   },
   {
+    "id": "api.channel.patch_update_channel.cannot_update_managed_category.app_error",
+    "translation": "Cannot update a managed category for this channel without the correct permissions."
+  },
+  {
     "id": "api.channel.patch_update_channel.feature_not_available.app_error",
     "translation": "Auto translation feature is not available."
   },
@@ -578,6 +582,18 @@
   {
     "id": "api.channel.restore_channel.unarchived",
     "translation": "{{.Username}} unarchived the channel."
+  },
+  {
+    "id": "api.channel.set_members.group_constrained.app_error",
+    "translation": "Cannot set members on a group-constrained channel."
+  },
+  {
+    "id": "api.channel.set_members.policy_enforced.app_error",
+    "translation": "Cannot set members on a policy-enforced channel."
+  },
+  {
+    "id": "api.channel.set_members.type.app_error",
+    "translation": "Cannot set members on this channel type."
   },
   {
     "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
@@ -1963,11 +1979,11 @@
   },
   {
     "id": "api.custom_profile_attributes.invalid_field_patch",
-    "translation": "invalid custom profile attribute field patch"
+    "translation": "invalid User Attribute field patch"
   },
   {
     "id": "api.custom_profile_attributes.license_error",
-    "translation": "Your license does not support Custom Profile Attributes."
+    "translation": "Your license does not support User Attributes."
   },
   {
     "id": "api.custom_status.disabled",
@@ -2543,6 +2559,10 @@
   {
     "id": "api.license_error",
     "translation": "api endpoint requires a license"
+  },
+  {
+    "id": "api.managed_category.feature_not_available.app_error",
+    "translation": "Managed channel categories are not available."
   },
   {
     "id": "api.marshal_error",
@@ -3377,6 +3397,22 @@
   {
     "id": "api.server.start_server.starting.critical",
     "translation": "Error starting server, err:%v"
+  },
+  {
+    "id": "api.shared_channel.attachment.creator_id_required.app_error",
+    "translation": "FileInfo.CreatorId is required."
+  },
+  {
+    "id": "api.shared_channel.attachment.data_required.app_error",
+    "translation": "File data is required."
+  },
+  {
+    "id": "api.shared_channel.attachment.file_info_required.app_error",
+    "translation": "FileInfo is required."
+  },
+  {
+    "id": "api.shared_channel.attachment.filename_required.app_error",
+    "translation": "FileInfo.Name is required."
   },
   {
     "id": "api.shared_channel.get_shared_channel_remotes_error",
@@ -5543,6 +5579,22 @@
     "translation": "Unable to get the group channels for the given user and term."
   },
   {
+    "id": "app.channel.set_members.context_cancelled.app_error",
+    "translation": "The set channel members operation was cancelled."
+  },
+  {
+    "id": "app.channel.set_members.empty_private.app_error",
+    "translation": "Cannot remove all members from a private channel."
+  },
+  {
+    "id": "app.channel.set_members.get_current.app_error",
+    "translation": "Unable to get current channel members."
+  },
+  {
+    "id": "app.channel.set_members.get_members.app_error",
+    "translation": "Unable to get channel members for role reconciliation."
+  },
+  {
     "id": "app.channel.sidebar_categories.app_error",
     "translation": "Failed to insert record to database."
   },
@@ -5716,63 +5768,63 @@
   },
   {
     "id": "app.custom_profile_attributes.count_property_fields.app_error",
-    "translation": "Unable to count the number of fields for the custom profile attribute group"
+    "translation": "Unable to count the number of fields for the User Attributes group"
   },
   {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
-    "translation": "Unable to retrieve the custom profile attributes property group."
+    "translation": "Unable to retrieve the User Attributes property group."
   },
   {
     "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
-    "translation": "Unable to delete Custom Profile Attribute Values for user"
+    "translation": "Unable to delete User Attribute values for user"
   },
   {
     "id": "app.custom_profile_attributes.get_property_field.app_error",
-    "translation": "Unable to get Custom Profile Attribute field"
+    "translation": "Unable to get User Attribute field"
   },
   {
     "id": "app.custom_profile_attributes.get_property_value.app_error",
-    "translation": "Unable to get Custom Profile Attribute value"
+    "translation": "Unable to get User Attribute value"
   },
   {
     "id": "app.custom_profile_attributes.limit_reached.app_error",
-    "translation": "Custom Profile Attributes field limit reached"
+    "translation": "User Attributes field limit reached"
   },
   {
     "id": "app.custom_profile_attributes.list_property_values.app_error",
-    "translation": "Unable to get custom profile attribute values"
+    "translation": "Unable to get User Attribute values"
   },
   {
     "id": "app.custom_profile_attributes.patch_field.app_error",
-    "translation": "Unable to patch Custom Profile Attribute field"
+    "translation": "Unable to patch User Attribute field"
   },
   {
     "id": "app.custom_profile_attributes.property_field_conversion.app_error",
-    "translation": "Unable to convert the property field to a custom profile attribute field"
+    "translation": "Unable to convert the property field to a User Attribute field"
   },
   {
     "id": "app.custom_profile_attributes.property_field_delete.app_error",
-    "translation": "Unable to delete Custom Profile Attribute field"
+    "translation": "Unable to delete User Attribute field"
   },
   {
     "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
-    "translation": "Cannot update value for an admin-managed Custom Profile Attribute field"
+    "translation": "Cannot update value for an admin-managed User Attribute field"
   },
   {
     "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
-    "translation": "Cannot update value for a synced Custom Profile Attribute field"
+    "translation": "Cannot update value for a synced User Attribute field"
   },
   {
     "id": "app.custom_profile_attributes.property_field_not_found.app_error",
-    "translation": "Custom Profile Attribute field not found"
+    "translation": "User Attribute field not found"
   },
   {
     "id": "app.custom_profile_attributes.property_field_update.app_error",
-    "translation": "Unable to update Custom Profile Attribute field"
+    "translation": "Unable to update User Attribute field"
   },
   {
     "id": "app.custom_profile_attributes.property_value_upsert.app_error",
-    "translation": "Unable to upsert Custom Profile Attribute fields"
+    "translation": "Unable to upsert User Attribute fields"
   },
   {
     "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
@@ -5780,7 +5832,7 @@
   },
   {
     "id": "app.custom_profile_attributes.search_property_fields.app_error",
-    "translation": "Unable to search Custom Profile Attribute fields"
+    "translation": "Unable to search User Attribute fields"
   },
   {
     "id": "app.custom_profile_attributes.validate_value.app_error",
@@ -6957,6 +7009,30 @@
   {
     "id": "app.lookup_interactive_dialog.read_body_error",
     "translation": "Encountered an error reading response body from interactive dialog lookup."
+  },
+  {
+    "id": "app.managed_category.clear.app_error",
+    "translation": "Failed to clear managed category from channel."
+  },
+  {
+    "id": "app.managed_category.dm_gm_not_allowed.app_error",
+    "translation": "Direct and group message channels cannot be assigned to a managed category."
+  },
+  {
+    "id": "app.managed_category.empty_name.app_error",
+    "translation": "Managed category name cannot be empty."
+  },
+  {
+    "id": "app.managed_category.get_mappings.app_error",
+    "translation": "Failed to retrieve managed category mappings."
+  },
+  {
+    "id": "app.managed_category.search.app_error",
+    "translation": "Failed to search for managed category for channel."
+  },
+  {
+    "id": "app.managed_category.set.app_error",
+    "translation": "Failed to set managed category on channel."
   },
   {
     "id": "app.member_count",
@@ -9293,6 +9369,14 @@
     "translation": "Failed to get all team members"
   },
   {
+    "id": "ent.elasticsearch.healthcheck.not_started.app_error",
+    "translation": "{{.Backend}} is not started."
+  },
+  {
+    "id": "ent.elasticsearch.healthcheck.unreachable.app_error",
+    "translation": "{{.Backend}} health check failed: could not complete check."
+  },
+  {
     "id": "ent.elasticsearch.index_channel.error",
     "translation": "Failed to index the channel"
   },
@@ -9331,6 +9415,10 @@
   {
     "id": "ent.elasticsearch.max_version.app_error",
     "translation": "{{.Backend}} version {{.Version}} is higher than max supported version of {{.MaxVersion}}"
+  },
+  {
+    "id": "ent.elasticsearch.min_version.app_error",
+    "translation": "{{.Backend}} version {{.Version}} is lower than min supported version of {{.MinVersion}}"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
@@ -9411,10 +9499,6 @@
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "Failed to parse {{.Backend}} server version."
-  },
-  {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "{{.Backend}} is already stopped."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -10001,8 +10085,16 @@
     "translation": "The parent is already imported."
   },
   {
+    "id": "model.access_policy.inherit.permission.app_error",
+    "translation": "Permission policies cannot inherit from other policies."
+  },
+  {
     "id": "model.access_policy.inherit.version.app_error",
     "translation": "Could not inherit access control policy."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.app_error",
+    "translation": "Action(s) is not valid."
   },
   {
     "id": "model.access_policy.is_valid.id.app_error",
@@ -10019,6 +10111,10 @@
   {
     "id": "model.access_policy.is_valid.revision.app_error",
     "translation": "Invalid policy revision."
+  },
+  {
+    "id": "model.access_policy.is_valid.roles.app_error",
+    "translation": "Permission policies must be applied to exactly one role."
   },
   {
     "id": "model.access_policy.is_valid.rules.app_error",
@@ -11019,6 +11115,10 @@
   {
     "id": "model.config.is_valid.sitename_length.app_error",
     "translation": "Site name must be less than or equal to {{.MaxLength}} characters."
+  },
+  {
+    "id": "model.config.is_valid.sql_analytics_query_timeout.app_error",
+    "translation": "Invalid analytics query timeout for SQL settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error",

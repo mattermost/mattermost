@@ -5,7 +5,7 @@ import type {Page} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {getRandomId} from '../util';
+import {getRandomId, newTestPassword} from '../util';
 
 /**
  * Create a user with custom profile attributes
@@ -15,7 +15,7 @@ export async function createUserWithAttributes(
     client: Client4,
     attributes: Record<string, string>,
 ): Promise<UserProfile> {
-    const randomId = await getRandomId();
+    const randomId = getRandomId();
     // Ensure username starts with a letter (Mattermost requirement)
     const username = `user${randomId}`.toLowerCase();
 
@@ -24,7 +24,7 @@ export async function createUserWithAttributes(
         {
             email: `${username}@example.com`,
             username: username,
-            password: 'Password123!',
+            password: newTestPassword(),
         } as any,
         '',
         '',
