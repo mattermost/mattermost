@@ -5,6 +5,8 @@ import type {Locator, Page} from '@playwright/test';
 import {expect} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 
+import {newTestPassword} from '@mattermost/playwright-lib';
+
 export async function enableABACConfig(client: Client4) {
     await client.patchConfig({
         AccessControlSettings: {
@@ -155,12 +157,12 @@ export async function createTeamAdmin(adminClient: Client4, teamId: string) {
         {
             email: `teamadmin-${id}@sample.mattermost.com`,
             username: `teamadmin${id}`,
-            password: 'Password123!',
+            password: newTestPassword(),
         } as any,
         '',
         '',
     );
-    user.password = 'Password123!';
+    user.password = newTestPassword();
 
     await adminClient.savePreferences(user.id, [
         {user_id: user.id, category: 'tutorial_step', name: user.id, value: '999'},

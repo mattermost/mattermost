@@ -206,6 +206,44 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await teamSettings.close();
     });
 
+    test('MM-67594_5b Back button then Undo navigates back to list', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        const {adminClient, team} = await pw.initSetup();
+        await enableABACConfig(adminClient);
+        await ensureDepartmentAttribute(adminClient);
+
+        const channel = await createPrivateChannel(adminClient, team.id);
+        const policy = await createParentPolicy(adminClient, `TA BackUndo ${Date.now()}`);
+        await assignChannelsToPolicy(adminClient, policy.id, [channel.id]);
+
+        const teamAdmin = await createTeamAdmin(adminClient, team.id);
+
+        const {page} = await pw.testBrowser.login(teamAdmin);
+        const channelsPage = new ChannelsPage(page);
+        await channelsPage.goto(team.name);
+        await channelsPage.toBeVisible();
+
+        const teamSettings = await channelsPage.openTeamSettings();
+        await teamSettings.openAccessPoliciesTab();
+
+        // # Open editor and make a change so the SaveChangesPanel is shown
+        await teamSettings.container.getByText(policy.name).click();
+        await teamSettings.container.locator('#input_policyName').fill('Changed Name');
+
+        // # Click the back button — sets navigation intent but stays in editor because of unsaved changes
+        await teamSettings.container.locator('.TeamPolicyEditor__back-btn').click();
+
+        // # Click Undo — should revert changes AND navigate back to the list.
+        // This validates the fix for the bug where the navigation intent expired after 3 seconds,
+        // causing Undo to revert changes but leave the user stranded in the editor.
+        await teamSettings.container.locator('[data-testid="SaveChangesPanel__cancel-btn"]').click();
+
+        // * List view restored (back navigation happened)
+        await expect(teamSettings.container.getByRole('button', {name: 'Add policy'})).toBeVisible({timeout: 10000});
+
+        await teamSettings.close();
+    });
+
     test('MM-67594_6 Back button returns to list', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminClient, team} = await pw.initSetup();

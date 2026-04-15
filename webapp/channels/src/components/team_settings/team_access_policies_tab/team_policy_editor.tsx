@@ -347,6 +347,7 @@ export default function TeamPolicyEditor({
 
     const handleClose = useCallback(() => {
         setSaveChangesPanelState(undefined);
+        setBackClicked(false);
     }, []);
 
     // Delete flow
@@ -386,7 +387,6 @@ export default function TeamPolicyEditor({
                     onClick={() => {
                         if (hasUnsavedChanges) {
                             setBackClicked(true);
-                            setTimeout(() => setBackClicked(false), 3000);
                         } else {
                             onNavigateBack();
                         }
