@@ -183,7 +183,7 @@
         "AdvancedLoggingJSON": {}
     },
     "PasswordSettings": {
-        "MinimumLength": 5,
+        "MinimumLength": 14,
         "Lowercase": false,
         "Number": false,
         "Uppercase": false,
