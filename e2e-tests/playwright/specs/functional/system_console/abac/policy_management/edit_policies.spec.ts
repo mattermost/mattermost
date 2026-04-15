@@ -67,7 +67,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         await adminClient.addToTeam(team.id, salesUser.id);
 
         // Create channel - use direct API call for more control
-        const channelName = `abac-edit-test-${await pw.random.id()}`;
+        const channelName = `abac-edit-test-${pw.random.id()}`;
 
         const privateChannel = await adminClient.createChannel({
             team_id: team.id,
@@ -106,7 +106,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // ===========================================
         // SETUP: Create policy with ORIGINAL value (Engineering), Auto-add OFF
         // ===========================================
-        const policyName = `ABAC-Edit-Test-${await pw.random.id()}`;
+        const policyName = `ABAC-Edit-Test-${pw.random.id()}`;
 
         await createBasicPolicy(page, {
             name: policyName,
@@ -392,7 +392,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // PRECONDITION: Create ORIGINAL policy with ONE attribute (Department=Engineering)
         // Auto-add ON so users are auto-added
         // ===========================================
-        const policyName = `ABAC-AddAttr-Test-${await pw.random.id()}`;
+        const policyName = `ABAC-AddAttr-Test-${pw.random.id()}`;
 
         await createBasicPolicy(page, {
             name: policyName,
@@ -652,7 +652,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // Department=Engineering AND Office=Remote
         // Auto-add ON
         // ===========================================
-        const policyName = `ABAC-RemoveRule-${await pw.random.id()}`;
+        const policyName = `ABAC-RemoveRule-${pw.random.id()}`;
 
         // Use advanced mode for multi-attribute policy
         await createAdvancedPolicy(page, {
@@ -837,7 +837,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         await enableABAC(page);
 
         // Create two policies with different names
-        const policyName1 = `Edit Dup Test A ${await pw.random.id()}`;
+        const policyName1 = `Edit Dup Test A ${pw.random.id()}`;
         await createBasicPolicy(page, {
             name: policyName1,
             attribute: 'Department',
@@ -850,7 +850,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         await navigateToABACPage(page);
 
         const privateChannel2 = await createPrivateChannelForABAC(adminClient, team.id);
-        const policyName2 = `Edit Dup Test B ${await pw.random.id()}`;
+        const policyName2 = `Edit Dup Test B ${pw.random.id()}`;
         await createBasicPolicy(page, {
             name: policyName2,
             attribute: 'Department',
