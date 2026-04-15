@@ -44,7 +44,15 @@ export default class ChannelSettingsModal {
     async close() {
         await this.closeButton.click();
 
-        await expect(this.container).not.toBeVisible({timeout: 10000});
+        // The modal uses a two-step close when there are unsaved changes:
+        // the first click warns the user (sets hasBeenWarned=true) but keeps the modal open;
+        // only the second click actually closes it. Click again if needed.
+        try {
+            await expect(this.container).not.toBeVisible({timeout: 1000});
+        } catch {
+            await this.closeButton.click();
+            await expect(this.container).not.toBeVisible({timeout: 10000});
+        }
     }
 
     async save() {

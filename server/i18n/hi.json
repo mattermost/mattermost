@@ -840,10 +840,6 @@
     "translation": "मैटरमोस्ट एंटरप्राइज लाइसेंस अक्षम कर दिया गया है।"
   },
   {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "आपका एंटरप्राइज़ संस्करण लाइसेंस समाप्त हो गया है और कुछ सुविधाएं अक्षम हो सकती हैं। कृपया अपना लाइसेंस अभी रीन्यू करें।"
-  },
-  {
     "id": "api.templates.post_body.button",
     "translation": "मैसेज देखें"
   },

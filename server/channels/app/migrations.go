@@ -18,19 +18,19 @@ import (
 )
 
 const (
-	EmojisPermissionsMigrationKey                   = "EmojisPermissionsMigrationComplete"
-	GuestRolesCreationMigrationKey                  = "GuestRolesCreationMigrationComplete"
-	SystemConsoleRolesCreationMigrationKey          = "SystemConsoleRolesCreationMigrationComplete"
-	CustomGroupAdminRoleCreationMigrationKey        = "CustomGroupAdminRoleCreationMigrationComplete"
-	SharedChannelManagerRoleCreationMigrationKey    = "SharedChannelManagerRoleCreationMigrationComplete"
-	SecureConnectionManagerRoleCreationMigrationKey = "SecureConnectionManagerRoleCreationMigrationComplete"
-	ContentExtractionConfigDefaultTrueMigrationKey  = "ContentExtractionConfigDefaultTrueMigrationComplete"
-	PlaybookRolesCreationMigrationKey               = "PlaybookRolesCreationMigrationComplete"
-	FirstAdminSetupCompleteKey                      = model.SystemFirstAdminSetupComplete
-	remainingSchemaMigrationsKey                    = "RemainingSchemaMigrations"
-	postPriorityConfigDefaultTrueMigrationKey       = "PostPriorityConfigDefaultTrueMigrationComplete"
-	contentFlaggingSetupDoneKey                     = "content_flagging_setup_done"
-	contentFlaggingMigrationVersion                 = "v5"
+	EmojisPermissionsMigrationKey                  = "EmojisPermissionsMigrationComplete"
+	GuestRolesCreationMigrationKey                 = "GuestRolesCreationMigrationComplete"
+	SystemConsoleRolesCreationMigrationKey         = "SystemConsoleRolesCreationMigrationComplete"
+	CustomGroupAdminRoleCreationMigrationKey       = "CustomGroupAdminRoleCreationMigrationComplete"
+	SharedChannelManagerRoleCreationMigrationKey   = "SystemSharedChannelManagerRoleCreationMigrationComplete"
+	ContentExtractionConfigDefaultTrueMigrationKey = "ContentExtractionConfigDefaultTrueMigrationComplete"
+	PlaybookRolesCreationMigrationKey              = "PlaybookRolesCreationMigrationComplete"
+	FirstAdminSetupCompleteKey                     = model.SystemFirstAdminSetupComplete
+	remainingSchemaMigrationsKey                   = "RemainingSchemaMigrations"
+	postPriorityConfigDefaultTrueMigrationKey      = "PostPriorityConfigDefaultTrueMigrationComplete"
+	contentFlaggingSetupDoneKey                    = "content_flagging_setup_done"
+	contentFlaggingMigrationVersion                = "v5"
+	managedCategorySetupDoneKey                    = "managed_category_setup_done"
 
 	contentFlaggingPropertyNameFlaggedPostId       = "flagged_post_id"
 	ContentFlaggingPropertyNameStatus              = "status"
@@ -107,7 +107,7 @@ func (s *Server) doAdvancedPermissionsMigration() error {
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark advanced permissions migration as completed: %w", err)
 	}
 
@@ -178,7 +178,7 @@ func (s *Server) doEmojisPermissionsMigration() error {
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark emojis permissions migration as completed: %w", err)
 	}
 
@@ -271,7 +271,7 @@ func (s *Server) doGuestRolesCreationMigration() error {
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark guest roles creation migration as completed: %w", err)
 	}
 
@@ -318,7 +318,7 @@ func (s *Server) doSystemConsoleRolesCreationMigration() error {
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark system console roles creation migration as completed: %w", err)
 	}
 
@@ -354,7 +354,7 @@ func (s *Server) doSingleRoleCreationMigration(migrationKey, roleId string) erro
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark %s migration as completed: %w", migrationKey, err)
 	}
 
@@ -367,10 +367,6 @@ func (s *Server) doCustomGroupAdminRoleCreationMigration() error {
 
 func (s *Server) doSharedChannelManagerRoleCreationMigration() error {
 	return s.doSingleRoleCreationMigration(SharedChannelManagerRoleCreationMigrationKey, model.SharedChannelManagerRoleId)
-}
-
-func (s *Server) doSecureConnectionManagerRoleCreationMigration() error {
-	return s.doSingleRoleCreationMigration(SecureConnectionManagerRoleCreationMigrationKey, model.SecureConnectionManagerRoleId)
 }
 
 func (s *Server) doContentExtractionConfigDefaultTrueMigration() error {
@@ -391,7 +387,7 @@ func (s *Server) doContentExtractionConfigDefaultTrueMigration() error {
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark content extraction config migration as completed: %w", err)
 	}
 
@@ -510,7 +506,7 @@ func (s *Server) doPlaybooksRolesCreationMigration() error {
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark playbook roles creation migration as completed: %w", err)
 	}
 
@@ -558,7 +554,7 @@ func (s *Server) doFirstAdminSetupCompleteMigration() error {
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark first admin setup migration as completed: %w", err)
 	}
 
@@ -590,7 +586,7 @@ func (s *Server) doRemainingSchemaMigrations() error {
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark the remaining schema migrations as completed: %w", err)
 	}
 
@@ -758,6 +754,68 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 	return nil
 }
 
+func (s *Server) doSetupManagedCategoryProperties() error {
+	var nfErr *store.ErrNotFound
+	data, err := s.Store().System().GetByName(managedCategorySetupDoneKey)
+	if err != nil && !errors.As(err, &nfErr) {
+		return fmt.Errorf("could not query migration: %w", err)
+	}
+
+	if data != nil {
+		return s.cacheManagedCategoryIDs()
+	}
+
+	group, err := s.propertyService.RegisterPropertyGroup(model.ManagedCategoryPropertyGroupName)
+	if err != nil {
+		return fmt.Errorf("failed to register managed category group: %w", err)
+	}
+
+	_, err = s.propertyService.GetPropertyFieldByName(nil, group.ID, "", model.ManagedCategoryPropertyFieldName)
+	if err != nil {
+		field := &model.PropertyField{
+			GroupID:           group.ID,
+			Name:              model.ManagedCategoryPropertyFieldName,
+			Type:              model.PropertyFieldTypeText,
+			ObjectType:        model.PropertyValueTargetTypeChannel,
+			TargetType:        "system",
+			TargetID:          "",
+			Protected:         true,
+			PermissionField:   model.NewPointer(model.PermissionLevelNone),
+			PermissionValues:  model.NewPointer(model.PermissionLevelMember),
+			PermissionOptions: model.NewPointer(model.PermissionLevelMember),
+		}
+
+		if _, err := s.propertyService.CreatePropertyField(nil, field); err != nil {
+			if _, retryErr := s.propertyService.GetPropertyFieldByName(nil, group.ID, "", model.ManagedCategoryPropertyFieldName); retryErr != nil {
+				return fmt.Errorf("failed to create managed category field: %w", err)
+			}
+		}
+	}
+
+	if err := s.Store().System().SaveOrUpdate(&model.System{Name: managedCategorySetupDoneKey, Value: "true"}); err != nil {
+		return fmt.Errorf("failed to save managed category setup done flag: %w", err)
+	}
+
+	return s.cacheManagedCategoryIDs()
+}
+
+func (s *Server) cacheManagedCategoryIDs() error {
+	group, err := s.propertyService.GetPropertyGroup(model.ManagedCategoryPropertyGroupName)
+	if err != nil {
+		return fmt.Errorf("failed to get managed category group: %w", err)
+	}
+
+	field, err := s.propertyService.GetPropertyFieldByName(nil, group.ID, "", model.ManagedCategoryPropertyFieldName)
+	if err != nil {
+		return fmt.Errorf("failed to get managed category field: %w", err)
+	}
+
+	s.Channels().managedCategoryGroupID = group.ID
+	s.Channels().managedCategoryFieldID = field.ID
+
+	return nil
+}
+
 func (s *Server) doCloudS3PathMigrations(rctx request.CTX) error {
 	// This migration is only applicable for cloud environments
 	if os.Getenv("MM_CLOUD_FILESTORE_BIFROST") == "" {
@@ -865,7 +923,6 @@ func (s *Server) doAppMigrations() {
 		{"System Console Roles Creation Migration", s.doSystemConsoleRolesCreationMigration},
 		{"Custom Group Admin Role Creation Migration", s.doCustomGroupAdminRoleCreationMigration},
 		{"Shared Channel Manager Role Creation Migration", s.doSharedChannelManagerRoleCreationMigration},
-		{"Secure Connection Manager Role Creation Migration", s.doSecureConnectionManagerRoleCreationMigration},
 		// This migration always run after dependent migrations such as the guest roles migration.
 		{"Permissions Migrations", s.doPermissionsMigrations},
 		{"Content Extraction Config Default True Migration", s.doContentExtractionConfigDefaultTrueMigration},
@@ -874,6 +931,7 @@ func (s *Server) doAppMigrations() {
 		{"Remaining Schema Migrations", s.doRemainingSchemaMigrations},
 		{"Post Priority Config Default True Migration", s.doPostPriorityConfigDefaultTrueMigration},
 		{"Content Flagging Properties Setup", s.doSetupContentFlaggingProperties},
+		{"Managed Category Properties Setup", s.doSetupManagedCategoryProperties},
 	}
 
 	for i := range m1 {

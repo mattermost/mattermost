@@ -109,7 +109,10 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	}
 	d.Server.Version = model.CurrentVersion
 	d.Server.BuildHash = model.BuildHash
-	installationType := os.Getenv(envVarInstallType)
+	installationType := ps.installTypeOverride
+	if installationType == "" {
+		installationType = os.Getenv(envVarInstallType)
+	}
 	if installationType == "" {
 		installationType = unknownDataPoint
 	}
