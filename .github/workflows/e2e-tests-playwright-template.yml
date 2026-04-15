@@ -172,54 +172,53 @@ jobs:
         run: |
           make cloud-init
           make
+
+          # Inline retry on the still-running server — no new server provisioning needed.
+          # If any specs failed, stash pass-1 blobs, rerun the failing specs, then merge
+          # both sets of blobs so the final artifact reflects the combined result.
+          RESULTS_FILE="e2e-tests/playwright/results/reporter/results.json"
+          if [ ! -f "$RESULTS_FILE" ]; then
+            echo "No results file found, skipping retry"
+          else
+            FAILED_SPECS=$(jq -r '
+              [.suites[] | . as $top |
+                (recurse(.suites[]?) | .specs[]? | .tests[]? |
+                 select((.results | length) > 0) |
+                 select((.results | last).status == "failed" or (.results | last).status == "timedOut") |
+                 (.location.file // $top.file))
+              ] | map(select(. != null)) | unique | join(",")
+            ' "$RESULTS_FILE" 2>/dev/null || echo "")
+
+            if [ -n "$FAILED_SPECS" ]; then
+              echo "Retrying failed specs in shard ${{ matrix.worker_index }}: $FAILED_SPECS"
+
+              # Stash pass-1 blob reports — make run-specs wipes results/ before rerunning
+              mkdir -p /tmp/pw-blobs-pass1
+              cp e2e-tests/playwright/results/blob-report/*.zip /tmp/pw-blobs-pass1/ 2>/dev/null || true
+
+              # Retry on the same server
+              cd e2e-tests
+              TEST=playwright \
+              CI_BASE_URL="${{ inputs.test_type }}-test-${{ matrix.worker_index }}-retry" \
+              SPEC_FILES="$FAILED_SPECS" make run-specs
+              cd ..
+
+              # Combine pass-1 blobs + retry blobs (UUID filenames prevent collisions)
+              cp /tmp/pw-blobs-pass1/*.zip e2e-tests/playwright/results/blob-report/ 2>/dev/null || true
+
+              # Re-generate results.json / html / xml from the merged blob set.
+              # Tests that failed in pass-1 and passed on retry appear as flaky (not failed).
+              mkdir -p e2e-tests/playwright/results/reporter
+              cd e2e-tests/playwright
+              npx playwright merge-reports --config merge.config.mjs results/blob-report || true
+              cd ../..
+            fi
+          fi
       - name: ci/upload-results
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         if: always()
         with:
           name: playwright-${{ inputs.test_type }}-${{ inputs.server_edition }}-results-${{ matrix.worker_index }}
-          path: |
-            e2e-tests/playwright/logs/
-            e2e-tests/playwright/results/
-          retention-days: 5
-      - name: ci/retry-failed-specs
-        id: retry
-        if: always()
-        working-directory: e2e-tests
-        env:
-          TEST: playwright
-          CI_BASE_URL: "${{ inputs.test_type }}-test-${{ matrix.worker_index }}-retry"
-        run: |
-          RESULTS_FILE="playwright/results/reporter/results.json"
-          if [ ! -f "$RESULTS_FILE" ]; then
-            echo "No results file found, skipping retry"
-            echo "has_retries=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          # Extract spec files that have at least one test with a final failed/timedOut status
-          FAILED_SPECS=$(jq -r '
-            [.suites[] | . as $top |
-              (recurse(.suites[]?) | .specs[]? | .tests[]? |
-               select((.results | length) > 0) |
-               select((.results | last).status == "failed" or (.results | last).status == "timedOut") |
-               (.location.file // $top.file))
-            ] | map(select(. != null)) | unique | join(",")
-          ' "$RESULTS_FILE" 2>/dev/null || echo "")
-
-          if [ -z "$FAILED_SPECS" ]; then
-            echo "No failed specs in shard ${{ matrix.worker_index }}, skipping retry"
-            echo "has_retries=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          echo "Retrying failed specs in shard ${{ matrix.worker_index }}: $FAILED_SPECS"
-          echo "has_retries=true" >> "$GITHUB_OUTPUT"
-          SPEC_FILES="$FAILED_SPECS" make run-specs
-      - name: ci/upload-retry-results
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-        if: always() && steps.retry.outputs.has_retries == 'true'
-        with:
-          name: playwright-${{ inputs.test_type }}-${{ inputs.server_edition }}-results-${{ matrix.worker_index }}-retry
           path: |
             e2e-tests/playwright/logs/
             e2e-tests/playwright/results/
