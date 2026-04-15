@@ -18,7 +18,7 @@ func TestAttributeValidationHook(t *testing.T) {
 	group, err := th.service.RegisterPropertyGroup("test_attr_validation")
 	require.NoError(t, err)
 
-	hook := NewAttributeValidationHook(th.service, group.ID)
+	hook := NewAttributeValidationHook(th.service, nil, group.ID)
 	th.service.AddHook(hook)
 
 	t.Run("allows valid visibility on create", func(t *testing.T) {
@@ -559,6 +559,80 @@ func TestAttributeValidationHook(t *testing.T) {
 		assert.Contains(t, upsertErr.Error(), "expected string array")
 	})
 
+	// Managed-flag PermissionValues sync tests
+
+	t.Run("create field with managed=admin sets PermissionValues to sysadmin", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsManaged: "admin",
+			},
+		}
+		created, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, createErr)
+		require.NotNil(t, created.PermissionValues)
+		assert.Equal(t, model.PermissionLevelSysadmin, *created.PermissionValues)
+	})
+
+	t.Run("create field without managed sets PermissionValues to member", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs:      model.StringInterface{},
+		}
+		created, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, createErr)
+		require.NotNil(t, created.PermissionValues)
+		assert.Equal(t, model.PermissionLevelMember, *created.PermissionValues)
+	})
+
+	t.Run("update field to managed=admin sets PermissionValues to sysadmin", func(t *testing.T) {
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs:      model.StringInterface{},
+		})
+
+		field.Attrs = model.StringInterface{
+			model.CustomProfileAttributesPropertyAttrsManaged: "admin",
+		}
+		updated, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		require.NoError(t, updateErr)
+		require.NotNil(t, updated.PermissionValues)
+		assert.Equal(t, model.PermissionLevelSysadmin, *updated.PermissionValues)
+	})
+
+	t.Run("update field to remove managed sets PermissionValues to member", func(t *testing.T) {
+		member := model.PermissionLevelMember
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:          group.ID,
+			Name:             "field_" + model.NewId(),
+			Type:             model.PropertyFieldTypeText,
+			TargetType:       "system",
+			ObjectType:       "user",
+			PermissionValues: &member,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsManaged: "admin",
+			},
+		})
+
+		field.Attrs = model.StringInterface{}
+		updated, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		require.NoError(t, updateErr)
+		require.NotNil(t, updated.PermissionValues)
+		assert.Equal(t, model.PermissionLevelMember, *updated.PermissionValues)
+	})
+
 	t.Run("text — rejects value exceeding max length", func(t *testing.T) {
 		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			GroupID:    group.ID,
@@ -584,5 +658,141 @@ func TestAttributeValidationHook(t *testing.T) {
 		_, upsertErr := th.service.UpsertPropertyValue(th.Context, value)
 		require.Error(t, upsertErr)
 		assert.Contains(t, upsertErr.Error(), "maximum length")
+	})
+}
+
+func TestAttributeValidationHookManagedAuthorization(t *testing.T) {
+	th := Setup(t)
+
+	group, err := th.service.RegisterPropertyGroup("test_managed_auth")
+	require.NoError(t, err)
+
+	adminUserID := model.NewId()
+	regularUserID := model.NewId()
+
+	permChecker := func(userID string, perm *model.Permission) bool {
+		return userID == adminUserID && perm.Id == model.PermissionManageSystem.Id
+	}
+
+	hook := NewAttributeValidationHook(th.service, permChecker, group.ID)
+	th.service.AddHook(hook)
+
+	t.Run("admin can create field with managed=admin", func(t *testing.T) {
+		rctx := RequestContextWithCallerID(th.Context, adminUserID)
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsManaged: "admin",
+			},
+		}
+		created, createErr := th.service.CreatePropertyField(rctx, field)
+		require.NoError(t, createErr)
+		require.NotNil(t, created.PermissionValues)
+		assert.Equal(t, model.PermissionLevelSysadmin, *created.PermissionValues)
+	})
+
+	t.Run("non-admin is blocked from creating field with managed=admin", func(t *testing.T) {
+		rctx := RequestContextWithCallerID(th.Context, regularUserID)
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsManaged: "admin",
+			},
+		}
+		_, createErr := th.service.CreatePropertyField(rctx, field)
+		require.Error(t, createErr)
+		assert.Contains(t, createErr.Error(), "permission")
+	})
+
+	t.Run("non-admin can create field without managed attr", func(t *testing.T) {
+		rctx := RequestContextWithCallerID(th.Context, regularUserID)
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs:      model.StringInterface{},
+		}
+		created, createErr := th.service.CreatePropertyField(rctx, field)
+		require.NoError(t, createErr)
+		require.NotNil(t, created.PermissionValues)
+		assert.Equal(t, model.PermissionLevelMember, *created.PermissionValues)
+	})
+
+	t.Run("non-admin is blocked from updating field to managed=admin", func(t *testing.T) {
+		// Create field as admin
+		adminRctx := RequestContextWithCallerID(th.Context, adminUserID)
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs:      model.StringInterface{},
+		}
+		created, createErr := th.service.CreatePropertyField(adminRctx, field)
+		require.NoError(t, createErr)
+
+		// Try to update as non-admin
+		rctx := RequestContextWithCallerID(th.Context, regularUserID)
+		created.Attrs = model.StringInterface{
+			model.CustomProfileAttributesPropertyAttrsManaged: "admin",
+		}
+		_, updateErr := th.service.UpdatePropertyField(rctx, group.ID, created)
+		require.Error(t, updateErr)
+		assert.Contains(t, updateErr.Error(), "permission")
+	})
+
+	t.Run("admin can update field to managed=admin", func(t *testing.T) {
+		rctx := RequestContextWithCallerID(th.Context, adminUserID)
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs:      model.StringInterface{},
+		}
+		created, createErr := th.service.CreatePropertyField(rctx, field)
+		require.NoError(t, createErr)
+
+		created.Attrs = model.StringInterface{
+			model.CustomProfileAttributesPropertyAttrsManaged: "admin",
+		}
+		updated, updateErr := th.service.UpdatePropertyField(rctx, group.ID, created)
+		require.NoError(t, updateErr)
+		require.NotNil(t, updated.PermissionValues)
+		assert.Equal(t, model.PermissionLevelSysadmin, *updated.PermissionValues)
+	})
+
+	t.Run("managed check skipped for unmanaged groups", func(t *testing.T) {
+		otherGroup, groupErr := th.service.RegisterPropertyGroup("test_other_managed")
+		require.NoError(t, groupErr)
+
+		rctx := RequestContextWithCallerID(th.Context, regularUserID)
+		field := &model.PropertyField{
+			GroupID:    otherGroup.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsManaged: "admin",
+			},
+		}
+		// Should succeed because the hook doesn't apply to this group
+		created, createErr := th.service.CreatePropertyField(rctx, field)
+		require.NoError(t, createErr)
+		// PermissionValues should NOT be set by the hook for unmanaged groups
+		assert.Nil(t, created.PermissionValues)
 	})
 }

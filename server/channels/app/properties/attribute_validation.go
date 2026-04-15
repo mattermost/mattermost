@@ -13,31 +13,39 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
+// PermissionChecker checks whether a user has a specific permission.
+// This avoids a circular dependency between the properties and app packages.
+type PermissionChecker func(userID string, permission *model.Permission) bool
+
 // AttributeValidationHook validates property field attributes and values for
 // specific property groups. It enforces that:
 //   - visibility is one of hidden/when_set/always
 //   - sort_order is numeric
 //   - text field values conform to value_type constraints (email, url, phone)
+//   - managed="admin" can only be set by users with PermissionManageSystem
+//   - PermissionValues is kept in sync with the managed attribute
 //
 // The hook only applies to groups whose IDs are in managedGroupIDs.
 type AttributeValidationHook struct {
 	BasePropertyHook
-	propertyService *PropertyService
-	managedGroupIDs map[string]struct{}
+	propertyService   *PropertyService
+	managedGroupIDs   map[string]struct{}
+	permissionChecker PermissionChecker
 }
 
 var _ PropertyHook = (*AttributeValidationHook)(nil)
 
 // NewAttributeValidationHook creates a hook that validates field attributes and
 // values for the given property groups.
-func NewAttributeValidationHook(ps *PropertyService, managedGroupIDs ...string) *AttributeValidationHook {
+func NewAttributeValidationHook(ps *PropertyService, permChecker PermissionChecker, managedGroupIDs ...string) *AttributeValidationHook {
 	ids := make(map[string]struct{}, len(managedGroupIDs))
 	for _, id := range managedGroupIDs {
 		ids[id] = struct{}{}
 	}
 	return &AttributeValidationHook{
-		propertyService: ps,
-		managedGroupIDs: ids,
+		propertyService:   ps,
+		managedGroupIDs:   ids,
+		permissionChecker: permChecker,
 	}
 }
 
@@ -56,7 +64,36 @@ func (h *AttributeValidationHook) validateFieldAttrs(field *model.PropertyField)
 	return nil
 }
 
-func (h *AttributeValidationHook) PreCreatePropertyField(_ request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
+// syncManagedPermissions ensures PermissionValues stays in sync with the
+// managed attribute and that only admins can set managed="admin".
+func (h *AttributeValidationHook) syncManagedPermissions(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
+	managed, _ := field.Attrs[model.CustomProfileAttributesPropertyAttrsManaged].(string)
+	sysadmin := model.PermissionLevelSysadmin
+	member := model.PermissionLevelMember
+
+	if managed == "admin" {
+		// Verify the caller has admin privileges.
+		if h.permissionChecker != nil {
+			callerID := h.propertyService.extractCallerID(rctx)
+			if callerID != "" && !h.permissionChecker(callerID, model.PermissionManageSystem) {
+				return nil, model.NewAppError(
+					"syncManagedPermissions",
+					"app.property_field.managed_admin.permission.app_error",
+					nil,
+					"only system admins can set managed=admin",
+					http.StatusForbidden,
+				)
+			}
+		}
+		field.PermissionValues = &sysadmin
+	} else {
+		field.PermissionValues = &member
+	}
+
+	return field, nil
+}
+
+func (h *AttributeValidationHook) PreCreatePropertyField(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
 	if !h.isGroupManaged(field.GroupID) {
 		return field, nil
 	}
@@ -65,10 +102,15 @@ func (h *AttributeValidationHook) PreCreatePropertyField(_ request.CTX, field *m
 		return nil, fmt.Errorf("PreCreatePropertyField: %w", err)
 	}
 
+	field, err := h.syncManagedPermissions(rctx, field)
+	if err != nil {
+		return nil, fmt.Errorf("PreCreatePropertyField: %w", err)
+	}
+
 	return field, nil
 }
 
-func (h *AttributeValidationHook) PreUpdatePropertyField(_ request.CTX, groupID string, field *model.PropertyField) (*model.PropertyField, error) {
+func (h *AttributeValidationHook) PreUpdatePropertyField(rctx request.CTX, groupID string, field *model.PropertyField) (*model.PropertyField, error) {
 	if !h.isGroupManaged(groupID) {
 		return field, nil
 	}
@@ -77,18 +119,29 @@ func (h *AttributeValidationHook) PreUpdatePropertyField(_ request.CTX, groupID 
 		return nil, fmt.Errorf("PreUpdatePropertyField: %w", err)
 	}
 
+	field, err := h.syncManagedPermissions(rctx, field)
+	if err != nil {
+		return nil, fmt.Errorf("PreUpdatePropertyField: %w", err)
+	}
+
 	return field, nil
 }
 
-func (h *AttributeValidationHook) PreUpdatePropertyFields(_ request.CTX, groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
+func (h *AttributeValidationHook) PreUpdatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
 	if !h.isGroupManaged(groupID) {
 		return fields, nil
 	}
 
-	for _, field := range fields {
+	for i, field := range fields {
 		if err := h.validateFieldAttrs(field); err != nil {
 			return nil, fmt.Errorf("PreUpdatePropertyFields: field %s: %w", field.ID, err)
 		}
+
+		updated, err := h.syncManagedPermissions(rctx, field)
+		if err != nil {
+			return nil, fmt.Errorf("PreUpdatePropertyFields: field %s: %w", field.ID, err)
+		}
+		fields[i] = updated
 	}
 
 	return fields, nil

@@ -304,9 +304,31 @@ func NewServer(options ...Option) (*Server, error) {
 	attrSanitizationHook := properties.NewAttributeSanitizationHook(s.propertyService, cpaGroup.ID)
 	s.propertyService.AddHook(attrSanitizationHook)
 
-	// Attribute validation hook — validates visibility, sort_order on fields
-	// and field-type constraints on values (options, user IDs, value_type).
-	attrValidationHook := properties.NewAttributeValidationHook(s.propertyService, cpaGroup.ID)
+	// Attribute validation hook — validates visibility, sort_order on fields,
+	// field-type constraints on values (options, user IDs, value_type), and
+	// managed-flag authorization + PermissionValues sync.
+	permChecker := func(userID string, perm *model.Permission) bool {
+		user, userErr := s.Store().User().Get(context.Background(), userID)
+		if userErr != nil {
+			return false
+		}
+		roles, roleErr := s.Store().Role().GetByNames(user.GetRoles())
+		if roleErr != nil {
+			return false
+		}
+		for _, role := range roles {
+			if role.DeleteAt != 0 {
+				continue
+			}
+			for _, p := range role.Permissions {
+				if p == perm.Id {
+					return true
+				}
+			}
+		}
+		return false
+	}
+	attrValidationHook := properties.NewAttributeValidationHook(s.propertyService, permChecker, cpaGroup.ID)
 	s.propertyService.AddHook(attrValidationHook)
 
 	// Field limit hook — enforces per-object-type and global field limits.
