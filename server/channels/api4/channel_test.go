@@ -6933,7 +6933,7 @@ func TestSetChannelMembers(t *testing.T) {
 		th.LinkUserToTeam(t, user3, th.BasicTeam)
 
 		// Set members to [BasicUser, user3] — user2 should be removed, user3 added
-		results, resp, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, []string{th.BasicUser.Id, user3.Id}, 0, 0)
+		results, resp, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, &model.SetChannelMembersRequest{Members: []string{th.BasicUser.Id, user3.Id}}, 0, 0)
 		require.NoError(t, err)
 		assert.Equal(t, "application/x-ndjson", resp.Header.Get("Content-Type"))
 
@@ -6969,7 +6969,7 @@ func TestSetChannelMembers(t *testing.T) {
 		user2 := th.BasicUser2
 
 		// First call performs a real mutation — add user2
-		results1, _, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, []string{th.BasicUser.Id, user2.Id}, 0, 0)
+		results1, _, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, &model.SetChannelMembersRequest{Members: []string{th.BasicUser.Id, user2.Id}}, 0, 0)
 		require.NoError(t, err)
 		var firstAdded []string
 		for _, r := range results1 {
@@ -6978,7 +6978,7 @@ func TestSetChannelMembers(t *testing.T) {
 		assert.Contains(t, firstAdded, user2.Id, "first call should add user2")
 
 		// Second call with same list — should be all no-ops
-		results2, _, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, []string{th.BasicUser.Id, user2.Id}, 0, 0)
+		results2, _, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, &model.SetChannelMembersRequest{Members: []string{th.BasicUser.Id, user2.Id}}, 0, 0)
 		require.NoError(t, err)
 		for _, r := range results2 {
 			assert.Empty(t, r.Added)
@@ -6996,7 +6996,7 @@ func TestSetChannelMembers(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
 
 		// Set to empty list
-		results, _, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, []string{}, 0, 0)
+		results, _, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, &model.SetChannelMembersRequest{Members: []string{}}, 0, 0)
 		require.NoError(t, err)
 
 		var allRemoved []string
@@ -7013,7 +7013,7 @@ func TestSetChannelMembers(t *testing.T) {
 
 	t.Run("empty private channel rejected", func(t *testing.T) {
 		privateChannel := th.CreatePrivateChannel(t)
-		_, resp, err := th.SystemAdminClient.SetChannelMembers(ctx, privateChannel.Id, []string{}, 0, 0)
+		_, resp, err := th.SystemAdminClient.SetChannelMembers(ctx, privateChannel.Id, &model.SetChannelMembersRequest{Members: []string{}}, 0, 0)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
@@ -7033,7 +7033,7 @@ func TestSetChannelMembers(t *testing.T) {
 		// Create a user NOT on the team
 		otherUser := th.CreateUserWithClient(t, th.SystemAdminClient)
 
-		results, _, err := th.SystemAdminClient.SetChannelMembers(ctx, privateChannel.Id, []string{otherUser.Id}, 0, 0)
+		results, _, err := th.SystemAdminClient.SetChannelMembers(ctx, privateChannel.Id, &model.SetChannelMembersRequest{Members: []string{otherUser.Id}}, 0, 0)
 		require.NoError(t, err)
 
 		// The add should have failed
@@ -7051,14 +7051,14 @@ func TestSetChannelMembers(t *testing.T) {
 
 	t.Run("non-sysadmin returns 403", func(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
-		_, resp, err := th.Client.SetChannelMembers(ctx, channel.Id, []string{th.BasicUser.Id}, 0, 0)
+		_, resp, err := th.Client.SetChannelMembers(ctx, channel.Id, &model.SetChannelMembersRequest{Members: []string{th.BasicUser.Id}}, 0, 0)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("DM channel rejected", func(t *testing.T) {
 		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
-		_, resp, err := th.SystemAdminClient.SetChannelMembers(ctx, dmChannel.Id, []string{th.BasicUser.Id}, 0, 0)
+		_, resp, err := th.SystemAdminClient.SetChannelMembers(ctx, dmChannel.Id, &model.SetChannelMembersRequest{Members: []string{th.BasicUser.Id}}, 0, 0)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
@@ -7069,7 +7069,7 @@ func TestSetChannelMembers(t *testing.T) {
 		gmChannel, _, err := th.SystemAdminClient.CreateGroupChannel(ctx, []string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id})
 		require.NoError(t, err)
 
-		_, resp, err := th.SystemAdminClient.SetChannelMembers(ctx, gmChannel.Id, []string{th.BasicUser.Id}, 0, 0)
+		_, resp, err := th.SystemAdminClient.SetChannelMembers(ctx, gmChannel.Id, &model.SetChannelMembersRequest{Members: []string{th.BasicUser.Id}}, 0, 0)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
@@ -7080,7 +7080,7 @@ func TestSetChannelMembers(t *testing.T) {
 		_, appErr := th.App.UpdateChannel(th.Context, channel)
 		require.Nil(t, appErr)
 
-		_, resp, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, []string{th.BasicUser.Id}, 0, 0)
+		_, resp, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, &model.SetChannelMembersRequest{Members: []string{th.BasicUser.Id}}, 0, 0)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
@@ -7091,7 +7091,7 @@ func TestSetChannelMembers(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Set to empty list, non-guest members cannot be removed and should appear in errors
-		results, _, err := th.SystemAdminClient.SetChannelMembers(ctx, townSquare.Id, []string{}, 0, 0)
+		results, _, err := th.SystemAdminClient.SetChannelMembers(ctx, townSquare.Id, &model.SetChannelMembersRequest{Members: []string{}}, 0, 0)
 		require.NoError(t, err)
 
 		var allErrors []model.SetChannelMembersError
@@ -7112,7 +7112,7 @@ func TestSetChannelMembers(t *testing.T) {
 		// Create a user NOT on the team
 		otherUser := th.CreateUserWithClient(t, th.SystemAdminClient)
 
-		results, _, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, []string{th.BasicUser.Id, otherUser.Id}, 0, 0)
+		results, _, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, &model.SetChannelMembersRequest{Members: []string{th.BasicUser.Id, otherUser.Id}}, 0, 0)
 		require.NoError(t, err)
 
 		var allErrors []model.SetChannelMembersError
@@ -7129,10 +7129,10 @@ func TestSetChannelMembers(t *testing.T) {
 		assert.True(t, found, "user not on team should appear in errors")
 	})
 
-	t.Run("null body rejected", func(t *testing.T) {
+	t.Run("null members rejected", func(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
-		// nil slice serializes as JSON null
-		_, resp, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, nil, 0, 0)
+		// nil Members field serializes as JSON null for the members array
+		_, resp, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, &model.SetChannelMembersRequest{}, 0, 0)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
@@ -7141,7 +7141,7 @@ func TestSetChannelMembers(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
 
 		// batch_size out of range (too large)
-		_, resp, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, []string{th.BasicUser.Id}, 9999, 0)
+		_, resp, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, &model.SetChannelMembersRequest{Members: []string{th.BasicUser.Id}}, 9999, 0)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
@@ -7159,7 +7159,7 @@ func TestSetChannelMembers(t *testing.T) {
 		}
 
 		// Use batch_size=2 to force multiple batches
-		results, _, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, userIDs, 2, 0)
+		results, _, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, &model.SetChannelMembersRequest{Members: userIDs}, 2, 0)
 		require.NoError(t, err)
 
 		// BasicUser is already a member, so 5 to add in batches of 2 = 3 batches
@@ -7183,6 +7183,178 @@ func TestSetChannelMembers(t *testing.T) {
 			assert.True(t, memberIDs[id], "user %s should be a member", id)
 		}
 		assert.Len(t, members, len(userIDs), "channel should have exactly the requested members")
+	})
+
+	t.Run("channel_admins sets admin roles", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+		user2 := th.BasicUser2
+		user3 := th.CreateUserWithClient(t, th.SystemAdminClient)
+		th.LinkUserToTeam(t, user3, th.BasicTeam)
+
+		// BasicUser is already channel admin (as creator). Promote user2 instead.
+		adminIDs := []string{th.BasicUser.Id, user2.Id}
+		results, _, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id,
+			&model.SetChannelMembersRequest{
+				Members:       []string{th.BasicUser.Id, user2.Id, user3.Id},
+				ChannelAdmins: &adminIDs,
+			}, 0, 0)
+		require.NoError(t, err)
+
+		var allPromoted []string
+		for _, r := range results {
+			allPromoted = append(allPromoted, r.Promoted...)
+		}
+		assert.Contains(t, allPromoted, user2.Id, "user2 should be promoted to admin")
+
+		// Verify SchemeAdmin is set for both admins
+		member, _, err := th.SystemAdminClient.GetChannelMember(ctx, channel.Id, th.BasicUser.Id, "")
+		require.NoError(t, err)
+		assert.True(t, member.SchemeAdmin, "BasicUser should be channel admin")
+
+		member2, _, err := th.SystemAdminClient.GetChannelMember(ctx, channel.Id, user2.Id, "")
+		require.NoError(t, err)
+		assert.True(t, member2.SchemeAdmin, "user2 should be channel admin")
+
+		// user3 should not be admin
+		member3, _, err := th.SystemAdminClient.GetChannelMember(ctx, channel.Id, user3.Id, "")
+		require.NoError(t, err)
+		assert.False(t, member3.SchemeAdmin, "user3 should not be channel admin")
+	})
+
+	t.Run("channel_admins omitted preserves existing admins", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+
+		// First, set BasicUser as admin
+		adminIDs := []string{th.BasicUser.Id}
+		_, _, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id,
+			&model.SetChannelMembersRequest{
+				Members:       []string{th.BasicUser.Id},
+				ChannelAdmins: &adminIDs,
+			}, 0, 0)
+		require.NoError(t, err)
+
+		// Verify admin is set
+		member, _, err := th.SystemAdminClient.GetChannelMember(ctx, channel.Id, th.BasicUser.Id, "")
+		require.NoError(t, err)
+		require.True(t, member.SchemeAdmin)
+
+		// Now call again without channel_admins (nil). Admin role should be preserved.
+		user2 := th.BasicUser2
+		_, _, err = th.SystemAdminClient.SetChannelMembers(ctx, channel.Id,
+			&model.SetChannelMembersRequest{
+				Members: []string{th.BasicUser.Id, user2.Id},
+			}, 0, 0)
+		require.NoError(t, err)
+
+		member, _, err = th.SystemAdminClient.GetChannelMember(ctx, channel.Id, th.BasicUser.Id, "")
+		require.NoError(t, err)
+		assert.True(t, member.SchemeAdmin, "admin role should be preserved when channel_admins is omitted")
+	})
+
+	t.Run("channel_admins demotes existing admins", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+		user2 := th.BasicUser2
+
+		// Set both users as members with BasicUser as admin
+		adminIDs := []string{th.BasicUser.Id}
+		_, _, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id,
+			&model.SetChannelMembersRequest{
+				Members:       []string{th.BasicUser.Id, user2.Id},
+				ChannelAdmins: &adminIDs,
+			}, 0, 0)
+		require.NoError(t, err)
+
+		// Verify BasicUser is admin
+		member, _, err := th.SystemAdminClient.GetChannelMember(ctx, channel.Id, th.BasicUser.Id, "")
+		require.NoError(t, err)
+		require.True(t, member.SchemeAdmin)
+
+		// Now set user2 as admin instead, demoting BasicUser
+		newAdminIDs := []string{user2.Id}
+		results, _, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id,
+			&model.SetChannelMembersRequest{
+				Members:       []string{th.BasicUser.Id, user2.Id},
+				ChannelAdmins: &newAdminIDs,
+			}, 0, 0)
+		require.NoError(t, err)
+
+		var allPromoted, allDemoted []string
+		for _, r := range results {
+			allPromoted = append(allPromoted, r.Promoted...)
+			allDemoted = append(allDemoted, r.Demoted...)
+		}
+		assert.Contains(t, allPromoted, user2.Id, "user2 should be promoted")
+		assert.Contains(t, allDemoted, th.BasicUser.Id, "BasicUser should be demoted")
+
+		member, _, err = th.SystemAdminClient.GetChannelMember(ctx, channel.Id, th.BasicUser.Id, "")
+		require.NoError(t, err)
+		assert.False(t, member.SchemeAdmin, "BasicUser should no longer be admin")
+
+		member2, _, err := th.SystemAdminClient.GetChannelMember(ctx, channel.Id, user2.Id, "")
+		require.NoError(t, err)
+		assert.True(t, member2.SchemeAdmin, "user2 should be admin")
+	})
+
+	t.Run("channel_admins adds user only in admins list as member and admin", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+		user2 := th.BasicUser2
+
+		// user2 is only in channel_admins, not in members. Should be added and made admin.
+		adminIDs := []string{user2.Id}
+		results, _, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id,
+			&model.SetChannelMembersRequest{
+				Members:       []string{th.BasicUser.Id},
+				ChannelAdmins: &adminIDs,
+			}, 0, 0)
+		require.NoError(t, err)
+
+		var allAdded, allPromoted []string
+		for _, r := range results {
+			allAdded = append(allAdded, r.Added...)
+			allPromoted = append(allPromoted, r.Promoted...)
+		}
+		assert.Contains(t, allAdded, user2.Id, "user2 should be added as member")
+		assert.Contains(t, allPromoted, user2.Id, "user2 should be promoted to admin")
+
+		member, _, err := th.SystemAdminClient.GetChannelMember(ctx, channel.Id, user2.Id, "")
+		require.NoError(t, err)
+		assert.True(t, member.SchemeAdmin, "user2 should be channel admin")
+	})
+
+	t.Run("empty channel_admins clears all admin roles", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+
+		// First, set BasicUser as admin
+		adminIDs := []string{th.BasicUser.Id}
+		_, _, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id,
+			&model.SetChannelMembersRequest{
+				Members:       []string{th.BasicUser.Id},
+				ChannelAdmins: &adminIDs,
+			}, 0, 0)
+		require.NoError(t, err)
+
+		member, _, err := th.SystemAdminClient.GetChannelMember(ctx, channel.Id, th.BasicUser.Id, "")
+		require.NoError(t, err)
+		require.True(t, member.SchemeAdmin)
+
+		// Set channel_admins to empty slice, should demote everyone
+		emptyAdmins := []string{}
+		results, _, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id,
+			&model.SetChannelMembersRequest{
+				Members:       []string{th.BasicUser.Id},
+				ChannelAdmins: &emptyAdmins,
+			}, 0, 0)
+		require.NoError(t, err)
+
+		var allDemoted []string
+		for _, r := range results {
+			allDemoted = append(allDemoted, r.Demoted...)
+		}
+		assert.Contains(t, allDemoted, th.BasicUser.Id, "BasicUser should be demoted")
+
+		member, _, err = th.SystemAdminClient.GetChannelMember(ctx, channel.Id, th.BasicUser.Id, "")
+		require.NoError(t, err)
+		assert.False(t, member.SchemeAdmin, "BasicUser should no longer be admin")
 	})
 }
 

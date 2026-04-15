@@ -2248,23 +2248,24 @@ func setChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Cap request body size
 	r.Body = http.MaxBytesReader(w, r.Body, setChannelMembersMaxBodySize)
 
-	// Decode request body as JSON array of user IDs
-	var desiredUserIDs []string
-	if err := json.NewDecoder(r.Body).Decode(&desiredUserIDs); err != nil {
-		c.SetInvalidParamWithErr("user_ids", err)
+	// Decode request body
+	var req model.SetChannelMembersRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		c.SetInvalidParamWithErr("body", err)
 		return
 	}
-	if desiredUserIDs == nil {
-		c.SetInvalidParam("user_ids")
+	if req.Members == nil {
+		c.SetInvalidParam("members")
 		return
 	}
 
-	// Validate and deduplicate user IDs
-	seen := make(map[string]struct{}, len(desiredUserIDs))
-	deduped := make([]string, 0, len(desiredUserIDs))
-	for _, id := range desiredUserIDs {
+	// Validate and deduplicate member IDs. The desired membership is the
+	// union of Members and ChannelAdmins (admins are implicitly members).
+	seen := make(map[string]struct{}, len(req.Members))
+	deduped := make([]string, 0, len(req.Members))
+	for _, id := range req.Members {
 		if !model.IsValidId(id) {
-			c.SetInvalidParam("user_ids")
+			c.SetInvalidParam("members")
 			return
 		}
 		if _, exists := seen[id]; !exists {
@@ -2272,7 +2273,24 @@ func setChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 			deduped = append(deduped, id)
 		}
 	}
-	desiredUserIDs = deduped
+
+	// Build admin set and merge admin IDs into the desired membership list.
+	var adminSet map[string]struct{}
+	if req.ChannelAdmins != nil {
+		adminSet = make(map[string]struct{}, len(*req.ChannelAdmins))
+		for _, id := range *req.ChannelAdmins {
+			if !model.IsValidId(id) {
+				c.SetInvalidParam("channel_admins")
+				return
+			}
+			adminSet[id] = struct{}{}
+			if _, exists := seen[id]; !exists {
+				seen[id] = struct{}{}
+				deduped = append(deduped, id)
+			}
+		}
+	}
+	desiredUserIDs := deduped
 
 	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
 	if appErr != nil {
@@ -2296,6 +2314,7 @@ func setChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
 	model.AddEventParameterToAuditRec(auditRec, "desired_user_count", len(desiredUserIDs))
+	model.AddEventParameterToAuditRec(auditRec, "channel_admin_count", len(adminSet))
 	model.AddEventParameterToAuditRec(auditRec, "batch_size", batchSize)
 	model.AddEventParameterToAuditRec(auditRec, "batch_delay_ms", batchDelayMs)
 
@@ -2304,7 +2323,7 @@ func setChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	streamingStarted := false
 	var totalAdded, totalRemoved, totalErrors int
 
-	appErr = c.App.SetChannelMembers(c.AppContext, channel, desiredUserIDs, c.AppContext.Session().UserId, batchSize, batchDelayMs, func(result *model.SetChannelMembersResponse) {
+	appErr = c.App.SetChannelMembers(c.AppContext, channel, desiredUserIDs, adminSet, c.AppContext.Session().UserId, batchSize, batchDelayMs, func(result *model.SetChannelMembersResponse) {
 		if !streamingStarted {
 			w.Header().Set("Content-Type", "application/x-ndjson")
 			streamingStarted = true

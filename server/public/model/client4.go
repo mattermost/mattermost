@@ -3329,7 +3329,7 @@ func (c *Client4) AddChannelMembers(ctx context.Context, channelId, postRootId s
 // desired membership list and reconciles it against the current state. Results are streamed back
 // as NDJSON, one line per batch. The batchSize and batchDelayMs parameters control the processing
 // rate; pass 0 to use server defaults.
-func (c *Client4) SetChannelMembers(ctx context.Context, channelId string, userIds []string, batchSize, batchDelayMs int) ([]*SetChannelMembersResponse, *Response, error) {
+func (c *Client4) SetChannelMembers(ctx context.Context, channelId string, req *SetChannelMembersRequest, batchSize, batchDelayMs int) ([]*SetChannelMembersResponse, *Response, error) {
 	route := c.channelMembersRoute(channelId)
 	routePath, err := route.String()
 	if err != nil {
@@ -3347,7 +3347,7 @@ func (c *Client4) SetChannelMembers(ctx context.Context, channelId string, userI
 		routePath = fmt.Sprintf("%s?%s", routePath, params.Encode())
 	}
 
-	r, err := c.DoAPIPutJSON(ctx, routePath, userIds)
+	r, err := c.DoAPIPutJSON(ctx, routePath, req)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}

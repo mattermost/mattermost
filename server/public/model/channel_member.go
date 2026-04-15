@@ -255,19 +255,38 @@ type ChannelMemberIdentifier struct {
 	UserId    string `json:"user_id"`
 }
 
+// SetChannelMembersRequest is the request body for the bulk set channel members endpoint.
+type SetChannelMembersRequest struct {
+	// Members is the complete desired membership list. Users in this list
+	// (and in ChannelAdmins) will be the final set of channel members.
+	Members []string `json:"members"`
+	// ChannelAdmins is an optional list of user IDs that should have the
+	// channel admin role. Users in this list are automatically included in
+	// the desired membership (they do not need to also appear in Members).
+	// When nil, existing admin roles are preserved for members who remain
+	// in the channel. When non-nil (including empty slice), admin roles
+	// are set declaratively: listed users become admins, all others lose
+	// the admin role.
+	ChannelAdmins *[]string `json:"channel_admins"`
+}
+
 // SetChannelMembersResponse is one batch of results from a bulk set channel members operation.
 // Multiple responses may be streamed as NDJSON lines.
 type SetChannelMembersResponse struct {
-	Added   []string                 `json:"added"`
-	Removed []string                 `json:"removed"`
-	Errors  []SetChannelMembersError `json:"errors,omitempty"`
+	Added    []string                 `json:"added"`
+	Removed  []string                 `json:"removed"`
+	Promoted []string                 `json:"promoted,omitempty"`
+	Demoted  []string                 `json:"demoted,omitempty"`
+	Errors   []SetChannelMembersError `json:"errors,omitempty"`
 }
 
 func (o *SetChannelMembersResponse) Auditable() map[string]any {
 	return map[string]any{
-		"added":   o.Added,
-		"removed": o.Removed,
-		"errors":  o.Errors,
+		"added":    o.Added,
+		"removed":  o.Removed,
+		"promoted": o.Promoted,
+		"demoted":  o.Demoted,
+		"errors":   o.Errors,
 	}
 }
 

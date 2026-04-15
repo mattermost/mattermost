@@ -4187,10 +4187,15 @@ func (a *App) addChannelToDefaultCategory(rctx request.CTX, userID string, chann
 
 // SetChannelMembers reconciles the membership of a channel to match the desired list of user IDs.
 // Users already in the channel are left untouched (no-op). Users not in the desired list are removed.
-// Users in the desired list but not in the channel are added. Operations are processed in batches
-// with a configurable delay between batches. The onBatch callback is invoked after each batch
-// with the results for that batch.
-func (a *App) SetChannelMembers(rctx request.CTX, channel *model.Channel, desiredUserIDs []string, requestorUserID string, batchSize int, batchDelayMs int, onBatch func(*model.SetChannelMembersResponse)) *model.AppError {
+// Users in the desired list but not in the channel are added.
+//
+// When adminSet is non-nil, channel admin roles are set declaratively: users in adminSet become
+// channel admins, all other members lose the admin role. When adminSet is nil, existing admin
+// roles are preserved for members who remain in the channel.
+//
+// Operations are processed in batches with a configurable delay between batches.
+// The onBatch callback is invoked after each batch with the results for that batch.
+func (a *App) SetChannelMembers(rctx request.CTX, channel *model.Channel, desiredUserIDs []string, adminSet map[string]struct{}, requestorUserID string, batchSize int, batchDelayMs int, onBatch func(*model.SetChannelMembersResponse)) *model.AppError {
 	currentIDs, err := a.Srv().Store().Channel().GetAllChannelMemberIdsByChannelId(channel.Id)
 	if err != nil {
 		return model.NewAppError("SetChannelMembers", "app.channel.set_members.get_current.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -4217,12 +4222,12 @@ func (a *App) SetChannelMembers(rctx request.CTX, channel *model.Channel, desire
 		}
 	}
 
-	// Prevent emptying private channels — they become orphaned since non-admins can't rejoin
+	// Prevent emptying private channels, they become orphaned since non-admins can't rejoin.
 	if channel.Type == model.ChannelTypePrivate && len(desiredUserIDs) == 0 {
 		return model.NewAppError("SetChannelMembers", "app.channel.set_members.empty_private.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(toAdd) == 0 && len(toRemove) == 0 {
+	if len(toAdd) == 0 && len(toRemove) == 0 && adminSet == nil {
 		onBatch(&model.SetChannelMembersResponse{})
 		return nil
 	}
@@ -4290,6 +4295,89 @@ func (a *App) SetChannelMembers(rctx request.CTX, channel *model.Channel, desire
 			case <-rctx.Context().Done():
 				return model.NewAppError("SetChannelMembers", "app.channel.set_members.context_cancelled.app_error", nil, "", http.StatusInternalServerError).Wrap(rctx.Context().Err())
 			case <-time.After(batchDelay):
+			}
+		}
+	}
+
+	// Reconcile channel admin roles when adminSet is provided.
+	if adminSet != nil {
+		if rctx.Context().Err() != nil {
+			return model.NewAppError("SetChannelMembers", "app.channel.set_members.context_cancelled.app_error", nil, "", http.StatusInternalServerError).Wrap(rctx.Context().Err())
+		}
+
+		// Build the list of members whose admin status needs to change.
+		// We need the current SchemeAdmin state for all remaining members.
+		members, storeErr := a.Srv().Store().Channel().GetMembers(model.ChannelMembersGetOptions{ChannelID: channel.Id, Offset: 0, Limit: 100000})
+		if storeErr != nil {
+			return model.NewAppError("SetChannelMembers", "app.channel.set_members.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
+		}
+
+		var toPromote, toDemote []string
+		for _, m := range members {
+			_, wantAdmin := adminSet[m.UserId]
+			if wantAdmin && !m.SchemeAdmin {
+				toPromote = append(toPromote, m.UserId)
+			} else if !wantAdmin && m.SchemeAdmin {
+				toDemote = append(toDemote, m.UserId)
+			}
+		}
+
+		// Process role changes in batches
+		for i := 0; i < len(toPromote); i += batchSize {
+			end := min(i+batchSize, len(toPromote))
+			batch := toPromote[i:end]
+
+			result := &model.SetChannelMembersResponse{}
+			for _, userID := range batch {
+				if _, appErr := a.UpdateChannelMemberSchemeRoles(rctx, channel.Id, userID, false, true, true); appErr != nil {
+					result.Errors = append(result.Errors, model.SetChannelMembersError{
+						UserID: userID,
+						ID:     appErr.Id,
+						Error:  appErr.Error(),
+					})
+				} else {
+					result.Promoted = append(result.Promoted, userID)
+				}
+			}
+			onBatch(result)
+
+			if end < len(toPromote) {
+				select {
+				case <-rctx.Context().Done():
+					return model.NewAppError("SetChannelMembers", "app.channel.set_members.context_cancelled.app_error", nil, "", http.StatusInternalServerError).Wrap(rctx.Context().Err())
+				case <-time.After(batchDelay):
+				}
+			}
+		}
+
+		if len(toDemote) > 0 && rctx.Context().Err() != nil {
+			return model.NewAppError("SetChannelMembers", "app.channel.set_members.context_cancelled.app_error", nil, "", http.StatusInternalServerError).Wrap(rctx.Context().Err())
+		}
+
+		for i := 0; i < len(toDemote); i += batchSize {
+			end := min(i+batchSize, len(toDemote))
+			batch := toDemote[i:end]
+
+			result := &model.SetChannelMembersResponse{}
+			for _, userID := range batch {
+				if _, appErr := a.UpdateChannelMemberSchemeRoles(rctx, channel.Id, userID, false, true, false); appErr != nil {
+					result.Errors = append(result.Errors, model.SetChannelMembersError{
+						UserID: userID,
+						ID:     appErr.Id,
+						Error:  appErr.Error(),
+					})
+				} else {
+					result.Demoted = append(result.Demoted, userID)
+				}
+			}
+			onBatch(result)
+
+			if end < len(toDemote) {
+				select {
+				case <-rctx.Context().Done():
+					return model.NewAppError("SetChannelMembers", "app.channel.set_members.context_cancelled.app_error", nil, "", http.StatusInternalServerError).Wrap(rctx.Context().Err())
+				case <-time.After(batchDelay):
+				}
 			}
 		}
 	}
