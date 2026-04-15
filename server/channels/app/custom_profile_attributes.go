@@ -92,7 +92,13 @@ func (a *App) CreateCPAField(rctx request.CTX, field *model.CPAField) (*model.CP
 		return nil, appErr
 	}
 
-	newField, appErr := a.CreatePropertyField(rctx, field.ToPropertyField(), false, "")
+	sysadmin := model.PermissionLevelSysadmin
+	pf := field.ToPropertyField()
+	pf.PermissionField = &sysadmin
+	pf.PermissionOptions = &sysadmin
+	// PermissionValues is set by the attribute validation hook based on managed attr
+
+	newField, appErr := a.CreatePropertyField(rctx, pf, false, "")
 	if appErr != nil {
 		return nil, appErr
 	}

@@ -27,6 +27,13 @@ func (api *API) InitCustomProfileAttributes() {
 }
 
 func listCPAFields(c *Context, w http.ResponseWriter, r *http.Request) {
+	// License check is kept here because the hook system doesn't cover
+	// search/list operations. Write operations are covered by the hook.
+	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
+		c.Err = model.NewAppError("Api4.listCPAFields", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	rctx := app.RequestContextWithCallerID(c.AppContext, c.AppContext.Session().UserId)
 	fields, appErr := c.App.ListCPAFields(rctx)
 	if appErr != nil {
@@ -56,7 +63,8 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "property_field", pf)
 
-	// Translate to PropertyField and route through the generic property API
+	// Translate to PropertyField and route through the generic property API.
+	// CPA fields are always system-scoped and admin-managed at the field level.
 	field := pf.ToPropertyField()
 	groupID, appErr := c.App.CpaGroupID()
 	if appErr != nil {
@@ -66,6 +74,10 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	field.GroupID = groupID
 	field.ObjectType = model.PropertyFieldObjectTypeUser
 	field.TargetType = string(model.PropertyFieldTargetLevelSystem)
+	sysadmin := model.PermissionLevelSysadmin
+	field.PermissionField = &sysadmin
+	field.PermissionOptions = &sysadmin
+	// PermissionValues is set by the attribute validation hook based on managed attr
 
 	createdField := executeCreatePropertyField(c, r, field)
 	if c.Err != nil {
@@ -191,6 +203,11 @@ func deleteCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getCPAGroup(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
+		c.Err = model.NewAppError("Api4.getCPAGroup", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	groupID, appErr := c.App.CpaGroupID()
 	if appErr != nil {
 		c.Err = appErr
@@ -207,6 +224,15 @@ func getCPAGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 // generic property API, routes through executePatchPropertyValues, and
 // emits the CPA-specific websocket event.
 func cpaPatchValues(c *Context, w http.ResponseWriter, r *http.Request, userID string, updates map[string]json.RawMessage) {
+	// License check is kept here because the read path (GetPropertyFields)
+	// inside executePatchPropertyValues returns a confusing error when the
+	// license hook filters results. Write-only hooks block cleanly, but the
+	// mixed read+write flow needs an early check.
+	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
+		c.Err = model.NewAppError("Api4.cpaPatchValues", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	// Translate CPA format → generic PropertyValuePatchItem list
 	items := make([]model.PropertyValuePatchItem, 0, len(updates))
 	for fieldID, value := range updates {
@@ -261,6 +287,11 @@ func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
+		c.Err = model.NewAppError("Api4.listCPAValues", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	c.RequireUserId()
 	if c.Err != nil {
 		return

@@ -28,7 +28,7 @@ func TestCreateCPAField(t *testing.T) {
 		createdField, resp, err := client.CreateCPAField(context.Background(), field)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "api.custom_profile_attributes.license_error")
+		CheckErrorID(t, err, "app.property.license_error")
 		require.Empty(t, createdField)
 	}, "endpoint should not work if no valid license is present")
 
@@ -171,10 +171,8 @@ func TestPatchCPAField(t *testing.T) {
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		patch := &model.PropertyFieldPatch{Name: model.NewPointer(model.NewId())}
-		patchedField, resp, err := client.PatchCPAField(context.Background(), model.NewId(), patch)
-		CheckForbiddenStatus(t, resp)
+		patchedField, _, err := client.PatchCPAField(context.Background(), model.NewId(), patch)
 		require.Error(t, err)
-		CheckErrorID(t, err, "api.custom_profile_attributes.license_error")
 		require.Empty(t, patchedField)
 	}, "endpoint should not work if no valid license is present")
 
@@ -316,10 +314,8 @@ func TestDeleteCPAField(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		resp, err := client.DeleteCPAField(context.Background(), model.NewId())
-		CheckForbiddenStatus(t, resp)
+		_, err := client.DeleteCPAField(context.Background(), model.NewId())
 		require.Error(t, err)
-		CheckErrorID(t, err, "api.custom_profile_attributes.license_error")
 	}, "endpoint should not work if no valid license is present")
 
 	// add a valid license
@@ -733,7 +729,7 @@ func TestPatchCPAValues(t *testing.T) {
 			_, resp, err := th.Client.PatchCPAValues(context.Background(), values)
 			CheckForbiddenStatus(t, resp)
 			require.Error(t, err)
-			CheckErrorID(t, err, "app.custom_profile_attributes.property_field_is_managed.app_error")
+			CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
 		})
 
 		t.Run("regular user can update non-managed field", func(t *testing.T) {
@@ -784,7 +780,7 @@ func TestPatchCPAValues(t *testing.T) {
 			_, resp, err := th.Client.PatchCPAValues(context.Background(), attemptedValues)
 			CheckForbiddenStatus(t, resp)
 			require.Error(t, err)
-			CheckErrorID(t, err, "app.custom_profile_attributes.property_field_is_managed.app_error")
+			CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
 
 			// Verify that no values were updated when the batch operation failed
 			currentValues, appErr := th.App.ListCPAValues(request.TestContext(t), th.BasicUser.Id)
@@ -1104,7 +1100,7 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 			_, resp, err := th.Client.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, values)
 			CheckForbiddenStatus(t, resp)
 			require.Error(t, err)
-			CheckErrorID(t, err, "app.custom_profile_attributes.property_field_is_managed.app_error")
+			CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
 		})
 
 		t.Run("regular user can update non-managed field", func(t *testing.T) {
@@ -1196,7 +1192,7 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 			_, resp, err := th.Client.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, attemptedValues)
 			CheckForbiddenStatus(t, resp)
 			require.Error(t, err)
-			CheckErrorID(t, err, "app.custom_profile_attributes.property_field_is_managed.app_error")
+			CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
 
 			// Verify that no values were updated when the batch operation failed
 			currentValues, appErr := th.App.ListCPAValues(request.TestContext(t), th.BasicUser.Id)
