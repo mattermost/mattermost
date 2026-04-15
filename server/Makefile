@@ -143,14 +143,14 @@ TEMPLATES_DIR=templates
 # Plugins Packages
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
 PLUGIN_PACKAGES += mattermost-plugin-calls-v1.11.4
-PLUGIN_PACKAGES += mattermost-plugin-github-v2.5.0
+PLUGIN_PACKAGES += mattermost-plugin-github-v2.7.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.12.1
 PLUGIN_PACKAGES += mattermost-plugin-jira-v4.5.0
 # We need to prepackage both versions of playbooks and install the correct one based on the server license. See MM-60025.
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.41.1
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.4.4
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
-PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.12.0
+PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.13.0
 PLUGIN_PACKAGES += mattermost-plugin-agents-v1.4.0
 PLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.2
 PLUGIN_PACKAGES += mattermost-plugin-msteams-v2.2.2
