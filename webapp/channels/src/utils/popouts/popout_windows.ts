@@ -13,6 +13,7 @@ import {isDesktopApp} from 'utils/user_agent';
 import type {RhsState, SearchType} from 'types/store/rhs';
 
 import BrowserPopouts from './browser_popouts';
+import {registerPopoutFocusListeners} from './focus';
 import {
     sendToParent as sendToParentBrowser,
     onMessageFromParent as onMessageFromParentBrowser,
@@ -37,6 +38,8 @@ export async function popoutThread(
             titleTemplate,
         },
     );
+
+    registerPopoutFocusListeners(popoutListeners);
 
     popoutListeners?.onMessageFromPopout?.((channel: string, ...args: unknown[]) => {
         if (channel === FOCUS_REPLY_POST) {
@@ -119,10 +122,14 @@ export async function popoutChannel(
     path: string,
     channelIdentifier: string,
 ) {
-    return popout(
+    const popoutListeners = await popout(
         `${getBasePath()}/_popout/channel/${teamName}/${path}/${channelIdentifier}`,
         {titleTemplate},
     );
+
+    registerPopoutFocusListeners(popoutListeners);
+
+    return popoutListeners;
 }
 
 export async function popoutHelp() {

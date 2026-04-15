@@ -1275,15 +1275,6 @@ func (a *App) getAddSharedChannelManagerPermissionsMigration() (permissionsMap, 
 	}, nil
 }
 
-func (a *App) getAddSecureConnectionManagerPermissionsMigration() (permissionsMap, error) {
-	return permissionsMap{
-		permissionTransformation{
-			On:  isExactRole(model.SecureConnectionManagerRoleId),
-			Add: []string{PermissionManageSecureConnections},
-		},
-	}, nil
-}
-
 func (a *App) getRestoreManageOAuthPermissionMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
@@ -1369,7 +1360,6 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationKeyAddChannelAccessRulesPermission, Migration: a.getAddChannelAccessRulesPermissionMigration},
 		{Key: model.MigrationKeyAddChannelAutoTranslationPermissions, Migration: a.getAddChannelAutoTranslationPermissionMigration},
 		{Key: model.MigrationKeyAddSharedChannelManagerPermissions, Migration: a.getAddSharedChannelManagerPermissionsMigration},
-		{Key: model.MigrationKeyAddSecureConnectionManagerPermissions, Migration: a.getAddSecureConnectionManagerPermissionsMigration},
 		{Key: model.MigrationKeyRestoreManageOAuthPermission, Migration: a.getRestoreManageOAuthPermissionMigration},
 		{Key: model.MigrationKeyAddManageAgentPermissions, Migration: a.getAddManageAgentPermissionsMigration},
 	}

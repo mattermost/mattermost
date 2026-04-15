@@ -5528,10 +5528,6 @@
     "translation": "Mattermost Enterprise-licensen har inaktiverats."
   },
   {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Din Enterpriselicens har upphört gälla och några funktioner kan ha stängts av. Vänligen förnya licensen nu."
-  },
-  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "Filen är över maximala dimensioner och kunde inte laddas upp: {{.Filename}}"
   },

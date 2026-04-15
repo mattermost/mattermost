@@ -30,6 +30,7 @@ jobs:
       PR_NUMBER: "${{ steps.resolve.outputs.PR_NUMBER }}"
       COMMIT_SHA: "${{ steps.resolve.outputs.COMMIT_SHA }}"
       SERVER_IMAGE_TAG: "${{ steps.e2e-check.outputs.image_tag }}"
+      HEAD_REF: "${{ steps.resolve.outputs.HEAD_REF }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -66,6 +67,7 @@ jobs:
 
             echo "PR_NUMBER=${INPUT_PR_NUMBER}" >> $GITHUB_OUTPUT
             echo "COMMIT_SHA=${COMMIT_SHA}" >> $GITHUB_OUTPUT
+            echo "HEAD_REF=$(echo "$PR_DATA" | jq -r '.head.ref')" >> $GITHUB_OUTPUT
             exit 0
           fi
 
@@ -91,12 +93,14 @@ jobs:
                 echo "PR #${PR_NUMBER} is already merged to ${PR_BASE_REF}. Skipping - handled by e2e-tests-on-merge workflow."
                 echo "PR_NUMBER=" >> $GITHUB_OUTPUT
                 echo "COMMIT_SHA=" >> $GITHUB_OUTPUT
+                echo "HEAD_REF=" >> $GITHUB_OUTPUT
                 exit 0
               fi
             fi
 
             echo "PR_NUMBER=${PR_NUMBER}" >> $GITHUB_OUTPUT
             echo "COMMIT_SHA=${INPUT_COMMIT_SHA}" >> $GITHUB_OUTPUT
+            echo "HEAD_REF=$(echo "$PR_DATA" | jq -r '.head.ref // empty' 2>/dev/null || echo "")" >> $GITHUB_OUTPUT
             exit 0
           fi
 
@@ -118,9 +122,9 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       should_run: "${{ steps.check.outputs.should_run }}"
+      should_run_fips: "${{ steps.check.outputs.should_run_fips }}"
     steps:
       - name: ci/checkout-repo
-        if: inputs.commit_sha != ''
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ needs.resolve-pr.outputs.COMMIT_SHA }}
@@ -132,55 +136,69 @@ jobs:
           PR_NUMBER: ${{ needs.resolve-pr.outputs.PR_NUMBER }}
           COMMIT_SHA: ${{ needs.resolve-pr.outputs.COMMIT_SHA }}
           INPUT_PR_NUMBER: ${{ inputs.pr_number }}
+          HEAD_REF: ${{ needs.resolve-pr.outputs.HEAD_REF }}
         run: |
-          # Manual trigger (pr_number provided): always run E2E tests
-          if [ -n "$INPUT_PR_NUMBER" ]; then
-            echo "Manual trigger detected - skipping file change check"
-            echo "should_run=true" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          # Automated trigger (commit_sha provided): check for relevant file changes
-          echo "Automated trigger detected - checking for relevant file changes"
-
-          # Get the base branch of the PR
+          # Get the base branch of the PR and changed files
           BASE_SHA=$(gh api "repos/${{ github.repository }}/pulls/${PR_NUMBER}" --jq '.base.sha')
-
-          # Get changed files between base and head
           CHANGED_FILES=$(git diff --name-only "${BASE_SHA}...${COMMIT_SHA}")
 
           echo "Changed files:"
           echo "$CHANGED_FILES"
 
-          # Check for relevant changes
-          SHOULD_RUN="false"
-
-          # Check for server Go files
-          if echo "$CHANGED_FILES" | grep -qE '^server/.*\.go$'; then
-            echo "Found server Go file changes"
+          # Determine should_run for regular E2E tests
+          if [ -n "$INPUT_PR_NUMBER" ]; then
+            # Manual trigger: always run E2E tests
+            echo "Manual trigger detected - skipping file change check for regular E2E"
             SHOULD_RUN="true"
-          fi
+          else
+            # Automated trigger: check for relevant file changes
+            echo "Automated trigger detected - checking for relevant file changes"
+            SHOULD_RUN="false"
 
-          # Check for webapp ts/js/tsx/jsx files
-          if echo "$CHANGED_FILES" | grep -qE '^webapp/.*\.(ts|tsx|js|jsx)$'; then
-            echo "Found webapp TypeScript/JavaScript file changes"
-            SHOULD_RUN="true"
-          fi
+            if echo "$CHANGED_FILES" | grep -qE '^server/.*\.go$'; then
+              echo "Found server Go file changes"
+              SHOULD_RUN="true"
+            fi
 
-          # Check for e2e-tests ts/js/tsx/jsx files
-          if echo "$CHANGED_FILES" | grep -qE '^e2e-tests/.*\.(ts|tsx|js|jsx)$'; then
-            echo "Found e2e-tests TypeScript/JavaScript file changes"
-            SHOULD_RUN="true"
-          fi
+            if echo "$CHANGED_FILES" | grep -qE '^webapp/.*\.(ts|tsx|js|jsx)$'; then
+              echo "Found webapp TypeScript/JavaScript file changes"
+              SHOULD_RUN="true"
+            fi
 
-          # Check for E2E-related CI workflow files
-          if echo "$CHANGED_FILES" | grep -qE '^\.github/workflows/e2e-.*\.yml$'; then
-            echo "Found E2E CI workflow file changes"
-            SHOULD_RUN="true"
+            if echo "$CHANGED_FILES" | grep -qE '^e2e-tests/.*\.(ts|tsx|js|jsx)$'; then
+              echo "Found e2e-tests TypeScript/JavaScript file changes"
+              SHOULD_RUN="true"
+            fi
+
+            if echo "$CHANGED_FILES" | grep -qE '^\.github/workflows/e2e-.*\.yml$'; then
+              echo "Found E2E CI workflow file changes"
+              SHOULD_RUN="true"
+            fi
           fi
 
           echo "should_run=${SHOULD_RUN}" >> $GITHUB_OUTPUT
           echo "Should run E2E tests: ${SHOULD_RUN}"
+
+          # Check for FIPS-related conditions
+          SHOULD_RUN_FIPS="false"
+
+          if echo "$HEAD_REF" | grep -iqE 'fips'; then
+            echo "Branch name '$HEAD_REF' contains 'fips'"
+            SHOULD_RUN_FIPS="true"
+          fi
+
+          if echo "$CHANGED_FILES" | grep -qE '(^|/)go\.mod$'; then
+            echo "Found go.mod file changes"
+            SHOULD_RUN_FIPS="true"
+          fi
+
+          if echo "$CHANGED_FILES" | grep -qE '^server/build/Dockerfile\.buildenv-fips$'; then
+            echo "Found FIPS Dockerfile changes"
+            SHOULD_RUN_FIPS="true"
+          fi
+
+          echo "should_run_fips=${SHOULD_RUN_FIPS}" >> $GITHUB_OUTPUT
+          echo "Should run FIPS E2E tests: ${SHOULD_RUN_FIPS}"
 
   e2e-cypress:
     needs:
@@ -223,6 +241,54 @@ jobs:
       report_type: "PR"
       pr_number: "${{ needs.resolve-pr.outputs.PR_NUMBER }}"
       should_run: "${{ needs.check-changes.outputs.should_run }}"
+    secrets:
+      MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
+      AWS_ACCESS_KEY_ID: "${{ secrets.CYPRESS_AWS_ACCESS_KEY_ID }}"
+      AWS_SECRET_ACCESS_KEY: "${{ secrets.CYPRESS_AWS_SECRET_ACCESS_KEY }}"
+      REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
+
+  # Enterprise FIPS Edition
+  e2e-cypress-fips:
+    needs:
+      - resolve-pr
+      - check-changes
+    if: needs.resolve-pr.outputs.PR_NUMBER != '' && needs.check-changes.outputs.should_run_fips == 'true'
+    permissions:
+      statuses: write
+    uses: ./.github/workflows/e2e-tests-cypress.yml
+    with:
+      commit_sha: "${{ needs.resolve-pr.outputs.COMMIT_SHA }}"
+      server: "onprem"
+      server_edition: fips
+      server_image_tag: "${{ needs.resolve-pr.outputs.SERVER_IMAGE_TAG }}"
+      enable_reporting: true
+      report_type: "PR"
+      pr_number: "${{ needs.resolve-pr.outputs.PR_NUMBER }}"
+    secrets:
+      MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
+      AUTOMATION_DASHBOARD_URL: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_URL }}"
+      AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_TOKEN }}"
+      PUSH_NOTIFICATION_SERVER: "${{ secrets.MM_E2E_PUSH_NOTIFICATION_SERVER }}"
+      REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
+      CWS_URL: "${{ secrets.MM_E2E_CWS_URL }}"
+      CWS_EXTRA_HTTP_HEADERS: "${{ secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS }}"
+
+  e2e-playwright-fips:
+    needs:
+      - resolve-pr
+      - check-changes
+    if: needs.resolve-pr.outputs.PR_NUMBER != '' && needs.check-changes.outputs.should_run_fips == 'true'
+    permissions:
+      statuses: write
+    uses: ./.github/workflows/e2e-tests-playwright.yml
+    with:
+      commit_sha: "${{ needs.resolve-pr.outputs.COMMIT_SHA }}"
+      server: "onprem"
+      server_edition: fips
+      server_image_tag: "${{ needs.resolve-pr.outputs.SERVER_IMAGE_TAG }}"
+      enable_reporting: true
+      report_type: "PR"
+      pr_number: "${{ needs.resolve-pr.outputs.PR_NUMBER }}"
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
       AWS_ACCESS_KEY_ID: "${{ secrets.CYPRESS_AWS_ACCESS_KEY_ID }}"
