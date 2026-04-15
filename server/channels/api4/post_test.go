@@ -5401,6 +5401,10 @@ func TestPostGetInfo(t *testing.T) {
 	otherTeamMemberClient := th.CreateClient()
 	_, _, err := otherTeamMemberClient.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 	require.NoError(t, err)
+	outsiderUser := th.CreateUser(t)
+	outsiderClient := th.CreateClient()
+	_, _, err = outsiderClient.Login(context.Background(), outsiderUser.Username, outsiderUser.Password)
+	require.NoError(t, err)
 	sysadminClient := th.SystemAdminClient
 	_, _, err = sysadminClient.AddTeamMember(context.Background(), th.BasicTeam.Id, th.SystemAdminUser.Id)
 	require.NoError(t, err)
@@ -5639,6 +5643,38 @@ func TestPostGetInfo(t *testing.T) {
 			hasAccess: false,
 		},
 		{
+			name:             "Open post - Invite team - Basic user with join private teams permission",
+			team:             inviteTeam,
+			hasJoinedTeam:    false,
+			channel:          inviteTeamOpenChannel,
+			hasJoinedChannel: false,
+			post:             inviteTeamOpenPost,
+			client:           client,
+			assertSetup: func(t *testing.T) {
+				t.Helper()
+
+				_, appErr := th.App.GetTeamMember(th.Context, inviteTeam.Id, th.BasicUser.Id)
+				require.NotNil(t, appErr)
+
+				_, appErr = th.App.GetChannelMember(th.Context, inviteTeamOpenChannel.Id, th.BasicUser.Id)
+				require.NotNil(t, appErr)
+
+				require.False(t, th.App.HasPermissionToTeam(th.Context, th.BasicUser.Id, inviteTeam.Id, model.PermissionJoinPrivateTeams))
+				require.False(t, th.App.HasPermissionToTeam(th.Context, th.BasicUser.Id, inviteTeam.Id, model.PermissionJoinPublicChannels))
+
+				th.AddPermissionToRole(t, model.PermissionJoinPrivateTeams.Id, model.SystemUserRoleId)
+				th.AddPermissionToRole(t, model.PermissionJoinPublicChannels.Id, model.SystemUserRoleId)
+				t.Cleanup(func() {
+					th.RemovePermissionFromRole(t, model.PermissionJoinPublicChannels.Id, model.SystemUserRoleId)
+					th.RemovePermissionFromRole(t, model.PermissionJoinPrivateTeams.Id, model.SystemUserRoleId)
+				})
+
+				require.True(t, th.App.HasPermissionToTeam(th.Context, th.BasicUser.Id, inviteTeam.Id, model.PermissionJoinPrivateTeams))
+				require.True(t, th.App.HasPermissionToTeam(th.Context, th.BasicUser.Id, inviteTeam.Id, model.PermissionJoinPublicChannels))
+			},
+			hasAccess: true,
+		},
+		{
 			name:             "Open post - Invite team - Sysadmin user",
 			team:             inviteTeam,
 			hasJoinedTeam:    true,
@@ -5701,6 +5737,74 @@ func TestPostGetInfo(t *testing.T) {
 		})
 
 		_, resp, err = otherTeamMemberClient.GetPostInfo(context.Background(), openPost.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("Open post - Open team - Non-member denied when compliance is enabled", func(t *testing.T) {
+		_, appErr := th.App.GetTeamMember(th.Context, openTeam.Id, th.BasicUser.Id)
+		require.NotNil(t, appErr)
+
+		_, appErr = th.App.GetChannelMember(th.Context, openTeamOpenChannel.Id, th.BasicUser.Id)
+		require.NotNil(t, appErr)
+
+		info, resp, err := client.GetPostInfo(context.Background(), openTeamOpenPost.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, openTeamOpenChannel.Id, info.ChannelId)
+		require.False(t, info.HasJoinedTeam)
+		require.False(t, info.HasJoinedChannel)
+
+		originalComplianceEnabled := *th.App.Config().ComplianceSettings.Enable
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ComplianceSettings.Enable = true
+		})
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ComplianceSettings.Enable = originalComplianceEnabled
+			})
+		})
+
+		_, resp, err = client.GetPostInfo(context.Background(), openTeamOpenPost.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("Private post - Same-team non-member with manage members permission is denied", func(t *testing.T) {
+		_, appErr := th.App.GetTeamMember(th.Context, th.BasicTeam.Id, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.GetChannelMember(th.Context, privateChannelBasicUser.Id, th.BasicUser2.Id)
+		require.NotNil(t, appErr)
+
+		th.AddPermissionToRole(t, model.PermissionManagePrivateChannelMembers.Id, model.TeamUserRoleId)
+		t.Cleanup(func() {
+			th.RemovePermissionFromRole(t, model.PermissionManagePrivateChannelMembers.Id, model.TeamUserRoleId)
+		})
+
+		hasPermission, isMember := th.App.HasPermissionToChannel(th.Context, th.BasicUser2.Id, privateChannelBasicUser.Id, model.PermissionManagePrivateChannelMembers)
+		require.True(t, hasPermission)
+		require.False(t, isMember)
+
+		_, resp, err := otherTeamMemberClient.GetPostInfo(context.Background(), privatePostBasicUser.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("DM post - Outsider is denied", func(t *testing.T) {
+		_, appErr := th.App.GetChannelMember(th.Context, dmChannel.Id, outsiderUser.Id)
+		require.NotNil(t, appErr)
+
+		_, resp, err := outsiderClient.GetPostInfo(context.Background(), dmPost.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("GM post - Outsider is denied", func(t *testing.T) {
+		_, appErr := th.App.GetChannelMember(th.Context, gmChannel.Id, outsiderUser.Id)
+		require.NotNil(t, appErr)
+
+		_, resp, err := outsiderClient.GetPostInfo(context.Background(), gmPost.Id)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
