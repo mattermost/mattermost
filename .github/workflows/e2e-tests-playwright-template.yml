@@ -174,9 +174,10 @@ jobs:
           make
 
           # Inline retry on the still-running server — no new server provisioning needed.
+          # Working dir is e2e-tests/ (set by defaults.run.working-directory).
           # If any specs failed, stash pass-1 blobs, rerun the failing specs, then merge
           # both sets of blobs so the final artifact reflects the combined result.
-          RESULTS_FILE="e2e-tests/playwright/results/reporter/results.json"
+          RESULTS_FILE="playwright/results/reporter/results.json"
           if [ ! -f "$RESULTS_FILE" ]; then
             echo "No results file found, skipping retry"
           else
@@ -194,24 +195,22 @@ jobs:
 
               # Stash pass-1 blob reports — make run-specs wipes results/ before rerunning
               mkdir -p /tmp/pw-blobs-pass1
-              cp e2e-tests/playwright/results/blob-report/*.zip /tmp/pw-blobs-pass1/ 2>/dev/null || true
+              cp playwright/results/blob-report/*.zip /tmp/pw-blobs-pass1/ 2>/dev/null || true
 
-              # Retry on the same server
-              cd e2e-tests
+              # Retry on the same server (already in e2e-tests/)
               TEST=playwright \
               CI_BASE_URL="${{ inputs.test_type }}-test-${{ matrix.worker_index }}-retry" \
               SPEC_FILES="$FAILED_SPECS" make run-specs
-              cd ..
 
               # Combine pass-1 blobs + retry blobs (UUID filenames prevent collisions)
-              cp /tmp/pw-blobs-pass1/*.zip e2e-tests/playwright/results/blob-report/ 2>/dev/null || true
+              cp /tmp/pw-blobs-pass1/*.zip playwright/results/blob-report/ 2>/dev/null || true
 
               # Re-generate results.json / html / xml from the merged blob set.
               # Tests that failed in pass-1 and passed on retry appear as flaky (not failed).
-              mkdir -p e2e-tests/playwright/results/reporter
-              cd e2e-tests/playwright
+              mkdir -p playwright/results/reporter
+              cd playwright
               npx playwright merge-reports --config merge.config.mjs results/blob-report || true
-              cd ../..
+              cd ..
             fi
           fi
       - name: ci/upload-results
