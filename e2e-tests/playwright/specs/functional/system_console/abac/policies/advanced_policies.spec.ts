@@ -11,10 +11,6 @@ import {
 } from '@mattermost/playwright-lib';
 
 import {
-    CustomProfileAttribute,
-    setupCustomProfileAttributeFields,
-} from '../../../channels/custom_profile_attributes/helpers';
-import {
     createUserForABAC,
     testAccessRule,
     createPrivateChannelForABAC,
