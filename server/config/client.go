@@ -242,6 +242,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 			props["MobilePreventScreenCapture"] = strconv.FormatBool(*c.NativeAppSettings.MobilePreventScreenCapture)
 			props["MobileJailbreakProtection"] = strconv.FormatBool(*c.NativeAppSettings.MobileJailbreakProtection)
 			props["ExperimentalEnableWatermark"] = strconv.FormatBool(*c.ExperimentalSettings.EnableWatermark)
+			props["EnableManagedChannelCategories"] = strconv.FormatBool(*c.TeamSettings.EnableManagedChannelCategories)
 		}
 
 		if model.MinimumEnterpriseAdvancedLicense(license) {

@@ -63,6 +63,12 @@ export function rgbArrayToString(rgbArr) {
     return `rgb(${rgbArr[0]}, ${rgbArr[1]}, ${rgbArr[2]})`;
 }
 
+// Returns a FIPS-compliant test password (>= 14 chars with complexity).
+// Static for now but could generate unique passwords if requirements change.
+export function newTestPassword() {
+    return 'Passwd4Testing!';
+}
+
 export const reUrl = /(https?:\/\/[^ ]*)/;
 
 const userAgent = () => window.navigator.userAgent;

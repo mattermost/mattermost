@@ -12,7 +12,7 @@ import AdminSidebar from 'components/admin_console/admin_sidebar/admin_sidebar';
 import type {Props as OriginalProps} from 'components/admin_console/admin_sidebar/admin_sidebar';
 
 import {samplePlugin1} from 'tests/helpers/admin_console_plugin_index_sample_pluings';
-import {renderWithContext, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {generateIndex} from 'utils/admin_console_index';
 
 jest.mock('utils/utils', () => {
@@ -127,6 +127,18 @@ describe('components/AdminSidebar', () => {
         };
         const {container} = renderWithContext(<AdminSidebar {...props}/>);
         expect(container).toMatchSnapshot();
+    });
+
+    test('should not show Workspace Optimization when Cloud license feature is enabled', () => {
+        const props = {
+            ...defaultProps,
+            license: {
+                IsLicensed: 'true',
+                Cloud: 'true',
+            },
+        };
+        renderWithContext(<AdminSidebar {...props}/>);
+        expect(screen.queryByText('Workspace Optimization')).not.toBeInTheDocument();
     });
 
     test('should match snapshot, no access', () => {
