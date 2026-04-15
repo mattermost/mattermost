@@ -203,7 +203,7 @@ jobs:
                select((.results | length) > 0) |
                select((.results | last).status == "failed" or (.results | last).status == "timedOut") |
                (.location.file // $top.file))
-            ] | unique | join(",")
+            ] | map(select(. != null)) | unique | join(",")
           ' "$RESULTS_FILE" 2>/dev/null || echo "")
 
           if [ -z "$FAILED_SPECS" ]; then

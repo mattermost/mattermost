@@ -15,7 +15,7 @@ export async function createUserWithAttributes(
     client: Client4,
     attributes: Record<string, string>,
 ): Promise<UserProfile> {
-    const randomId = await getRandomId();
+    const randomId = getRandomId();
     // Ensure username starts with a letter (Mattermost requirement)
     const username = `user${randomId}`.toLowerCase();
 

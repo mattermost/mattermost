@@ -220,3 +220,4 @@ test('MM-T5798b User added by admin after LDAP attribute sync with in operator (
     const user2Final = await verifyUserInChannel(adminClient, user2.id, channel2.id);
     expect(user2Final).toBe(true);
 });
+

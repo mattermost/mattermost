@@ -4,7 +4,7 @@
 import {expect, test, navigateToABACPage, runSyncJob, verifyUserInChannel} from '@mattermost/playwright-lib';
 
 import {setupCustomProfileAttributeFields} from '../../../channels/custom_profile_attributes/helpers';
-import {createUserForABAC, createPrivateChannelForABAC, createBasicPolicy, waitForLatestSyncJob} from '../support';
+import {createUserForABAC, createPrivateChannelForABAC, createBasicPolicy, activatePolicy, waitForLatestSyncJob} from '../support';
 
 /**
  * MM-T5788: Add attribute-based policy to a channel from Channel Configuration page
@@ -48,12 +48,16 @@ test('MM-T5788 Add policy to channel from Channel Configuration page', async ({p
 
     // Create policy without channels (we'll link via Channel Config)
     const policyName = `Channel Config Policy ${await pw.random.id()}`;
-    await createBasicPolicy(systemConsolePage.page, {
+    const t5788PolicyId = await createBasicPolicy(systemConsolePage.page, {
         name: policyName,
         attribute: 'Department',
         operator: '==',
         value: 'Engineering',
     });
+
+    if (t5788PolicyId) {
+        await activatePolicy(adminClient, t5788PolicyId);
+    }
 
     // Get search term for policy
     const policyIdMatch = policyName.match(/([a-z0-9]+)$/i);

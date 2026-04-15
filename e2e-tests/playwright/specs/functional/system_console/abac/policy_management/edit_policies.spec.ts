@@ -191,12 +191,14 @@ test('MM-T5790 Editing policy value applies access control without auto-add', as
                 await advancedModeButton.click();
                 await page.waitForTimeout(1000);
 
+                // Find Monaco editor - use view-lines with force click to bypass overlay
                 const monacoContainer = page.locator('.monaco-editor').first();
                 if (await monacoContainer.isVisible({timeout: 3000})) {
                     const editorLines = page.locator('.monaco-editor .view-lines').first();
                     await editorLines.click({force: true});
                     await page.waitForTimeout(300);
 
+                    // Platform-specific select all
                     const isMac = process.platform === 'darwin';
                     await page.keyboard.press(isMac ? 'Meta+a' : 'Control+a');
                     await page.waitForTimeout(100);
@@ -249,6 +251,7 @@ test('MM-T5790 Editing policy value applies access control without auto-add', as
     // STEP 7: Admin can manually add satisfying user
     // ===========================================
     try {
+        // Note: addToChannel(userId, channelId) - user first, then channel
         await adminClient.addToChannel(salesUser.id, privateChannel.id);
 
         const salesInChannelAfterManualAdd = await verifyUserInChannel(adminClient, salesUser.id, privateChannel.id);

@@ -10085,8 +10085,16 @@
     "translation": "The parent is already imported."
   },
   {
+    "id": "model.access_policy.inherit.permission.app_error",
+    "translation": "Permission policies cannot inherit from other policies."
+  },
+  {
     "id": "model.access_policy.inherit.version.app_error",
     "translation": "Could not inherit access control policy."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.app_error",
+    "translation": "Action(s) is not valid."
   },
   {
     "id": "model.access_policy.is_valid.id.app_error",
@@ -10103,6 +10111,10 @@
   {
     "id": "model.access_policy.is_valid.revision.app_error",
     "translation": "Invalid policy revision."
+  },
+  {
+    "id": "model.access_policy.is_valid.roles.app_error",
+    "translation": "Permission policies must be applied to exactly one role."
   },
   {
     "id": "model.access_policy.is_valid.rules.app_error",
