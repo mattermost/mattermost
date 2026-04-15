@@ -367,6 +367,36 @@ func TestAccessPolicyVersionV0_3(t *testing.T) {
 		require.Equal(t, "model.access_policy.is_valid.imports.app_error", err.Id)
 	})
 
+	t.Run("permission with empty name", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypePermission,
+			Name:     "",
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Roles:    []string{"system_admin"},
+			Rules:    []AccessControlPolicyRule{validRule},
+		}
+		err := policy.accessPolicyVersionV0_3()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.name.app_error", err.Id)
+	})
+
+	t.Run("permission with name exceeding max length", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypePermission,
+			Name:     strings.Repeat("a", MaxPolicyNameLength+1),
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Roles:    []string{"system_admin"},
+			Rules:    []AccessControlPolicyRule{validRule},
+		}
+		err := policy.accessPolicyVersionV0_3()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.name.app_error", err.Id)
+	})
+
 	t.Run("unrecognized action", func(t *testing.T) {
 		policy := &AccessControlPolicy{
 			ID:       NewId(),

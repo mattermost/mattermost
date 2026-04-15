@@ -158,7 +158,14 @@ function PermissionPolicyDetails({
         });
 
         if (policyId) {
-            const policyPromise = actions.fetchPolicy(policyId).then((result) => {
+            const policyPromise = actions.fetchPolicy(policyId).then((result: ActionResult) => {
+                if (result.error) {
+                    setServerError(result.error.message || formatMessage({
+                        id: 'admin.permission_policies.edit.error.load',
+                        defaultMessage: 'Failed to load policy',
+                    }));
+                    return;
+                }
                 const loadedExpression = result.data?.rules?.[0]?.expression || '';
                 setPolicyName(result.data?.name || '');
                 setExpression(loadedExpression);
@@ -348,15 +355,15 @@ function PermissionPolicyDetails({
                                             defaultMessage='The permissions defined in this policy override the {link} when its conditions are met'
                                             values={{
                                                 link: (
-                                                    <a
-                                                        href='/admin_console/user_management/permissions'
+                                                    <BlockableLink
+                                                        to='/admin_console/user_management/permissions'
                                                         className='pp-info-banner-link'
                                                     >
                                                         <FormattedMessage
                                                             id='admin.permission_policies.edit.info_banner.link'
                                                             defaultMessage='system permission schemes'
                                                         />
-                                                    </a>
+                                                    </BlockableLink>
                                                 ),
                                             }}
                                         />
