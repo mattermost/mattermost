@@ -1263,7 +1263,9 @@ func TestCreateAccessControlPolicyTeamAdmin(t *testing.T) {
 		policy.Scope = ""
 		policy.ScopeID = ""
 
-		mockACS.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).
+		mockACS.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.MatchedBy(func(p *model.AccessControlPolicy) bool {
+			return p.Scope == model.AccessControlPolicyScopeTeam && p.ScopeID == th.BasicTeam.Id
+		})).
 			Return(policy, nil).Once()
 
 		r, err := th.Client.DoAPIPutJSON(
@@ -1275,6 +1277,39 @@ func TestCreateAccessControlPolicyTeamAdmin(t *testing.T) {
 		defer r.Body.Close()
 		require.Equal(t, 200, r.StatusCode)
 
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("team admin create ignores attacker-supplied scope_id and stamps from query team_id", func(t *testing.T) {
+		// on create (ID empty), a team admin could craft a body
+		// with scope_id for a different team. The handler must ignore it and stamp
+		// scope from authenticated ?team_id.
+		mockACS := setupTeamAdminABAC(t, th)
+
+		otherTeam := th.CreateTeam(t)
+		policy := newParentPolicy(th.BasicTeam.Id)
+		policy.ID = ""
+		policy.Scope = model.AccessControlPolicyScopeTeam
+		policy.ScopeID = otherTeam.Id
+
+		expectedSaved := newParentPolicy(th.BasicTeam.Id)
+		expectedSaved.ID = model.NewId()
+
+		mockACS.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.MatchedBy(func(p *model.AccessControlPolicy) bool {
+			return p.Scope == model.AccessControlPolicyScopeTeam && p.ScopeID == th.BasicTeam.Id
+		})).Return(expectedSaved, nil).Once()
+
+		makeTeamAdminAndLogin(t, th, th.TeamAdminUser, th.BasicTeam)
+		defer th.LoginBasic(t)
+
+		r, err := th.Client.DoAPIPutJSON(
+			context.Background(),
+			"/access_control_policies?team_id="+th.BasicTeam.Id,
+			policy,
+		)
+		require.NoError(t, err)
+		defer r.Body.Close()
+		require.Equal(t, 200, r.StatusCode)
 		mockACS.AssertExpectations(t)
 	})
 
@@ -1357,6 +1392,48 @@ func TestCreateAccessControlPolicyTeamAdmin(t *testing.T) {
 		require.Error(t, err)
 		defer r.Body.Close()
 		require.Equal(t, 403, r.StatusCode)
+	})
+
+	t.Run("team admin cannot overwrite scope_id with another team's ID via body", func(t *testing.T) {
+		// a team admin authenticates against ?team_id=BasicTeam
+		// but crafts a body with scope_id pointing to a different team.
+		// The handler must ignore the body's scope fields and stamp scope from the
+		// authenticated query param, not from the untrusted request body.
+		mockACS := setupTeamAdminABAC(t, th)
+
+		otherTeam := th.CreateTeam(t)
+
+		// Save a real policy scoped to BasicTeam so ValidateTeamAdminPolicyOwnership
+		// (which queries the real store) confirms the team admin owns it.
+		policy := newParentPolicy(th.BasicTeam.Id)
+		savedPolicy, storeErr := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+		require.NoError(t, storeErr)
+		defer func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, savedPolicy.ID)
+		}()
+
+		// Craft the request body: same policy ID but scope_id pointing to the other team.
+		craftedPolicy := *savedPolicy
+		craftedPolicy.Scope = model.AccessControlPolicyScopeTeam
+		craftedPolicy.ScopeID = otherTeam.Id
+
+		// Handler must force scope_id back to BasicTeam, not save the attacker-supplied value.
+		mockACS.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.MatchedBy(func(p *model.AccessControlPolicy) bool {
+			return p.Scope == model.AccessControlPolicyScopeTeam && p.ScopeID == th.BasicTeam.Id
+		})).Return(savedPolicy, nil).Once()
+
+		makeTeamAdminAndLogin(t, th, th.TeamAdminUser, th.BasicTeam)
+		defer th.LoginBasic(t)
+
+		r, err := th.Client.DoAPIPutJSON(
+			context.Background(),
+			"/access_control_policies?team_id="+th.BasicTeam.Id,
+			&craftedPolicy,
+		)
+		require.NoError(t, err)
+		defer r.Body.Close()
+		require.Equal(t, 200, r.StatusCode)
+		mockACS.AssertExpectations(t)
 	})
 
 	t.Run("system admin saves with team_id preserves scope even when body omits scope fields", func(t *testing.T) {

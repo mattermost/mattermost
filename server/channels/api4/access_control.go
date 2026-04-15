@@ -74,9 +74,14 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 				}
 			}
 		}
-		// Inject team scope from the query param when it is present so scope is always set
-		// even by a system admin
-		if teamID != "" && model.IsValidId(teamID) && policy.Scope == "" {
+		// Scope stamping: for team admins never trust the body's scope fields — always
+		// override from the authenticated query param so a crafted request cannot assign
+		// the policy to a different team. For system admins, inject only when the body
+		// did not supply scope (preserves the existing sysadmin-sets-scope-explicitly path).
+		if !hasSystemPermission {
+			policy.Scope = model.AccessControlPolicyScopeTeam
+			policy.ScopeID = teamID
+		} else if teamID != "" && model.IsValidId(teamID) && policy.Scope == "" {
 			policy.Scope = model.AccessControlPolicyScopeTeam
 			policy.ScopeID = teamID
 		}
