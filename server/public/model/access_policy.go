@@ -26,6 +26,8 @@ const (
 	AccessControlPolicyActionMembership             = "membership"
 	AccessControlPolicyActionUploadFileAttachment   = "upload_file_attachment"
 	AccessControlPolicyActionDownloadFileAttachment = "download_file_attachment"
+
+	AccessControlPolicyScopeTeam = "team"
 )
 
 var allowedActionsV0_3 = map[string]bool{
@@ -61,6 +63,9 @@ type AccessControlPolicySearch struct {
 	Limit           int                       `json:"limit"`
 	IncludeChildren bool                      `json:"include_children"`
 	Active          bool                      `json:"active"`
+	TeamID          string                    `json:"team_id"`
+	Scope           string                    `json:"scope,omitempty"`
+	ScopeID         string                    `json:"scope_id,omitempty"`
 	Actions         []string                  `json:"actions"`
 }
 
@@ -86,6 +91,9 @@ type AccessControlPolicy struct {
 	Roles   []string                  `json:"roles"`
 	Imports []string                  `json:"imports"`
 	Rules   []AccessControlPolicyRule `json:"rules"`
+
+	Scope   string `json:"scope,omitempty"`    // "" (system) or "team"
+	ScopeID string `json:"scope_id,omitempty"` // team ID when scope="team"
 
 	Props map[string]any `json:"props"` // add auto-sync property here, also maybe the attributes being used in the expression
 }
@@ -114,6 +122,7 @@ type AccessControlPolicyActiveUpdate struct {
 // AccessControlPolicyActiveUpdateRequest is used in the API to update active status for multiple policies.
 type AccessControlPolicyActiveUpdateRequest struct {
 	Entries []AccessControlPolicyActiveUpdate `json:"entries"`
+	TeamID  string                            `json:"team_id,omitempty"`
 }
 
 func (r *AccessControlPolicyActiveUpdateRequest) Auditable() map[string]any {
@@ -124,12 +133,22 @@ func (r *AccessControlPolicyActiveUpdateRequest) Auditable() map[string]any {
 			"active": entry.Active,
 		})
 	}
-	return map[string]any{
+	result := map[string]any{
 		"entries": entries,
 	}
+	if r.TeamID != "" {
+		result["team_id"] = r.TeamID
+	}
+	return result
 }
 
 func (p *AccessControlPolicy) IsValid() *AppError {
+	if p.Scope != "" || p.ScopeID != "" {
+		if appErr := p.validateScope(); appErr != nil {
+			return appErr
+		}
+	}
+
 	switch p.Version {
 	case AccessControlPolicyVersionV0_1:
 		return p.accessPolicyVersionV0_1()
@@ -140,6 +159,22 @@ func (p *AccessControlPolicy) IsValid() *AppError {
 	default:
 		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.version.app_error", nil, "", 400)
 	}
+}
+
+func (p *AccessControlPolicy) validateScope() *AppError {
+	switch p.Scope {
+	case "":
+		if p.ScopeID != "" {
+			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.scope_id_without_scope.app_error", nil, "", 400)
+		}
+	case AccessControlPolicyScopeTeam:
+		if !IsValidId(p.ScopeID) {
+			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.scope_id.app_error", nil, "", 400)
+		}
+	default:
+		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.scope.app_error", nil, "", 400)
+	}
+	return nil
 }
 
 func (p *AccessControlPolicy) accessPolicyVersionV0_1() *AppError {

@@ -214,6 +214,57 @@ func TestAccessPolicyVersionV0_1(t *testing.T) {
 	})
 }
 
+func TestAccessControlPolicyValidateScope(t *testing.T) {
+	validPolicy := func() *AccessControlPolicy {
+		return &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeParent,
+			Name:     "Test Policy",
+			Revision: 1,
+			Version:  AccessControlPolicyVersionV0_1,
+			Rules:    []AccessControlPolicyRule{{Actions: []string{"*"}, Expression: "true"}},
+		}
+	}
+
+	t.Run("no scope fields set — valid", func(t *testing.T) {
+		p := validPolicy()
+		require.Nil(t, p.IsValid())
+	})
+
+	t.Run("scope=team with valid scope_id — valid", func(t *testing.T) {
+		p := validPolicy()
+		p.Scope = AccessControlPolicyScopeTeam
+		p.ScopeID = NewId()
+		require.Nil(t, p.IsValid())
+	})
+
+	t.Run("scope_id set without scope — invalid", func(t *testing.T) {
+		p := validPolicy()
+		p.ScopeID = NewId()
+		err := p.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.scope_id_without_scope.app_error", err.Id)
+	})
+
+	t.Run("scope=team with empty scope_id — invalid", func(t *testing.T) {
+		p := validPolicy()
+		p.Scope = AccessControlPolicyScopeTeam
+		p.ScopeID = ""
+		err := p.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.scope_id.app_error", err.Id)
+	})
+
+	t.Run("unknown scope value — invalid", func(t *testing.T) {
+		p := validPolicy()
+		p.Scope = "unknown"
+		p.ScopeID = NewId()
+		err := p.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.scope.app_error", err.Id)
+	})
+}
+
 func TestAccessPolicyVersionV0_3(t *testing.T) {
 	validRule := AccessControlPolicyRule{
 		Actions:    []string{AccessControlPolicyActionMembership},

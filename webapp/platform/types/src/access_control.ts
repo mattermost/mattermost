@@ -15,6 +15,8 @@ export type AccessControlPolicy = {
     imports?: string[];
     props?: Record<string, unknown[]>;
     rules: AccessControlPolicyRule[];
+    scope?: string;
+    scope_id?: string;
 }
 
 export type AccessControlPolicyCursor = {
