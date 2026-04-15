@@ -4716,7 +4716,7 @@ export default class Client4 {
     getAccessControlPolicies = (after: string, limit: number) => {
         return this.doFetch<AccessControlPoliciesResult>(
             `${this.getBaseRoute()}/access_control_policies/search`,
-            {method: 'post', body: JSON.stringify({type: 'parent', cursor: {id: after}, limit})},
+            {method: 'post', body: JSON.stringify({type: 'parent', cursor: {id: after}, limit, actions: ['membership']})},
         );
     };
 
