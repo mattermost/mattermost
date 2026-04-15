@@ -5214,10 +5214,6 @@
     "translation": "Mattermost Enterprise license has been disabled."
   },
   {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "엔터프라이즈 에디션 라이선스가 만료되었으며 일부 기능이 비활성화될 수 있습니다. 지금 라이선스를 갱신해주세요."
-  },
-  {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }}님이 당신을 {{ .TeamDisplayName }} 팀에 게스트로 초대했습니다"
   },
@@ -8684,10 +8680,6 @@
   {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
     "translation": "사용자 지정 프로필 속성 그룹을 등록할 수 없습니다."
-  },
-  {
-    "id": "app.custom_profile_attributes.create_property_field.app_error",
-    "translation": "사용자 지정 프로필 속성 필드를 만들 수 없습니다."
   },
   {
     "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",

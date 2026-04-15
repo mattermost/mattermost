@@ -2,23 +2,17 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {act} from 'react-dom/test-utils';
 
 import type {Role} from '@mattermost/types/roles';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 
-import PermissionSystemSchemeSettings from 'components/admin_console/permission_schemes_settings/permission_system_scheme_settings/permission_system_scheme_settings';
+import {PermissionSystemSchemeSettings} from 'components/admin_console/permission_schemes_settings/permission_system_scheme_settings/permission_system_scheme_settings';
 
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+import {defaultIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext} from 'tests/react_testing_utils';
 import {DefaultRolePermissions} from 'utils/constants';
-
-function getAnyInstance(wrapper: any) {
-    return wrapper.instance() as any;
-}
-
-function getAnyState(wrapper: any) {
-    return wrapper.state() as any;
-}
 
 describe('components/admin_console/permission_schemes_settings/permission_system_scheme_settings/permission_system_scheme_settings', () => {
     const defaultRole: Role = {
@@ -34,6 +28,7 @@ describe('components/admin_console/permission_schemes_settings/permission_system
         permissions: [],
     };
     const defaultProps = {
+        intl: defaultIntl,
         config: {
             EnableGuestAccounts: 'true',
         },
@@ -66,11 +61,15 @@ describe('components/admin_console/permission_schemes_settings/permission_system
     };
 
     test('should match snapshot on roles without permissions', (done) => {
-        const wrapper = shallowWithIntl(
-            <PermissionSystemSchemeSettings {...defaultProps}/>,
+        const ref = React.createRef<InstanceType<typeof PermissionSystemSchemeSettings>>();
+        renderWithContext(
+            <PermissionSystemSchemeSettings
+                {...defaultProps}
+                ref={ref}
+            />,
         );
         defaultProps.actions.loadRolesIfNeeded().then(() => {
-            expect(getAnyState(wrapper)).toMatchSnapshot();
+            expect(ref.current!.state).toMatchSnapshot();
             done();
         });
     });
@@ -80,14 +79,14 @@ describe('components/admin_console/permission_schemes_settings/permission_system
             IsLicensed: 'true',
             CustomPermissionsSchemes: 'false',
         };
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <PermissionSystemSchemeSettings
                 {...defaultProps}
                 license={license}
             />,
         );
         defaultProps.actions.loadRolesIfNeeded().then(() => {
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
             done();
         });
     });
@@ -131,32 +130,38 @@ describe('components/admin_console/permission_schemes_settings/permission_system
                 permissions: ['delete_post'],
             },
         };
-        const wrapper = shallowWithIntl(
+        const ref = React.createRef<InstanceType<typeof PermissionSystemSchemeSettings>>();
+        const {container} = renderWithContext(
             <PermissionSystemSchemeSettings
                 {...defaultProps}
                 roles={roles}
+                ref={ref}
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
         defaultProps.actions.loadRolesIfNeeded().then(() => {
-            expect(getAnyState(wrapper)).toMatchSnapshot();
+            expect(ref.current!.state).toMatchSnapshot();
             done();
         });
     });
 
     test('should save each role on handleSubmit except system_admin role', async () => {
         const editRole = jest.fn().mockImplementation(() => Promise.resolve({data: {}}));
-        const wrapper = shallowWithIntl(
+        const ref = React.createRef<InstanceType<typeof PermissionSystemSchemeSettings>>();
+        const {container} = renderWithContext(
             <PermissionSystemSchemeSettings
                 {...defaultProps}
                 actions={{...defaultProps.actions, editRole}}
+                ref={ref}
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        await getAnyInstance(wrapper).handleSubmit();
+        await act(async () => {
+            await (ref.current as any).handleSubmit();
+        });
         expect(editRole).toHaveBeenCalledTimes(11);
     });
 
@@ -167,118 +172,173 @@ describe('components/admin_console/permission_schemes_settings/permission_system
             GuestAccountsPermissions: 'false',
         };
         let editRole = jest.fn().mockImplementation(() => Promise.resolve({data: {}}));
-        const wrapper = shallowWithIntl(
+        const ref = React.createRef<InstanceType<typeof PermissionSystemSchemeSettings>>();
+        const {container} = renderWithContext(
             <PermissionSystemSchemeSettings
                 {...defaultProps}
                 license={license}
                 actions={{...defaultProps.actions, editRole}}
+                ref={ref}
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        await getAnyInstance(wrapper).handleSubmit();
+        await act(async () => {
+            await (ref.current as any).handleSubmit();
+        });
         expect(editRole).toHaveBeenCalledTimes(8);
         license.GuestAccountsPermissions = 'true';
         editRole = jest.fn().mockImplementation(() => Promise.resolve({data: {}}));
-        const wrapper2 = shallowWithIntl(
+        const ref2 = React.createRef<InstanceType<typeof PermissionSystemSchemeSettings>>();
+        const {container: container2} = renderWithContext(
             <PermissionSystemSchemeSettings
                 {...defaultProps}
                 license={license}
                 actions={{...defaultProps.actions, editRole}}
+                ref={ref2}
             />,
         );
 
-        expect(wrapper2).toMatchSnapshot();
+        expect(container2).toMatchSnapshot();
 
-        await getAnyInstance(wrapper2).handleSubmit();
+        await act(async () => {
+            await (ref2.current as any).handleSubmit();
+        });
         expect(editRole).toHaveBeenCalledTimes(11);
     });
 
     test('should show error if editRole fails', async () => {
         const editRole = jest.fn().mockImplementation(() => Promise.resolve({error: {message: 'test error'}}));
-        const wrapper = shallowWithIntl(
+        const ref = React.createRef<InstanceType<typeof PermissionSystemSchemeSettings>>();
+        renderWithContext(
             <PermissionSystemSchemeSettings
                 {...defaultProps}
                 actions={{...defaultProps.actions, editRole}}
+                ref={ref}
             />,
         );
 
-        await getAnyInstance(wrapper).handleSubmit();
-        await expect(getAnyState(wrapper).serverError).toBe('test error');
+        await act(async () => {
+            await (ref.current as any).handleSubmit();
+        });
+        expect(ref.current!.state.serverError).toBe('test error');
     });
 
     test('should open and close correctly roles blocks', () => {
-        const wrapper = shallowWithIntl(
-            <PermissionSystemSchemeSettings {...defaultProps}/>,
+        const ref = React.createRef<InstanceType<typeof PermissionSystemSchemeSettings>>();
+        renderWithContext(
+            <PermissionSystemSchemeSettings
+                {...defaultProps}
+                ref={ref}
+            />,
         );
-        const instance = getAnyInstance(wrapper);
-        expect(getAnyState(wrapper).openRoles.all_users).toBe(true);
-        instance.toggleRole('all_users');
-        expect(getAnyState(wrapper).openRoles.all_users).toBe(false);
-        instance.toggleRole('all_users');
-        expect(getAnyState(wrapper).openRoles.all_users).toBe(true);
+        const instance = ref.current as any;
+        expect(ref.current!.state.openRoles.all_users).toBe(true);
+        act(() => {
+            instance.toggleRole('all_users');
+        });
+        expect(ref.current!.state.openRoles.all_users).toBe(false);
+        act(() => {
+            instance.toggleRole('all_users');
+        });
+        expect(ref.current!.state.openRoles.all_users).toBe(true);
 
-        expect(getAnyState(wrapper).openRoles.channel_admin).toBe(true);
-        instance.toggleRole('channel_admin');
-        expect(getAnyState(wrapper).openRoles.channel_admin).toBe(false);
-        instance.toggleRole('channel_admin');
-        expect(getAnyState(wrapper).openRoles.channel_admin).toBe(true);
+        expect(ref.current!.state.openRoles.channel_admin).toBe(true);
+        act(() => {
+            instance.toggleRole('channel_admin');
+        });
+        expect(ref.current!.state.openRoles.channel_admin).toBe(false);
+        act(() => {
+            instance.toggleRole('channel_admin');
+        });
+        expect(ref.current!.state.openRoles.channel_admin).toBe(true);
 
-        expect(getAnyState(wrapper).openRoles.team_admin).toBe(true);
-        instance.toggleRole('team_admin');
-        expect(getAnyState(wrapper).openRoles.team_admin).toBe(false);
-        instance.toggleRole('team_admin');
-        expect(getAnyState(wrapper).openRoles.team_admin).toBe(true);
+        expect(ref.current!.state.openRoles.team_admin).toBe(true);
+        act(() => {
+            instance.toggleRole('team_admin');
+        });
+        expect(ref.current!.state.openRoles.team_admin).toBe(false);
+        act(() => {
+            instance.toggleRole('team_admin');
+        });
+        expect(ref.current!.state.openRoles.team_admin).toBe(true);
 
-        expect(getAnyState(wrapper).openRoles.system_admin).toBe(true);
-        instance.toggleRole('system_admin');
-        expect(getAnyState(wrapper).openRoles.system_admin).toBe(false);
-        instance.toggleRole('system_admin');
-        expect(getAnyState(wrapper).openRoles.system_admin).toBe(true);
+        expect(ref.current!.state.openRoles.system_admin).toBe(true);
+        act(() => {
+            instance.toggleRole('system_admin');
+        });
+        expect(ref.current!.state.openRoles.system_admin).toBe(false);
+        act(() => {
+            instance.toggleRole('system_admin');
+        });
+        expect(ref.current!.state.openRoles.system_admin).toBe(true);
     });
 
     test('should open modal on click reset defaults', () => {
-        const wrapper = shallowWithIntl(
-            <PermissionSystemSchemeSettings {...defaultProps}/>,
+        const ref = React.createRef<InstanceType<typeof PermissionSystemSchemeSettings>>();
+        const {container} = renderWithContext(
+            <PermissionSystemSchemeSettings
+                {...defaultProps}
+                ref={ref}
+            />,
         );
-        expect(getAnyState(wrapper).showResetDefaultModal).toBe(false);
-        wrapper.find('.btn-quaternary').first().simulate('click');
-        expect(getAnyState(wrapper).showResetDefaultModal).toBe(true);
+        expect(ref.current!.state.showResetDefaultModal).toBe(false);
+        const resetButton = container.querySelector('.btn-quaternary');
+        expect(resetButton).not.toBeNull();
+        act(() => {
+            (resetButton as HTMLElement).click();
+        });
+        expect(ref.current!.state.showResetDefaultModal).toBe(true);
     });
 
     test('should have default permissions that match the defaults constant', () => {
-        const wrapper = shallowWithIntl(
-            <PermissionSystemSchemeSettings {...defaultProps}/>,
+        const ref = React.createRef<InstanceType<typeof PermissionSystemSchemeSettings>>();
+        renderWithContext(
+            <PermissionSystemSchemeSettings
+                {...defaultProps}
+                ref={ref}
+            />,
         );
-        expect(getAnyState(wrapper).roles.all_users.permissions?.length).toBe(0);
-        expect(getAnyState(wrapper).roles.channel_admin.permissions?.length).toBe(0);
-        expect(getAnyState(wrapper).roles.team_admin.permissions?.length).toBe(0);
-        getAnyInstance(wrapper).resetDefaults();
-        expect(getAnyState(wrapper).roles.all_users.permissions).toBe(DefaultRolePermissions.all_users);
-        expect(getAnyState(wrapper).roles.channel_admin.permissions).toBe(DefaultRolePermissions.channel_admin);
-        expect(getAnyState(wrapper).roles.team_admin.permissions).toBe(DefaultRolePermissions.team_admin);
-        expect(getAnyState(wrapper).roles.system_admin.permissions?.length).toBe(defaultProps.roles.system_admin.permissions.length);
+        const instance = ref.current as any;
+        expect(ref.current!.state.roles.all_users.permissions?.length).toBe(0);
+        expect(ref.current!.state.roles.channel_admin.permissions?.length).toBe(0);
+        expect(ref.current!.state.roles.team_admin.permissions?.length).toBe(0);
+        act(() => {
+            instance.resetDefaults();
+        });
+        expect(ref.current!.state.roles.all_users.permissions).toBe(DefaultRolePermissions.all_users);
+        expect(ref.current!.state.roles.channel_admin.permissions).toBe(DefaultRolePermissions.channel_admin);
+        expect(ref.current!.state.roles.team_admin.permissions).toBe(DefaultRolePermissions.team_admin);
+        expect(ref.current!.state.roles.system_admin.permissions?.length).toBe(defaultProps.roles.system_admin.permissions.length);
     });
 
     test('should set moderated permissions on team/channel admins', () => {
-        const wrapper = shallowWithIntl(
-            <PermissionSystemSchemeSettings {...defaultProps}/>,
+        const ref = React.createRef<InstanceType<typeof PermissionSystemSchemeSettings>>();
+        renderWithContext(
+            <PermissionSystemSchemeSettings
+                {...defaultProps}
+                ref={ref}
+            />,
         );
-        const instance = getAnyInstance(wrapper);
+        const instance = ref.current as any;
 
         // A moderated permission should set team/channel admins
-        instance.togglePermission('all_users', [Permissions.CREATE_POST]);
-        expect(getAnyState(wrapper).roles.all_users.permissions.indexOf(Permissions.CREATE_POST)).toBeGreaterThan(-1);
-        expect(getAnyState(wrapper).roles.channel_admin.permissions.indexOf(Permissions.CREATE_POST)).toBeGreaterThan(-1);
-        expect(getAnyState(wrapper).roles.team_admin.permissions.indexOf(Permissions.CREATE_POST)).toBeGreaterThan(-1);
-        expect(getAnyState(wrapper).roles.playbook_admin.permissions.indexOf(Permissions.CREATE_POST)).toEqual(-1);
+        act(() => {
+            instance.togglePermission('all_users', [Permissions.CREATE_POST]);
+        });
+        expect(ref.current!.state.roles.all_users.permissions.indexOf(Permissions.CREATE_POST)).toBeGreaterThan(-1);
+        expect(ref.current!.state.roles.channel_admin.permissions.indexOf(Permissions.CREATE_POST)).toBeGreaterThan(-1);
+        expect(ref.current!.state.roles.team_admin.permissions.indexOf(Permissions.CREATE_POST)).toBeGreaterThan(-1);
+        expect(ref.current!.state.roles.playbook_admin.permissions.indexOf(Permissions.CREATE_POST)).toEqual(-1);
 
         // Changing a non-moderated permission should NOT set team/channel admins
-        instance.togglePermission('all_users', [Permissions.EDIT_OTHERS_POSTS]);
-        expect(getAnyState(wrapper).roles.all_users.permissions.indexOf(Permissions.EDIT_OTHERS_POSTS)).toBeGreaterThan(-1);
-        expect(getAnyState(wrapper).roles.channel_admin.permissions.indexOf(Permissions.EDIT_OTHERS_POSTS)).toEqual(-1);
-        expect(getAnyState(wrapper).roles.team_admin.permissions.indexOf(Permissions.EDIT_OTHERS_POSTS)).toEqual(-1);
-        expect(getAnyState(wrapper).roles.playbook_admin.permissions.indexOf(Permissions.EDIT_OTHERS_POSTS)).toEqual(-1);
+        act(() => {
+            instance.togglePermission('all_users', [Permissions.EDIT_OTHERS_POSTS]);
+        });
+        expect(ref.current!.state.roles.all_users.permissions.indexOf(Permissions.EDIT_OTHERS_POSTS)).toBeGreaterThan(-1);
+        expect(ref.current!.state.roles.channel_admin.permissions.indexOf(Permissions.EDIT_OTHERS_POSTS)).toEqual(-1);
+        expect(ref.current!.state.roles.team_admin.permissions.indexOf(Permissions.EDIT_OTHERS_POSTS)).toEqual(-1);
+        expect(ref.current!.state.roles.playbook_admin.permissions.indexOf(Permissions.EDIT_OTHERS_POSTS)).toEqual(-1);
     });
 });

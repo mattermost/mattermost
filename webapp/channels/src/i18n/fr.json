@@ -4416,7 +4416,6 @@
   "threading.numNewReplies": "{newReplies, plural, =1 {# nouvelle réponse} other {# nouvelles réponses}}",
   "threading.numReplies": "{totalReplies, plural, =0 {Répondre} =1 {# réponse} other {# réponses}}",
   "threading.threadHeader.menu": "Plus d'actions",
-  "threading.threadItem.menu": "Actions",
   "threading.threadList.markRead": "Tout marquer comme lu",
   "threading.threadMenu.copy": "Copier le lien",
   "threading.threadMenu.follow": "Suivre le fil",

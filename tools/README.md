@@ -4,6 +4,7 @@ This directory aims to provide a set of tools that simplify and enhance various 
 
 ## Included tools
 
+* **mattermost-govet**: custom Go vet analyzers enforcing Mattermost-specific code conventions (structured logging, error handling, SQL safety, etc.). Used by `make vet` in the server.
 * **mmgotool**: is a CLI to help with i18n related checks for the mattermost/server development.
 * **sharedchannel-test**: integration test tool that validates shared channel synchronization (posts, reactions, membership) between two real Mattermost server instances.
 

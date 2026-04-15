@@ -111,7 +111,7 @@ func GetLogFileLocation(fileLocation string) string {
 // 1. MM_LOG_PATH environment variable (if set and non-empty)
 // 2. The default "logs" directory (found relative to the binary)
 func GetLogRootPath() string {
-	// Check environment variable first
+	// Check environment variable
 	if envPath := os.Getenv("MM_LOG_PATH"); envPath != "" {
 		absPath, err := filepath.Abs(envPath)
 		if err == nil {
