@@ -16,6 +16,7 @@ import {selectTeam} from 'mattermost-redux/actions/teams';
 import {getThread} from 'mattermost-redux/actions/threads';
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
 import {getChannel, getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
+import {isScheduledPostsEnabled} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {getTeamByName} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
@@ -72,6 +73,7 @@ export default function ThreadPopout() {
         }
         return getThreadOrSynthetic(state, post);
     });
+    const isScheduledPostEnabled = useSelector(isScheduledPostsEnabled);
 
     usePopoutTitle(getThreadPopoutTitle(channel));
 
@@ -92,10 +94,12 @@ export default function ThreadPopout() {
     useEffect(() => {
         if (teamId) {
             dispatch(fetchChannelsAndMembers(teamId));
-            dispatch(fetchTeamScheduledPosts(teamId, true));
+            if (isScheduledPostEnabled) {
+                dispatch(fetchTeamScheduledPosts(teamId, true));
+            }
             dispatch(selectTeam(teamId));
         }
-    }, [dispatch, teamId]);
+    }, [dispatch, teamId, isScheduledPostEnabled]);
 
     useEffect(() => {
         if (teamId) {
