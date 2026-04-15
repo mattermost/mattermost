@@ -89,6 +89,7 @@ const (
 	AuditEventPatchChannelModerations            = "patchChannelModerations"            // update channel moderation settings
 	AuditEventRemoveChannelMember                = "removeChannelMember"                // remove member from channel
 	AuditEventRestoreChannel                     = "restoreChannel"                     // restore previously deleted channel
+	AuditEventSetChannelMembers                  = "setChannelMembers"                  // bulk set (replace) channel memberships
 	AuditEventUpdateChannel                      = "updateChannel"                      // update channel properties
 	AuditEventUpdateChannelMemberNotifyProps     = "updateChannelMemberNotifyProps"     // update notification preferences
 	AuditEventUpdateChannelMemberAutotranslation = "updateChannelMemberAutotranslation" // update autotranslation setting
