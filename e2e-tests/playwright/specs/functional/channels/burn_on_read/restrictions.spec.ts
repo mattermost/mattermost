@@ -15,7 +15,7 @@ test.describe('Burn-on-Read Restrictions', () => {
         await senderPage.goto(team.name, `@${receiver.username}`);
         await senderPage.toBeVisible();
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        await senderPage.postMessage(`No reply test ${await pw.random.id()}`);
+        await senderPage.postMessage(`No reply test ${pw.random.id()}`);
 
         const {channelsPage: receiverPage} = await pw.testBrowser.login(receiver);
         await receiverPage.goto(team.name, `@${sender.username}`);
@@ -44,7 +44,7 @@ test.describe('Burn-on-Read Restrictions', () => {
         await senderPage.goto(team.name, `@${receiver.username}`);
         await senderPage.toBeVisible();
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        await senderPage.postMessage(`No pin test ${await pw.random.id()}`);
+        await senderPage.postMessage(`No pin test ${pw.random.id()}`);
 
         const {channelsPage: receiverPage} = await pw.testBrowser.login(receiver);
         await receiverPage.goto(team.name, `@${sender.username}`);
@@ -72,7 +72,7 @@ test.describe('Burn-on-Read Restrictions', () => {
         await senderPage.goto(team.name, `@${receiver.username}`);
         await senderPage.toBeVisible();
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        await senderPage.postMessage(`No edit test ${await pw.random.id()}`);
+        await senderPage.postMessage(`No edit test ${pw.random.id()}`);
 
         const borPost = await senderPage.getLastPost();
 
@@ -94,7 +94,7 @@ test.describe('Burn-on-Read Restrictions', () => {
         await senderPage.goto(team.name, `@${receiver.username}`);
         await senderPage.toBeVisible();
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        await senderPage.postMessage(`No forward test ${await pw.random.id()}`);
+        await senderPage.postMessage(`No forward test ${pw.random.id()}`);
 
         const {channelsPage: receiverPage} = await pw.testBrowser.login(receiver);
         await receiverPage.goto(team.name, `@${sender.username}`);
@@ -122,7 +122,7 @@ test.describe('Burn-on-Read Restrictions', () => {
         await senderPage.goto(team.name, `@${receiver.username}`);
         await senderPage.toBeVisible();
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        await senderPage.postMessage(`No copy test ${await pw.random.id()}`);
+        await senderPage.postMessage(`No copy test ${pw.random.id()}`);
 
         const {channelsPage: receiverPage} = await pw.testBrowser.login(receiver);
         await receiverPage.goto(team.name, `@${sender.username}`);
@@ -150,7 +150,7 @@ test.describe('Burn-on-Read Restrictions', () => {
         await senderPage.goto(team.name, `@${receiver.username}`);
         await senderPage.toBeVisible();
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        await senderPage.postMessage(`No copy link test ${await pw.random.id()}`);
+        await senderPage.postMessage(`No copy link test ${pw.random.id()}`);
 
         const {channelsPage: receiverPage} = await pw.testBrowser.login(receiver);
         await receiverPage.goto(team.name, `@${sender.username}`);
@@ -178,7 +178,7 @@ test.describe('Burn-on-Read Restrictions', () => {
         await senderPage.goto(team.name, `@${receiver.username}`);
         await senderPage.toBeVisible();
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        await senderPage.postMessage(`Sender copy link test ${await pw.random.id()}`);
+        await senderPage.postMessage(`Sender copy link test ${pw.random.id()}`);
 
         const borPost = await senderPage.getLastPost();
 
@@ -200,7 +200,7 @@ test.describe('Burn-on-Read Restrictions', () => {
         await senderPage.goto(team.name, `@${receiver.username}`);
         await senderPage.toBeVisible();
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        await senderPage.postMessage(`No follow test ${await pw.random.id()}`);
+        await senderPage.postMessage(`No follow test ${pw.random.id()}`);
 
         const {channelsPage: receiverPage} = await pw.testBrowser.login(receiver);
         await receiverPage.goto(team.name, `@${sender.username}`);
@@ -228,7 +228,7 @@ test.describe('Burn-on-Read Restrictions', () => {
         await senderPage.goto(team.name, `@${receiver.username}`);
         await senderPage.toBeVisible();
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        const message = `Keyboard test ${await pw.random.id()}`;
+        const message = `Keyboard test ${pw.random.id()}`;
         await senderPage.postMessage(message);
 
         const {channelsPage: receiverPage} = await pw.testBrowser.login(receiver);
@@ -260,7 +260,7 @@ test.describe('Burn-on-Read Restrictions', () => {
         await senderPage.goto(team.name, `@${receiver.username}`);
         await senderPage.toBeVisible();
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        await senderPage.postMessage(`Delete test ${await pw.random.id()}`);
+        await senderPage.postMessage(`Delete test ${pw.random.id()}`);
 
         const {channelsPage: receiverPage} = await pw.testBrowser.login(receiver);
         await receiverPage.goto(team.name, `@${sender.username}`);
