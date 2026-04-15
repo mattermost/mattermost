@@ -17,6 +17,96 @@ import (
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
+func TestCreateOrUpdateAccessControlPolicy(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	t.Run("Feature not enabled", func(t *testing.T) {
+		th.App.Srv().ch.AccessControl = nil
+
+		policy := &model.AccessControlPolicy{
+			Type: model.AccessControlPolicyTypeParent,
+			Name: "test-policy",
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{"*"}, Expression: "true"},
+			},
+		}
+		result, err := th.App.CreateOrUpdateAccessControlPolicy(th.Context, policy)
+		require.NotNil(t, err)
+		require.Nil(t, result)
+	})
+
+	t.Run("Wildcard actions rewritten to membership and version set to v0.3", func(t *testing.T) {
+		mockAccessControl := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockAccessControl
+
+		policy := &model.AccessControlPolicy{
+			Type: model.AccessControlPolicyTypeParent,
+			Name: "wildcard-rewrite",
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{"*"}, Expression: "user.attributes.team == \"eng\""},
+			},
+		}
+
+		mockAccessControl.On("SavePolicy", th.Context, mock.MatchedBy(func(p *model.AccessControlPolicy) bool {
+			return p.Version == model.AccessControlPolicyVersionV0_3 &&
+				len(p.Rules) == 1 &&
+				len(p.Rules[0].Actions) == 1 &&
+				p.Rules[0].Actions[0] == model.AccessControlPolicyActionMembership
+		})).Return(policy, nil).Once()
+
+		result, err := th.App.CreateOrUpdateAccessControlPolicy(th.Context, policy)
+		require.Nil(t, err)
+		require.NotNil(t, result)
+		mockAccessControl.AssertExpectations(t)
+	})
+
+	t.Run("Multiple rules with mixed actions", func(t *testing.T) {
+		mockAccessControl := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockAccessControl
+
+		policy := &model.AccessControlPolicy{
+			Type: model.AccessControlPolicyTypeParent,
+			Name: "mixed-actions",
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{"*"}, Expression: "expr1"},
+				{Actions: []string{model.AccessControlPolicyActionUploadFileAttachment}, Expression: "expr2"},
+			},
+		}
+
+		mockAccessControl.On("SavePolicy", th.Context, mock.MatchedBy(func(p *model.AccessControlPolicy) bool {
+			return p.Rules[0].Actions[0] == model.AccessControlPolicyActionMembership &&
+				p.Rules[1].Actions[0] == model.AccessControlPolicyActionUploadFileAttachment
+		})).Return(policy, nil).Once()
+
+		result, err := th.App.CreateOrUpdateAccessControlPolicy(th.Context, policy)
+		require.Nil(t, err)
+		require.NotNil(t, result)
+		mockAccessControl.AssertExpectations(t)
+	})
+
+	t.Run("Generates ID when empty", func(t *testing.T) {
+		mockAccessControl := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockAccessControl
+
+		policy := &model.AccessControlPolicy{
+			Type: model.AccessControlPolicyTypeParent,
+			Name: "no-id",
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: "true"},
+			},
+		}
+
+		mockAccessControl.On("SavePolicy", th.Context, mock.MatchedBy(func(p *model.AccessControlPolicy) bool {
+			return p.ID != "" && model.IsValidId(p.ID)
+		})).Return(policy, nil).Once()
+
+		result, err := th.App.CreateOrUpdateAccessControlPolicy(th.Context, policy)
+		require.Nil(t, err)
+		require.NotNil(t, result)
+		mockAccessControl.AssertExpectations(t)
+	})
+}
+
 func TestGetChannelsForPolicy(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
