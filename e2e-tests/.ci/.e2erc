@@ -58,7 +58,7 @@ mme2e_wait_image () {
   IMAGE_NAME=${1?}
   RETRIES_LEFT=${2:-1}
   RETRIES_INTERVAL=${3:-10}
-  mme2e_wait_command_success "docker pull $IMAGE_NAME" "Waiting for docker image ${IMAGE_NAME} to be available" "$RETRIES_LEFT" "$RETRIES_INTERVAL"
+  mme2e_wait_command_success "docker pull --platform linux/amd64 $IMAGE_NAME" "Waiting for docker image ${IMAGE_NAME} to be available" "$RETRIES_LEFT" "$RETRIES_INTERVAL"
 }
 mme2e_is_token_in_list() {
   local TOKEN=$1
