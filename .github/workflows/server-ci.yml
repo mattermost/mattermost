@@ -14,6 +14,7 @@ on:
       - "server/**"
       - ".github/workflows/server-ci.yml"
       - ".github/workflows/server-test-template.yml"
+      - ".github/workflows/server-test-merge-template.yml"
       - ".github/workflows/mmctl-test-template.yml"
       - "!server/build/Dockerfile.buildenv"
       - "!server/build/Dockerfile.buildenv-fips"
@@ -28,6 +29,7 @@ jobs:
     runs-on: ubuntu-22.04
     outputs:
       version: ${{ steps.calculate.outputs.GO_VERSION }}
+      gomod-changed: ${{ steps.changed-files.outputs.any_changed }}
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -35,6 +37,12 @@ jobs:
         id: calculate
         working-directory: server/
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
+      - name: Check for go.mod changes
+        id: changed-files
+        uses: tj-actions/changed-files@22103cc46bda19c2b464ffe86db46df6922fd323 # v47.0.5
+        with:
+          files: |
+            **/go.mod
   check-mocks:
     name: Check mocks
     needs: go
@@ -196,32 +204,67 @@ jobs:
       logsartifact: postgres-binary-server-test-logs
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: false
+  # -- Sharded into 4 parallel runners for ~88% wall-time improvement --
   test-postgres-normal:
-    name: Postgres
+    name: Postgres (shard ${{ matrix.shard }})
     needs: go
+    strategy:
+      fail-fast: false # Let all shards complete so we get full test results
+      matrix:
+        shard: [0, 1, 2, 3]
     uses: ./.github/workflows/server-test-template.yml
     secrets: inherit
     with:
-      name: Postgres
+      name: "Postgres (shard ${{ matrix.shard }})"
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
-      logsartifact: postgres-server-test-logs
+      # Each shard gets a unique artifact name so they don't collide
+      logsartifact: "postgres-server-test-logs-shard-${{ matrix.shard }}"
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: false
+      shard-index: ${{ matrix.shard }}
+      shard-total: 4
+  # -- Merge test results (handles both single-run and future sharded runs) --
+  merge-postgres-test-results:
+    name: Merge Postgres Test Results
+    needs: test-postgres-normal
+    if: always()
+    uses: ./.github/workflows/server-test-merge-template.yml
+    with:
+      artifact-pattern: postgres-server-test-logs-shard-*
+      artifact-name: postgres-server-test-logs
+      save-timing-cache: true
+
   test-postgres-normal-fips:
-    # Skip FIPS testing for forks, which won't have docker login credentials.
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
-    name: Postgres (FIPS)
+    # Always run on pushes to master/release branches.
+    # For PRs, run when the branch name contains "fips" or any go.mod was changed.
+    if: github.event_name == 'push' || contains(github.head_ref, 'fips') || needs.go.outputs.gomod-changed == 'true'
+    name: Postgres FIPS (shard ${{ matrix.shard }})
     needs: go
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
     uses: ./.github/workflows/server-test-template.yml
     secrets: inherit
     with:
-      name: Postgres
-      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      name: "Postgres FIPS (shard ${{ matrix.shard }})"
+      datasource: postgres://mmuser:mostest-fips-test@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
-      logsartifact: postgres-server-test-logs
+      logsartifact: "postgres-server-fips-test-logs-shard-${{ matrix.shard }}"
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: true
+      shard-index: ${{ matrix.shard }}
+      shard-total: 4
+  merge-postgres-fips-test-results:
+    name: Merge Postgres FIPS Test Results
+    needs: test-postgres-normal-fips
+    if: needs.test-postgres-normal-fips.result != 'skipped'
+    uses: ./.github/workflows/server-test-merge-template.yml
+    with:
+      artifact-pattern: postgres-server-fips-test-logs-shard-*
+      artifact-name: postgres-server-fips-test-logs
+
   test-coverage:
     name: Generate Test Coverage
     # Disabled: Running out of memory and causing spurious failures.
@@ -259,7 +302,7 @@ jobs:
     secrets: inherit
     with:
       name: mmctl
-      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      datasource: postgres://mmuser:mostest-fips-test@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: mmctl-test-logs
       go-version: ${{ needs.go.outputs.version }}

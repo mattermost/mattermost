@@ -219,7 +219,7 @@ func TestPluginAPIGetUserPreferences(t *testing.T) {
 
 	user1, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user1" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -253,7 +253,7 @@ func TestPluginAPIDeleteUserPreferences(t *testing.T) {
 
 	user1, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user1" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -274,7 +274,7 @@ func TestPluginAPIDeleteUserPreferences(t *testing.T) {
 
 	user2, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user2" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -315,7 +315,7 @@ func TestPluginAPIUpdateUserPreferences(t *testing.T) {
 
 	user1, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user1" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -367,7 +367,7 @@ func TestPluginAPIGetUsers(t *testing.T) {
 
 	user1, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user1" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -378,7 +378,7 @@ func TestPluginAPIGetUsers(t *testing.T) {
 
 	user2, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user2" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -389,7 +389,7 @@ func TestPluginAPIGetUsers(t *testing.T) {
 
 	user3, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user3" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -400,7 +400,7 @@ func TestPluginAPIGetUsers(t *testing.T) {
 
 	user4, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user4" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -467,7 +467,7 @@ func TestPluginAPIGetUsersByIds(t *testing.T) {
 
 	user1, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user1" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -478,7 +478,7 @@ func TestPluginAPIGetUsersByIds(t *testing.T) {
 
 	user2, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user2" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -489,7 +489,7 @@ func TestPluginAPIGetUsersByIds(t *testing.T) {
 
 	user3, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user3" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -535,7 +535,7 @@ func TestPluginAPIGetUsersInTeam(t *testing.T) {
 
 	user1, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user1" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -546,7 +546,7 @@ func TestPluginAPIGetUsersInTeam(t *testing.T) {
 
 	user2, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user2" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -557,7 +557,7 @@ func TestPluginAPIGetUsersInTeam(t *testing.T) {
 
 	user3, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user3" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -568,7 +568,7 @@ func TestPluginAPIGetUsersInTeam(t *testing.T) {
 
 	user4, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user4" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -662,7 +662,7 @@ func TestPluginAPIUserCustomStatus(t *testing.T) {
 	user1, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
 		Username: "user_" + model.NewId(),
-		Password: "password",
+		Password: model.NewTestPassword(),
 	})
 	require.Nil(t, err)
 	defer func() {
@@ -2242,7 +2242,7 @@ func TestAPIMetrics(t *testing.T) {
 			Email:       model.NewId() + "success+test@example.com",
 			Nickname:    "Darth Vader1",
 			Username:    "vader" + model.NewId(),
-			Password:    "passwd1",
+			Password:    model.NewTestPassword(),
 			AuthService: "",
 		}
 		_, appErr := th.App.CreateUser(th.Context, user1)
