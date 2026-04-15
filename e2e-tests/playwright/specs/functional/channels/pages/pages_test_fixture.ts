@@ -53,7 +53,10 @@ type PagesTestFixtures = {
  * For permission-specific tests, use the separate `testWithRegularUser` fixture
  * exported from this file.
  */
-export const test = base.extend<PagesTestFixtures, PagesWorkerFixtures>({
+export const test: ReturnType<typeof base.extend<PagesTestFixtures, PagesWorkerFixtures>> = base.extend<
+    PagesTestFixtures,
+    PagesWorkerFixtures
+>({
     // Worker-scoped fixture: team and admin setup
     pagesWorkerSetup: [
         // eslint-disable-next-line no-empty-pattern
@@ -150,67 +153,68 @@ type PermissionsTestFixtures = {
  *
  * Use this fixture ONLY in pages_permissions.spec.ts
  */
-export const testWithRegularUser = base.extend<PermissionsTestFixtures, PermissionsWorkerFixtures>({
-    // Worker-scoped fixture: team and permission setup
-    permissionsWorkerSetup: [
-        // eslint-disable-next-line no-empty-pattern
-        async ({}, use) => {
-            // Login admin
-            const {adminClient} = await getAdminClient();
+export const testWithRegularUser: ReturnType<typeof base.extend<PermissionsTestFixtures, PermissionsWorkerFixtures>> =
+    base.extend<PermissionsTestFixtures, PermissionsWorkerFixtures>({
+        // Worker-scoped fixture: team and permission setup
+        permissionsWorkerSetup: [
+            // eslint-disable-next-line no-empty-pattern
+            async ({}, use) => {
+                // Login admin
+                const {adminClient} = await getAdminClient();
 
-            // Reset server config with explicit TeammateNameDisplay setting
-            // to ensure usernames are displayed in tests
-            const config = getOnPremServerConfig() as any;
-            config.TeamSettings.TeammateNameDisplay = 'username';
-            config.TeamSettings.LockTeammateNameDisplay = false;
-            await adminClient.updateConfig(config);
+                // Reset server config with explicit TeammateNameDisplay setting
+                // to ensure usernames are displayed in tests
+                const config = getOnPremServerConfig() as any;
+                config.TeamSettings.TeammateNameDisplay = 'username';
+                config.TeamSettings.LockTeammateNameDisplay = false;
+                await adminClient.updateConfig(config);
 
-            // Ensure wiki/page permissions are in channel_user role.
-            // We ALWAYS patch the role to trigger cache invalidation across all HA nodes.
-            const channelUserRole = await adminClient.getRoleByName('channel_user');
-            const allPermissions = new Set([...channelUserRole.permissions, ...WIKI_PAGE_PERMISSIONS]);
+                // Ensure wiki/page permissions are in channel_user role.
+                // We ALWAYS patch the role to trigger cache invalidation across all HA nodes.
+                const channelUserRole = await adminClient.getRoleByName('channel_user');
+                const allPermissions = new Set([...channelUserRole.permissions, ...WIKI_PAGE_PERMISSIONS]);
 
-            await adminClient.patchRole(channelUserRole.id, {
-                permissions: Array.from(allPermissions),
-            });
+                await adminClient.patchRole(channelUserRole.id, {
+                    permissions: Array.from(allPermissions),
+                });
 
-            // Wait for HA cluster nodes to sync role cache.
-            // Using 30 seconds as a balance between reliability and test speed.
-            // Permission tests may still be flaky in HA environments due to
-            // ClusterSendBestEffort delivery semantics.
-            const HA_SYNC_DELAY_MS = 30000;
-            await new Promise((resolve) => setTimeout(resolve, HA_SYNC_DELAY_MS));
+                // Wait for HA cluster nodes to sync role cache.
+                // Using 30 seconds as a balance between reliability and test speed.
+                // Permission tests may still be flaky in HA environments due to
+                // ClusterSendBestEffort delivery semantics.
+                const HA_SYNC_DELAY_MS = 30000;
+                await new Promise((resolve) => setTimeout(resolve, HA_SYNC_DELAY_MS));
 
-            // Create shared team for all permission tests in this worker
-            const team = await adminClient.createTeam(
-                await createRandomTeam('pages-perm-team', 'Pages Permission Team'),
-            );
+                // Create shared team for all permission tests in this worker
+                const team = await adminClient.createTeam(
+                    await createRandomTeam('pages-perm-team', 'Pages Permission Team'),
+                );
 
-            await use({team, adminClient});
+                await use({team, adminClient});
+            },
+            {scope: 'worker', timeout: 180000},
+        ],
+
+        // Test-scoped fixture: creates a fresh regular user for each test
+        sharedPagesSetup: async ({permissionsWorkerSetup}, use) => {
+            const {team, adminClient} = permissionsWorkerSetup;
+
+            // Create a new regular user for this test
+            const randomUser = await createRandomUser('pages-user');
+            const user = await adminClient.createUser(randomUser, '', '');
+            user.password = randomUser.password;
+            await adminClient.addToTeam(team.id, user.id);
+
+            // Set user preferences (skip tutorial)
+            const {client: userClient} = await makeClient(user);
+            const preferences = [
+                {user_id: user.id, category: 'tutorial_step', name: user.id, value: '999'},
+                {user_id: user.id, category: 'crt_thread_pane_step', name: user.id, value: '999'},
+            ];
+            await userClient.savePreferences(user.id, preferences);
+
+            await use({team, user, adminClient});
         },
-        {scope: 'worker', timeout: 180000},
-    ],
-
-    // Test-scoped fixture: creates a fresh regular user for each test
-    sharedPagesSetup: async ({permissionsWorkerSetup}, use) => {
-        const {team, adminClient} = permissionsWorkerSetup;
-
-        // Create a new regular user for this test
-        const randomUser = await createRandomUser('pages-user');
-        const user = await adminClient.createUser(randomUser, '', '');
-        user.password = randomUser.password;
-        await adminClient.addToTeam(team.id, user.id);
-
-        // Set user preferences (skip tutorial)
-        const {client: userClient} = await makeClient(user);
-        const preferences = [
-            {user_id: user.id, category: 'tutorial_step', name: user.id, value: '999'},
-            {user_id: user.id, category: 'crt_thread_pane_step', name: user.id, value: '999'},
-        ];
-        await userClient.savePreferences(user.id, preferences);
-
-        await use({team, user, adminClient});
-    },
-});
+    });
 
 export {expect};

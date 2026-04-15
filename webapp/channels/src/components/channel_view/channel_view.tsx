@@ -6,6 +6,7 @@ import {FormattedMessage} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
 import {makeAsyncComponent} from 'components/async_load';
+import ChannelTabPanel from 'components/channel_tabs/channel_tab_panel';
 import deferComponentRender from 'components/deferComponentRender';
 import {DropOverlayIdCenterChannel} from 'components/file_upload_overlay/file_upload_overlay';
 import PostView from 'components/post_view';
@@ -22,7 +23,6 @@ const FileUploadOverlay = makeAsyncComponent('FileUploadOverlay', lazy(() => imp
 const AdvancedCreatePost = makeAsyncComponent('AdvancedCreatePost', lazy(() => import('components/advanced_create_post')));
 const ChannelBanner = makeAsyncComponent('ChannelBanner', lazy(() => import('components/channel_banner/channel_banner')));
 const ChannelTabs = makeAsyncComponent('ChannelTabs', lazy(() => import('components/channel_tabs')));
-const ChannelTabPanel = makeAsyncComponent('ChannelTabPanel', lazy(() => import('components/channel_tabs/channel_tab_panel')));
 
 export type Props = PropsFromRedux & RouteComponentProps<{
     postid?: string;

@@ -16,27 +16,41 @@ exports[`components/channel_view Should match snapshot if channel is archived 1`
       data-testid="ChannelBanner"
     />
     <div
-      data-channel-id="channelId"
-      data-testid="deferred-post-view"
+      data-testid="ChannelTabs"
     />
     <div
-      class="post-create__container"
-      id="post-create"
+      aria-labelledby="channel-tab-messages"
+      class="channel-tab-panel"
+      id="channel-tab-panel-messages"
+      role="tabpanel"
     >
       <div
-        class="channel-archived__message"
-        id="channelArchivedMessage"
+        class="channel-tab-panel-content channel-tab-panel-content--messages"
       >
-        You are viewing an 
-        <b>
-          archived channel
-        </b>
-        . New messages cannot be posted.
-        <button
-          class="btn btn-primary channel-archived__close-btn"
+        <div
+          data-channel-id="channelId"
+          data-testid="deferred-post-view"
+        />
+        <div
+          class="post-create__container"
+          id="post-create"
         >
-          Close Channel
-        </button>
+          <div
+            class="channel-archived__message"
+            id="channelArchivedMessage"
+          >
+            You are viewing an 
+            <b>
+              archived channel
+            </b>
+            . New messages cannot be posted.
+            <button
+              class="btn btn-primary channel-archived__close-btn"
+            >
+              Close Channel
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -59,26 +73,40 @@ exports[`components/channel_view Should match snapshot if channel is deactivated
       data-testid="ChannelBanner"
     />
     <div
-      data-channel-id="channelId"
-      data-testid="deferred-post-view"
+      data-testid="ChannelTabs"
     />
     <div
-      class="post-create__container AdvancedTextEditor__ctr"
-      id="post-create"
+      aria-labelledby="channel-tab-messages"
+      class="channel-tab-panel"
+      id="channel-tab-panel-messages"
+      role="tabpanel"
     >
       <div
-        class="channel-archived__message"
+        class="channel-tab-panel-content channel-tab-panel-content--messages"
       >
-        You are viewing an archived channel with a 
-        <b>
-          deactivated user
-        </b>
-        . New messages cannot be posted.
-        <button
-          class="btn btn-primary channel-archived__close-btn"
+        <div
+          data-channel-id="channelId"
+          data-testid="deferred-post-view"
+        />
+        <div
+          class="post-create__container AdvancedTextEditor__ctr"
+          id="post-create"
         >
-          Close Channel
-        </button>
+          <div
+            class="channel-archived__message"
+          >
+            You are viewing an archived channel with a 
+            <b>
+              deactivated user
+            </b>
+            . New messages cannot be posted.
+            <button
+              class="btn btn-primary channel-archived__close-btn"
+            >
+              Close Channel
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -101,17 +129,31 @@ exports[`components/channel_view Should match snapshot with base props 1`] = `
       data-testid="ChannelBanner"
     />
     <div
-      data-channel-id="channelId"
-      data-testid="deferred-post-view"
+      data-testid="ChannelTabs"
     />
     <div
-      class="post-create__container AdvancedTextEditor__ctr"
-      data-testid="post-create"
-      id="post-create"
+      aria-labelledby="channel-tab-messages"
+      class="channel-tab-panel"
+      id="channel-tab-panel-messages"
+      role="tabpanel"
     >
       <div
-        data-testid="AdvancedCreatePost"
-      />
+        class="channel-tab-panel-content channel-tab-panel-content--messages"
+      >
+        <div
+          data-channel-id="channelId"
+          data-testid="deferred-post-view"
+        />
+        <div
+          class="post-create__container AdvancedTextEditor__ctr"
+          data-testid="post-create"
+          id="post-create"
+        >
+          <div
+            data-testid="AdvancedCreatePost"
+          />
+        </div>
+      </div>
     </div>
   </div>
 </div>

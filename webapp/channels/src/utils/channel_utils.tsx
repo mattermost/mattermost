@@ -192,7 +192,7 @@ type RouteMatch = {
 };
 
 export function getActiveTabFromRoute(match: RouteMatch): string {
-    const wikiMatch = match.path.match(/\/wiki\/:channelId\(.*?\)\/:wikiId\(/);
+    const wikiMatch = match.path?.match(/\/wiki\/:channelId\(.*?\)\/:wikiId\(/);
     if (wikiMatch) {
         const wikiId = match.params.wikiId;
         if (wikiId) {
