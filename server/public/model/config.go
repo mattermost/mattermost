@@ -1218,7 +1218,6 @@ type ExperimentalSettings struct {
 	UsersStatusAndProfileFetchingPollIntervalMilliseconds *int64 `access:"experimental_features"`
 	YoutubeReferrerPolicy                                 *bool  `access:"experimental_features"`
 	ExperimentalChannelCategorySorting                    *bool  `access:"experimental_features"`
-	EnableWatermark                                       *bool  `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -1268,10 +1267,6 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.ExperimentalChannelCategorySorting == nil {
 		s.ExperimentalChannelCategorySorting = NewPointer(false)
-	}
-
-	if s.EnableWatermark == nil {
-		s.EnableWatermark = NewPointer(false)
 	}
 }
 
@@ -3055,6 +3050,7 @@ type NativeAppSettings struct {
 	MobileEnableSecureFilePreview *bool    `access:"site_customization,write_restrictable"`
 	MobileAllowPdfLinkNavigation  *bool    `access:"site_customization,write_restrictable"`
 	EnableIntuneMAM               *bool    `access:"site_customization,write_restrictable"` // telemetry: none
+	EnableWatermark               *bool    `access:"site_customization,write_restrictable"`
 }
 
 func (s *NativeAppSettings) SetDefaults() {
@@ -3100,6 +3096,10 @@ func (s *NativeAppSettings) SetDefaults() {
 
 	if s.EnableIntuneMAM == nil {
 		s.EnableIntuneMAM = NewPointer(false)
+	}
+
+	if s.EnableWatermark == nil {
+		s.EnableWatermark = NewPointer(false)
 	}
 }
 
