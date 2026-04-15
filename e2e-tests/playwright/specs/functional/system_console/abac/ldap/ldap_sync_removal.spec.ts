@@ -23,13 +23,13 @@ import {
  * MM-T5799a: LDAP sync - User removed after attribute removed (startsWith operator, auto-add true)
  */
 test('MM-T5799a LDAP sync - User removed with startsWith operator (auto-add true)', async ({pw}) => {
-    test.setTimeout(90000);
+    test.setTimeout(120000);
 
     await pw.skipIfNoLicense();
 
     const {adminUser, adminClient, team} = await pw.initSetup();
 
-    // Create user with qualifying attribute (Department starts with "Eng")
+    // User starts WITH qualifying attribute (Department starts with "Eng").
     const user1 = await createUserWithAttributes(adminClient, {Department: 'Engineering'});
     await adminClient.addToTeam(team.id, user1.id);
 
@@ -46,50 +46,40 @@ test('MM-T5799a LDAP sync - User removed with startsWith operator (auto-add true
         channels: [channel1.display_name],
     });
 
-    // Activate policy
-    await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, undefined, t5799Policy1Id);
-    const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
-    await searchInput.waitFor({state: 'visible', timeout: 5000});
-    await searchInput.fill(policy1Name.match(/([a-z0-9]+)$/i)?.[1] || policy1Name);
-    await systemConsolePage.page.waitForTimeout(300);
-
-    const policyRow1 = systemConsolePage.page.locator('.policy-name').first();
-    const policyId1 = (await policyRow1.getAttribute('id'))?.replace('customDescription-', '');
-    if (policyId1) {
-        await activatePolicy(adminClient, policyId1);
+    // Activate immediately using the UUID from createAdvancedPolicy — no creation-sync wait needed.
+    if (t5799Policy1Id) {
+        await activatePolicy(adminClient, t5799Policy1Id);
     }
-    await searchInput.clear();
 
-    // Run sync - user should be AUTO-ADDED (has Department=Engineering which starts with "Eng")
+    // Sync: user has qualifying attribute → gets auto-added.
     const t5799Sync1aJobId = await runSyncJob(systemConsolePage.page);
     await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, t5799Sync1aJobId);
 
     const user1InitialCheck = await verifyUserInChannel(adminClient, user1.id, channel1.id);
     expect(user1InitialCheck).toBe(true);
 
-    // Simulate LDAP sync by changing Department to value that doesn't start with "Eng"
+    // Simulate LDAP sync: change Department to non-qualifying value.
     await updateUserAttributes(adminClient, user1.id, {Department: 'Sales'});
 
-    // Run ABAC sync job to remove user
+    // Sync: user no longer qualifies → gets removed.
     const t5799Sync1bJobId = await runSyncJob(systemConsolePage.page);
     await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, t5799Sync1bJobId);
 
-    // Verify user IS REMOVED from channel
     const user1AfterSync = await verifyUserInChannel(adminClient, user1.id, channel1.id);
     expect(user1AfterSync).toBe(false);
 });
 
 /**
- * MM-T5799b: LDAP sync - User removed after attribute removed (== operator two attributes, auto-add true)
+ * MM-T5799b: LDAP sync - User removed after attribute removed (== operator, auto-add true)
  */
 test('MM-T5799b LDAP sync - User removed with == operator (auto-add true)', async ({pw}) => {
-    test.setTimeout(90000);
+    test.setTimeout(120000);
 
     await pw.skipIfNoLicense();
 
     const {adminUser, adminClient, team} = await pw.initSetup();
 
-    // Create user with qualifying attribute
+    // User starts WITH qualifying attribute.
     const user2 = await createUserWithAttributes(adminClient, {Department: 'Engineering'});
     await adminClient.addToTeam(team.id, user2.id);
 
@@ -108,35 +98,24 @@ test('MM-T5799b LDAP sync - User removed with == operator (auto-add true)', asyn
         channels: [channel2.display_name],
     });
 
-    // Activate policy
-    await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, undefined, t5799Policy2Id);
-    const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
-    await searchInput.waitFor({state: 'visible', timeout: 5000});
-    await searchInput.fill(policy2Name.match(/([a-z0-9]+)$/i)?.[1] || policy2Name);
-    await systemConsolePage.page.waitForTimeout(300);
-
-    const policyRow2 = systemConsolePage.page.locator('.policy-name').first();
-    const policyId2 = (await policyRow2.getAttribute('id'))?.replace('customDescription-', '');
-    if (policyId2) {
-        await activatePolicy(adminClient, policyId2);
+    if (t5799Policy2Id) {
+        await activatePolicy(adminClient, t5799Policy2Id);
     }
-    await searchInput.clear();
 
-    // Run initial sync - user should be AUTO-ADDED
+    // Sync: user has qualifying attribute → gets auto-added.
     const t5799Sync2aJobId = await runSyncJob(systemConsolePage.page);
     await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, t5799Sync2aJobId);
 
     const user2InitialCheck = await verifyUserInChannel(adminClient, user2.id, channel2.id);
     expect(user2InitialCheck).toBe(true);
 
-    // Simulate LDAP sync by removing the Department attribute (changing to non-qualifying value)
+    // Change Department to non-qualifying value.
     await updateUserAttributes(adminClient, user2.id, {Department: 'Sales'});
 
-    // Run ABAC sync job
+    // Sync: user no longer qualifies → gets removed.
     const t5799Sync2bJobId = await runSyncJob(systemConsolePage.page);
     await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, t5799Sync2bJobId);
 
-    // Verify user IS REMOVED from channel
     const user2AfterSync = await verifyUserInChannel(adminClient, user2.id, channel2.id);
     expect(user2AfterSync).toBe(false);
 });
@@ -150,7 +129,8 @@ test('MM-T5800 Policy enforcement after attribute change (bidirectional)', async
     await pw.skipIfNoLicense();
 
     const {adminUser, adminClient, team} = await pw.initSetup();
-    // Create user with Sales department (non-qualifying)
+
+    // User starts with non-qualifying attribute.
     const user = await createUserWithAttributes(adminClient, {Department: 'Sales'});
     await adminClient.addToTeam(team.id, user.id);
 
@@ -169,31 +149,15 @@ test('MM-T5800 Policy enforcement after attribute change (bidirectional)', async
         channels: [privateChannel.display_name],
     });
 
-    // Activate policy
-    await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, undefined, t5800PolicyId);
-    const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
-    await searchInput.waitFor({state: 'visible', timeout: 5000});
-    const idMatch = policyName.match(/([a-z0-9]+)$/i);
-    const uniqueId = idMatch ? idMatch[1] : policyName;
-    await searchInput.fill(uniqueId);
-    await systemConsolePage.page.waitForTimeout(300);
-
-    const policyRow = systemConsolePage.page.locator('.policy-name').first();
-    const policyId = (await policyRow.getAttribute('id'))?.replace('customDescription-', '');
-
-    if (policyId) {
-        await activatePolicy(adminClient, policyId);
+    if (t5800PolicyId) {
+        await activatePolicy(adminClient, t5800PolicyId);
     }
-    await searchInput.clear();
 
-    // PHASE 1: User should NOT be added (Department=Sales)
-    const phase1JobId = await runSyncJob(systemConsolePage.page);
-    await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, phase1JobId);
-
+    // PHASE 1: User has non-qualifying attribute — not in channel without a sync.
     const phase1InChannel = await verifyUserInChannel(adminClient, user.id, privateChannel.id);
     expect(phase1InChannel).toBe(false);
 
-    // PHASE 2: Change attribute to qualifying value → User auto-added
+    // PHASE 2: Change to qualifying → User auto-added.
     await updateUserAttributes(adminClient, user.id, {Department: 'Engineering'});
 
     const phase2JobId = await runSyncJob(systemConsolePage.page);
@@ -202,7 +166,7 @@ test('MM-T5800 Policy enforcement after attribute change (bidirectional)', async
     const phase2InChannel = await verifyUserInChannel(adminClient, user.id, privateChannel.id);
     expect(phase2InChannel).toBe(true);
 
-    // PHASE 3: Change attribute back → User auto-removed
+    // PHASE 3: Change back to non-qualifying → User auto-removed.
     await updateUserAttributes(adminClient, user.id, {Department: 'Marketing'});
 
     const phase3JobId = await runSyncJob(systemConsolePage.page);

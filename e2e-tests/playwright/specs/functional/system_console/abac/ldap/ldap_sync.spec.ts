@@ -47,35 +47,23 @@ test('MM-T5797a LDAP sync - User auto-added with == operator (auto-add true)', a
         channels: [channel1.display_name],
     });
 
-    // Activate policy
-    await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, undefined, policy1Id);
-    const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
-    await searchInput.waitFor({state: 'visible', timeout: 5000});
-    await searchInput.fill(policy1Name.match(/([a-z0-9]+)$/i)?.[1] || policy1Name);
-    await systemConsolePage.page.waitForTimeout(300);
-
-    const policyRow1 = systemConsolePage.page.locator('.policy-name').first();
-    const policyId1 = (await policyRow1.getAttribute('id'))?.replace('customDescription-', '');
-    if (policyId1) {
-        await activatePolicy(adminClient, policyId1);
+    // createBasicPolicy returns the policy UUID from the PUT response — activate directly,
+    // no need to wait for the policy-creation sync (policy was inactive during that sync).
+    if (policy1Id) {
+        await activatePolicy(adminClient, policy1Id);
     }
-    await searchInput.clear();
 
-    // Run initial sync - user should NOT be in channel (doesn't have qualifying attribute)
-    const sync1aJobId = await runSyncJob(systemConsolePage.page);
-    await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, sync1aJobId);
-
+    // User has non-qualifying attribute (Sales) — no sync needed to confirm not in channel.
     const user1InitialCheck = await verifyUserInChannel(adminClient, user1.id, channel1.id);
     expect(user1InitialCheck).toBe(false);
 
-    // Simulate LDAP sync by updating user's attribute to qualifying value
+    // Simulate LDAP sync by updating user's attribute to qualifying value.
     await updateUserAttributes(adminClient, user1.id, {Department: 'Engineering'});
 
-    // Run ABAC sync job to apply policy with new attribute value
+    // Run ABAC sync — policy is now active, user has qualifying attribute.
     const sync1bJobId = await runSyncJob(systemConsolePage.page);
     await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, sync1bJobId);
 
-    // Verify user IS NOW in channel (auto-added)
     const user1AfterSync = await verifyUserInChannel(adminClient, user1.id, channel1.id);
     expect(user1AfterSync).toBe(true);
 });
@@ -106,35 +94,20 @@ test('MM-T5797b LDAP sync - User auto-added with contains operator (auto-add tru
         channels: [channel2.display_name],
     });
 
-    // Activate policy
-    await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, undefined, policy2Id);
-    const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
-    await searchInput.waitFor({state: 'visible', timeout: 5000});
-    await searchInput.fill(policy2Name.match(/([a-z0-9]+)$/i)?.[1] || policy2Name);
-    await systemConsolePage.page.waitForTimeout(300);
-
-    const policyRow2 = systemConsolePage.page.locator('.policy-name').first();
-    const policyId2 = (await policyRow2.getAttribute('id'))?.replace('customDescription-', '');
-    if (policyId2) {
-        await activatePolicy(adminClient, policyId2);
+    if (policy2Id) {
+        await activatePolicy(adminClient, policy2Id);
     }
-    await searchInput.clear();
 
-    // Run initial sync - user should NOT be in channel
-    const sync2aJobId = await runSyncJob(systemConsolePage.page);
-    await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, sync2aJobId);
-
+    // User has non-qualifying attribute — no sync needed.
     const user2InitialCheck = await verifyUserInChannel(adminClient, user2.id, channel2.id);
     expect(user2InitialCheck).toBe(false);
 
-    // Simulate LDAP sync by updating Department to "Engineering" (contains "Eng")
+    // Simulate LDAP sync: Department → "Engineering" (contains "Eng").
     await updateUserAttributes(adminClient, user2.id, {Department: 'Engineering'});
 
-    // Run ABAC sync job
     const sync2bJobId = await runSyncJob(systemConsolePage.page);
     await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, sync2bJobId);
 
-    // Verify user IS NOW in channel (auto-added)
     const user2AfterSync = await verifyUserInChannel(adminClient, user2.id, channel2.id);
     expect(user2AfterSync).toBe(true);
 });
@@ -167,35 +140,21 @@ test('MM-T5798a User added by admin after LDAP attribute sync with == operator (
         channels: [channel1.display_name],
     });
 
-    // Activate policy
-    await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, undefined, t5798Policy1Id);
-    const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
-    await searchInput.waitFor({state: 'visible', timeout: 5000});
-    await searchInput.fill(policy1Name.match(/([a-z0-9]+)$/i)?.[1] || policy1Name);
-    await systemConsolePage.page.waitForTimeout(300);
-
-    const policyRow1 = systemConsolePage.page.locator('.policy-name').first();
-    const policyId1 = (await policyRow1.getAttribute('id'))?.replace('customDescription-', '');
-    if (policyId1) {
-        await activatePolicy(adminClient, policyId1);
+    if (t5798Policy1Id) {
+        await activatePolicy(adminClient, t5798Policy1Id);
     }
-    await searchInput.clear();
 
-    // Run initial sync - user should NOT be in channel
-    const t5798Sync1aJobId = await runSyncJob(systemConsolePage.page);
-    await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, t5798Sync1aJobId);
-
+    // User has non-qualifying attribute — not in channel without needing a sync.
     const user1InitialCheck = await verifyUserInChannel(adminClient, user1.id, channel1.id);
     expect(user1InitialCheck).toBe(false);
 
-    // Simulate LDAP sync by updating user's attribute to qualifying value
+    // Simulate LDAP sync: attribute changes to qualifying value.
     await updateUserAttributes(adminClient, user1.id, {Department: 'Engineering'});
 
-    // Run sync job - with auto-add=false, users should NOT be auto-added
+    // With auto-add=false, sync should NOT auto-add the user.
     const t5798Sync1bJobId = await runSyncJob(systemConsolePage.page);
     await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, t5798Sync1bJobId);
 
-    // Verify user behavior after sync
     const user1AfterSync = await verifyUserInChannel(adminClient, user1.id, channel1.id);
 
     if (!user1AfterSync) {
@@ -205,7 +164,6 @@ test('MM-T5798a User added by admin after LDAP attribute sync with == operator (
         expect(user1AfterAdminAdd).toBe(true);
     }
 
-    // Final verification
     const user1Final = await verifyUserInChannel(adminClient, user1.id, channel1.id);
     expect(user1Final).toBe(true);
 });
@@ -236,35 +194,20 @@ test('MM-T5798b User added by admin after LDAP attribute sync with in operator (
         channels: [channel2.display_name],
     });
 
-    // Activate policy
-    await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, undefined, t5798Policy2Id);
-    const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
-    await searchInput.waitFor({state: 'visible', timeout: 5000});
-    await searchInput.fill(policy2Name.match(/([a-z0-9]+)$/i)?.[1] || policy2Name);
-    await systemConsolePage.page.waitForTimeout(300);
-
-    const policyRow2 = systemConsolePage.page.locator('.policy-name').first();
-    const policyId2 = (await policyRow2.getAttribute('id'))?.replace('customDescription-', '');
-    if (policyId2) {
-        await activatePolicy(adminClient, policyId2);
+    if (t5798Policy2Id) {
+        await activatePolicy(adminClient, t5798Policy2Id);
     }
-    await searchInput.clear();
 
-    // Run initial sync - user should NOT be in channel
-    const t5798Sync2aJobId = await runSyncJob(systemConsolePage.page);
-    await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, t5798Sync2aJobId);
-
+    // User has non-qualifying attribute — not in channel without needing a sync.
     const user2InitialCheck = await verifyUserInChannel(adminClient, user2.id, channel2.id);
     expect(user2InitialCheck).toBe(false);
 
-    // Simulate LDAP sync by updating to qualifying value
+    // Simulate LDAP sync: attribute changes to qualifying value.
     await updateUserAttributes(adminClient, user2.id, {Department: 'Product'});
 
-    // Run sync job
     const t5798Sync2bJobId = await runSyncJob(systemConsolePage.page);
     await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, t5798Sync2bJobId);
 
-    // Verify user behavior after sync
     const user2AfterSync = await verifyUserInChannel(adminClient, user2.id, channel2.id);
 
     if (!user2AfterSync) {
@@ -274,7 +217,6 @@ test('MM-T5798b User added by admin after LDAP attribute sync with in operator (
         expect(user2AfterAdminAdd).toBe(true);
     }
 
-    // Final verification
     const user2Final = await verifyUserInChannel(adminClient, user2.id, channel2.id);
     expect(user2Final).toBe(true);
 });

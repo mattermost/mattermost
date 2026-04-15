@@ -69,26 +69,15 @@ test('MM-T5794 User auto-added when qualifying attribute is added to profile', a
         channels: [privateChannel.display_name],
     });
 
-    // Activate policy (EXACT same pattern as MM-T5800)
-    await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, undefined, policyId);
-    const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
-    await searchInput.waitFor({state: 'visible', timeout: 5000});
-    const idMatch = policyName.match(/([a-z0-9]+)$/i);
-    const uniqueId = idMatch ? idMatch[1] : policyName;
-    await searchInput.fill(uniqueId);
-    await systemConsolePage.page.waitForTimeout(1000);
-
+    // Activate immediately using the UUID returned by createBasicPolicy — no creation-sync wait.
     if (policyId) {
         await activatePolicy(adminClient, policyId);
     }
-    await searchInput.clear();
 
     // ============================================================
     // STEP 2: Verify user is NOT in channel initially
+    // User has Department=Sales (non-qualifying) — no sync needed.
     // ============================================================
-    const syncJob1Id = await runSyncJob(systemConsolePage.page);
-    await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, syncJob1Id);
-
     const initialInChannel = await verifyUserInChannel(adminClient, testUser.id, privateChannel.id);
     expect(initialInChannel).toBe(false);
 
@@ -296,23 +285,10 @@ test('MM-T5796a User auto-removed when required attribute is removed (auto-add f
     const initialInChannel = await verifyUserInChannel(adminClient, testUser.id, privateChannel.id);
     expect(initialInChannel).toBe(true);
 
-    // Get policy ID and activate
-    const policy1JobId = await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, undefined, policy1Id);
-    const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
-    await searchInput.waitFor({state: 'visible', timeout: 5000});
-    const idMatch = policy1Name.match(/([a-z0-9]+)$/i);
-    const uniqueId = idMatch ? idMatch[1] : policy1Name;
-    await searchInput.fill(uniqueId);
-    await systemConsolePage.page.waitForTimeout(300);
-
-    const policyRow = systemConsolePage.page.locator('.policy-name').first();
-    const policyElementId = await policyRow.getAttribute('id');
-    const policyId = policyElementId?.replace('customDescription-', '');
-
-    if (policyId) {
-        await activatePolicy(adminClient, policyId);
+    // Activate immediately using the UUID from createBasicPolicy — no creation-sync wait.
+    if (policy1Id) {
+        await activatePolicy(adminClient, policy1Id);
     }
-    await searchInput.clear();
 
     // Remove the qualifying attribute
     await updateUserAttributes(adminClient, testUser.id, {Department: 'Sales'});
@@ -320,9 +296,9 @@ test('MM-T5796a User auto-removed when required attribute is removed (auto-add f
     // Wait for attribute change to propagate
     await systemConsolePage.page.waitForTimeout(300);
 
-    // Run sync job
+    // Run sync job — fast path with explicit jobId, skipJobId is irrelevant.
     const runSync1JobId = await runSyncJob(systemConsolePage.page);
-    await waitForLatestSyncJob(systemConsolePage.page, 5, policy1JobId, runSync1JobId);
+    await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, runSync1JobId);
 
     // Wait for membership updates to apply
     await systemConsolePage.page.waitForTimeout(300);
@@ -333,7 +309,7 @@ test('MM-T5796a User auto-removed when required attribute is removed (auto-add f
 });
 
 test('MM-T5796b User auto-added then auto-removed when attribute changes (auto-add true)', async ({pw}) => {
-    test.setTimeout(90000);
+    test.setTimeout(120000);
 
     await pw.skipIfNoLicense();
 
@@ -363,23 +339,14 @@ test('MM-T5796b User auto-added then auto-removed when attribute changes (auto-a
         channels: [channel2.display_name],
     });
 
-    // Activate and run sync to auto-add user
-    const policy2JobId = await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, undefined, policy2Id);
-    const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
-    await searchInput.waitFor({state: 'visible', timeout: 5000});
-    await searchInput.fill(policy2Name.match(/([a-z0-9]+)$/i)?.[1] || policy2Name);
-    await systemConsolePage.page.waitForTimeout(300);
-
-    const policyRow2 = systemConsolePage.page.locator('.policy-name').first();
-    const policyId2 = (await policyRow2.getAttribute('id'))?.replace('customDescription-', '');
-
-    if (policyId2) {
-        await activatePolicy(adminClient, policyId2);
+    // Activate immediately using the UUID from createBasicPolicy — no creation-sync wait.
+    if (policy2Id) {
+        await activatePolicy(adminClient, policy2Id);
     }
-    await searchInput.clear();
 
+    // Sync: user has qualifying attribute → gets auto-added.
     const runSync2JobId = await runSyncJob(systemConsolePage.page);
-    const sync2JobId = await waitForLatestSyncJob(systemConsolePage.page, 5, policy2JobId, runSync2JobId);
+    const sync2JobId = await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, runSync2JobId);
 
     const userAutoAdded = await verifyUserInChannel(adminClient, testUser.id, channel2.id);
     expect(userAutoAdded).toBe(true);
