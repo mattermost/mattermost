@@ -13,7 +13,7 @@
 import {Bot} from '@mattermost/types/bots';
 import {Team} from '@mattermost/types/teams';
 
-import {createBotPatch} from '../../../support/api/bots';
+import {createBotPatch} from '@/support/api/bots';
 
 describe('Bot channel intro and avatar', () => {
     let team: Team;

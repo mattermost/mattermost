@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import * as path from 'path';
+
 import {defineConfig} from 'cypress';
 
 export default defineConfig({
@@ -59,6 +61,60 @@ export default defineConfig({
     },
     e2e: {
         setupNodeEvents(on, config) {
+            // Custom webpack preprocessor for TypeScript 6 + @/ path aliases.
+            // @cypress/webpack-preprocessor@7.1.0 already handles TS6's
+            // downlevelIteration deprecation (cypress-io/cypress#33575).
+            // We add: ts-loader for .ts files, resolve extensions, and @/ alias.
+            // When Cypress >= 15.14 ships, the only custom piece needed is the @/ alias.
+            const webpackPreprocessor = require('@cypress/webpack-preprocessor');
+
+            const webpackOptions = {
+                resolve: {
+                    extensions: ['.ts', '.js', '.json'],
+                    alias: {
+                        '@': path.resolve(__dirname, 'tests'),
+                    },
+                },
+                module: {
+                    rules: [
+                        {
+                            test: /\.tsx?$/,
+                            exclude: /node_modules/,
+                            use: [
+                                {
+                                    loader: 'ts-loader',
+                                    options: {
+                                        transpileOnly: true,
+                                    },
+                                },
+                            ],
+                        },
+                        {
+                            test: /\.jsx?$/,
+                            exclude: /node_modules/,
+                            use: [
+                                {
+                                    loader: 'babel-loader',
+                                    options: {
+                                        presets: ['@babel/preset-env'],
+                                    },
+                                },
+                            ],
+                        },
+                    ],
+                },
+                // Restore Node.js polyfills (crypto, process, path, etc.)
+                // that webpack 5 no longer provides by default.
+                plugins: [
+                    new (require('node-polyfill-webpack-plugin'))(),
+                    new (require('webpack').ProvidePlugin)({
+                        process: 'process/browser',
+                        Buffer: ['buffer', 'Buffer'],
+                    }),
+                ],
+            };
+
+            on('file:preprocessor', webpackPreprocessor({webpackOptions}));
             return require('./tests/plugins/index.js')(on, config);
         },
         baseUrl: process.env.MM_SERVICESETTINGS_SITEURL || 'http://localhost:8065',

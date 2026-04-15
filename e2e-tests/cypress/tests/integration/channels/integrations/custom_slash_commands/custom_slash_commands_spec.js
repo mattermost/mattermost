@@ -13,7 +13,6 @@
 * Note: This test requires webhook server running. Initiate `npm run start:webhook` to start.
 */
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
 import {
     enablePermission,
     goToSystemScheme,
@@ -21,6 +20,8 @@ import {
 } from '../../enterprise/system_console/channel_moderation/helpers';
 
 import {addNewCommand, runSlashCommand} from './helpers';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Slash commands', () => {
     const trigger = 'my_trigger';

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as TIMEOUTS from '../../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 // ***************************************************************
 // - [#] indicates a test step (e.g. # Go to a page)
@@ -12,7 +12,7 @@ import * as TIMEOUTS from '../../../../../fixtures/timeouts';
 // Stage: @prod
 // Group: @channels @cloud_only @cloud_trial
 
-function simulateSubscriptionWithLimitsUsage(subscription, withLimits = {}, postsUsed) {
+function simulateSubscriptionWithLimitsUsage(subscription: {id: string; product_id: string; is_free_trial: string}, withLimits = {}, postsUsed: number) {
     cy.intercept('GET', '**/api/v4/cloud/subscription', {
         statusCode: 200,
         body: subscription,
@@ -54,7 +54,7 @@ function simulateSubscriptionWithLimitsUsage(subscription, withLimits = {}, post
     });
 }
 
-function simulateSubscription(subscription, withLimits = true) {
+function simulateSubscription(subscription: {id: string; product_id: string; is_free_trial: string}, withLimits = true) {
     cy.intercept('GET', '**/api/v4/cloud/subscription', {
         statusCode: 200,
         body: subscription,
@@ -111,8 +111,8 @@ function simulateSubscription(subscription, withLimits = true) {
 }
 
 describe('Pricing modal', () => {
-    let urlL;
-    let nonAdminUser;
+    let urlL: string;
+    let nonAdminUser: Cypress.UserProfile;
 
     it('should not show Upgrade button in global header for non admin users', () => {
         const subscription = {

@@ -13,9 +13,9 @@ import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {isMac} from '../../../utils';
-import {ChainableT} from '../../../types';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {isMac} from '@/utils';
+import {ChainableT} from '@/types';
 
 describe('Collapsed Reply Threads', () => {
     let testTeam: Team;
@@ -244,7 +244,7 @@ describe('Collapsed Reply Threads', () => {
     });
 });
 
-function postMessageWithReply(channelId, postSender, postMessage, replySender, replyMessage): ChainableT {
+function postMessageWithReply(channelId: string, postSender: {username: string; password: string}, postMessage: string, replySender: {username: string; password: string}, replyMessage: string): ChainableT {
     return cy.postMessageAs({
         sender: postSender,
         message: postMessage || 'Another interesting post.',
@@ -259,7 +259,7 @@ function postMessageWithReply(channelId, postSender, postMessage, replySender, r
     });
 }
 
-function scrollThreadsListToEnd(maxScrolls = 1, scrolls = 0): ChainableT<void> {
+function scrollThreadsListToEnd(maxScrolls = 1, scrolls = 0): ChainableT<void> | undefined {
     if (scrolls === maxScrolls) {
         return;
     }

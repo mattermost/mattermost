@@ -12,8 +12,8 @@
 
 import {Team} from '@mattermost/types/teams';
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {getRandomId} from '../../../utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getRandomId} from '@/utils';
 
 describe('Edit bot username', () => {
     let team: Team;
@@ -75,7 +75,7 @@ describe('Edit bot username', () => {
             return cy.wrap(null);
         }).then((newBotName) => {
             // * Set alias for bot entry in bot list, this also checks that the bot entry exists
-            cy.get('.backstage-list__item').contains('.backstage-list__item', newBotName).as('newbotEntry');
+            cy.get('.backstage-list__item').contains('.backstage-list__item', String(newBotName)).as('newbotEntry');
 
             // * Get bot entry in bot list by username
             cy.get('@newbotEntry').then((el) => {

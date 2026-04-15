@@ -9,9 +9,9 @@
 
 // Group: @channels @subpath
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {generateRandomUser} from '../../../support/api/user';
-import {getAdminAccount} from '../../../support/env';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {generateRandomUser} from '@/support/api/user';
+import {getAdminAccount} from '@/support/env';
 
 describe('Subpath Direct Message Search', () => {
     let testTeam;

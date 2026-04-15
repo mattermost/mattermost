@@ -13,9 +13,10 @@
 // and a bucket named "mattermost-test". Bucket can be created manually in the UI or by:
 // ``docker exec mattermost-minio sh -c 'mkdir -p /data/mattermost-test'``
 
-import * as TIMEOUTS from '../../../../../fixtures/timeouts';
-
 import {gotoTeamAndPostImage} from './helpers';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+
 
 describe('Compliance Export', () => {
     let teamName;

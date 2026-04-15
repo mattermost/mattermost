@@ -9,11 +9,12 @@
 
 // Group: @channels @outgoing_webhook
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
 import {
     enableUsernameAndIconOverrideInt,
     enableUsernameAndIconOverride,
 } from '../incoming_webhook/helpers';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Outgoing webhook', () => {
     const triggerWord = 'text';

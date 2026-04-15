@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChainableT} from 'tests/types';
-
 import {getRandomId} from '../utils';
+
+import {ChainableT} from '@/types';
+
 
 const ldapTmpFolder = 'ldap_tmp';
 
@@ -30,7 +31,7 @@ function resetLDAPUsers() {
 
 Cypress.Commands.add('resetLDAPUsers', resetLDAPUsers);
 
-function createLDAPUser({prefix = 'ldap', user = null} = {}): ChainableT<LdapUser> {
+function createLDAPUser({prefix = 'ldap', user = null as LdapUser | null} = {}): ChainableT<LdapUser> {
     const ldapUser = user || generateLDAPUser(prefix);
     const data = generateContent(ldapUser);
     const filename = `new_user_${Date.now()}.ldif`;
