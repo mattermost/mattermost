@@ -63,6 +63,7 @@ export const enum WebSocketEvents {
     SidebarCategoryUpdated = 'sidebar_category_updated',
     SidebarCategoryDeleted = 'sidebar_category_deleted',
     SidebarCategoryOrderUpdated = 'sidebar_category_order_updated',
+    PropertyValuesUpdated = 'property_values_updated',
     CloudSubscriptionChanged = 'cloud_subscription_changed',
     ThreadUpdated = 'thread_updated',
     ThreadFollowChanged = 'thread_follow_changed',

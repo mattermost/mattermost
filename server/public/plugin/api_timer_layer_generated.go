@@ -1380,6 +1380,27 @@ func (api *apiTimerLayer) UninviteRemoteFromChannel(channelID string, remoteID s
 	return _returnsA
 }
 
+func (api *apiTimerLayer) ReceiveSharedChannelSyncMsg(remoteID string, msg *model.SyncMsg) (model.SyncResponse, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.ReceiveSharedChannelSyncMsg(remoteID, msg)
+	api.recordTime(startTime, "ReceiveSharedChannelSyncMsg", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) ReceiveSharedChannelAttachmentSyncMsg(remoteID, channelID string, fi *model.FileInfo, data io.Reader) (*model.FileInfo, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.ReceiveSharedChannelAttachmentSyncMsg(remoteID, channelID, fi, data)
+	api.recordTime(startTime, "ReceiveSharedChannelAttachmentSyncMsg", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) ReceiveSharedChannelProfileImageSyncMsg(remoteID, userID string, image []byte) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.ReceiveSharedChannelProfileImageSyncMsg(remoteID, userID, image)
+	api.recordTime(startTime, "ReceiveSharedChannelProfileImageSyncMsg", _returnsA == nil)
+	return _returnsA
+}
+
 func (api *apiTimerLayer) UpsertGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.UpsertGroupMember(groupID, userID)
