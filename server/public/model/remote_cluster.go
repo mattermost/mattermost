@@ -27,7 +27,11 @@ const (
 	RemoteNameMaxLength      = 64
 
 	SiteURLPending = "pending_"
-	SiteURLPlugin  = "plugin_"
+
+	// Deprecated: SiteURLPlugin was used as a prefix for plugin-based remote SiteURLs.
+	// New registrations store the plugin-provided SiteURL directly. Use PluginID field
+	// to identify plugin-based remotes.
+	SiteURLPlugin = "plugin_"
 
 	BitflagOptionAutoShareDMs Bitmask = 1 << iota // Any new DM/GM is automatically shared
 	BitflagOptionAutoInvited                      // Remote is automatically invited to all shared channels
@@ -134,6 +138,10 @@ func (rc *RemoteCluster) IsValid() *AppError {
 		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.id.app_error", nil, "creator_id="+rc.CreatorId, http.StatusBadRequest)
 	}
 
+	if rc.SiteURL == "" {
+		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.site_url.app_error", nil, "site_url is empty", http.StatusBadRequest)
+	}
+
 	if rc.DefaultTeamId != "" && !IsValidId(rc.DefaultTeamId) {
 		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.id.app_error", nil, "default_team_id="+rc.DefaultTeamId, http.StatusBadRequest)
 	}
@@ -235,10 +243,7 @@ func (rc *RemoteCluster) IsConfirmed() bool {
 }
 
 func (rc *RemoteCluster) IsPlugin() bool {
-	if rc.PluginID != "" || strings.HasPrefix(rc.SiteURL, SiteURLPlugin) {
-		return true // local plugins are automatically confirmed
-	}
-	return false
+	return rc.PluginID != ""
 }
 
 func (rc *RemoteCluster) GetSiteURL() string {

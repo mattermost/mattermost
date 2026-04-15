@@ -1131,6 +1131,7 @@ func registerPluginRemoteForTest(t *testing.T, th *TestHelper, pluginID string, 
 		Displayname: "test-plugin-remote",
 		PluginID:    pluginID,
 		CreatorID:   th.BasicUser.Id,
+		SiteURL:     "plugin://" + pluginID,
 	})
 	require.NoError(t, err)
 
@@ -1148,7 +1149,7 @@ func registerPluginRemoteForTest(t *testing.T, th *TestHelper, pluginID string, 
 	err = th.App.InviteRemoteToChannel(channel.Id, remoteID, th.BasicUser.Id, false)
 	require.NoError(t, err)
 
-	rc, err := th.App.Srv().Store().RemoteCluster().GetByPluginID(pluginID)
+	rc, err := th.App.Srv().Store().RemoteCluster().Get(remoteID, false)
 	require.NoError(t, err)
 	return rc
 }

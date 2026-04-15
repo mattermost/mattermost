@@ -1252,12 +1252,22 @@ type API interface {
 	// Minimum server version: 9.5
 	RegisterPluginForSharedChannels(opts model.RegisterPluginOpts) (remoteID string, err error)
 
-	// UnregisterPluginForSharedChannels unregisters the plugin as a `Remote` for SharedChannels.
-	// The plugin will no longer receive synchronization messages via the `OnSharedChannelsSyncMsg` hook.
+	// UnregisterPluginForSharedChannels unregisters all remotes for this plugin. The plugin will no
+	// longer receive synchronization messages via the `OnSharedChannelsSyncMsg` hook. Used in
+	// OnDeactivate for bulk cleanup.
 	//
 	// @tag SharedChannels
 	// Minimum server version: 9.5
 	UnregisterPluginForSharedChannels(pluginID string) error
+
+	// UnregisterPluginRemoteForSharedChannels unregisters a specific remote by its remoteID.
+	// The remote must belong to the calling plugin (ownership is validated server-side).
+	// The remote will no longer receive synchronization messages. Used for config change
+	// reconciliation when a connection is removed but others remain.
+	//
+	// @tag SharedChannels
+	// Minimum server version: 11.7
+	UnregisterPluginRemoteForSharedChannels(remoteID string) error
 
 	// ShareChannel marks a channel for sharing via shared channels. Note, this does not automatically
 	// invite any remote clusters to the channel - use `InviteRemote` to invite a remote , or this plugin,

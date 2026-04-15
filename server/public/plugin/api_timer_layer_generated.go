@@ -1331,6 +1331,13 @@ func (api *apiTimerLayer) UnregisterPluginForSharedChannels(pluginID string) err
 	return _returnsA
 }
 
+func (api *apiTimerLayer) UnregisterPluginRemoteForSharedChannels(remoteID string) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.UnregisterPluginRemoteForSharedChannels(remoteID)
+	api.recordTime(startTime, "UnregisterPluginRemoteForSharedChannels", _returnsA == nil)
+	return _returnsA
+}
+
 func (api *apiTimerLayer) ShareChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.ShareChannel(sc)

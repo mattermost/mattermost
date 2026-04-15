@@ -112,39 +112,39 @@ const (
 )
 
 type Post struct {
-	Id         string `json:"id"`
-	CreateAt   int64  `json:"create_at"`
-	UpdateAt   int64  `json:"update_at"`
-	EditAt     int64  `json:"edit_at"`
-	DeleteAt   int64  `json:"delete_at"`
-	IsPinned   bool   `json:"is_pinned"`
-	UserId     string `json:"user_id"`
-	ChannelId  string `json:"channel_id"`
-	RootId     string `json:"root_id"`
-	OriginalId string `json:"original_id"`
+	Id         string `json:"id" xml:"Id"`
+	CreateAt   int64  `json:"create_at" xml:"CreateAt"`
+	UpdateAt   int64  `json:"update_at" xml:"UpdateAt"`
+	EditAt     int64  `json:"edit_at" xml:"EditAt"`
+	DeleteAt   int64  `json:"delete_at" xml:"DeleteAt"`
+	IsPinned   bool   `json:"is_pinned" xml:"IsPinned"`
+	UserId     string `json:"user_id" xml:"UserId"`
+	ChannelId  string `json:"channel_id" xml:"ChannelId"`
+	RootId     string `json:"root_id" xml:"RootId"`
+	OriginalId string `json:"original_id" xml:"OriginalId"`
 
-	Message string `json:"message"`
+	Message string `json:"message" xml:"Message"`
 	// MessageSource will contain the message as submitted by the user if Message has been modified
 	// by Mattermost for presentation (e.g if an image proxy is being used). It should be used to
 	// populate edit boxes if present.
-	MessageSource string `json:"message_source,omitempty"`
+	MessageSource string `json:"message_source,omitempty" xml:"MessageSource,omitempty"`
 
-	Type          string          `json:"type"`
-	propsMu       sync.RWMutex    `db:"-"`       // Unexported mutex used to guard Post.Props.
-	Props         StringInterface `json:"props"` // Deprecated: use GetProps()
-	Hashtags      string          `json:"hashtags"`
-	Filenames     StringArray     `json:"-"` // Deprecated, do not use this field any more
-	FileIds       StringArray     `json:"file_ids"`
-	PendingPostId string          `json:"pending_post_id"`
-	HasReactions  bool            `json:"has_reactions,omitempty"`
-	RemoteId      *string         `json:"remote_id,omitempty"`
+	Type          string          `json:"type" xml:"Type"`
+	propsMu       sync.RWMutex    `db:"-"`                   // Unexported mutex used to guard Post.Props.
+	Props         StringInterface `json:"props" xml:"Props"` // Deprecated: use GetProps()
+	Hashtags      string          `json:"hashtags" xml:"Hashtags"`
+	Filenames     StringArray     `json:"-" xml:"-"` // Deprecated, do not use this field any more
+	FileIds       StringArray     `json:"file_ids" xml:"FileIds>Id"`
+	PendingPostId string          `json:"pending_post_id" xml:"PendingPostId"`
+	HasReactions  bool            `json:"has_reactions,omitempty" xml:"HasReactions,omitempty"`
+	RemoteId      *string         `json:"remote_id,omitempty" xml:"RemoteId,omitempty"`
 
 	// Transient data populated before sending a post to the client
-	ReplyCount   int64         `json:"reply_count"`
-	LastReplyAt  int64         `json:"last_reply_at"`
-	Participants []*User       `json:"participants"`
-	IsFollowing  *bool         `json:"is_following,omitempty"` // for root posts in collapsed thread mode indicates if the current user is following this thread
-	Metadata     *PostMetadata `json:"metadata,omitempty"`
+	ReplyCount   int64         `json:"reply_count" xml:"ReplyCount"`
+	LastReplyAt  int64         `json:"last_reply_at" xml:"LastReplyAt"`
+	Participants []*User       `json:"participants" xml:"Participants>User"`
+	IsFollowing  *bool         `json:"is_following,omitempty" xml:"IsFollowing,omitempty"` // for root posts in collapsed thread mode indicates if the current user is following this thread
+	Metadata     *PostMetadata `json:"metadata,omitempty" xml:"-"`
 }
 
 func (o *Post) Auditable() map[string]any {

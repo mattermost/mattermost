@@ -24,6 +24,7 @@ func TestRemoteClusterIsValid(t *testing.T) {
 		{name: "Zero value", rc: &RemoteCluster{}, valid: false},
 		{name: "Missing cluster_name", rc: &RemoteCluster{RemoteId: id}, valid: false},
 		{name: "Missing host_name", rc: &RemoteCluster{RemoteId: id, Name: NewId()}, valid: false},
+		{name: "Missing site_url", rc: &RemoteCluster{RemoteId: id, Name: NewId(), CreatorId: creator, CreateAt: now}, valid: false},
 		{name: "Missing create_at", rc: &RemoteCluster{RemoteId: id, Name: NewId(), SiteURL: "example.com"}, valid: false},
 		{name: "Missing last_ping_at", rc: &RemoteCluster{RemoteId: id, Name: NewId(), SiteURL: "example.com", CreatorId: creator, CreateAt: now}, valid: true},
 		{name: "Missing creator", rc: &RemoteCluster{RemoteId: id, Name: NewId(), SiteURL: "example.com", CreateAt: now, LastPingAt: now}, valid: false},
