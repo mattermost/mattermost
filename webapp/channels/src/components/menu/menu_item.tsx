@@ -9,6 +9,7 @@ import React, {
     Children,
     forwardRef,
     useContext,
+    useRef,
 } from 'react';
 import type {
     ReactElement,
@@ -155,6 +156,11 @@ export const MenuItem = forwardRef<HTMLLIElement, Props>((props, ref) => {
 
     const isMobileView = useSelector(getIsMobileView);
 
+    // MUI ButtonBase fires a synthetic click on Enter/Space, so
+    // handleClick runs for both the keydown AND the click event.
+    // The ref ensures the onClick callback is only dispatched once.
+    const handledRef = useRef(false);
+
     function handleClick(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
         if (isCorrectKeyPressedOnMenuItem(event)) {
             // If the menu item is a checkbox or radio button, we don't want to close the menu when it is clicked.
@@ -174,7 +180,12 @@ export const MenuItem = forwardRef<HTMLLIElement, Props>((props, ref) => {
                 }
             }
 
-            if (onClick) {
+            if (onClick && !handledRef.current) {
+                handledRef.current = true;
+                queueMicrotask(() => {
+                    handledRef.current = false;
+                });
+
                 // If the menu is in mobile view, we execute the click event immediately.
                 // If the menu item is a checkbox or radio button, we execute the click event immediately.
                 if (isMobileView || isRoleCheckboxOrRadio(role)) {
@@ -333,27 +344,17 @@ export const MenuItemStyled = styled(MuiMenuItem, {
 );
 
 /**
- * Use this function to check if the menu item was pressed as per WAI-ARIA guidelines.
- * @param event - The event to check if the menu item was pressed by mouse or keyboard. Either a mouse event or a keyboard event.
- * @returns true if the menu item was pressed by mouse's "Primary" key or keyboard's "Space" or "Enter" key
- **/
+ * Checks if the menu item was activated per WAI-ARIA guidelines.
+ * Returns true for primary mouse click or Enter/Space keydown.
+ */
 function isCorrectKeyPressedOnMenuItem(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
     if (event.type === EventTypes.KEY_DOWN) {
         const keyboardEvent = event as KeyboardEvent<HTMLLIElement>;
-        if (isKeyPressed(keyboardEvent, Constants.KeyCodes.ENTER) || isKeyPressed(keyboardEvent, Constants.KeyCodes.SPACE)) {
-            return true;
-        }
-
-        return false;
-    } else if (event.type === EventTypes.CLICK) {
-        const mouseEvent = event as MouseEvent<HTMLLIElement>;
-        if (mouseEvent.button === 0) {
-            return true;
-        }
-
-        return false;
+        return isKeyPressed(keyboardEvent, Constants.KeyCodes.ENTER) || isKeyPressed(keyboardEvent, Constants.KeyCodes.SPACE);
     }
-
+    if (event.type === EventTypes.CLICK) {
+        return (event as MouseEvent<HTMLLIElement>).button === 0;
+    }
     return false;
 }
 
