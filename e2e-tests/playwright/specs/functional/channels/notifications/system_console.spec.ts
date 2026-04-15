@@ -6,6 +6,25 @@ import {AdminConfig} from '@mattermost/types/config';
 import {expect, test} from '@mattermost/playwright-lib';
 
 /**
+ * Patch the Notifications page required fields to known valid values so tests
+ * that load the page always start with a saveable form state, regardless of
+ * what other parallel tests may have left in the server config.
+ */
+async function resetNotificationsConfig(adminClient: {
+    patchConfig: (config: Partial<AdminConfig>) => Promise<unknown>;
+}) {
+    await adminClient.patchConfig({
+        EmailSettings: {
+            FeedbackName: 'Mattermost Notification',
+            FeedbackEmail: 'notification@mattertest.com',
+        },
+        SupportSettings: {
+            SupportEmail: 'support@mattertest.com',
+        },
+    } as Partial<AdminConfig>);
+}
+
+/**
  * @objective Verify that the Push Notification Contents setting is properly displayed and can be changed to all available options
  */
 test('Push Notification Contents setting displays correctly and saves all options', async ({pw}) => {
@@ -99,11 +118,15 @@ test('Push Notification Contents setting displays correctly and saves all option
  * @objective Verify that the Support Email setting can be changed and saved
  */
 test('MM-T1210 Can change Support Email setting', async ({pw}) => {
-    const {adminUser} = await pw.getAdminClient();
+    const {adminUser, adminClient} = await pw.getAdminClient();
 
-    if (!adminUser) {
+    if (!adminUser || !adminClient) {
         throw new Error('Failed to get admin user');
     }
+
+    // Ensure required Notifications fields are populated so the Save button
+    // starts enabled — prevents state pollution from other parallel tests.
+    await resetNotificationsConfig(adminClient);
 
     // # Log in as admin
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -146,10 +169,15 @@ test('MM-T1210 Can change Support Email setting', async ({pw}) => {
  * @objective Verify that the save button is disabled when mandatory fields are empty
  */
 test('MM-41671 cannot save the notifications page if mandatory fields are missing', async ({pw}) => {
-    const {adminUser} = await pw.getAdminClient();
-    if (!adminUser) {
+    const {adminUser, adminClient} = await pw.getAdminClient();
+    if (!adminUser || !adminClient) {
         throw new Error('Failed to get admin user');
     }
+
+    // Ensure all required fields are populated before the test starts so that
+    // clearing one field at a time reliably disables the save button, and
+    // restoring it reliably re-enables it (no other empty field blocking save).
+    await resetNotificationsConfig(adminClient);
 
     // # Log in as admin
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
