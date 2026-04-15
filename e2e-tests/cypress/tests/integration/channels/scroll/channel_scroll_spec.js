@@ -167,7 +167,7 @@ describe('Scroll', () => {
             });
         });
 
-        // * Verify we are still on the top of the channel and no scrolling occured
+        // * Verify we are still on the top of the channel and no scrolling occurred
         cy.findByText(firstPost).should('exist').and('be.visible');
         cy.findByText(lastPost).should('exist').and('not.be.visible');
     });
