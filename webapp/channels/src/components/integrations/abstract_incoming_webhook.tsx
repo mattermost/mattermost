@@ -128,7 +128,7 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
             return;
         }
 
-        const hook = {
+        const hook: IncomingWebhook = {
             channel_id: this.state.channelId,
             channel_locked: this.state.channelLocked,
             display_name: this.state.displayName,
@@ -141,6 +141,7 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
             delete_at: this.props.initialHook?.delete_at || 0,
             team_id: this.props.initialHook?.team_id || '',
             user_id: this.props.initialHook?.user_id || '',
+            last_used_at: this.props.initialHook?.last_used_at ?? 0,
         };
 
         this.props.action(hook).then(() => this.setState({saving: false}));
