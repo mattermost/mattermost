@@ -435,7 +435,7 @@ func TestListCPAValues(t *testing.T) {
 	require.Nil(t, appErr)
 	require.NotNil(t, createdField)
 
-	_, appErr = th.App.PatchCPAValue(request.TestContext(t), th.BasicUser.Id, createdField.ID, json.RawMessage(`"Field Value"`), true)
+	_, appErr = th.App.PatchCPAValue(request.TestContext(t), th.BasicUser.Id, createdField.ID, json.RawMessage(`"Field Value"`))
 	require.Nil(t, appErr)
 
 	t.Run("endpoint should not work if no valid license is present", func(t *testing.T) {
@@ -479,7 +479,7 @@ func TestListCPAValues(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, createdArrayField)
 
-		_, appErr = th.App.PatchCPAValue(request.TestContext(t), th.BasicUser.Id, createdArrayField.ID, json.RawMessage(fmt.Sprintf(`["%s", "%s"]`, optionID1, optionID2)), true)
+		_, appErr = th.App.PatchCPAValue(request.TestContext(t), th.BasicUser.Id, createdArrayField.ID, json.RawMessage(fmt.Sprintf(`["%s", "%s"]`, optionID1, optionID2)))
 		require.Nil(t, appErr)
 
 		values, resp, err := th.Client.ListCPAValues(context.Background(), th.BasicUser.Id)
@@ -797,10 +797,10 @@ func TestPatchCPAValues(t *testing.T) {
 		t.Run("batch update with managed fields fails for regular user", func(t *testing.T) {
 			// First set some initial values to ensure we can verify they don't change
 			// Set initial values for both fields using th.App (admins can set managed field values)
-			_, appErr := th.App.PatchCPAValue(request.TestContext(t), th.BasicUser.Id, createdRegularField.ID, json.RawMessage(`"Initial Regular Value"`), false)
+			_, appErr := th.App.PatchCPAValue(request.TestContext(t), th.BasicUser.Id, createdRegularField.ID, json.RawMessage(`"Initial Regular Value"`))
 			require.Nil(t, appErr)
 
-			_, appErr = th.App.PatchCPAValue(request.TestContext(t), th.BasicUser.Id, createdManagedField.ID, json.RawMessage(`"Initial Managed Value"`), true)
+			_, appErr = th.App.PatchCPAValue(request.TestContext(t), th.BasicUser.Id, createdManagedField.ID, json.RawMessage(`"Initial Managed Value"`))
 			require.Nil(t, appErr)
 
 			// Try to batch update both managed and regular fields - this should fail
@@ -1146,7 +1146,7 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 			// Set initial value through the app layer that we will be replacing during the test
-			_, appErr := th.App.PatchCPAValue(request.TestContext(t), th.SystemAdminUser.Id, createdManagedField.ID, json.RawMessage(`"Initial Admin Value"`), true)
+			_, appErr := th.App.PatchCPAValue(request.TestContext(t), th.SystemAdminUser.Id, createdManagedField.ID, json.RawMessage(`"Initial Admin Value"`))
 			require.Nil(t, appErr)
 
 			values := map[string]json.RawMessage{
@@ -1203,10 +1203,10 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 		t.Run("batch update with managed fields fails for regular user", func(t *testing.T) {
 			// First set some initial values to ensure we can verify they don't change
 			// Set initial values for both fields using th.App (admins can set managed field values)
-			_, appErr := th.App.PatchCPAValue(request.TestContext(t), th.BasicUser.Id, createdRegularField.ID, json.RawMessage(`"Initial Regular Value"`), false)
+			_, appErr := th.App.PatchCPAValue(request.TestContext(t), th.BasicUser.Id, createdRegularField.ID, json.RawMessage(`"Initial Regular Value"`))
 			require.Nil(t, appErr)
 
-			_, appErr = th.App.PatchCPAValue(request.TestContext(t), th.BasicUser.Id, createdManagedField.ID, json.RawMessage(`"Initial Managed Value"`), true)
+			_, appErr = th.App.PatchCPAValue(request.TestContext(t), th.BasicUser.Id, createdManagedField.ID, json.RawMessage(`"Initial Managed Value"`))
 			require.Nil(t, appErr)
 
 			// Try to batch update both managed and regular fields - this should fail

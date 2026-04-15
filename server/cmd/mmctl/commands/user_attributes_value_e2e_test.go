@@ -24,7 +24,7 @@ func (s *MmctlE2ETestSuite) cleanCPAValuesForUser(userID string) {
 	}
 
 	if len(updates) > 0 {
-		_, appErr = s.th.App.PatchCPAValues(nil, userID, updates, false)
+		_, appErr = s.th.App.PatchCPAValues(nil, userID, updates)
 		s.Require().Nil(appErr)
 	}
 }
@@ -71,7 +71,7 @@ func (s *MmctlE2ETestSuite) TestCPAValueList() {
 		updates := map[string]json.RawMessage{
 			createdField.ID: json.RawMessage(`"Engineering"`),
 		}
-		_, appErr = s.th.App.PatchCPAValues(nil, s.th.BasicUser.Id, updates, false)
+		_, appErr = s.th.App.PatchCPAValues(nil, s.th.BasicUser.Id, updates)
 		s.Require().Nil(appErr)
 
 		// Test listing the values with plain format (human-readable)

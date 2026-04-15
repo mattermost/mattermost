@@ -11,12 +11,7 @@ import (
 	"sort"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-)
-
-const (
-	CustomProfileAttributesFieldLimit = 20
 )
 
 func (a *App) CpaGroupID() (string, *model.AppError) {
@@ -58,8 +53,9 @@ func (a *App) ListCPAFields(rctx request.CTX) ([]*model.CPAField, *model.AppErro
 	}
 
 	opts := model.PropertyFieldSearchOpts{
-		GroupID: groupID,
-		PerPage: CustomProfileAttributesFieldLimit,
+		GroupID:    groupID,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		PerPage:    200, // global limit for the protected_attributes group
 	}
 
 	fields, appErr := a.SearchPropertyFields(rctx, groupID, opts)
@@ -90,16 +86,9 @@ func (a *App) CreateCPAField(rctx request.CTX, field *model.CPAField) (*model.CP
 		return nil, model.NewAppError("CreateCPAField", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
-	fieldCount, appErr := a.CountPropertyFieldsForGroup(rctx, groupID, false)
-	if appErr != nil {
-		return nil, model.NewAppError("CreateCPAField", "app.custom_profile_attributes.count_property_fields.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
-	}
-
-	if fieldCount >= CustomProfileAttributesFieldLimit {
-		return nil, model.NewAppError("CreateCPAField", "app.custom_profile_attributes.limit_reached.app_error", nil, "", http.StatusUnprocessableEntity)
-	}
-
 	field.GroupID = groupID
+	field.ObjectType = model.PropertyFieldObjectTypeUser
+	field.TargetType = string(model.PropertyFieldTargetLevelSystem)
 
 	if appErr = field.SanitizeAndValidate(); appErr != nil {
 		return nil, appErr
@@ -126,11 +115,6 @@ func (a *App) PatchCPAField(rctx request.CTX, fieldID string, patch *model.Prope
 	existingField, appErr := a.GetCPAField(rctx, fieldID)
 	if appErr != nil {
 		return nil, appErr
-	}
-
-	shouldDeleteValues := false
-	if patch.Type != nil && *patch.Type != existingField.Type {
-		shouldDeleteValues = true
 	}
 
 	if err := existingField.Patch(patch); err != nil {
@@ -161,18 +145,8 @@ func (a *App) PatchCPAField(rctx request.CTX, fieldID string, patch *model.Prope
 		return nil, model.NewAppError("PatchCPAField", "app.custom_profile_attributes.property_field_conversion.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if shouldDeleteValues {
-		if dErr := a.DeletePropertyValuesForField(rctx, groupID, cpaField.ID); dErr != nil {
-			a.Log().Error("Error deleting property values when updating field",
-				mlog.String("fieldID", cpaField.ID),
-				mlog.Err(dErr),
-			)
-		}
-	}
-
 	message := model.NewWebSocketEvent(model.WebsocketEventCPAFieldUpdated, "", "", "", nil, "")
 	message.Add("field", cpaField)
-	message.Add("delete_values", shouldDeleteValues)
 	a.Publish(message)
 
 	return cpaField, nil
@@ -208,7 +182,7 @@ func (a *App) ListCPAValues(rctx request.CTX, targetUserID string) ([]*model.Pro
 
 	values, appErr := a.SearchPropertyValues(rctx, groupID, model.PropertyValueSearchOpts{
 		TargetIDs: []string{targetUserID},
-		PerPage:   CustomProfileAttributesFieldLimit,
+		PerPage:   200,
 	})
 	if appErr != nil {
 		return nil, model.NewAppError("ListCPAValues", "app.custom_profile_attributes.list_property_values.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
@@ -231,8 +205,8 @@ func (a *App) GetCPAValue(rctx request.CTX, valueID string) (*model.PropertyValu
 	return value, nil
 }
 
-func (a *App) PatchCPAValue(rctx request.CTX, userID string, fieldID string, value json.RawMessage, allowSynced bool) (*model.PropertyValue, *model.AppError) {
-	values, appErr := a.PatchCPAValues(rctx, userID, map[string]json.RawMessage{fieldID: value}, allowSynced)
+func (a *App) PatchCPAValue(rctx request.CTX, userID string, fieldID string, value json.RawMessage) (*model.PropertyValue, *model.AppError) {
+	values, appErr := a.PatchCPAValues(rctx, userID, map[string]json.RawMessage{fieldID: value})
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -240,7 +214,7 @@ func (a *App) PatchCPAValue(rctx request.CTX, userID string, fieldID string, val
 	return values[0], nil
 }
 
-func (a *App) PatchCPAValues(rctx request.CTX, userID string, fieldValueMap map[string]json.RawMessage, allowSynced bool) ([]*model.PropertyValue, *model.AppError) {
+func (a *App) PatchCPAValues(rctx request.CTX, userID string, fieldValueMap map[string]json.RawMessage) ([]*model.PropertyValue, *model.AppError) {
 	groupID, appErr := a.CpaGroupID()
 	if appErr != nil {
 		return nil, model.NewAppError("PatchCPAValues", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
@@ -248,7 +222,7 @@ func (a *App) PatchCPAValues(rctx request.CTX, userID string, fieldValueMap map[
 
 	valuesToUpdate := []*model.PropertyValue{}
 	for fieldID, rawValue := range fieldValueMap {
-		// make sure field exists in this group
+		// make sure field exists in this group and is not deleted
 		cpaField, fieldErr := a.GetCPAField(rctx, fieldID)
 		if fieldErr != nil {
 			return nil, model.NewAppError("PatchCPAValues", "app.custom_profile_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound).Wrap(fieldErr)
@@ -256,21 +230,12 @@ func (a *App) PatchCPAValues(rctx request.CTX, userID string, fieldValueMap map[
 			return nil, model.NewAppError("PatchCPAValues", "app.custom_profile_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound)
 		}
 
-		if !allowSynced && cpaField.IsSynced() {
-			return nil, model.NewAppError("PatchCPAValues", "app.custom_profile_attributes.property_field_is_synced.app_error", nil, "", http.StatusBadRequest)
-		}
-
-		sanitizedValue, sErr := model.SanitizeAndValidatePropertyValue(cpaField, rawValue)
-		if sErr != nil {
-			return nil, model.NewAppError("PatchCPAValues", "app.custom_profile_attributes.validate_value.app_error", nil, "", http.StatusBadRequest).Wrap(sErr)
-		}
-
 		value := &model.PropertyValue{
 			GroupID:    groupID,
 			TargetType: model.PropertyValueTargetTypeUser,
 			TargetID:   userID,
 			FieldID:    fieldID,
-			Value:      sanitizedValue,
+			Value:      rawValue,
 		}
 		valuesToUpdate = append(valuesToUpdate, value)
 	}

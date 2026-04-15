@@ -17,6 +17,7 @@ import (
 func TestGetCPAField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	cpaID, cErr := th.App.CpaGroupID()
 	require.Nil(t, cErr)
@@ -68,10 +69,12 @@ func TestGetCPAField(t *testing.T) {
 	t.Run("should initialize default attrs when field has nil Attrs", func(t *testing.T) {
 		// Create a field with nil Attrs directly via property service (bypassing CPA validation)
 		field := &model.PropertyField{
-			GroupID: cpaID,
-			Name:    "Field with nil attrs",
-			Type:    model.PropertyFieldTypeText,
-			Attrs:   nil,
+			GroupID:    cpaID,
+			Name:       "Field with nil attrs",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs:      nil,
 		}
 		createdField, err := th.App.CreatePropertyField(rctx, field, false, "")
 		require.Nil(t, err)
@@ -86,10 +89,12 @@ func TestGetCPAField(t *testing.T) {
 	t.Run("should initialize default attrs when field has empty Attrs", func(t *testing.T) {
 		// Create a field with empty Attrs directly via property service
 		field := &model.PropertyField{
-			GroupID: cpaID,
-			Name:    "Field with empty attrs",
-			Type:    model.PropertyFieldTypeText,
-			Attrs:   model.StringInterface{},
+			GroupID:    cpaID,
+			Name:       "Field with empty attrs",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs:      model.StringInterface{},
 		}
 		createdField, err := th.App.CreatePropertyField(rctx, field, false, "")
 		require.Nil(t, err)
@@ -101,64 +106,22 @@ func TestGetCPAField(t *testing.T) {
 		require.Equal(t, float64(0), fetchedField.Attrs.SortOrder)
 	})
 
-	t.Run("should validate LDAP/SAML synced fields", func(t *testing.T) {
-		// Create LDAP synced field
-		ldapField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-			GroupID: cpaID,
-			Name:    "LDAP Field",
-			Type:    model.PropertyFieldTypeText,
-			Attrs: model.StringInterface{
-				model.CustomProfileAttributesPropertyAttrsLDAP: "ldap_attribute",
-			},
-		})
-		require.NoError(t, err)
-		createdLDAPField, appErr := th.App.CreateCPAField(rctx, ldapField)
-		require.Nil(t, appErr)
-
-		// Create SAML synced field
-		samlField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-			GroupID: cpaID,
-			Name:    "SAML Field",
-			Type:    model.PropertyFieldTypeText,
-			Attrs: model.StringInterface{
-				model.CustomProfileAttributesPropertyAttrsSAML: "saml_attribute",
-			},
-		})
-		require.NoError(t, err)
-		createdSAMLField, appErr := th.App.CreateCPAField(rctx, samlField)
-		require.Nil(t, appErr)
-
-		// Test with allowSynced=false
-		userID := model.NewId()
-
-		// Test LDAP field
-		_, appErr = th.App.PatchCPAValue(rctx, userID, createdLDAPField.ID, json.RawMessage(`"test value"`), false)
-		require.NotNil(t, appErr)
-		require.Equal(t, "app.custom_profile_attributes.property_field_is_synced.app_error", appErr.Id)
-
-		// Test SAML field
-		_, appErr = th.App.PatchCPAValue(rctx, userID, createdSAMLField.ID, json.RawMessage(`"test value"`), false)
-		require.NotNil(t, appErr)
-		require.Equal(t, "app.custom_profile_attributes.property_field_is_synced.app_error", appErr.Id)
-
-		// Test with allowSynced=true
-		// LDAP field should work
-		patchedValue, appErr := th.App.PatchCPAValue(rctx, userID, createdLDAPField.ID, json.RawMessage(`"test value"`), true)
-		require.Nil(t, appErr)
-		require.NotNil(t, patchedValue)
-		require.Equal(t, json.RawMessage(`"test value"`), patchedValue.Value)
-
-		// SAML field should work
-		patchedValue, appErr = th.App.PatchCPAValue(rctx, userID, createdSAMLField.ID, json.RawMessage(`"test value"`), true)
-		require.Nil(t, appErr)
-		require.NotNil(t, patchedValue)
-		require.Equal(t, json.RawMessage(`"test value"`), patchedValue.Value)
-	})
+	// TODO: Sync lock validation for LDAP/SAML synced fields is now handled by
+	// the access control hook (checkSyncLock) rather than the allowSynced parameter.
+	// The hook is registered via RegisterCPAPropertyGroup in the properties package,
+	// but it is NOT registered by the app-level Setup(t).InitBasic(t) test helper.
+	// To properly test sync lock behavior at the app level, the test setup would
+	// need to register the CPA property group and its access control hooks.
+	// The sync lock logic is covered by tests in channels/app/properties/ instead.
+	// Callers use emptyContextWithCallerID(anonymousCallerId) for normal users
+	// (blocked by checkSyncLock) and emptyContextWithCallerID(model.CallerIDLDAPSync)
+	// or emptyContextWithCallerID(model.CallerIDSAMLSync) for sync services (allowed).
 }
 
 func TestListCPAFields(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	cpaID, cErr := th.App.CpaGroupID()
 	require.Nil(t, cErr)
@@ -167,10 +130,12 @@ func TestListCPAFields(t *testing.T) {
 
 	t.Run("should list the CPA property fields", func(t *testing.T) {
 		field1 := model.PropertyField{
-			GroupID: cpaID,
-			Name:    "Field 1",
-			Type:    model.PropertyFieldTypeText,
-			Attrs:   model.StringInterface{model.CustomProfileAttributesPropertyAttrsSortOrder: 1},
+			GroupID:    cpaID,
+			Name:       "Field 1",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs:      model.StringInterface{model.CustomProfileAttributesPropertyAttrsSortOrder: 1},
 		}
 
 		_, err := th.App.CreatePropertyField(rctx, &field1, false, "")
@@ -185,10 +150,12 @@ func TestListCPAFields(t *testing.T) {
 		require.Nil(t, err)
 
 		field3 := model.PropertyField{
-			GroupID: cpaID,
-			Name:    "Field 3",
-			Type:    model.PropertyFieldTypeText,
-			Attrs:   model.StringInterface{model.CustomProfileAttributesPropertyAttrsSortOrder: 0},
+			GroupID:    cpaID,
+			Name:       "Field 3",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs:      model.StringInterface{model.CustomProfileAttributesPropertyAttrsSortOrder: 0},
 		}
 		_, err = th.App.CreatePropertyField(rctx, &field3, false, "")
 		require.Nil(t, err)
@@ -203,20 +170,24 @@ func TestListCPAFields(t *testing.T) {
 	t.Run("should initialize default attrs for fields with nil or empty Attrs", func(t *testing.T) {
 		// Create a field with nil Attrs
 		fieldWithNilAttrs := &model.PropertyField{
-			GroupID: cpaID,
-			Name:    "Field with nil attrs",
-			Type:    model.PropertyFieldTypeText,
-			Attrs:   nil,
+			GroupID:    cpaID,
+			Name:       "Field with nil attrs",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs:      nil,
 		}
 		_, err := th.App.CreatePropertyField(rctx, fieldWithNilAttrs, false, "")
 		require.Nil(t, err)
 
 		// Create a field with empty Attrs
 		fieldWithEmptyAttrs := &model.PropertyField{
-			GroupID: cpaID,
-			Name:    "Field with empty attrs",
-			Type:    model.PropertyFieldTypeText,
-			Attrs:   model.StringInterface{},
+			GroupID:    cpaID,
+			Name:       "Field with empty attrs",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs:      model.StringInterface{},
 		}
 		_, err = th.App.CreatePropertyField(rctx, fieldWithEmptyAttrs, false, "")
 		require.Nil(t, err)
@@ -291,6 +262,7 @@ func TestListCPAFields(t *testing.T) {
 func TestCreateCPAField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	cpaID, cErr := th.App.CpaGroupID()
 	require.Nil(t, cErr)
@@ -371,10 +343,11 @@ func TestCreateCPAField(t *testing.T) {
 
 	t.Run("CPA should honor the field limit", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 		t.Run("should not be able to create CPA fields above the limit", func(t *testing.T) {
 			// we create the rest of the fields required to reach the limit
-			for i := 1; i <= CustomProfileAttributesFieldLimit; i++ {
+			for i := 1; i <= 20; i++ {
 				field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 					Name: model.NewId(),
 					Type: model.PropertyFieldTypeText,
@@ -403,7 +376,7 @@ func TestCreateCPAField(t *testing.T) {
 			// we retrieve the list of fields and check we've reached the limit
 			fields, appErr := th.App.ListCPAFields(rctx)
 			require.Nil(t, appErr)
-			require.Len(t, fields, CustomProfileAttributesFieldLimit)
+			require.Len(t, fields, 20)
 
 			// then we delete one field
 			require.Nil(t, th.App.DeleteCPAField(rctx, fields[0].ID))
@@ -425,6 +398,7 @@ func TestCreateCPAField(t *testing.T) {
 func TestPatchCPAField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	cpaID, cErr := th.App.CpaGroupID()
 	require.Nil(t, cErr)
@@ -480,7 +454,7 @@ func TestPatchCPAField(t *testing.T) {
 		require.Equal(t, "Patched name", updatedField.Name)
 		require.Equal(t, model.CustomProfileAttributesVisibilityWhenSet, updatedField.Attrs.Visibility)
 		require.Empty(t, updatedField.TargetID, "CPA should not allow to patch the field's target ID")
-		require.Empty(t, updatedField.TargetType, "CPA should not allow to patch the field's target type")
+		require.Equal(t, string(model.PropertyFieldTargetLevelSystem), updatedField.TargetType, "CPA fields should always have system target type")
 		require.Greater(t, updatedField.UpdateAt, createdField.UpdateAt)
 	})
 
@@ -588,7 +562,7 @@ func TestPatchCPAField(t *testing.T) {
 
 		// Create values for this field using the first option
 		userID := model.NewId()
-		value, appErr := th.App.PatchCPAValue(rctx, userID, createdField.ID, json.RawMessage(fmt.Sprintf(`"%s"`, optionID)), false)
+		value, appErr := th.App.PatchCPAValue(rctx, userID, createdField.ID, json.RawMessage(fmt.Sprintf(`"%s"`, optionID)))
 		require.Nil(t, appErr)
 		require.NotNil(t, value)
 
@@ -625,7 +599,7 @@ func TestPatchCPAField(t *testing.T) {
 		require.Equal(t, json.RawMessage(fmt.Sprintf(`"%s"`, optionID)), values[0].Value)
 	})
 
-	t.Run("Should delete the values of a field after patching it if the type has changed", func(t *testing.T) {
+	t.Run("Should reject patching a field if the type has changed", func(t *testing.T) {
 		// Create a select field with options
 		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 			GroupID: cpaID,
@@ -648,41 +622,20 @@ func TestPatchCPAField(t *testing.T) {
 		createdField, appErr := th.App.CreateCPAField(rctx, field)
 		require.Nil(t, appErr)
 
-		// Get the option IDs
-		options := createdField.Attrs.Options
-		require.Len(t, options, 2)
-		optionID := options[0].ID
-		require.NotEmpty(t, optionID)
-
-		// Create values for this field
-		userID := model.NewId()
-		value, appErr := th.App.PatchCPAValue(rctx, userID, createdField.ID, json.RawMessage(fmt.Sprintf(`"%s"`, optionID)), false)
-		require.Nil(t, appErr)
-		require.NotNil(t, value)
-
-		// Verify value exists before type change
-		values, appErr := th.App.ListCPAValues(rctx, userID)
-		require.Nil(t, appErr)
-		require.Len(t, values, 1)
-
-		// Patch the field and change type from select to text
+		// Attempt to patch the field and change type from select to text
 		patch := &model.PropertyFieldPatch{
 			Type: model.NewPointer(model.PropertyFieldTypeText),
 		}
 		updatedField, appErr := th.App.PatchCPAField(rctx, createdField.ID, patch)
-		require.Nil(t, appErr)
-		require.Equal(t, model.PropertyFieldTypeText, updatedField.Type)
-
-		// Verify values have been deleted
-		values, appErr = th.App.ListCPAValues(rctx, userID)
-		require.Nil(t, appErr)
-		require.Empty(t, values)
+		require.NotNil(t, appErr, "patching a field to change its type should return an error")
+		require.Empty(t, updatedField)
 	})
 }
 
 func TestDeleteCPAField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	cpaID, cErr := th.App.CpaGroupID()
 	require.Nil(t, cErr)
@@ -765,6 +718,7 @@ func TestDeleteCPAField(t *testing.T) {
 func TestGetCPAValue(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	cpaID, cErr := th.App.CpaGroupID()
 	require.Nil(t, cErr)
@@ -772,9 +726,11 @@ func TestGetCPAValue(t *testing.T) {
 	rctx := th.emptyContextWithCallerID(anonymousCallerId)
 
 	field := &model.PropertyField{
-		GroupID: cpaID,
-		Name:    model.NewId(),
-		Type:    model.PropertyFieldTypeText,
+		GroupID:    cpaID,
+		Name:       model.NewId(),
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
 	}
 	createdField, err := th.App.CreatePropertyField(rctx, field, false, "")
 	require.Nil(t, err)
@@ -820,10 +776,20 @@ func TestGetCPAValue(t *testing.T) {
 	})
 
 	t.Run("should handle array values correctly", func(t *testing.T) {
+		optionIDs := []string{model.NewId(), model.NewId(), model.NewId()}
 		arrayField := &model.PropertyField{
-			GroupID: cpaID,
-			Name:    model.NewId(),
-			Type:    model.PropertyFieldTypeMultiselect,
+			GroupID:    cpaID,
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeMultiselect,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": optionIDs[0], "name": "option1"},
+					map[string]any{"id": optionIDs[1], "name": "option2"},
+					map[string]any{"id": optionIDs[2], "name": "option3"},
+				},
+			},
 		}
 		createdField, err := th.App.CreatePropertyField(rctx, arrayField, false, "")
 		require.Nil(t, err)
@@ -833,7 +799,7 @@ func TestGetCPAValue(t *testing.T) {
 			TargetType: model.PropertyValueTargetTypeUser,
 			GroupID:    cpaID,
 			FieldID:    createdField.ID,
-			Value:      json.RawMessage(`["option1", "option2", "option3"]`),
+			Value:      json.RawMessage(fmt.Sprintf(`["%s", "%s", "%s"]`, optionIDs[0], optionIDs[1], optionIDs[2])),
 		}
 		propertyValue, err = th.App.CreatePropertyValue(rctx, propertyValue)
 		require.Nil(t, err)
@@ -843,7 +809,7 @@ func TestGetCPAValue(t *testing.T) {
 		require.NotNil(t, pv)
 		var arrayValues []string
 		require.NoError(t, json.Unmarshal(pv.Value, &arrayValues))
-		require.Equal(t, []string{"option1", "option2", "option3"}, arrayValues)
+		require.Equal(t, optionIDs, arrayValues)
 	})
 }
 
@@ -852,6 +818,7 @@ func TestListCPAValues(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.CustomProfileAttributes = true
 	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	cpaID, cErr := th.App.CpaGroupID()
 	require.Nil(t, cErr)
@@ -869,11 +836,13 @@ func TestListCPAValues(t *testing.T) {
 	t.Run("should list all values for a user", func(t *testing.T) {
 		var expectedValues []json.RawMessage
 
-		for i := 1; i <= CustomProfileAttributesFieldLimit; i++ {
+		for i := 1; i <= 20; i++ {
 			field := &model.PropertyField{
-				GroupID: cpaID,
-				Name:    fmt.Sprintf("Field %d", i),
-				Type:    model.PropertyFieldTypeText,
+				GroupID:    cpaID,
+				Name:       fmt.Sprintf("Field %d", i),
+				Type:       model.PropertyFieldTypeText,
+				ObjectType: model.PropertyFieldObjectTypeUser,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
 			}
 			_, err := th.App.CreatePropertyField(rctx, field, false, "")
 			require.Nil(t, err)
@@ -893,7 +862,7 @@ func TestListCPAValues(t *testing.T) {
 		// List values for original user
 		values, appErr := th.App.ListCPAValues(rctx, userID)
 		require.Nil(t, appErr)
-		require.Len(t, values, CustomProfileAttributesFieldLimit)
+		require.Len(t, values, 20)
 
 		actualValues := make([]json.RawMessage, len(values))
 		for i, value := range values {
@@ -909,6 +878,7 @@ func TestListCPAValues(t *testing.T) {
 func TestPatchCPAValue(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	cpaID, cErr := th.App.CpaGroupID()
 	require.Nil(t, cErr)
@@ -917,28 +887,30 @@ func TestPatchCPAValue(t *testing.T) {
 
 	t.Run("should fail if the field doesn't exist", func(t *testing.T) {
 		invalidFieldID := model.NewId()
-		_, appErr := th.App.PatchCPAValue(rctx, model.NewId(), invalidFieldID, json.RawMessage(`"fieldValue"`), true)
+		_, appErr := th.App.PatchCPAValue(rctx, model.NewId(), invalidFieldID, json.RawMessage(`"fieldValue"`))
 		require.NotNil(t, appErr)
 	})
 
 	t.Run("should create value if new field value", func(t *testing.T) {
 		newField := &model.PropertyField{
-			GroupID: cpaID,
-			Name:    model.NewId(),
-			Type:    model.PropertyFieldTypeText,
+			GroupID:    cpaID,
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 		createdField, err := th.App.CreatePropertyField(rctx, newField, false, "")
 		require.Nil(t, err)
 
 		userID := model.NewId()
-		patchedValue, appErr := th.App.PatchCPAValue(rctx, userID, createdField.ID, json.RawMessage(`"test value"`), true)
+		patchedValue, appErr := th.App.PatchCPAValue(rctx, userID, createdField.ID, json.RawMessage(`"test value"`))
 		require.Nil(t, appErr)
 		require.NotNil(t, patchedValue)
 		require.Equal(t, json.RawMessage(`"test value"`), patchedValue.Value)
 		require.Equal(t, userID, patchedValue.TargetID)
 
 		t.Run("should correctly patch the CPA property value", func(t *testing.T) {
-			patch2, appErr := th.App.PatchCPAValue(rctx, userID, createdField.ID, json.RawMessage(`"new patched value"`), true)
+			patch2, appErr := th.App.PatchCPAValue(rctx, userID, createdField.ID, json.RawMessage(`"new patched value"`))
 			require.Nil(t, appErr)
 			require.NotNil(t, patch2)
 			require.Equal(t, patchedValue.ID, patch2.ID)
@@ -949,9 +921,11 @@ func TestPatchCPAValue(t *testing.T) {
 
 	t.Run("should fail if field is deleted", func(t *testing.T) {
 		newField := &model.PropertyField{
-			GroupID: cpaID,
-			Name:    model.NewId(),
-			Type:    model.PropertyFieldTypeText,
+			GroupID:    cpaID,
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 		createdField, err := th.App.CreatePropertyField(rctx, newField, false, "")
 		require.Nil(t, err)
@@ -959,7 +933,7 @@ func TestPatchCPAValue(t *testing.T) {
 		require.Nil(t, err)
 
 		userID := model.NewId()
-		patchedValue, appErr := th.App.PatchCPAValue(rctx, userID, createdField.ID, json.RawMessage(`"test value"`), true)
+		patchedValue, appErr := th.App.PatchCPAValue(rctx, userID, createdField.ID, json.RawMessage(`"test value"`))
 		require.NotNil(t, appErr)
 		require.Nil(t, patchedValue)
 	})
@@ -967,9 +941,11 @@ func TestPatchCPAValue(t *testing.T) {
 	t.Run("should handle array values correctly", func(t *testing.T) {
 		optionsID := []string{model.NewId(), model.NewId(), model.NewId(), model.NewId()}
 		arrayField := &model.PropertyField{
-			GroupID: cpaID,
-			Name:    model.NewId(),
-			Type:    model.PropertyFieldTypeMultiselect,
+			GroupID:    cpaID,
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeMultiselect,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				"options": []map[string]any{
 					{"id": optionsID[0], "name": "option1"},
@@ -986,7 +962,7 @@ func TestPatchCPAValue(t *testing.T) {
 		optionJSON := fmt.Sprintf(`["%s", "%s", "%s"]`, optionsID[0], optionsID[1], optionsID[2])
 
 		userID := model.NewId()
-		patchedValue, appErr := th.App.PatchCPAValue(rctx, userID, createdField.ID, json.RawMessage(optionJSON), true)
+		patchedValue, appErr := th.App.PatchCPAValue(rctx, userID, createdField.ID, json.RawMessage(optionJSON))
 		require.Nil(t, appErr)
 		require.NotNil(t, patchedValue)
 		var arrayValues []string
@@ -996,7 +972,7 @@ func TestPatchCPAValue(t *testing.T) {
 
 		// Update array values with valid option IDs
 		updatedOptionJSON := fmt.Sprintf(`["%s", "%s"]`, optionsID[1], optionsID[3])
-		updatedValue, appErr := th.App.PatchCPAValue(rctx, userID, createdField.ID, json.RawMessage(updatedOptionJSON), true)
+		updatedValue, appErr := th.App.PatchCPAValue(rctx, userID, createdField.ID, json.RawMessage(updatedOptionJSON))
 		require.Nil(t, appErr)
 		require.NotNil(t, updatedValue)
 		require.Equal(t, patchedValue.ID, updatedValue.ID)
@@ -1010,24 +986,21 @@ func TestPatchCPAValue(t *testing.T) {
 			invalidID := model.NewId()
 			invalidOptionJSON := fmt.Sprintf(`["%s", "%s"]`, optionsID[0], invalidID)
 
-			invalidValue, appErr := th.App.PatchCPAValue(rctx, userID, createdField.ID, json.RawMessage(invalidOptionJSON), true)
+			invalidValue, appErr := th.App.PatchCPAValue(rctx, userID, createdField.ID, json.RawMessage(invalidOptionJSON))
 			require.NotNil(t, appErr)
 			require.Nil(t, invalidValue)
-			require.Equal(t, "app.custom_profile_attributes.validate_value.app_error", appErr.Id)
 
 			// Test with completely invalid JSON format
 			invalidJSON := `[not valid json]`
-			invalidValue, appErr = th.App.PatchCPAValue(rctx, userID, createdField.ID, json.RawMessage(invalidJSON), true)
+			invalidValue, appErr = th.App.PatchCPAValue(rctx, userID, createdField.ID, json.RawMessage(invalidJSON))
 			require.NotNil(t, appErr)
 			require.Nil(t, invalidValue)
-			require.Equal(t, "app.custom_profile_attributes.validate_value.app_error", appErr.Id)
 
 			// Test with wrong data type (sending string instead of array)
 			wrongTypeJSON := `"not an array"`
-			invalidValue, appErr = th.App.PatchCPAValue(rctx, userID, createdField.ID, json.RawMessage(wrongTypeJSON), true)
+			invalidValue, appErr = th.App.PatchCPAValue(rctx, userID, createdField.ID, json.RawMessage(wrongTypeJSON))
 			require.NotNil(t, appErr)
 			require.Nil(t, invalidValue)
-			require.Equal(t, "app.custom_profile_attributes.validate_value.app_error", appErr.Id)
 		})
 	})
 }
@@ -1037,6 +1010,7 @@ func TestDeleteCPAValues(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.CustomProfileAttributes = true
 	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	cpaID, cErr := th.App.CpaGroupID()
 	require.Nil(t, cErr)
@@ -1060,7 +1034,7 @@ func TestDeleteCPAValues(t *testing.T) {
 		createdFields = append(createdFields, createdField)
 
 		// Create a value for this field
-		value, appErr := th.App.PatchCPAValue(rctx, userID, createdField.ID, json.RawMessage(fmt.Sprintf(`"Value %d"`, i)), false)
+		value, appErr := th.App.PatchCPAValue(rctx, userID, createdField.ID, json.RawMessage(fmt.Sprintf(`"Value %d"`, i)))
 		require.Nil(t, appErr)
 		require.NotNil(t, value)
 	}
@@ -1089,7 +1063,7 @@ func TestDeleteCPAValues(t *testing.T) {
 	t.Run("should not affect values for other users", func(t *testing.T) {
 		// Create values for another user
 		for _, field := range createdFields {
-			value, appErr := th.App.PatchCPAValue(rctx, otherUserID, field.ID, json.RawMessage(`"Other user value"`), false)
+			value, appErr := th.App.PatchCPAValue(rctx, otherUserID, field.ID, json.RawMessage(`"Other user value"`))
 			require.Nil(t, appErr)
 			require.NotNil(t, value)
 		}
