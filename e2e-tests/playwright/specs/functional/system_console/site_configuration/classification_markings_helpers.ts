@@ -27,9 +27,7 @@ export async function setClassificationMarkingsFeatureFlag(adminClient: Client4,
  */
 export async function deleteClassificationMarkingsFieldIfExists(adminClient: Client4) {
     try {
-        const fields = await adminClient.getPropertyFields(PROPERTY_GROUP, PROPERTY_OBJECT, TARGET_TYPE, '', {
-            perPage: 200,
-        });
+        const fields = await adminClient.getPropertyFields(PROPERTY_GROUP, PROPERTY_OBJECT, TARGET_TYPE);
         const field = fields.find((f) => f.name === CLASSIFICATION_FIELD_NAME && f.delete_at === 0);
         if (field?.id) {
             await adminClient.deletePropertyField(PROPERTY_GROUP, PROPERTY_OBJECT, field.id);
