@@ -2644,22 +2644,6 @@ func (a *App) populateEditHistoryFileMetadata(editHistoryPosts []*model.Post) *m
 }
 
 func (a *App) SetPostReminder(rctx request.CTX, postID, userID string, targetTime int64) *model.AppError {
-	// Store the reminder in the DB
-	reminder := &model.PostReminder{
-		PostId:     postID,
-		UserId:     userID,
-		TargetTime: targetTime,
-	}
-	err := a.Srv().Store().Post().SetPostReminder(reminder)
-	if err != nil {
-		return model.NewAppError("SetPostReminder", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	metadata, err := a.Srv().Store().Post().GetPostReminderMetadata(postID)
-	if err != nil {
-		return model.NewAppError("SetPostReminder", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
 	remindedPost, postErr := a.GetSinglePost(rctx, postID, false)
 	if postErr != nil {
 		return postErr
@@ -2668,6 +2652,21 @@ func (a *App) SetPostReminder(rctx request.CTX, postID, userID string, targetTim
 	ephemeralRootID := remindedPost.Id
 	if remindedPost.RootId != "" {
 		ephemeralRootID = remindedPost.RootId
+	}
+
+	metadata, err := a.Srv().Store().Post().GetPostReminderMetadata(postID)
+	if err != nil {
+		return model.NewAppError("SetPostReminder", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	reminder := &model.PostReminder{
+		PostId:     postID,
+		UserId:     userID,
+		TargetTime: targetTime,
+	}
+	err = a.Srv().Store().Post().SetPostReminder(reminder)
+	if err != nil {
+		return model.NewAppError("SetPostReminder", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	parsedTime := time.Unix(targetTime, 0).UTC().Format(time.RFC822)
