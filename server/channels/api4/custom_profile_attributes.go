@@ -27,11 +27,6 @@ func (api *API) InitCustomProfileAttributes() {
 }
 
 func listCPAFields(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
-		c.Err = model.NewAppError("Api4.listCPAFields", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
-		return
-	}
-
 	rctx := app.RequestContextWithCallerID(c.AppContext, c.AppContext.Session().UserId)
 	fields, appErr := c.App.ListCPAFields(rctx)
 	if appErr != nil {
@@ -45,65 +40,67 @@ func listCPAFields(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		c.SetPermissionError(model.PermissionManageSystem)
-		return
-	}
-
-	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
-		c.Err = model.NewAppError("Api4.createCPAField", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
-		return
-	}
-
 	var pf *model.CPAField
-	err := json.NewDecoder(r.Body).Decode(&pf)
-	if err != nil || pf == nil {
+	if err := json.NewDecoder(r.Body).Decode(&pf); err != nil || pf == nil {
 		c.SetInvalidParamWithErr("property_field", err)
 		return
 	}
 
 	pf.Name = strings.TrimSpace(pf.Name)
+	if appErr := pf.SanitizeAndValidate(); appErr != nil {
+		c.Err = appErr
+		return
+	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventCreateCPAField, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "property_field", pf)
 
-	rctx := app.RequestContextWithCallerID(c.AppContext, c.AppContext.Session().UserId)
-	createdField, appErr := c.App.CreateCPAField(rctx, pf)
+	// Translate to PropertyField and route through the generic property API
+	field := pf.ToPropertyField()
+	groupID, appErr := c.App.CpaGroupID()
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
+	field.GroupID = groupID
+	field.ObjectType = model.PropertyFieldObjectTypeUser
+	field.TargetType = string(model.PropertyFieldTargetLevelSystem)
+
+	createdField := executeCreatePropertyField(c, r, field)
+	if c.Err != nil {
+		return
+	}
+
+	cpaField, convErr := model.NewCPAFieldFromPropertyField(createdField)
+	if convErr != nil {
+		c.Err = model.NewAppError("createCPAField", "app.custom_profile_attributes.property_field_conversion.app_error", nil, "", http.StatusInternalServerError).Wrap(convErr)
+		return
+	}
+
+	// CPA-specific websocket event (backward compat)
+	message := model.NewWebSocketEvent(model.WebsocketEventCPAFieldCreated, "", "", "", nil, "")
+	message.Add("field", cpaField)
+	c.App.Publish(message)
 
 	auditRec.Success()
-	auditRec.AddEventResultState(createdField)
+	auditRec.AddEventResultState(cpaField)
 	auditRec.AddEventObjectType("property_field")
 
 	w.WriteHeader(http.StatusCreated)
-	if err := json.NewEncoder(w).Encode(createdField); err != nil {
+	if err := json.NewEncoder(w).Encode(cpaField); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
 func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		c.SetPermissionError(model.PermissionManageSystem)
-		return
-	}
-
-	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
-		c.Err = model.NewAppError("Api4.patchCPAField", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
-		return
-	}
-
 	c.RequireFieldId()
 	if c.Err != nil {
 		return
 	}
 
 	var patch *model.PropertyFieldPatch
-	err := json.NewDecoder(r.Body).Decode(&patch)
-	if err != nil || patch == nil {
+	if err := json.NewDecoder(r.Body).Decode(&patch); err != nil || patch == nil {
 		c.SetInvalidParamWithErr("property_field_patch", err)
 		return
 	}
@@ -111,11 +108,15 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	if patch.Name != nil {
 		*patch.Name = strings.TrimSpace(*patch.Name)
 	}
+	// CPA does not use targets
+	patch.TargetID = nil
+	patch.TargetType = nil
+
 	if err := patch.IsValid(); err != nil {
 		if appErr, ok := err.(*model.AppError); ok {
 			c.Err = appErr
 		} else {
-			c.Err = model.NewAppError("createCPAField", "api.custom_profile_attributes.invalid_field_patch", nil, "", http.StatusBadRequest)
+			c.Err = model.NewAppError("patchCPAField", "api.custom_profile_attributes.invalid_field_patch", nil, "", http.StatusBadRequest)
 		}
 		return
 	}
@@ -124,41 +125,38 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "property_field_patch", patch)
 
-	rctx := app.RequestContextWithCallerID(c.AppContext, c.AppContext.Session().UserId)
-	originalField, appErr := c.App.GetCPAField(rctx, c.Params.FieldId)
+	groupID, appErr := c.App.CpaGroupID()
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
-	auditRec.AddEventPriorState(originalField)
-
-	patchedField, appErr := c.App.PatchCPAField(rctx, c.Params.FieldId, patch)
-	if appErr != nil {
-		c.Err = appErr
+	updatedField := executePatchPropertyField(c, r, groupID, model.PropertyFieldObjectTypeUser, c.Params.FieldId, patch)
+	if c.Err != nil {
 		return
 	}
+
+	cpaField, convErr := model.NewCPAFieldFromPropertyField(updatedField)
+	if convErr != nil {
+		c.Err = model.NewAppError("patchCPAField", "app.custom_profile_attributes.property_field_conversion.app_error", nil, "", http.StatusInternalServerError).Wrap(convErr)
+		return
+	}
+
+	// CPA-specific websocket event (backward compat)
+	message := model.NewWebSocketEvent(model.WebsocketEventCPAFieldUpdated, "", "", "", nil, "")
+	message.Add("field", cpaField)
+	c.App.Publish(message)
 
 	auditRec.Success()
-	auditRec.AddEventResultState(patchedField)
+	auditRec.AddEventResultState(cpaField)
 	auditRec.AddEventObjectType("property_field")
 
-	if err := json.NewEncoder(w).Encode(patchedField); err != nil {
+	if err := json.NewEncoder(w).Encode(cpaField); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
 func deleteCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		c.SetPermissionError(model.PermissionManageSystem)
-		return
-	}
-
-	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
-		c.Err = model.NewAppError("Api4.deleteCPAField", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
-		return
-	}
-
 	c.RequireFieldId()
 	if c.Err != nil {
 		return
@@ -168,32 +166,31 @@ func deleteCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "field_id", c.Params.FieldId)
 
-	rctx := app.RequestContextWithCallerID(c.AppContext, c.AppContext.Session().UserId)
-	field, appErr := c.App.GetCPAField(rctx, c.Params.FieldId)
+	groupID, appErr := c.App.CpaGroupID()
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
-	auditRec.AddEventPriorState(field)
 
-	if appErr := c.App.DeleteCPAField(rctx, c.Params.FieldId); appErr != nil {
-		c.Err = appErr
+	existingField := executeDeletePropertyField(c, r, groupID, model.PropertyFieldObjectTypeUser, c.Params.FieldId)
+	if c.Err != nil {
 		return
 	}
 
+	// CPA-specific websocket event (backward compat)
+	message := model.NewWebSocketEvent(model.WebsocketEventCPAFieldDeleted, "", "", "", nil, "")
+	message.Add("field_id", c.Params.FieldId)
+	c.App.Publish(message)
+
+	auditRec.AddEventPriorState(existingField)
 	auditRec.Success()
-	auditRec.AddEventResultState(field)
+	auditRec.AddEventResultState(existingField)
 	auditRec.AddEventObjectType("property_field")
 
 	ReturnStatusOK(w)
 }
 
 func getCPAGroup(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
-		c.Err = model.NewAppError("Api4.getCPAGroup", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
-		return
-	}
-
 	groupID, appErr := c.App.CpaGroupID()
 	if appErr != nil {
 		c.Err = appErr
@@ -205,17 +202,44 @@ func getCPAGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
-		c.Err = model.NewAppError("Api4.patchCPAValues", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
+// cpaPatchValues is the shared implementation for patchCPAValues and
+// patchCPAValuesForUser. It translates the CPA request format to the
+// generic property API, routes through executePatchPropertyValues, and
+// emits the CPA-specific websocket event.
+func cpaPatchValues(c *Context, w http.ResponseWriter, r *http.Request, userID string, updates map[string]json.RawMessage) {
+	// Translate CPA format → generic PropertyValuePatchItem list
+	items := make([]model.PropertyValuePatchItem, 0, len(updates))
+	for fieldID, value := range updates {
+		items = append(items, model.PropertyValuePatchItem{
+			FieldID: fieldID,
+			Value:   value,
+		})
+	}
+
+	upserted := executePatchPropertyValues(c, r, model.ProtectedAttributesPropertyGroupName, model.PropertyFieldObjectTypeUser, userID, items)
+	if c.Err != nil {
 		return
 	}
 
-	userID := c.AppContext.Session().UserId
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), userID) {
-		c.SetPermissionError(model.PermissionEditOtherUsers)
-		return
+	// Translate response to CPA format: {fieldID: value}
+	results := make(map[string]json.RawMessage, len(upserted))
+	for _, value := range upserted {
+		results[value.FieldID] = value.Value
 	}
+
+	// CPA-specific websocket event (backward compat)
+	message := model.NewWebSocketEvent(model.WebsocketEventCPAValuesUpdated, "", "", "", nil, "")
+	message.Add("user_id", userID)
+	message.Add("values", results)
+	c.App.Publish(message)
+
+	if err := json.NewEncoder(w).Encode(results); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
+	userID := c.AppContext.Session().UserId
 
 	var updates map[string]json.RawMessage
 	if err := json.NewDecoder(r.Body).Decode(&updates); err != nil {
@@ -227,54 +251,16 @@ func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "user_id", userID)
 
-	// if the user is not an admin, we need to check that there are no
-	// admin-managed fields
-	session := *c.AppContext.Session()
-	rctx := app.RequestContextWithCallerID(c.AppContext, session.UserId)
-
-	if !c.App.SessionHasPermissionTo(session, model.PermissionManageSystem) {
-		fields, appErr := c.App.ListCPAFields(rctx)
-		if appErr != nil {
-			c.Err = appErr
-			return
-		}
-
-		// Check if any of the fields being updated are admin-managed
-		for _, field := range fields {
-			if _, isBeingUpdated := updates[field.ID]; isBeingUpdated {
-				if field.IsAdminManaged() {
-					c.Err = model.NewAppError("Api4.patchCPAValues", "app.custom_profile_attributes.property_field_is_managed.app_error", nil, "", http.StatusForbidden)
-					return
-				}
-			}
-		}
-	}
-
-	patchedValues, appErr := c.App.PatchCPAValues(rctx, userID, updates)
-	if appErr != nil {
-		c.Err = appErr
+	cpaPatchValues(c, w, r, userID, updates)
+	if c.Err != nil {
 		return
-	}
-
-	results := make(map[string]json.RawMessage, len(patchedValues))
-	for _, value := range patchedValues {
-		results[value.FieldID] = value.Value
 	}
 
 	auditRec.Success()
 	auditRec.AddEventObjectType("patchCPAValues")
-
-	if err := json.NewEncoder(w).Encode(results); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
-	}
 }
 
 func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
-		c.Err = model.NewAppError("Api4.listCPAValues", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
-		return
-	}
-
 	c.RequireUserId()
 	if c.Err != nil {
 		return
@@ -283,7 +269,7 @@ func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 	targetUserID := c.Params.UserId
 	callerUserID := c.AppContext.Session().UserId
 
-	// we check unrestricted sessions to allow local mode requests to go through
+	// Allow unrestricted sessions (local mode) through
 	if !c.AppContext.Session().IsUnrestricted() {
 		canSee, err := c.App.UserCanSeeOtherUser(c.AppContext, callerUserID, targetUserID)
 		if err != nil || !canSee {
@@ -309,22 +295,11 @@ func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func patchCPAValuesForUser(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
-		c.Err = model.NewAppError("Api4.patchCPAValuesForUser", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
-		return
-	}
-
-	// Get userID from URL
 	c.RequireUserId()
 	if c.Err != nil {
 		return
 	}
 	userID := c.Params.UserId
-
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), userID) {
-		c.SetPermissionError(model.PermissionEditOtherUsers)
-		return
-	}
 
 	var updates map[string]json.RawMessage
 	if err := json.NewDecoder(r.Body).Decode(&updates); err != nil {
@@ -336,48 +311,11 @@ func patchCPAValuesForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "user_id", userID)
 
-	// Check for admin-managed fields
-	session := *c.AppContext.Session()
-	rctx := app.RequestContextWithCallerID(c.AppContext, session.UserId)
-
-	isAdmin := c.App.SessionHasPermissionTo(session, model.PermissionManageSystem)
-	if !isAdmin {
-		fields, appErr := c.App.ListCPAFields(rctx)
-		if appErr != nil {
-			c.Err = appErr
-			return
-		}
-
-		for _, field := range fields {
-			if _, isBeingUpdated := updates[field.ID]; !isBeingUpdated {
-				continue
-			}
-			// Check for admin-managed fields
-			if field.IsAdminManaged() {
-				c.Err = model.NewAppError("Api4.patchCPAValuesForUser",
-					"app.custom_profile_attributes.property_field_is_managed.app_error",
-					nil, "",
-					http.StatusForbidden)
-				return
-			}
-		}
-	}
-
-	patchedValues, appErr := c.App.PatchCPAValues(rctx, userID, updates)
-	if appErr != nil {
-		c.Err = appErr
+	cpaPatchValues(c, w, r, userID, updates)
+	if c.Err != nil {
 		return
-	}
-
-	results := make(map[string]json.RawMessage, len(patchedValues))
-	for _, value := range patchedValues {
-		results[value.FieldID] = value.Value
 	}
 
 	auditRec.Success()
 	auditRec.AddEventObjectType("patchCPAValues")
-
-	if err := json.NewEncoder(w).Encode(results); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
-	}
 }
