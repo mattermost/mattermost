@@ -3708,3 +3708,89 @@ func TestPluginAPICreateChannelAnonymousURLs(t *testing.T) {
 		assert.Equal(t, originalName, createdChannel.Name, "channel name should not be overridden")
 	})
 }
+
+func TestMigrateDeprecatedPropertyGroupName(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{model.DeprecatedCPAPropertyGroupName, model.ProtectedAttributesPropertyGroupName},
+		{model.ProtectedAttributesPropertyGroupName, model.ProtectedAttributesPropertyGroupName},
+		{"some_other_group", "some_other_group"},
+		{"", ""},
+		{"CUSTOM_PROFILE_ATTRIBUTES", "CUSTOM_PROFILE_ATTRIBUTES"}, // case-sensitive
+	}
+
+	for _, tc := range tests {
+		assert.Equal(t, tc.expected, migrateDeprecatedPropertyGroupName(tc.input))
+	}
+}
+
+func TestPluginAPIPropertyGroupDeprecatedName(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("RegisterPropertyGroup maps deprecated name to canonical name", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		api := th.SetupPluginAPI()
+
+		// Register using the deprecated name
+		group, err := api.RegisterPropertyGroup(model.DeprecatedCPAPropertyGroupName)
+		require.NoError(t, err)
+		require.NotNil(t, group)
+
+		// The returned group must have the canonical name
+		assert.Equal(t, model.ProtectedAttributesPropertyGroupName, group.Name)
+
+		// Register using the canonical name should return the same group
+		sameGroup, err := api.RegisterPropertyGroup(model.ProtectedAttributesPropertyGroupName)
+		require.NoError(t, err)
+		assert.Equal(t, group.ID, sameGroup.ID)
+	})
+
+	t.Run("GetPropertyGroup maps deprecated name to canonical name", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		api := th.SetupPluginAPI()
+
+		// The protected_attributes group is registered at server startup, so
+		// we can look it up directly.
+		canonical, err := api.GetPropertyGroup(model.ProtectedAttributesPropertyGroupName)
+		require.NoError(t, err)
+		require.NotNil(t, canonical)
+
+		// Looking up by the deprecated name should return the same group
+		deprecated, err := api.GetPropertyGroup(model.DeprecatedCPAPropertyGroupName)
+		require.NoError(t, err)
+		require.NotNil(t, deprecated)
+
+		assert.Equal(t, canonical.ID, deprecated.ID)
+		assert.Equal(t, model.ProtectedAttributesPropertyGroupName, deprecated.Name)
+	})
+
+	t.Run("other group names are not affected by the mapping", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		api := th.SetupPluginAPI()
+
+		// Register a different group — no mapping should occur
+		group, err := api.RegisterPropertyGroup("my_plugin_group")
+		require.NoError(t, err)
+		require.NotNil(t, group)
+		assert.Equal(t, "my_plugin_group", group.Name)
+
+		// Look it up
+		fetched, err := api.GetPropertyGroup("my_plugin_group")
+		require.NoError(t, err)
+		assert.Equal(t, group.ID, fetched.ID)
+	})
+
+	t.Run("GetPropertyGroup with nonexistent name returns error", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		api := th.SetupPluginAPI()
+
+		_, err := api.GetPropertyGroup("no_such_group")
+		require.Error(t, err)
+	})
+}

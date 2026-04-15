@@ -5,6 +5,14 @@ package model
 
 import "regexp"
 
+const ProtectedAttributesPropertyGroupName = "protected_attributes"
+
+// DeprecatedCPAPropertyGroupName is the old group name for custom profile attributes.
+// It was renamed to "protected_attributes". The plugin API still accepts this name
+// for backward compatibility, but plugin authors should migrate to
+// ProtectedAttributesPropertyGroupName.
+const DeprecatedCPAPropertyGroupName = "custom_profile_attributes"
+
 var validPropertyGroupNameRegex = regexp.MustCompile(`^[a-z][a-z0-9_]*$`)
 
 type PropertyGroup struct {

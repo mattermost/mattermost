@@ -117,12 +117,22 @@ func (p *PropertyService) SearchPropertyValues(groupID string, opts model.Proper
 
 // RegisterPropertyGroup registers a new property group.
 //
+// Note: the group name "custom_profile_attributes" is deprecated and is
+// silently mapped to "protected_attributes" for backward compatibility.
+// Plugins should use [model.ProtectedAttributesPropertyGroupName] instead.
+// The deprecated mapping will be removed in a future server release.
+//
 // Minimum server version: 10.10
 func (p *PropertyService) RegisterPropertyGroup(name string) (*model.PropertyGroup, error) {
 	return p.api.RegisterPropertyGroup(name)
 }
 
 // GetPropertyGroup gets a property group by name.
+//
+// Note: the group name "custom_profile_attributes" is deprecated and is
+// silently mapped to "protected_attributes" for backward compatibility.
+// Plugins should use [model.ProtectedAttributesPropertyGroupName] instead.
+// The deprecated mapping will be removed in a future server release.
 //
 // Minimum server version: 10.10
 func (p *PropertyService) GetPropertyGroup(name string) (*model.PropertyGroup, error) {

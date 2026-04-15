@@ -12,7 +12,8 @@ import (
 	"strings"
 )
 
-const CustomProfileAttributesPropertyGroupName = "protected_attributes"
+// Deprecated: Use [ProtectedAttributesPropertyGroupName] instead.
+const CustomProfileAttributesPropertyGroupName = ProtectedAttributesPropertyGroupName
 
 const (
 	// Attributes keys

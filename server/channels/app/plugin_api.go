@@ -1669,6 +1669,7 @@ func (api *PluginAPI) SearchPropertyValues(groupID string, opts model.PropertyVa
 }
 
 func (api *PluginAPI) RegisterPropertyGroup(name string) (*model.PropertyGroup, error) {
+	name = migrateDeprecatedPropertyGroupName(name)
 	group, appErr := api.app.RegisterPropertyGroup(api.psaPluginContext(), name)
 	if appErr != nil {
 		return nil, appErr
@@ -1677,11 +1678,21 @@ func (api *PluginAPI) RegisterPropertyGroup(name string) (*model.PropertyGroup, 
 }
 
 func (api *PluginAPI) GetPropertyGroup(name string) (*model.PropertyGroup, error) {
+	name = migrateDeprecatedPropertyGroupName(name)
 	group, appErr := api.app.GetPropertyGroup(api.psaPluginContext(), name)
 	if appErr != nil {
 		return nil, appErr
 	}
 	return group, nil
+}
+
+// migrateDeprecatedPropertyGroupName maps the deprecated "custom_profile_attributes"
+// group name to the current "protected_attributes" name for backward compatibility.
+func migrateDeprecatedPropertyGroupName(name string) string {
+	if name == model.DeprecatedCPAPropertyGroupName {
+		return model.ProtectedAttributesPropertyGroupName
+	}
+	return name
 }
 
 func (api *PluginAPI) GetPropertyFieldByName(groupID, targetID, name string) (*model.PropertyField, error) {
