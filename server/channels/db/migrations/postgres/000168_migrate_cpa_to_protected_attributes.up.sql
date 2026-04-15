@@ -42,7 +42,7 @@ SELECT
         END
     ) AS Attributes
 FROM PropertyValues pv
-JOIN PropertyFields pf ON pf.ID = pv.FieldID
+LEFT JOIN PropertyFields pf ON pf.ID = pv.FieldID
 WHERE (pv.DeleteAt = 0 OR pv.DeleteAt IS NULL)
   AND (pf.DeleteAt = 0 OR pf.DeleteAt IS NULL)
   AND pf.ObjectType = 'user'

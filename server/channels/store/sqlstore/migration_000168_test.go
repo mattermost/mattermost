@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -138,7 +139,28 @@ func TestMigration000168(t *testing.T) {
 	var viewDef string
 	err = master.Get(&viewDef, "SELECT definition FROM pg_matviews WHERE matviewname = 'attributeview'")
 	require.NoError(t, err, "AttributeView should exist")
-	assert.Contains(t, viewDef, "user", "view definition should filter by ObjectType")
+	assert.Contains(t, viewDef, "pf.objecttype", "view definition should filter by pf.ObjectType")
+
+	// Verify: materialized view contains expected data after refresh.
+	_, err = master.ExecNoTimeout("REFRESH MATERIALIZED VIEW AttributeView")
+	require.NoError(t, err, "refreshing AttributeView should succeed")
+
+	var viewRow struct {
+		GroupID    string `db:"groupid"`
+		TargetID   string `db:"targetid"`
+		TargetType string `db:"targettype"`
+		Attributes []byte `db:"attributes"`
+	}
+	err = master.Get(&viewRow, "SELECT GroupID, TargetID, TargetType, Attributes FROM AttributeView WHERE TargetID = ?", targetUserID)
+	require.NoError(t, err, "AttributeView should contain a row for the target user")
+	assert.Equal(t, groupID, viewRow.GroupID)
+	assert.Equal(t, targetUserID, viewRow.TargetID)
+	assert.Equal(t, "user", viewRow.TargetType)
+
+	// The text field value "hello" should appear under the field name "Text Field".
+	var attrs map[string]json.RawMessage
+	require.NoError(t, json.Unmarshal(viewRow.Attributes, &attrs))
+	assert.JSONEq(t, `"hello"`, string(attrs["Text Field"]), "text field value should be materialized")
 
 	// ---- Run DOWN migration ----
 	_, err = master.ExecNoTimeout(downSQL)
@@ -191,6 +213,11 @@ func TestMigration000168NoOpOnFreshDB(t *testing.T) {
 	// safe no-ops (the UPDATE statements match zero rows).
 	_, err = master.ExecNoTimeout(upSQL)
 	assert.NoError(t, err, "up migration should be a safe no-op on fresh DB")
+
+	// Even with no CPA data, the view should be (re)created.
+	var viewExists bool
+	require.NoError(t, master.Get(&viewExists, "SELECT EXISTS (SELECT 1 FROM pg_matviews WHERE matviewname = 'attributeview')"))
+	assert.True(t, viewExists, "AttributeView should exist after up migration on fresh DB")
 
 	_, err = master.ExecNoTimeout(downSQL)
 	assert.NoError(t, err, "down migration should be a safe no-op on fresh DB")
