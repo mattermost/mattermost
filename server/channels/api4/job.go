@@ -279,7 +279,14 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Team admin path: allow reading access_control_sync jobs scoped to their team.
 	teamID := r.URL.Query().Get("team_id")
-	hasTeamFilter := teamID != "" && model.IsValidId(teamID)
+	hasTeamFilter := false
+	if teamID != "" {
+		if !model.IsValidId(teamID) {
+			c.SetInvalidURLParam("team_id")
+			return
+		}
+		hasTeamFilter = true
+	}
 	isTeamScopedSyncRequest := !hasPermission &&
 		c.Params.JobType == model.JobTypeAccessControlSync &&
 		hasTeamFilter &&

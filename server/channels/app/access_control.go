@@ -147,7 +147,7 @@ func (a *App) AssignAccessControlPolicyToChannels(rctx request.CTX, parentID str
 
 	channels, err := a.GetChannels(rctx, channelIDs)
 	if err != nil {
-		return nil, appErr
+		return nil, err
 	}
 
 	policies := make([]*model.AccessControlPolicy, 0, len(channelIDs))

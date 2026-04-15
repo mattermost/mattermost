@@ -3134,6 +3134,8 @@ func (s SqlChannelStore) AutocompleteInTeamFiltered(rctx request.CTX, teamID, us
 	if privateOnly {
 		// Membership check already in base query; narrow further to private type only.
 		query = query.Where(sq.Eq{"c.Type": model.ChannelTypePrivate})
+		// Shared channels (Shared = true) are ineligible for team-scoped access-control
+		query = query.Where(sq.Or{sq.Eq{"c.Shared": nil}, sq.Eq{"c.Shared": false}})
 	}
 
 	if excludeGroupConstrained {

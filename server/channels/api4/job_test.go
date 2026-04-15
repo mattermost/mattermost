@@ -344,6 +344,13 @@ func TestGetJobsByType_TeamAdminAccessControlSync(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
+
+	t.Run("malformed team_id returns 400 instead of silently dropping the filter", func(t *testing.T) {
+		// "not-a-valid-id" is not a 26-character alphanum Mattermost ID.
+		_, resp, err := th.SystemAdminClient.GetJobsByTypeForTeam(context.Background(), model.JobTypeAccessControlSync, 0, 60, "not-a-valid-id")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 }
 
 func TestDownloadJob(t *testing.T) {

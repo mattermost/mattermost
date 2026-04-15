@@ -175,6 +175,12 @@
     font-size: 18px;
     outline: none;
 
+    &:focus-visible {
+        border-radius: 4px;
+        outline: 2px solid var(--button-bg);
+        outline-offset: 2px;
+    }
+
     &:hover {
         background-color: rgba(var(--center-channel-color-rgb), 0.08);
         color: rgba(var(--center-channel-color-rgb), 0.72);

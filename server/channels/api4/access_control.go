@@ -51,8 +51,8 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 	switch policy.Type {
 	case model.AccessControlPolicyTypeParent:
 		hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+		teamID := r.URL.Query().Get("team_id")
 		if !hasSystemPermission {
-			teamID := r.URL.Query().Get("team_id")
 			if teamID == "" || !model.IsValidId(teamID) {
 				c.SetPermissionError(model.PermissionManageSystem)
 				return
@@ -73,7 +73,10 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 					return
 				}
 			}
-			// Persist team scope so ownership survives even when all channels are removed
+		}
+		// Inject team scope from the query param when it is present so scope is always set
+		// even by a system admin
+		if teamID != "" && model.IsValidId(teamID) && policy.Scope == "" {
 			policy.Scope = model.AccessControlPolicyScopeTeam
 			policy.ScopeID = teamID
 		}

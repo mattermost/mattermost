@@ -1350,6 +1350,34 @@ func TestCreateAccessControlPolicyTeamAdmin(t *testing.T) {
 		defer r.Body.Close()
 		require.Equal(t, 403, r.StatusCode)
 	})
+
+	t.Run("system admin saves with team_id preserves scope even when body omits scope fields", func(t *testing.T) {
+		// Regression test: the team-settings editor sends only {id, name, rules, type, version}
+		// without scope/scope_id. The handler must inject scope from the team_id query param
+		// for system admins too, so a sysadmin editing a team policy via Team Settings doesn't
+		// accidentally clear the scope on save.
+		mockACS := setupTeamAdminABAC(t, th)
+
+		// Build a policy body that intentionally omits scope/scope_id (as the editor does).
+		policy := newParentPolicy(th.BasicTeam.Id)
+		policy.Scope = ""
+		policy.ScopeID = ""
+
+		// Capture what scope the handler passes to SavePolicy.
+		mockACS.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.MatchedBy(func(p *model.AccessControlPolicy) bool {
+			return p.Scope == model.AccessControlPolicyScopeTeam && p.ScopeID == th.BasicTeam.Id
+		})).Return(policy, nil).Once()
+
+		r, err := th.SystemAdminClient.DoAPIPutJSON(
+			context.Background(),
+			"/access_control_policies?team_id="+th.BasicTeam.Id,
+			policy,
+		)
+		require.NoError(t, err)
+		defer r.Body.Close()
+		require.Equal(t, 200, r.StatusCode)
+		mockACS.AssertExpectations(t)
+	})
 }
 
 func TestGetAccessControlPolicyTeamAdmin(t *testing.T) {
@@ -1851,7 +1879,13 @@ func TestScopeReconciliationCrossTeam(t *testing.T) {
 	// After removing the teamB channel, scope should be restored to teamA.
 
 	t.Run("scope cleared when cross-team channel is added then restored after removal", func(t *testing.T) {
-		mockACS := setupTeamAdminABAC(t, th)
+		// This test exercises ReconcilePolicyTeamScope via the app/store directly —
+		// no HTTP handler is involved, so no ACS mock is needed. Only license + config.
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "SetLicense should return true")
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
 
 		teamA := th.BasicTeam
 		teamB := th.CreateTeam(t)
@@ -1929,10 +1963,6 @@ func TestScopeReconciliationCrossTeam(t *testing.T) {
 		require.NoError(t, storeErr)
 		require.Equal(t, model.AccessControlPolicyScopeTeam, reloaded.Scope, "scope should be restored to team after cross-team channel removed")
 		require.Equal(t, teamA.Id, reloaded.ScopeID, "scope_id should be restored to teamA after cross-team channel removed")
-
-		// The mock was set up but never needed in this test since we exercise the
-		// app/store directly. Suppress unused-mock warnings.
-		_ = mockACS
 	})
 
 	t.Run("scope is not set when no channels are assigned", func(t *testing.T) {
