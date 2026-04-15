@@ -3195,6 +3195,23 @@ func (a *App) AutocompleteChannelsForTeam(rctx request.CTX, teamID, userID, term
 	return channelList, nil
 }
 
+func (a *App) AutocompleteChannelsForTeamFiltered(rctx request.CTX, teamID, userID, term string, privateOnly, excludeGroupConstrained bool) (model.ChannelList, *model.AppError) {
+	includeDeleted := true
+	term = strings.TrimSpace(term)
+
+	user, appErr := a.GetUser(userID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	channelList, err := a.Srv().Store().Channel().AutocompleteInTeamFiltered(rctx, teamID, userID, term, includeDeleted, user.IsGuest(), privateOnly, excludeGroupConstrained)
+	if err != nil {
+		return nil, model.NewAppError("AutocompleteChannelsForTeamFiltered", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return channelList, nil
+}
+
 func (a *App) AutocompleteChannelsForSearch(rctx request.CTX, teamID string, userID string, term string) (model.ChannelList, *model.AppError) {
 	includeDeleted := true
 

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"path"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"time"
 
@@ -163,6 +164,19 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Inject requester context for self-inclusion resolution.
+	if job.Type == model.JobTypeAccessControlSync {
+		if job.Data == nil {
+			job.Data = make(model.StringMap)
+		}
+		job.Data["requester_id"] = c.AppContext.Session().UserId
+		if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+			job.Data["requester_is_admin"] = "true"
+		} else {
+			delete(job.Data, "requester_is_admin")
+		}
+	}
+
 	rjob, err := c.App.CreateJob(c.AppContext, &job)
 	if err != nil {
 		c.Err = err
@@ -262,24 +276,73 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("getJobsByType", "api.job.retrieve.nopermissions", nil, "", http.StatusBadRequest)
 		return
 	}
-	if !hasPermission {
+
+	// Team admin path: allow reading access_control_sync jobs scoped to their team.
+	teamID := r.URL.Query().Get("team_id")
+	hasTeamFilter := false
+	if teamID != "" {
+		if !model.IsValidId(teamID) {
+			c.SetInvalidURLParam("team_id")
+			return
+		}
+		hasTeamFilter = true
+	}
+	isTeamScopedSyncRequest := !hasPermission &&
+		c.Params.JobType == model.JobTypeAccessControlSync &&
+		hasTeamFilter &&
+		c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageTeamAccessRules)
+
+	if !hasPermission && !isTeamScopedSyncRequest {
 		c.SetPermissionError(permissionRequired)
 		return
 	}
 
 	var jobs []*model.Job
-	var appErr *model.AppError
 
 	policyID := r.URL.Query().Get("policy_id")
-	if policyID != "" && c.Params.JobType == model.JobTypeAccessControlSync {
-		jobs, appErr = c.App.GetJobsByTypeAndData(c.AppContext, c.Params.JobType,
-			map[string]string{"policy_id": policyID}, c.Params.Page, c.Params.PerPage)
+	if hasTeamFilter {
+		// When team_id is provided, return only jobs scoped to that team.
+		// Sorted by CreateAt DESC; limited to the requested page size.
+		teamJobs, appErr := c.App.GetJobsByTypeAndData(c.AppContext, c.Params.JobType, map[string]string{"team_id": teamID})
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+		sort.Slice(teamJobs, func(i, j int) bool {
+			return teamJobs[i].CreateAt > teamJobs[j].CreateAt
+		})
+		start := c.Params.Page * c.Params.PerPage
+		if start >= len(teamJobs) {
+			jobs = []*model.Job{}
+		} else {
+			end := min(start+c.Params.PerPage, len(teamJobs))
+			jobs = teamJobs[start:end]
+		}
+	} else if policyID != "" && c.Params.JobType == model.JobTypeAccessControlSync {
+		policyJobs, appErr := c.App.GetJobsByTypeAndData(c.AppContext, c.Params.JobType,
+			map[string]string{"policy_id": policyID})
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+		sort.Slice(policyJobs, func(i, j int) bool {
+			return policyJobs[i].CreateAt > policyJobs[j].CreateAt
+		})
+		start := c.Params.Page * c.Params.PerPage
+		if start >= len(policyJobs) {
+			jobs = []*model.Job{}
+		} else {
+			end := min(start+c.Params.PerPage, len(policyJobs))
+			jobs = policyJobs[start:end]
+		}
 	} else {
+		// Store returns jobs ordered by CreateAt DESC; pagination applied at the store level.
+		var appErr *model.AppError
 		jobs, appErr = c.App.GetJobsByTypePage(c.AppContext, c.Params.JobType, c.Params.Page, c.Params.PerPage)
-	}
-	if appErr != nil {
-		c.Err = appErr
-		return
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
 	}
 
 	js, err := json.Marshal(jobs)
