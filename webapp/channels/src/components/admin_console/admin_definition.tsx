@@ -2161,13 +2161,6 @@ const AdminDefinition: AdminDefinitionType = {
                                 },
                                 {
                                     type: 'bool',
-                                    key: 'NativeAppSettings.EnableWatermark',
-                                    label: defineMessage({id: 'admin.mobileSecurity.enableWatermarkTitle', defaultMessage: 'Enable Mobile Watermark:'}),
-                                    help_text: defineMessage({id: 'admin.mobileSecurity.enableWatermarkDescription', defaultMessage: 'When true, authenticated mobile sessions will display a watermark overlay showing the username, domain, date (YYYY-MM-DD), and time (HH:mm) for data loss prevention (DLP) purposes.'}),
-                                    help_text_markdown: false,
-                                },
-                                {
-                                    type: 'bool',
                                     key: 'NativeAppSettings.MobileEnableSecureFilePreview',
                                     label: defineMessage({id: 'admin.mobileSecurity.secureFilePreviewTitle', defaultMessage: 'Enable Secure File Preview Mode:'}),
                                     help_text: defineMessage({id: 'admin.mobileSecurity.secureFilePreviewDescription', defaultMessage: "Prevents file downloads, previews, and sharing for most file types, even if {mobileAllowDownloads} is enabled. Allows in-app previews for PDFs, videos, and images only. Files are stored temporarily in the app's cache and cannot be exported or shared."}), // eslint-disable-line formatjs/enforce-placeholders -- placeholders provided
@@ -6351,6 +6344,14 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'ExperimentalSettings.ExperimentalChannelCategorySorting',
                             label: defineMessage({id: 'admin.experimental.channelCategorySorting.title', defaultMessage: 'Channel Category Sorting:'}),
                             help_text: defineMessage({id: 'admin.experimental.channelCategorySorting.desc', defaultMessage: 'When true, channels will be automatically sorted into categories based on their names using a "/" delimiter.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'NativeAppSettings.EnableWatermark',
+                            label: defineMessage({id: 'admin.experimental.enableWatermark.title', defaultMessage: 'Enable Mobile Watermark:'}),
+                            help_text: defineMessage({id: 'admin.experimental.enableWatermark.desc', defaultMessage: 'When true, authenticated mobile sessions will display a watermark overlay showing the username, domain, date (YYYY-MM-DD), and time (HH:mm) for data loss prevention (DLP) purposes.'}),
+                            help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                     ],
