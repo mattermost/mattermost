@@ -21,6 +21,7 @@ func TestAccessControlPolicyStore(t *testing.T, rctx request.CTX, ss store.Store
 	t.Run("SetActiveMultiple", func(t *testing.T) { testAccessControlPolicyStoreSetActiveMultiple(t, rctx, ss) })
 	t.Run("GetAll", func(t *testing.T) { testAccessControlPolicyStoreGetAll(t, rctx, ss) })
 	t.Run("Search", func(t *testing.T) { testAccessControlPolicyStoreSearch(t, rctx, ss) })
+	t.Run("SearchByActions", func(t *testing.T) { testAccessControlPolicyStoreSearchByActions(t, rctx, ss) })
 	t.Run("GetPoliciesByFieldID", func(t *testing.T) { testAccessControlPolicyStoreGetPoliciesByFieldID(t, rctx, ss) })
 }
 
@@ -704,6 +705,134 @@ func testAccessControlPolicyStoreSearch(t *testing.T, rctx request.CTX, ss store
 		require.NoError(t, err)
 		require.NotNil(t, policies)
 		require.Len(t, policies, 15)
+	})
+}
+
+func testAccessControlPolicyStoreSearchByActions(t *testing.T, rctx request.CTX, ss store.Store) {
+	membershipOnly := &model.AccessControlPolicy{
+		ID:       model.NewId(),
+		Name:     "MembershipOnly " + model.NewId(),
+		Type:     model.AccessControlPolicyTypeParent,
+		Active:   true,
+		Revision: 1,
+		Version:  model.AccessControlPolicyVersionV0_3,
+		Rules: []model.AccessControlPolicyRule{{
+			Actions:    []string{model.AccessControlPolicyActionMembership},
+			Expression: "true",
+		}},
+	}
+	uploadOnly := &model.AccessControlPolicy{
+		ID:       model.NewId(),
+		Name:     "UploadOnly " + model.NewId(),
+		Type:     model.AccessControlPolicyTypeParent,
+		Active:   true,
+		Revision: 1,
+		Version:  model.AccessControlPolicyVersionV0_3,
+		Rules: []model.AccessControlPolicyRule{{
+			Actions:    []string{model.AccessControlPolicyActionUploadFileAttachment},
+			Expression: "true",
+		}},
+	}
+	multiAction := &model.AccessControlPolicy{
+		ID:       model.NewId(),
+		Name:     "Multi " + model.NewId(),
+		Type:     model.AccessControlPolicyTypeParent,
+		Active:   true,
+		Revision: 1,
+		Version:  model.AccessControlPolicyVersionV0_3,
+		Rules: []model.AccessControlPolicyRule{
+			{
+				Actions:    []string{model.AccessControlPolicyActionMembership},
+				Expression: "true",
+			},
+			{
+				Actions:    []string{model.AccessControlPolicyActionDownloadFileAttachment},
+				Expression: "true",
+			},
+		},
+	}
+	multiActionSingleRule := &model.AccessControlPolicy{
+		ID:       model.NewId(),
+		Name:     "MultiSingleRule " + model.NewId(),
+		Type:     model.AccessControlPolicyTypeParent,
+		Active:   true,
+		Revision: 1,
+		Version:  model.AccessControlPolicyVersionV0_3,
+		Rules: []model.AccessControlPolicyRule{{
+			Actions: []string{
+				model.AccessControlPolicyActionMembership,
+				model.AccessControlPolicyActionDownloadFileAttachment,
+			},
+			Expression: "true",
+		}},
+	}
+
+	for _, p := range []*model.AccessControlPolicy{membershipOnly, uploadOnly, multiAction, multiActionSingleRule} {
+		saved, err := ss.AccessControlPolicy().Save(rctx, p)
+		require.NoError(t, err)
+		require.NotNil(t, saved)
+	}
+	t.Cleanup(func() {
+		for _, p := range []*model.AccessControlPolicy{membershipOnly, uploadOnly, multiAction, multiActionSingleRule} {
+			_ = ss.AccessControlPolicy().Delete(rctx, p.ID)
+		}
+	})
+
+	t.Run("single action filter returns matching policies", func(t *testing.T) {
+		policies, _, err := ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+			Actions: []string{model.AccessControlPolicyActionMembership},
+			Limit:   10,
+		})
+		require.NoError(t, err)
+		ids := make([]string, len(policies))
+		for i, p := range policies {
+			ids[i] = p.ID
+		}
+		require.Contains(t, ids, membershipOnly.ID)
+		require.Contains(t, ids, multiAction.ID)
+		require.Contains(t, ids, multiActionSingleRule.ID)
+		require.NotContains(t, ids, uploadOnly.ID)
+	})
+
+	t.Run("upload action filter", func(t *testing.T) {
+		policies, _, err := ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+			Actions: []string{model.AccessControlPolicyActionUploadFileAttachment},
+			Limit:   10,
+		})
+		require.NoError(t, err)
+		ids := make([]string, len(policies))
+		for i, p := range policies {
+			ids[i] = p.ID
+		}
+		require.Contains(t, ids, uploadOnly.ID)
+		require.NotContains(t, ids, membershipOnly.ID)
+		require.NotContains(t, ids, multiAction.ID)
+		require.NotContains(t, ids, multiActionSingleRule.ID)
+	})
+
+	t.Run("multiple actions OR semantics", func(t *testing.T) {
+		policies, _, err := ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+			Actions: []string{model.AccessControlPolicyActionUploadFileAttachment, model.AccessControlPolicyActionDownloadFileAttachment},
+			Limit:   10,
+		})
+		require.NoError(t, err)
+		ids := make([]string, len(policies))
+		for i, p := range policies {
+			ids[i] = p.ID
+		}
+		require.Contains(t, ids, uploadOnly.ID)
+		require.Contains(t, ids, multiAction.ID)
+		require.Contains(t, ids, multiActionSingleRule.ID)
+		require.NotContains(t, ids, membershipOnly.ID)
+	})
+
+	t.Run("non-existent action returns nothing from scoped set", func(t *testing.T) {
+		policies, _, err := ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+			Actions: []string{"nonexistent_action"},
+			Limit:   10,
+		})
+		require.NoError(t, err)
+		require.Len(t, policies, 0)
 	})
 }
 

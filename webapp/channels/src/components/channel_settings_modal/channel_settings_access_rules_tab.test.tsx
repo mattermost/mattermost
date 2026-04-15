@@ -909,12 +909,11 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 id: 'channel_id',
                 name: 'Test Channel',
                 type: 'channel',
-                version: 'v0.2',
                 active: false, // Policy starts as inactive until job completes
                 revision: 1,
                 created_at: expect.any(Number),
                 rules: [{
-                    actions: ['*'],
+                    actions: ['membership'],
                     expression: 'user.attributes.department == "Engineering"',
                 }],
                 imports: [],
@@ -1192,13 +1191,13 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 id: 'system_policy_1',
                 name: 'System Policy 1',
                 type: 'parent',
-                version: 'v0.2',
+                version: 'v0.3',
                 revision: 1,
                 active: false,
                 createAt: 1234567890,
                 rules: [
                     {
-                        actions: ['join_channel'],
+                        actions: ['membership'],
                         expression: 'user.attributes.Program == "test"',
                     },
                 ],
@@ -1208,13 +1207,13 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 id: 'system_policy_2',
                 name: 'System Policy 2',
                 type: 'parent',
-                version: 'v0.2',
+                version: 'v0.3',
                 revision: 1,
                 active: false,
                 createAt: 1234567891,
                 rules: [
                     {
-                        actions: ['join_channel'],
+                        actions: ['membership'],
                         expression: 'user.attributes.Department == "Engineering"',
                     },
                 ],
@@ -1775,7 +1774,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             mockActions.getChannelPolicy.mockResolvedValue({
                 data: {
                     id: 'channel_id',
-                    rules: [{expression: 'user.department == "Engineering"'}],
+                    rules: [{actions: ['membership'], expression: 'user.department == "Engineering"'}],
                     active: false,
                 },
             });
@@ -1818,7 +1817,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             mockActions.getChannelPolicy.mockResolvedValue({
                 data: {
                     id: 'channel_id',
-                    rules: [{expression: 'user.department == "Engineering"'}],
+                    rules: [{actions: ['membership'], expression: 'user.department == "Engineering"'}],
                     active: false,
                 },
             });
@@ -1877,7 +1876,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             mockActions.getChannelPolicy.mockResolvedValue({
                 data: {
                     id: 'channel_id',
-                    rules: [{expression: 'user.department == "Engineering"'}],
+                    rules: [{actions: ['membership'], expression: 'user.department == "Engineering"'}],
                     active: false,
                 },
             });
@@ -1938,7 +1937,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             mockActions.getChannelPolicy.mockResolvedValue({
                 data: {
                     id: 'channel_id',
-                    rules: [{expression: 'user.department == "Engineering"'}],
+                    rules: [{actions: ['membership'], expression: 'user.department == "Engineering"'}],
                     active: true,
                 },
             });
@@ -2008,7 +2007,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             mockActions.getChannelPolicy.mockResolvedValue({
                 data: {
                     id: 'channel_id',
-                    rules: [{expression: 'user.department == "Engineering"'}],
+                    rules: [{actions: ['membership'], expression: 'user.department == "Engineering"'}],
                     active: true,
                 },
             });
@@ -2062,7 +2061,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             mockActions.getChannelPolicy.mockResolvedValue({
                 data: {
                     id: 'channel_id',
-                    rules: [{expression: 'user.department == "Engineering"'}],
+                    rules: [{actions: ['membership'], expression: 'user.department == "Engineering"'}],
                     active: true,
                 },
             });
