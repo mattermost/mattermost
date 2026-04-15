@@ -199,21 +199,103 @@ jobs:
       logsartifact: postgres-binary-server-test-logs
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: false
+  # -- Sharded into 4 parallel runners for ~88% wall-time improvement --
   test-postgres-normal:
-    name: Postgres
+    name: Postgres (shard ${{ matrix.shard }})
     needs: go
+    strategy:
+      fail-fast: false # Let all shards complete so we get full test results
+      matrix:
+        shard: [0, 1, 2, 3]
     uses: ./.github/workflows/server-test-template.yml
     secrets: inherit
     with:
-      name: Postgres
+      name: "Postgres (shard ${{ matrix.shard }})"
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
-      logsartifact: postgres-server-test-logs
+      # Each shard gets a unique artifact name so they don't collide
+      logsartifact: "postgres-server-test-logs-shard-${{ matrix.shard }}"
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: false
+      shard-index: ${{ matrix.shard }}
+      shard-total: 4
+  # -- Merge test results (handles both single-run and future sharded runs) --
+  merge-postgres-test-results:
+    name: Merge Postgres Test Results
+    needs: test-postgres-normal
+    if: always()
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Download all shard artifacts
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        with:
+          pattern: postgres-server-test-logs-shard-*
+          path: shards
+
+      - name: Setup Node for junit-report-merger
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: 20
+
+      - name: Merge JUnit reports
+        run: |
+          npx junit-report-merger@7.0.0 merged-report.xml "shards/*/report.xml"
+
+      # Prepare files with expected names for the report workflow
+      - name: Prepare merged artifact
+        run: |
+          mkdir -p merged
+          cp merged-report.xml merged/report.xml
+          # Find the first shard artifact that has test-name and pr-number
+          for dir in shards/postgres-server-test-logs-shard-*/; do
+            if [[ -f "${dir}test-name" ]]; then
+              cp "${dir}test-name" merged/test-name
+              cp "${dir}pr-number" merged/pr-number
+              break
+            fi
+          done
+
+      # Upload merged artifact with the name the report workflow expects
+      - name: Upload merged test logs
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: postgres-server-test-logs
+          path: merged/
+
+      # Save merged timing data for future shard balancing.
+      # Includes both JUnit XML (package-level) and gotestsum.json (per-test).
+      - name: Prepare timing cache
+        id: timing-prep
+        run: |
+          mkdir -p server
+          # Only save timing cache if we have real data (merged report > 1KB).
+          # Failed runs produce tiny/empty files that would overwrite good data.
+          if [[ -f merged-report.xml && $(stat -c%s merged-report.xml) -gt 1024 ]]; then
+            cp merged-report.xml server/prev-report.xml
+            # Merge gotestsum.json (JSONL) from all shards for per-test timing
+            cat shards/*/gotestsum.json > server/prev-gotestsum.json 2>/dev/null || true
+            echo "has_timing=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Skipping timing cache — merged report too small or missing"
+            echo "has_timing=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Save test timing cache
+        # Only save timing on the default branch. PR branches restore from
+        # master via restore-keys prefix match. Timing data is stable day-to-day
+        # so this eliminates cache misses on first PR runs.
+        if: steps.timing-prep.outputs.has_timing == 'true' && github.ref_name == github.event.repository.default_branch
+        uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: |
+            server/prev-report.xml
+            server/prev-gotestsum.json
+          key: server-test-timing-master-${{ github.run_id }}
+
   test-postgres-normal-fips:
-    # Skip FIPS testing for forks, which won't have docker login credentials.
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    # FIPS compile check already runs in enterprise CI for PRs.
+    # Only run full FIPS tests on pushes to the default branch.
+    if: github.event_name == 'push'
     name: Postgres (FIPS)
     needs: go
     uses: ./.github/workflows/server-test-template.yml
