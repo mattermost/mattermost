@@ -351,7 +351,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
   >
     <div
       data-floating-ui-portal=""
-      id=":r1g:"
+      id=":r1n:"
     >
       <div
         class="tooltipContainer hidden-xs"
@@ -384,7 +384,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
             stroke="none"
           />
           <clippath
-            id=":r1h:"
+            id=":r1o:"
           >
             <rect
               height="10"
@@ -692,7 +692,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
   >
     <div
       data-floating-ui-portal=""
-      id=":r1b:"
+      id=":r1i:"
     >
       <div
         class="tooltipContainer hidden-xs"
@@ -725,7 +725,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
             stroke="none"
           />
           <clippath
-            id=":r1c:"
+            id=":r1j:"
           >
             <rect
               height="10"

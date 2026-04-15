@@ -54,16 +54,19 @@ func (s *storeAccessControlPolicy) toModel() (*model.AccessControlPolicy, error)
 		Version:  s.Version,
 	}
 
-	var p accessControlPolicyV0_1
-	if err := json.Unmarshal(s.Data, &p); err != nil {
-		return nil, err
+	if len(s.Data) > 0 {
+		var p accessControlPolicyV0_1
+		if err := json.Unmarshal(s.Data, &p); err != nil {
+			return nil, err
+		}
+		policy.Imports = p.Imports
+		policy.Rules = p.Rules
 	}
 
-	policy.Imports = p.Imports
-	policy.Rules = p.Rules
-
-	if err := json.Unmarshal(s.Props, &policy.Props); err != nil {
-		return nil, err
+	if len(s.Props) > 0 {
+		if err := json.Unmarshal(s.Props, &policy.Props); err != nil {
+			return nil, err
+		}
 	}
 
 	return policy, nil
@@ -638,6 +641,18 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 		condition := sq.Expr("Data->'imports' @> ?", fmt.Sprintf("%q", opts.ParentID))
 		query = query.Where(condition)
 		count = count.Where(condition)
+	}
+
+	if len(opts.Actions) > 0 {
+		or := sq.Or{}
+		for _, action := range opts.Actions {
+			or = append(or, sq.Expr(
+				"EXISTS (SELECT 1 FROM jsonb_array_elements(CASE WHEN jsonb_typeof(Data->'rules') = 'array' THEN Data->'rules' ELSE '[]'::jsonb END) AS rule WHERE rule->'actions' @> ?::jsonb)",
+				fmt.Sprintf("%q", action),
+			))
+		}
+		query = query.Where(or)
+		count = count.Where(or)
 	}
 
 	if opts.Active {
