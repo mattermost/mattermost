@@ -260,30 +260,23 @@ test('MM-T5795 User can be added by admin after attribute added (auto-add false)
  * - User is automatically removed from the channel
  * - System posts a "User removed" message in the channel
  */
-test('MM-T5796 User auto-removed when required attribute is removed', async ({pw}) => {
-    test.setTimeout(180000);
+test('MM-T5796a User auto-removed when required attribute is removed (auto-add false)', async ({pw}) => {
+    test.setTimeout(90000);
 
     await pw.skipIfNoLicense();
 
-    // ============================================================
-    // SETUP
-    // ============================================================
     const {adminUser, adminClient, team} = await pw.initSetup();
 
     const attributeFields: CustomProfileAttribute[] = [{name: 'Department', type: 'text', value: ''}];
     const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, attributeFields);
 
-    // Create test user WITH the qualifying attribute (starts with Department=Engineering)
+    // Create test user WITH the qualifying attribute
     const testUser = await createUserForABAC(adminClient, attributeFieldsMap, [
         {name: 'Department', type: 'text', value: 'Engineering'},
     ]);
     await adminClient.addToTeam(team.id, testUser.id);
 
     const privateChannel = await createPrivateChannelForABAC(adminClient, team.id);
-
-    // ============================================================
-    // TEST SCENARIO 1: Auto-add FALSE
-    // ============================================================
 
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
     await navigateToABACPage(systemConsolePage.page);
@@ -294,7 +287,7 @@ test('MM-T5796 User auto-removed when required attribute is removed', async ({pw
         attribute: 'Department',
         operator: '==',
         value: 'Engineering',
-        autoSync: false, // Auto-add FALSE
+        autoSync: false,
         channels: [privateChannel.display_name],
     });
 
@@ -310,7 +303,7 @@ test('MM-T5796 User auto-removed when required attribute is removed', async ({pw
     const idMatch = policy1Name.match(/([a-z0-9]+)$/i);
     const uniqueId = idMatch ? idMatch[1] : policy1Name;
     await searchInput.fill(uniqueId);
-    await systemConsolePage.page.waitForTimeout(1000);
+    await systemConsolePage.page.waitForTimeout(300);
 
     const policyRow = systemConsolePage.page.locator('.policy-name').first();
     const policyElementId = await policyRow.getAttribute('id');
@@ -325,45 +318,39 @@ test('MM-T5796 User auto-removed when required attribute is removed', async ({pw
     await updateUserAttributes(adminClient, testUser.id, {Department: 'Sales'});
 
     // Wait for attribute change to propagate
-    await systemConsolePage.page.waitForTimeout(1000);
+    await systemConsolePage.page.waitForTimeout(300);
 
     // Run sync job
     const runSync1JobId = await runSyncJob(systemConsolePage.page);
     await waitForLatestSyncJob(systemConsolePage.page, 5, policy1JobId, runSync1JobId);
 
     // Wait for membership updates to apply
-    await systemConsolePage.page.waitForTimeout(1000);
+    await systemConsolePage.page.waitForTimeout(300);
 
     // Verify user is removed
     const userInChannelAfterRemoval = await verifyUserInChannel(adminClient, testUser.id, privateChannel.id);
     expect(userInChannelAfterRemoval).toBe(false);
+});
 
-    // Check for removal system message
-    const posts = await adminClient.getPosts(privateChannel.id, 0, 10);
-    const postList = posts.order.map((postId: string) => posts.posts[postId]);
+test('MM-T5796b User auto-added then auto-removed when attribute changes (auto-add true)', async ({pw}) => {
+    test.setTimeout(90000);
 
-    const userRemovedMessage = postList.find((post: any) => {
-        return (
-            (post.type === 'system_remove_from_channel' || post.type === 'system_leave_channel') &&
-            (post.props?.removedUserId === testUser.id || post.user_id === testUser.id)
-        );
-    });
+    await pw.skipIfNoLicense();
 
-    if (userRemovedMessage) {
-        // System message found
-    } else {
-        // System message not found (may be disabled in test env)
-    }
+    const {adminUser, adminClient, team} = await pw.initSetup();
 
-    // ============================================================
-    // TEST SCENARIO 2: Auto-add TRUE
-    // ============================================================
+    const attributeFields: CustomProfileAttribute[] = [{name: 'Department', type: 'text', value: ''}];
+    const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, attributeFields);
 
-    // Restore user attribute and create new policy with auto-add=true
-    await updateUserAttributes(adminClient, testUser.id, {Department: 'Engineering'});
+    // Create test user WITH the qualifying attribute
+    const testUser = await createUserForABAC(adminClient, attributeFieldsMap, [
+        {name: 'Department', type: 'text', value: 'Engineering'},
+    ]);
+    await adminClient.addToTeam(team.id, testUser.id);
 
     const channel2 = await createPrivateChannelForABAC(adminClient, team.id);
 
+    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
     await navigateToABACPage(systemConsolePage.page);
 
     const policy2Name = `Engineering Access WithAutoAdd ${await pw.random.id()}`;
@@ -372,14 +359,16 @@ test('MM-T5796 User auto-removed when required attribute is removed', async ({pw
         attribute: 'Department',
         operator: '==',
         value: 'Engineering',
-        autoSync: true, // Auto-add TRUE
+        autoSync: true,
         channels: [channel2.display_name],
     });
 
     // Activate and run sync to auto-add user
     const policy2JobId = await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, undefined, policy2Id);
+    const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
+    await searchInput.waitFor({state: 'visible', timeout: 5000});
     await searchInput.fill(policy2Name.match(/([a-z0-9]+)$/i)?.[1] || policy2Name);
-    await systemConsolePage.page.waitForTimeout(1000);
+    await systemConsolePage.page.waitForTimeout(300);
 
     const policyRow2 = systemConsolePage.page.locator('.policy-name').first();
     const policyId2 = (await policyRow2.getAttribute('id'))?.replace('customDescription-', '');
@@ -395,18 +384,18 @@ test('MM-T5796 User auto-removed when required attribute is removed', async ({pw
     const userAutoAdded = await verifyUserInChannel(adminClient, testUser.id, channel2.id);
     expect(userAutoAdded).toBe(true);
 
-    // Remove attribute again
+    // Remove attribute
     await updateUserAttributes(adminClient, testUser.id, {Department: 'Marketing'});
 
     // Wait for attribute change to propagate
-    await systemConsolePage.page.waitForTimeout(1000);
+    await systemConsolePage.page.waitForTimeout(300);
 
     // Run sync
     const runSync3JobId = await runSyncJob(systemConsolePage.page);
     await waitForLatestSyncJob(systemConsolePage.page, 5, sync2JobId, runSync3JobId);
 
     // Small delay for channel membership update
-    await systemConsolePage.page.waitForTimeout(1000);
+    await systemConsolePage.page.waitForTimeout(300);
 
     // Verify user is removed
     const userRemovedFromChannel2 = await verifyUserInChannel(adminClient, testUser.id, channel2.id);

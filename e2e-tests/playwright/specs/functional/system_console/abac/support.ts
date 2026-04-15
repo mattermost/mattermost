@@ -905,8 +905,8 @@ export async function waitForLatestSyncJob(
     jobId?: string | null,
     policyId?: string | null,
 ): Promise<string | null> {
-    const pollIntervalMs = 500;
-    const timeoutMs = Math.max(maxRetries * 12000, 60000);
+    const pollIntervalMs = 200;
+    const timeoutMs = Math.max(maxRetries * 12000, 30000);
     const startTime = Date.now();
     const deadline = startTime + timeoutMs;
 

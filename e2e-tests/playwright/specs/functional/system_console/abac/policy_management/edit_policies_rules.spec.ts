@@ -110,7 +110,7 @@ test('MM-T5791 Editing policy to add attribute with auto-add enabled', async ({p
     });
 
     // Wait for automatic sync to complete
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(500);
 
     // Verify initial state after original policy sync
     await verifyUserInChannel(adminClient, engineerRemoteUser.id, privateChannel.id);
@@ -216,13 +216,10 @@ test('MM-T5791 Editing policy to add attribute with auto-add enabled', async ({p
 
     // Navigate to ABAC page and wait for auto-triggered sync job
     await navigateToABACPage(page);
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(500);
 
     // Wait for the auto-triggered sync job to complete (policy edit triggers sync automatically)
     await waitForLatestSyncJob(page, 5, beforeEdit2JobId, undefined, editTest2PolicyId);
-
-    // Additional wait for membership changes to propagate
-    await page.waitForTimeout(5000);
 
     // ===========================================
     // STEP 5 & 6: Verify channel membership after edit
@@ -332,7 +329,7 @@ test('MM-T5792 Editing policy to remove attribute rule with auto-add enabled', a
     });
 
     // Wait for automatic sync to complete
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(500);
 
     // Verify initial state after original policy sync
     await verifyUserInChannel(adminClient, engineerRemoteUser.id, privateChannel.id);
@@ -346,7 +343,7 @@ test('MM-T5792 Editing policy to remove attribute rule with auto-add enabled', a
 
     const beforeEdit3JobId = await captureLatestJobId(page, editTest3PolicyId);
     await page.goto('/admin_console/system_attributes/attribute_based_access_control', {waitUntil: 'networkidle'});
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(500);
 
     const addPolicyButton = page.getByRole('button', {name: 'Add policy'});
     await addPolicyButton.waitFor({state: 'visible', timeout: 10000});
