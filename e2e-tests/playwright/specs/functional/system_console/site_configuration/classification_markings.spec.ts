@@ -2,11 +2,14 @@
 // See LICENSE.txt for license information.
 
 /**
- * System Console — Classification markings (Enterprise license + ClassificationMarkings feature flag).
+ * System Console — Classification markings (Enterprise-tier license + ClassificationMarkings feature flag).
  * Covers admin UI for presets, save validation, preset-change confirmation, and custom preset detection.
+ *
+ * Local runs: upload or use a license with SkuShortName `enterprise`, `entry`, or `advanced`.
+ * Professional-only licenses hide this admin route (React Router redirects to /admin_console/about/license).
  */
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test, getAdminClient, licenseTier} from '@mattermost/playwright-lib';
 
 import {
     CLASSIFICATION_MARKINGS_ADMIN_PATH,
@@ -19,6 +22,12 @@ test.describe('System Console - Classification markings', () => {
 
     test.beforeEach(async ({pw}) => {
         await pw.skipIfNoLicense();
+        const {adminClient} = await getAdminClient();
+        const license = await adminClient.getClientLicenseOld();
+        test.skip(
+            licenseTier(license.SkuShortName) < 20,
+            'Classification markings requires Enterprise-tier license (SkuShortName enterprise, entry, or advanced). Professional/trial Professional is not sufficient—the admin route is hidden and redirects to /admin_console/about/license.',
+        );
     });
 
     /**
