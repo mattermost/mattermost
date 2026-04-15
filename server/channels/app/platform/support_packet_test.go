@@ -9,6 +9,7 @@ import (
 	"errors"
 	"os"
 	"path"
+	"runtime"
 	"testing"
 
 	"github.com/goccy/go-yaml"
@@ -210,8 +211,12 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Positive(t, d.Server.CPUCores)
 		assert.Positive(t, d.Server.TotalMemoryMB)
 		assert.False(t, d.Server.StartedAt.IsZero())
-		assert.False(t, d.Server.HostStartedAt.IsZero())
-		assert.True(t, !d.Server.HostStartedAt.After(d.Server.StartedAt))
+		if runtime.GOOS == "linux" {
+			assert.False(t, d.Server.HostStartedAt.IsZero())
+			assert.True(t, !d.Server.HostStartedAt.After(d.Server.StartedAt))
+		} else {
+			assert.True(t, d.Server.HostStartedAt.IsZero(), "HostStartedAt should be zero on non-Linux platforms")
+		}
 
 		/* Config */
 		assert.Equal(t, "memory://", d.Config.Source)

@@ -15,7 +15,14 @@ import (
 // getHostUptimeSeconds reads /proc/uptime and returns the number of seconds
 // the host OS has been running.
 func getHostUptimeSeconds() (int64, error) {
-	data, err := os.ReadFile("/proc/uptime")
+	return parseUptimeFile("/proc/uptime")
+}
+
+// parseUptimeFile reads an uptime file in the /proc/uptime format and returns
+// the number of seconds as an int64.  It is a separate function to allow unit
+// tests to supply a synthetic file path.
+func parseUptimeFile(path string) (int64, error) {
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return 0, fmt.Errorf("failed to read /proc/uptime: %w", err)
 	}
