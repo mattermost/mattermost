@@ -2660,6 +2660,16 @@ func (a *App) SetPostReminder(rctx request.CTX, postID, userID string, targetTim
 		return model.NewAppError("SetPostReminder", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	remindedPost, postErr := a.GetSinglePost(rctx, postID, false)
+	if postErr != nil {
+		return postErr
+	}
+	// Ephemeral ack must use the thread root so CRT/RHS thread views (keyed by root id) show the confirmation.
+	ephemeralRootID := remindedPost.Id
+	if remindedPost.RootId != "" {
+		ephemeralRootID = remindedPost.RootId
+	}
+
 	parsedTime := time.Unix(targetTime, 0).UTC().Format(time.RFC822)
 	siteURL := *a.Config().ServiceSettings.SiteURL
 
@@ -2676,7 +2686,7 @@ func (a *App) SetPostReminder(rctx request.CTX, postID, userID string, targetTim
 		Id:        model.NewId(),
 		CreateAt:  model.GetMillis(),
 		UserId:    userID,
-		RootId:    postID,
+		RootId:    ephemeralRootID,
 		ChannelId: metadata.ChannelID,
 		// It's okay to keep this non-translated. This is just a fallback.
 		// The webapp will parse the timestamp and show that in user's local timezone.
