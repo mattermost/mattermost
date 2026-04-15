@@ -807,8 +807,8 @@ const defaultServerConfig: AdminConfig = {
         MemberSyncBatchSize: 20,
     },
     AccessControlSettings: {
-        EnableAttributeBasedAccessControl: false,
-        EnableUserManagedAttributes: false,
+        EnableAttributeBasedAccessControl: true,
+        EnableUserManagedAttributes: true,
     },
     ContentFlaggingSettings: {
         EnableContentFlagging: false,

@@ -7,7 +7,9 @@ test('MM-T5782 System admin can enable or disable system-wide ABAC', async ({pw}
     // # Skip test if no license for ABAC
     await pw.skipIfNoLicense();
 
-    // # Set up admin user and login
+    // # Set up admin user and login.
+    // initSetup resets the server config to defaults; default_config.ts sets
+    // EnableAttributeBasedAccessControl: true so ABAC is enabled from the start.
     const {adminUser} = await pw.initSetup();
 
     // # Now login
@@ -29,22 +31,17 @@ test('MM-T5782 System admin can enable or disable system-wide ABAC', async ({pw}
         '#AccessControlSettings\\.EnableAttributeBasedAccessControlfalse',
     );
     const saveButton = systemConsolePage.page.getByRole('button', {name: 'Save'});
-
-    // # Test enable ABAC
-    await enableRadio.click();
-    await expect(enableRadio).toBeChecked();
-    await saveButton.click();
-    await systemConsolePage.page.waitForLoadState('networkidle');
-
-    // * Verify policy management UI is visible when enabled
     const addPolicyButton = systemConsolePage.page.getByRole('button', {name: 'Add policy'});
     const runSyncJobButton = systemConsolePage.page.getByRole('button', {name: 'Run Sync Job'});
+
+    // * Verify ABAC starts enabled (default config sets it to true)
+    await expect(enableRadio).toBeChecked();
     await expect(addPolicyButton).toBeVisible();
     await expect(runSyncJobButton).toBeVisible();
 
-    // # Test disable ABAC, then immediately re-enable to minimise the parallel
-    // race window. Use try/finally so the re-enable runs even if an assertion
-    // fails and the test is aborted mid-way.
+    // # Test disable ABAC, then immediately re-enable to keep the shared server
+    // state clean for parallel tests. try/finally ensures re-enable runs even if
+    // an assertion fails mid-way.
     try {
         await disableRadio.click();
         await expect(disableRadio).toBeChecked();
