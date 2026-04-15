@@ -7,7 +7,8 @@
  */
 
 import {expect, hasCustomPermissionsSchemesLicense, hasSharedChannelsLicense, test} from '@mattermost/playwright-lib';
-import {getRandomId} from 'utils/utils';
+
+import {getRandomId} from '@/util';
 
 /**
  * Minimal type for ensureConfirmedRemote. We use this instead of importing Client4 from
