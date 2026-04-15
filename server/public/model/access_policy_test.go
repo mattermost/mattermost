@@ -213,3 +213,345 @@ func TestAccessPolicyVersionV0_1(t *testing.T) {
 		require.Nil(t, err, "Should not return error for valid channel policy")
 	})
 }
+
+func TestAccessPolicyVersionV0_3(t *testing.T) {
+	validRule := AccessControlPolicyRule{
+		Actions:    []string{AccessControlPolicyActionMembership},
+		Expression: "user.properties.dept == \"eng\"",
+	}
+
+	t.Run("valid parent type", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeParent,
+			Name:     "Parent",
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Rules: []AccessControlPolicyRule{{
+				Actions: []string{
+					AccessControlPolicyActionMembership,
+					AccessControlPolicyActionUploadFileAttachment,
+					AccessControlPolicyActionDownloadFileAttachment,
+				},
+				Expression: "user.properties.dept == \"eng\"",
+			}},
+		}
+		require.Nil(t, policy.accessPolicyVersionV0_3())
+	})
+
+	t.Run("valid channel type", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeChannel,
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Imports:  []string{NewId()},
+			Rules:    []AccessControlPolicyRule{validRule},
+		}
+		require.Nil(t, policy.accessPolicyVersionV0_3())
+	})
+
+	t.Run("valid permission type", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypePermission,
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Roles:    []string{"system_admin"},
+			Rules:    []AccessControlPolicyRule{validRule},
+		}
+		require.Nil(t, policy.accessPolicyVersionV0_3())
+	})
+
+	t.Run("invalid type", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     "unknown",
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Rules:    []AccessControlPolicyRule{validRule},
+		}
+		err := policy.accessPolicyVersionV0_3()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.type.app_error", err.Id)
+	})
+
+	t.Run("parent with no rules", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeParent,
+			Name:     "Parent",
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Rules:    []AccessControlPolicyRule{},
+		}
+		err := policy.accessPolicyVersionV0_3()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.rules.app_error", err.Id)
+	})
+
+	t.Run("parent with non-empty imports", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeParent,
+			Name:     "Parent",
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Rules:    []AccessControlPolicyRule{validRule},
+			Imports:  []string{NewId()},
+		}
+		err := policy.accessPolicyVersionV0_3()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.imports.app_error", err.Id)
+	})
+
+	t.Run("permission with empty roles", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypePermission,
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Roles:    []string{},
+			Rules:    []AccessControlPolicyRule{validRule},
+		}
+		err := policy.accessPolicyVersionV0_3()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.roles.app_error", err.Id)
+	})
+
+	t.Run("permission with blank role string", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypePermission,
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Roles:    []string{""},
+			Rules:    []AccessControlPolicyRule{validRule},
+		}
+		err := policy.accessPolicyVersionV0_3()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.roles.app_error", err.Id)
+	})
+
+	t.Run("permission with multiple roles", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypePermission,
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Roles:    []string{"system_admin", "system_user"},
+			Rules:    []AccessControlPolicyRule{validRule},
+		}
+		err := policy.accessPolicyVersionV0_3()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.roles.app_error", err.Id)
+	})
+
+	t.Run("permission with imports", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypePermission,
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Roles:    []string{"system_admin"},
+			Rules:    []AccessControlPolicyRule{validRule},
+			Imports:  []string{NewId()},
+		}
+		err := policy.accessPolicyVersionV0_3()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.imports.app_error", err.Id)
+	})
+
+	t.Run("unrecognized action", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeParent,
+			Name:     "Parent",
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{"not_a_real_action"},
+				Expression: "true",
+			}},
+		}
+		err := policy.accessPolicyVersionV0_3()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.actions.app_error", err.Id)
+		require.Contains(t, err.DetailedError, "not_a_real_action")
+	})
+
+	t.Run("empty actions slice", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeParent,
+			Name:     "Parent",
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{},
+				Expression: "true",
+			}},
+		}
+		err := policy.accessPolicyVersionV0_3()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.actions.app_error", err.Id)
+	})
+
+	t.Run("channel with no rules and no imports", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeChannel,
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+		}
+		err := policy.accessPolicyVersionV0_3()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.rules_imports.app_error", err.Id)
+	})
+}
+
+func TestInheritV0_3(t *testing.T) {
+	t.Run("successful inherit", func(t *testing.T) {
+		parentID := NewId()
+		parent := &AccessControlPolicy{
+			ID:       parentID,
+			Type:     AccessControlPolicyTypeParent,
+			Name:     "Parent",
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{AccessControlPolicyActionMembership},
+				Expression: "true",
+			}},
+		}
+		child := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeChannel,
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{AccessControlPolicyActionMembership},
+				Expression: "true",
+			}},
+		}
+
+		err := child.Inherit(parent)
+		require.Nil(t, err)
+		require.Contains(t, child.Imports, parentID)
+	})
+
+	t.Run("duplicate import guard", func(t *testing.T) {
+		parentID := NewId()
+		parent := &AccessControlPolicy{
+			ID:       parentID,
+			Type:     AccessControlPolicyTypeParent,
+			Name:     "Parent",
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{AccessControlPolicyActionMembership},
+				Expression: "true",
+			}},
+		}
+		child := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeChannel,
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Imports:  []string{parentID},
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{AccessControlPolicyActionMembership},
+				Expression: "true",
+			}},
+		}
+
+		err := child.Inherit(parent)
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.inherit.already_imported.app_error", err.Id)
+	})
+
+	t.Run("permission type child rejected", func(t *testing.T) {
+		parent := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeParent,
+			Name:     "Parent",
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{AccessControlPolicyActionMembership},
+				Expression: "true",
+			}},
+		}
+		child := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypePermission,
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Roles:    []string{"system_admin"},
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{AccessControlPolicyActionMembership},
+				Expression: "true",
+			}},
+		}
+
+		err := child.Inherit(parent)
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.inherit.permission.app_error", err.Id)
+	})
+
+	t.Run("permission type parent rejected", func(t *testing.T) {
+		parent := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypePermission,
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Roles:    []string{"system_admin"},
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{AccessControlPolicyActionMembership},
+				Expression: "true",
+			}},
+		}
+		child := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeChannel,
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{AccessControlPolicyActionMembership},
+				Expression: "true",
+			}},
+		}
+
+		err := child.Inherit(parent)
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.inherit.permission.app_error", err.Id)
+	})
+
+	t.Run("non-v0.3 parent version rejected", func(t *testing.T) {
+		parent := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeParent,
+			Name:     "V01 Parent",
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_1,
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{"read"},
+				Expression: "true",
+			}},
+		}
+		child := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeChannel,
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{AccessControlPolicyActionMembership},
+				Expression: "true",
+			}},
+		}
+
+		err := child.Inherit(parent)
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.inherit.version.app_error", err.Id)
+	})
+}
