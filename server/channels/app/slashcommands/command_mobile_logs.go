@@ -25,6 +25,37 @@ func init() {
 	app.RegisterCommandProvider(&MobileLogsProvider{})
 }
 
+func logMobileLogsAttachAppLogsAudit(a *app.App, rctx request.CTX, actorUserID, targetUserID, value string) {
+	rec := &model.AuditRecord{
+		EventName: model.AuditEventUpdatePreferences,
+		Status:    model.AuditStatusSuccess,
+		Actor: model.AuditEventActor{
+			UserId:        actorUserID,
+			SessionId:     rctx.Session().Id,
+			Client:        rctx.UserAgent(),
+			IpAddress:     rctx.IPAddress(),
+			XForwardedFor: rctx.XForwardedFor(),
+		},
+		Meta: map[string]any{
+			model.AuditKeyAPIPath:   rctx.Path(),
+			model.AuditKeyClusterID: a.GetClusterId(),
+		},
+		EventData: model.AuditEventData{
+			Parameters: map[string]any{
+				"source":              "slash_command/" + CmdMobileLogs,
+				"target_user_id":      targetUserID,
+				"preference_category": model.PreferenceCategoryAdvancedSettings,
+				"preference_name":     model.PreferenceNameAttachAppLogs,
+				"value":               value,
+			},
+			PriorState:  map[string]any{},
+			ResultState: map[string]any{},
+			ObjectType:  "user_preference",
+		},
+	}
+	a.LogAuditRecWithLevel(rctx, rec, app.LevelAPI, nil)
+}
+
 func (*MobileLogsProvider) GetTrigger() string {
 	return CmdMobileLogs
 }
@@ -130,6 +161,7 @@ func (*MobileLogsProvider) DoCommand(a *app.App, rctx request.CTX, args *model.C
 				ResponseType: model.CommandResponseTypeEphemeral,
 			}
 		}
+		logMobileLogsAttachAppLogsAudit(a, rctx, args.UserId, targetUserID, "true")
 		return &model.CommandResponse{
 			Text:         args.T("api.command_mobile_logs.enabled", map[string]any{"User": targetDisplayName}),
 			ResponseType: model.CommandResponseTypeEphemeral,
@@ -151,6 +183,7 @@ func (*MobileLogsProvider) DoCommand(a *app.App, rctx request.CTX, args *model.C
 				ResponseType: model.CommandResponseTypeEphemeral,
 			}
 		}
+		logMobileLogsAttachAppLogsAudit(a, rctx, args.UserId, targetUserID, "false")
 		return &model.CommandResponse{
 			Text:         args.T("api.command_mobile_logs.disabled", map[string]any{"User": targetDisplayName}),
 			ResponseType: model.CommandResponseTypeEphemeral,
