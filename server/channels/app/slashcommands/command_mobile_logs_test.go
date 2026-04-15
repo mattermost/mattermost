@@ -195,6 +195,27 @@ func TestMobileLogsNoArgs(t *testing.T) {
 	assert.Equal(t, "api.command_mobile_logs.usage", resp.Text)
 }
 
+func TestMobileLogsTooManyArgs(t *testing.T) {
+	th := setup(t).initBasic(t)
+
+	cmd := &MobileLogsProvider{}
+	cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
+		T:      i18n.IdentityTfunc(),
+		UserId: th.SystemAdminUser.Id,
+	}, "on @"+th.BasicUser.Username)
+
+	resp := cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
+		T:      i18n.IdentityTfunc(),
+		UserId: th.SystemAdminUser.Id,
+	}, "on @"+th.BasicUser.Username+" trailing")
+	assert.Equal(t, model.CommandResponseTypeEphemeral, resp.ResponseType)
+	assert.Equal(t, "api.command_mobile_logs.usage", resp.Text)
+
+	pref, err := th.App.GetPreferenceByCategoryAndNameForUser(th.Context, th.BasicUser.Id, model.PreferenceCategoryAdvancedSettings, model.PreferenceNameAttachAppLogs)
+	require.Nil(t, err)
+	assert.Equal(t, "true", pref.Value)
+}
+
 func TestMobileLogsInvalidAction(t *testing.T) {
 	th := setup(t).initBasic(t)
 

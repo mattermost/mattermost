@@ -41,7 +41,7 @@ func (*MobileLogsProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.C
 
 func (*MobileLogsProvider) DoCommand(a *app.App, rctx request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	fields := strings.Fields(message)
-	if len(fields) == 0 {
+	if len(fields) == 0 || len(fields) > 2 {
 		return &model.CommandResponse{
 			Text:         args.T("api.command_mobile_logs.usage"),
 			ResponseType: model.CommandResponseTypeEphemeral,
