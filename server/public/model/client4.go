@@ -3325,6 +3325,49 @@ func (c *Client4) AddChannelMembers(ctx context.Context, channelId, postRootId s
 	return DecodeJSONFromResponse[[]*ChannelMember](r)
 }
 
+// SetChannelMembers performs a bulk set (replace) of channel memberships. It accepts the complete
+// desired membership list and reconciles it against the current state. Results are streamed back
+// as NDJSON, one line per batch. The batchSize and batchDelayMs parameters control the processing
+// rate; pass 0 to use server defaults.
+func (c *Client4) SetChannelMembers(ctx context.Context, channelId string, req *SetChannelMembersRequest, batchSize, batchDelayMs int) ([]*SetChannelMembersResponse, *Response, error) {
+	route := c.channelMembersRoute(channelId)
+	routePath, err := route.String()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if batchSize > 0 || batchDelayMs > 0 {
+		params := url.Values{}
+		if batchSize > 0 {
+			params.Set("batch_size", strconv.Itoa(batchSize))
+		}
+		if batchDelayMs > 0 {
+			params.Set("batch_delay_ms", strconv.Itoa(batchDelayMs))
+		}
+		routePath = fmt.Sprintf("%s?%s", routePath, params.Encode())
+	}
+
+	r, err := c.DoAPIPutJSON(ctx, routePath, req)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var results []*SetChannelMembersResponse
+	dec := json.NewDecoder(r.Body)
+	for {
+		var result SetChannelMembersResponse
+		if err := dec.Decode(&result); err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
+			return results, BuildResponse(r), err
+		}
+		results = append(results, &result)
+	}
+	return results, BuildResponse(r), nil
+}
+
 // AddChannelMemberWithRootId adds user to channel and return a channel member. Post add to channel message has the postRootId.
 func (c *Client4) AddChannelMemberWithRootId(ctx context.Context, channelId, userId, postRootId string) (*ChannelMember, *Response, error) {
 	requestBody := map[string]string{"user_id": userId, "post_root_id": postRootId}

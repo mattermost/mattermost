@@ -17,7 +17,7 @@ test('Should show channel banner when configured', async ({pw}) => {
     await channelsPage.goto();
     await channelsPage.toBeVisible();
 
-    await channelsPage.newChannel(await getRandomId(), 'O');
+    await channelsPage.newChannel(pw.random.id(), 'O');
 
     let channelSettingsModal = await channelsPage.openChannelSettings();
     let configurationTab = await channelSettingsModal.openConfigurationTab();
@@ -150,7 +150,7 @@ test('Should render markdown', async ({pw}) => {
     await channelsPage.goto();
     await channelsPage.toBeVisible();
 
-    await channelsPage.newChannel(await getRandomId(), 'O');
+    await channelsPage.newChannel(pw.random.id(), 'O');
 
     const channelSettingsModal = await channelsPage.openChannelSettings();
     const configurationTab = await channelSettingsModal.openConfigurationTab();
