@@ -121,6 +121,24 @@ func (s *SqlPropertyFieldStore) CountForGroup(groupID string, includeDeleted boo
 	return count, nil
 }
 
+func (s *SqlPropertyFieldStore) CountForGroupObjectType(groupID, objectType string, includeDeleted bool) (int64, error) {
+	var count int64
+	builder := s.getQueryBuilder().
+		Select("COUNT(id)").
+		From("PropertyFields").
+		Where(sq.Eq{"GroupID": groupID}).
+		Where(sq.Eq{"ObjectType": objectType})
+
+	if !includeDeleted {
+		builder = builder.Where(sq.Eq{"DeleteAt": 0})
+	}
+
+	if err := s.GetReplica().GetBuilder(&count, builder); err != nil {
+		return int64(0), errors.Wrap(err, "failed to count property fields for group and object type")
+	}
+	return count, nil
+}
+
 func (s *SqlPropertyFieldStore) CountForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error) {
 	var count int64
 	builder := s.getQueryBuilder().

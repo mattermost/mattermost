@@ -60,6 +60,10 @@ func (ps *PropertyService) countAllPropertyFieldsForGroup(groupID string) (int64
 	return ps.fieldStore.CountForGroup(groupID, true)
 }
 
+func (ps *PropertyService) countActivePropertyFieldsForGroupObjectType(groupID, objectType string) (int64, error) {
+	return ps.fieldStore.CountForGroupObjectType(groupID, objectType, false)
+}
+
 func (ps *PropertyService) countActivePropertyFieldsForTarget(groupID, targetType, targetID string) (int64, error) {
 	return ps.fieldStore.CountForTarget(groupID, targetType, targetID, false)
 }

@@ -1669,7 +1669,14 @@ func (api *PluginAPI) SearchPropertyValues(groupID string, opts model.PropertyVa
 }
 
 func (api *PluginAPI) RegisterPropertyGroup(name string) (*model.PropertyGroup, error) {
-	name = migrateDeprecatedPropertyGroupName(name)
+	if name == model.DeprecatedCPAPropertyGroupName {
+		return nil, fmt.Errorf(
+			"the group name %q has been renamed to %q; use %q instead",
+			model.DeprecatedCPAPropertyGroupName,
+			model.ProtectedAttributesPropertyGroupName,
+			model.ProtectedAttributesPropertyGroupName,
+		)
+	}
 	group, appErr := api.app.RegisterPropertyGroup(api.psaPluginContext(), name)
 	if appErr != nil {
 		return nil, appErr

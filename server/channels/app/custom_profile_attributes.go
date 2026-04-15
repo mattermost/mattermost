@@ -205,6 +205,10 @@ func (a *App) PatchCPAValue(rctx request.CTX, userID string, fieldID string, val
 		return nil, appErr
 	}
 
+	if len(values) == 0 {
+		return nil, model.NewAppError("PatchCPAValue", "app.custom_profile_attributes.property_value_upsert.app_error", nil, "upsert returned no results", http.StatusInternalServerError)
+	}
+
 	return values[0], nil
 }
 

@@ -3729,23 +3729,21 @@ func TestMigrateDeprecatedPropertyGroupName(t *testing.T) {
 func TestPluginAPIPropertyGroupDeprecatedName(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	t.Run("RegisterPropertyGroup maps deprecated name to canonical name", func(t *testing.T) {
+	t.Run("RegisterPropertyGroup rejects deprecated name", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		api := th.SetupPluginAPI()
 
-		// Register using the deprecated name
-		group, err := api.RegisterPropertyGroup(model.DeprecatedCPAPropertyGroupName)
+		// Register using the deprecated name must fail
+		_, err := api.RegisterPropertyGroup(model.DeprecatedCPAPropertyGroupName)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "renamed")
+
+		// Register using the canonical name should still work
+		group, err := api.RegisterPropertyGroup(model.ProtectedAttributesPropertyGroupName)
 		require.NoError(t, err)
 		require.NotNil(t, group)
-
-		// The returned group must have the canonical name
 		assert.Equal(t, model.ProtectedAttributesPropertyGroupName, group.Name)
-
-		// Register using the canonical name should return the same group
-		sameGroup, err := api.RegisterPropertyGroup(model.ProtectedAttributesPropertyGroupName)
-		require.NoError(t, err)
-		assert.Equal(t, group.ID, sameGroup.ID)
 	})
 
 	t.Run("GetPropertyGroup maps deprecated name to canonical name", func(t *testing.T) {

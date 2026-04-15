@@ -54,17 +54,14 @@ func (h *FieldLimitHook) PreCreatePropertyField(_ request.CTX, field *model.Prop
 		return field, nil
 	}
 
-	// Check per-object-type limit using search with ObjectType filter
+	// Check per-object-type limit
 	if field.ObjectType != "" {
 		if limit, hasLimit := config.PerObjectType[field.ObjectType]; hasLimit {
-			fields, err := h.propertyService.searchPropertyFields(field.GroupID, model.PropertyFieldSearchOpts{
-				ObjectType: field.ObjectType,
-				PerPage:    int(limit) + 1,
-			})
+			count, err := h.propertyService.countActivePropertyFieldsForGroupObjectType(field.GroupID, field.ObjectType)
 			if err != nil {
 				return nil, fmt.Errorf("PreCreatePropertyField: failed to count fields: %w", err)
 			}
-			if int64(len(fields)) >= limit {
+			if count >= limit {
 				return nil, model.NewAppError(
 					"PreCreatePropertyField",
 					"app.property_field.create.limit_reached.app_error",
