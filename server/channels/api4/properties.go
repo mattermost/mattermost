@@ -34,7 +34,6 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Resolve group_name to internal group ID
 	group, appErr := c.App.GetPropertyGroup(c.AppContext, c.Params.GroupName)
 	if appErr != nil {
 		c.Err = model.NewAppError("createPropertyField", "api.property_field.invalid_group_name.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
@@ -47,88 +46,15 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord(model.AuditEventCreatePropertyField, model.AuditStatusFail)
-	defer c.LogAuditRec(auditRec)
-
-	// Set ObjectType and GroupID from URL
 	field.ObjectType = c.Params.ObjectType
 	field.GroupID = group.ID
 
-	// Reject protected field creation via API
-	if field.Protected {
-		c.Err = model.NewAppError("createPropertyField", "api.property_field.create.protected_via_api.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	// Check scope access for creation
-	switch field.TargetType {
-	case "channel":
-		if field.TargetID == "" {
-			c.Err = model.NewAppError("createPropertyField", "api.property_field.create.target_id_required.app_error", nil, "", http.StatusBadRequest)
-			return
-		}
-		hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), field.TargetID, model.PermissionCreatePost)
-		if !hasPermission {
-			c.SetPermissionError(model.PermissionCreatePost)
-			return
-		}
-	case "team":
-		if field.TargetID == "" {
-			c.Err = model.NewAppError("createPropertyField", "api.property_field.create.target_id_required.app_error", nil, "", http.StatusBadRequest)
-			return
-		}
-		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), field.TargetID, model.PermissionManageTeam) {
-			c.SetPermissionError(model.PermissionManageTeam)
-			return
-		}
-	case "system":
-		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-			c.SetPermissionError(model.PermissionManageSystem)
-			return
-		}
-	default:
-		c.Err = model.NewAppError("createPropertyField", "api.property_field.create.invalid_target_type.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	// Trim whitespace from name
-	field.Name = strings.TrimSpace(field.Name)
-
-	// Check if user is admin
-	isAdmin := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
-
-	// Set permissions based on admin status.
-	// Permissions are not accepted from the request body; they're set by the server.
-	memberLevel := model.PermissionLevelMember
-	if !isAdmin {
-		// Non-admin: force all permissions to member level
-		field.PermissionField = &memberLevel
-		field.PermissionValues = &memberLevel
-		field.PermissionOptions = &memberLevel
-	} else {
-		// Admin with nil fields: set defaults to member level
-		if field.PermissionField == nil {
-			field.PermissionField = &memberLevel
-		}
-		if field.PermissionValues == nil {
-			field.PermissionValues = &memberLevel
-		}
-		if field.PermissionOptions == nil {
-			field.PermissionOptions = &memberLevel
-		}
-	}
-
-	// Set creator
-	field.CreatedBy = c.AppContext.Session().UserId
-	field.UpdatedBy = c.AppContext.Session().UserId
-
+	auditRec := c.MakeAuditRecord(model.AuditEventCreatePropertyField, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "property_field", field)
 
-	connectionID := r.Header.Get(model.ConnectionId)
-
-	createdField, err := c.App.CreatePropertyField(c.AppContext, field, false, connectionID)
-	if err != nil {
-		c.Err = err
+	createdField := executeCreatePropertyField(c, r, field)
+	if c.Err != nil {
 		return
 	}
 
@@ -238,13 +164,11 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Resolve group_name to internal group ID
 	group, appErr := c.App.GetPropertyGroup(c.AppContext, c.Params.GroupName)
 	if appErr != nil {
 		c.Err = model.NewAppError("patchPropertyField", "api.property_field.invalid_group_name.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
 		return
 	}
-	groupID := group.ID
 
 	var patch *model.PropertyFieldPatch
 	if err := json.NewDecoder(r.Body).Decode(&patch); err != nil || patch == nil {
@@ -256,8 +180,6 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		*patch.Name = strings.TrimSpace(*patch.Name)
 	}
 
-	// target_id and target_type are identity fields that define the
-	// property's scope and cannot be modified via patch
 	patch.TargetID = nil
 	patch.TargetType = nil
 
@@ -271,67 +193,12 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get existing field
-	existingField, err := c.App.GetPropertyField(c.AppContext, groupID, c.Params.FieldId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	// This API only supports PSAv2 fields (those with an ObjectType)
-	if existingField.IsPSAv1() {
-		c.Err = model.NewAppError("patchPropertyField", "api.property_field.patch.legacy_field.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	// Verify ObjectType matches
-	if existingField.ObjectType != c.Params.ObjectType {
-		c.Err = model.NewAppError("patchPropertyField", "api.property_field.object_type_mismatch.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
 	auditRec := c.MakeAuditRecord(model.AuditEventPatchPropertyField, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "property_field_patch", patch)
-	auditRec.AddEventPriorState(existingField)
 
-	// Reject update of protected field
-	if existingField.Protected {
-		c.Err = model.NewAppError("patchPropertyField", "api.property_field.update.protected_via_api.app_error", nil, "", http.StatusForbidden)
-		return
-	}
-
-	// Detect if this is an options-only update
-	isOptionsOnlyUpdate := isOptionsOnlyPatch(patch)
-
-	// Options-only permission path only applies to select/multiselect fields.
-	// For other field types, treat options changes as a field update.
-	if isOptionsOnlyUpdate && existingField.Type != model.PropertyFieldTypeSelect && existingField.Type != model.PropertyFieldTypeMultiselect {
-		isOptionsOnlyUpdate = false
-	}
-
-	// Check permissions
-	if isOptionsOnlyUpdate {
-		if !c.App.SessionHasPermissionToManagePropertyFieldOptions(c.AppContext, *c.AppContext.Session(), existingField) {
-			c.Err = model.NewAppError("patchPropertyField", "api.property_field.update.no_options_permission.app_error", nil, "", http.StatusForbidden)
-			return
-		}
-	} else {
-		if !c.App.SessionHasPermissionToEditPropertyField(c.AppContext, *c.AppContext.Session(), existingField) {
-			c.Err = model.NewAppError("patchPropertyField", "api.property_field.update.no_field_permission.app_error", nil, "", http.StatusForbidden)
-			return
-		}
-	}
-
-	// Apply patch
-	existingField.Patch(patch, true)
-	existingField.UpdatedBy = c.AppContext.Session().UserId
-
-	connectionID := r.Header.Get(model.ConnectionId)
-
-	updatedField, err := c.App.UpdatePropertyField(c.AppContext, groupID, existingField, false, connectionID)
-	if err != nil {
-		c.Err = err
+	updatedField := executePatchPropertyField(c, r, group.ID, c.Params.ObjectType, c.Params.FieldId, patch)
+	if c.Err != nil {
 		return
 	}
 
@@ -350,51 +217,22 @@ func deletePropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Resolve group_name to internal group ID
 	group, appErr := c.App.GetPropertyGroup(c.AppContext, c.Params.GroupName)
 	if appErr != nil {
 		c.Err = model.NewAppError("deletePropertyField", "api.property_field.invalid_group_name.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
-		return
-	}
-	groupID := group.ID
-
-	// Get existing field
-	existingField, err := c.App.GetPropertyField(c.AppContext, groupID, c.Params.FieldId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	// Verify ObjectType matches
-	if existingField.ObjectType != c.Params.ObjectType {
-		c.Err = model.NewAppError("deletePropertyField", "api.property_field.object_type_mismatch.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventDeletePropertyField, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "field_id", c.Params.FieldId)
+
+	existingField := executeDeletePropertyField(c, r, group.ID, c.Params.ObjectType, c.Params.FieldId)
+	if c.Err != nil {
+		return
+	}
+
 	auditRec.AddEventPriorState(existingField)
-
-	// Reject deletion of protected field
-	if existingField.Protected {
-		c.Err = model.NewAppError("deletePropertyField", "api.property_field.delete.protected_via_api.app_error", nil, "", http.StatusForbidden)
-		return
-	}
-
-	// Check field edit permission
-	if !c.App.SessionHasPermissionToEditPropertyField(c.AppContext, *c.AppContext.Session(), existingField) {
-		c.Err = model.NewAppError("deletePropertyField", "api.property_field.delete.no_permission.app_error", nil, "", http.StatusForbidden)
-		return
-	}
-
-	connectionID := r.Header.Get(model.ConnectionId)
-
-	if err := c.App.DeletePropertyField(c.AppContext, groupID, c.Params.FieldId, false, connectionID); err != nil {
-		c.Err = err
-		return
-	}
-
 	auditRec.Success()
 	auditRec.AddEventResultState(existingField)
 	auditRec.AddEventObjectType("property_field")
@@ -466,66 +304,10 @@ func patchPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check target access based on object type
-	if !hasTargetAccess(c, c.Params.ObjectType, c.Params.TargetId, true) {
-		return
-	}
-
-	// Resolve group_name to internal group ID
-	group, appErr := c.App.GetPropertyGroup(c.AppContext, c.Params.GroupName)
-	if appErr != nil {
-		c.Err = model.NewAppError("patchPropertyValues", "api.property_value.invalid_group_name.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
-		return
-	}
-	groupID := group.ID
-
 	var items []model.PropertyValuePatchItem
 	if err := json.NewDecoder(r.Body).Decode(&items); err != nil {
 		c.SetInvalidParamWithErr("property_values", err)
 		return
-	}
-
-	if len(items) == 0 {
-		c.Err = model.NewAppError("patchPropertyValues", "api.property_value.patch.empty_body.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	if len(items) > maxPropertyValuePatchItems {
-		c.Err = model.NewAppError("patchPropertyValues", "api.property_value.patch.too_many_items.request_error", map[string]any{
-			"Max": maxPropertyValuePatchItems,
-		}, "", http.StatusBadRequest)
-		return
-	}
-
-	// Collect and validate field IDs
-	idMap := map[string]bool{}
-	fieldIDs := make([]string, 0, len(items))
-	for _, item := range items {
-		if !model.IsValidId(item.FieldID) {
-			c.Err = model.NewAppError("patchPropertyValues", "api.property_value.patch.invalid_field_id.app_error", nil, "", http.StatusBadRequest)
-			return
-		}
-		if idMap[item.FieldID] {
-			c.Err = model.NewAppError("patchPropertyValues", "api.property_value.patch.duplicate_field_id.app_error", nil, "", http.StatusBadRequest)
-			return
-		}
-		idMap[item.FieldID] = true
-		fieldIDs = append(fieldIDs, item.FieldID)
-	}
-
-	// Load all fields and verify they belong to this group.
-	// GetPropertyFields scopes the lookup by groupID, so fields from
-	// a different group won't be found, causing a mismatch error.
-	fields, err := c.App.GetPropertyFields(c.AppContext, groupID, fieldIDs)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	// Build field map for permission checks
-	fieldMap := make(map[string]*model.PropertyField, len(fields))
-	for _, f := range fields {
-		fieldMap[f.ID] = f
 	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventPatchPropertyValues, model.AuditStatusFail)
@@ -534,37 +316,8 @@ func patchPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "object_type", c.Params.ObjectType)
 	model.AddEventParameterToAuditRec(auditRec, "target_id", c.Params.TargetId)
 
-	// Check values permission on each field (all-or-nothing)
-	for _, item := range items {
-		field := fieldMap[item.FieldID]
-		if !c.App.SessionHasPermissionToSetPropertyFieldValues(c.AppContext, *c.AppContext.Session(), field) {
-			c.Err = model.NewAppError("patchPropertyValues", "api.property_value.patch.no_values_permission.app_error", nil, "", http.StatusForbidden)
-			return
-		}
-	}
-
-	// Build PropertyValue objects for upsert
-	userID := c.AppContext.Session().UserId
-	values := make([]*model.PropertyValue, len(items))
-	for i, item := range items {
-		values[i] = &model.PropertyValue{
-			TargetID: c.Params.TargetId,
-			// in PSAv2, values always point to entities of the same
-			// type that their field.ObjectType
-			TargetType: c.Params.ObjectType,
-			GroupID:    groupID,
-			FieldID:    item.FieldID,
-			Value:      item.Value,
-			CreatedBy:  userID,
-			UpdatedBy:  userID,
-		}
-	}
-
-	connectionID := r.Header.Get(model.ConnectionId)
-
-	upserted, err := c.App.UpsertPropertyValues(c.AppContext, values, c.Params.ObjectType, c.Params.TargetId, connectionID)
-	if err != nil {
-		c.Err = err
+	upserted := executePatchPropertyValues(c, r, c.Params.GroupName, c.Params.ObjectType, c.Params.TargetId, items)
+	if c.Err != nil {
 		return
 	}
 
@@ -641,6 +394,262 @@ func hasTargetAccess(c *Context, objectType, targetID string, write bool) bool {
 		return false
 	}
 	return true
+}
+
+// --- Shared property operation functions ---
+// These are called by both the generic property API handlers and the CPA
+// translation-shim handlers to keep authorization in a single place.
+
+// executeCreatePropertyField performs scope-based permission checks, sets
+// default permission levels, and creates the field. The caller must set
+// GroupID, ObjectType and TargetType on the field before calling.
+// Returns the created field or nil with c.Err set.
+func executeCreatePropertyField(c *Context, r *http.Request, field *model.PropertyField) *model.PropertyField {
+	if field.Protected {
+		c.Err = model.NewAppError("executeCreatePropertyField", "api.property_field.create.protected_via_api.app_error", nil, "", http.StatusBadRequest)
+		return nil
+	}
+
+	// Scope-based permission check
+	switch field.TargetType {
+	case "channel":
+		if field.TargetID == "" {
+			c.Err = model.NewAppError("executeCreatePropertyField", "api.property_field.create.target_id_required.app_error", nil, "", http.StatusBadRequest)
+			return nil
+		}
+		hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), field.TargetID, model.PermissionCreatePost)
+		if !hasPermission {
+			c.SetPermissionError(model.PermissionCreatePost)
+			return nil
+		}
+	case "team":
+		if field.TargetID == "" {
+			c.Err = model.NewAppError("executeCreatePropertyField", "api.property_field.create.target_id_required.app_error", nil, "", http.StatusBadRequest)
+			return nil
+		}
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), field.TargetID, model.PermissionManageTeam) {
+			c.SetPermissionError(model.PermissionManageTeam)
+			return nil
+		}
+	case "system":
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+			c.SetPermissionError(model.PermissionManageSystem)
+			return nil
+		}
+	default:
+		c.Err = model.NewAppError("executeCreatePropertyField", "api.property_field.create.invalid_target_type.app_error", nil, "", http.StatusBadRequest)
+		return nil
+	}
+
+	field.Name = strings.TrimSpace(field.Name)
+
+	// Set permission levels based on admin status
+	isAdmin := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+	memberLevel := model.PermissionLevelMember
+	if !isAdmin {
+		field.PermissionField = &memberLevel
+		field.PermissionValues = &memberLevel
+		field.PermissionOptions = &memberLevel
+	} else {
+		if field.PermissionField == nil {
+			field.PermissionField = &memberLevel
+		}
+		if field.PermissionValues == nil {
+			field.PermissionValues = &memberLevel
+		}
+		if field.PermissionOptions == nil {
+			field.PermissionOptions = &memberLevel
+		}
+	}
+
+	field.CreatedBy = c.AppContext.Session().UserId
+	field.UpdatedBy = c.AppContext.Session().UserId
+
+	connectionID := r.Header.Get(model.ConnectionId)
+
+	createdField, err := c.App.CreatePropertyField(c.AppContext, field, false, connectionID)
+	if err != nil {
+		c.Err = err
+		return nil
+	}
+
+	return createdField
+}
+
+// executePatchPropertyField loads the existing field, checks permissions,
+// applies the patch, and updates it. Returns the updated field or nil with
+// c.Err set.
+func executePatchPropertyField(c *Context, r *http.Request, groupID, objectType, fieldID string, patch *model.PropertyFieldPatch) *model.PropertyField {
+	existingField, err := c.App.GetPropertyField(c.AppContext, groupID, fieldID)
+	if err != nil {
+		c.Err = err
+		return nil
+	}
+
+	if existingField.IsPSAv1() {
+		c.Err = model.NewAppError("executePatchPropertyField", "api.property_field.patch.legacy_field.app_error", nil, "", http.StatusBadRequest)
+		return nil
+	}
+
+	if existingField.ObjectType != objectType {
+		c.Err = model.NewAppError("executePatchPropertyField", "api.property_field.object_type_mismatch.app_error", nil, "", http.StatusBadRequest)
+		return nil
+	}
+
+	if existingField.Protected {
+		c.Err = model.NewAppError("executePatchPropertyField", "api.property_field.update.protected_via_api.app_error", nil, "", http.StatusForbidden)
+		return nil
+	}
+
+	isOptionsOnlyUpdate := isOptionsOnlyPatch(patch)
+	if isOptionsOnlyUpdate && existingField.Type != model.PropertyFieldTypeSelect && existingField.Type != model.PropertyFieldTypeMultiselect {
+		isOptionsOnlyUpdate = false
+	}
+
+	if isOptionsOnlyUpdate {
+		if !c.App.SessionHasPermissionToManagePropertyFieldOptions(c.AppContext, *c.AppContext.Session(), existingField) {
+			c.Err = model.NewAppError("executePatchPropertyField", "api.property_field.update.no_options_permission.app_error", nil, "", http.StatusForbidden)
+			return nil
+		}
+	} else {
+		if !c.App.SessionHasPermissionToEditPropertyField(c.AppContext, *c.AppContext.Session(), existingField) {
+			c.Err = model.NewAppError("executePatchPropertyField", "api.property_field.update.no_field_permission.app_error", nil, "", http.StatusForbidden)
+			return nil
+		}
+	}
+
+	existingField.Patch(patch, true)
+	existingField.UpdatedBy = c.AppContext.Session().UserId
+
+	connectionID := r.Header.Get(model.ConnectionId)
+
+	updatedField, updateErr := c.App.UpdatePropertyField(c.AppContext, groupID, existingField, false, connectionID)
+	if updateErr != nil {
+		c.Err = updateErr
+		return nil
+	}
+
+	return updatedField
+}
+
+// executeDeletePropertyField loads the existing field, checks permissions,
+// and deletes it. Returns the deleted field (for audit) or nil with c.Err set.
+func executeDeletePropertyField(c *Context, r *http.Request, groupID, objectType, fieldID string) *model.PropertyField {
+	existingField, err := c.App.GetPropertyField(c.AppContext, groupID, fieldID)
+	if err != nil {
+		c.Err = err
+		return nil
+	}
+
+	if existingField.ObjectType != objectType {
+		c.Err = model.NewAppError("executeDeletePropertyField", "api.property_field.object_type_mismatch.app_error", nil, "", http.StatusBadRequest)
+		return nil
+	}
+
+	if existingField.Protected {
+		c.Err = model.NewAppError("executeDeletePropertyField", "api.property_field.delete.protected_via_api.app_error", nil, "", http.StatusForbidden)
+		return nil
+	}
+
+	if !c.App.SessionHasPermissionToEditPropertyField(c.AppContext, *c.AppContext.Session(), existingField) {
+		c.Err = model.NewAppError("executeDeletePropertyField", "api.property_field.delete.no_permission.app_error", nil, "", http.StatusForbidden)
+		return nil
+	}
+
+	connectionID := r.Header.Get(model.ConnectionId)
+
+	if deleteErr := c.App.DeletePropertyField(c.AppContext, groupID, fieldID, false, connectionID); deleteErr != nil {
+		c.Err = deleteErr
+		return nil
+	}
+
+	return existingField
+}
+
+// executePatchPropertyValues checks target access, resolves the group,
+// validates fields, checks per-field permissions, and upserts values.
+// Returns the upserted values or nil with c.Err set.
+func executePatchPropertyValues(c *Context, r *http.Request, groupName, objectType, targetID string, items []model.PropertyValuePatchItem) []*model.PropertyValue {
+	if !hasTargetAccess(c, objectType, targetID, true) {
+		return nil
+	}
+
+	group, appErr := c.App.GetPropertyGroup(c.AppContext, groupName)
+	if appErr != nil {
+		c.Err = model.NewAppError("executePatchPropertyValues", "api.property_value.invalid_group_name.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
+		return nil
+	}
+	groupID := group.ID
+
+	if len(items) == 0 {
+		c.Err = model.NewAppError("executePatchPropertyValues", "api.property_value.patch.empty_body.app_error", nil, "", http.StatusBadRequest)
+		return nil
+	}
+
+	if len(items) > maxPropertyValuePatchItems {
+		c.Err = model.NewAppError("executePatchPropertyValues", "api.property_value.patch.too_many_items.request_error", map[string]any{
+			"Max": maxPropertyValuePatchItems,
+		}, "", http.StatusBadRequest)
+		return nil
+	}
+
+	idMap := map[string]bool{}
+	fieldIDs := make([]string, 0, len(items))
+	for _, item := range items {
+		if !model.IsValidId(item.FieldID) {
+			c.Err = model.NewAppError("executePatchPropertyValues", "api.property_value.patch.invalid_field_id.app_error", nil, "", http.StatusBadRequest)
+			return nil
+		}
+		if idMap[item.FieldID] {
+			c.Err = model.NewAppError("executePatchPropertyValues", "api.property_value.patch.duplicate_field_id.app_error", nil, "", http.StatusBadRequest)
+			return nil
+		}
+		idMap[item.FieldID] = true
+		fieldIDs = append(fieldIDs, item.FieldID)
+	}
+
+	fields, err := c.App.GetPropertyFields(c.AppContext, groupID, fieldIDs)
+	if err != nil {
+		c.Err = err
+		return nil
+	}
+
+	fieldMap := make(map[string]*model.PropertyField, len(fields))
+	for _, f := range fields {
+		fieldMap[f.ID] = f
+	}
+
+	for _, item := range items {
+		field := fieldMap[item.FieldID]
+		if !c.App.SessionHasPermissionToSetPropertyFieldValues(c.AppContext, *c.AppContext.Session(), field) {
+			c.Err = model.NewAppError("executePatchPropertyValues", "api.property_value.patch.no_values_permission.app_error", nil, "", http.StatusForbidden)
+			return nil
+		}
+	}
+
+	userID := c.AppContext.Session().UserId
+	values := make([]*model.PropertyValue, len(items))
+	for i, item := range items {
+		values[i] = &model.PropertyValue{
+			TargetID:   targetID,
+			TargetType: objectType,
+			GroupID:    groupID,
+			FieldID:    item.FieldID,
+			Value:      item.Value,
+			CreatedBy:  userID,
+			UpdatedBy:  userID,
+		}
+	}
+
+	connectionID := r.Header.Get(model.ConnectionId)
+
+	upserted, upsertErr := c.App.UpsertPropertyValues(c.AppContext, values, objectType, targetID, connectionID)
+	if upsertErr != nil {
+		c.Err = upsertErr
+		return nil
+	}
+
+	return upserted
 }
 
 // isOptionsOnlyPatch checks if the patch only modifies the options attribute.
