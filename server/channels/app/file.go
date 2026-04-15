@@ -1568,6 +1568,9 @@ func (a *App) buildFileDownloadSubject(rctx request.CTX, userID string) *model.S
 	if !*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl {
 		return nil
 	}
+	if !a.Config().FeatureFlags.PermissionPolicies {
+		return nil
+	}
 
 	user, err := a.GetUser(userID)
 	if err != nil {

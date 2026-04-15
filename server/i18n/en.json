@@ -248,6 +248,10 @@
     "translation": "Channel membership denied to the following users because of group constraints: {{ .UserIDs }}"
   },
   {
+    "id": "api.channel.add_user.to.channel.abac_subject_build_failed.app_error",
+    "translation": "Failed to build access control subject for user."
+  },
+  {
     "id": "api.channel.add_user.to.channel.failed.app_error",
     "translation": "Failed to add user to channel."
   },

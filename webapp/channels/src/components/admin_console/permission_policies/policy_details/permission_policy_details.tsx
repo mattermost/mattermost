@@ -178,14 +178,14 @@ function PermissionPolicyDetails({
     }, [actions]);
 
     const preSaveCheck = () => {
-        if (policyName.length === 0) {
+        if (policyName.trim().length === 0) {
             setServerError(formatMessage({
                 id: 'admin.permission_policies.edit.error.name_required',
                 defaultMessage: 'Please add a name to the policy',
             }));
             return false;
         }
-        if (expression.length === 0) {
+        if (expression.trim().length === 0) {
             setServerError(formatMessage({
                 id: 'admin.permission_policies.edit.error.expression_required',
                 defaultMessage: 'Please add an expression to the policy',

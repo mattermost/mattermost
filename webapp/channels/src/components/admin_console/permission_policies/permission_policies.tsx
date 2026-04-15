@@ -107,6 +107,7 @@ export default function PermissionPolicyList(props: Props): JSX.Element {
         if (term.length === 0) {
             setPage(0);
             setAfter('');
+            setCursorHistory([]);
             setLoading(false);
             setSearchErrored(false);
             setSearch('');
@@ -148,7 +149,9 @@ export default function PermissionPolicyList(props: Props): JSX.Element {
 
     const handleDelete = async (policyId: string) => {
         await props.actions.deletePolicy(policyId);
-        fetchPolicies(search);
+        setPage(0);
+        setCursorHistory([]);
+        fetchPolicies(search, '', true);
     };
 
     const getRows = (): Row[] => {

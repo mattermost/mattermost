@@ -449,10 +449,12 @@ func (a *App) sanitizeFileAttachmentsForUser(rctx request.CTX, post *model.Post,
 
 	user, err := a.GetUser(userID)
 	if err != nil {
-		rctx.Logger().Warn("Failed to get user for file attachment sanitization",
+		rctx.Logger().Warn("Failed to get user for file attachment sanitization, stripping attachments",
 			mlog.String("user_id", userID),
 			mlog.Err(err),
 		)
+		post.Metadata.Files = nil
+		post.FileIds = model.StringArray{}
 		return
 	}
 

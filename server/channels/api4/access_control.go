@@ -371,7 +371,8 @@ func searchAccessControlPolicies(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	if props.Type == model.AccessControlPolicyTypePermission && !c.App.Config().FeatureFlags.PermissionPolicies {
+	permissionPoliciesEnabled := c.App.Config().FeatureFlags.PermissionPolicies
+	if props.Type == model.AccessControlPolicyTypePermission && !permissionPoliciesEnabled {
 		c.Err = model.NewAppError("searchAccessControlPolicies", "api.access_control_policy.permission_policies.feature_disabled", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -380,6 +381,17 @@ func searchAccessControlPolicies(c *Context, w http.ResponseWriter, r *http.Requ
 	if appErr != nil {
 		c.Err = appErr
 		return
+	}
+
+	if !permissionPoliciesEnabled && props.Type == "" {
+		filtered := make([]*model.AccessControlPolicy, 0, len(policies))
+		for _, p := range policies {
+			if p.Type != model.AccessControlPolicyTypePermission {
+				filtered = append(filtered, p)
+			}
+		}
+		total -= int64(len(policies) - len(filtered))
+		policies = filtered
 	}
 
 	result := model.AccessControlPoliciesWithCount{

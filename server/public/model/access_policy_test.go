@@ -255,6 +255,7 @@ func TestAccessPolicyVersionV0_3(t *testing.T) {
 		policy := &AccessControlPolicy{
 			ID:       NewId(),
 			Type:     AccessControlPolicyTypePermission,
+			Name:     "Permission",
 			Revision: 0,
 			Version:  AccessControlPolicyVersionV0_3,
 			Roles:    []string{"system_admin"},
@@ -309,6 +310,7 @@ func TestAccessPolicyVersionV0_3(t *testing.T) {
 		policy := &AccessControlPolicy{
 			ID:       NewId(),
 			Type:     AccessControlPolicyTypePermission,
+			Name:     "Permission",
 			Revision: 0,
 			Version:  AccessControlPolicyVersionV0_3,
 			Roles:    []string{},
@@ -323,6 +325,7 @@ func TestAccessPolicyVersionV0_3(t *testing.T) {
 		policy := &AccessControlPolicy{
 			ID:       NewId(),
 			Type:     AccessControlPolicyTypePermission,
+			Name:     "Permission",
 			Revision: 0,
 			Version:  AccessControlPolicyVersionV0_3,
 			Roles:    []string{""},
@@ -337,6 +340,7 @@ func TestAccessPolicyVersionV0_3(t *testing.T) {
 		policy := &AccessControlPolicy{
 			ID:       NewId(),
 			Type:     AccessControlPolicyTypePermission,
+			Name:     "Permission",
 			Revision: 0,
 			Version:  AccessControlPolicyVersionV0_3,
 			Roles:    []string{"system_admin", "system_user"},
@@ -351,6 +355,7 @@ func TestAccessPolicyVersionV0_3(t *testing.T) {
 		policy := &AccessControlPolicy{
 			ID:       NewId(),
 			Type:     AccessControlPolicyTypePermission,
+			Name:     "Permission",
 			Revision: 0,
 			Version:  AccessControlPolicyVersionV0_3,
 			Roles:    []string{"system_admin"},

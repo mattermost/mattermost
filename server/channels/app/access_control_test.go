@@ -1406,6 +1406,7 @@ func TestHasPermissionToFileAction(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(false)
+			cfg.FeatureFlags.PermissionPolicies = true
 		})
 
 		result := th.App.HasPermissionToFileAction(th.Context, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
