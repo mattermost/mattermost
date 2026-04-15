@@ -61,6 +61,9 @@ type Channels struct {
 	// previously fetched notices
 	cachedNotices model.ProductNotices
 
+	managedCategoryGroupID string
+	managedCategoryFieldID string
+
 	AccountMigration einterfaces.AccountMigrationInterface
 	Compliance       einterfaces.ComplianceInterface
 	DataRetention    einterfaces.DataRetentionInterface

@@ -6,6 +6,7 @@ package model
 import (
 	"fmt"
 	"slices"
+	"strings"
 
 	"github.com/pkg/errors"
 	"golang.org/x/mod/semver"
@@ -26,6 +27,12 @@ const (
 	AccessControlPolicyActionUploadFileAttachment   = "upload_file_attachment"
 	AccessControlPolicyActionDownloadFileAttachment = "download_file_attachment"
 )
+
+var allowedActionsV0_3 = map[string]bool{
+	AccessControlPolicyActionMembership:             true,
+	AccessControlPolicyActionUploadFileAttachment:   true,
+	AccessControlPolicyActionDownloadFileAttachment: true,
+}
 
 // AccessControlAttribute represents a user attribute with its name and possible values
 type AccessControlAttribute struct {
@@ -265,11 +272,28 @@ func (p *AccessControlPolicy) accessPolicyVersionV0_3() *AppError {
 		if len(p.Roles) != 1 {
 			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.roles.app_error", nil, "", 400)
 		}
+		for _, role := range p.Roles {
+			if strings.TrimSpace(role) == "" {
+				return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.roles.app_error", nil, "", 400)
+			}
+		}
 
 		if len(p.Imports) > 0 {
 			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.imports.app_error", nil, "", 400)
 		}
 	}
+
+	for _, rule := range p.Rules {
+		if len(rule.Actions) == 0 {
+			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.actions.app_error", nil, "actions must not be empty", 400)
+		}
+		for _, action := range rule.Actions {
+			if !allowedActionsV0_3[action] {
+				return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.actions.app_error", nil, fmt.Sprintf("unrecognized action: %s", action), 400)
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -293,8 +317,11 @@ func (p *AccessControlPolicy) Inherit(parent *AccessControlPolicy) *AppError {
 		}
 		p.Imports = append(p.Imports, parent.ID)
 	case AccessControlPolicyVersionV0_3:
-		if p.Type == AccessControlPolicyTypePermission {
+		if p.Type == AccessControlPolicyTypePermission || parent.Type == AccessControlPolicyTypePermission {
 			return NewAppError("AccessControlPolicy.Inherit", "model.access_policy.inherit.permission.app_error", nil, "", 400)
+		}
+		if parent.Version != AccessControlPolicyVersionV0_3 {
+			return NewAppError("AccessControlPolicy.Inherit", "model.access_policy.inherit.version.app_error", nil, "", 400)
 		}
 		if slices.Contains(p.Imports, parent.ID) {
 			return NewAppError("AccessControlPolicy.Inherit", "model.access_policy.inherit.already_imported.app_error", nil, "", 400)

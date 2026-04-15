@@ -70,7 +70,7 @@ describe('Signup Email page', () => {
         cy.findByText('You can use lowercase letters, numbers, periods, dashes, and underscores.').should('be.visible');
 
         cy.get('#input_password-input').should('be.visible').and('have.attr', 'placeholder', 'Choose a Password');
-        cy.findByText('Your password must be 5-72 characters long.').should('be.visible');
+        cy.findByText('Your password must be 14-72 characters long.').should('be.visible');
 
         // * Check terms and privacy checkbox
         cy.get('#signup-body-card-form-check-terms-and-privacy').should('be.visible').and('not.be.checked');
