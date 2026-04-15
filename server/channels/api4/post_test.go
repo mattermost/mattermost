@@ -5397,7 +5397,7 @@ func TestPostGetInfo(t *testing.T) {
 	th.RemovePermissionFromRole(t, model.PermissionManagePrivateChannelMembers.Id, model.TeamUserRoleId)
 
 	client := th.Client
-	_, guestClient := th.CreateGuestAndClient(t)
+	guestUser, guestClient := th.CreateGuestAndClient(t)
 	otherTeamMemberClient := th.CreateClient()
 	_, _, err := otherTeamMemberClient.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 	require.NoError(t, err)
@@ -5463,6 +5463,7 @@ func TestPostGetInfo(t *testing.T) {
 		hasJoinedChannel bool
 		post             *model.Post
 		client           *model.Client4
+		assertSetup      func(t *testing.T)
 		hasAccess        bool
 	}{
 		// Open channel - Current Team
@@ -5494,7 +5495,16 @@ func TestPostGetInfo(t *testing.T) {
 			hasJoinedChannel: false,
 			post:             openPost,
 			client:           guestClient,
-			hasAccess:        false,
+			assertSetup: func(t *testing.T) {
+				t.Helper()
+
+				_, appErr := th.App.GetTeamMember(th.Context, th.BasicTeam.Id, guestUser.Id)
+				require.Nil(t, appErr)
+
+				_, appErr = th.App.GetChannelMember(th.Context, openChannel.Id, guestUser.Id)
+				require.NotNil(t, appErr)
+			},
+			hasAccess: false,
 		},
 
 		// Private channel - Current Team
@@ -5642,6 +5652,10 @@ func TestPostGetInfo(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			if tc.assertSetup != nil {
+				tc.assertSetup(t)
+			}
+
 			info, resp, err := tc.client.GetPostInfo(context.Background(), tc.post.Id)
 			if !tc.hasAccess {
 				require.Error(t, err)
@@ -5669,16 +5683,24 @@ func TestPostGetInfo(t *testing.T) {
 	}
 
 	t.Run("Open post - Current team - Non-member denied when compliance is enabled", func(t *testing.T) {
+		info, resp, err := otherTeamMemberClient.GetPostInfo(context.Background(), openPost.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, openChannel.Id, info.ChannelId)
+		require.True(t, info.HasJoinedTeam)
+		require.False(t, info.HasJoinedChannel)
+
+		originalComplianceEnabled := *th.App.Config().ComplianceSettings.Enable
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ComplianceSettings.Enable = true
 		})
 		t.Cleanup(func() {
 			th.App.UpdateConfig(func(cfg *model.Config) {
-				*cfg.ComplianceSettings.Enable = false
+				*cfg.ComplianceSettings.Enable = originalComplianceEnabled
 			})
 		})
 
-		_, resp, err := otherTeamMemberClient.GetPostInfo(context.Background(), openPost.Id)
+		_, resp, err = otherTeamMemberClient.GetPostInfo(context.Background(), openPost.Id)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
