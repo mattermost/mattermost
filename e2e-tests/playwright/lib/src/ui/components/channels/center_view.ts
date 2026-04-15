@@ -153,6 +153,12 @@ export default class ChannelsCenterView {
         await expect(this.channelBanner).not.toBeVisible();
     }
 
+    async assertChannelBannerTextNotClipped() {
+        const bannerText = this.channelBanner.getByTestId('channel_banner_text');
+        await expect(bannerText).toBeVisible();
+        await this.assertElementContainedInBanner(bannerText);
+    }
+
     async assertChannelBannerHasBoldText(text: string) {
         const boldText = await this.channelBanner.locator('strong');
         expect(boldText).toBeVisible();

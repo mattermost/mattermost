@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {test, LicenseSkus} from '@mattermost/playwright-lib';
-import {getRandomId} from 'utils/utils';
+import {test, LicenseSkus, getRandomId} from '@mattermost/playwright-lib';
 
 const EMOJI_SIZE = 16;
 
@@ -108,6 +107,35 @@ test('Should render unsupported unicode emoji without clipping', async ({pw}) =>
     await channelSettingsModal.close();
 
     await channelsPage.centerView.assertChannelBannerUnicodeEmojiSize(EMOJI_SIZE);
+});
+
+test('Should render text with descenders without clipping', async ({pw}) => {
+    const {adminUser, adminClient} = await pw.initSetup();
+    const license = await adminClient.getClientLicenseOld();
+    test.skip(
+        license.SkuShortName !== LicenseSkus.EnterpriseAdvanced,
+        'Skipping test - server does not have Enterprise Advanced license',
+    );
+
+    const {channelsPage} = await pw.testBrowser.login(adminUser);
+    await channelsPage.goto();
+    await channelsPage.toBeVisible();
+
+    await channelsPage.newChannel(await getRandomId(), 'O');
+
+    const channelSettingsModal = await channelsPage.openChannelSettings();
+    const configurationTab = await channelSettingsModal.openConfigurationTab();
+
+    await configurationTab.enableChannelBanner();
+    await configurationTab.setChannelBannerTextColor('77DD88');
+    // Characters with descenders (parts that extend below the baseline).
+    // Previously clipped because line-height equalled font-size (13px), leaving
+    // no room below the baseline for g, j, p, q, y etc.
+    await configurationTab.setChannelBannerText('YyGgQqJj');
+    await configurationTab.save();
+    await channelSettingsModal.close();
+
+    await channelsPage.centerView.assertChannelBannerTextNotClipped();
 });
 
 test('Should render markdown', async ({pw}) => {
