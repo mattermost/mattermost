@@ -23,7 +23,7 @@ func newPropertyFieldStore(sqlStore *SqlStore) store.PropertyFieldStore {
 	s := SqlPropertyFieldStore{SqlStore: sqlStore}
 
 	s.tableSelectQuery = s.getQueryBuilder().
-		Select("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "ObjectType", "Protected", "PermissionField", "PermissionValues", "PermissionOptions", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy").
+		Select("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "ObjectType", "Protected", "PermissionField", "PermissionValues", "PermissionOptions", "CreateAt", "UpdateAt", "DeleteAt", "COALESCE(CreatedBy, '') as CreatedBy", "COALESCE(UpdatedBy, '') as UpdatedBy").
 		From("PropertyFields")
 
 	return &s

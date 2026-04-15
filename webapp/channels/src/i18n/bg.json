@@ -4132,7 +4132,6 @@
   "threading.numNewReplies": "{newReplies, plural, =1 {# нов отговор} other {# нови отговора}}",
   "threading.numReplies": "{totalReplies, plural, =0 {Отговори} =1 {# отговор} other {# отговора}}",
   "threading.threadHeader.menu": "Още действия",
-  "threading.threadItem.menu": "Действия",
   "threading.threadList.markRead": "Маркирай всички като прочетени",
   "threading.threadMenu.copy": "Копирай връзка",
   "threading.threadMenu.follow": "Следвай разговора",

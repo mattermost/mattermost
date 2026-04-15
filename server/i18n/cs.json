@@ -5052,10 +5052,6 @@
     "translation": "Licence na Mattermost Enterprise byla deaktivována."
   },
   {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Vaše licence na Enterprise Edition vypršela a některé funkce mohou být deaktivovány. Obnovte prosím svou licenci nyní."
-  },
-  {
     "id": "api.team.join_user_to_team.allowed_domains.app_error",
     "translation": "Uživatele nelze přidat, protože doména přiřazená tomuto účtu není povolena. Další podrobnosti žádejte od svého systémového administrátora."
   },
@@ -10026,10 +10022,6 @@
   {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
     "translation": "Nepodařilo se obnovit přílohy souborů k příspěvku"
-  },
-  {
-    "id": "app.custom_profile_attributes.create_property_field.app_error",
-    "translation": "Nepodařilo se vytvořit pole vlastního atributu profilu"
   },
   {
     "id": "app.custom_profile_attributes.get_property_field.app_error",

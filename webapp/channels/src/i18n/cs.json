@@ -5600,7 +5600,6 @@
   "threading.numNewReplies": "{newReplies, plural, =1 {# nová odpověď} other {# nových odpovědí}}",
   "threading.numReplies": "{totalReplies, plural, =0 {Odpovědět} =1 {# odpověď} other {# odpovědí}}",
   "threading.threadHeader.menu": "Více akcí",
-  "threading.threadItem.menu": "Volby",
   "threading.threadList.markRead": "Označit všechny vlákna jako přečtená",
   "threading.threadMenu.copy": "Zkopírovat odkaz",
   "threading.threadMenu.follow": "Sledovat vlákno",

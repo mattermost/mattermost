@@ -9,6 +9,7 @@ import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
+import {canPopout, isChannelPopoutWindow} from 'utils/popouts/popout_windows';
 import {TestHelper} from 'utils/test_helper';
 
 import SidebarChannelMenu from './sidebar_channel_menu';
@@ -20,6 +21,12 @@ jest.mock('react-intl', () => ({
             return message.defaultMessage;
         },
     }),
+}));
+
+jest.mock('utils/popouts/popout_windows', () => ({
+    ...jest.requireActual('utils/popouts/popout_windows'),
+    canPopout: jest.fn(() => true),
+    isChannelPopoutWindow: jest.fn(() => false),
 }));
 
 describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
@@ -201,6 +208,21 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
         expect(baseElement).toMatchSnapshot();
     });
 
+    test('should disable favorite menu item when channel is in a managed category', async () => {
+        const spy = jest.spyOn(require('mattermost-redux/selectors/entities/channel_categories'), 'isChannelInManagedCategory').mockReturnValue(true);
+
+        renderWithContext(
+            <SidebarChannelMenu {...baseProps}/>,
+        );
+
+        await openMenu();
+
+        const favoriteItem = screen.getByRole('menuitem', {name: 'Favorite'});
+        expect(favoriteItem).toHaveAttribute('aria-disabled', 'true');
+
+        spy.mockRestore();
+    });
+
     test('should match snapshot of rendered items when multiselecting channels - public channels and DM category', async () => {
         const props = {
             ...baseProps,
@@ -259,5 +281,17 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
 
         await openMenu();
         expect(document.body).toMatchSnapshot();
+    });
+
+    test('should not show Open in new window when popout is not available', async () => {
+        jest.mocked(canPopout).mockReturnValue(false);
+        jest.mocked(isChannelPopoutWindow).mockReturnValue(false);
+
+        renderWithContext(
+            <SidebarChannelMenu {...baseProps}/>,
+        );
+
+        await openMenu();
+        expect(screen.queryByRole('menuitem', {name: 'Open in new window'})).not.toBeInTheDocument();
     });
 });

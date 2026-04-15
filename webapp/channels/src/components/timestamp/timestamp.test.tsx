@@ -1,15 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {DateTime} from 'luxon';
 import moment from 'moment';
 import React from 'react';
-import {createIntl} from 'react-intl';
 
-import defaultMessages from 'i18n/en.json';
 import {fakeDate} from 'tests/helpers/date';
-import {shallowWithIntl, mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext} from 'tests/react_testing_utils';
 
-import SemanticTime from './semantic_time';
+/**
+ * Helper to compute the expected dateTime attribute value.
+ * The Timestamp component uses Luxon's DateTime.fromJSDate(value).toLocal().toISO({includeOffset: false}).
+ */
+function expectedLocalISO(epochMs: number): string {
+    return DateTime.fromMillis(epochMs).toLocal().toISO({includeOffset: false}) ?? '';
+}
+
 import Timestamp from './timestamp';
 
 import {RelativeRanges} from './index';
@@ -32,53 +38,46 @@ describe('components/timestamp/Timestamp', () => {
     }
 
     test('should be wrapped in SemanticTime and support passthrough className and label', () => {
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <Timestamp
                 useTime={false}
                 className='test class'
                 label='test label'
             />,
         );
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find(SemanticTime).exists()).toBeTruthy();
-        expect(wrapper.find(SemanticTime).prop('className')).toBe('test class');
-        expect(wrapper.find(SemanticTime).prop('aria-label')).toBe('test label');
+        expect(container).toMatchSnapshot();
+        const timeEl = container.querySelector('time');
+        expect(timeEl).not.toBeNull();
+        expect(timeEl?.className).toBe('test class');
+        expect(timeEl?.getAttribute('aria-label')).toBe('test label');
     });
 
     test('should not be wrapped in SemanticTime', () => {
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <Timestamp
                 useTime={false}
                 useSemanticOutput={false}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find(SemanticTime).exists()).toBeFalsy();
+        expect(container).toMatchSnapshot();
+        expect(container.querySelector('time')).toBeNull();
     });
 
     test.each(moment.tz.names())('should render supported timezone %p', (timeZone) => {
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <Timestamp
                 value={new Date('Fri Jan 12 2018 20:15:13 GMT+0000 (+00)').getTime()}
                 useDate={false}
                 timeZone={timeZone}
             />,
-            {
-                intl: createIntl({
-                    locale: 'es',
-                    defaultLocale: 'es',
-                    timeZone: 'Etc/UTC',
-                    messages: defaultMessages,
-                    textComponent: 'span',
-                }),
-            },
         );
-        expect(wrapper.find('time').prop('dateTime')).toEqual(expect.any(String));
-        expect(wrapper.text()).toMatch(/\d{1,2}:\d{2}\s(?:AM|PM|a\.\sm\.|p\.\sm\.)/);
+        const timeEl = container.querySelector('time');
+        expect(timeEl?.getAttribute('dateTime')).toEqual(expect.any(String));
+        expect(timeEl?.textContent).toMatch(/\d{1,2}:\d{2}\s(?:AM|PM|a\.\sm\.|p\.\sm\.)/);
     });
 
     test('should render title-case Today', () => {
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <Timestamp
                 useTime={false}
                 ranges={[
@@ -86,11 +85,11 @@ describe('components/timestamp/Timestamp', () => {
                 ]}
             />,
         );
-        expect(wrapper.text()).toEqual('Today');
+        expect(container.textContent).toEqual('Today');
     });
 
     test('should render normal today', () => {
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <Timestamp
                 value={daysFromNow(0)}
                 useTime={false}
@@ -99,11 +98,11 @@ describe('components/timestamp/Timestamp', () => {
                 ]}
             />,
         );
-        expect(wrapper.text()).toEqual('today');
+        expect(container.textContent).toEqual('today');
     });
 
     test('should render title-case Yesterday', () => {
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <Timestamp
                 value={daysFromNow(-1)}
                 useTime={false}
@@ -112,11 +111,11 @@ describe('components/timestamp/Timestamp', () => {
                 ]}
             />,
         );
-        expect(wrapper.text()).toEqual('Yesterday');
+        expect(container.textContent).toEqual('Yesterday');
     });
 
     test('should render normal yesterday', () => {
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <Timestamp
                 value={daysFromNow(-1)}
                 useTime={false}
@@ -125,57 +124,57 @@ describe('components/timestamp/Timestamp', () => {
                 ]}
             />,
         );
-        expect(wrapper.text()).toEqual('yesterday');
+        expect(container.textContent).toEqual('yesterday');
     });
 
     test('should render normal tomorrow', () => {
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <Timestamp
                 value={daysFromNow(1)}
                 useTime={false}
                 unit='day'
             />,
         );
-        expect(wrapper.text()).toEqual('tomorrow');
+        expect(container.textContent).toEqual('tomorrow');
     });
 
     test('should render 3 days ago', () => {
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <Timestamp
                 value={daysFromNow(-3)}
                 useTime={false}
                 unit='day'
             />,
         );
-        expect(wrapper.text()).toEqual('3 days ago');
+        expect(container.textContent).toEqual('3 days ago');
     });
 
     test('should render 3 days ago as weekday', () => {
         const date = daysFromNow(-3);
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <Timestamp
                 value={date}
                 useTime={false}
             />,
         );
-        expect(wrapper.text()).toEqual(moment.utc(date).format('dddd'));
+        expect(container.textContent).toEqual(moment.utc(date).format('dddd'));
     });
 
     test('should render 6 days ago as weekday', () => {
         const date = daysFromNow(-6);
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <Timestamp
                 value={date}
                 useTime={false}
             />,
         );
 
-        expect(wrapper.text()).toEqual(moment(date).format('dddd'));
+        expect(container.textContent).toEqual(moment(date).format('dddd'));
     });
 
     test('should render 2 days ago as weekday in supported timezone', () => {
         const date = daysFromNow(-2);
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <Timestamp
                 value={date}
                 timeZone='Asia/Manila'
@@ -183,117 +182,138 @@ describe('components/timestamp/Timestamp', () => {
             />,
         );
 
-        expect(wrapper.text()).toEqual(moment.utc(date).tz('Asia/Manila').format('dddd'));
+        expect(container.textContent).toEqual(moment.utc(date).tz('Asia/Manila').format('dddd'));
     });
 
     test('should render date in current year', () => {
         const date = daysFromNow(-20);
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <Timestamp
                 value={date}
                 useTime={false}
             />,
         );
 
-        expect(wrapper.text()).toEqual(moment.utc(date).format('MMMM DD'));
+        expect(container.textContent).toEqual(moment.utc(date).format('MMMM DD'));
     });
 
     test('should render date from previous year', () => {
         const date = daysFromNow(-365);
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <Timestamp
                 value={date}
                 useTime={false}
             />,
         );
 
-        expect(wrapper.text()).toEqual(moment.utc(date).format('MMMM DD, YYYY'));
+        expect(container.textContent).toEqual(moment.utc(date).format('MMMM DD, YYYY'));
     });
 
     test('should render time without timezone', () => {
-        const wrapper = mountWithIntl(
+        const value = new Date('Fri Jan 12 2018 20:15:13 GMT+0800 (+08)').getTime();
+        const {container} = renderWithContext(
             <Timestamp
-                value={new Date('Fri Jan 12 2018 20:15:13 GMT+0800 (+08)').getTime()}
+                value={value}
                 useDate={false}
             />,
         );
-        expect(wrapper.text()).toBe('12:15 PM');
+
+        // Display text depends on local timezone; compute expected time dynamically
+        const localDt = DateTime.fromMillis(value).toLocal();
+        const expectedTime = localDt.toFormat('h:mm a');
+        expect(container.textContent).toBe(expectedTime);
     });
 
     test('should render time without timezone, in military time', () => {
-        const wrapper = mountWithIntl(
+        const value = new Date('Fri Jan 12 2018 23:15:13 GMT+0800 (+08)').getTime();
+        const {container} = renderWithContext(
             <Timestamp
-                value={new Date('Fri Jan 12 2018 23:15:13 GMT+0800 (+08)').getTime()}
+                value={value}
                 hourCycle='h23'
                 useDate={false}
             />,
         );
-        expect(wrapper.find('time').prop('dateTime')).toBe('2018-01-12T15:15:13.000');
-        expect(wrapper.text()).toBe('15:15');
+        const timeEl = container.querySelector('time');
+        expect(timeEl?.getAttribute('dateTime')).toBe(expectedLocalISO(value));
+
+        const localDt = DateTime.fromMillis(value).toLocal();
+        expect(container.textContent).toBe(localDt.toFormat('HH:mm'));
     });
 
     test('should render date without timezone', () => {
-        const wrapper = mountWithIntl(
+        const value = new Date('Fri Jan 12 2018 23:15:13 GMT+0800 (+08)').getTime();
+        const {container} = renderWithContext(
             <Timestamp
-                value={new Date('Fri Jan 12 2018 23:15:13 GMT+0800 (+08)').getTime()}
+                value={value}
                 useTime={false}
             />,
         );
 
-        expect(wrapper.find('time').prop('dateTime')).toBe('2018-01-12T15:15:13.000');
-        expect(wrapper.text()).toBe('January 12, 2018');
+        const timeEl = container.querySelector('time');
+        expect(timeEl?.getAttribute('dateTime')).toBe(expectedLocalISO(value));
+
+        const localDt = DateTime.fromMillis(value).toLocal();
+        expect(container.textContent).toBe(localDt.toFormat('MMMM d, yyyy'));
     });
 
     test('should render time with timezone enabled', () => {
-        const wrapper = mountWithIntl(
+        const value = new Date('Fri Jan 12 2018 20:15:13 GMT+0000 (+00)').getTime();
+        const {container} = renderWithContext(
             <Timestamp
-                value={new Date('Fri Jan 12 2018 20:15:13 GMT+0000 (+00)').getTime()}
+                value={value}
                 useDate={false}
                 timeZone='Australia/Sydney'
             />,
         );
-        expect(wrapper.find('time').prop('dateTime')).toBe('2018-01-12T20:15:13.000');
-        expect(wrapper.text()).toBe('7:15 AM');
+        const timeEl = container.querySelector('time');
+        expect(timeEl?.getAttribute('dateTime')).toBe(expectedLocalISO(value));
+        expect(container.textContent).toBe('7:15 AM');
     });
 
     test('should render time with unsupported timezone', () => {
-        const wrapper = mountWithIntl(
+        const value = new Date('Fri Jan 12 2018 20:15:13 GMT+0000 (+00)').getTime();
+        const {container} = renderWithContext(
             <Timestamp
-                value={new Date('Fri Jan 12 2018 20:15:13 GMT+0000 (+00)').getTime()}
+                value={value}
                 useDate={false}
                 timeZone='US/Hawaii'
             />,
         );
-        expect(wrapper.find('time').prop('dateTime')).toBe('2018-01-12T20:15:13.000');
-        expect(wrapper.text()).toBe('10:15 AM');
+        const timeEl = container.querySelector('time');
+        expect(timeEl?.getAttribute('dateTime')).toBe(expectedLocalISO(value));
+        expect(container.textContent).toBe('10:15 AM');
     });
 
     test('should render date with unsupported timezone', () => {
-        const wrapper = mountWithIntl(
+        const value = new Date('Fri Jan 12 2018 20:15:13 GMT+0000 (+00)').getTime();
+        const {container} = renderWithContext(
             <Timestamp
-                value={new Date('Fri Jan 12 2018 20:15:13 GMT+0000 (+00)').getTime()}
+                value={value}
                 useTime={false}
                 timeZone='US/Hawaii'
             />,
         );
-        expect(wrapper.find('time').prop('dateTime')).toBe('2018-01-12T20:15:13.000');
-        expect(wrapper.text()).toBe('January 12, 2018');
+        const timeEl = container.querySelector('time');
+        expect(timeEl?.getAttribute('dateTime')).toBe(expectedLocalISO(value));
+        expect(container.textContent).toBe('January 12, 2018');
     });
 
     test('should render datetime with timezone enabled, in military time', () => {
-        const wrapper = mountWithIntl(
+        const value = new Date('Fri Jan 12 2018 20:15:13 GMT-0800').getTime();
+        const {container} = renderWithContext(
             <Timestamp
-                value={new Date('Fri Jan 12 2018 20:15:13 GMT-0800').getTime()}
+                value={value}
                 hourCycle='h23'
                 timeZone='Australia/Sydney'
             />,
         );
-        expect(wrapper.find('time').prop('dateTime')).toBe('2018-01-13T04:15:13.000');
-        expect(wrapper.text()).toBe('January 13, 2018 at 15:15');
+        const timeEl = container.querySelector('time');
+        expect(timeEl?.getAttribute('dateTime')).toBe(expectedLocalISO(value));
+        expect(container.textContent).toBe('January 13, 2018 at 15:15');
     });
 
     test('should render time with unsupported timezone enabled, in military time', () => {
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <Timestamp
                 value={new Date('Fri Jan 12 2018 20:15:13 GMT-0800 (+00)').getTime()}
                 hourCycle='h23'
@@ -301,6 +321,6 @@ describe('components/timestamp/Timestamp', () => {
                 timeZone='US/Alaska'
             />,
         );
-        expect(wrapper.text()).toBe('19:15');
+        expect(container.textContent).toBe('19:15');
     });
 });

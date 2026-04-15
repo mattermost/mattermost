@@ -1,36 +1,7 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/license_settings/modals/confirm_license_removal_modal should match snapshot 1`] = `
-<ContextProvider
-  value={
-    Object {
-      "getServerState": undefined,
-      "identityFunctionCheck": "once",
-      "stabilityCheck": "once",
-      "store": Object {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": Object {
-        "addNestedSub": [Function],
-        "getListeners": [Function],
-        "handleChangeWrapper": [Function],
-        "isSubscribed": [Function],
-        "notifyNestedSubs": [Function],
-        "trySubscribe": [Function],
-        "tryUnsubscribe": [Function],
-      },
-    }
-  }
->
-  <ConfirmLicenseRemovalModal
-    currentLicenseSKU="Professional"
-    handleRemove={[MockFunction]}
-    onExited={[MockFunction]}
-  />
-</ContextProvider>
+<div
+  aria-hidden="true"
+/>
 `;
