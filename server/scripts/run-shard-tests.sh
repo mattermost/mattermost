@@ -50,7 +50,7 @@ run_gotestsum() {
   RUN_IDX=$((RUN_IDX + 1))
 
   GOTESTSUM_JUNITFILE="$junitfile" GOTESTSUM_JSONFILE="$jsonfile" \
-    "$GOBIN/gotestsum" --rerun-fails=3 --packages="$1" \
+    "$GOBIN/gotestsum" --format "${GOTESTSUM_FORMAT:-testname}" --rerun-fails=3 --packages="$1" \
     -- $GOFLAGS_BASE $RACE_FLAG $coverage_flag $run_flag \
     || FAILURES=$((FAILURES + 1))
 }

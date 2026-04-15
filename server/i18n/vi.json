@@ -6050,10 +6050,6 @@
     "translation": "Thông báo đẩy được tải ID không được định cấu hình hoặc hỗ trợ trên máy chủ này."
   },
   {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Giấy phép Phiên bản Enterprise của bạn đã hết hạn và một số tính năng có thể bị tắt. Hãy gia hạn giấy phép của bạn ngay bây giờ."
-  },
-  {
     "id": "api.team.add_members.user_denied",
     "translation": "Đội này được quản lý bởi các nhóm. Người dùng này không thuộc nhóm được đồng bộ hóa với nhóm này."
   },

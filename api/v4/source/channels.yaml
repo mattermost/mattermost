@@ -109,6 +109,11 @@
                 type:
                   type: string
                   description: "'O' for a public channel, 'P' for a private channel"
+                managed_category_name:
+                  type: string
+                  description: The name of the managed category to assign this channel to.
+                    Requires an Enterprise license and the `EnableManagedChannelCategories`
+                    config setting to be enabled.
         description: Channel object to be created
         required: true
       responses:
@@ -674,6 +679,11 @@
                     channels by server configuration.
                 banner_info:
                   $ref: "#/components/schemas/ChannelBanner"
+                managed_category_name:
+                  type: string
+                  description: The name of the managed category to assign this channel to.
+                    Set to an empty string to clear. Requires an Enterprise license and
+                    the `EnableManagedChannelCategories` config setting to be enabled.
         description: Channel patch object; include only the fields to update. At least
           one field must be provided.
         required: true
@@ -1127,6 +1137,46 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+  "/api/v4/teams/{team_id}/channels/managed_categories":
+    get:
+      tags:
+        - channels
+      summary: Get managed category mappings
+      description: >
+        Returns a map of channel ID to managed category name for all channels
+        the requesting user is a member of in the given team that have a
+        managed category assigned.
+
+
+        Requires an Enterprise license and the `EnableManagedChannelCategories`
+        config setting to be enabled.
+
+
+        ##### Permissions
+
+        Must be authenticated.
+      operationId: GetManagedCategories
+      parameters:
+        - name: team_id
+          in: path
+          description: Team ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Managed category mappings retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: string
+                description: A map of channel ID to managed category name
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
   "/api/v4/teams/{team_id}/channels/search":
     post:
       tags:

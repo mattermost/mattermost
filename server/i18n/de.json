@@ -5263,10 +5263,6 @@
     "translation": "Mattermost Enterprise Lizenz wurde deaktiviert."
   },
   {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Die Lizenz deiner Enterprise Edition ist abgelaufen und einige Funktionen sind möglicherweise deaktiviert. Bitte erneuere die Lizenz."
-  },
-  {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} hat dich eingeladen, dem Team {{ .TeamDisplayName }} als Gast beizutreten"
   },
