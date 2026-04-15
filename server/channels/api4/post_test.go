@@ -5387,6 +5387,8 @@ func TestPostGetInfo(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 
 	defaultPerms := th.SaveDefaultRolePermissions(t)
 	defer th.RestoreDefaultRolePermissions(t, defaultPerms)
@@ -5395,8 +5397,12 @@ func TestPostGetInfo(t *testing.T) {
 	th.RemovePermissionFromRole(t, model.PermissionManagePrivateChannelMembers.Id, model.TeamUserRoleId)
 
 	client := th.Client
+	_, guestClient := th.CreateGuestAndClient(t)
+	otherTeamMemberClient := th.CreateClient()
+	_, _, err := otherTeamMemberClient.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
+	require.NoError(t, err)
 	sysadminClient := th.SystemAdminClient
-	_, _, err := sysadminClient.AddTeamMember(context.Background(), th.BasicTeam.Id, th.SystemAdminUser.Id)
+	_, _, err = sysadminClient.AddTeamMember(context.Background(), th.BasicTeam.Id, th.SystemAdminUser.Id)
 	require.NoError(t, err)
 
 	openChannel, _, err := client.CreateChannel(context.Background(), &model.Channel{TeamId: th.BasicTeam.Id, Type: model.ChannelTypeOpen, Name: "open-channel", DisplayName: "Open Channel"})
@@ -5479,6 +5485,16 @@ func TestPostGetInfo(t *testing.T) {
 			post:             openPost,
 			client:           sysadminClient,
 			hasAccess:        true,
+		},
+		{
+			name:             "Open post - Current team - Guest user outside channel",
+			team:             th.BasicTeam,
+			hasJoinedTeam:    true,
+			channel:          openChannel,
+			hasJoinedChannel: false,
+			post:             openPost,
+			client:           guestClient,
+			hasAccess:        false,
 		},
 
 		// Private channel - Current Team
@@ -5651,6 +5667,21 @@ func TestPostGetInfo(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("Open post - Current team - Non-member denied when compliance is enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ComplianceSettings.Enable = true
+		})
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ComplianceSettings.Enable = false
+			})
+		})
+
+		_, resp, err := otherTeamMemberClient.GetPostInfo(context.Background(), openPost.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
 }
 
 func TestAcknowledgePost(t *testing.T) {
