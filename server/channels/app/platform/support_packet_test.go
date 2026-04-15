@@ -579,7 +579,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 				go func(c net.Conn) {
 					defer c.Close()
 					rw := bufio.NewReadWriter(bufio.NewReader(c), bufio.NewWriter(c))
-					rw.WriteString("220 localhost ESMTP Test\r\n")
+					_, _ = rw.WriteString("220 localhost ESMTP Test\r\n")
 					rw.Flush()
 					for {
 						line, err := rw.ReadString('\n')
@@ -587,11 +587,11 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 							return
 						}
 						if strings.HasPrefix(strings.ToUpper(strings.TrimSpace(line)), "QUIT") {
-							rw.WriteString("221 Bye\r\n")
+							_, _ = rw.WriteString("221 Bye\r\n")
 							rw.Flush()
 							return
 						}
-						rw.WriteString("250 OK\r\n")
+						_, _ = rw.WriteString("250 OK\r\n")
 						rw.Flush()
 					}
 				}(conn)
