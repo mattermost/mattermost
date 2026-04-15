@@ -2602,10 +2602,7 @@ func createTestRemoteCluster(t *testing.T, th *TestHelper, ss store.Store, name,
 
 func createRemoteUser(t *testing.T, th *TestHelper, remoteCluster *model.RemoteCluster) *model.User {
 	user := th.CreateUser(t)
-	user.RemoteId = &remoteCluster.RemoteId
-	updatedUser, appErr := th.App.UpdateUser(th.Context, user, false)
-	require.Nil(t, appErr)
-	return updatedUser
+	return th.SetUserRemoteID(t, user.Id, remoteCluster.RemoteId)
 }
 
 func ensureRemoteClusterConnected(t *testing.T, ss store.Store, cluster *model.RemoteCluster, connected bool) {

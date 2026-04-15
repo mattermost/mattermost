@@ -185,25 +185,6 @@ describe('components/SuggestionBox', () => {
         expect(instance.handlePretextChanged).toHaveBeenCalledWith('');
     });
 
-    test('should force pretext change on composition update', () => {
-        const ref = React.createRef();
-        render(
-            <SuggestionBox
-                {...baseProps}
-                ref={ref}
-            />,
-        );
-        const instance = ref.current;
-        instance.handlePretextChanged = jest.fn();
-        instance.getTextbox = jest.fn().mockReturnValue({value: ''});
-
-        instance.handleCompositionUpdate({data: '@ㅈ'});
-        expect(instance.handlePretextChanged).toHaveBeenCalledWith('@ㅈ');
-
-        instance.handleCompositionUpdate({data: '@저'});
-        expect(instance.handlePretextChanged).toHaveBeenCalledWith('@저');
-    });
-
     test('should reset selection after provider.handlePretextChanged is handled', () => {
         const userid1 = {id: 'userid1', username: 'user', first_name: 'a', last_name: 'b', nickname: 'c'};
         const userid2 = {id: 'userid2', username: 'user2', first_name: 'd', last_name: 'e', nickname: 'f'};

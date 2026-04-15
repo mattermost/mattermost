@@ -11,14 +11,6 @@ export type EnableAutotranslationOptions = {
 };
 
 /**
- * Returns true if the server has a license that includes autotranslation (Entry or Advanced).
- * Use with test.skip(!hasAutotranslationLicense(license.SkuShortName), '...') in autotranslation specs.
- */
-export function hasAutotranslationLicense(skuShortName: string): boolean {
-    return skuShortName === 'entry' || skuShortName === 'advanced';
-}
-
-/**
  * Enable autotranslation in server config with LibreTranslate provider pointing at the mock URL.
  * Requires an enterprise license for the feature to be available.
  */
