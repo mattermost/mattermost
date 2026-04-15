@@ -4577,7 +4577,7 @@ func TestInvalidateAllEmailInvites(t *testing.T) {
 
 func setupTeamWithAdminAndMember(t *testing.T, th *TestHelper) *model.Client4 {
 	t.Helper()
-	th.UpdateUserToTeamAdmin(t, th.BasicUser2, th.BasicTeam)
+	th.UpdateUserToTeamAdmin(th.BasicUser2, th.BasicTeam)
 	require.Nil(t, th.App.Srv().InvalidateAllCaches())
 	teamAdminClient := th.CreateClient()
 	_, _, err := teamAdminClient.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
@@ -4597,7 +4597,7 @@ func assertRoleDataSanitized(t *testing.T, m *model.TeamMember) {
 
 func TestGetTeamMembersRoleDataSanitization(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 	teamAdminClient := setupTeamWithAdminAndMember(t, th)
 
 	t.Run("non-admin cannot see role data of others", func(t *testing.T) {
@@ -4653,7 +4653,7 @@ func TestGetTeamMembersRoleDataSanitization(t *testing.T) {
 
 func TestGetTeamMemberRoleDataSanitization(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 	teamAdminClient := setupTeamWithAdminAndMember(t, th)
 
 	t.Run("non-admin cannot see role data of others", func(t *testing.T) {
@@ -4683,7 +4683,7 @@ func TestGetTeamMemberRoleDataSanitization(t *testing.T) {
 
 func TestGetTeamMembersByIdsRoleDataSanitization(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 	teamAdminClient := setupTeamWithAdminAndMember(t, th)
 
 	t.Run("non-admin cannot see role data of others", func(t *testing.T) {
@@ -4717,22 +4717,22 @@ func TestGetTeamMembersByIdsRoleDataSanitization(t *testing.T) {
 
 func TestAddTeamMemberRoleDataSanitization(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 	teamAdminClient := setupTeamWithAdminAndMember(t, th)
 
 	t.Run("team admin adding user sees full role data in response", func(t *testing.T) {
-		newUser := th.CreateUser(t)
+		newUser := th.CreateUser()
 		tm, _, err := teamAdminClient.AddTeamMember(context.Background(), th.BasicTeam.Id, newUser.Id)
 		require.NoError(t, err)
 		assert.True(t, tm.SchemeUser)
 	})
 
 	t.Run("non-admin adding user sees sanitized role data in response", func(t *testing.T) {
-		defaultRolePermissions := th.SaveDefaultRolePermissions(t)
-		defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
-		th.AddPermissionToRole(t, model.PermissionAddUserToTeam.Id, model.TeamUserRoleId)
+		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defer th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.AddPermissionToRole(model.PermissionAddUserToTeam.Id, model.TeamUserRoleId)
 
-		newUser := th.CreateUser(t)
+		newUser := th.CreateUser()
 		tm, _, err := th.Client.AddTeamMember(context.Background(), th.BasicTeam.Id, newUser.Id)
 		require.NoError(t, err)
 		assertRoleDataSanitized(t, tm)
@@ -4741,11 +4741,11 @@ func TestAddTeamMemberRoleDataSanitization(t *testing.T) {
 
 func TestAddTeamMembersRoleDataSanitization(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 	teamAdminClient := setupTeamWithAdminAndMember(t, th)
 
 	t.Run("team admin adding users sees full role data in response", func(t *testing.T) {
-		newUser := th.CreateUser(t)
+		newUser := th.CreateUser()
 		members, _, err := teamAdminClient.AddTeamMembers(context.Background(), th.BasicTeam.Id, []string{newUser.Id})
 		require.NoError(t, err)
 		require.Len(t, members, 1)
@@ -4753,11 +4753,11 @@ func TestAddTeamMembersRoleDataSanitization(t *testing.T) {
 	})
 
 	t.Run("non-admin adding users sees sanitized role data in response", func(t *testing.T) {
-		defaultRolePermissions := th.SaveDefaultRolePermissions(t)
-		defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
-		th.AddPermissionToRole(t, model.PermissionAddUserToTeam.Id, model.TeamUserRoleId)
+		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defer th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.AddPermissionToRole(model.PermissionAddUserToTeam.Id, model.TeamUserRoleId)
 
-		newUser := th.CreateUser(t)
+		newUser := th.CreateUser()
 		members, _, err := th.Client.AddTeamMembers(context.Background(), th.BasicTeam.Id, []string{newUser.Id})
 		require.NoError(t, err)
 		require.Len(t, members, 1)
@@ -4767,7 +4767,7 @@ func TestAddTeamMembersRoleDataSanitization(t *testing.T) {
 
 func TestGetTeamMembersForUserRoleDataSanitization(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 	teamAdminClient := setupTeamWithAdminAndMember(t, th)
 
 	t.Run("user sees own role data", func(t *testing.T) {
@@ -4780,9 +4780,9 @@ func TestGetTeamMembersForUserRoleDataSanitization(t *testing.T) {
 	})
 
 	t.Run("non-admin cannot see role data of another user", func(t *testing.T) {
-		defaultRolePermissions := th.SaveDefaultRolePermissions(t)
-		defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
-		th.AddPermissionToRole(t, model.PermissionReadOtherUsersTeams.Id, model.SystemUserRoleId)
+		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defer th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.AddPermissionToRole(model.PermissionReadOtherUsersTeams.Id, model.SystemUserRoleId)
 
 		members, _, err := th.Client.GetTeamMembersForUser(context.Background(), th.BasicUser2.Id, "")
 		require.NoError(t, err)
