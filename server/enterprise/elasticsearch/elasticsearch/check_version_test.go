@@ -55,8 +55,14 @@ func TestCheckVersion(t *testing.T) {
 			wantMajor:   9,
 		},
 		{
-			name:      "ES 7 is too old",
-			version:   "7.17.0",
+			name:        "ES 7 is supported",
+			version:     "7.17.0",
+			wantVersion: "7.17.0",
+			wantMajor:   7,
+		},
+		{
+			name:      "ES 6 is too old",
+			version:   "6.8.0",
 			wantErrID: "ent.elasticsearch.min_version.app_error",
 		},
 		{

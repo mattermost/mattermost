@@ -28,7 +28,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
 )
 
-const elasticsearchMinVersion = 8
+const elasticsearchMinVersion = 7
 const elasticsearchMaxVersion = 9
 
 var (
