@@ -600,12 +600,16 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		}()
 
 		tcpAddr := l.Addr().(*net.TCPAddr)
-		smtpHost := tcpAddr.IP.String()
 		smtpPort := strconv.Itoa(tcpAddr.Port)
+
+		// MM_EMAILSETTINGS_SMTPSERVER may be set in CI and would override UpdateConfig.
+		// Use t.Setenv so the env var is updated before UpdateConfig calls Store.Set(),
+		// which re-reads GetEnvironment() (os.Environ()) and applies overrides.
+		t.Setenv("MM_EMAILSETTINGS_SMTPSERVER", "127.0.0.1")
 
 		th.Service.UpdateConfig(func(cfg *model.Config) {
 			cfg.EmailSettings.SendEmailNotifications = model.NewPointer(true)
-			cfg.EmailSettings.SMTPServer = model.NewPointer(smtpHost)
+			cfg.EmailSettings.SMTPServer = model.NewPointer("127.0.0.1")
 			cfg.EmailSettings.SMTPPort = model.NewPointer(smtpPort)
 			cfg.EmailSettings.EnableSMTPAuth = model.NewPointer(false)
 			cfg.EmailSettings.ConnectionSecurity = model.NewPointer("")
