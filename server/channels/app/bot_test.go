@@ -718,7 +718,7 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 	sysadmin1 := model.User{
 		Email:    "sys1@example.com",
 		Nickname: "nn_sysadmin1",
-		Password: "hello1",
+		Password: model.NewTestPassword(),
 		Username: "un_sysadmin1",
 		Roles:    model.SystemAdminRoleId + " " + model.SystemUserRoleId,
 	}
@@ -730,7 +730,7 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 	sysadmin2 := model.User{
 		Email:    "sys2@example.com",
 		Nickname: "nn_sysadmin2",
-		Password: "hello1",
+		Password: model.NewTestPassword(),
 		Username: "un_sysadmin2",
 		Roles:    model.SystemAdminRoleId + " " + model.SystemUserRoleId,
 	}
@@ -744,7 +744,7 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 		Email:    "user1@example.com",
 		Username: "user1_disabled",
 		Nickname: "user1",
-		Password: "Password1",
+		Password: model.NewTestPassword(),
 	})
 	require.Nil(t, err, "failed to create user")
 
@@ -753,7 +753,7 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 		Email:    "user2@example.com",
 		Username: "user2_disabled",
 		Nickname: "user2",
-		Password: "Password1",
+		Password: model.NewTestPassword(),
 	})
 	require.Nil(t, err, "failed to create user")
 
@@ -902,7 +902,7 @@ func TestConvertUserToBot(t *testing.T) {
 		oauthUser := &model.User{
 			Email:         "oauth_user@example.com",
 			Username:      "oauth_user",
-			Password:      "password",
+			Password:      model.NewTestPassword(),
 			EmailVerified: true,
 		}
 

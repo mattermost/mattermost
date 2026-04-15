@@ -186,15 +186,6 @@ func setupTestHelper(dbStore store.Store, dbSettings *model.SqlSettings, enterpr
 		*cfg.TeamSettings.EnableOpenServer = true
 	})
 
-	// Disable strict password requirements for test
-	th.Service.UpdateConfig(func(cfg *model.Config) {
-		*cfg.PasswordSettings.MinimumLength = 5
-		*cfg.PasswordSettings.Lowercase = false
-		*cfg.PasswordSettings.Uppercase = false
-		*cfg.PasswordSettings.Symbol = false
-		*cfg.PasswordSettings.Number = false
-	})
-
 	if enterprise {
 		th.Service.SetLicense(model.NewTestLicense())
 	} else {
@@ -251,7 +242,7 @@ func (th *TestHelper) CreateUserOrGuest(tb testing.TB, guest bool) *model.User {
 		Email:         "success+" + id + "@simulator.amazonses.com",
 		Username:      "un_" + id,
 		Nickname:      "nn_" + id,
-		Password:      "Password1",
+		Password:      model.NewTestPassword(),
 		EmailVerified: true,
 		Roles:         model.SystemUserRoleId,
 	}
@@ -269,7 +260,7 @@ func (th *TestHelper) CreateAdmin(tb testing.TB) *model.User {
 		Email:         "success+" + id + "@simulator.amazonses.com",
 		Username:      "un_" + id,
 		Nickname:      "nn_" + id,
-		Password:      "Password1",
+		Password:      model.NewTestPassword(),
 		EmailVerified: true,
 		Roles:         model.SystemAdminRoleId + " " + model.SystemUserRoleId,
 	}

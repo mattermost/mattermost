@@ -188,7 +188,7 @@ func TestCreateRemoteCluster(t *testing.T) {
 			DefaultTeamId: model.NewId(),
 			Token:         model.NewId(),
 		},
-		Password: "mysupersecret",
+		Password: model.NewTestPassword(),
 	}
 
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
@@ -296,7 +296,7 @@ func TestRemoteClusterAcceptinvite(t *testing.T) {
 	rcAcceptInvite := &model.RemoteClusterAcceptInvite{
 		Name:          "remotecluster",
 		Invite:        "myinvitecode",
-		Password:      "mysupersecret",
+		Password:      model.NewTestPassword(),
 		DefaultTeamId: "",
 	}
 
@@ -319,8 +319,7 @@ func TestRemoteClusterAcceptinvite(t *testing.T) {
 		SiteURL:  "http://localhost:8065",
 		Token:    "token",
 	}
-	password := "mysupersecret"
-	encrypted, err := invite.Encrypt(password)
+	encrypted, err := invite.Encrypt(rcAcceptInvite.Password)
 	require.NoError(t, err)
 	encoded := base64.URLEncoding.EncodeToString(encrypted)
 	rcAcceptInvite.Invite = encoded
@@ -390,7 +389,7 @@ func TestRemoteClusterAcceptinvite(t *testing.T) {
 
 func TestGenerateRemoteClusterInvite(t *testing.T) {
 	mainHelper.Parallel(t)
-	password := "mysupersecret"
+	password := model.NewTestPassword()
 
 	newRC := &model.RemoteCluster{
 		Name:    "remotecluster",
