@@ -292,6 +292,60 @@ func TestUpdateIncomingWebhook(t *testing.T) {
 	}
 }
 
+func TestUpdateIncomingWebhookUserIdChange(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
+
+	hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{
+		ChannelId: th.BasicChannel.Id,
+	})
+	require.Nil(t, appErr)
+	defer func() {
+		appErr = th.App.DeleteIncomingWebhook(hook.Id)
+		require.Nil(t, appErr)
+	}()
+
+	updated := *hook
+	updated.UserId = th.BasicUser2.Id
+	updated.DisplayName = hook.DisplayName
+
+	out, appErr := th.App.UpdateIncomingWebhook(hook, &updated)
+	require.Nil(t, appErr)
+	require.Equal(t, th.BasicUser2.Id, out.UserId)
+}
+
+func TestUpdateOutgoingWebhookCreatorIdChange(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
+
+	ow := &model.OutgoingWebhook{
+		ChannelId:    th.BasicChannel.Id,
+		TeamId:       th.BasicTeam.Id,
+		CallbackURLs: []string{"http://example.com/creator"},
+		TriggerWords: []string{"creatorword"},
+		CreatorId:    th.BasicUser.Id,
+		Username:     th.BasicUser.Username,
+	}
+	hook, appErr := th.App.CreateOutgoingWebhook(ow)
+	require.Nil(t, appErr)
+	defer func() {
+		appErr = th.App.DeleteOutgoingWebhook(hook.Id)
+		require.Nil(t, appErr)
+	}()
+
+	updated := *hook
+	updated.CreatorId = th.BasicUser2.Id
+	updated.Username = th.BasicUser2.Username
+
+	out, appErr := th.App.UpdateOutgoingWebhook(th.Context, hook, &updated)
+	require.Nil(t, appErr)
+	require.Equal(t, th.BasicUser2.Id, out.CreatorId)
+}
+
 func TestCreateWebhookPost(t *testing.T) {
 	mainHelper.Parallel(t)
 	testCluster := &testlib.FakeClusterInterface{}

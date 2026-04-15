@@ -440,7 +440,9 @@ func (a *App) UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook)
 	}
 
 	updatedHook.Id = oldHook.Id
-	updatedHook.UserId = oldHook.UserId
+	if updatedHook.UserId == "" || updatedHook.UserId == oldHook.UserId {
+		updatedHook.UserId = oldHook.UserId
+	}
 	updatedHook.CreateAt = oldHook.CreateAt
 	updatedHook.UpdateAt = model.GetMillis()
 	updatedHook.TeamId = oldHook.TeamId
@@ -629,7 +631,9 @@ func (a *App) UpdateOutgoingWebhook(rctx request.CTX, oldHook, updatedHook *mode
 		}
 	}
 
-	updatedHook.CreatorId = oldHook.CreatorId
+	if updatedHook.CreatorId == "" {
+		updatedHook.CreatorId = oldHook.CreatorId
+	}
 	updatedHook.CreateAt = oldHook.CreateAt
 	updatedHook.DeleteAt = oldHook.DeleteAt
 	updatedHook.TeamId = oldHook.TeamId

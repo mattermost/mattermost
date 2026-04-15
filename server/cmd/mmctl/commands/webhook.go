@@ -53,9 +53,9 @@ var CreateIncomingWebhookCmd = &cobra.Command{
 var ModifyIncomingWebhookCmd = &cobra.Command{
 	Use:     "modify-incoming",
 	Short:   "Modify incoming webhook",
-	Long:    "Modify existing incoming webhook by changing its title, description, channel or icon url",
+	Long:    "Modify existing incoming webhook by changing its title, description, channel, icon url, or owner (requires manage others permission on the server)",
 	Args:    cobra.ExactArgs(1),
-	Example: "  webhook modify-incoming [webhookID] --channel [channelID] --display-name [displayName] --description [webhookDescription] --lock-to-channel --icon [iconURL]",
+	Example: "  webhook modify-incoming [webhookID] --channel [channelID] --display-name [displayName] --description [webhookDescription] --lock-to-channel --icon [iconURL] --creator [username]",
 	RunE:    withClient(modifyIncomingWebhookCmdF),
 }
 
@@ -71,9 +71,9 @@ var CreateOutgoingWebhookCmd = &cobra.Command{
 var ModifyOutgoingWebhookCmd = &cobra.Command{
 	Use:     "modify-outgoing",
 	Short:   "Modify outgoing webhook",
-	Long:    "Modify existing outgoing webhook by changing its title, description, channel, icon, url, content-type, and triggers",
+	Long:    "Modify existing outgoing webhook by changing its title, description, channel, icon, url, content-type, triggers, or owner (requires manage others permission on the server)",
 	Args:    cobra.ExactArgs(1),
-	Example: `  webhook modify-outgoing [webhookId] --channel [channelId] --display-name [displayName] --description "New webhook description" --icon http://localhost:8000/my-slash-handler-bot-icon.png --url http://localhost:8000/my-webhook-handler --content-type "application/json" --trigger-word test --trigger-when start`,
+	Example: `  webhook modify-outgoing [webhookId] --channel [channelId] --display-name [displayName] --description "New webhook description" --icon http://localhost:8000/my-slash-handler-bot-icon.png --url http://localhost:8000/my-webhook-handler --content-type "application/json" --trigger-word test --trigger-when start --creator [username]`,
 	RunE:    withClient(modifyOutgoingWebhookCmdF),
 }
 
@@ -223,6 +223,16 @@ func modifyIncomingWebhookCmdF(c client.Client, command *cobra.Command, args []s
 	channelLocked, _ := command.Flags().GetBool("lock-to-channel")
 	updatedHook.ChannelLocked = channelLocked
 
+	if command.Flags().Changed("creator") {
+		creatorArg, _ := command.Flags().GetString("creator")
+		user := getUserFromUserArg(c, creatorArg)
+		if user == nil {
+			return errors.New("Unable to find user '" + creatorArg + "'")
+		}
+		updatedHook.UserId = user.Id
+		updatedHook.Username = user.Username
+	}
+
 	var newHook *model.IncomingWebhook
 	if newHook, _, err = c.UpdateIncomingWebhook(context.TODO(), updatedHook); err != nil {
 		printer.PrintError("Unable to modify incoming webhook")
@@ -371,6 +381,16 @@ func modifyOutgoingWebhookCmdF(c client.Client, command *cobra.Command, args []s
 		updatedHook.CallbackURLs = callbackURLs
 	}
 
+	if command.Flags().Changed("creator") {
+		creatorArg, _ := command.Flags().GetString("creator")
+		user := getUserFromUserArg(c, creatorArg)
+		if user == nil {
+			return errors.New("unable to find user '" + creatorArg + "'")
+		}
+		updatedHook.CreatorId = user.Id
+		updatedHook.Username = user.Username
+	}
+
 	var newHook *model.OutgoingWebhook
 	if newHook, _, err = c.UpdateOutgoingWebhook(context.TODO(), updatedHook); err != nil {
 		printer.PrintError("Unable to modify outgoing webhook")
@@ -441,6 +461,7 @@ func init() {
 	ModifyIncomingWebhookCmd.Flags().String("description", "", "Incoming webhook description")
 	ModifyIncomingWebhookCmd.Flags().String("icon", "", "Icon URL")
 	ModifyIncomingWebhookCmd.Flags().Bool("lock-to-channel", false, "Lock to channel")
+	ModifyIncomingWebhookCmd.Flags().String("creator", "", "Webhook owner's username, email, or user ID (requires manage others incoming webhooks permission)")
 
 	CreateOutgoingWebhookCmd.Flags().String("team", "", "Team name or ID (required)")
 	_ = CreateOutgoingWebhookCmd.MarkFlagRequired("team")
@@ -466,6 +487,7 @@ func init() {
 	ModifyOutgoingWebhookCmd.Flags().String("icon", "", "Icon URL")
 	ModifyOutgoingWebhookCmd.Flags().StringArray("url", []string{}, "Callback URL")
 	ModifyOutgoingWebhookCmd.Flags().String("content-type", "", "Content-type")
+	ModifyOutgoingWebhookCmd.Flags().String("creator", "", "Webhook creator's username, email, or user ID (requires manage others outgoing webhooks permission)")
 
 	WebhookCmd.AddCommand(
 		ListWebhookCmd,
