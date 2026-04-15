@@ -93,28 +93,117 @@ func (h *AttributeValidationHook) PreUpdatePropertyFields(_ request.CTX, groupID
 	return fields, nil
 }
 
-// validateValueAgainstField checks a property value against text field
-// constraints: max length for all text fields, and value_type format
-// validation (email, url, phone) when the field has a value_type attr.
+// extractOptionIDs extracts the set of valid option IDs from a
+// select or multiselect PropertyField's attrs. Returns nil if the
+// field has no options.
+func extractOptionIDs(field *model.PropertyField) (map[string]struct{}, error) {
+	if field.Attrs == nil {
+		return nil, nil
+	}
+
+	rawOptions, ok := field.Attrs[model.PropertyFieldAttributeOptions]
+	if !ok || rawOptions == nil {
+		return nil, nil
+	}
+
+	data, err := json.Marshal(rawOptions)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal options: %w", err)
+	}
+
+	var options []struct {
+		ID string `json:"id"`
+	}
+	if err := json.Unmarshal(data, &options); err != nil {
+		return nil, fmt.Errorf("invalid options format: %w", err)
+	}
+
+	ids := make(map[string]struct{}, len(options))
+	for _, opt := range options {
+		if opt.ID != "" {
+			ids[opt.ID] = struct{}{}
+		}
+	}
+	return ids, nil
+}
+
+// validateValueAgainstField checks a property value against field-type
+// constraints:
+//   - text: max length, value_type format (email, url, phone)
+//   - select: option ID must exist in the field's options
+//   - multiselect: all option IDs must exist
+//   - user: value must be a valid Mattermost ID
+//   - multiuser: all values must be valid Mattermost IDs
 func (h *AttributeValidationHook) validateValueAgainstField(field *model.PropertyField, value *model.PropertyValue) error {
-	if field.Type != model.PropertyFieldTypeText {
-		return nil
+	switch field.Type {
+	case model.PropertyFieldTypeText:
+		var str string
+		if err := json.Unmarshal(value.Value, &str); err != nil {
+			return fmt.Errorf("expected string value: %w", err)
+		}
+		if len(strings.TrimSpace(str)) > model.PropertyFieldValueTypeTextMaxLength {
+			return fmt.Errorf("text value exceeds maximum length of %d characters", model.PropertyFieldValueTypeTextMaxLength)
+		}
+
+		valueType := model.GetPropertyFieldValueType(field)
+		if valueType == "" {
+			return nil
+		}
+		return model.ValidatePropertyValueForValueType(valueType, value.Value)
+
+	case model.PropertyFieldTypeSelect:
+		var str string
+		if err := json.Unmarshal(value.Value, &str); err != nil {
+			return fmt.Errorf("expected string value for select field: %w", err)
+		}
+		if str == "" {
+			return nil
+		}
+		optionIDs, err := extractOptionIDs(field)
+		if err != nil {
+			return fmt.Errorf("failed to extract options: %w", err)
+		}
+		if _, ok := optionIDs[str]; !ok {
+			return fmt.Errorf("option %q does not exist", str)
+		}
+
+	case model.PropertyFieldTypeMultiselect:
+		var values []string
+		if err := json.Unmarshal(value.Value, &values); err != nil {
+			return fmt.Errorf("expected string array value for multiselect field: %w", err)
+		}
+		optionIDs, err := extractOptionIDs(field)
+		if err != nil {
+			return fmt.Errorf("failed to extract options: %w", err)
+		}
+		for _, v := range values {
+			if _, ok := optionIDs[v]; !ok {
+				return fmt.Errorf("option %q does not exist", v)
+			}
+		}
+
+	case model.PropertyFieldTypeUser:
+		var str string
+		if err := json.Unmarshal(value.Value, &str); err != nil {
+			return fmt.Errorf("expected string value for user field: %w", err)
+		}
+		if str != "" && !model.IsValidId(str) {
+			return fmt.Errorf("invalid user id")
+		}
+
+	case model.PropertyFieldTypeMultiuser:
+		var values []string
+		if err := json.Unmarshal(value.Value, &values); err != nil {
+			return fmt.Errorf("expected string array value for multiuser field: %w", err)
+		}
+		for _, v := range values {
+			if !model.IsValidId(v) {
+				return fmt.Errorf("invalid user id: %s", v)
+			}
+		}
 	}
 
-	var str string
-	if err := json.Unmarshal(value.Value, &str); err != nil {
-		return fmt.Errorf("expected string value: %w", err)
-	}
-	if len(strings.TrimSpace(str)) > model.PropertyFieldValueTypeTextMaxLength {
-		return fmt.Errorf("text value exceeds maximum length of %d characters", model.PropertyFieldValueTypeTextMaxLength)
-	}
-
-	valueType := model.GetPropertyFieldValueType(field)
-	if valueType == "" {
-		return nil
-	}
-
-	return model.ValidatePropertyValueForValueType(valueType, value.Value)
+	return nil
 }
 
 func (h *AttributeValidationHook) validateValues(values []*model.PropertyValue) error {

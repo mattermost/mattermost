@@ -299,8 +299,13 @@ func NewServer(options ...Option) (*Server, error) {
 	}, cpaGroup.ID)
 	s.propertyService.AddHook(accessControlHook)
 
+	// Attribute sanitization hook — normalizes values (trims whitespace,
+	// filters empty array entries) before validation.
+	attrSanitizationHook := properties.NewAttributeSanitizationHook(s.propertyService, cpaGroup.ID)
+	s.propertyService.AddHook(attrSanitizationHook)
+
 	// Attribute validation hook — validates visibility, sort_order on fields
-	// and value_type constraints on values.
+	// and field-type constraints on values (options, user IDs, value_type).
 	attrValidationHook := properties.NewAttributeValidationHook(s.propertyService, cpaGroup.ID)
 	s.propertyService.AddHook(attrValidationHook)
 

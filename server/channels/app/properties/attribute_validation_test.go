@@ -201,4 +201,388 @@ func TestAttributeValidationHook(t *testing.T) {
 		require.NoError(t, upsertErr)
 		assert.NotEmpty(t, result.ID)
 	})
+
+	// Select field validation tests
+
+	t.Run("select — accepts valid option ID", func(t *testing.T) {
+		optionID := model.NewId()
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "select_field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": optionID, "name": "Option 1"},
+				},
+			},
+		})
+
+		value := &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   model.NewId(),
+			TargetType: "user",
+			Value:      json.RawMessage(`"` + optionID + `"`),
+		}
+		result, upsertErr := th.service.UpsertPropertyValue(th.Context, value)
+		require.NoError(t, upsertErr)
+		assert.NotEmpty(t, result.ID)
+	})
+
+	t.Run("select — rejects non-existent option ID", func(t *testing.T) {
+		optionID := model.NewId()
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "select_field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": optionID, "name": "Option 1"},
+				},
+			},
+		})
+
+		value := &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   model.NewId(),
+			TargetType: "user",
+			Value:      json.RawMessage(`"` + model.NewId() + `"`),
+		}
+		_, upsertErr := th.service.UpsertPropertyValue(th.Context, value)
+		require.Error(t, upsertErr)
+		assert.Contains(t, upsertErr.Error(), "does not exist")
+	})
+
+	t.Run("select — allows empty string value", func(t *testing.T) {
+		optionID := model.NewId()
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "select_field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": optionID, "name": "Option 1"},
+				},
+			},
+		})
+
+		value := &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   model.NewId(),
+			TargetType: "user",
+			Value:      json.RawMessage(`""`),
+		}
+		result, upsertErr := th.service.UpsertPropertyValue(th.Context, value)
+		require.NoError(t, upsertErr)
+		assert.NotEmpty(t, result.ID)
+	})
+
+	// Multiselect field validation tests
+
+	t.Run("multiselect — accepts valid option IDs", func(t *testing.T) {
+		optionID1 := model.NewId()
+		optionID2 := model.NewId()
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "multiselect_field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeMultiselect,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": optionID1, "name": "Option 1"},
+					map[string]any{"id": optionID2, "name": "Option 2"},
+				},
+			},
+		})
+
+		value := &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   model.NewId(),
+			TargetType: "user",
+			Value:      json.RawMessage(`["` + optionID1 + `","` + optionID2 + `"]`),
+		}
+		result, upsertErr := th.service.UpsertPropertyValue(th.Context, value)
+		require.NoError(t, upsertErr)
+		assert.NotEmpty(t, result.ID)
+	})
+
+	t.Run("multiselect — rejects if any option ID is invalid", func(t *testing.T) {
+		optionID1 := model.NewId()
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "multiselect_field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeMultiselect,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": optionID1, "name": "Option 1"},
+				},
+			},
+		})
+
+		value := &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   model.NewId(),
+			TargetType: "user",
+			Value:      json.RawMessage(`["` + optionID1 + `","` + model.NewId() + `"]`),
+		}
+		_, upsertErr := th.service.UpsertPropertyValue(th.Context, value)
+		require.Error(t, upsertErr)
+		assert.Contains(t, upsertErr.Error(), "does not exist")
+	})
+
+	t.Run("multiselect — accepts empty array", func(t *testing.T) {
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "multiselect_field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeMultiselect,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option 1"},
+				},
+			},
+		})
+
+		value := &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   model.NewId(),
+			TargetType: "user",
+			Value:      json.RawMessage(`[]`),
+		}
+		result, upsertErr := th.service.UpsertPropertyValue(th.Context, value)
+		require.NoError(t, upsertErr)
+		assert.NotEmpty(t, result.ID)
+	})
+
+	// User field validation tests
+
+	t.Run("user — accepts valid user ID", func(t *testing.T) {
+		userID := model.NewId()
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "user_field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeUser,
+			TargetType: "system",
+			ObjectType: "user",
+		})
+
+		value := &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   model.NewId(),
+			TargetType: "user",
+			Value:      json.RawMessage(`"` + userID + `"`),
+		}
+		result, upsertErr := th.service.UpsertPropertyValue(th.Context, value)
+		require.NoError(t, upsertErr)
+		assert.NotEmpty(t, result.ID)
+	})
+
+	t.Run("user — rejects invalid user ID format", func(t *testing.T) {
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "user_field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeUser,
+			TargetType: "system",
+			ObjectType: "user",
+		})
+
+		value := &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   model.NewId(),
+			TargetType: "user",
+			Value:      json.RawMessage(`"not-a-valid-id"`),
+		}
+		_, upsertErr := th.service.UpsertPropertyValue(th.Context, value)
+		require.Error(t, upsertErr)
+		assert.Contains(t, upsertErr.Error(), "invalid user id")
+	})
+
+	t.Run("user — allows empty string", func(t *testing.T) {
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "user_field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeUser,
+			TargetType: "system",
+			ObjectType: "user",
+		})
+
+		value := &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   model.NewId(),
+			TargetType: "user",
+			Value:      json.RawMessage(`""`),
+		}
+		result, upsertErr := th.service.UpsertPropertyValue(th.Context, value)
+		require.NoError(t, upsertErr)
+		assert.NotEmpty(t, result.ID)
+	})
+
+	// Multiuser field validation tests
+
+	t.Run("multiuser — accepts valid user IDs", func(t *testing.T) {
+		userID1 := model.NewId()
+		userID2 := model.NewId()
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "multiuser_field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeMultiuser,
+			TargetType: "system",
+			ObjectType: "user",
+		})
+
+		value := &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   model.NewId(),
+			TargetType: "user",
+			Value:      json.RawMessage(`["` + userID1 + `","` + userID2 + `"]`),
+		}
+		result, upsertErr := th.service.UpsertPropertyValue(th.Context, value)
+		require.NoError(t, upsertErr)
+		assert.NotEmpty(t, result.ID)
+	})
+
+	t.Run("multiuser — rejects if any user ID is invalid", func(t *testing.T) {
+		validID := model.NewId()
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "multiuser_field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeMultiuser,
+			TargetType: "system",
+			ObjectType: "user",
+		})
+
+		value := &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   model.NewId(),
+			TargetType: "user",
+			Value:      json.RawMessage(`["` + validID + `","bad-id"]`),
+		}
+		_, upsertErr := th.service.UpsertPropertyValue(th.Context, value)
+		require.Error(t, upsertErr)
+		assert.Contains(t, upsertErr.Error(), "invalid user id")
+	})
+
+	t.Run("multiuser — accepts empty array", func(t *testing.T) {
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "multiuser_field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeMultiuser,
+			TargetType: "system",
+			ObjectType: "user",
+		})
+
+		value := &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   model.NewId(),
+			TargetType: "user",
+			Value:      json.RawMessage(`[]`),
+		}
+		result, upsertErr := th.service.UpsertPropertyValue(th.Context, value)
+		require.NoError(t, upsertErr)
+		assert.NotEmpty(t, result.ID)
+	})
+
+	// Edge case: select with wrong JSON type
+
+	t.Run("select — rejects non-string JSON value", func(t *testing.T) {
+		optionID := model.NewId()
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "select_field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": optionID, "name": "Option 1"},
+				},
+			},
+		})
+
+		value := &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   model.NewId(),
+			TargetType: "user",
+			Value:      json.RawMessage(`123`),
+		}
+		_, upsertErr := th.service.UpsertPropertyValue(th.Context, value)
+		require.Error(t, upsertErr)
+		assert.Contains(t, upsertErr.Error(), "expected string value")
+	})
+
+	t.Run("multiselect — rejects non-array JSON value", func(t *testing.T) {
+		optionID := model.NewId()
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "multiselect_field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeMultiselect,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": optionID, "name": "Option 1"},
+				},
+			},
+		})
+
+		value := &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   model.NewId(),
+			TargetType: "user",
+			Value:      json.RawMessage(`"not-an-array"`),
+		}
+		_, upsertErr := th.service.UpsertPropertyValue(th.Context, value)
+		require.Error(t, upsertErr)
+		assert.Contains(t, upsertErr.Error(), "expected string array")
+	})
+
+	t.Run("text — rejects value exceeding max length", func(t *testing.T) {
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "text_field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+		})
+
+		// Create a string longer than PropertyFieldValueTypeTextMaxLength (64)
+		longValue := make([]byte, 0, 70)
+		for range 70 {
+			longValue = append(longValue, 'a')
+		}
+
+		value := &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   model.NewId(),
+			TargetType: "user",
+			Value:      json.RawMessage(`"` + string(longValue) + `"`),
+		}
+		_, upsertErr := th.service.UpsertPropertyValue(th.Context, value)
+		require.Error(t, upsertErr)
+		assert.Contains(t, upsertErr.Error(), "maximum length")
+	})
 }
