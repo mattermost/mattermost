@@ -6959,10 +6959,6 @@
     "translation": "Unable to get the job count by status and type."
   },
   {
-    "id": "app.job.get_existing_jobs.error",
-    "translation": "Unable to get existing jobs."
-  },
-  {
     "id": "app.job.get_newest_job_by_status_and_type.app_error",
     "translation": "Unable to get the newest job by status and type."
   },
@@ -8331,6 +8327,34 @@
   {
     "id": "app.system_install_date.parse_int.app_error",
     "translation": "Failed to parse installation date."
+  },
+  {
+    "id": "app.team.access_policies.channel_not_found.app_error",
+    "translation": "One or more channels were not found."
+  },
+  {
+    "id": "app.team.access_policies.channel_wrong_team.app_error",
+    "translation": "Channel {{.ChannelId}} does not belong to this team."
+  },
+  {
+    "id": "app.team.access_policies.channels_required.app_error",
+    "translation": "At least one channel is required."
+  },
+  {
+    "id": "app.team.access_policies.ownership_check.app_error",
+    "translation": "Unable to verify policy ownership for this team."
+  },
+  {
+    "id": "app.team.access_policies.reconcile_scope.app_error",
+    "translation": "Failed to reconcile team scope on policy."
+  },
+  {
+    "id": "app.team.access_policies.self_exclusion.app_error",
+    "translation": "You cannot create a policy that would exclude yourself."
+  },
+  {
+    "id": "app.team.access_policies.validation_error.app_error",
+    "translation": "Failed to validate policy rules."
   },
   {
     "id": "app.team.analytics_team_count.app_error",
@@ -10123,6 +10147,18 @@
   {
     "id": "model.access_policy.is_valid.rules_imports.app_error",
     "translation": "Policy must either import or define rules."
+  },
+  {
+    "id": "model.access_policy.is_valid.scope.app_error",
+    "translation": "Invalid scope value for this access control policy."
+  },
+  {
+    "id": "model.access_policy.is_valid.scope_id.app_error",
+    "translation": "Scope ID must be a valid ID when scope is set."
+  },
+  {
+    "id": "model.access_policy.is_valid.scope_id_without_scope.app_error",
+    "translation": "Scope ID cannot be set without a scope."
   },
   {
     "id": "model.access_policy.is_valid.type.app_error",

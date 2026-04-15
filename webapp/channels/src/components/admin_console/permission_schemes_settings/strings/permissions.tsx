@@ -765,4 +765,14 @@ export const permissionRolesStrings: Record<string, Record<string, MessageDescri
             defaultMessage: 'Configure attribute-based access control policy for channels.',
         },
     }),
+    manage_team_access_rules: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.manage_team_access_rules.name',
+            defaultMessage: 'Manage channel membership policies',
+        },
+        description: {
+            id: 'admin.permissions.permission.manage_team_access_rules.description',
+            defaultMessage: 'Manage attribute based membership policies for channels in the team.',
+        },
+    }),
 };

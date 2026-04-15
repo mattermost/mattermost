@@ -26,6 +26,8 @@ const DefaultPerPage = 10
 type accessControlPolicyV0_1 struct {
 	Imports []string                        `json:"imports"`
 	Rules   []model.AccessControlPolicyRule `json:"rules"`
+	Scope   string                          `json:"scope,omitempty"`
+	ScopeID string                          `json:"scope_id,omitempty"`
 }
 
 // These are the fields that meant to be unchanged with the policy versions.
@@ -61,6 +63,8 @@ func (s *storeAccessControlPolicy) toModel() (*model.AccessControlPolicy, error)
 		}
 		policy.Imports = p.Imports
 		policy.Rules = p.Rules
+		policy.Scope = p.Scope
+		policy.ScopeID = p.ScopeID
 	}
 
 	if len(s.Props) > 0 {
@@ -76,6 +80,8 @@ func fromModel(policy *model.AccessControlPolicy) (*storeAccessControlPolicy, er
 	data, err := json.Marshal(&accessControlPolicyV0_1{
 		Imports: policy.Imports,
 		Rules:   policy.Rules,
+		Scope:   policy.Scope,
+		ScopeID: policy.ScopeID,
 	})
 	if err != nil {
 		return nil, err
@@ -626,7 +632,8 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 	count := s.getQueryBuilder().Select("COUNT(*)").From("AccessControlPolicies")
 
 	if opts.Term != "" {
-		condition := sq.Like{"Name": fmt.Sprintf("%%%s%%", opts.Term)}
+		safeTerm := sanitizeSearchTerm(opts.Term, "*")
+		condition := sq.Expr("LOWER(Name) LIKE LOWER(?) ESCAPE '*'", fmt.Sprintf("%%%s%%", safeTerm))
 		query = query.Where(condition)
 		count = count.Where(condition)
 	}
@@ -664,6 +671,48 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 		condition := sq.Eq{"Id": opts.IDs}
 		query = query.Where(condition)
 		count = count.Where(condition)
+	}
+
+	// Scope/ScopeID filter policies by their persisted scope in the Data JSONB.
+	// Both must be provided together — a partial match is not meaningful.
+	if opts.Scope != "" && opts.ScopeID != "" {
+		scopeCondition := sq.And{
+			sq.Expr("Data->>'scope' = ?", opts.Scope),
+			sq.Expr("Data->>'scope_id' = ?", opts.ScopeID),
+		}
+		query = query.Where(scopeCondition)
+		count = count.Where(scopeCondition)
+	}
+
+	// TeamID filters to parent policies whose assigned channels ALL belong to the
+	// specified team. Policies with channels spanning multiple teams will NOT match
+	// even if one channel is in the requested team (COUNT(DISTINCT TeamId) = 1
+	// enforces single-team scope). This only applies to parent policies; the type
+	// is forced to 'parent' when TeamID is set.
+	if opts.TeamID != "" {
+		if opts.Type == model.AccessControlPolicyTypeChannel {
+			condition := sq.Expr(`Id IN (SELECT Id FROM Channels WHERE TeamId = ?)`, opts.TeamID)
+			query = query.Where(condition)
+			count = count.Where(condition)
+		} else {
+			if opts.Type == "" {
+				parentCondition := sq.Eq{"Type": model.AccessControlPolicyTypeParent}
+				query = query.Where(parentCondition)
+				count = count.Where(parentCondition)
+			}
+
+			condition := sq.Expr(`Id IN (
+			SELECT parent_id FROM (
+				SELECT ch.TeamId, jsonb_array_elements_text(cp.Data -> 'imports') AS parent_id
+				FROM AccessControlPolicies cp
+				JOIN Channels ch ON ch.Id = cp.Id
+				WHERE cp.Type = 'channel'
+			) team_children
+			GROUP BY parent_id
+			HAVING COUNT(DISTINCT TeamId) = 1 AND MIN(TeamId) = ?)`, opts.TeamID)
+			query = query.Where(condition)
+			count = count.Where(condition)
+		}
 	}
 
 	cursor := opts.Cursor

@@ -156,17 +156,13 @@ func (a *App) AssignAccessControlPolicyToChannels(rctx request.CTX, parentID str
 
 	channels, err := a.GetChannels(rctx, channelIDs)
 	if err != nil {
-		return nil, appErr
+		return nil, err
 	}
 
 	policies := make([]*model.AccessControlPolicy, 0, len(channelIDs))
 	for _, channel := range channels {
-		if channel.Type != model.ChannelTypePrivate || channel.IsGroupConstrained() {
-			return nil, model.NewAppError("AssignAccessControlPolicyToChannels", "app.pap.assign_access_control_policy_to_channels.app_error", nil, "Channel is not of type private", http.StatusBadRequest)
-		}
-
-		if channel.IsShared() {
-			return nil, model.NewAppError("AssignAccessControlPolicyToChannels", "app.pap.assign_access_control_policy_to_channels.app_error", nil, "Channel is shared", http.StatusBadRequest)
+		if appErr := ValidateChannelEligibilityForAccessControl(channel); appErr != nil {
+			return nil, appErr
 		}
 
 		child, err := acs.GetPolicy(rctx, channel.Id)
@@ -341,6 +337,30 @@ func (a *App) ExpressionToVisualAST(rctx request.CTX, expression string) (*model
 	return visualAST, nil
 }
 
+// ValidateChannelEligibilityForAccessControl checks that a channel is eligible for
+// access control policy assignment: must be private, not group-constrained, not shared.
+func ValidateChannelEligibilityForAccessControl(channel *model.Channel) *model.AppError {
+	if channel.Type != model.ChannelTypePrivate {
+		return model.NewAppError("ValidateChannelEligibilityForAccessControl",
+			"app.pap.access_control.channel_not_private",
+			nil, "Channel is not of type private", http.StatusBadRequest)
+	}
+
+	if channel.IsGroupConstrained() {
+		return model.NewAppError("ValidateChannelEligibilityForAccessControl",
+			"app.pap.access_control.channel_group_constrained",
+			nil, "Channel is group constrained", http.StatusBadRequest)
+	}
+
+	if channel.IsShared() {
+		return model.NewAppError("ValidateChannelEligibilityForAccessControl",
+			"app.pap.access_control.channel_shared",
+			nil, "Channel is shared", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
 // ValidateChannelAccessControlPermission validates if a user has permission to manage access control for a specific channel
 func (a *App) ValidateChannelAccessControlPermission(rctx request.CTX, userID, channelID string) *model.AppError {
 	// Verify the channel exists
@@ -354,17 +374,8 @@ func (a *App) ValidateChannelAccessControlPermission(rctx request.CTX, userID, c
 		return model.NewAppError("ValidateChannelAccessControlPermission", "app.pap.access_control.insufficient_channel_permissions", nil, "user_id="+userID+" channel_id="+channelID, http.StatusForbidden)
 	}
 
-	// Verify the channel is a private channel
-	if channel.Type != model.ChannelTypePrivate {
-		return model.NewAppError("ValidateChannelAccessControlPermission", "app.pap.access_control.channel_not_private", nil, "channel_id="+channelID, http.StatusBadRequest)
-	}
-
-	if channel.IsGroupConstrained() {
-		return model.NewAppError("ValidateChannelAccessControlPermission", "app.pap.access_control.channel_group_constrained", nil, "channel_id="+channelID, http.StatusBadRequest)
-	}
-
-	if channel.IsShared() {
-		return model.NewAppError("ValidateChannelAccessControlPermission", "app.pap.access_control.channel_shared", nil, "channel_id="+channelID, http.StatusBadRequest)
+	if appErr := ValidateChannelEligibilityForAccessControl(channel); appErr != nil {
+		return appErr
 	}
 
 	return nil
