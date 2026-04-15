@@ -265,6 +265,66 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 	})
+
+	t.Run("CreatePermissionPolicy with feature flag disabled", func(t *testing.T) {
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "SetLicense should return true")
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = false
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+
+		permissionPolicy := &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Type:     model.AccessControlPolicyTypePermission,
+			Name:     "test-permission-policy",
+			Version:  model.AccessControlPolicyVersionV0_3,
+			Revision: 1,
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Expression: "user.attributes.department == 'engineering'",
+					Actions:    []string{model.AccessControlPolicyActionUploadFileAttachment},
+				},
+			},
+		}
+
+		_, resp, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), permissionPolicy)
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+	})
+
+	t.Run("CreatePermissionPolicy with feature flag enabled", func(t *testing.T) {
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "SetLicense should return true")
+
+		permissionPolicy := &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Type:     model.AccessControlPolicyTypePermission,
+			Name:     "test-permission-policy",
+			Version:  model.AccessControlPolicyVersionV0_3,
+			Revision: 1,
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Expression: "user.attributes.department == 'engineering'",
+					Actions:    []string{model.AccessControlPolicyActionUploadFileAttachment},
+				},
+			},
+		}
+
+		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		mockAccessControlService.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).Return(permissionPolicy, nil).Times(1)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = true
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+
+		_, resp, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), permissionPolicy)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
 }
 
 func TestGetAccessControlPolicy(t *testing.T) {
@@ -580,6 +640,48 @@ func TestSearchAccessControlPolicies(t *testing.T) {
 		require.Empty(t, policiesResp.Policies, "expected no policies")
 		require.Equal(t, int64(0), policiesResp.Total, "expected count 0 policies")
 	}, "SearchAccessControlPolicies with system admin")
+
+	t.Run("SearchPermissionPolicies with feature flag disabled", func(t *testing.T) {
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "SetLicense should return true")
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = false
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+
+		_, resp, err := th.SystemAdminClient.SearchAccessControlPolicies(context.Background(), model.AccessControlPolicySearch{
+			Term: "test",
+			Type: model.AccessControlPolicyTypePermission,
+		})
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+	})
+
+	t.Run("SearchPermissionPolicies with feature flag enabled", func(t *testing.T) {
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "SetLicense should return true")
+
+		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		mockAccessControlService.On("SearchPolicies", mock.AnythingOfType("*request.Context"), model.AccessControlPolicySearch{
+			Term: "test",
+			Type: model.AccessControlPolicyTypePermission,
+		}).Return([]*model.AccessControlPolicy{}, int64(0), nil).Times(1)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = true
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+
+		policiesResp, resp, err := th.SystemAdminClient.SearchAccessControlPolicies(context.Background(), model.AccessControlPolicySearch{
+			Term: "test",
+			Type: model.AccessControlPolicyTypePermission,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Empty(t, policiesResp.Policies, "expected no policies")
+	})
 }
 
 func TestAssignAccessPolicy(t *testing.T) {

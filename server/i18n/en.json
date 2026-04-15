@@ -56,6 +56,10 @@
     "translation": "Get fields limit is not valid."
   },
   {
+    "id": "api.access_control_policy.permission_policies.feature_disabled",
+    "translation": "Permission policies feature is not enabled."
+  },
+  {
     "id": "api.acknowledgement.delete.archived_channel.app_error",
     "translation": "You cannot remove an acknowledgment in an archived channel."
   },

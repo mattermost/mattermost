@@ -772,10 +772,12 @@ const AdminDefinition: AdminDefinitionType = {
                     it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                     it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
+                    it.configIsFalse('FeatureFlags', 'PermissionPolicies'),
                 ),
                 isDisabled: it.any(
                     it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                     it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
+                    it.configIsFalse('FeatureFlags', 'PermissionPolicies'),
                 ),
                 schema: {
                     id: 'PermissionPolicy',
@@ -789,6 +791,7 @@ const AdminDefinition: AdminDefinitionType = {
                     it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                     it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
+                    it.configIsFalse('FeatureFlags', 'PermissionPolicies'),
                 ),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                 schema: {
@@ -803,6 +806,7 @@ const AdminDefinition: AdminDefinitionType = {
                     it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                     it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
+                    it.configIsFalse('FeatureFlags', 'PermissionPolicies'),
                     it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
                 ),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),

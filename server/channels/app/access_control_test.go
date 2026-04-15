@@ -1390,3 +1390,38 @@ func TestIsSystemPolicyAppliedToChannel(t *testing.T) {
 		assert.False(t, result)
 	})
 }
+
+func TestHasPermissionToFileAction(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	t.Run("should allow when access control service is nil", func(t *testing.T) {
+		th.App.Srv().ch.AccessControl = nil
+		result := th.App.HasPermissionToFileAction(th.Context, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
+		assert.True(t, result)
+	})
+
+	t.Run("should allow when ABAC is disabled", func(t *testing.T) {
+		mockAccessControl := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockAccessControl
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(false)
+		})
+
+		result := th.App.HasPermissionToFileAction(th.Context, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
+		assert.True(t, result)
+	})
+
+	t.Run("should allow when PermissionPolicies feature flag is disabled", func(t *testing.T) {
+		mockAccessControl := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockAccessControl
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.FeatureFlags.PermissionPolicies = false
+		})
+
+		result := th.App.HasPermissionToFileAction(th.Context, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
+		assert.True(t, result)
+	})
+}

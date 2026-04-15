@@ -1921,7 +1921,7 @@
   "admin.permission_policies.edit.name_exists": "A policy with this name already exists. Please choose a different name.",
   "admin.permission_policies.edit.no_usable_attributes_tooltip": "Please configure user attributes to use the editor.",
   "admin.permission_policies.edit.notice.button": "Configure user attributes",
-  "admin.permission_policies.edit.notice.text": "You havent configured any user attributes yet. Attribute-Based Access Control requires user attributes that are either synced from an external system (like LDAP or SAML) or manually configured and enabled on this server.",
+  "admin.permission_policies.edit.notice.text": "You haven't configured any user attributes yet. Attribute-Based Access Control requires user attributes that are either synced from an external system (like LDAP or SAML) or manually configured and enabled on this server.",
   "admin.permission_policies.edit.notice.title": "Please add user attributes and values to use Attribute-Based Access Control",
   "admin.permission_policies.edit.permissions.add": "Add permission",
   "admin.permission_policies.edit.permissions.column_header": "Permission",

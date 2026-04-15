@@ -254,9 +254,10 @@ function PermissionPolicyDetails({
                 setServerError(formatMessage({
                     id: 'admin.permission_policies.edit.error.delete',
                     defaultMessage: 'Error deleting policy: {error}',
-                }, {error: result.error.message || result.error}));
+                }, {error: String(result.error.message || result.error)}));
                 return;
             }
+            actions.setNavigationBlocked(false);
             getHistory().push('/admin_console/system_attributes/permission_policies');
         } catch (error: any) {
             setServerError(formatMessage({
@@ -381,7 +382,7 @@ function PermissionPolicyDetails({
                                         }
                                         text={formatMessage({
                                             id: 'admin.permission_policies.edit.notice.text',
-                                            defaultMessage: 'You havent configured any user attributes yet. Attribute-Based Access Control requires user attributes that are either synced from an external system (like LDAP or SAML) or manually configured and enabled on this server.',
+                                            defaultMessage: 'You haven\'t configured any user attributes yet. Attribute-Based Access Control requires user attributes that are either synced from an external system (like LDAP or SAML) or manually configured and enabled on this server.',
                                         })}
                                         primaryButton={{
                                             text: formatMessage({

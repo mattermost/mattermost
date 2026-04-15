@@ -44,6 +44,11 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	if policy.Type == model.AccessControlPolicyTypePermission && !c.App.Config().FeatureFlags.PermissionPolicies {
+		c.Err = model.NewAppError("createAccessControlPolicy", "api.access_control_policy.permission_policies.feature_disabled", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	auditRec := c.MakeAuditRecord(model.AuditEventCreateAccessControlPolicy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "requested", &policy)
@@ -363,6 +368,11 @@ func searchAccessControlPolicies(c *Context, w http.ResponseWriter, r *http.Requ
 	err := json.NewDecoder(r.Body).Decode(&props)
 	if err != nil || props == nil {
 		c.SetInvalidParamWithErr("access_control_policy_search", err)
+		return
+	}
+
+	if props.Type == model.AccessControlPolicyTypePermission && !c.App.Config().FeatureFlags.PermissionPolicies {
+		c.Err = model.NewAppError("searchAccessControlPolicies", "api.access_control_policy.permission_policies.feature_disabled", nil, "", http.StatusNotImplemented)
 		return
 	}
 

@@ -443,6 +443,10 @@ func (a *App) sanitizeFileAttachmentsForUser(rctx request.CTX, post *model.Post,
 		return
 	}
 
+	if !a.Config().FeatureFlags.PermissionPolicies {
+		return
+	}
+
 	user, err := a.GetUser(userID)
 	if err != nil {
 		rctx.Logger().Warn("Failed to get user for file attachment sanitization",
