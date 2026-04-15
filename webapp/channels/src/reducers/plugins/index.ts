@@ -190,6 +190,7 @@ const initialComponents: PluginsState['components'] = {
     PostDropdownMenu: [],
     PostAction: [],
     PostEditorAction: [],
+    AIActionMenuItem: [],
     CodeBlockAction: [],
     NewMessagesSeparatorAction: [],
     Product: [],
