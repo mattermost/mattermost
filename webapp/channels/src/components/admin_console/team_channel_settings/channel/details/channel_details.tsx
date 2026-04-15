@@ -5,7 +5,8 @@ import cloneDeep from 'lodash/cloneDeep';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {AccessControlPolicy, AccessControlPolicyActiveUpdate} from '@mattermost/types/access_control';
+import type {AccessControlPolicy, AccessControlPolicyActiveUpdate, AccessControlPolicyRule} from '@mattermost/types/access_control';
+import {getMembershipRule, buildRulesWithMembership} from '@mattermost/types/access_control';
 import type {Channel, ChannelModeration as ChannelPermissions, ChannelModerationPatch} from '@mattermost/types/channels';
 import {SyncableType} from '@mattermost/types/groups';
 import type {SyncablePatch, Group} from '@mattermost/types/groups';
@@ -95,6 +96,7 @@ interface ChannelDetailsState {
     // Channel-level access rules state
     channelRulesExpression: string;
     channelRulesOriginalExpression: string;
+    channelRulesExistingRules: AccessControlPolicyRule[];
     channelRulesAutoSync: boolean;
     channelRulesOriginalAutoSync: boolean;
     channelRulesHaveChanges: boolean;
@@ -179,6 +181,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             // Channel-level access rules state
             channelRulesExpression: '',
             channelRulesOriginalExpression: '',
+            channelRulesExistingRules: [],
             channelRulesAutoSync: false,
             channelRulesOriginalAutoSync: false,
             channelRulesHaveChanges: false,
@@ -778,7 +781,6 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                             id: channelID, // Channel-level policies use the channel ID as policy ID
                             name: accessControlPolicy?.name || `Channel Rules for ${channel.display_name}`,
                             type: 'channel',
-                            version: accessControlPolicy?.version || 'v0.2',
                             revision: accessControlPolicy ? (accessControlPolicy.revision || 1) + 1 : 1,
                             created_at: accessControlPolicy?.created_at || Date.now(),
                             active: false, // Always save as false initially, then update separately
@@ -786,11 +788,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                             // Include parent policies as imports
                             imports: this.state.accessControlPolicies.map((p) => p.id),
 
-                            // Add/update channel-level rules
-                            rules: [{
-                                actions: ['*'],
-                                expression: channelRulesExpression,
-                            }],
+                            rules: buildRulesWithMembership(this.state.channelRulesExistingRules, channelRulesExpression),
                         };
 
                         // Save the channel-level policy using the existing action
@@ -848,11 +846,10 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                                 id: accessControlPolicy?.id || channelID,
                                 name: accessControlPolicy?.name || channel.display_name,
                                 type: 'channel',
-                                version: accessControlPolicy?.version || 'v0.2',
                                 created_at: accessControlPolicy?.created_at || Date.now(),
                                 revision: (accessControlPolicy?.revision || 1) + 1,
                                 active: channelRulesAutoSync,
-                                rules: [], // Remove channel-level rules
+                                rules: buildRulesWithMembership(this.state.channelRulesExistingRules, ''),
                                 imports: this.state.accessControlPolicies.map((p) => p.id), // SAME LOGIC as Channel Settings Modal
                             };
 
@@ -1165,11 +1162,12 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
 
                 // Check if this is a channel-level policy (not a parent policy)
                 if (policy.type === 'channel' && policy.rules && policy.rules.length > 0) {
-                    const rule = policy.rules[0];
+                    const rule = getMembershipRule(policy.rules);
                     const autoSyncValue = policy.active === true; // Explicitly check for true
                     this.setState({
-                        channelRulesExpression: rule.expression || '',
-                        channelRulesOriginalExpression: rule.expression || '',
+                        channelRulesExpression: rule?.expression || '',
+                        channelRulesOriginalExpression: rule?.expression || '',
+                        channelRulesExistingRules: policy.rules,
                         channelRulesAutoSync: autoSyncValue,
                         channelRulesOriginalAutoSync: autoSyncValue,
                         channelRulesHaveChanges: false,
@@ -1188,7 +1186,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
     private combineParentAndChannelExpressions = (channelExpression: string): string => {
         // Get expressions from parent policies
         const parentExpressions = this.state.accessControlPolicies.
-            map((policy) => policy.rules?.[0]?.expression).
+            map((policy) => getMembershipRule(policy.rules)?.expression).
             filter((expr) => expr && expr.trim());
 
         // Combine channel expression with parent expressions
@@ -1208,7 +1206,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
         if (allExpressions.length === 0) {
             return '';
         } else if (allExpressions.length === 1) {
-            return allExpressions[0];
+            return allExpressions[0]!;
         }
 
         // Wrap each expression in parentheses and combine with &&
