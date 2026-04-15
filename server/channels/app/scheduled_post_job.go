@@ -19,7 +19,7 @@ import (
 
 const (
 	getPendingScheduledPostsPageSize = 100
-	scheduledPostBatchWaitTime       = 1 * time.Second
+	scheduledPostBatchWaitTime       = 100 * time.Millisecond
 )
 
 func (a *App) ProcessScheduledPosts(rctx request.CTX) {

@@ -688,8 +688,16 @@
     "translation": "Command with a trigger of '{{.Trigger}}' not found. To send a message beginning with \"/\", try adding an empty space at the beginning of the message."
   },
   {
+    "id": "api.command.execute_command.provided_site_url_different.app_error",
+    "translation": "Request hostname differs from configured SiteURL. The configured SiteURL will be used for the slash command response URL."
+  },
+  {
     "id": "api.command.execute_command.restricted_dm.error",
     "translation": "Cannot post in a restricted DM"
+  },
+  {
+    "id": "api.command.execute_command.site_url_required.app_error",
+    "translation": "SiteURL must be configured to use slash commands"
   },
   {
     "id": "api.command.execute_command.start.app_error",
@@ -2855,6 +2863,10 @@
     "translation": "Burn-on-read feature is not enabled or requires an Enterprise Advanced license."
   },
   {
+    "id": "api.post.reveal_post.invalid_request.app_error",
+    "translation": "Invalid request: missing or invalid X-Requested-With header."
+  },
+  {
     "id": "api.post.reveal_post.user_not_in_channel.app_error",
     "translation": "You do not have permission to reveal this post. You must be a member of the channel."
   },
@@ -3207,8 +3219,8 @@
     "translation": "Could not uninvite remote to channel"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "The Integration/Slack Bot user with email {{.Email}} and password {{.Password}} has been imported.\r\n"
+    "id": "api.slackimport.slack_add_bot_user.email",
+    "translation": "The Integration/Slack Bot user with email {{.Email}} has been imported.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
@@ -3235,8 +3247,8 @@
     "translation": "\r\nUsers created:\r\n"
   },
   {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Slack user with email {{.Email}} and password {{.Password}} has been imported.\r\n"
+    "id": "api.slackimport.slack_add_users.email",
+    "translation": "Slack user with email {{.Email}} has been imported.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
@@ -3249,6 +3261,10 @@
   {
     "id": "api.slackimport.slack_add_users.missing_email_address",
     "translation": "User {{.Username}} does not have an email address in the Slack export. Used {{.Email}} as a placeholder. The user should update their email address once logged in to the system.\r\n"
+  },
+  {
+    "id": "api.slackimport.slack_add_users.send_reset_email_failed",
+    "translation": "Unable to send password reset email to {{.Username}} at {{.Email}}.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
@@ -4367,10 +4383,6 @@
     "translation": "Invalid invitation link."
   },
   {
-    "id": "api.user.guest_magic_link.invalid_token_type.app_error",
-    "translation": "Invalid invitation link type."
-  },
-  {
     "id": "api.user.guest_magic_link.missing_token.app_error",
     "translation": "Missing invitation token."
   },
@@ -4501,6 +4513,10 @@
   {
     "id": "api.user.login_ldap.not_available.app_error",
     "translation": "AD/LDAP not available on this server."
+  },
+  {
+    "id": "api.user.login_sso_code_exchange.deprecated.app_error",
+    "translation": "This endpoint is deprecated and disabled. Please update your mobile app."
   },
   {
     "id": "api.user.login_with_desktop_token.not_oauth_or_saml_user.app_error",
@@ -5371,6 +5387,10 @@
     "translation": "Unable to update the command."
   },
   {
+    "id": "app.command.validatecommandtriggeruniqueness.internal_error",
+    "translation": "The specified trigger keyword already exists."
+  },
+  {
     "id": "app.command_webhook.create_command_webhook.existing",
     "translation": "You cannot update an existing CommandWebhook."
   },
@@ -5517,10 +5537,6 @@
   {
     "id": "app.content_flagging.no_status_property.app_error",
     "translation": "Cannot fetch flagged post as the post is not flagged."
-  },
-  {
-    "id": "app.content_flagging.permanently_delete.app_error",
-    "translation": "Failed to overwrite post with scrubbed post when permanently deleting flagged post."
   },
   {
     "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",

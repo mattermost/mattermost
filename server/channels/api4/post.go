@@ -925,6 +925,12 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Users who can't create posts in a channel shouldn't be able to edit them either.
+	userCreatePostPermissionCheckWithContext(c, originalPost.ChannelId)
+	if c.Err != nil {
+		return
+	}
+
 	auditRec.AddEventPriorState(originalPost)
 	auditRec.AddEventObjectType("post")
 
@@ -1043,6 +1049,12 @@ func postPatchChecks(c *Context, auditRec *model.AuditRecord, message *string) {
 
 	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, permission) {
 		c.SetPermissionError(permission)
+		return
+	}
+
+	// Users who can't create posts in a channel shouldn't be able to edit them either.
+	userCreatePostPermissionCheckWithContext(c, originalPost.ChannelId)
+	if c.Err != nil {
 		return
 	}
 
@@ -1479,6 +1491,15 @@ func rewriteMessage(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func revealPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	// Enforce X-Requested-With header for cookie-authenticated requests.
+	if r.Header.Get(model.HeaderAuth) == "" {
+		if r.Header.Get(model.HeaderRequestedWith) != model.HeaderRequestedWithXML {
+			c.Err = model.NewAppError("revealPost", "api.post.reveal_post.invalid_request.app_error",
+				nil, "missing or invalid X-Requested-With header", http.StatusForbidden)
+			return
+		}
+	}
+
 	c.RequirePostId()
 	if c.Err != nil {
 		return
