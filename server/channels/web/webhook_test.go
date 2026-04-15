@@ -137,7 +137,7 @@ func TestIncomingWebhook(t *testing.T) {
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 
 		var loaded *model.IncomingWebhook
-		for i := 0; i < 50; i++ {
+		for range 50 {
 			loaded, err = th.App.Srv().Store().Webhook().GetIncoming(hook.Id, false)
 			require.NoError(t, err)
 			if loaded.LastUsedAt > 0 {
