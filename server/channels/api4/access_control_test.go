@@ -20,12 +20,12 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       th.BasicChannel.Id,
 		Type:     model.AccessControlPolicyTypeChannel,
-		Version:  model.AccessControlPolicyVersionV0_2,
+		Version:  model.AccessControlPolicyVersionV0_3,
 		Revision: 1,
 		Rules: []model.AccessControlPolicyRule{
 			{
 				Expression: "user.attributes.team == 'engineering'",
-				Actions:    []string{"*"},
+				Actions:    []string{"membership"},
 			},
 		},
 	}
@@ -60,12 +60,12 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		channelPolicy := &model.AccessControlPolicy{
 			ID:       privateChannel.Id, // Set to actual channel ID
 			Type:     model.AccessControlPolicyTypeChannel,
-			Version:  model.AccessControlPolicyVersionV0_2,
+			Version:  model.AccessControlPolicyVersionV0_3,
 			Revision: 1,
 			Rules: []model.AccessControlPolicyRule{
 				{
 					Expression: "user.attributes.team == 'engineering'",
-					Actions:    []string{"*"},
+					Actions:    []string{"membership"},
 				},
 			},
 		}
@@ -105,12 +105,12 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		channelPolicy := &model.AccessControlPolicy{
 			ID:       privateChannel.Id,
 			Type:     model.AccessControlPolicyTypeChannel,
-			Version:  model.AccessControlPolicyVersionV0_2,
+			Version:  model.AccessControlPolicyVersionV0_3,
 			Revision: 1,
 			Rules: []model.AccessControlPolicyRule{
 				{
 					Expression: "user.attributes.team == 'engineering'",
-					Actions:    []string{"*"},
+					Actions:    []string{"membership"},
 				},
 			},
 		}
@@ -149,12 +149,12 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		channelPolicy := &model.AccessControlPolicy{
 			ID:       privateChannel2.Id,
 			Type:     model.AccessControlPolicyTypeChannel,
-			Version:  model.AccessControlPolicyVersionV0_2,
+			Version:  model.AccessControlPolicyVersionV0_3,
 			Revision: 1,
 			Rules: []model.AccessControlPolicyRule{
 				{
 					Expression: "user.attributes.team == 'engineering'",
-					Actions:    []string{"*"},
+					Actions:    []string{"membership"},
 				},
 			},
 		}
@@ -187,12 +187,12 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		parentPolicy := &model.AccessControlPolicy{
 			ID:       model.NewId(),
 			Type:     model.AccessControlPolicyTypeParent,
-			Version:  model.AccessControlPolicyVersionV0_2,
+			Version:  model.AccessControlPolicyVersionV0_3,
 			Revision: 1,
 			Rules: []model.AccessControlPolicyRule{
 				{
 					Expression: "user.attributes.team == 'engineering'",
-					Actions:    []string{"*"},
+					Actions:    []string{"membership"},
 				},
 			},
 		}
@@ -251,12 +251,12 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 
 		channelPolicy := &model.AccessControlPolicy{
 			Type:     model.AccessControlPolicyTypeChannel,
-			Version:  model.AccessControlPolicyVersionV0_2,
+			Version:  model.AccessControlPolicyVersionV0_3,
 			Revision: 1,
 			Rules: []model.AccessControlPolicyRule{
 				{
 					Expression: "user.attributes.team == 'engineering'",
-					Actions:    []string{"*"},
+					Actions:    []string{"membership"},
 				},
 			},
 			ID: ch.Id,
@@ -334,12 +334,12 @@ func TestGetAccessControlPolicy(t *testing.T) {
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       model.NewId(),
 		Type:     model.AccessControlPolicyTypeChannel,
-		Version:  model.AccessControlPolicyVersionV0_2,
+		Version:  model.AccessControlPolicyVersionV0_3,
 		Revision: 1,
 		Rules: []model.AccessControlPolicyRule{
 			{
 				Expression: "user.attributes.team == 'engineering'",
-				Actions:    []string{"*"},
+				Actions:    []string{"membership"},
 			},
 		},
 	}
@@ -409,12 +409,12 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 		channelPolicy := &model.AccessControlPolicy{
 			ID:       samplePolicyID,
 			Type:     model.AccessControlPolicyTypeChannel,
-			Version:  model.AccessControlPolicyVersionV0_2,
+			Version:  model.AccessControlPolicyVersionV0_3,
 			Revision: 1,
 			Rules: []model.AccessControlPolicyRule{
 				{
 					Expression: "user.attributes.team == 'engineering'",
-					Actions:    []string{"*"},
+					Actions:    []string{"membership"},
 				},
 			},
 		}
@@ -851,12 +851,12 @@ func TestUnassignAccessPolicy(t *testing.T) {
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       model.NewId(),
 		Type:     model.AccessControlPolicyTypeParent,
-		Version:  model.AccessControlPolicyVersionV0_2,
+		Version:  model.AccessControlPolicyVersionV0_3,
 		Revision: 1,
 		Rules: []model.AccessControlPolicyRule{
 			{
 				Expression: "user.attributes.team == 'engineering'",
-				Actions:    []string{"*"},
+				Actions:    []string{"membership"},
 			},
 		},
 	}
@@ -892,7 +892,7 @@ func TestUnassignAccessPolicy(t *testing.T) {
 		child := &model.AccessControlPolicy{
 			ID:       resourceID,
 			Type:     model.AccessControlPolicyTypeChannel,
-			Version:  model.AccessControlPolicyVersionV0_2,
+			Version:  model.AccessControlPolicyVersionV0_3,
 			Revision: 1,
 		}
 
@@ -924,12 +924,12 @@ func TestGetChannelsForAccessControlPolicy(t *testing.T) {
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       model.NewId(),
 		Type:     model.AccessControlPolicyTypeParent,
-		Version:  model.AccessControlPolicyVersionV0_2,
+		Version:  model.AccessControlPolicyVersionV0_3,
 		Revision: 1,
 		Rules: []model.AccessControlPolicyRule{
 			{
 				Expression: "user.attributes.team == 'engineering'",
-				Actions:    []string{"*"},
+				Actions:    []string{"membership"},
 			},
 		},
 	}
@@ -984,11 +984,11 @@ func TestSearchChannelsForAccessControlPolicy(t *testing.T) {
 			ID:      model.NewId(),
 			Name:    "test-policy-" + model.NewId(),
 			Type:    model.AccessControlPolicyTypeParent,
-			Version: model.AccessControlPolicyVersionV0_2,
+			Version: model.AccessControlPolicyVersionV0_3,
 			Rules: []model.AccessControlPolicyRule{
 				{
 					Expression: "user.attributes.team == 'engineering'",
-					Actions:    []string{"*"},
+					Actions:    []string{"membership"},
 				},
 			},
 			Scope:   model.AccessControlPolicyScopeTeam,
@@ -1124,12 +1124,12 @@ func TestSetActiveStatus(t *testing.T) {
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       th.BasicChannel.Id,
 		Type:     model.AccessControlPolicyTypeChannel,
-		Version:  model.AccessControlPolicyVersionV0_2,
+		Version:  model.AccessControlPolicyVersionV0_3,
 		Revision: 1,
 		Rules: []model.AccessControlPolicyRule{
 			{
 				Expression: "user.attributes.team == 'engineering'",
-				Actions:    []string{"*"},
+				Actions:    []string{"membership"},
 			},
 		},
 	}
@@ -1200,12 +1200,12 @@ func TestSetActiveStatus(t *testing.T) {
 		channelPolicy := &model.AccessControlPolicy{
 			ID:       privateChannel.Id,
 			Type:     model.AccessControlPolicyTypeChannel,
-			Version:  model.AccessControlPolicyVersionV0_2,
+			Version:  model.AccessControlPolicyVersionV0_3,
 			Revision: 1,
 			Rules: []model.AccessControlPolicyRule{
 				{
 					Expression: "user.attributes.team == 'engineering'",
-					Actions:    []string{"*"},
+					Actions:    []string{"membership"},
 				},
 			},
 		}
@@ -1266,12 +1266,12 @@ func TestSetActiveStatus(t *testing.T) {
 		channelBPolicy := &model.AccessControlPolicy{
 			ID:       channelB.Id,
 			Type:     model.AccessControlPolicyTypeChannel,
-			Version:  model.AccessControlPolicyVersionV0_2,
+			Version:  model.AccessControlPolicyVersionV0_3,
 			Revision: 1,
 			Rules: []model.AccessControlPolicyRule{
 				{
 					Expression: "user.attributes.team == 'engineering'",
-					Actions:    []string{"*"},
+					Actions:    []string{"membership"},
 				},
 			},
 		}
@@ -1335,10 +1335,10 @@ func newParentPolicy(teamID string) *model.AccessControlPolicy {
 		Rules: []model.AccessControlPolicyRule{
 			{
 				Expression: "user.attributes.department == 'engineering'",
-				Actions:    []string{"*"},
+				Actions:    []string{"membership"},
 			},
 		},
-		Version: model.AccessControlPolicyVersionV0_2,
+		Version: model.AccessControlPolicyVersionV0_3,
 		Scope:   model.AccessControlPolicyScopeTeam,
 		ScopeID: teamID,
 	}
@@ -1919,7 +1919,7 @@ func TestUnassignAccessPolicyTeamAdmin(t *testing.T) {
 		childPolicy := &model.AccessControlPolicy{
 			ID:       privateCh.Id,
 			Type:     model.AccessControlPolicyTypeChannel,
-			Version:  model.AccessControlPolicyVersionV0_2,
+			Version:  model.AccessControlPolicyVersionV0_3,
 			Revision: 1,
 		}
 		childPolicy.Props = map[string]any{}
@@ -1973,7 +1973,7 @@ func TestUnassignAccessPolicyTeamAdmin(t *testing.T) {
 		childPolicy := &model.AccessControlPolicy{
 			ID:      privateCh.Id,
 			Type:    model.AccessControlPolicyTypeChannel,
-			Version: model.AccessControlPolicyVersionV0_2,
+			Version: model.AccessControlPolicyVersionV0_3,
 			Props:   map[string]any{},
 		}
 		_ = childPolicy.Inherit(savedPolicy)
@@ -2096,7 +2096,7 @@ func TestScopeReconciliationCrossTeam(t *testing.T) {
 		childA := &model.AccessControlPolicy{
 			ID:      chA.Id,
 			Type:    model.AccessControlPolicyTypeChannel,
-			Version: model.AccessControlPolicyVersionV0_2,
+			Version: model.AccessControlPolicyVersionV0_3,
 			Props:   map[string]any{},
 		}
 		_ = childA.Inherit(savedParent)
@@ -2121,7 +2121,7 @@ func TestScopeReconciliationCrossTeam(t *testing.T) {
 		childB := &model.AccessControlPolicy{
 			ID:      chB.Id,
 			Type:    model.AccessControlPolicyTypeChannel,
-			Version: model.AccessControlPolicyVersionV0_2,
+			Version: model.AccessControlPolicyVersionV0_3,
 			Props:   map[string]any{},
 		}
 		_ = childB.Inherit(savedParent)
