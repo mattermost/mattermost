@@ -4,16 +4,23 @@
 package app
 
 import (
+	"bytes"
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
+	"text/template"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/plugin/utils"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 )
@@ -518,7 +525,7 @@ func TestSyncMessageErrChannelNotSharedResponse(t *testing.T) {
 	// Test the complete flow by simulating what happens in sendSyncMsgToRemote callback
 	// This tests the fixed error detection logic that checks rcResp.Err
 	var callbackTriggered bool
-	mockCallback := func(rcMsg model.RemoteClusterMsg, rc *model.RemoteCluster, rcResp *remotecluster.Response, errResp error) {
+	mockCallback := func(_ /*rcMsg*/ model.RemoteClusterMsg, rc *model.RemoteCluster, rcResp *remotecluster.Response, _ /*errResp*/ error) {
 		callbackTriggered = true
 
 		// This simulates the fixed logic in sync_send_remote.go
@@ -1113,4 +1120,430 @@ func TestTransformMentionsOnReceive(t *testing.T) {
 			"Multiple mentions should transform efficiently",
 		)
 	})
+}
+
+// registerPluginRemoteForTest registers a plugin as a shared channel remote and returns
+// the remote cluster. It also shares the given channel and invites the remote to it.
+func registerPluginRemoteForTest(t *testing.T, th *TestHelper, pluginID string, channel *model.Channel) *model.RemoteCluster {
+	t.Helper()
+
+	remoteID, err := th.App.RegisterPluginForSharedChannels(th.Context, model.RegisterPluginOpts{
+		Displayname: "test-plugin-remote",
+		PluginID:    pluginID,
+		CreatorID:   th.BasicUser.Id,
+	})
+	require.NoError(t, err)
+
+	sc := &model.SharedChannel{
+		ChannelId:        channel.Id,
+		TeamId:           channel.TeamId,
+		Home:             true,
+		ShareName:        channel.Name,
+		ShareDisplayName: channel.DisplayName,
+		CreatorId:        th.BasicUser.Id,
+	}
+	_, err = th.App.ShareChannel(th.Context, sc)
+	require.NoError(t, err)
+
+	err = th.App.InviteRemoteToChannel(channel.Id, remoteID, th.BasicUser.Id, false)
+	require.NoError(t, err)
+
+	rc, err := th.App.Srv().Store().RemoteCluster().GetByPluginID(pluginID)
+	require.NoError(t, err)
+	return rc
+}
+
+func TestPluginAPIReceiveSharedChannelSyncMsg(t *testing.T) {
+	th := setupSharedChannels(t).InitBasic(t)
+
+	channel := th.CreateChannel(t, th.BasicTeam)
+	pluginID := "com.test.sync-plugin"
+	rc := registerPluginRemoteForTest(t, th, pluginID, channel)
+
+	api := NewPluginAPI(th.App, th.Context, &model.Manifest{Id: pluginID})
+
+	t.Run("nil msg returns error", func(t *testing.T) {
+		_, err := api.ReceiveSharedChannelSyncMsg(rc.RemoteId, nil)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "must not be nil")
+	})
+
+	t.Run("unknown remoteID returns error", func(t *testing.T) {
+		msg := model.NewSyncMsg(channel.Id)
+		_, err := api.ReceiveSharedChannelSyncMsg(model.NewId(), msg)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "not found")
+	})
+
+	t.Run("remoteID belonging to different plugin returns error", func(t *testing.T) {
+		otherPluginID := "com.other.plugin"
+		otherChannel := th.CreateChannel(t, th.BasicTeam)
+		otherRC := registerPluginRemoteForTest(t, th, otherPluginID, otherChannel)
+		msg := model.NewSyncMsg(channel.Id)
+		_, err := api.ReceiveSharedChannelSyncMsg(otherRC.RemoteId, msg)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "does not belong to plugin")
+	})
+
+	t.Run("channel not shared with remote returns error", func(t *testing.T) {
+		otherChannel := th.CreateChannel(t, th.BasicTeam)
+		msg := model.NewSyncMsg(otherChannel.Id)
+		_, err := api.ReceiveSharedChannelSyncMsg(rc.RemoteId, msg)
+		require.Error(t, err)
+	})
+
+	t.Run("syncs a user and verifies it exists in the database", func(t *testing.T) {
+		userID := model.NewId()
+		username := "synced-user-" + model.NewId()[:8]
+		email := model.NewId() + "@remote.test"
+
+		msg := model.NewSyncMsg(channel.Id)
+		msg.Users = map[string]*model.User{
+			userID: {
+				Id:       userID,
+				Username: username,
+				Email:    email,
+				RemoteId: model.NewPointer(rc.RemoteId),
+			},
+		}
+
+		resp, err := api.ReceiveSharedChannelSyncMsg(rc.RemoteId, msg)
+		require.NoError(t, err)
+		assert.Contains(t, resp.UsersSyncd, userID)
+		assert.Empty(t, resp.UserErrors)
+
+		// Verify the user was actually created in the database
+		user, appErr := th.App.GetUser(userID)
+		require.Nil(t, appErr)
+		assert.Contains(t, user.Username, username) // username gets ":remotename" appended by sync
+		assert.Equal(t, rc.RemoteId, user.GetRemoteID())
+	})
+
+	t.Run("syncs a post and verifies it exists in the database", func(t *testing.T) {
+		// First sync a user who will author the post
+		userID := model.NewId()
+		msg := model.NewSyncMsg(channel.Id)
+		msg.Users = map[string]*model.User{
+			userID: {
+				Id:       userID,
+				Username: "post-author-" + model.NewId()[:8],
+				Email:    model.NewId() + "@remote.test",
+				RemoteId: model.NewPointer(rc.RemoteId),
+			},
+		}
+		_, err := api.ReceiveSharedChannelSyncMsg(rc.RemoteId, msg)
+		require.NoError(t, err)
+
+		// Now sync a post from that user
+		postID := model.NewId()
+		postMsg := model.NewSyncMsg(channel.Id)
+		postMsg.Posts = []*model.Post{
+			{
+				Id:        postID,
+				ChannelId: channel.Id,
+				UserId:    userID,
+				Message:   "hello from the plugin remote",
+				CreateAt:  model.GetMillis(),
+				RemoteId:  model.NewPointer(rc.RemoteId),
+			},
+		}
+
+		resp, err := api.ReceiveSharedChannelSyncMsg(rc.RemoteId, postMsg)
+		require.NoError(t, err)
+		assert.Empty(t, resp.PostErrors)
+
+		// Verify the post exists in the database
+		post, appErr := th.App.GetSinglePost(th.Context, postID, false)
+		require.Nil(t, appErr)
+		assert.Equal(t, "hello from the plugin remote", post.Message)
+		assert.Equal(t, channel.Id, post.ChannelId)
+		assert.Equal(t, userID, post.UserId)
+	})
+}
+
+func TestPluginAPIReceiveSharedChannelAttachmentSyncMsg(t *testing.T) {
+	th := setupSharedChannels(t).InitBasic(t)
+
+	channel := th.CreateChannel(t, th.BasicTeam)
+	pluginID := "com.test.attachment-plugin"
+	rc := registerPluginRemoteForTest(t, th, pluginID, channel)
+
+	api := NewPluginAPI(th.App, th.Context, &model.Manifest{Id: pluginID})
+
+	t.Run("unknown remoteID returns error", func(t *testing.T) {
+		fi := &model.FileInfo{Name: "test.txt", Size: 4, CreatorId: th.BasicUser.Id}
+		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(model.NewId(), channel.Id, fi, bytes.NewReader([]byte("data")))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "not found")
+	})
+
+	t.Run("remoteID belonging to different plugin returns error", func(t *testing.T) {
+		otherPluginID := "com.other.attachment-plugin"
+		otherChannel := th.CreateChannel(t, th.BasicTeam)
+		otherRC := registerPluginRemoteForTest(t, th, otherPluginID, otherChannel)
+		fi := &model.FileInfo{Name: "test.txt", Size: 4, CreatorId: th.BasicUser.Id}
+		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(otherRC.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data")))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "does not belong to plugin")
+	})
+
+	t.Run("channel not shared with remote returns error", func(t *testing.T) {
+		otherChannel := th.CreateChannel(t, th.BasicTeam)
+		fi := &model.FileInfo{Name: "test.txt", Size: 4, CreatorId: th.BasicUser.Id}
+		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, otherChannel.Id, fi, bytes.NewReader([]byte("data")))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "not shared")
+	})
+
+	t.Run("nil FileInfo returns error", func(t *testing.T) {
+		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, nil, bytes.NewReader([]byte("data")))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "FileInfo is required")
+	})
+
+	t.Run("nil data returns error", func(t *testing.T) {
+		fi := &model.FileInfo{Name: "test.txt", Size: 4, CreatorId: th.BasicUser.Id}
+		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, nil)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "File data is required")
+	})
+
+	t.Run("empty CreatorId returns error", func(t *testing.T) {
+		fi := &model.FileInfo{Name: "test.txt", Size: 4}
+		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data")))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "CreatorId is required")
+	})
+
+	t.Run("empty Name returns error", func(t *testing.T) {
+		fi := &model.FileInfo{Size: 4, CreatorId: th.BasicUser.Id}
+		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data")))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "Name is required")
+	})
+
+	t.Run("local user as creator returns error", func(t *testing.T) {
+		fi := &model.FileInfo{Name: "test.txt", Size: 4, CreatorId: th.BasicUser.Id}
+		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data")))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "does not belong to remote")
+	})
+
+	t.Run("syncs an attachment and verifies FileInfo and SharedChannelAttachment in database", func(t *testing.T) {
+		// Create a remote user belonging to this plugin's remote
+		remoteUser := &model.User{
+			Email:    model.NewId() + "@remote.test",
+			Username: "remote-attach-" + model.NewId()[:8],
+			Password: "Password1!",
+			RemoteId: model.NewPointer(rc.RemoteId),
+		}
+		remoteUser, appErr := th.App.CreateUser(th.Context, remoteUser)
+		require.Nil(t, appErr)
+
+		fi := &model.FileInfo{
+			CreatorId: remoteUser.Id,
+			Name:      "hello.txt",
+			Size:      13,
+		}
+
+		saved, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("hello, world!")))
+		require.NoError(t, err)
+		require.NotNil(t, saved)
+		assert.NotEmpty(t, saved.Id)
+		assert.Equal(t, rc.RemoteId, *saved.RemoteId)
+
+		// Verify the FileInfo was persisted with a server-constructed path
+		storedFI, appErr := th.App.GetFileInfo(th.Context, saved.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, "hello.txt", storedFI.Name)
+		assert.NotEmpty(t, storedFI.Path)
+		assert.Contains(t, storedFI.Path, "hello.txt")
+		assert.Equal(t, rc.RemoteId, *storedFI.RemoteId)
+
+		// Verify SharedChannelAttachment record was created for cursor tracking
+		sca, scaErr := th.App.Srv().Store().SharedChannel().GetAttachment(saved.Id, rc.RemoteId)
+		require.NoError(t, scaErr)
+		assert.Equal(t, saved.Id, sca.FileId)
+		assert.Equal(t, rc.RemoteId, sca.RemoteId)
+	})
+}
+
+func TestPluginAPIReceiveSharedChannelProfileImageSyncMsg(t *testing.T) {
+	th := setupSharedChannels(t).InitBasic(t)
+
+	channel := th.CreateChannel(t, th.BasicTeam)
+	pluginID := "com.test.profile-image-plugin"
+	rc := registerPluginRemoteForTest(t, th, pluginID, channel)
+
+	api := NewPluginAPI(th.App, th.Context, &model.Manifest{Id: pluginID})
+
+	t.Run("unknown remoteID returns error", func(t *testing.T) {
+		err := api.ReceiveSharedChannelProfileImageSyncMsg(model.NewId(), th.BasicUser.Id, []byte("img"))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "not found")
+	})
+
+	t.Run("remoteID belonging to different plugin returns error", func(t *testing.T) {
+		otherPluginID := "com.other.profile-plugin"
+		otherChannel := th.CreateChannel(t, th.BasicTeam)
+		otherRC := registerPluginRemoteForTest(t, th, otherPluginID, otherChannel)
+		err := api.ReceiveSharedChannelProfileImageSyncMsg(otherRC.RemoteId, th.BasicUser.Id, []byte("img"))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "does not belong to plugin")
+	})
+
+	t.Run("nonexistent user returns error", func(t *testing.T) {
+		err := api.ReceiveSharedChannelProfileImageSyncMsg(rc.RemoteId, model.NewId(), []byte("img"))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "not found")
+	})
+
+	t.Run("local user (wrong RemoteId) returns error", func(t *testing.T) {
+		err := api.ReceiveSharedChannelProfileImageSyncMsg(rc.RemoteId, th.BasicUser.Id, []byte("img"))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "does not belong to remote")
+	})
+
+	t.Run("syncs profile image and verifies it was saved", func(t *testing.T) {
+		// Create a remote user belonging to this plugin's remote
+		remoteUser := &model.User{
+			Email:    model.NewId() + "@remote.test",
+			Username: "remote-img-" + model.NewId()[:8],
+			Password: "Password1!",
+			RemoteId: model.NewPointer(rc.RemoteId),
+		}
+		remoteUser, appErr := th.App.CreateUser(th.Context, remoteUser)
+		require.Nil(t, appErr)
+
+		lastPictureBefore := remoteUser.LastPictureUpdate
+
+		// Capture profile image before sync (default/empty for new user)
+		preImgBytes, _, appErr := th.App.GetProfileImage(remoteUser)
+		require.Nil(t, appErr)
+
+		pngData, err := os.ReadFile("tests/test.png")
+		require.NoError(t, err, "Failed to load tests/test.png")
+
+		err = api.ReceiveSharedChannelProfileImageSyncMsg(rc.RemoteId, remoteUser.Id, pngData)
+		require.NoError(t, err)
+
+		// Verify the user's LastPictureUpdate was bumped
+		updatedUser, appErr := th.App.GetUser(remoteUser.Id)
+		require.Nil(t, appErr)
+		assert.Greater(t, updatedUser.LastPictureUpdate, lastPictureBefore)
+
+		// Verify the image bytes changed and are non-empty
+		postImgBytes, _, appErr := th.App.GetProfileImage(updatedUser)
+		require.Nil(t, appErr)
+		assert.NotEmpty(t, postImgBytes)
+		assert.NotEqual(t, preImgBytes, postImgBytes, "profile image should differ after sync")
+	})
+}
+
+// activatePluginFromTemplate compiles a Go plugin from a .go.tmpl template file located
+// in the tests/ directory, executes the template with the provided data, activates it in
+// a real plugin environment with full RPC, and returns the environment. The plugin's
+// OnActivate hook runs through the real apiRPCClient → gob → apiRPCServer → PluginAPI
+// path. If OnActivate returns an error, the test fails.
+func activatePluginFromTemplate(t *testing.T, th *TestHelper, pluginID, templateFile string, data any) *plugin.Environment {
+	t.Helper()
+
+	testsDir, found := fileutils.FindDir("tests")
+	require.True(t, found, "tests directory not found")
+
+	tmplPath := filepath.Join(testsDir, templateFile)
+	tmplBytes, err := os.ReadFile(tmplPath)
+	require.NoError(t, err, "failed to read plugin template %s", tmplPath)
+
+	tmpl, err := template.New(filepath.Base(templateFile)).Parse(string(tmplBytes))
+	require.NoError(t, err, "failed to parse plugin template")
+
+	var buf strings.Builder
+	err = tmpl.Execute(&buf, data)
+	require.NoError(t, err, "failed to execute plugin template")
+
+	pluginDir := t.TempDir()
+	webappPluginDir := t.TempDir()
+
+	newPluginAPI := func(manifest *model.Manifest) plugin.API {
+		return th.App.NewPluginAPI(th.Context, manifest)
+	}
+	env, err := plugin.NewEnvironment(newPluginAPI, NewDriverImpl(th.App.Srv()), pluginDir, webappPluginDir, th.App.Log(), nil)
+	require.NoError(t, err)
+
+	th.App.ch.SetPluginsEnvironment(env)
+
+	backend := filepath.Join(pluginDir, pluginID, "backend.exe")
+	utils.CompileGo(t, buf.String(), backend)
+
+	manifestJSON := `{"id": "` + pluginID + `", "server": {"executable": "backend.exe"}}`
+	err = os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(manifestJSON), 0600)
+	require.NoError(t, err)
+
+	manifest, activated, reterr := env.Activate(pluginID)
+	require.NoError(t, reterr, "plugin OnActivate failed")
+	require.NotNil(t, manifest)
+	require.True(t, activated)
+
+	t.Cleanup(func() {
+		env.Shutdown()
+	})
+
+	return env
+}
+
+func TestPluginRPCSharedChannelSync(t *testing.T) {
+	th := setupSharedChannels(t).InitBasic(t)
+
+	// Pre-setup: create and share a channel, register the plugin as a remote, invite it
+	channel := th.CreateChannel(t, th.BasicTeam)
+	pluginID := "testplugin"
+	rc := registerPluginRemoteForTest(t, th, pluginID, channel)
+
+	// IDs the plugin will use to create content
+	syncUserID := model.NewId()
+	syncPostID := model.NewId()
+
+	// Compile and activate plugin from template — OnActivate runs through full RPC
+	activatePluginFromTemplate(t, th, pluginID, "shared_channel_sync_plugin_test.go.tmpl", struct {
+		ChannelID  string
+		RemoteID   string
+		SyncUserID string
+		SyncPostID string
+	}{
+		ChannelID:  channel.Id,
+		RemoteID:   rc.RemoteId,
+		SyncUserID: syncUserID,
+		SyncPostID: syncPostID,
+	})
+
+	// --- Post-activation verification: check everything landed in the DB ---
+
+	// Verify synced user
+	user, appErr := th.App.GetUser(syncUserID)
+	require.Nil(t, appErr, "synced user should exist in DB")
+	assert.Contains(t, user.Username, "rpc-synced-user")
+	assert.Equal(t, rc.RemoteId, user.GetRemoteID())
+
+	// Verify synced post
+	post, appErr := th.App.GetSinglePost(th.Context, syncPostID, false)
+	require.Nil(t, appErr, "synced post should exist in DB")
+	assert.Equal(t, "hello from plugin over RPC", post.Message)
+	assert.Equal(t, channel.Id, post.ChannelId)
+	assert.Equal(t, syncUserID, post.UserId)
+
+	// The attachment was verified inside the plugin's OnActivate (it would have returned
+	// an error if ReceiveSharedChannelAttachmentSyncMsg failed). The file ID is assigned
+	// server-side by the upload session, so we can't look it up by a pre-known ID here.
+	// The direct PluginAPI test (TestPluginAPIReceiveSharedChannelAttachmentSyncMsg) does
+	// the detailed DB verification for attachment persistence.
+
+	// Verify profile image was saved for the synced user
+	updatedUser, err := th.App.Srv().Store().User().Get(th.Context.Context(), syncUserID)
+	require.NoError(t, err)
+	assert.Greater(t, updatedUser.LastPictureUpdate, int64(0), "LastPictureUpdate should be set after profile image sync")
+
+	imgBytes, _, appErr := th.App.GetProfileImage(updatedUser)
+	require.Nil(t, appErr)
+	assert.NotEmpty(t, imgBytes, "profile image bytes should be readable")
 }
