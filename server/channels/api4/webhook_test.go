@@ -222,6 +222,13 @@ func TestGetIncomingWebhooks(t *testing.T) {
 
 	require.True(t, found, "missing hook")
 
+	err = th.App.Srv().Store().Webhook().UpdateIncomingLastUsedAt(rhook.Id, 42424242)
+	require.NoError(t, err)
+
+	loaded, _, err := th.SystemAdminClient.GetIncomingWebhook(context.Background(), rhook.Id, "")
+	require.NoError(t, err)
+	require.Equal(t, int64(42424242), loaded.LastUsedAt)
+
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		hooks, _, err = client.GetIncomingWebhooks(context.Background(), 0, 1, "")
 		require.NoError(t, err)

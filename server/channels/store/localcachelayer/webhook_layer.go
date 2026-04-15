@@ -38,6 +38,15 @@ func (s LocalCacheWebhookStore) InvalidateWebhookCache(webhookId string) {
 	}
 }
 
+func (s LocalCacheWebhookStore) UpdateIncomingLastUsedAt(hookID string, lastUsedAt int64) error {
+	err := s.WebhookStore.UpdateIncomingLastUsedAt(hookID, lastUsedAt)
+	if err != nil {
+		return err
+	}
+	s.InvalidateWebhookCache(hookID)
+	return nil
+}
+
 func (s LocalCacheWebhookStore) GetIncoming(id string, allowFromCache bool) (*model.IncomingWebhook, error) {
 	if !allowFromCache {
 		return s.WebhookStore.GetIncoming(id, allowFromCache)

@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -127,6 +128,24 @@ func TestIncomingWebhook(t *testing.T) {
 		resp, err = http.Post(url, "", strings.NewReader("{\"text\":\""+text+"\"}"))
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+
+	t.Run("LastUsedAtUpdatedOnSuccess", func(t *testing.T) {
+		payload := "{\"text\": \"last used test\"}"
+		resp, err := http.Post(url, "application/json", strings.NewReader(payload))
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var loaded *model.IncomingWebhook
+		for i := 0; i < 50; i++ {
+			loaded, err = th.App.Srv().Store().Webhook().GetIncoming(hook.Id, false)
+			require.NoError(t, err)
+			if loaded.LastUsedAt > 0 {
+				break
+			}
+			time.Sleep(10 * time.Millisecond)
+		}
+		require.Greater(t, loaded.LastUsedAt, int64(0), "LastUsedAt should be set after successful webhook post")
 	})
 
 	t.Run("WebhookAttachments", func(t *testing.T) {

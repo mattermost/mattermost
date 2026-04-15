@@ -17,6 +17,7 @@ export type IncomingWebhook = {
     username: string;
     icon_url: string;
     channel_locked: boolean;
+    last_used_at: number;
 };
 
 export type IncomingWebhooksWithCount = {

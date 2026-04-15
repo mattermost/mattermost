@@ -28,6 +28,7 @@ type IncomingWebhook struct {
 	Username      string `json:"username"`
 	IconURL       string `json:"icon_url"`
 	ChannelLocked bool   `json:"channel_locked"`
+	LastUsedAt    int64  `json:"last_used_at"`
 }
 
 func (o *IncomingWebhook) Auditable() map[string]any {
@@ -44,6 +45,7 @@ func (o *IncomingWebhook) Auditable() map[string]any {
 		"username":       o.Username,
 		"icon_url:":      o.IconURL,
 		"channel_locked": o.ChannelLocked,
+		"last_used_at":   o.LastUsedAt,
 	}
 }
 

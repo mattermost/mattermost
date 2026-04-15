@@ -46,6 +46,7 @@ func newSqlWebhookStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface
 			"Username",
 			"IconURL",
 			"ChannelLocked",
+			"LastUsedAt",
 		).
 		From("IncomingWebhooks")
 
@@ -88,9 +89,9 @@ func (s SqlWebhookStore) SaveIncoming(webhook *model.IncomingWebhook) (*model.In
 	}
 
 	if _, err := s.GetMaster().NamedExec(`INSERT INTO IncomingWebhooks
-		(Id, CreateAt, UpdateAt, DeleteAt, UserId, ChannelId, TeamId, DisplayName, Description, Username, IconURL, ChannelLocked)
+		(Id, CreateAt, UpdateAt, DeleteAt, UserId, ChannelId, TeamId, DisplayName, Description, Username, IconURL, ChannelLocked, LastUsedAt)
 		VALUES
-		(:Id, :CreateAt, :UpdateAt, :DeleteAt, :UserId, :ChannelId, :TeamId, :DisplayName, :Description, :Username, :IconURL, :ChannelLocked)`, webhook); err != nil {
+		(:Id, :CreateAt, :UpdateAt, :DeleteAt, :UserId, :ChannelId, :TeamId, :DisplayName, :Description, :Username, :IconURL, :ChannelLocked, :LastUsedAt)`, webhook); err != nil {
 		return nil, errors.Wrapf(err, "failed to save IncomingWebhook with id=%s", webhook.Id)
 	}
 
@@ -109,6 +110,17 @@ func (s SqlWebhookStore) UpdateIncoming(hook *model.IncomingWebhook) (*model.Inc
 	}
 
 	return hook, nil
+}
+
+func (s SqlWebhookStore) UpdateIncomingLastUsedAt(hookID string, lastUsedAt int64) error {
+	_, err := s.GetMaster().Exec(
+		`UPDATE IncomingWebhooks SET LastUsedAt = ? WHERE Id = ? AND DeleteAt = 0`,
+		lastUsedAt, hookID,
+	)
+	if err != nil {
+		return errors.Wrapf(err, "failed to update LastUsedAt for IncomingWebhook id=%s", hookID)
+	}
+	return nil
 }
 
 func (s SqlWebhookStore) GetIncoming(id string, allowFromCache bool) (*model.IncomingWebhook, error) {

@@ -181,6 +181,19 @@ export default class InstalledIncomingWebhook extends React.PureComponent<Props>
                             />
                         </span>
                     </div>
+                    {incomingWebhook.last_used_at > 0 && (
+                        <div className='item-details__row'>
+                            <span className='item-details__last-used'>
+                                <FormattedMessage
+                                    id='installed_incoming_webhooks.last_used'
+                                    defaultMessage='Last used on {lastUsedAt, date, full}'
+                                    values={{
+                                        lastUsedAt: incomingWebhook.last_used_at,
+                                    }}
+                                />
+                            </span>
+                        </div>
+                    )}
                 </div>
             </div>
         );

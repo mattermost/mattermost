@@ -41,6 +41,7 @@ func TestWebhookStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("UpdateOutgoing", func(t *testing.T) { testWebhookStoreUpdateOutgoing(t, rctx, ss) })
 	t.Run("CountIncoming", func(t *testing.T) { testWebhookStoreCountIncoming(t, rctx, ss) })
 	t.Run("CountOutgoing", func(t *testing.T) { testWebhookStoreCountOutgoing(t, rctx, ss) })
+	t.Run("UpdateIncomingLastUsedAt", func(t *testing.T) { testWebhookStoreUpdateIncomingLastUsedAt(t, rctx, ss) })
 }
 
 func testWebhookStoreSaveIncoming(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -48,6 +49,10 @@ func testWebhookStoreSaveIncoming(t *testing.T, rctx request.CTX, ss store.Store
 
 	_, err := ss.Webhook().SaveIncoming(o1)
 	require.NoError(t, err, "couldn't save item")
+
+	saved, err := ss.Webhook().GetIncoming(o1.Id, false)
+	require.NoError(t, err)
+	require.Equal(t, int64(0), saved.LastUsedAt)
 
 	_, err = ss.Webhook().SaveIncoming(o1)
 	require.Error(t, err, "shouldn't be able to update from save")
@@ -71,6 +76,21 @@ func testWebhookStoreUpdateIncoming(t *testing.T, rctx request.CTX, ss store.Sto
 	require.NotEqual(t, webhook.UpdateAt, previousUpdatedAt, "should have updated the UpdatedAt of the hook")
 
 	require.Equal(t, "TestHook", webhook.DisplayName, "display name is not updated")
+}
+
+func testWebhookStoreUpdateIncomingLastUsedAt(t *testing.T, rctx request.CTX, ss store.Store) {
+	o1 := buildIncomingWebhook()
+	var err error
+	o1, err = ss.Webhook().SaveIncoming(o1)
+	require.NoError(t, err)
+
+	lastUsed := model.GetMillis()
+	err = ss.Webhook().UpdateIncomingLastUsedAt(o1.Id, lastUsed)
+	require.NoError(t, err)
+
+	loaded, err := ss.Webhook().GetIncoming(o1.Id, false)
+	require.NoError(t, err)
+	require.Equal(t, lastUsed, loaded.LastUsedAt)
 }
 
 func testWebhookStoreGetIncoming(t *testing.T, rctx request.CTX, ss store.Store) {

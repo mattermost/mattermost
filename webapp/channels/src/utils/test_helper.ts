@@ -293,6 +293,7 @@ export class TestHelper {
             username: '',
             icon_url: '',
             channel_locked: false,
+            last_used_at: 0,
         };
         return Object.assign({}, defaultIncomingWebhook, override);
     }

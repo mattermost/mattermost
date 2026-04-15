@@ -4898,6 +4898,7 @@
   "installed_incoming_webhooks.help.appDirectory": "App Directory",
   "installed_incoming_webhooks.help.buildYourOwn": "Build Your Own",
   "installed_incoming_webhooks.search": "Search Incoming Webhooks",
+  "installed_incoming_webhooks.last_used": "Last used on {lastUsedAt, date, full}",
   "installed_incoming_webhooks.unknown_channel": "A Private Webhook",
   "installed_integrations.audience_urls": "Audience URLs: {urls}",
   "installed_integrations.callback_urls": "Callback URLs: {urls}",

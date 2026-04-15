@@ -14337,6 +14337,22 @@ func (s *TimerLayerWebhookStore) UpdateIncoming(webhook *model.IncomingWebhook) 
 	return result, err
 }
 
+func (s *TimerLayerWebhookStore) UpdateIncomingLastUsedAt(hookID string, lastUsedAt int64) error {
+	start := time.Now()
+
+	err := s.WebhookStore.UpdateIncomingLastUsedAt(hookID, lastUsedAt)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("WebhookStore.UpdateIncomingLastUsedAt", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, error) {
 	start := time.Now()
 

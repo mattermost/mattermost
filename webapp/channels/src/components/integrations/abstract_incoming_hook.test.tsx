@@ -50,6 +50,7 @@ describe('components/integrations/AbstractIncomingWebhook', () => {
         username: '',
         icon_url: '',
         channel_locked: false,
+        last_used_at: 0,
     };
     const enablePostUsernameOverride = true;
     const enablePostIconOverride = true;

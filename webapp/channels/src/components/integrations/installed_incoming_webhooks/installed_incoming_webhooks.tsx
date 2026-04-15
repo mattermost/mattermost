@@ -85,6 +85,12 @@ export default class InstalledIncomingWebhooks extends React.PureComponent<Props
     };
 
     incomingWebhookCompare = (a: IncomingWebhook, b: IncomingWebhook) => {
+        const usedA = a.last_used_at || 0;
+        const usedB = b.last_used_at || 0;
+        if (usedA !== usedB) {
+            return usedB - usedA;
+        }
+
         let displayNameA = a.display_name;
         if (!displayNameA) {
             const channelA = this.props.channels[a.channel_id];
@@ -95,7 +101,16 @@ export default class InstalledIncomingWebhooks extends React.PureComponent<Props
             }
         }
 
-        const displayNameB = b.display_name;
+        let displayNameB = b.display_name;
+        if (!displayNameB) {
+            const channelB = this.props.channels[b.channel_id];
+            if (channelB) {
+                displayNameB = channelB.display_name;
+            } else {
+                displayNameB = Utils.localizeMessage({id: 'installed_incoming_webhooks.unknown_channel', defaultMessage: 'A Private Webhook'});
+            }
+        }
+
         return displayNameA.localeCompare(displayNameB);
     };
 

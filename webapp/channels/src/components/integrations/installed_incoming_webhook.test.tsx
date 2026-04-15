@@ -24,6 +24,7 @@ describe('components/integrations/InstalledIncomingWebhook', () => {
         username: 'username',
         icon_url: 'http://test/icon.png',
         channel_locked: false,
+        last_used_at: 0,
     };
 
     const teamId = 'testteamid';
