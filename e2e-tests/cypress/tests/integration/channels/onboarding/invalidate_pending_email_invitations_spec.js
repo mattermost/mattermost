@@ -12,7 +12,7 @@
 
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 import {getAdminAccount} from '../../../support/env';
-import {getRandomId} from '../../../utils';
+import {getRandomId, newTestPassword} from '../../../utils';
 import {inviteUserByEmail, verifyEmailInviteAndVisitLink, signupAndVerifyTutorial} from '../team_settings/helpers';
 
 describe('Onboarding', () => {
@@ -23,7 +23,7 @@ describe('Onboarding', () => {
     const emailOne = `${usernameOne}@sample.mattermost.com`;
     const emailTwo = `${usernameTwo}@sample.mattermost.com`;
     const emailThree = `${usernameThree}@sample.mattermost.com`;
-    const password = 'passwd';
+    const password = newTestPassword();
 
     let testTeam;
     let siteName;

@@ -417,7 +417,7 @@ export type AppSelectOption = {
     icon_data?: string;
 };
 
-function isAppSelectOption(v: unknown): v is AppSelectOption {
+export function isAppSelectOption(v: unknown): v is AppSelectOption {
     if (typeof v !== 'object' || v === null) {
         return false;
     }
