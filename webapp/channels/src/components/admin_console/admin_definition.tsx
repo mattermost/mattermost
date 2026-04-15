@@ -3076,7 +3076,7 @@ const AdminDefinition: AdminDefinitionType = {
                                         linkKnownIssues: (msg: string) => (
                                             <ExternalLink
                                                 location='admin_console'
-                                                href='https://support.mattermost.com/hc/en-us/articles/4413183568276'
+                                                href='https://docs.mattermost.com/end-user-guide/collaborate/organize-conversations.html'
                                             >
                                                 {msg}
                                             </ExternalLink>
