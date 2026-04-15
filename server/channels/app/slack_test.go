@@ -38,7 +38,7 @@ func TestProcessMessageAttachmentsWithNilEntries(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	attachments := []*model.MessageAttachment{
+	attachments := []*model.SlackAttachment{
 		nil,
 		{
 			Pretext: "pretext",
@@ -52,7 +52,7 @@ func TestProcessMessageAttachmentsWithNilEntries(t *testing.T) {
 		},
 	}
 
-	result := th.App.ProcessMessageAttachments(th.Context, attachments)
+	result := th.App.ProcessSlackAttachments(th.Context, attachments)
 	require.Len(t, result, 2)
 	require.Equal(t, "pretext", result[0].Pretext)
 	require.Equal(t, "pretext2", result[1].Pretext)
