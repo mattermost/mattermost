@@ -6,9 +6,13 @@
  * Covers: TC-WEB-01, TC-WEB-02, TC-WEB-03, TC-WEB-04, TC-WEB-06, TC-WEB-07, TC-WEB-08, TC-WEB-09, TC-WEB-10
  */
 
-import {getRandomId} from 'utils/utils';
-
-import {expect, hasCustomPermissionsSchemesLicense, hasSharedChannelsLicense, test} from '@mattermost/playwright-lib';
+import {
+    expect,
+    getRandomId,
+    hasCustomPermissionsSchemesLicense,
+    hasSharedChannelsLicense,
+    test,
+} from '@mattermost/playwright-lib';
 
 /**
  * Minimal type for ensureConfirmedRemote. We use this instead of importing Client4 from
@@ -36,10 +40,14 @@ type ClientWithRemotes = {
  * workspaces" and does not fail when other tests have created remotes.
  */
 async function deleteAllRemoteClusters(adminClient: {
-    getRemoteClusters: (options?: {onlyConfirmed?: boolean}) => Promise<Array<{remote_id: string}>>;
+    getRemoteClusters: (options: {
+        excludePlugins: boolean;
+        notInChannel?: string;
+        onlyConfirmed?: boolean;
+    }) => Promise<Array<{remote_id: string}>>;
     deleteRemoteCluster: (remoteId: string) => Promise<unknown>;
 }): Promise<void> {
-    const remotes = await adminClient.getRemoteClusters({});
+    const remotes = await adminClient.getRemoteClusters({excludePlugins: false});
     for (const r of remotes) {
         await adminClient.deleteRemoteCluster(r.remote_id);
     }
