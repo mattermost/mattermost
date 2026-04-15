@@ -94,6 +94,8 @@ type PlatformService struct {
 	searchConfigListenerId  string
 	searchLicenseListenerId string
 
+	esWatcher *searchEngineWatcher
+
 	ldapDiagnostic einterfaces.LdapDiagnosticInterface
 
 	Jobs *jobs.JobServer

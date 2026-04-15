@@ -86,6 +86,7 @@ export interface Props {
     isMuted: boolean;
     isInvitingPeople: boolean;
     isMobile: boolean;
+    isInManagedCategory: boolean;
     canManageMembers: boolean;
     canManageProperties: boolean;
     dmUser?: DMUser;
@@ -112,6 +113,7 @@ const ChannelInfoRhs = ({
     isMuted,
     isInvitingPeople,
     isMobile,
+    isInManagedCategory,
     currentTeam,
     currentUser,
     dmUser,
@@ -247,6 +249,7 @@ const ChannelInfoRhs = ({
                         isMuted={isMuted}
                         isInvitingPeople={isInvitingPeople}
                         isArchived={isArchived}
+                        isInManagedCategory={isInManagedCategory}
                         canAddPeople={!isArchived && canManageMembers}
                         actions={{toggleFavorite, toggleMute, addPeople}}
                     />

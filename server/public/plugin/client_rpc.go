@@ -1210,6 +1210,60 @@ func (s *apiRPCServer) InstallPlugin(args *Z_InstallPluginArgs, returns *Z_Insta
 	return nil
 }
 
+type Z_ReceiveSharedChannelAttachmentSyncMsgArgs struct {
+	A            string          // remoteID
+	B            string          // channelID
+	C            *model.FileInfo // fi
+	DataStreamID uint32
+}
+
+type Z_ReceiveSharedChannelAttachmentSyncMsgReturns struct {
+	A *model.FileInfo
+	B error
+}
+
+func (g *apiRPCClient) ReceiveSharedChannelAttachmentSyncMsg(remoteID, channelID string, fi *model.FileInfo, data io.Reader) (*model.FileInfo, error) {
+	dataStreamID := g.muxBroker.NextId()
+
+	go func() {
+		dataConnection, err := g.muxBroker.Accept(dataStreamID)
+		if err != nil {
+			log.Print("Failed to stream attachment data. MuxBroker could not Accept connection", mlog.Err(err))
+			return
+		}
+		defer dataConnection.Close()
+		serveIOReader(data, dataConnection)
+	}()
+
+	_args := &Z_ReceiveSharedChannelAttachmentSyncMsgArgs{remoteID, channelID, fi, dataStreamID}
+	_returns := &Z_ReceiveSharedChannelAttachmentSyncMsgReturns{}
+	if err := g.client.Call("Plugin.ReceiveSharedChannelAttachmentSyncMsg", _args, _returns); err != nil {
+		log.Print("RPC call ReceiveSharedChannelAttachmentSyncMsg to plugin failed.", mlog.Err(err))
+	}
+
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) ReceiveSharedChannelAttachmentSyncMsg(args *Z_ReceiveSharedChannelAttachmentSyncMsgArgs, returns *Z_ReceiveSharedChannelAttachmentSyncMsgReturns) error {
+	hook, ok := s.impl.(interface {
+		ReceiveSharedChannelAttachmentSyncMsg(remoteID, channelID string, fi *model.FileInfo, data io.Reader) (*model.FileInfo, error)
+	})
+	if !ok {
+		return encodableError(fmt.Errorf("API ReceiveSharedChannelAttachmentSyncMsg called but not implemented"))
+	}
+
+	receiveDataConnection, err := s.muxBroker.Dial(args.DataStreamID)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[ERROR] Can't connect to remote data stream, error: %v", err.Error())
+		return err
+	}
+	dataReader := connectIOReader(receiveDataConnection)
+	defer dataReader.Close()
+
+	returns.A, returns.B = hook.ReceiveSharedChannelAttachmentSyncMsg(args.A, args.B, args.C, dataReader)
+	return nil
+}
+
 type Z_UploadDataArgs struct {
 	A              *model.UploadSession
 	PluginStreamID uint32

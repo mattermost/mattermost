@@ -12,6 +12,8 @@ import type {UserProfile} from '@mattermost/types/users';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
+import {newTestPassword} from '@mattermost/playwright-lib';
+
 import {
     CustomProfileAttribute,
     setupCustomProfileAttributeValuesForUser,
@@ -176,7 +178,7 @@ export async function createUserForABAC(
         {
             email: `${username}@example.com`,
             username: username,
-            password: 'Password123!',
+            password: newTestPassword(),
         } as any,
         '',
         '',

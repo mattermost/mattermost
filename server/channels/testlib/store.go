@@ -40,6 +40,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	systemStore.On("GetByName", "PlaybookRolesCreationMigrationComplete").Return(&model.System{Name: "PlaybookRolesCreationMigrationComplete", Value: "true"}, nil)
 	systemStore.On("GetByName", "PostPriorityConfigDefaultTrueMigrationComplete").Return(&model.System{Name: "PostPriorityConfigDefaultTrueMigrationComplete", Value: "true"}, nil)
 	systemStore.On("GetByName", "content_flagging_setup_done").Return(&model.System{Name: "content_flagging_setup_done", Value: "true"}, nil)
+	systemStore.On("GetByName", "managed_category_setup_done").Return(&model.System{Name: "managed_category_setup_done", Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyEmojiPermissionsSplit).Return(&model.System{Name: model.MigrationKeyEmojiPermissionsSplit, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyWebhookPermissionsSplit).Return(&model.System{Name: model.MigrationKeyWebhookPermissionsSplit, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyIntegrationsOwnPermissions).Return(&model.System{Name: model.MigrationKeyIntegrationsOwnPermissions, Value: "true"}, nil)
@@ -140,6 +141,10 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	propertyGroupStore.On("Register", model.CustomProfileAttributesPropertyGroupName).Return(&model.PropertyGroup{ID: model.NewId(), Name: model.CustomProfileAttributesPropertyGroupName}, nil)
 	propertyGroupStore.On("Get", model.CustomProfileAttributesPropertyGroupName).Return(&model.PropertyGroup{ID: model.NewId(), Name: model.CustomProfileAttributesPropertyGroupName}, nil)
 
+	managedCategoryGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.ManagedCategoryPropertyGroupName}
+	propertyGroupStore.On("Register", model.ManagedCategoryPropertyGroupName).Return(managedCategoryGroup, nil)
+	propertyGroupStore.On("Get", model.ManagedCategoryPropertyGroupName).Return(managedCategoryGroup, nil)
+
 	boardsGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.BoardsPropertyGroupName}
 	propertyGroupStore.On("Register", model.BoardsPropertyGroupName).Return(boardsGroup, nil)
 	propertyGroupStore.On("Get", model.BoardsPropertyGroupName).Return(boardsGroup, nil)
@@ -147,6 +152,9 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	propertyFieldStore.On("SearchPropertyFields", mock.Anything).Return([]*model.PropertyField{}, nil)
 	propertyFieldStore.On("CreatePropertyField", mock.Anything).Return(&model.PropertyField{}, nil)
 	propertyFieldStore.On("Create", mock.AnythingOfType("*model.PropertyField")).Return(&model.PropertyField{}, nil)
+
+	managedCategoryField := &model.PropertyField{ID: model.NewId(), GroupID: managedCategoryGroup.ID, Name: model.ManagedCategoryPropertyFieldName}
+	propertyFieldStore.On("GetFieldByName", managedCategoryGroup.ID, "", model.ManagedCategoryPropertyFieldName).Return(managedCategoryField, nil)
 
 	boardField := &model.PropertyField{ID: model.NewId(), GroupID: boardsGroup.ID, Name: model.BoardsPropertyFieldNameBoard}
 	propertyFieldStore.On("GetFieldByName", boardsGroup.ID, "", model.BoardsPropertyFieldNameBoard).Return(boardField, nil)
