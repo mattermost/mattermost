@@ -28,7 +28,7 @@ func TestGetContainerLimits(t *testing.T) {
 	t.Cleanup(func() { cgroupPaths = originalPaths })
 
 	t.Run("limited CPU and memory", func(t *testing.T) {
-		cgroupPaths.v2MemoryMax = writeTempCgroupFile(t, dir, "mem_limited", "536870912\n") // 512 MB
+		cgroupPaths.v2MemoryMax = writeTempCgroupFile(t, dir, "mem_limited", "536870912\n")  // 512 MB
 		cgroupPaths.v2CPUMax = writeTempCgroupFile(t, dir, "cpu_limited", "200000 100000\n") // 2 CPUs
 
 		limits, err := getContainerLimits()

@@ -40,7 +40,8 @@ func getContainerLimits() (ContainerLimits, error) {
 		return limits, err
 	}
 	if memStr != "max" {
-		memBytes, err := strconv.ParseUint(memStr, 10, 64)
+		var memBytes uint64
+		memBytes, err = strconv.ParseUint(memStr, 10, 64)
 		if err != nil {
 			return limits, err
 		}
