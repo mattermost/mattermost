@@ -10,12 +10,14 @@ import {useReadout} from 'hooks/useReadout';
 
 interface KeyboardReorderState {
     isReordering: boolean;
+    confirmed: boolean;
     itemId: string | null;
     originalIndex: number | null;
 }
 
 const INITIAL_STATE: KeyboardReorderState = {
     isReordering: false,
+    confirmed: false,
     itemId: null,
     originalIndex: null,
 };
@@ -60,14 +62,22 @@ export function useKeyboardReorder({
 
     // Re-focus the active item after order changes and scroll it into view.
     useEffect(() => {
-        if (state.isReordering && state.itemId) {
+        if (state.isReordering && !state.confirmed && state.itemId) {
             const el = findFocusableBookmark(state.itemId);
             if (el) {
                 el.focus();
                 el.scrollIntoView({block: 'nearest'});
             }
         }
-    }, [order, state.isReordering, state.itemId]);
+    }, [order, state.isReordering, state.confirmed, state.itemId]);
+
+    // Complete the confirm transition: reset state after the confirmed
+    // render so event handlers from that render cycle see isReordering=true.
+    useEffect(() => {
+        if (state.confirmed) {
+            setState(INITIAL_STATE);
+        }
+    }, [state.confirmed]);
 
     const startReorder = useCallback((id: string) => {
         const index = orderRef.current.indexOf(id);
@@ -75,7 +85,7 @@ export function useKeyboardReorder({
             return;
         }
 
-        setState({isReordering: true, itemId: id, originalIndex: index});
+        setState({isReordering: true, confirmed: false, itemId: id, originalIndex: index});
 
         const name = getName(id);
         readAloud(
@@ -94,7 +104,11 @@ export function useKeyboardReorder({
         const inOverflow = state.itemId ? overflowItemsRef.current.includes(state.itemId) : false;
         onOverflowOpenChange?.(inOverflow);
 
-        setState(INITIAL_STATE);
+        // Mark as confirmed but keep isReordering true. An effect
+        // resets to INITIAL_STATE on the next render — after all
+        // event handlers (including MUI ButtonBase's Space keyup)
+        // have fired, so overflow item guards stay active.
+        setState((prev) => ({...prev, confirmed: true}));
         readAloud(
             formatMessage({
                 id: 'channel_bookmarks.reorder.confirmed',

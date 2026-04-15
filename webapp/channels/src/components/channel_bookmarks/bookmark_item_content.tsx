@@ -54,7 +54,18 @@ export const useBookmarkLink = (
 
     // Imperative open — handles all bookmark types without a rendered link element.
     // Used by overflow menu items where there's no DynamicLink in the DOM.
+    // Guarded: MUI ButtonBase fires Space activation on keyup, which can
+    // race with keyboard-reorder state resets and double-trigger navigation.
+    const openedRef = useRef(false);
     const openBookmark = useCallback(() => {
+        if (openedRef.current) {
+            return;
+        }
+        openedRef.current = true;
+        queueMicrotask(() => {
+            openedRef.current = false;
+        });
+
         if (bookmark.type === 'file' && fileInfo) {
             dispatch(openModal({
                 modalId: ModalIdentifiers.FILE_PREVIEW_MODAL,
