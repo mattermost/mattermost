@@ -61,7 +61,7 @@ export const searchableStrings = [
     messages.pushServerTitle,
 ];
 
-class PushSettings extends OLDAdminSettings<Props, State> {
+export class PushSettings extends OLDAdminSettings<Props, State> {
     canSave = () => {
         return this.state.pushNotificationServerType !== PUSH_NOTIFICATIONS_MHPNS || this.state.agree;
     };

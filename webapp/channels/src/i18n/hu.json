@@ -3944,7 +3944,6 @@
   "threading.numNewReplies": "# új válasz",
   "threading.numReplies": "{totalReplies, plural, =0 {Válasz} other {# válasz}}",
   "threading.threadHeader.menu": "További műveletek",
-  "threading.threadItem.menu": "Műveletek",
   "threading.threadList.markRead": "Üsszes megjelölése olvasottként",
   "threading.threadMenu.copy": "Link másolása",
   "threading.threadMenu.follow": "Üzenetszál követése",

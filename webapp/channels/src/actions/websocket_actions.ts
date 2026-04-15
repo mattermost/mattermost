@@ -46,7 +46,7 @@ import {
 } from 'mattermost-redux/action_types';
 import {getStandardAnalytics} from 'mattermost-redux/actions/admin';
 import {fetchAppBindings, fetchRHSAppsBindings} from 'mattermost-redux/actions/apps';
-import {addChannelToInitialCategory, fetchMyCategories, receivedCategoryOrder} from 'mattermost-redux/actions/channel_categories';
+import {addChannelToInitialCategory, fetchMyCategories, handleManagedCategoryPropertyValuesUpdated, receivedCategoryOrder} from 'mattermost-redux/actions/channel_categories';
 import {
     getChannelAndMyMember,
     getMyChannelMember,
@@ -75,6 +75,7 @@ import {
 import {getRecap} from 'mattermost-redux/actions/recaps';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {fetchTeamScheduledPosts} from 'mattermost-redux/actions/scheduled_posts';
+import {fetchChannelRemotes} from 'mattermost-redux/actions/shared_channels';
 import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/status_profile_polling';
 import * as TeamActions from 'mattermost-redux/actions/teams';
 import {
@@ -479,6 +480,10 @@ export function handleEvent(msg: WebSocketMessage) {
         handleChannelConvertedEvent(msg);
         break;
 
+    case WebSocketEvents.SharedChannelRemoteUpdated:
+        handleSharedChannelRemoteUpdatedEvent(msg);
+        break;
+
     case WebSocketEvents.ChannelUpdated:
         dispatch(handleChannelUpdatedEvent(msg));
         break;
@@ -617,6 +622,9 @@ export function handleEvent(msg: WebSocketMessage) {
     case WebSocketEvents.SidebarCategoryOrderUpdated:
         dispatch(handleSidebarCategoryOrderUpdated(msg));
         break;
+    case WebSocketEvents.PropertyValuesUpdated:
+        dispatch(handlePropertyValuesUpdated(msg));
+        break;
     case WebSocketEvents.UserActivationStatusChange:
         dispatch(handleUserActivationStatusChange());
         break;
@@ -708,6 +716,13 @@ export function handleEvent(msg: WebSocketMessage) {
             pluginEvents[msg.event](msg);
         }
     });
+}
+
+function handleSharedChannelRemoteUpdatedEvent(msg: WebSocketMessages.SharedChannelRemoteUpdated) {
+    const channelId = msg.data.channel_id || msg.broadcast.channel_id;
+    if (channelId) {
+        dispatch(fetchChannelRemotes(channelId, true));
+    }
 }
 
 // handleChannelConvertedEvent handles updating of channel which is converted from public to private
@@ -1160,6 +1175,27 @@ function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel): ThunkA
         if (msg.data.team_id && config.RestrictDirectMessage === 'team') {
             dispatch({type: ChannelTypes.RESTRICTED_DMS_TEAMS_CHANGED});
         }
+    };
+}
+
+function handlePropertyValuesUpdated(msg: WebSocketMessages.PropertyValuesUpdated): ThunkActionFunc<void> {
+    return (doDispatch) => {
+        let values;
+        try {
+            values = JSON.parse(msg.data.values ?? '[]');
+        } catch {
+            // invalid JSON
+            return;
+        }
+
+        const parsedPropertyValuesUpdated = {
+            object_type: msg.data.object_type,
+            target_id: msg.data.target_id,
+            field_id: msg.data.field_id,
+            values,
+        };
+
+        doDispatch(handleManagedCategoryPropertyValuesUpdated(parsedPropertyValuesUpdated));
     };
 }
 

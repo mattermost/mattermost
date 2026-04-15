@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"path"
@@ -147,6 +148,17 @@ type SqlStore struct {
 
 	quitMonitor chan struct{}
 	wgMonitor   *sync.WaitGroup
+
+	// maxInsertParams overrides defaultMaxInsertParams when > 0. Exposed for
+	// tests that need to force multi-chunk behaviour with small row counts.
+	maxInsertParams int
+}
+
+func (ss *SqlStore) getMaxInsertParams() int {
+	if ss.maxInsertParams > 0 {
+		return ss.maxInsertParams
+	}
+	return defaultMaxInsertParams
 }
 
 func SkipMigrations() Option {
@@ -461,6 +473,10 @@ func (ss *SqlStore) GetReplica() *sqlxDBWrapper {
 
 	// If all replicas are down, then go with master.
 	return ss.GetMaster()
+}
+
+func (ss *SqlStore) analyticsContext() (context.Context, context.CancelFunc) {
+	return context.WithTimeout(context.Background(), time.Duration(*ss.settings.AnalyticsQueryTimeout)*time.Second)
 }
 
 func (ss *SqlStore) monitorReplicas() {
