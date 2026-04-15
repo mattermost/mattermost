@@ -160,7 +160,6 @@ test('MM-T1210 Can change Support Email setting', async ({pw}) => {
     await notifications.save();
 
     // * Verify that the config is correctly saved in the server
-    const {adminClient} = await pw.getAdminClient();
     const config = await adminClient.getConfig();
     expect(config.SupportSettings?.SupportEmail).toBe(newEmail);
 });
