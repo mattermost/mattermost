@@ -4,7 +4,13 @@
 import {expect, test, navigateToABACPage, runSyncJob, verifyUserInChannel} from '@mattermost/playwright-lib';
 
 import {setupCustomProfileAttributeFields} from '../../../channels/custom_profile_attributes/helpers';
-import {createUserForABAC, createPrivateChannelForABAC, createBasicPolicy, activatePolicy, waitForLatestSyncJob} from '../support';
+import {
+    createUserForABAC,
+    createPrivateChannelForABAC,
+    createBasicPolicy,
+    activatePolicy,
+    waitForLatestSyncJob,
+} from '../support';
 
 /**
  * MM-T5788: Add attribute-based policy to a channel from Channel Configuration page
