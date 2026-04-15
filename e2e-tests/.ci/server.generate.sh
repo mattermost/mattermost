@@ -48,6 +48,7 @@ generate_docker_compose_file() {
 services:
   server:
     image: \${SERVER_IMAGE}
+    platform: linux/amd64
     restart: always
     env_file:
       - "./.env.server"
@@ -81,7 +82,7 @@ $(for service in $ENABLED_DOCKER_SERVICES; do
 $(if mme2e_is_token_in_list "postgres" "$ENABLED_DOCKER_SERVICES"; then
     echo '
   postgres:
-    image: mattermostdevelopment/mirrored-postgres:13
+    image: mattermostdevelopment/mirrored-postgres:14
     restart: "no"
     network_mode: host
     networks: !reset []
