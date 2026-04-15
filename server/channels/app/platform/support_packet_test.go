@@ -13,6 +13,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -566,7 +567,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 	})
 
 	t.Run("email notifications reachable", func(t *testing.T) {
-		l, listenErr := net.Listen("tcp", "localhost:0")
+		l, listenErr := net.Listen("tcp", "127.0.0.1:0")
 		require.NoError(t, listenErr)
 		defer l.Close()
 
@@ -598,10 +599,9 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 			}
 		}()
 
-		addr := l.Addr().String()
-		colonIdx := strings.LastIndex(addr, ":")
-		smtpHost := addr[:colonIdx]
-		smtpPort := addr[colonIdx+1:]
+		tcpAddr := l.Addr().(*net.TCPAddr)
+		smtpHost := tcpAddr.IP.String()
+		smtpPort := strconv.Itoa(tcpAddr.Port)
 
 		th.Service.UpdateConfig(func(cfg *model.Config) {
 			cfg.EmailSettings.SendEmailNotifications = model.NewPointer(true)
