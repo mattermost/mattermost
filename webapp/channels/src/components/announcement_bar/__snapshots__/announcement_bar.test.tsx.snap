@@ -2,316 +2,213 @@
 
 exports[`components/AnnouncementBar should match snapshot, admin configured bar 1`] = `
 <div>
-  <AnnouncementBar
-    actions={
-      Object {
-        "decrementAnnouncementBarCount": [MockFunction],
-        "incrementAnnouncementBarCount": [MockFunction],
-        "sendVerificationEmail": [MockFunction],
-      }
-    }
-    allowBannerDismissal={true}
-    announcementBarCount={0}
-    bannerColor="green"
-    bannerText="Banner text"
-    bannerTextColor="black"
-    canViewAPIv3Banner={false}
-    canViewSystemErrors={false}
-    color=""
-    enableBanner={true}
-    enablePreviewMode={false}
-    enableSignUpWithGitLab={false}
-    isLoggedIn={true}
-    isTallBanner={false}
-    license={
-      Object {
-        "id": "",
-      }
-    }
-    message="text"
-    sendEmailNotifications={true}
-    showCTA={true}
-    showCloseButton={false}
-    showLinkAsButton={false}
-    siteURL=""
-    textColor=""
-    type="critical"
-  />
-  <AnnouncementBar
-    actions={
-      Object {
-        "decrementAnnouncementBarCount": [MockFunction],
-        "incrementAnnouncementBarCount": [MockFunction],
-        "sendVerificationEmail": [MockFunction],
-      }
-    }
-    allowBannerDismissal={true}
-    announcementBarCount={0}
-    bannerColor="green"
-    bannerText="Banner text"
-    bannerTextColor="black"
-    canViewAPIv3Banner={false}
-    canViewSystemErrors={false}
-    className="admin-announcement"
-    color=""
-    enableBanner={true}
-    enablePreviewMode={false}
-    enableSignUpWithGitLab={false}
-    isLoggedIn={true}
-    isTallBanner={false}
-    license={
-      Object {
-        "id": "",
-      }
-    }
-    message="text"
-    sendEmailNotifications={true}
-    showCTA={true}
-    showCloseButton={false}
-    showLinkAsButton={false}
-    siteURL=""
-    textColor=""
-    type="critical"
-  />
+  <div>
+    <div
+      class="_StyledDiv-BZhus eMNHXM announcement-bar announcement-bar-critical"
+    >
+      <div
+        class="announcement-bar__text"
+      >
+        <span>
+          <span>
+            text
+          </span>
+        </span>
+      </div>
+    </div>
+    <div
+      class="_StyledDiv-BZhus eMNHXM announcement-bar announcement-bar-critical admin-announcement"
+    >
+      <div
+        class="announcement-bar__text"
+      >
+        <span>
+          <span>
+            text
+          </span>
+        </span>
+      </div>
+    </div>
+  </div>
 </div>
 `;
 
 exports[`components/AnnouncementBar should match snapshot, bar not showing 1`] = `
-<_StyledDiv
-  className="announcement-bar announcement-bar-critical"
-  style={
-    Object {
-      "backgroundColor": "",
-      "color": "",
-    }
-  }
->
+<div>
   <div
-    className="announcement-bar__text"
+    class="_StyledDiv-BZhus eMNHXM announcement-bar announcement-bar-critical"
   >
-    <span
-      onMouseEnter={[Function]}
+    <div
+      class="announcement-bar__text"
     >
-      <FormattedMarkdownMessage
-        id="text"
-      />
-    </span>
+      <span>
+        <span>
+          text
+        </span>
+      </span>
+    </div>
   </div>
-</_StyledDiv>
+</div>
 `;
 
 exports[`components/AnnouncementBar should match snapshot, bar showing 1`] = `
-<_StyledDiv
-  className="announcement-bar announcement-bar-critical"
-  style={
-    Object {
-      "backgroundColor": "",
-      "color": "",
-    }
-  }
->
+<div>
   <div
-    className="announcement-bar__text"
+    class="_StyledDiv-BZhus eMNHXM announcement-bar announcement-bar-critical"
   >
-    <span
-      onMouseEnter={[Function]}
+    <div
+      class="announcement-bar__text"
     >
-      <FormattedMarkdownMessage
-        id="text"
-      />
-    </span>
+      <span>
+        <span>
+          text
+        </span>
+      </span>
+    </div>
   </div>
-</_StyledDiv>
+</div>
 `;
 
 exports[`components/AnnouncementBar should match snapshot, bar showing, no dismissal 1`] = `
-<_StyledDiv
-  className="announcement-bar announcement-bar-critical"
-  style={
-    Object {
-      "backgroundColor": "",
-      "color": "",
-    }
-  }
->
+<div>
   <div
-    className="announcement-bar__text"
+    class="_StyledDiv-BZhus eMNHXM announcement-bar announcement-bar-critical"
   >
-    <span
-      onMouseEnter={[Function]}
+    <div
+      class="announcement-bar__text"
     >
-      <FormattedMarkdownMessage
-        id="text"
-      />
-    </span>
+      <span>
+        <span>
+          text
+        </span>
+      </span>
+    </div>
   </div>
-</_StyledDiv>
+</div>
 `;
 
 exports[`components/AnnouncementBar should match snapshot, dismissal 1`] = `
-<_StyledDiv
-  className="announcement-bar announcement-bar-critical"
-  style={
-    Object {
-      "backgroundColor": "",
-      "color": "",
-    }
-  }
->
+<div>
   <div
-    className="announcement-bar__text"
+    class="_StyledDiv-BZhus eMNHXM announcement-bar announcement-bar-critical"
   >
-    <span
-      onMouseEnter={[Function]}
+    <div
+      class="announcement-bar__text"
     >
-      <FormattedMarkdownMessage
-        id="text"
-      />
-    </span>
+      <span>
+        <span>
+          text
+        </span>
+      </span>
+    </div>
   </div>
-</_StyledDiv>
+</div>
 `;
 
 exports[`components/AnnouncementBar should match snapshot, dismissal 2`] = `
-<_StyledDiv
-  className="announcement-bar announcement-bar-critical"
-  style={
-    Object {
-      "backgroundColor": "",
-      "color": "",
-    }
-  }
->
+<div>
   <div
-    className="announcement-bar__text"
+    class="_StyledDiv-BZhus eMNHXM announcement-bar announcement-bar-critical"
   >
-    <span
-      onMouseEnter={[Function]}
+    <div
+      class="announcement-bar__text"
     >
-      <FormattedMarkdownMessage
-        id="text"
-      />
-    </span>
+      <span>
+        <span>
+          text
+        </span>
+      </span>
+    </div>
   </div>
-</_StyledDiv>
+</div>
 `;
 
 exports[`components/AnnouncementBar should match snapshot, dismissal 3`] = `
-<_StyledDiv
-  className="announcement-bar announcement-bar-critical"
-  style={
-    Object {
-      "backgroundColor": "",
-      "color": "",
-    }
-  }
->
+<div>
   <div
-    className="announcement-bar__text"
+    class="_StyledDiv-BZhus eMNHXM announcement-bar announcement-bar-critical"
   >
-    <span
-      onMouseEnter={[Function]}
+    <div
+      class="announcement-bar__text"
     >
-      <FormattedMarkdownMessage
-        id="text"
-      />
-    </span>
+      <span>
+        <span>
+          text
+        </span>
+      </span>
+    </div>
   </div>
-</_StyledDiv>
+</div>
 `;
 
 exports[`components/AnnouncementBar should match snapshot, props change 1`] = `
-<_StyledDiv
-  className="announcement-bar announcement-bar-critical"
-  style={
-    Object {
-      "backgroundColor": "",
-      "color": "",
-    }
-  }
->
+<div>
   <div
-    className="announcement-bar__text"
+    class="_StyledDiv-BZhus eMNHXM announcement-bar announcement-bar-critical"
   >
-    <span
-      onMouseEnter={[Function]}
+    <div
+      class="announcement-bar__text"
     >
-      <FormattedMarkdownMessage
-        id="text"
-      />
-    </span>
+      <span>
+        <span>
+          text
+        </span>
+      </span>
+    </div>
   </div>
-</_StyledDiv>
+</div>
 `;
 
 exports[`components/AnnouncementBar should match snapshot, props change 2`] = `
-<_StyledDiv
-  className="announcement-bar announcement-bar-critical"
-  style={
-    Object {
-      "backgroundColor": "",
-      "color": "",
-    }
-  }
->
+<div>
   <div
-    className="announcement-bar__text"
+    class="_StyledDiv-BZhus eMNHXM announcement-bar announcement-bar-critical"
   >
-    <span
-      onMouseEnter={[Function]}
+    <div
+      class="announcement-bar__text"
     >
-      <FormattedMarkdownMessage
-        id="text"
-      />
-    </span>
+      <span>
+        <span>
+          text
+        </span>
+      </span>
+    </div>
   </div>
-</_StyledDiv>
+</div>
 `;
 
 exports[`components/AnnouncementBar should match snapshot, props change 3`] = `
-<_StyledDiv
-  className="announcement-bar announcement-bar-critical"
-  style={
-    Object {
-      "backgroundColor": "",
-      "color": "",
-    }
-  }
->
+<div>
   <div
-    className="announcement-bar__text"
+    class="_StyledDiv-BZhus eMNHXM announcement-bar announcement-bar-critical"
   >
-    <span
-      onMouseEnter={[Function]}
+    <div
+      class="announcement-bar__text"
     >
-      <FormattedMarkdownMessage
-        id="text"
-      />
-    </span>
+      <span>
+        <span>
+          text
+        </span>
+      </span>
+    </div>
   </div>
-</_StyledDiv>
+</div>
 `;
 
 exports[`components/AnnouncementBar should match snapshot, props change 4`] = `
-<_StyledDiv
-  className="announcement-bar announcement-bar-critical"
-  style={
-    Object {
-      "backgroundColor": "",
-      "color": "",
-    }
-  }
->
+<div>
   <div
-    className="announcement-bar__text"
+    class="_StyledDiv-BZhus eMNHXM announcement-bar announcement-bar-critical"
   >
-    <span
-      onMouseEnter={[Function]}
+    <div
+      class="announcement-bar__text"
     >
-      <FormattedMarkdownMessage
-        id="text"
-      />
-    </span>
+      <span>
+        <span>
+          text
+        </span>
+      </span>
+    </div>
   </div>
-</_StyledDiv>
+</div>
 `;

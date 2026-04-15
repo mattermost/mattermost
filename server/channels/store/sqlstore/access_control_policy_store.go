@@ -54,16 +54,19 @@ func (s *storeAccessControlPolicy) toModel() (*model.AccessControlPolicy, error)
 		Version:  s.Version,
 	}
 
-	var p accessControlPolicyV0_1
-	if err := json.Unmarshal(s.Data, &p); err != nil {
-		return nil, err
+	if len(s.Data) > 0 {
+		var p accessControlPolicyV0_1
+		if err := json.Unmarshal(s.Data, &p); err != nil {
+			return nil, err
+		}
+		policy.Imports = p.Imports
+		policy.Rules = p.Rules
 	}
 
-	policy.Imports = p.Imports
-	policy.Rules = p.Rules
-
-	if err := json.Unmarshal(s.Props, &policy.Props); err != nil {
-		return nil, err
+	if len(s.Props) > 0 {
+		if err := json.Unmarshal(s.Props, &policy.Props); err != nil {
+			return nil, err
+		}
 	}
 
 	return policy, nil
@@ -209,10 +212,27 @@ func (s *SqlAccessControlPolicyStore) Save(rctx request.CTX, policy *model.Acces
 		}
 
 		// Check if the policy has actually changed
-		// We compare data, name, and version fields, and ensure type hasn't changed
+		// We compare data and version fields. Name changes are cosmetic
+		// and should not create a new revision in history.
 		if bytes.Equal(storePolicy.Data, tmp.Data) &&
-			storePolicy.Name == tmp.Name &&
 			storePolicy.Version == tmp.Version {
+			// Update name in place if it changed, without bumping revision
+			if storePolicy.Name != tmp.Name {
+				nameUpdate := s.getQueryBuilder().
+					Update("AccessControlPolicies").
+					Set("Name", storePolicy.Name).
+					Where(sq.Eq{"ID": policy.ID})
+				if _, err = tx.ExecBuilder(nameUpdate); err != nil {
+					if IsUniqueConstraintError(err, []string{"Name", "idx_accesscontrolpolicies_name_type"}) {
+						return nil, store.NewErrConflict("AccessControlPolicy", err, "name="+policy.Name)
+					}
+					return nil, errors.Wrapf(err, "failed to update name for policy with id=%s", policy.ID)
+				}
+				existingPolicy.Name = storePolicy.Name
+				if err = tx.Commit(); err != nil {
+					return nil, errors.Wrap(err, "commit_transaction")
+				}
+			}
 			return existingPolicy, nil
 		}
 
@@ -255,6 +275,9 @@ func (s *SqlAccessControlPolicyStore) Save(rctx request.CTX, policy *model.Acces
 
 	_, err = tx.ExecBuilder(query)
 	if err != nil {
+		if IsUniqueConstraintError(err, []string{"Name", "idx_accesscontrolpolicies_name_type"}) {
+			return nil, store.NewErrConflict("AccessControlPolicy", err, "name="+policy.Name)
+		}
 		return nil, errors.Wrapf(err, "failed to save policy with id=%s", policy.ID)
 	}
 
@@ -618,6 +641,18 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 		condition := sq.Expr("Data->'imports' @> ?", fmt.Sprintf("%q", opts.ParentID))
 		query = query.Where(condition)
 		count = count.Where(condition)
+	}
+
+	if len(opts.Actions) > 0 {
+		or := sq.Or{}
+		for _, action := range opts.Actions {
+			or = append(or, sq.Expr(
+				"EXISTS (SELECT 1 FROM jsonb_array_elements(CASE WHEN jsonb_typeof(Data->'rules') = 'array' THEN Data->'rules' ELSE '[]'::jsonb END) AS rule WHERE rule->'actions' @> ?::jsonb)",
+				fmt.Sprintf("%q", action),
+			))
+		}
+		query = query.Where(or)
+		count = count.Where(or)
 	}
 
 	if opts.Active {

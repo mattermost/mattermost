@@ -65,11 +65,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 12+"
+    "translation": "macOS 14+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 17.4+"
+    "translation": "Version 26.2+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -77,11 +77,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 142+"
+    "translation": "Version 144+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 142+"
+    "translation": "Version 144+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5528,10 +5528,6 @@
     "translation": "Mattermost Enterprise-licensen har inaktiverats."
   },
   {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Din Enterpriselicens har upphört gälla och några funktioner kan ha stängts av. Vänligen förnya licensen nu."
-  },
-  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "Filen är över maximala dimensioner och kunde inte laddas upp: {{.Filename}}"
   },
@@ -10022,10 +10018,6 @@
   {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
     "translation": "Det går inte att registrera en egenskapsgrupp för anpassade profilattribut"
-  },
-  {
-    "id": "app.custom_profile_attributes.create_property_field.app_error",
-    "translation": "Det går inte att skapa fältet för anpassade profilattribut"
   },
   {
     "id": "app.custom_profile_attributes.list_property_values.app_error",

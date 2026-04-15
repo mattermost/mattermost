@@ -7,6 +7,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
 import type {AccessControlPolicy, AccessControlPolicyActiveUpdate, AccessControlPolicyRule} from '@mattermost/types/access_control';
+import {getMembershipRule, buildRulesWithMembership} from '@mattermost/types/access_control';
 import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
 import type {AccessControlSettings} from '@mattermost/types/config';
 import type {JobTypeBase} from '@mattermost/types/jobs';
@@ -74,7 +75,8 @@ function PolicyDetails({
     accessControlSettings,
 }: PolicyDetailsProps): JSX.Element {
     const [policyName, setPolicyName] = useState(policy?.name || '');
-    const [expression, setExpression] = useState(policy?.rules?.[0]?.expression || '');
+    const [expression, setExpression] = useState(getMembershipRule(policy?.rules)?.expression || '');
+    const [existingRules, setExistingRules] = useState<AccessControlPolicyRule[]>(policy?.rules || []);
     const [autoSyncMembership, setAutoSyncMembership] = useState(policy?.active || false);
     const [serverError, setServerError] = useState<string | undefined>(undefined);
     const [addChannelOpen, setAddChannelOpen] = useState(false);
@@ -151,7 +153,8 @@ function PolicyDetails({
             // For existing policies, fetch policy details and channels
             const policyPromise = actions.fetchPolicy(policyId).then((result) => {
                 setPolicyName(result.data?.name || '');
-                setExpression(result.data?.rules?.[0]?.expression || '');
+                setExpression(getMembershipRule(result.data?.rules)?.expression || '');
+                setExistingRules(result.data?.rules || []);
                 setAutoSyncMembership(result.data?.active || false);
             });
 
@@ -197,19 +200,23 @@ function PolicyDetails({
             await actions.createPolicy({
                 id: currentPolicyId || '',
                 name: policyName,
-                rules: [{expression, actions: ['*']}] as AccessControlPolicyRule[],
+                rules: buildRulesWithMembership(existingRules, expression),
                 type: 'parent',
-                version: 'v0.2',
             }).then((result) => {
                 if (result.error) {
-                    setServerError(result.error.message);
+                    if (result.error.server_error_id === 'app.pap.save_policy.name_exists.app_error') {
+                        setServerError(formatMessage({id: 'admin.access_control.edit_policy.name_exists', defaultMessage: 'A policy with this name already exists. Please choose a different name.'}));
+                    } else {
+                        setServerError(result.error.message);
+                    }
                     setShowConfirmationModal(false);
                     success = false;
                     return;
                 }
                 currentPolicyId = result.data?.id;
                 setPolicyName(result.data?.name || '');
-                setExpression(result.data?.rules?.[0]?.expression || '');
+                setExpression(getMembershipRule(result.data?.rules)?.expression || '');
+                setExistingRules(result.data?.rules || []);
                 setAutoSyncMembership(result.data?.active || false);
             });
 

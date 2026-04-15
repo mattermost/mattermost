@@ -79,6 +79,15 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		policy.ID = model.NewId()
 	}
 
+	policy.Version = model.AccessControlPolicyVersionV0_3
+	for i, rule := range policy.Rules {
+		for j, action := range rule.Actions {
+			if action == "*" {
+				policy.Rules[i].Actions[j] = model.AccessControlPolicyActionMembership
+			}
+		}
+	}
+
 	var appErr *model.AppError
 	policy, appErr = acs.SavePolicy(rctx, policy)
 	if appErr != nil {
@@ -173,7 +182,7 @@ func (a *App) AssignAccessControlPolicyToChannels(rctx request.CTX, parentID str
 				Props:    map[string]any{},
 			}
 		}
-		child.Version = model.AccessControlPolicyVersionV0_2
+		child.Version = model.AccessControlPolicyVersionV0_3
 
 		appErr := child.Inherit(policy)
 		if appErr != nil {
@@ -284,21 +293,22 @@ func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, channelID strin
 }
 
 func (a *App) GetAccessControlFieldsAutocomplete(rctx request.CTX, after string, limit int, callerID string) ([]*model.PropertyField, *model.AppError) {
-	cpaGroupID, err := a.CpaGroupID()
-	if err != nil {
-		return nil, model.NewAppError("GetAccessControlAutoComplete", "app.pap.get_access_control_auto_complete.app_error", nil, err.Error(), http.StatusInternalServerError)
+	cpaGroupID, appErr := a.CpaGroupID()
+	if appErr != nil {
+		return nil, model.NewAppError("GetAccessControlAutoComplete", "app.pap.get_access_control_auto_complete.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
-	// Use PropertyAccessService instead of direct Store access to enforce access control
-	fields, err := a.PropertyAccessService().SearchPropertyFields(callerID, cpaGroupID, model.PropertyFieldSearchOpts{
+	// Use property app layer to enforce access control
+	rctxWithCaller := RequestContextWithCallerID(rctx, callerID)
+	fields, appErr := a.SearchPropertyFields(rctxWithCaller, cpaGroupID, model.PropertyFieldSearchOpts{
 		Cursor: model.PropertyFieldSearchCursor{
 			PropertyFieldID: after,
 			CreateAt:        1,
 		},
 		PerPage: limit,
 	})
-	if err != nil {
-		return nil, model.NewAppError("GetAccessControlAutoComplete", "app.pap.get_access_control_auto_complete.app_error", nil, err.Error(), http.StatusInternalServerError)
+	if appErr != nil {
+		return nil, model.NewAppError("GetAccessControlAutoComplete", "app.pap.get_access_control_auto_complete.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
 
 	return fields, nil

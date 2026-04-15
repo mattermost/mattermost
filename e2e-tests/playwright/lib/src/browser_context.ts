@@ -36,6 +36,7 @@ export class TestBrowser {
         const systemConsolePage = new pages.SystemConsolePage(page);
         const scheduledPostsPage = new pages.ScheduledPostsPage(page);
         const draftsPage = new pages.DraftsPage(page);
+        const recapsPage = new pages.RecapsPage(page);
         const threadsPage = new pages.ThreadsPage(page);
         const contentReviewPage = new pages.ContentReviewPage(page);
 
@@ -48,9 +49,20 @@ export class TestBrowser {
             systemConsolePage,
             scheduledPostsPage,
             draftsPage,
+            recapsPage,
             threadsPage,
             contentReviewPage,
         };
+    }
+
+    /**
+     * Switch the auth state of an existing context to a different user
+     * without creating a new context. After switching, pages in the context
+     * should be reloaded to pick up the new auth state.
+     */
+    async switchUser(context: BrowserContext, user: UserProfile) {
+        const storagePath = await loginByAPI(user.username, user.password);
+        await context.setStorageState(storagePath);
     }
 
     async close() {

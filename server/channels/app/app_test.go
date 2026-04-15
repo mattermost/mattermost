@@ -62,9 +62,9 @@ func TestUnitUpdateConfig(t *testing.T) {
 
 	require.False(t, th.App.IsConfigReadOnly())
 
-	var called int32
+	var called atomic.Int32
 	th.App.AddConfigListener(func(old, current *model.Config) {
-		atomic.AddInt32(&called, 1)
+		called.Add(1)
 		assert.Equal(t, prev, *old.ServiceSettings.SiteURL)
 		assert.Equal(t, "http://foo.com", *current.ServiceSettings.SiteURL)
 	})
@@ -74,7 +74,7 @@ func TestUnitUpdateConfig(t *testing.T) {
 	})
 
 	// callback should be called once
-	assert.Equal(t, int32(1), atomic.LoadInt32(&called))
+	assert.Equal(t, int32(1), called.Load())
 }
 
 func TestDoAdvancedPermissionsMigration(t *testing.T) {
@@ -210,6 +210,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PermissionDeleteCustomGroup.Id,
 			model.PermissionRestoreCustomGroup.Id,
 			model.PermissionManageCustomGroupMembers.Id,
+			model.PermissionManageOwnAgent.Id,
 		},
 		"system_post_all": {
 			model.PermissionCreatePost.Id,
@@ -278,6 +279,7 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 		model.PermissionCreateEmojis.Id,
 		model.PermissionDeleteEmojis.Id,
 		model.PermissionViewMembers.Id,
+		model.PermissionManageOwnAgent.Id,
 	}
 	assert.ElementsMatch(t, expected3, role3.Permissions, fmt.Sprintf("'%v' did not have expected permissions", model.SystemUserRoleId))
 

@@ -360,6 +360,41 @@ func (s *hooksRPCServer) ChannelHasBeenCreated(args *Z_ChannelHasBeenCreatedArgs
 }
 
 func init() {
+	hookNameToId["ChannelWillBeArchived"] = ChannelWillBeArchivedID
+}
+
+type Z_ChannelWillBeArchivedArgs struct {
+	A *Context
+	B *model.Channel
+}
+
+type Z_ChannelWillBeArchivedReturns struct {
+	A string
+}
+
+func (g *hooksRPCClient) ChannelWillBeArchived(c *Context, channel *model.Channel) string {
+	_args := &Z_ChannelWillBeArchivedArgs{c, channel}
+	_returns := &Z_ChannelWillBeArchivedReturns{}
+	if g.implemented[ChannelWillBeArchivedID] {
+		if err := g.client.Call("Plugin.ChannelWillBeArchived", _args, _returns); err != nil {
+			g.log.Error("RPC call ChannelWillBeArchived to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A
+}
+
+func (s *hooksRPCServer) ChannelWillBeArchived(args *Z_ChannelWillBeArchivedArgs, returns *Z_ChannelWillBeArchivedReturns) error {
+	if hook, ok := s.impl.(interface {
+		ChannelWillBeArchived(c *Context, channel *model.Channel) string
+	}); ok {
+		returns.A = hook.ChannelWillBeArchived(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook ChannelWillBeArchived called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
 	hookNameToId["UserHasJoinedChannel"] = UserHasJoinedChannelID
 }
 
@@ -6738,6 +6773,68 @@ func (s *apiRPCServer) UninviteRemoteFromChannel(args *Z_UninviteRemoteFromChann
 		returns.A = encodableError(returns.A)
 	} else {
 		return encodableError(fmt.Errorf("API UninviteRemoteFromChannel called but not implemented."))
+	}
+	return nil
+}
+
+type Z_ReceiveSharedChannelSyncMsgArgs struct {
+	A string
+	B *model.SyncMsg
+}
+
+type Z_ReceiveSharedChannelSyncMsgReturns struct {
+	A model.SyncResponse
+	B error
+}
+
+func (g *apiRPCClient) ReceiveSharedChannelSyncMsg(remoteID string, msg *model.SyncMsg) (model.SyncResponse, error) {
+	_args := &Z_ReceiveSharedChannelSyncMsgArgs{remoteID, msg}
+	_returns := &Z_ReceiveSharedChannelSyncMsgReturns{}
+	if err := g.client.Call("Plugin.ReceiveSharedChannelSyncMsg", _args, _returns); err != nil {
+		log.Printf("RPC call to ReceiveSharedChannelSyncMsg API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) ReceiveSharedChannelSyncMsg(args *Z_ReceiveSharedChannelSyncMsgArgs, returns *Z_ReceiveSharedChannelSyncMsgReturns) error {
+	if hook, ok := s.impl.(interface {
+		ReceiveSharedChannelSyncMsg(remoteID string, msg *model.SyncMsg) (model.SyncResponse, error)
+	}); ok {
+		returns.A, returns.B = hook.ReceiveSharedChannelSyncMsg(args.A, args.B)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API ReceiveSharedChannelSyncMsg called but not implemented."))
+	}
+	return nil
+}
+
+type Z_ReceiveSharedChannelProfileImageSyncMsgArgs struct {
+	A string
+	B string
+	C []byte
+}
+
+type Z_ReceiveSharedChannelProfileImageSyncMsgReturns struct {
+	A error
+}
+
+func (g *apiRPCClient) ReceiveSharedChannelProfileImageSyncMsg(remoteID, userID string, image []byte) error {
+	_args := &Z_ReceiveSharedChannelProfileImageSyncMsgArgs{remoteID, userID, image}
+	_returns := &Z_ReceiveSharedChannelProfileImageSyncMsgReturns{}
+	if err := g.client.Call("Plugin.ReceiveSharedChannelProfileImageSyncMsg", _args, _returns); err != nil {
+		log.Printf("RPC call to ReceiveSharedChannelProfileImageSyncMsg API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) ReceiveSharedChannelProfileImageSyncMsg(args *Z_ReceiveSharedChannelProfileImageSyncMsgArgs, returns *Z_ReceiveSharedChannelProfileImageSyncMsgReturns) error {
+	if hook, ok := s.impl.(interface {
+		ReceiveSharedChannelProfileImageSyncMsg(remoteID, userID string, image []byte) error
+	}); ok {
+		returns.A = hook.ReceiveSharedChannelProfileImageSyncMsg(args.A, args.B, args.C)
+		returns.A = encodableError(returns.A)
+	} else {
+		return encodableError(fmt.Errorf("API ReceiveSharedChannelProfileImageSyncMsg called but not implemented."))
 	}
 	return nil
 }

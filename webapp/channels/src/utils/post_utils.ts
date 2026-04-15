@@ -87,6 +87,11 @@ export function getImageSrc(src: string, hasImageProxy = false): string {
         return src;
     }
 
+    // Don't proxy base64-encoded images
+    if (src.startsWith('data:image/')) {
+        return src;
+    }
+
     const imageAPI = Client4.getBaseRoute() + '/image?url=';
 
     if (hasImageProxy && !src.startsWith(imageAPI)) {
@@ -329,10 +334,7 @@ export function postMessageOnKeyPress(
         return {allowSending: false, ignoreKeyPress: true};
     }
 
-    if (
-        message.trim() === '' ||
-        !(sendMessageOnCtrlEnter || sendCodeBlockOnCtrlEnter)
-    ) {
+    if (!(sendMessageOnCtrlEnter || sendCodeBlockOnCtrlEnter)) {
         return {allowSending: true};
     }
 
@@ -341,6 +343,9 @@ export function postMessageOnKeyPress(
     if (sendMessageOnCtrlEnter) {
         return sendOnCtrlEnter(message, ctrlOrMetaKeyPressed, true, caretPosition);
     } else if (sendCodeBlockOnCtrlEnter) {
+        if (message.trim() === '') {
+            return {allowSending: true};
+        }
         return sendOnCtrlEnter(message, ctrlOrMetaKeyPressed, false, caretPosition);
     }
 

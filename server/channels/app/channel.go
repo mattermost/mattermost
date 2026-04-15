@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
@@ -300,6 +301,21 @@ func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember 
 		}
 
 		a.Srv().Platform().InvalidateChannelCacheForUser(channel.CreatorId)
+	}
+
+	if channel.ManagedCategoryName != "" {
+		if !model.MinimumEnterpriseLicense(a.Channels().License()) || !model.SafeDereference(a.Config().TeamSettings.EnableManagedChannelCategories) {
+			rctx.Logger().Warn("Managed category update ignored: feature not available")
+			sc.ManagedCategoryName = ""
+		} else {
+			if appErr := a.SetChannelManagedCategory(rctx, sc.Id, channel.ManagedCategoryName); appErr != nil {
+				rctx.Logger().Error("Failed to set managed category on new channel",
+					mlog.String("channel_id", sc.Id),
+					mlog.String("category_name", channel.ManagedCategoryName),
+					mlog.Err(appErr))
+				sc.ManagedCategoryName = ""
+			}
+		}
 	}
 
 	a.Srv().Go(func() {
@@ -1604,6 +1620,24 @@ func (a *App) DeleteChannel(rctx request.CTX, channel *model.Channel, userID str
 		return err
 	}
 
+	var archiveRejectionReason string
+	pluginContext := pluginContext(rctx)
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+		archiveRejectionReason = hooks.ChannelWillBeArchived(pluginContext, channel)
+		return archiveRejectionReason == ""
+	}, plugin.ChannelWillBeArchivedID)
+
+	if archiveRejectionReason != "" {
+		return model.NewAppError("DeleteChannel", "app.channel.delete_channel.rejected_by_plugin",
+			map[string]any{"Reason": archiveRejectionReason}, "", http.StatusBadRequest)
+	}
+
+	deleteAt := model.GetMillis()
+
+	if err := a.Srv().Store().Channel().Delete(channel.Id, deleteAt); err != nil {
+		return model.NewAppError("DeleteChannel", "app.channel.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
 	if user != nil {
 		T := i18n.GetUserTranslations(user.Locale)
 
@@ -1657,12 +1691,6 @@ func (a *App) DeleteChannel(rctx request.CTX, channel *model.Channel, userID str
 
 	if err := a.Srv().Store().PostPersistentNotification().DeleteByChannel([]string{channel.Id}); err != nil {
 		return model.NewAppError("DeleteChannel", "app.post_persistent_notification.delete_by_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	deleteAt := model.GetMillis()
-
-	if err := a.Srv().Store().Channel().Delete(channel.Id, deleteAt); err != nil {
-		return model.NewAppError("DeleteChannel", "app.channel.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
@@ -1731,10 +1759,10 @@ func (a *App) addUserToChannel(rctx request.CTX, user *model.User, channel *mode
 						fmt.Sprintf("failed to get group: %v, user_id: %s, channel_id: %s", err, user.Id, channel.Id), http.StatusInternalServerError)
 				}
 
-				s, err := a.Srv().Store().Attributes().GetSubject(rctx, user.Id, groupID)
-				if err != nil {
+				s, getSubjectErr := a.Srv().Store().Attributes().GetSubject(rctx, user.Id, groupID)
+				if getSubjectErr != nil {
 					return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil,
-						fmt.Sprintf("failed to get subject: %v, user_id: %s, channel_id: %s", err, user.Id, channel.Id), http.StatusForbidden)
+						fmt.Sprintf("failed to get subject: %v, user_id: %s, channel_id: %s", getSubjectErr, user.Id, channel.Id), http.StatusForbidden)
 				}
 
 				decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
@@ -1743,7 +1771,7 @@ func (a *App) addUserToChannel(rctx request.CTX, user *model.User, channel *mode
 						Type: model.AccessControlPolicyTypeChannel,
 						ID:   channel.Id,
 					},
-					Action: "join_channel",
+					Action: "membership",
 				})
 				if evalErr != nil {
 					return nil, evalErr
@@ -1754,6 +1782,25 @@ func (a *App) addUserToChannel(rctx request.CTX, user *model.User, channel *mode
 		} else if appErr != nil {
 			return nil, appErr
 		}
+	}
+
+	var rejectionReason string
+	pluginContext := pluginContext(rctx)
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+		updatedMember, reason := hooks.ChannelMemberWillBeAdded(pluginContext, newMember)
+		if reason != "" {
+			rejectionReason = reason
+			return false
+		}
+		if updatedMember != nil {
+			newMember = updatedMember
+		}
+		return true
+	}, plugin.ChannelMemberWillBeAddedID)
+
+	if rejectionReason != "" {
+		return nil, model.NewAppError("AddUserToChannel", "app.channel.add_user.to.channel.rejected_by_plugin",
+			map[string]any{"Reason": rejectionReason}, "", http.StatusBadRequest)
 	}
 
 	newMember, nErr = a.Srv().Store().Channel().SaveMember(rctx, newMember)
@@ -1772,7 +1819,7 @@ func (a *App) addUserToChannel(rctx request.CTX, user *model.User, channel *mode
 	// Synchronize membership change for shared channels
 	if channel.IsShared() {
 		if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
-			scs.HandleMembershipChange(channel.Id, user.Id, true, user.GetRemoteID())
+			scs.NotifyMembershipChanged(channel.Id, user.GetRemoteID())
 		}
 	}
 
@@ -2844,9 +2891,8 @@ func (a *App) removeUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 
 	// Synchronize membership change for shared channels
 	if channel.IsShared() {
-		// isAdd=false, empty remoteId means locally initiated
 		if scs := a.Srv().Platform().GetSharedChannelService(); scs != nil {
-			scs.HandleMembershipChange(channel.Id, userIDToRemove, false, "")
+			scs.NotifyMembershipChanged(channel.Id, "")
 		}
 	}
 
@@ -4137,4 +4183,215 @@ func (a *App) addChannelToDefaultCategory(rctx request.CTX, userID string, chann
 			}
 		}
 	}
+}
+
+// SetChannelMembers reconciles the membership of a channel to match the desired list of user IDs.
+// Users already in the channel are left untouched (no-op). Users not in the desired list are removed.
+// Users in the desired list but not in the channel are added.
+//
+// When adminSet is non-nil, channel admin roles are set declaratively: users in adminSet become
+// channel admins, all other members lose the admin role. When adminSet is nil, existing admin
+// roles are preserved for members who remain in the channel.
+//
+// Operations are processed in batches with a configurable delay between batches.
+// The onBatch callback is invoked after each batch with the results for that batch.
+func (a *App) SetChannelMembers(rctx request.CTX, channel *model.Channel, desiredUserIDs []string, adminSet map[string]struct{}, requestorUserID string, batchSize int, batchDelayMs int, onBatch func(*model.SetChannelMembersResponse)) *model.AppError {
+	currentIDs, err := a.Srv().Store().Channel().GetAllChannelMemberIdsByChannelId(channel.Id)
+	if err != nil {
+		return model.NewAppError("SetChannelMembers", "app.channel.set_members.get_current.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	currentSet := make(map[string]struct{}, len(currentIDs))
+	for _, id := range currentIDs {
+		currentSet[id] = struct{}{}
+	}
+	desiredSet := make(map[string]struct{}, len(desiredUserIDs))
+	for _, id := range desiredUserIDs {
+		desiredSet[id] = struct{}{}
+	}
+
+	var toAdd, toRemove []string
+	for id := range desiredSet {
+		if _, exists := currentSet[id]; !exists {
+			toAdd = append(toAdd, id)
+		}
+	}
+	for id := range currentSet {
+		if _, exists := desiredSet[id]; !exists {
+			toRemove = append(toRemove, id)
+		}
+	}
+
+	// Prevent emptying private channels, they become orphaned since non-admins can't rejoin.
+	if channel.Type == model.ChannelTypePrivate && len(desiredUserIDs) == 0 {
+		return model.NewAppError("SetChannelMembers", "app.channel.set_members.empty_private.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(toAdd) == 0 && len(toRemove) == 0 && adminSet == nil {
+		onBatch(&model.SetChannelMembersResponse{})
+		return nil
+	}
+
+	if batchSize <= 0 {
+		batchSize = 1
+	}
+
+	batchDelay := time.Duration(batchDelayMs) * time.Millisecond
+
+	// Process removals first
+	for i := 0; i < len(toRemove); i += batchSize {
+		end := min(i+batchSize, len(toRemove))
+		batch := toRemove[i:end]
+
+		result := &model.SetChannelMembersResponse{}
+		for _, userID := range batch {
+			if appErr := a.removeUserFromChannel(rctx, userID, requestorUserID, channel); appErr != nil {
+				result.Errors = append(result.Errors, model.SetChannelMembersError{
+					UserID: userID,
+					ID:     appErr.Id,
+					Error:  appErr.Error(),
+				})
+			} else {
+				result.Removed = append(result.Removed, userID)
+			}
+		}
+		onBatch(result)
+
+		if end < len(toRemove) {
+			select {
+			case <-rctx.Context().Done():
+				return model.NewAppError("SetChannelMembers", "app.channel.set_members.context_cancelled.app_error", nil, "", http.StatusInternalServerError).Wrap(rctx.Context().Err())
+			case <-time.After(batchDelay):
+			}
+		}
+	}
+
+	// Check context between removal and addition phases
+	if rctx.Context().Err() != nil {
+		return model.NewAppError("SetChannelMembers", "app.channel.set_members.context_cancelled.app_error", nil, "", http.StatusInternalServerError).Wrap(rctx.Context().Err())
+	}
+
+	// Process additions
+	for i := 0; i < len(toAdd); i += batchSize {
+		end := min(i+batchSize, len(toAdd))
+		batch := toAdd[i:end]
+
+		result := &model.SetChannelMembersResponse{}
+		for _, userID := range batch {
+			if _, appErr := a.AddChannelMember(rctx, userID, channel, ChannelMemberOpts{UserRequestorID: requestorUserID}); appErr != nil {
+				result.Errors = append(result.Errors, model.SetChannelMembersError{
+					UserID: userID,
+					ID:     appErr.Id,
+					Error:  appErr.Error(),
+				})
+			} else {
+				result.Added = append(result.Added, userID)
+			}
+		}
+		onBatch(result)
+
+		if end < len(toAdd) {
+			select {
+			case <-rctx.Context().Done():
+				return model.NewAppError("SetChannelMembers", "app.channel.set_members.context_cancelled.app_error", nil, "", http.StatusInternalServerError).Wrap(rctx.Context().Err())
+			case <-time.After(batchDelay):
+			}
+		}
+	}
+
+	// Reconcile channel admin roles when adminSet is provided.
+	if adminSet != nil {
+		if rctx.Context().Err() != nil {
+			return model.NewAppError("SetChannelMembers", "app.channel.set_members.context_cancelled.app_error", nil, "", http.StatusInternalServerError).Wrap(rctx.Context().Err())
+		}
+
+		// Build the list of members whose admin status needs to change.
+		// We need the current SchemeAdmin state for all remaining members.
+		members, storeErr := a.Srv().Store().Channel().GetMembers(model.ChannelMembersGetOptions{ChannelID: channel.Id, Offset: 0, Limit: 100000})
+		if storeErr != nil {
+			return model.NewAppError("SetChannelMembers", "app.channel.set_members.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
+		}
+
+		var toPromote, toDemote []string
+		for _, m := range members {
+			_, wantAdmin := adminSet[m.UserId]
+			if wantAdmin && !m.SchemeAdmin {
+				toPromote = append(toPromote, m.UserId)
+			} else if !wantAdmin && m.SchemeAdmin {
+				toDemote = append(toDemote, m.UserId)
+			}
+		}
+
+		// Process role changes in batches
+		for i := 0; i < len(toPromote); i += batchSize {
+			end := min(i+batchSize, len(toPromote))
+			batch := toPromote[i:end]
+
+			result := &model.SetChannelMembersResponse{}
+			for _, userID := range batch {
+				if _, appErr := a.UpdateChannelMemberSchemeRoles(rctx, channel.Id, userID, false, true, true); appErr != nil {
+					result.Errors = append(result.Errors, model.SetChannelMembersError{
+						UserID: userID,
+						ID:     appErr.Id,
+						Error:  appErr.Error(),
+					})
+				} else {
+					result.Promoted = append(result.Promoted, userID)
+				}
+			}
+			onBatch(result)
+
+			if end < len(toPromote) {
+				select {
+				case <-rctx.Context().Done():
+					return model.NewAppError("SetChannelMembers", "app.channel.set_members.context_cancelled.app_error", nil, "", http.StatusInternalServerError).Wrap(rctx.Context().Err())
+				case <-time.After(batchDelay):
+				}
+			}
+		}
+
+		if len(toDemote) > 0 && rctx.Context().Err() != nil {
+			return model.NewAppError("SetChannelMembers", "app.channel.set_members.context_cancelled.app_error", nil, "", http.StatusInternalServerError).Wrap(rctx.Context().Err())
+		}
+
+		for i := 0; i < len(toDemote); i += batchSize {
+			end := min(i+batchSize, len(toDemote))
+			batch := toDemote[i:end]
+
+			result := &model.SetChannelMembersResponse{}
+			for _, userID := range batch {
+				if _, appErr := a.UpdateChannelMemberSchemeRoles(rctx, channel.Id, userID, false, true, false); appErr != nil {
+					result.Errors = append(result.Errors, model.SetChannelMembersError{
+						UserID: userID,
+						ID:     appErr.Id,
+						Error:  appErr.Error(),
+					})
+				} else {
+					result.Demoted = append(result.Demoted, userID)
+				}
+			}
+			onBatch(result)
+
+			if end < len(toDemote) {
+				select {
+				case <-rctx.Context().Done():
+					return model.NewAppError("SetChannelMembers", "app.channel.set_members.context_cancelled.app_error", nil, "", http.StatusInternalServerError).Wrap(rctx.Context().Err())
+				case <-time.After(batchDelay):
+				}
+			}
+		}
+	}
+
+	// Warn if a private channel was left with no members (known limitation)
+	if channel.Type == model.ChannelTypePrivate {
+		remainingIDs, err := a.Srv().Store().Channel().GetAllChannelMemberIdsByChannelId(channel.Id)
+		if err == nil && len(remainingIDs) == 0 {
+			rctx.Logger().Error("SetChannelMembers left private channel with no members",
+				mlog.String("channel_id", channel.Id),
+				mlog.String("requestor_user_id", requestorUserID),
+			)
+		}
+	}
+
+	return nil
 }
