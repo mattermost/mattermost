@@ -1913,6 +1913,7 @@
   "admin.permission_policies.edit.delete.title": "Delete policy",
   "admin.permission_policies.edit.error.delete": "Error deleting policy: {error}",
   "admin.permission_policies.edit.error.expression_required": "Please add an expression to the policy",
+  "admin.permission_policies.edit.error.load": "Failed to load policy",
   "admin.permission_policies.edit.error.name_required": "Please add a name to the policy",
   "admin.permission_policies.edit.error.permissions_required": "Please select at least one permission",
   "admin.permission_policies.edit.error.role_required": "Please select a role",
