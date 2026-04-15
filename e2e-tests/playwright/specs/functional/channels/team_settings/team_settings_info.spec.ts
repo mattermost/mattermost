@@ -58,7 +58,7 @@ test.describe('Team Settings Modal - Info Tab', () => {
         await expect(teamSettings.infoSettings.nameInput).toHaveValue(team.display_name);
 
         // # Edit team name
-        const newTeamName = `Updated Team ${await pw.random.id()}`;
+        const newTeamName = `Updated Team ${pw.random.id()}`;
         await teamSettings.infoSettings.updateName(newTeamName);
 
         // # Save changes
@@ -96,7 +96,7 @@ test.describe('Team Settings Modal - Info Tab', () => {
         const teamSettings = await channelsPage.openTeamSettings();
 
         // # Edit team description
-        const newDescription = `Test description ${await pw.random.id()}`;
+        const newDescription = `Test description ${pw.random.id()}`;
         await teamSettings.infoSettings.updateDescription(newDescription);
 
         // # Save changes
