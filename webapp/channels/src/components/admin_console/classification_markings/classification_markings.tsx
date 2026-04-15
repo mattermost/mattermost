@@ -773,6 +773,13 @@ const TableWrapper = styled.div`
                 border-top: none;
                 border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
                 border-bottom-color: rgba(var(--center-channel-color-rgb), 0.08) !important;
+
+                /* Draggable rows use transform; lift focused row so ColorInput popover stacks above rows below. */
+                &:focus-within {
+                    position: relative;
+                    z-index: 30;
+                }
+
                 td {
                     padding-block-end: 0;
                     padding-block-start: 0;
@@ -784,6 +791,11 @@ const TableWrapper = styled.div`
                     &.pinned {
                         background: none;
                     }
+
+                    /* list_table.scss uses overflow:hidden on td; allow picker to extend outside this column only. */
+                    &.color {
+                        overflow: visible;
+                    }
                 }
             }
         }
@@ -794,6 +806,7 @@ const TableWrapper = styled.div`
     }
     .adminConsoleListTableContainer {
         padding: 2px 0px;
+        overflow: visible;
     }
 `;
 
