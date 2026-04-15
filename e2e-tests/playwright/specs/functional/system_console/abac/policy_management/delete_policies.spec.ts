@@ -52,7 +52,7 @@ test.describe('ABAC Policy Management - Delete Policies', () => {
         // 1. policyWithChannel - has a channel assigned
         // 2. policyWithoutChannel - has NO channels assigned
         // ===========================================
-        const uniqueId = await pw.random.id();
+        const uniqueId = pw.random.id();
         const policyWithChannelName = `ABAC-WithChannel-${uniqueId}`;
         const policyWithoutChannelName = `ABAC-NoChannel-${uniqueId}`;
 
