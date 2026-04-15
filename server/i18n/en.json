@@ -584,6 +584,18 @@
     "translation": "{{.Username}} unarchived the channel."
   },
   {
+    "id": "api.channel.set_members.group_constrained.app_error",
+    "translation": "Cannot set members on a group-constrained channel."
+  },
+  {
+    "id": "api.channel.set_members.policy_enforced.app_error",
+    "translation": "Cannot set members on a policy-enforced channel."
+  },
+  {
+    "id": "api.channel.set_members.type.app_error",
+    "translation": "Cannot set members on this channel type."
+  },
+  {
     "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
     "translation": "Channel banner can only be configured on Public and Private channels."
   },
@@ -5565,6 +5577,22 @@
   {
     "id": "app.channel.search_group_channels.app_error",
     "translation": "Unable to get the group channels for the given user and term."
+  },
+  {
+    "id": "app.channel.set_members.context_cancelled.app_error",
+    "translation": "The set channel members operation was cancelled."
+  },
+  {
+    "id": "app.channel.set_members.empty_private.app_error",
+    "translation": "Cannot remove all members from a private channel."
+  },
+  {
+    "id": "app.channel.set_members.get_current.app_error",
+    "translation": "Unable to get current channel members."
+  },
+  {
+    "id": "app.channel.set_members.get_members.app_error",
+    "translation": "Unable to get channel members for role reconciliation."
   },
   {
     "id": "app.channel.sidebar_categories.app_error",

@@ -73,6 +73,7 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.ChannelMembers.Handle("", api.APISessionRequired(getChannelMembers)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelMembers.Handle("/ids", api.APISessionRequired(getChannelMembersByIds)).Methods(http.MethodPost)
 	api.BaseRoutes.ChannelMembers.Handle("", api.APISessionRequired(addChannelMember)).Methods(http.MethodPost)
+	api.BaseRoutes.ChannelMembers.Handle("", api.APISessionRequired(setChannelMembers)).Methods(http.MethodPut)
 	api.BaseRoutes.ChannelMembersForUser.Handle("", api.APISessionRequired(getChannelMembersForTeamForUser)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelMember.Handle("", api.APISessionRequired(getChannelMember)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelMember.Handle("", api.APISessionRequired(removeChannelMember)).Methods(http.MethodDelete)
@@ -2199,6 +2200,185 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
 	}
+}
+
+const (
+	setChannelMembersDefaultBatchSize    = 100
+	setChannelMembersMinBatchSize        = 1
+	setChannelMembersMaxBatchSize        = 1000
+	setChannelMembersDefaultBatchDelayMs = 500
+	setChannelMembersMinBatchDelayMs     = 0
+	setChannelMembersMaxBatchDelayMs     = 10000
+	setChannelMembersMaxBodySize         = 12 * 1024 * 1024 // 12 MB
+)
+
+func setChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	// Require system admin
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	// Parse query params
+	batchSize := setChannelMembersDefaultBatchSize
+	if v := r.URL.Query().Get("batch_size"); v != "" {
+		n, err := strconv.Atoi(v)
+		if err != nil || n < setChannelMembersMinBatchSize || n > setChannelMembersMaxBatchSize {
+			c.SetInvalidURLParam("batch_size")
+			return
+		}
+		batchSize = n
+	}
+
+	batchDelayMs := setChannelMembersDefaultBatchDelayMs
+	if v := r.URL.Query().Get("batch_delay_ms"); v != "" {
+		n, err := strconv.Atoi(v)
+		if err != nil || n < setChannelMembersMinBatchDelayMs || n > setChannelMembersMaxBatchDelayMs {
+			c.SetInvalidURLParam("batch_delay_ms")
+			return
+		}
+		batchDelayMs = n
+	}
+
+	// Cap request body size
+	r.Body = http.MaxBytesReader(w, r.Body, setChannelMembersMaxBodySize)
+
+	// Decode request body
+	var req model.SetChannelMembersRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		c.SetInvalidParamWithErr("body", err)
+		return
+	}
+	if req.Members == nil {
+		c.SetInvalidParam("members")
+		return
+	}
+
+	// Validate and deduplicate member IDs. The desired membership is the
+	// union of Members and ChannelAdmins (admins are implicitly members).
+	seen := make(map[string]struct{}, len(req.Members))
+	deduped := make([]string, 0, len(req.Members))
+	for _, id := range req.Members {
+		if !model.IsValidId(id) {
+			c.SetInvalidParam("members")
+			return
+		}
+		if _, exists := seen[id]; !exists {
+			seen[id] = struct{}{}
+			deduped = append(deduped, id)
+		}
+	}
+
+	// Build admin set and merge admin IDs into the desired membership list.
+	var adminSet map[string]struct{}
+	if req.ChannelAdmins != nil {
+		adminSet = make(map[string]struct{}, len(*req.ChannelAdmins))
+		for _, id := range *req.ChannelAdmins {
+			if !model.IsValidId(id) {
+				c.SetInvalidParam("channel_admins")
+				return
+			}
+			adminSet[id] = struct{}{}
+			if _, exists := seen[id]; !exists {
+				seen[id] = struct{}{}
+				deduped = append(deduped, id)
+			}
+		}
+	}
+	desiredUserIDs := deduped
+
+	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	// Reject DM/GM channels
+	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
+		c.Err = model.NewAppError("setChannelMembers", "api.channel.set_members.type.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	// Reject group-constrained channels
+	if channel.IsGroupConstrained() {
+		c.Err = model.NewAppError("setChannelMembers", "api.channel.set_members.group_constrained.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	// Reject policy-enforced (ABAC) channels
+	if channel.PolicyEnforced {
+		c.Err = model.NewAppError("setChannelMembers", "api.channel.set_members.policy_enforced.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventSetChannelMembers, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
+	model.AddEventParameterToAuditRec(auditRec, "desired_user_count", len(desiredUserIDs))
+	model.AddEventParameterToAuditRec(auditRec, "channel_admin_count", len(adminSet))
+	model.AddEventParameterToAuditRec(auditRec, "batch_size", batchSize)
+	model.AddEventParameterToAuditRec(auditRec, "batch_delay_ms", batchDelayMs)
+
+	enc := json.NewEncoder(w)
+	flusher, _ := w.(http.Flusher)
+	streamingStarted := false
+	var totalAdded, totalRemoved, totalErrors int
+
+	appErr = c.App.SetChannelMembers(c.AppContext, channel, desiredUserIDs, adminSet, c.AppContext.Session().UserId, batchSize, batchDelayMs, func(result *model.SetChannelMembersResponse) {
+		if !streamingStarted {
+			w.Header().Set("Content-Type", "application/x-ndjson")
+			streamingStarted = true
+		}
+		if result.Added == nil {
+			result.Added = []string{}
+		}
+		if result.Removed == nil {
+			result.Removed = []string{}
+		}
+		if result.Errors == nil {
+			result.Errors = []model.SetChannelMembersError{}
+		}
+		totalAdded += len(result.Added)
+		totalRemoved += len(result.Removed)
+		totalErrors += len(result.Errors)
+		if err := enc.Encode(result); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
+		if flusher != nil {
+			flusher.Flush()
+		}
+	})
+
+	model.AddEventParameterToAuditRec(auditRec, "total_added", totalAdded)
+	model.AddEventParameterToAuditRec(auditRec, "total_removed", totalRemoved)
+	model.AddEventParameterToAuditRec(auditRec, "total_errors", totalErrors)
+
+	if appErr != nil {
+		if streamingStarted {
+			// Response is already committed (NDJSON lines written), so we cannot
+			// set c.Err — the framework would try to write a JSON error into the
+			// NDJSON stream. Emit a final error line so the client can detect
+			// the incomplete operation.
+			errLine := map[string]string{"error": appErr.Error()}
+			if err := enc.Encode(errLine); err != nil {
+				c.Logger.Warn("Error writing terminal error to NDJSON stream", mlog.Err(err))
+			}
+			if flusher != nil {
+				flusher.Flush()
+			}
+			c.Logger.Warn("SetChannelMembers terminated with error", mlog.Err(appErr))
+		} else {
+			c.Err = appErr
+		}
+		return
+	}
+
+	auditRec.Success()
 }
 
 func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {

@@ -1406,6 +1406,191 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+    put:
+      tags:
+        - channels
+      summary: Set channel members
+      description: |
+        Set the complete membership list for a channel, with optional channel admin designation.
+        The server compares the provided list against the current membership and adds or removes
+        users as needed. Users already in the channel are left untouched (no-op).
+
+        When `channel_admins` is provided, a role reconciliation phase runs after membership
+        changes: listed users are promoted to channel admin, all other members are demoted.
+        When `channel_admins` is omitted (null), existing admin roles are preserved.
+
+        Results are streamed back as NDJSON (`application/x-ndjson`), one line per batch. Each line
+        is a JSON object with `added`, `removed`, `promoted`, `demoted`, and `errors` arrays for
+        that batch.
+
+        Removals are processed before additions, then role changes. Private channels cannot be
+        emptied entirely. DM/GM and group-constrained channels are rejected.
+
+        #### Example: membership only
+
+        Request (using `batch_size=2` and `batch_delay_ms=200`):
+
+        ```bash
+        curl -X PUT \
+          'https://mattermost.example.com/api/v4/channels/channel123/members?batch_size=2&batch_delay_ms=200' \
+          -H 'Authorization: Bearer <token>' \
+          -H 'Content-Type: application/json' \
+          -d '{"members": ["user_id_1", "user_id_2", "user_id_3", "user_id_4"]}'
+        ```
+
+        Streamed NDJSON response (one JSON object per line, one line per batch):
+
+        ```text
+        {"added":[],"removed":["user_id_5","user_id_6"],"errors":[]}
+        {"added":["user_id_3","user_id_4"],"removed":[],"errors":[]}
+        {"added":[],"removed":[],"errors":[{"user_id":"user_id_7","id":"api.channel.add_members.user_denied","error":"user is not a member of the team"}]}
+        ```
+
+        In this example, `user_id_1` and `user_id_2` were already members (no-op), `user_id_5` and
+        `user_id_6` were removed, `user_id_3` and `user_id_4` were added, and `user_id_7` could not
+        be added because the user is not on the team.
+
+        #### Example: membership with admin roles
+
+        ```bash
+        curl -X PUT \
+          'https://mattermost.example.com/api/v4/channels/channel123/members' \
+          -H 'Authorization: Bearer <token>' \
+          -H 'Content-Type: application/json' \
+          -d '{"members": ["user_id_1", "user_id_2", "user_id_3"], "channel_admins": ["user_id_1"]}'
+        ```
+
+        Response:
+
+        ```text
+        {"added":["user_id_3"],"removed":["user_id_4"]}
+        {"promoted":["user_id_1"],"demoted":["user_id_2"]}
+        ```
+
+        In this example, `user_id_1` was promoted to channel admin and `user_id_2` was demoted.
+        When `channel_admins` is omitted, existing admin roles are preserved.
+
+        __Minimum server version__: 11.7
+        ##### Permissions
+        Must have `manage_system` permission (system admin only).
+      operationId: SetChannelMembers
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+        - name: batch_size
+          in: query
+          description: Number of add/remove operations per batch.
+          schema:
+            type: integer
+            default: 100
+            minimum: 1
+            maximum: 1000
+        - name: batch_delay_ms
+          in: query
+          description: Milliseconds to pause between batches, giving the server time to process
+            websocket events and plugin hooks.
+          schema:
+            type: integer
+            default: 500
+            minimum: 0
+            maximum: 10000
+      requestBody:
+        description: JSON object specifying the complete desired membership and
+          optional channel admin designations. Request body is limited to 12 MB.
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - members
+              properties:
+                members:
+                  type: array
+                  items:
+                    type: string
+                  description: User IDs for the desired channel membership. The
+                    final membership is the union of `members` and `channel_admins`.
+                channel_admins:
+                  type: array
+                  nullable: true
+                  items:
+                    type: string
+                  description: User IDs that should have the channel admin role.
+                    Users listed here are automatically included in the desired
+                    membership (they do not need to also appear in `members`).
+                    When null or omitted, existing admin roles are preserved for
+                    members who remain in the channel. When present (including
+                    empty array), admin roles are set declaratively.
+        required: true
+      responses:
+        "200":
+          description: |
+            Streamed NDJSON response. Each line is a JSON object representing one batch of results.
+
+            If the operation is interrupted (e.g. context cancellation), a final NDJSON line
+            with an `error` field is emitted so the client can distinguish partial from full
+            success: `{"error":"The set channel members operation was cancelled."}`
+          content:
+            application/x-ndjson:
+              schema:
+                oneOf:
+                  - type: object
+                    description: A batch of results from the set channel members operation.
+                    properties:
+                      added:
+                        type: array
+                        items:
+                          type: string
+                        description: User IDs successfully added to the channel in this batch.
+                      removed:
+                        type: array
+                        items:
+                          type: string
+                        description: User IDs successfully removed from the channel in this batch.
+                      promoted:
+                        type: array
+                        items:
+                          type: string
+                        description: User IDs promoted to channel admin in this batch.
+                      demoted:
+                        type: array
+                        items:
+                          type: string
+                        description: User IDs demoted from channel admin in this batch.
+                      errors:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            user_id:
+                              type: string
+                              description: The user ID that failed.
+                            id:
+                              type: string
+                              description: Machine-readable error identifier (i18n key).
+                            error:
+                              type: string
+                              description: Human-readable description of the failure.
+                        description: Per-user failures (not on team, deleted user, cannot remove
+                          from default channel, plugin rejection).
+                  - type: object
+                    description: Terminal error line emitted when the operation is interrupted.
+                    required:
+                      - error
+                    properties:
+                      error:
+                        type: string
+                        description: Human-readable description of the interruption.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
   "/api/v4/channels/{channel_id}/members/ids":
     post:
       tags:
