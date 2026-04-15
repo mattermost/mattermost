@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, enableABAC, navigateToPermissionPoliciesPage} from '@mattermost/playwright-lib';
+import {expect, test, enableABAC} from '@mattermost/playwright-lib';
 
 import {getAsset} from '../../../../../asset';
 import {
@@ -15,6 +15,7 @@ import {
     deletePermissionPolicyByName,
     enableUserManagedAttributes,
     ensureUserAttributes,
+    navigateToPermissionPoliciesPage,
 } from '../support';
 
 /**
@@ -51,11 +52,11 @@ async function setupUserAndChannel(
     const randomId = Math.random().toString(36).substring(2, 9);
     const username = `user${randomId}`;
     const testUser = await adminClient.createUser(
-        {email: `${username}@example.com`, username, password: 'Password123!'} as any,
+        {email: `${username}@example.com`, username, password: 'Passwd4Testing!'} as any,
         '',
         '',
     );
-    (testUser as any).password = 'Password123!';
+    (testUser as any).password = 'Passwd4Testing!';
 
     await adminClient.addToTeam(team.id, testUser.id);
 
@@ -96,7 +97,7 @@ test.describe('ABAC Permission Policies - Download File Enforcement', () => {
         await enableABAC(systemConsolePage.page);
         await navigateToPermissionPoliciesPage(systemConsolePage.page);
 
-        lastPolicyName = `Download Deny ${await pw.random.id()}`;
+        lastPolicyName = `Download Deny ${pw.random.id()}`;
         await createPermissionPolicy(systemConsolePage.page, {
             name: lastPolicyName,
             celExpression: 'false',
@@ -166,7 +167,7 @@ test.describe('ABAC Permission Policies - Upload File Enforcement', () => {
         await enableABAC(systemConsolePage.page);
         await navigateToPermissionPoliciesPage(systemConsolePage.page);
 
-        lastPolicyName = `Upload Deny ${await pw.random.id()}`;
+        lastPolicyName = `Upload Deny ${pw.random.id()}`;
         await createPermissionPolicy(systemConsolePage.page, {
             name: lastPolicyName,
             celExpression: 'false',
@@ -240,7 +241,7 @@ test.describe('ABAC Permission Policies - Combined File Enforcement', () => {
         await enableABAC(systemConsolePage.page);
         await navigateToPermissionPoliciesPage(systemConsolePage.page);
 
-        lastPolicyName = `Both Deny ${await pw.random.id()}`;
+        lastPolicyName = `Both Deny ${pw.random.id()}`;
         await createPermissionPolicy(systemConsolePage.page, {
             name: lastPolicyName,
             celExpression: 'false',
@@ -346,7 +347,7 @@ test.describe('ABAC Permission Policies - Attribute-Based Access', () => {
         await enableABAC(systemConsolePage.page);
         await navigateToPermissionPoliciesPage(systemConsolePage.page);
 
-        lastPolicyName = `Dept Download Policy ${await pw.random.id()}`;
+        lastPolicyName = `Dept Download Policy ${pw.random.id()}`;
         await createPermissionPolicy(systemConsolePage.page, {
             name: lastPolicyName,
             celExpression: 'user.attributes.Department == "Engineering"',
@@ -403,7 +404,7 @@ test.describe('ABAC Permission Policies - BOR and Permalink', () => {
         await enableABAC(systemConsolePage.page);
         await navigateToPermissionPoliciesPage(systemConsolePage.page);
 
-        lastPolicyName = `BOR Download Deny ${await pw.random.id()}`;
+        lastPolicyName = `BOR Download Deny ${pw.random.id()}`;
         await createPermissionPolicy(systemConsolePage.page, {
             name: lastPolicyName,
             celExpression: 'false',
@@ -459,7 +460,7 @@ test.describe('ABAC Permission Policies - BOR and Permalink', () => {
         await enableABAC(systemConsolePage.page);
         await navigateToPermissionPoliciesPage(systemConsolePage.page);
 
-        lastPolicyName = `Permalink Download Deny ${await pw.random.id()}`;
+        lastPolicyName = `Permalink Download Deny ${pw.random.id()}`;
         await createPermissionPolicy(systemConsolePage.page, {
             name: lastPolicyName,
             celExpression: 'false',

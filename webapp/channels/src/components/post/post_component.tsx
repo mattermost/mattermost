@@ -137,6 +137,7 @@ export type Props = {
     burnOnReadDurationMinutes: number;
     burnOnReadSkipConfirmation?: boolean;
     preventClickInteraction?: boolean;
+    permissionPoliciesEnabled: boolean;
 };
 
 const preventInteractionStyle: React.CSSProperties = {pointerEvents: 'none'};
@@ -888,7 +889,7 @@ function PostComponent(props: Props) {
                                     handleFileDropdownOpened={handleFileDropdownOpened}
                                 />
                             }
-                            {redactedFileCount > 0 && !props.isPostBeingEdited && !showConcealedPlaceholder && post.state !== Posts.POST_DELETED && (
+                            {props.permissionPoliciesEnabled && redactedFileCount > 0 && !props.isPostBeingEdited && !showConcealedPlaceholder && post.state !== Posts.POST_DELETED && (
                                 <RedactedFilesPlaceholder
                                     count={redactedFileCount}
                                     compactDisplay={props.compactDisplay}

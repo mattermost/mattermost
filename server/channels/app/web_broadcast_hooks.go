@@ -204,7 +204,7 @@ func (h *permalinkBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 		(len(permalinkPreviewedPost.Post.FileIds) > 0 ||
 			(permalinkPreviewedPost.Post.Metadata != nil && len(permalinkPreviewedPost.Post.Metadata.Files) > 0)) {
 		session := webConn.GetSession()
-		if session != nil {
+		if session != nil && webConn.Platform.Config().FeatureFlags.PermissionPolicies {
 			rctxWithSession := rctx.WithSession(session)
 			if !webConn.Suite.HasPermissionToFileAction(rctxWithSession, webConn.UserId, session.Roles, permalinkPreviewedPost.Post.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
 				postCopy := permalinkPreviewedPost.Post.Clone()
@@ -485,6 +485,7 @@ func (h *abacFilesBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 func (h *abacFilesBroadcastHook) stripFilesFromMessage(msg *platform.HookedWebSocketEvent, redactedCount int) error {
 	post, err := getPostFromMessage(msg)
 	if err != nil {
+		mlog.Warn("abacFilesBroadcastHook: failed to parse post in fallback strip; rejecting event", mlog.Err(err))
 		msg.Event().Reject()
 		return nil
 	}
@@ -497,6 +498,7 @@ func (h *abacFilesBroadcastHook) stripFilesFromMessage(msg *platform.HookedWebSo
 	if postJSON, jsonErr := post.ToJSON(); jsonErr == nil {
 		msg.Add("post", postJSON)
 	} else {
+		mlog.Warn("abacFilesBroadcastHook: failed to marshal post in fallback strip; rejecting event", mlog.Err(jsonErr))
 		msg.Event().Reject()
 	}
 	return nil

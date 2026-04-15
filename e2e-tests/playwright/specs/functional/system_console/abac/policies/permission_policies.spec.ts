@@ -1,9 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, enableABAC, navigateToPermissionPoliciesPage} from '@mattermost/playwright-lib';
+import {expect, test, enableABAC} from '@mattermost/playwright-lib';
 
-import {ensureUserAttributes, createPermissionPolicy, deletePermissionPolicyByName} from '../support';
+import {
+    ensureUserAttributes,
+    createPermissionPolicy,
+    deletePermissionPolicyByName,
+    navigateToPermissionPoliciesPage,
+} from '../support';
 
 /**
  * Permission Policies - System Console (MM-64508)
@@ -216,7 +221,7 @@ test.describe('Permission Policies - Create Policy', () => {
 
         await systemConsolePage.page
             .getByPlaceholder('Add a unique policy name')
-            .fill(`PP Expr Validate ${await pw.random.id()}`);
+            .fill(`PP Expr Validate ${pw.random.id()}`);
         await systemConsolePage.page.getByRole('button', {name: 'Save'}).last().click();
 
         await expect(systemConsolePage.page.getByText('Please add an expression to the policy')).toBeVisible();
@@ -236,7 +241,7 @@ test.describe('Permission Policies - Create Policy', () => {
 
         await systemConsolePage.page
             .getByPlaceholder('Add a unique policy name')
-            .fill(`PP Perm Validate ${await pw.random.id()}`);
+            .fill(`PP Perm Validate ${pw.random.id()}`);
 
         // # Enter a valid CEL expression but add no permissions
         await systemConsolePage.page.getByRole('button', {name: 'Switch to Advanced Mode'}).click();
@@ -264,7 +269,7 @@ test.describe('Permission Policies - Create Policy', () => {
 
         await enableABAC(systemConsolePage.page);
 
-        const policyName = `PP Download ${await pw.random.id()}`;
+        const policyName = `PP Download ${pw.random.id()}`;
         try {
             await createPermissionPolicy(systemConsolePage.page, {
                 name: policyName,
@@ -292,7 +297,7 @@ test.describe('Permission Policies - Create Policy', () => {
 
         await enableABAC(systemConsolePage.page);
 
-        const policyName = `PP Both Perms ${await pw.random.id()}`;
+        const policyName = `PP Both Perms ${pw.random.id()}`;
         try {
             await createPermissionPolicy(systemConsolePage.page, {
                 name: policyName,
@@ -317,7 +322,7 @@ test.describe('Permission Policies - Create Policy', () => {
 
         await enableABAC(systemConsolePage.page);
 
-        const policyName = `PP List Check ${await pw.random.id()}`;
+        const policyName = `PP List Check ${pw.random.id()}`;
         try {
             await createPermissionPolicy(systemConsolePage.page, {
                 name: policyName,
@@ -369,7 +374,7 @@ test.describe('Permission Policies - Manage Existing Policies', () => {
 
         await enableABAC(systemConsolePage.page);
 
-        const policyName = `PP Delete ${await pw.random.id()}`;
+        const policyName = `PP Delete ${pw.random.id()}`;
         await createPermissionPolicy(systemConsolePage.page, {
             name: policyName,
             celExpression: 'user.attributes.Department == "Delete"',
@@ -404,7 +409,7 @@ test.describe('Permission Policies - Manage Existing Policies', () => {
 
         await enableABAC(systemConsolePage.page);
 
-        const policyName = `PP Search ${await pw.random.id()}`;
+        const policyName = `PP Search ${pw.random.id()}`;
         try {
             await createPermissionPolicy(systemConsolePage.page, {
                 name: policyName,

@@ -188,7 +188,7 @@ export async function createUserForABAC(
 
     // Attach the password back to the user object so pw.testBrowser.login() can authenticate.
     // The API response does not include the password field.
-    (user as any).password = 'Password123!';
+    (user as any).password = 'Passwd4Testing!';
 
     return user;
 }
@@ -1115,12 +1115,11 @@ export async function createPermissionPolicy(
         role?: 'system_guest' | 'system_user' | 'system_admin';
     },
 ): Promise<void> {
-    if (!page.url().includes('/permission_policies')) {
-        await page.goto('/admin_console/system_attributes/permission_policies');
-        await page.waitForLoadState('networkidle');
-    }
+    await navigateToPermissionPoliciesPage(page);
 
-    await page.getByRole('button', {name: 'Add policy'}).click();
+    const addPolicyButton = page.getByRole('button', {name: 'Add policy'});
+    await addPolicyButton.waitFor({state: 'visible', timeout: 15000});
+    await addPolicyButton.click();
     await page.waitForLoadState('networkidle');
 
     // Fill policy name
@@ -1160,6 +1159,21 @@ export async function createPermissionPolicy(
 
     await page.getByRole('button', {name: 'Save'}).last().click();
     await page.waitForLoadState('networkidle');
+}
+
+/**
+ * Navigate to Permission Policies and ensure the route is available.
+ * Throws a clear error when the webapp bundle does not include this page.
+ */
+export async function navigateToPermissionPoliciesPage(page: Page): Promise<void> {
+    await page.goto('/admin_console/system_attributes/permission_policies');
+    await page.waitForLoadState('networkidle');
+
+    if (page.url().includes('/admin_console/about/license')) {
+        throw new Error(
+            'Permission Policies page is unavailable and redirected to License. Rebuild and run webapp from a branch that includes the permission policies route before running ABAC tests.',
+        );
+    }
 }
 
 /**
@@ -1209,7 +1223,6 @@ export async function cleanupAllPermissionPolicies(client: Client4): Promise<voi
     let cursor = '';
     const limit = 100;
 
-    // eslint-disable-next-line no-constant-condition
     while (true) {
         let policies: any[] = [];
         try {

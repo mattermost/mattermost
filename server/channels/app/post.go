@@ -1052,6 +1052,10 @@ func (a *App) setupBroadcastHookForAbacFiles(post *model.Post, message *model.We
 		return
 	}
 
+	if !a.Config().FeatureFlags.PermissionPolicies {
+		return
+	}
+
 	if post.Type == model.PostTypeBurnOnRead {
 		return
 	}
@@ -3551,9 +3555,16 @@ func (a *App) RevealPost(rctx request.CTX, post *model.Post, userID string, conn
 	})
 
 	// Apply ABAC file sanitization after PreparePostForClient populates Metadata.Files.
-	revealedPost, _, err = a.SanitizePostMetadataForUser(rctx, revealedPost, userID)
-	if err != nil {
-		return nil, err
+	// Treat errors as non-fatal: a transient channel-lookup failure must not prevent
+	// the reveal WS event from reaching the author (the read receipt is already persisted).
+	if sanitized, _, sanitizeErr := a.SanitizePostMetadataForUser(rctx, revealedPost, userID); sanitizeErr == nil {
+		revealedPost = sanitized
+	} else {
+		rctx.Logger().Warn("Failed to sanitize post metadata for revealed BOR post; proceeding without sanitization",
+			mlog.String("post_id", revealedPost.Id),
+			mlog.String("user_id", userID),
+			mlog.Err(sanitizeErr),
+		)
 	}
 
 	// Publish websocket event if this is the first time revealing
