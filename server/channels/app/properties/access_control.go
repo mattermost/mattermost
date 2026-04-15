@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -704,7 +705,13 @@ func (h *AccessControlHook) checkSyncLock(field *model.PropertyField, callerID s
 	}
 
 	if callerID != expectedCallerID {
-		return fmt.Errorf("field %s is managed by %s sync and cannot be modified by caller %q", field.ID, syncSource, callerID)
+		return model.NewAppError(
+			"checkSyncLock",
+			"app.property.sync_lock.app_error",
+			map[string]any{"FieldID": field.ID, "SyncSource": syncSource},
+			fmt.Sprintf("field %s is managed by %s sync and cannot be modified by caller %q", field.ID, syncSource, callerID),
+			http.StatusBadRequest,
+		)
 	}
 
 	return nil

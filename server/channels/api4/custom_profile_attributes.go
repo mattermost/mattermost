@@ -250,14 +250,15 @@ func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	results := make(map[string]json.RawMessage, len(updates))
-	for fieldID, rawValue := range updates {
-		patchedValue, appErr := c.App.PatchCPAValue(rctx, userID, fieldID, rawValue)
-		if appErr != nil {
-			c.Err = appErr
-			return
-		}
-		results[fieldID] = patchedValue.Value
+	patchedValues, appErr := c.App.PatchCPAValues(rctx, userID, updates)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	results := make(map[string]json.RawMessage, len(patchedValues))
+	for _, value := range patchedValues {
+		results[value.FieldID] = value.Value
 	}
 
 	auditRec.Success()
@@ -362,14 +363,15 @@ func patchCPAValuesForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	results := make(map[string]json.RawMessage, len(updates))
-	for fieldID, rawValue := range updates {
-		patchedValue, appErr := c.App.PatchCPAValue(rctx, userID, fieldID, rawValue)
-		if appErr != nil {
-			c.Err = appErr
-			return
-		}
-		results[fieldID] = patchedValue.Value
+	patchedValues, appErr := c.App.PatchCPAValues(rctx, userID, updates)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	results := make(map[string]json.RawMessage, len(patchedValues))
+	for _, value := range patchedValues {
+		results[value.FieldID] = value.Value
 	}
 
 	auditRec.Success()

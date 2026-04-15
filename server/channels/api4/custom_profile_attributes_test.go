@@ -120,6 +120,9 @@ func TestListCPAFields(t *testing.T) {
 		cfg.FeatureFlags.CustomProfileAttributes = true
 	})
 
+	// License required for field creation (LicenseCheckHook)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
 	field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 		Name:  model.NewId(),
 		Type:  model.PropertyFieldTypeText,
@@ -132,15 +135,15 @@ func TestListCPAFields(t *testing.T) {
 	require.NotNil(t, createdField)
 
 	t.Run("endpoint should not work if no valid license is present", func(t *testing.T) {
+		th.App.Srv().SetLicense(nil)
+		defer th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
 		fields, resp, err := th.Client.ListCPAFields(context.Background())
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
 		CheckErrorID(t, err, "api.custom_profile_attributes.license_error")
 		require.Empty(t, fields)
 	})
-
-	// add a valid license
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	t.Run("any user should be able to list fields", func(t *testing.T) {
 		fields, resp, err := th.Client.ListCPAFields(context.Background())
@@ -236,17 +239,13 @@ func TestPatchCPAField(t *testing.T) {
 			require.Equal(t, patchedField, &wsField)
 		})
 
-		t.Run("sanitization should remove options and sync details when necessary", func(t *testing.T) {
-			// Create a select field with options
-			optionID1 := model.NewId()
-			optionID2 := model.NewId()
+		t.Run("type changes should be rejected", func(t *testing.T) {
 			selectField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 				Name: model.NewId(),
 				Type: model.PropertyFieldTypeSelect,
 				Attrs: model.StringInterface{
 					"options": []map[string]any{
-						{"id": optionID1, "name": "Option 1", "color": "#FF0000"},
-						{"id": optionID2, "name": "Option 2", "color": "#00FF00"},
+						{"id": model.NewId(), "name": "Option 1"},
 					},
 				},
 			})
@@ -256,47 +255,14 @@ func TestPatchCPAField(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, createdField)
 
-			// Verify options were created
-			options, ok := createdField.Attrs["options"]
-			require.True(t, ok)
-			require.NotNil(t, options)
-
-			// Patch to change type to text with LDAP attribute
-			// Options should be automatically removed even though we don't explicitly remove them
-			ldapAttr := "user_attribute"
+			// Attempting to change type should be rejected
 			textPatch := &model.PropertyFieldPatch{
-				Type:  model.NewPointer(model.PropertyFieldTypeText),
-				Attrs: &model.StringInterface{"ldap": ldapAttr},
+				Type: model.NewPointer(model.PropertyFieldTypeText),
 			}
 
-			patchedTextField, resp, err := client.PatchCPAField(context.Background(), createdField.ID, textPatch)
-			CheckOKStatus(t, resp)
-			require.NoError(t, err)
-			require.Equal(t, model.PropertyFieldTypeText, patchedTextField.Type)
-
-			// Verify options were removed
-			options = patchedTextField.Attrs["options"]
-			require.Empty(t, options)
-
-			// Verify LDAP attribute was set
-			ldap, ok := patchedTextField.Attrs["ldap"]
-			require.True(t, ok)
-			require.Equal(t, ldapAttr, ldap)
-
-			// Now patch to change type to date
-			// LDAP attribute should be automatically removed even though we don't explicitly remove it
-			datePatch := &model.PropertyFieldPatch{
-				Type: model.NewPointer(model.PropertyFieldTypeDate),
-			}
-
-			patchedDateField, resp, err := client.PatchCPAField(context.Background(), patchedTextField.ID, datePatch)
-			CheckOKStatus(t, resp)
-			require.NoError(t, err)
-			require.Equal(t, model.PropertyFieldTypeDate, patchedDateField.Type)
-
-			// Verify LDAP attribute was removed
-			ldap = patchedDateField.Attrs["ldap"]
-			require.Empty(t, ldap)
+			_, resp, err := client.PatchCPAField(context.Background(), createdField.ID, textPatch)
+			CheckBadRequestStatus(t, resp)
+			require.Error(t, err)
 		})
 	}, "a user with admin permissions should be able to patch the field")
 
@@ -422,6 +388,9 @@ func TestListCPAValues(t *testing.T) {
 		cfg.FeatureFlags.CustomProfileAttributes = true
 	}).InitBasic(t)
 
+	// License required for field/value creation (LicenseCheckHook)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
 	th.RemovePermissionFromRole(t, model.PermissionViewMembers.Id, model.SystemUserRoleId)
 	defer th.AddPermissionToRole(t, model.PermissionViewMembers.Id, model.SystemUserRoleId)
 
@@ -439,15 +408,15 @@ func TestListCPAValues(t *testing.T) {
 	require.Nil(t, appErr)
 
 	t.Run("endpoint should not work if no valid license is present", func(t *testing.T) {
+		th.App.Srv().SetLicense(nil)
+		defer th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
 		values, resp, err := th.Client.ListCPAValues(context.Background(), th.BasicUser.Id)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
 		CheckErrorID(t, err, "api.custom_profile_attributes.license_error")
 		require.Empty(t, values)
 	})
-
-	// add a valid license
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	// login with Client2 from this point on
 	th.LoginBasic2(t)
@@ -510,6 +479,9 @@ func TestPatchCPAValues(t *testing.T) {
 		cfg.FeatureFlags.CustomProfileAttributes = true
 	}).InitBasic(t)
 
+	// License required for field creation (LicenseCheckHook)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
 	field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 		Name: model.NewId(),
 		Type: model.PropertyFieldTypeText,
@@ -521,6 +493,9 @@ func TestPatchCPAValues(t *testing.T) {
 	require.NotNil(t, createdField)
 
 	t.Run("endpoint should not work if no valid license is present", func(t *testing.T) {
+		th.App.Srv().SetLicense(nil)
+		defer th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
 		values := map[string]json.RawMessage{createdField.ID: json.RawMessage(`"Field Value"`)}
 		patchedValues, resp, err := th.Client.PatchCPAValues(context.Background(), values)
 		CheckForbiddenStatus(t, resp)
@@ -528,9 +503,6 @@ func TestPatchCPAValues(t *testing.T) {
 		CheckErrorID(t, err, "api.custom_profile_attributes.license_error")
 		require.Empty(t, patchedValues)
 	})
-
-	// add a valid license
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	t.Run("any team member should be able to create their own values", func(t *testing.T) {
 		webSocketClient := th.CreateConnectedWebSocketClient(t)
@@ -682,7 +654,7 @@ func TestPatchCPAValues(t *testing.T) {
 		_, resp, err := th.Client.PatchCPAValues(context.Background(), values)
 		CheckBadRequestStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "app.custom_profile_attributes.property_field_is_synced.app_error")
+		CheckErrorID(t, err, "app.property.sync_lock.app_error")
 
 		// Test SAML field
 		values = map[string]json.RawMessage{
@@ -691,7 +663,7 @@ func TestPatchCPAValues(t *testing.T) {
 		_, resp, err = th.Client.PatchCPAValues(context.Background(), values)
 		CheckBadRequestStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "app.custom_profile_attributes.property_field_is_synced.app_error")
+		CheckErrorID(t, err, "app.property.sync_lock.app_error")
 
 		// Test multiple fields with one being LDAP synced
 		values = map[string]json.RawMessage{
@@ -701,7 +673,7 @@ func TestPatchCPAValues(t *testing.T) {
 		_, resp, err = th.Client.PatchCPAValues(context.Background(), values)
 		CheckBadRequestStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "app.custom_profile_attributes.property_field_is_synced.app_error")
+		CheckErrorID(t, err, "app.property.sync_lock.app_error")
 	})
 
 	t.Run("an invalid patch should be rejected", func(t *testing.T) {
@@ -724,7 +696,7 @@ func TestPatchCPAValues(t *testing.T) {
 		_, resp, err := th.Client.PatchCPAValues(context.Background(), values)
 		CheckBadRequestStatus(t, resp)
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "Failed to validate property value")
+		CheckErrorID(t, err, "app.property_value.validate.app_error")
 	})
 
 	t.Run("admin-managed fields", func(t *testing.T) {
@@ -875,6 +847,9 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 		cfg.FeatureFlags.CustomProfileAttributes = true
 	}).InitBasic(t)
 
+	// License required for field creation (LicenseCheckHook)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
 	field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 		Name: model.NewId(),
 		Type: model.PropertyFieldTypeText,
@@ -886,6 +861,9 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 	require.NotNil(t, createdField)
 
 	t.Run("endpoint should not work if no valid license is present", func(t *testing.T) {
+		th.App.Srv().SetLicense(nil)
+		defer th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
 		values := map[string]json.RawMessage{createdField.ID: json.RawMessage(`"Field Value"`)}
 		patchedValues, resp, err := th.Client.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, values)
 		CheckForbiddenStatus(t, resp)
@@ -1047,7 +1025,7 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 		_, resp, err := th.Client.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, values)
 		CheckBadRequestStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "app.custom_profile_attributes.property_field_is_synced.app_error")
+		CheckErrorID(t, err, "app.property.sync_lock.app_error")
 
 		// Test SAML field
 		values = map[string]json.RawMessage{
@@ -1056,7 +1034,7 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 		_, resp, err = th.Client.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, values)
 		CheckBadRequestStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "app.custom_profile_attributes.property_field_is_synced.app_error")
+		CheckErrorID(t, err, "app.property.sync_lock.app_error")
 
 		// Test multiple fields with one being LDAP synced
 		values = map[string]json.RawMessage{
@@ -1066,7 +1044,7 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 		_, resp, err = th.Client.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, values)
 		CheckBadRequestStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "app.custom_profile_attributes.property_field_is_synced.app_error")
+		CheckErrorID(t, err, "app.property.sync_lock.app_error")
 	})
 
 	t.Run("an invalid patch should be rejected", func(t *testing.T) {
@@ -1089,7 +1067,7 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 		_, resp, err := th.Client.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, values)
 		CheckBadRequestStatus(t, resp)
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "Failed to validate property value")
+		CheckErrorID(t, err, "app.property_value.validate.app_error")
 	})
 
 	t.Run("admin-managed fields", func(t *testing.T) {

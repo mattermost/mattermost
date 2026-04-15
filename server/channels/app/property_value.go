@@ -5,6 +5,7 @@ package app
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -137,6 +138,10 @@ func (a *App) UpsertPropertyValues(rctx request.CTX, values []*model.PropertyVal
 
 	result, err := a.Srv().propertyService.UpsertPropertyValues(rctx, values)
 	if err != nil {
+		var appErr *model.AppError
+		if errors.As(err, &appErr) {
+			return nil, appErr
+		}
 		return nil, model.NewAppError("UpsertPropertyValues", "app.property_value.upsert_many.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 

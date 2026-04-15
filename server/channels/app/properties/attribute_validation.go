@@ -6,6 +6,7 @@ package properties
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -242,7 +243,13 @@ func (h *AttributeValidationHook) validateValues(values []*model.PropertyValue) 
 			return fmt.Errorf("field %s not found", value.FieldID)
 		}
 		if err := h.validateValueAgainstField(field, value); err != nil {
-			return fmt.Errorf("field %s: %w", value.FieldID, err)
+			return model.NewAppError(
+				"validateValues",
+				"app.property_value.validate.app_error",
+				map[string]any{"FieldID": value.FieldID},
+				fmt.Sprintf("field %s: %s", value.FieldID, err.Error()),
+				http.StatusBadRequest,
+			)
 		}
 	}
 

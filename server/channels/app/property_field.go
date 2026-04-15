@@ -195,6 +195,10 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 
 	updated, err := a.Srv().propertyService.UpdatePropertyFields(rctx, groupID, fields)
 	if err != nil {
+		var appErr *model.AppError
+		if errors.As(err, &appErr) {
+			return nil, appErr
+		}
 		return nil, model.NewAppError("UpdatePropertyFields", "app.property_field.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
