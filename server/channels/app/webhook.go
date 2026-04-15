@@ -127,6 +127,14 @@ func (a *App) TriggerWebhook(rctx request.CTX, payload *model.OutgoingWebhookPay
 
 		go func() {
 			defer wg.Done()
+			defer func() {
+				if r := recover(); r != nil {
+					logger.Error("Recovered from panic in outgoing webhook goroutine",
+						mlog.String("url", url),
+						mlog.Any("panic", r),
+					)
+				}
+			}()
 
 			var accessToken *model.OutgoingOAuthConnectionToken
 
