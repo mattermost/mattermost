@@ -56,11 +56,13 @@ func TestGetContainerLimits(t *testing.T) {
 		assert.InDelta(t, 0.5, limits.CPULimit, 0.001)
 	})
 
-	t.Run("missing cgroup files returns error", func(t *testing.T) {
+	t.Run("missing cgroup files returns zero values", func(t *testing.T) {
 		cgroupPaths.v2MemoryMax = filepath.Join(dir, "nonexistent_memory")
 		cgroupPaths.v2CPUMax = writeTempCgroupFile(t, dir, "cpu_present", "max 100000\n")
 
-		_, err := getContainerLimits()
-		require.Error(t, err)
+		limits, err := getContainerLimits()
+		require.NoError(t, err)
+		assert.Equal(t, uint64(0), limits.MemoryLimitMB)
+		assert.Equal(t, float64(0), limits.CPULimit)
 	})
 }

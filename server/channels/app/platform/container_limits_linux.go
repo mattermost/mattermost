@@ -37,6 +37,9 @@ func getContainerLimits() (ContainerLimits, error) {
 	// Memory limit: "max" means unlimited, otherwise bytes
 	memStr, err := readTrimmed(cgroupPaths.v2MemoryMax)
 	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return limits, nil
+		}
 		return limits, err
 	}
 	if memStr != "max" {
@@ -45,12 +48,15 @@ func getContainerLimits() (ContainerLimits, error) {
 		if err != nil {
 			return limits, err
 		}
-		limits.MemoryLimitMB = memBytes / 1024 / 1024
+		limits.MemoryLimitMB = (memBytes + 1024*1024 - 1) / (1024 * 1024)
 	}
 
 	// CPU limit: format is "quota period"; quota is "max" when unlimited
 	cpuStr, err := readTrimmed(cgroupPaths.v2CPUMax)
 	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return limits, nil
+		}
 		return limits, err
 	}
 	parts := strings.Fields(cpuStr)
