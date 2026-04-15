@@ -6,6 +6,7 @@ import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 import {useDebounce} from 'hooks/useDebounce';
 import {useLatest} from 'hooks/useLatest';
+import {partitionAt} from 'utils/array';
 
 // Space to reserve for the menu button
 const MENU_BUTTON_WIDTH = 80;
@@ -19,7 +20,7 @@ const ITEM_GAP = 4;
 // Debounce delay for overflow recalculation
 const OVERFLOW_DEBOUNCE_MS = 100;
 
-interface UseObservedItemRefsOptions {
+interface UseObservedRefsOptions {
     onResize: () => void;
     refs: MutableRefObject<Map<string, HTMLElement>>;
 }
@@ -32,7 +33,7 @@ interface UseObservedItemRefsOptions {
  * Returns a stable `register` callback — call with the element on mount
  * and `null` on unmount.
  */
-function useObservedItemRefs({onResize, refs}: UseObservedItemRefsOptions) {
+function useObservedRefs({onResize, refs}: UseObservedRefsOptions) {
     const observerRef = useRef<ResizeObserver | null>(null);
 
     useEffect(() => {
@@ -65,7 +66,10 @@ function useObservedItemRefs({onResize, refs}: UseObservedItemRefsOptions) {
 }
 
 export function useBookmarksOverflow(order: string[]) {
-    const containerRef = useRef<HTMLDivElement>(null);
+    const [containerEl, setContainerEl] = useState<HTMLDivElement | null>(null);
+    const containerRef = useCallback((node: HTMLDivElement | null) => {
+        setContainerEl(node);
+    }, []);
     const itemRefs = useRef<Map<string, HTMLElement>>(new Map());
     const isPausedRef = useRef(false);
     const pendingRecalcRef = useRef(false);
@@ -81,13 +85,12 @@ export function useBookmarksOverflow(order: string[]) {
         }
 
         const currentOrder = orderRef.current;
-        const container = containerRef.current;
-        if (!container || currentOrder.length === 0) {
+        if (!containerEl || currentOrder.length === 0) {
             setOverflowStartIndex(currentOrder.length);
             return;
         }
 
-        const containerWidth = container.getBoundingClientRect().width;
+        const containerWidth = containerEl.getBoundingClientRect().width;
         const availableWidth = containerWidth - MENU_BUTTON_WIDTH - BAR_INLINE_PADDING;
 
         let usedWidth = 0;
@@ -108,51 +111,40 @@ export function useBookmarksOverflow(order: string[]) {
         }
 
         setOverflowStartIndex(newOverflowIndex);
-    }, [orderRef, itemRefs]);
+    }, [containerEl, orderRef, itemRefs]);
 
     const debouncedCalculateOverflow = useDebounce(calculateOverflow, OVERFLOW_DEBOUNCE_MS);
 
-    // Item registry with resize observation — width changes (e.g. renaming
-    // a bookmark) trigger overflow recalculation even when order is unchanged.
-    const {register: registerItemRef} = useObservedItemRefs({
+    // Single shared ResizeObserver for items and container. Item width
+    // changes (e.g. rename) and container resizes (viewport/sidebar)
+    // both trigger overflow recalculation.
+    const {register} = useObservedRefs({
         onResize: debouncedCalculateOverflow,
         refs: itemRefs,
     });
 
-    // Set up container ResizeObserver and trigger recalculation on order changes.
-    // calculateOverflow and debouncedCalculateOverflow are stable (read
-    // order from ref), so the observer is only recreated when order.length
-    // changes (items added/removed, not reordered).
+    const registerItemRef = useCallback((id: string, element: HTMLElement | null) => {
+        register(id, element);
+    }, [register]);
+
+    // Register/unregister the container element. containerEl is state
+    // (from callback ref) so this re-runs when the element mounts.
     useEffect(() => {
-        const container = containerRef.current;
-        if (!container) {
-            return undefined;
+        if (containerEl) {
+            register('__container', containerEl);
         }
+        return () => register('__container', null);
+    }, [containerEl, register]);
 
-        const containerObserver = new ResizeObserver(() => {
-            debouncedCalculateOverflow();
-        });
-        containerObserver.observe(container);
-
-        // Initial/re-calculation (debounced to ensure child refs are registered)
-        debouncedCalculateOverflow();
-
-        return () => {
-            debouncedCalculateOverflow.cancel();
-            containerObserver.disconnect();
-        };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- order.length triggers recalc on add/remove
-    }, [calculateOverflow, debouncedCalculateOverflow, order.length]);
-
-    // Recalculate when order changes (reorder, add, remove).
+    // Recalculate on order changes and initial mount.
     // During active reorder this is blocked by isPausedRef; the pending
     // recalc fires when the pause releases.
     useEffect(() => {
         debouncedCalculateOverflow();
+        return () => debouncedCalculateOverflow.cancel();
     }, [order, debouncedCalculateOverflow]);
 
-    const visibleItems = useMemo(() => order.slice(0, overflowStartIndex), [order, overflowStartIndex]);
-    const overflowItems = useMemo(() => order.slice(overflowStartIndex), [order, overflowStartIndex]);
+    const [visibleItems, overflowItems] = useMemo(() => partitionAt(order, overflowStartIndex), [order, overflowStartIndex]);
 
     const pauseRecalc = useCallback((paused: boolean) => {
         isPausedRef.current = paused;

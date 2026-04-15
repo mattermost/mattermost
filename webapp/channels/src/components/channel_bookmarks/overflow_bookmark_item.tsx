@@ -74,6 +74,7 @@ function OverflowBookmarkItem({
         }
     }, [keyboardReorderProps]);
 
+
     const linksDisabled = isDragging || isDragSelf;
     const {openBookmark, icon} = useBookmarkLink(bookmark, linksDisabled, handleNavigate);
 
@@ -99,14 +100,15 @@ function OverflowBookmarkItem({
             className={itemClassName}
             data-bookmark-id={id}
             data-testid={`overflow-bookmark-item-${id}`}
-            onClick={openBookmark}
+            onClick={isKeyboardReordering ? undefined : openBookmark}
+            disableCloseOnSelect={isKeyboardReordering}
             onKeyDown={handleItemKeyDown}
             leadingElement={icon}
             labels={(
                 <WithTooltip
                     id={`overflow-bookmark-tooltip-${id}`}
                     title={bookmark.display_name}
-                    disabled={!isLabelOverflowing}
+                    disabled={!isLabelOverflowing || isDragging}
                 >
                     <span ref={labelRef}>
                         {bookmark.display_name}

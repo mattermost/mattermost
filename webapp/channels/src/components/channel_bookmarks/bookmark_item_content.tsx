@@ -174,7 +174,7 @@ const BookmarkItemContent = ({bookmark, disableInteractions, keyboardReorderProp
         </Chip>
     );
 
-    if (isLabelOverflowing) {
+    if (isLabelOverflowing && !disableInteractions) {
         return (
             <WithTooltip
                 id={`bookmark-tooltip-${bookmark.id}`}

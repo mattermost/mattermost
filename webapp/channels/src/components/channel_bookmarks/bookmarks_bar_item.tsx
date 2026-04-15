@@ -48,7 +48,8 @@ function BookmarksBarItem({id, bookmark, disabled, isDraggingGlobal, keyboardReo
                 ref={ref}
                 data-bookmark-id={id}
                 data-testid={`bookmark-item-${id}`}
-                style={{position: 'absolute', visibility: 'hidden', pointerEvents: 'none'}}
+                aria-hidden='true'
+                className='bookmarkMeasureItem'
             >
                 <BarChip
                     $isDragging={false}

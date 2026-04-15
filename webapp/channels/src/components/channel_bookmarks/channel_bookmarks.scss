@@ -2,6 +2,12 @@
     scrollbar-width: thin;
 }
 
+.bookmarkMeasureItem {
+    position: absolute;
+    visibility: hidden;
+    pointer-events: none;
+}
+
 .channelBookmarksMenuButton {
     position: relative;
     display: flex;

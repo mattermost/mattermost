@@ -58,14 +58,14 @@ export function useKeyboardReorder({
     const visibleItemsRef = useLatest(visibleItems);
     const overflowItemsRef = useLatest(overflowItems);
 
-    // Re-focus the active item after order changes
+    // Re-focus the active item after order changes and scroll it into view.
     useEffect(() => {
         if (state.isReordering && state.itemId) {
-            const container = document.querySelector(
-                `[data-bookmark-id="${state.itemId}"]`,
-            );
-            const focusable = (container?.querySelector('a[tabindex], span[tabindex]') as HTMLElement | null) ?? (container as HTMLElement | null);
-            focusable?.focus();
+            const el = findFocusableBookmark(state.itemId);
+            if (el) {
+                el.focus();
+                el.scrollIntoView({block: 'nearest'});
+            }
         }
     }, [order, state.isReordering, state.itemId]);
 
@@ -239,4 +239,19 @@ export function useKeyboardReorder({
     }, [canReorder, state, startReorder, confirmReorder, cancelReorder, moveItem]);
 
     return {reorderState: state, getItemProps};
+}
+
+/**
+ * Finds the focusable element for a bookmark by id. Hidden bar
+ * measurement copies are excluded via aria-hidden so we always
+ * find the interactive instance (bar or overflow menu).
+ */
+function findFocusableBookmark(id: string): HTMLElement | null {
+    const el = document.querySelector(
+        `[data-bookmark-id="${id}"]:not([aria-hidden])`,
+    );
+    if (!el) {
+        return null;
+    }
+    return (el.querySelector('a[tabindex], span[tabindex]') as HTMLElement | null) ?? (el as HTMLElement);
 }

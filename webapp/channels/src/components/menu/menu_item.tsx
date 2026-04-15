@@ -87,6 +87,12 @@ export interface Props extends MuiMenuItemProps {
     forceCloseOnSelect?: boolean;
 
     /**
+     * When true, selecting this item will not close the menu.
+     * Inverse of forceCloseOnSelect for non-checkbox/radio roles.
+     */
+    disableCloseOnSelect?: boolean;
+
+    /**
      * ONLY to support submenus. Avoid passing children to this component. Support for children is only added to support submenus.
      */
     children?: ReactNode;
@@ -140,6 +146,7 @@ export const MenuItem = forwardRef<HTMLLIElement, Props>((props, ref) => {
         onClick,
         role = 'menuitem',
         forceCloseOnSelect = false,
+        disableCloseOnSelect = false,
         ...otherProps
     } = props;
 
@@ -153,7 +160,7 @@ export const MenuItem = forwardRef<HTMLLIElement, Props>((props, ref) => {
             // If the menu item is a checkbox or radio button, we don't want to close the menu when it is clicked.
             // unless forceCloseOnSelect is set to true.
             // see https://www.w3.org/WAI/ARIA/apg/patterns/menubar/
-            if (isRoleCheckboxOrRadio(role) && !forceCloseOnSelect) {
+            if (disableCloseOnSelect || (isRoleCheckboxOrRadio(role) && !forceCloseOnSelect)) {
                 event.stopPropagation();
             } else {
                 // close submenu first if it is open

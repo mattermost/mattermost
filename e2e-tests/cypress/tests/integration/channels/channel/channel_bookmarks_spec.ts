@@ -563,6 +563,9 @@ describe('Channel Bookmarks', () => {
         });
 
         it('edit from overflow dot menu', () => {
+            cy.visit(`/${testTeam.name}/channels/${overflowChannel.name}`);
+            cy.findByTestId('channel-bookmarks-container').should('be.visible');
+
             const newName = `Edited OvBm ${getRandomId(4)}`;
 
             // # Open overflow menu
@@ -584,6 +587,9 @@ describe('Channel Bookmarks', () => {
         });
 
         it('copy link from overflow dot menu', () => {
+            cy.visit(`/${testTeam.name}/channels/${overflowChannel.name}`);
+            cy.findByTestId('channel-bookmarks-container').should('be.visible');
+
             // # Open overflow menu
             cy.get('#channelBookmarksBarMenuButton').click();
 
@@ -600,6 +606,9 @@ describe('Channel Bookmarks', () => {
         });
 
         it('delete from overflow dot menu', () => {
+            cy.visit(`/${testTeam.name}/channels/${overflowChannel.name}`);
+            cy.findByTestId('channel-bookmarks-container').should('be.visible');
+
             // # Open overflow menu and get first item name
             cy.get('#channelBookmarksBarMenuButton').click();
             cy.get('#channelBookmarksBarMenuDropdown [data-bookmark-id]').first().invoke('text').then((itemText) => {
