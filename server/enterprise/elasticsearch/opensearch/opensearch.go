@@ -735,7 +735,6 @@ func (os *OpensearchInterfaceImpl) DeleteChannelPosts(rctx request.CTX, channelI
 	return nil
 }
 
-
 func (os *OpensearchInterfaceImpl) DeleteUserPosts(rctx request.CTX, userID string) *model.AppError {
 	os.mutex.RLock()
 	defer os.mutex.RUnlock()

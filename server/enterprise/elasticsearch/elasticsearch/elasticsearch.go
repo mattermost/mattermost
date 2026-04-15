@@ -679,7 +679,6 @@ func (es *ElasticsearchInterfaceImpl) DeleteChannelPosts(rctx request.CTX, chann
 	return nil
 }
 
-
 func (es *ElasticsearchInterfaceImpl) DeleteUserPosts(rctx request.CTX, userID string) *model.AppError {
 	es.mutex.RLock()
 	defer es.mutex.RUnlock()
