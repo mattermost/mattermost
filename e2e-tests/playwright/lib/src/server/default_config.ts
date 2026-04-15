@@ -779,6 +779,7 @@ const defaultServerConfig: AdminConfig = {
         BurnOnRead: true,
         EnableAIPluginBridge: false,
         EnableAIRecaps: false,
+        ClassificationMarkings: false,
     },
     ImportSettings: {
         Directory: './import',
