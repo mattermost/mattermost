@@ -672,12 +672,12 @@ func TestAssignAccessPolicy(t *testing.T) {
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       model.NewId(),
 		Type:     model.AccessControlPolicyTypeParent,
-		Version:  model.AccessControlPolicyVersionV0_2,
+		Version:  model.AccessControlPolicyVersionV0_3,
 		Revision: 1,
 		Rules: []model.AccessControlPolicyRule{
 			{
 				Expression: "user.attributes.team == 'engineering'",
-				Actions:    []string{"*"},
+				Actions:    []string{model.AccessControlPolicyActionMembership},
 			},
 		},
 	}
@@ -705,31 +705,39 @@ func TestAssignAccessPolicy(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		resourceID := model.NewId()
-
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
-		child := model.AccessControlPolicy{
-			ID:       resourceID,
-			Type:     model.AccessControlPolicyTypeChannel,
-			Version:  model.AccessControlPolicyVersionV0_2,
-			Revision: 1,
+		// Use a real private channel: GetChannels hits the DB and returns ErrNotFound
+		// for a random UUID with no matching row, causing the handler to return 404.
+		privateCh := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypePrivate, th.BasicTeam.Id)
+
+		// child must be a pointer — SavePolicy mock returns it via interface{} and the
+		// generated mock does ret.Get(0).(*model.AccessControlPolicy), which panics on a value type.
+		child := &model.AccessControlPolicy{
+			ID:      privateCh.Id,
+			Type:    model.AccessControlPolicyTypeChannel,
+			Version: model.AccessControlPolicyVersionV0_3,
+			Imports: []string{samplePolicy.ID},
+			Props:   map[string]any{},
 		}
 
-		appErr := child.Inherit(samplePolicy)
-		require.Nil(t, appErr)
+		// AssignAccessControlPolicyToChannels calls GetPolicy twice:
+		//   1. GetAccessControlPolicy(parentID) — fetches the parent to inherit from
+		//   2. Per channel: GetPolicy(channelId) — checks for an existing child policy
+		notFound := model.NewAppError("GetPolicy", "app.access_control.not_found.app_error", nil, "", 404)
 
 		mockAccessControlService := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
-		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), samplePolicy.ID).Return(samplePolicy, nil).Times(1)
-		mockAccessControlService.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).Return(child, nil).Times(1)
+		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), samplePolicy.ID).Return(samplePolicy, nil).Once()
+		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), privateCh.Id).Return(nil, notFound).Once()
+		mockAccessControlService.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).Return(child, nil).Once()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
 		})
 
-		resp, err := client.AssignAccessControlPolicies(context.Background(), samplePolicy.ID, []string{resourceID})
+		resp, err := client.AssignAccessControlPolicies(context.Background(), samplePolicy.ID, []string{privateCh.Id})
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 	}, "AssignAccessPolicy with system admin")
