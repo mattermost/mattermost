@@ -6348,10 +6348,11 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                         {
                             type: 'bool',
-                            key: 'NativeAppSettings.EnableWatermark',
+                            key: 'ExperimentalSettings.EnableWatermark',
                             label: defineMessage({id: 'admin.experimental.enableWatermark.title', defaultMessage: 'Enable Mobile Watermark:'}),
                             help_text: defineMessage({id: 'admin.experimental.enableWatermark.desc', defaultMessage: 'When true, authenticated mobile sessions will display a watermark overlay showing the username, domain, date (YYYY-MM-DD), and time (HH:mm) for data loss prevention (DLP) purposes.'}),
                             help_text_markdown: false,
+                            isHidden: it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                     ],

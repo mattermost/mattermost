@@ -2983,21 +2983,21 @@ func TestNativeAppSettingsIsValid(t *testing.T) {
 	})
 }
 
-func TestNativeAppSettingsEnableWatermarkDefault(t *testing.T) {
+func TestExperimentalSettingsEnableWatermarkDefault(t *testing.T) {
 	t.Parallel()
 
 	t.Run("EnableWatermark defaults to false", func(t *testing.T) {
 		cfg := Config{}
 		cfg.SetDefaults()
-		require.NotNil(t, cfg.NativeAppSettings.EnableWatermark)
-		require.False(t, *cfg.NativeAppSettings.EnableWatermark)
+		require.NotNil(t, cfg.ExperimentalSettings.EnableWatermark)
+		require.False(t, *cfg.ExperimentalSettings.EnableWatermark)
 	})
 
 	t.Run("SetDefaults does not overwrite explicit true value", func(t *testing.T) {
 		cfg := Config{}
-		cfg.NativeAppSettings.EnableWatermark = NewPointer(true)
+		cfg.ExperimentalSettings.EnableWatermark = NewPointer(true)
 		cfg.SetDefaults()
-		require.NotNil(t, cfg.NativeAppSettings.EnableWatermark)
-		require.True(t, *cfg.NativeAppSettings.EnableWatermark)
+		require.NotNil(t, cfg.ExperimentalSettings.EnableWatermark)
+		require.True(t, *cfg.ExperimentalSettings.EnableWatermark)
 	})
 }
