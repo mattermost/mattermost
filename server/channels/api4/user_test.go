@@ -304,13 +304,11 @@ func TestCreateUserAudit(t *testing.T) {
 	require.NoError(t, err)
 	defer os.Remove(logFile.Name())
 
-	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED", "true")
-	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME", logFile.Name())
-	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED")
-	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME")
-
 	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
-	th := SetupWithServerOptions(t, options)
+	th := SetupWithServerOptionsAndConfig(t, options, func(cfg *model.Config) {
+		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
+		cfg.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
+	})
 
 	email := th.GenerateTestEmail()
 	user := model.User{
@@ -341,13 +339,11 @@ func TestUserLoginAudit(t *testing.T) {
 	require.NoError(t, err)
 	defer os.Remove(logFile.Name())
 
-	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED", "true")
-	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME", logFile.Name())
-	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED")
-	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME")
-
 	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
-	th := SetupWithServerOptions(t, options)
+	th := SetupWithServerOptionsAndConfig(t, options, func(cfg *model.Config) {
+		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
+		cfg.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
+	})
 
 	_, err = th.Client.Logout(context.Background())
 	require.NoError(t, err)
@@ -386,13 +382,11 @@ func TestLogoutAuditAuthStatus(t *testing.T) {
 	require.NoError(t, err)
 	defer os.Remove(logFile.Name())
 
-	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED", "true")
-	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME", logFile.Name())
-	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED")
-	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME")
-
 	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
-	th := SetupWithServerOptions(t, options)
+	th := SetupWithServerOptionsAndConfig(t, options, func(cfg *model.Config) {
+		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
+		cfg.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
+	})
 
 	t.Run("authenticated logout has auth_status=authenticated and user_id", func(t *testing.T) {
 		require.NoError(t, logFile.Truncate(0))
@@ -2322,6 +2316,50 @@ func TestUpdateUser(t *testing.T) {
 	})
 }
 
+func TestUpdateUserRemoteIdIgnored(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	t.Run("remote_id in update body is ignored for regular user", func(t *testing.T) {
+		user := th.CreateUser(t)
+		_, _, err := th.Client.Login(context.Background(), user.Email, user.Password)
+		require.NoError(t, err)
+
+		user.RemoteId = model.NewPointer("attacker-remote-id")
+		user.Nickname = "updated-nickname"
+		ruser, _, err := th.Client.UpdateUser(context.Background(), user)
+		require.NoError(t, err)
+		require.Equal(t, "updated-nickname", ruser.Nickname)
+		require.Empty(t, model.SafeDereference(ruser.RemoteId), "remote_id should remain empty")
+
+		dbUser, appErr := th.App.GetUser(user.Id)
+		require.Nil(t, appErr)
+		require.Empty(t, model.SafeDereference(dbUser.RemoteId), "remote_id should not be persisted")
+	})
+
+	t.Run("remote_id in update body is ignored for system admin", func(t *testing.T) {
+		user := th.CreateUser(t)
+
+		user.RemoteId = model.NewPointer("admin-remote-id")
+		user.Nickname = "admin-updated"
+		ruser, _, err := th.SystemAdminClient.UpdateUser(context.Background(), user)
+		require.NoError(t, err)
+		require.Equal(t, "admin-updated", ruser.Nickname)
+		require.Empty(t, model.SafeDereference(ruser.RemoteId), "remote_id should remain empty even for admin")
+	})
+
+	t.Run("existing remote_id is preserved when updating other fields", func(t *testing.T) {
+		remoteId := model.NewId()
+		user := th.SetUserRemoteID(t, th.CreateUser(t).Id, remoteId)
+
+		user.Nickname = "updated-nickname"
+		ruser, _, err := th.SystemAdminClient.UpdateUser(context.Background(), user)
+		require.NoError(t, err)
+		require.Equal(t, "updated-nickname", ruser.Nickname)
+		require.Equal(t, remoteId, model.SafeDereference(ruser.RemoteId), "existing remote_id should be preserved")
+	})
+}
+
 func TestUpdateAdminUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -2478,6 +2516,60 @@ func TestPatchUser(t *testing.T) {
 
 	_, _, err = th.SystemAdminClient.PatchUser(context.Background(), user.Id, patch)
 	require.NoError(t, err)
+}
+
+func TestPatchUserRemoteIdIgnored(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	t.Run("remote_id in patch is ignored for regular user", func(t *testing.T) {
+		user := th.CreateUser(t)
+		_, _, err := th.Client.Login(context.Background(), user.Email, user.Password)
+		require.NoError(t, err)
+
+		patch := &model.UserPatch{
+			RemoteId: model.NewPointer("attacker-remote-id"),
+			Nickname: model.NewPointer("new-nickname"),
+		}
+		ruser, _, err := th.Client.PatchUser(context.Background(), user.Id, patch)
+		require.NoError(t, err)
+		require.Equal(t, "new-nickname", ruser.Nickname)
+		require.Empty(t, model.SafeDereference(ruser.RemoteId), "remote_id should remain empty")
+
+		dbUser, appErr := th.App.GetUser(user.Id)
+		require.Nil(t, appErr)
+		require.Empty(t, model.SafeDereference(dbUser.RemoteId), "remote_id should not be persisted")
+	})
+
+	t.Run("remote_id in patch is ignored for system admin", func(t *testing.T) {
+		user := th.CreateUser(t)
+
+		patch := &model.UserPatch{
+			RemoteId: model.NewPointer("admin-remote-id"),
+			Nickname: model.NewPointer("admin-patched"),
+		}
+		ruser, _, err := th.SystemAdminClient.PatchUser(context.Background(), user.Id, patch)
+		require.NoError(t, err)
+		require.Equal(t, "admin-patched", ruser.Nickname)
+		require.Empty(t, model.SafeDereference(ruser.RemoteId), "remote_id should remain empty even for admin")
+
+		dbUser, appErr := th.App.GetUser(user.Id)
+		require.Nil(t, appErr)
+		require.Empty(t, model.SafeDereference(dbUser.RemoteId), "remote_id should not be persisted even for admin")
+	})
+
+	t.Run("existing remote_id is preserved when patching other fields", func(t *testing.T) {
+		remoteId := model.NewId()
+		user := th.SetUserRemoteID(t, th.CreateUser(t).Id, remoteId)
+
+		patch := &model.UserPatch{
+			Nickname: model.NewPointer("updated-nickname"),
+		}
+		ruser, _, err := th.SystemAdminClient.PatchUser(context.Background(), user.Id, patch)
+		require.NoError(t, err)
+		require.Equal(t, "updated-nickname", ruser.Nickname)
+		require.Equal(t, remoteId, model.SafeDereference(ruser.RemoteId), "existing remote_id should be preserved")
+	})
 }
 
 func TestPatchBotUser(t *testing.T) {
@@ -4598,13 +4690,14 @@ func TestLoginCookies(t *testing.T) {
 
 	t.Run("should return cookie with MMCLOUDURL for cloud installations when doing cws login", func(t *testing.T) {
 		token := model.NewRandomString(64)
-		os.Setenv("CWS_CLOUD_TOKEN", token)
 
 		updateConfig := func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "https://testchips.cloud.mattermost.com"
 		}
 		th := SetupAndApplyConfigBeforeLogin(t, updateConfig).InitBasic(t)
 
+		th.App.Srv().SetCWSTokenOverride(token)
+		t.Cleanup(func() { th.App.Srv().SetCWSTokenOverride("") })
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
 		form := url.Values{}
@@ -6935,13 +7028,11 @@ func TestUpdatePasswordAudit(t *testing.T) {
 	require.NoError(t, err)
 	defer os.Remove(logFile.Name())
 
-	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED", "true")
-	os.Setenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME", logFile.Name())
-	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED")
-	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME")
-
 	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
-	th := SetupWithServerOptions(t, options)
+	th := SetupWithServerOptionsAndConfig(t, options, func(cfg *model.Config) {
+		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
+		cfg.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
+	})
 
 	password := model.NewTestPassword()
 	th.LoginBasic(t)

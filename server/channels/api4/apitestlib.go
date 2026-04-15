@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	sq "github.com/mattermost/squirrel"
 	s3 "github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/stretchr/testify/require"
@@ -412,6 +413,22 @@ func SetupWithServerOptions(tb testing.TB, options []app.Option) *TestHelper {
 
 	dbStore, dbSettings, searchEngine := setupStores(tb)
 	th := setupTestHelper(tb, dbStore, dbSettings, searchEngine, false, true, nil, options)
+	th.InitLogin(tb)
+
+	return th
+}
+
+func SetupWithServerOptionsAndConfig(tb testing.TB, options []app.Option, updateConfig func(*model.Config)) *TestHelper {
+	if testing.Short() {
+		tb.SkipNow()
+	}
+
+	if mainHelper == nil {
+		tb.SkipNow()
+	}
+
+	dbStore, dbSettings, searchEngine := setupStores(tb)
+	th := setupTestHelper(tb, dbStore, dbSettings, searchEngine, false, true, updateConfig, options)
 	th.InitLogin(tb)
 
 	return th
@@ -1391,6 +1408,25 @@ func (th *TestHelper) SetupScheme(tb testing.TB, scope string) *model.Scheme {
 	})
 	require.Nil(tb, err)
 	return scheme
+}
+
+func (th *TestHelper) SetUserRemoteID(tb testing.TB, userID, remoteID string) *model.User {
+	tb.Helper()
+
+	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
+		Update("Users").
+		Set("RemoteId", remoteID).
+		Where(sq.Eq{"Id": userID}).
+		ToSql()
+	require.NoError(tb, err)
+
+	_, err = th.App.Srv().Store().GetInternalMasterDB().Exec(query, args...)
+	require.NoError(tb, err)
+
+	th.App.InvalidateCacheForUser(userID)
+	user, appErr := th.App.GetUser(userID)
+	require.Nil(tb, appErr)
+	return user
 }
 
 func (th *TestHelper) Parallel(t *testing.T) {

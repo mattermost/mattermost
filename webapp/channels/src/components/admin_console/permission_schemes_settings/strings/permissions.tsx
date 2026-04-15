@@ -35,6 +35,26 @@ export const permissionRolesStrings: Record<string, Record<string, MessageDescri
             defaultMessage: 'Convert private channels to public',
         },
     }),
+    manage_own_agent: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.manage_own_agent.name',
+            defaultMessage: 'Manage own AI agents',
+        },
+        description: {
+            id: 'admin.permissions.permission.manage_own_agent.description',
+            defaultMessage: 'Create and manage your own AI agents.',
+        },
+    }),
+    manage_others_agent: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.manage_others_agent.name',
+            defaultMessage: 'Manage others\' AI agents',
+        },
+        description: {
+            id: 'admin.permissions.permission.manage_others_agent.description',
+            defaultMessage: 'Create and manage AI agents for other users.',
+        },
+    }),
     create_direct_channel: defineMessages({
         name: {
             id: 'admin.permissions.permission.create_direct_channel.name',

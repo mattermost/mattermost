@@ -11,7 +11,6 @@ import (
 	_ "image/jpeg"
 	_ "image/png"
 	"net/http"
-	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -2575,9 +2574,11 @@ func TestGetUsersForReporting(t *testing.T) {
 
 // Helper functions for remote user testing
 func setupRemoteClusterTest(t *testing.T) (*TestHelper, store.Store) {
-	os.Setenv("MM_FEATUREFLAGS_ENABLESHAREDCHANNELSDMS", "true")
-	t.Cleanup(func() { os.Unsetenv("MM_FEATUREFLAGS_ENABLESHAREDCHANNELSDMS") })
 	th := setupSharedChannels(t).InitBasic(t)
+
+	// Enable SharedChannelsDMs feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableSharedChannelsDMs = true })
+
 	return th, th.App.Srv().Store()
 }
 
@@ -2601,10 +2602,7 @@ func createTestRemoteCluster(t *testing.T, th *TestHelper, ss store.Store, name,
 
 func createRemoteUser(t *testing.T, th *TestHelper, remoteCluster *model.RemoteCluster) *model.User {
 	user := th.CreateUser(t)
-	user.RemoteId = &remoteCluster.RemoteId
-	updatedUser, appErr := th.App.UpdateUser(th.Context, user, false)
-	require.Nil(t, appErr)
-	return updatedUser
+	return th.SetUserRemoteID(t, user.Id, remoteCluster.RemoteId)
 }
 
 func ensureRemoteClusterConnected(t *testing.T, ss store.Store, cluster *model.RemoteCluster, connected bool) {
