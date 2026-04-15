@@ -45,7 +45,7 @@ func TestCreateWiki(t *testing.T) {
 		}
 
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		_, resp, err := client2.CreateWiki(context.Background(), wiki)
@@ -76,7 +76,7 @@ func TestCreateWiki(t *testing.T) {
 
 		// Login as BasicUser2 (who is a regular member, not channel admin)
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		wiki := &model.Wiki{
@@ -144,7 +144,7 @@ func TestGetWiki(t *testing.T) {
 		require.Nil(t, appErr)
 
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		_, resp, err := client2.GetWiki(context.Background(), privateWiki.Id)
@@ -200,7 +200,7 @@ func TestListChannelWikis(t *testing.T) {
 		privateChannel := th.CreatePrivateChannel(t)
 
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		_, resp, err := client2.GetWikisForChannel(context.Background(), privateChannel.Id)
@@ -250,7 +250,7 @@ func TestUpdateWiki(t *testing.T) {
 		require.Nil(t, appErr)
 
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		privateWiki.Title = "Should not update"
@@ -330,7 +330,7 @@ func TestDeleteWiki(t *testing.T) {
 		require.Nil(t, appErr)
 
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		resp, err := client2.DeleteWiki(context.Background(), privateWiki.Id)
@@ -401,7 +401,7 @@ func TestGetPages(t *testing.T) {
 		require.Nil(t, appErr)
 
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		_, resp, err := client2.GetPages(context.Background(), privateWiki.Id, 0, 100)
@@ -560,7 +560,7 @@ func TestWikiPermissions(t *testing.T) {
 			defer th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
 
 			client2 := th.CreateClient()
-			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 			require.NoError(t, lErr)
 
 			wiki := &model.Wiki{
@@ -581,7 +581,7 @@ func TestWikiPermissions(t *testing.T) {
 			defer th.AddPermissionToRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
 
 			client2 := th.CreateClient()
-			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 			require.NoError(t, lErr)
 
 			wiki := &model.Wiki{
@@ -598,7 +598,7 @@ func TestWikiPermissions(t *testing.T) {
 			dmChannel := th.CreateDmChannel(t, th.BasicUser2)
 
 			client2 := th.CreateClient()
-			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 			require.NoError(t, lErr)
 
 			wiki := &model.Wiki{
@@ -630,7 +630,7 @@ func TestWikiPermissions(t *testing.T) {
 			defer th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
 
 			client2 := th.CreateClient()
-			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 			require.NoError(t, lErr)
 
 			wiki.Title = "Updated Title"
@@ -655,7 +655,7 @@ func TestWikiPermissions(t *testing.T) {
 			defer th.AddPermissionToRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
 
 			client2 := th.CreateClient()
-			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 			require.NoError(t, lErr)
 
 			wiki.Title = "Updated Title"
@@ -682,7 +682,7 @@ func TestWikiPermissions(t *testing.T) {
 			defer th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
 
 			client2 := th.CreateClient()
-			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 			require.NoError(t, lErr)
 
 			resp, err := client2.DeleteWiki(context.Background(), wiki.Id)
@@ -706,7 +706,7 @@ func TestWikiPermissions(t *testing.T) {
 			defer th.AddPermissionToRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
 
 			client2 := th.CreateClient()
-			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 			require.NoError(t, lErr)
 
 			resp, err := client2.DeleteWiki(context.Background(), wiki.Id)
@@ -743,7 +743,7 @@ func TestWikiPermissions(t *testing.T) {
 		defer th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
 
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		resp, err := client2.DeletePage(context.Background(), wiki.Id, page.Id)
@@ -958,7 +958,7 @@ func TestCreatePageViaWikiApi(t *testing.T) {
 		require.Nil(t, appErr)
 
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		_, resp, err := client2.CreatePage(context.Background(), privateWiki.Id, "", "Unauthorized Page")
@@ -999,7 +999,7 @@ func TestPagePermissionMatrix(t *testing.T) {
 
 		t.Run("user with permission can create page", func(t *testing.T) {
 			client2 := th.CreateClient()
-			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 			require.NoError(t, lErr)
 
 			_, resp, err := client2.CreatePage(context.Background(), wiki.Id, "", "Test Page")
@@ -1012,7 +1012,7 @@ func TestPagePermissionMatrix(t *testing.T) {
 			defer th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
 
 			client2 := th.CreateClient()
-			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 			require.NoError(t, lErr)
 
 			_, resp, err := client2.CreatePage(context.Background(), wiki.Id, "", "Test Page")
@@ -1031,7 +1031,7 @@ func TestPagePermissionMatrix(t *testing.T) {
 
 		t.Run("user with permission can create page", func(t *testing.T) {
 			client2 := th.CreateClient()
-			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 			require.NoError(t, lErr)
 
 			_, resp, err := client2.CreatePage(context.Background(), wiki.Id, "", "Private Page")
@@ -1044,7 +1044,7 @@ func TestPagePermissionMatrix(t *testing.T) {
 			defer th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
 
 			client2 := th.CreateClient()
-			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 			require.NoError(t, lErr)
 
 			_, resp, err := client2.CreatePage(context.Background(), wiki.Id, "", "Private Page")
@@ -1067,7 +1067,7 @@ func TestPagePermissionMatrix(t *testing.T) {
 
 		t.Run("user with read permission can view page", func(t *testing.T) {
 			client2 := th.CreateClient()
-			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 			require.NoError(t, lErr)
 
 			_, resp, err := client2.GetPage(context.Background(), wiki.Id, page.Id)
@@ -1080,7 +1080,7 @@ func TestPagePermissionMatrix(t *testing.T) {
 			defer th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
 
 			client2 := th.CreateClient()
-			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 			require.NoError(t, lErr)
 
 			_, resp, err := client2.GetPage(context.Background(), wiki.Id, page.Id)
@@ -1113,7 +1113,7 @@ func TestPagePermissionMatrix(t *testing.T) {
 			CheckCreatedStatus(t, resp)
 
 			client2 := th.CreateClient()
-			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 			require.NoError(t, lErr)
 
 			resp, err = client2.DeletePage(context.Background(), wiki.Id, page.Id)
@@ -1127,7 +1127,7 @@ func TestPagePermissionMatrix(t *testing.T) {
 			CheckCreatedStatus(t, resp)
 
 			client2 := th.CreateClient()
-			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 			require.NoError(t, lErr)
 
 			_, appErr := th.App.UpdateChannelMemberRoles(th.Context, publicChannel.Id, th.BasicUser2.Id, "channel_user channel_admin")
@@ -1152,7 +1152,7 @@ func TestPagePermissionMatrix(t *testing.T) {
 			defer th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
 
 			client2 := th.CreateClient()
-			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 			require.NoError(t, lErr)
 
 			_, resp, err := client2.CreatePage(context.Background(), wiki.Id, "", "Additive Test Page")
@@ -1169,7 +1169,7 @@ func TestPagePermissionMatrix(t *testing.T) {
 			defer th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
 
 			client2 := th.CreateClient()
-			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 			require.NoError(t, lErr)
 
 			resp, err = client2.DeletePage(context.Background(), wiki.Id, page.Id)
@@ -1459,7 +1459,7 @@ func TestPageCommentsE2E(t *testing.T) {
 
 	t.Run("multiple users can comment on same page", func(t *testing.T) {
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
@@ -1598,7 +1598,7 @@ func TestSearchPages(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		term := "PrivateChannelPageUniqueTitle"
@@ -1753,7 +1753,7 @@ func TestMovePageToWiki(t *testing.T) {
 		require.Nil(t, appErr)
 
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		resp, moveErr := client2.MovePageToWiki(context.Background(), createdSourceWiki.Id, page.Id, createdTargetWiki.Id)
@@ -1787,7 +1787,7 @@ func TestMovePageToWiki(t *testing.T) {
 		require.Nil(t, appErr)
 
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		resp, moveErr := client2.MovePageToWiki(context.Background(), createdSourceWiki.Id, page.Id, createdTargetWiki.Id)
@@ -1824,7 +1824,7 @@ func TestMovePageToWiki(t *testing.T) {
 		defer th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
 
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		resp, moveErr := client2.MovePageToWiki(context.Background(), createdSourceWiki.Id, page.Id, createdTargetWiki.Id)
@@ -2169,7 +2169,7 @@ func TestDuplicatePage(t *testing.T) {
 		require.Nil(t, appErr)
 
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		_, resp, err := client2.DuplicatePage(context.Background(), createdSourceWiki.Id, page.Id, createdTargetWiki.Id, nil, nil)
@@ -2206,7 +2206,7 @@ func TestDuplicatePage(t *testing.T) {
 		defer th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
 
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		_, resp, err := client2.DuplicatePage(context.Background(), createdSourceWiki.Id, page.Id, createdTargetWiki.Id, nil, nil)
@@ -2400,7 +2400,7 @@ func TestGetPageBreadcrumb(t *testing.T) {
 		require.Nil(t, appErr)
 
 		client2 := th.CreateClient()
-		_, _, loginErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, loginErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 		require.NoError(t, loginErr)
 
 		_, resp, err := client2.GetPageBreadcrumb(context.Background(), createdPrivateWiki.Id, page.Id)
@@ -2576,7 +2576,7 @@ func TestMovePage(t *testing.T) {
 		require.Nil(t, appErr)
 
 		client2 := th.CreateClient()
-		_, _, loginErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, loginErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 		require.NoError(t, loginErr)
 
 		resp, err := client2.MovePageParent(context.Background(), createdPrivateWiki.Id, page.Id, parent.Id)
@@ -3223,7 +3223,7 @@ func TestGetPageActiveEditors(t *testing.T) {
 		require.Nil(t, appErr)
 
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		url := "/wikis/" + privateWiki.Id + "/pages/" + privatePage.Id + "/active_editors"
@@ -3306,7 +3306,7 @@ func TestPageDraftPermissionViolations(t *testing.T) {
 
 		// Login as user2 who is not in the private channel
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		// Try to save draft - use PUT method with draft_id in URL
@@ -3344,7 +3344,7 @@ func TestPageDraftPermissionViolations(t *testing.T) {
 
 		// Login as user2 who is not in the private channel
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		// Try to delete draft
@@ -3479,7 +3479,7 @@ func TestWikiPermissionViolations(t *testing.T) {
 
 		// Login as user2 who is not in the private channel
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		wiki := &model.Wiki{
@@ -3508,7 +3508,7 @@ func TestWikiPermissionViolations(t *testing.T) {
 
 		// Login as user2 who is not in the private channel
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		_, resp, err := client2.GetWiki(context.Background(), createdWiki.Id)
@@ -3524,7 +3524,7 @@ func TestWikiPermissionViolations(t *testing.T) {
 
 		// Login as user2 who is not in the private channel
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		_, resp, err := client2.GetWikisForChannel(context.Background(), privateChannel.Id)
@@ -3655,7 +3655,7 @@ func TestWikiPermissionViolations(t *testing.T) {
 
 		// Login as user2 (who is in BasicChannel but not targetChannel)
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		// Try to move wiki to target channel

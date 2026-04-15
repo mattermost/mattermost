@@ -45,7 +45,7 @@ func TestGetChannelPages(t *testing.T) {
 		privateChannel := th.CreatePrivateChannel(t)
 
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		_, resp, err := client2.GetChannelPages(context.Background(), privateChannel.Id)
@@ -143,7 +143,7 @@ func TestCreatePage(t *testing.T) {
 		require.Nil(t, appErr)
 
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		_, resp, err := client2.CreatePage(context.Background(), privateWiki.Id, "", "Should Fail")
@@ -445,7 +445,7 @@ func TestGetWikiPage(t *testing.T) {
 		require.Nil(t, appErr)
 
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		_, resp, err := client2.GetPage(context.Background(), privateWiki.Id, privatePage.Id)
@@ -508,7 +508,7 @@ func TestGetPageComments(t *testing.T) {
 		require.Nil(t, appErr)
 
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		_, resp, err := client2.GetPageComments(context.Background(), privateWiki.Id, privatePage.Id)

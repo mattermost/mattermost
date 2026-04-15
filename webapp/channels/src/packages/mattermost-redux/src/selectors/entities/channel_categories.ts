@@ -13,7 +13,8 @@ import type {IDMappedObjects, RelationOneToOne} from '@mattermost/types/utilitie
 import {General, Preferences} from 'mattermost-redux/constants';
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getChannelMessageCounts, getCurrentChannelId, getMyChannelMemberships, makeGetChannelsForIds} from 'mattermost-redux/selectors/entities/channels';
+import {getChannel, getChannelMessageCounts, getCurrentChannelId, getMyChannelMemberships, makeGetChannelsForIds} from 'mattermost-redux/selectors/entities/channels';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserLocale} from 'mattermost-redux/selectors/entities/i18n';
 import {getMyPreferences, getTeammateNameDisplaySetting, getVisibleDmGmLimit, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
@@ -58,14 +59,14 @@ export function getCategoryWhere(state: GlobalState, condition: (category: Chann
     return Object.values(categoriesByIds).find(condition);
 }
 
-export function getCategoryIdsForTeam(state: GlobalState, teamId: string): string[] {
+export function getNonManagedCategoryOrderForTeam(state: GlobalState, teamId: string): string[] {
     return state.entities.channelCategories.orderByTeam[teamId];
 }
 
-export function makeGetCategoriesForTeam(): (state: GlobalState, teamId: string) => ChannelCategory[] {
+export function makeGetNonManagedCategoriesForTeam(): (state: GlobalState, teamId: string) => ChannelCategory[] {
     return createSelector(
-        'makeGetCategoriesForTeam',
-        getCategoryIdsForTeam,
+        'makeGetNonManagedCategoriesForTeam',
+        getNonManagedCategoryOrderForTeam,
         (state: GlobalState) => state.entities.channelCategories.byId,
         (categoryIds, categoriesById) => {
             if (!categoryIds) {
@@ -419,38 +420,34 @@ export function makeGetChannelsByCategory() {
     let getChannels: RelationOneToOne<ChannelCategory, ReturnType<typeof makeGetChannelsForIds>>;
     let filterAndSortChannels: RelationOneToOne<ChannelCategory, ReturnType<typeof makeFilterAndSortChannelsForCategory>>;
 
-    let lastCategoryIds: ReturnType<typeof getCategoryIdsForTeam> = [];
+    let lastCategories: ChannelCategory[] = [];
     let lastChannelsByCategory: RelationOneToOne<ChannelCategory, Channel[]> = {};
 
     return (state: GlobalState, teamId: string) => {
-        const categoryIds = getCategoryIdsForTeam(state, teamId);
+        const categories = getCategoriesForTeam(state, teamId);
 
         // Create an instance of filterAndSortChannels for each category. As long as we don't add or remove new categories,
         // we can reuse these selectors to memoize the results of each category. This will also create new selectors when
         // categories are reordered, but that should be rare enough that it won't meaningfully affect performance.
-        if (categoryIds !== lastCategoryIds) {
-            lastCategoryIds = categoryIds;
+        if (categories !== lastCategories) {
+            lastCategories = categories;
             lastChannelsByCategory = {};
 
             getChannels = {};
             filterAndSortChannels = {};
 
-            if (categoryIds) {
-                for (const categoryId of categoryIds) {
-                    getChannels[categoryId] = makeGetChannelsForIds();
-                    filterAndSortChannels[categoryId] = makeFilterAndSortChannelsForCategory();
-                }
+            for (const category of categories) {
+                getChannels[category.id] = makeGetChannelsForIds();
+                filterAndSortChannels[category.id] = makeFilterAndSortChannelsForCategory();
             }
         }
-
-        const categories = getCategoriesForTeam(state, teamId);
 
         const channelsByCategory: RelationOneToOne<ChannelCategory, Channel[]> = {};
 
         // TODO: This avoids some rendering, but there is a bigger issue underneath
         // Every time myPreferences or myChannels change (which can happen for many
         // unrelated reasons) the whole list of channels gets reordered and re-filtered.
-        let allEquals = categoryIds === lastCategoryIds;
+        let allEquals = categories === lastCategories;
         for (const category of categories) {
             const channels = getChannels[category.id](state, category.channel_ids);
             channelsByCategory[category.id] = filterAndSortChannels[category.id](state, channels, category);
@@ -475,4 +472,109 @@ function isUnreadChannel(
 ): boolean {
     const unreadCount = calculateUnreadCount(messageCounts[channelId], members[channelId], crtEnabled);
     return unreadCount.showUnread;
+}
+
+export function areManagedCategoriesEnabled(state: GlobalState): boolean {
+    return getConfig(state).EnableManagedChannelCategories === 'true';
+}
+
+export function getManagedCategoryMappings(state: GlobalState, teamId: string): Record<string, string> | undefined {
+    if (!areManagedCategoriesEnabled(state)) {
+        return undefined;
+    }
+    return state.entities.channelCategories.managedCategoryMappings[teamId];
+}
+
+export function isChannelInManagedCategory(state: GlobalState, channelId: string): boolean {
+    if (!areManagedCategoriesEnabled(state)) {
+        return false;
+    }
+    const channel = getChannel(state, channelId);
+    if (!channel) {
+        return false;
+    }
+    const mappings = getManagedCategoryMappings(state, channel.team_id);
+    if (!mappings) {
+        return false;
+    }
+    return channelId in mappings;
+}
+
+export function getChannelManagedCategoryName(state: GlobalState, channelId: string): string | undefined {
+    if (!areManagedCategoriesEnabled(state)) {
+        return undefined;
+    }
+    const channel = getChannel(state, channelId);
+    if (!channel?.team_id) {
+        return undefined;
+    }
+    return getManagedCategoryMappings(state, channel.team_id)?.[channelId];
+}
+
+export function makeGetCategoriesForTeam(): (state: GlobalState, teamId: string) => ChannelCategory[] {
+    const getNonManagedCategoriesForTeam = makeGetNonManagedCategoriesForTeam();
+    const getManagedCategoriesForTeam = makeGetManagedCategoriesForTeam();
+
+    return createSelector(
+        'makeGetCategoriesForTeam',
+        getNonManagedCategoriesForTeam,
+        getManagedCategoriesForTeam,
+        (nonManagedCategories, managedCategories) => {
+            if (managedCategories.length === 0) {
+                return nonManagedCategories;
+            }
+
+            const managedChannelIds = managedCategories.flatMap((c) => c.channel_ids);
+            const strippedNonManagedCategories = nonManagedCategories.map((category) => ({
+                ...category,
+                channel_ids: category.channel_ids.filter((id) => !managedChannelIds.includes(id)),
+            }));
+
+            return [
+                ...managedCategories,
+                ...strippedNonManagedCategories,
+            ];
+        },
+    );
+}
+
+export function makeGetManagedCategoriesForTeam(): (state: GlobalState, teamId: string) => ChannelCategory[] {
+    return createSelector(
+        'makeGetManagedCategoriesForTeam',
+        (state: GlobalState, teamId: string) => getManagedCategoryMappings(state, teamId),
+        (state: GlobalState) => getCurrentUserId(state),
+        (_: GlobalState, teamId: string) => teamId,
+        (mappings, currentUserId, teamId) => {
+            if (!mappings || Object.keys(mappings).length === 0) {
+                return [];
+            }
+
+            const channelsByCategory: Record<string, string[]> = Object.create(null);
+            for (const [channelId, categoryName] of Object.entries(mappings)) {
+                if (!channelsByCategory[categoryName]) {
+                    channelsByCategory[categoryName] = [];
+                }
+                channelsByCategory[categoryName].push(channelId);
+            }
+
+            const sortedNames = Object.keys(channelsByCategory).sort((a, b) => (
+                a.localeCompare(b, undefined, {numeric: true})
+            ));
+
+            return sortedNames.map((name) => {
+                const id = `managed_${name}`;
+                return {
+                    id,
+                    user_id: currentUserId,
+                    team_id: teamId,
+                    type: CategoryTypes.MANAGED as ChannelCategoryType,
+                    display_name: name,
+                    sorting: CategorySorting.Alphabetical,
+                    channel_ids: channelsByCategory[name],
+                    muted: false,
+                    collapsed: false,
+                };
+            });
+        },
+    );
 }

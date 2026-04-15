@@ -118,6 +118,7 @@ import type {
     UserPropertyField,
     UserPropertyFieldPatch,
     PropertyValue,
+    PropertyField,
 } from '@mattermost/types/properties';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {Recap, CreateRecapRequest} from '@mattermost/types/recaps';
@@ -2407,11 +2408,48 @@ export default class Client4 {
         );
     };
 
+    // Managed Channel Categories Routes
+
+    getManagedCategories = (teamId: string) => {
+        return this.doFetch<Record<string, string>>(
+            `${this.getTeamRoute(teamId)}/channels/managed_categories`,
+            {method: 'get'},
+        );
+    };
+
+    getPropertyFields = (groupName: string, objectType: string, targetType: string) => {
+        return this.doFetch<PropertyField[]>(
+            `${this.getBaseRoute()}/properties/groups/${groupName}/${objectType}/fields?target_type=${targetType}`,
+            {method: 'get'},
+        );
+    };
+
+    getPropertyValues = <T>(groupName: string, objectType: string, targetId: string) => {
+        return this.doFetch<Array<PropertyValue<T>>>(
+            `${this.getBaseRoute()}/properties/groups/${groupName}/${objectType}/values/${targetId}`,
+            {method: 'get'},
+        );
+    };
+
     // Remote Clusters Routes
 
-    getRemoteClusters = (options: {excludePlugins: boolean}) => {
+    getRemoteClusters = (options: {
+        excludePlugins?: boolean;
+        notInChannel?: string;
+        onlyConfirmed?: boolean;
+    } = {}) => {
+        const params: Record<string, string | boolean> = {};
+        if (options.excludePlugins !== undefined) {
+            params.exclude_plugins = options.excludePlugins;
+        }
+        if (options.notInChannel) {
+            params.not_in_channel = options.notInChannel;
+        }
+        if (options.onlyConfirmed !== undefined) {
+            params.only_confirmed = options.onlyConfirmed;
+        }
         return this.doFetch<RemoteCluster[]>(
-            `${this.getRemoteClustersRoute()}${buildQueryString({exclude_plugins: options.excludePlugins})}`,
+            `${this.getRemoteClustersRoute()}${buildQueryString(params)}`,
             {method: 'GET'},
         );
     };
@@ -5102,7 +5140,7 @@ export default class Client4 {
     getAccessControlPolicies = (after: string, limit: number) => {
         return this.doFetch<AccessControlPoliciesResult>(
             `${this.getBaseRoute()}/access_control_policies/search`,
-            {method: 'post', body: JSON.stringify({type: 'parent', cursor: {id: after}, limit})},
+            {method: 'post', body: JSON.stringify({type: 'parent', cursor: {id: after}, limit, actions: ['membership']})},
         );
     };
 

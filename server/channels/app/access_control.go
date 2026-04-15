@@ -79,6 +79,15 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		policy.ID = model.NewId()
 	}
 
+	policy.Version = model.AccessControlPolicyVersionV0_3
+	for i, rule := range policy.Rules {
+		for j, action := range rule.Actions {
+			if action == "*" {
+				policy.Rules[i].Actions[j] = model.AccessControlPolicyActionMembership
+			}
+		}
+	}
+
 	var appErr *model.AppError
 	policy, appErr = acs.SavePolicy(rctx, policy)
 	if appErr != nil {
@@ -173,7 +182,7 @@ func (a *App) AssignAccessControlPolicyToChannels(rctx request.CTX, parentID str
 				Props:    map[string]any{},
 			}
 		}
-		child.Version = model.AccessControlPolicyVersionV0_2
+		child.Version = model.AccessControlPolicyVersionV0_3
 
 		appErr := child.Inherit(policy)
 		if appErr != nil {

@@ -4944,10 +4944,6 @@
     "translation": "A Mattermost Enterprise licensz le van tiltva."
   },
   {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Az Enterprise Edition licencje lejárt, és egyes funkciók le vannak tiltva. Kérjük, újítsa meg a licencét most."
-  },
-  {
     "id": "api.templates.questions_footer.title",
     "translation": "Kérdése van?"
   },

@@ -162,26 +162,72 @@ func (a *App) UpsertPropertyValues(rctx request.CTX, values []*model.PropertyVal
 	return result, nil
 }
 
-// DeletePropertyValue deletes a property value.
+// DeletePropertyValue deletes a property value and broadcasts a property_values_updated event.
 func (a *App) DeletePropertyValue(rctx request.CTX, groupID, valueID string) *model.AppError {
+	value, appErr := a.GetPropertyValue(rctx, groupID, valueID)
+	if appErr != nil {
+		return appErr
+	}
+
 	if err := a.Srv().propertyService.DeletePropertyValue(rctx, groupID, valueID); err != nil {
 		return model.NewAppError("DeletePropertyValue", "app.property_value.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	teamID, channelID, appErr := a.resolveValueBroadcastParams(rctx, value.TargetType, value.TargetID)
+	if appErr != nil {
+		rctx.Logger().Warn("Failed to resolve broadcast params for property value deletion", mlog.Err(appErr))
+		return nil
+	}
+
+	deleted := &model.PropertyValue{
+		TargetID:   value.TargetID,
+		TargetType: value.TargetType,
+		GroupID:    value.GroupID,
+		FieldID:    value.FieldID,
+	}
+	valuesJSON, jsonErr := json.Marshal([]*model.PropertyValue{deleted})
+	if jsonErr != nil {
+		rctx.Logger().Warn("Failed to encode deleted property value to JSON", mlog.Err(jsonErr))
+		return nil
+	}
+
+	message := model.NewWebSocketEvent(model.WebsocketEventPropertyValuesUpdated, teamID, channelID, "", nil, "")
+	message.Add("object_type", value.TargetType)
+	message.Add("target_id", value.TargetID)
+	message.Add("values", string(valuesJSON))
+	a.Publish(message)
 	return nil
 }
 
-// DeletePropertyValuesForTarget deletes all property values for a target.
+// DeletePropertyValuesForTarget deletes all property values for a target and broadcasts a property_values_updated event.
 func (a *App) DeletePropertyValuesForTarget(rctx request.CTX, groupID, targetType, targetID string) *model.AppError {
 	if err := a.Srv().propertyService.DeletePropertyValuesForTarget(rctx, groupID, targetType, targetID); err != nil {
 		return model.NewAppError("DeletePropertyValuesForTarget", "app.property_value.delete_for_target.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	teamID, channelID, appErr := a.resolveValueBroadcastParams(rctx, targetType, targetID)
+	if appErr != nil {
+		rctx.Logger().Warn("Failed to resolve broadcast params for property value deletion", mlog.Err(appErr))
+		return nil
+	}
+
+	message := model.NewWebSocketEvent(model.WebsocketEventPropertyValuesUpdated, teamID, channelID, "", nil, "")
+	message.Add("object_type", targetType)
+	message.Add("target_id", targetID)
+	message.Add("values", "[]")
+	a.Publish(message)
 	return nil
 }
 
-// DeletePropertyValuesForField deletes all property values for a field.
+// DeletePropertyValuesForField deletes all property values for a field and broadcasts a property_values_updated event.
 func (a *App) DeletePropertyValuesForField(rctx request.CTX, groupID, fieldID string) *model.AppError {
 	if err := a.Srv().propertyService.DeletePropertyValuesForField(rctx, groupID, fieldID); err != nil {
 		return model.NewAppError("DeletePropertyValuesForField", "app.property_value.delete_for_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	message := model.NewWebSocketEvent(model.WebsocketEventPropertyValuesUpdated, "", "", "", nil, "")
+	message.Add("field_id", fieldID)
+	message.Add("values", "[]")
+	a.Publish(message)
 	return nil
 }

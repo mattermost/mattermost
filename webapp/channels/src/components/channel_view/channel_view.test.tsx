@@ -134,5 +134,4 @@ describe('components/channel_view', () => {
         );
         expect(baseProps.fetchIsRestrictedDM).toHaveBeenCalledTimes(1);
     });
-
 });

@@ -323,23 +323,9 @@ func TestMakeDefaultRolesContainsNewManagerRoles(t *testing.T) {
 			"role should NOT have manage_secure_connections permission")
 	})
 
-	t.Run("system_secure_connection_manager role exists with correct permissions", func(t *testing.T) {
-		role, ok := roles[SecureConnectionManagerRoleId]
-		require.True(t, ok, "system_secure_connection_manager role should exist in MakeDefaultRoles")
-		assert.Equal(t, "system_secure_connection_manager", role.Name)
-		assert.True(t, role.BuiltIn, "role should be built-in")
-		assert.False(t, role.SchemeManaged, "role should not be scheme-managed")
-		assert.True(t, slices.Contains(role.Permissions, PermissionManageSecureConnections.Id),
-			"role should have manage_secure_connections permission")
-		assert.False(t, slices.Contains(role.Permissions, PermissionManageSharedChannels.Id),
-			"role should NOT have manage_shared_channels permission")
-	})
-
 	t.Run("roles are included in NewSystemRoleIDs", func(t *testing.T) {
 		assert.True(t, slices.Contains(NewSystemRoleIDs, SharedChannelManagerRoleId),
 			"system_shared_channel_manager should be in NewSystemRoleIDs")
-		assert.True(t, slices.Contains(NewSystemRoleIDs, SecureConnectionManagerRoleId),
-			"system_secure_connection_manager should be in NewSystemRoleIDs")
 	})
 
 	t.Run("system_admin includes manage_oauth by default", func(t *testing.T) {

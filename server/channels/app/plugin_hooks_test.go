@@ -725,7 +725,7 @@ func TestUserWillLogIn_Blocked(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	err := th.App.UpdatePassword(th.Context, th.BasicUser, "hunter2")
+	err := th.App.UpdatePassword(th.Context, th.BasicUser, model.NewTestPassword())
 	assert.Nil(t, err, "Error updating user password: %s", err)
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
@@ -764,7 +764,7 @@ func TestUserWillLogInIn_Passed(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	err := th.App.UpdatePassword(th.Context, th.BasicUser, "hunter2")
+	err := th.App.UpdatePassword(th.Context, th.BasicUser, model.NewTestPassword())
 
 	assert.Nil(t, err, "Error updating user password: %s", err)
 
@@ -806,7 +806,7 @@ func TestUserHasLoggedIn(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	err := th.App.UpdatePassword(th.Context, th.BasicUser, "hunter2")
+	err := th.App.UpdatePassword(th.Context, th.BasicUser, model.NewTestPassword())
 
 	assert.Nil(t, err, "Error updating user password: %s", err)
 
@@ -883,7 +883,7 @@ func TestUserHasBeenDeactivated(t *testing.T) {
 		Email:    "success+test@example.com",
 		Nickname: "testnickname",
 		Username: "testusername",
-		Password: "testpassword",
+		Password: model.NewTestPassword(),
 	}
 
 	_, err := th.App.CreateUser(th.Context, user)
@@ -932,7 +932,7 @@ func TestUserHasBeenCreated(t *testing.T) {
 		Email:    "success+test@example.com",
 		Nickname: "testnickname",
 		Username: "testusername",
-		Password: "testpassword",
+		Password: model.NewTestPassword(),
 	}
 	_, err := th.App.CreateUser(th.Context, user)
 	require.Nil(t, err)
@@ -1121,7 +1121,7 @@ func TestActiveHooks(t *testing.T) {
 			Email:    "success+test@example.com",
 			Nickname: "testnickname",
 			Username: "testusername",
-			Password: "testpassword",
+			Password: model.NewTestPassword(),
 		}
 		_, appErr := th.App.CreateUser(th.Context, user1)
 		require.Nil(t, appErr)
@@ -1226,7 +1226,7 @@ func TestHookMetrics(t *testing.T) {
 			Email:       "success+test@example.com",
 			Nickname:    "testnickname",
 			Username:    "testusername",
-			Password:    "testpassword",
+			Password:    model.NewTestPassword(),
 			AuthService: "",
 		}
 		_, appErr := th.App.CreateUser(th.Context, user1)

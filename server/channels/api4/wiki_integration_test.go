@@ -432,7 +432,7 @@ func TestPagePermissionsMultiUser(t *testing.T) {
 
 	// Create a client for User2 to test permission checks via API
 	client2 := th.CreateClient()
-	_, _, loginErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+	_, _, loginErr := client2.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
 	require.NoError(t, loginErr)
 
 	t.Run("user2 cannot access private channel page via API", func(t *testing.T) {

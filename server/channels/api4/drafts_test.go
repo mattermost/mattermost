@@ -262,7 +262,7 @@ func TestPageDraftPermissions(t *testing.T) {
 		require.Nil(t, appErr)
 
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		_, resp, err := client2.GetPageDraft(context.Background(), privateWiki.Id, privatePageId)
@@ -282,7 +282,7 @@ func TestPageDraftPermissions(t *testing.T) {
 		require.Nil(t, appErr)
 
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		tipTapContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Unauthorized draft"}]}]}`
@@ -307,7 +307,7 @@ func TestPageDraftPermissions(t *testing.T) {
 		require.Nil(t, appErr)
 
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		resp, err := client2.DeletePageDraft(context.Background(), privateWiki.Id, privatePageId)
@@ -327,7 +327,7 @@ func TestPageDraftPermissions(t *testing.T) {
 		require.Nil(t, appErr)
 
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		_, resp, err := client2.GetPageDraftsForWiki(context.Background(), privateWiki.Id)
@@ -369,7 +369,7 @@ func TestPageDraftOwnershipValidation(t *testing.T) {
 
 	// Login as user2 who has channel access but doesn't own the draft
 	client2 := th.CreateClient()
-	_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+	_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
 	require.NoError(t, lErr)
 
 	t.Run("user cannot get another user's draft", func(t *testing.T) {
@@ -545,7 +545,7 @@ func TestMovePageDraft(t *testing.T) {
 
 		// Login as user2 who cannot access the private wiki
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		// Try to move the draft

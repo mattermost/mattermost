@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import type {ReactComponentLike} from 'prop-types';
 import React, {useCallback, useEffect, useRef} from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
@@ -14,7 +13,7 @@ export type Props = {
     /**
      * An optional React component that will be used instead of an HTML input when rendering
      */
-    inputComponent?: ReactComponentLike;
+    inputComponent?: React.ElementType;
 
     /**
      * The string value displayed in this input
