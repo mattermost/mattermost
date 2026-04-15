@@ -628,10 +628,11 @@ func hasTargetAccess(c *Context, objectType, targetID string, write bool) bool {
 		}
 	case model.PropertyFieldObjectTypeUser:
 		// Any authenticated user can read another user's property values.
-		// Only the user themselves or a system admin can write values.
+		// The user themselves can write their own values.
+		// Writing another user's values requires PermissionEditOtherUsers.
 		if write && targetID != c.AppContext.Session().UserId {
-			if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-				c.Err = model.NewAppError("hasTargetAccess", "api.property_value.target_user.forbidden.app_error", nil, "", http.StatusForbidden)
+			if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionEditOtherUsers) {
+				c.SetPermissionError(model.PermissionEditOtherUsers)
 				return false
 			}
 		}
