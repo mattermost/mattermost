@@ -8,7 +8,6 @@ import {
     test,
     SystemConsolePage,
 } from '@mattermost/playwright-lib';
-import {getRandomId} from 'utils/utils';
 
 test(
     'permission exists; Channel Administrators have Manage Channel Auto Translation ON',
@@ -89,7 +88,7 @@ test.describe('autotranslation configuration tests', () => {
                     targetLanguages: ['en', 'es'],
                 });
 
-                const channelName = `autotranslation-perm-${await getRandomId()}`;
+                const channelName = `autotranslation-perm-${pw.random.id()}`;
                 const created = await adminClient.createChannel({
                     team_id: team.id,
                     name: channelName,

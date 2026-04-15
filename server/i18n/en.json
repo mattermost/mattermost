@@ -464,6 +464,10 @@
     "translation": "Auto translation is not allowed for this channel."
   },
   {
+    "id": "api.channel.patch_update_channel.cannot_update_managed_category.app_error",
+    "translation": "Cannot update a managed category for this channel without the correct permissions."
+  },
+  {
     "id": "api.channel.patch_update_channel.feature_not_available.app_error",
     "translation": "Auto translation feature is not available."
   },
@@ -578,6 +582,18 @@
   {
     "id": "api.channel.restore_channel.unarchived",
     "translation": "{{.Username}} unarchived the channel."
+  },
+  {
+    "id": "api.channel.set_members.group_constrained.app_error",
+    "translation": "Cannot set members on a group-constrained channel."
+  },
+  {
+    "id": "api.channel.set_members.policy_enforced.app_error",
+    "translation": "Cannot set members on a policy-enforced channel."
+  },
+  {
+    "id": "api.channel.set_members.type.app_error",
+    "translation": "Cannot set members on this channel type."
   },
   {
     "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
@@ -2545,6 +2561,10 @@
     "translation": "api endpoint requires a license"
   },
   {
+    "id": "api.managed_category.feature_not_available.app_error",
+    "translation": "Managed channel categories are not available."
+  },
+  {
     "id": "api.marshal_error",
     "translation": "Failed to marshal."
   },
@@ -3377,6 +3397,22 @@
   {
     "id": "api.server.start_server.starting.critical",
     "translation": "Error starting server, err:%v"
+  },
+  {
+    "id": "api.shared_channel.attachment.creator_id_required.app_error",
+    "translation": "FileInfo.CreatorId is required."
+  },
+  {
+    "id": "api.shared_channel.attachment.data_required.app_error",
+    "translation": "File data is required."
+  },
+  {
+    "id": "api.shared_channel.attachment.file_info_required.app_error",
+    "translation": "FileInfo is required."
+  },
+  {
+    "id": "api.shared_channel.attachment.filename_required.app_error",
+    "translation": "FileInfo.Name is required."
   },
   {
     "id": "api.shared_channel.get_shared_channel_remotes_error",
@@ -5543,6 +5579,22 @@
     "translation": "Unable to get the group channels for the given user and term."
   },
   {
+    "id": "app.channel.set_members.context_cancelled.app_error",
+    "translation": "The set channel members operation was cancelled."
+  },
+  {
+    "id": "app.channel.set_members.empty_private.app_error",
+    "translation": "Cannot remove all members from a private channel."
+  },
+  {
+    "id": "app.channel.set_members.get_current.app_error",
+    "translation": "Unable to get current channel members."
+  },
+  {
+    "id": "app.channel.set_members.get_members.app_error",
+    "translation": "Unable to get channel members for role reconciliation."
+  },
+  {
     "id": "app.channel.sidebar_categories.app_error",
     "translation": "Failed to insert record to database."
   },
@@ -6957,6 +7009,30 @@
   {
     "id": "app.lookup_interactive_dialog.read_body_error",
     "translation": "Encountered an error reading response body from interactive dialog lookup."
+  },
+  {
+    "id": "app.managed_category.clear.app_error",
+    "translation": "Failed to clear managed category from channel."
+  },
+  {
+    "id": "app.managed_category.dm_gm_not_allowed.app_error",
+    "translation": "Direct and group message channels cannot be assigned to a managed category."
+  },
+  {
+    "id": "app.managed_category.empty_name.app_error",
+    "translation": "Managed category name cannot be empty."
+  },
+  {
+    "id": "app.managed_category.get_mappings.app_error",
+    "translation": "Failed to retrieve managed category mappings."
+  },
+  {
+    "id": "app.managed_category.search.app_error",
+    "translation": "Failed to search for managed category for channel."
+  },
+  {
+    "id": "app.managed_category.set.app_error",
+    "translation": "Failed to set managed category on channel."
   },
   {
     "id": "app.member_count",
@@ -10009,8 +10085,16 @@
     "translation": "The parent is already imported."
   },
   {
+    "id": "model.access_policy.inherit.permission.app_error",
+    "translation": "Permission policies cannot inherit from other policies."
+  },
+  {
     "id": "model.access_policy.inherit.version.app_error",
     "translation": "Could not inherit access control policy."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.app_error",
+    "translation": "Action(s) is not valid."
   },
   {
     "id": "model.access_policy.is_valid.id.app_error",
@@ -10027,6 +10111,10 @@
   {
     "id": "model.access_policy.is_valid.revision.app_error",
     "translation": "Invalid policy revision."
+  },
+  {
+    "id": "model.access_policy.is_valid.roles.app_error",
+    "translation": "Permission policies must be applied to exactly one role."
   },
   {
     "id": "model.access_policy.is_valid.rules.app_error",

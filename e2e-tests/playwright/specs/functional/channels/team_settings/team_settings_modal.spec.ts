@@ -62,7 +62,7 @@ test.describe('Team Settings Modal - Complete Test Suite', () => {
         await expect(teamSettings.infoSettings.nameInput).toHaveValue(team.display_name);
 
         // # Edit team name
-        const newTeamName = `Updated Team ${await pw.random.id()}`;
+        const newTeamName = `Updated Team ${pw.random.id()}`;
         await teamSettings.infoSettings.updateName(newTeamName);
 
         // # Save changes
@@ -100,7 +100,7 @@ test.describe('Team Settings Modal - Complete Test Suite', () => {
         const teamSettings = await channelsPage.openTeamSettings();
 
         // # Edit team description
-        const newDescription = `Test description ${await pw.random.id()}`;
+        const newDescription = `Test description ${pw.random.id()}`;
         await teamSettings.infoSettings.updateDescription(newDescription);
 
         // # Save changes
@@ -138,7 +138,7 @@ test.describe('Team Settings Modal - Complete Test Suite', () => {
         const teamSettings = await channelsPage.openTeamSettings();
 
         // # Edit team name to create unsaved changes
-        const newTeamName = `Modified Team ${await pw.random.id()}`;
+        const newTeamName = `Modified Team ${pw.random.id()}`;
         await teamSettings.infoSettings.updateName(newTeamName);
 
         // # Try to close modal (first attempt)
@@ -181,7 +181,7 @@ test.describe('Team Settings Modal - Complete Test Suite', () => {
         await expect(teamSettings.accessTab).toBeVisible();
 
         // # Edit team name in Info tab (create unsaved changes)
-        const newTeamName = `Modified Team ${await pw.random.id()}`;
+        const newTeamName = `Modified Team ${pw.random.id()}`;
         await teamSettings.infoSettings.updateName(newTeamName);
 
         // # Try to switch to Access tab
@@ -219,7 +219,7 @@ test.describe('Team Settings Modal - Complete Test Suite', () => {
         const teamSettings = await channelsPage.openTeamSettings();
 
         // # Edit team name
-        const newTeamName = `Updated Team ${await pw.random.id()}`;
+        const newTeamName = `Updated Team ${pw.random.id()}`;
         await teamSettings.infoSettings.updateName(newTeamName);
 
         // # Save changes
@@ -257,7 +257,7 @@ test.describe('Team Settings Modal - Complete Test Suite', () => {
         const teamSettings = await channelsPage.openTeamSettings();
 
         // # Edit team name
-        const newTeamName = `Modified Team ${await pw.random.id()}`;
+        const newTeamName = `Modified Team ${pw.random.id()}`;
         await teamSettings.infoSettings.updateName(newTeamName);
 
         // * Verify input shows new value
