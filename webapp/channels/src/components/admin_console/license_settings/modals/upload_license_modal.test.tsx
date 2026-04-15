@@ -88,9 +88,6 @@ describe('components/admin_console/license_settings/modals/upload_license_modal'
                     license: {...license},
                 },
             },
-            users: {
-                currentUserId: '',
-            },
         };
         const {container} = renderWithContext(
             <UploadLicenseModal {...props}/>,
