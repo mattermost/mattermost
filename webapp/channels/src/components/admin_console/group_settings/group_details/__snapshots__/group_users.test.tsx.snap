@@ -1,1622 +1,6016 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/group_settings/group_details/GroupUsers should match snapshot, loaded with data 1`] = `
-<div
-  className="group-users"
->
+<div>
   <div
-    className="group-users--header"
-  >
-    <MemoizedFormattedMessage
-      defaultMessage="AD/LDAP Connector is configured to sync and manage this group and its users. <a>Click here to view</a>"
-      id="admin.group_settings.group_profile.group_users.ldapConnectorText"
-      values={
-        Object {
-          "a": [Function],
-        }
-      }
-    />
-  </div>
-  <div
-    className="group-users--body"
+    class="group-users"
   >
     <div
-      className="group-users-loading "
+      class="group-users--header"
     >
-      <i
-        className="fa fa-spinner fa-pulse fa-2x"
-      />
+      AD/LDAP Connector is configured to sync and manage this group and its users. 
+      <a
+        href="/admin_console/authentication/ldap"
+      >
+        Click here to view
+      </a>
     </div>
-    <Memo(GroupUsersRow)
-      displayName="Name0 Surname0"
-      email="test0@test.com"
-      key="id0"
-      lastPictureUpdate={0}
-      userId="id0"
-      username="username0"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name1 Surname1"
-      email="test1@test.com"
-      key="id1"
-      lastPictureUpdate={1}
-      userId="id1"
-      username="username1"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name2 Surname2"
-      email="test2@test.com"
-      key="id2"
-      lastPictureUpdate={2}
-      userId="id2"
-      username="username2"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name3 Surname3"
-      email="test3@test.com"
-      key="id3"
-      lastPictureUpdate={3}
-      userId="id3"
-      username="username3"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name4 Surname4"
-      email="test4@test.com"
-      key="id4"
-      lastPictureUpdate={4}
-      userId="id4"
-      username="username4"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name5 Surname5"
-      email="test5@test.com"
-      key="id5"
-      lastPictureUpdate={5}
-      userId="id5"
-      username="username5"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name6 Surname6"
-      email="test6@test.com"
-      key="id6"
-      lastPictureUpdate={6}
-      userId="id6"
-      username="username6"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name7 Surname7"
-      email="test7@test.com"
-      key="id7"
-      lastPictureUpdate={7}
-      userId="id7"
-      username="username7"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name8 Surname8"
-      email="test8@test.com"
-      key="id8"
-      lastPictureUpdate={8}
-      userId="id8"
-      username="username8"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name9 Surname9"
-      email="test9@test.com"
-      key="id9"
-      lastPictureUpdate={9}
-      userId="id9"
-      username="username9"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name10 Surname10"
-      email="test10@test.com"
-      key="id10"
-      lastPictureUpdate={10}
-      userId="id10"
-      username="username10"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name11 Surname11"
-      email="test11@test.com"
-      key="id11"
-      lastPictureUpdate={11}
-      userId="id11"
-      username="username11"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name12 Surname12"
-      email="test12@test.com"
-      key="id12"
-      lastPictureUpdate={12}
-      userId="id12"
-      username="username12"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name13 Surname13"
-      email="test13@test.com"
-      key="id13"
-      lastPictureUpdate={13}
-      userId="id13"
-      username="username13"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name14 Surname14"
-      email="test14@test.com"
-      key="id14"
-      lastPictureUpdate={14}
-      userId="id14"
-      username="username14"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name15 Surname15"
-      email="test15@test.com"
-      key="id15"
-      lastPictureUpdate={15}
-      userId="id15"
-      username="username15"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name16 Surname16"
-      email="test16@test.com"
-      key="id16"
-      lastPictureUpdate={16}
-      userId="id16"
-      username="username16"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name17 Surname17"
-      email="test17@test.com"
-      key="id17"
-      lastPictureUpdate={17}
-      userId="id17"
-      username="username17"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name18 Surname18"
-      email="test18@test.com"
-      key="id18"
-      lastPictureUpdate={18}
-      userId="id18"
-      username="username18"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name19 Surname19"
-      email="test19@test.com"
-      key="id19"
-      lastPictureUpdate={19}
-      userId="id19"
-      username="username19"
-    />
-  </div>
-  <div
-    className="group-users--footer"
-  >
     <div
-      className="counter"
+      class="group-users--body"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="{startCount, number} - {endCount, number} of {total, number}"
-        id="admin.group_settings.groups_list.paginatorCount"
-        values={
-          Object {
-            "endCount": 20,
-            "startCount": 1,
-            "total": 20,
-          }
-        }
-      />
+      <div
+        class="group-users-loading "
+      >
+        <i
+          class="fa fa-spinner fa-pulse fa-2x"
+        />
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username0 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id0/image"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username0
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name0 Surname0
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test0@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username1 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id1/image?_=1"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username1
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name1 Surname1
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test1@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username2 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id2/image?_=2"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username2
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name2 Surname2
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test2@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username3 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id3/image?_=3"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username3
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name3 Surname3
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test3@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username4 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id4/image?_=4"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username4
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name4 Surname4
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test4@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username5 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id5/image?_=5"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username5
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name5 Surname5
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test5@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username6 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id6/image?_=6"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username6
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name6 Surname6
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test6@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username7 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id7/image?_=7"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username7
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name7 Surname7
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test7@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username8 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id8/image?_=8"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username8
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name8 Surname8
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test8@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username9 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id9/image?_=9"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username9
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name9 Surname9
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test9@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username10 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id10/image?_=10"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username10
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name10 Surname10
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test10@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username11 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id11/image?_=11"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username11
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name11 Surname11
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test11@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username12 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id12/image?_=12"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username12
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name12 Surname12
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test12@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username13 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id13/image?_=13"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username13
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name13 Surname13
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test13@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username14 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id14/image?_=14"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username14
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name14 Surname14
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test14@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username15 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id15/image?_=15"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username15
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name15 Surname15
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test15@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username16 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id16/image?_=16"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username16
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name16 Surname16
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test16@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username17 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id17/image?_=17"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username17
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name17 Surname17
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test17@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username18 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id18/image?_=18"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username18
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name18 Surname18
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test18@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username19 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id19/image?_=19"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username19
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name19 Surname19
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test19@test.com
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
-    <button
-      className="btn btn-tertiary prev disabled"
-      disabled={true}
-      onClick={[Function]}
-      type="button"
+    <div
+      class="group-users--footer"
     >
-      <Memo(PreviousIcon) />
-    </button>
-    <button
-      className="btn btn-tertiary next disabled"
-      disabled={true}
-      onClick={[Function]}
-      type="button"
-    >
-      <Memo(NextIcon) />
-    </button>
+      <div
+        class="counter"
+      >
+        1 - 20 of 20
+      </div>
+      <button
+        class="btn btn-tertiary prev disabled"
+        disabled=""
+        type="button"
+      >
+        <i
+          class="icon icon-chevron-left"
+          title="Previous Icon"
+        />
+      </button>
+      <button
+        class="btn btn-tertiary next disabled"
+        disabled=""
+        type="button"
+      >
+        <i
+          class="icon icon-chevron-right"
+          title="Next Icon"
+        />
+      </button>
+    </div>
   </div>
 </div>
 `;
 
 exports[`components/admin_console/group_settings/group_details/GroupUsers should match snapshot, loaded with multiple pages 1`] = `
-<div
-  className="group-users"
->
+<div>
   <div
-    className="group-users--header"
-  >
-    <MemoizedFormattedMessage
-      defaultMessage="AD/LDAP Connector is configured to sync and manage this group and its users. <a>Click here to view</a>"
-      id="admin.group_settings.group_profile.group_users.ldapConnectorText"
-      values={
-        Object {
-          "a": [Function],
-        }
-      }
-    />
-  </div>
-  <div
-    className="group-users--body"
+    class="group-users"
   >
     <div
-      className="group-users-loading "
+      class="group-users--header"
     >
-      <i
-        className="fa fa-spinner fa-pulse fa-2x"
-      />
+      AD/LDAP Connector is configured to sync and manage this group and its users. 
+      <a
+        href="/admin_console/authentication/ldap"
+      >
+        Click here to view
+      </a>
     </div>
-    <Memo(GroupUsersRow)
-      displayName="Name0 Surname0"
-      email="test0@test.com"
-      key="id0"
-      lastPictureUpdate={0}
-      userId="id0"
-      username="username0"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name1 Surname1"
-      email="test1@test.com"
-      key="id1"
-      lastPictureUpdate={1}
-      userId="id1"
-      username="username1"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name2 Surname2"
-      email="test2@test.com"
-      key="id2"
-      lastPictureUpdate={2}
-      userId="id2"
-      username="username2"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name3 Surname3"
-      email="test3@test.com"
-      key="id3"
-      lastPictureUpdate={3}
-      userId="id3"
-      username="username3"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name4 Surname4"
-      email="test4@test.com"
-      key="id4"
-      lastPictureUpdate={4}
-      userId="id4"
-      username="username4"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name5 Surname5"
-      email="test5@test.com"
-      key="id5"
-      lastPictureUpdate={5}
-      userId="id5"
-      username="username5"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name6 Surname6"
-      email="test6@test.com"
-      key="id6"
-      lastPictureUpdate={6}
-      userId="id6"
-      username="username6"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name7 Surname7"
-      email="test7@test.com"
-      key="id7"
-      lastPictureUpdate={7}
-      userId="id7"
-      username="username7"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name8 Surname8"
-      email="test8@test.com"
-      key="id8"
-      lastPictureUpdate={8}
-      userId="id8"
-      username="username8"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name9 Surname9"
-      email="test9@test.com"
-      key="id9"
-      lastPictureUpdate={9}
-      userId="id9"
-      username="username9"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name10 Surname10"
-      email="test10@test.com"
-      key="id10"
-      lastPictureUpdate={10}
-      userId="id10"
-      username="username10"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name11 Surname11"
-      email="test11@test.com"
-      key="id11"
-      lastPictureUpdate={11}
-      userId="id11"
-      username="username11"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name12 Surname12"
-      email="test12@test.com"
-      key="id12"
-      lastPictureUpdate={12}
-      userId="id12"
-      username="username12"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name13 Surname13"
-      email="test13@test.com"
-      key="id13"
-      lastPictureUpdate={13}
-      userId="id13"
-      username="username13"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name14 Surname14"
-      email="test14@test.com"
-      key="id14"
-      lastPictureUpdate={14}
-      userId="id14"
-      username="username14"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name15 Surname15"
-      email="test15@test.com"
-      key="id15"
-      lastPictureUpdate={15}
-      userId="id15"
-      username="username15"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name16 Surname16"
-      email="test16@test.com"
-      key="id16"
-      lastPictureUpdate={16}
-      userId="id16"
-      username="username16"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name17 Surname17"
-      email="test17@test.com"
-      key="id17"
-      lastPictureUpdate={17}
-      userId="id17"
-      username="username17"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name18 Surname18"
-      email="test18@test.com"
-      key="id18"
-      lastPictureUpdate={18}
-      userId="id18"
-      username="username18"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name19 Surname19"
-      email="test19@test.com"
-      key="id19"
-      lastPictureUpdate={19}
-      userId="id19"
-      username="username19"
-    />
-  </div>
-  <div
-    className="group-users--footer"
-  >
     <div
-      className="counter"
+      class="group-users--body"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="{startCount, number} - {endCount, number} of {total, number}"
-        id="admin.group_settings.groups_list.paginatorCount"
-        values={
-          Object {
-            "endCount": 20,
-            "startCount": 1,
-            "total": 55,
-          }
-        }
-      />
+      <div
+        class="group-users-loading "
+      >
+        <i
+          class="fa fa-spinner fa-pulse fa-2x"
+        />
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username0 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id0/image"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username0
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name0 Surname0
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test0@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username1 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id1/image?_=1"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username1
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name1 Surname1
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test1@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username2 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id2/image?_=2"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username2
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name2 Surname2
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test2@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username3 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id3/image?_=3"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username3
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name3 Surname3
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test3@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username4 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id4/image?_=4"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username4
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name4 Surname4
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test4@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username5 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id5/image?_=5"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username5
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name5 Surname5
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test5@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username6 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id6/image?_=6"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username6
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name6 Surname6
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test6@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username7 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id7/image?_=7"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username7
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name7 Surname7
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test7@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username8 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id8/image?_=8"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username8
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name8 Surname8
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test8@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username9 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id9/image?_=9"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username9
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name9 Surname9
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test9@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username10 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id10/image?_=10"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username10
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name10 Surname10
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test10@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username11 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id11/image?_=11"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username11
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name11 Surname11
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test11@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username12 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id12/image?_=12"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username12
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name12 Surname12
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test12@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username13 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id13/image?_=13"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username13
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name13 Surname13
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test13@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username14 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id14/image?_=14"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username14
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name14 Surname14
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test14@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username15 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id15/image?_=15"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username15
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name15 Surname15
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test15@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username16 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id16/image?_=16"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username16
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name16 Surname16
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test16@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username17 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id17/image?_=17"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username17
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name17 Surname17
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test17@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username18 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id18/image?_=18"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username18
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name18 Surname18
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test18@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username19 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id19/image?_=19"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username19
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name19 Surname19
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test19@test.com
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
-    <button
-      className="btn btn-tertiary prev disabled"
-      disabled={true}
-      onClick={[Function]}
-      type="button"
+    <div
+      class="group-users--footer"
     >
-      <Memo(PreviousIcon) />
-    </button>
-    <button
-      className="btn btn-tertiary next "
-      disabled={false}
-      onClick={[Function]}
-      type="button"
-    >
-      <Memo(NextIcon) />
-    </button>
+      <div
+        class="counter"
+      >
+        1 - 20 of 55
+      </div>
+      <button
+        class="btn btn-tertiary prev disabled"
+        disabled=""
+        type="button"
+      >
+        <i
+          class="icon icon-chevron-left"
+          title="Previous Icon"
+        />
+      </button>
+      <button
+        class="btn btn-tertiary next "
+        type="button"
+      >
+        <i
+          class="icon icon-chevron-right"
+          title="Next Icon"
+        />
+      </button>
+    </div>
   </div>
 </div>
 `;
 
 exports[`components/admin_console/group_settings/group_details/GroupUsers should match snapshot, loaded with multiple pages 2`] = `
-<div
-  className="group-users"
->
+<div>
   <div
-    className="group-users--header"
-  >
-    <MemoizedFormattedMessage
-      defaultMessage="AD/LDAP Connector is configured to sync and manage this group and its users. <a>Click here to view</a>"
-      id="admin.group_settings.group_profile.group_users.ldapConnectorText"
-      values={
-        Object {
-          "a": [Function],
-        }
-      }
-    />
-  </div>
-  <div
-    className="group-users--body"
+    class="group-users"
   >
     <div
-      className="group-users-loading "
+      class="group-users--header"
     >
-      <i
-        className="fa fa-spinner fa-pulse fa-2x"
-      />
+      AD/LDAP Connector is configured to sync and manage this group and its users. 
+      <a
+        href="/admin_console/authentication/ldap"
+      >
+        Click here to view
+      </a>
     </div>
-    <Memo(GroupUsersRow)
-      displayName="Name20 Surname20"
-      email="test20@test.com"
-      key="id20"
-      lastPictureUpdate={20}
-      userId="id20"
-      username="username20"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name21 Surname21"
-      email="test21@test.com"
-      key="id21"
-      lastPictureUpdate={21}
-      userId="id21"
-      username="username21"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name22 Surname22"
-      email="test22@test.com"
-      key="id22"
-      lastPictureUpdate={22}
-      userId="id22"
-      username="username22"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name23 Surname23"
-      email="test23@test.com"
-      key="id23"
-      lastPictureUpdate={23}
-      userId="id23"
-      username="username23"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name24 Surname24"
-      email="test24@test.com"
-      key="id24"
-      lastPictureUpdate={24}
-      userId="id24"
-      username="username24"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name25 Surname25"
-      email="test25@test.com"
-      key="id25"
-      lastPictureUpdate={25}
-      userId="id25"
-      username="username25"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name26 Surname26"
-      email="test26@test.com"
-      key="id26"
-      lastPictureUpdate={26}
-      userId="id26"
-      username="username26"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name27 Surname27"
-      email="test27@test.com"
-      key="id27"
-      lastPictureUpdate={27}
-      userId="id27"
-      username="username27"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name28 Surname28"
-      email="test28@test.com"
-      key="id28"
-      lastPictureUpdate={28}
-      userId="id28"
-      username="username28"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name29 Surname29"
-      email="test29@test.com"
-      key="id29"
-      lastPictureUpdate={29}
-      userId="id29"
-      username="username29"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name30 Surname30"
-      email="test30@test.com"
-      key="id30"
-      lastPictureUpdate={30}
-      userId="id30"
-      username="username30"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name31 Surname31"
-      email="test31@test.com"
-      key="id31"
-      lastPictureUpdate={31}
-      userId="id31"
-      username="username31"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name32 Surname32"
-      email="test32@test.com"
-      key="id32"
-      lastPictureUpdate={32}
-      userId="id32"
-      username="username32"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name33 Surname33"
-      email="test33@test.com"
-      key="id33"
-      lastPictureUpdate={33}
-      userId="id33"
-      username="username33"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name34 Surname34"
-      email="test34@test.com"
-      key="id34"
-      lastPictureUpdate={34}
-      userId="id34"
-      username="username34"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name35 Surname35"
-      email="test35@test.com"
-      key="id35"
-      lastPictureUpdate={35}
-      userId="id35"
-      username="username35"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name36 Surname36"
-      email="test36@test.com"
-      key="id36"
-      lastPictureUpdate={36}
-      userId="id36"
-      username="username36"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name37 Surname37"
-      email="test37@test.com"
-      key="id37"
-      lastPictureUpdate={37}
-      userId="id37"
-      username="username37"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name38 Surname38"
-      email="test38@test.com"
-      key="id38"
-      lastPictureUpdate={38}
-      userId="id38"
-      username="username38"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name39 Surname39"
-      email="test39@test.com"
-      key="id39"
-      lastPictureUpdate={39}
-      userId="id39"
-      username="username39"
-    />
-  </div>
-  <div
-    className="group-users--footer"
-  >
     <div
-      className="counter"
+      class="group-users--body"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="{startCount, number} - {endCount, number} of {total, number}"
-        id="admin.group_settings.groups_list.paginatorCount"
-        values={
-          Object {
-            "endCount": 40,
-            "startCount": 21,
-            "total": 55,
-          }
-        }
-      />
+      <div
+        class="group-users-loading "
+      >
+        <i
+          class="fa fa-spinner fa-pulse fa-2x"
+        />
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username20 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id20/image?_=20"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username20
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name20 Surname20
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test20@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username21 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id21/image?_=21"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username21
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name21 Surname21
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test21@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username22 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id22/image?_=22"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username22
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name22 Surname22
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test22@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username23 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id23/image?_=23"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username23
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name23 Surname23
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test23@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username24 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id24/image?_=24"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username24
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name24 Surname24
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test24@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username25 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id25/image?_=25"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username25
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name25 Surname25
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test25@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username26 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id26/image?_=26"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username26
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name26 Surname26
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test26@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username27 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id27/image?_=27"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username27
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name27 Surname27
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test27@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username28 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id28/image?_=28"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username28
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name28 Surname28
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test28@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username29 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id29/image?_=29"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username29
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name29 Surname29
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test29@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username30 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id30/image?_=30"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username30
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name30 Surname30
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test30@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username31 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id31/image?_=31"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username31
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name31 Surname31
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test31@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username32 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id32/image?_=32"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username32
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name32 Surname32
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test32@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username33 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id33/image?_=33"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username33
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name33 Surname33
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test33@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username34 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id34/image?_=34"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username34
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name34 Surname34
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test34@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username35 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id35/image?_=35"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username35
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name35 Surname35
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test35@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username36 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id36/image?_=36"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username36
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name36 Surname36
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test36@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username37 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id37/image?_=37"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username37
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name37 Surname37
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test37@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username38 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id38/image?_=38"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username38
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name38 Surname38
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test38@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username39 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id39/image?_=39"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username39
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name39 Surname39
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test39@test.com
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
-    <button
-      className="btn btn-tertiary prev "
-      disabled={false}
-      onClick={[Function]}
-      type="button"
+    <div
+      class="group-users--footer"
     >
-      <Memo(PreviousIcon) />
-    </button>
-    <button
-      className="btn btn-tertiary next "
-      disabled={false}
-      onClick={[Function]}
-      type="button"
-    >
-      <Memo(NextIcon) />
-    </button>
+      <div
+        class="counter"
+      >
+        21 - 40 of 55
+      </div>
+      <button
+        class="btn btn-tertiary prev "
+        type="button"
+      >
+        <i
+          class="icon icon-chevron-left"
+          title="Previous Icon"
+        />
+      </button>
+      <button
+        class="btn btn-tertiary next "
+        type="button"
+      >
+        <i
+          class="icon icon-chevron-right"
+          title="Next Icon"
+        />
+      </button>
+    </div>
   </div>
 </div>
 `;
 
 exports[`components/admin_console/group_settings/group_details/GroupUsers should match snapshot, loaded with multiple pages 3`] = `
-<div
-  className="group-users"
->
+<div>
   <div
-    className="group-users--header"
-  >
-    <MemoizedFormattedMessage
-      defaultMessage="AD/LDAP Connector is configured to sync and manage this group and its users. <a>Click here to view</a>"
-      id="admin.group_settings.group_profile.group_users.ldapConnectorText"
-      values={
-        Object {
-          "a": [Function],
-        }
-      }
-    />
-  </div>
-  <div
-    className="group-users--body"
+    class="group-users"
   >
     <div
-      className="group-users-loading "
+      class="group-users--header"
     >
-      <i
-        className="fa fa-spinner fa-pulse fa-2x"
-      />
+      AD/LDAP Connector is configured to sync and manage this group and its users. 
+      <a
+        href="/admin_console/authentication/ldap"
+      >
+        Click here to view
+      </a>
     </div>
-    <Memo(GroupUsersRow)
-      displayName="Name40 Surname40"
-      email="test40@test.com"
-      key="id40"
-      lastPictureUpdate={40}
-      userId="id40"
-      username="username40"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name41 Surname41"
-      email="test41@test.com"
-      key="id41"
-      lastPictureUpdate={41}
-      userId="id41"
-      username="username41"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name42 Surname42"
-      email="test42@test.com"
-      key="id42"
-      lastPictureUpdate={42}
-      userId="id42"
-      username="username42"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name43 Surname43"
-      email="test43@test.com"
-      key="id43"
-      lastPictureUpdate={43}
-      userId="id43"
-      username="username43"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name44 Surname44"
-      email="test44@test.com"
-      key="id44"
-      lastPictureUpdate={44}
-      userId="id44"
-      username="username44"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name45 Surname45"
-      email="test45@test.com"
-      key="id45"
-      lastPictureUpdate={45}
-      userId="id45"
-      username="username45"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name46 Surname46"
-      email="test46@test.com"
-      key="id46"
-      lastPictureUpdate={46}
-      userId="id46"
-      username="username46"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name47 Surname47"
-      email="test47@test.com"
-      key="id47"
-      lastPictureUpdate={47}
-      userId="id47"
-      username="username47"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name48 Surname48"
-      email="test48@test.com"
-      key="id48"
-      lastPictureUpdate={48}
-      userId="id48"
-      username="username48"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name49 Surname49"
-      email="test49@test.com"
-      key="id49"
-      lastPictureUpdate={49}
-      userId="id49"
-      username="username49"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name50 Surname50"
-      email="test50@test.com"
-      key="id50"
-      lastPictureUpdate={50}
-      userId="id50"
-      username="username50"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name51 Surname51"
-      email="test51@test.com"
-      key="id51"
-      lastPictureUpdate={51}
-      userId="id51"
-      username="username51"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name52 Surname52"
-      email="test52@test.com"
-      key="id52"
-      lastPictureUpdate={52}
-      userId="id52"
-      username="username52"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name53 Surname53"
-      email="test53@test.com"
-      key="id53"
-      lastPictureUpdate={53}
-      userId="id53"
-      username="username53"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name54 Surname54"
-      email="test54@test.com"
-      key="id54"
-      lastPictureUpdate={54}
-      userId="id54"
-      username="username54"
-    />
-  </div>
-  <div
-    className="group-users--footer"
-  >
     <div
-      className="counter"
+      class="group-users--body"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="{startCount, number} - {endCount, number} of {total, number}"
-        id="admin.group_settings.groups_list.paginatorCount"
-        values={
-          Object {
-            "endCount": 55,
-            "startCount": 41,
-            "total": 55,
-          }
-        }
-      />
+      <div
+        class="group-users-loading "
+      >
+        <i
+          class="fa fa-spinner fa-pulse fa-2x"
+        />
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username40 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id40/image?_=40"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username40
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name40 Surname40
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test40@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username41 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id41/image?_=41"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username41
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name41 Surname41
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test41@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username42 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id42/image?_=42"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username42
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name42 Surname42
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test42@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username43 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id43/image?_=43"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username43
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name43 Surname43
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test43@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username44 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id44/image?_=44"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username44
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name44 Surname44
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test44@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username45 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id45/image?_=45"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username45
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name45 Surname45
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test45@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username46 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id46/image?_=46"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username46
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name46 Surname46
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test46@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username47 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id47/image?_=47"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username47
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name47 Surname47
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test47@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username48 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id48/image?_=48"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username48
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name48 Surname48
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test48@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username49 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id49/image?_=49"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username49
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name49 Surname49
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test49@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username50 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id50/image?_=50"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username50
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name50 Surname50
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test50@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username51 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id51/image?_=51"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username51
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name51 Surname51
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test51@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username52 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id52/image?_=52"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username52
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name52 Surname52
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test52@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username53 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id53/image?_=53"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username53
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name53 Surname53
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test53@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username54 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id54/image?_=54"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username54
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name54 Surname54
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test54@test.com
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
-    <button
-      className="btn btn-tertiary prev "
-      disabled={false}
-      onClick={[Function]}
-      type="button"
+    <div
+      class="group-users--footer"
     >
-      <Memo(PreviousIcon) />
-    </button>
-    <button
-      className="btn btn-tertiary next disabled"
-      disabled={true}
-      onClick={[Function]}
-      type="button"
-    >
-      <Memo(NextIcon) />
-    </button>
+      <div
+        class="counter"
+      >
+        41 - 55 of 55
+      </div>
+      <button
+        class="btn btn-tertiary prev "
+        type="button"
+      >
+        <i
+          class="icon icon-chevron-left"
+          title="Previous Icon"
+        />
+      </button>
+      <button
+        class="btn btn-tertiary next disabled"
+        disabled=""
+        type="button"
+      >
+        <i
+          class="icon icon-chevron-right"
+          title="Next Icon"
+        />
+      </button>
+    </div>
   </div>
 </div>
 `;
 
 exports[`components/admin_console/group_settings/group_details/GroupUsers should match snapshot, loaded with one page 1`] = `
-<div
-  className="group-users"
->
+<div>
   <div
-    className="group-users--header"
-  >
-    <MemoizedFormattedMessage
-      defaultMessage="AD/LDAP Connector is configured to sync and manage this group and its users. <a>Click here to view</a>"
-      id="admin.group_settings.group_profile.group_users.ldapConnectorText"
-      values={
-        Object {
-          "a": [Function],
-        }
-      }
-    />
-  </div>
-  <div
-    className="group-users--body"
+    class="group-users"
   >
     <div
-      className="group-users-loading "
+      class="group-users--header"
     >
-      <i
-        className="fa fa-spinner fa-pulse fa-2x"
-      />
+      AD/LDAP Connector is configured to sync and manage this group and its users. 
+      <a
+        href="/admin_console/authentication/ldap"
+      >
+        Click here to view
+      </a>
     </div>
-    <Memo(GroupUsersRow)
-      displayName="Name0 Surname0"
-      email="test0@test.com"
-      key="id0"
-      lastPictureUpdate={0}
-      userId="id0"
-      username="username0"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name1 Surname1"
-      email="test1@test.com"
-      key="id1"
-      lastPictureUpdate={1}
-      userId="id1"
-      username="username1"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name2 Surname2"
-      email="test2@test.com"
-      key="id2"
-      lastPictureUpdate={2}
-      userId="id2"
-      username="username2"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name3 Surname3"
-      email="test3@test.com"
-      key="id3"
-      lastPictureUpdate={3}
-      userId="id3"
-      username="username3"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name4 Surname4"
-      email="test4@test.com"
-      key="id4"
-      lastPictureUpdate={4}
-      userId="id4"
-      username="username4"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name5 Surname5"
-      email="test5@test.com"
-      key="id5"
-      lastPictureUpdate={5}
-      userId="id5"
-      username="username5"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name6 Surname6"
-      email="test6@test.com"
-      key="id6"
-      lastPictureUpdate={6}
-      userId="id6"
-      username="username6"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name7 Surname7"
-      email="test7@test.com"
-      key="id7"
-      lastPictureUpdate={7}
-      userId="id7"
-      username="username7"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name8 Surname8"
-      email="test8@test.com"
-      key="id8"
-      lastPictureUpdate={8}
-      userId="id8"
-      username="username8"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name9 Surname9"
-      email="test9@test.com"
-      key="id9"
-      lastPictureUpdate={9}
-      userId="id9"
-      username="username9"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name10 Surname10"
-      email="test10@test.com"
-      key="id10"
-      lastPictureUpdate={10}
-      userId="id10"
-      username="username10"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name11 Surname11"
-      email="test11@test.com"
-      key="id11"
-      lastPictureUpdate={11}
-      userId="id11"
-      username="username11"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name12 Surname12"
-      email="test12@test.com"
-      key="id12"
-      lastPictureUpdate={12}
-      userId="id12"
-      username="username12"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name13 Surname13"
-      email="test13@test.com"
-      key="id13"
-      lastPictureUpdate={13}
-      userId="id13"
-      username="username13"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name14 Surname14"
-      email="test14@test.com"
-      key="id14"
-      lastPictureUpdate={14}
-      userId="id14"
-      username="username14"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name15 Surname15"
-      email="test15@test.com"
-      key="id15"
-      lastPictureUpdate={15}
-      userId="id15"
-      username="username15"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name16 Surname16"
-      email="test16@test.com"
-      key="id16"
-      lastPictureUpdate={16}
-      userId="id16"
-      username="username16"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name17 Surname17"
-      email="test17@test.com"
-      key="id17"
-      lastPictureUpdate={17}
-      userId="id17"
-      username="username17"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name18 Surname18"
-      email="test18@test.com"
-      key="id18"
-      lastPictureUpdate={18}
-      userId="id18"
-      username="username18"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name19 Surname19"
-      email="test19@test.com"
-      key="id19"
-      lastPictureUpdate={19}
-      userId="id19"
-      username="username19"
-    />
-  </div>
-  <div
-    className="group-users--footer"
-  >
     <div
-      className="counter"
+      class="group-users--body"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="{startCount, number} - {endCount, number} of {total, number}"
-        id="admin.group_settings.groups_list.paginatorCount"
-        values={
-          Object {
-            "endCount": 20,
-            "startCount": 1,
-            "total": 20,
-          }
-        }
-      />
+      <div
+        class="group-users-loading "
+      >
+        <i
+          class="fa fa-spinner fa-pulse fa-2x"
+        />
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username0 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id0/image"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username0
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name0 Surname0
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test0@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username1 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id1/image?_=1"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username1
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name1 Surname1
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test1@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username2 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id2/image?_=2"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username2
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name2 Surname2
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test2@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username3 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id3/image?_=3"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username3
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name3 Surname3
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test3@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username4 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id4/image?_=4"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username4
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name4 Surname4
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test4@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username5 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id5/image?_=5"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username5
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name5 Surname5
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test5@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username6 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id6/image?_=6"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username6
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name6 Surname6
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test6@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username7 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id7/image?_=7"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username7
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name7 Surname7
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test7@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username8 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id8/image?_=8"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username8
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name8 Surname8
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test8@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username9 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id9/image?_=9"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username9
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name9 Surname9
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test9@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username10 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id10/image?_=10"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username10
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name10 Surname10
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test10@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username11 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id11/image?_=11"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username11
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name11 Surname11
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test11@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username12 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id12/image?_=12"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username12
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name12 Surname12
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test12@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username13 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id13/image?_=13"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username13
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name13 Surname13
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test13@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username14 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id14/image?_=14"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username14
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name14 Surname14
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test14@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username15 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id15/image?_=15"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username15
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name15 Surname15
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test15@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username16 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id16/image?_=16"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username16
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name16 Surname16
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test16@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username17 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id17/image?_=17"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username17
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name17 Surname17
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test17@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username18 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id18/image?_=18"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username18
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name18 Surname18
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test18@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username19 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id19/image?_=19"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username19
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name19 Surname19
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test19@test.com
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
-    <button
-      className="btn btn-tertiary prev disabled"
-      disabled={true}
-      onClick={[Function]}
-      type="button"
+    <div
+      class="group-users--footer"
     >
-      <Memo(PreviousIcon) />
-    </button>
-    <button
-      className="btn btn-tertiary next disabled"
-      disabled={true}
-      onClick={[Function]}
-      type="button"
-    >
-      <Memo(NextIcon) />
-    </button>
+      <div
+        class="counter"
+      >
+        1 - 20 of 20
+      </div>
+      <button
+        class="btn btn-tertiary prev disabled"
+        disabled=""
+        type="button"
+      >
+        <i
+          class="icon icon-chevron-left"
+          title="Previous Icon"
+        />
+      </button>
+      <button
+        class="btn btn-tertiary next disabled"
+        disabled=""
+        type="button"
+      >
+        <i
+          class="icon icon-chevron-right"
+          title="Next Icon"
+        />
+      </button>
+    </div>
   </div>
 </div>
 `;
 
 exports[`components/admin_console/group_settings/group_details/GroupUsers should match snapshot, loaded without data 1`] = `
-<div
-  className="group-users"
->
+<div>
   <div
-    className="group-users--header"
+    class="group-users"
   >
-    <MemoizedFormattedMessage
-      defaultMessage="AD/LDAP Connector is configured to sync and manage this group and its users. <a>Click here to view</a>"
-      id="admin.group_settings.group_profile.group_users.ldapConnectorText"
-      values={
-        Object {
-          "a": [Function],
-        }
-      }
+    <div
+      class="group-users--header"
+    >
+      AD/LDAP Connector is configured to sync and manage this group and its users. 
+      <a
+        href="/admin_console/authentication/ldap"
+      >
+        Click here to view
+      </a>
+    </div>
+    <div
+      class="group-users--body"
+    >
+      <div
+        class="group-users-loading "
+      >
+        <i
+          class="fa fa-spinner fa-pulse fa-2x"
+        />
+      </div>
+      <div
+        class="group-users-empty"
+      >
+        No users found
+      </div>
+    </div>
+    <div
+      class="group-users--footer empty"
     />
   </div>
-  <div
-    className="group-users--body"
-  >
-    <div
-      className="group-users-loading "
-    >
-      <i
-        className="fa fa-spinner fa-pulse fa-2x"
-      />
-    </div>
-    <div
-      className="group-users-empty"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="No users found"
-        id="admin.group_settings.group_details.group_users.no-users-found"
-      />
-    </div>
-  </div>
-  <div
-    className="group-users--footer empty"
-  />
 </div>
 `;
 
 exports[`components/admin_console/group_settings/group_details/GroupUsers should match snapshot, on loading with data 1`] = `
-<div
-  className="group-users"
->
+<div>
   <div
-    className="group-users--header"
-  >
-    <MemoizedFormattedMessage
-      defaultMessage="AD/LDAP Connector is configured to sync and manage this group and its users. <a>Click here to view</a>"
-      id="admin.group_settings.group_profile.group_users.ldapConnectorText"
-      values={
-        Object {
-          "a": [Function],
-        }
-      }
-    />
-  </div>
-  <div
-    className="group-users--body"
+    class="group-users"
   >
     <div
-      className="group-users-loading active"
+      class="group-users--header"
     >
-      <i
-        className="fa fa-spinner fa-pulse fa-2x"
-      />
+      AD/LDAP Connector is configured to sync and manage this group and its users. 
+      <a
+        href="/admin_console/authentication/ldap"
+      >
+        Click here to view
+      </a>
     </div>
-    <Memo(GroupUsersRow)
-      displayName="Name0 Surname0"
-      email="test0@test.com"
-      key="id0"
-      lastPictureUpdate={0}
-      userId="id0"
-      username="username0"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name1 Surname1"
-      email="test1@test.com"
-      key="id1"
-      lastPictureUpdate={1}
-      userId="id1"
-      username="username1"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name2 Surname2"
-      email="test2@test.com"
-      key="id2"
-      lastPictureUpdate={2}
-      userId="id2"
-      username="username2"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name3 Surname3"
-      email="test3@test.com"
-      key="id3"
-      lastPictureUpdate={3}
-      userId="id3"
-      username="username3"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name4 Surname4"
-      email="test4@test.com"
-      key="id4"
-      lastPictureUpdate={4}
-      userId="id4"
-      username="username4"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name5 Surname5"
-      email="test5@test.com"
-      key="id5"
-      lastPictureUpdate={5}
-      userId="id5"
-      username="username5"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name6 Surname6"
-      email="test6@test.com"
-      key="id6"
-      lastPictureUpdate={6}
-      userId="id6"
-      username="username6"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name7 Surname7"
-      email="test7@test.com"
-      key="id7"
-      lastPictureUpdate={7}
-      userId="id7"
-      username="username7"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name8 Surname8"
-      email="test8@test.com"
-      key="id8"
-      lastPictureUpdate={8}
-      userId="id8"
-      username="username8"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name9 Surname9"
-      email="test9@test.com"
-      key="id9"
-      lastPictureUpdate={9}
-      userId="id9"
-      username="username9"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name10 Surname10"
-      email="test10@test.com"
-      key="id10"
-      lastPictureUpdate={10}
-      userId="id10"
-      username="username10"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name11 Surname11"
-      email="test11@test.com"
-      key="id11"
-      lastPictureUpdate={11}
-      userId="id11"
-      username="username11"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name12 Surname12"
-      email="test12@test.com"
-      key="id12"
-      lastPictureUpdate={12}
-      userId="id12"
-      username="username12"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name13 Surname13"
-      email="test13@test.com"
-      key="id13"
-      lastPictureUpdate={13}
-      userId="id13"
-      username="username13"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name14 Surname14"
-      email="test14@test.com"
-      key="id14"
-      lastPictureUpdate={14}
-      userId="id14"
-      username="username14"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name15 Surname15"
-      email="test15@test.com"
-      key="id15"
-      lastPictureUpdate={15}
-      userId="id15"
-      username="username15"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name16 Surname16"
-      email="test16@test.com"
-      key="id16"
-      lastPictureUpdate={16}
-      userId="id16"
-      username="username16"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name17 Surname17"
-      email="test17@test.com"
-      key="id17"
-      lastPictureUpdate={17}
-      userId="id17"
-      username="username17"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name18 Surname18"
-      email="test18@test.com"
-      key="id18"
-      lastPictureUpdate={18}
-      userId="id18"
-      username="username18"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name19 Surname19"
-      email="test19@test.com"
-      key="id19"
-      lastPictureUpdate={19}
-      userId="id19"
-      username="username19"
-    />
-  </div>
-  <div
-    className="group-users--footer"
-  >
     <div
-      className="counter"
+      class="group-users--body"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="{startCount, number} - {endCount, number} of {total, number}"
-        id="admin.group_settings.groups_list.paginatorCount"
-        values={
-          Object {
-            "endCount": 20,
-            "startCount": 1,
-            "total": 20,
-          }
-        }
-      />
+      <div
+        class="group-users-loading active"
+      >
+        <i
+          class="fa fa-spinner fa-pulse fa-2x"
+        />
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username0 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id0/image"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username0
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name0 Surname0
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test0@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username1 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id1/image?_=1"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username1
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name1 Surname1
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test1@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username2 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id2/image?_=2"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username2
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name2 Surname2
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test2@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username3 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id3/image?_=3"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username3
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name3 Surname3
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test3@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username4 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id4/image?_=4"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username4
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name4 Surname4
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test4@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username5 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id5/image?_=5"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username5
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name5 Surname5
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test5@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username6 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id6/image?_=6"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username6
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name6 Surname6
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test6@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username7 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id7/image?_=7"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username7
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name7 Surname7
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test7@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username8 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id8/image?_=8"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username8
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name8 Surname8
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test8@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username9 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id9/image?_=9"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username9
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name9 Surname9
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test9@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username10 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id10/image?_=10"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username10
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name10 Surname10
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test10@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username11 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id11/image?_=11"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username11
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name11 Surname11
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test11@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username12 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id12/image?_=12"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username12
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name12 Surname12
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test12@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username13 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id13/image?_=13"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username13
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name13 Surname13
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test13@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username14 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id14/image?_=14"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username14
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name14 Surname14
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test14@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username15 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id15/image?_=15"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username15
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name15 Surname15
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test15@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username16 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id16/image?_=16"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username16
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name16 Surname16
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test16@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username17 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id17/image?_=17"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username17
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name17 Surname17
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test17@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username18 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id18/image?_=18"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username18
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name18 Surname18
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test18@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username19 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id19/image?_=19"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username19
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name19 Surname19
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test19@test.com
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
-    <button
-      className="btn btn-tertiary prev disabled"
-      disabled={true}
-      onClick={[Function]}
-      type="button"
+    <div
+      class="group-users--footer"
     >
-      <Memo(PreviousIcon) />
-    </button>
-    <button
-      className="btn btn-tertiary next disabled"
-      disabled={true}
-      onClick={[Function]}
-      type="button"
-    >
-      <Memo(NextIcon) />
-    </button>
+      <div
+        class="counter"
+      >
+        1 - 20 of 20
+      </div>
+      <button
+        class="btn btn-tertiary prev disabled"
+        disabled=""
+        type="button"
+      >
+        <i
+          class="icon icon-chevron-left"
+          title="Previous Icon"
+        />
+      </button>
+      <button
+        class="btn btn-tertiary next disabled"
+        disabled=""
+        type="button"
+      >
+        <i
+          class="icon icon-chevron-right"
+          title="Next Icon"
+        />
+      </button>
+    </div>
   </div>
 </div>
 `;
 
 exports[`components/admin_console/group_settings/group_details/GroupUsers should match snapshot, on loading without data 1`] = `
-<div
-  className="group-users"
->
+<div>
   <div
-    className="group-users--header"
+    class="group-users"
   >
-    <MemoizedFormattedMessage
-      defaultMessage="AD/LDAP Connector is configured to sync and manage this group and its users. <a>Click here to view</a>"
-      id="admin.group_settings.group_profile.group_users.ldapConnectorText"
-      values={
-        Object {
-          "a": [Function],
-        }
-      }
+    <div
+      class="group-users--header"
+    >
+      AD/LDAP Connector is configured to sync and manage this group and its users. 
+      <a
+        href="/admin_console/authentication/ldap"
+      >
+        Click here to view
+      </a>
+    </div>
+    <div
+      class="group-users--body"
+    >
+      <div
+        class="group-users-loading active"
+      >
+        <i
+          class="fa fa-spinner fa-pulse fa-2x"
+        />
+      </div>
+      <div
+        class="group-users-empty"
+      >
+        No users found
+      </div>
+    </div>
+    <div
+      class="group-users--footer empty"
     />
   </div>
-  <div
-    className="group-users--body"
-  >
-    <div
-      className="group-users-loading active"
-    >
-      <i
-        className="fa fa-spinner fa-pulse fa-2x"
-      />
-    </div>
-    <div
-      className="group-users-empty"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="No users found"
-        id="admin.group_settings.group_details.group_users.no-users-found"
-      />
-    </div>
-  </div>
-  <div
-    className="group-users--footer empty"
-  />
 </div>
 `;
 
 exports[`components/admin_console/group_settings/group_details/GroupUsers should match snapshot, plugin group 1`] = `
-<div
-  className="group-users"
->
+<div>
   <div
-    className="group-users--header"
-  >
-    <MemoizedFormattedMessage
-      defaultMessage="This group is managed by a plugin."
-      id="admin.group_settings.group_profile.group_users.pluginGroupText"
-    />
-  </div>
-  <div
-    className="group-users--body"
+    class="group-users"
   >
     <div
-      className="group-users-loading active"
+      class="group-users--header"
     >
-      <i
-        className="fa fa-spinner fa-pulse fa-2x"
-      />
+      This group is managed by a plugin.
     </div>
-    <Memo(GroupUsersRow)
-      displayName="Name0 Surname0"
-      email="test0@test.com"
-      key="id0"
-      lastPictureUpdate={0}
-      userId="id0"
-      username="username0"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name1 Surname1"
-      email="test1@test.com"
-      key="id1"
-      lastPictureUpdate={1}
-      userId="id1"
-      username="username1"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name2 Surname2"
-      email="test2@test.com"
-      key="id2"
-      lastPictureUpdate={2}
-      userId="id2"
-      username="username2"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name3 Surname3"
-      email="test3@test.com"
-      key="id3"
-      lastPictureUpdate={3}
-      userId="id3"
-      username="username3"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name4 Surname4"
-      email="test4@test.com"
-      key="id4"
-      lastPictureUpdate={4}
-      userId="id4"
-      username="username4"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name5 Surname5"
-      email="test5@test.com"
-      key="id5"
-      lastPictureUpdate={5}
-      userId="id5"
-      username="username5"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name6 Surname6"
-      email="test6@test.com"
-      key="id6"
-      lastPictureUpdate={6}
-      userId="id6"
-      username="username6"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name7 Surname7"
-      email="test7@test.com"
-      key="id7"
-      lastPictureUpdate={7}
-      userId="id7"
-      username="username7"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name8 Surname8"
-      email="test8@test.com"
-      key="id8"
-      lastPictureUpdate={8}
-      userId="id8"
-      username="username8"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name9 Surname9"
-      email="test9@test.com"
-      key="id9"
-      lastPictureUpdate={9}
-      userId="id9"
-      username="username9"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name10 Surname10"
-      email="test10@test.com"
-      key="id10"
-      lastPictureUpdate={10}
-      userId="id10"
-      username="username10"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name11 Surname11"
-      email="test11@test.com"
-      key="id11"
-      lastPictureUpdate={11}
-      userId="id11"
-      username="username11"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name12 Surname12"
-      email="test12@test.com"
-      key="id12"
-      lastPictureUpdate={12}
-      userId="id12"
-      username="username12"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name13 Surname13"
-      email="test13@test.com"
-      key="id13"
-      lastPictureUpdate={13}
-      userId="id13"
-      username="username13"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name14 Surname14"
-      email="test14@test.com"
-      key="id14"
-      lastPictureUpdate={14}
-      userId="id14"
-      username="username14"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name15 Surname15"
-      email="test15@test.com"
-      key="id15"
-      lastPictureUpdate={15}
-      userId="id15"
-      username="username15"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name16 Surname16"
-      email="test16@test.com"
-      key="id16"
-      lastPictureUpdate={16}
-      userId="id16"
-      username="username16"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name17 Surname17"
-      email="test17@test.com"
-      key="id17"
-      lastPictureUpdate={17}
-      userId="id17"
-      username="username17"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name18 Surname18"
-      email="test18@test.com"
-      key="id18"
-      lastPictureUpdate={18}
-      userId="id18"
-      username="username18"
-    />
-    <Memo(GroupUsersRow)
-      displayName="Name19 Surname19"
-      email="test19@test.com"
-      key="id19"
-      lastPictureUpdate={19}
-      userId="id19"
-      username="username19"
-    />
-  </div>
-  <div
-    className="group-users--footer"
-  >
     <div
-      className="counter"
+      class="group-users--body"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="{startCount, number} - {endCount, number} of {total, number}"
-        id="admin.group_settings.groups_list.paginatorCount"
-        values={
-          Object {
-            "endCount": 20,
-            "startCount": 1,
-            "total": 20,
-          }
-        }
-      />
+      <div
+        class="group-users-loading active"
+      >
+        <i
+          class="fa fa-spinner fa-pulse fa-2x"
+        />
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username0 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id0/image"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username0
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name0 Surname0
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test0@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username1 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id1/image?_=1"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username1
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name1 Surname1
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test1@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username2 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id2/image?_=2"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username2
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name2 Surname2
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test2@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username3 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id3/image?_=3"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username3
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name3 Surname3
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test3@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username4 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id4/image?_=4"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username4
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name4 Surname4
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test4@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username5 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id5/image?_=5"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username5
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name5 Surname5
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test5@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username6 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id6/image?_=6"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username6
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name6 Surname6
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test6@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username7 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id7/image?_=7"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username7
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name7 Surname7
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test7@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username8 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id8/image?_=8"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username8
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name8 Surname8
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test8@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username9 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id9/image?_=9"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username9
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name9 Surname9
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test9@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username10 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id10/image?_=10"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username10
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name10 Surname10
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test10@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username11 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id11/image?_=11"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username11
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name11 Surname11
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test11@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username12 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id12/image?_=12"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username12
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name12 Surname12
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test12@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username13 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id13/image?_=13"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username13
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name13 Surname13
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test13@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username14 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id14/image?_=14"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username14
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name14 Surname14
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test14@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username15 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id15/image?_=15"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username15
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name15 Surname15
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test15@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username16 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id16/image?_=16"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username16
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name16 Surname16
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test16@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username17 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id17/image?_=17"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username17
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name17 Surname17
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test17@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username18 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id18/image?_=18"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username18
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name18 Surname18
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test18@test.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group-users-row"
+      >
+        <img
+          alt="username19 profile image"
+          class="Avatar Avatar-lg"
+          loading="lazy"
+          src="/api/v4/users/id19/image?_=19"
+        />
+        <div
+          class="user-data"
+        >
+          <div
+            class="name-row"
+          >
+            <span
+              class="username"
+            >
+              @username19
+            </span>
+            -
+            <span
+              class="display-name"
+            >
+              Name19 Surname19
+            </span>
+          </div>
+          <div>
+            <span
+              class="email-label"
+            >
+              Email:
+            </span>
+            <span
+              class="email"
+            >
+              test19@test.com
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
-    <button
-      className="btn btn-tertiary prev disabled"
-      disabled={true}
-      onClick={[Function]}
-      type="button"
+    <div
+      class="group-users--footer"
     >
-      <Memo(PreviousIcon) />
-    </button>
-    <button
-      className="btn btn-tertiary next disabled"
-      disabled={true}
-      onClick={[Function]}
-      type="button"
-    >
-      <Memo(NextIcon) />
-    </button>
+      <div
+        class="counter"
+      >
+        1 - 20 of 20
+      </div>
+      <button
+        class="btn btn-tertiary prev disabled"
+        disabled=""
+        type="button"
+      >
+        <i
+          class="icon icon-chevron-left"
+          title="Previous Icon"
+        />
+      </button>
+      <button
+        class="btn btn-tertiary next disabled"
+        disabled=""
+        type="button"
+      >
+        <i
+          class="icon icon-chevron-right"
+          title="Next Icon"
+        />
+      </button>
+    </div>
   </div>
 </div>
 `;

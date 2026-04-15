@@ -237,6 +237,12 @@ const initFormValues = (form: AppForm, timezone?: string): AppFormValues => {
 };
 
 export class AppsForm extends React.PureComponent<Props, State> {
+    // Cache sanitized fields to preserve object identity across renders.
+    // Without this, createSanitizedField() returns a new object every render,
+    // causing AppsFormSelectField to remount its AsyncSelect (via refreshNonce),
+    // which re-triggers dynamic select lookups on every keystroke in any field.
+    private sanitizedFieldCache = new Map<AppField, AppField>();
+
     constructor(props: Props) {
         super(props);
 
@@ -269,6 +275,14 @@ export class AppsForm extends React.PureComponent<Props, State> {
         }
 
         return null;
+    }
+
+    componentDidUpdate(prevProps: Props) {
+        // Clear sanitized field cache when the form changes (e.g., refresh or multistep)
+        // so stale entries don't accumulate.
+        if (prevProps.form !== this.props.form) {
+            this.sanitizedFieldCache.clear();
+        }
     }
 
     updateErrors = (elements: DialogElement[], fieldErrors?: {[x: string]: string}, formError?: string): boolean => {
@@ -657,8 +671,13 @@ export class AppsForm extends React.PureComponent<Props, State> {
         }
 
         return fields.filter((f) => f.name !== form.submit_buttons).map((originalField, index) => {
-            // Use sanitized field for safe usage in components
-            const field = createSanitizedField(originalField);
+            // Use cached sanitized field to preserve object identity across renders.
+            // This prevents AsyncSelect remounts that trigger spurious lookup calls.
+            let field = this.sanitizedFieldCache.get(originalField);
+            if (!field) {
+                field = createSanitizedField(originalField);
+                this.sanitizedFieldCache.set(originalField, field);
+            }
 
             return (
                 <AppsFormField

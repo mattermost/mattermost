@@ -5,10 +5,10 @@ import React from 'react';
 
 import type {Job} from '@mattermost/types/jobs';
 
-import MessageExportSettings from 'components/admin_console/message_export_settings';
-import type {MessageExportSettings as MessageExportSettingsClass} from 'components/admin_console/message_export_settings';
+import MessageExportSettingsDefault, {MessageExportSettings} from 'components/admin_console/message_export_settings';
 
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+import {defaultIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import type {BaseProps} from './old_admin_settings';
 
@@ -24,24 +24,12 @@ describe('components/MessageExportSettings', () => {
             },
         } as unknown as BaseProps['config'];
 
-        const wrapper = shallowWithIntl(
-            <MessageExportSettings
+        const {container} = renderWithContext(
+            <MessageExportSettingsDefault
                 config={config}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
-
-        // actiance config fields are disabled
-        expect(wrapper.find('#exportJobStartTime').prop('disabled')).toBe(true);
-        expect(wrapper.find('#exportFormat').prop('disabled')).toBe(true);
-
-        // globalrelay config fiels are not rendered
-        expect(wrapper.find('#globalRelaySettings').exists()).toBe(false);
-
-        // controls should reflect config
-        expect(wrapper.find('#enableComplianceExport').prop('value')).toBe(false);
-        expect(wrapper.find('#exportJobStartTime').prop('value')).toBe('01:00');
-        expect(wrapper.find('#exportFormat').prop('value')).toBe('actiance');
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, enabled, actiance', () => {
@@ -55,24 +43,12 @@ describe('components/MessageExportSettings', () => {
             },
         };
 
-        const wrapper = shallowWithIntl(
-            <MessageExportSettings
+        const {container} = renderWithContext(
+            <MessageExportSettingsDefault
                 config={config}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
-
-        // actiance config fields are enabled
-        expect(wrapper.find('#exportJobStartTime').prop('disabled')).toBe(false);
-        expect(wrapper.find('#exportFormat').prop('disabled')).toBe(false);
-
-        // globalrelay config fiels are not rendered
-        expect(wrapper.find('#globalRelaySettings').exists()).toBe(false);
-
-        // controls should reflect config
-        expect(wrapper.find('#enableComplianceExport').prop('value')).toBe(true);
-        expect(wrapper.find('#exportJobStartTime').prop('value')).toBe('01:00');
-        expect(wrapper.find('#exportFormat').prop('value')).toBe('actiance');
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, disabled, globalrelay', () => {
@@ -94,31 +70,12 @@ describe('components/MessageExportSettings', () => {
             },
         };
 
-        const wrapper = shallowWithIntl(
-            <MessageExportSettings
+        const {container} = renderWithContext(
+            <MessageExportSettingsDefault
                 config={config}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
-
-        // actiance config fields are disabled
-        expect(wrapper.find('#exportJobStartTime').prop('disabled')).toBe(true);
-        expect(wrapper.find('#exportFormat').prop('disabled')).toBe(true);
-
-        // globalrelay config fiels are disabled
-        expect(wrapper.find('#globalRelayCustomerType').prop('disabled')).toBe(true);
-        expect(wrapper.find('#globalRelaySMTPUsername').prop('disabled')).toBe(true);
-        expect(wrapper.find('#globalRelaySMTPPassword').prop('disabled')).toBe(true);
-        expect(wrapper.find('#globalRelayEmailAddress').prop('disabled')).toBe(true);
-
-        // controls should reflect config
-        expect(wrapper.find('#enableComplianceExport').prop('value')).toBe(false);
-        expect(wrapper.find('#exportJobStartTime').prop('value')).toBe('01:00');
-        expect(wrapper.find('#exportFormat').prop('value')).toBe('globalrelay');
-        expect(wrapper.find('#globalRelayCustomerType').prop('value')).toBe('A10');
-        expect(wrapper.find('#globalRelaySMTPUsername').prop('value')).toBe('globalRelayUser');
-        expect(wrapper.find('#globalRelaySMTPPassword').prop('value')).toBe('globalRelayPassword');
-        expect(wrapper.find('#globalRelayEmailAddress').prop('value')).toBe('globalRelay@mattermost.com');
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, enabled, globalrelay', () => {
@@ -140,36 +97,18 @@ describe('components/MessageExportSettings', () => {
             },
         };
 
-        const wrapper = shallowWithIntl(
-            <MessageExportSettings
+        const {container} = renderWithContext(
+            <MessageExportSettingsDefault
                 config={config}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
-
-        // actiance config fields are enabled
-        expect(wrapper.find('#exportJobStartTime').prop('disabled')).toBe(false);
-        expect(wrapper.find('#exportFormat').prop('disabled')).toBe(false);
-
-        // globalrelay config fiels are enabled
-        expect(wrapper.find('#globalRelayCustomerType').prop('disabled')).toBe(false);
-        expect(wrapper.find('#globalRelaySMTPUsername').prop('disabled')).toBe(false);
-        expect(wrapper.find('#globalRelaySMTPPassword').prop('disabled')).toBe(false);
-        expect(wrapper.find('#globalRelayEmailAddress').prop('disabled')).toBe(false);
-
-        // controls should reflect config
-        expect(wrapper.find('#enableComplianceExport').prop('value')).toBe(true);
-        expect(wrapper.find('#exportJobStartTime').prop('value')).toBe('01:00');
-        expect(wrapper.find('#exportFormat').prop('value')).toBe('globalrelay');
-        expect(wrapper.find('#globalRelayCustomerType').prop('value')).toBe('A10');
-        expect(wrapper.find('#globalRelaySMTPUsername').prop('value')).toBe('globalRelayUser');
-        expect(wrapper.find('#globalRelaySMTPPassword').prop('value')).toBe('globalRelayPassword');
-        expect(wrapper.find('#globalRelayEmailAddress').prop('value')).toBe('globalRelay@mattermost.com');
+        expect(container).toMatchSnapshot();
     });
 });
 
 describe('components/MessageExportSettings/getJobDetails', () => {
     const baseProps = {
+        intl: defaultIntl,
         config: {
             MessageExportSettings: {
                 EnableExport: true,
@@ -181,10 +120,20 @@ describe('components/MessageExportSettings/getJobDetails', () => {
         },
     };
 
-    const wrapper = shallowWithIntl(<MessageExportSettings {...baseProps}/>);
+    let ref: React.RefObject<MessageExportSettings>;
+
+    beforeEach(() => {
+        ref = React.createRef<MessageExportSettings>();
+        renderWithContext(
+            <MessageExportSettings
+                {...baseProps}
+                ref={ref}
+            />,
+        );
+    });
 
     function runTest(testJob: Job, expectNull: boolean, expectedCount: number, expectedMessage = '') {
-        const jobDetails = (wrapper.instance() as MessageExportSettingsClass).getJobDetails(testJob);
+        const jobDetails = ref.current!.getJobDetails(testJob);
         if (expectNull) {
             expect(jobDetails).toBe(null);
         } else {

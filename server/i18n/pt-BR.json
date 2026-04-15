@@ -5224,10 +5224,6 @@
     "translation": "A licença Mattermost Enterprise foi desativada."
   },
   {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Sua licença Enterprise Edition expirou e alguns recursos podem ser desativados. Por favor renove usa licença agora."
-  },
-  {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} convidou você para ingressar na equipe {{ .TeamDisplayName }} como convidado"
   },
@@ -9806,10 +9802,6 @@
   {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
     "translation": "Não é possível registrar o grupo de propriedades Custom Profile Attributes"
-  },
-  {
-    "id": "app.custom_profile_attributes.create_property_field.app_error",
-    "translation": "Não é possível criar o campo Atributo de perfil personalizado"
   },
   {
     "id": "app.custom_profile_attributes.get_property_field.app_error",

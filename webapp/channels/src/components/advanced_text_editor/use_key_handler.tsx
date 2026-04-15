@@ -118,7 +118,7 @@ const useKeyHandler = (
             codeBlockOnCtrlEnter,
             postId ? 0 : Date.now(),
             postId ? 0 : lastChannelSwitchAt.current,
-            textboxRef.current?.getInputBox()?.selectionStart,
+            textboxRef.current?.getInputBox()?.selectionStart ?? undefined,
         );
 
         if (ignoreKeyPress) {
