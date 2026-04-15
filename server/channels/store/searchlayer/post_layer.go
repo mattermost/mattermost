@@ -25,6 +25,10 @@ func (s SearchPostStore) indexPost(rctx request.CTX, post *model.Post) {
 				if post.Type == model.PostTypeBurnOnRead {
 					return
 				}
+				// FIXME(IntegratedBoardMVP): Temporarily excluded
+				if post.Type == model.PostTypeCard {
+					return
+				}
 				channel, chanErr := s.rootStore.Channel().Get(post.ChannelId, true)
 				if chanErr != nil {
 					rctx.Logger().Error("Couldn't get channel for post for SearchEngine indexing.", mlog.String("channel_id", post.ChannelId), mlog.String("search_engine", engineCopy.GetName()), mlog.String("post_id", post.Id), mlog.Err(chanErr))

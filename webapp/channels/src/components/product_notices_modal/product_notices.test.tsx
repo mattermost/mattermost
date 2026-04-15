@@ -208,32 +208,28 @@ describe('ProductNoticesModal', () => {
         Date.now = jest.fn().mockReturnValue(1599868800000);
 
         // Simulate socket disconnect
-        await act(async () => {
-            rerender(
-                <ProductNoticesModal
-                    ref={ref}
-                    {...baseProps}
-                    socketStatus={{
-                        ...baseProps.socketStatus,
-                        connected: false,
-                    }}
-                />,
-            );
-        });
+        rerender(
+            <ProductNoticesModal
+                ref={ref}
+                {...baseProps}
+                socketStatus={{
+                    ...baseProps.socketStatus,
+                    connected: false,
+                }}
+            />,
+        );
 
         // Simulate socket reconnect
-        await act(async () => {
-            rerender(
-                <ProductNoticesModal
-                    ref={ref}
-                    {...baseProps}
-                    socketStatus={{
-                        ...baseProps.socketStatus,
-                        connected: true,
-                    }}
-                />,
-            );
-        });
+        rerender(
+            <ProductNoticesModal
+                ref={ref}
+                {...baseProps}
+                socketStatus={{
+                    ...baseProps.socketStatus,
+                    connected: true,
+                }}
+            />,
+        );
 
         expect(baseProps.actions.getInProductNotices).toHaveBeenCalledWith(baseProps.currentTeamId, 'web', baseProps.version);
         expect(baseProps.actions.getInProductNotices).toHaveBeenCalledTimes(2);
@@ -257,32 +253,28 @@ describe('ProductNoticesModal', () => {
         Date.now = jest.fn().mockReturnValue(1599760196593);
 
         // Simulate socket disconnect
-        await act(async () => {
-            rerender(
-                <ProductNoticesModal
-                    ref={ref}
-                    {...baseProps}
-                    socketStatus={{
-                        ...baseProps.socketStatus,
-                        connected: false,
-                    }}
-                />,
-            );
-        });
+        rerender(
+            <ProductNoticesModal
+                ref={ref}
+                {...baseProps}
+                socketStatus={{
+                    ...baseProps.socketStatus,
+                    connected: false,
+                }}
+            />,
+        );
 
         // Simulate socket reconnect on the same day
-        await act(async () => {
-            rerender(
-                <ProductNoticesModal
-                    ref={ref}
-                    {...baseProps}
-                    socketStatus={{
-                        ...baseProps.socketStatus,
-                        connected: true,
-                    }}
-                />,
-            );
-        });
+        rerender(
+            <ProductNoticesModal
+                ref={ref}
+                {...baseProps}
+                socketStatus={{
+                    ...baseProps.socketStatus,
+                    connected: true,
+                }}
+            />,
+        );
 
         expect(baseProps.actions.getInProductNotices).toHaveBeenCalledTimes(1);
     });

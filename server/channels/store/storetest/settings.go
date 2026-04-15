@@ -90,6 +90,7 @@ func databaseSettings(driver, dataSource string) *model.SqlSettings {
 		Trace:                             model.NewPointer(false),
 		AtRestEncryptKey:                  model.NewPointer(model.NewRandomString(32)),
 		QueryTimeout:                      new(int),
+		AnalyticsQueryTimeout:             new(int),
 		MigrationsStatementTimeoutSeconds: new(int),
 	}
 	*settings.MaxIdleConns = 10
@@ -97,6 +98,7 @@ func databaseSettings(driver, dataSource string) *model.SqlSettings {
 	*settings.ConnMaxIdleTimeMilliseconds = 300000
 	*settings.MaxOpenConns = 100
 	*settings.QueryTimeout = 60
+	*settings.AnalyticsQueryTimeout = 300
 	*settings.MigrationsStatementTimeoutSeconds = 60
 
 	return settings
@@ -169,6 +171,6 @@ func CleanupSqlSettings(settings *model.SqlSettings) {
 	}
 
 	if err := execAsRoot(settings, "DROP DATABASE "+dbName); err != nil {
-		panic("failed to drop temporary database " + dbName + ": " + err.Error())
+		mlog.Warn("failed to drop temporary database", mlog.String("database", dbName), mlog.Err(err))
 	}
 }

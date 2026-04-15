@@ -47,8 +47,8 @@ func TestGetMattermostLog(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	// Set MM_LOG_PATH to allow log file reads from our temp directory
-	t.Setenv("MM_LOG_PATH", dir)
+	// Override log root path to allow log file reads from our temp directory
+	th.Service.SetLogRootPathOverride(dir)
 
 	// Enable log file but point to an empty directory to get an error trying to read the file
 	th.Service.UpdateConfig(func(cfg *model.Config) {
@@ -120,8 +120,8 @@ func TestGetLogsSkipSendPathValidation(t *testing.T) {
 			require.NoError(t, err)
 		})
 
-		// Set MM_LOG_PATH to restrict log file access to logDir
-		t.Setenv("MM_LOG_PATH", logDir)
+		// Override log root path to restrict log file access to logDir
+		th.Service.SetLogRootPathOverride(logDir)
 
 		// Create a directory outside the allowed log root
 		outsideDir, err := os.MkdirTemp("", "outside")
@@ -163,8 +163,8 @@ func TestGetAdvancedLogs(t *testing.T) {
 			require.NoError(t, err)
 		})
 
-		// Set MM_LOG_PATH to allow advanced logging to write to our temp directory
-		t.Setenv("MM_LOG_PATH", dir)
+		// Override log root path to allow advanced logging to write to our temp directory
+		th.Service.SetLogRootPathOverride(dir)
 
 		// Setup log files for each setting
 		optLDAP := map[string]string{
@@ -266,8 +266,8 @@ func TestGetAdvancedLogs(t *testing.T) {
 			require.NoError(t, err)
 		})
 
-		// Set MM_LOG_PATH to restrict log file access to logDir
-		t.Setenv("MM_LOG_PATH", logDir)
+		// Override log root path to restrict log file access to logDir
+		th.Service.SetLogRootPathOverride(logDir)
 
 		// Create a file outside the log directory that should not be accessible
 		outsideDir, err := os.MkdirTemp("", "outside")
