@@ -53,9 +53,11 @@ func TestMigration000168(t *testing.T) {
 
 	now := model.GetMillis()
 
-	// Insert two active fields with old format (no ObjectType, no permissions).
+	// Insert active fields with old format (no ObjectType, no permissions).
+	// fieldID1 and fieldID2 are non-managed; fieldID3 is admin-managed.
 	fieldID1 := model.NewId()
 	fieldID2 := model.NewId()
+	fieldID3 := model.NewId()
 	for _, f := range []struct {
 		id    string
 		name  string
@@ -64,6 +66,7 @@ func TestMigration000168(t *testing.T) {
 	}{
 		{fieldID1, "Text Field", "text", `{"visibility":"always","sort_order":1}`},
 		{fieldID2, "Select Field", "select", `{"options":[{"id":"opt1","name":"Option 1"}]}`},
+		{fieldID3, "Admin Managed Field", "text", `{"visibility":"always","sort_order":3,"managed":"admin"}`},
 	} {
 		_, err = master.Exec(
 			`INSERT INTO PropertyFields
@@ -105,7 +108,18 @@ func TestMigration000168(t *testing.T) {
 	assert.Equal(t, "protected_attributes", groupName)
 
 	// Verify: all fields (including soft-deleted) have new metadata.
-	for _, fid := range []string{fieldID1, fieldID2, deletedFieldID} {
+	// Non-managed fields get PermissionValues = 'member'.
+	// Admin-managed fields get PermissionValues = 'sysadmin'.
+	for _, tc := range []struct {
+		id                      string
+		label                   string
+		expectedPermissionValues string
+	}{
+		{fieldID1, "non-managed text field", "member"},
+		{fieldID2, "non-managed select field", "member"},
+		{fieldID3, "admin-managed field", "sysadmin"},
+		{deletedFieldID, "soft-deleted non-managed field", "member"},
+	} {
 		var f struct {
 			ObjectType        string         `db:"objecttype"`
 			TargetType        string         `db:"targettype"`
@@ -113,15 +127,15 @@ func TestMigration000168(t *testing.T) {
 			PermissionValues  sql.NullString `db:"permissionvalues"`
 			PermissionOptions sql.NullString `db:"permissionoptions"`
 		}
-		require.NoError(t, master.Get(&f, "SELECT ObjectType, TargetType, PermissionField, PermissionValues, PermissionOptions FROM PropertyFields WHERE ID = ?", fid))
-		assert.Equal(t, "user", f.ObjectType, "field %s ObjectType", fid)
-		assert.Equal(t, "system", f.TargetType, "field %s TargetType", fid)
-		assert.True(t, f.PermissionField.Valid, "field %s PermissionField should be set", fid)
-		assert.Equal(t, "sysadmin", f.PermissionField.String, "field %s PermissionField", fid)
-		assert.True(t, f.PermissionValues.Valid, "field %s PermissionValues should be set", fid)
-		assert.Equal(t, "sysadmin", f.PermissionValues.String, "field %s PermissionValues", fid)
-		assert.True(t, f.PermissionOptions.Valid, "field %s PermissionOptions should be set", fid)
-		assert.Equal(t, "sysadmin", f.PermissionOptions.String, "field %s PermissionOptions", fid)
+		require.NoError(t, master.Get(&f, "SELECT ObjectType, TargetType, PermissionField, PermissionValues, PermissionOptions FROM PropertyFields WHERE ID = ?", tc.id))
+		assert.Equal(t, "user", f.ObjectType, "%s ObjectType", tc.label)
+		assert.Equal(t, "system", f.TargetType, "%s TargetType", tc.label)
+		assert.True(t, f.PermissionField.Valid, "%s PermissionField should be set", tc.label)
+		assert.Equal(t, "sysadmin", f.PermissionField.String, "%s PermissionField", tc.label)
+		assert.True(t, f.PermissionValues.Valid, "%s PermissionValues should be set", tc.label)
+		assert.Equal(t, tc.expectedPermissionValues, f.PermissionValues.String, "%s PermissionValues", tc.label)
+		assert.True(t, f.PermissionOptions.Valid, "%s PermissionOptions should be set", tc.label)
+		assert.Equal(t, "sysadmin", f.PermissionOptions.String, "%s PermissionOptions", tc.label)
 	}
 
 	// Verify: property value is unchanged (GroupID still references the same ID).
@@ -171,7 +185,7 @@ func TestMigration000168(t *testing.T) {
 	assert.Equal(t, "custom_profile_attributes", groupName)
 
 	// Verify: fields reverted.
-	for _, fid := range []string{fieldID1, fieldID2, deletedFieldID} {
+	for _, fid := range []string{fieldID1, fieldID2, fieldID3, deletedFieldID} {
 		var f struct {
 			ObjectType        string         `db:"objecttype"`
 			TargetType        string         `db:"targettype"`
