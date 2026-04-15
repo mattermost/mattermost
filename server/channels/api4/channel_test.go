@@ -7085,6 +7085,30 @@ func TestSetChannelMembers(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
+	t.Run("policy-enforced channel rejected", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+
+		// Create an access control policy to make the channel policy-enforced
+		policy := &model.AccessControlPolicy{
+			Type:    model.AccessControlPolicyTypeChannel,
+			ID:      channel.Id,
+			Name:    "Test Policy",
+			Version: model.AccessControlPolicyVersionV0_2,
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Actions:    []string{"view"},
+					Expression: "user.attributes.team == \"test\"",
+				},
+			},
+		}
+		_, storeErr := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+		require.NoError(t, storeErr)
+
+		_, resp, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, &model.SetChannelMembersRequest{Members: []string{th.BasicUser.Id}}, 0, 0)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
 	t.Run("town-square non-guests cannot be removed", func(t *testing.T) {
 		// Find town-square
 		townSquare, appErr := th.App.GetChannelByName(th.Context, model.DefaultChannelName, th.BasicTeam.Id, false)
@@ -7137,11 +7161,20 @@ func TestSetChannelMembers(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
-	t.Run("invalid query params", func(t *testing.T) {
+	t.Run("invalid batch_size rejected", func(t *testing.T) {
 		channel := th.CreatePublicChannel(t)
 
 		// batch_size out of range (too large)
 		_, resp, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, &model.SetChannelMembersRequest{Members: []string{th.BasicUser.Id}}, 9999, 0)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("invalid batch_delay_ms rejected", func(t *testing.T) {
+		channel := th.CreatePublicChannel(t)
+
+		// batch_delay_ms out of range (above max 10000)
+		_, resp, err := th.SystemAdminClient.SetChannelMembers(ctx, channel.Id, &model.SetChannelMembersRequest{Members: []string{th.BasicUser.Id}}, 0, 99999)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})

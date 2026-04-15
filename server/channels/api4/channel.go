@@ -2310,6 +2310,12 @@ func setChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Reject policy-enforced (ABAC) channels
+	if channel.PolicyEnforced {
+		c.Err = model.NewAppError("setChannelMembers", "api.channel.set_members.policy_enforced.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	auditRec := c.MakeAuditRecord(model.AuditEventSetChannelMembers, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)

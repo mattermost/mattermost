@@ -588,6 +588,10 @@
     "translation": "Cannot set members on a group-constrained channel."
   },
   {
+    "id": "api.channel.set_members.policy_enforced.app_error",
+    "translation": "Cannot set members on a policy-enforced channel."
+  },
+  {
     "id": "api.channel.set_members.type.app_error",
     "translation": "Cannot set members on this channel type."
   },
@@ -5585,6 +5589,10 @@
   {
     "id": "app.channel.set_members.get_current.app_error",
     "translation": "Unable to get current channel members."
+  },
+  {
+    "id": "app.channel.set_members.get_members.app_error",
+    "translation": "Unable to get channel members for role reconciliation."
   },
   {
     "id": "app.channel.sidebar_categories.app_error",
