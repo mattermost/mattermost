@@ -6,6 +6,8 @@
 package platform
 
 import (
+	"fmt"
+	"math"
 	"os"
 	"syscall"
 )
@@ -25,6 +27,9 @@ func getMaxFileDescriptors() (int64, error) {
 	var rlimit syscall.Rlimit
 	if err := syscall.Getrlimit(syscall.RLIMIT_NOFILE, &rlimit); err != nil {
 		return -1, err
+	}
+	if rlimit.Cur > math.MaxInt64 {
+		return -1, fmt.Errorf("rlimit.Cur %d overflows int64", rlimit.Cur)
 	}
 	return int64(rlimit.Cur), nil
 }
