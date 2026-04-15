@@ -90,7 +90,7 @@ func (a *App) ProcessSlackText(rctx request.CTX, text string) string {
 // documented here: https://api.slack.com/docs/attachments
 func (a *App) ProcessSlackAttachments(rctx request.CTX, attachments []*model.SlackAttachment) []*model.SlackAttachment {
 	var nonNilAttachments = model.StringifySlackFieldValue(attachments)
-	for _, attachment := range attachments {
+	for _, attachment := range nonNilAttachments {
 		attachment.Pretext = a.ProcessSlackText(rctx, attachment.Pretext)
 		attachment.Text = a.ProcessSlackText(rctx, attachment.Text)
 		attachment.Title = a.ProcessSlackText(rctx, attachment.Title)
