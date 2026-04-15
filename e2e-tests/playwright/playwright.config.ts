@@ -75,6 +75,7 @@ export default defineConfig({
         },
     ],
     reporter: [
+        ...(testConfig.isCI ? [['blob', {outputDir: './results/blob-report'}] as const] : []),
         ['html', {open: 'never', outputFolder: './results/reporter'}],
         ['json', {outputFile: './results/reporter/results.json'}],
         ['junit', {outputFile: './results/reporter/results.xml'}],
