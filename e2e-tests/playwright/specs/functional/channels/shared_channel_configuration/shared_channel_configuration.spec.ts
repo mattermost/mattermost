@@ -6,9 +6,7 @@
  * Covers: TC-WEB-01, TC-WEB-02, TC-WEB-03, TC-WEB-04, TC-WEB-06, TC-WEB-07, TC-WEB-08, TC-WEB-09, TC-WEB-10
  */
 
-import {getRandomId} from 'utils/utils';
-
-import {expect, hasCustomPermissionsSchemesLicense, hasSharedChannelsLicense, test} from '@mattermost/playwright-lib';
+import {expect, getRandomId, hasCustomPermissionsSchemesLicense, hasSharedChannelsLicense, test} from '@mattermost/playwright-lib';
 
 /**
  * Minimal type for ensureConfirmedRemote. We use this instead of importing Client4 from
