@@ -881,23 +881,31 @@ export async function captureLatestJobId(page: Page, policyId?: string | null): 
 }
 
 /**
- * Wait for the latest access_control_sync job to complete.
+ * Wait for a specific access_control_sync job to complete.
  *
- * When `jobId` is provided (returned by runSyncJob) Phase 1 is skipped entirely
- * and the function polls GET /api/v4/jobs/{jobId} directly — the fastest path.
+ * There are two safe calling patterns:
  *
- * Without `jobId` a two-phase approach is used:
- *   Phase 1 — Poll the jobs list until a NEW job appears (one whose ID differs
- *              from skipJobId and is not an ancient stale result).
- *   Phase 2 — Once the specific job ID is known, poll GET /api/v4/jobs/{id}
- *              directly until it reaches a terminal status.
+ *   Fast path (preferred): pass `jobId` returned by `runSyncJob`. The function
+ *   polls GET /api/v4/jobs/{jobId} directly and never touches the global job
+ *   list — fully race-safe regardless of how many parallel tests run.
+ *
+ *   Policy-scoped fallback: pass `policyId` when the sync was triggered as a
+ *   side effect of saving a policy (e.g. createAdvancedPolicy). The list query
+ *   is filtered with `&policy_id={policyId}` so only jobs for THIS policy are
+ *   considered. Because every test creates a unique policy, two parallel workers
+ *   can never see each other's jobs through this filter.
+ *
+ * Calling without either `jobId` or `policyId` is not allowed: it would poll
+ * the globally-latest job, which is racey with PW_WORKERS > 1.
  *
  * @param page - Playwright page used for auth context and the final reload.
  * @param maxRetries - Maps to a wall-clock timeout of max(maxRetries × 12s, 60s).
  * @param skipJobId - ID of a previously-completed job to ignore (Phase 1 only).
  *   Obtain via captureLatestJobId before triggering the sync action.
  * @param jobId - Exact ID of the job to wait for, obtained from runSyncJob.
- *   When present, skipJobId and Phase 1 are bypassed entirely.
+ *   When present, `policyId`, `skipJobId`, and Phase 1 are bypassed entirely.
+ * @param policyId - Policy UUID used to scope the Phase 1 job-list poll.
+ *   Required when `jobId` is not available (e.g. sync triggered by policy save).
  * @returns the ID of the completed job.
  */
 export async function waitForLatestSyncJob(
@@ -942,11 +950,23 @@ export async function waitForLatestSyncJob(
         throw new Error(`Sync job did not complete within ${timeoutMs / 1000}s`);
     }
 
+    // Require policyId when jobId is absent. Polling the globally-latest job
+    // without a scoping filter is racey when parallel workers are running — a
+    // different worker could create a newer access_control_sync job between
+    // when we trigger ours and when we poll the list.
+    if (!policyId) {
+        throw new Error(
+            'waitForLatestSyncJob: policyId is required when jobId is not provided. ' +
+                'Pass the jobId returned by runSyncJob, or pass the policyId of the ' +
+                'policy whose sync you are waiting for.',
+        );
+    }
+
     // Without a skipJobId, reject jobs older than 30 seconds to avoid picking
     // up ancient stale results from a previous test or run.
     const staleThresholdMs = 30000;
 
-    const policyParam = policyId ? `&policy_id=${encodeURIComponent(policyId)}` : '';
+    const policyParam = `&policy_id=${encodeURIComponent(policyId)}`;
     const listUrl = `${origin}/api/v4/jobs/type/access_control_sync?page=0&per_page=1${policyParam}`;
 
     // ── Phase 1: identify the specific job we are waiting for ──────────────

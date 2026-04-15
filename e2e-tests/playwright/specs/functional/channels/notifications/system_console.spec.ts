@@ -174,15 +174,20 @@ test('MM-41671 cannot save the notifications page if mandatory fields are missin
         await testCase.field.toBeVisible();
         await testCase.field.clear();
 
+        // Scope error check to this field's container to avoid strict-mode failure
+        // when other fields on the page also have validation errors simultaneously.
+        const fieldError = testCase.field.container.locator('.has-error');
+
         // * Error message is shown and save button is disabled
-        await expect(notifications.errorMessage).toHaveText(`"${testCase.name}" is required`);
+        await expect(fieldError).toHaveText(`"${testCase.name}" is required`);
         await expect(notifications.saveButton).toBeDisabled();
 
-        // # Insert something in the field
-        await testCase.field.fill('anything');
+        // # Restore the field with a valid value so format-validation errors from
+        // this field don't interfere with the next iteration.
+        await testCase.field.fill('test@example.com');
 
-        // * Ensure no error message is shown and the save button is not disabled
-        await expect(notifications.errorMessage).toHaveCount(0);
+        // * Ensure error for this field is gone and save button is enabled
+        await expect(fieldError).toHaveCount(0);
         await expect(notifications.saveButton).not.toBeDisabled();
     }
 });
