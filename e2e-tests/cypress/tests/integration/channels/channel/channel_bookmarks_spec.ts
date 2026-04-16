@@ -14,7 +14,7 @@ import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
 
-import {getRandomId} from '../../../utils';
+import {getRandomId, stubClipboard} from '../../../utils';
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 describe('Channel Bookmarks', () => {
@@ -320,6 +320,10 @@ describe('Channel Bookmarks', () => {
                     cy.wait(TIMEOUTS.HALF_SEC);
                     cy.findByRole('link', {name: name1}).type('{rightarrow}');
                     cy.wait(TIMEOUTS.HALF_SEC);
+
+                    // * Verify focus follows the moved item
+                    cy.focused().should('contain', name1);
+
                     cy.findByRole('link', {name: name1}).type(' ');
                 });
 
@@ -516,11 +520,10 @@ describe('Channel Bookmarks', () => {
                     });
                     cy.wait(TIMEOUTS.ONE_SEC);
 
-                    // Close menu and backdrop before reopening to verify
-                    dismissMenu();
+                    // * Verify overflow menu stays open after confirm
+                    cy.get('#channelBookmarksBarMenuDropdown').should('exist');
 
                     // * Verify items swapped — first item should now be what was second
-                    cy.get('#channelBookmarksBarMenuButton').click();
                     cy.get('#channelBookmarksBarMenuDropdown [data-bookmark-id]').eq(0).should('contain', secondName);
                     cy.get('#channelBookmarksBarMenuDropdown [data-bookmark-id]').eq(1).should('contain', firstName);
                     dismissMenu();
@@ -571,10 +574,8 @@ describe('Channel Bookmarks', () => {
             // # Open overflow menu
             cy.get('#channelBookmarksBarMenuButton').click();
 
-            // # Scroll to and click first overflow item's dot menu
-            cy.get('#channelBookmarksBarMenuDropdown [data-bookmark-id]').first()
-                .scrollIntoView()
-                .find('.channelBookmarksDotMenuButton--overflow').click({force: true});
+            // # Hover first overflow item to reveal dot menu, then click it
+            clickOverflowDotMenu(cy.get('#channelBookmarksBarMenuDropdown [data-bookmark-id]').first());
             cy.findByRole('menuitem', {name: 'Edit'}).click();
 
             // # Change display name
@@ -590,19 +591,28 @@ describe('Channel Bookmarks', () => {
             cy.visit(`/${testTeam.name}/channels/${overflowChannel.name}`);
             cy.findByTestId('channel-bookmarks-container').should('be.visible');
 
-            // # Open overflow menu
+            // # Stub clipboard to intercept the copy
+            stubClipboard().as('clipboard');
+
+            // # Open overflow menu and get the first item's link URL
             cy.get('#channelBookmarksBarMenuButton').click();
+            cy.get('#channelBookmarksBarMenuDropdown [data-bookmark-id]').first().invoke('attr', 'data-bookmark-id').then((bookmarkId) => {
+                // # Click first overflow item's dot menu
+                clickOverflowDotMenu(cy.get('#channelBookmarksBarMenuDropdown [data-bookmark-id]').first());
 
-            // # Click first overflow item's dot menu
-            cy.get('#channelBookmarksBarMenuDropdown [data-bookmark-id]').first()
-                .scrollIntoView()
-                .find('.channelBookmarksDotMenuButton--overflow').click({force: true});
+                // # Click "Copy link"
+                cy.findByRole('menuitem', {name: 'Copy link'}).should('exist').click();
 
-            // * Verify "Copy link" action is available and click it
-            cy.findByRole('menuitem', {name: 'Copy link'}).should('exist').click();
+                // * Verify dot menu closed
+                cy.get('#channelBookmarksDotMenuDropdown').should('not.exist');
 
-            // * Verify dot menu closed after action (confirms action was executed)
-            cy.get('#channelBookmarksDotMenuDropdown').should('not.exist');
+                // * Verify clipboard contains the bookmark URL
+                cy.makeClient().then(async (client) => {
+                    const bookmarks = await client.getChannelBookmarks(overflowChannel.id);
+                    const bookmark = bookmarks.find((b) => b.id === bookmarkId);
+                    cy.get('@clipboard').its('contents').should('eq', bookmark?.link_url);
+                });
+            });
         });
 
         it('delete from overflow dot menu', () => {
@@ -614,10 +624,8 @@ describe('Channel Bookmarks', () => {
             cy.get('#channelBookmarksBarMenuDropdown [data-bookmark-id]').first().invoke('text').then((itemText) => {
                 const itemName = itemText.trim();
 
-                // # Scroll to and click dot menu, then delete
-                cy.get('#channelBookmarksBarMenuDropdown [data-bookmark-id]').first()
-                    .scrollIntoView()
-                    .find('.channelBookmarksDotMenuButton--overflow').click({force: true});
+                // # Hover first overflow item to reveal dot menu, then click it
+                clickOverflowDotMenu(cy.get('#channelBookmarksBarMenuDropdown [data-bookmark-id]').first());
                 cy.findByRole('menuitem', {name: 'Delete'}).click();
                 cy.findByRole('dialog', {name: 'Delete bookmark'}).within(() => {
                     cy.findByRole('button', {name: 'Yes, delete'}).click();
@@ -631,6 +639,48 @@ describe('Channel Bookmarks', () => {
                 });
                 dismissMenu();
             });
+        });
+
+        it('overflow recalculates on viewport resize', () => {
+            cy.visit(`/${testTeam.name}/channels/${overflowChannel.name}`);
+            cy.findByTestId('channel-bookmarks-container').should('be.visible');
+
+            // # Record initial overflow count
+            cy.get('#channelBookmarksBarMenuButton').invoke('text').then((text) => {
+                const initialCount = parseInt(text.replace(/\D/g, ''), 10);
+
+                // # Shrink viewport to push more items into overflow
+                cy.viewport(800, 660);
+                cy.wait(TIMEOUTS.ONE_SEC);
+
+                // * Verify overflow count increased
+                cy.get('#channelBookmarksBarMenuButton').invoke('text').then((newText) => {
+                    const newCount = parseInt(newText.replace(/\D/g, ''), 10);
+                    expect(newCount).to.be.greaterThan(initialCount);
+                });
+
+                // # Restore viewport
+                cy.viewport(1300, 660);
+            });
+        });
+
+        it('ArrowDown from menu button focuses first overflow item', () => {
+            cy.visit(`/${testTeam.name}/channels/${overflowChannel.name}`);
+            cy.findByTestId('channel-bookmarks-container').should('be.visible');
+
+            // # Open overflow menu
+            cy.get('#channelBookmarksBarMenuButton').click();
+            cy.get('#channelBookmarksBarMenuDropdown').should('be.visible');
+
+            // # Press ArrowDown on the menu container to focus first item
+            cy.get('#channelBookmarksBarMenuDropdown').trigger('keydown', {key: 'ArrowDown', code: 'ArrowDown'});
+
+            // * Verify first overflow item has focus
+            cy.get('#channelBookmarksBarMenuDropdown [data-bookmark-id]').first().then(($el) => {
+                cy.focused().closest('[data-bookmark-id]').should('have.attr', 'data-bookmark-id', $el.attr('data-bookmark-id'));
+            });
+
+            dismissMenu();
         });
     });
 
@@ -708,17 +758,17 @@ function openDotMenu(name: string) {
     cy.findByTestId('channel-bookmarks-container').then(($container) => {
         const barLink = findVisibleBarLink($container, name);
         if (barLink.length) {
-            // Bar item — focus to reveal dot menu via :focus-within, then click it
-            cy.wrap(barLink).first().scrollIntoView().focus();
+            // Bar item — dot menu hidden via opacity:0 until :hover (CSS),
+            // force:true bypasses since Cypress can't trigger :hover.
+            cy.wrap(barLink).first().closest('[data-bookmark-id]').scrollIntoView();
             cy.wrap(barLink).first().closest('[data-bookmark-id]').
                 find('button[aria-label="Bookmark menu"]').click({force: true});
         } else {
             // Overflow item — open overflow menu, find the item's dot menu
             cy.get('#channelBookmarksBarMenuButton').click();
-            cy.get('#channelBookmarksBarMenuDropdown').within(() => {
-                cy.contains('[role="menuitem"]', name).
-                    find('.channelBookmarksDotMenuButton--overflow').click();
-            });
+            clickOverflowDotMenu(
+                cy.get('#channelBookmarksBarMenuDropdown').contains('[role="menuitem"]', name),
+            );
         }
     });
 }
@@ -846,6 +896,17 @@ function dismissMenu() {
             cy.wait(TIMEOUTS.HALF_SEC);
         }
     });
+}
+
+/**
+ * Clicks the dot menu button on an overflow bookmark item.
+ * The button is hidden via CSS opacity:0 until :hover, which
+ * can't be triggered by Cypress synthetic events in headless
+ * mode. force:true bypasses the visibility check.
+ */
+function clickOverflowDotMenu(item: Cypress.Chainable) {
+    item.scrollIntoView()
+        .find('.channelBookmarksDotMenuButton--overflow').click({force: true});
 }
 
 /**
