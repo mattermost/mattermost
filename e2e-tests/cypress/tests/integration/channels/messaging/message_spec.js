@@ -10,9 +10,9 @@
 // Stage: @prod
 // Group: @channels @messaging @smoke
 
-import {getAdminAccount} from '../../../support/env';
-import * as MESSAGES from '../../../fixtures/messages';
-import timeouts from '../../../fixtures/timeouts';
+import {getAdminAccount} from '@/support/env';
+import * as MESSAGES from '@/fixtures/messages';
+import timeouts from '@/fixtures/timeouts';
 
 describe('Message', () => {
     const admin = getAdminAccount();

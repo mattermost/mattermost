@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @enterprise
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Team members test', () => {
     let testTeam;
