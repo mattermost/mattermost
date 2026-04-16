@@ -664,15 +664,15 @@ describe('Channel Bookmarks', () => {
             });
         });
 
-        it('ArrowDown from menu button focuses first overflow item', () => {
+        it('ArrowDown on open menu panel focuses first overflow item', () => {
             cy.visit(`/${testTeam.name}/channels/${overflowChannel.name}`);
             cy.findByTestId('channel-bookmarks-container').should('be.visible');
 
-            // # Open overflow menu
+            // # Open overflow menu — MUI focuses the Paper (menu panel), not the button
             cy.get('#channelBookmarksBarMenuButton').click();
             cy.get('#channelBookmarksBarMenuDropdown').should('be.visible');
 
-            // # Press ArrowDown on the menu container to focus first item
+            // # Press ArrowDown on the menu panel (where focus rests after open)
             cy.get('#channelBookmarksBarMenuDropdown').trigger('keydown', {key: 'ArrowDown', code: 'ArrowDown'});
 
             // * Verify first overflow item has focus
@@ -701,14 +701,26 @@ describe('Channel Bookmarks', () => {
                     // # Confirm placement
                     cy.focused().trigger('keydown', {key: ' ', code: 'Space', bubbles: true});
 
-                    // * Verify the specific item is now in overflow menu via API
-                    // (the menu-open-after-confirm state is asserted elsewhere)
+                    // * Verify via API the item moved past its original last-visible position
                     cy.makeClient().then(async (client) => {
                         const bookmarks = await client.getChannelBookmarks(overflowChannel.id);
                         const movedIndex = bookmarks.findIndex((b) => b.display_name === lastName);
-                        // Verify it moved past the visible bar capacity (ended up in overflow region)
                         expect(movedIndex).to.be.greaterThan(0);
                     });
+
+                    // * Verify DOM: item is no longer rendered in the visible bar
+                    cy.findByTestId('channel-bookmarks-container').within(() => {
+                        cy.findAllByRole('link').then(($links) => {
+                            const barNames = [...$links].map((el) => el.textContent?.trim());
+                            expect(barNames).to.not.include(lastName);
+                        });
+                    });
+
+                    // * Verify DOM: item is present in the open overflow menu
+                    cy.get('#channelBookmarksBarMenuDropdown')
+                        .should('be.visible')
+                        .contains(lastName)
+                        .should('be.visible');
                 });
             });
 

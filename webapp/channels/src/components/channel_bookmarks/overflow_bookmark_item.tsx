@@ -45,8 +45,7 @@ function OverflowBookmarkItem({
 
     const liRef = useRef<HTMLLIElement>(null);
 
-    const labelRef = useRef<HTMLSpanElement>(null);
-    const isLabelOverflowing = useTextOverflow(labelRef);
+    const [isLabelOverflowing, labelRef] = useTextOverflow();
 
     const {isDragSelf, closestEdge} = useBookmarkDragDrop({
         id,

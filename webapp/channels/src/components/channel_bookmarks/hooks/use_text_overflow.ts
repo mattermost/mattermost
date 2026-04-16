@@ -1,36 +1,42 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {MutableRefObject} from 'react';
-import {useEffect, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 
 /**
  * Detects whether a text element is overflowing its container (e.g. truncated
- * with ellipsis). Returns true when scrollWidth > clientWidth.
+ * with ellipsis). Returns `[isOverflowing, nodeRef]` — pass `nodeRef` as the
+ * element's `ref` prop. Uses a callback ref so the observer re-binds when the
+ * element identity changes (React refs don't trigger effect re-runs).
  *
  * Uses ResizeObserver to re-check on size changes.
  */
-export function useTextOverflow(ref: MutableRefObject<HTMLElement | null>) {
+export function useTextOverflow(): [boolean, (node: HTMLElement | null) => void] {
     const [isOverflowing, setIsOverflowing] = useState(false);
+    const [node, setNode] = useState<HTMLElement | null>(null);
+    const nodeRef = useCallback((el: HTMLElement | null) => {
+        setNode(el);
+    }, []);
 
     useEffect(() => {
+        if (!node) {
+            return undefined;
+        }
+
         const checkOverflow = () => {
-            if (ref.current) {
-                setIsOverflowing(ref.current.scrollWidth > ref.current.clientWidth);
-            }
+            setIsOverflowing(node.scrollWidth > node.clientWidth);
         };
 
         checkOverflow();
 
         const resizeObserver = new ResizeObserver(checkOverflow);
-        if (ref.current) {
-            resizeObserver.observe(ref.current);
-        }
+        resizeObserver.observe(node);
 
         return () => {
+            resizeObserver.unobserve(node);
             resizeObserver.disconnect();
         };
-    }, [ref]);
+    }, [node]);
 
-    return isOverflowing;
+    return [isOverflowing, nodeRef];
 }

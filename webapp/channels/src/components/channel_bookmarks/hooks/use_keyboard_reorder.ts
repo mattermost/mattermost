@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useCallback, useEffect, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 
 import {useClickOutside} from 'hooks/useClickOutside';
@@ -59,6 +59,10 @@ export function useKeyboardReorder({
     const orderRef = useLatest(order);
     const visibleItemsRef = useLatest(visibleItems);
     const overflowItemsRef = useLatest(overflowItems);
+
+    // Serialize reorder dispatches: rapid key events must not compute from
+    // stale order while a previous onReorder is still in flight.
+    const pendingReorderRef = useRef(false);
 
     // Re-focus the active item after order changes and scroll it into view.
     useEffect(() => {
@@ -120,12 +124,19 @@ export function useKeyboardReorder({
     // Confirm reorder on click-anywhere (null ref = any mousedown)
     useClickOutside(null, confirmReorder, state.isReordering);
 
-    const cancelReorder = useCallback(() => {
+    const cancelReorder = useCallback(async () => {
         const {itemId, originalIndex} = state;
         if (itemId != null && originalIndex != null) {
             const currentIndex = orderRef.current.indexOf(itemId);
             if (currentIndex !== -1 && currentIndex !== originalIndex) {
-                onReorder(itemId, currentIndex, originalIndex);
+                // Await the revert so UI state only resets after the server
+                // has acknowledged the restored order.
+                pendingReorderRef.current = true;
+                try {
+                    await onReorder(itemId, currentIndex, originalIndex);
+                } finally {
+                    pendingReorderRef.current = false;
+                }
             }
         }
 
@@ -137,10 +148,16 @@ export function useKeyboardReorder({
                 defaultMessage: 'Reorder cancelled.',
             }),
         );
-    }, [state, onReorder, formatMessage, readAloud]);
+    }, [state, onReorder, onOverflowOpenChange, formatMessage, readAloud]);
 
-    const moveItem = useCallback((direction: -1 | 1) => {
+    const moveItem = useCallback(async (direction: -1 | 1) => {
         if (!state.isReordering || !state.itemId) {
+            return;
+        }
+
+        // Serialize: if a prior reorder is still in flight, drop this key
+        // event so we never compute newIndex against stale order.
+        if (pendingReorderRef.current) {
             return;
         }
 
@@ -173,7 +190,12 @@ export function useKeyboardReorder({
         }
 
         const name = getName(state.itemId);
-        onReorder(state.itemId, currentIndex, newIndex);
+        pendingReorderRef.current = true;
+        try {
+            await onReorder(state.itemId, currentIndex, newIndex);
+        } finally {
+            pendingReorderRef.current = false;
+        }
 
         readAloud(
             formatMessage(

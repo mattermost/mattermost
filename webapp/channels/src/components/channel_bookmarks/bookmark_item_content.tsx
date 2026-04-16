@@ -58,6 +58,10 @@ export const useBookmarkLink = (
     // race with keyboard-reorder state resets and double-trigger navigation.
     const openedRef = useRef(false);
     const openBookmark = useCallback(() => {
+        // Respect the disabled flag set by the caller (e.g. during drag).
+        if (disableLinks) {
+            return;
+        }
         if (openedRef.current) {
             return;
         }
@@ -92,7 +96,7 @@ export const useBookmarkLink = (
             }
             onNavigate?.();
         }
-    }, [bookmark, fileInfo, dispatch, history, onNavigate]);
+    }, [bookmark, fileInfo, dispatch, history, onNavigate, disableLinks]);
 
     const handleOpenFile = useCallback((e: React.MouseEvent<HTMLElement>) => {
         e.preventDefault();
@@ -160,8 +164,7 @@ interface BookmarkItemContentProps {
 
 const BookmarkItemContent = ({bookmark, disableInteractions, keyboardReorderProps}: BookmarkItemContentProps) => {
     const {href, onClick, linkRef, isFile, icon, displayName, open} = useBookmarkLink(bookmark, disableInteractions);
-    const labelRef = useRef<HTMLSpanElement>(null);
-    const isLabelOverflowing = useTextOverflow(labelRef);
+    const [isLabelOverflowing, labelRef] = useTextOverflow();
 
     const chip = (
         <Chip $disableInteractions={disableInteractions}>
