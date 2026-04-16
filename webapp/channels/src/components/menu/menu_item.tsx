@@ -156,10 +156,11 @@ export const MenuItem = forwardRef<HTMLLIElement, Props>((props, ref) => {
 
     const isMobileView = useSelector(getIsMobileView);
 
-    // MUI ButtonBase fires a synthetic click on Enter/Space, so
-    // handleClick runs for both the keydown AND the click event.
-    // The ref ensures the onClick callback is only dispatched once.
-    const handledRef = useRef(false);
+    // MUI ButtonBase calls both onKeyDown and onClick with the same
+    // keydown event for Enter, so handleClick runs twice per activation.
+    // Dedupe by native event identity — no timing hacks needed, and the
+    // ref is naturally cleared when a new event comes through.
+    const lastHandledEventRef = useRef<Event | null>(null);
 
     function handleClick(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
         if (isCorrectKeyPressedOnMenuItem(event)) {
@@ -180,11 +181,8 @@ export const MenuItem = forwardRef<HTMLLIElement, Props>((props, ref) => {
                 }
             }
 
-            if (onClick && !handledRef.current) {
-                handledRef.current = true;
-                queueMicrotask(() => {
-                    handledRef.current = false;
-                });
+            if (onClick && event.nativeEvent !== lastHandledEventRef.current) {
+                lastHandledEventRef.current = event.nativeEvent;
 
                 // If the menu is in mobile view, we execute the click event immediately.
                 // If the menu item is a checkbox or radio button, we execute the click event immediately.
