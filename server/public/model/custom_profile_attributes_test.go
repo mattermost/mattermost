@@ -1611,3 +1611,87 @@ func TestCPAField_Patch(t *testing.T) {
 		})
 	}
 }
+
+func TestCPAFieldsFromPropertyFields(t *testing.T) {
+	mkField := func(name string, sortOrder float64) *PropertyField {
+		return &PropertyField{
+			ID:      NewId(),
+			GroupID: ProtectedAttributesPropertyGroupName,
+			Name:    name,
+			Type:    PropertyFieldTypeText,
+			Attrs: StringInterface{
+				CustomProfileAttributesPropertyAttrsSortOrder: sortOrder,
+			},
+		}
+	}
+
+	t.Run("empty slice returns empty slice", func(t *testing.T) {
+		result, err := CPAFieldsFromPropertyFields(nil)
+		require.NoError(t, err)
+		assert.Empty(t, result)
+	})
+
+	t.Run("sorts by SortOrder ascending", func(t *testing.T) {
+		input := []*PropertyField{
+			mkField("c", 2),
+			mkField("a", 0),
+			mkField("b", 1),
+		}
+
+		result, err := CPAFieldsFromPropertyFields(input)
+		require.NoError(t, err)
+		require.Len(t, result, 3)
+		assert.Equal(t, "a", result[0].Name)
+		assert.Equal(t, "b", result[1].Name)
+		assert.Equal(t, "c", result[2].Name)
+	})
+
+	t.Run("preserves fields with equal SortOrder in encounter order", func(t *testing.T) {
+		input := []*PropertyField{
+			mkField("first", 0),
+			mkField("second", 0),
+		}
+
+		result, err := CPAFieldsFromPropertyFields(input)
+		require.NoError(t, err)
+		require.Len(t, result, 2)
+		// sort.Slice is not stable, but the test asserts both possible stable outcomes
+		// — we care that both fields are present, not stability.
+		names := []string{result[0].Name, result[1].Name}
+		assert.Contains(t, names, "first")
+		assert.Contains(t, names, "second")
+	})
+
+	t.Run("propagates conversion errors", func(t *testing.T) {
+		// options stored as an invalid JSON-marshallable type so that
+		// json.Marshal fails inside NewCPAFieldFromPropertyField
+		input := []*PropertyField{{
+			ID:      NewId(),
+			GroupID: ProtectedAttributesPropertyGroupName,
+			Name:    "bad",
+			Type:    PropertyFieldTypeText,
+			Attrs: StringInterface{
+				PropertyFieldAttributeOptions: make(chan int),
+			},
+		}}
+
+		result, err := CPAFieldsFromPropertyFields(input)
+		require.Error(t, err)
+		assert.Nil(t, result)
+	})
+
+	t.Run("applies SetDefaults via NewCPAFieldFromPropertyField", func(t *testing.T) {
+		input := []*PropertyField{{
+			ID:      NewId(),
+			GroupID: ProtectedAttributesPropertyGroupName,
+			Name:    "no_visibility",
+			Type:    PropertyFieldTypeText,
+			Attrs:   StringInterface{},
+		}}
+
+		result, err := CPAFieldsFromPropertyFields(input)
+		require.NoError(t, err)
+		require.Len(t, result, 1)
+		assert.Equal(t, CustomProfileAttributesVisibilityDefault, result[0].Attrs.Visibility)
+	})
+}

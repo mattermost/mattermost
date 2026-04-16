@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"sort"
 	"strings"
 )
 
@@ -291,6 +292,25 @@ func NewCPAFieldFromPropertyField(pf *PropertyField) (*CPAField, error) {
 	cpaField.SetDefaults()
 
 	return cpaField, nil
+}
+
+// CPAFieldsFromPropertyFields converts a slice of PropertyFields to CPAFields
+// and sorts the result by Attrs.SortOrder ascending.
+func CPAFieldsFromPropertyFields(pfs []*PropertyField) ([]*CPAField, error) {
+	cpaFields := make([]*CPAField, 0, len(pfs))
+	for _, pf := range pfs {
+		cpaField, err := NewCPAFieldFromPropertyField(pf)
+		if err != nil {
+			return nil, err
+		}
+		cpaFields = append(cpaFields, cpaField)
+	}
+
+	sort.Slice(cpaFields, func(i, j int) bool {
+		return cpaFields[i].Attrs.SortOrder < cpaFields[j].Attrs.SortOrder
+	})
+
+	return cpaFields, nil
 }
 
 // SanitizeAndValidatePropertyValue validates and sanitizes the given
