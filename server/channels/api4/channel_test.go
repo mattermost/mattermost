@@ -1790,17 +1790,18 @@ func TestCreateDirectChannelAsGuest(t *testing.T) {
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	id := model.NewId()
+	guestPassword := model.NewTestPassword()
 	guest := &model.User{
 		Email:         "success+" + id + "@simulator.amazonses.com",
 		Username:      "un_" + id,
 		Nickname:      "nn_" + id,
-		Password:      "Password1",
+		Password:      guestPassword,
 		EmailVerified: true,
 	}
 	guest, appErr := th.App.CreateGuest(th.Context, guest)
 	require.Nil(t, appErr)
 
-	_, _, err := client.Login(context.Background(), guest.Username, "Password1")
+	_, _, err := client.Login(context.Background(), guest.Username, guestPassword)
 	require.NoError(t, err)
 
 	t.Run("Try to created DM with not visible user", func(t *testing.T) {
@@ -1928,17 +1929,18 @@ func TestCreateGroupChannelAsGuest(t *testing.T) {
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	id := model.NewId()
+	guestPassword := model.NewTestPassword()
 	guest := &model.User{
 		Email:         "success+" + id + "@simulator.amazonses.com",
 		Username:      "un_" + id,
 		Nickname:      "nn_" + id,
-		Password:      "Password1",
+		Password:      guestPassword,
 		EmailVerified: true,
 	}
 	guest, appErr := th.App.CreateGuest(th.Context, guest)
 	require.Nil(t, appErr)
 
-	_, _, err := client.Login(context.Background(), guest.Username, "Password1")
+	_, _, err := client.Login(context.Background(), guest.Username, guestPassword)
 	require.NoError(t, err)
 
 	var resp *model.Response
@@ -2373,18 +2375,19 @@ func TestGetPublicChannelsByIdsForTeam(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.AllowEmailAccounts = true })
 
 		id := model.NewId()
+		guestPassword := model.NewTestPassword()
 		guest := &model.User{
 			Email:         "success+" + id + "@simulator.amazonses.com",
 			Username:      "un_" + id,
 			Nickname:      "nn_" + id,
-			Password:      "Password1",
+			Password:      guestPassword,
 			EmailVerified: true,
 		}
 		guest, appErr := th.App.CreateGuest(th.Context, guest)
 		require.Nil(t, appErr)
 
 		guestClient := th.CreateClient()
-		_, _, err := guestClient.Login(context.Background(), guest.Username, "Password1")
+		_, _, err := guestClient.Login(context.Background(), guest.Username, guestPassword)
 		require.NoError(t, err)
 		t.Cleanup(func() {
 			_, lErr := guestClient.Logout(context.Background())
@@ -4370,7 +4373,7 @@ func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
 		Nickname:      "nn_" + id,
 		FirstName:     "f_" + id,
 		LastName:      "l_" + id,
-		Password:      "Pa$$word11",
+		Password:      model.NewTestPassword(),
 		EmailVerified: true,
 	}
 	guest, appError := th.App.CreateGuest(th.Context, guest)
@@ -5588,11 +5591,12 @@ func TestAutocompleteChannelsForSearchGuestUsers(t *testing.T) {
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	id := model.NewId()
+	guestPassword := model.NewTestPassword()
 	guest := &model.User{
 		Email:         "success+" + id + "@simulator.amazonses.com",
 		Username:      "un_" + id,
 		Nickname:      "nn_" + id,
-		Password:      "Password1",
+		Password:      guestPassword,
 		EmailVerified: true,
 	}
 	guest, appErr := th.App.CreateGuest(th.Context, guest)
@@ -5642,7 +5646,7 @@ func TestAutocompleteChannelsForSearchGuestUsers(t *testing.T) {
 	gc2, _, err := th.SystemAdminClient.CreateGroupChannel(context.Background(), []string{th.BasicUser.Id, th.BasicUser2.Id, u1.Id})
 	require.NoError(t, err)
 
-	_, _, err = th.Client.Login(context.Background(), guest.Username, "Password1")
+	_, _, err = th.Client.Login(context.Background(), guest.Username, guestPassword)
 	require.NoError(t, err)
 
 	for _, tc := range []struct {

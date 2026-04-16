@@ -2371,7 +2371,7 @@ func testUserStoreUpdatePassword(t *testing.T, rctx request.CTX, ss store.Store)
 	_, err = hashers.Hash(strings.Repeat("1234567890", 8))
 	require.ErrorIs(t, err, hashers.ErrPasswordTooLong)
 
-	hashedPassword, err := hashers.Hash("newpwd")
+	hashedPassword, err := hashers.Hash(model.NewTestPassword())
 	require.NoError(t, err)
 
 	err = ss.User().UpdatePassword(u1.Id, hashedPassword)
@@ -5110,7 +5110,7 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, rctx request.CTX, ss store.Sto
 			Nickname:  "nn_" + id,
 			FirstName: "f_" + id,
 			LastName:  "l_" + id,
-			Password:  "Password1",
+			Password:  model.NewTestPassword(),
 		})
 		require.NoError(t, userErr)
 		require.NotNil(t, user)
@@ -5231,7 +5231,7 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, rctx request.CTX, ss store.
 			Nickname:  "nn_" + id,
 			FirstName: "f_" + id,
 			LastName:  "l_" + id,
-			Password:  "Password1",
+			Password:  model.NewTestPassword(),
 		})
 		require.NoError(t, userErr)
 		require.NotNil(t, user)
@@ -5342,7 +5342,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, rctx request.CTX, ss store.St
 			Nickname:  "nn_" + id,
 			FirstName: "f_" + id,
 			LastName:  "l_" + id,
-			Password:  "Password1",
+			Password:  model.NewTestPassword(),
 			Roles:     "system_user",
 		})
 		require.NoError(t, err)
@@ -5388,7 +5388,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, rctx request.CTX, ss store.St
 			Nickname:  "nn_" + id,
 			FirstName: "f_" + id,
 			LastName:  "l_" + id,
-			Password:  "Password1",
+			Password:  model.NewTestPassword(),
 			Roles:     "system_user system_admin",
 		})
 		require.NoError(t, err)
@@ -5433,7 +5433,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, rctx request.CTX, ss store.St
 			Nickname:  "nn_" + id,
 			FirstName: "f_" + id,
 			LastName:  "l_" + id,
-			Password:  "Password1",
+			Password:  model.NewTestPassword(),
 			Roles:     "system_guest",
 		})
 		require.NoError(t, err)
@@ -5454,7 +5454,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, rctx request.CTX, ss store.St
 			Nickname:  "nn_" + id,
 			FirstName: "f_" + id,
 			LastName:  "l_" + id,
-			Password:  "Password1",
+			Password:  model.NewTestPassword(),
 			Roles:     "system_guest",
 		})
 		require.NoError(t, err)
@@ -5484,7 +5484,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, rctx request.CTX, ss store.St
 			Nickname:  "nn_" + id,
 			FirstName: "f_" + id,
 			LastName:  "l_" + id,
-			Password:  "Password1",
+			Password:  model.NewTestPassword(),
 			Roles:     "system_guest",
 		})
 		require.NoError(t, err)
@@ -5529,7 +5529,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, rctx request.CTX, ss store.St
 			Nickname:  "nn_" + id,
 			FirstName: "f_" + id,
 			LastName:  "l_" + id,
-			Password:  "Password1",
+			Password:  model.NewTestPassword(),
 			Roles:     "system_guest custom_role",
 		})
 		require.NoError(t, err)
@@ -5574,7 +5574,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, rctx request.CTX, ss store.St
 			Nickname:  "nn_" + id,
 			FirstName: "f_" + id,
 			LastName:  "l_" + id,
-			Password:  "Password1",
+			Password:  model.NewTestPassword(),
 			Roles:     "system_guest",
 		})
 		require.NoError(t, err)
@@ -5602,7 +5602,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, rctx request.CTX, ss store.St
 			Nickname:  "nn_" + id,
 			FirstName: "f_" + id,
 			LastName:  "l_" + id,
-			Password:  "Password1",
+			Password:  model.NewTestPassword(),
 			Roles:     "system_guest",
 		})
 		require.NoError(t, err)
@@ -5657,7 +5657,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, rctx request.CTX, ss store.Sto
 			Nickname:  "nn_" + id,
 			FirstName: "f_" + id,
 			LastName:  "l_" + id,
-			Password:  "Password1",
+			Password:  model.NewTestPassword(),
 			Roles:     "system_guest",
 		})
 		require.NoError(t, err)
@@ -5701,7 +5701,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, rctx request.CTX, ss store.Sto
 			Nickname:  "nn_" + id,
 			FirstName: "f_" + id,
 			LastName:  "l_" + id,
-			Password:  "Password1",
+			Password:  model.NewTestPassword(),
 			Roles:     "system_user system_admin",
 		})
 		require.NoError(t, err)
@@ -5744,7 +5744,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, rctx request.CTX, ss store.Sto
 			Nickname:  "nn_" + id,
 			FirstName: "f_" + id,
 			LastName:  "l_" + id,
-			Password:  "Password1",
+			Password:  model.NewTestPassword(),
 			Roles:     "system_user",
 		})
 		require.NoError(t, err)
@@ -5763,7 +5763,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, rctx request.CTX, ss store.Sto
 			Nickname:  "nn_" + id,
 			FirstName: "f_" + id,
 			LastName:  "l_" + id,
-			Password:  "Password1",
+			Password:  model.NewTestPassword(),
 			Roles:     "system_user",
 		})
 		require.NoError(t, err)
@@ -5791,7 +5791,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, rctx request.CTX, ss store.Sto
 			Nickname:  "nn_" + id,
 			FirstName: "f_" + id,
 			LastName:  "l_" + id,
-			Password:  "Password1",
+			Password:  model.NewTestPassword(),
 			Roles:     "system_user",
 		})
 		require.NoError(t, err)
@@ -5834,7 +5834,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, rctx request.CTX, ss store.Sto
 			Nickname:  "nn_" + id,
 			FirstName: "f_" + id,
 			LastName:  "l_" + id,
-			Password:  "Password1",
+			Password:  model.NewTestPassword(),
 			Roles:     "system_user custom_role",
 		})
 		require.NoError(t, err)
@@ -5877,7 +5877,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, rctx request.CTX, ss store.Sto
 			Nickname:  "nn_" + id,
 			FirstName: "f_" + id,
 			LastName:  "l_" + id,
-			Password:  "Password1",
+			Password:  model.NewTestPassword(),
 			Roles:     "system_user",
 		})
 		require.NoError(t, err)
@@ -5905,7 +5905,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, rctx request.CTX, ss store.Sto
 			Nickname:  "nn_" + id,
 			FirstName: "f_" + id,
 			LastName:  "l_" + id,
-			Password:  "Password1",
+			Password:  model.NewTestPassword(),
 			Roles:     "system_user",
 		})
 		require.NoError(t, err)
@@ -5958,7 +5958,7 @@ func testDeactivateGuests(t *testing.T, rctx request.CTX, ss store.Store) {
 			Nickname:  "nn_" + guest1Random,
 			FirstName: "f_" + guest1Random,
 			LastName:  "l_" + guest1Random,
-			Password:  "Password1",
+			Password:  model.NewTestPassword(),
 			Roles:     "system_guest",
 		})
 		require.NoError(t, err)
@@ -5971,7 +5971,7 @@ func testDeactivateGuests(t *testing.T, rctx request.CTX, ss store.Store) {
 			Nickname:  "nn_" + guest2Random,
 			FirstName: "f_" + guest2Random,
 			LastName:  "l_" + guest2Random,
-			Password:  "Password1",
+			Password:  model.NewTestPassword(),
 			Roles:     "system_guest",
 		})
 		require.NoError(t, err)
@@ -5984,7 +5984,7 @@ func testDeactivateGuests(t *testing.T, rctx request.CTX, ss store.Store) {
 			Nickname:  "nn_" + guest3Random,
 			FirstName: "f_" + guest3Random,
 			LastName:  "l_" + guest3Random,
-			Password:  "Password1",
+			Password:  model.NewTestPassword(),
 			Roles:     "system_guest",
 			DeleteAt:  10,
 		})
@@ -5998,7 +5998,7 @@ func testDeactivateGuests(t *testing.T, rctx request.CTX, ss store.Store) {
 			Nickname:  "nn_" + regularUserRandom,
 			FirstName: "f_" + regularUserRandom,
 			LastName:  "l_" + regularUserRandom,
-			Password:  "Password1",
+			Password:  model.NewTestPassword(),
 			Roles:     "system_user",
 		})
 		require.NoError(t, err)

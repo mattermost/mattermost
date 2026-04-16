@@ -6,7 +6,7 @@ export {testConfig} from './test_config';
 export {baseGlobalSetup} from './global_setup';
 export {TestBrowser} from './browser_context';
 export {getBlobFromAsset, getFileFromAsset} from './file';
-export {duration, wait} from './util';
+export {duration, wait, newTestPassword} from './util';
 
 export {
     ChannelsPage,
