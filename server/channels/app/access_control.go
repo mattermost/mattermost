@@ -284,14 +284,14 @@ func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, channelID strin
 }
 
 func (a *App) GetAccessControlFieldsAutocomplete(rctx request.CTX, after string, limit int, callerID string) ([]*model.PropertyField, *model.AppError) {
-	cpaGroupID, appErr := a.CpaGroupID()
+	group, appErr := a.GetPropertyGroup(rctx, model.ProtectedAttributesPropertyGroupName)
 	if appErr != nil {
 		return nil, model.NewAppError("GetAccessControlAutoComplete", "app.pap.get_access_control_auto_complete.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
 	// Use property app layer to enforce access control
 	rctxWithCaller := RequestContextWithCallerID(rctx, callerID)
-	fields, appErr := a.SearchPropertyFields(rctxWithCaller, cpaGroupID, model.PropertyFieldSearchOpts{
+	fields, appErr := a.SearchPropertyFields(rctxWithCaller, group.ID, model.PropertyFieldSearchOpts{
 		Cursor: model.PropertyFieldSearchCursor{
 			PropertyFieldID: after,
 			CreateAt:        1,
