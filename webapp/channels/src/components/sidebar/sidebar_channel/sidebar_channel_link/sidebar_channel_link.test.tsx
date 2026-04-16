@@ -2,43 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {MemoryRouter} from 'react-router-dom';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
 import SidebarChannelLink from 'components/sidebar/sidebar_channel/sidebar_channel_link/sidebar_channel_link';
 
+import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
-
-jest.mock('components/tours/onboarding_tour', () => ({
-    ChannelsAndDirectMessagesTour: () => null,
-}));
-
-jest.mock('plugins/pluggable', () => ({
-    __esModule: true,
-    default: () => null,
-}));
-
-jest.mock('../sidebar_channel_menu', () => ({
-    __esModule: true,
-    default: () => <div data-testid='sidebar-channel-menu'/>,
-}));
-
-jest.mock('packages/mattermost-redux/src/selectors/entities/shared_channels', () => ({
-    getRemoteNamesForChannel: jest.fn(),
-}));
-
-jest.mock('packages/mattermost-redux/src/actions/shared_channels', () => ({
-    fetchChannelRemotes: jest.fn(() => ({type: 'MOCK_ACTION'})),
-}));
-
-function wrapWithRouter(ui: React.ReactElement) {
-    return (
-        <MemoryRouter>
-            {ui}
-        </MemoryRouter>
-    );
-}
 
 describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
     const baseChannel = {
@@ -85,21 +55,9 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
         },
     };
 
-    beforeEach(() => {
-        baseProps.actions.fetchChannelRemotes.mockClear();
-    });
-
-    const renderLink = (props: Record<string, unknown> = {}) => {
-        const merged = {
-            ...baseProps,
-            ...props,
-            channel: (props as {channel?: typeof baseChannel}).channel ?? baseProps.channel,
-            actions: {
-                ...baseProps.actions,
-                ...(props as {actions?: Partial<typeof baseProps.actions>}).actions,
-            },
-        };
-        return renderWithContext(wrapWithRouter(<SidebarChannelLink {...merged}/>));
+    const renderLink = (props: Partial<typeof baseProps> = {}) => {
+        const merged = mergeObjects(baseProps, props);
+        return renderWithContext(<SidebarChannelLink {...merged}/>);
     };
 
     test('should match snapshot', () => {
@@ -257,19 +215,13 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
 
         const {rerender} = renderLink(props);
 
-        baseProps.actions.fetchChannelRemotes.mockClear();
-
-        rerender(wrapWithRouter(
+        rerender(
             <SidebarChannelLink
-                {...baseProps}
-                isSharedChannel={true}
-                remoteNames={[]}
-                channel={{
-                    ...baseProps.channel,
-                    id: 'new_channel_id',
-                }}
+                {...mergeObjects(mergeObjects(baseProps, props), {
+                    channel: mergeObjects(baseProps.channel, {id: 'new_channel_id'}),
+                })}
             />,
-        ));
+        );
 
         expect(baseProps.actions.fetchChannelRemotes).toHaveBeenCalledWith('new_channel_id');
     });
