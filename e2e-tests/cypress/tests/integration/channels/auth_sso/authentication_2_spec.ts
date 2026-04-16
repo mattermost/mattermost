@@ -119,8 +119,6 @@ describe('Authentication', () => {
 
         cy.get('#input_name').clear().type(`BestUsernameInTheWorld${getRandomId()}`);
 
-        cy.get('#signup-body-card-form-check-terms-and-privacy').check();
-
         ['NOLOWERCASE12345!', 'nouppercase12345!', 'NoNumberHere!!!', 'NoSymbol1234567'].forEach((option) => {
             cy.get('#input_password-input').clear().type(option);
             cy.findByText('Create account').click();
