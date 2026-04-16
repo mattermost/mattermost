@@ -9,8 +9,8 @@
 
 // Group: @channels @plugin @not_cloud
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
-import {demoPlugin} from '../../../../utils/plugins';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {demoPlugin} from '@/utils/plugins';
 
 describe('Demo plugin - Webhook events', () => {
     let team1;

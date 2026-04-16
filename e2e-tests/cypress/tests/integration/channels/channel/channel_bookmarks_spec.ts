@@ -14,8 +14,8 @@ import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
 
-import {getRandomId, stubClipboard} from '../../../utils';
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getRandomId, stubClipboard} from '@/utils';
 
 describe('Channel Bookmarks', () => {
     let testTeam: Team;
