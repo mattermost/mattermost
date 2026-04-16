@@ -53,7 +53,7 @@ test('MM-T5786 Test "is not" (!=) operator in Simple mode', async ({pw}) => {
         autoSync: true,
         channels: [channel.display_name],
     });
-    const policyId = await getPolicyIdByName(systemConsolePage.page, policyName);
+    const policyId = (await getPolicyIdByName(adminClient, policyName))!;
 
     await systemConsolePage.page.waitForTimeout(1000);
     const policyRowForTest = systemConsolePage.page.locator('.policy-name').filter({hasText: policyName}).first();
@@ -67,11 +67,11 @@ test('MM-T5786 Test "is not" (!=) operator in Simple mode', async ({pw}) => {
         await navigateToABACPage(systemConsolePage.page);
     }
 
-    await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, undefined, policyId);
+    await waitForLatestSyncJob(systemConsolePage.page, 5);
 
     await activatePolicy(adminClient, policyId);
-    const syncJobId = await runSyncJob(systemConsolePage.page);
-    await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, syncJobId);
+    await runSyncJob(systemConsolePage.page);
+    await waitForLatestSyncJob(systemConsolePage.page, 5);
 
     const engInChannel = await verifyUserInChannel(adminClient, engineerUser.id, channel.id);
     const salesInChannel = await verifyUserInChannel(adminClient, salesUser.id, channel.id);
@@ -115,7 +115,7 @@ test('MM-T5786 Test "in" operator in Simple mode', async ({pw}) => {
         autoSync: true,
         channels: [channel.display_name],
     });
-    const policyId = await getPolicyIdByName(systemConsolePage.page, policyName);
+    const policyId = (await getPolicyIdByName(adminClient, policyName))!;
 
     await systemConsolePage.page.waitForTimeout(1000);
     const policyRowForTest = systemConsolePage.page.locator('.policy-name').filter({hasText: policyName}).first();
@@ -129,11 +129,11 @@ test('MM-T5786 Test "in" operator in Simple mode', async ({pw}) => {
         await navigateToABACPage(systemConsolePage.page);
     }
 
-    await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, undefined, policyId);
+    await waitForLatestSyncJob(systemConsolePage.page, 5);
 
     await activatePolicy(adminClient, policyId);
-    const syncJobId = await runSyncJob(systemConsolePage.page);
-    await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, syncJobId);
+    await runSyncJob(systemConsolePage.page);
+    await waitForLatestSyncJob(systemConsolePage.page, 5);
 
     const engInChannel = await verifyUserInChannel(adminClient, engineerUser.id, channel.id);
     const salesInChannel = await verifyUserInChannel(adminClient, salesUser.id, channel.id);
@@ -177,7 +177,7 @@ test('MM-T5786 Test "starts with" operator in Simple mode', async ({pw}) => {
         autoSync: true,
         channels: [channel.display_name],
     });
-    const policyId = await getPolicyIdByName(systemConsolePage.page, policyName);
+    const policyId = (await getPolicyIdByName(adminClient, policyName))!;
 
     await systemConsolePage.page.waitForTimeout(1000);
     const policyRowForTest = systemConsolePage.page.locator('.policy-name').filter({hasText: policyName}).first();
@@ -191,11 +191,11 @@ test('MM-T5786 Test "starts with" operator in Simple mode', async ({pw}) => {
         await navigateToABACPage(systemConsolePage.page);
     }
 
-    await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, undefined, policyId);
+    await waitForLatestSyncJob(systemConsolePage.page, 5);
 
     await activatePolicy(adminClient, policyId);
-    const syncJobId = await runSyncJob(systemConsolePage.page);
-    await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, syncJobId);
+    await runSyncJob(systemConsolePage.page);
+    await waitForLatestSyncJob(systemConsolePage.page, 5);
 
     const engInChannel = await verifyUserInChannel(adminClient, engineerUser.id, channel.id);
     const salesInChannel = await verifyUserInChannel(adminClient, salesUser.id, channel.id);

@@ -15,7 +15,6 @@ import {
     createPrivateChannelForABAC,
     createBasicPolicy,
     createAdvancedPolicy,
-    captureLatestJobId,
     waitForLatestSyncJob,
     getPolicyIdByName,
 } from '../support';
@@ -109,7 +108,7 @@ test('MM-T5791 Editing policy to add attribute with auto-add enabled', async ({p
         autoSync: true, // Auto-add is ON
         channels: [privateChannel.display_name],
     });
-    const editTest2PolicyId = await getPolicyIdByName(page, policyName);
+    (await getPolicyIdByName(adminClient, policyName))!;
 
     // Wait for automatic sync to complete
     await page.waitForTimeout(500);
@@ -124,7 +123,6 @@ test('MM-T5791 Editing policy to add attribute with auto-add enabled', async ({p
     // ===========================================
 
     // Navigate back to ABAC list page
-    const beforeEdit2JobId = await captureLatestJobId(page, editTest2PolicyId);
     await page.goto('/admin_console/system_attributes/attribute_based_access_control', {waitUntil: 'networkidle'});
     await page.waitForTimeout(2000);
 
@@ -221,7 +219,7 @@ test('MM-T5791 Editing policy to add attribute with auto-add enabled', async ({p
     await page.waitForTimeout(500);
 
     // Wait for the auto-triggered sync job to complete (policy edit triggers sync automatically)
-    await waitForLatestSyncJob(page, 5, beforeEdit2JobId, undefined, editTest2PolicyId);
+    await waitForLatestSyncJob(page, 10);
 
     // ===========================================
     // STEP 5 & 6: Verify channel membership after edit
@@ -329,7 +327,7 @@ test('MM-T5792 Editing policy to remove attribute rule with auto-add enabled', a
         autoSync: true, // Auto-add is ON
         channels: [privateChannel.display_name],
     });
-    const editTest3PolicyId = await getPolicyIdByName(page, policyName);
+    (await getPolicyIdByName(adminClient, policyName))!;
 
     // Wait for automatic sync to complete
     await page.waitForTimeout(500);
@@ -343,8 +341,6 @@ test('MM-T5792 Editing policy to remove attribute rule with auto-add enabled', a
     // STEP 1-2: Edit policy to REMOVE Location rule
     // New expression: Department=Engineering (only)
     // ===========================================
-
-    const beforeEdit3JobId = await captureLatestJobId(page, editTest3PolicyId);
     await page.goto('/admin_console/system_attributes/attribute_based_access_control', {waitUntil: 'networkidle'});
     await page.waitForTimeout(500);
 
@@ -437,7 +433,7 @@ test('MM-T5792 Editing policy to remove attribute rule with auto-add enabled', a
     }
 
     await navigateToABACPage(page);
-    await waitForLatestSyncJob(page, 5, beforeEdit3JobId, undefined, editTest3PolicyId);
+    await waitForLatestSyncJob(page, 10);
 
     // ===========================================
     // STEP 5 & 6: Verify channel membership after edit

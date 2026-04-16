@@ -131,7 +131,7 @@ jobs:
 
   run-tests:
     runs-on: ubuntu-24.04
-    timeout-minutes: 35
+    timeout-minutes: 30
     continue-on-error: true
     needs:
       - generate-test-variables
@@ -149,8 +149,7 @@ jobs:
       ENABLED_DOCKER_SERVICES: "${{ inputs.enabled_docker_services }}"
       TEST: playwright
       TEST_FILTER: "${{ inputs.test_filter }}"
-      PW_SHARD_INDEX: "${{ matrix.worker_index }}"
-      PW_SHARD_TOTAL: "${{ inputs.workers }}"
+      PW_SHARD: "${{ format('--shard={0}/{1}', matrix.worker_index, inputs.workers) }}"
       BRANCH: "${{ inputs.branch }}-${{ inputs.test_type }}"
       BUILD_ID: "${{ inputs.build_id }}"
       CI_BASE_URL: "${{ inputs.test_type }}-test-${{ matrix.worker_index }}"
@@ -169,57 +168,13 @@ jobs:
       - name: ci/get-webapp-node-modules
         working-directory: webapp
         run: make node_modules
-      - name: ci/restore-test-durations
-        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
-        with:
-          path: e2e-tests/playwright/.test-durations.json
-          key: pw-test-durations-${{ inputs.test_type }}
-          restore-keys: pw-test-durations-
       - name: ci/run-tests
         run: |
           make cloud-init
           make
-
-          # Inline retry on the still-running server — no new server provisioning needed.
-          # Working dir is e2e-tests/ (set by defaults.run.working-directory).
-          # If any specs failed, stash pass-1 blobs, rerun the failing specs, then merge
-          # both sets of blobs so the final artifact reflects the combined result.
-          RESULTS_FILE="playwright/results/reporter/results.json"
-          if [ ! -f "$RESULTS_FILE" ]; then
-            echo "No results file found, skipping retry"
-          else
-            FAILED_SPECS=$(jq -r '
-              [.suites[] | . as $top |
-                (recurse(.suites[]?) | .specs[]? | .tests[]? |
-                 select((.results | length) > 0) |
-                 select((.results | last).status == "failed" or (.results | last).status == "timedOut") |
-                 (.location.file // $top.file))
-              ] | map(select(. != null)) | unique | join(",")
-            ' "$RESULTS_FILE" 2>/dev/null || echo "")
-
-            if [ -n "$FAILED_SPECS" ]; then
-              echo "Retrying failed specs in shard ${{ matrix.worker_index }}: $FAILED_SPECS"
-
-              # Stash pass-1 blob reports — make run-specs wipes results/ before rerunning
-              mkdir -p /tmp/pw-blobs-pass1
-              cp playwright/results/blob-report/*.zip /tmp/pw-blobs-pass1/ 2>/dev/null || true
-
-              # Retry on the same server (already in e2e-tests/)
-              TEST=playwright \
-              CI_BASE_URL="${{ inputs.test_type }}-test-${{ matrix.worker_index }}-retry" \
-              SPEC_FILES="$FAILED_SPECS" make run-specs
-
-              # Combine pass-1 blobs + retry blobs (UUID filenames prevent collisions)
-              cp /tmp/pw-blobs-pass1/*.zip playwright/results/blob-report/ 2>/dev/null || true
-
-              # Re-generate results.json / html / xml from the merged blob set.
-              # Tests that failed in pass-1 and passed on retry appear as flaky (not failed).
-              mkdir -p playwright/results/reporter
-              cd playwright
-              npx playwright merge-reports --config merge.config.mjs results/blob-report || true
-              cd ..
-            fi
-          fi
+      - name: ci/cloud-teardown
+        if: always()
+        run: make cloud-teardown
       - name: ci/upload-results
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         if: always()
@@ -229,9 +184,6 @@ jobs:
             e2e-tests/playwright/logs/
             e2e-tests/playwright/results/
           retention-days: 5
-      - name: ci/cloud-teardown
-        if: always()
-        run: make cloud-teardown
 
   calculate-results:
     runs-on: ubuntu-24.04
@@ -278,16 +230,6 @@ jobs:
           # Merge blob reports using Playwright merge-reports (per docs)
           npm install --no-save @playwright/test
           npx playwright merge-reports --config merge.config.mjs ./shard-results/results/blob-report/
-      - name: ci/extract-test-durations
-        working-directory: e2e-tests/playwright
-        if: always()
-        run: node scripts/extract-durations.mjs results/reporter/results.json .test-durations.json || true
-      - name: ci/cache-test-durations
-        uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
-        if: always()
-        with:
-          path: e2e-tests/playwright/.test-durations.json
-          key: pw-test-durations-${{ inputs.test_type }}-${{ github.run_id }}
       - name: ci/calculate
         id: calculate
         uses: ./.github/actions/calculate-playwright-results
@@ -303,12 +245,69 @@ jobs:
         id: record-end-time
         run: echo "end_time=$(date +%s)" >> $GITHUB_OUTPUT
 
+  run-failed-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    needs:
+      - run-tests
+      - calculate-results
+    if: >-
+      always() &&
+      needs.calculate-results.result == 'success' &&
+      needs.calculate-results.outputs.failed != '0' &&
+      fromJSON(needs.calculate-results.outputs.failed_specs_count) <= 20
+    defaults:
+      run:
+        working-directory: e2e-tests
+    env:
+      SERVER: "${{ inputs.server }}"
+      MM_LICENSE: "${{ secrets.MM_LICENSE }}"
+      ENABLED_DOCKER_SERVICES: "${{ inputs.enabled_docker_services }}"
+      TEST: playwright
+      BRANCH: "${{ inputs.branch }}-${{ inputs.test_type }}-retest"
+      BUILD_ID: "${{ inputs.build_id }}-retest"
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 0
+      - name: ci/setup-node
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: "e2e-tests/playwright/package-lock.json"
+      - name: ci/get-webapp-node-modules
+        working-directory: webapp
+        run: make node_modules
+      - name: ci/run-failed-specs
+        env:
+          SPEC_FILES: ${{ needs.calculate-results.outputs.failed_specs }}
+        run: |
+          echo "Retesting failed specs: $SPEC_FILES"
+          make cloud-init
+          make start-server run-specs
+      - name: ci/cloud-teardown
+        if: always()
+        run: make cloud-teardown
+      - name: ci/upload-retest-results
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        if: always()
+        with:
+          name: playwright-${{ inputs.test_type }}-${{ inputs.server_edition }}-retest-results
+          path: |
+            e2e-tests/playwright/logs/
+            e2e-tests/playwright/results/
+          retention-days: 5
+
   report:
     runs-on: ubuntu-24.04
     needs:
       - generate-test-variables
       - run-tests
       - calculate-results
+      - run-failed-tests
     if: always() && needs.calculate-results.result == 'success'
     outputs:
       passed: "${{ steps.final-results.outputs.passed }}"
@@ -317,6 +316,7 @@ jobs:
       report_url: "${{ steps.upload-to-s3.outputs.report_url }}"
       duration: "${{ steps.duration.outputs.duration }}"
       duration_display: "${{ steps.duration.outputs.duration_display }}"
+      retest_display: "${{ steps.duration.outputs.retest_display }}"
     defaults:
       run:
         working-directory: e2e-tests
@@ -337,12 +337,21 @@ jobs:
           name: playwright-${{ inputs.test_type }}-${{ inputs.server_edition }}-results
           path: e2e-tests/playwright/results/
 
-      # Calculate final results
+      # Download retest results (only if retest ran)
+      - name: ci/download-retest-results
+        if: needs.run-failed-tests.result != 'skipped'
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        with:
+          name: playwright-${{ inputs.test_type }}-${{ inputs.server_edition }}-retest-results
+          path: e2e-tests/playwright/retest-results/
+
+      # Calculate results (with optional merge of retest results)
       - name: ci/calculate-results
         id: final-results
         uses: ./.github/actions/calculate-playwright-results
         with:
           original-results-path: e2e-tests/playwright/results/reporter/results.json
+          retest-results-path: ${{ needs.run-failed-tests.result != 'skipped' && 'e2e-tests/playwright/retest-results/results/reporter/results.json' || '' }}
 
       - name: ci/aws-configure
         uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
@@ -380,6 +389,9 @@ jobs:
         id: duration
         env:
           START_TIME: ${{ needs.generate-test-variables.outputs.start_time }}
+          FIRST_PASS_END_TIME: ${{ needs.calculate-results.outputs.end_time }}
+          RETEST_RESULT: ${{ needs.run-failed-tests.result }}
+          RETEST_SPEC_COUNT: ${{ needs.calculate-results.outputs.failed_specs_count }}
           TEST_DURATION: ${{ steps.final-results.outputs.test_duration }}
         run: |
           NOW=$(date +%s)
@@ -388,17 +400,40 @@ jobs:
           SECONDS=$((ELAPSED % 60))
           DURATION="${MINUTES}m ${SECONDS}s"
 
+          # Compute first-pass and re-run durations
+          FIRST_PASS_ELAPSED=$((FIRST_PASS_END_TIME - START_TIME))
+          FP_MIN=$((FIRST_PASS_ELAPSED / 60))
+          FP_SEC=$((FIRST_PASS_ELAPSED % 60))
+          FIRST_PASS="${FP_MIN}m ${FP_SEC}s"
+
+          if [ "$RETEST_RESULT" != "skipped" ]; then
+            RERUN_ELAPSED=$((NOW - FIRST_PASS_END_TIME))
+            RR_MIN=$((RERUN_ELAPSED / 60))
+            RR_SEC=$((RERUN_ELAPSED % 60))
+            RUN_BREAKDOWN=" (first-pass: ${FIRST_PASS}, re-run: ${RR_MIN}m ${RR_SEC}s)"
+          else
+            RUN_BREAKDOWN=""
+          fi
+
           # Duration icons: >20m high alert, >15m warning, otherwise clock
           if [ "$MINUTES" -ge 20 ]; then
-            DURATION_DISPLAY=":rotating_light: ${DURATION} | test: ${TEST_DURATION}"
+            DURATION_DISPLAY=":rotating_light: ${DURATION}${RUN_BREAKDOWN} | test: ${TEST_DURATION}"
           elif [ "$MINUTES" -ge 15 ]; then
-            DURATION_DISPLAY=":warning: ${DURATION} | test: ${TEST_DURATION}"
+            DURATION_DISPLAY=":warning: ${DURATION}${RUN_BREAKDOWN} | test: ${TEST_DURATION}"
           else
-            DURATION_DISPLAY=":clock3: ${DURATION} | test: ${TEST_DURATION}"
+            DURATION_DISPLAY=":clock3: ${DURATION}${RUN_BREAKDOWN} | test: ${TEST_DURATION}"
+          fi
+
+          # Retest indicator with spec count
+          if [ "$RETEST_RESULT" != "skipped" ]; then
+            RETEST_DISPLAY=":repeat: re-run ${RETEST_SPEC_COUNT} spec(s)"
+          else
+            RETEST_DISPLAY=""
           fi
 
           echo "duration=${DURATION}" >> $GITHUB_OUTPUT
           echo "duration_display=${DURATION_DISPLAY}" >> $GITHUB_OUTPUT
+          echo "retest_display=${RETEST_DISPLAY}" >> $GITHUB_OUTPUT
 
       - name: ci/publish-report
         if: inputs.enable_reporting && env.REPORT_WEBHOOK_URL != ''
@@ -413,6 +448,7 @@ jobs:
           REF_BRANCH: ${{ inputs.ref_branch }}
           PR_NUMBER: ${{ inputs.pr_number }}
           DURATION_DISPLAY: ${{ steps.duration.outputs.duration_display }}
+          RETEST_DISPLAY: ${{ steps.duration.outputs.retest_display }}
         run: |
           # Capitalize test type
           TEST_TYPE_CAP=$(echo "$TEST_TYPE" | sed 's/.*/\u&/')
@@ -428,6 +464,12 @@ jobs:
             SOURCE_LINE=":open-pull-request: [mattermost-pr-${PR_NUMBER}](https://github.com/${{ github.repository }}/pull/${PR_NUMBER})"
           fi
 
+          # Build retest part for message
+          RETEST_PART=""
+          if [ -n "$RETEST_DISPLAY" ]; then
+            RETEST_PART=" | ${RETEST_DISPLAY}"
+          fi
+
           # Build payload with attachments
           PAYLOAD=$(cat <<EOF
           {
@@ -435,7 +477,7 @@ jobs:
             "icon_url": "https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png",
             "attachments": [{
               "color": "${COLOR}",
-              "text": "**Results - Playwright ${TEST_TYPE_CAP} Tests**\n\n${SOURCE_LINE}\n:docker: \`${{ env.SERVER_IMAGE }}\`\n${COMMIT_STATUS_MESSAGE} | [full report](${REPORT_URL})\n${DURATION_DISPLAY}"
+              "text": "**Results - Playwright ${TEST_TYPE_CAP} Tests**\n\n${SOURCE_LINE}\n:docker: \`${{ env.SERVER_IMAGE }}\`\n${COMMIT_STATUS_MESSAGE}${RETEST_PART} | [full report](${REPORT_URL})\n${DURATION_DISPLAY}"
             }]
           }
           EOF
@@ -458,6 +500,7 @@ jobs:
           COMMIT_STATUS_MESSAGE: ${{ steps.final-results.outputs.commit_status_message }}
           FAILED_TESTS: ${{ steps.final-results.outputs.failed_tests }}
           DURATION_DISPLAY: ${{ steps.duration.outputs.duration_display }}
+          RETEST_RESULT: ${{ needs.run-failed-tests.result }}
         run: |
           {
             echo "## E2E Test Results - Playwright ${TEST_TYPE}"
@@ -489,6 +532,11 @@ jobs:
             echo "| commit_status_message | ${COMMIT_STATUS_MESSAGE} |"
             echo "| failed_specs | ${FAILED_SPECS:-none} |"
             echo "| duration | ${DURATION_DISPLAY} |"
+            if [ "$RETEST_RESULT" != "skipped" ]; then
+              echo "| retested | Yes |"
+            else
+              echo "| retested | No |"
+            fi
 
             echo ""
             echo "---"
