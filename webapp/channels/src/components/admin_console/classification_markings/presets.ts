@@ -26,17 +26,7 @@ export const presets: ClassificationPreset[] = [
             {id: 'cgomt91mij8wt8oxk9ip9xmtih', name: 'CONFIDENTIAL', color: '#0033A0', rank: 3},
             {id: 'fxca5dm5tjg9ufihgfpinc47yh', name: 'SECRET', color: '#C8102E', rank: 4},
             {id: 'wandytq84tdc7k5rq49q6mywhy', name: 'TOP SECRET', color: '#FF8C00', rank: 5},
-        ],
-    },
-    {
-        id: 'nato',
-        label: 'NATO',
-        levels: [
-            {id: 'iafbimm1w3razndyr6d5zckd8w', name: 'NATO UNCLASSIFIED', color: '#007A33', rank: 1},
-            {id: 'kc3t8egt5if19m6zdeidui9rfw', name: 'NATO RESTRICTED', color: '#FF671F', rank: 2},
-            {id: '7sagzm4u1fgczp31ppju6xk3gy', name: 'NATO CONFIDENTIAL', color: '#0033A0', rank: 3},
-            {id: 'pk45zxegtjyy3bgnqwy4uq5i4a', name: 'NATO SECRET', color: '#C8102E', rank: 4},
-            {id: 'brqmooby6frpdfikkr8pgo19jc', name: 'COSMIC TOP SECRET', color: '#F7EA48', rank: 5},
+            {id: '7q7stt4p7my3ep2w6xkqfmbnwa', name: 'TOP SECRET//SCI', color: '#FCE83A', rank: 6},
         ],
     },
     {
@@ -71,6 +61,17 @@ export const presets: ClassificationPreset[] = [
             {id: '3niq6ez9b7r13remwkqarkq5qc', name: 'CONFIDENTIAL', color: '#0000FF', rank: 4},
             {id: 'pwign3di7f84pfsi9zoa8cw5ko', name: 'SECRET', color: '#FFA500', rank: 5},
             {id: 'wridu7pp9fdqzmy3dcqk6nzesr', name: 'TOP SECRET', color: '#FF0000', rank: 6},
+        ],
+    },
+    {
+        id: 'nato',
+        label: 'NATO',
+        levels: [
+            {id: 'iafbimm1w3razndyr6d5zckd8w', name: 'NATO UNCLASSIFIED', color: '#007A33', rank: 1},
+            {id: 'kc3t8egt5if19m6zdeidui9rfw', name: 'NATO RESTRICTED', color: '#FF671F', rank: 2},
+            {id: '7sagzm4u1fgczp31ppju6xk3gy', name: 'NATO CONFIDENTIAL', color: '#0033A0', rank: 3},
+            {id: 'pk45zxegtjyy3bgnqwy4uq5i4a', name: 'NATO SECRET', color: '#C8102E', rank: 4},
+            {id: 'brqmooby6frpdfikkr8pgo19jc', name: 'COSMIC TOP SECRET', color: '#F7EA48', rank: 5},
         ],
     },
 ];

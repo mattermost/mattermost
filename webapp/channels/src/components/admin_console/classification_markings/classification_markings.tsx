@@ -6,7 +6,6 @@ import type {ColumnDef} from '@tanstack/react-table';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
-import styled from 'styled-components';
 
 import type {ClientError} from '@mattermost/client';
 import {PlusIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
@@ -16,17 +15,36 @@ import {Client4} from 'mattermost-redux/client';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
 
-import ColorInput from 'components/color_input';
+import BooleanSetting from 'components/admin_console/boolean_setting';
+import Setting from 'components/admin_console/setting';
 import ConfirmModal from 'components/confirm_modal';
+import DropdownInput from 'components/dropdown_input';
+import type {ValueType} from 'components/dropdown_input';
 import LoadingScreen from 'components/loading_screen';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
+import ClassificationColorInput from './classification_color_input';
+import {
+    ActionsCell,
+    AddLevelButton,
+    AddLevelButtonRow,
+    ClassificationLevelsSectionContent,
+    ColHeaderLeft,
+    ColorCellWrapper,
+    ColorSwatch,
+    DeleteButton,
+    PresetDropdownWrapper,
+    RankCell,
+    ReadOnlyColor,
+    TableWrapper,
+} from './classification_markings_styled';
+import {classificationPresetDropdownStyles} from './classification_preset_dropdown_styles';
 import type {ClassificationLevel} from './presets';
 import {PRESET_CUSTOM, presets} from './presets';
 
 import {AdminConsoleListTable} from '../list_table';
 import SaveChangesPanel from '../save_changes_panel';
-import {AdminSection, AdminWrapper, SectionContent, SectionHeader, SectionHeading, BorderlessInput, LinkButton} from '../system_properties/controls';
+import {AdminSection, AdminWrapper, SectionHeader, SectionHeading, BorderlessInput} from '../system_properties/controls';
 
 const GROUP_NAME = 'custom_profile_attributes';
 const OBJECT_TYPE = 'user';
@@ -41,9 +59,10 @@ const msg = defineMessages({
     enableTitle: {id: 'admin.classification_markings.enable.title', defaultMessage: 'Enable classification markings'},
     enableDescription: {id: 'admin.classification_markings.enable.description', defaultMessage: 'Use this to enable classification markings as banners at the system and channel level. You can pre-select text and colors for your banner, as well as set a default option for consistency.'},
     presetTitle: {id: 'admin.classification_markings.preset.title', defaultMessage: 'Classification preset'},
-    presetDescription: {id: 'admin.classification_markings.preset.description', defaultMessage: 'Select a classification preset from the dropdown menu based on your country affiliation. This will help tailor the options to your specific needs. You can also create set custom classification levels.'},
+    presetDescription: {id: 'admin.classification_markings.preset.description', defaultMessage: 'Select a classification preset from the dropdown menu based on your country affiliation. This will help tailor the options to your specific needs. You can also create custom classification levels.'},
     levelsTitle: {id: 'admin.classification_markings.levels.title', defaultMessage: 'Classification levels'},
-    levelsDescription: {id: 'admin.classification_markings.levels.description', defaultMessage: 'Select colors and text for different classification levels that will be used in classification banners'},
+    levelsDescription: {id: 'admin.classification_markings.levels.description', defaultMessage: 'Text and colors for different classification levels that will be used in the system'},
+    colorOpenPicker: {id: 'admin.classification_markings.color.open_picker', defaultMessage: 'Open color picker'},
 });
 
 type Props = {
@@ -210,8 +229,8 @@ export default function ClassificationMarkings({disabled}: Props) {
         })();
     }, []);
 
-    const handleToggleEnabled = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        setEnabled(e.target.value === 'true');
+    const handleClassificationEnabledChange = useCallback((_id: string, value: boolean) => {
+        setEnabled(value);
     }, []);
 
     const applyPreset = useCallback((newPresetId: string) => {
@@ -222,20 +241,36 @@ export default function ClassificationMarkings({disabled}: Props) {
         }
     }, []);
 
-    const handlePresetChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-        const newPresetId = e.target.value;
+    const presetDropdownOptions = useMemo((): ValueType[] => {
+        return [
+            ...presets.map((p) => ({value: p.id, label: p.label})),
+            {
+                value: PRESET_CUSTOM,
+                label: formatMessage({
+                    id: 'admin.classification_markings.preset.custom',
+                    defaultMessage: 'Custom classification levels',
+                }),
+            },
+        ];
+    }, [formatMessage]);
 
+    const presetDropdownValue = useMemo(() => {
+        return presetDropdownOptions.find((o) => o.value === presetId) ?? presetDropdownOptions[presetDropdownOptions.length - 1]!;
+    }, [presetDropdownOptions, presetId]);
+
+    const handlePresetDropdownChange = useCallback((selected: ValueType | null) => {
+        if (!selected) {
+            return;
+        }
+        const newPresetId = selected.value;
         if (newPresetId === PRESET_CUSTOM) {
             setPresetId(PRESET_CUSTOM);
             return;
         }
-
-        // Warn once when switching presets on an existing field
         if (existingField && !hasAcknowledgedPresetWarning) {
             setConfirmPresetSwitch(newPresetId);
             return;
         }
-
         applyPreset(newPresetId);
     }, [existingField, hasAcknowledgedPresetWarning, applyPreset]);
 
@@ -404,113 +439,89 @@ export default function ClassificationMarkings({disabled}: Props) {
                 <FormattedMessage {...msg.pageTitle}/>
             </AdminHeader>
             <AdminWrapper>
-                <AdminSection>
-                    <SectionHeader>
-                        <hgroup>
+                <form
+                    className='form-horizontal'
+                    onSubmit={(e) => e.preventDefault()}
+                >
+                    <BooleanSetting
+                        id='classificationEnabled'
+                        label={<FormattedMessage {...msg.enableTitle}/>}
+                        value={enabled}
+                        onChange={handleClassificationEnabledChange}
+                        disabled={disabled}
+                        setByEnv={false}
+                        helpText={<FormattedMessage {...msg.enableDescription}/>}
+                        trueText={(
                             <FormattedMessage
-                                tagName={SectionHeading}
-                                {...msg.enableTitle}
+                                id='admin.classification_markings.enable.true'
+                                defaultMessage='True'
                             />
-                            <FormattedMessage {...msg.enableDescription}/>
-                        </hgroup>
-                    </SectionHeader>
-                    <SectionContent $compact={true}>
-                        <RadioGroup>
-                            <label>
-                                <input
-                                    type='radio'
-                                    name='classificationEnabled'
-                                    value='true'
-                                    checked={enabled}
-                                    disabled={disabled}
-                                    onChange={handleToggleEnabled}
+                        )}
+                        falseText={(
+                            <FormattedMessage
+                                id='admin.classification_markings.enable.false'
+                                defaultMessage='False'
+                            />
+                        )}
+                    />
+                    {enabled && (
+                        <Setting
+                            inputId='DropdownInput_classificationPreset'
+                            label={<FormattedMessage {...msg.presetTitle}/>}
+                            helpText={<FormattedMessage {...msg.presetDescription}/>}
+                            setByEnv={false}
+                        >
+                            <PresetDropdownWrapper>
+                                <DropdownInput
+                                    className='classificationPresetDropdownFieldset'
+                                    name='classificationPreset'
+                                    testId='classificationPreset'
+                                    options={presetDropdownOptions}
+                                    value={presetDropdownValue}
+                                    onChange={handlePresetDropdownChange}
+                                    isDisabled={disabled}
+                                    isClearable={false}
+                                    menuPortalTarget={document.body}
+                                    styles={classificationPresetDropdownStyles}
                                 />
-                                <FormattedMessage
-                                    id='admin.classification_markings.enable.true'
-                                    defaultMessage='True'
-                                />
-                            </label>
-                            <label>
-                                <input
-                                    type='radio'
-                                    name='classificationEnabled'
-                                    value='false'
-                                    checked={!enabled}
-                                    disabled={disabled}
-                                    onChange={handleToggleEnabled}
-                                />
-                                <FormattedMessage
-                                    id='admin.classification_markings.enable.false'
-                                    defaultMessage='False'
-                                />
-                            </label>
-                        </RadioGroup>
-                    </SectionContent>
-                </AdminSection>
+                            </PresetDropdownWrapper>
+                        </Setting>
+                    )}
+                </form>
 
                 {enabled && (
-                    <>
-                        <AdminSection>
-                            <SectionHeader>
-                                <hgroup>
-                                    <FormattedMessage
-                                        tagName={SectionHeading}
-                                        {...msg.presetTitle}
-                                    />
-                                    <FormattedMessage {...msg.presetDescription}/>
-                                </hgroup>
-                            </SectionHeader>
-                            <SectionContent $compact={true}>
-                                <PresetSelect
-                                    value={presetId}
-                                    disabled={disabled}
-                                    onChange={handlePresetChange}
-                                >
-                                    {presets.map((preset) => (
-                                        <option
-                                            key={preset.id}
-                                            value={preset.id}
-                                        >
-                                            {preset.label}
-                                        </option>
-                                    ))}
-                                    <option value={PRESET_CUSTOM}>
-                                        {formatMessage({id: 'admin.classification_markings.preset.custom', defaultMessage: 'Custom classification levels'})}
-                                    </option>
-                                </PresetSelect>
-                            </SectionContent>
-                        </AdminSection>
-
-                        <AdminSection>
-                            <SectionHeader>
-                                <hgroup>
-                                    <FormattedMessage
-                                        tagName={SectionHeading}
-                                        {...msg.levelsTitle}
-                                    />
-                                    <FormattedMessage {...msg.levelsDescription}/>
-                                </hgroup>
-                            </SectionHeader>
-                            <SectionContent $compact={true}>
-                                <ClassificationLevelsTable
-                                    levels={levels}
-                                    updateLevel={updateLevel}
-                                    deleteLevel={deleteLevel}
-                                    onReorder={handleReorder}
-                                    disabled={disabled}
+                    <AdminSection>
+                        <SectionHeader>
+                            <hgroup>
+                                <FormattedMessage
+                                    tagName={SectionHeading}
+                                    {...msg.levelsTitle}
                                 />
-                                {!disabled && (
-                                    <LinkButton onClick={addLevel}>
-                                        <PlusIcon size={16}/>
+                                <FormattedMessage {...msg.levelsDescription}/>
+                            </hgroup>
+                        </SectionHeader>
+                        <ClassificationLevelsSectionContent>
+                            <ClassificationLevelsTable
+                                levels={levels}
+                                updateLevel={updateLevel}
+                                deleteLevel={deleteLevel}
+                                onReorder={handleReorder}
+                                disabled={disabled}
+                                reorderDisabled={presetId !== PRESET_CUSTOM}
+                            />
+                            {!disabled && (
+                                <AddLevelButtonRow>
+                                    <AddLevelButton onClick={addLevel}>
+                                        <PlusIcon size={14}/>
                                         <FormattedMessage
                                             id='admin.classification_markings.levels.add'
                                             defaultMessage='Add level'
                                         />
-                                    </LinkButton>
-                                )}
-                            </SectionContent>
-                        </AdminSection>
-                    </>
+                                    </AddLevelButton>
+                                </AddLevelButtonRow>
+                            )}
+                        </ClassificationLevelsSectionContent>
+                    </AdminSection>
                 )}
             </AdminWrapper>
 
@@ -546,9 +557,10 @@ type TableProps = {
     deleteLevel: (id: string) => void;
     onReorder: (prev: number, next: number) => void;
     disabled?: boolean;
+    reorderDisabled?: boolean;
 };
 
-function ClassificationLevelsTable({levels, updateLevel, deleteLevel, onReorder, disabled}: TableProps) {
+function ClassificationLevelsTable({levels, updateLevel, deleteLevel, onReorder, disabled, reorderDisabled}: TableProps) {
     const {formatMessage} = useIntl();
 
     const rows: LevelRow[] = useMemo(() => {
@@ -586,7 +598,7 @@ function ClassificationLevelsTable({levels, updateLevel, deleteLevel, onReorder,
                     <ColHeaderLeft>
                         <FormattedMessage
                             id='admin.classification_markings.levels.table.color'
-                            defaultMessage='Colour'
+                            defaultMessage='Color'
                         />
                     </ColHeaderLeft>
                 ),
@@ -602,6 +614,7 @@ function ClassificationLevelsTable({levels, updateLevel, deleteLevel, onReorder,
                                 id={row.original.id}
                                 value={row.original.color}
                                 updateLevel={updateLevel}
+                                swatchAriaLabel={formatMessage(msg.colorOpenPicker)}
                             />
                         )}
                     </ColorCellWrapper>
@@ -655,7 +668,7 @@ function ClassificationLevelsTable({levels, updateLevel, deleteLevel, onReorder,
         meta: {
             tableId: 'classificationLevels',
             disablePaginationControls: true,
-            ...(!disabled && {onReorder}),
+            ...(!disabled && !reorderDisabled && {onReorder}),
         },
         manualPagination: true,
     });
@@ -703,9 +716,10 @@ type LevelColorCellProps = {
     value: string;
     id: string;
     updateLevel: (id: string, updates: Partial<ClassificationLevel>) => void;
+    swatchAriaLabel: string;
 };
 
-function LevelColorCell({value, id, updateLevel}: LevelColorCellProps) {
+function LevelColorCell({value, id, updateLevel, swatchAriaLabel}: LevelColorCellProps) {
     const [localColor, setLocalColor] = useState(value);
 
     useEffect(() => {
@@ -720,136 +734,14 @@ function LevelColorCell({value, id, updateLevel}: LevelColorCellProps) {
                 }
             }}
         >
-            <ColorInput
+            <ClassificationColorInput
                 id={`classification-color-${id}`}
                 value={localColor}
                 onChange={setLocalColor}
+                swatchAriaLabel={swatchAriaLabel}
             />
         </div>
     );
 }
-
-// Styled components
-
-const RadioGroup = styled.div`
-    display: flex;
-    gap: 24px;
-
-    label {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-weight: normal;
-        cursor: pointer;
-    }
-`;
-
-const PresetSelect = styled.select.attrs({className: 'form-control'})`
-    max-width: 500px;
-`;
-
-const TableWrapper = styled.div`
-    table.adminConsoleListTable {
-        td, th {
-            &:after, &:before {
-                display: none;
-            }
-        }
-
-        thead {
-            border-top: none;
-            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-            tr {
-                th.pinned {
-                    background: rgba(var(--center-channel-color-rgb), 0.04);
-                    padding-block-end: 8px;
-                    padding-block-start: 8px;
-                }
-            }
-        }
-
-        tbody {
-            tr {
-                border-top: none;
-                border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-                border-bottom-color: rgba(var(--center-channel-color-rgb), 0.08) !important;
-
-                /* Draggable rows use transform; lift focused row so ColorInput popover stacks above rows below. */
-                &:focus-within {
-                    position: relative;
-                    z-index: 30;
-                }
-
-                td {
-                    padding-block-end: 0;
-                    padding-block-start: 0;
-                    vertical-align: middle;
-
-                    &:last-child {
-                        padding-inline-end: 12px;
-                    }
-                    &.pinned {
-                        background: none;
-                    }
-
-                    /* list_table.scss uses overflow:hidden on td; allow picker to extend outside this column only. */
-                    &.color {
-                        overflow: visible;
-                    }
-                }
-            }
-        }
-
-        tfoot {
-            border-top: none;
-        }
-    }
-    .adminConsoleListTableContainer {
-        padding: 2px 0px;
-        overflow: visible;
-    }
-`;
-
-const ColHeaderLeft = styled.div`
-    display: inline-block;
-`;
-
-const ColorCellWrapper = styled.div`
-    .color-input {
-        max-width: 160px;
-    }
-`;
-
-const ReadOnlyColor = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 0;
-    color: rgba(var(--center-channel-color-rgb), 0.72);
-`;
-
-const ColorSwatch = styled.span`
-    display: inline-block;
-    width: 24px;
-    height: 24px;
-    border-radius: 4px;
-    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-    flex-shrink: 0;
-`;
-
-const RankCell = styled.div`
-    padding: 8px;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
-`;
-
-const ActionsCell = styled.div`
-    text-align: right;
-`;
-
-const DeleteButton = styled.button.attrs({className: 'btn btn-sm btn-transparent'})`
-    &:hover {
-        background: rgba(var(--error-text-color-rgb, 210, 75, 78), 0.08);
-    }
-`;
 
 export const searchableStrings = Object.values(msg);

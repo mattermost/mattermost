@@ -9,6 +9,8 @@
  * Professional-only licenses hide this admin route (React Router redirects to /admin_console/about/license).
  */
 
+import type {Page} from '@playwright/test';
+
 import {expect, test, getAdminClient, licenseTier} from '@mattermost/playwright-lib';
 
 import {
@@ -16,6 +18,13 @@ import {
     deleteClassificationMarkingsFieldIfExists,
     setClassificationMarkingsFeatureFlag,
 } from './classification_markings_helpers';
+
+async function selectClassificationPreset(page: Page, optionLabel: string) {
+    await page.getByTestId('classificationPreset').click();
+    const menu = page.locator('.DropDown__menu');
+    await expect(menu).toBeVisible();
+    await menu.getByText(optionLabel, {exact: true}).click();
+}
 
 test.describe('System Console - Classification markings', () => {
     test.describe.configure({mode: 'serial'});
@@ -133,7 +142,7 @@ test.describe('System Console - Classification markings', () => {
 
             // # Enable markings and choose NATO preset
             await page.locator('input[name="classificationEnabled"][value="true"]').click();
-            await page.locator('#adminConsoleWrapper select.form-control').first().selectOption('nato');
+            await selectClassificationPreset(page, 'NATO');
 
             const firstLevelNameInput = page.getByLabel('Classification level name').first();
             // * Preset levels appear in the table
@@ -168,7 +177,7 @@ test.describe('System Console - Classification markings', () => {
             await page.waitForLoadState('networkidle');
 
             await page.locator('input[name="classificationEnabled"][value="true"]').click();
-            await page.locator('#adminConsoleWrapper select.form-control').first().selectOption('uk');
+            await selectClassificationPreset(page, 'UK (GSCP)');
             await page.getByRole('button', {name: 'Save', exact: true}).click();
             await page.waitForLoadState('networkidle');
 
@@ -176,7 +185,7 @@ test.describe('System Console - Classification markings', () => {
             await expect(page.getByLabel('Classification level name').first()).toHaveValue('OFFICIAL');
 
             // # Select a different preset while a field exists on the server
-            await page.locator('#adminConsoleWrapper select.form-control').first().selectOption('us');
+            await selectClassificationPreset(page, 'United States');
 
             // * Warning modal appears with expected copy
             await expect(page.getByText('Change classification preset?')).toBeVisible();
@@ -212,7 +221,7 @@ test.describe('System Console - Classification markings', () => {
             await page.waitForLoadState('networkidle');
 
             await page.locator('input[name="classificationEnabled"][value="true"]').click();
-            await page.locator('#adminConsoleWrapper select.form-control').first().selectOption('canada');
+            await selectClassificationPreset(page, 'Canada');
             await page.getByRole('button', {name: 'Save', exact: true}).click();
             await page.waitForLoadState('networkidle');
 
@@ -221,9 +230,9 @@ test.describe('System Console - Classification markings', () => {
             // # Remove one level from the saved preset
             await page.getByRole('button', {name: 'Delete level'}).first().click();
 
-            const presetSelect = page.locator('#adminConsoleWrapper select.form-control').first();
+            const presetControl = page.getByTestId('classificationPreset');
             // * Preset selection switches to custom
-            await expect(presetSelect).toHaveValue('custom');
+            await expect(presetControl).toContainText('Custom classification levels');
 
             // # Save custom levels
             await page.getByRole('button', {name: 'Save', exact: true}).click();
@@ -231,7 +240,7 @@ test.describe('System Console - Classification markings', () => {
 
             // * No error and preset remains custom
             await expect(page.locator('.admin-console-save .error-message')).toBeEmpty();
-            await expect(presetSelect).toHaveValue('custom');
+            await expect(presetControl).toContainText('Custom classification levels');
         },
     );
 });
