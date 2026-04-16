@@ -18,46 +18,46 @@ import {duration, testConfig} from '@mattermost/playwright-lib';
  */
 const globalConfigSpecs: RegExp[] = [
     // AccessControlSettings (ABAC enable/disable)
-    /team_settings\/team_settings_membership_policies/,
-    /team_settings\/team_settings_policy_editor/,
+    /team_settings\/team_settings_membership_policies.*\.spec\.ts$/,
+    /team_settings\/team_settings_policy_editor.*\.spec\.ts$/,
 
     // ContentFlaggingSettings
-    /content_flagging\/flagging\/flag-messages/,
-    /content_flagging\/notifications\/author-notification/,
+    /content_flagging\/flagging\/flag-messages.*\.spec\.ts$/,
+    /content_flagging\/notifications\/author-notification.*\.spec\.ts$/,
 
     // ConnectedWorkspacesSettings (shared channels)
-    /shared_channel_configuration/,
+    /shared_channel_configuration.*\.spec\.ts$/,
 
     // PrivacySettings (anonymous URLs, email/name visibility)
-    /anonymous_urls/,
-    /account_settings\/profile\/popover_fields/,
+    /anonymous_urls.*\.spec\.ts$/,
+    /account_settings\/profile\/popover_fields.*\.spec\.ts$/,
 
     // TeamSettings (managed categories)
-    /managed_categories/,
+    /managed_categories.*\.spec\.ts$/,
 
     // EmailSettings / SupportSettings (notification config)
-    /notifications\/system_console/,
+    /notifications\/system_console.*\.spec\.ts$/,
 
     // AutoTranslationSettings
-    /autotranslation\/autotranslation_permissions/,
+    /autotranslation\/autotranslation_permissions.*\.spec\.ts$/,
 
     // ServiceSettings (collapsed threads, burn-on-read, email invitations)
-    /message_scroll\/thread_appears_and_scrollable_in_the_rhs/,
-    /burn_on_read/,
-    /team_settings\/invite_user_to_closed_team/,
+    /message_scroll\/thread_appears_and_scrollable_in_the_rhs.*\.spec\.ts$/,
+    /burn_on_read\/.*\.spec\.ts$/,
+    /team_settings\/invite_user_to_closed_team.*\.spec\.ts$/,
 
     // GuestAccountsSettings
-    /single_channel_guests/,
+    /single_channel_guests.*\.spec\.ts$/,
 
     // Office365/SAML settings
-    /mobile_security/,
+    /mobile_security.*\.spec\.ts$/,
 
     // PluginSettings / FileSettings
-    /plugins\/demo_plugin/,
+    /plugins\/demo_plugin\/.*\.spec\.ts$/,
 
     // ServiceSettings (desktop app, self-deleting messages)
-    /desktop_app_update_required/,
-    /self_deleting_messages/,
+    /desktop_app_update_required.*\.spec\.ts$/,
+    /self_deleting_messages.*\.spec\.ts$/,
 ];
 
 const chromeUse = {
