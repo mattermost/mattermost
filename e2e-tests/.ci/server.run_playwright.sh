@@ -43,7 +43,13 @@ ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash -c "for i in {1..3
 
 # Run Playwright test
 # NB: do not exit the script if some testcases fail
-${MME2E_DC_SERVER} exec -i -u "$MME2E_UID" -- playwright bash -c "cd e2e-tests/playwright && npm run test:ci -- ${TEST_FILTER} ${PW_SHARD:-}" | tee ../playwright/logs/playwright.log || true
+# Pass TEST_FILTER and PW_SHARD with `docker compose exec -e` so they are set
+# inside the container. Expanding them only in the host-side bash -c "..." string
+# can leave them empty (then every CI shard runs the full suite and hits the job timeout).
+${MME2E_DC_SERVER} exec -i -T -u "$MME2E_UID" \
+  -e "TEST_FILTER=${TEST_FILTER:-}" \
+  -e "PW_SHARD=${PW_SHARD:-}" \
+  -- playwright bash -lc 'cd e2e-tests/playwright && npm run test:ci -- ${TEST_FILTER:+$TEST_FILTER} ${PW_SHARD:+$PW_SHARD}' | tee ../playwright/logs/playwright.log || true
 
 # Collect run results
 # Documentation on the results.json file: https://playwright.dev/docs/api/class-testcase#test-case-expected-status
