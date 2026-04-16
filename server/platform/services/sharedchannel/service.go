@@ -330,10 +330,10 @@ func messageForSharedChannelStatePost(props model.StringInterface) string {
 		wn, _ := props[model.PostPropsSharedChannelWorkspaceName].(string)
 		return i18n.T("shared_channel.system_message.now_shared", map[string]any{"WorkspaceName": wn})
 	case model.SharedChannelStatePostValueUnshared:
-		if u, ok := props[model.PostPropsSharedChannelWorkspaceUnknown].(string); ok && u == "true" {
+		wn, _ := props[model.PostPropsSharedChannelWorkspaceName].(string)
+		if wn == "" {
 			return i18n.T("shared_channel.system_message.no_longer_shared_unknown")
 		}
-		wn, _ := props[model.PostPropsSharedChannelWorkspaceName].(string)
 		return i18n.T("shared_channel.system_message.no_longer_shared", map[string]any{"WorkspaceName": wn})
 	default:
 		return i18n.T("shared_channel.system_message.no_longer_shared_unknown")
@@ -400,9 +400,7 @@ func (scs *Service) postChannelUnsharedWithWorkspace(channel *model.Channel, wor
 	props := model.StringInterface{
 		model.PostPropsSharedChannelState: model.SharedChannelStatePostValueUnshared,
 	}
-	if workspaceName == "" {
-		props[model.PostPropsSharedChannelWorkspaceUnknown] = "true"
-	} else {
+	if workspaceName != "" {
 		props[model.PostPropsSharedChannelWorkspaceName] = workspaceName
 	}
 	scs.postSharedChannelStatePost(channel, props)

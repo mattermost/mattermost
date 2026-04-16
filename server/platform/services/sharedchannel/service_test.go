@@ -58,10 +58,9 @@ func TestMessageForSharedChannelStatePost(t *testing.T) {
 		assert.Equal(t, i18n.T("shared_channel.system_message.no_longer_shared", map[string]any{"WorkspaceName": "Acme"}), got)
 	})
 
-	t.Run("unshared with workspace_unknown true", func(t *testing.T) {
+	t.Run("unshared without workspace name", func(t *testing.T) {
 		props := model.StringInterface{
-			model.PostPropsSharedChannelState:            model.SharedChannelStatePostValueUnshared,
-			model.PostPropsSharedChannelWorkspaceUnknown: "true",
+			model.PostPropsSharedChannelState: model.SharedChannelStatePostValueUnshared,
 		}
 		got := messageForSharedChannelStatePost(props)
 		assert.Equal(t, i18n.T("shared_channel.system_message.no_longer_shared_unknown"), got)
@@ -104,7 +103,6 @@ func TestPostChannelUnsharedWithWorkspace_emptyWorkspaceName(t *testing.T) {
 			assert.Equal(t, bot.UserId, post.UserId)
 			assert.Equal(t, ch.Id, post.ChannelId)
 			assert.Equal(t, model.SharedChannelStatePostValueUnshared, post.GetProps()[model.PostPropsSharedChannelState])
-			assert.Equal(t, "true", post.GetProps()[model.PostPropsSharedChannelWorkspaceUnknown])
 			_, hasWorkspaceName := post.GetProps()[model.PostPropsSharedChannelWorkspaceName]
 			assert.False(t, hasWorkspaceName)
 			assert.Equal(t,

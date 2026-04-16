@@ -112,7 +112,6 @@ describe('renderSystemMessage shared channel state (renderSharedChannelStateMess
             message: '',
             props: {
                 shared_channel_state: 'unshared',
-                workspace_unknown: 'true',
             },
         };
 

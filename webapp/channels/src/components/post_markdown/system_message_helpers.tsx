@@ -394,7 +394,6 @@ function renderAutoTranslationChangeMessage(post: Post): ReactNode {
 function renderSharedChannelStateMessage(post: Post): ReactNode {
     const state = ensureString(post.props?.shared_channel_state);
     const workspaceName = ensureString(post.props?.workspace_name);
-    const unknown = post.props?.workspace_unknown === 'true';
 
     if (state === 'shared') {
         return (
@@ -406,7 +405,7 @@ function renderSharedChannelStateMessage(post: Post): ReactNode {
         );
     }
     if (state === 'unshared') {
-        if (unknown) {
+        if (workspaceName === '') {
             return (
                 <FormattedMessage
                     id='shared_channel.system_message.no_longer_shared_unknown'

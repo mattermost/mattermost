@@ -106,9 +106,8 @@ const (
 	PostPropsExpireAt                 = "expire_at"
 	PostPropsReadDurationSeconds      = "read_duration"
 	// Shared-channel state posts (PostTypeSharedChannelState): props for client-side i18n.
-	PostPropsSharedChannelState            = "shared_channel_state"
-	PostPropsSharedChannelWorkspaceName    = "workspace_name"
-	PostPropsSharedChannelWorkspaceUnknown = "workspace_unknown"
+	PostPropsSharedChannelState         = "shared_channel_state"
+	PostPropsSharedChannelWorkspaceName = "workspace_name"
 
 	PostPriorityUrgent = "urgent"
 
