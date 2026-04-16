@@ -1290,6 +1290,10 @@
     "translation": "You do not have permission to modify another user's settings."
   },
   {
+    "id": "api.command_mobile_logs.cross_user_unavailable.app_error",
+    "translation": "Unable to change mobile log settings for that user."
+  },
+  {
     "id": "api.command_mobile_logs.status_off",
     "translation": "Mobile app log attachment is currently disabled for {{.User}}."
   },

@@ -249,7 +249,28 @@ test.describe('/mobile-logs slash command', () => {
 
             // * Verify permission denied message
             const lastPost = await channelsPage.getLastPost();
-            await lastPost.toContainText("You do not have permission to modify another user's settings");
+            await lastPost.toContainText('Unable to change mobile log settings for that user.');
+        },
+    );
+
+    /**
+     * @objective Verify that a regular user cannot infer whether a username exists when
+     *            attempting to target another account (same denial as missing permission).
+     */
+    test(
+        'MM-T67880 regular user gets permission denial for nonexistent cross-user target',
+        {tag: '@slash_commands'},
+        async ({pw}) => {
+            const {team, user} = await pw.initSetup();
+
+            const {channelsPage} = await pw.testBrowser.login(user);
+            await channelsPage.goto(team.name, 'town-square');
+            await channelsPage.toBeVisible();
+
+            await channelsPage.postMessage('/mobile-logs on @nonexistentuser12345');
+
+            const lastPost = await channelsPage.getLastPost();
+            await lastPost.toContainText('Unable to change mobile log settings for that user.');
         },
     );
 

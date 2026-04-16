@@ -164,7 +164,7 @@ func TestMobileLogsOnOtherUserWithoutPermission(t *testing.T) {
 		UserId: th.BasicUser.Id,
 	}, "on @"+th.BasicUser2.Username)
 	assert.Equal(t, model.CommandResponseTypeEphemeral, resp.ResponseType)
-	assert.Equal(t, "api.command_mobile_logs.no_permission.app_error", resp.Text)
+	assert.Equal(t, "api.command_mobile_logs.cross_user_unavailable.app_error", resp.Text)
 }
 
 func TestMobileLogsOnOtherUserWithoutAtPrefix(t *testing.T) {
@@ -238,6 +238,34 @@ func TestMobileLogsUserNotFound(t *testing.T) {
 	}, "on @nonexistentuser12345")
 	assert.Equal(t, model.CommandResponseTypeEphemeral, resp.ResponseType)
 	assert.Equal(t, "api.command_mobile_logs.user_not_found.app_error", resp.Text)
+}
+
+func TestMobileLogsNonexistentTargetAsRegularUserReturnsNoPermission(t *testing.T) {
+	th := setup(t).initBasic(t)
+
+	cmd := &MobileLogsProvider{}
+	resp := cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
+		T:      i18n.IdentityTfunc(),
+		UserId: th.BasicUser.Id,
+	}, "on @nonexistentuser12345")
+	assert.Equal(t, model.CommandResponseTypeEphemeral, resp.ResponseType)
+	assert.Equal(t, "api.command_mobile_logs.cross_user_unavailable.app_error", resp.Text)
+}
+
+func TestMobileLogsOnSelfWithAtUsername(t *testing.T) {
+	th := setup(t).initBasic(t)
+
+	cmd := &MobileLogsProvider{}
+	resp := cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
+		T:      i18n.IdentityTfunc(),
+		UserId: th.BasicUser.Id,
+	}, "on @"+th.BasicUser.Username)
+	assert.Equal(t, model.CommandResponseTypeEphemeral, resp.ResponseType)
+	assert.Equal(t, "api.command_mobile_logs.enabled", resp.Text)
+
+	pref, err := th.App.GetPreferenceByCategoryAndNameForUser(th.Context, th.BasicUser.Id, model.PreferenceCategoryAdvancedSettings, model.PreferenceNameAttachAppLogs)
+	require.Nil(t, err)
+	assert.Equal(t, "true", pref.Value)
 }
 
 func TestMobileLogsDeactivatedUser(t *testing.T) {

@@ -25,6 +25,13 @@ func init() {
 	app.RegisterCommandProvider(&MobileLogsProvider{})
 }
 
+func mobileLogsCrossUserUnavailableResponse(args *model.CommandArgs) *model.CommandResponse {
+	return &model.CommandResponse{
+		Text:         args.T("api.command_mobile_logs.cross_user_unavailable.app_error"),
+		ResponseType: model.CommandResponseTypeEphemeral,
+	}
+}
+
 func logMobileLogsAttachAppLogsAudit(a *app.App, rctx request.CTX, actorUserID, targetUserID, value string) {
 	rec := &model.AuditRecord{
 		EventName: model.AuditEventUpdatePreferences,
@@ -101,45 +108,65 @@ func (*MobileLogsProvider) DoCommand(a *app.App, rctx request.CTX, args *model.C
 			}
 		}
 
-		targetUser, appErr := a.GetUserByUsername(username)
+		caller, appErr := a.GetUser(args.UserId)
 		if appErr != nil {
-			if appErr.StatusCode == http.StatusNotFound {
-				return &model.CommandResponse{
-					Text:         args.T("api.command_mobile_logs.user_not_found.app_error", map[string]any{"Username": username}),
-					ResponseType: model.CommandResponseTypeEphemeral,
-				}
-			}
-			rctx.Logger().Error("Failed to get user by username", mlog.String("username", username), mlog.Err(appErr))
+			rctx.Logger().Error("Failed to get caller for mobile-logs command", mlog.String("user_id", args.UserId), mlog.Err(appErr))
 			return &model.CommandResponse{
-				Text:         args.T("api.command_mobile_logs.user_not_found.app_error", map[string]any{"Username": username}),
+				Text:         args.T("api.command_mobile_logs.update_error.app_error"),
 				ResponseType: model.CommandResponseTypeEphemeral,
 			}
 		}
 
-		if targetUser.DeleteAt != 0 {
-			return &model.CommandResponse{
-				Text:         args.T("api.command_mobile_logs.user_not_found.app_error", map[string]any{"Username": username}),
-				ResponseType: model.CommandResponseTypeEphemeral,
+		isSelf := username == strings.ToLower(caller.Username)
+		if isSelf {
+			targetUserID = caller.Id
+			targetDisplayName = "@" + caller.Username
+		} else {
+			// Cross-user: callers without system admin get one neutral outcome for any failure
+			// (unknown user, deactivated, disallowed target, or missing role) to avoid username
+			// enumeration. System admins still get explicit not-found messages for support workflows.
+			if !a.HasPermissionTo(args.UserId, model.PermissionManageSystem) && !a.HasPermissionTo(args.UserId, model.PermissionEditOtherUsers) {
+				return mobileLogsCrossUserUnavailableResponse(args)
 			}
-		}
 
-		targetUserID = targetUser.Id
-		targetDisplayName = "@" + targetUser.Username
+			callerHasManageSystem := a.HasPermissionTo(args.UserId, model.PermissionManageSystem)
 
-		if targetUserID != args.UserId {
-			if !a.HasPermissionTo(args.UserId, model.PermissionManageSystem) {
-				if !a.HasPermissionTo(args.UserId, model.PermissionEditOtherUsers) {
+			targetUser, lookupErr := a.GetUserByUsername(username)
+			if lookupErr != nil {
+				if lookupErr.StatusCode == http.StatusNotFound {
+					if callerHasManageSystem {
+						return &model.CommandResponse{
+							Text:         args.T("api.command_mobile_logs.user_not_found.app_error", map[string]any{"Username": username}),
+							ResponseType: model.CommandResponseTypeEphemeral,
+						}
+					}
+					return mobileLogsCrossUserUnavailableResponse(args)
+				}
+				rctx.Logger().Error("Failed to get user by username", mlog.String("username", username), mlog.Err(lookupErr))
+				if callerHasManageSystem {
 					return &model.CommandResponse{
-						Text:         args.T("api.command_mobile_logs.no_permission.app_error"),
+						Text:         args.T("api.command_mobile_logs.user_not_found.app_error", map[string]any{"Username": username}),
 						ResponseType: model.CommandResponseTypeEphemeral,
 					}
 				}
-				if targetUser.IsSystemAdmin() {
+				return mobileLogsCrossUserUnavailableResponse(args)
+			}
+
+			if targetUser.DeleteAt != 0 {
+				if callerHasManageSystem {
 					return &model.CommandResponse{
-						Text:         args.T("api.command_mobile_logs.no_permission.app_error"),
+						Text:         args.T("api.command_mobile_logs.user_not_found.app_error", map[string]any{"Username": username}),
 						ResponseType: model.CommandResponseTypeEphemeral,
 					}
 				}
+				return mobileLogsCrossUserUnavailableResponse(args)
+			}
+
+			targetUserID = targetUser.Id
+			targetDisplayName = "@" + targetUser.Username
+
+			if !callerHasManageSystem && targetUser.IsSystemAdmin() {
+				return mobileLogsCrossUserUnavailableResponse(args)
 			}
 		}
 	}
