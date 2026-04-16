@@ -38,10 +38,7 @@ func (a *App) GenerateSupportPacket(rctx request.CTX, options *model.SupportPack
 		mut       sync.Mutex // Protects warnings and fileDatas
 	)
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-
+	wg.Go(func() {
 		for name, fn := range functions {
 			fileData, err := fn(rctx)
 			mut.Lock()
@@ -82,14 +79,11 @@ func (a *App) GenerateSupportPacket(rctx request.CTX, options *model.SupportPack
 			}
 		}
 		mut.Unlock()
-	}()
+	})
 
 	// Run the cluster generation in a separate goroutine as CPU profile generation and file upload can take a long time
 	if cluster := a.Cluster(); cluster != nil && *a.Config().ClusterSettings.Enable {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-
+		wg.Go(func() {
 			files, err := cluster.GenerateSupportPacket(rctx, options)
 			mut.Lock()
 			if err != nil {
@@ -101,7 +95,7 @@ func (a *App) GenerateSupportPacket(rctx request.CTX, options *model.SupportPack
 				fileDatas = append(fileDatas, node...)
 			}
 			mut.Unlock()
-		}()
+		})
 	}
 
 	wg.Wait()
