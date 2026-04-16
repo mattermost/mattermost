@@ -272,7 +272,7 @@ func (p *AccessControlPolicy) accessPolicyVersionV0_3() *AppError {
 		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.id.app_error", nil, "", 400)
 	}
 
-	if p.Type == AccessControlPolicyTypeParent && (p.Name == "" || len(p.Name) > MaxPolicyNameLength) {
+	if (p.Type == AccessControlPolicyTypeParent || p.Type == AccessControlPolicyTypePermission) && (p.Name == "" || len(p.Name) > MaxPolicyNameLength) {
 		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.name.app_error", nil, "", 400)
 	}
 

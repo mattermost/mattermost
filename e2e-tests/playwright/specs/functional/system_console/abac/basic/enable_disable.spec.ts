@@ -31,13 +31,32 @@ test('MM-T5782 System admin can enable or disable system-wide ABAC', async ({pw}
         '#AccessControlSettings\\.EnableAttributeBasedAccessControlfalse',
     );
     const saveButton = systemConsolePage.page.getByRole('button', {name: 'Save'});
-    const addPolicyButton = systemConsolePage.page.getByRole('button', {name: 'Add policy'});
-    const runSyncJobButton = systemConsolePage.page.getByRole('button', {name: 'Run Sync Job'});
 
     // * Verify ABAC starts enabled (default config sets it to true)
     await expect(enableRadio).toBeChecked();
-    await expect(addPolicyButton).toBeVisible();
-    await expect(runSyncJobButton).toBeVisible();
+
+    // # Test enable ABAC
+    await enableRadio.click();
+    await expect(enableRadio).toBeChecked();
+    await saveButton.click();
+    await systemConsolePage.page.waitForLoadState('networkidle');
+
+    // * Verify the Attribute-Based Access page only has the toggle — no policy management here
+    await expect(systemConsolePage.page.getByRole('button', {name: 'Add policy'})).not.toBeVisible();
+
+    // * Verify Membership Policies page shows "Add policy" when ABAC is enabled
+    await systemConsolePage.page.goto('/admin_console/system_attributes/membership_policies');
+    await systemConsolePage.page.waitForLoadState('networkidle');
+    await expect(systemConsolePage.page.getByRole('button', {name: 'Add policy'})).toBeVisible();
+
+    // * Verify Permission Policies page shows "Add policy" when ABAC is enabled
+    await systemConsolePage.page.goto('/admin_console/system_attributes/permission_policies');
+    await systemConsolePage.page.waitForLoadState('networkidle');
+    await expect(systemConsolePage.page.getByRole('button', {name: 'Add policy'})).toBeVisible();
+
+    // # Navigate back to Attribute-Based Access to test disable
+    await systemConsolePage.page.goto('/admin_console/system_attributes/attribute_based_access_control');
+    await systemConsolePage.page.waitForLoadState('networkidle');
 
     // # Test disable ABAC, then immediately re-enable to keep the shared server
     // state clean for parallel tests. try/finally ensures re-enable runs even if
@@ -48,9 +67,14 @@ test('MM-T5782 System admin can enable or disable system-wide ABAC', async ({pw}
         await saveButton.click();
         await systemConsolePage.page.waitForLoadState('networkidle');
 
-        // * Verify policy management UI is hidden when disabled
-        await expect(addPolicyButton).not.toBeVisible();
-        await expect(runSyncJobButton).not.toBeVisible();
+        // * Verify Membership Policies no longer shows "Add policy" when ABAC is disabled
+        await systemConsolePage.page.goto('/admin_console/system_attributes/membership_policies');
+        await systemConsolePage.page.waitForLoadState('networkidle');
+        await expect(systemConsolePage.page.getByRole('button', {name: 'Add policy'})).not.toBeVisible();
+
+        // # Re-enable ABAC for subsequent tests
+        await systemConsolePage.page.goto('/admin_console/system_attributes/attribute_based_access_control');
+        await systemConsolePage.page.waitForLoadState('networkidle');
     } finally {
         // # Re-enable ABAC via UI. The page is still on the ABAC settings page;
         // clicking the enable radio and saving is the most reliable restore path.

@@ -169,6 +169,7 @@ test('MM-T5790 Editing policy value applies access control without auto-add', as
             await valueButton.click();
             await page.waitForTimeout(500);
 
+            // Look for input in the dropdown
             const menuInput = page
                 .locator('#value-selector-menu input[type="text"], .value-selector-menu input')
                 .first();
@@ -176,6 +177,7 @@ test('MM-T5790 Editing policy value applies access control without auto-add', as
                 await menuInput.fill('Sales');
                 await page.waitForTimeout(500);
 
+                // Click on the option or press Enter
                 const salesOption = page.locator('#value-selector-menu').getByText('Sales', {exact: true}).first();
                 if (await salesOption.isVisible({timeout: 2000})) {
                     await salesOption.click();

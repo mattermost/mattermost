@@ -209,7 +209,7 @@ function ChannelSettingsAccessRulesTab({
         // Get expressions from system policies
         const systemExpressions = systemPolicies.
             map((policy) => getMembershipRule(policy.rules)?.expression).
-            filter((expr) => expr && expr.trim());
+            filter((expr): expr is string => Boolean(expr && expr.trim()));
 
         // Combine channel expression with system expressions
         const allExpressions = [];

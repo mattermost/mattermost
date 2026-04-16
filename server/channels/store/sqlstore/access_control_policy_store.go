@@ -26,6 +26,7 @@ const DefaultPerPage = 10
 type accessControlPolicyV0_1 struct {
 	Imports []string                        `json:"imports"`
 	Rules   []model.AccessControlPolicyRule `json:"rules"`
+	Roles   []string                        `json:"roles,omitempty"`
 	Scope   string                          `json:"scope,omitempty"`
 	ScopeID string                          `json:"scope_id,omitempty"`
 }
@@ -63,6 +64,7 @@ func (s *storeAccessControlPolicy) toModel() (*model.AccessControlPolicy, error)
 		}
 		policy.Imports = p.Imports
 		policy.Rules = p.Rules
+		policy.Roles = p.Roles
 		policy.Scope = p.Scope
 		policy.ScopeID = p.ScopeID
 	}
@@ -80,6 +82,7 @@ func fromModel(policy *model.AccessControlPolicy) (*storeAccessControlPolicy, er
 	data, err := json.Marshal(&accessControlPolicyV0_1{
 		Imports: policy.Imports,
 		Rules:   policy.Rules,
+		Roles:   policy.Roles,
 		Scope:   policy.Scope,
 		ScopeID: policy.ScopeID,
 	})

@@ -63,7 +63,6 @@ test('MM-T5793 Policy with channels cannot be deleted, policy without channels c
 
     // Navigate back to ABAC page
     await navigateToABACPage(page);
-    await page.waitForTimeout(1000);
 
     // Create policy WITHOUT channel using UI (Advanced mode)
     // We'll create the policy, save it without channels, then remove channels via UI
@@ -82,7 +81,7 @@ test('MM-T5793 Policy with channels cannot be deleted, policy without channels c
     const advancedModeButton = page.getByRole('button', {name: /advanced/i});
     if (await advancedModeButton.isVisible({timeout: 2000})) {
         await advancedModeButton.click();
-        await page.waitForTimeout(1000);
+        await page.waitForLoadState('networkidle');
     }
 
     // Fill CEL expression in Monaco editor
@@ -91,14 +90,11 @@ test('MM-T5793 Policy with channels cannot be deleted, policy without channels c
 
     const editorLines = page.locator('.monaco-editor .view-lines').first();
     await editorLines.click({force: true});
-    await page.waitForTimeout(300);
 
     // Type a simple expression
     const isMac = process.platform === 'darwin';
     await page.keyboard.press(isMac ? 'Meta+a' : 'Control+a');
-    await page.waitForTimeout(100);
     await page.keyboard.type('user.attributes.Department == "Sales"', {delay: 10});
-    await page.waitForTimeout(1000);
 
     // Save policy WITHOUT assigning any channels
     const saveButton = page.getByRole('button', {name: 'Save'});
@@ -107,9 +103,8 @@ test('MM-T5793 Policy with channels cannot be deleted, policy without channels c
     // The "Apply policy" modal should NOT appear since there are no channels
     // The webapp will call handleSubmit() directly and navigate back automatically
     // Wait for navigation to complete
-    await page.waitForURL('**/attribute_based_access_control', {timeout: 10000});
+    await page.waitForURL('**/membership_policies', {timeout: 10000});
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1500);
 
     // ===========================================
     // STEP 1-2: Verify Delete is DISABLED for policy WITH channel
@@ -119,7 +114,6 @@ test('MM-T5793 Policy with channels cannot be deleted, policy without channels c
     const searchInput = page.locator('input[placeholder*="Search" i]').first();
     await searchInput.waitFor({state: 'visible', timeout: 5000});
     await searchInput.clear();
-    await page.waitForTimeout(500);
 
     // Verify both policies are visible
     await page.locator('.policy-name, tr.clickable').count();

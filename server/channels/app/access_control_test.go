@@ -27,7 +27,7 @@ func TestCreateOrUpdateAccessControlPolicy(t *testing.T) {
 			Type: model.AccessControlPolicyTypeParent,
 			Name: "test-policy",
 			Rules: []model.AccessControlPolicyRule{
-				{Actions: []string{"*"}, Expression: "true"},
+				{Actions: []string{"membership"}, Expression: "true"},
 			},
 		}
 		result, err := th.App.CreateOrUpdateAccessControlPolicy(th.Context, policy)
@@ -43,7 +43,7 @@ func TestCreateOrUpdateAccessControlPolicy(t *testing.T) {
 			Type: model.AccessControlPolicyTypeParent,
 			Name: "wildcard-rewrite",
 			Rules: []model.AccessControlPolicyRule{
-				{Actions: []string{"*"}, Expression: "user.attributes.team == \"eng\""},
+				{Actions: []string{"membership"}, Expression: "user.attributes.team == \"eng\""},
 			},
 		}
 
@@ -68,7 +68,7 @@ func TestCreateOrUpdateAccessControlPolicy(t *testing.T) {
 			Type: model.AccessControlPolicyTypeParent,
 			Name: "mixed-actions",
 			Rules: []model.AccessControlPolicyRule{
-				{Actions: []string{"*"}, Expression: "expr1"},
+				{Actions: []string{"membership"}, Expression: "expr1"},
 				{Actions: []string{model.AccessControlPolicyActionUploadFileAttachment}, Expression: "expr2"},
 			},
 		}
@@ -144,7 +144,7 @@ func TestGetChannelsForPolicy(t *testing.T) {
 			Version:  model.AccessControlPolicyVersionV0_2,
 			Rules: []model.AccessControlPolicyRule{
 				{
-					Actions:    []string{"*"},
+					Actions:    []string{"membership"},
 					Expression: "user.attributes.program == \"non-existent-program\"",
 				},
 			},
@@ -170,7 +170,7 @@ func TestGetChannelsForPolicy(t *testing.T) {
 			Version:  model.AccessControlPolicyVersionV0_2,
 			Rules: []model.AccessControlPolicyRule{
 				{
-					Actions:    []string{"*"},
+					Actions:    []string{"membership"},
 					Expression: "user.attributes.program == \"non-existent-program\"",
 				},
 			},
@@ -242,7 +242,7 @@ func TestSearchAccessControlPolicies(t *testing.T) {
 			Version:  model.AccessControlPolicyVersionV0_2,
 			Rules: []model.AccessControlPolicyRule{
 				{
-					Actions:    []string{"*"},
+					Actions:    []string{"membership"},
 					Expression: "user.attributes.program == \"non-existent-program\"",
 				},
 			},
@@ -303,7 +303,7 @@ func TestAssignAccessControlPolicyToChannels(t *testing.T) {
 		Version:  model.AccessControlPolicyVersionV0_2,
 		Rules: []model.AccessControlPolicyRule{
 			{
-				Actions:    []string{"*"},
+				Actions:    []string{"membership"},
 				Expression: "user.attributes.program == \"non-existent-program\"",
 			},
 		},
@@ -459,7 +459,7 @@ func TestUnassignPoliciesFromChannels(t *testing.T) {
 		Revision: 1,
 		Version:  model.AccessControlPolicyVersionV0_2,
 		Rules: []model.AccessControlPolicyRule{
-			{Actions: []string{"*"}, Expression: "true"},
+			{Actions: []string{"membership"}, Expression: "true"},
 		},
 	}
 	var err error
@@ -736,7 +736,7 @@ func TestValidateAccessControlPolicyPermission(t *testing.T) {
 		Version:  model.AccessControlPolicyVersionV0_2,
 		Revision: 1,
 		Rules: []model.AccessControlPolicyRule{
-			{Actions: []string{"*"}, Expression: "true"},
+			{Actions: []string{"membership"}, Expression: "true"},
 		},
 	}
 	var err2 error
@@ -755,7 +755,7 @@ func TestValidateAccessControlPolicyPermission(t *testing.T) {
 		Version:  model.AccessControlPolicyVersionV0_2,
 		Revision: 1,
 		Rules: []model.AccessControlPolicyRule{
-			{Actions: []string{"*"}, Expression: "true"},
+			{Actions: []string{"membership"}, Expression: "true"},
 		},
 	}
 	parentPolicy, err2 = th.App.Srv().Store().AccessControlPolicy().Save(th.Context, parentPolicy)
@@ -842,7 +842,7 @@ func TestValidateChannelAccessControlPolicyCreation(t *testing.T) {
 			Version:  model.AccessControlPolicyVersionV0_2,
 			Revision: 1,
 			Rules: []model.AccessControlPolicyRule{
-				{Actions: []string{"*"}, Expression: "true"},
+				{Actions: []string{"membership"}, Expression: "true"},
 			},
 		}
 
@@ -857,7 +857,7 @@ func TestValidateChannelAccessControlPolicyCreation(t *testing.T) {
 			Version:  model.AccessControlPolicyVersionV0_2,
 			Revision: 1,
 			Rules: []model.AccessControlPolicyRule{
-				{Actions: []string{"*"}, Expression: "true"},
+				{Actions: []string{"membership"}, Expression: "true"},
 			},
 		}
 
@@ -873,7 +873,7 @@ func TestValidateChannelAccessControlPolicyCreation(t *testing.T) {
 			Version:  model.AccessControlPolicyVersionV0_2,
 			Revision: 1,
 			Rules: []model.AccessControlPolicyRule{
-				{Actions: []string{"*"}, Expression: "true"},
+				{Actions: []string{"membership"}, Expression: "true"},
 			},
 		}
 
@@ -901,7 +901,7 @@ func TestValidateChannelAccessControlPolicyCreation(t *testing.T) {
 			Version:  model.AccessControlPolicyVersionV0_2,
 			Revision: 1,
 			Rules: []model.AccessControlPolicyRule{
-				{Actions: []string{"*"}, Expression: "true"},
+				{Actions: []string{"membership"}, Expression: "true"},
 			},
 		}
 
@@ -934,7 +934,7 @@ func TestValidateChannelAccessControlPolicyCreation(t *testing.T) {
 			Version:  model.AccessControlPolicyVersionV0_2,
 			Revision: 1,
 			Rules: []model.AccessControlPolicyRule{
-				{Actions: []string{"*"}, Expression: "true"},
+				{Actions: []string{"membership"}, Expression: "true"},
 			},
 		}
 
@@ -1281,7 +1281,7 @@ func TestIsSystemPolicyAppliedToChannel(t *testing.T) {
 			Type:    model.AccessControlPolicyTypeChannel,
 			Version: model.AccessControlPolicyVersionV0_2,
 			Rules: []model.AccessControlPolicyRule{
-				{Actions: []string{"*"}, Expression: "true"},
+				{Actions: []string{"membership"}, Expression: "true"},
 			},
 			Imports: nil, // No imports
 		}
@@ -1302,7 +1302,7 @@ func TestIsSystemPolicyAppliedToChannel(t *testing.T) {
 			Type:    model.AccessControlPolicyTypeChannel,
 			Version: model.AccessControlPolicyVersionV0_2,
 			Rules: []model.AccessControlPolicyRule{
-				{Actions: []string{"*"}, Expression: "true"},
+				{Actions: []string{"membership"}, Expression: "true"},
 			},
 			Imports: []string{}, // Empty imports
 		}
@@ -1324,7 +1324,7 @@ func TestIsSystemPolicyAppliedToChannel(t *testing.T) {
 			Type:    model.AccessControlPolicyTypeChannel,
 			Version: model.AccessControlPolicyVersionV0_2,
 			Rules: []model.AccessControlPolicyRule{
-				{Actions: []string{"*"}, Expression: "true"},
+				{Actions: []string{"membership"}, Expression: "true"},
 			},
 			Imports: []string{otherPolicyID}, // Different policy ID
 		}
@@ -1345,7 +1345,7 @@ func TestIsSystemPolicyAppliedToChannel(t *testing.T) {
 			Type:    model.AccessControlPolicyTypeChannel,
 			Version: model.AccessControlPolicyVersionV0_2,
 			Rules: []model.AccessControlPolicyRule{
-				{Actions: []string{"*"}, Expression: "true"},
+				{Actions: []string{"membership"}, Expression: "true"},
 			},
 			Imports: []string{systemPolicyID}, // Contains the system policy
 		}
@@ -1368,7 +1368,7 @@ func TestIsSystemPolicyAppliedToChannel(t *testing.T) {
 			Type:    model.AccessControlPolicyTypeChannel,
 			Version: model.AccessControlPolicyVersionV0_2,
 			Rules: []model.AccessControlPolicyRule{
-				{Actions: []string{"*"}, Expression: "true"},
+				{Actions: []string{"membership"}, Expression: "true"},
 			},
 			Imports: []string{otherPolicyID1, systemPolicyID, otherPolicyID2}, // Contains the system policy among others
 		}
@@ -1388,5 +1388,41 @@ func TestIsSystemPolicyAppliedToChannel(t *testing.T) {
 
 		result := th.App.isSystemPolicyAppliedToChannel(th.Context, systemPolicyID, channelID)
 		assert.False(t, result)
+	})
+}
+
+func TestHasPermissionToFileAction(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	t.Run("should allow when access control service is nil", func(t *testing.T) {
+		th.App.Srv().ch.AccessControl = nil
+		result := th.App.HasPermissionToFileAction(th.Context, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
+		assert.True(t, result)
+	})
+
+	t.Run("should allow when ABAC is disabled", func(t *testing.T) {
+		mockAccessControl := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockAccessControl
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(false)
+			cfg.FeatureFlags.PermissionPolicies = true
+		})
+
+		result := th.App.HasPermissionToFileAction(th.Context, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
+		assert.True(t, result)
+	})
+
+	t.Run("should allow when PermissionPolicies feature flag is disabled", func(t *testing.T) {
+		mockAccessControl := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockAccessControl
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			cfg.FeatureFlags.PermissionPolicies = false
+		})
+
+		result := th.App.HasPermissionToFileAction(th.Context, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
+		assert.True(t, result)
 	})
 }

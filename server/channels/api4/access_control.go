@@ -44,6 +44,11 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	if policy.Type == model.AccessControlPolicyTypePermission && !c.App.Config().FeatureFlags.PermissionPolicies {
+		c.Err = model.NewAppError("createAccessControlPolicy", "api.access_control_policy.permission_policies.feature_disabled", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	auditRec := c.MakeAuditRecord(model.AuditEventCreateAccessControlPolicy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "requested", &policy)
@@ -84,6 +89,11 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 		} else if teamID != "" && model.IsValidId(teamID) && policy.Scope == "" {
 			policy.Scope = model.AccessControlPolicyScopeTeam
 			policy.ScopeID = teamID
+		}
+	case model.AccessControlPolicyTypePermission:
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+			c.SetPermissionError(model.PermissionManageSystem)
+			return
 		}
 	case model.AccessControlPolicyTypeChannel:
 		// Check if user has system admin permission first
@@ -431,6 +441,7 @@ func searchAccessControlPolicies(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	permissionPoliciesEnabled := c.App.Config().FeatureFlags.PermissionPolicies
 	var policies []*model.AccessControlPolicy
 	var total int64
 	var appErr *model.AppError
@@ -448,6 +459,11 @@ func searchAccessControlPolicies(c *Context, w http.ResponseWriter, r *http.Requ
 		requesterID := c.AppContext.Session().UserId
 		policies, total, appErr = c.App.SearchTeamAccessPolicies(c.AppContext, props.TeamID, requesterID, *props)
 	} else {
+		if props.Type == model.AccessControlPolicyTypePermission && !permissionPoliciesEnabled {
+			c.Err = model.NewAppError("searchAccessControlPolicies", "api.access_control_policy.permission_policies.feature_disabled", nil, "", http.StatusNotImplemented)
+			return
+		}
+
 		// System-wide search: requires system permission
 		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 			c.SetPermissionError(model.PermissionManageSystem)
@@ -459,6 +475,17 @@ func searchAccessControlPolicies(c *Context, w http.ResponseWriter, r *http.Requ
 	if appErr != nil {
 		c.Err = appErr
 		return
+	}
+
+	if !permissionPoliciesEnabled && props.Type == "" {
+		filtered := make([]*model.AccessControlPolicy, 0, len(policies))
+		for _, p := range policies {
+			if p.Type != model.AccessControlPolicyTypePermission {
+				filtered = append(filtered, p)
+			}
+		}
+		total -= int64(len(policies) - len(filtered))
+		policies = filtered
 	}
 
 	result := model.AccessControlPoliciesWithCount{
