@@ -44,6 +44,10 @@ func (a *App) CreatePropertyValue(rctx request.CTX, value *model.PropertyValue) 
 
 	createdValue, err := a.Srv().propertyService.CreatePropertyValue(rctx, value)
 	if err != nil {
+		var appErr *model.AppError
+		if errors.As(err, &appErr) {
+			return nil, appErr
+		}
 		return nil, model.NewAppError("CreatePropertyValue", "app.property_value.create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return createdValue, nil
@@ -57,6 +61,10 @@ func (a *App) CreatePropertyValues(rctx request.CTX, values []*model.PropertyVal
 
 	createdValues, err := a.Srv().propertyService.CreatePropertyValues(rctx, values)
 	if err != nil {
+		var appErr *model.AppError
+		if errors.As(err, &appErr) {
+			return nil, appErr
+		}
 		return nil, model.NewAppError("CreatePropertyValues", "app.property_value.create_many.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return createdValues, nil
@@ -66,6 +74,10 @@ func (a *App) CreatePropertyValues(rctx request.CTX, values []*model.PropertyVal
 func (a *App) GetPropertyValue(rctx request.CTX, groupID, valueID string) (*model.PropertyValue, *model.AppError) {
 	value, err := a.Srv().propertyService.GetPropertyValue(rctx, groupID, valueID)
 	if err != nil {
+		var appErr *model.AppError
+		if errors.As(err, &appErr) {
+			return nil, appErr
+		}
 		return nil, model.NewAppError("GetPropertyValue", "app.property_value.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return value, nil
@@ -75,6 +87,10 @@ func (a *App) GetPropertyValue(rctx request.CTX, groupID, valueID string) (*mode
 func (a *App) GetPropertyValues(rctx request.CTX, groupID string, ids []string) ([]*model.PropertyValue, *model.AppError) {
 	values, err := a.Srv().propertyService.GetPropertyValues(rctx, groupID, ids)
 	if err != nil {
+		var appErr *model.AppError
+		if errors.As(err, &appErr) {
+			return nil, appErr
+		}
 		return nil, model.NewAppError("GetPropertyValues", "app.property_value.get_many.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return values, nil
@@ -84,6 +100,10 @@ func (a *App) GetPropertyValues(rctx request.CTX, groupID string, ids []string) 
 func (a *App) SearchPropertyValues(rctx request.CTX, groupID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, *model.AppError) {
 	values, err := a.Srv().propertyService.SearchPropertyValues(rctx, groupID, opts)
 	if err != nil {
+		var appErr *model.AppError
+		if errors.As(err, &appErr) {
+			return nil, appErr
+		}
 		return nil, model.NewAppError("SearchPropertyValues", "app.property_value.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return values, nil
@@ -97,6 +117,10 @@ func (a *App) UpdatePropertyValue(rctx request.CTX, groupID string, value *model
 
 	updatedValue, err := a.Srv().propertyService.UpdatePropertyValue(rctx, groupID, value)
 	if err != nil {
+		var appErr *model.AppError
+		if errors.As(err, &appErr) {
+			return nil, appErr
+		}
 		return nil, model.NewAppError("UpdatePropertyValue", "app.property_value.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return updatedValue, nil
@@ -110,6 +134,10 @@ func (a *App) UpdatePropertyValues(rctx request.CTX, groupID string, values []*m
 
 	updatedValues, err := a.Srv().propertyService.UpdatePropertyValues(rctx, groupID, values)
 	if err != nil {
+		var appErr *model.AppError
+		if errors.As(err, &appErr) {
+			return nil, appErr
+		}
 		return nil, model.NewAppError("UpdatePropertyValues", "app.property_value.update_many.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return updatedValues, nil
@@ -123,6 +151,10 @@ func (a *App) UpsertPropertyValue(rctx request.CTX, value *model.PropertyValue) 
 
 	upsertedValue, err := a.Srv().propertyService.UpsertPropertyValue(rctx, value)
 	if err != nil {
+		var appErr *model.AppError
+		if errors.As(err, &appErr) {
+			return nil, appErr
+		}
 		return nil, model.NewAppError("UpsertPropertyValue", "app.property_value.upsert.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return upsertedValue, nil
@@ -170,6 +202,10 @@ func (a *App) UpsertPropertyValues(rctx request.CTX, values []*model.PropertyVal
 // DeletePropertyValue deletes a property value.
 func (a *App) DeletePropertyValue(rctx request.CTX, groupID, valueID string) *model.AppError {
 	if err := a.Srv().propertyService.DeletePropertyValue(rctx, groupID, valueID); err != nil {
+		var appErr *model.AppError
+		if errors.As(err, &appErr) {
+			return appErr
+		}
 		return model.NewAppError("DeletePropertyValue", "app.property_value.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return nil
@@ -178,6 +214,10 @@ func (a *App) DeletePropertyValue(rctx request.CTX, groupID, valueID string) *mo
 // DeletePropertyValuesForTarget deletes all property values for a target.
 func (a *App) DeletePropertyValuesForTarget(rctx request.CTX, groupID, targetType, targetID string) *model.AppError {
 	if err := a.Srv().propertyService.DeletePropertyValuesForTarget(rctx, groupID, targetType, targetID); err != nil {
+		var appErr *model.AppError
+		if errors.As(err, &appErr) {
+			return appErr
+		}
 		return model.NewAppError("DeletePropertyValuesForTarget", "app.property_value.delete_for_target.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return nil
@@ -186,6 +226,10 @@ func (a *App) DeletePropertyValuesForTarget(rctx request.CTX, groupID, targetTyp
 // DeletePropertyValuesForField deletes all property values for a field.
 func (a *App) DeletePropertyValuesForField(rctx request.CTX, groupID, fieldID string) *model.AppError {
 	if err := a.Srv().propertyService.DeletePropertyValuesForField(rctx, groupID, fieldID); err != nil {
+		var appErr *model.AppError
+		if errors.As(err, &appErr) {
+			return appErr
+		}
 		return model.NewAppError("DeletePropertyValuesForField", "app.property_value.delete_for_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return nil

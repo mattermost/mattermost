@@ -1966,10 +1966,6 @@
     "translation": "invalid custom profile attribute field patch"
   },
   {
-    "id": "api.custom_profile_attributes.license_error",
-    "translation": "Your license does not support Custom Profile Attributes."
-  },
-  {
     "id": "api.custom_status.disabled",
     "translation": "Custom status feature has been disabled. Please contact your system administrator for details."
   },
@@ -7669,6 +7665,10 @@
   {
     "id": "app.prepackged-plugin.invalid_version.app_error",
     "translation": "Prepackged plugin version could not be parsed."
+  },
+  {
+    "id": "app.property.license_error",
+    "translation": "Your license does not support this property group."
   },
   {
     "id": "app.property_field.count_for_group.app_error",

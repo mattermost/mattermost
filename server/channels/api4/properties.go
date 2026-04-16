@@ -384,12 +384,25 @@ func hasTargetAccess(c *Context, objectType, targetID string, write bool) bool {
 			return false
 		}
 	case model.PropertyFieldObjectTypeUser:
-		// Any authenticated user can read another user's property values.
-		// The user themselves can write their own values.
-		// Writing another user's values requires PermissionEditOtherUsers.
-		if write && targetID != c.AppContext.Session().UserId {
+		// Self-access and unrestricted sessions (local mode) always pass.
+		if targetID == c.AppContext.Session().UserId || c.AppContext.Session().IsUnrestricted() {
+			return true
+		}
+		if write {
+			// Writing another user's values requires PermissionEditOtherUsers.
 			if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionEditOtherUsers) {
 				c.SetPermissionError(model.PermissionEditOtherUsers)
+				return false
+			}
+		} else {
+			// Reading another user's values requires being able to see them.
+			canSee, appErr := c.App.UserCanSeeOtherUser(c.AppContext, c.AppContext.Session().UserId, targetID)
+			if appErr != nil {
+				c.Err = appErr
+				return false
+			}
+			if !canSee {
+				c.SetPermissionError(model.PermissionViewMembers)
 				return false
 			}
 		}

@@ -2159,6 +2159,23 @@ func TestGetPropertyValuesUserTargetAccess(t *testing.T) {
 		CheckOKStatus(t, resp)
 		require.NotEmpty(t, values)
 	})
+
+	t.Run("non-admin cannot get values of a user they cannot see", func(t *testing.T) {
+		// Strip system-wide view_members so UserCanSeeOtherUser falls back to team/channel membership.
+		th.RemovePermissionFromRole(t, model.PermissionViewMembers.Id, model.SystemUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionViewMembers.Id, model.SystemUserRoleId)
+
+		// Drop BasicUser2 from BasicTeam so they no longer share a team with BasicUser.
+		resp, err := th.SystemAdminClient.RemoveTeamMember(context.Background(), th.BasicTeam.Id, th.BasicUser2.Id)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		th.LoginBasic2(t)
+
+		_, resp, err = th.Client.GetPropertyValues(context.Background(), group.Name, "user", th.BasicUser.Id, model.PropertyValueSearch{PerPage: 60})
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+	})
 }
 
 func TestPatchPropertyValuesUserTargetAccess(t *testing.T) {

@@ -27,13 +27,6 @@ func (api *API) InitCustomProfileAttributes() {
 }
 
 func listCPAFields(c *Context, w http.ResponseWriter, r *http.Request) {
-	// License check is kept here because the hook system doesn't cover
-	// search/list operations. Write operations are covered by the hook.
-	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
-		c.Err = model.NewAppError("Api4.listCPAFields", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
-		return
-	}
-
 	rctx := app.RequestContextWithCallerID(c.AppContext, c.AppContext.Session().UserId)
 	fields, appErr := c.App.ListCPAFields(rctx)
 	if appErr != nil {
@@ -103,13 +96,6 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
-	// License check is kept here because the read path (GetPropertyField)
-	// inside executePatchPropertyField wraps license errors as 500.
-	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
-		c.Err = model.NewAppError("Api4.patchCPAField", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
-		return
-	}
-
 	c.RequireFieldId()
 	if c.Err != nil {
 		return
@@ -176,13 +162,6 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
-	// License check is kept here because the read path (GetPropertyField)
-	// inside executeDeletePropertyField wraps license errors as 500.
-	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
-		c.Err = model.NewAppError("Api4.deleteCPAField", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
-		return
-	}
-
 	c.RequireFieldId()
 	if c.Err != nil {
 		return
@@ -217,11 +196,6 @@ func deleteCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getCPAGroup(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
-		c.Err = model.NewAppError("Api4.getCPAGroup", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
-		return
-	}
-
 	groupID, appErr := c.App.CpaGroupID()
 	if appErr != nil {
 		c.Err = appErr
@@ -238,15 +212,6 @@ func getCPAGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 // generic property API, routes through executePatchPropertyValues, and
 // emits the CPA-specific websocket event.
 func cpaPatchValues(c *Context, w http.ResponseWriter, r *http.Request, userID string, updates map[string]json.RawMessage) {
-	// License check is kept here because the read path (GetPropertyFields)
-	// inside executePatchPropertyValues returns a confusing error when the
-	// license hook filters results. Write-only hooks block cleanly, but the
-	// mixed read+write flow needs an early check.
-	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
-		c.Err = model.NewAppError("Api4.cpaPatchValues", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
-		return
-	}
-
 	// Translate CPA format → generic PropertyValuePatchItem list
 	items := make([]model.PropertyValuePatchItem, 0, len(updates))
 	for fieldID, value := range updates {
@@ -301,30 +266,17 @@ func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
-		c.Err = model.NewAppError("Api4.listCPAValues", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
-		return
-	}
-
 	c.RequireUserId()
 	if c.Err != nil {
 		return
 	}
 
-	targetUserID := c.Params.UserId
-	callerUserID := c.AppContext.Session().UserId
-
-	// Allow unrestricted sessions (local mode) through
-	if !c.AppContext.Session().IsUnrestricted() {
-		canSee, err := c.App.UserCanSeeOtherUser(c.AppContext, callerUserID, targetUserID)
-		if err != nil || !canSee {
-			c.SetPermissionError(model.PermissionViewMembers)
-			return
-		}
+	if !hasTargetAccess(c, model.PropertyFieldObjectTypeUser, c.Params.UserId, false) {
+		return
 	}
 
-	rctx := app.RequestContextWithCallerID(c.AppContext, callerUserID)
-	values, appErr := c.App.ListCPAValues(rctx, targetUserID)
+	rctx := app.RequestContextWithCallerID(c.AppContext, c.AppContext.Session().UserId)
+	values, appErr := c.App.ListCPAValues(rctx, c.Params.UserId)
 	if appErr != nil {
 		c.Err = appErr
 		return

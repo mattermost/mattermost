@@ -141,7 +141,7 @@ func TestListCPAFields(t *testing.T) {
 		fields, resp, err := th.Client.ListCPAFields(context.Background())
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "api.custom_profile_attributes.license_error")
+		CheckErrorID(t, err, "app.property.license_error")
 		require.Empty(t, fields)
 	})
 
@@ -183,7 +183,7 @@ func TestPatchCPAField(t *testing.T) {
 		patchedField, resp, err := client.PatchCPAField(context.Background(), createdField.ID, patch)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "api.custom_profile_attributes.license_error")
+		CheckErrorID(t, err, "app.property.license_error")
 		require.Empty(t, patchedField)
 	}, "endpoint should not work if no valid license is present")
 
@@ -337,7 +337,7 @@ func TestDeleteCPAField(t *testing.T) {
 		resp, err := client.DeleteCPAField(context.Background(), createdField.ID)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "api.custom_profile_attributes.license_error")
+		CheckErrorID(t, err, "app.property.license_error")
 	}, "endpoint should not work if no valid license is present")
 
 	// add a valid license
@@ -432,7 +432,7 @@ func TestListCPAValues(t *testing.T) {
 		values, resp, err := th.Client.ListCPAValues(context.Background(), th.BasicUser.Id)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "api.custom_profile_attributes.license_error")
+		CheckErrorID(t, err, "app.property.license_error")
 		require.Empty(t, values)
 	})
 
@@ -518,7 +518,7 @@ func TestPatchCPAValues(t *testing.T) {
 		patchedValues, resp, err := th.Client.PatchCPAValues(context.Background(), values)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "api.custom_profile_attributes.license_error")
+		CheckErrorID(t, err, "app.property.license_error")
 		require.Empty(t, patchedValues)
 	})
 
@@ -886,7 +886,7 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 		patchedValues, resp, err := th.Client.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, values)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "api.custom_profile_attributes.license_error")
+		CheckErrorID(t, err, "app.property.license_error")
 		require.Empty(t, patchedValues)
 	})
 
