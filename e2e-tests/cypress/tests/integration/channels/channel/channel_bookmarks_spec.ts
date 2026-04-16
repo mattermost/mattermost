@@ -687,44 +687,40 @@ describe('Channel Bookmarks', () => {
             cy.visit(`/${testTeam.name}/channels/${overflowChannel.name}`);
             cy.findByTestId('channel-bookmarks-container').should('be.visible');
 
-            // # Capture the last visible bar item's name
-            cy.findByTestId('channel-bookmarks-container').within(() => {
-                cy.findAllByRole('link').last().invoke('text').then((text) => {
-                    const lastName = text.trim();
+            // # Capture the last visible bar item's name (scoped to bar to exclude overflow)
+            cy.findByTestId('channel-bookmarks-container').findAllByRole('link').last().invoke('text').then((text) => {
+                const lastName = text.trim();
 
-                    // # Start reorder on last bar item, move right to cross into overflow
-                    cy.findByRole('link', {name: lastName}).focus()
-                        .trigger('keydown', {key: ' ', code: 'Space', bubbles: true});
-                    cy.findByRole('link', {name: lastName})
-                        .trigger('keydown', {key: 'ArrowRight', code: 'ArrowRight', bubbles: true});
+                // # Start reorder, move right to cross into overflow, confirm
+                cy.findByRole('link', {name: lastName}).focus()
+                    .trigger('keydown', {key: ' ', code: 'Space', bubbles: true});
+                cy.focused().trigger('keydown', {key: 'ArrowRight', code: 'ArrowRight', bubbles: true});
+                cy.focused().trigger('keydown', {key: ' ', code: 'Space', bubbles: true});
 
-                    // # Confirm placement
-                    cy.focused().trigger('keydown', {key: ' ', code: 'Space', bubbles: true});
+                // * Verify via API the item moved past its original last-visible position
+                cy.makeClient().then(async (client) => {
+                    const bookmarks = await client.getChannelBookmarks(overflowChannel.id);
+                    const movedIndex = bookmarks.findIndex((b) => b.display_name === lastName);
+                    expect(movedIndex).to.be.greaterThan(0);
+                });
 
-                    // * Verify via API the item moved past its original last-visible position
-                    cy.makeClient().then(async (client) => {
-                        const bookmarks = await client.getChannelBookmarks(overflowChannel.id);
-                        const movedIndex = bookmarks.findIndex((b) => b.display_name === lastName);
-                        expect(movedIndex).to.be.greaterThan(0);
-                    });
+                // * Verify DOM: item is present in the open overflow menu (menu stays
+                //   open after confirm when item ends in overflow)
+                cy.get('#channelBookmarksBarMenuDropdown')
+                    .should('be.visible')
+                    .contains(lastName)
+                    .should('be.visible');
 
-                    // * Verify DOM: item is no longer rendered in the visible bar
-                    cy.findByTestId('channel-bookmarks-container').within(() => {
-                        cy.findAllByRole('link').then(($links) => {
-                            const barNames = [...$links].map((el) => el.textContent?.trim());
-                            expect(barNames).to.not.include(lastName);
-                        });
-                    });
+                // # Close menu to remove MUI backdrop covering the bar
+                dismissMenu();
+                cy.get('#channelBookmarksBarMenuDropdown').should('not.exist');
 
-                    // * Verify DOM: item is present in the open overflow menu
-                    cy.get('#channelBookmarksBarMenuDropdown')
-                        .should('be.visible')
-                        .contains(lastName)
-                        .should('be.visible');
+                // * Verify DOM: item is no longer rendered in the visible bar
+                cy.findByTestId('channel-bookmarks-container').findAllByRole('link').then(($links) => {
+                    const barNames = [...$links].map((el) => el.textContent?.trim());
+                    expect(barNames).to.not.include(lastName);
                 });
             });
-
-            dismissMenu();
         });
 
         it('keyboard reorder: ArrowUp moves first overflow item into bar', () => {
