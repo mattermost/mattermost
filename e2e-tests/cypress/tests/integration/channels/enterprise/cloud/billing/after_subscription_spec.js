@@ -9,8 +9,8 @@
 
 // Group: @channels @cloud_only @cloud_trial
 
-import * as TIMEOUTS from '../../../../../fixtures/timeouts';
-import billing from '../../../../../fixtures/client_billing.json';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import billing from '@/fixtures/client_billing.json';
 
 describe('System Console - after subscription scenarios', () => {
     before(() => {

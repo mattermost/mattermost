@@ -10,7 +10,8 @@ import {getEmailUrl, splitEmailBodyText} from '../utils';
 */
 
 Cypress.Commands.add('getRecentEmail', ({username, email}) => {
-    return cy.task('getRecentEmail', {username, email, mailUrl: getEmailUrl()}).then(({status, data}) => {
+    // cy.task() returns untyped data
+    return cy.task('getRecentEmail', {username, email, mailUrl: getEmailUrl()}).then(({status, data}: any) => {
         expect(status).to.equal(200);
 
         const {to, date, body: {text}} = data;

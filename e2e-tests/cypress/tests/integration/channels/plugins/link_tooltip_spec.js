@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @not_cloud @plugin
 
-import {demoPlugin} from '../../../utils';
+import {demoPlugin} from '@/utils';
 
 describe('Link tooltips', () => {
     before(() => {

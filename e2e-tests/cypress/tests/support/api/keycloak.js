@@ -13,7 +13,7 @@ const {
     keycloakAppName,
     keycloakUsername,
     keycloakPassword,
-} = Cypress.env();
+} = Cypress.expose();
 
 Cypress.Commands.add('apiKeycloakGetAccessToken', () => {
     return cy.task('keycloakRequest', {
@@ -30,7 +30,7 @@ Cypress.Commands.add('apiKeycloakGetAccessToken', () => {
 
 function getRealmJson() {
     const baseUrl = Cypress.config('baseUrl');
-    const {ldapServer, ldapPort} = Cypress.env();
+    const {ldapServer, ldapPort} = Cypress.expose();
 
     const realm = JSON.stringify(realmJson).
         replace(/localhost:389/g, `${ldapServer}:${ldapPort}`).

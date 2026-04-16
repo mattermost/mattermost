@@ -10,9 +10,10 @@
 // Stage: @prod
 // Group: @channels @notifications
 
-import {spyNotificationAs} from '../../../support/notification';
-
 import {changeDesktopNotificationAs} from './helper';
+
+import {spyNotificationAs} from '@/support/notification';
+
 
 describe('Desktop notifications', () => {
     let testTeam;
