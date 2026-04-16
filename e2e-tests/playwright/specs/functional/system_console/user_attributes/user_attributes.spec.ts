@@ -215,11 +215,16 @@ test.describe('System Console - User Attributes Management', () => {
         await sp.goto();
 
         // # Find the attribute name input by its current value to avoid
-        // # index-based flakiness when other attributes exist on the server
-        const nameInput = sp.nameInputByValue('Old Name');
-        await expect(nameInput).toBeVisible();
-        await nameInput.fill('New Name');
-        await nameInput.blur();
+        // # index-based flakiness when other attributes exist on the server.
+        // Resolve to a stable locator BEFORE fill() — nameInputByValue uses
+        // input[value="..."] which breaks after the value changes.
+        const nameInputLocator = sp.nameInputByValue('Old Name');
+        await expect(nameInputLocator).toBeVisible();
+        await nameInputLocator.focus();
+        await nameInputLocator.fill('New Name');
+        // blur via keyboard — the CSS-attribute locator no longer matches
+        // after fill() so calling .blur() on it would time out.
+        await sp.page.keyboard.press('Tab');
 
         await sp.saveAndWaitForSettled();
 

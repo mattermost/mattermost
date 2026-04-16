@@ -123,7 +123,7 @@ test('MM-T5791 Editing policy to add attribute with auto-add enabled', async ({p
     // ===========================================
 
     // Navigate back to ABAC list page
-    await page.goto('/admin_console/system_attributes/attribute_based_access_control', {waitUntil: 'networkidle'});
+    await page.goto('/admin_console/system_attributes/membership_policies', {waitUntil: 'networkidle'});
     await page.waitForTimeout(2000);
 
     // Verify we're on the list page by checking for "Add policy" button
@@ -341,7 +341,7 @@ test('MM-T5792 Editing policy to remove attribute rule with auto-add enabled', a
     // STEP 1-2: Edit policy to REMOVE Location rule
     // New expression: Department=Engineering (only)
     // ===========================================
-    await page.goto('/admin_console/system_attributes/attribute_based_access_control', {waitUntil: 'networkidle'});
+    await page.goto('/admin_console/system_attributes/membership_policies', {waitUntil: 'networkidle'});
     await page.waitForTimeout(500);
 
     const addPolicyButton = page.getByRole('button', {name: 'Add policy'});
