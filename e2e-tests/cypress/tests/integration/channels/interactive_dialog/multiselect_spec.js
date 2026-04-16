@@ -35,7 +35,7 @@ describe('Interactive Dialog - Multiselect', () => {
         cy.apiCreateTeam('test-team', 'Test Team').then(({team}) => {
             cy.visit(`/${team.name}`);
 
-            const webhookBaseUrl = Cypress.env().webhookBaseUrl;
+            const webhookBaseUrl = Cypress.expose().webhookBaseUrl;
 
             // Create command for tests with defaults
             const commandWithDefaults = {

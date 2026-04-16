@@ -112,7 +112,8 @@ describe('System Console - Subscriptions section', () => {
         cy.request('/api/v4/analytics/old?name=standard&team_id=').then((response) => {
             cy.get('.PlanDetails__userCount > span').invoke('text').then((text) => {
                 const userCount = response.body.find((obj: {name: string; value: number}) => obj.name === 'unique_user_count');
-                expect(text).to.contain(userCount.value);
+                expect(userCount, 'unique_user_count metric should exist').to.exist;
+                expect(text).to.contain(String(userCount!.value));
             });
         });
 

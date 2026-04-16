@@ -3,8 +3,8 @@
 
 import {ChainableT} from '../types';
 
-const dbClient = Cypress.env('dbClient');
-const dbConnection = Cypress.env('dbConnection');
+const dbClient = Cypress.expose('dbClient');
+const dbConnection = Cypress.expose('dbConnection');
 const dbConfig = {
     client: dbClient,
     connection: dbConnection,

@@ -191,9 +191,10 @@ describe('LDAP guest', () => {
             cy.apiGetLDAPGroups().then((result) => {
                 // # Find "board" group
                 const board = result.body.groups.find((group: {name: string; primary_key: string}) => group.name === 'board');
+                expect(board, 'LDAP group "board" should exist').to.exist;
 
                 // # Link group
-                cy.apiLinkGroup(board.primary_key).then(() => {
+                cy.apiLinkGroup(board!.primary_key).then(() => {
                     // # Add board-one to test team
                     cy.visit(`/admin_console/user_management/teams/${team.id}`);
                     cy.get('.admin-console__header', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').and('have.text', 'Team Configuration');

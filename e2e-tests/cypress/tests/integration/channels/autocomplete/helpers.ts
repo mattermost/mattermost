@@ -38,8 +38,8 @@ function createSearchData(prefix: string) {
 }
 
 function getTestUsers(prefix = ''): Record<string, SimpleUser> {
-    if (Cypress.env('searchTestUsers')) {
-        return JSON.parse(Cypress.env('searchTestUsers'));
+    if (Cypress.expose('searchTestUsers')) {
+        return JSON.parse(Cypress.expose('searchTestUsers'));
     }
 
     return {

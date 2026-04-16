@@ -259,20 +259,20 @@ function postMessageWithReply(channelId: string, postSender: {username: string; 
     });
 }
 
-function scrollThreadsListToEnd(maxScrolls = 1, scrolls = 0): ChainableT<void> | undefined {
+function scrollThreadsListToEnd(maxScrolls = 1, scrolls = 0): ChainableT<void> {
     if (scrolls === maxScrolls) {
-        return;
+        return cy.wrap(undefined);
     }
 
-    cy.get('.ThreadList .virtualized-thread-list').scrollTo('bottom').then(($el) => {
+    return cy.get('.ThreadList .virtualized-thread-list').scrollTo('bottom').then(($el) => {
         const element = $el.find('.no-results__wrapper');
 
         if (element.length < 1) {
-            cy.wait(TIMEOUTS.ONE_SEC).then(() => {
-                scrollThreadsListToEnd(maxScrolls, scrolls + 1);
+            return cy.wait(TIMEOUTS.ONE_SEC).then(() => {
+                return scrollThreadsListToEnd(maxScrolls, scrolls + 1);
             });
-        } else {
-            cy.wrap(element).scrollIntoView();
         }
+
+        return cy.wrap(element).scrollIntoView().then(() => undefined);
     });
 }

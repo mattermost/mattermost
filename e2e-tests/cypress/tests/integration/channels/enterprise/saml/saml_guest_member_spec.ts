@@ -33,8 +33,8 @@ describe('SAML Guest', () => {
         keycloakId: '',
     };
     const userFilter = `username=${guestUser.username}`;
-    const keycloakBaseUrl = Cypress.env('keycloakBaseUrl') || 'http://localhost:8484';
-    const keycloakAppName = Cypress.env('keycloakAppName') || 'mattermost';
+    const keycloakBaseUrl = Cypress.expose('keycloakBaseUrl') || 'http://localhost:8484';
+    const keycloakAppName = Cypress.expose('keycloakAppName') || 'mattermost';
     const idpUrl = `${keycloakBaseUrl}/auth/realms/${keycloakAppName}/protocol/saml`;
     const idpDescriptorUrl = `${keycloakBaseUrl}/auth/realms/${keycloakAppName}`;
 

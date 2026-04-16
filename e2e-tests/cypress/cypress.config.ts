@@ -25,7 +25,8 @@ export default defineConfig({
     videoCompression: true,
     videosFolder: 'tests/videos',
     viewportWidth: 1300,
-    env: {
+    allowCypressEnv: false,
+    expose: {
         adminEmail: 'sysadmin@sample.mattermost.com',
         adminUsername: 'sysadmin',
         adminPassword: 'Sys@dmin-sample1',

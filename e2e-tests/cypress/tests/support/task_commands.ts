@@ -222,9 +222,9 @@ Cypress.Commands.add('urlHealthCheck', urlHealthCheck);
 
 Cypress.Commands.add('requireWebhookServer', () => {
     const baseUrl = Cypress.config('baseUrl');
-    const webhookBaseUrl = Cypress.env('webhookBaseUrl');
-    const adminUsername = Cypress.env('adminUsername');
-    const adminPassword = Cypress.env('adminPassword');
+    const webhookBaseUrl = Cypress.expose('webhookBaseUrl');
+    const adminUsername = Cypress.expose('adminUsername');
+    const adminPassword = Cypress.expose('adminPassword');
     const helperMessage = `
 __Tips:__
     1. In local development, you may run "__npm run start:webhook__" at "/e2e" folder.

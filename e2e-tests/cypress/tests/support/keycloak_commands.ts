@@ -11,7 +11,7 @@ import {ChainableT} from '@/types';
 const {
     keycloakBaseUrl,
     keycloakAppName,
-} = Cypress.env();
+} = Cypress.expose();
 
 const baseUrl = `${keycloakBaseUrl}/auth/admin/realms/${keycloakAppName}`;
 const loginUrl = `${keycloakBaseUrl}/auth/realms/master/protocol/openid-connect/token`;

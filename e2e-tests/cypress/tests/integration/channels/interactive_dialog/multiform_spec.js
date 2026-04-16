@@ -30,7 +30,7 @@ describe('Interactive Dialog - Multiform (Step-by-step Form Submissions)', () =>
         cy.apiCreateTeam('test-team', 'Test Team').then(({team}) => {
             cy.visit(`/${team.name}`);
 
-            const webhookBaseUrl = Cypress.env().webhookBaseUrl;
+            const webhookBaseUrl = Cypress.expose().webhookBaseUrl;
 
             const command = {
                 auto_complete: false,

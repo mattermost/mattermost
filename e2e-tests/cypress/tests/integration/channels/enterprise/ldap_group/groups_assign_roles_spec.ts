@@ -20,7 +20,10 @@ const getTeamsAssociatedToGroupAndUnlink = (groupId: string) => {
         method: 'GET',
     }).then((response) => {
         expect(response.status).to.equal(200);
-        response.body.forEach((element: {group_id: string; team_id?: string; channel_id?: string}) => {
+        response.body.forEach((element: {group_id: string; team_id?: string}) => {
+            if (!element.team_id) {
+                throw new Error(`Missing team_id for group ${element.group_id}`);
+            }
             cy.request({
                 headers: {'X-Requested-With': 'XMLHttpRequest'},
                 url: `/api/v4/groups/${element.group_id}/teams/${element.team_id}/link`,
@@ -38,7 +41,10 @@ const getChannelsAssociatedToGroupAndUnlink = (groupId: string) => {
         method: 'GET',
     }).then((response) => {
         expect(response.status).to.equal(200);
-        response.body.forEach((element: {group_id: string; team_id?: string; channel_id?: string}) => {
+        response.body.forEach((element: {group_id: string; channel_id?: string}) => {
+            if (!element.channel_id) {
+                throw new Error(`Missing channel_id for group ${element.group_id}`);
+            }
             cy.request({
                 headers: {'X-Requested-With': 'XMLHttpRequest'},
                 url: `/api/v4/groups/${element.group_id}/channels/${element.channel_id}/link`,

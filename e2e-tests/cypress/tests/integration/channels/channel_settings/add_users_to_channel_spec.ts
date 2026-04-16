@@ -44,7 +44,7 @@ describe('Channel Settings', () => {
 
             // # Change permission so that regular users can't add team members
             cy.apiGetRolesByNames(['team_user']).then(({roles}) => {
-                if (roles) {
+                if (roles?.length) {
                     const role = roles[0];
                     const permissions = role.permissions.filter((permission: string) => {
                         return !(['add_user_to_team'].includes(permission));

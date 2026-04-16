@@ -114,19 +114,22 @@ describe('Pricing modal', () => {
     let urlL: string;
     let nonAdminUser: Cypress.UserProfile;
 
+    before(() => {
+        cy.apiInitSetup().then(({user, offTopicUrl: url}) => {
+            urlL = url;
+            nonAdminUser = user;
+        });
+    });
+
     it('should not show Upgrade button in global header for non admin users', () => {
         const subscription = {
             id: 'sub_test1',
             product_id: 'prod_1',
             is_free_trial: 'false',
         };
-        cy.apiInitSetup().then(({user, offTopicUrl: url}) => {
-            urlL = url;
-            nonAdminUser = user;
-            simulateSubscription(subscription);
-            cy.apiLogin(user);
-            cy.visit(url);
-        });
+        simulateSubscription(subscription);
+        cy.apiLogin(nonAdminUser);
+        cy.visit(urlL);
 
         // * Check that Upgrade button does not show
         cy.get('#UpgradeButton').should('not.exist');

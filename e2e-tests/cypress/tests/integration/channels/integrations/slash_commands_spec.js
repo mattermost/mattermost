@@ -41,7 +41,7 @@ describe('Integrations', () => {
             team1 = team;
             offTopicUrl1 = offTopicUrl;
             cy.apiGetChannelByName(team1.name, 'off-topic').then(({channel}) => {
-                commandURL = `${Cypress.env().webhookBaseUrl}/send_message_to_channel?channel_id=${channel.id}`;
+                commandURL = `${Cypress.expose().webhookBaseUrl}/send_message_to_channel?channel_id=${channel.id}`;
             });
 
             cy.apiCreateUser().then(({user: otherUser}) => {

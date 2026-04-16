@@ -60,7 +60,7 @@ describe('Compliance Export', () => {
             minioS3Bucket,
             minioS3Endpoint,
             minioS3SSL,
-        } = Cypress.env();
+        } = Cypress.expose();
 
         // # Update S3 Storage settings
         cy.findByTestId('FileSettings.DriverNamedropdown').select('amazons3');

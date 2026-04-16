@@ -17,8 +17,8 @@ export function enableGroupMention(groupName: string, groupID: string, userEmail
     // # Click the allow reference button
     cy.findByTestId('allowReferenceSwitch').then((el) => {
         const button = el.find('button');
-        const classAttribute = button[0].getAttribute('class');
-        if (!classAttribute!.includes('active')) {
+        const classAttribute = button[0]?.getAttribute('class') ?? '';
+        if (!classAttribute.includes('active')) {
             button[0].click();
         }
     });

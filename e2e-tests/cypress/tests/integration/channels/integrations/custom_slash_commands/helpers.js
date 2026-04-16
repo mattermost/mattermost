@@ -16,7 +16,7 @@ export function addNewCommand(team, trigger, url) {
     cy.apiGetChannelByName(team.name, 'town-square').then(({channel}) => {
         let urlToType = url;
         if (url === '') {
-            urlToType = `${Cypress.env('webhookBaseUrl')}/send_message_to_channel?channel_id=${channel.id}`;
+            urlToType = `${Cypress.expose('webhookBaseUrl')}/send_message_to_channel?channel_id=${channel.id}`;
         }
         cy.get('#url').type(urlToType);
 

@@ -6,7 +6,7 @@ import * as TIMEOUTS from '../fixtures/timeouts';
 import {ChainableT} from '@/types';
 
 
-const token = 'SSWS ' + Cypress.env('oktaMMAppToken');
+const token = 'SSWS ' + Cypress.expose('oktaMMAppToken');
 
 type UserId = string | undefined;
 
@@ -63,7 +63,7 @@ function buildProfile(user: User): Profile {
 function oktaCreateUser(user: Partial<User> = {}): ChainableT<UserId> {
     const profile = buildProfile(user as User);
     return cy.task('oktaRequest', {
-        baseUrl: Cypress.env('oktaApiUrl'),
+        baseUrl: Cypress.expose('oktaApiUrl'),
         urlSuffix: '/users/',
         method: 'post',
         token,
@@ -94,7 +94,7 @@ Cypress.Commands.add('oktaCreateUser', oktaCreateUser);
  */
 function oktaGetUser(userId: string = ''): ChainableT<UserId> {
     return cy.task('oktaRequest', {
-        baseUrl: Cypress.env('oktaApiUrl'),
+        baseUrl: Cypress.expose('oktaApiUrl'),
         urlSuffix: '/users?q=' + userId,
         method: 'get',
         token,
@@ -120,7 +120,7 @@ function oktaUpdateUser(userId: string = '', user: Partial<User> = {}) {
     const profile = buildProfile(user as User);
 
     return cy.task('oktaRequest', {
-        baseUrl: Cypress.env('oktaApiUrl'),
+        baseUrl: Cypress.expose('oktaApiUrl'),
         urlSuffix: '/users/' + userId,
         method: 'post',
         token,
@@ -143,14 +143,14 @@ Cypress.Commands.add('oktaUpdateUser', oktaUpdateUser);
 function oktaDeleteUser(userId: string = '') {
     // cy.task() returns untyped data
     cy.task('oktaRequest', {
-        baseUrl: Cypress.env('oktaApiUrl'),
+        baseUrl: Cypress.expose('oktaApiUrl'),
         urlSuffix: '/users/' + userId,
         method: 'delete',
         token,
     }).then((response: any) => {
         expect(response.status).to.equal(204);
         cy.task('oktaRequest', {
-            baseUrl: Cypress.env('oktaApiUrl'),
+            baseUrl: Cypress.expose('oktaApiUrl'),
             urlSuffix: '/users/' + userId,
             method: 'delete',
             token,
@@ -170,7 +170,7 @@ Cypress.Commands.add('oktaDeleteUser', oktaDeleteUser);
 function oktaDeleteSession(userId: string = '') {
     // cy.task() returns untyped data
     cy.task('oktaRequest', {
-        baseUrl: Cypress.env('oktaApiUrl'),
+        baseUrl: Cypress.expose('oktaApiUrl'),
         urlSuffix: '/users/' + userId + '/sessions',
         method: 'delete',
         token,
@@ -194,8 +194,8 @@ Cypress.Commands.add('oktaDeleteSession', oktaDeleteSession);
  */
 function oktaAssignUserToApplication(userId: string = '', user: Partial<User> = {}) {
     return cy.task('oktaRequest', {
-        baseUrl: Cypress.env('oktaApiUrl'),
-        urlSuffix: '/apps/' + Cypress.env('oktaMMAppId') + '/users',
+        baseUrl: Cypress.expose('oktaApiUrl'),
+        urlSuffix: '/apps/' + Cypress.expose('oktaMMAppId') + '/users',
         method: 'post',
         token,
         data: {

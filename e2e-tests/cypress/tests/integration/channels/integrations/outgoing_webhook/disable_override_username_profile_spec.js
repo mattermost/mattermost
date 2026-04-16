@@ -19,7 +19,7 @@ import * as TIMEOUTS from '@/fixtures/timeouts';
 describe('Outgoing webhook', () => {
     const triggerWord = 'text';
     const messageWithTriggerWord = 'text with some more text';
-    const callbackUrl = `${Cypress.env().webhookBaseUrl}/post_outgoing_webhook`;
+    const callbackUrl = `${Cypress.expose().webhookBaseUrl}/post_outgoing_webhook`;
     const noChannelSelectionOption = '--- Select a channel ---';
     const overrideIconUrl = 'http://via.placeholder.com/150/00F/888';
     const defaultUsername = 'webhook';

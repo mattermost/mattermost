@@ -15,7 +15,7 @@ import {enablePermission, goToSystemScheme, saveConfigForScheme} from '../system
 import {getRandomId} from '@/utils';
 
 describe('Integrations page', () => {
-    const webhookBaseUrl = Cypress.env('webhookBaseUrl');
+    const webhookBaseUrl = Cypress.expose('webhookBaseUrl');
 
     let user1: Cypress.UserProfile;
     let user2: Cypress.UserProfile;

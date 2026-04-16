@@ -28,7 +28,7 @@ context('Okta', () => {
         oktaBaseUrl,
         oktaMMAppName,
         oktaMMEntityId,
-    } = Cypress.env();
+    } = Cypress.expose();
     const idpUrl = `${oktaBaseUrl}/app/${oktaMMAppName}/${oktaMMEntityId}/sso/saml`;
     const idpMetadataUrl = `${oktaBaseUrl}/app/${oktaMMEntityId}/sso/saml/metadata`;
 
