@@ -149,7 +149,8 @@ jobs:
       ENABLED_DOCKER_SERVICES: "${{ inputs.enabled_docker_services }}"
       TEST: playwright
       TEST_FILTER: "${{ inputs.test_filter }}"
-      PW_SHARD: "${{ format('--shard={0}/{1}', matrix.worker_index, inputs.workers) }}"
+      PW_SHARD_INDEX: "${{ matrix.worker_index }}"
+      PW_SHARD_TOTAL: "${{ inputs.workers }}"
       BRANCH: "${{ inputs.branch }}-${{ inputs.test_type }}"
       BUILD_ID: "${{ inputs.build_id }}"
       CI_BASE_URL: "${{ inputs.test_type }}-test-${{ matrix.worker_index }}"
