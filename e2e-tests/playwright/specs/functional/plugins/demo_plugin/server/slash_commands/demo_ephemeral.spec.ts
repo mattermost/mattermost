@@ -46,12 +46,15 @@ test('should send ephemeral post with Update and Delete actions via /ephemeral c
     await expect(updatedPost.getByRole('button', {name: 'Delete', exact: true})).toBeVisible();
 
     // 7. Click Delete and verify post content is removed and buttons are gone
+    // After delete the text changes again — re-find by the new content
     await updatedPost.getByRole('button', {name: 'Delete', exact: true}).click();
-    await expect(channelsPage.centerView.container.getByText('(message deleted)', {exact: true})).toBeVisible();
-    await expect(channelsPage.centerView.container.getByRole('button', {name: 'Update 1'})).not.toBeVisible();
-    await expect(
-        channelsPage.centerView.container.getByRole('button', {name: 'Delete', exact: true}),
-    ).not.toBeVisible();
+    const deletedPost = channelsPage.centerView.container
+        .getByRole('listitem')
+        .filter({hasText: '(message deleted)'})
+        .last();
+    await expect(deletedPost.getByText('(message deleted)', {exact: true})).toBeVisible();
+    await expect(deletedPost.getByRole('button', {name: 'Update 1', exact: true})).not.toBeVisible();
+    await expect(deletedPost.getByRole('button', {name: 'Delete', exact: true})).not.toBeVisible();
 
     // 8. Send /ephemeral_override command (still in Town Square)
     await channelsPage.centerView.postCreate.input.fill('/ephemeral_override');

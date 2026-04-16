@@ -43,9 +43,13 @@ test('should post interactive button and respond with click attribution via /int
     await expect(threadPanel).toBeVisible();
 
     // Verify response credits the user who clicked
-    await expect(threadPanel.locator('p').filter({hasText: 'clicked an interactive button.'})).toBeVisible();
+    await expect(
+        threadPanel.locator('p').filter({hasText: `${user.username} clicked an interactive button.`}),
+    ).toBeVisible();
 
     // Verify JSON payload contains expected static fields
-    await expect(threadPanel.locator('code').filter({hasText: '"user_name"'})).toBeVisible();
+    await expect(
+        threadPanel.locator('code').filter({hasText: new RegExp(`"user_name"\\s*:\\s*"${user.username}"`)}),
+    ).toBeVisible();
     await expect(threadPanel.locator('code').filter({hasText: '"type": "button"'})).toBeVisible();
 });
